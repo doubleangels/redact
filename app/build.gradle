@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace 'com.doubleangels.redact'
-    compileSdk 35
+    compileSdk 35w
 
     defaultConfig {
         applicationId "com.doubleangels.redact"
