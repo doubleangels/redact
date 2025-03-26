@@ -7,14 +7,14 @@ plugins {
 
 android {
     namespace 'com.doubleangels.redact'
-    compileSdk 35w
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.doubleangels.redact"
         minSdk 31
         targetSdk 35
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.0.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -32,15 +32,15 @@ android {
 }
 
 dependencies {
-    implementation libs.appcompat
-    implementation libs.constraintlayout
-    implementation libs.material.v190
-    implementation libs.exifinterface
-    implementation libs.activity
-    implementation libs.fragment
     implementation platform(libs.firebase.bom)
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.perf)
+    implementation libs.activity
+    implementation libs.appcompat
+    implementation libs.constraintlayout
+    implementation libs.exifinterface
+    implementation libs.fragment
+    implementation libs.material.v190
     implementation libs.glide
 }
