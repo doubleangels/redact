@@ -31,7 +31,15 @@ Redact is a simple, powerful privacy-focused app that removes hidden metadata (E
 - [Features](#features)
 - [Installation](#installation)
 - [How It Works](#how-it-works)
+
 - [FAQ](#faq)
+
+  - [What exactly is EXIF data?](#what-is-exif-data)
+  - [Does Redact alter the quality of my photos or videos?](#quality-preservation)
+  - [Does Redact need internet access?](#internet-access)
+  - [Where are processed files stored?](#file-storage)
+  - [Are there any analytics or trackers?](#analytics-tracking)
+
 - [Reporting Issues & Feedback](#reporting-issues--feedback)
 - [Privacy & Security](#privacy--security)
 - [License](#license)
@@ -98,7 +106,7 @@ All processing happens locally on your device, with no internet connection requi
 
 ## FAQ
 
-### What exactly is EXIF data?
+### <a id="what-is-exif-data"></a>What exactly is EXIF data?
 
 EXIF (Exchangeable Image File Format) data is hidden metadata embedded in photos and videos that can include:
 
@@ -108,19 +116,19 @@ EXIF (Exchangeable Image File Format) data is hidden metadata embedded in photos
 - Camera settings (aperture, shutter speed, etc.)
 - Sometimes even unique identifiers
 
-### Does Redact alter the quality of my photos or videos?
+### <a id="quality-preservation"></a>Does Redact alter the quality of my photos or videos?
 
 No. Redact is designed to preserve the original quality of your media files while removing only the metadata.
 
-### Does Redact need internet access?
+### <a id="internet-access"></a>Does Redact need internet access?
 
 No. The core functionality works completely offline. Your files never leave your device.
 
-### Where are processed files stored?
+### <a id="file-storage"></a>Where are processed files stored?
 
 Cleaned files are saved to your device's storage in a designated folder for easy access.
 
-### Are there any analytics or trackers?
+### <a id="analytics-tracking"></a>Are there any analytics or trackers?
 
 This app uses [Google Firebase](https://firebase.google.com) and only collects anonymized data to help diagnose issues. The information I receive includes:
 
