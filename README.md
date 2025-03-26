@@ -75,11 +75,7 @@ Redact is a simple, powerful privacy-focused app that removes hidden metadata (E
 
 ### Google Play Store
 
-Install Redact through the Google Play Store.
-
-<a href="https://play.google.com/store/apps/details?id=com.doubleangels.redact">
-  <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="48">
-</a>
+Install Redact through the [Google Play Store](https://play.google.com/store/apps/details?id=com.doubleangels.redact).
 
 ---
 
