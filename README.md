@@ -120,6 +120,18 @@ No. The core functionality works completely offline. Your files never leave your
 
 Cleaned files are saved to your device's storage in a designated folder for easy access.
 
+### Are there any analytics or trackers?
+
+This app uses [Google Firebase](https://firebase.google.com) and only collects anonymized data to help diagnose issues. The information I receive includes:
+
+- **Device model and type**
+- **Operating system version**
+- **App version**
+- **Battery life, memory usage, and storage status when an error occurs**
+- **Connection type (Wi-Fi/cellular) and VPN status at the time of an error** (No IP addresses are collected or logged)
+- **Detailed crash reports and error logs**
+- **Performance metrics for specific code sections**
+
 ---
 
 ## Reporting Issues & Feedback
