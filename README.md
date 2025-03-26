@@ -149,8 +149,8 @@ Your feedback helps make Redact better for everyone!
 
 Redact is built with privacy as its core principle:
 
-- No data collection
-- No network requests for core functionality
+- Your files remain yours, they never leave your device
+- No network requests needed for core functionality
 - Open-source code for transparency
 
 Your privacy is not just a feature - it's the entire point of this app.
