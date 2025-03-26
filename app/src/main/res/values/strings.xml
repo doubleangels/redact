@@ -1,0 +1,31 @@
+<resources>
+    <!-- App name -->
+    <string name="app_name">Redact</string>
+
+    <!-- Content descriptions -->
+    <string name="content_description_media_thumbnail">Media thumbnail</string>
+    <string name="content_description_image_view">Image view</string>
+
+    <!-- Button labels -->
+    <string name="button_select_media">Select Media</string>
+    <string name="button_strip_exif_data">Clean Metadata</string>
+
+    <!-- Status and progress messages -->
+    <string name="status_processing">Processing…</string>
+    <string name="status_processed_items">Processed %1$d items!</string>
+    <string name="status_selected_items">Selected: %1$d items</string>
+    <string name="status_first_select_media_files">Please select media files first!</string>
+    <string name="status_ready">Ready to select media!</string>
+    <string name="status_permissions_required">Permissions required!</string>
+    <string name="status_requesting_permissions">Requesting permissions…</string>
+    <string name="status_select_media_files">Select media to strip metadata!</string>
+
+    <!-- Share processing strings -->
+    <string name="share_processing_title">Processing</string>
+    <string name="share_stripping_status">Stripping metadata…</string>
+    <string name="share_chooser_title">Share clean media file via</string>
+    <string name="share_error_unsupported_media">Unsupported media type</string>
+    <string name="share_error_unsupported_action">Unsupported action</string>
+    <string name="share_error_receive_failed">Failed to receive media</string>
+    <string name="share_error_processing_failed">Processing failed</string>
+</resources>

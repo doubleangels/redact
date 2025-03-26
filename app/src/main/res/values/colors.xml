@@ -1,0 +1,10 @@
+<resources>
+    <!-- Base colors (used for preview and as fallback) -->
+    <color name="primary">#4285F4</color>
+    <color name="primary_dark">#3367D6</color>
+    <color name="accent">#00C853</color>
+
+    <!-- Utility colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

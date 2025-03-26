@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "743836737207",
+    "project_id": "redact-82473",
+    "storage_bucket": "redact-82473.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:743836737207:android:60cf7ad063c246030d3732",
+        "android_client_info": {
+          "package_name": "com.doubleangels.redact"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCfXkjM2I3fMdSrFbsOQ0BcBF0303eG8fg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

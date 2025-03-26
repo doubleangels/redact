@@ -1,0 +1,26 @@
+Redact is a simple, powerful app that removes hidden metadata (EXIF data) from your photos and videos before sharing them online.
+
+📱 PROTECT YOUR PRIVACY
+Photos and videos often contain hidden information that reveals:
+• Your exact GPS location
+• Date and time details
+• Device information
+• Camera settings
+• Sometimes even personal identifiers
+
+🔒 KEY FEATURES
+• One-tap metadata removal
+• Batch processing for multiple files
+• Original quality preservation
+• Local processing - your data never leaves your device
+• No ads, open-source, and privacy-focused
+
+👍 PERFECT FOR
+• Social media sharing without location data
+• Professional photo sharing without technical details
+• Protecting privacy when uploading content
+• Keeping personal videos truly private
+
+Redact processes everything locally on your device. No internet connection required for core functionality, and none of your files are ever sent to external servers.
+
+Take control of your digital footprint and share content on your terms!
