@@ -2,6 +2,7 @@ package com.doubleangels.redact;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.WindowInsetsController;
@@ -142,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
             // Set up UI components and event handlers
             setupViews();
             setupStatusBarColors();
+            setupVersionNumber();
 
             // Initialize utility classes for permissions, media selection, etc.
             initUtilityClasses();
@@ -300,6 +302,33 @@ public class MainActivity extends AppCompatActivity {
                 FirebaseCrashlytics.getInstance().log("Insets controller is null");
             }
         } catch (Exception e) {
+            FirebaseCrashlytics.getInstance().recordException(e);
+        }
+    }
+
+    /**
+     * Sets up the version number display in the UI.
+     *
+     * This method retrieves the app's version name from the package info
+     * and displays it in the designated TextView. Any exceptions during
+     * this process are logged to Firebase Crashlytics.
+     */
+    private void setupVersionNumber() {
+        try {
+            // Find the TextView that will display the version number
+            TextView versionText = findViewById(R.id.versionText);
+
+            // Get the app's package info to retrieve the version name
+            PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+
+            // Set the version name to the TextView
+            versionText.setText(packageInfo.versionName);
+
+            // Log the version name to Crashlytics for debugging purposes
+            assert packageInfo.versionName != null;
+            FirebaseCrashlytics.getInstance().setCustomKey("app_version", packageInfo.versionName);
+        } catch (Exception e) {
+            // Record any exceptions that occur during version setup
             FirebaseCrashlytics.getInstance().recordException(e);
         }
     }
