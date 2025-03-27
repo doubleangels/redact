@@ -1,1 +1,1 @@
-Remove EXIF data from photos & videos to protect privacy when sharing online.
+Remove hidden photo & video metadata to protect your privacy before sharing.

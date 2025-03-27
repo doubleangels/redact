@@ -1,26 +1,12 @@
-Redact is a simple, powerful app that removes hidden metadata (EXIF data) from your photos and videos before sharing them online.
+Redact is a simple yet powerful app that removes hidden metadata (EXIF data) from your photos and videos before you share them online. This essential privacy tool eliminates personal information that could otherwise be exposed when posting on social media and other platforms.
 
-📱 PROTECT YOUR PRIVACY
-Photos and videos often contain hidden information that reveals:
-• Your exact GPS location
-• Date and time details
-• Device information
-• Camera settings
-• Sometimes even personal identifiers
+Features:
+- Complete Privacy Protection: Remove location data, device information, and other personal details hidden in your media files
+- Intuitive Interface: One-tap metadata removal makes protecting your privacy simple and quick
+- Batch Processing: Clean multiple photos and videos simultaneously
+- Original Quality Preservation: Remove metadata without compromising image or video quality
+-  100% Local Processing: All operations happen on your device - your data never leaves your phone
+- No Ads & Open-Source: Committed to privacy with no advertising and fully transparent code
+- Share Sheet Integration: Easily clean files from any app via Android's share menu
 
-🔒 KEY FEATURES
-• One-tap metadata removal
-• Batch processing for multiple files
-• Original quality preservation
-• Local processing - your data never leaves your device
-• No ads, open-source, and privacy-focused
-
-👍 PERFECT FOR
-• Social media sharing without location data
-• Professional photo sharing without technical details
-• Protecting privacy when uploading content
-• Keeping personal videos truly private
-
-Redact processes everything locally on your device. No internet connection required for core functionality, and none of your files are ever sent to external servers.
-
-Take control of your digital footprint and share content on your terms!
+EXIF metadata can include GPS coordinates, date/time information, device details, camera settings, and even unique identifiers. Redact removes this hidden information while preserving the quality of your media files.
