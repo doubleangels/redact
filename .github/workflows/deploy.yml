@@ -47,7 +47,7 @@ jobs:
           name: google-play-bundle
           path: app/build/outputs/bundle/release/app-release.aab
 
-  publish-built-files:
+  publish-built-file:
     needs: ["build-for-google-play"]
     runs-on: ubuntu-latest
     steps:
@@ -59,7 +59,7 @@ jobs:
         with:
           name: google-play-bundle
           path: .
-          
+
       - name: Create service_account.json for Google Play release
         run: echo '${{ secrets.SERVICE_ACCOUNT_JSON }}' > service_account.json
 
@@ -72,27 +72,8 @@ jobs:
           track: production
           whatsNewDirectory: whatsnew
 
-  appsweep-scan:
-    needs: ["build-for-google-play"]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download APK from Github release artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: github-release-apk
-          path: .
-
-      - uses: guardsquare/appsweep-action@main
-        with:
-          appsweep_api_key: ${{ secrets.APPSWEEP_API_KEY }}
-          input_file: app-release.apk
-          commit_hash: ${{ github.sha }}
-
   delete-workflow-runs:
-    needs: ["build-for-google-play", "publish-built-files", "appsweep-scan"]
+    needs: ["build-for-google-play", "publish-built-file"]
     runs-on: ubuntu-latest
     steps:
       - name: Delete workflow runs
