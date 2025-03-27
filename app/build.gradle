@@ -41,6 +41,6 @@ dependencies {
     implementation libs.constraintlayout
     implementation libs.exifinterface
     implementation libs.fragment
-    implementation libs.material.v190
+    implementation libs.material.v1110
     implementation libs.glide
 }
