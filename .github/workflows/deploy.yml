@@ -59,21 +59,7 @@ jobs:
         with:
           name: google-play-bundle
           path: .
-
-      - name: Extract Android version code from bundle
-        id: android_version
-        run: |
-          echo "version-name=$(bundletool dump manifest --bundle ./app.aab --xpath /manifest/@android:versionCode)" >> $GITHUB_OUTPUT_PATH
-
-      - name: Create Github release using release-drafter
-        id: create_release
-        uses: release-drafter/release-drafter@v6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag: v${{ steps.android_version.outputs.version-name }}
-          name: v${{ steps.android_version.outputs.version-name }}
-
+          
       - name: Create service_account.json for Google Play release
         run: echo '${{ secrets.SERVICE_ACCOUNT_JSON }}' > service_account.json
 
