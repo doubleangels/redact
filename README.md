@@ -21,7 +21,7 @@
 
 # Redact
 
-Redact is a simple, powerful privacy-focused app that removes hidden metadata (EXIF data) from your photos and videos before sharing them online. This helps protect your privacy by eliminating personal information that could be exposed when sharing content on social media and other platforms.
+Redact is a simple yet powerful app that removes hidden metadata (EXIF data) from your photos and videos before you share them online. This essential privacy tool eliminates personal information that could otherwise be exposed when posting on social media and other platforms.
 
 **Take control of your digital footprint and share content on your terms!**
 
@@ -52,6 +52,12 @@ Redact is a simple, powerful privacy-focused app that removes hidden metadata (E
 - **Complete Privacy Protection:**  
   Remove hidden metadata that can reveal your location, device information, and personal details.
 
+- **Metadata Viewer:**  
+  Easily view all hidden metadata in your files before deciding what to remove.
+
+- **Share Sheet Integration:**  
+  Easily share files to Redact and get back clean files ready to share further.
+
 - **Intuitive Interface:**  
   One-tap metadata removal makes protecting your privacy simple and quick.
 
@@ -61,14 +67,13 @@ Redact is a simple, powerful privacy-focused app that removes hidden metadata (E
 - **Original Quality Preservation:**  
   Remove metadata without compromising the quality of your media files.
 
-- **Local Processing:**  
+- **100% Local Processing:**  
   All processing happens on your device - your data never leaves your phone.
 
 - **No Ads & Open-Source:**  
   Committed to privacy with no advertising and fully transparent code.
 
-- **Share Sheet Integration:**  
-  Easily share files to Redact and get back clean files ready to share further.
+EXIF metadata can include GPS coordinates, date/time information, device details, camera settings, and even unique identifiers. Redact removes this hidden information while preserving the quality of your media files.
 
 ---
 
