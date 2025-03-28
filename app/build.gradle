@@ -13,8 +13,8 @@ android {
         applicationId "com.doubleangels.redact"
         minSdk 31
         targetSdk 35
-        versionCode 3
-        versionName "1.0.2"
+        versionCode 4
+        versionName "1.1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -28,6 +28,9 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
+    }
+    buildFeatures {
+        viewBinding true
     }
 }
 
@@ -43,4 +46,8 @@ dependencies {
     implementation libs.fragment
     implementation libs.material.v1110
     implementation libs.glide
+    implementation libs.lifecycle.livedata.ktx
+    implementation libs.lifecycle.viewmodel.ktx
+    implementation libs.navigation.fragment
+    implementation libs.navigation.ui
 }

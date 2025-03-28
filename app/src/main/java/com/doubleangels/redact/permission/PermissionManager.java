@@ -29,6 +29,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
  */
 public class PermissionManager {
     private static final int PERMISSION_REQUEST_CODE = 123;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 124;
     private static final String TAG = "PermissionManager";
 
     /** Activity context used for permission requests */
@@ -42,6 +43,9 @@ public class PermissionManager {
 
     /** Tracks whether permission rationale has been shown to the user */
     private boolean hasShownRationale = false;
+
+    /** Tracks whether location permission rationale has been shown to the user */
+    private boolean hasShownLocationRationale = false;
 
     /** Callback interface for permission status updates */
     private final PermissionCallback callback;
@@ -61,6 +65,12 @@ public class PermissionManager {
 
         /** Called when the permission request process begins */
         void onPermissionsRequestStarted();
+
+        /** Called when location permission is granted (optional - can be null) */
+        default void onLocationPermissionGranted() {}
+
+        /** Called when location permission is denied (optional - can be null) */
+        default void onLocationPermissionDenied() {}
     }
 
     /**
@@ -154,6 +164,25 @@ public class PermissionManager {
     }
 
     /**
+     * Checks if location permission is needed.
+     *
+     * @return true if location permission needs to be requested, false if it's already granted
+     */
+    public boolean needsLocationPermission() {
+        try {
+            boolean hasLocationPermission = ContextCompat.checkSelfPermission(activity,
+                    Manifest.permission.ACCESS_MEDIA_LOCATION) == PackageManager.PERMISSION_GRANTED;
+
+            crashlytics.setCustomKey("has_location_permission", hasLocationPermission);
+            return !hasLocationPermission;
+        } catch (Exception e) {
+            crashlytics.recordException(new Exception("Error checking location permission: " + e.getMessage(), e));
+            return ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_MEDIA_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED;
+        }
+    }
+
+    /**
      * Requests the appropriate storage or media permissions based on Android version.
      * Shows rationale UI when required before requesting permissions.
      */
@@ -209,6 +238,34 @@ public class PermissionManager {
     }
 
     /**
+     * Requests the ACCESS_MEDIA_LOCATION permission for accessing media geolocation data.
+     * Shows rationale UI when required before requesting permission.
+     */
+    public void requestLocationPermission() {
+        try {
+            hasShownLocationRationale = true;
+            crashlytics.setCustomKey("has_shown_location_rationale", true);
+
+            boolean shouldShowLocationRationale = ActivityCompat.shouldShowRequestPermissionRationale(
+                    activity, Manifest.permission.ACCESS_MEDIA_LOCATION);
+
+            crashlytics.setCustomKey("should_show_location_rationale", shouldShowLocationRationale);
+            crashlytics.log("Requesting ACCESS_MEDIA_LOCATION permission");
+
+            if (shouldShowLocationRationale) {
+                showLocationRationaleSnackbar();
+            } else {
+                requestMediaLocationPermission();
+            }
+        } catch (Exception e) {
+            crashlytics.recordException(new Exception("Error requesting location permission: " + e.getMessage(), e));
+            ActivityCompat.requestPermissions(activity,
+                    new String[]{Manifest.permission.ACCESS_MEDIA_LOCATION},
+                    LOCATION_PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    /**
      * Shows a Snackbar explaining why media permissions are needed (for Android 13+).
      */
     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
@@ -260,6 +317,29 @@ public class PermissionManager {
     }
 
     /**
+     * Shows a Snackbar explaining why location permission is needed.
+     */
+    private void showLocationRationaleSnackbar() {
+        crashlytics.log("Showing location permission rationale snackbar");
+        Snackbar.make(
+                        rootView,
+                        "Location permission is needed to access geolocation data in media files!",
+                        Snackbar.LENGTH_LONG)
+                .setAction("OK", view -> requestMediaLocationPermission())
+                .show();
+    }
+
+    /**
+     * Requests ACCESS_MEDIA_LOCATION permission.
+     */
+    private void requestMediaLocationPermission() {
+        crashlytics.log("Requesting ACCESS_MEDIA_LOCATION permission");
+        ActivityCompat.requestPermissions(activity,
+                new String[]{Manifest.permission.ACCESS_MEDIA_LOCATION},
+                LOCATION_PERMISSION_REQUEST_CODE);
+    }
+
+    /**
      * Handles permission request results.
      * This should be called from the host Activity's onRequestPermissionsResult method.
      *
@@ -270,30 +350,9 @@ public class PermissionManager {
     public void handlePermissionResult(int requestCode, String[] permissions, int[] grantResults) {
         try {
             if (requestCode == PERMISSION_REQUEST_CODE) {
-                boolean allPermissionsGranted = true;
-
-                for (int i = 0; i < permissions.length; i++) {
-                    String permission = permissions[i];
-                    boolean granted = (i < grantResults.length) &&
-                            (grantResults[i] == PackageManager.PERMISSION_GRANTED);
-
-                    crashlytics.setCustomKey("permission_" + permission.replace(".", "_"), granted);
-
-                    if (!granted) {
-                        allPermissionsGranted = false;
-                    }
-                }
-
-                crashlytics.setCustomKey("all_permissions_granted", allPermissionsGranted);
-
-                if (allPermissionsGranted) {
-                    crashlytics.log("All permissions granted");
-                    callback.onPermissionsGranted();
-                } else {
-                    crashlytics.log("Some permissions denied");
-                    callback.onPermissionsDenied();
-                    handlePermissionDenial();
-                }
+                handleStoragePermissionResult(permissions, grantResults);
+            } else if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+                handleLocationPermissionResult(permissions, grantResults);
             }
         } catch (Exception e) {
             crashlytics.recordException(new Exception("Error handling permission result: " + e.getMessage(), e));
@@ -301,12 +360,78 @@ public class PermissionManager {
             boolean allGranted = grantResults.length > 0 &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED;
 
-            if (allGranted) {
-                callback.onPermissionsGranted();
+            if (requestCode == PERMISSION_REQUEST_CODE) {
+                if (allGranted) {
+                    callback.onPermissionsGranted();
+                } else {
+                    callback.onPermissionsDenied();
+                    handlePermissionDenial();
+                }
             } else {
-                callback.onPermissionsDenied();
-                handlePermissionDenial();
+                if (allGranted) {
+                    callback.onLocationPermissionGranted();
+                } else {
+                    callback.onLocationPermissionDenied();
+                    handleLocationPermissionDenial();
+                }
             }
+        }
+    }
+
+    /**
+     * Handles storage permission request results.
+     */
+    private void handleStoragePermissionResult(String[] permissions, int[] grantResults) {
+        boolean allPermissionsGranted = true;
+
+        for (int i = 0; i < permissions.length; i++) {
+            String permission = permissions[i];
+            boolean granted = (i < grantResults.length) &&
+                    (grantResults[i] == PackageManager.PERMISSION_GRANTED);
+
+            crashlytics.setCustomKey("permission_" + permission.replace(".", "_"), granted);
+
+            if (!granted) {
+                allPermissionsGranted = false;
+            }
+        }
+
+        crashlytics.setCustomKey("all_permissions_granted", allPermissionsGranted);
+
+        if (allPermissionsGranted) {
+            crashlytics.log("All permissions granted");
+            callback.onPermissionsGranted();
+        } else {
+            crashlytics.log("Some permissions denied");
+            callback.onPermissionsDenied();
+            handlePermissionDenial();
+        }
+    }
+
+    /**
+     * Handles location permission request results.
+     */
+    private void handleLocationPermissionResult(String[] permissions, int[] grantResults) {
+        boolean locationPermissionGranted = false;
+
+        for (int i = 0; i < permissions.length; i++) {
+            String permission = permissions[i];
+            boolean granted = (i < grantResults.length) &&
+                    (grantResults[i] == PackageManager.PERMISSION_GRANTED);
+
+            if (Manifest.permission.ACCESS_MEDIA_LOCATION.equals(permission)) {
+                locationPermissionGranted = granted;
+                crashlytics.setCustomKey("permission_ACCESS_MEDIA_LOCATION", granted);
+            }
+        }
+
+        if (locationPermissionGranted) {
+            crashlytics.log("Location permission granted");
+            callback.onLocationPermissionGranted();
+        } else {
+            crashlytics.log("Location permission denied");
+            callback.onLocationPermissionDenied();
+            handleLocationPermissionDenial();
         }
     }
 
@@ -370,11 +495,64 @@ public class PermissionManager {
     }
 
     /**
+     * Handles the case when location permission is denied.
+     * Shows appropriate UI based on whether the denial is temporary or permanent.
+     */
+    private void handleLocationPermissionDenial() {
+        try {
+            boolean canAskAgain = ActivityCompat.shouldShowRequestPermissionRationale(
+                    activity, Manifest.permission.ACCESS_MEDIA_LOCATION);
+
+            crashlytics.setCustomKey("can_ask_location_again", canAskAgain);
+            boolean shouldShowSettings = hasShownLocationRationale && !canAskAgain;
+            crashlytics.setCustomKey("should_show_location_settings", shouldShowSettings);
+
+            if (shouldShowSettings) {
+                crashlytics.log("Showing settings snackbar for location (permanent denial)");
+                Snackbar.make(
+                                rootView,
+                                "Location permission denied permanently! Enable in settings to access media location data.",
+                                Snackbar.LENGTH_LONG)
+                        .setAction("SETTINGS", view -> {
+                            crashlytics.log("User opening app settings for location permission");
+                            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                            Uri uri = Uri.fromParts("package", activity.getPackageName(), null);
+                            intent.setData(uri);
+                            settingsLauncher.launch(intent);
+                        })
+                        .show();
+            } else {
+                crashlytics.log("Showing retry snackbar for location (temporary denial)");
+                Snackbar.make(
+                                rootView,
+                                "Location permission is needed to access geolocation data in media files.",
+                                Snackbar.LENGTH_LONG)
+                        .setAction("RETRY", view -> {
+                            crashlytics.log("User retrying location permission request");
+                            requestLocationPermission();
+                        })
+                        .show();
+            }
+        } catch (Exception e) {
+            crashlytics.recordException(new Exception("Error handling location permission denial: " + e.getMessage(), e));
+        }
+    }
+
+    /**
      * Returns the permission request code used by this manager.
      *
      * @return The permission request code
      */
     public int getPermissionRequestCode() {
         return PERMISSION_REQUEST_CODE;
+    }
+
+    /**
+     * Returns the location permission request code used by this manager.
+     *
+     * @return The location permission request code
+     */
+    public int getLocationPermissionRequestCode() {
+        return LOCATION_PERMISSION_REQUEST_CODE;
     }
 }

@@ -5,6 +5,11 @@
     <!-- Content descriptions -->
     <string name="content_description_media_thumbnail">Media thumbnail</string>
     <string name="content_description_image_view">Image view</string>
+    <string name="content_description_scroll_view">Scroll view</string>"
+
+    <!-- Navigation labels -->
+    <string name="navigation_clean">Clean</string>
+    <string name="navigation_scan">Scan</string>
 
     <!-- Button labels -->
     <string name="button_select_media">Select Media</string>
@@ -19,6 +24,8 @@
     <string name="status_permissions_required">Permissions required!</string>
     <string name="status_requesting_permissions">Requesting permissions…</string>
     <string name="status_select_media_files">Select media to strip metadata!</string>
+    <string name="status_analyzing">Analyzing metadata…</string>
+    <string name="status_select_item">Select an image or video to view metadata!</string>
 
     <!-- Share processing strings -->
     <string name="share_processing_title">Processing</string>
@@ -28,4 +35,17 @@
     <string name="share_error_unsupported_action">Unsupported action</string>
     <string name="share_error_receive_failed">Failed to receive media</string>
     <string name="share_error_processing_failed">Processing failed</string>
+    <string name="title_activity_scan">ScanActivity</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+
+    <!-- Scan section strings -->
+    <string name="scan_basic_information">Basic Information</string>
+    <string name="scan_camera_details">Camera Details</string>
+    <string name="scan_location_information">Location Information</string>
+    <string name="scan_technical_details">Technical Details</string>
+    <string name="scan_location_permission_missing">Location data might be available if you grant the location permission.</string>
+    <string name="scan_extraction_fail">Failed to extract metadata!</string>
+
 </resources>
