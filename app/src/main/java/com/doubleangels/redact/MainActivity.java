@@ -24,6 +24,7 @@ import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.ui.UIStateManager;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
@@ -169,6 +170,37 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void setupBottomNavigation() {
+        try {
+            BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigation);
+
+            // Set the initial selected item (assuming "clean" is your main activity tab)
+            bottomNavigationView.setSelectedItemId(R.id.navigation_clean);
+
+            bottomNavigationView.setOnItemSelectedListener(item -> {
+                int itemId = item.getItemId();
+
+                FirebaseCrashlytics.getInstance().log("Bottom navigation item selected: " + itemId);
+
+                if (itemId == R.id.navigation_clean) {
+                    // Already in MainActivity, do nothing and just return true
+                    return true;
+                } else if (itemId == R.id.navigation_scan) {
+                    // Open new scan activity
+                    Intent intent = new Intent(MainActivity.this, ScanActivity.class);
+                    startActivity(intent);
+                    return true;
+                }
+
+                return false;
+            });
+
+            FirebaseCrashlytics.getInstance().log("Bottom navigation setup complete");
+        } catch (Exception e) {
+            FirebaseCrashlytics.getInstance().recordException(e);
+        }
+    }
+
     /**
      * Sets up view references and event handlers.
      *
@@ -185,6 +217,29 @@ public class MainActivity extends AppCompatActivity {
             progressContainer = findViewById(R.id.progressContainer);
             progressText = findViewById(R.id.progressText);
             progressBar = findViewById(R.id.progressBar);
+
+            // Set up bottom navigation
+            BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigation);
+            bottomNavigationView.setSelectedItemId(R.id.navigation_clean);
+            bottomNavigationView.setOnItemSelectedListener(item -> {
+                try {
+                    int itemId = item.getItemId();
+                    FirebaseCrashlytics.getInstance().log("Bottom navigation item selected: " + itemId);
+
+                    if (itemId == R.id.navigation_clean) {
+                        // Already in MainActivity, do nothing
+                        return true;
+                    } else if (itemId == R.id.navigation_scan) {
+                        // Open scan activity
+                        Intent intent = new Intent(MainActivity.this, ScanActivity.class);
+                        startActivity(intent);
+                        return true;
+                    }
+                } catch (Exception e) {
+                    FirebaseCrashlytics.getInstance().recordException(e);
+                }
+                return false;
+            });
 
             // Initially disable the strip button until media is selected
             stripButton.setEnabled(false);
@@ -271,6 +326,7 @@ public class MainActivity extends AppCompatActivity {
             FirebaseCrashlytics.getInstance().recordException(e);
         }
     }
+
 
     /**
      * Configures status bar colors based on the current theme (light/dark mode).

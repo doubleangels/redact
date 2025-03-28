@@ -95,9 +95,9 @@ public class MediaProcessor {
                     // Process the item based on its type
                     Uri processedUri;
                     if (item.isVideo()) {
-                        processedUri = metadataStripper.stripVideoMetadata(item.getUri(), item.getFileName());
+                        processedUri = metadataStripper.stripVideoMetadata(item.uri(), item.fileName());
                     } else {
-                        processedUri = metadataStripper.stripExifData(item.getUri(), item.getFileName());
+                        processedUri = metadataStripper.stripExifData(item.uri(), item.fileName());
                     }
 
                     // Track successful processing
@@ -105,12 +105,12 @@ public class MediaProcessor {
                         lastProcessedFileUri = processedUri;
                         processedItems++;
                     } else {
-                        Log.e(TAG, "Failed to process item: " + item.getFileName());
-                        FirebaseCrashlytics.getInstance().log("Failed to process item: " + item.getFileName());
+                        Log.e(TAG, "Failed to process item: " + item.fileName());
+                        FirebaseCrashlytics.getInstance().log("Failed to process item: " + item.fileName());
                     }
                 } catch (Exception e) {
                     // Log and report any errors that occur
-                    Log.e(TAG, "Error processing item: " + item.getFileName(), e);
+                    Log.e(TAG, "Error processing item: " + item.fileName(), e);
                     FirebaseCrashlytics.getInstance().recordException(e);
                 }
             }

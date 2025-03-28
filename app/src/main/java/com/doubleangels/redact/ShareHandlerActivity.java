@@ -266,7 +266,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         try {
             // Get the file name from the URI
             String fileName = mediaSelector.getFileName(uri);
-            FirebaseCrashlytics.getInstance().setCustomKey("file_name", fileName != null ? fileName : "unknown");
+            FirebaseCrashlytics.getInstance().setCustomKey("file_name", fileName);
 
             // Create a MediaItem object with the URI, type, and filename
             MediaItem mediaItem = new MediaItem(uri, isVideo, fileName);

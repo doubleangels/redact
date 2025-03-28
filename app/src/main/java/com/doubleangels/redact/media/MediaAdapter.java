@@ -65,7 +65,7 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
 
         // Load thumbnail with Glide
         Glide.with(holder.itemView.getContext())
-                .load(item.getUri())
+                .load(item.uri())
                 .placeholder(R.drawable.placeholder_image)
                 .error(R.drawable.error_image)
                 .centerCrop()
@@ -109,8 +109,8 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
 
             @Override
             public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-                return oldList.get(oldItemPosition).getUri().equals(
-                        newItems.get(newItemPosition).getUri());
+                return oldList.get(oldItemPosition).uri().equals(
+                        newItems.get(newItemPosition).uri());
             }
 
             @Override
