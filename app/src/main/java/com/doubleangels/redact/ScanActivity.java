@@ -1,13 +1,12 @@
 package com.doubleangels.redact;
 
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -25,37 +24,54 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import java.util.Map;
 
+/**
+ * ScanActivity is responsible for handling the media scanning functionality of the application.
+ * This activity allows users to select media files (images or videos) from their device and
+ * displays the extracted metadata in categorized sections.
+ *
+ * The activity implements NavigationBarView.OnItemSelectedListener to handle bottom navigation
+ * between different app sections.
+ */
 public class ScanActivity extends AppCompatActivity implements NavigationBarView.OnItemSelectedListener {
 
+    // UI elements for status and progress display
     private TextView statusText;
     private TextView progressText;
     private View progressBar;
     private MaterialButton selectMediaButton;
 
-    // Metadata section TextViews
+    // TextViews for displaying different categories of metadata
     private TextView basicInfoText;
     private TextView mediaDetailsText;
     private TextView locationText;
     private TextView technicalText;
 
-    // Cards for each section
+    // Cards for organizing metadata display by category
     private MaterialCardView basicInfoCard;
     private MaterialCardView mediaDetailsCard;
     private MaterialCardView locationCard;
     private MaterialCardView technicalCard;
 
-    // Title TextViews that might need to be updated based on media type
+    // Title elements for metadata sections
     private TextView mediaDetailsTitle;
     private TextView technicalTitle;
 
+    // Launcher for media picker intent
     private ActivityResultLauncher<Intent> mediaPickerLauncher;
 
-    // Permission manager
+    // Manager for handling runtime permissions
     private PermissionManager permissionManager;
 
-    // Store the current media URI to refresh metadata after permission is granted
+    // Currently selected media URI
     private Uri currentMediaUri;
 
+    /**
+     * Initializes the activity, sets up UI components, registers activity result launchers,
+     * and configures permission management.
+     *
+     * @param savedInstanceState If the activity is being re-initialized after previously being
+     *                           shut down, this Bundle contains the data it most recently supplied.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Apply Material You dynamic colors if available on the device
@@ -64,138 +80,146 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scan);
 
-        // Initialize views
+        // Initialize UI elements
         statusText = findViewById(R.id.statusText);
         progressText = findViewById(R.id.progressText);
         progressBar = findViewById(R.id.progressBar);
-        selectMediaButton = findViewById(R.id.selectMediaButton);
+        selectMediaButton = findViewById(R.id.selectButton);
 
-        // Initialize metadata section TextViews
+        // Initialize metadata text views
         basicInfoText = findViewById(R.id.basicInfoText);
         mediaDetailsText = findViewById(R.id.mediaDetailsText);
         locationText = findViewById(R.id.locationText);
         technicalText = findViewById(R.id.technicalText);
 
-        // Initialize cards
+        // Initialize metadata cards
         basicInfoCard = findViewById(R.id.basicInfoCard);
         mediaDetailsCard = findViewById(R.id.mediaDetailsCard);
         locationCard = findViewById(R.id.locationCard);
         technicalCard = findViewById(R.id.technicalCard);
 
-        // Initialize title TextViews
+        // Initialize section titles
         mediaDetailsTitle = findViewById(R.id.mediaDetailsTitle);
         technicalTitle = findViewById(R.id.technicalTitle);
 
-        // Initialize bottom navigation
-        // Bottom navigation
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        // Set up bottom navigation
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigation);
         bottomNavigationView.setOnItemSelectedListener(this);
         bottomNavigationView.setSelectedItemId(R.id.navigation_scan); // Set the current tab as selected
 
-        // Hide all cards initially
+        // Hide all metadata cards initially
         hideAllCards();
 
-        // Set up settings launcher
-        // Check if permissions are now granted after returning from settings
-        // If location permission is now granted, refresh metadata
+        // Display app version in UI
+        setupVersionNumber();
+
+        // Register launcher for settings activity
+        // This launcher is used when returning from app settings (e.g., after granting permissions)
         ActivityResultLauncher<Intent> settingsLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
-                    // Check if permissions are now granted after returning from settings
+                    // If we have a media URI and location permission is granted, display metadata
                     if (currentMediaUri != null && !permissionManager.needsLocationPermission()) {
-                        // If location permission is now granted, refresh metadata
                         displayMetadata(currentMediaUri);
                     }
                 });
 
-        // Initialize permission manager
+        // Initialize permission manager with callbacks
         permissionManager = new PermissionManager(this, findViewById(R.id.root_layout), settingsLauncher,
                 new PermissionManager.PermissionCallback() {
+                    /**
+                     * Called when all required permissions are granted.
+                     * Enables the media selection button.
+                     */
                     @Override
                     public void onPermissionsGranted() {
-                        // Basic permissions granted, enable media selection
                         selectMediaButton.setEnabled(true);
                     }
 
+                    /**
+                     * Called when permissions are denied.
+                     * Disables the media selection button and shows a status message.
+                     */
                     @Override
                     public void onPermissionsDenied() {
-                        // Basic permissions denied, disable media selection
                         selectMediaButton.setEnabled(false);
-                        showStatus("Storage permissions required");
+                        showStatus(String.valueOf(R.string.status_storage_permissions_required));
                     }
 
+                    /**
+                     * Called when permission request process starts.
+                     * Updates the status text to inform the user.
+                     */
                     @Override
                     public void onPermissionsRequestStarted() {
-                        showStatus("Requesting permissions...");
+                        showStatus(String.valueOf(R.string.status_requesting_permissions));
                     }
 
+                    /**
+                     * Called when location permission is specifically granted.
+                     * Refreshes metadata display if a media file is already selected.
+                     */
                     @Override
                     public void onLocationPermissionGranted() {
-                        // Location permission granted, refresh metadata if we have a current URI
                         if (currentMediaUri != null) {
                             displayMetadata(currentMediaUri);
                         }
-                        Toast.makeText(ScanActivity.this,
-                                "Location permission granted. Full location data will be shown.",
-                                Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onLocationPermissionDenied() {
-                        Toast.makeText(ScanActivity.this,
-                                "Location permission denied. Location data will be limited.",
-                                Toast.LENGTH_SHORT).show();
                     }
                 });
 
-        // Set up media picker launcher
+        // Register launcher for media picker
         mediaPickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         Uri mediaUri = result.getData().getData();
                         if (mediaUri != null) {
+                            // Store the selected media URI and process it
                             currentMediaUri = mediaUri;
                             checkLocationPermissionAndDisplayMetadata(mediaUri);
                         } else {
-                            showStatus("Error: Could not get media URI");
+                            showStatus(getString(R.string.status_media_uri_fail));
                         }
                     }
                 });
 
-        // Set up button click listener
+        // Set click listener for media selection button
         selectMediaButton.setOnClickListener(v -> openMediaPicker());
 
-        // Check basic permissions when activity starts
+        // Check for required permissions on activity start
         permissionManager.checkPermissions();
     }
 
     /**
-     * Checks if location permission is granted and displays metadata accordingly
+     * Checks if location permission is granted and displays metadata.
+     * If location permission is not granted, requests it after displaying available metadata.
+     *
+     * @param mediaUri URI of the media file to analyze
      */
     private void checkLocationPermissionAndDisplayMetadata(Uri mediaUri) {
         boolean hasLocationPermission = !permissionManager.needsLocationPermission();
 
-        // Log permission status for debugging
-        Log.d("ScanActivity", "Has location permission: " + hasLocationPermission);
+        // Log permission status for analytics and debugging
         FirebaseCrashlytics.getInstance().log("Has location permission: " + hasLocationPermission);
         FirebaseCrashlytics.getInstance().setCustomKey("has_location_permission", hasLocationPermission);
 
-        // Display metadata regardless of permission status
-        // If permission is not granted, location data might be limited
+        // Display metadata with whatever permissions we currently have
         displayMetadata(mediaUri);
 
+        // Request location permission if not already granted
         if (!hasLocationPermission) {
-            // Show a message that location data might be limited
-            Toast.makeText(this,
-                    "Location permission not granted. Location data may be limited.",
-                    Toast.LENGTH_SHORT).show();
-
-            // Request the permission
             permissionManager.requestLocationPermission();
         }
     }
 
+    /**
+     * Handles the results of permission requests.
+     * Delegates to the permission manager for processing.
+     *
+     * @param requestCode The request code passed in requestPermissions()
+     * @param permissions The requested permissions
+     * @param grantResults The grant results for the corresponding permissions
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
@@ -205,88 +229,101 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
         permissionManager.handlePermissionResult(requestCode, permissions, grantResults);
     }
 
+    /**
+     * Handles bottom navigation item selection.
+     * Navigates to the appropriate activity based on the selected item.
+     *
+     * @param item The selected menu item
+     * @return true if the item selection was handled, false otherwise
+     */
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
 
-        // Already in ScanActivity
         if (itemId == R.id.navigation_clean) {
+            // Navigate to MainActivity when Clean tab is selected
             startActivity(new Intent(this, MainActivity.class));
             return true;
-        } else return itemId == R.id.navigation_scan;
+        } else return itemId == R.id.navigation_scan; // Return true if Scan tab is selected
     }
 
     /**
-     * Opens the media picker to select an image or video file.
+     * Opens the system media picker to allow the user to select an image or video.
+     * Configures the intent to request read permission for the selected file.
      */
     private void openMediaPicker() {
         try {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-            // Support both images and videos
             intent.setType("*/*");
             intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[] {"image/*", "video/*"});
             intent.addCategory(Intent.CATEGORY_OPENABLE);
-            // This flag helps preserve more metadata
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             mediaPickerLauncher.launch(intent);
         } catch (Exception e) {
+            // Log exception and show error message
             FirebaseCrashlytics.getInstance().recordException(e);
-            showStatus("Error opening media picker");
+            showStatus(getString(R.string.status_media_picker_fail));
         }
     }
 
-
     /**
-     * Displays metadata for the selected media file.
+     * Extracts and displays metadata from the selected media file.
+     * Shows progress indicators during extraction and organizes the results
+     * into different categories.
      *
-     * @param mediaUri URI of the selected media file
+     * @param mediaUri URI of the media file to analyze
      */
     private void displayMetadata(Uri mediaUri) {
         try {
-            // Show progress indicator
-            showStatus("Analyzing metadata...");
+            // Update UI to show analysis is in progress
+            showStatus(getString(R.string.status_analyzing));
             showProgress(true);
 
-            // Reset all text views
+            // Clear previous metadata
             resetTextViews();
-
-            // Hide all cards initially
             hideAllCards();
 
-            // Determine if the selected file is a video or image
+            // Determine if the selected file is a video
             String mimeType = getContentResolver().getType(mediaUri);
             boolean isVideo = mimeType != null && mimeType.startsWith("video/");
 
-            // Log the media type for debugging
+            // Log media type for analytics and debugging
             FirebaseCrashlytics.getInstance().log("Processing media with MIME type: " + mimeType);
             FirebaseCrashlytics.getInstance().setCustomKey("media_type", mimeType != null ? mimeType : "unknown");
 
-            // Log permission status for debugging
+            // Log permission status
             boolean hasLocationPermission = !permissionManager.needsLocationPermission();
             FirebaseCrashlytics.getInstance().log("Has location permission: " + hasLocationPermission);
             FirebaseCrashlytics.getInstance().setCustomKey("has_location_permission", hasLocationPermission);
 
             // Update progress text based on media type
-            progressText.setText(isVideo ? "Extracting video metadata..." : "Extracting image metadata...");
+            progressText.setText(isVideo ? R.string.status_extracting_media : R.string.status_extracting_image);
 
-            // Use MetadataDisplayer with sectioned callback to extract metadata in a background thread
+            // Extract metadata using MetadataDisplayer utility
             MetadataDisplayer.extractSectionedMetadata(this, mediaUri, new MetadataDisplayer.SectionedMetadataCallback() {
+                /**
+                 * Called when metadata extraction is successful.
+                 * Updates the UI with the extracted metadata.
+                 *
+                 * @param metadataSections Map containing different sections of metadata
+                 * @param isVideo Whether the processed file is a video
+                 */
                 @Override
                 public void onMetadataExtracted(Map<String, String> metadataSections, boolean isVideo) {
                     runOnUiThread(() -> {
                         try {
                             // Hide progress indicator
                             showProgress(false);
-                            showStatus("Metadata extraction complete");
+                            showStatus(getString(R.string.status_extraction_complete));
 
-                            // Update section titles based on media type
+                            // Set appropriate titles based on media type
                             mediaDetailsTitle.setText(R.string.scan_camera_details);
                             technicalTitle.setText(R.string.scan_technical_details);
 
-                            // Display each section
+                            // Display the extracted metadata sections
                             displaySections(metadataSections);
 
-                            // Show a message if location data is missing and permission is not granted
+                            // Show location permission message if needed
                             if (!metadataSections.containsKey(MetadataDisplayer.SECTION_LOCATION) &&
                                     permissionManager.needsLocationPermission()) {
                                 locationText.setText(R.string.scan_location_permission_missing);
@@ -298,11 +335,17 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
                     });
                 }
 
+                /**
+                 * Called when metadata extraction fails.
+                 * Updates the UI to show the error.
+                 *
+                 * @param error Error message describing the failure
+                 */
                 @Override
                 public void onExtractionFailed(String error) {
                     runOnUiThread(() -> {
                         showProgress(false);
-                        showStatus("Error extracting metadata: " + error);
+                        showStatus(getString(R.string.status_extraction_fail));
                         basicInfoText.setText(R.string.scan_extraction_fail);
                         basicInfoCard.setVisibility(View.VISIBLE);
                         FirebaseCrashlytics.getInstance().log("Metadata extraction failed: " + error);
@@ -310,19 +353,21 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
                 }
             });
         } catch (Exception e) {
+            // Log exception and show error message
             FirebaseCrashlytics.getInstance().recordException(e);
             showProgress(false);
-            showStatus("Error processing media file");
+            showStatus(getString(R.string.status_extraction_media_fail));
         }
     }
 
     /**
-     * Displays the metadata sections in their respective TextViews.
+     * Displays the extracted metadata sections in their respective UI cards.
+     * Only shows cards that have content to display.
      *
-     * @param sections Map of section identifiers to their content
+     * @param sections Map containing different sections of metadata
      */
     private void displaySections(Map<String, String> sections) {
-        // Basic info section
+        // Display basic info section if available
         if (sections.containsKey(MetadataDisplayer.SECTION_BASIC_INFO)) {
             String content = sections.get(MetadataDisplayer.SECTION_BASIC_INFO);
             if (content != null && !content.isEmpty()) {
@@ -331,16 +376,16 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
             }
         }
 
-        // Media details section
-        if (sections.containsKey(MetadataDisplayer.SECTION_MEDIA_DETAILS)) {
-            String content = sections.get(MetadataDisplayer.SECTION_MEDIA_DETAILS);
+        // Display camera details section if available
+        if (sections.containsKey(MetadataDisplayer.SECTION_CAMERA_DETAILS)) {
+            String content = sections.get(MetadataDisplayer.SECTION_CAMERA_DETAILS);
             if (content != null && !content.isEmpty()) {
                 mediaDetailsText.setText(content);
                 mediaDetailsCard.setVisibility(View.VISIBLE);
             }
         }
 
-        // Location section
+        // Display location section if available
         if (sections.containsKey(MetadataDisplayer.SECTION_LOCATION)) {
             String content = sections.get(MetadataDisplayer.SECTION_LOCATION);
             if (content != null && !content.isEmpty()) {
@@ -349,7 +394,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
             }
         }
 
-        // Technical section
+        // Display technical section if available
         if (sections.containsKey(MetadataDisplayer.SECTION_TECHNICAL)) {
             String content = sections.get(MetadataDisplayer.SECTION_TECHNICAL);
             if (content != null && !content.isEmpty()) {
@@ -360,7 +405,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
     }
 
     /**
-     * Resets all text views to empty.
+     * Clears all metadata text views to prepare for new content.
      */
     private void resetTextViews() {
         basicInfoText.setText("");
@@ -370,7 +415,8 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
     }
 
     /**
-     * Hides all metadata cards.
+     * Hides all metadata cards from view.
+     * Used when resetting the UI or when no metadata is available.
      */
     private void hideAllCards() {
         basicInfoCard.setVisibility(View.GONE);
@@ -380,9 +426,9 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
     }
 
     /**
-     * Shows or hides the progress indicator.
+     * Shows or hides the progress indicators based on the provided parameter.
      *
-     * @param show True to show, false to hide
+     * @param show true to show progress indicators, false to hide them
      */
     private void showProgress(boolean show) {
         progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
@@ -390,11 +436,33 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
     }
 
     /**
-     * Updates the status text.
+     * Updates the status text with the provided message.
      *
-     * @param message Status message
+     * @param message The status message to display
      */
     private void showStatus(String message) {
         statusText.setText(message);
+    }
+
+    /**
+     * Retrieves and displays the application version number in the UI.
+     * Also logs the version to Firebase Crashlytics for debugging purposes.
+     */
+    private void setupVersionNumber() {
+        try {
+            TextView versionText = findViewById(R.id.versionText);
+
+            // Get package info to retrieve version name
+            PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+
+            // Set version text in UI
+            versionText.setText(packageInfo.versionName);
+
+            // Log version to Crashlytics for debugging
+            assert packageInfo.versionName != null;
+            FirebaseCrashlytics.getInstance().setCustomKey("app_version", packageInfo.versionName);
+        } catch (Exception e) {
+            FirebaseCrashlytics.getInstance().recordException(e);
+        }
     }
 }

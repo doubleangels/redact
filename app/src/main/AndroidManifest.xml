@@ -60,7 +60,7 @@
         <activity
             android:name=".ScanActivity"
             android:exported="false"
-            android:label="@string/title_activity_scan" />
+            android:label="@string/scan_activity_title" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

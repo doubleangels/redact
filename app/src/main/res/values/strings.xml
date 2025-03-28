@@ -26,21 +26,26 @@
     <string name="status_select_media_files">Select media to strip metadata!</string>
     <string name="status_analyzing">Analyzing metadata…</string>
     <string name="status_select_item">Select an image or video to view metadata!</string>
+    <string name="status_extraction_complete">Metadata extraction complete!</string>
+    <string name="status_extraction_media_fail">Error processing media file!</string>
+    <string name="status_extraction_fail">Error extracting metadata!</string>
+    <string name="status_extracting_media">Extracting video metadata…</string>
+    <string name="status_extracting_image">Extracting image metadata…</string>
+    <string name="status_media_picker_fail">Error opening media picker!</string>
+    <string name="status_media_uri_fail">Could not get media URI!</string>
+    <string name="status_storage_permissions_required">Storage permissions required!</string>
 
     <!-- Share processing strings -->
-    <string name="share_processing_title">Processing</string>
+    <string name="share_processing_title">Processing…</string>
     <string name="share_stripping_status">Stripping metadata…</string>
-    <string name="share_chooser_title">Share clean media file via</string>
-    <string name="share_error_unsupported_media">Unsupported media type</string>
-    <string name="share_error_unsupported_action">Unsupported action</string>
-    <string name="share_error_receive_failed">Failed to receive media</string>
-    <string name="share_error_processing_failed">Processing failed</string>
-    <string name="title_activity_scan">ScanActivity</string>
-    <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
+    <string name="share_chooser_title">Share clean media file via…</string>
+    <string name="share_error_unsupported_media">Unsupported media type!</string>
+    <string name="share_error_unsupported_action">Unsupported action!</string>
+    <string name="share_error_receive_failed">Failed to receive media!</string>
+    <string name="share_error_processing_failed">Processing failed!</string>
 
     <!-- Scan section strings -->
+    <string name="scan_activity_title">ScanActivity</string>
     <string name="scan_basic_information">Basic Information</string>
     <string name="scan_camera_details">Camera Details</string>
     <string name="scan_location_information">Location Information</string>
@@ -48,4 +53,79 @@
     <string name="scan_location_permission_missing">Location data might be available if you grant the location permission.</string>
     <string name="scan_extraction_fail">Failed to extract metadata!</string>
 
+    <!-- Metadata output strings -->
+    <!-- Basic File Information -->
+    <string name="metadata_file_name">File Name: %s</string>
+    <string name="metadata_file_size">File Size: %s</string>
+    <string name="metadata_mime_type">MIME Type: %s</string>
+    <string name="metadata_unknown">Unknown</string>
+    <string name="metadata_size_bytes">B</string>
+    <string name="metadata_size_kb">KB</string>
+    <string name="metadata_size_mb">MB</string>
+
+    <!-- Section Headers -->
+    <string name="metadata_image_properties_header">Image Properties:</string>
+    <string name="metadata_camera_information_header">Camera Information:</string>
+    <string name="metadata_exposure_information_header">Exposure Information:</string>
+    <string name="metadata_location_information_header">Location Information:</string>
+    <string name="metadata_technical_details_header">Technical Details:</string>
+    <string name="metadata_video_properties_header">Video Properties:</string>
+
+    <!-- Image Metadata Fields -->
+    <string name="metadata_dimensions">Dimensions: %1$d x %2$d</string>
+    <string name="metadata_date_taken">Date Taken: %s</string>
+    <string name="metadata_camera_make">Camera Make: %s</string>
+    <string name="metadata_camera_model">Camera Model: %s</string>
+    <string name="metadata_aperture">Aperture: f/%s</string>
+    <string name="metadata_exposure_time_fraction">Exposure Time: 1/%d sec</string>
+    <string name="metadata_exposure_time_seconds">Exposure Time: %.5f sec</string>
+    <string name="metadata_latitude">Latitude: %.15f</string>
+    <string name="metadata_longitude">Longitude: %.15f</string>
+    <string name="metadata_address">Address: %s</string>
+    <string name="metadata_geocoding_failed">Geocoding failed: %s</string>
+    <string name="metadata_no_location_data">No location data available.</string>
+    <string name="metadata_location_permission_needed">Location permission not granted. Grant permission to see location data.</string>
+    <string name="metadata_orientation">Orientation: %s</string>
+    <string name="metadata_flash">Flash: %s</string>
+    <string name="metadata_flash_fired">Fired</string>
+    <string name="metadata_flash_not_fired">Not Fired</string>
+    <string name="metadata_white_balance">White Balance: %s</string>
+    <string name="metadata_white_balance_auto">Auto</string>
+    <string name="metadata_white_balance_manual">Manual</string>
+
+    <!-- Video Metadata Fields -->
+    <string name="metadata_duration_with_hours">Duration: %s</string>
+    <string name="metadata_duration_without_hours">Duration: %s</string>
+    <string name="metadata_resolution">Resolution: %1$s x %2$s</string>
+    <string name="metadata_rotation">Rotation: %s°</string>
+    <string name="metadata_bitrate">Bitrate: %d kbps</string>
+    <string name="metadata_date">Date: %s</string>
+    <string name="metadata_frame_rate">Frame Rate: %s fps</string>
+    <string name="metadata_sample_rate">Sample Rate: %s Hz</string>
+
+    <!-- Additional Sectioned Metadata Strings -->
+    <string name="metadata_no_image_location_data">No location data available in this image.</string>
+    <string name="metadata_no_video_location_data">No location data available in this video.</string>
+    <string name="metadata_location_permission_needed_full">Location permission not granted. Grant permission to see full location data.</string>
+    <string name="metadata_software">Software: %s</string>
+    <string name="metadata_focal_length">Focal Length: %s mm</string>
+    <string name="metadata_digital_zoom">Digital Zoom: %sx</string>
+
+    <!-- Orientation Strings -->
+    <string name="metadata_orientation_normal">Normal</string>
+    <string name="metadata_orientation_rotate_90">Rotate 90°</string>
+    <string name="metadata_orientation_rotate_180">Rotate 180°</string>
+    <string name="metadata_orientation_rotate_270">Rotate 270°</string>
+    <string name="metadata_orientation_flip_horizontal">Flip Horizontal</string>
+    <string name="metadata_orientation_flip_vertical">Flip Vertical</string>
+    <string name="metadata_orientation_transpose">Transpose</string>
+    <string name="metadata_orientation_transverse">Transverse</string>
+    <string name="metadata_orientation_unknown">Unknown (%d)</string>
+
+    <!-- Error Messages -->
+    <string name="metadata_error_extraction">Error extracting metadata: %s</string>
+    <string name="metadata_error_basic_info">Error extracting basic info: %s</string>
+    <string name="metadata_error_file_open">Error: Could not open image file</string>
+    <string name="metadata_error_image_metadata">Error extracting image metadata: %s</string>
+    <string name="metadata_error_video_metadata">Error extracting video metadata: %s</string>
 </resources>
