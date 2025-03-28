@@ -19,9 +19,9 @@
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" alt="Screenshot of Redact" width="250">
 </p>
 
-# Redact
+# Redact: Privacy & Metadata Remover
 
-Redact is a simple yet powerful app that removes hidden metadata (EXIF data) from your photos and videos before you share them online. This essential privacy tool eliminates personal information that could otherwise be exposed when posting on social media and other platforms.
+Protect your privacy with Redact - the powerful yet simple app that removes all EXIF metadata from photos and videos before sharing online. Prevent location tracking, hide device information, and secure your personal data when posting on social media platforms.
 
 **Take control of your digital footprint and share content on your terms!**
 
@@ -47,33 +47,33 @@ Redact is a simple yet powerful app that removes hidden metadata (EXIF data) fro
 
 ---
 
-## Features
+## Key Features:
 
-- **Complete Privacy Protection:**  
-  Remove hidden metadata that can reveal your location, device information, and personal details.
+- **Complete Privacy Protection & EXIF Cleaner:**  
+  Remove all metadata including GPS location data, device information, timestamps, and personal details hidden in your media files.
 
-- **Metadata Viewer:**  
-  Easily view all hidden metadata in your files before deciding what to remove.
+- **Metadata Viewer & Inspector:**  
+  Easily scan and view all hidden EXIF data in your photos and videos before completely removing it.
 
-- **Share Sheet Integration:**  
-  Easily share files to Redact and get back clean files ready to share further.
+- **User-Friendly Privacy Interface:**  
+  One-tap complete metadata removal makes protecting your digital privacy simple, quick, and accessible for everyone.
 
-- **Intuitive Interface:**  
-  One-tap metadata removal makes protecting your privacy simple and quick.
-
-- **Batch Processing:**  
-  Clean multiple photos and videos at once, saving you time and effort.
+- **Bulk Photo & Video Processing:**  
+  Clean multiple media files simultaneously, saving you time while enhancing your online privacy protection.
 
 - **Original Quality Preservation:**  
-  Remove metadata without compromising the quality of your media files.
+  Remove all metadata without compressing or degrading your photos and videos - maintain full image quality.
 
-- **100% Local Processing:**  
-  All processing happens on your device - your data never leaves your phone.
+- **100% Local & Secure Processing:**  
+  All data cleaning happens directly on your device - your personal information never leaves your phone or connects to external servers.
 
-- **No Ads & Open-Source:**  
-  Committed to privacy with no advertising and fully transparent code.
+- **Ad-Free & Open-Source Privacy Tool:**  
+  Committed to transparency with no advertising, tracking, or data collection. Our code is fully open-source for community verification.
 
-EXIF metadata can include GPS coordinates, date/time information, device details, camera settings, and even unique identifiers. Redact removes this hidden information while preserving the quality of your media files.
+- **Android Share Sheet Integration:**  
+  Seamlessly clean files from any app via Android's share menu and get back completely privacy-protected files ready to share.
+
+Take control of your digital footprint! EXIF metadata can expose your precise GPS coordinates, device details, camera settings, timestamps, and unique identifiers. Redact eliminates all these privacy risks while preserving the quality of your media files.
 
 ---
 
