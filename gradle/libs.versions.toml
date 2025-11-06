@@ -17,7 +17,7 @@ materialVersion = "1.12.0"
 lifecycleLivedataKtx = "2.9.1"
 lifecycleViewmodelKtx = "2.9.1"
 navigationFragment = "2.9.0"
-navigationUi = "2.9.0"
+navigationUi = "2.9.5"
 
 [libraries]
 activity = { module = "androidx.activity:activity", version.ref = "activity" }
