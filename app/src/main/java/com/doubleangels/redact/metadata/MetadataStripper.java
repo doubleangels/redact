@@ -297,7 +297,8 @@ public class MetadataStripper {
                     // Clean up temp file
                     if (tempOutputFile.exists()) {
                         if (!tempOutputFile.delete()) {
-                            crashlytics.log("Failed to delete temp output file: " + tempOutputFile.getAbsolutePath() + ".");
+                            crashlytics.log(
+                                    "Failed to delete temp output file: " + tempOutputFile.getAbsolutePath() + ".");
                         }
                     }
                 }
