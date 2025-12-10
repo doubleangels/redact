@@ -1,0 +1,133 @@
+<resources>
+    <!-- App name -->
+    <string name="app_name">Redact</string>
+
+    <!-- Content descriptions -->
+    <string name="content_description_media_thumbnail">मीडिया थंबनेल</string>
+    <string name="content_description_image_view">छवि दृश्य</string>
+    <string name="content_description_scroll_view">स्क्रॉल दृश्य</string>
+
+    <!-- Navigation labels -->
+    <string name="navigation_clean">साफ करें</string>
+    <string name="navigation_scan">स्कैन करें</string>
+
+    <!-- Button labels -->
+    <string name="button_select_media">मीडिया चुनें</string>
+    <string name="button_strip_exif_data">मेटाडेटा साफ करें</string>
+
+    <!-- Status and progress messages -->
+    <string name="status_processing">प्रसंस्करण…</string>
+    <string name="status_processed_items">%1$d आइटम प्रसंस्कृत!</string>
+    <string name="status_selected_items">चयनित: %1$d आइटम</string>
+    <string name="status_first_select_media_files">कृपया पहले मीडिया फ़ाइलें चुनें!</string>
+    <string name="status_ready">मीडिया चुनने के लिए तैयार!</string>
+    <string name="status_permissions_required">अनुमतियां आवश्यक!</string>
+    <string name="status_requesting_permissions">अनुमतियां अनुरोध कर रहे हैं…</string>
+    <string name="status_select_media_files">मेटाडेटा हटाने के लिए मीडिया चुनें!</string>
+    <string name="status_analyzing">मेटाडेटा विश्लेषण कर रहे हैं…</string>
+    <string name="status_select_item">मेटाडेटा देखने के लिए एक छवि या वीडियो चुनें!</string>
+    <string name="status_extraction_complete">मेटाडेटा निष्कर्षण पूर्ण!</string>
+    <string name="status_extraction_media_fail">मीडिया फ़ाइल प्रसंस्करण त्रुटि!</string>
+    <string name="status_extraction_fail">मेटाडेटा निष्कर्षण त्रुटि!</string>
+    <string name="status_extracting_media">वीडियो मेटाडेटा निष्कर्षण कर रहे हैं…</string>
+    <string name="status_extracting_image">छवि मेटाडेटा निष्कर्षण कर रहे हैं…</string>
+    <string name="status_media_picker_fail">मीडिया पिकर खोलने में त्रुटि!</string>
+    <string name="status_media_uri_fail">मीडिया URI प्राप्त नहीं कर सका!</string>
+    <string name="status_storage_permissions_required">भंडारण अनुमतियां आवश्यक!</string>
+
+    <!-- Share processing strings -->
+    <string name="share_processing_title">प्रसंस्करण…</string>
+    <string name="share_stripping_status">मेटाडेटा हटा रहे हैं…</string>
+    <string name="share_chooser_title">साफ मीडिया फ़ाइल साझा करें…</string>
+    <string name="share_error_unsupported_media">असमर्थित मीडिया प्रकार!</string>
+    <string name="share_error_unsupported_action">असमर्थित क्रिया!</string>
+    <string name="share_error_receive_failed">मीडिया प्राप्त करने में विफल!</string>
+    <string name="share_error_processing_failed">प्रसंस्करण विफल!</string>
+
+    <!-- Scan section strings -->
+    <string name="scan_activity_title">ScanActivity</string>
+    <string name="scan_metadata">मेटाडेटा</string>
+    <string name="scan_basic_information">मूल जानकारी</string>
+    <string name="scan_camera_details">कैमरा विवरण</string>
+    <string name="scan_location_information">स्थान जानकारी</string>
+    <string name="scan_technical_details">तकनीकी विवरण</string>
+    <string name="scan_location_permission_missing">यदि आप स्थान अनुमति प्रदान करते हैं तो स्थान डेटा उपलब्ध हो सकता है।</string>
+    <string name="scan_extraction_fail">मेटाडेटा निष्कर्षण विफल!</string>
+
+    <!-- Metadata output strings -->
+    <!-- Basic File Information -->
+    <string name="metadata_file_name">फ़ाइल नाम: %s</string>
+    <string name="metadata_file_size">फ़ाइल आकार: %s</string>
+    <string name="metadata_mime_type">MIME प्रकार: %s</string>
+    <string name="metadata_unknown">अज्ञात</string>
+    <string name="metadata_size_bytes">B</string>
+    <string name="metadata_size_kb">KB</string>
+    <string name="metadata_size_mb">MB</string>
+
+    <!-- Section Headers -->
+    <string name="metadata_image_properties_header">छवि गुण:</string>
+    <string name="metadata_camera_information_header">कैमरा जानकारी:</string>
+    <string name="metadata_exposure_information_header">एक्सपोज़र जानकारी:</string>
+    <string name="metadata_location_information_header">स्थान जानकारी:</string>
+    <string name="metadata_technical_details_header">तकनीकी विवरण:</string>
+    <string name="metadata_video_properties_header">वीडियो गुण:</string>
+
+    <!-- Image Metadata Fields -->
+    <string name="metadata_dimensions">आयाम: %1$d x %2$d</string>
+    <string name="metadata_date_taken">तारीख ली गई: %s</string>
+    <string name="metadata_camera_make">कैमरा निर्माता: %s</string>
+    <string name="metadata_camera_model">कैमरा मॉडल: %s</string>
+    <string name="metadata_aperture">एपर्चर: f/%s</string>
+    <string name="metadata_exposure_time_fraction">एक्सपोज़र समय: 1/%d सेकंड</string>
+    <string name="metadata_exposure_time_seconds">एक्सपोज़र समय: %.5f सेकंड</string>
+    <string name="metadata_latitude">अक्षांश: %.15f</string>
+    <string name="metadata_longitude">देशांतर: %.15f</string>
+    <string name="metadata_address">पता: %s</string>
+    <string name="metadata_geocoding_failed">जियोकोडिंग विफल: %s</string>
+    <string name="metadata_no_location_data">कोई स्थान डेटा उपलब्ध नहीं है।</string>
+    <string name="metadata_location_permission_needed">स्थान अनुमति प्रदान नहीं की गई। स्थान डेटा देखने के लिए अनुमति प्रदान करें।</string>
+    <string name="metadata_orientation">अभिविन्यास: %s</string>
+    <string name="metadata_flash">फ्लैश: %s</string>
+    <string name="metadata_flash_fired">फायर किया गया</string>
+    <string name="metadata_flash_not_fired">फायर नहीं किया गया</string>
+    <string name="metadata_white_balance">व्हाइट बैलेंस: %s</string>
+    <string name="metadata_white_balance_auto">स्वचालित</string>
+    <string name="metadata_white_balance_manual">मैनुअल</string>
+
+    <!-- Video Metadata Fields -->
+    <string name="metadata_duration_with_hours">अवधि: %s</string>
+    <string name="metadata_duration_without_hours">अवधि: %s</string>
+    <string name="metadata_resolution">रिज़ॉल्यूशन: %1$s x %2$s</string>
+    <string name="metadata_rotation">रोटेशन: %s°</string>
+    <string name="metadata_bitrate">बिटरेट: %d kbps</string>
+    <string name="metadata_date">तारीख: %s</string>
+    <string name="metadata_frame_rate">फ्रेम रेट: %s fps</string>
+    <string name="metadata_sample_rate">सैंपल रेट: %s Hz</string>
+
+    <!-- Additional Sectioned Metadata Strings -->
+    <string name="metadata_no_image_location_data">इस छवि में कोई स्थान डेटा उपलब्ध नहीं है।</string>
+    <string name="metadata_no_video_location_data">इस वीडियो में कोई स्थान डेटा उपलब्ध नहीं है।</string>
+    <string name="metadata_location_permission_needed_full">स्थान अनुमति प्रदान नहीं की गई। सभी स्थान डेटा देखने के लिए अनुमति प्रदान करें।</string>
+    <string name="metadata_software">सॉफ़्टवेयर: %s</string>
+    <string name="metadata_focal_length">फोकल लंबाई: %s mm</string>
+    <string name="metadata_digital_zoom">डिजिटल ज़ूम: %sx</string>
+
+    <!-- Orientation Strings -->
+    <string name="metadata_orientation_normal">सामान्य</string>
+    <string name="metadata_orientation_rotate_90">90° घुमाएं</string>
+    <string name="metadata_orientation_rotate_180">180° घुमाएं</string>
+    <string name="metadata_orientation_rotate_270">270° घुमाएं</string>
+    <string name="metadata_orientation_flip_horizontal">क्षैतिज रूप से फ्लिप करें</string>
+    <string name="metadata_orientation_flip_vertical">ऊर्ध्वाधर रूप से फ्लिप करें</string>
+    <string name="metadata_orientation_transpose">ट्रांसपोज़ करें</string>
+    <string name="metadata_orientation_transverse">ट्रांसवर्स</string>
+    <string name="metadata_orientation_unknown">अज्ञात (%d)</string>
+
+    <!-- Error Messages -->
+    <string name="metadata_error_extraction">मेटाडेटा निष्कर्षण त्रुटि: %s</string>
+    <string name="metadata_error_basic_info">मूल जानकारी निष्कर्षण त्रुटि: %s</string>
+    <string name="metadata_error_file_open">त्रुटि: छवि फ़ाइल नहीं खोल सका</string>
+    <string name="metadata_error_image_metadata">छवि मेटाडेटा निष्कर्षण त्रुटि: %s</string>
+    <string name="metadata_error_video_metadata">वीडियो मेटाडेटा निष्कर्षण त्रुटि: %s</string>
+</resources>
+

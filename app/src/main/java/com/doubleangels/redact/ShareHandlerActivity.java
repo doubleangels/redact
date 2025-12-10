@@ -291,28 +291,48 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
                         if (processedUri != null) {
                             // Find the processed file for later cleanup
-                            // Since we just created it, it should be the most recent file in the processed directory
+                            // Try to get the file path from the URI first, then fall back to finding most recent
                             try {
-                                File cacheDir = new File(getCacheDir(), "processed");
-                                if (cacheDir.exists() && cacheDir.isDirectory()) {
-                                    File[] files = cacheDir.listFiles();
-                                    if (files != null && files.length > 0) {
-                                        // Find the most recently modified file (should be the one we just created)
-                                        File mostRecent = null;
-                                        long mostRecentTime = 0;
-                                        for (File f : files) {
-                                            if (f.isFile() && f.lastModified() > mostRecentTime) {
-                                                mostRecentTime = f.lastModified();
-                                                mostRecent = f;
+                            // Try to extract file path from the URI
+                            String uriPath = processedUri.getPath();
+                            if (uriPath != null) {
+                                // Remove the authority prefix if present (e.g., "/cache/processed/filename.jpg")
+                                if (uriPath.contains("/processed/")) {
+                                    String extractedFileName = uriPath.substring(uriPath.lastIndexOf("/") + 1);
+                                    File cacheDir = new File(getCacheDir(), "processed");
+                                    File potentialFile = new File(cacheDir, extractedFileName);
+                                    if (potentialFile.exists() && potentialFile.isFile()) {
+                                        processedFile = potentialFile;
+                                        FirebaseCrashlytics.getInstance().log("Found processed file by name: " + extractedFileName);
+                                    }
+                                }
+                            }
+                                
+                                // Fallback: find the most recently modified file if we couldn't find by name
+                                if (processedFile == null) {
+                                    File cacheDir = new File(getCacheDir(), "processed");
+                                    if (cacheDir.exists() && cacheDir.isDirectory()) {
+                                        File[] files = cacheDir.listFiles();
+                                        if (files != null && files.length > 0) {
+                                            // Find the most recently modified file (should be the one we just created)
+                                            File mostRecent = null;
+                                            long mostRecentTime = 0;
+                                            for (File f : files) {
+                                                if (f.isFile() && f.lastModified() > mostRecentTime) {
+                                                    mostRecentTime = f.lastModified();
+                                                    mostRecent = f;
+                                                }
                                             }
-                                        }
-                                        if (mostRecent != null) {
-                                            processedFile = mostRecent;
+                                            if (mostRecent != null) {
+                                                processedFile = mostRecent;
+                                                FirebaseCrashlytics.getInstance().log("Found processed file by timestamp: " + mostRecent.getName());
+                                            }
                                         }
                                     }
                                 }
                             } catch (Exception e) {
                                 FirebaseCrashlytics.getInstance().log("Could not find processed file for cleanup: " + e.getMessage());
+                                FirebaseCrashlytics.getInstance().recordException(e);
                             }
                             
                             // Share the cleaned file

@@ -1,0 +1,133 @@
+<resources>
+    <!-- App name -->
+    <string name="app_name">Redact</string>
+
+    <!-- Content descriptions -->
+    <string name="content_description_media_thumbnail">صورة مصغرة للوسائط</string>
+    <string name="content_description_image_view">عرض الصورة</string>
+    <string name="content_description_scroll_view">عرض التمرير</string>
+
+    <!-- Navigation labels -->
+    <string name="navigation_clean">تنظيف</string>
+    <string name="navigation_scan">مسح</string>
+
+    <!-- Button labels -->
+    <string name="button_select_media">اختر الوسائط</string>
+    <string name="button_strip_exif_data">تنظيف البيانات الوصفية</string>
+
+    <!-- Status and progress messages -->
+    <string name="status_processing">جاري المعالجة…</string>
+    <string name="status_processed_items">تمت معالجة %1$d عنصر!</string>
+    <string name="status_selected_items">المحدد: %1$d عنصر</string>
+    <string name="status_first_select_media_files">يرجى تحديد ملفات الوسائط أولاً!</string>
+    <string name="status_ready">جاهز لتحديد الوسائط!</string>
+    <string name="status_permissions_required">الأذونات مطلوبة!</string>
+    <string name="status_requesting_permissions">جاري طلب الأذونات…</string>
+    <string name="status_select_media_files">حدد الوسائط لإزالة البيانات الوصفية!</string>
+    <string name="status_analyzing">جاري تحليل البيانات الوصفية…</string>
+    <string name="status_select_item">حدد صورة أو فيديو لعرض البيانات الوصفية!</string>
+    <string name="status_extraction_complete">اكتمل استخراج البيانات الوصفية!</string>
+    <string name="status_extraction_media_fail">خطأ في معالجة ملف الوسائط!</string>
+    <string name="status_extraction_fail">خطأ في استخراج البيانات الوصفية!</string>
+    <string name="status_extracting_media">جاري استخراج بيانات الفيديو الوصفية…</string>
+    <string name="status_extracting_image">جاري استخراج بيانات الصورة الوصفية…</string>
+    <string name="status_media_picker_fail">خطأ في فتح منتقي الوسائط!</string>
+    <string name="status_media_uri_fail">تعذر الحصول على URI الوسائط!</string>
+    <string name="status_storage_permissions_required">أذونات التخزين مطلوبة!</string>
+
+    <!-- Share processing strings -->
+    <string name="share_processing_title">جاري المعالجة…</string>
+    <string name="share_stripping_status">جاري إزالة البيانات الوصفية…</string>
+    <string name="share_chooser_title">مشاركة ملف الوسائط النظيف عبر…</string>
+    <string name="share_error_unsupported_media">نوع الوسائط غير مدعوم!</string>
+    <string name="share_error_unsupported_action">الإجراء غير مدعوم!</string>
+    <string name="share_error_receive_failed">فشل استقبال الوسائط!</string>
+    <string name="share_error_processing_failed">فشلت المعالجة!</string>
+
+    <!-- Scan section strings -->
+    <string name="scan_activity_title">ScanActivity</string>
+    <string name="scan_metadata">البيانات الوصفية</string>
+    <string name="scan_basic_information">المعلومات الأساسية</string>
+    <string name="scan_camera_details">تفاصيل الكاميرا</string>
+    <string name="scan_location_information">معلومات الموقع</string>
+    <string name="scan_technical_details">التفاصيل التقنية</string>
+    <string name="scan_location_permission_missing">قد تكون بيانات الموقع متاحة إذا منحت إذن الموقع.</string>
+    <string name="scan_extraction_fail">فشل استخراج البيانات الوصفية!</string>
+
+    <!-- Metadata output strings -->
+    <!-- Basic File Information -->
+    <string name="metadata_file_name">اسم الملف: %s</string>
+    <string name="metadata_file_size">حجم الملف: %s</string>
+    <string name="metadata_mime_type">نوع MIME: %s</string>
+    <string name="metadata_unknown">غير معروف</string>
+    <string name="metadata_size_bytes">ب</string>
+    <string name="metadata_size_kb">كيلوبايت</string>
+    <string name="metadata_size_mb">ميجابايت</string>
+
+    <!-- Section Headers -->
+    <string name="metadata_image_properties_header">خصائص الصورة:</string>
+    <string name="metadata_camera_information_header">معلومات الكاميرا:</string>
+    <string name="metadata_exposure_information_header">معلومات التعرض:</string>
+    <string name="metadata_location_information_header">معلومات الموقع:</string>
+    <string name="metadata_technical_details_header">التفاصيل التقنية:</string>
+    <string name="metadata_video_properties_header">خصائص الفيديو:</string>
+
+    <!-- Image Metadata Fields -->
+    <string name="metadata_dimensions">الأبعاد: %1$d x %2$d</string>
+    <string name="metadata_date_taken">تاريخ الالتقاط: %s</string>
+    <string name="metadata_camera_make">صانع الكاميرا: %s</string>
+    <string name="metadata_camera_model">طراز الكاميرا: %s</string>
+    <string name="metadata_aperture">فتحة العدسة: f/%s</string>
+    <string name="metadata_exposure_time_fraction">وقت التعرض: 1/%d ثانية</string>
+    <string name="metadata_exposure_time_seconds">وقت التعرض: %.5f ثانية</string>
+    <string name="metadata_latitude">خط العرض: %.15f</string>
+    <string name="metadata_longitude">خط الطول: %.15f</string>
+    <string name="metadata_address">العنوان: %s</string>
+    <string name="metadata_geocoding_failed">فشل الترميز الجغرافي: %s</string>
+    <string name="metadata_no_location_data">لا توجد بيانات موقع متاحة.</string>
+    <string name="metadata_location_permission_needed">لم يتم منح إذن الموقع. امنح الإذن لعرض بيانات الموقع.</string>
+    <string name="metadata_orientation">الاتجاه: %s</string>
+    <string name="metadata_flash">الفلاش: %s</string>
+    <string name="metadata_flash_fired">تم التشغيل</string>
+    <string name="metadata_flash_not_fired">لم يتم التشغيل</string>
+    <string name="metadata_white_balance">توازن الأبيض: %s</string>
+    <string name="metadata_white_balance_auto">تلقائي</string>
+    <string name="metadata_white_balance_manual">يدوي</string>
+
+    <!-- Video Metadata Fields -->
+    <string name="metadata_duration_with_hours">المدة: %s</string>
+    <string name="metadata_duration_without_hours">المدة: %s</string>
+    <string name="metadata_resolution">الدقة: %1$s x %2$s</string>
+    <string name="metadata_rotation">الدوران: %s°</string>
+    <string name="metadata_bitrate">معدل البت: %d كيلوبت/ثانية</string>
+    <string name="metadata_date">التاريخ: %s</string>
+    <string name="metadata_frame_rate">معدل الإطارات: %s إطار/ثانية</string>
+    <string name="metadata_sample_rate">معدل العينة: %s هرتز</string>
+
+    <!-- Additional Sectioned Metadata Strings -->
+    <string name="metadata_no_image_location_data">لا توجد بيانات موقع متاحة في هذه الصورة.</string>
+    <string name="metadata_no_video_location_data">لا توجد بيانات موقع متاحة في هذا الفيديو.</string>
+    <string name="metadata_location_permission_needed_full">لم يتم منح إذن الموقع. امنح الإذن لعرض جميع بيانات الموقع.</string>
+    <string name="metadata_software">البرنامج: %s</string>
+    <string name="metadata_focal_length">البعد البؤري: %s مم</string>
+    <string name="metadata_digital_zoom">التكبير الرقمي: %sx</string>
+
+    <!-- Orientation Strings -->
+    <string name="metadata_orientation_normal">عادي</string>
+    <string name="metadata_orientation_rotate_90">تدوير 90°</string>
+    <string name="metadata_orientation_rotate_180">تدوير 180°</string>
+    <string name="metadata_orientation_rotate_270">تدوير 270°</string>
+    <string name="metadata_orientation_flip_horizontal">قلب أفقي</string>
+    <string name="metadata_orientation_flip_vertical">قلب عمودي</string>
+    <string name="metadata_orientation_transpose">نقل</string>
+    <string name="metadata_orientation_transverse">عرضي</string>
+    <string name="metadata_orientation_unknown">غير معروف (%d)</string>
+
+    <!-- Error Messages -->
+    <string name="metadata_error_extraction">خطأ في استخراج البيانات الوصفية: %s</string>
+    <string name="metadata_error_basic_info">خطأ في استخراج المعلومات الأساسية: %s</string>
+    <string name="metadata_error_file_open">خطأ: تعذر فتح ملف الصورة</string>
+    <string name="metadata_error_image_metadata">خطأ في استخراج بيانات الصورة الوصفية: %s</string>
+    <string name="metadata_error_video_metadata">خطأ في استخراج بيانات الفيديو الوصفية: %s</string>
+</resources>
+

@@ -5,6 +5,10 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaCodec;
+import android.media.MediaExtractor;
+import android.media.MediaFormat;
+import android.media.MediaMuxer;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -37,32 +41,34 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Provides functionality to strip metadata from media files (images and videos).
+ * Provides functionality to strip metadata from media files (images and
+ * videos).
  *
  * This class handles:
- *   - Removing EXIF data from images while preserving essential information like orientation
- *   - Processing videos to remove metadata
- *   - Creating clean copies of media files for both storing and sharing
- *   - Memory management for large media files
- *   - Progress reporting during processing operations
+ * - Removing EXIF data from images while preserving essential information like
+ * orientation
+ * - Processing videos to remove metadata
+ * - Creating clean copies of media files for both storing and sharing
+ * - Memory management for large media files
+ * - Progress reporting during processing operations
  *
  * The class implements two primary workflows:
- *   - Stripping metadata and saving to MediaStore (permanent storage)
- *   - Stripping metadata and saving to app cache (temporary, for sharing)
+ * - Stripping metadata and saving to MediaStore (permanent storage)
+ * - Stripping metadata and saving to app cache (temporary, for sharing)
  *
  * For images, the process involves:
- *   - Reading the original image and any essential EXIF data to preserve
- *   - Decoding the image into a bitmap (with memory optimization for large images)
- *   - Re-encoding the bitmap without any metadata
- *   - Restoring only essential non-identifying EXIF tags (like orientation)
+ * - Reading the original image and any essential EXIF data to preserve
+ * - Decoding the image into a bitmap (with memory optimization for large
+ * images)
+ * - Re-encoding the bitmap without any metadata
+ * - Restoring only essential non-identifying EXIF tags (like orientation)
  *
  * For videos, the process involves:
- *   - Creating a new file in the target location
- *   - Copying the video data stream without processing the container metadata
+ * - Creating a new file in the target location
+ * - Copying the video data stream without processing the container metadata
  *
  * @see ExifInterface
  * @see MediaStore
@@ -76,12 +82,12 @@ public class MetadataStripper {
      * Larger buffers reduce system calls and improve throughput.
      */
     private static final int DEFAULT_BUFFER_SIZE = 65536; // 64KB
-    
+
     /**
      * Buffer size for secure file deletion operations.
      */
     private static final int SECURE_DELETE_BUFFER_SIZE = 65536;
-    
+
     /**
      * Number of passes for secure file deletion (overwriting with random data).
      */
@@ -90,13 +96,15 @@ public class MetadataStripper {
     /**
      * Maximum dimension (width or height) for bitmap processing.
      * Images larger than this will be downsampled during processing to avoid
-     * out-of-memory errors. The original resolution is preserved in the output file.
+     * out-of-memory errors. The original resolution is preserved in the output
+     * file.
      */
     private static final int MAX_BITMAP_SIZE = 4096;
 
     /**
      * Maximum file size in megabytes that can be processed.
-     * Files larger than this will be rejected to prevent excessive memory/storage usage.
+     * Files larger than this will be rejected to prevent excessive memory/storage
+     * usage.
      */
     private static final long MAX_FILE_SIZE_MB = 100;
 
@@ -111,7 +119,7 @@ public class MetadataStripper {
          * Called periodically during processing to update on progress.
          *
          * @param current Current progress step (0-based)
-         * @param total Total number of steps
+         * @param total   Total number of steps
          * @param message Human-readable progress message suitable for display to users
          */
         void onProgressUpdate(int current, int total, String message);
@@ -148,18 +156,20 @@ public class MetadataStripper {
     private final FirebaseCrashlytics crashlytics;
 
     /**
-     * Map to store essential EXIF values that should be preserved during processing.
-     * These values (like orientation) are important for proper display but don't contain
+     * Map to store essential EXIF values that should be preserved during
+     * processing.
+     * These values (like orientation) are important for proper display but don't
+     * contain
      * identifying information.
      */
     private final Map<String, String> preservedExifValues = new HashMap<>();
-    
+
     /**
      * Cache for file sizes to avoid redundant I/O operations.
      * Key: URI string, Value: File size in bytes
      */
     private final Map<String, Long> fileSizeCache = new ConcurrentHashMap<>();
-    
+
     /**
      * Secure random number generator for secure file deletion.
      */
@@ -168,7 +178,8 @@ public class MetadataStripper {
     /**
      * Creates a new MetadataStripper instance.
      *
-     * @param context Application context for accessing system services, must not be null
+     * @param context Application context for accessing system services, must not be
+     *                null
      * @throws IllegalArgumentException if context is null
      */
     public MetadataStripper(@NonNull Context context) {
@@ -185,7 +196,8 @@ public class MetadataStripper {
      * This allows the client to display progress information to the user
      * during potentially lengthy operations.
      *
-     * @param callback The progress callback implementation, or null to remove the callback
+     * @param callback The progress callback implementation, or null to remove the
+     *                 callback
      */
     public void setProgressCallback(@Nullable ProgressCallback callback) {
         this.progressCallback = callback;
@@ -198,7 +210,7 @@ public class MetadataStripper {
      * if one has been set.
      *
      * @param current Current step in the process (0-based)
-     * @param total Total number of steps
+     * @param total   Total number of steps
      * @param message Human-readable progress message
      */
     private void updateProgress(int current, int total, String message) {
@@ -215,11 +227,13 @@ public class MetadataStripper {
      * 2. Copies the video data without processing container metadata
      * 3. Reports progress during the copy operation
      *
-     * The resulting video will have the same content but with container metadata removed.
-     * Note that this does not process or modify the actual video stream, only the container
+     * The resulting video will have the same content but with container metadata
+     * removed.
+     * Note that this does not process or modify the actual video stream, only the
+     * container
      * metadata (like creation date, GPS location, etc.).
      *
-     * @param sourceUri URI of the source video, must not be null
+     * @param sourceUri        URI of the source video, must not be null
      * @param originalFilename Original filename of the video, must not be null
      * @return URI of the processed video, or null if processing failed
      * @throws IllegalArgumentException if sourceUri or originalFilename is null
@@ -244,7 +258,7 @@ public class MetadataStripper {
             String extension = getFileExtension(originalFilename, ".mp4");
 
             // Generate unique filename for the processed file
-            String newFilename = UUID.randomUUID().toString() + extension;
+            String newFilename = generateShortRandomName() + extension;
             updateProgress(1, 4, "Reading video...");
 
             // Prepare MediaStore entry for the new video
@@ -263,36 +277,53 @@ public class MetadataStripper {
 
             updateProgress(2, 4, "Removing metadata...");
 
-            // Copy video data with optimized buffer, reporting progress periodically
-            try (InputStream in = contentResolver.openInputStream(sourceUri);
-                 OutputStream out = contentResolver.openOutputStream(newUri)) {
+            // Use MediaMuxer to remux video without metadata
+            File tempOutputFile = new File(context.getCacheDir(),
+                    "temp_remux_" + System.currentTimeMillis() + extension);
+            try {
+                remuxVideoWithoutMetadata(sourceUri, tempOutputFile, fileSize);
 
-                if (in == null || out == null) {
-                    throw new IOException("Failed to open streams for video processing");
-                }
+                // Copy the remuxed video to MediaStore
+                updateProgress(3, 4, "Saving cleaned video...");
+                try (InputStream in = new FileInputStream(tempOutputFile);
+                        OutputStream out = contentResolver.openOutputStream(newUri)) {
 
-                // Copy data in chunks with optimized buffer size, reporting progress periodically
-                byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-                int length;
-                long totalBytesRead = 0;
+                    if (in == null || out == null) {
+                        throw new IOException("Failed to open streams for video processing");
+                    }
 
-                while ((length = in.read(buffer)) > 0) {
-                    out.write(buffer, 0, length);
+                    byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+                    int length;
+                    while ((length = in.read(buffer)) > 0) {
+                        out.write(buffer, 0, length);
+                    }
                     out.flush();
-
-                    // Update progress periodically
-                    totalBytesRead += length;
-                    if (fileSize > 0 && totalBytesRead % (DEFAULT_BUFFER_SIZE * 10) == 0) {
-                        int progress = (int) ((totalBytesRead * 100) / fileSize);
-                        updateProgress(2, 4, "Removing metadata... " + progress + "%");
+                } finally {
+                    // Clean up temp file
+                    if (tempOutputFile.exists()) {
+                        tempOutputFile.delete();
                     }
                 }
+            } catch (Exception e) {
+                crashlytics.log("MediaMuxer remuxing failed, falling back to direct copy: " + e.getMessage());
+                crashlytics.recordException(e);
+                // Fallback to direct copy if remuxing fails
+                try (InputStream in = contentResolver.openInputStream(sourceUri);
+                        OutputStream out = contentResolver.openOutputStream(newUri)) {
+
+                    if (in == null || out == null) {
+                        throw new IOException("Failed to open streams for video processing");
+                    }
+
+                    byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+                    int length;
+                    while ((length = in.read(buffer)) > 0) {
+                        out.write(buffer, 0, length);
+                    }
+                    out.flush();
+                }
             }
-            
-            // Note: Full video metadata removal (MP4 box parsing) would require FFmpeg integration
-            // For now, we rely on the copy operation which removes some metadata
-            updateProgress(3, 4, "Processing video metadata...");
-            
+
             updateProgress(4, 4, "Saving cleaned video...");
             lastProcessedFileUri = newUri;
             crashlytics.log("Video processed successfully");
@@ -327,7 +358,7 @@ public class MetadataStripper {
      * 4. Restores only essential non-identifying EXIF data
      * 5. Saves the processed image to MediaStore
      *
-     * @param sourceUri URI of the source image, must not be null
+     * @param sourceUri        URI of the source image, must not be null
      * @param originalFilename Original filename of the image, must not be null
      * @return URI of the processed image, or null if processing failed
      * @throws IllegalArgumentException if sourceUri or originalFilename is null
@@ -354,7 +385,7 @@ public class MetadataStripper {
             String extension = getFileExtension(originalFilename, ".jpg");
 
             // Generate unique filename for the processed file
-            String newFilename = UUID.randomUUID().toString() + extension;
+            String newFilename = generateShortRandomName() + extension;
             updateProgress(1, 5, "Reading image...");
 
             // Create temporary file to hold the image during processing
@@ -362,7 +393,7 @@ public class MetadataStripper {
 
             // Copy source image to temporary file
             try (InputStream in = contentResolver.openInputStream(sourceUri);
-                 FileOutputStream out = new FileOutputStream(tempFile)) {
+                    FileOutputStream out = new FileOutputStream(tempFile)) {
 
                 if (in == null) {
                     throw new IOException("Failed to open input stream");
@@ -378,7 +409,7 @@ public class MetadataStripper {
             // Extract essential EXIF data to preserve (like orientation)
             updateProgress(2, 5, "Reading essential metadata...");
             readEssentialExifData(tempFile);
-            
+
             // Remove thumbnails from original
             try {
                 ExifInterface tempExif = new ExifInterface(tempFile.getAbsolutePath());
@@ -429,7 +460,8 @@ public class MetadataStripper {
                     throw new IOException("Failed to open output stream for new image");
                 }
 
-                // Compress bitmap directly to output stream (memory optimization - no ByteArrayOutputStream)
+                // Compress bitmap directly to output stream (memory optimization - no
+                // ByteArrayOutputStream)
                 if (!originalBitmap.compress(Bitmap.CompressFormat.JPEG, 95, os)) {
                     throw new IOException("Failed to compress bitmap");
                 }
@@ -444,13 +476,13 @@ public class MetadataStripper {
             // Restore only essential EXIF data (like orientation)
             updateProgress(4, 5, "Restoring essential metadata...");
             restoreEssentialExifData(newUri);
-            
+
             // Verify metadata removal (for MediaStore files, we need to read from URI)
             updateProgress(5, 5, "Verifying metadata removal...");
             try {
                 File tempVerifyFile = new File(context.getCacheDir(), "verify_" + System.currentTimeMillis() + ".jpg");
                 try (InputStream is = contentResolver.openInputStream(newUri);
-                     FileOutputStream fos = new FileOutputStream(tempVerifyFile)) {
+                        FileOutputStream fos = new FileOutputStream(tempVerifyFile)) {
                     byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
                     int bytesRead;
                     while ((bytesRead = is.read(buffer)) > 0) {
@@ -506,14 +538,17 @@ public class MetadataStripper {
     }
 
     /**
-     * Strips EXIF metadata from an image and saves it to the app's cache directory for sharing.
+     * Strips EXIF metadata from an image and saves it to the app's cache directory
+     * for sharing.
      *
-     * This method is similar to stripExifData but saves to app cache instead of MediaStore,
+     * This method is similar to stripExifData but saves to app cache instead of
+     * MediaStore,
      * making it suitable for temporary files intended for sharing.
      *
-     * @param sourceUri URI of the source image, must not be null
+     * @param sourceUri        URI of the source image, must not be null
      * @param originalFilename Original filename of the image, must not be null
-     * @return URI of the processed image (FileProvider URI), or null if processing failed
+     * @return URI of the processed image (FileProvider URI), or null if processing
+     *         failed
      * @throws IllegalArgumentException if sourceUri or originalFilename is null
      */
     @Nullable
@@ -545,7 +580,7 @@ public class MetadataStripper {
 
             // Copy source image to temporary file
             try (InputStream in = contentResolver.openInputStream(sourceUri);
-                 FileOutputStream out = new FileOutputStream(tempFile)) {
+                    FileOutputStream out = new FileOutputStream(tempFile)) {
 
                 if (in == null) {
                     throw new IOException("Failed to open input stream");
@@ -592,11 +627,13 @@ public class MetadataStripper {
                 }
             }
 
-            // Generate unique filename for the processed file (same scheme as main cleaning process)
-            String newFilename = UUID.randomUUID().toString() + extension;
+            // Generate unique filename for the processed file (same scheme as main cleaning
+            // process)
+            String newFilename = generateShortRandomName() + extension;
             outputFile = new File(outputDir, newFilename);
 
-            // Save bitmap to output file (direct streaming, no intermediate ByteArrayOutputStream)
+            // Save bitmap to output file (direct streaming, no intermediate
+            // ByteArrayOutputStream)
             // Use progressive JPEG for better perceived performance
             try (FileOutputStream fos = new FileOutputStream(outputFile)) {
                 // Compress directly to file output stream (memory optimization)
@@ -612,12 +649,14 @@ public class MetadataStripper {
             originalBitmap = null;
             System.gc();
 
-            // Restore only essential EXIF data (like orientation)
-            updateProgress(4, 5, "Restoring essential metadata...");
+            // Remove all EXIF metadata except essential tags
+            updateProgress(4, 5, "Removing all metadata...");
             ExifInterface newExif = new ExifInterface(outputFile.getAbsolutePath());
+            removeAllExifMetadata(newExif);
+            // Restore only essential EXIF data (like orientation)
             restoreEssentialExifValues(newExif);
             newExif.saveAttributes();
-            
+
             // Verify metadata removal
             updateProgress(5, 5, "Verifying metadata removal...");
             boolean metadataRemoved = verifyMetadataRemoval(outputFile);
@@ -625,7 +664,7 @@ public class MetadataStripper {
             if (!metadataRemoved) {
                 crashlytics.log("Warning: Metadata verification found remaining metadata");
             }
-            
+
             // Zero-pad unused space for security
             try {
                 zeroPadUnusedSpace(outputFile);
@@ -670,16 +709,18 @@ public class MetadataStripper {
     }
 
     /**
-     * Strips metadata from a video and saves it to the app's cache directory for sharing.
+     * Strips metadata from a video and saves it to the app's cache directory for
+     * sharing.
      *
      * This method:
      * 1. Copies the video data to a new file in the app's cache directory
      * 2. Reports progress during the copy operation
      * 3. Returns a FileProvider URI for sharing the processed video
      *
-     * @param sourceUri URI of the source video, must not be null
+     * @param sourceUri        URI of the source video, must not be null
      * @param originalFilename Original filename of the video, must not be null
-     * @return URI of the processed video (FileProvider URI), or null if processing failed
+     * @return URI of the processed video (FileProvider URI), or null if processing
+     *         failed
      * @throws IllegalArgumentException if sourceUri or originalFilename is null
      */
     @Nullable
@@ -712,62 +753,34 @@ public class MetadataStripper {
                 }
             }
 
-            // Generate unique filename for the processed file (same scheme as main cleaning process)
-            String newFilename = UUID.randomUUID().toString() + extension;
+            // Generate unique filename for the processed file (same scheme as main cleaning
+            // process)
+            String newFilename = generateShortRandomName() + extension;
             outputFile = new File(outputDir, newFilename);
 
             updateProgress(2, 4, "Removing metadata...");
 
-            // Process video to remove metadata boxes (basic MP4 box parsing)
-            // For full metadata removal, FFmpeg integration would be needed
-            File tempVideoFile = new File(context.getCacheDir(), "temp_video_" + System.currentTimeMillis() + extension);
+            // Use MediaMuxer to remux video without metadata
             try {
-                // Copy video data with metadata box removal attempt
+                remuxVideoWithoutMetadata(sourceUri, outputFile, fileSize);
+                updateProgress(3, 4, "Processing video metadata...");
+            } catch (Exception e) {
+                crashlytics.log("MediaMuxer remuxing failed, falling back to direct copy: " + e.getMessage());
+                crashlytics.recordException(e);
+                // Fallback to direct copy if remuxing fails
                 try (InputStream in = contentResolver.openInputStream(sourceUri);
-                     FileOutputStream out = new FileOutputStream(tempVideoFile)) {
+                        FileOutputStream out = new FileOutputStream(outputFile)) {
 
                     if (in == null) {
                         throw new IOException("Failed to open input stream for video");
                     }
 
-                    // Copy data in chunks with optimized buffer, reporting progress periodically
                     byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
                     int length;
-                    long totalBytesRead = 0;
-
                     while ((length = in.read(buffer)) > 0) {
                         out.write(buffer, 0, length);
-                        out.flush();
-
-                        // Update progress periodically
-                        totalBytesRead += length;
-                        if (fileSize > 0 && totalBytesRead % (DEFAULT_BUFFER_SIZE * 10) == 0) {
-                            int progress = (int) ((totalBytesRead * 100) / fileSize);
-                            updateProgress(2, 4, "Removing metadata... " + progress + "%");
-                        }
                     }
-                }
-                
-                // Attempt to remove video metadata boxes (basic implementation)
-                updateProgress(3, 4, "Processing video metadata...");
-                try {
-                    removeVideoMetadataBoxes(tempVideoFile, outputFile);
-                } catch (Exception e) {
-                    // If box removal fails, just copy the file
-                    crashlytics.log("Video metadata box removal failed, using direct copy: " + e.getMessage());
-                    try (FileInputStream fis = new FileInputStream(tempVideoFile);
-                         FileOutputStream fos = new FileOutputStream(outputFile)) {
-                        byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-                        int length;
-                        while ((length = fis.read(buffer)) > 0) {
-                            fos.write(buffer, 0, length);
-                        }
-                    }
-                }
-            } finally {
-                // Securely delete temp video file
-                if (tempVideoFile.exists()) {
-                    secureDeleteFile(tempVideoFile);
+                    out.flush();
                 }
             }
 
@@ -795,13 +808,15 @@ public class MetadataStripper {
     }
 
     /**
-     * Convenience method that routes to either stripExifDataForSharing or stripVideoMetadataForSharing
+     * Convenience method that routes to either stripExifDataForSharing or
+     * stripVideoMetadataForSharing
      * based on the media type.
      *
-     * @param sourceUri URI of the source media file, must not be null
+     * @param sourceUri        URI of the source media file, must not be null
      * @param originalFilename Original filename of the media file, must not be null
-     * @param isVideo True if the media is a video, false if it's an image
-     * @return URI of the processed media file (FileProvider URI), or null if processing failed
+     * @param isVideo          True if the media is a video, false if it's an image
+     * @return URI of the processed media file (FileProvider URI), or null if
+     *         processing failed
      * @throws IllegalArgumentException if sourceUri or originalFilename is null
      */
     @Nullable
@@ -828,10 +843,29 @@ public class MetadataStripper {
     }
 
     /**
-     * Extracts the file extension from a filename or returns a default extension if none is found.
+     * Generates a short random alphanumeric string for use in filenames.
+     * Uses SecureRandom for cryptographically secure random generation.
+     *
+     * @return A random string of 12 characters (alphanumeric)
+     */
+    @NonNull
+    private String generateShortRandomName() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder sb = new StringBuilder(12);
+        for (int i = 0; i < 12; i++) {
+            int index = secureRandom.nextInt(chars.length());
+            sb.append(chars.charAt(index));
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Extracts the file extension from a filename or returns a default extension if
+     * none is found.
      *
      * @param originalFilename Filename to extract extension from, must not be null
-     * @param defaultExtension Default extension to use if none is found, must not be null
+     * @param defaultExtension Default extension to use if none is found, must not
+     *                         be null
      * @return File extension including the dot (e.g., ".jpg")
      */
     @NonNull
@@ -869,10 +903,11 @@ public class MetadataStripper {
             } catch (Exception ignored) {
                 // Fall through to stream-based approach
             }
-            
+
             // Fallback: read stream to determine size
             try (InputStream stream = contentResolver.openInputStream(uri)) {
-                if (stream == null) return 0;
+                if (stream == null)
+                    return 0;
 
                 // Use optimized buffer for size calculation
                 long size = 0;
@@ -892,8 +927,10 @@ public class MetadataStripper {
     /**
      * Calculates an appropriate sample size for loading large bitmaps efficiently.
      *
-     * This method determines how much to downsample an image during decoding to avoid
-     * out-of-memory errors while processing very large images. The original resolution
+     * This method determines how much to downsample an image during decoding to
+     * avoid
+     * out-of-memory errors while processing very large images. The original
+     * resolution
      * is preserved in the final output file.
      *
      * @param options BitmapFactory.Options containing the image dimensions
@@ -920,29 +957,29 @@ public class MetadataStripper {
     }
 
     /**
-     * Reads and stores essential EXIF data from an image file that should be preserved.
+     * Reads and stores essential EXIF data from an image file that should be
+     * preserved.
      *
-     * This method extracts non-identifying metadata like orientation that is important
+     * This method extracts non-identifying metadata like orientation that is
+     * important
      * for proper display of the image.
      *
      * @param imageFile Source image file to read EXIF data from, must not be null
-     * @throws IOException if the file cannot be read or EXIF data cannot be extracted
+     * @throws IOException if the file cannot be read or EXIF data cannot be
+     *                     extracted
      */
     private void readEssentialExifData(@NonNull File imageFile) throws IOException {
         // Create ExifInterface for reading EXIF data
         ExifInterface exif = new ExifInterface(imageFile.getAbsolutePath());
         preservedExifValues.clear();
 
-        // List of EXIF tags that should be preserved (non-identifying metadata)
+        // List of EXIF tags that should be preserved (only truly essential for image
+        // display)
+        // Only orientation is essential - it tells the viewer how to rotate the image
+        // All other metadata (color space, resolution, etc.) can be inferred or is not
+        // critical
         String[] tagsToPreserve = {
-                ExifInterface.TAG_ORIENTATION,
-                ExifInterface.TAG_COLOR_SPACE,
-                ExifInterface.TAG_PIXEL_X_DIMENSION,
-                ExifInterface.TAG_PIXEL_Y_DIMENSION,
-                ExifInterface.TAG_BITS_PER_SAMPLE,
-                ExifInterface.TAG_RESOLUTION_UNIT,
-                ExifInterface.TAG_X_RESOLUTION,
-                ExifInterface.TAG_Y_RESOLUTION
+                ExifInterface.TAG_ORIENTATION
         };
 
         // Store each tag that exists in the original file
@@ -976,6 +1013,9 @@ public class MetadataStripper {
             ExifInterface newExif = new ExifInterface(
                     Objects.requireNonNull(contentResolver.openFileDescriptor(imageUri, "rw")).getFileDescriptor());
 
+            // Remove all EXIF metadata except essential tags
+            removeAllExifMetadata(newExif);
+
             // Restore the preserved EXIF values
             restoreEssentialExifValues(newExif);
 
@@ -1001,132 +1041,131 @@ public class MetadataStripper {
     }
 
     /**
-     * Returns a comprehensive list of EXIF tags that should be removed for privacy.
+     * Removes all EXIF metadata from an ExifInterface instance except for essential
+     * tags.
+     * This method uses reflection to get all possible TAG constants and removes
+     * everything
+     * except the tags we explicitly want to preserve.
      *
-     * This includes tags that might contain identifying information like:
-     * - Date/time information
-     * - GPS location data
-     * - Camera make/model
-     * - Serial numbers
-     * - User-entered descriptions
-     *
-     * @return Array of EXIF tag constants to remove
+     * @param exif The ExifInterface instance to clean
      */
-    @NonNull
-    private String[] getExifTagsToRemove() {
-        return new String[] {
-                ExifInterface.TAG_DATETIME,
-                ExifInterface.TAG_DATETIME_DIGITIZED,
-                ExifInterface.TAG_DATETIME_ORIGINAL,
-                ExifInterface.TAG_IMAGE_DESCRIPTION,
-                ExifInterface.TAG_IMAGE_UNIQUE_ID,
-                ExifInterface.TAG_GPS_ALTITUDE,
-                ExifInterface.TAG_GPS_ALTITUDE_REF,
+    private void removeAllExifMetadata(@NonNull ExifInterface exif) {
+        try {
+            // Get all TAG constants from ExifInterface using reflection
+            java.lang.reflect.Field[] fields = ExifInterface.class.getDeclaredFields();
+            // Only preserve orientation - it's the only tag essential for proper image
+            // display
+            // All other metadata (color space, resolution, etc.) can be inferred or is not
+            // critical
+            java.util.Set<String> tagsToPreserve = new java.util.HashSet<>(java.util.Arrays.asList(
+                    ExifInterface.TAG_ORIENTATION));
+
+            int removedCount = 0;
+            for (java.lang.reflect.Field field : fields) {
+                if (field.getType() == String.class && field.getName().startsWith("TAG_")) {
+                    try {
+                        String tagName = (String) field.get(null);
+                        if (tagName != null && !tagsToPreserve.contains(tagName)) {
+                            // Try to get the attribute to see if it exists
+                            String value = exif.getAttribute(tagName);
+                            if (value != null) {
+                                // Remove the attribute by setting it to null
+                                exif.setAttribute(tagName, null);
+                                removedCount++;
+                            }
+                        }
+                    } catch (IllegalAccessException | IllegalArgumentException e) {
+                        // Skip fields we can't access
+                        continue;
+                    }
+                }
+            }
+
+            crashlytics.log("Removed " + removedCount + " EXIF metadata tags");
+            crashlytics.setCustomKey("exif_tags_removed", removedCount);
+
+        } catch (Exception e) {
+            crashlytics.log("Error removing EXIF metadata: " + e.getMessage());
+            crashlytics.recordException(e);
+            // Fallback to hardcoded list if reflection fails
+            removeExifMetadataFallback(exif);
+        }
+    }
+
+    /**
+     * Fallback method to remove EXIF metadata using a hardcoded list of tags.
+     * Used when reflection fails or is unavailable.
+     *
+     * @param exif The ExifInterface instance to clean
+     */
+    private void removeExifMetadataFallback(@NonNull ExifInterface exif) {
+        // Comprehensive list of all known EXIF tags to remove
+        String[] tagsToRemove = {
+                ExifInterface.TAG_DATETIME, ExifInterface.TAG_DATETIME_DIGITIZED, ExifInterface.TAG_DATETIME_ORIGINAL,
+                ExifInterface.TAG_IMAGE_DESCRIPTION, ExifInterface.TAG_IMAGE_UNIQUE_ID,
+                ExifInterface.TAG_GPS_ALTITUDE, ExifInterface.TAG_GPS_ALTITUDE_REF,
                 ExifInterface.TAG_GPS_AREA_INFORMATION,
-                ExifInterface.TAG_GPS_DATESTAMP,
-                ExifInterface.TAG_GPS_DEST_BEARING,
+                ExifInterface.TAG_GPS_DATESTAMP, ExifInterface.TAG_GPS_DEST_BEARING,
                 ExifInterface.TAG_GPS_DEST_BEARING_REF,
-                ExifInterface.TAG_GPS_DEST_DISTANCE,
-                ExifInterface.TAG_GPS_DEST_DISTANCE_REF,
-                ExifInterface.TAG_GPS_DEST_LATITUDE,
-                ExifInterface.TAG_GPS_DEST_LATITUDE_REF,
-                ExifInterface.TAG_GPS_DEST_LONGITUDE,
-                ExifInterface.TAG_GPS_DEST_LONGITUDE_REF,
-                ExifInterface.TAG_GPS_DIFFERENTIAL,
-                ExifInterface.TAG_GPS_DOP,
-                ExifInterface.TAG_GPS_IMG_DIRECTION,
-                ExifInterface.TAG_GPS_IMG_DIRECTION_REF,
-                ExifInterface.TAG_GPS_LATITUDE,
-                ExifInterface.TAG_GPS_LATITUDE_REF,
-                ExifInterface.TAG_GPS_LONGITUDE,
-                ExifInterface.TAG_GPS_LONGITUDE_REF,
-                ExifInterface.TAG_GPS_MAP_DATUM,
-                ExifInterface.TAG_GPS_MEASURE_MODE,
-                ExifInterface.TAG_GPS_PROCESSING_METHOD,
-                ExifInterface.TAG_GPS_SATELLITES,
-                ExifInterface.TAG_GPS_SPEED,
-                ExifInterface.TAG_GPS_SPEED_REF,
-                ExifInterface.TAG_GPS_STATUS,
-                ExifInterface.TAG_GPS_TIMESTAMP,
-                ExifInterface.TAG_GPS_TRACK,
-                ExifInterface.TAG_GPS_TRACK_REF,
+                ExifInterface.TAG_GPS_DEST_DISTANCE, ExifInterface.TAG_GPS_DEST_DISTANCE_REF,
+                ExifInterface.TAG_GPS_DEST_LATITUDE, ExifInterface.TAG_GPS_DEST_LATITUDE_REF,
+                ExifInterface.TAG_GPS_DEST_LONGITUDE, ExifInterface.TAG_GPS_DEST_LONGITUDE_REF,
+                ExifInterface.TAG_GPS_DIFFERENTIAL, ExifInterface.TAG_GPS_DOP,
+                ExifInterface.TAG_GPS_IMG_DIRECTION, ExifInterface.TAG_GPS_IMG_DIRECTION_REF,
+                ExifInterface.TAG_GPS_LATITUDE, ExifInterface.TAG_GPS_LATITUDE_REF,
+                ExifInterface.TAG_GPS_LONGITUDE, ExifInterface.TAG_GPS_LONGITUDE_REF,
+                ExifInterface.TAG_GPS_MAP_DATUM, ExifInterface.TAG_GPS_MEASURE_MODE,
+                ExifInterface.TAG_GPS_PROCESSING_METHOD, ExifInterface.TAG_GPS_SATELLITES,
+                ExifInterface.TAG_GPS_SPEED, ExifInterface.TAG_GPS_SPEED_REF,
+                ExifInterface.TAG_GPS_STATUS, ExifInterface.TAG_GPS_TIMESTAMP,
+                ExifInterface.TAG_GPS_TRACK, ExifInterface.TAG_GPS_TRACK_REF,
                 ExifInterface.TAG_GPS_VERSION_ID,
-                ExifInterface.TAG_MAKE,
-                ExifInterface.TAG_MODEL,
-                ExifInterface.TAG_SOFTWARE,
-                ExifInterface.TAG_CAMERA_OWNER_NAME,
-                ExifInterface.TAG_BODY_SERIAL_NUMBER,
-                ExifInterface.TAG_LENS_MAKE,
-                ExifInterface.TAG_LENS_MODEL,
-                ExifInterface.TAG_LENS_SERIAL_NUMBER,
-                ExifInterface.TAG_LENS_SPECIFICATION,
-                ExifInterface.TAG_APERTURE_VALUE,
-                ExifInterface.TAG_BRIGHTNESS_VALUE,
-                ExifInterface.TAG_CFA_PATTERN,
-                ExifInterface.TAG_COMPONENTS_CONFIGURATION,
-                ExifInterface.TAG_COMPRESSED_BITS_PER_PIXEL,
-                ExifInterface.TAG_COMPRESSION,
-                ExifInterface.TAG_CONTRAST,
-                ExifInterface.TAG_CUSTOM_RENDERED,
-                ExifInterface.TAG_DIGITAL_ZOOM_RATIO,
-                ExifInterface.TAG_EXPOSURE_BIAS_VALUE,
-                ExifInterface.TAG_EXPOSURE_INDEX,
-                ExifInterface.TAG_EXPOSURE_MODE,
-                ExifInterface.TAG_EXPOSURE_PROGRAM,
-                ExifInterface.TAG_EXPOSURE_TIME,
-                ExifInterface.TAG_F_NUMBER,
-                ExifInterface.TAG_FLASH,
-                ExifInterface.TAG_FLASH_ENERGY,
-                ExifInterface.TAG_FOCAL_LENGTH,
-                ExifInterface.TAG_FOCAL_LENGTH_IN_35MM_FILM,
-                ExifInterface.TAG_FOCAL_PLANE_RESOLUTION_UNIT,
-                ExifInterface.TAG_FOCAL_PLANE_X_RESOLUTION,
-                ExifInterface.TAG_FOCAL_PLANE_Y_RESOLUTION,
-                ExifInterface.TAG_GAIN_CONTROL,
-                ExifInterface.TAG_ISO_SPEED,
-                ExifInterface.TAG_ISO_SPEED_LATITUDE_YYY,
-                ExifInterface.TAG_ISO_SPEED_LATITUDE_ZZZ,
-                ExifInterface.TAG_LIGHT_SOURCE,
-                ExifInterface.TAG_MAX_APERTURE_VALUE,
-                ExifInterface.TAG_METERING_MODE,
-                ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY,
-                ExifInterface.TAG_PLANAR_CONFIGURATION,
-                ExifInterface.TAG_RECOMMENDED_EXPOSURE_INDEX,
-                ExifInterface.TAG_ROWS_PER_STRIP,
-                ExifInterface.TAG_SAMPLES_PER_PIXEL,
-                ExifInterface.TAG_SATURATION,
-                ExifInterface.TAG_SCENE_CAPTURE_TYPE,
-                ExifInterface.TAG_SCENE_TYPE,
-                ExifInterface.TAG_SENSING_METHOD,
-                ExifInterface.TAG_SENSITIVITY_TYPE,
-                ExifInterface.TAG_SHARPNESS,
-                ExifInterface.TAG_SHUTTER_SPEED_VALUE,
-                ExifInterface.TAG_SPECTRAL_SENSITIVITY,
-                ExifInterface.TAG_STANDARD_OUTPUT_SENSITIVITY,
-                ExifInterface.TAG_SUBJECT_AREA,
-                ExifInterface.TAG_SUBJECT_DISTANCE,
-                ExifInterface.TAG_SUBJECT_DISTANCE_RANGE,
-                ExifInterface.TAG_SUBJECT_LOCATION,
-                ExifInterface.TAG_SUBSEC_TIME,
-                ExifInterface.TAG_SUBSEC_TIME_DIGITIZED,
-                ExifInterface.TAG_SUBSEC_TIME_ORIGINAL,
-                ExifInterface.TAG_WHITE_BALANCE,
-                ExifInterface.TAG_WHITE_POINT,
-                ExifInterface.TAG_ARTIST,
-                ExifInterface.TAG_COPYRIGHT,
-                ExifInterface.TAG_DEVICE_SETTING_DESCRIPTION,
-                ExifInterface.TAG_IMAGE_UNIQUE_ID,
-                ExifInterface.TAG_MAKER_NOTE,
-                ExifInterface.TAG_OECF,
-                ExifInterface.TAG_USER_COMMENT,
-                ExifInterface.TAG_THUMBNAIL_IMAGE_LENGTH,
-                ExifInterface.TAG_THUMBNAIL_IMAGE_WIDTH,
-                ExifInterface.TAG_INTEROPERABILITY_INDEX,
-                ExifInterface.TAG_FILE_SOURCE,
-                ExifInterface.TAG_OFFSET_TIME,
-                ExifInterface.TAG_OFFSET_TIME_DIGITIZED,
+                ExifInterface.TAG_MAKE, ExifInterface.TAG_MODEL, ExifInterface.TAG_SOFTWARE,
+                ExifInterface.TAG_CAMERA_OWNER_NAME, ExifInterface.TAG_BODY_SERIAL_NUMBER,
+                ExifInterface.TAG_LENS_MAKE, ExifInterface.TAG_LENS_MODEL,
+                ExifInterface.TAG_LENS_SERIAL_NUMBER, ExifInterface.TAG_LENS_SPECIFICATION,
+                ExifInterface.TAG_APERTURE_VALUE, ExifInterface.TAG_BRIGHTNESS_VALUE,
+                ExifInterface.TAG_CFA_PATTERN, ExifInterface.TAG_COMPONENTS_CONFIGURATION,
+                ExifInterface.TAG_COMPRESSED_BITS_PER_PIXEL, ExifInterface.TAG_COMPRESSION,
+                ExifInterface.TAG_CONTRAST, ExifInterface.TAG_CUSTOM_RENDERED,
+                ExifInterface.TAG_DIGITAL_ZOOM_RATIO, ExifInterface.TAG_EXPOSURE_BIAS_VALUE,
+                ExifInterface.TAG_EXPOSURE_INDEX, ExifInterface.TAG_EXPOSURE_MODE,
+                ExifInterface.TAG_EXPOSURE_PROGRAM, ExifInterface.TAG_EXPOSURE_TIME,
+                ExifInterface.TAG_F_NUMBER, ExifInterface.TAG_FLASH, ExifInterface.TAG_FLASH_ENERGY,
+                ExifInterface.TAG_FOCAL_LENGTH, ExifInterface.TAG_FOCAL_LENGTH_IN_35MM_FILM,
+                ExifInterface.TAG_FOCAL_PLANE_RESOLUTION_UNIT, ExifInterface.TAG_FOCAL_PLANE_X_RESOLUTION,
+                ExifInterface.TAG_FOCAL_PLANE_Y_RESOLUTION, ExifInterface.TAG_GAIN_CONTROL,
+                ExifInterface.TAG_ISO_SPEED, ExifInterface.TAG_ISO_SPEED_LATITUDE_YYY,
+                ExifInterface.TAG_ISO_SPEED_LATITUDE_ZZZ, ExifInterface.TAG_LIGHT_SOURCE,
+                ExifInterface.TAG_MAX_APERTURE_VALUE, ExifInterface.TAG_METERING_MODE,
+                ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY, ExifInterface.TAG_PLANAR_CONFIGURATION,
+                ExifInterface.TAG_RECOMMENDED_EXPOSURE_INDEX, ExifInterface.TAG_ROWS_PER_STRIP,
+                ExifInterface.TAG_SAMPLES_PER_PIXEL, ExifInterface.TAG_SATURATION,
+                ExifInterface.TAG_SCENE_CAPTURE_TYPE, ExifInterface.TAG_SCENE_TYPE,
+                ExifInterface.TAG_SENSING_METHOD, ExifInterface.TAG_SENSITIVITY_TYPE,
+                ExifInterface.TAG_SHARPNESS, ExifInterface.TAG_SHUTTER_SPEED_VALUE,
+                ExifInterface.TAG_SPECTRAL_SENSITIVITY, ExifInterface.TAG_STANDARD_OUTPUT_SENSITIVITY,
+                ExifInterface.TAG_SUBJECT_AREA, ExifInterface.TAG_SUBJECT_DISTANCE,
+                ExifInterface.TAG_SUBJECT_DISTANCE_RANGE, ExifInterface.TAG_SUBJECT_LOCATION,
+                ExifInterface.TAG_SUBSEC_TIME, ExifInterface.TAG_SUBSEC_TIME_DIGITIZED,
+                ExifInterface.TAG_SUBSEC_TIME_ORIGINAL, ExifInterface.TAG_WHITE_BALANCE,
+                ExifInterface.TAG_WHITE_POINT, ExifInterface.TAG_ARTIST, ExifInterface.TAG_COPYRIGHT,
+                ExifInterface.TAG_DEVICE_SETTING_DESCRIPTION, ExifInterface.TAG_MAKER_NOTE,
+                ExifInterface.TAG_OECF, ExifInterface.TAG_USER_COMMENT,
+                ExifInterface.TAG_THUMBNAIL_IMAGE_LENGTH, ExifInterface.TAG_THUMBNAIL_IMAGE_WIDTH,
+                ExifInterface.TAG_INTEROPERABILITY_INDEX, ExifInterface.TAG_FILE_SOURCE,
+                ExifInterface.TAG_OFFSET_TIME, ExifInterface.TAG_OFFSET_TIME_DIGITIZED,
                 ExifInterface.TAG_OFFSET_TIME_ORIGINAL
         };
+
+        int removedCount = 0;
+        for (String tag : tagsToRemove) {
+            if (exif.getAttribute(tag) != null) {
+                exif.setAttribute(tag, null);
+                removedCount++;
+            }
+        }
+        crashlytics.log("Removed " + removedCount + " EXIF metadata tags (fallback method)");
     }
 
     /**
@@ -1207,7 +1246,8 @@ public class MetadataStripper {
     /**
      * Attempts to free memory by triggering garbage collection if memory is low.
      *
-     * Note: This is generally not recommended in Android as the system manages memory,
+     * Note: This is generally not recommended in Android as the system manages
+     * memory,
      * but can be useful in specific cases when processing large media files.
      */
     private void tryFreeMemory() {
@@ -1242,9 +1282,10 @@ public class MetadataStripper {
     public long getMaxFileSizeMB() {
         return MAX_FILE_SIZE_MB;
     }
-    
+
     /**
-     * Securely deletes a file by overwriting it with random data multiple times before deletion.
+     * Securely deletes a file by overwriting it with random data multiple times
+     * before deletion.
      * This makes file recovery significantly more difficult.
      *
      * @param file The file to securely delete
@@ -1254,13 +1295,13 @@ public class MetadataStripper {
         if (file == null || !file.exists() || !file.isFile()) {
             return false;
         }
-        
+
         try {
             long fileSize = file.length();
             if (fileSize == 0) {
                 return file.delete();
             }
-            
+
             // Overwrite file with random data multiple times
             byte[] randomData = new byte[SECURE_DELETE_BUFFER_SIZE];
             for (int pass = 0; pass < SECURE_DELETE_PASSES; pass++) {
@@ -1275,7 +1316,7 @@ public class MetadataStripper {
                     raf.getFD().sync(); // Force write to disk
                 }
             }
-            
+
             // Finally delete the file
             return file.delete();
         } catch (Exception e) {
@@ -1284,7 +1325,7 @@ public class MetadataStripper {
             return file.delete();
         }
     }
-    
+
     /**
      * Verifies that metadata has been properly removed from an image file.
      * Checks for remaining EXIF, XMP, and IPTC metadata.
@@ -1295,23 +1336,23 @@ public class MetadataStripper {
     private boolean verifyMetadataRemoval(@NonNull File imageFile) {
         try {
             ExifInterface exif = new ExifInterface(imageFile.getAbsolutePath());
-            
+
             // Check for any remaining identifying EXIF tags
             String[] identifyingTags = {
-                ExifInterface.TAG_DATETIME,
-                ExifInterface.TAG_DATETIME_ORIGINAL,
-                ExifInterface.TAG_GPS_LATITUDE,
-                ExifInterface.TAG_GPS_LONGITUDE,
-                ExifInterface.TAG_MAKE,
-                ExifInterface.TAG_MODEL,
-                ExifInterface.TAG_SOFTWARE,
-                ExifInterface.TAG_ARTIST,
-                ExifInterface.TAG_COPYRIGHT,
-                ExifInterface.TAG_IMAGE_DESCRIPTION,
-                ExifInterface.TAG_USER_COMMENT,
-                ExifInterface.TAG_MAKER_NOTE
+                    ExifInterface.TAG_DATETIME,
+                    ExifInterface.TAG_DATETIME_ORIGINAL,
+                    ExifInterface.TAG_GPS_LATITUDE,
+                    ExifInterface.TAG_GPS_LONGITUDE,
+                    ExifInterface.TAG_MAKE,
+                    ExifInterface.TAG_MODEL,
+                    ExifInterface.TAG_SOFTWARE,
+                    ExifInterface.TAG_ARTIST,
+                    ExifInterface.TAG_COPYRIGHT,
+                    ExifInterface.TAG_IMAGE_DESCRIPTION,
+                    ExifInterface.TAG_USER_COMMENT,
+                    ExifInterface.TAG_MAKER_NOTE
             };
-            
+
             for (String tag : identifyingTags) {
                 String value = exif.getAttribute(tag);
                 if (value != null && !value.isEmpty()) {
@@ -1319,13 +1360,13 @@ public class MetadataStripper {
                     return false;
                 }
             }
-            
+
             // Check for XMP metadata (basic check - look for XMP header in file)
             if (containsXMPMetadata(imageFile)) {
                 crashlytics.log("Warning: Found XMP metadata in file");
                 return false;
             }
-            
+
             return true;
         } catch (Exception e) {
             crashlytics.log("Error verifying metadata removal: " + e.getMessage());
@@ -1333,7 +1374,7 @@ public class MetadataStripper {
             return true;
         }
     }
-    
+
     /**
      * Checks if a file contains XMP metadata by looking for XMP header.
      *
@@ -1348,17 +1389,18 @@ public class MetadataStripper {
                 String content = new String(buffer, 0, bytesRead, "ISO-8859-1");
                 // Look for XMP header markers
                 return content.contains("http://ns.adobe.com/xap/1.0/") ||
-                       content.contains("xpacket") ||
-                       content.contains("x:xmpmeta");
+                        content.contains("xpacket") ||
+                        content.contains("x:xmpmeta");
             }
         } catch (Exception e) {
             // Ignore errors in XMP detection
         }
         return false;
     }
-    
+
     /**
-     * Removes embedded thumbnails from an image file by clearing thumbnail-related EXIF tags.
+     * Removes embedded thumbnails from an image file by clearing thumbnail-related
+     * EXIF tags.
      *
      * @param exif The ExifInterface instance for the image
      */
@@ -1367,7 +1409,7 @@ public class MetadataStripper {
             // Remove thumbnail-related tags
             exif.setAttribute(ExifInterface.TAG_THUMBNAIL_IMAGE_LENGTH, null);
             exif.setAttribute(ExifInterface.TAG_THUMBNAIL_IMAGE_WIDTH, null);
-            
+
             // Try to remove thumbnail data if available
             byte[] thumbnail = exif.getThumbnailBytes();
             if (thumbnail != null && thumbnail.length > 0) {
@@ -1378,25 +1420,27 @@ public class MetadataStripper {
             crashlytics.log("Error removing thumbnails: " + e.getMessage());
         }
     }
-    
+
     /**
-     * Removes XMP and IPTC metadata from a JPEG file by parsing and rewriting without metadata segments.
+     * Removes XMP and IPTC metadata from a JPEG file by parsing and rewriting
+     * without metadata segments.
      * This is a basic implementation that removes common metadata markers.
      *
-     * @param inputFile Input file with metadata
+     * @param inputFile  Input file with metadata
      * @param outputFile Output file without metadata
      * @throws IOException if processing fails
      */
     private void removeXMPAndIPTCMetadata(@NonNull File inputFile, @NonNull File outputFile) throws IOException {
         // For JPEG files, XMP and IPTC are typically in APP segments
-        // This is a simplified approach - a full implementation would parse JPEG segments
+        // This is a simplified approach - a full implementation would parse JPEG
+        // segments
         try (FileInputStream fis = new FileInputStream(inputFile);
-             FileOutputStream fos = new FileOutputStream(outputFile)) {
-            
+                FileOutputStream fos = new FileOutputStream(outputFile)) {
+
             byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
             int bytesRead;
             boolean inMetadataSegment = false;
-            
+
             while ((bytesRead = fis.read(buffer)) > 0) {
                 // Basic approach: The bitmap re-encoding already removes most metadata
                 // This method is a placeholder for more advanced XMP/IPTC removal
@@ -1405,49 +1449,234 @@ public class MetadataStripper {
             }
         }
     }
-    
+
     /**
-     * Processes MP4 video file to remove metadata boxes (moov, uuid, meta boxes).
-     * This is a basic implementation that attempts to remove common metadata containers.
+     * Remuxes video using MediaMuxer to remove all metadata.
+     * This extracts the video and audio tracks and remuxes them without any
+     * metadata.
      *
-     * @param inputFile Input video file
-     * @param outputFile Output video file without metadata
-     * @throws IOException if processing fails
+     * @param sourceUri  URI of the source video
+     * @param outputFile Output file for the remuxed video without metadata
+     * @param fileSize   Size of the source file for progress reporting
+     * @throws IOException if remuxing fails
      */
-    private void removeVideoMetadataBoxes(@NonNull File inputFile, @NonNull File outputFile) throws IOException {
-        // MP4 files use a box-based structure
-        // This is a simplified implementation - full implementation would require proper MP4 parsing
-        try (FileInputStream fis = new FileInputStream(inputFile);
-             FileOutputStream fos = new FileOutputStream(outputFile);
-             FileChannel inputChannel = fis.getChannel();
-             FileChannel outputChannel = fos.getChannel()) {
-            
-            ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE);
-            long position = 0;
-            long fileSize = inputFile.length();
-            
-            // Read and process MP4 boxes
-            while (position < fileSize) {
-                buffer.clear();
-                int bytesRead = inputChannel.read(buffer);
-                if (bytesRead <= 0) break;
-                
-                buffer.flip();
-                
-                // Basic box detection - look for box type headers
-                // Full implementation would properly parse box structure
-                // For now, we copy the data (proper removal requires FFmpeg or similar)
-                buffer.rewind();
-                outputChannel.write(buffer);
-                
-                position += bytesRead;
+    private void remuxVideoWithoutMetadata(@NonNull Uri sourceUri, @NonNull File outputFile, long fileSize)
+            throws IOException {
+        MediaExtractor extractor = null;
+        MediaMuxer muxer = null;
+
+        try {
+            extractor = new MediaExtractor();
+            extractor.setDataSource(context, sourceUri, null);
+
+            int trackCount = extractor.getTrackCount();
+            if (trackCount == 0) {
+                throw new IOException("No tracks found in video");
             }
-            
-            // Note: Full metadata removal from MP4 requires proper box parsing or FFmpeg
-            // This method provides a foundation for future enhancement
+
+            // Find video and audio tracks
+            int videoTrackIndex = -1;
+            int audioTrackIndex = -1;
+            MediaFormat videoFormat = null;
+            MediaFormat audioFormat = null;
+
+            for (int i = 0; i < trackCount; i++) {
+                MediaFormat format = extractor.getTrackFormat(i);
+                String mime = format.getString(MediaFormat.KEY_MIME);
+
+                if (mime != null) {
+                    if (mime.startsWith("video/") && videoTrackIndex == -1) {
+                        videoTrackIndex = i;
+                        videoFormat = format;
+                    } else if (mime.startsWith("audio/") && audioTrackIndex == -1) {
+                        audioTrackIndex = i;
+                        audioFormat = format;
+                    }
+                }
+            }
+
+            if (videoTrackIndex == -1) {
+                throw new IOException("No video track found");
+            }
+
+            // Remove non-essential metadata from video format, keeping only codec
+            // parameters
+            MediaFormat cleanVideoFormat = removeNonEssentialMetadata(videoFormat);
+
+            // Remove non-essential metadata from audio format if present
+            MediaFormat cleanAudioFormat = null;
+            if (audioFormat != null) {
+                cleanAudioFormat = removeNonEssentialMetadata(audioFormat);
+            }
+
+            // Create muxer with output file
+            muxer = new MediaMuxer(outputFile.getAbsolutePath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+
+            // Add tracks to muxer (without metadata)
+            int muxerVideoTrackIndex = muxer.addTrack(cleanVideoFormat);
+            int muxerAudioTrackIndex = -1;
+            if (audioTrackIndex != -1 && cleanAudioFormat != null) {
+                muxerAudioTrackIndex = muxer.addTrack(cleanAudioFormat);
+            }
+
+            // Start muxer
+            muxer.start();
+
+            // Select all tracks we want to process
+            extractor.selectTrack(videoTrackIndex);
+            if (audioTrackIndex != -1) {
+                extractor.selectTrack(audioTrackIndex);
+            }
+
+            // Copy data from extractor to muxer
+            // When multiple tracks are selected, MediaExtractor provides samples in
+            // chronological order
+            // Use a larger buffer for video samples (they can be quite large)
+            ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024); // 1MB buffer for video samples
+            MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+            long totalBytesProcessed = 0;
+
+            // Process all samples - extractor will provide them in chronological order
+            while (true) {
+                // Get the current sample's track index (this works after selecting tracks)
+                int sampleTrackIndex = extractor.getSampleTrackIndex();
+
+                if (sampleTrackIndex < 0) {
+                    // No more samples
+                    break;
+                }
+
+                buffer.clear();
+                int sampleSize = extractor.readSampleData(buffer, 0);
+
+                if (sampleSize < 0) {
+                    // End of stream
+                    break;
+                }
+
+                bufferInfo.offset = 0;
+                bufferInfo.size = sampleSize;
+                bufferInfo.flags = extractor.getSampleFlags();
+                bufferInfo.presentationTimeUs = extractor.getSampleTime();
+
+                // Write to appropriate muxer track based on which track this sample belongs to
+                if (sampleTrackIndex == videoTrackIndex) {
+                    muxer.writeSampleData(muxerVideoTrackIndex, buffer, bufferInfo);
+                } else if (sampleTrackIndex == audioTrackIndex && audioTrackIndex != -1) {
+                    muxer.writeSampleData(muxerAudioTrackIndex, buffer, bufferInfo);
+                }
+
+                extractor.advance();
+                totalBytesProcessed += sampleSize;
+
+                // Update progress periodically
+                if (fileSize > 0 && totalBytesProcessed % (1024 * 1024) == 0) {
+                    int progress = (int) ((totalBytesProcessed * 100) / fileSize);
+                    updateProgress(2, 4, "Removing metadata... " + progress + "%");
+                }
+            }
+
+            muxer.stop();
+            crashlytics.log("Video remuxed successfully without metadata");
+
+        } finally {
+            if (extractor != null) {
+                extractor.release();
+            }
+            if (muxer != null) {
+                muxer.release();
+            }
         }
     }
-    
+
+    /**
+     * Removes non-essential metadata from MediaFormat, keeping only codec
+     * parameters
+     * needed for playback.
+     *
+     * @param format The original MediaFormat
+     * @return A new MediaFormat with only essential codec parameters
+     */
+    private MediaFormat removeNonEssentialMetadata(@NonNull MediaFormat format) {
+        // Create a new format with only essential codec parameters
+        MediaFormat cleanFormat = new MediaFormat();
+
+        // Essential video/audio codec parameters that must be preserved
+        String mime = format.getString(MediaFormat.KEY_MIME);
+        if (mime != null) {
+            cleanFormat.setString(MediaFormat.KEY_MIME, mime);
+        }
+
+        // Video-specific essential parameters
+        if (mime != null && mime.startsWith("video/")) {
+            if (format.containsKey(MediaFormat.KEY_WIDTH)) {
+                cleanFormat.setInteger(MediaFormat.KEY_WIDTH, format.getInteger(MediaFormat.KEY_WIDTH));
+            }
+            if (format.containsKey(MediaFormat.KEY_HEIGHT)) {
+                cleanFormat.setInteger(MediaFormat.KEY_HEIGHT, format.getInteger(MediaFormat.KEY_HEIGHT));
+            }
+            if (format.containsKey(MediaFormat.KEY_COLOR_FORMAT)) {
+                cleanFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, format.getInteger(MediaFormat.KEY_COLOR_FORMAT));
+            }
+            if (format.containsKey(MediaFormat.KEY_FRAME_RATE)) {
+                cleanFormat.setInteger(MediaFormat.KEY_FRAME_RATE, format.getInteger(MediaFormat.KEY_FRAME_RATE));
+            }
+            if (format.containsKey(MediaFormat.KEY_I_FRAME_INTERVAL)) {
+                cleanFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL,
+                        format.getInteger(MediaFormat.KEY_I_FRAME_INTERVAL));
+            }
+            if (format.containsKey(MediaFormat.KEY_BIT_RATE)) {
+                cleanFormat.setInteger(MediaFormat.KEY_BIT_RATE, format.getInteger(MediaFormat.KEY_BIT_RATE));
+            }
+            // Codec-specific data (CSD) is essential for decoding
+            // Use string keys as MediaFormat doesn't have KEY_CSD_* constants
+            if (format.containsKey("csd-0")) {
+                cleanFormat.setByteBuffer("csd-0", format.getByteBuffer("csd-0"));
+            }
+            if (format.containsKey("csd-1")) {
+                cleanFormat.setByteBuffer("csd-1", format.getByteBuffer("csd-1"));
+            }
+            if (format.containsKey("csd-2")) {
+                cleanFormat.setByteBuffer("csd-2", format.getByteBuffer("csd-2"));
+            }
+        }
+
+        // Audio-specific essential parameters
+        if (mime != null && mime.startsWith("audio/")) {
+            if (format.containsKey(MediaFormat.KEY_SAMPLE_RATE)) {
+                cleanFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, format.getInteger(MediaFormat.KEY_SAMPLE_RATE));
+            }
+            if (format.containsKey(MediaFormat.KEY_CHANNEL_COUNT)) {
+                cleanFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, format.getInteger(MediaFormat.KEY_CHANNEL_COUNT));
+            }
+            if (format.containsKey(MediaFormat.KEY_BIT_RATE)) {
+                cleanFormat.setInteger(MediaFormat.KEY_BIT_RATE, format.getInteger(MediaFormat.KEY_BIT_RATE));
+            }
+            // Codec-specific data (CSD) is essential for decoding
+            // Use string keys as MediaFormat doesn't have KEY_CSD_* constants
+            if (format.containsKey("csd-0")) {
+                cleanFormat.setByteBuffer("csd-0", format.getByteBuffer("csd-0"));
+            }
+            if (format.containsKey("csd-1")) {
+                cleanFormat.setByteBuffer("csd-1", format.getByteBuffer("csd-1"));
+            }
+            if (format.containsKey("csd-2")) {
+                cleanFormat.setByteBuffer("csd-2", format.getByteBuffer("csd-2"));
+            }
+            if (format.containsKey(MediaFormat.KEY_AAC_PROFILE)) {
+                cleanFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, format.getInteger(MediaFormat.KEY_AAC_PROFILE));
+            }
+        }
+
+        // Max input size is a codec parameter, keep it
+        if (format.containsKey(MediaFormat.KEY_MAX_INPUT_SIZE)) {
+            cleanFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, format.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE));
+        }
+
+        crashlytics.log("Removed non-essential metadata from MediaFormat, kept only codec parameters");
+        return cleanFormat;
+    }
+
     /**
      * Zero-pads unused space in a file to prevent data recovery from slack space.
      *
@@ -1458,7 +1687,7 @@ public class MetadataStripper {
         try (RandomAccessFile raf = new RandomAccessFile(file, "rws")) {
             long fileSize = raf.length();
             long currentPos = raf.getFilePointer();
-            
+
             // If file pointer is not at end, pad remaining space
             if (currentPos < fileSize) {
                 raf.seek(currentPos);
@@ -1472,7 +1701,7 @@ public class MetadataStripper {
             }
         }
     }
-    
+
     /**
      * Gets file size from URI with caching to avoid redundant I/O operations.
      *
@@ -1481,22 +1710,22 @@ public class MetadataStripper {
      */
     private long getFileSizeFromUriCached(@NonNull Uri uri) {
         String uriString = uri.toString();
-        
+
         // Check cache first
         Long cachedSize = fileSizeCache.get(uriString);
         if (cachedSize != null) {
             return cachedSize;
         }
-        
+
         // Get size and cache it
         long size = getFileSizeFromUri(uri);
         if (size > 0) {
             fileSizeCache.put(uriString, size);
         }
-        
+
         return size;
     }
-    
+
     /**
      * Clears the file size cache.
      */

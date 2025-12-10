@@ -170,37 +170,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setupBottomNavigation() {
-        try {
-            BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigation);
-
-            // Set the initial selected item (assuming "clean" is your main activity tab)
-            bottomNavigationView.setSelectedItemId(R.id.navigation_clean);
-
-            bottomNavigationView.setOnItemSelectedListener(item -> {
-                int itemId = item.getItemId();
-
-                FirebaseCrashlytics.getInstance().log("Bottom navigation item selected: " + itemId);
-
-                if (itemId == R.id.navigation_clean) {
-                    // Already in MainActivity, do nothing and just return true
-                    return true;
-                } else if (itemId == R.id.navigation_scan) {
-                    // Open new scan activity
-                    Intent intent = new Intent(MainActivity.this, ScanActivity.class);
-                    startActivity(intent);
-                    return true;
-                }
-
-                return false;
-            });
-
-            FirebaseCrashlytics.getInstance().log("Bottom navigation setup complete");
-        } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
-        }
-    }
-
     /**
      * Sets up view references and event handlers.
      *

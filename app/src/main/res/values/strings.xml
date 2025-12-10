@@ -46,6 +46,7 @@
 
     <!-- Scan section strings -->
     <string name="scan_activity_title">ScanActivity</string>
+    <string name="scan_metadata">Metadata</string>
     <string name="scan_basic_information">Basic Information</string>
     <string name="scan_camera_details">Camera Details</string>
     <string name="scan_location_information">Location Information</string>

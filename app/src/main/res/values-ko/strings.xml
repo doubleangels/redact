@@ -1,0 +1,133 @@
+<resources>
+    <!-- App name -->
+    <string name="app_name">Redact</string>
+
+    <!-- Content descriptions -->
+    <string name="content_description_media_thumbnail">미디어 썸네일</string>
+    <string name="content_description_image_view">이미지 보기</string>
+    <string name="content_description_scroll_view">스크롤 보기</string>
+
+    <!-- Navigation labels -->
+    <string name="navigation_clean">정리</string>
+    <string name="navigation_scan">스캔</string>
+
+    <!-- Button labels -->
+    <string name="button_select_media">미디어 선택</string>
+    <string name="button_strip_exif_data">메타데이터 정리</string>
+
+    <!-- Status and progress messages -->
+    <string name="status_processing">처리 중…</string>
+    <string name="status_processed_items">%1$d개 항목 처리됨!</string>
+    <string name="status_selected_items">선택됨: %1$d개 항목</string>
+    <string name="status_first_select_media_files">먼저 미디어 파일을 선택하세요!</string>
+    <string name="status_ready">미디어 선택 준비 완료!</string>
+    <string name="status_permissions_required">권한이 필요합니다!</string>
+    <string name="status_requesting_permissions">권한 요청 중…</string>
+    <string name="status_select_media_files">메타데이터를 제거할 미디어를 선택하세요!</string>
+    <string name="status_analyzing">메타데이터 분석 중…</string>
+    <string name="status_select_item">메타데이터를 보려면 이미지 또는 동영상을 선택하세요!</string>
+    <string name="status_extraction_complete">메타데이터 추출 완료!</string>
+    <string name="status_extraction_media_fail">미디어 파일 처리 오류!</string>
+    <string name="status_extraction_fail">메타데이터 추출 오류!</string>
+    <string name="status_extracting_media">동영상 메타데이터 추출 중…</string>
+    <string name="status_extracting_image">이미지 메타데이터 추출 중…</string>
+    <string name="status_media_picker_fail">미디어 선택기 열기 오류!</string>
+    <string name="status_media_uri_fail">미디어 URI를 가져올 수 없습니다!</string>
+    <string name="status_storage_permissions_required">저장소 권한이 필요합니다!</string>
+
+    <!-- Share processing strings -->
+    <string name="share_processing_title">처리 중…</string>
+    <string name="share_stripping_status">메타데이터 제거 중…</string>
+    <string name="share_chooser_title">정리된 미디어 파일 공유…</string>
+    <string name="share_error_unsupported_media">지원되지 않는 미디어 유형!</string>
+    <string name="share_error_unsupported_action">지원되지 않는 작업!</string>
+    <string name="share_error_receive_failed">미디어 수신 실패!</string>
+    <string name="share_error_processing_failed">처리 실패!</string>
+
+    <!-- Scan section strings -->
+    <string name="scan_activity_title">ScanActivity</string>
+    <string name="scan_metadata">메타데이터</string>
+    <string name="scan_basic_information">기본 정보</string>
+    <string name="scan_camera_details">카메라 세부 정보</string>
+    <string name="scan_location_information">위치 정보</string>
+    <string name="scan_technical_details">기술 세부 정보</string>
+    <string name="scan_location_permission_missing">위치 권한을 부여하면 위치 데이터를 사용할 수 있을 수 있습니다.</string>
+    <string name="scan_extraction_fail">메타데이터 추출 실패!</string>
+
+    <!-- Metadata output strings -->
+    <!-- Basic File Information -->
+    <string name="metadata_file_name">파일 이름: %s</string>
+    <string name="metadata_file_size">파일 크기: %s</string>
+    <string name="metadata_mime_type">MIME 유형: %s</string>
+    <string name="metadata_unknown">알 수 없음</string>
+    <string name="metadata_size_bytes">B</string>
+    <string name="metadata_size_kb">KB</string>
+    <string name="metadata_size_mb">MB</string>
+
+    <!-- Section Headers -->
+    <string name="metadata_image_properties_header">이미지 속성:</string>
+    <string name="metadata_camera_information_header">카메라 정보:</string>
+    <string name="metadata_exposure_information_header">노출 정보:</string>
+    <string name="metadata_location_information_header">위치 정보:</string>
+    <string name="metadata_technical_details_header">기술 세부 정보:</string>
+    <string name="metadata_video_properties_header">동영상 속성:</string>
+
+    <!-- Image Metadata Fields -->
+    <string name="metadata_dimensions">크기: %1$d x %2$d</string>
+    <string name="metadata_date_taken">촬영 날짜: %s</string>
+    <string name="metadata_camera_make">카메라 제조사: %s</string>
+    <string name="metadata_camera_model">카메라 모델: %s</string>
+    <string name="metadata_aperture">조리개: f/%s</string>
+    <string name="metadata_exposure_time_fraction">노출 시간: 1/%d초</string>
+    <string name="metadata_exposure_time_seconds">노출 시간: %.5f초</string>
+    <string name="metadata_latitude">위도: %.15f</string>
+    <string name="metadata_longitude">경도: %.15f</string>
+    <string name="metadata_address">주소: %s</string>
+    <string name="metadata_geocoding_failed">지오코딩 실패: %s</string>
+    <string name="metadata_no_location_data">위치 데이터를 사용할 수 없습니다.</string>
+    <string name="metadata_location_permission_needed">위치 권한이 부여되지 않았습니다. 위치 데이터를 보려면 권한을 부여하세요.</string>
+    <string name="metadata_orientation">방향: %s</string>
+    <string name="metadata_flash">플래시: %s</string>
+    <string name="metadata_flash_fired">발광</string>
+    <string name="metadata_flash_not_fired">미발광</string>
+    <string name="metadata_white_balance">화이트 밸런스: %s</string>
+    <string name="metadata_white_balance_auto">자동</string>
+    <string name="metadata_white_balance_manual">수동</string>
+
+    <!-- Video Metadata Fields -->
+    <string name="metadata_duration_with_hours">길이: %s</string>
+    <string name="metadata_duration_without_hours">길이: %s</string>
+    <string name="metadata_resolution">해상도: %1$s x %2$s</string>
+    <string name="metadata_rotation">회전: %s°</string>
+    <string name="metadata_bitrate">비트레이트: %d kbps</string>
+    <string name="metadata_date">날짜: %s</string>
+    <string name="metadata_frame_rate">프레임 레이트: %s fps</string>
+    <string name="metadata_sample_rate">샘플 레이트: %s Hz</string>
+
+    <!-- Additional Sectioned Metadata Strings -->
+    <string name="metadata_no_image_location_data">이 이미지에 위치 데이터가 없습니다.</string>
+    <string name="metadata_no_video_location_data">이 동영상에 위치 데이터가 없습니다.</string>
+    <string name="metadata_location_permission_needed_full">위치 권한이 부여되지 않았습니다. 모든 위치 데이터를 보려면 권한을 부여하세요.</string>
+    <string name="metadata_software">소프트웨어: %s</string>
+    <string name="metadata_focal_length">초점 거리: %s mm</string>
+    <string name="metadata_digital_zoom">디지털 줌: %sx</string>
+
+    <!-- Orientation Strings -->
+    <string name="metadata_orientation_normal">정상</string>
+    <string name="metadata_orientation_rotate_90">90° 회전</string>
+    <string name="metadata_orientation_rotate_180">180° 회전</string>
+    <string name="metadata_orientation_rotate_270">270° 회전</string>
+    <string name="metadata_orientation_flip_horizontal">수평 뒤집기</string>
+    <string name="metadata_orientation_flip_vertical">수직 뒤집기</string>
+    <string name="metadata_orientation_transpose">전치</string>
+    <string name="metadata_orientation_transverse">가로</string>
+    <string name="metadata_orientation_unknown">알 수 없음 (%d)</string>
+
+    <!-- Error Messages -->
+    <string name="metadata_error_extraction">메타데이터 추출 오류: %s</string>
+    <string name="metadata_error_basic_info">기본 정보 추출 오류: %s</string>
+    <string name="metadata_error_file_open">오류: 이미지 파일을 열 수 없습니다</string>
+    <string name="metadata_error_image_metadata">이미지 메타데이터 추출 오류: %s</string>
+    <string name="metadata_error_video_metadata">동영상 메타데이터 추출 오류: %s</string>
+</resources>
+

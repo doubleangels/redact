@@ -83,6 +83,8 @@
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
             android:orientation="horizontal"
+            android:baselineAligned="false"
+            android:gravity="center_vertical"
             app:layout_constraintBottom_toTopOf="@+id/versionText"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
@@ -90,21 +92,27 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/selectButton"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:text="@string/button_select_media"
+                android:gravity="center"
                 app:icon="@drawable/ic_add_photo"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
                 tools:ignore="TextContrastCheck,VisualLintButtonSize" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/stripButton"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:text="@string/button_strip_exif_data"
+                android:gravity="center"
                 app:icon="@drawable/ic_clean"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
                 tools:ignore="TextContrastCheck,VisualLintButtonSize" />
         </LinearLayout>
 
