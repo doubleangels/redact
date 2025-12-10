@@ -533,10 +533,9 @@ public class MetadataStripper {
                 }
             }
 
-            // Create output file with timestamp to avoid conflicts
-            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
-            String cleanFileName = "clean_" + timestamp + extension;
-            outputFile = new File(outputDir, cleanFileName);
+            // Generate unique filename for the processed file (same scheme as main cleaning process)
+            String newFilename = UUID.randomUUID().toString() + extension;
+            outputFile = new File(outputDir, newFilename);
 
             // Save bitmap to output file
             try (FileOutputStream fos = new FileOutputStream(outputFile)) {
@@ -633,10 +632,9 @@ public class MetadataStripper {
                 }
             }
 
-            // Create output file with timestamp to avoid conflicts
-            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
-            String cleanFileName = "clean_" + timestamp + extension;
-            outputFile = new File(outputDir, cleanFileName);
+            // Generate unique filename for the processed file (same scheme as main cleaning process)
+            String newFilename = UUID.randomUUID().toString() + extension;
+            outputFile = new File(outputDir, newFilename);
 
             updateProgress(2, 3, "Removing metadata...");
 

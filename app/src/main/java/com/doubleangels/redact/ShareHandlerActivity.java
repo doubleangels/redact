@@ -11,9 +11,9 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.doubleangels.redact.media.MediaItem;
-import com.doubleangels.redact.media.MediaProcessor;
 import com.doubleangels.redact.media.MediaSelector;
+import com.doubleangels.redact.metadata.MetadataStripper;
+import java.io.File;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
@@ -31,8 +31,14 @@ import java.util.List;
 public class ShareHandlerActivity extends AppCompatActivity {
 
     // Core components for media processing and selection
-    private MediaProcessor mediaProcessor;
     private MediaSelector mediaSelector;
+    private MetadataStripper metadataStripper;
+    
+    // Track the processed file for cleanup after sharing
+    private File processedFile;
+    
+    // Track whether sharing has been initiated
+    private boolean sharingInitiated = false;
 
     // UI elements for showing progress to the user
     private AlertDialog progressDialog;
@@ -57,8 +63,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
         try {
             // Initialize media processing components
-            mediaProcessor = new MediaProcessor(this);
             mediaSelector = new MediaSelector(this, null);
+            metadataStripper = new MetadataStripper(this);
+            
+            // Set up progress callback for metadata stripping
+            metadataStripper.setProgressCallback((current, total, message) -> {
+                runOnUiThread(() -> updateProgressMessage(message));
+            });
 
             // Log activity creation for debugging purposes
             FirebaseCrashlytics.getInstance().log("ShareHandlerActivity created");
@@ -255,78 +266,75 @@ public class ShareHandlerActivity extends AppCompatActivity {
     }
 
     /**
-     * Processes a media item by creating a MediaItem and passing it to the MediaProcessor.
+     * Processes a media item by stripping metadata for sharing.
      *
-     * Handles progress updates and completion of processing through callbacks.
+     * Uses the "ForSharing" methods which save to cache directory instead of MediaStore,
+     * and the file will be deleted after sharing.
      *
      * @param uri The URI of the media item to process
      * @param isVideo Whether the media item is a video (true) or image (false)
      */
     private void processMediaItem(Uri uri, boolean isVideo) {
-        try {
-            // Get the file name from the URI
-            String fileName = mediaSelector.getFileName(uri);
-            FirebaseCrashlytics.getInstance().setCustomKey("file_name", fileName);
+        new Thread(() -> {
+            try {
+                // Get the file name from the URI
+                String fileName = mediaSelector.getFileName(uri);
+                FirebaseCrashlytics.getInstance().setCustomKey("file_name", fileName);
 
-            // Create a MediaItem object with the URI, type, and filename
-            MediaItem mediaItem = new MediaItem(uri, isVideo, fileName);
+                // Process using the "ForSharing" method which saves to cache
+                Uri processedUri = metadataStripper.stripMetadataForSharing(uri, fileName, isVideo);
 
-            // Create a list with this single item (the processor expects a list)
-            List<MediaItem> items = new ArrayList<>();
-            items.add(mediaItem);
+                runOnUiThread(() -> {
+                    try {
+                        // Dismiss the progress dialog
+                        dismissProgressDialog();
 
-            // Process the media item with progress and completion callbacks
-            mediaProcessor.processMediaItems(items, new MediaProcessor.ProcessingCallback() {
-                /**
-                 * Called periodically during processing with progress updates.
-                 */
-                @Override
-                public void onProgress(int current, int total, String message) {
-                    runOnUiThread(() -> {
-                        try {
-                            // Update the progress message on the UI thread
-                            updateProgressMessage(message);
-                        } catch (Exception e) {
-                            FirebaseCrashlytics.getInstance().recordException(e);
-                        }
-                    });
-                }
-
-                /**
-                 * Called when processing is complete.
-                 */
-                @Override
-                public void onComplete(int processedCount) {
-                    runOnUiThread(() -> {
-                        try {
-                            // Dismiss the progress dialog
-                            dismissProgressDialog();
-
-                            // Log the number of successfully processed items
-                            FirebaseCrashlytics.getInstance().setCustomKey("processed_count", processedCount);
-
-                            if (processedCount > 0) {
-                                // If processing was successful, share the cleaned file
-                                FirebaseCrashlytics.getInstance().log("Media processing completed successfully");
-                                shareCleanFile(mediaItem.isVideo());
-                            } else {
-                                // If no items were processed, show an error
-                                FirebaseCrashlytics.getInstance().log("Media processing failed - zero processed files");
-                                finishWithError("Processing failed");
+                        if (processedUri != null) {
+                            // Find the processed file for later cleanup
+                            // Since we just created it, it should be the most recent file in the processed directory
+                            try {
+                                File cacheDir = new File(getCacheDir(), "processed");
+                                if (cacheDir.exists() && cacheDir.isDirectory()) {
+                                    File[] files = cacheDir.listFiles();
+                                    if (files != null && files.length > 0) {
+                                        // Find the most recently modified file (should be the one we just created)
+                                        File mostRecent = null;
+                                        long mostRecentTime = 0;
+                                        for (File f : files) {
+                                            if (f.isFile() && f.lastModified() > mostRecentTime) {
+                                                mostRecentTime = f.lastModified();
+                                                mostRecent = f;
+                                            }
+                                        }
+                                        if (mostRecent != null) {
+                                            processedFile = mostRecent;
+                                        }
+                                    }
+                                }
+                            } catch (Exception e) {
+                                FirebaseCrashlytics.getInstance().log("Could not find processed file for cleanup: " + e.getMessage());
                             }
-                        } catch (Exception e) {
-                            // Handle any errors during completion
-                            FirebaseCrashlytics.getInstance().recordException(e);
-                            finishWithError("Error in processing completion: " + e.getMessage());
+                            
+                            // Share the cleaned file
+                            FirebaseCrashlytics.getInstance().log("Media processing completed successfully");
+                            shareCleanFile(isVideo, processedUri);
+                        } else {
+                            // If processing failed, show an error
+                            FirebaseCrashlytics.getInstance().log("Media processing failed");
+                            finishWithError("Processing failed");
                         }
-                    });
-                }
-            });
-        } catch (Exception e) {
-            // Log and handle any errors during processing setup
-            FirebaseCrashlytics.getInstance().recordException(e);
-            finishWithError("Failed to process media: " + e.getMessage());
-        }
+                    } catch (Exception e) {
+                        // Handle any errors during completion
+                        FirebaseCrashlytics.getInstance().recordException(e);
+                        finishWithError("Error in processing completion: " + e.getMessage());
+                    }
+                });
+            } catch (Exception e) {
+                // Log and handle any errors during processing
+                FirebaseCrashlytics.getInstance().recordException(e);
+                runOnUiThread(() -> finishWithError("Failed to process media: " + e.getMessage()));
+            }
+        }).start();
     }
 
     /**
@@ -347,13 +355,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     /**
      * Creates and launches a share intent for the processed (clean) media file.
+     * The temporary file will be deleted after sharing completes (when activity resumes).
      *
      * @param isVideo Whether the processed file is a video (true) or image (false)
+     * @param cleanedFileUri The URI of the processed file to share
      */
-    private void shareCleanFile(boolean isVideo) {
+    private void shareCleanFile(boolean isVideo, Uri cleanedFileUri) {
         try {
-            // Get the URI of the processed file
-            Uri cleanedFileUri = mediaProcessor.getLastProcessedFileUri();
             FirebaseCrashlytics.getInstance().setCustomKey("cleaned_uri", cleanedFileUri != null ? cleanedFileUri.toString() : "null");
 
             if (cleanedFileUri != null) {
@@ -363,12 +371,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 shareIntent.putExtra(Intent.EXTRA_STREAM, cleanedFileUri);
                 shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
+                // Mark that sharing has been initiated
+                sharingInitiated = true;
+
                 // Launch the share intent
+                // Note: We don't finish() immediately so we can cleanup in onResume()
                 FirebaseCrashlytics.getInstance().log("Launching share intent");
                 startActivity(Intent.createChooser(shareIntent, "Share clean media file via"));
-
-                // Close this activity since its work is done
-                finish();
             } else {
                 // Handle case where processing didn't produce a valid file
                 FirebaseCrashlytics.getInstance().log("Cleaned file URI is null");
@@ -378,6 +387,55 @@ public class ShareHandlerActivity extends AppCompatActivity {
             // Log and handle any errors during sharing
             FirebaseCrashlytics.getInstance().recordException(e);
             finishWithError("Error sharing clean file: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Called when the activity is paused (e.g., when share chooser is shown).
+     * This is where we can detect that sharing has started.
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // When activity pauses, it means the share chooser or target app is shown
+        // We'll cleanup when the activity resumes (user returns from sharing)
+    }
+    
+    /**
+     * Called when the activity resumes (e.g., when user returns from share chooser).
+     * This is where we cleanup the temporary file after sharing is complete.
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        
+        // If sharing was initiated and we're resuming, it means the user has
+        // interacted with the share chooser (either shared or cancelled)
+        // Clean up the temporary file now
+        if (sharingInitiated) {
+            cleanupProcessedFile();
+            // Finish the activity since sharing is complete
+            finish();
+        }
+    }
+    
+    /**
+     * Deletes the temporary processed file from disk.
+     * This is called after sharing completes to avoid saving files to disk.
+     */
+    private void cleanupProcessedFile() {
+        if (processedFile != null && processedFile.exists()) {
+            try {
+                if (processedFile.delete()) {
+                    FirebaseCrashlytics.getInstance().log("Deleted temporary processed file after sharing");
+                } else {
+                    FirebaseCrashlytics.getInstance().log("Failed to delete temporary processed file");
+                    // Try to delete on exit as fallback
+                    processedFile.deleteOnExit();
+                }
+            } catch (Exception e) {
+                FirebaseCrashlytics.getInstance().log("Error deleting temporary file: " + e.getMessage());
+            }
         }
     }
 
@@ -405,12 +463,18 @@ public class ShareHandlerActivity extends AppCompatActivity {
     /**
      * Cleans up resources when the activity is destroyed.
      *
-     * Ensures the progress dialog is dismissed to prevent window leaks.
+     * Ensures the progress dialog is dismissed to prevent window leaks,
+     * and deletes the temporary processed file if it still exists (fallback cleanup).
      */
     @Override
     protected void onDestroy() {
         // Make sure to dismiss the dialog to prevent window leaks
         dismissProgressDialog();
+        
+        // Clean up the temporary processed file if it still exists
+        // This is a fallback in case onResume() wasn't called for some reason
+        cleanupProcessedFile();
+        
         super.onDestroy();
     }
 }
