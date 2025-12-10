@@ -52,6 +52,7 @@
     <string name="scan_location_information">Информация о Местоположении</string>
     <string name="scan_technical_details">Технические Детали</string>
     <string name="scan_location_permission_missing">Данные о местоположении могут быть доступны, если вы предоставите разрешение на местоположение.</string>
+    <string name="scan_metadata_with_location_permission">%1$s\n%2$s</string>
     <string name="scan_extraction_fail">Ошибка при извлечении метаданных!</string>
 
     <!-- Metadata output strings -->

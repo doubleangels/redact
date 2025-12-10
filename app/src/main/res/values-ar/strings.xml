@@ -52,6 +52,7 @@
     <string name="scan_location_information">معلومات الموقع</string>
     <string name="scan_technical_details">التفاصيل التقنية</string>
     <string name="scan_location_permission_missing">قد تكون بيانات الموقع متاحة إذا منحت إذن الموقع.</string>
+    <string name="scan_metadata_with_location_permission">%1$s\n%2$s</string>
     <string name="scan_extraction_fail">فشل استخراج البيانات الوصفية!</string>
 
     <!-- Metadata output strings -->

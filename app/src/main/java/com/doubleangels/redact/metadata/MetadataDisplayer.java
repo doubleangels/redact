@@ -21,8 +21,6 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -196,7 +194,7 @@ public class MetadataDisplayer {
                 
                 // Trim trailing whitespace
                 String metadataContent = combinedMetadata.toString();
-                while (metadataContent.length() > 0 && Character.isWhitespace(metadataContent.charAt(metadataContent.length() - 1))) {
+                while (!metadataContent.isEmpty() && Character.isWhitespace(metadataContent.charAt(metadataContent.length() - 1))) {
                     metadataContent = metadataContent.substring(0, metadataContent.length() - 1);
                 }
                 
@@ -544,8 +542,6 @@ public class MetadataDisplayer {
             exifInterface = new ExifInterface(inputStream);
 
             // Extract ALL available EXIF tags using reflection to get all TAG constants
-            java.util.Set<String> processedTags = new java.util.HashSet<>();
-            
             // Store GPS latitude and longitude for conversion to decimal
             String gpsLatitude = null;
             String gpsLatitudeRef = null;
@@ -561,27 +557,30 @@ public class MetadataDisplayer {
                         if (tagName != null) {
                             String value = exifInterface.getAttribute(tagName);
                             if (value != null && !value.isEmpty()) {
-                                processedTags.add(tagName);
-                                
                                 // Trim trailing whitespace from the value itself (e.g., XMP data may have trailing newlines)
                                 String trimmedValue = value;
-                                while (trimmedValue.length() > 0 && Character.isWhitespace(trimmedValue.charAt(trimmedValue.length() - 1))) {
+                                while (!trimmedValue.isEmpty() && Character.isWhitespace(trimmedValue.charAt(trimmedValue.length() - 1))) {
                                     trimmedValue = trimmedValue.substring(0, trimmedValue.length() - 1);
                                 }
                                 
                                 // Store GPS coordinates for later conversion
-                                if (tagName.equals(ExifInterface.TAG_GPS_LATITUDE)) {
-                                    gpsLatitude = trimmedValue;
-                                    continue; // Don't add raw value yet
-                                } else if (tagName.equals(ExifInterface.TAG_GPS_LATITUDE_REF)) {
-                                    gpsLatitudeRef = trimmedValue;
-                                    continue; // Don't add raw value yet
-                                } else if (tagName.equals(ExifInterface.TAG_GPS_LONGITUDE)) {
-                                    gpsLongitude = trimmedValue;
-                                    continue; // Don't add raw value yet
-                                } else if (tagName.equals(ExifInterface.TAG_GPS_LONGITUDE_REF)) {
-                                    gpsLongitudeRef = trimmedValue;
-                                    continue; // Don't add raw value yet
+                                switch (tagName) {
+                                    case ExifInterface.TAG_GPS_LATITUDE -> {
+                                        gpsLatitude = trimmedValue;
+                                        continue; // Don't add raw value yet
+                                    }
+                                    case ExifInterface.TAG_GPS_LATITUDE_REF -> {
+                                        gpsLatitudeRef = trimmedValue;
+                                        continue; // Don't add raw value yet
+                                    }
+                                    case ExifInterface.TAG_GPS_LONGITUDE -> {
+                                        gpsLongitude = trimmedValue;
+                                        continue; // Don't add raw value yet
+                                    }
+                                    case ExifInterface.TAG_GPS_LONGITUDE_REF -> {
+                                        gpsLongitudeRef = trimmedValue;
+                                        continue; // Don't add raw value yet
+                                    }
                                 }
                                 
                                 // Add to single map (convert tag names to uppercase with underscores)
@@ -591,7 +590,6 @@ public class MetadataDisplayer {
                         }
                     } catch (IllegalAccessException | IllegalArgumentException e) {
                         // Skip fields we can't access
-                        continue;
                     }
                 }
             }
@@ -652,11 +650,7 @@ public class MetadataDisplayer {
             // Location information is already extracted via TAG_GPS_* tags above
             if (hasLocationPermission) {
                 double[] latLong = exifInterface.getLatLong();
-                if (latLong != null) {
-                    crashlytics.setCustomKey("has_location_data", true);
-                } else {
-                    crashlytics.setCustomKey("has_location_data", false);
-                }
+                crashlytics.setCustomKey("has_location_data", latLong != null);
             }
 
             crashlytics.log("Image metadata extraction completed");
@@ -927,7 +921,7 @@ public class MetadataDisplayer {
                             
                             // Trim trailing whitespace from the value itself
                             String trimmedValue = value;
-                            while (trimmedValue.length() > 0 && Character.isWhitespace(trimmedValue.charAt(trimmedValue.length() - 1))) {
+                            while (!trimmedValue.isEmpty() && Character.isWhitespace(trimmedValue.charAt(trimmedValue.length() - 1))) {
                                 trimmedValue = trimmedValue.substring(0, trimmedValue.length() - 1);
                             }
                             
@@ -947,24 +941,25 @@ public class MetadataDisplayer {
                             metadataMap.put(displayKeyName, trimmedValue);
                             
                             // Log important keys for analytics
-                            if (keyName.equals("METADATA_KEY_DURATION")) {
-                                try {
-                                    crashlytics.setCustomKey("video_duration_ms", Long.parseLong(value));
-                                } catch (NumberFormatException e) {
-                                    crashlytics.log("Invalid duration format for analytics: " + value);
-                                    crashlytics.recordException(e);
+                            switch (keyName) {
+                                case "METADATA_KEY_DURATION" -> {
+                                    try {
+                                        crashlytics.setCustomKey("video_duration_ms", Long.parseLong(value));
+                                    } catch (NumberFormatException e) {
+                                        crashlytics.log("Invalid duration format for analytics: " + value);
+                                        crashlytics.recordException(e);
+                                    }
                                 }
-                            } else if (keyName.equals("METADATA_KEY_VIDEO_WIDTH")) {
-                                crashlytics.setCustomKey("video_width", value);
-                            } else if (keyName.equals("METADATA_KEY_VIDEO_HEIGHT")) {
-                                crashlytics.setCustomKey("video_height", value);
-                            } else if (keyName.equals("METADATA_KEY_VIDEO_ROTATION")) {
-                                crashlytics.setCustomKey("video_rotation", value);
+                                case "METADATA_KEY_VIDEO_WIDTH" ->
+                                        crashlytics.setCustomKey("video_width", value);
+                                case "METADATA_KEY_VIDEO_HEIGHT" ->
+                                        crashlytics.setCustomKey("video_height", value);
+                                case "METADATA_KEY_VIDEO_ROTATION" ->
+                                        crashlytics.setCustomKey("video_rotation", value);
                             }
                         }
                     } catch (IllegalAccessException | IllegalArgumentException e) {
                         // Skip fields we can't access
-                        continue;
                     }
                 }
             }
@@ -980,8 +975,8 @@ public class MetadataDisplayer {
                     
                     // Parse format like "+39.6594-104.9620" or "+39.6594+104.9620"
                     // The format is: [+/-]lat[+/-]lon
-                    double latitude = 0.0;
-                    double longitude = 0.0;
+                    double latitude;
+                    double longitude;
                     
                     // Find the split point - look for the second sign (+ or -) that's not at the start
                     int splitIndex = -1;

@@ -18,7 +18,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Activity for handling media files shared from other applications.
@@ -67,9 +66,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             metadataStripper = new MetadataStripper(this);
             
             // Set up progress callback for metadata stripping
-            metadataStripper.setProgressCallback((current, total, message) -> {
-                runOnUiThread(() -> updateProgressMessage(message));
-            });
+            metadataStripper.setProgressCallback((current, total, message) -> runOnUiThread(() -> updateProgressMessage(message)));
 
             // Log activity creation for debugging purposes
             FirebaseCrashlytics.getInstance().log("ShareHandlerActivity created");

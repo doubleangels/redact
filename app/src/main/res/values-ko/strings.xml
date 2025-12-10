@@ -52,6 +52,7 @@
     <string name="scan_location_information">위치 정보</string>
     <string name="scan_technical_details">기술 세부 정보</string>
     <string name="scan_location_permission_missing">위치 권한을 부여하면 위치 데이터를 사용할 수 있을 수 있습니다.</string>
+    <string name="scan_metadata_with_location_permission">%1$s\n%2$s</string>
     <string name="scan_extraction_fail">메타데이터 추출 실패!</string>
 
     <!-- Metadata output strings -->

@@ -52,6 +52,7 @@
     <string name="scan_location_information">Informações de Localização</string>
     <string name="scan_technical_details">Detalhes Técnicos</string>
     <string name="scan_location_permission_missing">Os dados de localização podem estar disponíveis se você conceder a permissão de localização.</string>
+    <string name="scan_metadata_with_location_permission">%1$s\n%2$s</string>
     <string name="scan_extraction_fail">Falha ao extrair metadados!</string>
 
     <!-- Metadata output strings -->

@@ -300,7 +300,8 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
                                     permissionManager.needsLocationPermission()) {
                                 String currentText = metadataText.getText().toString();
                                 if (!currentText.isEmpty()) {
-                                    metadataText.setText(currentText + "\n" + getString(R.string.scan_location_permission_missing));
+                                    metadataText.setText(getString(R.string.scan_metadata_with_location_permission,
+                                            currentText, getString(R.string.scan_location_permission_missing)));
                                 } else {
                                     metadataText.setText(getString(R.string.scan_location_permission_missing));
                                 }

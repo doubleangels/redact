@@ -21,10 +21,8 @@ import androidx.exifinterface.media.ExifInterface;
 
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
-import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -32,13 +30,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -187,7 +182,7 @@ public class MetadataStripper {
         this.context = context.getApplicationContext();
         this.contentResolver = this.context.getContentResolver();
         this.crashlytics = FirebaseCrashlytics.getInstance();
-        crashlytics.log("MetadataStripper initialized");
+        crashlytics.log("MetadataStripper initialized.");
     }
 
     /**
@@ -241,7 +236,7 @@ public class MetadataStripper {
     @Nullable
     public Uri stripVideoMetadata(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Log operation start for analytics and debugging
-        crashlytics.log("Starting video metadata stripping for MediaStore");
+        crashlytics.log("Starting video metadata stripping for MediaStore.");
         crashlytics.setCustomKey("original_filename", originalFilename);
         crashlytics.setCustomKey("operation_type", "video_to_mediastore");
         Uri newUri = null;
@@ -271,7 +266,7 @@ public class MetadataStripper {
             newUri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
 
             if (newUri == null) {
-                crashlytics.log("Failed to create MediaStore entry for video");
+                crashlytics.log("Failed to create MediaStore entry for video.");
                 throw new IOException("Failed to create new video in MediaStore");
             }
 
@@ -288,7 +283,7 @@ public class MetadataStripper {
                 try (InputStream in = new FileInputStream(tempOutputFile);
                         OutputStream out = contentResolver.openOutputStream(newUri)) {
 
-                    if (in == null || out == null) {
+                    if (out == null) {
                         throw new IOException("Failed to open streams for video processing");
                     }
 
@@ -301,7 +296,9 @@ public class MetadataStripper {
                 } finally {
                     // Clean up temp file
                     if (tempOutputFile.exists()) {
-                        tempOutputFile.delete();
+                        if (!tempOutputFile.delete()) {
+                            crashlytics.log("Failed to delete temp output file: " + tempOutputFile.getAbsolutePath() + ".");
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -326,7 +323,7 @@ public class MetadataStripper {
 
             updateProgress(4, 4, "Saving cleaned video...");
             lastProcessedFileUri = newUri;
-            crashlytics.log("Video processed successfully");
+            crashlytics.log("Video processed successfully.");
             crashlytics.setCustomKey("success", true);
 
         } catch (Exception e) {
@@ -366,7 +363,7 @@ public class MetadataStripper {
     @Nullable
     public Uri stripExifData(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Log operation start for analytics and debugging
-        crashlytics.log("Starting image EXIF stripping for MediaStore");
+        crashlytics.log("Starting image EXIF stripping for MediaStore.");
         crashlytics.setCustomKey("original_filename", originalFilename);
         crashlytics.setCustomKey("operation_type", "image_to_mediastore");
         Uri newUri = null;
@@ -415,7 +412,7 @@ public class MetadataStripper {
                 ExifInterface tempExif = new ExifInterface(tempFile.getAbsolutePath());
                 removeThumbnails(tempExif);
             } catch (Exception e) {
-                crashlytics.log("Could not remove thumbnails from temp file: " + e.getMessage());
+                crashlytics.log("Could not remove thumbnails from temp file: " + e.getMessage() + ".");
             }
 
             // Check image dimensions without loading the full bitmap
@@ -448,7 +445,7 @@ public class MetadataStripper {
             newUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
 
             if (newUri == null) {
-                crashlytics.log("Failed to create MediaStore entry");
+                crashlytics.log("Failed to create MediaStore entry.");
                 throw new IOException("Failed to create new image in MediaStore");
             }
 
@@ -485,22 +482,25 @@ public class MetadataStripper {
                         FileOutputStream fos = new FileOutputStream(tempVerifyFile)) {
                     byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
                     int bytesRead;
-                    while ((bytesRead = is.read(buffer)) > 0) {
+                    while (true) {
+                        assert is != null;
+                        if (!((bytesRead = is.read(buffer)) > 0))
+                            break;
                         fos.write(buffer, 0, bytesRead);
                     }
                 }
                 boolean metadataRemoved = verifyMetadataRemoval(tempVerifyFile);
                 crashlytics.setCustomKey("metadata_verification_passed", metadataRemoved);
                 if (!metadataRemoved) {
-                    crashlytics.log("Warning: Metadata verification found remaining metadata");
+                    crashlytics.log("Warning: Metadata verification found remaining metadata.");
                 }
                 secureDeleteFile(tempVerifyFile);
             } catch (Exception e) {
-                crashlytics.log("Could not verify metadata: " + e.getMessage());
+                crashlytics.log("Could not verify metadata: " + e.getMessage() + ".");
             }
 
             lastProcessedFileUri = newUri;
-            crashlytics.log("Image processed successfully");
+            crashlytics.log("Image processed successfully.");
             crashlytics.setCustomKey("success", true);
 
         } catch (Exception e) {
@@ -554,7 +554,7 @@ public class MetadataStripper {
     @Nullable
     public Uri stripExifDataForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Log operation start for analytics and debugging
-        crashlytics.log("Starting image EXIF stripping for sharing");
+        crashlytics.log("Starting image EXIF stripping for sharing.");
         crashlytics.setCustomKey("original_filename", originalFilename);
         crashlytics.setCustomKey("operation_type", "image_for_sharing");
 
@@ -662,14 +662,14 @@ public class MetadataStripper {
             boolean metadataRemoved = verifyMetadataRemoval(outputFile);
             crashlytics.setCustomKey("metadata_verification_passed", metadataRemoved);
             if (!metadataRemoved) {
-                crashlytics.log("Warning: Metadata verification found remaining metadata");
+                crashlytics.log("Warning: Metadata verification found remaining metadata.");
             }
 
             // Zero-pad unused space for security
             try {
                 zeroPadUnusedSpace(outputFile);
             } catch (Exception e) {
-                crashlytics.log("Could not zero-pad file: " + e.getMessage());
+                crashlytics.log("Could not zero-pad file: " + e.getMessage() + ".");
             }
 
             // Get content URI using FileProvider for sharing
@@ -679,7 +679,7 @@ public class MetadataStripper {
                     outputFile);
 
             lastProcessedFileUri = fileUri;
-            crashlytics.log("Image processed successfully for sharing");
+            crashlytics.log("Image processed successfully for sharing.");
             crashlytics.setCustomKey("success", true);
             return fileUri;
 
@@ -726,7 +726,7 @@ public class MetadataStripper {
     @Nullable
     public Uri stripVideoMetadataForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Log operation start for analytics and debugging
-        crashlytics.log("Starting video metadata stripping for sharing");
+        crashlytics.log("Starting video metadata stripping for sharing.");
         crashlytics.setCustomKey("original_filename", originalFilename);
         crashlytics.setCustomKey("operation_type", "video_for_sharing");
 
@@ -793,7 +793,7 @@ public class MetadataStripper {
                     outputFile);
 
             lastProcessedFileUri = fileUri;
-            crashlytics.log("Video processed successfully for sharing");
+            crashlytics.log("Video processed successfully for sharing.");
             crashlytics.setCustomKey("success", true);
             return fileUri;
 
@@ -822,7 +822,7 @@ public class MetadataStripper {
     @Nullable
     public Uri stripMetadataForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename, boolean isVideo) {
         // Log operation start for analytics and debugging
-        crashlytics.log("Starting metadata stripping for sharing");
+        crashlytics.log("Starting metadata stripping for sharing.");
         crashlytics.setCustomKey("is_video", isVideo);
 
         if (isVideo) {
@@ -919,7 +919,7 @@ public class MetadataStripper {
                 return size;
             }
         } catch (Exception e) {
-            crashlytics.log("Error determining file size: " + e.getMessage());
+            crashlytics.log("Error determining file size: " + e.getMessage() + ".");
             return 0;
         }
     }
@@ -987,7 +987,7 @@ public class MetadataStripper {
             String value = exif.getAttribute(tag);
             if (value != null) {
                 preservedExifValues.put(tag, value);
-                crashlytics.log("Preserving EXIF tag: " + tag);
+                crashlytics.log("Preserving EXIF tag: " + tag + ".");
             }
         }
 
@@ -1023,7 +1023,7 @@ public class MetadataStripper {
             newExif.saveAttributes();
 
         } catch (Exception e) {
-            crashlytics.log("Failed to restore EXIF: " + e.getMessage());
+            crashlytics.log("Failed to restore EXIF: " + e.getMessage() + ".");
             crashlytics.recordException(e);
         }
     }
@@ -1057,7 +1057,7 @@ public class MetadataStripper {
             // display
             // All other metadata (color space, resolution, etc.) can be inferred or is not
             // critical
-            java.util.Set<String> tagsToPreserve = new java.util.HashSet<>(java.util.Arrays.asList(
+            java.util.Set<String> tagsToPreserve = new java.util.HashSet<>(List.of(
                     ExifInterface.TAG_ORIENTATION));
 
             int removedCount = 0;
@@ -1076,16 +1076,15 @@ public class MetadataStripper {
                         }
                     } catch (IllegalAccessException | IllegalArgumentException e) {
                         // Skip fields we can't access
-                        continue;
                     }
                 }
             }
 
-            crashlytics.log("Removed " + removedCount + " EXIF metadata tags");
+            crashlytics.log("Removed " + removedCount + " EXIF metadata tags.");
             crashlytics.setCustomKey("exif_tags_removed", removedCount);
 
         } catch (Exception e) {
-            crashlytics.log("Error removing EXIF metadata: " + e.getMessage());
+            crashlytics.log("Error removing EXIF metadata: " + e.getMessage() + ".");
             crashlytics.recordException(e);
             // Fallback to hardcoded list if reflection fails
             removeExifMetadataFallback(exif);
@@ -1165,7 +1164,7 @@ public class MetadataStripper {
                 removedCount++;
             }
         }
-        crashlytics.log("Removed " + removedCount + " EXIF metadata tags (fallback method)");
+        crashlytics.log("Removed " + removedCount + " EXIF metadata tags (fallback method).");
     }
 
     /**
@@ -1178,7 +1177,7 @@ public class MetadataStripper {
             try {
                 closeable.close();
             } catch (IOException e) {
-                crashlytics.log("Error closing resource: " + e.getMessage());
+                crashlytics.log("Error closing resource: " + e.getMessage() + ".");
             }
         }
     }
@@ -1211,12 +1210,12 @@ public class MetadataStripper {
                     }
 
                     if (deletedCount > 0) {
-                        crashlytics.log("Cleaned up " + deletedCount + " temporary files");
+                        crashlytics.log("Cleaned up " + deletedCount + " temporary files.");
                     }
                 }
             }
         } catch (Exception e) {
-            crashlytics.log("Error cleaning up temporary files: " + e.getMessage());
+            crashlytics.log("Error cleaning up temporary files: " + e.getMessage() + ".");
         }
     }
 
@@ -1238,7 +1237,7 @@ public class MetadataStripper {
         if (isLow) {
             crashlytics.log("Memory is running low: " +
                     (availableMemory / (1024 * 1024)) + "MB available out of " +
-                    (maxMemory / (1024 * 1024)) + "MB max");
+                    (maxMemory / (1024 * 1024)) + "MB max.");
         }
         return isLow;
     }
@@ -1269,7 +1268,7 @@ public class MetadataStripper {
             long fileSize = getFileSizeFromUri(uri);
             return fileSize > MAX_FILE_SIZE_MB * 1024 * 1024;
         } catch (Exception e) {
-            crashlytics.log("Error checking file size: " + e.getMessage());
+            crashlytics.log("Error checking file size: " + e.getMessage() + ".");
             return false;
         }
     }
@@ -1292,7 +1291,7 @@ public class MetadataStripper {
      * @return true if the file was successfully deleted, false otherwise
      */
     private boolean secureDeleteFile(@NonNull File file) {
-        if (file == null || !file.exists() || !file.isFile()) {
+        if (!file.exists() || !file.isFile()) {
             return false;
         }
 
@@ -1320,7 +1319,7 @@ public class MetadataStripper {
             // Finally delete the file
             return file.delete();
         } catch (Exception e) {
-            crashlytics.log("Error during secure file deletion: " + e.getMessage());
+            crashlytics.log("Error during secure file deletion: " + e.getMessage() + ".");
             // Fallback to regular deletion
             return file.delete();
         }
@@ -1356,20 +1355,20 @@ public class MetadataStripper {
             for (String tag : identifyingTags) {
                 String value = exif.getAttribute(tag);
                 if (value != null && !value.isEmpty()) {
-                    crashlytics.log("Warning: Found remaining metadata tag: " + tag + " = " + value);
+                    crashlytics.log("Warning: Found remaining metadata tag: " + tag + " = " + value + ".");
                     return false;
                 }
             }
 
             // Check for XMP metadata (basic check - look for XMP header in file)
             if (containsXMPMetadata(imageFile)) {
-                crashlytics.log("Warning: Found XMP metadata in file");
+                crashlytics.log("Warning: Found XMP metadata in file.");
                 return false;
             }
 
             return true;
         } catch (Exception e) {
-            crashlytics.log("Error verifying metadata removal: " + e.getMessage());
+            crashlytics.log("Error verifying metadata removal: " + e.getMessage() + ".");
             // If verification fails, assume it's okay to avoid blocking the process
             return true;
         }
@@ -1386,7 +1385,7 @@ public class MetadataStripper {
             byte[] buffer = new byte[8192];
             int bytesRead = fis.read(buffer);
             if (bytesRead > 0) {
-                String content = new String(buffer, 0, bytesRead, "ISO-8859-1");
+                String content = new String(buffer, 0, bytesRead, StandardCharsets.ISO_8859_1);
                 // Look for XMP header markers
                 return content.contains("http://ns.adobe.com/xap/1.0/") ||
                         content.contains("xpacket") ||
@@ -1414,10 +1413,10 @@ public class MetadataStripper {
             byte[] thumbnail = exif.getThumbnailBytes();
             if (thumbnail != null && thumbnail.length > 0) {
                 // Thumbnail removal is handled by re-encoding without it
-                crashlytics.log("Found embedded thumbnail, will be removed during re-encoding");
+                crashlytics.log("Found embedded thumbnail, will be removed during re-encoding.");
             }
         } catch (Exception e) {
-            crashlytics.log("Error removing thumbnails: " + e.getMessage());
+            crashlytics.log("Error removing thumbnails: " + e.getMessage() + ".");
         }
     }
 
@@ -1515,7 +1514,7 @@ public class MetadataStripper {
             // Add tracks to muxer (without metadata)
             int muxerVideoTrackIndex = muxer.addTrack(cleanVideoFormat);
             int muxerAudioTrackIndex = -1;
-            if (audioTrackIndex != -1 && cleanAudioFormat != null) {
+            if (audioTrackIndex != -1) {
                 muxerAudioTrackIndex = muxer.addTrack(cleanAudioFormat);
             }
 
@@ -1556,13 +1555,22 @@ public class MetadataStripper {
 
                 bufferInfo.offset = 0;
                 bufferInfo.size = sampleSize;
-                bufferInfo.flags = extractor.getSampleFlags();
+                // Convert MediaExtractor sample flags to MediaCodec buffer flags
+                int sampleFlags = extractor.getSampleFlags();
+                int bufferFlags = 0;
+                if ((sampleFlags & MediaExtractor.SAMPLE_FLAG_SYNC) != 0) {
+                    bufferFlags |= MediaCodec.BUFFER_FLAG_KEY_FRAME;
+                }
+                if ((sampleFlags & MediaExtractor.SAMPLE_FLAG_PARTIAL_FRAME) != 0) {
+                    bufferFlags |= MediaCodec.BUFFER_FLAG_PARTIAL_FRAME;
+                }
+                bufferInfo.flags = bufferFlags;
                 bufferInfo.presentationTimeUs = extractor.getSampleTime();
 
                 // Write to appropriate muxer track based on which track this sample belongs to
                 if (sampleTrackIndex == videoTrackIndex) {
                     muxer.writeSampleData(muxerVideoTrackIndex, buffer, bufferInfo);
-                } else if (sampleTrackIndex == audioTrackIndex && audioTrackIndex != -1) {
+                } else if (sampleTrackIndex == audioTrackIndex) {
                     muxer.writeSampleData(muxerAudioTrackIndex, buffer, bufferInfo);
                 }
 
@@ -1577,7 +1585,7 @@ public class MetadataStripper {
             }
 
             muxer.stop();
-            crashlytics.log("Video remuxed successfully without metadata");
+            crashlytics.log("Video remuxed successfully without metadata.");
 
         } finally {
             if (extractor != null) {
@@ -1673,7 +1681,7 @@ public class MetadataStripper {
             cleanFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, format.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE));
         }
 
-        crashlytics.log("Removed non-essential metadata from MediaFormat, kept only codec parameters");
+        crashlytics.log("Removed non-essential metadata from MediaFormat, kept only codec parameters.");
         return cleanFormat;
     }
 

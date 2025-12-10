@@ -17,35 +17,30 @@ import java.util.Objects;
 
 /**
  * Handles selection and processing of media files (images and videos).
- *
+ * <p>
  * This class encapsulates the functionality for launching Android's media picker,
  * processing the results, and converting them to application-specific MediaItem objects.
  * It takes care of requesting persistent permissions for the selected media URIs and
  * extracting metadata such as file names.
+ *
+ * @param activity            Parent activity for context and content resolution
+ * @param mediaPickerLauncher Launcher for the media picker activity
  */
-public class MediaSelector {
+public record MediaSelector(Activity activity, ActivityResultLauncher<Intent> mediaPickerLauncher) {
     private static final String TAG = "MediaSelector";
-
-    /** Parent activity for context and content resolution */
-    private final Activity activity;
-
-    /** Launcher for the media picker activity */
-    private final ActivityResultLauncher<Intent> mediaPickerLauncher;
 
     /**
      * Creates a new MediaSelector instance.
      *
-     * @param activity The parent activity used for context
+     * @param activity            The parent activity used for context
      * @param mediaPickerLauncher The ActivityResultLauncher that will handle media picker results
      */
-    public MediaSelector(Activity activity, ActivityResultLauncher<Intent> mediaPickerLauncher) {
-        this.activity = activity;
-        this.mediaPickerLauncher = mediaPickerLauncher;
+    public MediaSelector {
     }
 
     /**
      * Launches the system media picker to select images and videos.
-     *
+     * <p>
      * Configures the intent to allow selection of both images and videos,
      * and enables multiple item selection.
      */
@@ -55,7 +50,7 @@ public class MediaSelector {
         intent.setType("*/*");
 
         // Allow both image and video selection
-        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[] {"image/*", "video/*"});
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/*", "video/*"});
 
         // Enable multiple selection
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
@@ -65,7 +60,7 @@ public class MediaSelector {
 
     /**
      * Processes a single media URI to create a MediaItem.
-     *
+     * <p>
      * Takes a persistable URI permission to ensure the app can access the media file
      * in the future. Determines if the content is a video based on the MIME type.
      *
@@ -91,7 +86,7 @@ public class MediaSelector {
 
     /**
      * Extracts the file name from a content URI.
-     *
+     * <p>
      * First attempts to query the ContentResolver for the display name. If that fails,
      * falls back to using the last path segment of the URI.
      *
@@ -122,7 +117,7 @@ public class MediaSelector {
 
     /**
      * Processes the result from the media picker activity.
-     *
+     * <p>
      * Handles both single and multiple selection cases by extracting URIs
      * from the result intent and converting them to MediaItem objects.
      *
@@ -139,8 +134,7 @@ public class MediaSelector {
                 Uri uri = data.getClipData().getItemAt(i).getUri();
                 items.add(processMediaUri(uri));
             }
-        }
-        else if (data.getData() != null) {
+        } else if (data.getData() != null) {
             // Single item selected
             items.add(processMediaUri(data.getData()));
         }

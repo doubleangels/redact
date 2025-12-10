@@ -52,6 +52,7 @@
     <string name="scan_location_information">स्थान जानकारी</string>
     <string name="scan_technical_details">तकनीकी विवरण</string>
     <string name="scan_location_permission_missing">यदि आप स्थान अनुमति प्रदान करते हैं तो स्थान डेटा उपलब्ध हो सकता है।</string>
+    <string name="scan_metadata_with_location_permission">%1$s\n%2$s</string>
     <string name="scan_extraction_fail">मेटाडेटा निष्कर्षण विफल!</string>
 
     <!-- Metadata output strings -->
