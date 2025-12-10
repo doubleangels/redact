@@ -1,0 +1,40 @@
+<b>Redact: Rimozione Privacy e Metadati</b>
+
+<p>Proteggi la tua privacy con Redact: l'app potente e semplice che rimuove tutti i metadati EXIF da foto e video prima di condividerli online. Previeni il tracciamento della posizione, nascondi le informazioni del dispositivo e proteggi i tuoi dati personali quando pubblichi su piattaforme di social media.</p>
+
+<b>Caratteristiche Principali:</b>
+
+<ul>
+<li><b>Protezione Completa della Privacy:</b><br>
+Rimuovi tutti i metadati inclusi dati di posizione GPS, informazioni del dispositivo, timestamp, impostazioni della fotocamera e dettagli personali nascosti nei tuoi file multimediali. La nostra tecnologia avanzata di remuxing garantisce che i video siano completamente privi di metadati preservando la qualità di riproduzione.</li>
+
+<li><b>Visualizzatore e Ispettore di Metadati:</b><br>
+Scansiona e visualizza facilmente tutti i dati EXIF nascosti nelle tue foto e video prima di rimuoverli completamente. Vedi esattamente quali informazioni sono incorporate nei tuoi file con la nostra visualizzazione completa dei metadati.</li>
+
+<li><b>Interfaccia di Privacy User-Friendly:</b><br>
+La rimozione completa dei metadati con un solo tocco rende la protezione della tua privacy digitale semplice, veloce e accessibile a tutti. Pulisci file singoli o elabora più file contemporaneamente.</li>
+
+<li><b>Elaborazione in Blocco di Foto e Video:</b><br>
+Pulisci più file multimediali simultaneamente, risparmiando tempo mentre migliori la tua protezione della privacy online. Elabora interi lotti con un solo tocco.</li>
+
+<li><b>Preservazione della Qualità Originale:</b><br>
+Rimuovi tutti i metadati senza comprimere o degradare le tue foto e video: mantieni la piena qualità di immagine e video. I parametri essenziali del codec sono preservati per garantire una riproduzione perfetta.</li>
+
+<li><b>Elaborazione 100% Locale e Sicura:</b><br>
+Tutta la pulizia dei dati avviene direttamente sul tuo dispositivo: le tue informazioni personali non lasciano mai il tuo telefono né si connettono a server esterni. I file vengono eliminati in modo sicuro utilizzando più passaggi di sovrascrittura.</li>
+
+<li><b>Strumento di Privacy Senza Pubblicità e Open Source:</b><br>
+Impegnati nella trasparenza senza pubblicità, tracciamento o raccolta di dati. Il nostro codice è completamente open source per la verifica e i contributi della community.</li>
+
+<li><b>Integrazione con il Menu di Condivisione Android:</b><br>
+Pulisci facilmente i file da qualsiasi app tramite il menu di condivisione Android e ottieni file completamente protetti pronti per la condivisione. I file temporanei vengono puliti automaticamente dopo la condivisione.</li>
+
+<li><b>Supporto Multilingue:</b><br>
+Disponibile in 13 lingue tra cui inglese, spagnolo, francese, tedesco, italiano, portoghese, russo, giapponese, coreano, cinese (Semplificato e Tradizionale), hindi e arabo.</li>
+</ul>
+
+<p>Prendi il controllo della tua impronta digitale! I metadati EXIF possono esporre le tue coordinate GPS precise, dettagli del dispositivo, impostazioni della fotocamera, timestamp e identificatori univoci. Redact elimina tutti questi rischi per la privacy preservando la qualità dei tuoi file multimediali. Perfetto per la condivisione sui social media, la fotografia professionale e chiunque sia preoccupato per la privacy digitale.</p>
+
+<p><b>Come Funziona:</b></p>
+<p>Seleziona semplicemente le tue foto o video, tocca "Pulisci Metadati" e Redact rimuoverà tutte le informazioni identificative preservando proprietà essenziali di visualizzazione come l'orientamento dell'immagine. Per i video, utilizziamo tecnologia avanzata di remuxing per rimuovere i contenitori di metadati mantenendo una qualità di riproduzione perfetta.</p>
+

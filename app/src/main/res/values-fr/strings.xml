@@ -1,0 +1,134 @@
+<resources>
+    <!-- App name -->
+    <string name="app_name">Redact</string>
+
+    <!-- Content descriptions -->
+    <string name="content_description_media_thumbnail">Miniature média</string>
+    <string name="content_description_image_view">Vue d\'image</string>
+    <string name="content_description_scroll_view">Vue de défilement</string>
+
+    <!-- Navigation labels -->
+    <string name="navigation_clean">Nettoyer</string>
+    <string name="navigation_scan">Scanner</string>
+
+    <!-- Button labels -->
+    <string name="button_select_media">Sélectionner un Média</string>
+    <string name="button_strip_exif_data">Nettoyer les Métadonnées</string>
+
+    <!-- Status and progress messages -->
+    <string name="status_processing">Traitement en cours…</string>
+    <string name="status_processed_items">%1$d éléments traités !</string>
+    <string name="status_selected_items">Sélectionnés : %1$d éléments</string>
+    <string name="status_first_select_media_files">Veuillez d\'abord sélectionner des fichiers multimédias !</string>
+    <string name="status_ready">Prêt à sélectionner un média !</string>
+    <string name="status_permissions_required">Autorisations requises !</string>
+    <string name="status_requesting_permissions">Demande d\'autorisations…</string>
+    <string name="status_select_media_files">Sélectionnez un média pour supprimer les métadonnées !</string>
+    <string name="status_analyzing">Analyse des métadonnées…</string>
+    <string name="status_select_item">Sélectionnez une image ou une vidéo pour voir les métadonnées !</string>
+    <string name="status_extraction_complete">Extraction des métadonnées terminée !</string>
+    <string name="status_extraction_media_fail">Erreur lors du traitement du fichier média !</string>
+    <string name="status_extraction_fail">Erreur lors de l\'extraction des métadonnées !</string>
+    <string name="status_extracting_media">Extraction des métadonnées vidéo…</string>
+    <string name="status_extracting_image">Extraction des métadonnées image…</string>
+    <string name="status_media_picker_fail">Erreur lors de l\'ouverture du sélecteur de médias !</string>
+    <string name="status_media_uri_fail">Impossible d\'obtenir l\'URI du média !</string>
+    <string name="status_storage_permissions_required">Autorisations de stockage requises !</string>
+
+    <!-- Share processing strings -->
+    <string name="share_processing_title">Traitement en cours…</string>
+    <string name="share_stripping_status">Suppression des métadonnées…</string>
+    <string name="share_chooser_title">Partager le fichier média nettoyé via…</string>
+    <string name="share_error_unsupported_media">Type de média non pris en charge !</string>
+    <string name="share_error_unsupported_action">Action non prise en charge !</string>
+    <string name="share_error_receive_failed">Échec de la réception du média !</string>
+    <string name="share_error_processing_failed">Échec du traitement !</string>
+
+    <!-- Scan section strings -->
+    <string name="scan_activity_title">ScanActivity</string>
+    <string name="scan_metadata">Métadonnées</string>
+    <string name="scan_basic_information">Informations de Base</string>
+    <string name="scan_camera_details">Détails de l\'Appareil Photo</string>
+    <string name="scan_location_information">Informations de Localisation</string>
+    <string name="scan_technical_details">Détails Techniques</string>
+    <string name="scan_location_permission_missing">Les données de localisation pourraient être disponibles si vous accordez l\'autorisation de localisation.</string>
+    <string name="scan_metadata_with_location_permission">%1$s\n%2$s</string>
+    <string name="scan_extraction_fail">Échec de l\'extraction des métadonnées !</string>
+
+    <!-- Metadata output strings -->
+    <!-- Basic File Information -->
+    <string name="metadata_file_name">Nom du Fichier : %s</string>
+    <string name="metadata_file_size">Taille du Fichier : %s</string>
+    <string name="metadata_mime_type">Type MIME : %s</string>
+    <string name="metadata_unknown">Inconnu</string>
+    <string name="metadata_size_bytes">o</string>
+    <string name="metadata_size_kb">Ko</string>
+    <string name="metadata_size_mb">Mo</string>
+
+    <!-- Section Headers -->
+    <string name="metadata_image_properties_header">Propriétés de l\'Image :</string>
+    <string name="metadata_camera_information_header">Informations de l\'Appareil Photo :</string>
+    <string name="metadata_exposure_information_header">Informations d\'Exposition :</string>
+    <string name="metadata_location_information_header">Informations de Localisation :</string>
+    <string name="metadata_technical_details_header">Détails Techniques :</string>
+    <string name="metadata_video_properties_header">Propriétés de la Vidéo :</string>
+
+    <!-- Image Metadata Fields -->
+    <string name="metadata_dimensions">Dimensions : %1$d x %2$d</string>
+    <string name="metadata_date_taken">Date de Prise : %s</string>
+    <string name="metadata_camera_make">Marque de l\'Appareil : %s</string>
+    <string name="metadata_camera_model">Modèle de l\'Appareil : %s</string>
+    <string name="metadata_aperture">Ouverture : f/%s</string>
+    <string name="metadata_exposure_time_fraction">Temps d\'Exposition : 1/%d s</string>
+    <string name="metadata_exposure_time_seconds">Temps d\'Exposition : %.5f s</string>
+    <string name="metadata_latitude">Latitude : %.15f</string>
+    <string name="metadata_longitude">Longitude : %.15f</string>
+    <string name="metadata_address">Adresse : %s</string>
+    <string name="metadata_geocoding_failed">Échec du géocodage : %s</string>
+    <string name="metadata_no_location_data">Aucune donnée de localisation disponible.</string>
+    <string name="metadata_location_permission_needed">Autorisation de localisation non accordée. Accordez l\'autorisation pour voir les données de localisation.</string>
+    <string name="metadata_orientation">Orientation : %s</string>
+    <string name="metadata_flash">Flash : %s</string>
+    <string name="metadata_flash_fired">Déclenché</string>
+    <string name="metadata_flash_not_fired">Non Déclenché</string>
+    <string name="metadata_white_balance">Balance des Blancs : %s</string>
+    <string name="metadata_white_balance_auto">Automatique</string>
+    <string name="metadata_white_balance_manual">Manuel</string>
+
+    <!-- Video Metadata Fields -->
+    <string name="metadata_duration_with_hours">Durée : %s</string>
+    <string name="metadata_duration_without_hours">Durée : %s</string>
+    <string name="metadata_resolution">Résolution : %1$s x %2$s</string>
+    <string name="metadata_rotation">Rotation : %s°</string>
+    <string name="metadata_bitrate">Débit : %d kbps</string>
+    <string name="metadata_date">Date : %s</string>
+    <string name="metadata_frame_rate">Fréquence d\'Images : %s ips</string>
+    <string name="metadata_sample_rate">Fréquence d\'Échantillonnage : %s Hz</string>
+
+    <!-- Additional Sectioned Metadata Strings -->
+    <string name="metadata_no_image_location_data">Aucune donnée de localisation disponible dans cette image.</string>
+    <string name="metadata_no_video_location_data">Aucune donnée de localisation disponible dans cette vidéo.</string>
+    <string name="metadata_location_permission_needed_full">Autorisation de localisation non accordée. Accordez l\'autorisation pour voir toutes les données de localisation.</string>
+    <string name="metadata_software">Logiciel : %s</string>
+    <string name="metadata_focal_length">Distance Focale : %s mm</string>
+    <string name="metadata_digital_zoom">Zoom Numérique : %sx</string>
+
+    <!-- Orientation Strings -->
+    <string name="metadata_orientation_normal">Normal</string>
+    <string name="metadata_orientation_rotate_90">Rotation de 90°</string>
+    <string name="metadata_orientation_rotate_180">Rotation de 180°</string>
+    <string name="metadata_orientation_rotate_270">Rotation de 270°</string>
+    <string name="metadata_orientation_flip_horizontal">Retournement Horizontal</string>
+    <string name="metadata_orientation_flip_vertical">Retournement Vertical</string>
+    <string name="metadata_orientation_transpose">Transposition</string>
+    <string name="metadata_orientation_transverse">Transverse</string>
+    <string name="metadata_orientation_unknown">Inconnu (%d)</string>
+
+    <!-- Error Messages -->
+    <string name="metadata_error_extraction">Erreur lors de l\'extraction des métadonnées : %s</string>
+    <string name="metadata_error_basic_info">Erreur lors de l\'extraction des informations de base : %s</string>
+    <string name="metadata_error_file_open">Erreur : Impossible d\'ouvrir le fichier image</string>
+    <string name="metadata_error_image_metadata">Erreur lors de l\'extraction des métadonnées image : %s</string>
+    <string name="metadata_error_video_metadata">Erreur lors de l\'extraction des métadonnées vidéo : %s</string>
+</resources>
+

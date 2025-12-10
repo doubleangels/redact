@@ -11,62 +11,42 @@ import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 /**
  * Manages UI state changes throughout the application.
- *
+ * <p>
  * This class centralizes UI state management for status messages, progress indicators,
  * and button states. It provides a clean interface for updating UI elements based on
  * application state changes without exposing UI implementation details to other components.
+ *
+ * @param activity          Parent activity that contains the UI elements
+ * @param statusText        TextView displaying current application status
+ * @param stripButton       Button to initiate processing of selected media items
+ * @param progressContainer Container for progress-related UI elements
+ * @param progressBar       Progress bar showing visual representation of processing progress
+ * @param progressText      Text displaying detailed progress information
  */
-public class UIStateManager {
-    /** Parent activity that contains the UI elements */
-    private final Activity activity;
-
-    /** TextView displaying current application status */
-    private final TextView statusText;
-
-    /** Button to initiate processing of selected media items */
-    private final MaterialButton stripButton;
-
-    /** Container for progress-related UI elements */
-    private final LinearLayout progressContainer;
-
-    /** Progress bar showing visual representation of processing progress */
-    private final LinearProgressIndicator progressBar;
-
-    /** Text displaying detailed progress information */
-    private final TextView progressText;
-
+public record UIStateManager(Activity activity, TextView statusText, MaterialButton stripButton,
+                             LinearLayout progressContainer, LinearProgressIndicator progressBar,
+                             TextView progressText) {
     /**
      * Creates a new UIStateManager with references to managed UI components.
      *
-     * @param activity The parent activity containing the UI elements
-     * @param statusText TextView that displays status messages
-     * @param stripButton Button that initiates metadata stripping
+     * @param activity          The parent activity containing the UI elements
+     * @param statusText        TextView that displays status messages
+     * @param stripButton       Button that initiates metadata stripping
      * @param progressContainer Layout that contains progress indicator elements
-     * @param progressBar Progress bar that shows processing progress
-     * @param progressText TextView that shows detailed progress messages
+     * @param progressBar       Progress bar that shows processing progress
+     * @param progressText      TextView that shows detailed progress messages
      */
-    public UIStateManager(Activity activity,
-                          TextView statusText,
-                          MaterialButton stripButton,
-                          LinearLayout progressContainer,
-                          LinearProgressIndicator progressBar,
-                          TextView progressText) {
-        this.activity = activity;
-        this.statusText = statusText;
-        this.stripButton = stripButton;
-        this.progressContainer = progressContainer;
-        this.progressBar = progressBar;
-        this.progressText = progressText;
+    public UIStateManager {
     }
 
     /**
      * Updates the progress indicators with current processing progress.
-     *
+     * <p>
      * Calculates percentage complete and updates both the visual progress bar
      * and the textual progress message on the UI thread.
      *
      * @param current Number of items processed so far
-     * @param total Total number of items to process
+     * @param total   Total number of items to process
      * @param message Text describing the current processing step
      */
     public void updateProgress(int current, int total, String message) {
@@ -80,7 +60,7 @@ public class UIStateManager {
 
     /**
      * Shows or hides the progress indicator container.
-     *
+     * <p>
      * When showing the progress container, the progress bar is reset to zero.
      *
      * @param visible True to show the progress container, false to hide it
@@ -149,7 +129,7 @@ public class UIStateManager {
 
     /**
      * Sets status text to prompt user to select media files first.
-     *
+     * <p>
      * This is used when the user attempts to process files without selecting any.
      */
     public void setFirstSelectMediaFilesStatus() {
@@ -158,7 +138,7 @@ public class UIStateManager {
 
     /**
      * Enables or disables the strip button based on selection state.
-     *
+     * <p>
      * The strip button should only be enabled when media items are selected.
      *
      * @param enable True to enable the button, false to disable it

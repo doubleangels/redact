@@ -50,10 +50,10 @@ Protect your privacy with Redact - the powerful yet simple app that removes all 
 ## Key Features:
 
 - **Complete Privacy Protection & EXIF Cleaner:**  
-  Remove all metadata including GPS location data, device information, timestamps, and personal details hidden in your media files.
+  Remove all metadata including GPS location data, device information, timestamps, and personal details hidden in your media files. Uses advanced remuxing for videos to ensure complete metadata removal.
 
 - **Metadata Viewer & Inspector:**  
-  Easily scan and view all hidden EXIF data in your photos and videos before completely removing it.
+  Easily scan and view all hidden EXIF data in your photos and videos before completely removing it. View metadata in an organized, alphabetically sorted format.
 
 - **User-Friendly Privacy Interface:**  
   One-tap complete metadata removal makes protecting your digital privacy simple, quick, and accessible for everyone.
@@ -62,10 +62,13 @@ Protect your privacy with Redact - the powerful yet simple app that removes all 
   Clean multiple media files simultaneously, saving you time while enhancing your online privacy protection.
 
 - **Original Quality Preservation:**  
-  Remove all metadata without compressing or degrading your photos and videos - maintain full image quality.
+  Remove all metadata without compressing or degrading your photos and videos - maintain full image quality. Only essential codec parameters are preserved for proper playback.
 
 - **100% Local & Secure Processing:**  
-  All data cleaning happens directly on your device - your personal information never leaves your phone or connects to external servers.
+  All data cleaning happens directly on your device - your personal information never leaves your phone or connects to external servers. Secure file deletion ensures no metadata traces remain.
+
+- **Multi-Language Support:**  
+  Available in 13 languages: English, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean, Chinese (Simplified & Traditional), Hindi, and Arabic. Supports Android's native per-app language settings.
 
 - **Ad-Free & Open-Source Privacy Tool:**  
   Committed to transparency with no advertising, tracking, or data collection. Our code is fully open-source for community verification.
@@ -82,6 +85,15 @@ Take control of your digital footprint! EXIF metadata can expose your precise GP
 ### Google Play Store
 
 Install Redact through the [Google Play Store](https://play.google.com/store/apps/details?id=com.doubleangels.redact).
+
+### Requirements
+
+- **Minimum Android Version:** Android 12 (API 31)
+- **Target Android Version:** Android 15 (API 35)
+- **Permissions Required:**
+  - **Android 13+:** `READ_MEDIA_IMAGES` and `READ_MEDIA_VIDEO` (required for selecting media files)
+  - **Android 12 and below:** `READ_EXTERNAL_STORAGE` (required for selecting media files)
+  - **Optional:** `ACCESS_MEDIA_LOCATION` (only needed to view GPS location metadata in media files)
 
 ---
 
@@ -128,7 +140,7 @@ No. The core functionality works completely offline. Your files never leave your
 
 ### <a id="file-storage"></a>Where are processed files stored?
 
-Cleaned files are saved to your device's storage in a designated folder for easy access.
+Cleaned files are saved to your device's storage in a designated folder for easy access. When sharing files via the share menu, temporary cleaned files are automatically deleted after sharing to protect your privacy.
 
 ### <a id="analytics-tracking"></a>Are there any analytics or trackers?
 
@@ -162,6 +174,10 @@ Redact is built with privacy as its core principle:
 - Your files remain yours, they never leave your device
 - No network requests needed for core functionality
 - Open-source code for transparency
+- Secure file deletion with data overwriting
+- Comprehensive metadata removal using reflection to catch all possible EXIF tags
+- Video metadata removal via remuxing (only essential codec parameters preserved)
+- Temporary files are automatically cleaned up after sharing
 
 Your privacy is not just a feature - it's the entire point of this app.
 

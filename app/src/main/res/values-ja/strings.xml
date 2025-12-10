@@ -1,0 +1,134 @@
+<resources>
+    <!-- App name -->
+    <string name="app_name">Redact</string>
+
+    <!-- Content descriptions -->
+    <string name="content_description_media_thumbnail">メディアサムネイル</string>
+    <string name="content_description_image_view">画像ビュー</string>
+    <string name="content_description_scroll_view">スクロールビュー</string>
+
+    <!-- Navigation labels -->
+    <string name="navigation_clean">クリーン</string>
+    <string name="navigation_scan">スキャン</string>
+
+    <!-- Button labels -->
+    <string name="button_select_media">メディアを選択</string>
+    <string name="button_strip_exif_data">メタデータをクリーン</string>
+
+    <!-- Status and progress messages -->
+    <string name="status_processing">処理中…</string>
+    <string name="status_processed_items">%1$d件のアイテムを処理しました！</string>
+    <string name="status_selected_items">選択済み: %1$d件のアイテム</string>
+    <string name="status_first_select_media_files">まずメディアファイルを選択してください！</string>
+    <string name="status_ready">メディアを選択する準備ができました！</string>
+    <string name="status_permissions_required">権限が必要です！</string>
+    <string name="status_requesting_permissions">権限をリクエスト中…</string>
+    <string name="status_select_media_files">メタデータを削除するメディアを選択してください！</string>
+    <string name="status_analyzing">メタデータを分析中…</string>
+    <string name="status_select_item">メタデータを表示する画像または動画を選択してください！</string>
+    <string name="status_extraction_complete">メタデータの抽出が完了しました！</string>
+    <string name="status_extraction_media_fail">メディアファイルの処理エラー！</string>
+    <string name="status_extraction_fail">メタデータの抽出エラー！</string>
+    <string name="status_extracting_media">動画メタデータを抽出中…</string>
+    <string name="status_extracting_image">画像メタデータを抽出中…</string>
+    <string name="status_media_picker_fail">メディアピッカーのオープンエラー！</string>
+    <string name="status_media_uri_fail">メディアURIを取得できませんでした！</string>
+    <string name="status_storage_permissions_required">ストレージ権限が必要です！</string>
+
+    <!-- Share processing strings -->
+    <string name="share_processing_title">処理中…</string>
+    <string name="share_stripping_status">メタデータを削除中…</string>
+    <string name="share_chooser_title">クリーンなメディアファイルを共有…</string>
+    <string name="share_error_unsupported_media">サポートされていないメディアタイプ！</string>
+    <string name="share_error_unsupported_action">サポートされていないアクション！</string>
+    <string name="share_error_receive_failed">メディアの受信に失敗しました！</string>
+    <string name="share_error_processing_failed">処理に失敗しました！</string>
+
+    <!-- Scan section strings -->
+    <string name="scan_activity_title">ScanActivity</string>
+    <string name="scan_metadata">メタデータ</string>
+    <string name="scan_basic_information">基本情報</string>
+    <string name="scan_camera_details">カメラの詳細</string>
+    <string name="scan_location_information">位置情報</string>
+    <string name="scan_technical_details">技術的詳細</string>
+    <string name="scan_location_permission_missing">位置情報の権限を付与すると、位置データが利用可能になる場合があります。</string>
+    <string name="scan_metadata_with_location_permission">%1$s\n%2$s</string>
+    <string name="scan_extraction_fail">メタデータの抽出に失敗しました！</string>
+
+    <!-- Metadata output strings -->
+    <!-- Basic File Information -->
+    <string name="metadata_file_name">ファイル名: %s</string>
+    <string name="metadata_file_size">ファイルサイズ: %s</string>
+    <string name="metadata_mime_type">MIMEタイプ: %s</string>
+    <string name="metadata_unknown">不明</string>
+    <string name="metadata_size_bytes">B</string>
+    <string name="metadata_size_kb">KB</string>
+    <string name="metadata_size_mb">MB</string>
+
+    <!-- Section Headers -->
+    <string name="metadata_image_properties_header">画像プロパティ:</string>
+    <string name="metadata_camera_information_header">カメラ情報:</string>
+    <string name="metadata_exposure_information_header">露出情報:</string>
+    <string name="metadata_location_information_header">位置情報:</string>
+    <string name="metadata_technical_details_header">技術的詳細:</string>
+    <string name="metadata_video_properties_header">動画プロパティ:</string>
+
+    <!-- Image Metadata Fields -->
+    <string name="metadata_dimensions">サイズ: %1$d x %2$d</string>
+    <string name="metadata_date_taken">撮影日: %s</string>
+    <string name="metadata_camera_make">カメラメーカー: %s</string>
+    <string name="metadata_camera_model">カメラモデル: %s</string>
+    <string name="metadata_aperture">絞り: f/%s</string>
+    <string name="metadata_exposure_time_fraction">露出時間: 1/%d秒</string>
+    <string name="metadata_exposure_time_seconds">露出時間: %.5f秒</string>
+    <string name="metadata_latitude">緯度: %.15f</string>
+    <string name="metadata_longitude">経度: %.15f</string>
+    <string name="metadata_address">住所: %s</string>
+    <string name="metadata_geocoding_failed">ジオコーディングに失敗: %s</string>
+    <string name="metadata_no_location_data">位置データが利用できません。</string>
+    <string name="metadata_location_permission_needed">位置情報の権限が付与されていません。位置データを表示するには権限を付与してください。</string>
+    <string name="metadata_orientation">向き: %s</string>
+    <string name="metadata_flash">フラッシュ: %s</string>
+    <string name="metadata_flash_fired">発光</string>
+    <string name="metadata_flash_not_fired">未発光</string>
+    <string name="metadata_white_balance">ホワイトバランス: %s</string>
+    <string name="metadata_white_balance_auto">自動</string>
+    <string name="metadata_white_balance_manual">手動</string>
+
+    <!-- Video Metadata Fields -->
+    <string name="metadata_duration_with_hours">長さ: %s</string>
+    <string name="metadata_duration_without_hours">長さ: %s</string>
+    <string name="metadata_resolution">解像度: %1$s x %2$s</string>
+    <string name="metadata_rotation">回転: %s°</string>
+    <string name="metadata_bitrate">ビットレート: %d kbps</string>
+    <string name="metadata_date">日付: %s</string>
+    <string name="metadata_frame_rate">フレームレート: %s fps</string>
+    <string name="metadata_sample_rate">サンプルレート: %s Hz</string>
+
+    <!-- Additional Sectioned Metadata Strings -->
+    <string name="metadata_no_image_location_data">この画像に位置データがありません。</string>
+    <string name="metadata_no_video_location_data">この動画に位置データがありません。</string>
+    <string name="metadata_location_permission_needed_full">位置情報の権限が付与されていません。すべての位置データを表示するには権限を付与してください。</string>
+    <string name="metadata_software">ソフトウェア: %s</string>
+    <string name="metadata_focal_length">焦点距離: %s mm</string>
+    <string name="metadata_digital_zoom">デジタルズーム: %sx</string>
+
+    <!-- Orientation Strings -->
+    <string name="metadata_orientation_normal">通常</string>
+    <string name="metadata_orientation_rotate_90">90°回転</string>
+    <string name="metadata_orientation_rotate_180">180°回転</string>
+    <string name="metadata_orientation_rotate_270">270°回転</string>
+    <string name="metadata_orientation_flip_horizontal">水平反転</string>
+    <string name="metadata_orientation_flip_vertical">垂直反転</string>
+    <string name="metadata_orientation_transpose">転置</string>
+    <string name="metadata_orientation_transverse">横方向</string>
+    <string name="metadata_orientation_unknown">不明 (%d)</string>
+
+    <!-- Error Messages -->
+    <string name="metadata_error_extraction">メタデータの抽出エラー: %s</string>
+    <string name="metadata_error_basic_info">基本情報の抽出エラー: %s</string>
+    <string name="metadata_error_file_open">エラー: 画像ファイルを開けませんでした</string>
+    <string name="metadata_error_image_metadata">画像メタデータの抽出エラー: %s</string>
+    <string name="metadata_error_video_metadata">動画メタデータの抽出エラー: %s</string>
+</resources>
+

@@ -5,7 +5,7 @@
     <!-- Content descriptions -->
     <string name="content_description_media_thumbnail">Media thumbnail</string>
     <string name="content_description_image_view">Image view</string>
-    <string name="content_description_scroll_view">Scroll view</string>"
+    <string name="content_description_scroll_view">Scroll view</string>
 
     <!-- Navigation labels -->
     <string name="navigation_clean">Clean</string>
@@ -46,11 +46,13 @@
 
     <!-- Scan section strings -->
     <string name="scan_activity_title">ScanActivity</string>
+    <string name="scan_metadata">Metadata</string>
     <string name="scan_basic_information">Basic Information</string>
     <string name="scan_camera_details">Camera Details</string>
     <string name="scan_location_information">Location Information</string>
     <string name="scan_technical_details">Technical Details</string>
     <string name="scan_location_permission_missing">Location data might be available if you grant the location permission.</string>
+    <string name="scan_metadata_with_location_permission">%1$s\n%2$s</string>
     <string name="scan_extraction_fail">Failed to extract metadata!</string>
 
     <!-- Metadata output strings -->

@@ -5,29 +5,35 @@
 <b>Key Features:</b>
 
 <ul>
-<li><b>Complete Privacy Protection & EXIF Cleaner:</b><br>
-Remove all metadata including GPS location data, device information, timestamps, and personal details hidden in your media files.</li>
+<li><b>Complete Privacy Protection:</b><br>
+Remove all metadata including GPS location data, device information, timestamps, camera settings, and personal details hidden in your media files. Our advanced remuxing technology ensures videos are completely stripped of metadata while preserving playback quality.</li>
 
 <li><b>Metadata Viewer & Inspector:</b><br>
-Easily scan and view all hidden EXIF data in your photos and videos before completely removing it.</li>
+Easily scan and view all hidden EXIF data in your photos and videos before completely removing it. See exactly what information is embedded in your files with our comprehensive metadata display.</li>
 
 <li><b>User-Friendly Privacy Interface:</b><br>
-One-tap complete metadata removal makes protecting your digital privacy simple, quick, and accessible for everyone.</li>
+One-tap complete metadata removal makes protecting your digital privacy simple, quick, and accessible for everyone. Clean individual files or process multiple files at once.</li>
 
 <li><b>Bulk Photo & Video Processing:</b><br>
-Clean multiple media files simultaneously, saving you time while enhancing your online privacy protection.</li>
+Clean multiple media files simultaneously, saving you time while enhancing your online privacy protection. Process entire batches with a single tap.</li>
 
 <li><b>Original Quality Preservation:</b><br>
-Remove all metadata without compressing or degrading your photos and videos - maintain full image quality.</li>
+Remove all metadata without compressing or degrading your photos and videos - maintain full image and video quality. Essential codec parameters are preserved to ensure perfect playback.</li>
 
 <li><b>100% Local & Secure Processing:</b><br>
-All data cleaning happens directly on your device - your personal information never leaves your phone or connects to external servers.</li>
+All data cleaning happens directly on your device - your personal information never leaves your phone or connects to external servers. Files are securely deleted using multiple overwrite passes.</li>
 
 <li><b>Ad-Free & Open-Source Privacy Tool:</b><br>
-Committed to transparency with no advertising, tracking, or data collection. Our code is fully open-source for community verification.</li>
+Committed to transparency with no advertising, tracking, or data collection. Our code is fully open-source for community verification and contributions.</li>
 
 <li><b>Android Share Sheet Integration:</b><br>
-Seamlessly clean files from any app via Android's share menu and get back completely privacy-protected files ready to share.</li>
+Seamlessly clean files from any app via Android's share menu and get back completely privacy-protected files ready to share. Temporary files are automatically cleaned up after sharing.</li>
+
+<li><b>Multi-Language Support:</b><br>
+Available in 13 languages including English, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean, Chinese (Simplified & Traditional), Hindi, and Arabic.</li>
 </ul>
 
-<p>Take control of your digital footprint! EXIF metadata can expose your precise GPS coordinates, device details, camera settings, timestamps, and unique identifiers. Redact eliminates all these privacy risks while preserving the quality of your media files.</p>
+<p>Take control of your digital footprint! EXIF metadata can expose your precise GPS coordinates, device details, camera settings, timestamps, and unique identifiers. Redact eliminates all these privacy risks while preserving the quality of your media files. Perfect for social media sharing, professional photography, and anyone concerned about digital privacy.</p>
+
+<p><b>How It Works:</b></p>
+<p>Simply select your photos or videos, tap "Clean Metadata," and Redact will remove all identifying information while preserving essential display properties like image orientation. For videos, we use advanced remuxing technology to strip metadata containers while maintaining perfect playback quality.</p>

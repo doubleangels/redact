@@ -40,21 +40,9 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
     private View progressBar;
     private MaterialButton selectMediaButton;
 
-    // TextViews for displaying different categories of metadata
-    private TextView basicInfoText;
-    private TextView mediaDetailsText;
-    private TextView locationText;
-    private TextView technicalText;
-
-    // Cards for organizing metadata display by category
-    private MaterialCardView basicInfoCard;
-    private MaterialCardView mediaDetailsCard;
-    private MaterialCardView locationCard;
-    private MaterialCardView technicalCard;
-
-    // Title elements for metadata sections
-    private TextView mediaDetailsTitle;
-    private TextView technicalTitle;
+    // Single TextView for displaying all metadata
+    private TextView metadataText;
+    private MaterialCardView metadataCard;
 
     // Launcher for media picker intent
     private ActivityResultLauncher<Intent> mediaPickerLauncher;
@@ -86,29 +74,17 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
         progressBar = findViewById(R.id.progressBar);
         selectMediaButton = findViewById(R.id.selectButton);
 
-        // Initialize metadata text views
-        basicInfoText = findViewById(R.id.basicInfoText);
-        mediaDetailsText = findViewById(R.id.mediaDetailsText);
-        locationText = findViewById(R.id.locationText);
-        technicalText = findViewById(R.id.technicalText);
-
-        // Initialize metadata cards
-        basicInfoCard = findViewById(R.id.basicInfoCard);
-        mediaDetailsCard = findViewById(R.id.mediaDetailsCard);
-        locationCard = findViewById(R.id.locationCard);
-        technicalCard = findViewById(R.id.technicalCard);
-
-        // Initialize section titles
-        mediaDetailsTitle = findViewById(R.id.mediaDetailsTitle);
-        technicalTitle = findViewById(R.id.technicalTitle);
+        // Initialize metadata display
+        metadataText = findViewById(R.id.metadataText);
+        metadataCard = findViewById(R.id.metadataCard);
 
         // Set up bottom navigation
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigation);
         bottomNavigationView.setOnItemSelectedListener(this);
         bottomNavigationView.setSelectedItemId(R.id.navigation_scan); // Set the current tab as selected
 
-        // Hide all metadata cards initially
-        hideAllCards();
+        // Hide metadata card initially
+        metadataCard.setVisibility(View.GONE);
 
         // Display app version in UI
         setupVersionNumber();
@@ -143,7 +119,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
                     @Override
                     public void onPermissionsDenied() {
                         selectMediaButton.setEnabled(false);
-                        showStatus(String.valueOf(R.string.status_storage_permissions_required));
+                        showStatus(getString(R.string.status_storage_permissions_required));
                     }
 
                     /**
@@ -152,7 +128,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
                      */
                     @Override
                     public void onPermissionsRequestStarted() {
-                        showStatus(String.valueOf(R.string.status_requesting_permissions));
+                        showStatus(getString(R.string.status_requesting_permissions));
                     }
 
                     /**
@@ -280,8 +256,8 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
             showProgress(true);
 
             // Clear previous metadata
-            resetTextViews();
-            hideAllCards();
+            metadataText.setText("");
+            metadataCard.setVisibility(View.GONE);
 
             // Determine if the selected file is a video
             String mimeType = getContentResolver().getType(mediaUri);
@@ -316,18 +292,20 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
                             showProgress(false);
                             showStatus(getString(R.string.status_extraction_complete));
 
-                            // Set appropriate titles based on media type
-                            mediaDetailsTitle.setText(R.string.scan_camera_details);
-                            technicalTitle.setText(R.string.scan_technical_details);
-
-                            // Display the extracted metadata sections
-                            displaySections(metadataSections);
+                            // Combine and display all metadata sections
+                            displayCombinedMetadata(metadataSections);
 
                             // Show location permission message if needed
                             if (!metadataSections.containsKey(MetadataDisplayer.SECTION_LOCATION) &&
                                     permissionManager.needsLocationPermission()) {
-                                locationText.setText(R.string.scan_location_permission_missing);
-                                locationCard.setVisibility(View.VISIBLE);
+                                String currentText = metadataText.getText().toString();
+                                if (!currentText.isEmpty()) {
+                                    metadataText.setText(getString(R.string.scan_metadata_with_location_permission,
+                                            currentText, getString(R.string.scan_location_permission_missing)));
+                                } else {
+                                    metadataText.setText(getString(R.string.scan_location_permission_missing));
+                                }
+                                metadataCard.setVisibility(View.VISIBLE);
                             }
                         } catch (Exception e) {
                             FirebaseCrashlytics.getInstance().recordException(e);
@@ -346,8 +324,8 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
                     runOnUiThread(() -> {
                         showProgress(false);
                         showStatus(getString(R.string.status_extraction_fail));
-                        basicInfoText.setText(R.string.scan_extraction_fail);
-                        basicInfoCard.setVisibility(View.VISIBLE);
+                        metadataText.setText(getString(R.string.scan_extraction_fail));
+                        metadataCard.setVisibility(View.VISIBLE);
                         FirebaseCrashlytics.getInstance().log("Metadata extraction failed: " + error);
                     });
                 }
@@ -361,68 +339,23 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
     }
 
     /**
-     * Displays the extracted metadata sections in their respective UI cards.
-     * Only shows cards that have content to display.
+     * Displays all metadata in a single list (already combined and sorted).
      *
-     * @param sections Map containing different sections of metadata
+     * @param sections Map containing metadata (should have SECTION_BASIC_INFO with all metadata)
      */
-    private void displaySections(Map<String, String> sections) {
-        // Display basic info section if available
+    private void displayCombinedMetadata(Map<String, String> sections) {
+        // All metadata is now in a single section (SECTION_BASIC_INFO)
         if (sections.containsKey(MetadataDisplayer.SECTION_BASIC_INFO)) {
             String content = sections.get(MetadataDisplayer.SECTION_BASIC_INFO);
-            if (content != null && !content.isEmpty()) {
-                basicInfoText.setText(content);
-                basicInfoCard.setVisibility(View.VISIBLE);
+            if (content != null && !content.trim().isEmpty()) {
+                metadataText.setText(content);
+                metadataCard.setVisibility(View.VISIBLE);
+            } else {
+                metadataCard.setVisibility(View.GONE);
             }
+        } else {
+            metadataCard.setVisibility(View.GONE);
         }
-
-        // Display camera details section if available
-        if (sections.containsKey(MetadataDisplayer.SECTION_CAMERA_DETAILS)) {
-            String content = sections.get(MetadataDisplayer.SECTION_CAMERA_DETAILS);
-            if (content != null && !content.isEmpty()) {
-                mediaDetailsText.setText(content);
-                mediaDetailsCard.setVisibility(View.VISIBLE);
-            }
-        }
-
-        // Display location section if available
-        if (sections.containsKey(MetadataDisplayer.SECTION_LOCATION)) {
-            String content = sections.get(MetadataDisplayer.SECTION_LOCATION);
-            if (content != null && !content.isEmpty()) {
-                locationText.setText(content);
-                locationCard.setVisibility(View.VISIBLE);
-            }
-        }
-
-        // Display technical section if available
-        if (sections.containsKey(MetadataDisplayer.SECTION_TECHNICAL)) {
-            String content = sections.get(MetadataDisplayer.SECTION_TECHNICAL);
-            if (content != null && !content.isEmpty()) {
-                technicalText.setText(content);
-                technicalCard.setVisibility(View.VISIBLE);
-            }
-        }
-    }
-
-    /**
-     * Clears all metadata text views to prepare for new content.
-     */
-    private void resetTextViews() {
-        basicInfoText.setText("");
-        mediaDetailsText.setText("");
-        locationText.setText("");
-        technicalText.setText("");
-    }
-
-    /**
-     * Hides all metadata cards from view.
-     * Used when resetting the UI or when no metadata is available.
-     */
-    private void hideAllCards() {
-        basicInfoCard.setVisibility(View.GONE);
-        mediaDetailsCard.setVisibility(View.GONE);
-        locationCard.setVisibility(View.GONE);
-        technicalCard.setVisibility(View.GONE);
     }
 
     /**

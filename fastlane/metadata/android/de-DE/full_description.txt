@@ -1,0 +1,40 @@
+<b>Redact: Datenschutz- und Metadaten-Entferner</b>
+
+<p>Schützen Sie Ihre Privatsphäre mit Redact: der leistungsstarken und einfachen App, die alle EXIF-Metadaten aus Fotos und Videos entfernt, bevor sie online geteilt werden. Verhindern Sie Standortverfolgung, verbergen Sie Geräteinformationen und sichern Sie Ihre persönlichen Daten beim Posten auf Social-Media-Plattformen.</p>
+
+<b>Hauptfunktionen:</b>
+
+<ul>
+<li><b>Vollständiger Datenschutz:</b><br>
+Entfernen Sie alle Metadaten, einschließlich GPS-Standortdaten, Geräteinformationen, Zeitstempel, Kameraeinstellungen und persönliche Details, die in Ihren Mediendateien versteckt sind. Unsere fortschrittliche Remuxing-Technologie stellt sicher, dass Videos vollständig von Metadaten befreit werden, während die Wiedergabequalität erhalten bleibt.</li>
+
+<li><b>Metadaten-Viewer und -Inspektor:</b><br>
+Scannen und sehen Sie alle versteckten EXIF-Daten in Ihren Fotos und Videos leicht ein, bevor Sie sie vollständig entfernen. Sehen Sie genau, welche Informationen in Ihren Dateien eingebettet sind, mit unserer umfassenden Metadaten-Anzeige.</li>
+
+<li><b>Benutzerfreundliche Datenschutz-Oberfläche:</b><br>
+Die vollständige Metadaten-Entfernung mit einem Tippen macht den Schutz Ihrer digitalen Privatsphäre einfach, schnell und für alle zugänglich. Bereinigen Sie einzelne Dateien oder verarbeiten Sie mehrere Dateien gleichzeitig.</li>
+
+<li><b>Massenverarbeitung von Fotos und Videos:</b><br>
+Bereinigen Sie mehrere Mediendateien gleichzeitig und sparen Sie Zeit, während Sie Ihren Online-Datenschutz verbessern. Verarbeiten Sie ganze Stapel mit einem einzigen Tippen.</li>
+
+<li><b>Erhaltung der Originalqualität:</b><br>
+Entfernen Sie alle Metadaten ohne Komprimierung oder Qualitätsverlust Ihrer Fotos und Videos: Behalten Sie die volle Bild- und Videoqualität bei. Wesentliche Codec-Parameter werden erhalten, um eine perfekte Wiedergabe zu gewährleisten.</li>
+
+<li><b>100% lokale und sichere Verarbeitung:</b><br>
+Die gesamte Datenbereinigung erfolgt direkt auf Ihrem Gerät: Ihre persönlichen Informationen verlassen niemals Ihr Telefon oder verbinden sich mit externen Servern. Dateien werden sicher gelöscht, indem mehrere Überschreibungsdurchläufe verwendet werden.</li>
+
+<li><b>Werbefreies und Open-Source-Datenschutz-Tool:</b><br>
+Verpflichtet zur Transparenz ohne Werbung, Tracking oder Datenerfassung. Unser Code ist vollständig Open Source für die Überprüfung und Beiträge der Community.</li>
+
+<li><b>Android-Share-Menü-Integration:</b><br>
+Bereinigen Sie Dateien nahtlos von jeder App über das Android-Share-Menü und erhalten Sie vollständig datenschutzgeschützte Dateien, die zum Teilen bereit sind. Temporäre Dateien werden nach dem Teilen automatisch bereinigt.</li>
+
+<li><b>Mehrsprachige Unterstützung:</b><br>
+Verfügbar in 13 Sprachen, einschließlich Englisch, Spanisch, Französisch, Deutsch, Italienisch, Portugiesisch, Russisch, Japanisch, Koreanisch, Chinesisch (Vereinfacht und Traditionell), Hindi und Arabisch.</li>
+</ul>
+
+<p>Übernehmen Sie die Kontrolle über Ihren digitalen Fußabdruck! EXIF-Metadaten können Ihre genauen GPS-Koordinaten, Gerätedetails, Kameraeinstellungen, Zeitstempel und eindeutige Kennungen preisgeben. Redact eliminiert alle diese Datenschutzrisiken, während die Qualität Ihrer Mediendateien erhalten bleibt. Perfekt für Social-Media-Sharing, professionelle Fotografie und alle, die sich um digitale Privatsphäre sorgen.</p>
+
+<p><b>Wie Es Funktioniert:</b></p>
+<p>Wählen Sie einfach Ihre Fotos oder Videos aus, tippen Sie auf "Metadaten Bereinigen" und Redact entfernt alle identifizierenden Informationen, während wesentliche Anzeigeeigenschaften wie die Bildausrichtung erhalten bleiben. Für Videos verwenden wir fortschrittliche Remuxing-Technologie, um Metadaten-Container zu entfernen, während eine perfekte Wiedergabequalität erhalten bleibt.</p>
+

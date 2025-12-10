@@ -1,0 +1,39 @@
+<b>Redact : Suppresseur de Métadonnées et de Confidentialité</b>
+
+<p>Protégez votre vie privée avec Redact : l'application puissante et simple qui supprime toutes les métadonnées EXIF des photos et vidéos avant de les partager en ligne. Empêchez le suivi de localisation, masquez les informations de l'appareil et sécurisez vos données personnelles lors de la publication sur les réseaux sociaux.</p>
+
+<b>Caractéristiques Principales :</b>
+
+<ul>
+<li><b>Protection Complète de la Confidentialité :</b><br>
+Supprimez toutes les métadonnées, y compris les données de localisation GPS, les informations de l'appareil, les horodatages, les paramètres de l'appareil photo et les détails personnels cachés dans vos fichiers multimédias. Notre technologie de remuxage garantit que les vidéos sont complètement dépouillées des métadonnées tout en préservant la qualité de lecture.</li>
+
+<li><b>Visualiseur et Inspecteur de Métadonnées :</b><br>
+Scannez et visualisez facilement toutes les données EXIF cachées dans vos photos et vidéos avant de les supprimer complètement. Voyez exactement quelles informations sont intégrées dans vos fichiers avec notre affichage complet.</li>
+
+<li><b>Interface de Confidentialité Conviviale :</b><br>
+La suppression complète des métadonnées en un seul appui rend la protection de votre vie privée numérique simple, rapide et accessible à tous. Nettoyez des fichiers individuels ou traitez plusieurs fichiers à la fois.</li>
+
+<li><b>Traitement en Lot de Photos et Vidéos :</b><br>
+Nettoyez plusieurs fichiers multimédias simultanément, vous faisant gagner du temps tout en améliorant votre protection de la vie privée en ligne. Traitez des lots entiers en un seul appui.</li>
+
+<li><b>Préservation de la Qualité Originale :</b><br>
+Supprimez toutes les métadonnées sans compresser ou dégrader vos photos et vidéos : maintenez une qualité d'image et vidéo complète. Les paramètres essentiels du codec sont préservés pour garantir une lecture parfaite.</li>
+
+<li><b>Traitement 100% Local et Sécurisé :</b><br>
+Tout le nettoyage des données se fait directement sur votre appareil : vos informations personnelles ne quittent jamais votre téléphone ni ne se connectent à des serveurs externes. Les fichiers sont supprimés de manière sécurisée.</li>
+
+<li><b>Outil de Confidentialité Sans Publicité et Open Source :</b><br>
+Engagé envers la transparence sans publicité, suivi ou collecte de données. Notre code est entièrement open source pour la vérification et les contributions de la communauté.</li>
+
+<li><b>Intégration du Menu de Partage Android :</b><br>
+Nettoyez facilement les fichiers de n'importe quelle application via le menu de partage Android et obtenez des fichiers complètement protégés prêts à être partagés. Les fichiers temporaires sont automatiquement nettoyés après le partage.</li>
+
+<li><b>Support Multilingue :</b><br>
+Disponible en 13 langues : anglais, espagnol, français, allemand, italien, portugais, russe, japonais, coréen, chinois (Simplifié et Traditionnel), hindi et arabe.</li>
+</ul>
+
+<p>Prenez le contrôle de votre empreinte numérique ! Les métadonnées EXIF peuvent révéler vos coordonnées GPS précises, les détails de l'appareil, les paramètres de l'appareil photo, les horodatages et les identifiants uniques. Redact élimine tous ces risques pour la vie privée tout en préservant la qualité de vos fichiers multimédias. Parfait pour le partage sur les réseaux sociaux, la photographie professionnelle et toute personne préoccupée par la vie privée numérique.</p>
+
+<p><b>Comment Ça Marche :</b></p>
+<p>Sélectionnez vos photos ou vidéos, appuyez sur "Nettoyer les Métadonnées" et Redact supprimera toutes les informations d'identification tout en préservant les propriétés d'affichage essentielles comme l'orientation de l'image. Pour les vidéos, nous utilisons une technologie de remuxage pour supprimer les conteneurs de métadonnées tout en maintenant une qualité de lecture parfaite.</p>

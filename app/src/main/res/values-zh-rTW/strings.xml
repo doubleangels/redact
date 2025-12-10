@@ -1,0 +1,134 @@
+<resources>
+    <!-- App name -->
+    <string name="app_name">Redact</string>
+
+    <!-- Content descriptions -->
+    <string name="content_description_media_thumbnail">媒體縮圖</string>
+    <string name="content_description_image_view">圖片檢視</string>
+    <string name="content_description_scroll_view">捲動檢視</string>
+
+    <!-- Navigation labels -->
+    <string name="navigation_clean">清理</string>
+    <string name="navigation_scan">掃描</string>
+
+    <!-- Button labels -->
+    <string name="button_select_media">選擇媒體</string>
+    <string name="button_strip_exif_data">清理中繼資料</string>
+
+    <!-- Status and progress messages -->
+    <string name="status_processing">處理中…</string>
+    <string name="status_processed_items">已處理 %1$d 個項目！</string>
+    <string name="status_selected_items">已選擇：%1$d 個項目</string>
+    <string name="status_first_select_media_files">請先選擇媒體檔案！</string>
+    <string name="status_ready">準備選擇媒體！</string>
+    <string name="status_permissions_required">需要權限！</string>
+    <string name="status_requesting_permissions">正在請求權限…</string>
+    <string name="status_select_media_files">選擇媒體以移除中繼資料！</string>
+    <string name="status_analyzing">正在分析中繼資料…</string>
+    <string name="status_select_item">選擇圖片或影片以檢視中繼資料！</string>
+    <string name="status_extraction_complete">中繼資料擷取完成！</string>
+    <string name="status_extraction_media_fail">處理媒體檔案時發生錯誤！</string>
+    <string name="status_extraction_fail">擷取中繼資料時發生錯誤！</string>
+    <string name="status_extracting_media">正在擷取影片中繼資料…</string>
+    <string name="status_extracting_image">正在擷取圖片中繼資料…</string>
+    <string name="status_media_picker_fail">開啟媒體選擇器時發生錯誤！</string>
+    <string name="status_media_uri_fail">無法取得媒體 URI！</string>
+    <string name="status_storage_permissions_required">需要儲存權限！</string>
+
+    <!-- Share processing strings -->
+    <string name="share_processing_title">處理中…</string>
+    <string name="share_stripping_status">正在移除中繼資料…</string>
+    <string name="share_chooser_title">透過…分享清理後的媒體檔案</string>
+    <string name="share_error_unsupported_media">不支援的媒體類型！</string>
+    <string name="share_error_unsupported_action">不支援的動作！</string>
+    <string name="share_error_receive_failed">接收媒體失敗！</string>
+    <string name="share_error_processing_failed">處理失敗！</string>
+
+    <!-- Scan section strings -->
+    <string name="scan_activity_title">ScanActivity</string>
+    <string name="scan_metadata">中繼資料</string>
+    <string name="scan_basic_information">基本資訊</string>
+    <string name="scan_camera_details">相機詳細資訊</string>
+    <string name="scan_location_information">位置資訊</string>
+    <string name="scan_technical_details">技術詳細資訊</string>
+    <string name="scan_location_permission_missing">如果您授予位置權限，位置資料可能會可用。</string>
+    <string name="scan_metadata_with_location_permission">%1$s\n%2$s</string>
+    <string name="scan_extraction_fail">擷取中繼資料失敗！</string>
+
+    <!-- Metadata output strings -->
+    <!-- Basic File Information -->
+    <string name="metadata_file_name">檔案名稱：%s</string>
+    <string name="metadata_file_size">檔案大小：%s</string>
+    <string name="metadata_mime_type">MIME 類型：%s</string>
+    <string name="metadata_unknown">未知</string>
+    <string name="metadata_size_bytes">B</string>
+    <string name="metadata_size_kb">KB</string>
+    <string name="metadata_size_mb">MB</string>
+
+    <!-- Section Headers -->
+    <string name="metadata_image_properties_header">圖片屬性：</string>
+    <string name="metadata_camera_information_header">相機資訊：</string>
+    <string name="metadata_exposure_information_header">曝光資訊：</string>
+    <string name="metadata_location_information_header">位置資訊：</string>
+    <string name="metadata_technical_details_header">技術詳細資訊：</string>
+    <string name="metadata_video_properties_header">影片屬性：</string>
+
+    <!-- Image Metadata Fields -->
+    <string name="metadata_dimensions">尺寸：%1$d x %2$d</string>
+    <string name="metadata_date_taken">拍攝日期：%s</string>
+    <string name="metadata_camera_make">相機品牌：%s</string>
+    <string name="metadata_camera_model">相機型號：%s</string>
+    <string name="metadata_aperture">光圈：f/%s</string>
+    <string name="metadata_exposure_time_fraction">曝光時間：1/%d 秒</string>
+    <string name="metadata_exposure_time_seconds">曝光時間：%.5f 秒</string>
+    <string name="metadata_latitude">緯度：%.15f</string>
+    <string name="metadata_longitude">經度：%.15f</string>
+    <string name="metadata_address">地址：%s</string>
+    <string name="metadata_geocoding_failed">地理編碼失敗：%s</string>
+    <string name="metadata_no_location_data">無位置資料可用。</string>
+    <string name="metadata_location_permission_needed">未授予位置權限。授予權限以檢視位置資料。</string>
+    <string name="metadata_orientation">方向：%s</string>
+    <string name="metadata_flash">閃光燈：%s</string>
+    <string name="metadata_flash_fired">已觸發</string>
+    <string name="metadata_flash_not_fired">未觸發</string>
+    <string name="metadata_white_balance">白平衡：%s</string>
+    <string name="metadata_white_balance_auto">自動</string>
+    <string name="metadata_white_balance_manual">手動</string>
+
+    <!-- Video Metadata Fields -->
+    <string name="metadata_duration_with_hours">長度：%s</string>
+    <string name="metadata_duration_without_hours">長度：%s</string>
+    <string name="metadata_resolution">解析度：%1$s x %2$s</string>
+    <string name="metadata_rotation">旋轉：%s°</string>
+    <string name="metadata_bitrate">位元率：%d kbps</string>
+    <string name="metadata_date">日期：%s</string>
+    <string name="metadata_frame_rate">影格率：%s fps</string>
+    <string name="metadata_sample_rate">取樣率：%s Hz</string>
+
+    <!-- Additional Sectioned Metadata Strings -->
+    <string name="metadata_no_image_location_data">此圖片中無位置資料。</string>
+    <string name="metadata_no_video_location_data">此影片中無位置資料。</string>
+    <string name="metadata_location_permission_needed_full">未授予位置權限。授予權限以檢視所有位置資料。</string>
+    <string name="metadata_software">軟體：%s</string>
+    <string name="metadata_focal_length">焦距：%s mm</string>
+    <string name="metadata_digital_zoom">數位變焦：%sx</string>
+
+    <!-- Orientation Strings -->
+    <string name="metadata_orientation_normal">正常</string>
+    <string name="metadata_orientation_rotate_90">旋轉 90°</string>
+    <string name="metadata_orientation_rotate_180">旋轉 180°</string>
+    <string name="metadata_orientation_rotate_270">旋轉 270°</string>
+    <string name="metadata_orientation_flip_horizontal">水平翻轉</string>
+    <string name="metadata_orientation_flip_vertical">垂直翻轉</string>
+    <string name="metadata_orientation_transpose">轉置</string>
+    <string name="metadata_orientation_transverse">橫向</string>
+    <string name="metadata_orientation_unknown">未知 (%d)</string>
+
+    <!-- Error Messages -->
+    <string name="metadata_error_extraction">擷取中繼資料時發生錯誤：%s</string>
+    <string name="metadata_error_basic_info">擷取基本資訊時發生錯誤：%s</string>
+    <string name="metadata_error_file_open">錯誤：無法開啟圖片檔案</string>
+    <string name="metadata_error_image_metadata">擷取圖片中繼資料時發生錯誤：%s</string>
+    <string name="metadata_error_video_metadata">擷取影片中繼資料時發生錯誤：%s</string>
+</resources>
+
