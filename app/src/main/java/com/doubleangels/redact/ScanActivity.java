@@ -12,6 +12,9 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.doubleangels.redact.metadata.MetadataDisplayer;
 import com.doubleangels.redact.permission.PermissionManager;
@@ -65,8 +68,14 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
         // Apply Material You dynamic colors if available on the device
         DynamicColors.applyToActivityIfAvailable(this);
 
+        // Enable edge-to-edge display
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scan);
+        
+        // Handle window insets for edge-to-edge
+        setupEdgeToEdgeInsets();
 
         // Initialize UI elements
         statusText = findViewById(R.id.statusText);
@@ -164,6 +173,50 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
 
         // Check for required permissions on activity start
         permissionManager.checkPermissions();
+    }
+
+    /**
+     * Sets up window insets handling for edge-to-edge display.
+     * This ensures that content is properly padded to avoid system bars.
+     */
+    private void setupEdgeToEdgeInsets() {
+        try {
+            View rootView = findViewById(android.R.id.content);
+            if (rootView != null) {
+                ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, insets) -> {
+                    androidx.core.graphics.Insets systemBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                    androidx.core.graphics.Insets statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars());
+                    androidx.core.graphics.Insets navigationBarInsets = insets.getInsets(WindowInsetsCompat.Type.navigationBars());
+                    
+                    // Apply top/left/right padding to the root CoordinatorLayout for status bar
+                    View coordinatorLayout = findViewById(R.id.root_layout);
+                    if (coordinatorLayout != null) {
+                        coordinatorLayout.setPadding(
+                            systemBarInsets.left,
+                            statusBarInsets.top,
+                            systemBarInsets.right,
+                            0  // Don't add bottom padding here
+                        );
+                    }
+                    
+                    // Apply bottom padding to the bottom navigation bar for navigation bar
+                    com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = 
+                        findViewById(R.id.bottomNavigation);
+                    if (bottomNav != null) {
+                        bottomNav.setPadding(
+                            bottomNav.getPaddingLeft(),
+                            bottomNav.getPaddingTop(),
+                            bottomNav.getPaddingRight(),
+                            navigationBarInsets.bottom
+                        );
+                    }
+                    
+                    return insets;
+                });
+            }
+        } catch (Exception e) {
+            FirebaseCrashlytics.getInstance().recordException(e);
+        }
     }
 
     /**
