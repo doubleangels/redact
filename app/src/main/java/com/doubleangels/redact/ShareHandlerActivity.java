@@ -2,6 +2,7 @@ package com.doubleangels.redact;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -185,7 +186,11 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private void handleSentImage(Intent intent) {
         try {
             // Extract the image URI from the intent
-            receivedUri = intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                receivedUri = intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri.class);
+            } else {
+                receivedUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+            }
             if (receivedUri != null) {
                 // Log the URI and process the image
                 FirebaseCrashlytics.getInstance().setCustomKey("received_uri", receivedUri.toString());
@@ -212,7 +217,11 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private void handleSentVideo(Intent intent) {
         try {
             // Extract the video URI from the intent
-            receivedUri = intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                receivedUri = intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri.class);
+            } else {
+                receivedUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+            }
             if (receivedUri != null) {
                 // Log the URI and process the video
                 FirebaseCrashlytics.getInstance().setCustomKey("received_uri", receivedUri.toString());
@@ -239,7 +248,12 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private void handleMultipleMedia(Intent intent) {
         try {
             // Extract the list of media URIs from the intent
-            ArrayList<Uri> uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri.class);
+            ArrayList<Uri> uris;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri.class);
+            } else {
+                uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+            }
             if (uris != null && !uris.isEmpty()) {
                 // Log the count of media items
                 FirebaseCrashlytics.getInstance().setCustomKey("media_count", uris.size());
