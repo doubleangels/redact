@@ -1,9 +1,10 @@
 plugins {
     alias(libs.plugins.android.application)
     id 'com.google.gms.google-services'
-    id 'com.google.firebase.crashlytics'
     id 'com.google.firebase.firebase-perf'
 }
+
+apply plugin: 'io.sentry.android.gradle'
 
 android {
     namespace 'com.doubleangels.redact'
@@ -21,7 +22,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -34,11 +35,51 @@ android {
     }
 }
 
+sentry {
+    // Enables more detailed log output, e.g. for sentry-cli.
+    // Default is false.
+    debug = false
+
+    // Generates a JVM (Java, Kotlin, etc.) source bundle and uploads your source code to Sentry.
+    // This enables source context, allowing you to see your source
+    // code as part of your stack traces in Sentry.
+    // Default is disabled.
+    includeSourceContext = true
+
+    // Automatically upload ProGuard/R8 mappings (when minification is enabled)
+    autoUploadProguardMapping = true
+    includeProguardMapping = true
+
+    // Enables the automatic configuration of Native Symbols for Sentry.
+    // This executes sentry-cli automatically so you don't need to do it manually.
+    // Default is disabled.
+    uploadNativeSymbols = true
+    autoUploadNativeSymbols = true
+
+    // Includes the source code of native code when uploading native symbols for Sentry.
+    // This executes sentry-cli with the --include-sources param automatically so
+    // you don't need to do it manually. This only works with uploadNativeSymbols enabled.
+    // Default is disabled.
+    includeNativeSources = true
+
+    // Organization and project are read from sentry.properties file automatically
+    // They can also be set here explicitly (values from sentry.properties are used as fallback):
+    org = "doubleangels"
+    projectName = "redact"
+    // Auth token: Set SENTRY_AUTH_TOKEN environment variable, or it will be read from sentry.properties
+    authToken = System.getenv("SENTRY_AUTH_TOKEN")
+
+    // Enable tracing instrumentation
+    tracingInstrumentation {
+        enabled = true
+    }
+}
+
 dependencies {
     implementation platform(libs.firebase.bom)
-    implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.perf)
+    implementation libs.sentry.android
     implementation libs.activity
     implementation libs.appcompat
     implementation libs.constraintlayout
@@ -46,4 +87,7 @@ dependencies {
     implementation libs.fragment
     implementation libs.glide
     implementation libs.material.v1110
+
+    // LeakCanary for memory leak detection (debug builds only)
+    debugImplementation libs.leakcanary
 }

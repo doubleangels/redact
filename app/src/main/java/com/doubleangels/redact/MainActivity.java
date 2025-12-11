@@ -32,7 +32,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import io.sentry.Sentry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,10 +91,10 @@ public class MainActivity extends AppCompatActivity {
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 try {
-                    FirebaseCrashlytics.getInstance().log("Returned from settings");
+                    Sentry.captureMessage("Returned from settings");
                     permissionManager.checkPermissions();
                 } catch (Exception e) {
-                    FirebaseCrashlytics.getInstance().recordException(e);
+                    Sentry.captureException(e);
                 }
             }
     );
@@ -108,16 +108,14 @@ public class MainActivity extends AppCompatActivity {
             result -> {
                 try {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                        FirebaseCrashlytics.getInstance().log("Media selected successfully");
+                        Sentry.captureMessage("Media selected successfully");
                         List<MediaItem> items = mediaSelector.processMediaResult(result.getData());
-                        FirebaseCrashlytics.getInstance().setCustomKey("selected_media_count", items.size());
                         viewModel.setSelectedItems(items);
                     } else {
-                        FirebaseCrashlytics.getInstance().log("Media selection canceled or failed");
-                        FirebaseCrashlytics.getInstance().setCustomKey("media_result_code", result.getResultCode());
+                        Sentry.captureMessage("Media selection canceled or failed");
                     }
                 } catch (Exception e) {
-                    FirebaseCrashlytics.getInstance().recordException(e);
+                    Sentry.captureException(e);
                 }
             }
     );
@@ -146,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
             // Handle window insets for edge-to-edge
             setupEdgeToEdgeInsets();
 
-            FirebaseCrashlytics.getInstance().log("MainActivity created");
+            Sentry.captureMessage("MainActivity created");
 
             // Initialize ViewModel to manage UI state
             viewModel = new ViewModelProvider(this).get(MainViewModel.class);
@@ -165,10 +163,9 @@ public class MainActivity extends AppCompatActivity {
             // Check for required permissions
             permissionManager.checkPermissions();
 
-            FirebaseCrashlytics.getInstance().setCustomKey("app_started", true);
         } catch (Exception e) {
             // Log any exceptions that might occur during initialization
-            FirebaseCrashlytics.getInstance().recordException(e);
+            Sentry.captureException(e);
             try {
                 // Attempt to recover by setting content view if it wasn't already set
                 if (findViewById(android.R.id.content) == null) {
@@ -203,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
             bottomNavigationView.setOnItemSelectedListener(item -> {
                 try {
                     int itemId = item.getItemId();
-                    FirebaseCrashlytics.getInstance().log("Bottom navigation item selected: " + itemId);
+                    Sentry.captureMessage("Bottom navigation item selected: " + itemId);
 
                     if (itemId == R.id.navigation_clean) {
                         // Already in MainActivity, do nothing
@@ -215,7 +212,7 @@ public class MainActivity extends AppCompatActivity {
                         return true;
                     }
                 } catch (Exception e) {
-                    FirebaseCrashlytics.getInstance().recordException(e);
+                    Sentry.captureException(e);
                 }
                 return false;
             });
@@ -231,29 +228,28 @@ public class MainActivity extends AppCompatActivity {
             // Set up click listener for select button
             selectButton.setOnClickListener(v -> {
                 try {
-                    FirebaseCrashlytics.getInstance().log("Select button clicked");
+                    Sentry.captureMessage("Select button clicked");
                     if (permissionManager.needsPermissions()) {
                         // Request permissions if needed
-                        FirebaseCrashlytics.getInstance().log("Requesting permissions");
+                        Sentry.captureMessage("Requesting permissions");
                         permissionManager.requestStoragePermission();
                     } else {
                         // Launch media selector if permissions are granted
-                        FirebaseCrashlytics.getInstance().log("Launching media selector");
+                        Sentry.captureMessage("Launching media selector");
                         mediaSelector.selectMedia();
                     }
                 } catch (Exception e) {
-                    FirebaseCrashlytics.getInstance().recordException(e);
+                    Sentry.captureException(e);
                 }
             });
 
             // Set up click listener for strip button
             stripButton.setOnClickListener(v -> {
                 try {
-                    FirebaseCrashlytics.getInstance().log("Strip button clicked");
+                    Sentry.captureMessage("Strip button clicked");
                     List<MediaItem> items = viewModel.getSelectedItems().getValue();
                     if (items != null && !items.isEmpty()) {
                         // Process selected media items
-                        FirebaseCrashlytics.getInstance().setCustomKey("processing_items_count", items.size());
                         viewModel.setProcessingState(MainViewModel.ProcessingState.PROCESSING);
                         mediaProcessor.processMediaItems(items, new MediaProcessor.ProcessingCallback() {
                             /**
@@ -267,9 +263,8 @@ public class MainActivity extends AppCompatActivity {
                             public void onProgress(int current, int total, String message) {
                                 try {
                                     viewModel.updateProgress(current, total, message);
-                                    FirebaseCrashlytics.getInstance().setCustomKey("processing_progress", (float) current / total);
                                 } catch (Exception e) {
-                                    FirebaseCrashlytics.getInstance().recordException(e);
+                                    Sentry.captureException(e);
                                 }
                             }
 
@@ -281,28 +276,27 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onComplete(int processedCount) {
                                 try {
-                                    FirebaseCrashlytics.getInstance().log("Processing completed");
-                                    FirebaseCrashlytics.getInstance().setCustomKey("processed_count", processedCount);
+                                    Sentry.captureMessage("Processing completed");
                                     viewModel.setProcessedItemCount(processedCount);
                                     viewModel.setProcessingState(MainViewModel.ProcessingState.COMPLETED);
                                 } catch (Exception e) {
-                                    FirebaseCrashlytics.getInstance().recordException(e);
+                                    Sentry.captureException(e);
                                 }
                             }
                         });
                     } else {
                         // Show status message if no items selected
-                        FirebaseCrashlytics.getInstance().log("No items selected for processing");
+                        Sentry.captureMessage("No items selected for processing");
                         uiStateManager.setFirstSelectMediaFilesStatus();
                     }
                 } catch (Exception e) {
-                    FirebaseCrashlytics.getInstance().recordException(e);
+                    Sentry.captureException(e);
                 }
             });
 
-            FirebaseCrashlytics.getInstance().log("Views setup complete");
+            Sentry.captureMessage("Views setup complete");
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            Sentry.captureException(e);
         }
     }
 
@@ -347,7 +341,7 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            Sentry.captureException(e);
         }
     }
 
@@ -369,19 +363,17 @@ public class MainActivity extends AppCompatActivity {
                 if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
                     // Dark mode: use dark status bar with light icons
                     insetsController.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
-                    FirebaseCrashlytics.getInstance().setCustomKey("theme_mode", "dark");
                 } else {
                     // Light mode: use light status bar with dark icons
                     insetsController.setSystemBarsAppearance(
                             WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
                             WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
-                    FirebaseCrashlytics.getInstance().setCustomKey("theme_mode", "light");
                 }
             } else {
-                FirebaseCrashlytics.getInstance().log("Insets controller is null");
+                Sentry.captureMessage("Insets controller is null");
             }
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            Sentry.captureException(e);
         }
     }
 
@@ -390,7 +382,7 @@ public class MainActivity extends AppCompatActivity {
      *
      * This method retrieves the app's version name from the package info
      * and displays it in the designated TextView. Any exceptions during
-     * this process are logged to Firebase Crashlytics.
+     * this process are logged to Sentry.
      */
     private void setupVersionNumber() {
         try {
@@ -403,12 +395,11 @@ public class MainActivity extends AppCompatActivity {
             // Set the version name to the TextView
             versionText.setText(packageInfo.versionName);
 
-            // Log the version name to Crashlytics for debugging purposes
+            // Log the version name to Sentry for debugging purposes
             assert packageInfo.versionName != null;
-            FirebaseCrashlytics.getInstance().setCustomKey("app_version", packageInfo.versionName);
         } catch (Exception e) {
             // Record any exceptions that occur during version setup
-            FirebaseCrashlytics.getInstance().recordException(e);
+            Sentry.captureException(e);
         }
     }
 
@@ -442,11 +433,10 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onPermissionsGranted() {
                             try {
-                                FirebaseCrashlytics.getInstance().log("Permissions granted");
-                                FirebaseCrashlytics.getInstance().setCustomKey("permissions_granted", true);
+                                Sentry.captureMessage("Permissions granted");
                                 uiStateManager.setReadyStatus();
                             } catch (Exception e) {
-                                FirebaseCrashlytics.getInstance().recordException(e);
+                                Sentry.captureException(e);
                             }
                         }
 
@@ -456,11 +446,10 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onPermissionsDenied() {
                             try {
-                                FirebaseCrashlytics.getInstance().log("Permissions denied");
-                                FirebaseCrashlytics.getInstance().setCustomKey("permissions_granted", false);
+                                Sentry.captureMessage("Permissions denied");
                                 uiStateManager.setPermissionsRequiredStatus();
                             } catch (Exception e) {
-                                FirebaseCrashlytics.getInstance().recordException(e);
+                                Sentry.captureException(e);
                             }
                         }
 
@@ -470,10 +459,10 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onPermissionsRequestStarted() {
                             try {
-                                FirebaseCrashlytics.getInstance().log("Permission request started");
+                                Sentry.captureMessage("Permission request started");
                                 uiStateManager.setPermissionRequestingStatus();
                             } catch (Exception e) {
-                                FirebaseCrashlytics.getInstance().recordException(e);
+                                Sentry.captureException(e);
                             }
                         }
                     }
@@ -485,9 +474,9 @@ public class MainActivity extends AppCompatActivity {
             // Initialize media processor for processing selected media files
             mediaProcessor = new MediaProcessor(this);
 
-            FirebaseCrashlytics.getInstance().log("Utility classes initialized");
+            Sentry.captureMessage("Utility classes initialized");
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            Sentry.captureException(e);
         }
     }
 
@@ -508,31 +497,28 @@ public class MainActivity extends AppCompatActivity {
                     uiStateManager.enableStripButton(!items.isEmpty());
                     // Update status text to show selection count
                     uiStateManager.setSelectedItemsStatus(items.size());
-                    FirebaseCrashlytics.getInstance().setCustomKey("selected_items_count", items.size());
                 } catch (Exception e) {
-                    FirebaseCrashlytics.getInstance().recordException(e);
+                    Sentry.captureException(e);
                 }
             });
 
             // Observe changes to processing state
             viewModel.getProcessingState().observe(this, state -> {
                 try {
-                    FirebaseCrashlytics.getInstance().setCustomKey("processing_state", state.toString());
                     switch (state) {
                         case PROCESSING:
                             // Show progress UI when processing starts
-                            FirebaseCrashlytics.getInstance().log("Processing state: PROCESSING");
+                            Sentry.captureMessage("Processing state: PROCESSING");
                             uiStateManager.showProgress(true);
                             uiStateManager.setProcessingStatus();
                             break;
 
                         case COMPLETED:
                             // Hide progress UI and show completion status when finished
-                            FirebaseCrashlytics.getInstance().log("Processing state: COMPLETED");
+                            Sentry.captureMessage("Processing state: COMPLETED");
                             uiStateManager.showProgress(false);
                             Integer count = viewModel.getProcessedItemCount().getValue();
                             if (count != null) {
-                                FirebaseCrashlytics.getInstance().setCustomKey("processed_items", count);
                                 uiStateManager.setProcessedItemsStatus(count);
                             }
                             viewModel.setProcessingState(MainViewModel.ProcessingState.IDLE);
@@ -541,12 +527,12 @@ public class MainActivity extends AppCompatActivity {
                         case IDLE:
                         default:
                             // Hide progress UI when idle
-                            FirebaseCrashlytics.getInstance().log("Processing state: IDLE");
+                            Sentry.captureMessage("Processing state: IDLE");
                             uiStateManager.showProgress(false);
                             break;
                     }
                 } catch (Exception e) {
-                    FirebaseCrashlytics.getInstance().recordException(e);
+                    Sentry.captureException(e);
                 }
             });
 
@@ -554,9 +540,8 @@ public class MainActivity extends AppCompatActivity {
             viewModel.getProgressPercent().observe(this, percent -> {
                 try {
                     progressBar.setProgress(percent);
-                    FirebaseCrashlytics.getInstance().setCustomKey("progress_percent", percent);
                 } catch (Exception e) {
-                    FirebaseCrashlytics.getInstance().recordException(e);
+                    Sentry.captureException(e);
                 }
             });
 
@@ -565,13 +550,13 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     progressText.setText(message);
                 } catch (Exception e) {
-                    FirebaseCrashlytics.getInstance().recordException(e);
+                    Sentry.captureException(e);
                 }
             });
 
-            FirebaseCrashlytics.getInstance().log("Observers setup complete");
+            Sentry.captureMessage("Observers setup complete");
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            Sentry.captureException(e);
         }
     }
 
@@ -589,11 +574,10 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         try {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-            FirebaseCrashlytics.getInstance().log("Permission result received");
-            FirebaseCrashlytics.getInstance().setCustomKey("permission_request_code", requestCode);
+            Sentry.captureMessage("Permission result received");
             permissionManager.handlePermissionResult(requestCode, permissions, grantResults);
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            Sentry.captureException(e);
         }
     }
 
@@ -606,9 +590,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         try {
             super.onResume();
-            FirebaseCrashlytics.getInstance().log("MainActivity resumed");
+            Sentry.captureMessage("MainActivity resumed");
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            Sentry.captureException(e);
         }
     }
 
@@ -621,9 +605,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         try {
             super.onPause();
-            FirebaseCrashlytics.getInstance().log("MainActivity paused");
+            Sentry.captureMessage("MainActivity paused");
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            Sentry.captureException(e);
         }
     }
 }

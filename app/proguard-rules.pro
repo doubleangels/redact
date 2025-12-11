@@ -2,13 +2,14 @@
 # You can control the set of applied configuration files using the
 # proguardFiles setting in build.gradle.
 
-# Keep line numbers for crash reporting
+# Keep line numbers for crash reporting (required for Sentry)
 -keepattributes SourceFile,LineNumberTable
 -keepattributes *Annotation*
 -keepattributes Signature
 -keepattributes Exceptions
 -keepattributes InnerClasses
 -keepattributes EnclosingMethod
+-keepattributes RuntimeVisibleAnnotations,RuntimeVisibleParameterAnnotations
 
 # Keep application class and activities
 -keep public class * extends android.app.Application
@@ -23,7 +24,7 @@
 # Keep all activities
 -keep class com.doubleangels.redact.**Activity { *; }
 
-# Keep all classes in metadata package (uses reflection)
+# Keep all classes in metadata package (uses reflection extensively)
 -keep class com.doubleangels.redact.metadata.** { *; }
 
 # Keep all classes in media package
@@ -35,15 +36,21 @@
 # Keep all classes in ui package
 -keep class com.doubleangels.redact.ui.** { *; }
 
-# Firebase Crashlytics
--keep public class * extends java.lang.Exception
--keep class com.google.firebase.crashlytics.** { *; }
--dontwarn com.google.firebase.crashlytics.**
+# Sentry - Keep all classes and methods for proper error tracking
+-keep class io.sentry.** { *; }
+-dontwarn io.sentry.**
+-keepattributes *Annotation*
+-keepattributes Signature
+-keepattributes Exceptions
+-keep class io.sentry.** { *; }
+-keep interface io.sentry.** { *; }
+-keep enum io.sentry.** { *; }
 
 # Firebase Analytics
 -keep class com.google.android.gms.measurement.** { *; }
 -keep class com.google.firebase.analytics.** { *; }
 -dontwarn com.google.firebase.analytics.**
+-dontwarn com.google.android.gms.measurement.**
 
 # Firebase Performance
 -keep class com.google.firebase.perf.** { *; }
@@ -53,14 +60,27 @@
 -keep class androidx.activity.** { *; }
 -keep class androidx.fragment.** { *; }
 -keep class androidx.appcompat.** { *; }
+-keep class androidx.core.** { *; }
+-dontwarn androidx.**
 
 # ConstraintLayout
 -keep class androidx.constraintlayout.** { *; }
+-dontwarn androidx.constraintlayout.**
 
-# ExifInterface - Keep for reflection access
+# ExifInterface - Keep for reflection access (critical for metadata extraction)
 -keep class androidx.exifinterface.media.ExifInterface { *; }
 -keepclassmembers class androidx.exifinterface.media.ExifInterface {
     public static final java.lang.String TAG_*;
+    public <methods>;
+    public <fields>;
+}
+# Keep all TAG_* fields accessible via reflection
+-keepclassmembers class androidx.exifinterface.media.ExifInterface {
+    public static final java.lang.String TAG_*;
+}
+# Ensure reflection can access all fields
+-keepclassmembers class androidx.exifinterface.media.ExifInterface {
+    <fields>;
 }
 
 # Material Components
@@ -80,19 +100,33 @@
   *** rewind();
 }
 -dontwarn com.bumptech.glide.**
+-keep public class * implements com.bumptech.glide.GlideModule
+-keep class * extends com.bumptech.glide.module.AppGlideModule
+-keep public enum com.bumptech.glide.load.ImageHeaderParser$** {
+  **[] $VALUES;
+  public *;
+}
 
-# MediaCodec, MediaExtractor, MediaMuxer - Keep for video processing
+# MediaCodec, MediaExtractor, MediaMuxer, MediaFormat - Keep for video processing
 -keep class android.media.MediaCodec { *; }
 -keep class android.media.MediaExtractor { *; }
 -keep class android.media.MediaMuxer { *; }
 -keep class android.media.MediaFormat { *; }
 -keep class android.media.MediaMetadataRetriever { *; }
+# Keep all METADATA_KEY_* constants for reflection access
 -keepclassmembers class android.media.MediaMetadataRetriever {
     public static final int METADATA_KEY_*;
+    public <methods>;
+    public <fields>;
+}
+# Ensure reflection can access all fields in MediaMetadataRetriever
+-keepclassmembers class android.media.MediaMetadataRetriever {
+    <fields>;
 }
 
 # FileProvider
 -keep class androidx.core.content.FileProvider { *; }
+-keep class androidx.core.content.FileProvider$* { *; }
 
 # Keep native methods
 -keepclasseswithmembernames class * {
@@ -131,9 +165,33 @@
     public static ** valueOf(java.lang.String);
 }
 
-# Remove logging in release builds (optional)
+# Keep reflection-accessed classes and members
+-keepclassmembers class * {
+    @androidx.annotation.Keep <methods>;
+    @androidx.annotation.Keep <fields>;
+}
+
+# Keep classes that use reflection (Field.getDeclaredFields())
+-keepclassmembers class androidx.exifinterface.media.ExifInterface {
+    <fields>;
+}
+-keepclassmembers class android.media.MediaMetadataRetriever {
+    <fields>;
+}
+
+# Keep all public fields in classes that use reflection
+-keepclassmembers class androidx.exifinterface.media.ExifInterface {
+    public static final <fields>;
+}
+-keepclassmembers class android.media.MediaMetadataRetriever {
+    public static final <fields>;
+}
+
+# Remove logging in release builds (optional - but keep Sentry logging)
 -assumenosideeffects class android.util.Log {
     public static *** d(...);
     public static *** v(...);
     public static *** i(...);
 }
+# Don't remove Sentry logging
+-keep class io.sentry.** { *; }

@@ -1,0 +1,23 @@
+name: Sentry Release Generation
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    create-sentry-release:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+
+            - name: Create Sentry release
+              uses: getsentry/action-release@v3
+              env:
+                  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+                  SENTRY_ORG: doubleangels
+                  SENTRY_PROJECT: redact
+                  environment: production

@@ -5,7 +5,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.doubleangels.redact.metadata.MetadataStripper;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import io.sentry.Sentry;
 
 import java.util.List;
 
@@ -106,12 +106,12 @@ public class MediaProcessor {
                         processedItems++;
                     } else {
                         Log.e(TAG, "Failed to process item: " + item.fileName());
-                        FirebaseCrashlytics.getInstance().log("Failed to process item: " + item.fileName());
+                        Sentry.captureMessage("Failed to process item: " + item.fileName());
                     }
                 } catch (Exception e) {
                     // Log and report any errors that occur
                     Log.e(TAG, "Error processing item: " + item.fileName(), e);
-                    FirebaseCrashlytics.getInstance().recordException(e);
+                    Sentry.captureException(e);
                 }
             }
 

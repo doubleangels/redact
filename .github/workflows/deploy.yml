@@ -1,10 +1,142 @@
-name: Deploy release
+name: Release Deployment
 
 on:
   workflow_dispatch:
 
 jobs:
-  build-for-google-play:
+  build-gms-flavor-for-github:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-36 build-tools;34.0.0"
+          accept-android-sdk-licenses: true
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.gradle/daemon
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Cache Android SDK
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/build-cache
+            ~/.android/cache
+          key: ${{ runner.os }}-android-sdk-${{ hashFiles('**/build.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-android-sdk-
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build APK for Github release
+        run: ./gradlew assembleGmsRelease --parallel --build-cache --configuration-cache
+
+      - name: Sign APK for Github release
+        uses: r0adkll/sign-android-release@v1
+        with:
+          releaseDirectory: app/build/outputs/apk/gms/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
+
+      - name: Rename Github APK file
+        run: mv app/build/outputs/apk/gms/release/app-gms-release-unsigned-signed.apk app/build/outputs/apk/gms/release/app-release.apk
+
+      - name: Upload APK to Github release artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: github-release-apk
+          path: app/build/outputs/apk/gms/release/app-release.apk
+
+  build-foss-flavor-for-github:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-36 build-tools;34.0.0"
+          accept-android-sdk-licenses: true
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.gradle/daemon
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Cache Android SDK
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/build-cache
+            ~/.android/cache
+          key: ${{ runner.os }}-android-sdk-${{ hashFiles('**/build.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-android-sdk-
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build APK for Github release
+        run: ./gradlew assembleFossRelease --parallel --build-cache --configuration-cache
+
+      - name: Sign APK for Github release
+        uses: r0adkll/sign-android-release@v1
+        with:
+          releaseDirectory: app/build/outputs/apk/foss/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
+
+      - name: Rename Github APK file
+        run: mv app/build/outputs/apk/foss/release/app-foss-release-unsigned-signed.apk app/build/outputs/apk/foss/release/app-release-foss.apk
+
+      - name: Upload APK to Github release artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: github-foss-release-apk
+          path: app/build/outputs/apk/foss/release/app-release-foss.apk
+
+  build-gms-flavor-for-google-play:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -17,48 +149,130 @@ jobs:
           distribution: "temurin"
           cache: gradle
 
-      - name: Cache gradle dependencies
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-36 build-tools;34.0.0"
+          accept-android-sdk-licenses: true
+
+      - name: Cache Gradle dependencies
         uses: actions/cache@v4
         with:
           path: |
-            ~/.gradle
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.gradle/daemon
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+
+      - name: Cache Android SDK
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/build-cache
+            ~/.android/cache
+          key: ${{ runner.os }}-android-sdk-${{ hashFiles('**/build.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-android-sdk-
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       - name: Build bundle for Google Play release
-        run: ./gradlew bundleRelease
+        run: ./gradlew bundleGmsRelease --parallel --build-cache --configuration-cache
 
       - name: Sign bundle for Google Play release
         uses: r0adkll/sign-android-release@v1
         with:
-          releaseDirectory: app/build/outputs/bundle/release
+          releaseDirectory: app/build/outputs/bundle/gmsRelease
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
 
+      - name: Rename Google Play bundle file
+        run: mv app/build/outputs/bundle/gmsRelease/app-gms-release.aab app/build/outputs/bundle/gmsRelease/app-release.aab
+
       - name: Upload bundle to Github release artifacts
         uses: actions/upload-artifact@v5
         with:
           name: google-play-bundle
-          path: app/build/outputs/bundle/release/app-release.aab
+          path: app/build/outputs/bundle/gmsRelease/app-release.aab
 
-  publish-built-file:
-    needs: ["build-for-google-play"]
+  publish-built-files:
+    needs:
+      [
+        "build-gms-flavor-for-github",
+        "build-foss-flavor-for-github",
+        "build-gms-flavor-for-google-play",
+      ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Download APK from Github release artifacts
+        uses: actions/download-artifact@v6
+        with:
+          name: github-release-apk
+          path: .
+
+      - name: Download foss APK from Github release artifacts
+        uses: actions/download-artifact@v6
+        with:
+          name: github-foss-release-apk
+          path: .
 
       - name: Download Google Play bundle from Github release artifacts
         uses: actions/download-artifact@v6
         with:
           name: google-play-bundle
           path: .
+
+      - name: Read APK info to get version code
+        id: android_version
+        uses: hkusu/apk-info-action@v1
+        with:
+          apk-path: app-release.apk
+
+      - name: Create Github release using release-drafter
+        id: create_release
+        uses: release-drafter/release-drafter@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag: v${{ steps.android_version.outputs.version-name }}
+          name: v${{ steps.android_version.outputs.version-name }}
+
+      - name: Upload APK to Github release
+        id: upload_release_asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: app-release.apk
+          asset_name: app-release.apk
+          asset_content_type: application/zip
+
+      - name: Upload foss APK to Github release
+        id: upload_foss_release_asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: app-release-foss.apk
+          asset_name: app-release-foss.apk
+          asset_content_type: application/zip
+
+      - name: Publish Github release
+        uses: eregon/publish-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          release_id: ${{ steps.create_release.outputs.id }}
 
       - name: Create service_account.json for Google Play release
         run: echo '${{ secrets.SERVICE_ACCOUNT_JSON }}' > service_account.json
@@ -73,8 +287,14 @@ jobs:
           whatsNewDirectory: whatsnew
 
   delete-workflow-runs:
-    needs: ["build-for-google-play", "publish-built-file"]
+    needs:
+      [
+        "build-gms-flavor-for-github",
+        "build-gms-flavor-for-google-play",
+        "publish-built-files",
+      ]
     runs-on: ubuntu-latest
+    if: always()
     steps:
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2
@@ -82,4 +302,4 @@ jobs:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
           retain_days: 30
-          keep_minimum_runs: 1
+          keep_minimum_runs: 5

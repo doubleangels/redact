@@ -23,14 +23,14 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.navigation.NavigationBarView;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import io.sentry.Sentry;
 
 import java.util.Map;
 
 /**
  * ScanActivity is responsible for handling the media scanning functionality of the application.
  * This activity allows users to select media files (images or videos) from their device and
- * displays the extracted metadata in categorized sections.
+ * displays the extracted metadata in a single consolidated view.
  *
  * The activity implements NavigationBarView.OnItemSelectedListener to handle bottom navigation
  * between different app sections.
@@ -215,7 +215,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
                 });
             }
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            Sentry.captureException(e);
         }
     }
 
@@ -229,10 +229,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
         boolean hasLocationPermission = !permissionManager.needsLocationPermission();
 
         // Log permission status for analytics and debugging
-        FirebaseCrashlytics.getInstance().log("Has location permission: " + hasLocationPermission);
-        FirebaseCrashlytics.getInstance().setCustomKey("has_location_permission", hasLocationPermission);
-
-        // Display metadata with whatever permissions we currently have
+        Sentry.captureMessage("Has location permission: " + hasLocationPermission);        // Display metadata with whatever permissions we currently have
         displayMetadata(mediaUri);
 
         // Request location permission if not already granted
@@ -290,7 +287,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
             mediaPickerLauncher.launch(intent);
         } catch (Exception e) {
             // Log exception and show error message
-            FirebaseCrashlytics.getInstance().recordException(e);
+            Sentry.captureException(e);
             showStatus(getString(R.string.status_media_picker_fail));
         }
     }
@@ -317,15 +314,9 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
             boolean isVideo = mimeType != null && mimeType.startsWith("video/");
 
             // Log media type for analytics and debugging
-            FirebaseCrashlytics.getInstance().log("Processing media with MIME type: " + mimeType);
-            FirebaseCrashlytics.getInstance().setCustomKey("media_type", mimeType != null ? mimeType : "unknown");
-
-            // Log permission status
+            Sentry.captureMessage("Processing media with MIME type: " + mimeType);            // Log permission status
             boolean hasLocationPermission = !permissionManager.needsLocationPermission();
-            FirebaseCrashlytics.getInstance().log("Has location permission: " + hasLocationPermission);
-            FirebaseCrashlytics.getInstance().setCustomKey("has_location_permission", hasLocationPermission);
-
-            // Update progress text based on media type
+            Sentry.captureMessage("Has location permission: " + hasLocationPermission);            // Update progress text based on media type
             progressText.setText(isVideo ? R.string.status_extracting_media : R.string.status_extracting_image);
 
             // Extract metadata using MetadataDisplayer utility
@@ -345,12 +336,11 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
                             showProgress(false);
                             showStatus(getString(R.string.status_extraction_complete));
 
-                            // Combine and display all metadata sections
+                            // Display all metadata (everything is in one group)
                             displayCombinedMetadata(metadataSections);
 
                             // Show location permission message if needed
-                            if (!metadataSections.containsKey(MetadataDisplayer.SECTION_LOCATION) &&
-                                    permissionManager.needsLocationPermission()) {
+                            if (permissionManager.needsLocationPermission()) {
                                 String currentText = metadataText.getText().toString();
                                 if (!currentText.isEmpty()) {
                                     metadataText.setText(getString(R.string.scan_metadata_with_location_permission,
@@ -361,7 +351,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
                                 metadataCard.setVisibility(View.VISIBLE);
                             }
                         } catch (Exception e) {
-                            FirebaseCrashlytics.getInstance().recordException(e);
+                            Sentry.captureException(e);
                         }
                     });
                 }
@@ -379,13 +369,13 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
                         showStatus(getString(R.string.status_extraction_fail));
                         metadataText.setText(getString(R.string.scan_extraction_fail));
                         metadataCard.setVisibility(View.VISIBLE);
-                        FirebaseCrashlytics.getInstance().log("Metadata extraction failed: " + error);
+                        Sentry.captureMessage("Metadata extraction failed: " + error);
                     });
                 }
             });
         } catch (Exception e) {
             // Log exception and show error message
-            FirebaseCrashlytics.getInstance().recordException(e);
+            Sentry.captureException(e);
             showProgress(false);
             showStatus(getString(R.string.status_extraction_media_fail));
         }
@@ -394,12 +384,12 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
     /**
      * Displays all metadata in a single list (already combined and sorted).
      *
-     * @param sections Map containing metadata (should have SECTION_BASIC_INFO with all metadata)
+     * @param sections Map containing metadata (all in one group)
      */
     private void displayCombinedMetadata(Map<String, String> sections) {
-        // All metadata is now in a single section (SECTION_BASIC_INFO)
-        if (sections.containsKey(MetadataDisplayer.SECTION_BASIC_INFO)) {
-            String content = sections.get(MetadataDisplayer.SECTION_BASIC_INFO);
+        // All metadata is in a single group
+        if (sections.containsKey("metadata")) {
+            String content = sections.get("metadata");
             if (content != null && !content.trim().isEmpty()) {
                 metadataText.setText(content);
                 metadataCard.setVisibility(View.VISIBLE);
@@ -432,7 +422,7 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
 
     /**
      * Retrieves and displays the application version number in the UI.
-     * Also logs the version to Firebase Crashlytics for debugging purposes.
+     * Also logs the version to Sentry for debugging purposes.
      */
     private void setupVersionNumber() {
         try {
@@ -444,11 +434,9 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
             // Set version text in UI
             versionText.setText(packageInfo.versionName);
 
-            // Log version to Crashlytics for debugging
-            assert packageInfo.versionName != null;
-            FirebaseCrashlytics.getInstance().setCustomKey("app_version", packageInfo.versionName);
-        } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            // Log version to Sentry for debugging
+            assert packageInfo.versionName != null;        } catch (Exception e) {
+            Sentry.captureException(e);
         }
     }
 }

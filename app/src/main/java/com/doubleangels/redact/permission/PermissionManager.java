@@ -15,7 +15,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import io.sentry.Sentry;
 
 /**
  * Manages runtime permissions for media access in Android applications.
@@ -25,7 +25,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
  * - Permission checking and requesting
  * - UI interactions for permission rationales
  * - Handling both temporary and permanent permission denials
- * - Integration with Firebase Crashlytics for permission-related analytics
+ * - Integration with Sentry for permission-related analytics
  *
  * Usage pattern:
  * 1. Create an instance in your Activity with appropriate callback
@@ -57,8 +57,8 @@ public class PermissionManager {
     /** Callback interface for permission status updates */
     private final PermissionCallback callback;
 
-    /** Firebase Crashlytics instance for logging events and errors */
-    private final FirebaseCrashlytics crashlytics;
+    // Sentry is used via static methods, no instance needed
+    // Sentry is used via static methods, no instance needed
 
     /**
      * Interface for notifying permission status changes to clients.
@@ -102,11 +102,7 @@ public class PermissionManager {
         this.rootView = rootView;
         this.settingsLauncher = settingsLauncher;
         this.callback = callback;
-        this.crashlytics = FirebaseCrashlytics.getInstance();
-
-        // Log device SDK version and package name for diagnostics
-        crashlytics.setCustomKey("device_sdk", Build.VERSION.SDK_INT);
-        crashlytics.setCustomKey("app_package", activity.getPackageName());
+        // Sentry initialized in Application class
     }
 
     /**
@@ -120,21 +116,19 @@ public class PermissionManager {
         try {
             // Check if any permissions are missing
             boolean needsPermissions = needsPermissions();
-            crashlytics.setCustomKey("needs_permissions", needsPermissions);
-
             if (needsPermissions) {
                 // Start permission flow if permissions are needed
-                crashlytics.log("Starting permission request flow");
+                Sentry.captureMessage("Starting permission request flow");
                 callback.onPermissionsRequestStarted();
                 requestStoragePermission();
             } else {
                 // Notify that all permissions are already granted
-                crashlytics.log("All permissions already granted");
+                Sentry.captureMessage("All permissions already granted");
                 callback.onPermissionsGranted();
             }
         } catch (Exception e) {
             // Handle any exceptions during permission checking
-            crashlytics.recordException(e);
+            Sentry.captureException(e);
 
             // Fallback to direct permission check in case of exception
             if (needsPermissions()) {
@@ -166,24 +160,17 @@ public class PermissionManager {
                 boolean hasVideoPermission = ContextCompat.checkSelfPermission(activity,
                         Manifest.permission.READ_MEDIA_VIDEO) == PackageManager.PERMISSION_GRANTED;
 
-                // Log permission status for diagnostics
-                crashlytics.setCustomKey("has_image_permission", hasImagePermission);
-                crashlytics.setCustomKey("has_video_permission", hasVideoPermission);
-
-                // Need permissions if either images or videos permission is missing
+                // Log permission status for diagnostics                // Need permissions if either images or videos permission is missing
                 result = !hasImagePermission || !hasVideoPermission;
             } else {
                 // Pre-Android 13 uses the storage permission
                 boolean hasStoragePermission = ContextCompat.checkSelfPermission(activity,
-                        Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-
-                crashlytics.setCustomKey("has_storage_permission", hasStoragePermission);
-                result = !hasStoragePermission;
+                        Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;                result = !hasStoragePermission;
             }
             return result;
         } catch (Exception e) {
             // Log exception and fall back to direct permission check
-            crashlytics.recordException(new Exception("Error checking permissions: " + e.getMessage(), e));
+            Sentry.captureException(new Exception("Error checking permissions: " + e.getMessage(), e));
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 return ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_MEDIA_IMAGES)
@@ -206,12 +193,9 @@ public class PermissionManager {
     public boolean needsLocationPermission() {
         try {
             boolean hasLocationPermission = ContextCompat.checkSelfPermission(activity,
-                    Manifest.permission.ACCESS_MEDIA_LOCATION) == PackageManager.PERMISSION_GRANTED;
-
-            crashlytics.setCustomKey("has_location_permission", hasLocationPermission);
-            return !hasLocationPermission;
+                    Manifest.permission.ACCESS_MEDIA_LOCATION) == PackageManager.PERMISSION_GRANTED;            return !hasLocationPermission;
         } catch (Exception e) {
-            crashlytics.recordException(new Exception("Error checking location permission: " + e.getMessage(), e));
+            Sentry.captureException(new Exception("Error checking location permission: " + e.getMessage(), e));
             return ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_MEDIA_LOCATION)
                     != PackageManager.PERMISSION_GRANTED;
         }
@@ -226,19 +210,12 @@ public class PermissionManager {
     public void requestStoragePermission() {
         try {
             // Mark that we've shown rationale to track permanent denials
-            hasShownRationale = true;
-            crashlytics.setCustomKey("has_shown_rationale", true);
-
-            // Android 13+ (API 33) uses granular media permissions
+            hasShownRationale = true;            // Android 13+ (API 33) uses granular media permissions
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 boolean shouldShowImageRationale = ActivityCompat.shouldShowRequestPermissionRationale(
                         activity, Manifest.permission.READ_MEDIA_IMAGES);
                 boolean shouldShowVideoRationale = ActivityCompat.shouldShowRequestPermissionRationale(
-                        activity, Manifest.permission.READ_MEDIA_VIDEO);
-
-                crashlytics.setCustomKey("should_show_image_rationale", shouldShowImageRationale);
-                crashlytics.setCustomKey("should_show_video_rationale", shouldShowVideoRationale);
-                crashlytics.log("Requesting Android 13+ media permissions");
+                        activity, Manifest.permission.READ_MEDIA_VIDEO);                Sentry.captureMessage("Requesting Android 13+ media permissions");
 
                 // Show rationale if Android indicates we should
                 if (shouldShowImageRationale || shouldShowVideoRationale) {
@@ -249,10 +226,7 @@ public class PermissionManager {
             } else {
                 // Pre-Android 13 uses the storage permission
                 boolean shouldShowStorageRationale = ActivityCompat.shouldShowRequestPermissionRationale(
-                        activity, Manifest.permission.READ_EXTERNAL_STORAGE);
-
-                crashlytics.setCustomKey("should_show_storage_rationale", shouldShowStorageRationale);
-                crashlytics.log("Requesting Android 12 storage permission");
+                        activity, Manifest.permission.READ_EXTERNAL_STORAGE);                Sentry.captureMessage("Requesting Android 12 storage permission");
 
                 // Show rationale if Android indicates we should
                 if (shouldShowStorageRationale) {
@@ -263,7 +237,7 @@ public class PermissionManager {
             }
         } catch (Exception e) {
             // Log exception and fall back to direct permission request
-            crashlytics.recordException(new Exception("Error requesting permissions: " + e.getMessage(), e));
+            Sentry.captureException(new Exception("Error requesting permissions: " + e.getMessage(), e));
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 ActivityCompat.requestPermissions(activity,
@@ -289,14 +263,8 @@ public class PermissionManager {
     public void requestLocationPermission() {
         try {
             // Mark that we've shown location rationale to track permanent denials
-            hasShownLocationRationale = true;
-            crashlytics.setCustomKey("has_shown_location_rationale", true);
-
-            boolean shouldShowLocationRationale = ActivityCompat.shouldShowRequestPermissionRationale(
-                    activity, Manifest.permission.ACCESS_MEDIA_LOCATION);
-
-            crashlytics.setCustomKey("should_show_location_rationale", shouldShowLocationRationale);
-            crashlytics.log("Requesting ACCESS_MEDIA_LOCATION permission");
+            hasShownLocationRationale = true;            boolean shouldShowLocationRationale = ActivityCompat.shouldShowRequestPermissionRationale(
+                    activity, Manifest.permission.ACCESS_MEDIA_LOCATION);            Sentry.captureMessage("Requesting ACCESS_MEDIA_LOCATION permission");
 
             // Show rationale if Android indicates we should
             if (shouldShowLocationRationale) {
@@ -306,7 +274,7 @@ public class PermissionManager {
             }
         } catch (Exception e) {
             // Log exception and fall back to direct permission request
-            crashlytics.recordException(new Exception("Error requesting location permission: " + e.getMessage(), e));
+            Sentry.captureException(new Exception("Error requesting location permission: " + e.getMessage(), e));
             ActivityCompat.requestPermissions(activity,
                     new String[]{Manifest.permission.ACCESS_MEDIA_LOCATION},
                     LOCATION_PERMISSION_REQUEST_CODE);
@@ -319,7 +287,7 @@ public class PermissionManager {
      */
     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     private void showMediaRationaleSnackbar() {
-        crashlytics.log("Showing media permissions rationale snackbar");
+        Sentry.captureMessage("Showing media permissions rationale snackbar");
         Snackbar.make(
                         rootView,
                         "Media access is needed to select and process media files!",
@@ -334,7 +302,7 @@ public class PermissionManager {
      */
     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     private void requestMediaPermissions() {
-        crashlytics.log("Requesting READ_MEDIA_IMAGES and READ_MEDIA_VIDEO permissions");
+        Sentry.captureMessage("Requesting READ_MEDIA_IMAGES and READ_MEDIA_VIDEO permissions");
         ActivityCompat.requestPermissions(activity,
                 new String[]{
                         Manifest.permission.READ_MEDIA_IMAGES,
@@ -348,7 +316,7 @@ public class PermissionManager {
      * This provides context to the user about why the app needs this permission.
      */
     private void showStorageRationaleSnackbar() {
-        crashlytics.log("Showing storage permission rationale snackbar");
+        Sentry.captureMessage("Showing storage permission rationale snackbar");
         Snackbar.make(
                         rootView,
                         "Storage access is needed to select and process media files!",
@@ -362,7 +330,7 @@ public class PermissionManager {
      * Uses the READ_EXTERNAL_STORAGE permission which was required before Android 13.
      */
     private void requestStoragePermissions() {
-        crashlytics.log("Requesting READ_EXTERNAL_STORAGE permission");
+        Sentry.captureMessage("Requesting READ_EXTERNAL_STORAGE permission");
         ActivityCompat.requestPermissions(activity,
                 new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                 PERMISSION_REQUEST_CODE);
@@ -373,7 +341,7 @@ public class PermissionManager {
      * This provides context to the user about why the app needs this permission.
      */
     private void showLocationRationaleSnackbar() {
-        crashlytics.log("Showing location permission rationale snackbar");
+        Sentry.captureMessage("Showing location permission rationale snackbar");
         Snackbar.make(
                         rootView,
                         "Location permission is needed to access geolocation data in media files!",
@@ -387,7 +355,7 @@ public class PermissionManager {
      * This permission is needed to access location metadata in media files.
      */
     private void requestMediaLocationPermission() {
-        crashlytics.log("Requesting ACCESS_MEDIA_LOCATION permission");
+        Sentry.captureMessage("Requesting ACCESS_MEDIA_LOCATION permission");
         ActivityCompat.requestPermissions(activity,
                 new String[]{Manifest.permission.ACCESS_MEDIA_LOCATION},
                 LOCATION_PERMISSION_REQUEST_CODE);
@@ -411,7 +379,7 @@ public class PermissionManager {
             }
         } catch (Exception e) {
             // Log exception and fall back to simple result handling
-            crashlytics.recordException(new Exception("Error handling permission result: " + e.getMessage(), e));
+            Sentry.captureException(new Exception("Error handling permission result: " + e.getMessage(), e));
 
             boolean allGranted = grantResults.length > 0 &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED;
@@ -450,23 +418,19 @@ public class PermissionManager {
             boolean granted = (i < grantResults.length) &&
                     (grantResults[i] == PackageManager.PERMISSION_GRANTED);
 
-            // Log individual permission results for diagnostics
-            crashlytics.setCustomKey("permission_" + permission.replace(".", "_"), granted);
-
+            // Check if permission was granted
             if (!granted) {
                 allPermissionsGranted = false;
             }
         }
-
-        crashlytics.setCustomKey("all_permissions_granted", allPermissionsGranted);
-
+        
         if (allPermissionsGranted) {
             // All permissions were granted
-            crashlytics.log("All permissions granted");
+            Sentry.captureMessage("All permissions granted");
             callback.onPermissionsGranted();
         } else {
             // At least one permission was denied
-            crashlytics.log("Some permissions denied");
+            Sentry.captureMessage("Some permissions denied");
             callback.onPermissionsDenied();
             handlePermissionDenial();
         }
@@ -489,18 +453,16 @@ public class PermissionManager {
                     (grantResults[i] == PackageManager.PERMISSION_GRANTED);
 
             if (Manifest.permission.ACCESS_MEDIA_LOCATION.equals(permission)) {
-                locationPermissionGranted = granted;
-                crashlytics.setCustomKey("permission_ACCESS_MEDIA_LOCATION", granted);
-            }
+                locationPermissionGranted = granted;            }
         }
 
         if (locationPermissionGranted) {
             // Location permission was granted
-            crashlytics.log("Location permission granted");
+            Sentry.captureMessage("Location permission granted");
             callback.onLocationPermissionGranted();
         } else {
             // Location permission was denied
-            crashlytics.log("Location permission denied");
+            Sentry.captureMessage("Location permission denied");
             callback.onLocationPermissionDenied();
             handleLocationPermissionDenial();
         }
@@ -522,33 +484,21 @@ public class PermissionManager {
                 boolean canAskImagesAgain = ActivityCompat.shouldShowRequestPermissionRationale(
                         activity, Manifest.permission.READ_MEDIA_IMAGES);
                 boolean canAskVideoAgain = ActivityCompat.shouldShowRequestPermissionRationale(
-                        activity, Manifest.permission.READ_MEDIA_VIDEO);
-
-                crashlytics.setCustomKey("can_ask_images_again", canAskImagesAgain);
-                crashlytics.setCustomKey("can_ask_video_again", canAskVideoAgain);
-
-                // If we've shown rationale before and now Android says we can't show it again,
+                        activity, Manifest.permission.READ_MEDIA_VIDEO);                // If we've shown rationale before and now Android says we can't show it again,
                 // this indicates a permanent denial
                 shouldShowSettings = hasShownRationale && (!canAskImagesAgain || !canAskVideoAgain);
             } else {
                 boolean canAskAgain = ActivityCompat.shouldShowRequestPermissionRationale(
-                        activity, Manifest.permission.READ_EXTERNAL_STORAGE);
-
-                crashlytics.setCustomKey("can_ask_storage_again", canAskAgain);
-                shouldShowSettings = hasShownRationale && !canAskAgain;
-            }
-
-            crashlytics.setCustomKey("should_show_settings", shouldShowSettings);
-
-            if (shouldShowSettings) {
+                        activity, Manifest.permission.READ_EXTERNAL_STORAGE);                shouldShowSettings = hasShownRationale && !canAskAgain;
+            }            if (shouldShowSettings) {
                 // Show settings Snackbar for permanent denial
-                crashlytics.log("Showing settings snackbar (permanent denial)");
+                Sentry.captureMessage("Showing settings snackbar (permanent denial)");
                 Snackbar.make(
                                 rootView,
                                 "Permission denied permanently! Please enable in settings.",
                                 Snackbar.LENGTH_LONG)
                         .setAction("SETTINGS", view -> {
-                            crashlytics.log("User opening app settings");
+                            Sentry.captureMessage("User opening app settings");
                             // Open app settings page
                             Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                             Uri uri = Uri.fromParts("package", activity.getPackageName(), null);
@@ -558,19 +508,19 @@ public class PermissionManager {
                         .show();
             } else {
                 // Show retry Snackbar for temporary denial
-                crashlytics.log("Showing retry snackbar (temporary denial)");
+                Sentry.captureMessage("Showing retry snackbar (temporary denial)");
                 Snackbar.make(
                                 rootView,
                                 "Permissions are required to select media files!",
                                 Snackbar.LENGTH_LONG)
                         .setAction("RETRY", view -> {
-                            crashlytics.log("User retrying permission request");
+                            Sentry.captureMessage("User retrying permission request");
                             requestStoragePermission();
                         })
                         .show();
             }
         } catch (Exception e) {
-            crashlytics.recordException(new Exception("Error handling permission denial: " + e.getMessage(), e));
+            Sentry.captureException(new Exception("Error handling permission denial: " + e.getMessage(), e));
         }
     }
 
@@ -584,24 +534,17 @@ public class PermissionManager {
     private void handleLocationPermissionDenial() {
         try {
             boolean canAskAgain = ActivityCompat.shouldShowRequestPermissionRationale(
-                    activity, Manifest.permission.ACCESS_MEDIA_LOCATION);
-
-            crashlytics.setCustomKey("can_ask_location_again", canAskAgain);
-
-            // If we've shown rationale before and now Android says we can't show it again,
+                    activity, Manifest.permission.ACCESS_MEDIA_LOCATION);            // If we've shown rationale before and now Android says we can't show it again,
             // this indicates a permanent denial
-            boolean shouldShowSettings = hasShownLocationRationale && !canAskAgain;
-            crashlytics.setCustomKey("should_show_location_settings", shouldShowSettings);
-
-            if (shouldShowSettings) {
+            boolean shouldShowSettings = hasShownLocationRationale && !canAskAgain;            if (shouldShowSettings) {
                 // Show settings Snackbar for permanent denial
-                crashlytics.log("Showing settings snackbar for location (permanent denial)");
+                Sentry.captureMessage("Showing settings snackbar for location (permanent denial)");
                 Snackbar.make(
                                 rootView,
                                 "Location permission denied permanently! Enable in settings to access media location data.",
                                 Snackbar.LENGTH_LONG)
                         .setAction("SETTINGS", view -> {
-                            crashlytics.log("User opening app settings for location permission");
+                            Sentry.captureMessage("User opening app settings for location permission");
                             // Open app settings page
                             Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                             Uri uri = Uri.fromParts("package", activity.getPackageName(), null);
@@ -611,19 +554,19 @@ public class PermissionManager {
                         .show();
             } else {
                 // Show retry Snackbar for temporary denial
-                crashlytics.log("Showing retry snackbar for location (temporary denial)");
+                Sentry.captureMessage("Showing retry snackbar for location (temporary denial)");
                 Snackbar.make(
                                 rootView,
                                 "Location permission is needed to access geolocation data in media files.",
                                 Snackbar.LENGTH_LONG)
                         .setAction("RETRY", view -> {
-                            crashlytics.log("User retrying location permission request");
+                            Sentry.captureMessage("User retrying location permission request");
                             requestLocationPermission();
                         })
                         .show();
             }
         } catch (Exception e) {
-            crashlytics.recordException(new Exception("Error handling location permission denial: " + e.getMessage(), e));
+            Sentry.captureException(new Exception("Error handling location permission denial: " + e.getMessage(), e));
         }
     }
 

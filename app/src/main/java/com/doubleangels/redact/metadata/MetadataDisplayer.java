@@ -17,7 +17,7 @@ import androidx.core.content.ContextCompat;
 import androidx.exifinterface.media.ExifInterface;
 
 import com.doubleangels.redact.R;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import io.sentry.Sentry;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,7 +31,7 @@ import java.util.concurrent.Executors;
 
 /**
  * MetadataDisplayer is a utility class that extracts and formats metadata from media files (images and videos).
- * It provides methods to extract metadata in both consolidated and sectioned formats, handling permissions
+ * It provides methods to extract metadata in a single consolidated format, handling permissions
  * and formatting the output for display to users.
  *
  * The class uses ExifInterface for image metadata and MediaMetadataRetriever for video metadata,
@@ -40,11 +40,7 @@ import java.util.concurrent.Executors;
 public class MetadataDisplayer {
     private static final String TAG = "MetadataDisplayer";
 
-    // Constants defining metadata section keys
-    public static final String SECTION_BASIC_INFO = "basic_info";
-    public static final String SECTION_CAMERA_DETAILS = "camera_details";
-    public static final String SECTION_LOCATION = "location";
-    public static final String SECTION_TECHNICAL = "technical";
+    // All metadata is now in a single group, no sections
 
     /**
      * Callback interface for receiving consolidated metadata extraction results.
@@ -67,13 +63,13 @@ public class MetadataDisplayer {
     }
 
     /**
-     * Callback interface for receiving sectioned metadata extraction results.
+     * Callback interface for receiving metadata extraction results.
      */
     public interface SectionedMetadataCallback {
         /**
-         * Called when sectioned metadata extraction is successful.
+         * Called when metadata extraction is successful.
          *
-         * @param metadataSections Map containing different sections of metadata
+         * @param metadataSections Map containing metadata (all in one group)
          * @param isVideo Whether the processed file is a video
          */
         void onMetadataExtracted(Map<String, String> metadataSections, boolean isVideo);
@@ -95,47 +91,37 @@ public class MetadataDisplayer {
      * @param callback Callback to receive the extraction result
      */
     public static void extractMetadata(Context context, Uri mediaUri, MetadataCallback callback) {
-        // Initialize Crashlytics for this operation
-        FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
-        crashlytics.log("Starting metadata extraction");
-        crashlytics.setCustomKey("operation_type", "extract_metadata");
-
-        // Create a single thread executor to perform the extraction in the background
+        // Sentry is used via static methods
+        // Sentry is used via static methods
+        Sentry.captureMessage("Starting metadata extraction");        // Create a single thread executor to perform the extraction in the background
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
             try {
-                crashlytics.log("Processing media URI: " + mediaUri);
+                Sentry.captureMessage("Processing media URI: " + mediaUri);
                 ContentResolver contentResolver = context.getContentResolver();
                 String mimeType = contentResolver.getType(mediaUri);
                 // Determine if the file is a video based on MIME type
-                boolean isVideo = mimeType != null && mimeType.startsWith("video/");
-                crashlytics.setCustomKey("is_video", isVideo);
-                crashlytics.setCustomKey("mime_type", mimeType != null ? mimeType : "unknown");
-
-                StringBuilder metadata = new StringBuilder();
+                boolean isVideo = mimeType != null && mimeType.startsWith("video/");                StringBuilder metadata = new StringBuilder();
 
                 // Extract basic file information (name, size, type)
                 extractBasicFileInfo(context, mediaUri, metadata);
 
                 // Extract either video or image specific metadata
                 if (isVideo) {
-                    crashlytics.log("Extracting video metadata");
+                    Sentry.captureMessage("Extracting video metadata");
                     extractVideoMetadata(context, mediaUri, metadata);
                 } else {
-                    crashlytics.log("Extracting image metadata");
+                    Sentry.captureMessage("Extracting image metadata");
                     extractImageMetadata(context, mediaUri, metadata);
                 }
 
                 // Return the result via callback
-                crashlytics.log("Metadata extraction completed successfully");
+                Sentry.captureMessage("Metadata extraction completed successfully");
                 callback.onMetadataExtracted(metadata.toString(), isVideo);
             } catch (Exception e) {
                 // Log the exception and notify callback of failure
                 Log.e(TAG, "Error extracting metadata", e);
-                crashlytics.recordException(e);
-                crashlytics.setCustomKey("extraction_failed", true);
-                crashlytics.setCustomKey("error_type", e.getClass().getName());
-                callback.onExtractionFailed(context.getString(R.string.metadata_error_extraction, e.getMessage()));
+                Sentry.captureException(e);                callback.onExtractionFailed(context.getString(R.string.metadata_error_extraction, e.getMessage()));
             } finally {
                 executor.shutdown();
             }
@@ -143,32 +129,24 @@ public class MetadataDisplayer {
     }
 
     /**
-     * Extracts metadata from a media file and organizes it into logical sections.
+     * Extracts metadata from a media file and returns it as a single group.
      * The operation is performed asynchronously on a background thread.
      *
      * @param context Application context
      * @param mediaUri URI of the media file to analyze
-     * @param callback Callback to receive the sectioned extraction result
+     * @param callback Callback to receive the extraction result
      */
     public static void extractSectionedMetadata(Context context, Uri mediaUri, SectionedMetadataCallback callback) {
-        // Initialize Crashlytics for this operation
-        FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
-        crashlytics.log("Starting sectioned metadata extraction");
-        crashlytics.setCustomKey("operation_type", "extract_sectioned_metadata");
-
-        // Create a single thread executor to perform the extraction in the background
+        // Sentry is used via static methods
+        Sentry.captureMessage("Starting metadata extraction");        // Create a single thread executor to perform the extraction in the background
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
             try {
-                crashlytics.log("Processing media URI: " + mediaUri);
+                Sentry.captureMessage("Processing media URI: " + mediaUri);
                 ContentResolver contentResolver = context.getContentResolver();
                 String mimeType = contentResolver.getType(mediaUri);
                 // Determine if the file is a video based on MIME type
-                boolean isVideo = mimeType != null && mimeType.startsWith("video/");
-                crashlytics.setCustomKey("is_video", isVideo);
-                crashlytics.setCustomKey("mime_type", mimeType != null ? mimeType : "unknown");
-
-                // Map to store different sections of metadata
+                boolean isVideo = mimeType != null && mimeType.startsWith("video/");                // Map to store all metadata in a single group
                 Map<String, String> sections = new HashMap<>();
 
                 // Extract all metadata into a single combined list
@@ -179,10 +157,10 @@ public class MetadataDisplayer {
 
                 // Extract either video or image specific metadata
                 if (isVideo) {
-                    crashlytics.log("Extracting video metadata");
+                    Sentry.captureMessage("Extracting video metadata");
                     extractVideoMetadataToMap(context, mediaUri, allMetadata);
                 } else {
-                    crashlytics.log("Extracting image metadata");
+                    Sentry.captureMessage("Extracting image metadata");
                     extractImageMetadataToMap(context, mediaUri, allMetadata);
                 }
                 
@@ -198,21 +176,16 @@ public class MetadataDisplayer {
                     metadataContent = metadataContent.substring(0, metadataContent.length() - 1);
                 }
                 
-                sections.put(SECTION_BASIC_INFO, metadataContent);
+                sections.put("metadata", metadataContent);
 
-                // Log the number of sections extracted
-                crashlytics.setCustomKey("sections_count", sections.size());
-                crashlytics.log("Sectioned metadata extraction completed successfully");
+                Sentry.captureMessage("Metadata extraction completed successfully");
 
                 // Return the result via callback
                 callback.onMetadataExtracted(sections, isVideo);
             } catch (Exception e) {
                 // Log the exception and notify callback of failure
-                Log.e(TAG, "Error extracting sectioned metadata", e);
-                crashlytics.recordException(e);
-                crashlytics.setCustomKey("extraction_failed", true);
-                crashlytics.setCustomKey("error_type", e.getClass().getName());
-                callback.onExtractionFailed(context.getString(R.string.metadata_error_extraction, e.getMessage()));
+                Log.e(TAG, "Error extracting metadata", e);
+                Sentry.captureException(e);                callback.onExtractionFailed(context.getString(R.string.metadata_error_extraction, e.getMessage()));
             } finally {
                 executor.shutdown();
             }
@@ -227,8 +200,8 @@ public class MetadataDisplayer {
      * @param metadataMap Map to add the extracted information to
      */
     private static void extractBasicFileInfoToMap(Context context, Uri mediaUri, Map<String, String> metadataMap) {
-        FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
-        crashlytics.log("Extracting basic file info");
+        // Sentry is used via static methods
+        Sentry.captureMessage("Extracting basic file info");
 
         try {
             ContentResolver contentResolver = context.getContentResolver();
@@ -243,14 +216,10 @@ public class MetadataDisplayer {
                     int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
 
                     if (nameIndex != -1) {
-                        fileName = cursor.getString(nameIndex);
-                        crashlytics.setCustomKey("file_name", fileName != null ? fileName : "unknown");
-                    }
+                        fileName = cursor.getString(nameIndex);                    }
 
                     if (sizeIndex != -1) {
-                        fileSize = cursor.getLong(sizeIndex);
-                        crashlytics.setCustomKey("file_size_bytes", fileSize);
-                    }
+                        fileSize = cursor.getLong(sizeIndex);                    }
                 }
             }
 
@@ -277,7 +246,7 @@ public class MetadataDisplayer {
 
         } catch (Exception e) {
             Log.e(TAG, "Error extracting basic file info", e);
-            FirebaseCrashlytics.getInstance().recordException(e);
+            Sentry.captureException(e);
         }
     }
 
@@ -289,8 +258,8 @@ public class MetadataDisplayer {
      * @param metadata StringBuilder to append the extracted information to
      */
     private static void extractBasicFileInfo(Context context, Uri mediaUri, StringBuilder metadata) {
-        FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
-        crashlytics.log("Extracting basic file info");
+        // Sentry is used via static methods
+        Sentry.captureMessage("Extracting basic file info");
 
         try {
             ContentResolver contentResolver = context.getContentResolver();
@@ -305,14 +274,10 @@ public class MetadataDisplayer {
                     int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
 
                     if (nameIndex != -1) {
-                        fileName = cursor.getString(nameIndex);
-                        crashlytics.setCustomKey("file_name", fileName != null ? fileName : "unknown");
-                    }
+                        fileName = cursor.getString(nameIndex);                    }
 
                     if (sizeIndex != -1) {
-                        fileSize = cursor.getLong(sizeIndex);
-                        crashlytics.setCustomKey("file_size_bytes", fileSize);
-                    }
+                        fileSize = cursor.getLong(sizeIndex);                    }
                 }
             }
 
@@ -341,12 +306,12 @@ public class MetadataDisplayer {
                 metadata.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
             }
 
-            crashlytics.log("Basic file info extracted successfully");
+            Sentry.captureMessage("Basic file info extracted successfully");
         } catch (Exception e) {
             // Append error message if extraction fails
             metadata.append(context.getString(R.string.metadata_error_basic_info, e.getMessage())).append("\n");
-            crashlytics.log("Error extracting basic file info: " + e.getMessage());
-            crashlytics.recordException(e);
+            Sentry.captureMessage("Error extracting basic file info: " + e.getMessage());
+            Sentry.captureException(e);
         }
     }
 
@@ -359,20 +324,20 @@ public class MetadataDisplayer {
      * @param metadata StringBuilder to append the extracted information to
      */
     private static void extractImageMetadata(Context context, Uri imageUri, StringBuilder metadata) {
-        FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
-        crashlytics.log("Extracting image metadata");
+        // Sentry is used via static methods
+        Sentry.captureMessage("Extracting image metadata");
 
         try (InputStream inputStream = context.getContentResolver().openInputStream(imageUri)) {
             if (inputStream == null) {
                 metadata.append(context.getString(R.string.metadata_error_file_open));
-                crashlytics.log("Failed to open input stream for image");
+                Sentry.captureMessage("Failed to open input stream for image");
                 return;
             }
 
             // Create ExifInterface from the input stream
             ExifInterface exifInterface;
             exifInterface = new ExifInterface(inputStream);
-            crashlytics.log("ExifInterface created successfully");
+            Sentry.captureMessage("ExifInterface created successfully");
 
             // Extract and append image properties
             metadata.append("\n").append(context.getString(R.string.metadata_image_properties_header)).append("\n");
@@ -380,10 +345,7 @@ public class MetadataDisplayer {
             int width = exifInterface.getAttributeInt(ExifInterface.TAG_IMAGE_WIDTH, 0);
             int height = exifInterface.getAttributeInt(ExifInterface.TAG_IMAGE_LENGTH, 0);
             if (width > 0 && height > 0) {
-                metadata.append(context.getString(R.string.metadata_dimensions, width, height)).append("\n");
-                crashlytics.setCustomKey("image_width", width);
-                crashlytics.setCustomKey("image_height", height);
-            }
+                metadata.append(context.getString(R.string.metadata_dimensions, width, height)).append("\n");            }
 
             String dateTaken = exifInterface.getAttribute(ExifInterface.TAG_DATETIME);
             if (dateTaken != null) {
@@ -422,17 +384,14 @@ public class MetadataDisplayer {
                         metadata.append(context.getString(R.string.metadata_exposure_time_seconds, exposureValue)).append("\n");
                     }
                 } catch (NumberFormatException e) {
-                    crashlytics.log("Invalid exposure time format: " + exposureTime);
-                    crashlytics.recordException(e);
+                    Sentry.captureMessage("Invalid exposure time format: " + exposureTime);
+                    Sentry.captureException(e);
                 }
             }
 
             // Check if we have permission to access media location
             boolean hasLocationPermission = ContextCompat.checkSelfPermission(context,
-                    Manifest.permission.ACCESS_MEDIA_LOCATION) == PackageManager.PERMISSION_GRANTED;
-            crashlytics.setCustomKey("has_location_permission", hasLocationPermission);
-
-            // Extract and append location information if available
+                    Manifest.permission.ACCESS_MEDIA_LOCATION) == PackageManager.PERMISSION_GRANTED;            // Extract and append location information if available
             metadata.append("\n").append(context.getString(R.string.metadata_location_information_header)).append("\n");
 
             if (hasLocationPermission) {
@@ -440,9 +399,7 @@ public class MetadataDisplayer {
 
                 if (latLong != null) {
                     metadata.append(context.getString(R.string.metadata_latitude, latLong[0])).append("\n");
-                    metadata.append(context.getString(R.string.metadata_longitude, latLong[1])).append("\n");
-                    crashlytics.setCustomKey("has_location_data", true);
-                    crashlytics.log("Location data found in image");
+                    metadata.append(context.getString(R.string.metadata_longitude, latLong[1])).append("\n");                    Sentry.captureMessage("Location data found in image");
 
                     // Try to get human-readable address from coordinates using Geocoder
                     try {
@@ -462,18 +419,16 @@ public class MetadataDisplayer {
                                 }
 
                                 metadata.append(context.getString(R.string.metadata_address, addressText)).append("\n");
-                                crashlytics.log("Geocoding successful");
+                                Sentry.captureMessage("Geocoding successful");
                             }
                         }
                     } catch (Exception e) {
                         metadata.append(context.getString(R.string.metadata_geocoding_failed, e.getMessage())).append("\n");
-                        crashlytics.log("Geocoding failed: " + e.getMessage());
-                        crashlytics.recordException(e);
+                        Sentry.captureMessage("Geocoding failed: " + e.getMessage());
+                        Sentry.captureException(e);
                     }
                 } else {
-                    metadata.append(context.getString(R.string.metadata_no_location_data)).append("\n");
-                    crashlytics.setCustomKey("has_location_data", false);
-                }
+                    metadata.append(context.getString(R.string.metadata_no_location_data)).append("\n");                }
             } else {
                 metadata.append(context.getString(R.string.metadata_location_permission_needed)).append("\n");
             }
@@ -486,8 +441,8 @@ public class MetadataDisplayer {
                 try {
                     metadata.append(context.getString(R.string.metadata_orientation, getOrientationString(context, Integer.parseInt(orientation)))).append("\n");
                 } catch (NumberFormatException e) {
-                    crashlytics.log("Invalid orientation format: " + orientation);
-                    crashlytics.recordException(e);
+                    Sentry.captureMessage("Invalid orientation format: " + orientation);
+                    Sentry.captureException(e);
                 }
             }
 
@@ -498,8 +453,8 @@ public class MetadataDisplayer {
                     metadata.append(context.getString(R.string.metadata_flash,
                             flashFired ? context.getString(R.string.metadata_flash_fired) : context.getString(R.string.metadata_flash_not_fired))).append("\n");
                 } catch (NumberFormatException e) {
-                    crashlytics.log("Invalid flash format: " + flash);
-                    crashlytics.recordException(e);
+                    Sentry.captureMessage("Invalid flash format: " + flash);
+                    Sentry.captureException(e);
                 }
             }
 
@@ -510,13 +465,13 @@ public class MetadataDisplayer {
                                 context.getString(R.string.metadata_white_balance_manual))).append("\n");
             }
 
-            crashlytics.log("Image metadata extraction completed");
+            Sentry.captureMessage("Image metadata extraction completed");
 
         } catch (IOException e) {
             // Append error message if extraction fails
             metadata.append(context.getString(R.string.metadata_error_image_metadata, e.getMessage()));
             Log.e(TAG, "Error extracting image metadata", e);
-            crashlytics.recordException(e);
+            Sentry.captureException(e);
         }
     }
 
@@ -528,12 +483,12 @@ public class MetadataDisplayer {
      * @param metadataMap Map to add all metadata to (will be sorted alphabetically)
      */
     private static void extractImageMetadataToMap(Context context, Uri imageUri, Map<String, String> metadataMap) {
-        FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
-        crashlytics.log("Extracting image metadata to single map");
+        // Sentry is used via static methods
+        Sentry.captureMessage("Extracting image metadata to single map");
 
         try (InputStream inputStream = context.getContentResolver().openInputStream(imageUri)) {
             if (inputStream == null) {
-                crashlytics.log("Failed to open input stream for image metadata");
+                Sentry.captureMessage("Failed to open input stream for image metadata");
                 return;
             }
 
@@ -605,7 +560,7 @@ public class MetadataDisplayer {
                 } catch (Exception e) {
                     // If conversion fails, use raw value
                     metadataMap.put("GPSLATITUDE", gpsLatitude);
-                    crashlytics.log("Failed to convert GPS latitude to decimal: " + e.getMessage());
+                    Sentry.captureMessage("Failed to convert GPS latitude to decimal: " + e.getMessage());
                 }
             }
             
@@ -619,7 +574,7 @@ public class MetadataDisplayer {
                 } catch (Exception e) {
                     // If conversion fails, use raw value
                     metadataMap.put("GPSLONGITUDE", gpsLongitude);
-                    crashlytics.log("Failed to convert GPS longitude to decimal: " + e.getMessage());
+                    Sentry.captureMessage("Failed to convert GPS longitude to decimal: " + e.getMessage());
                 }
             }
             
@@ -635,29 +590,21 @@ public class MetadataDisplayer {
                 }
                 if (!metadataMap.containsKey(heightTagName)) {
                     metadataMap.put(heightTagName, String.valueOf(height));
-                }
-                crashlytics.setCustomKey("image_width", width);
-                crashlytics.setCustomKey("image_height", height);
-            }
+                }            }
 
             // Check if we have permission to access media location
             boolean hasLocationPermission = ContextCompat.checkSelfPermission(context,
                     Manifest.permission.ACCESS_MEDIA_LOCATION) == PackageManager.PERMISSION_GRANTED;
 
-            crashlytics.log("Has location permission: " + hasLocationPermission);
-            crashlytics.setCustomKey("has_location_permission", hasLocationPermission);
-
-            // Location information is already extracted via TAG_GPS_* tags above
+            Sentry.captureMessage("Has location permission: " + hasLocationPermission);            // Location information is already extracted via TAG_GPS_* tags above
             if (hasLocationPermission) {
-                double[] latLong = exifInterface.getLatLong();
-                crashlytics.setCustomKey("has_location_data", latLong != null);
-            }
+                double[] latLong = exifInterface.getLatLong();            }
 
-            crashlytics.log("Image metadata extraction completed");
+            Sentry.captureMessage("Image metadata extraction completed");
 
         } catch (IOException e) {
             Log.e(TAG, "Error extracting image metadata", e);
-            crashlytics.recordException(e);
+            Sentry.captureException(e);
         }
     }
 
@@ -716,15 +663,15 @@ public class MetadataDisplayer {
      * @param metadata StringBuilder to append the extracted information to
      */
     private static void extractVideoMetadata(Context context, Uri videoUri, StringBuilder metadata) {
-        FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
-        crashlytics.log("Extracting video metadata");
+        // Sentry is used via static methods
+        Sentry.captureMessage("Extracting video metadata");
 
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
 
         try {
             // Set the data source to the video URI
             retriever.setDataSource(context, videoUri);
-            crashlytics.log("MediaMetadataRetriever data source set successfully");
+            Sentry.captureMessage("MediaMetadataRetriever data source set successfully");
 
             // Extract and append video properties
             metadata.append("\n").append(context.getString(R.string.metadata_video_properties_header)).append("\n");
@@ -745,37 +692,28 @@ public class MetadataDisplayer {
                     } else {
                         formattedDuration = String.format(Locale.getDefault(), "%d:%02d", minutes, seconds);
                         metadata.append(context.getString(R.string.metadata_duration_without_hours, formattedDuration)).append("\n");
-                    }
-                    crashlytics.setCustomKey("video_duration_ms", durationMs);
-                } catch (NumberFormatException e) {
-                    crashlytics.log("Invalid duration format: " + duration);
-                    crashlytics.recordException(e);
+                    }                } catch (NumberFormatException e) {
+                    Sentry.captureMessage("Invalid duration format: " + duration);
+                    Sentry.captureException(e);
                 }
             }
 
             String width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH);
             String height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT);
             if (width != null && height != null) {
-                metadata.append(context.getString(R.string.metadata_resolution, width, height)).append("\n");
-                crashlytics.setCustomKey("video_width", width);
-                crashlytics.setCustomKey("video_height", height);
-            }
+                metadata.append(context.getString(R.string.metadata_resolution, width, height)).append("\n");            }
 
             String rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION);
             if (rotation != null) {
-                metadata.append(context.getString(R.string.metadata_rotation, rotation)).append("\n");
-                crashlytics.setCustomKey("video_rotation", rotation);
-            }
+                metadata.append(context.getString(R.string.metadata_rotation, rotation)).append("\n");            }
 
             String bitrate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE);
             if (bitrate != null) {
                 try {
                     long bitrateValue = Long.parseLong(bitrate);
-                    metadata.append(context.getString(R.string.metadata_bitrate, bitrateValue / 1000)).append("\n");
-                    crashlytics.setCustomKey("video_bitrate_kbps", bitrateValue / 1000);
-                } catch (NumberFormatException e) {
-                    crashlytics.log("Invalid bitrate format: " + bitrate);
-                    crashlytics.recordException(e);
+                    metadata.append(context.getString(R.string.metadata_bitrate, bitrateValue / 1000)).append("\n");                } catch (NumberFormatException e) {
+                    Sentry.captureMessage("Invalid bitrate format: " + bitrate);
+                    Sentry.captureException(e);
                 }
             }
 
@@ -786,10 +724,7 @@ public class MetadataDisplayer {
 
             // Check if we have permission to access media location
             boolean hasLocationPermission = ContextCompat.checkSelfPermission(context,
-                    Manifest.permission.ACCESS_MEDIA_LOCATION) == PackageManager.PERMISSION_GRANTED;
-            crashlytics.setCustomKey("has_location_permission", hasLocationPermission);
-
-            // Extract and append location information if available
+                    Manifest.permission.ACCESS_MEDIA_LOCATION) == PackageManager.PERMISSION_GRANTED;            // Extract and append location information if available
             metadata.append("\n").append(context.getString(R.string.metadata_location_information_header)).append("\n");
 
             if (hasLocationPermission) {
@@ -803,9 +738,7 @@ public class MetadataDisplayer {
                             float lon = Float.parseFloat(parts[1]);
 
                             metadata.append(context.getString(R.string.metadata_latitude, lat)).append("\n");
-                            metadata.append(context.getString(R.string.metadata_longitude, lon)).append("\n");
-                            crashlytics.setCustomKey("has_location_data", true);
-                            crashlytics.log("Location data found in video");
+                            metadata.append(context.getString(R.string.metadata_longitude, lon)).append("\n");                            Sentry.captureMessage("Location data found in video");
 
                             // Try to get human-readable address from coordinates using Geocoder
                             try {
@@ -825,23 +758,21 @@ public class MetadataDisplayer {
                                         }
 
                                         metadata.append(context.getString(R.string.metadata_address, addressText)).append("\n");
-                                        crashlytics.log("Geocoding successful");
+                                        Sentry.captureMessage("Geocoding successful");
                                     }
                                 }
                             } catch (Exception e) {
                                 metadata.append(context.getString(R.string.metadata_geocoding_failed, e.getMessage())).append("\n");
-                                crashlytics.log("Geocoding failed: " + e.getMessage());
-                                crashlytics.recordException(e);
+                                Sentry.captureMessage("Geocoding failed: " + e.getMessage());
+                                Sentry.captureException(e);
                             }
                         } catch (NumberFormatException e) {
-                            crashlytics.log("Invalid location format: " + latitude);
-                            crashlytics.recordException(e);
+                            Sentry.captureMessage("Invalid location format: " + latitude);
+                            Sentry.captureException(e);
                         }
                     }
                 } else {
-                    metadata.append(context.getString(R.string.metadata_no_location_data)).append("\n");
-                    crashlytics.setCustomKey("has_location_data", false);
-                }
+                    metadata.append(context.getString(R.string.metadata_no_location_data)).append("\n");                }
             } else {
                 metadata.append(context.getString(R.string.metadata_location_permission_needed)).append("\n");
             }
@@ -851,9 +782,7 @@ public class MetadataDisplayer {
 
             String frameRate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE);
             if (frameRate != null) {
-                metadata.append(context.getString(R.string.metadata_frame_rate, frameRate)).append("\n");
-                crashlytics.setCustomKey("video_frame_rate", frameRate);
-            }
+                metadata.append(context.getString(R.string.metadata_frame_rate, frameRate)).append("\n");            }
 
             if (bitrate != null) {
                 long bitrateValue = Long.parseLong(bitrate);
@@ -862,25 +791,23 @@ public class MetadataDisplayer {
 
             String audioSampleRate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_SAMPLERATE);
             if (audioSampleRate != null) {
-                metadata.append(context.getString(R.string.metadata_sample_rate, audioSampleRate)).append("\n");
-                crashlytics.setCustomKey("audio_sample_rate", audioSampleRate);
-            }
+                metadata.append(context.getString(R.string.metadata_sample_rate, audioSampleRate)).append("\n");            }
 
-            crashlytics.log("Video metadata extraction completed");
+            Sentry.captureMessage("Video metadata extraction completed");
 
         } catch (Exception e) {
             // Append error message if extraction fails
             metadata.append(context.getString(R.string.metadata_error_video_metadata, e.getMessage()));
             Log.e(TAG, "Error extracting video metadata", e);
-            crashlytics.recordException(e);
+            Sentry.captureException(e);
         } finally {
             try {
                 // Always release the MediaMetadataRetriever to free resources
                 retriever.release();
-                crashlytics.log("MediaMetadataRetriever released");
+                Sentry.captureMessage("MediaMetadataRetriever released");
             } catch (Exception ignored) {
                 // Ignore exceptions during release
-                crashlytics.log("Exception while releasing MediaMetadataRetriever (ignored)");
+                Sentry.captureMessage("Exception while releasing MediaMetadataRetriever (ignored)");
             }
         }
     }
@@ -893,8 +820,8 @@ public class MetadataDisplayer {
      * @param metadataMap Map to add all metadata to (will be sorted alphabetically)
      */
     private static void extractVideoMetadataToMap(Context context, Uri videoUri, Map<String, String> metadataMap) {
-        FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
-        crashlytics.log("Extracting video metadata to single map");
+        // Sentry is used via static methods
+        Sentry.captureMessage("Extracting video metadata to single map");
 
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
 
@@ -940,22 +867,19 @@ public class MetadataDisplayer {
                             displayKeyName = convertToSnakeCase(displayKeyName).toUpperCase();
                             metadataMap.put(displayKeyName, trimmedValue);
                             
-                            // Log important keys for analytics
+                            // Process important keys
                             switch (keyName) {
                                 case "METADATA_KEY_DURATION" -> {
                                     try {
-                                        crashlytics.setCustomKey("video_duration_ms", Long.parseLong(value));
+                                        Long.parseLong(value);
                                     } catch (NumberFormatException e) {
-                                        crashlytics.log("Invalid duration format for analytics: " + value);
-                                        crashlytics.recordException(e);
+                                        Sentry.captureMessage("Invalid duration format for analytics: " + value);
+                                        Sentry.captureException(e);
                                     }
                                 }
-                                case "METADATA_KEY_VIDEO_WIDTH" ->
-                                        crashlytics.setCustomKey("video_width", value);
-                                case "METADATA_KEY_VIDEO_HEIGHT" ->
-                                        crashlytics.setCustomKey("video_height", value);
-                                case "METADATA_KEY_VIDEO_ROTATION" ->
-                                        crashlytics.setCustomKey("video_rotation", value);
+                                case "METADATA_KEY_VIDEO_WIDTH", "METADATA_KEY_VIDEO_HEIGHT", "METADATA_KEY_VIDEO_ROTATION" -> {
+                                    // These are handled elsewhere
+                                }
                             }
                         }
                     } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -1001,17 +925,17 @@ public class MetadataDisplayer {
                         metadataMap.put("GPS_LATITUDE", String.format(Locale.getDefault(), "%.15f", latitude));
                         metadataMap.put("GPS_LONGITUDE", String.format(Locale.getDefault(), "%.15f", longitude));
                         
-                        crashlytics.log("Parsed video location: lat=" + latitude + ", lon=" + longitude);
+                        Sentry.captureMessage("Parsed video location: lat=" + latitude + ", lon=" + longitude);
                     } else {
                         // Fallback: try splitting by + or - in the middle
                         // Format might be different, try alternative parsing
-                        crashlytics.log("Could not parse location format: " + cleanLocation);
+                        Sentry.captureMessage("Could not parse location format: " + cleanLocation);
                         // Add raw value as fallback
                         metadataMap.put("LOCATION", locationValue);
                     }
                 } catch (Exception e) {
-                    crashlytics.log("Failed to parse video location: " + e.getMessage());
-                    crashlytics.recordException(e);
+                    Sentry.captureMessage("Failed to parse video location: " + e.getMessage());
+                    Sentry.captureException(e);
                     // Add raw value as fallback
                     metadataMap.put("LOCATION", locationValue);
                 }
@@ -1021,17 +945,10 @@ public class MetadataDisplayer {
             boolean hasLocationPermission = ContextCompat.checkSelfPermission(context,
                     Manifest.permission.ACCESS_MEDIA_LOCATION) == PackageManager.PERMISSION_GRANTED;
 
-            crashlytics.log("Has location permission: " + hasLocationPermission);
-            crashlytics.setCustomKey("has_location_permission", hasLocationPermission);
-
-            // Location information is already extracted and parsed above (split into GPSLATITUDE and GPSLONGITUDE)
+            Sentry.captureMessage("Has location permission: " + hasLocationPermission);            // Location information is already extracted and parsed above (split into GPSLATITUDE and GPSLONGITUDE)
             if (hasLocationPermission) {
-                if (locationValue != null && !locationValue.isEmpty()) {
-                    crashlytics.setCustomKey("has_location_data", true);
-                    crashlytics.log("Location data found in video");
-                } else {
-                    crashlytics.setCustomKey("has_location_data", false);
-                }
+                if (locationValue != null && !locationValue.isEmpty()) {                    Sentry.captureMessage("Location data found in video");
+                } else {                }
             }
 
             // Technical details are already extracted via reflection above
@@ -1040,7 +957,6 @@ public class MetadataDisplayer {
                 String frameRate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE);
                 if (frameRate != null && !metadataMap.containsKey("CAPTURE_FRAMERATE")) {
                     metadataMap.put("CAPTURE_FRAMERATE", frameRate);
-                    crashlytics.setCustomKey("video_frame_rate", frameRate);
                 }
             }
             
@@ -1049,10 +965,10 @@ public class MetadataDisplayer {
                 if (bitrate != null && !metadataMap.containsKey("BITRATE")) {
                     metadataMap.put("BITRATE", bitrate);
                     try {
-                        crashlytics.setCustomKey("video_bitrate_kbps", Long.parseLong(bitrate) / 1000);
+                        Long.parseLong(bitrate);
                     } catch (NumberFormatException e) {
-                        crashlytics.log("Invalid bitrate format for analytics: " + bitrate);
-                        crashlytics.recordException(e);
+                        Sentry.captureMessage("Invalid bitrate format for analytics: " + bitrate);
+                        Sentry.captureException(e);
                     }
                 }
             }
@@ -1060,24 +976,22 @@ public class MetadataDisplayer {
             if (!processedVideoKeys.contains("METADATA_KEY_SAMPLERATE")) {
                 String audioSampleRate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_SAMPLERATE);
                 if (audioSampleRate != null && !metadataMap.containsKey("SAMPLE_RATE")) {
-                    metadataMap.put("SAMPLE_RATE", audioSampleRate);
-                    crashlytics.setCustomKey("audio_sample_rate", audioSampleRate);
-                }
+                    metadataMap.put("SAMPLE_RATE", audioSampleRate);                }
             }
 
-            crashlytics.log("Video metadata extraction completed");
+            Sentry.captureMessage("Video metadata extraction completed");
 
         } catch (Exception e) {
             Log.e(TAG, "Error extracting video metadata", e);
-            crashlytics.recordException(e);
+            Sentry.captureException(e);
         } finally {
             try {
                 // Always release the MediaMetadataRetriever to free resources
                 retriever.release();
-                crashlytics.log("MediaMetadataRetriever released");
+                Sentry.captureMessage("MediaMetadataRetriever released");
             } catch (Exception ignored) {
                 // Ignore exceptions during release
-                crashlytics.log("Exception while releasing MediaMetadataRetriever (ignored)");
+                Sentry.captureMessage("Exception while releasing MediaMetadataRetriever (ignored)");
             }
         }
     }
@@ -1091,8 +1005,8 @@ public class MetadataDisplayer {
      * @return The file path if available, null otherwise
      */
     private static String getPathFromUri(Context context, Uri uri) {
-        FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
-        crashlytics.log("Attempting to get file path from URI");
+        // Sentry is used via static methods
+        Sentry.captureMessage("Attempting to get file path from URI");
 
         try {
             // Query the MediaStore to get the file path
@@ -1104,16 +1018,16 @@ public class MetadataDisplayer {
                 cursor.moveToFirst();
                 String path = cursor.getString(column_index);
                 cursor.close();
-                crashlytics.log("Successfully retrieved file path from URI");
+                Sentry.captureMessage("Successfully retrieved file path from URI");
                 return path;
             }
         } catch (Exception e) {
             // Log the exception but don't throw it
             Log.e(TAG, "Error getting path from URI", e);
-            crashlytics.recordException(e);
+            Sentry.captureException(e);
         }
 
-        crashlytics.log("Failed to get file path from URI");
+        Sentry.captureMessage("Failed to get file path from URI");
         return null;
     }
 
@@ -1124,10 +1038,7 @@ public class MetadataDisplayer {
      * @param orientation The orientation constant from ExifInterface
      * @return A human-readable string describing the orientation
      */
-    private static String getOrientationString(Context context, int orientation) {
-        FirebaseCrashlytics.getInstance().setCustomKey("image_orientation", orientation);
-
-        return switch (orientation) {
+    private static String getOrientationString(Context context, int orientation) {        return switch (orientation) {
             case ExifInterface.ORIENTATION_NORMAL -> context.getString(R.string.metadata_orientation_normal);
             case ExifInterface.ORIENTATION_ROTATE_90 -> context.getString(R.string.metadata_orientation_rotate_90);
             case ExifInterface.ORIENTATION_ROTATE_180 -> context.getString(R.string.metadata_orientation_rotate_180);
