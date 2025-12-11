@@ -20,6 +20,7 @@ lifecycleViewmodelKtx = "2.10.0"
 navigationFragment = "2.9.6"
 navigationUi = "2.9.6"
 leakcanary = "2.14"
+sentryAndroidGradlePlugin = "5.12.2"
 
 
 [libraries]
@@ -45,6 +46,7 @@ lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-view
 navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navigationFragment" }
 navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version.ref = "navigationUi" }
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
+sentry-android-gradle-plugin = { module = "io.sentry:sentry-android-gradle-plugin", version.ref = "sentryAndroidGradlePlugin" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

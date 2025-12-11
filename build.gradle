@@ -5,7 +5,7 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'io.sentry:sentry-android-gradle-plugin:5.12.2'
+        classpath libs.sentry.android.gradle.plugin
     }
 }
 
