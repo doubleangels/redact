@@ -42,7 +42,7 @@ jobs:
           keyPassword: ${{ secrets.KEY_PASSWORD }}
 
       - name: Upload bundle to Github release artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: google-play-bundle
           path: app/build/outputs/bundle/release/app-release.aab
