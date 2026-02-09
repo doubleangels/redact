@@ -8,63 +8,35 @@ on:
       - "dependabot/**"
   workflow_dispatch:
 
+concurrency:
+  group: test-dependabot-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
-  build-debug:
+  build:
+    strategy:
+      matrix:
+        include:
+          - name: debug
+            apk: assembleDebug
+            bundle: bundleDebug
+          - name: release
+            apk: assembleRelease
+            bundle: bundleRelease
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.2
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.2.0
         with:
           java-version: "21"
           distribution: "temurin"
-
-      - name: Cache gradle dependencies
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.gradle
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          cache: gradle
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build debug APK with Gradle
-        run: ./gradlew assembleDebug
-
-      - name: Build debug bundle with Gradle
-        run: ./gradlew bundleDebug
-
-  build-release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v5
-        with:
-          java-version: "21"
-          distribution: "temurin"
-
-      - name: Cache gradle dependencies
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.gradle
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Build release APK with Gradle
-        run: ./gradlew assembleRelease
-
-      - name: Build release bundle with Gradle
-        run: ./gradlew bundleRelease
+      - name: Build ${{ matrix.name }} APK and bundle
+        run: ./gradlew ${{ matrix.apk }} ${{ matrix.bundle }} --no-daemon
