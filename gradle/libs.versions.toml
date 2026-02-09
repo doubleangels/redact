@@ -1,6 +1,6 @@
 [versions]
 activity = "1.12.3"
-agp = "8.13.2"
+agp = "9.0.0"
 constraintlayout = "2.2.1"
 exifinterface = "1.4.2"
 ffmpegmediametadataretriever = "1.0.15"
