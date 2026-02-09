@@ -6,15 +6,19 @@ on:
       - dev
   workflow_dispatch:
 
+concurrency:
+  group: test-dev
+  cancel-in-progress: true
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.2
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.2.0
         with:
           java-version: "21"
           distribution: "temurin"
@@ -24,5 +28,5 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run Lint
-        run: ./gradlew lintRelease
+        run: ./gradlew lintRelease --no-daemon
         continue-on-error: false
