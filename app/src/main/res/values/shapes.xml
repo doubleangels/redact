@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Squarer than default M3 pills; aligned with Scan metadata / action cards -->
+    <style name="ShapeAppearance.Redact.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/component_corner_small</item>
+    </style>
+    <style name="ShapeAppearance.Redact.MediumComponent" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/component_corner_medium</item>
+    </style>
+    <style name="ShapeAppearance.Redact.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/component_corner_large</item>
+    </style>
+</resources>

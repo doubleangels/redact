@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="18dp"
+    android:paddingBottom="6dp"
+    android:text="@string/scan_location_information"
+    android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
+    android:textColor="?attr/colorPrimary"
+    tools:text="Location information" />

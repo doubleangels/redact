@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".CleanFragment">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/selectedItemsGrid"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="@dimen/screen_edge_padding"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="@dimen/screen_edge_padding"
+        android:layout_marginBottom="12dp"
+        android:clipToPadding="false"
+        android:contentDescription="@string/content_description_image_view"
+        app:layout_constraintBottom_toTopOf="@+id/statusText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        tools:listitem="@layout/item_selected_media" />
+
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/screen_edge_padding"
+        android:layout_marginEnd="@dimen/screen_edge_padding"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_rounded_surface"
+        android:backgroundTint="?attr/colorSurfaceContainerHigh"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="12dp"
+        android:text="@string/status_select_media_files"
+        android:textAlignment="center"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurface"
+        app:layout_constraintBottom_toTopOf="@+id/progressContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/progressContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/screen_edge_padding"
+        android:layout_marginEnd="@dimen/screen_edge_padding"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_rounded_surface"
+        android:backgroundTint="?attr/colorSurfaceContainerHigh"
+        android:orientation="vertical"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="12dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/buttonLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:id="@+id/progressText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/status_processing"
+            android:textAlignment="center"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurface" />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progressBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:indeterminate="false"
+            app:indicatorColor="?attr/colorPrimary"
+            app:trackCornerRadius="4dp"
+            app:trackThickness="6dp"
+            tools:ignore="VisualLintBounds" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/buttonLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/screen_edge_padding"
+        android:layout_marginEnd="@dimen/screen_edge_padding"
+        android:layout_marginBottom="12dp"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/selectButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/button_select_media"
+            app:cornerRadius="@dimen/component_corner_medium"
+            app:icon="@drawable/ic_add_photo"
+            app:iconGravity="textStart"
+            app:iconPadding="8dp"
+            tools:ignore="TextContrastCheck,VisualLintButtonSize" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/stripButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/button_strip_exif_data"
+            app:cornerRadius="@dimen/component_corner_medium"
+            app:icon="@drawable/ic_clean"
+            app:iconGravity="textStart"
+            app:iconPadding="8dp"
+            tools:ignore="TextContrastCheck,VisualLintButtonSize" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

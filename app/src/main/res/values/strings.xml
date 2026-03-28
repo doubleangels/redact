@@ -58,6 +58,7 @@
     <!-- Scan section strings -->
     <string name="scan_activity_title">ScanActivity</string>
     <string name="scan_metadata">Metadata</string>
+    <string name="scan_metadata_subtitle">Detected fields from this file. Tap and hold values to copy.</string>
     <string name="scan_basic_information">Basic Information</string>
     <string name="scan_camera_details">Camera Details</string>
     <string name="scan_location_information">Location Information</string>
@@ -65,6 +66,10 @@
     <string name="scan_location_permission_missing">Location data might be available if you grant the location permission.</string>
     <string name="scan_metadata_with_location_permission">%1$s\n%2$s</string>
     <string name="scan_extraction_fail">Failed to extract metadata!</string>
+    <string name="scan_open_in_maps">Open in Google Maps</string>
+    <string name="scan_maps_unavailable">No maps app found to open this location.</string>
+    <string name="scan_search_camera">Search camera</string>
+    <string name="scan_search_unavailable">No browser found to run this search.</string>
 
     <!-- Metadata output strings -->
     <!-- Basic File Information -->

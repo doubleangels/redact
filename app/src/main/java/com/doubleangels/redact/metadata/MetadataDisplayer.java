@@ -22,6 +22,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -46,6 +47,13 @@ public class MetadataDisplayer {
     public static final String SECTION_CAMERA_DETAILS = "camera_details";
     public static final String SECTION_LOCATION = "location";
     public static final String SECTION_TECHNICAL = "technical";
+
+    /**
+     * Separates metadata records when serializing section strings. Values may contain newlines (XMP/RDF),
+     * so Scan must not split only on {@code \n}.
+     */
+    private static final char METADATA_RECORD_SEP = '\u001e';
+    private static final char METADATA_UNIT_SEP = '\u001f';
 
     /**
      * Callback interface for receiving consolidated metadata extraction results.
@@ -193,10 +201,12 @@ public class MetadataDisplayer {
                         locationKeys.add(key);
                     }
                 }
+                Collections.sort(locationKeys, String.CASE_INSENSITIVE_ORDER);
                 if (!locationKeys.isEmpty()) {
                     StringBuilder locationSection = new StringBuilder();
                     for (String key : locationKeys) {
-                        locationSection.append(key).append(": ").append(allMetadata.get(key)).append("\n");
+                        locationSection.append(key).append(METADATA_UNIT_SEP).append(allMetadata.get(key))
+                                .append(METADATA_RECORD_SEP);
                         allMetadata.remove(key);
                     }
                     String locationContent = trimTrailingWhitespace(locationSection.toString());
@@ -205,10 +215,11 @@ public class MetadataDisplayer {
                     }
                 }
 
-                // Combine all metadata into a single string
+                // Combine all metadata into a single string (record/unit separators allow multiline XMP/RDF values)
                 StringBuilder combinedMetadata = new StringBuilder();
                 for (Map.Entry<String, String> entry : allMetadata.entrySet()) {
-                    combinedMetadata.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
+                    combinedMetadata.append(entry.getKey()).append(METADATA_UNIT_SEP).append(entry.getValue())
+                            .append(METADATA_RECORD_SEP);
                 }
                 
                 String metadataContent = trimTrailingWhitespace(combinedMetadata.toString());
@@ -577,7 +588,11 @@ public class MetadataDisplayer {
                                 while (!trimmedValue.isEmpty() && Character.isWhitespace(trimmedValue.charAt(trimmedValue.length() - 1))) {
                                     trimmedValue = trimmedValue.substring(0, trimmedValue.length() - 1);
                                 }
-                                
+
+                                if (XmlLikeMetadataFormatter.looksLikeRdfOrXmp(trimmedValue)) {
+                                    trimmedValue = XmlLikeMetadataFormatter.formatForDisplay(trimmedValue);
+                                }
+
                                 // Store GPS coordinates for later conversion
                                 switch (tagName) {
                                     case ExifInterface.TAG_GPS_LATITUDE -> {
@@ -929,13 +944,17 @@ public class MetadataDisplayer {
                             while (!trimmedValue.isEmpty() && Character.isWhitespace(trimmedValue.charAt(trimmedValue.length() - 1))) {
                                 trimmedValue = trimmedValue.substring(0, trimmedValue.length() - 1);
                             }
-                            
+
                             // Special handling for LOCATION field - don't add it directly, parse it instead
                             if (keyName.equals("METADATA_KEY_LOCATION")) {
                                 locationValue = trimmedValue;
                                 continue; // Skip adding this field directly
                             }
-                            
+
+                            if (XmlLikeMetadataFormatter.looksLikeRdfOrXmp(trimmedValue)) {
+                                trimmedValue = XmlLikeMetadataFormatter.formatForDisplay(trimmedValue);
+                            }
+
                             // Remove METADATA_KEY_ prefix and convert to uppercase with underscores, then add to single map
                             String displayKeyName = keyName.toUpperCase();
                             if (displayKeyName.startsWith("METADATA_KEY_")) {
@@ -1096,7 +1115,7 @@ public class MetadataDisplayer {
         return metadataContent;
     }
 
-    private static boolean isLocationMetadataKey(String key) {
+    public static boolean isLocationMetadataKey(String key) {
         if (key == null) {
             return false;
         }
