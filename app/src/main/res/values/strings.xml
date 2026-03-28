@@ -7,9 +7,54 @@
     <string name="content_description_image_view">Image view</string>
     <string name="content_description_scroll_view">Scroll view</string>
 
+    <!-- Local notifications -->
+    <string name="notification_channel_tasks_name">Tasks</string>
+    <string name="notification_channel_tasks_description">Finished converting and cleaning media</string>
+    <string name="notification_convert_title">Conversion finished</string>
+    <string name="notification_convert_all_succeeded">Saved %1$d file(s) to the gallery.</string>
+    <string name="notification_convert_partial">%1$d succeeded, %2$d failed.</string>
+    <string name="notification_convert_failed">No files could be converted.</string>
+    <string name="notification_clean_title">Cleaning finished</string>
+    <string name="notification_clean_body">Processed %1$d file(s).</string>
+    <string name="notification_convert_progress_title">Converting…</string>
+    <string name="notification_clean_progress_title">Cleaning metadata…</string>
+
     <!-- Navigation labels -->
     <string name="navigation_clean">Clean</string>
     <string name="navigation_scan">Scan</string>
+    <string name="navigation_convert">Convert</string>
+
+    <!-- Convert tab -->
+    <string name="convert_subtitle">Images: JPEG, PNG, WebP, or HEIC (Android 14+) into Pictures/Redact. Videos: MP4 with H.264, H.265, VP9, or AV1 into Movies/Redact. The HEIC option is hidden on older devices.</string>
+    <string name="convert_output_format_images">Image format</string>
+    <string name="convert_output_format_videos">Video codec</string>
+    <string name="convert_output_format_mixed">Formats (image / video)</string>
+    <string name="convert_format_mixed_pair">%1$s · %2$s</string>
+    <string name="convert_format_jpeg">JPEG</string>
+    <string name="convert_format_png">PNG</string>
+    <string name="convert_format_webp">WebP</string>
+    <string name="convert_format_h264">H.264</string>
+    <string name="convert_format_h265">H.265</string>
+    <string name="convert_format_vp9">VP9</string>
+    <string name="convert_format_heif">HEIC</string>
+    <string name="convert_format_av1">AV1</string>
+    <string name="convert_select_files">Select</string>
+    <string name="convert_run">Convert</string>
+    <string name="convert_status_hint">Select images or videos to convert.</string>
+    <string name="convert_status_ready">Ready to select media.</string>
+    <string name="convert_selected_count">Selected: %1$d file(s)</string>
+    <string name="convert_nothing_selected">Select at least one image first.</string>
+    <string name="convert_progress_item">Converting %1$d of %2$d…</string>
+    <string name="convert_progress_detail">%1$d of %2$d · %3$s\n%4$s</string>
+    <string name="convert_transcoding_percent">Transcoding… %1$d%%</string>
+    <string name="convert_encoding_image">Encoding image…</string>
+    <string name="progress_transcoding_percent">Transcoding… %1$d%%</string>
+    <string name="clean_progress_batch">%1$d of %2$d · %3$s</string>
+    <string name="convert_done_all">Converted %1$d file(s) successfully.</string>
+    <string name="convert_done_partial">Done: %1$d succeeded, %2$d failed.</string>
+    <string name="convert_done_failed">Conversion failed.</string>
+    <string name="convert_saved_to_gallery">Saved to Pictures/Redact or Movies/Redact</string>
+    <string name="convert_clean_tab_hint">Conversion changes format only. To remove metadata from the new files, go to the Clean tab and run them through cleaning.</string>
 
     <!-- Button labels -->
     <string name="button_select_media">Select Media</string>

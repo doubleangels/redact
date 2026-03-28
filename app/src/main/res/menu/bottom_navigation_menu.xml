@@ -8,4 +8,8 @@
         android:id="@+id/navigation_scan"
         android:icon="@drawable/ic_scan"
         android:title="@string/navigation_scan" />
+    <item
+        android:id="@+id/navigation_convert"
+        android:icon="@drawable/ic_convert"
+        android:title="@string/navigation_convert" />
 </menu>

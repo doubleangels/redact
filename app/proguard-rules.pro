@@ -35,10 +35,10 @@
 # Keep all classes in ui package
 -keep class com.doubleangels.redact.ui.** { *; }
 
-# Firebase Crashlytics
--keep public class * extends java.lang.Exception
--keep class com.google.firebase.crashlytics.** { *; }
--dontwarn com.google.firebase.crashlytics.**
+# Sentry
+-keepattributes LineNumberTable,SourceFile
+-keep class io.sentry.** { *; }
+-dontwarn io.sentry.**
 
 # Firebase Analytics
 -keep class com.google.android.gms.measurement.** { *; }

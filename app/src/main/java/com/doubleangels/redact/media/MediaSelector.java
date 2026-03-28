@@ -9,7 +9,7 @@ import android.util.Log;
 
 import androidx.activity.result.ActivityResultLauncher;
 
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.doubleangels.redact.sentry.SentryManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,7 +83,7 @@ public final class MediaSelector {
             );
         } catch (Exception e) {
             Log.e(TAG, "Failed to take permission for URI: " + uri, e);
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
         }
 
         String mimeType = activity.getContentResolver().getType(uri);
@@ -112,7 +112,7 @@ public final class MediaSelector {
                     }
                 }
             } catch (Exception e) {
-                FirebaseCrashlytics.getInstance().recordException(e);
+                SentryManager.recordException(e);
             }
         }
 

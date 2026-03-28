@@ -24,7 +24,7 @@ import com.doubleangels.redact.metadata.MetadataDisplayer;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.doubleangels.redact.sentry.SentryManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -158,8 +158,8 @@ public class ScanFragment extends Fragment {
     private void checkLocationPermissionAndDisplayMetadata(Uri mediaUri) {
         boolean hasLocationPermission = !permissionManager.needsLocationPermission();
 
-        FirebaseCrashlytics.getInstance().log("Has location permission: " + hasLocationPermission);
-        FirebaseCrashlytics.getInstance().setCustomKey("has_location_permission", hasLocationPermission);
+        SentryManager.log("Has location permission: " + hasLocationPermission);
+        SentryManager.setCustomKey("has_location_permission", hasLocationPermission);
 
         displayMetadata(mediaUri);
 
@@ -174,7 +174,7 @@ public class ScanFragment extends Fragment {
                 permissionManager.handlePermissionResult(requestCode, permissions, grantResults);
             }
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
         }
     }
 
@@ -187,7 +187,7 @@ public class ScanFragment extends Fragment {
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             mediaPickerLauncher.launch(intent);
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
             showStatus(getString(R.string.status_media_picker_fail));
         }
     }
@@ -204,12 +204,12 @@ public class ScanFragment extends Fragment {
             String mimeType = requireContext().getContentResolver().getType(mediaUri);
             boolean isVideo = mimeType != null && mimeType.startsWith("video/");
 
-            FirebaseCrashlytics.getInstance().log("Processing media with MIME type: " + mimeType);
-            FirebaseCrashlytics.getInstance().setCustomKey("media_type", mimeType != null ? mimeType : "unknown");
+            SentryManager.log("Processing media with MIME type: " + mimeType);
+            SentryManager.setCustomKey("media_type", mimeType != null ? mimeType : "unknown");
 
             boolean hasLocationPermission = !permissionManager.needsLocationPermission();
-            FirebaseCrashlytics.getInstance().log("Has location permission: " + hasLocationPermission);
-            FirebaseCrashlytics.getInstance().setCustomKey("has_location_permission", hasLocationPermission);
+            SentryManager.log("Has location permission: " + hasLocationPermission);
+            SentryManager.setCustomKey("has_location_permission", hasLocationPermission);
 
             progressText.setText(isVideo ? R.string.status_extracting_media : R.string.status_extracting_image);
 
@@ -238,7 +238,7 @@ public class ScanFragment extends Fragment {
                                 metadataCard.setVisibility(View.VISIBLE);
                             }
                         } catch (Exception e) {
-                            FirebaseCrashlytics.getInstance().recordException(e);
+                            SentryManager.recordException(e);
                         }
                     });
                 }
@@ -252,12 +252,12 @@ public class ScanFragment extends Fragment {
                         addMetadataRow(null, getString(R.string.scan_extraction_fail));
                         metadataCard.setVisibility(View.VISIBLE);
                         clearMapPreviewAction();
-                        FirebaseCrashlytics.getInstance().log("Metadata extraction failed: " + error);
+                        SentryManager.log("Metadata extraction failed: " + error);
                     });
                 }
             });
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
             showProgress(false);
             showStatus(getString(R.string.status_extraction_media_fail));
         }

@@ -18,7 +18,7 @@ import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.metadata.MetadataStripper;
 import java.io.File;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.doubleangels.redact.sentry.SentryManager;
 
 import java.util.ArrayList;
 
@@ -72,10 +72,11 @@ public class ShareHandlerActivity extends AppCompatActivity {
             metadataStripper = new MetadataStripper(this);
             
             // Set up progress callback for metadata stripping
-            metadataStripper.setProgressCallback((current, total, message) -> runOnUiThread(() -> updateProgressMessage(message)));
+            metadataStripper.setProgressCallback(
+                    (percent, message) -> runOnUiThread(() -> updateProgressMessage(message)));
 
             // Log activity creation for debugging purposes
-            FirebaseCrashlytics.getInstance().log("ShareHandlerActivity created");
+            SentryManager.log("ShareHandlerActivity created");
 
             // Create and show the progress dialog
             createProgressDialog();
@@ -84,7 +85,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             handleIntent(getIntent());
         } catch (Exception e) {
             // Record any initialization errors and finish the activity
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
             finishWithError("Error during initialization: " + e.getMessage());
         }
     }
@@ -138,20 +139,20 @@ public class ShareHandlerActivity extends AppCompatActivity {
             String type = intent.getType();
 
             // Log intent details for debugging
-            FirebaseCrashlytics.getInstance().setCustomKey("intent_action", action != null ? action : "null");
-            FirebaseCrashlytics.getInstance().setCustomKey("intent_type", type != null ? type : "null");
+            SentryManager.setCustomKey("intent_action", action != null ? action : "null");
+            SentryManager.setCustomKey("intent_type", type != null ? type : "null");
 
             // Handle single media item sharing
             if (Intent.ACTION_SEND.equals(action) && type != null) {
                 if (type.startsWith("image/")) {
-                    FirebaseCrashlytics.getInstance().log("Handling single image");
+                    SentryManager.log("Handling single image");
                     handleSentImage(intent);
                 } else if (type.startsWith("video/")) {
-                    FirebaseCrashlytics.getInstance().log("Handling single video");
+                    SentryManager.log("Handling single video");
                     handleSentVideo(intent);
                 } else {
                     // Unsupported media type
-                    FirebaseCrashlytics.getInstance().setCustomKey("unsupported_type", type);
+                    SentryManager.setCustomKey("unsupported_type", type);
                     finishWithError(getString(R.string.share_error_unsupported_media));
                 }
             }
@@ -159,20 +160,20 @@ public class ShareHandlerActivity extends AppCompatActivity {
             else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
                 if (type == null || type.startsWith("image/") || type.startsWith("video/")
                         || "*/*".equals(type)) {
-                    FirebaseCrashlytics.getInstance().log("Handling multiple media");
+                    SentryManager.log("Handling multiple media");
                     handleMultipleMedia(intent);
                 } else {
-                    FirebaseCrashlytics.getInstance().setCustomKey("unsupported_type", type);
+                    SentryManager.setCustomKey("unsupported_type", type);
                     finishWithError(getString(R.string.share_error_unsupported_media));
                 }
             } else {
                 // Unsupported action
-                FirebaseCrashlytics.getInstance().setCustomKey("unsupported_action", action != null ? action : "null");
+                SentryManager.setCustomKey("unsupported_action", action != null ? action : "null");
                 finishWithError(getString(R.string.share_error_unsupported_action));
             }
         } catch (Exception e) {
             // Log and handle any errors during intent processing
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
             finishWithError(getString(R.string.status_extraction_media_fail));
         }
     }
@@ -194,16 +195,16 @@ public class ShareHandlerActivity extends AppCompatActivity {
             }
             if (receivedUri != null) {
                 // Log the URI and process the image
-                FirebaseCrashlytics.getInstance().setCustomKey("received_uri", receivedUri.toString());
+                SentryManager.setCustomKey("received_uri", receivedUri.toString());
                 processMediaItem(receivedUri, false); // false indicates it's an image, not a video
             } else {
                 // Handle case where URI is missing
-                FirebaseCrashlytics.getInstance().log("Received null image URI");
+                SentryManager.log("Received null image URI");
                 finishWithError("Failed to receive image");
             }
         } catch (Exception e) {
             // Log and handle any errors
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
             finishWithError("Error handling image: " + e.getMessage());
         }
     }
@@ -225,16 +226,16 @@ public class ShareHandlerActivity extends AppCompatActivity {
             }
             if (receivedUri != null) {
                 // Log the URI and process the video
-                FirebaseCrashlytics.getInstance().setCustomKey("received_uri", receivedUri.toString());
+                SentryManager.setCustomKey("received_uri", receivedUri.toString());
                 processMediaItem(receivedUri, true); // true indicates it's a video
             } else {
                 // Handle case where URI is missing
-                FirebaseCrashlytics.getInstance().log("Received null video URI");
+                SentryManager.log("Received null video URI");
                 finishWithError("Failed to receive video");
             }
         } catch (Exception e) {
             // Log and handle any errors
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
             finishWithError("Error handling video: " + e.getMessage());
         }
     }
@@ -257,7 +258,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             }
             if (uris != null && !uris.isEmpty()) {
                 // Log the count of media items
-                FirebaseCrashlytics.getInstance().setCustomKey("media_count", uris.size());
+                SentryManager.setCustomKey("media_count", uris.size());
 
                 // Process only the first item in the list
                 receivedUri = uris.get(0);
@@ -265,18 +266,18 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 // Determine if it's a video or image by checking MIME type
                 String mimeType = getContentResolver().getType(receivedUri);
                 boolean isVideo = mimeType != null && mimeType.startsWith("video/");
-                FirebaseCrashlytics.getInstance().setCustomKey("is_video", isVideo);
+                SentryManager.setCustomKey("is_video", isVideo);
 
                 // Process the first media item
                 processMediaItem(receivedUri, isVideo);
             } else {
                 // Handle case where URIs are missing
-                FirebaseCrashlytics.getInstance().log("Received empty media list");
+                SentryManager.log("Received empty media list");
                 finishWithError("Failed to receive media");
             }
         } catch (Exception e) {
             // Log and handle any errors
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
             finishWithError("Error handling multiple media: " + e.getMessage());
         }
     }
@@ -295,7 +296,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             try {
                 // Get the file name from the URI
                 String fileName = mediaSelector.getFileName(uri);
-                FirebaseCrashlytics.getInstance().setCustomKey("file_name", fileName);
+                SentryManager.setCustomKey("file_name", fileName);
 
                 // Process using the "ForSharing" method which saves to cache
                 Uri processedUri = metadataStripper.stripMetadataForSharing(uri, fileName, isVideo);
@@ -319,7 +320,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                                     File potentialFile = new File(cacheDir, extractedFileName);
                                     if (potentialFile.exists() && potentialFile.isFile()) {
                                         processedFile = potentialFile;
-                                        FirebaseCrashlytics.getInstance().log("Found processed file by name: " + extractedFileName);
+                                        SentryManager.log("Found processed file by name: " + extractedFileName);
                                     }
                                 }
                             }
@@ -341,33 +342,33 @@ public class ShareHandlerActivity extends AppCompatActivity {
                                             }
                                             if (mostRecent != null) {
                                                 processedFile = mostRecent;
-                                                FirebaseCrashlytics.getInstance().log("Found processed file by timestamp: " + mostRecent.getName());
+                                                SentryManager.log("Found processed file by timestamp: " + mostRecent.getName());
                                             }
                                         }
                                     }
                                 }
                             } catch (Exception e) {
-                                FirebaseCrashlytics.getInstance().log("Could not find processed file for cleanup: " + e.getMessage());
-                                FirebaseCrashlytics.getInstance().recordException(e);
+                                SentryManager.log("Could not find processed file for cleanup: " + e.getMessage());
+                                SentryManager.recordException(e);
                             }
                             
                             // Share the cleaned file
-                            FirebaseCrashlytics.getInstance().log("Media processing completed successfully");
+                            SentryManager.log("Media processing completed successfully");
                             shareCleanFile(isVideo, processedUri);
                         } else {
                             // If processing failed, show an error
-                            FirebaseCrashlytics.getInstance().log("Media processing failed");
+                            SentryManager.log("Media processing failed");
                             finishWithError("Processing failed");
                         }
                     } catch (Exception e) {
                         // Handle any errors during completion
-                        FirebaseCrashlytics.getInstance().recordException(e);
+                        SentryManager.recordException(e);
                         finishWithError("Error in processing completion: " + e.getMessage());
                     }
                 });
             } catch (Exception e) {
                 // Log and handle any errors during processing
-                FirebaseCrashlytics.getInstance().recordException(e);
+                SentryManager.recordException(e);
                 runOnUiThread(() -> finishWithError("Failed to process media: " + e.getMessage()));
             }
         }).start();
@@ -384,7 +385,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 progressDialog.dismiss();
             } catch (Exception e) {
                 // Log but don't crash if dialog dismissal fails
-                FirebaseCrashlytics.getInstance().recordException(e);
+                SentryManager.recordException(e);
             }
         }
     }
@@ -398,7 +399,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
      */
     private void shareCleanFile(boolean isVideo, Uri cleanedFileUri) {
         try {
-            FirebaseCrashlytics.getInstance().setCustomKey("cleaned_uri", cleanedFileUri != null ? cleanedFileUri.toString() : "null");
+            SentryManager.setCustomKey("cleaned_uri", cleanedFileUri != null ? cleanedFileUri.toString() : "null");
 
             if (cleanedFileUri != null) {
                 // Create a share intent with the appropriate MIME type
@@ -412,16 +413,16 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
                 // Launch the share intent
                 // Note: We don't finish() immediately so we can cleanup in onResume()
-                FirebaseCrashlytics.getInstance().log("Launching share intent");
+                SentryManager.log("Launching share intent");
                 startActivity(Intent.createChooser(shareIntent, getString(R.string.share_chooser_title)));
             } else {
                 // Handle case where processing didn't produce a valid file
-                FirebaseCrashlytics.getInstance().log("Cleaned file URI is null");
+                SentryManager.log("Cleaned file URI is null");
                 finishWithError("Failed to get cleaned file");
             }
         } catch (Exception e) {
             // Log and handle any errors during sharing
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
             finishWithError("Error sharing clean file: " + e.getMessage());
         }
     }
@@ -463,14 +464,14 @@ public class ShareHandlerActivity extends AppCompatActivity {
         if (processedFile != null && processedFile.exists()) {
             try {
                 if (processedFile.delete()) {
-                    FirebaseCrashlytics.getInstance().log("Deleted temporary processed file after sharing");
+                    SentryManager.log("Deleted temporary processed file after sharing");
                 } else {
-                    FirebaseCrashlytics.getInstance().log("Failed to delete temporary processed file");
+                    SentryManager.log("Failed to delete temporary processed file");
                     // Try to delete on exit as fallback
                     processedFile.deleteOnExit();
                 }
             } catch (Exception e) {
-                FirebaseCrashlytics.getInstance().log("Error deleting temporary file: " + e.getMessage());
+                SentryManager.log("Error deleting temporary file: " + e.getMessage());
             }
         }
     }
@@ -484,7 +485,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
      */
     private void finishWithError(String message) {
         // Log the error message
-        FirebaseCrashlytics.getInstance().log("Error: " + message);
+        SentryManager.log("Error: " + message);
 
         // Show a toast with the error message
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();

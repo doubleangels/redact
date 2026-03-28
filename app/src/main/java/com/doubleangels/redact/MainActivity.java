@@ -1,13 +1,20 @@
 package com.doubleangels.redact;
 
+import android.Manifest;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowInsetsController;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -16,20 +23,33 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.color.DynamicColors;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.doubleangels.redact.sentry.SentryManager;
 
 /**
- * Single host activity: version line and bottom navigation stay fixed; {@link CleanFragment}
- * and {@link ScanFragment} swap in the area above.
+ * Single host activity: version line and bottom navigation stay fixed;
+ * {@link CleanFragment}, {@link ScanFragment}, and {@link ConvertFragment} swap above.
  */
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG_CLEAN = "clean";
     private static final String TAG_SCAN = "scan";
+    private static final String TAG_CONVERT = "convert";
     private static final String KEY_SELECTED_TAB = "selected_tab";
+    private static final String PREFS_NAME = "redact_prefs";
+    private static final String KEY_POST_NOTIFICATIONS_PROMPTED = "post_notifications_prompted";
+
+    private ActivityResultLauncher<String> notificationPermissionLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        notificationPermissionLauncher =
+                registerForActivityResult(
+                        new ActivityResultContracts.RequestPermission(),
+                        granted ->
+                                getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                                        .edit()
+                                        .putBoolean(KEY_POST_NOTIFICATIONS_PROMPTED, true)
+                                        .apply());
         try {
             DynamicColors.applyToActivityIfAvailable(this);
             WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
@@ -37,29 +57,47 @@ public class MainActivity extends AppCompatActivity {
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_main);
 
+            maybeRequestNotificationPermission();
+
             setupEdgeToEdgeInsets();
             setupStatusBarColors();
             setupVersionNumber();
 
-            FirebaseCrashlytics.getInstance().log("MainActivity created");
+            SentryManager.log("MainActivity created");
 
             if (savedInstanceState == null) {
                 ScanFragment scanFrag = new ScanFragment();
+                ConvertFragment convertFrag = new ConvertFragment();
                 getSupportFragmentManager().beginTransaction()
                         .add(R.id.fragment_container, new CleanFragment(), TAG_CLEAN)
                         .add(R.id.fragment_container, scanFrag, TAG_SCAN)
+                        .add(R.id.fragment_container, convertFrag, TAG_CONVERT)
                         .hide(scanFrag)
+                        .hide(convertFrag)
                         .commit();
             } else {
                 int tab = savedInstanceState.getInt(KEY_SELECTED_TAB, R.id.navigation_clean);
                 Fragment c = getSupportFragmentManager().findFragmentByTag(TAG_CLEAN);
                 Fragment s = getSupportFragmentManager().findFragmentByTag(TAG_SCAN);
-                if (c != null && s != null) {
+                Fragment cv = getSupportFragmentManager().findFragmentByTag(TAG_CONVERT);
+                if (cv == null) {
+                    getSupportFragmentManager().beginTransaction()
+                            .add(R.id.fragment_container, new ConvertFragment(), TAG_CONVERT)
+                            .commit();
+                }
+                getSupportFragmentManager().executePendingTransactions();
+                c = getSupportFragmentManager().findFragmentByTag(TAG_CLEAN);
+                s = getSupportFragmentManager().findFragmentByTag(TAG_SCAN);
+                cv = getSupportFragmentManager().findFragmentByTag(TAG_CONVERT);
+                if (c != null && s != null && cv != null) {
                     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                    ft.hide(c).hide(s).hide(cv);
                     if (tab == R.id.navigation_scan) {
-                        ft.show(s).hide(c);
+                        ft.show(s);
+                    } else if (tab == R.id.navigation_convert) {
+                        ft.show(cv);
                     } else {
-                        ft.show(c).hide(s);
+                        ft.show(c);
                     }
                     ft.commit();
                 }
@@ -70,24 +108,28 @@ public class MainActivity extends AppCompatActivity {
             bottomNavigationView.setOnItemSelectedListener(item -> {
                 try {
                     int itemId = item.getItemId();
-                    FirebaseCrashlytics.getInstance().log("Bottom navigation item selected: " + itemId);
+                    SentryManager.log("Bottom navigation item selected: " + itemId);
                     Fragment clean = getSupportFragmentManager().findFragmentByTag(TAG_CLEAN);
                     Fragment scan = getSupportFragmentManager().findFragmentByTag(TAG_SCAN);
-                    if (clean == null || scan == null) {
+                    Fragment convert = getSupportFragmentManager().findFragmentByTag(TAG_CONVERT);
+                    if (clean == null || scan == null || convert == null) {
                         return false;
                     }
                     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                    ft.hide(clean).hide(scan).hide(convert);
                     if (itemId == R.id.navigation_clean) {
-                        ft.show(clean).hide(scan);
+                        ft.show(clean);
                     } else if (itemId == R.id.navigation_scan) {
-                        ft.show(scan).hide(clean);
+                        ft.show(scan);
+                    } else if (itemId == R.id.navigation_convert) {
+                        ft.show(convert);
                     } else {
                         return false;
                     }
                     ft.commit();
                     return true;
                 } catch (Exception e) {
-                    FirebaseCrashlytics.getInstance().recordException(e);
+                    SentryManager.recordException(e);
                 }
                 return false;
             });
@@ -99,14 +141,34 @@ public class MainActivity extends AppCompatActivity {
                         savedInstanceState.getInt(KEY_SELECTED_TAB, R.id.navigation_clean));
             }
 
-            FirebaseCrashlytics.getInstance().setCustomKey("app_started", true);
+            SentryManager.setCustomKey("app_started", true);
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
             try {
                 setContentView(R.layout.activity_main);
             } catch (Exception ignored) {
             }
         }
+    }
+
+    /**
+     * One-time prompt for {@link Manifest.permission#POST_NOTIFICATIONS} on API 33+ so local
+     * completion notifications can be shown.
+     */
+    private void maybeRequestNotificationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || notificationPermissionLauncher == null) {
+            return;
+        }
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        if (prefs.getBoolean(KEY_POST_NOTIFICATIONS_PROMPTED, false)) {
+            return;
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                == PackageManager.PERMISSION_GRANTED) {
+            prefs.edit().putBoolean(KEY_POST_NOTIFICATIONS_PROMPTED, true).apply();
+            return;
+        }
+        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
     }
 
     @Override
@@ -151,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
         }
     }
 
@@ -164,18 +226,18 @@ public class MainActivity extends AppCompatActivity {
             if (insetsController != null) {
                 if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
                     insetsController.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
-                    FirebaseCrashlytics.getInstance().setCustomKey("theme_mode", "dark");
+                    SentryManager.setCustomKey("theme_mode", "dark");
                 } else {
                     insetsController.setSystemBarsAppearance(
                             WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
                             WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
-                    FirebaseCrashlytics.getInstance().setCustomKey("theme_mode", "light");
+                    SentryManager.setCustomKey("theme_mode", "light");
                 }
             } else {
-                FirebaseCrashlytics.getInstance().log("Insets controller is null");
+                SentryManager.log("Insets controller is null");
             }
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
         }
     }
 
@@ -185,9 +247,9 @@ public class MainActivity extends AppCompatActivity {
             PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
             versionText.setText(packageInfo.versionName);
             assert packageInfo.versionName != null;
-            FirebaseCrashlytics.getInstance().setCustomKey("app_version", packageInfo.versionName);
+            SentryManager.setCustomKey("app_version", packageInfo.versionName);
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
         }
     }
 
@@ -195,22 +257,28 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         try {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-            FirebaseCrashlytics.getInstance().log("Permission result received");
-            FirebaseCrashlytics.getInstance().setCustomKey("permission_request_code", requestCode);
+            SentryManager.log("Permission result received");
+            SentryManager.setCustomKey("permission_request_code", requestCode);
 
             Fragment scan = getSupportFragmentManager().findFragmentByTag(TAG_SCAN);
             Fragment clean = getSupportFragmentManager().findFragmentByTag(TAG_CLEAN);
-            if (scan != null && scan.isVisible()) {
+            Fragment convert = getSupportFragmentManager().findFragmentByTag(TAG_CONVERT);
+
+            if (convert != null && convert.isVisible()) {
+                ((ConvertFragment) convert).handlePermissionResult(requestCode, permissions, grantResults);
+            } else if (scan != null && scan.isVisible()) {
                 ((ScanFragment) scan).handlePermissionResult(requestCode, permissions, grantResults);
             } else if (clean != null && clean.isVisible()) {
                 ((CleanFragment) clean).handlePermissionResult(requestCode, permissions, grantResults);
+            } else if (convert != null) {
+                ((ConvertFragment) convert).handlePermissionResult(requestCode, permissions, grantResults);
             } else if (scan != null) {
                 ((ScanFragment) scan).handlePermissionResult(requestCode, permissions, grantResults);
             } else if (clean != null) {
                 ((CleanFragment) clean).handlePermissionResult(requestCode, permissions, grantResults);
             }
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
         }
     }
 
@@ -218,9 +286,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         try {
             super.onResume();
-            FirebaseCrashlytics.getInstance().log("MainActivity resumed");
+            SentryManager.log("MainActivity resumed");
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
         }
     }
 
@@ -228,9 +296,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         try {
             super.onPause();
-            FirebaseCrashlytics.getInstance().log("MainActivity paused");
+            SentryManager.log("MainActivity paused");
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
         }
     }
 }

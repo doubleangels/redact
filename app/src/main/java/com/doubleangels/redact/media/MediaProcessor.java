@@ -4,8 +4,9 @@ import android.app.Activity;
 import android.net.Uri;
 import android.util.Log;
 
+import com.doubleangels.redact.R;
 import com.doubleangels.redact.metadata.MetadataStripper;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.doubleangels.redact.sentry.SentryManager;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -40,11 +41,10 @@ public class MediaProcessor {
         /**
          * Called periodically to report progress during processing.
          *
-         * @param current Zero-based index of the item currently being processed in the batch
-         * @param total The total number of items to process
-         * @param message A human-readable progress message
+         * @param overallPercent 0–100 across the whole batch
+         * @param message        status line including current file and step when available
          */
-        void onProgress(int current, int total, String message);
+        void onProgress(int overallPercent, String message);
 
         /**
          * Called when all processing has completed.
@@ -98,10 +98,29 @@ public class MediaProcessor {
                 for (int index = 0; index < totalItems; index++) {
                     MediaItem item = items.get(index);
                     final int itemIndex = index;
-                    String progressMessage = "Processing " + (index + 1) + " of " + totalItems + "...";
+                    String batchLine =
+                            activity.getString(
+                                    R.string.clean_progress_batch,
+                                    index + 1,
+                                    totalItems,
+                                    item.fileName());
 
                     try {
-                        activity.runOnUiThread(() -> callback.onProgress(itemIndex, totalItems, progressMessage));
+                        metadataStripper.setProgressCallback(
+                                (percentOfCurrentItem, message) -> {
+                                    int overall =
+                                            totalItems > 0
+                                                    ? (itemIndex * 100 + percentOfCurrentItem) / totalItems
+                                                    : 0;
+                                    String combined = batchLine + "\n" + message;
+                                    activity.runOnUiThread(
+                                            () -> callback.onProgress(overall, combined));
+                                });
+
+                        activity.runOnUiThread(
+                                () -> callback.onProgress(
+                                        totalItems > 0 ? (itemIndex * 100) / totalItems : 0,
+                                        batchLine));
 
                         Uri processedUri;
                         if (item.isVideo()) {
@@ -110,16 +129,19 @@ public class MediaProcessor {
                             processedUri = metadataStripper.stripExifData(item.uri(), item.fileName());
                         }
 
+                        metadataStripper.setProgressCallback(null);
+
                         if (processedUri != null) {
                             lastProcessedFileUri = processedUri;
                             successCount++;
                         } else {
                             Log.e(TAG, "Failed to process item: " + item.fileName());
-                            FirebaseCrashlytics.getInstance().log("Failed to process item: " + item.fileName());
+                            SentryManager.log("Failed to process item: " + item.fileName());
                         }
                     } catch (Exception e) {
+                        metadataStripper.setProgressCallback(null);
                         Log.e(TAG, "Error processing item: " + item.fileName(), e);
-                        FirebaseCrashlytics.getInstance().recordException(e);
+                        SentryManager.recordException(e);
                     }
                 }
 

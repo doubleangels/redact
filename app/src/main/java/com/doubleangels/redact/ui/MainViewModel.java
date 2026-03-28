@@ -125,16 +125,10 @@ public class MainViewModel extends ViewModel {
     }
 
     /**
-     * Updates progress information.
-     *
-     * Calculates progress percentage based on current and total values,
-     * and updates both the percentage and message LiveData objects.
-     * Uses postValue instead of setValue to safely update values from
-     * background threads.
+     * Updates progress from a batch index (legacy coarse steps).
      *
      * @param current Zero-based index of the item currently being processed
-     * @param total Total number of items to process
-     * @param message Descriptive text about current processing step
+     * @param total   total number of items
      */
     public void updateProgress(int current, int total, String message) {
         if (total <= 0) {
@@ -144,6 +138,14 @@ public class MainViewModel extends ViewModel {
         }
         int percent = Math.min(100, Math.max(0, ((current + 1) * 100) / total));
         progressPercent.postValue(percent);
+        progressMessage.postValue(message != null ? message : "");
+    }
+
+    /**
+     * Sets overall progress (0–100) and status message.
+     */
+    public void updateProgressPercent(int percentComplete, String message) {
+        progressPercent.postValue(Math.min(100, Math.max(0, percentComplete)));
         progressMessage.postValue(message != null ? message : "");
     }
 }

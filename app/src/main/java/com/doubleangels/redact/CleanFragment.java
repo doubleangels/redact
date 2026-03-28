@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.doubleangels.redact.media.MediaAdapter;
 import com.doubleangels.redact.media.MediaItem;
+import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.media.MediaProcessor;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.permission.PermissionManager;
@@ -27,7 +28,7 @@ import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.ui.UIStateManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.doubleangels.redact.sentry.SentryManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,12 +61,12 @@ public class CleanFragment extends Fragment {
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     try {
-                        FirebaseCrashlytics.getInstance().log("Returned from settings");
+                        SentryManager.log("Returned from settings");
                         if (permissionManager != null) {
                             permissionManager.checkPermissions();
                         }
                     } catch (Exception e) {
-                        FirebaseCrashlytics.getInstance().recordException(e);
+                        SentryManager.recordException(e);
                     }
                 }
         );
@@ -74,16 +75,16 @@ public class CleanFragment extends Fragment {
                 result -> {
                     try {
                         if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                            FirebaseCrashlytics.getInstance().log("Media selected successfully");
+                            SentryManager.log("Media selected successfully");
                             List<MediaItem> items = mediaSelector.processMediaResult(result.getData());
-                            FirebaseCrashlytics.getInstance().setCustomKey("selected_media_count", items.size());
+                            SentryManager.setCustomKey("selected_media_count", items.size());
                             viewModel.setSelectedItems(items);
                         } else {
-                            FirebaseCrashlytics.getInstance().log("Media selection canceled or failed");
-                            FirebaseCrashlytics.getInstance().setCustomKey("media_result_code", result.getResultCode());
+                            SentryManager.log("Media selection canceled or failed");
+                            SentryManager.setCustomKey("media_result_code", result.getResultCode());
                         }
                     } catch (Exception e) {
-                        FirebaseCrashlytics.getInstance().recordException(e);
+                        SentryManager.recordException(e);
                     }
                 }
         );
@@ -100,14 +101,14 @@ public class CleanFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
-            FirebaseCrashlytics.getInstance().log("CleanFragment view created");
+            SentryManager.log("CleanFragment view created");
             viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
             setupViews(view);
             initUtilityClasses();
             setupObservers();
             permissionManager.checkPermissions();
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
         }
     }
 
@@ -129,62 +130,63 @@ public class CleanFragment extends Fragment {
 
             selectButton.setOnClickListener(v -> {
                 try {
-                    FirebaseCrashlytics.getInstance().log("Select button clicked");
+                    SentryManager.log("Select button clicked");
                     if (permissionManager.needsPermissions()) {
-                        FirebaseCrashlytics.getInstance().log("Requesting permissions");
+                        SentryManager.log("Requesting permissions");
                         permissionManager.requestStoragePermission();
                     } else {
-                        FirebaseCrashlytics.getInstance().log("Launching media selector");
+                        SentryManager.log("Launching media selector");
                         mediaSelector.selectMedia();
                     }
                 } catch (Exception e) {
-                    FirebaseCrashlytics.getInstance().recordException(e);
+                    SentryManager.recordException(e);
                 }
             });
 
             stripButton.setOnClickListener(v -> {
                 try {
-                    FirebaseCrashlytics.getInstance().log("Strip button clicked");
+                    SentryManager.log("Strip button clicked");
                     List<MediaItem> items = viewModel.getSelectedItems().getValue();
                     if (items != null && !items.isEmpty()) {
-                        FirebaseCrashlytics.getInstance().setCustomKey("processing_items_count", items.size());
+                        SentryManager.setCustomKey("processing_items_count", items.size());
                         viewModel.setProcessingState(MainViewModel.ProcessingState.PROCESSING);
                         mediaProcessor.processMediaItems(items, new MediaProcessor.ProcessingCallback() {
                             @Override
-                            public void onProgress(int current, int total, String message) {
+                            public void onProgress(int overallPercent, String message) {
                                 try {
-                                    viewModel.updateProgress(current, total, message);
-                                    if (total > 0) {
-                                        FirebaseCrashlytics.getInstance().setCustomKey("processing_progress",
-                                                (float) current / (float) total);
-                                    }
+                                    viewModel.updateProgressPercent(overallPercent, message);
+                                    SentryManager.setCustomKey(
+                                            "processing_progress_percent", overallPercent);
+                                    LocalNotifications.updateCleanProgress(
+                                            requireContext(), overallPercent, message);
                                 } catch (Exception e) {
-                                    FirebaseCrashlytics.getInstance().recordException(e);
+                                    SentryManager.recordException(e);
                                 }
                             }
 
                             @Override
                             public void onComplete(int processedCount) {
                                 try {
-                                    FirebaseCrashlytics.getInstance().log("Processing completed");
-                                    FirebaseCrashlytics.getInstance().setCustomKey("processed_count", processedCount);
+                                    SentryManager.log("Processing completed");
+                                    SentryManager.setCustomKey("processed_count", processedCount);
                                     viewModel.setProcessedItemCount(processedCount);
                                     viewModel.setProcessingState(MainViewModel.ProcessingState.COMPLETED);
+                                    LocalNotifications.showCleanComplete(requireContext(), processedCount);
                                 } catch (Exception e) {
-                                    FirebaseCrashlytics.getInstance().recordException(e);
+                                    SentryManager.recordException(e);
                                 }
                             }
                         });
                     } else {
-                        FirebaseCrashlytics.getInstance().log("No items selected for processing");
+                        SentryManager.log("No items selected for processing");
                         uiStateManager.setFirstSelectMediaFilesStatus();
                     }
                 } catch (Exception e) {
-                    FirebaseCrashlytics.getInstance().recordException(e);
+                    SentryManager.recordException(e);
                 }
             });
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
         }
     }
 
@@ -207,32 +209,32 @@ public class CleanFragment extends Fragment {
                         @Override
                         public void onPermissionsGranted() {
                             try {
-                                FirebaseCrashlytics.getInstance().log("Permissions granted");
-                                FirebaseCrashlytics.getInstance().setCustomKey("permissions_granted", true);
+                                SentryManager.log("Permissions granted");
+                                SentryManager.setCustomKey("permissions_granted", true);
                                 uiStateManager.setReadyStatus();
                             } catch (Exception e) {
-                                FirebaseCrashlytics.getInstance().recordException(e);
+                                SentryManager.recordException(e);
                             }
                         }
 
                         @Override
                         public void onPermissionsDenied() {
                             try {
-                                FirebaseCrashlytics.getInstance().log("Permissions denied");
-                                FirebaseCrashlytics.getInstance().setCustomKey("permissions_granted", false);
+                                SentryManager.log("Permissions denied");
+                                SentryManager.setCustomKey("permissions_granted", false);
                                 uiStateManager.setPermissionsRequiredStatus();
                             } catch (Exception e) {
-                                FirebaseCrashlytics.getInstance().recordException(e);
+                                SentryManager.recordException(e);
                             }
                         }
 
                         @Override
                         public void onPermissionsRequestStarted() {
                             try {
-                                FirebaseCrashlytics.getInstance().log("Permission request started");
+                                SentryManager.log("Permission request started");
                                 uiStateManager.setPermissionRequestingStatus();
                             } catch (Exception e) {
-                                FirebaseCrashlytics.getInstance().recordException(e);
+                                SentryManager.recordException(e);
                             }
                         }
                     }
@@ -241,7 +243,7 @@ public class CleanFragment extends Fragment {
             mediaSelector = new MediaSelector(requireActivity(), mediaPickerLauncher);
             mediaProcessor = new MediaProcessor(requireActivity());
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
         }
     }
 
@@ -252,28 +254,28 @@ public class CleanFragment extends Fragment {
                     mediaAdapter.updateItems(items);
                     uiStateManager.enableStripButton(!items.isEmpty());
                     uiStateManager.setSelectedItemsStatus(items.size());
-                    FirebaseCrashlytics.getInstance().setCustomKey("selected_items_count", items.size());
+                    SentryManager.setCustomKey("selected_items_count", items.size());
                 } catch (Exception e) {
-                    FirebaseCrashlytics.getInstance().recordException(e);
+                    SentryManager.recordException(e);
                 }
             });
 
             viewModel.getProcessingState().observe(getViewLifecycleOwner(), state -> {
                 try {
-                    FirebaseCrashlytics.getInstance().setCustomKey("processing_state", state.toString());
+                    SentryManager.setCustomKey("processing_state", state.toString());
                     switch (state) {
                         case PROCESSING:
-                            FirebaseCrashlytics.getInstance().log("Processing state: PROCESSING");
+                            SentryManager.log("Processing state: PROCESSING");
                             uiStateManager.showProgress(true);
                             uiStateManager.setProcessingStatus();
                             break;
 
                         case COMPLETED:
-                            FirebaseCrashlytics.getInstance().log("Processing state: COMPLETED");
+                            SentryManager.log("Processing state: COMPLETED");
                             uiStateManager.showProgress(false);
                             Integer count = viewModel.getProcessedItemCount().getValue();
                             if (count != null) {
-                                FirebaseCrashlytics.getInstance().setCustomKey("processed_items", count);
+                                SentryManager.setCustomKey("processed_items", count);
                                 uiStateManager.setProcessedItemsStatus(count);
                             }
                             viewModel.setProcessingState(MainViewModel.ProcessingState.IDLE);
@@ -281,21 +283,21 @@ public class CleanFragment extends Fragment {
 
                         case IDLE:
                         default:
-                            FirebaseCrashlytics.getInstance().log("Processing state: IDLE");
+                            SentryManager.log("Processing state: IDLE");
                             uiStateManager.showProgress(false);
                             break;
                     }
                 } catch (Exception e) {
-                    FirebaseCrashlytics.getInstance().recordException(e);
+                    SentryManager.recordException(e);
                 }
             });
 
             viewModel.getProgressPercent().observe(getViewLifecycleOwner(), percent -> {
                 try {
                     progressBar.setProgress(percent);
-                    FirebaseCrashlytics.getInstance().setCustomKey("progress_percent", percent);
+                    SentryManager.setCustomKey("progress_percent", percent);
                 } catch (Exception e) {
-                    FirebaseCrashlytics.getInstance().recordException(e);
+                    SentryManager.recordException(e);
                 }
             });
 
@@ -303,11 +305,11 @@ public class CleanFragment extends Fragment {
                 try {
                     progressText.setText(message);
                 } catch (Exception e) {
-                    FirebaseCrashlytics.getInstance().recordException(e);
+                    SentryManager.recordException(e);
                 }
             });
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
         }
     }
 
@@ -317,7 +319,7 @@ public class CleanFragment extends Fragment {
                 permissionManager.handlePermissionResult(requestCode, permissions, grantResults);
             }
         } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
+            SentryManager.recordException(e);
         }
     }
 }
