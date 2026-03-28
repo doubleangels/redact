@@ -35,6 +35,17 @@
     <string name="status_media_uri_fail">Could not get media URI!</string>
     <string name="status_storage_permissions_required">Storage permissions required!</string>
 
+    <!-- Permission rationale (runtime prompts) -->
+    <string name="permission_rationale_media">Media access is needed to select and process media files.</string>
+    <string name="permission_rationale_storage">Storage access is needed to select and process media files.</string>
+    <string name="permission_rationale_location">Location permission is needed to access geolocation data in media files.</string>
+    <string name="permission_denied_permanent">Permission denied permanently. Please enable it in Settings.</string>
+    <string name="permission_denied_retry">Permissions are required to select media files.</string>
+    <string name="permission_location_denied_permanent">Location permission denied permanently. Enable it in Settings to access media location data.</string>
+    <string name="permission_location_retry">Location permission is needed to access geolocation data in media files.</string>
+    <string name="snackbar_action_settings">Settings</string>
+    <string name="snackbar_action_retry">Retry</string>
+
     <!-- Share processing strings -->
     <string name="share_processing_title">Processing…</string>
     <string name="share_stripping_status">Stripping metadata…</string>

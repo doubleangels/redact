@@ -22,20 +22,21 @@ import java.util.Objects;
  * processing the results, and converting them to application-specific MediaItem objects.
  * It takes care of requesting persistent permissions for the selected media URIs and
  * extracting metadata such as file names.
- *
- * @param activity            Parent activity for context and content resolution
- * @param mediaPickerLauncher Launcher for the media picker activity
+ * <p>
+ * Implemented as a plain class (not a record) for maximum compatibility across
+ * Android runtimes and entry points such as {@link com.doubleangels.redact.ShareHandlerActivity}.
  */
-public record MediaSelector(Activity activity, ActivityResultLauncher<Intent> mediaPickerLauncher) {
+public final class MediaSelector {
+
     private static final String TAG = "MediaSelector";
 
-    /**
-     * Creates a new MediaSelector instance.
-     *
-     * @param activity            The parent activity used for context
-     * @param mediaPickerLauncher The ActivityResultLauncher that will handle media picker results
-     */
-    public MediaSelector {
+    private final Activity activity;
+    private final ActivityResultLauncher<Intent> mediaPickerLauncher;
+
+    // Used for share / single-purpose flows that only need getFileName (launcher may be null).
+    public MediaSelector(Activity activity, ActivityResultLauncher<Intent> mediaPickerLauncher) {
+        this.activity = activity;
+        this.mediaPickerLauncher = mediaPickerLauncher;
     }
 
     /**
@@ -45,6 +46,10 @@ public record MediaSelector(Activity activity, ActivityResultLauncher<Intent> me
      * and enables multiple item selection.
      */
     public void selectMedia() {
+        if (mediaPickerLauncher == null) {
+            Log.w(TAG, "selectMedia() called without an ActivityResultLauncher");
+            return;
+        }
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("*/*");
@@ -54,6 +59,9 @@ public record MediaSelector(Activity activity, ActivityResultLauncher<Intent> me
 
         // Enable multiple selection
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
 
         mediaPickerLauncher.launch(intent);
     }
@@ -112,7 +120,7 @@ public record MediaSelector(Activity activity, ActivityResultLauncher<Intent> me
             result = uri.getLastPathSegment();
         }
 
-        return result;
+        return result != null ? result : "media";
     }
 
     /**

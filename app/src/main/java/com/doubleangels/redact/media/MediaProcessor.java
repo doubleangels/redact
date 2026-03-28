@@ -8,6 +8,7 @@ import com.doubleangels.redact.metadata.MetadataStripper;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Handles the processing of media files (images and videos) to strip metadata.
@@ -28,6 +29,9 @@ public class MediaProcessor {
     /** Stores the URI of the most recently processed file */
     private Uri lastProcessedFileUri;
 
+    /** Prevents overlapping batch processing from multiple strip invocations */
+    private final AtomicBoolean processing = new AtomicBoolean(false);
+
     /**
      * Callback interface for reporting processing progress and completion.
      * Implementations should handle updating the UI accordingly.
@@ -36,7 +40,7 @@ public class MediaProcessor {
         /**
          * Called periodically to report progress during processing.
          *
-         * @param current The index of the current item being processed
+         * @param current Zero-based index of the item currently being processed in the batch
          * @param total The total number of items to process
          * @param message A human-readable progress message
          */
@@ -80,44 +84,50 @@ public class MediaProcessor {
      * @param callback The callback to report progress and completion
      */
     public void processMediaItems(List<MediaItem> items, ProcessingCallback callback) {
+        if (items == null || items.isEmpty()) {
+            return;
+        }
+        if (!processing.compareAndSet(false, true)) {
+            return;
+        }
         new Thread(() -> {
-            int totalItems = items.size();
-            int processedItems = 0;
+            try {
+                int totalItems = items.size();
+                int successCount = 0;
 
-            for (MediaItem item : items) {
-                final int currentItem = processedItems;
-                String progressMessage = "Processing " + (currentItem + 1) + " of " + totalItems + "...";
+                for (int index = 0; index < totalItems; index++) {
+                    MediaItem item = items.get(index);
+                    final int itemIndex = index;
+                    String progressMessage = "Processing " + (index + 1) + " of " + totalItems + "...";
 
-                try {
-                    // Update progress on UI thread
-                    activity.runOnUiThread(() -> callback.onProgress(currentItem, totalItems, progressMessage));
+                    try {
+                        activity.runOnUiThread(() -> callback.onProgress(itemIndex, totalItems, progressMessage));
 
-                    // Process the item based on its type
-                    Uri processedUri;
-                    if (item.isVideo()) {
-                        processedUri = metadataStripper.stripVideoMetadata(item.uri(), item.fileName());
-                    } else {
-                        processedUri = metadataStripper.stripExifData(item.uri(), item.fileName());
+                        Uri processedUri;
+                        if (item.isVideo()) {
+                            processedUri = metadataStripper.stripVideoMetadata(item.uri(), item.fileName());
+                        } else {
+                            processedUri = metadataStripper.stripExifData(item.uri(), item.fileName());
+                        }
+
+                        if (processedUri != null) {
+                            lastProcessedFileUri = processedUri;
+                            successCount++;
+                        } else {
+                            Log.e(TAG, "Failed to process item: " + item.fileName());
+                            FirebaseCrashlytics.getInstance().log("Failed to process item: " + item.fileName());
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error processing item: " + item.fileName(), e);
+                        FirebaseCrashlytics.getInstance().recordException(e);
                     }
-
-                    // Track successful processing
-                    if (processedUri != null) {
-                        lastProcessedFileUri = processedUri;
-                        processedItems++;
-                    } else {
-                        Log.e(TAG, "Failed to process item: " + item.fileName());
-                        FirebaseCrashlytics.getInstance().log("Failed to process item: " + item.fileName());
-                    }
-                } catch (Exception e) {
-                    // Log and report any errors that occur
-                    Log.e(TAG, "Error processing item: " + item.fileName(), e);
-                    FirebaseCrashlytics.getInstance().recordException(e);
                 }
-            }
 
-            // Report completion on UI thread
-            final int finalProcessedItems = processedItems;
-            activity.runOnUiThread(() -> callback.onComplete(finalProcessedItems));
+                final int finalSuccessCount = successCount;
+                activity.runOnUiThread(() -> callback.onComplete(finalSuccessCount));
+            } finally {
+                processing.set(false);
+            }
         }).start();
     }
 }

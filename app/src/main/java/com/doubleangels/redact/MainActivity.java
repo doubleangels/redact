@@ -170,10 +170,7 @@ public class MainActivity extends AppCompatActivity {
             // Log any exceptions that might occur during initialization
             FirebaseCrashlytics.getInstance().recordException(e);
             try {
-                // Attempt to recover by setting content view if it wasn't already set
-                if (findViewById(android.R.id.content) == null) {
-                    setContentView(R.layout.activity_main);
-                }
+                setContentView(R.layout.activity_main);
             } catch (Exception ignored) {
                 // Ignore any exceptions that occur during recovery attempt
             }
@@ -224,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
             stripButton.setEnabled(false);
 
             // Set up the RecyclerView with a grid layout for displaying media thumbnails
-            mediaAdapter = new MediaAdapter(new ArrayList<>());
+            mediaAdapter = new MediaAdapter(this, new ArrayList<>());
             selectedItemsGrid.setAdapter(mediaAdapter);
             selectedItemsGrid.setLayoutManager(new GridLayoutManager(this, 3));
 
@@ -267,7 +264,10 @@ public class MainActivity extends AppCompatActivity {
                             public void onProgress(int current, int total, String message) {
                                 try {
                                     viewModel.updateProgress(current, total, message);
-                                    FirebaseCrashlytics.getInstance().setCustomKey("processing_progress", (float) current / total);
+                                    if (total > 0) {
+                                        FirebaseCrashlytics.getInstance().setCustomKey("processing_progress",
+                                                (float) current / (float) total);
+                                    }
                                 } catch (Exception e) {
                                     FirebaseCrashlytics.getInstance().recordException(e);
                                 }

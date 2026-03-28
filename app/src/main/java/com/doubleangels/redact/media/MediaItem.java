@@ -2,55 +2,58 @@ package com.doubleangels.redact.media;
 
 import android.net.Uri;
 
+import java.util.Objects;
+
 /**
  * Represents a media item (image or video) within the Redact application.
  * <p>
  * This class encapsulates the basic information about a selected media file,
  * including its URI, type (video or image), and file name. It serves as a
  * data model for media processing operations.
- *
- * @param uri      URI pointing to the content location of this media item
- * @param isVideo  Flag indicating whether this item is a video (true) or image (false)
- * @param fileName The file name of this media item
+ * <p>
+ * Implemented as a plain class (not a record) for compatibility with Android runtimes
+ * that have had issues resolving record classes at class load time.
  */
-public record MediaItem(Uri uri, boolean isVideo, String fileName) {
-    /**
-     * Creates a new MediaItem with the specified properties.
-     *
-     * @param uri      The content URI of the media item
-     * @param isVideo  True if this is a video file, false if it's an image
-     * @param fileName The name of the media file
-     */
-    public MediaItem {
+public final class MediaItem {
+
+    private final Uri uri;
+    private final boolean isVideo;
+    private final String fileName;
+
+    public MediaItem(Uri uri, boolean isVideo, String fileName) {
+        this.uri = uri;
+        this.isVideo = isVideo;
+        this.fileName = fileName;
     }
 
-    /**
-     * Returns the content URI of this media item.
-     *
-     * @return The URI pointing to the media content
-     */
-    @Override
     public Uri uri() {
         return uri;
     }
 
-    /**
-     * Determines if this media item is a video.
-     *
-     * @return True if this is a video file, false if it's an image
-     */
-    @Override
     public boolean isVideo() {
         return isVideo;
     }
 
-    /**
-     * Returns the file name of this media item.
-     *
-     * @return The name of the media file
-     */
-    @Override
     public String fileName() {
         return fileName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        MediaItem mediaItem = (MediaItem) o;
+        return isVideo == mediaItem.isVideo
+                && Objects.equals(uri, mediaItem.uri)
+                && Objects.equals(fileName, mediaItem.fileName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(uri, isVideo, fileName);
     }
 }

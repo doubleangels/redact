@@ -13,6 +13,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
 
+import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.metadata.MetadataStripper;
 import java.io.File;
@@ -102,7 +103,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
         // Create and configure the progress dialog
         progressDialog = new MaterialAlertDialogBuilder(this)
-                .setTitle("Processing")
+                .setTitle(R.string.share_processing_title)
                 .setView(dialogView)
                 .setCancelable(false) // Prevent cancellation during processing
                 .create();
@@ -151,28 +152,28 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 } else {
                     // Unsupported media type
                     FirebaseCrashlytics.getInstance().setCustomKey("unsupported_type", type);
-                    finishWithError("Unsupported media type");
+                    finishWithError(getString(R.string.share_error_unsupported_media));
                 }
             }
-            // Handle multiple media items sharing
-            else if (Intent.ACTION_SEND_MULTIPLE.equals(action) && type != null) {
-                if (type.startsWith("image/") || type.startsWith("video/")) {
+            // Handle multiple media items sharing (type is often image/*, video/*, or */*)
+            else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
+                if (type == null || type.startsWith("image/") || type.startsWith("video/")
+                        || "*/*".equals(type)) {
                     FirebaseCrashlytics.getInstance().log("Handling multiple media");
                     handleMultipleMedia(intent);
                 } else {
-                    // Unsupported media type
                     FirebaseCrashlytics.getInstance().setCustomKey("unsupported_type", type);
-                    finishWithError("Unsupported media type");
+                    finishWithError(getString(R.string.share_error_unsupported_media));
                 }
             } else {
                 // Unsupported action
                 FirebaseCrashlytics.getInstance().setCustomKey("unsupported_action", action != null ? action : "null");
-                finishWithError("Unsupported action");
+                finishWithError(getString(R.string.share_error_unsupported_action));
             }
         } catch (Exception e) {
             // Log and handle any errors during intent processing
             FirebaseCrashlytics.getInstance().recordException(e);
-            finishWithError("Failed to process intent: " + e.getMessage());
+            finishWithError(getString(R.string.status_extraction_media_fail));
         }
     }
 
@@ -412,7 +413,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 // Launch the share intent
                 // Note: We don't finish() immediately so we can cleanup in onResume()
                 FirebaseCrashlytics.getInstance().log("Launching share intent");
-                startActivity(Intent.createChooser(shareIntent, "Share clean media file via"));
+                startActivity(Intent.createChooser(shareIntent, getString(R.string.share_chooser_title)));
             } else {
                 // Handle case where processing didn't produce a valid file
                 FirebaseCrashlytics.getInstance().log("Cleaned file URI is null");

@@ -132,13 +132,18 @@ public class MainViewModel extends ViewModel {
      * Uses postValue instead of setValue to safely update values from
      * background threads.
      *
-     * @param current Number of items processed so far
+     * @param current Zero-based index of the item currently being processed
      * @param total Total number of items to process
      * @param message Descriptive text about current processing step
      */
     public void updateProgress(int current, int total, String message) {
-        int percent = (current * 100) / total;
+        if (total <= 0) {
+            progressPercent.postValue(0);
+            progressMessage.postValue(message != null ? message : "");
+            return;
+        }
+        int percent = Math.min(100, Math.max(0, ((current + 1) * 100) / total));
         progressPercent.postValue(percent);
-        progressMessage.postValue(message);
+        progressMessage.postValue(message != null ? message : "");
     }
 }

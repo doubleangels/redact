@@ -1,5 +1,6 @@
 package com.doubleangels.redact.media;
 
+import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,12 +27,17 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
     /** The collection of media items to display */
     private final List<MediaItem> mediaItems;
 
+    /** Host activity for Glide lifecycle binding */
+    private final Activity activity;
+
     /**
      * Creates a new MediaAdapter instance.
      *
+     * @param activity Host activity for image loading lifecycle
      * @param mediaItems Initial list of media items to display
      */
-    public MediaAdapter(List<MediaItem> mediaItems) {
+    public MediaAdapter(Activity activity, List<MediaItem> mediaItems) {
+        this.activity = activity;
         this.mediaItems = mediaItems;
     }
 
@@ -63,8 +69,8 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
     public void onBindViewHolder(@NonNull MediaViewHolder holder, int position) {
         MediaItem item = mediaItems.get(position);
 
-        // Load thumbnail with Glide
-        Glide.with(holder.itemView.getContext())
+        // Load thumbnail with Glide (activity-scoped for correct request lifecycle)
+        Glide.with(activity)
                 .load(item.uri())
                 .placeholder(R.drawable.placeholder_image)
                 .error(R.drawable.error_image)
@@ -94,6 +100,9 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
      * @param newItems New list of media items to display
      */
     public void updateItems(List<MediaItem> newItems) {
+        if (newItems == null) {
+            return;
+        }
         final List<MediaItem> oldList = new ArrayList<>(mediaItems);
 
         DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {

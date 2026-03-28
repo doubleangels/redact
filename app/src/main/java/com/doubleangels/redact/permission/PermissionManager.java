@@ -14,6 +14,7 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.doubleangels.redact.R;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
@@ -322,9 +323,9 @@ public class PermissionManager {
         crashlytics.log("Showing media permissions rationale snackbar");
         Snackbar.make(
                         rootView,
-                        "Media access is needed to select and process media files!",
+                        activity.getString(R.string.permission_rationale_media),
                         Snackbar.LENGTH_LONG)
-                .setAction("OK", view -> requestMediaPermissions())
+                .setAction(android.R.string.ok, view -> requestMediaPermissions())
                 .show();
     }
 
@@ -351,9 +352,9 @@ public class PermissionManager {
         crashlytics.log("Showing storage permission rationale snackbar");
         Snackbar.make(
                         rootView,
-                        "Storage access is needed to select and process media files!",
+                        activity.getString(R.string.permission_rationale_storage),
                         Snackbar.LENGTH_LONG)
-                .setAction("OK", view -> requestStoragePermissions())
+                .setAction(android.R.string.ok, view -> requestStoragePermissions())
                 .show();
     }
 
@@ -376,9 +377,9 @@ public class PermissionManager {
         crashlytics.log("Showing location permission rationale snackbar");
         Snackbar.make(
                         rootView,
-                        "Location permission is needed to access geolocation data in media files!",
+                        activity.getString(R.string.permission_rationale_location),
                         Snackbar.LENGTH_LONG)
-                .setAction("OK", view -> requestMediaLocationPermission())
+                .setAction(android.R.string.ok, view -> requestMediaLocationPermission())
                 .show();
     }
 
@@ -545,9 +546,9 @@ public class PermissionManager {
                 crashlytics.log("Showing settings snackbar (permanent denial)");
                 Snackbar.make(
                                 rootView,
-                                "Permission denied permanently! Please enable in settings.",
+                                activity.getString(R.string.permission_denied_permanent),
                                 Snackbar.LENGTH_LONG)
-                        .setAction("SETTINGS", view -> {
+                        .setAction(activity.getString(R.string.snackbar_action_settings), view -> {
                             crashlytics.log("User opening app settings");
                             // Open app settings page
                             Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
@@ -561,9 +562,9 @@ public class PermissionManager {
                 crashlytics.log("Showing retry snackbar (temporary denial)");
                 Snackbar.make(
                                 rootView,
-                                "Permissions are required to select media files!",
+                                activity.getString(R.string.permission_denied_retry),
                                 Snackbar.LENGTH_LONG)
-                        .setAction("RETRY", view -> {
+                        .setAction(activity.getString(R.string.snackbar_action_retry), view -> {
                             crashlytics.log("User retrying permission request");
                             requestStoragePermission();
                         })
@@ -598,9 +599,9 @@ public class PermissionManager {
                 crashlytics.log("Showing settings snackbar for location (permanent denial)");
                 Snackbar.make(
                                 rootView,
-                                "Location permission denied permanently! Enable in settings to access media location data.",
+                                activity.getString(R.string.permission_location_denied_permanent),
                                 Snackbar.LENGTH_LONG)
-                        .setAction("SETTINGS", view -> {
+                        .setAction(activity.getString(R.string.snackbar_action_settings), view -> {
                             crashlytics.log("User opening app settings for location permission");
                             // Open app settings page
                             Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
@@ -614,9 +615,9 @@ public class PermissionManager {
                 crashlytics.log("Showing retry snackbar for location (temporary denial)");
                 Snackbar.make(
                                 rootView,
-                                "Location permission is needed to access geolocation data in media files.",
+                                activity.getString(R.string.permission_location_retry),
                                 Snackbar.LENGTH_LONG)
-                        .setAction("RETRY", view -> {
+                        .setAction(activity.getString(R.string.snackbar_action_retry), view -> {
                             crashlytics.log("User retrying location permission request");
                             requestLocationPermission();
                         })

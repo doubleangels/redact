@@ -270,8 +270,9 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
         int itemId = item.getItemId();
 
         if (itemId == R.id.navigation_clean) {
-            // Navigate to MainActivity when Clean tab is selected
-            startActivity(new Intent(this, MainActivity.class));
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
             return true;
         } else return itemId == R.id.navigation_scan; // Return true if Scan tab is selected
     }
@@ -348,9 +349,10 @@ public class ScanActivity extends AppCompatActivity implements NavigationBarView
                             // Combine and display all metadata sections
                             displayCombinedMetadata(metadataSections);
 
-                            // Show location permission message if needed
-                            if (!metadataSections.containsKey(MetadataDisplayer.SECTION_LOCATION) &&
-                                    permissionManager.needsLocationPermission()) {
+                            // Remind about ACCESS_MEDIA_LOCATION only when we did not surface any GPS/location rows
+                            String locationSection = metadataSections.get(MetadataDisplayer.SECTION_LOCATION);
+                            boolean hasLocationRows = locationSection != null && !locationSection.trim().isEmpty();
+                            if (permissionManager.needsLocationPermission() && !hasLocationRows) {
                                 String currentText = metadataText.getText().toString();
                                 if (!currentText.isEmpty()) {
                                     metadataText.setText(getString(R.string.scan_metadata_with_location_permission,

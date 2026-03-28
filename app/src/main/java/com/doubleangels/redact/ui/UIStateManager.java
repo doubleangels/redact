@@ -15,28 +15,32 @@ import com.google.android.material.progressindicator.LinearProgressIndicator;
  * This class centralizes UI state management for status messages, progress indicators,
  * and button states. It provides a clean interface for updating UI elements based on
  * application state changes without exposing UI implementation details to other components.
- *
- * @param activity          Parent activity that contains the UI elements
- * @param statusText        TextView displaying current application status
- * @param stripButton       Button to initiate processing of selected media items
- * @param progressContainer Container for progress-related UI elements
- * @param progressBar       Progress bar showing visual representation of processing progress
- * @param progressText      Text displaying detailed progress information
+ * <p>
+ * Implemented as a plain class (not a record) for compatibility with Android runtimes
+ * that have had issues resolving record classes at class load time.
  */
-public record UIStateManager(Activity activity, TextView statusText, MaterialButton stripButton,
-                             LinearLayout progressContainer, LinearProgressIndicator progressBar,
-                             TextView progressText) {
-    /**
-     * Creates a new UIStateManager with references to managed UI components.
-     *
-     * @param activity          The parent activity containing the UI elements
-     * @param statusText        TextView that displays status messages
-     * @param stripButton       Button that initiates metadata stripping
-     * @param progressContainer Layout that contains progress indicator elements
-     * @param progressBar       Progress bar that shows processing progress
-     * @param progressText      TextView that shows detailed progress messages
-     */
-    public UIStateManager {
+public final class UIStateManager {
+
+    private final Activity activity;
+    private final TextView statusText;
+    private final MaterialButton stripButton;
+    private final LinearLayout progressContainer;
+    private final LinearProgressIndicator progressBar;
+    private final TextView progressText;
+
+    public UIStateManager(
+            Activity activity,
+            TextView statusText,
+            MaterialButton stripButton,
+            LinearLayout progressContainer,
+            LinearProgressIndicator progressBar,
+            TextView progressText) {
+        this.activity = activity;
+        this.statusText = statusText;
+        this.stripButton = stripButton;
+        this.progressContainer = progressContainer;
+        this.progressBar = progressBar;
+        this.progressText = progressText;
     }
 
     /**
@@ -50,7 +54,8 @@ public record UIStateManager(Activity activity, TextView statusText, MaterialBut
      * @param message Text describing the current processing step
      */
     public void updateProgress(int current, int total, String message) {
-        int progressPercentage = (current * 100) / total;
+        int progressPercentage = total <= 0 ? 0
+                : Math.min(100, Math.max(0, (current * 100) / total));
 
         activity.runOnUiThread(() -> {
             progressBar.setProgress(progressPercentage);

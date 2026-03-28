@@ -9,10 +9,10 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
-import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.exifinterface.media.ExifInterface;
 
@@ -21,6 +21,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -185,19 +186,33 @@ public class MetadataDisplayer {
                     crashlytics.log("Extracting image metadata");
                     extractImageMetadataToMap(context, mediaUri, allMetadata);
                 }
-                
+
+                List<String> locationKeys = new ArrayList<>();
+                for (String key : allMetadata.keySet()) {
+                    if (isLocationMetadataKey(key)) {
+                        locationKeys.add(key);
+                    }
+                }
+                if (!locationKeys.isEmpty()) {
+                    StringBuilder locationSection = new StringBuilder();
+                    for (String key : locationKeys) {
+                        locationSection.append(key).append(": ").append(allMetadata.get(key)).append("\n");
+                        allMetadata.remove(key);
+                    }
+                    String locationContent = trimTrailingWhitespace(locationSection.toString());
+                    if (!locationContent.isEmpty()) {
+                        sections.put(SECTION_LOCATION, locationContent);
+                    }
+                }
+
                 // Combine all metadata into a single string
                 StringBuilder combinedMetadata = new StringBuilder();
                 for (Map.Entry<String, String> entry : allMetadata.entrySet()) {
                     combinedMetadata.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
                 }
                 
-                // Trim trailing whitespace
-                String metadataContent = combinedMetadata.toString();
-                while (!metadataContent.isEmpty() && Character.isWhitespace(metadataContent.charAt(metadataContent.length() - 1))) {
-                    metadataContent = metadataContent.substring(0, metadataContent.length() - 1);
-                }
-                
+                String metadataContent = trimTrailingWhitespace(combinedMetadata.toString());
+
                 sections.put(SECTION_BASIC_INFO, metadataContent);
 
                 // Log the number of sections extracted
@@ -416,9 +431,9 @@ public class MetadataDisplayer {
                 try {
                     float exposureValue = Float.parseFloat(exposureTime);
                     // Format exposure time as fraction (1/x) for values less than 1 second
-                    if (exposureValue < 1) {
-                        metadata.append(context.getString(R.string.metadata_exposure_time_fraction, Math.round(1 / exposureValue))).append("\n");
-                    } else {
+                    if (exposureValue > 0 && exposureValue < 1) {
+                        metadata.append(context.getString(R.string.metadata_exposure_time_fraction, Math.round(1f / exposureValue))).append("\n");
+                    } else if (exposureValue >= 1) {
                         metadata.append(context.getString(R.string.metadata_exposure_time_seconds, exposureValue)).append("\n");
                     }
                 } catch (NumberFormatException e) {
@@ -793,50 +808,45 @@ public class MetadataDisplayer {
             metadata.append("\n").append(context.getString(R.string.metadata_location_information_header)).append("\n");
 
             if (hasLocationPermission) {
-                String latitude = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_LOCATION);
-                if (latitude != null && !latitude.isEmpty()) {
-                    // Parse location string which is in format "lat+lon"
-                    String[] parts = latitude.split("\\+");
-                    if (parts.length == 2) {
+                String locationRaw = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_LOCATION);
+                if (locationRaw != null && !locationRaw.isEmpty()) {
+                    float[] coords = parseVideoLocationCoordinates(locationRaw);
+                    if (coords != null) {
+                        float lat = coords[0];
+                        float lon = coords[1];
+
+                        metadata.append(context.getString(R.string.metadata_latitude, lat)).append("\n");
+                        metadata.append(context.getString(R.string.metadata_longitude, lon)).append("\n");
+                        crashlytics.setCustomKey("has_location_data", true);
+                        crashlytics.log("Location data found in video");
+
                         try {
-                            float lat = Float.parseFloat(parts[0]);
-                            float lon = Float.parseFloat(parts[1]);
+                            if (Geocoder.isPresent()) {
+                                Geocoder geocoder = new Geocoder(context, Locale.getDefault());
+                                List<Address> addresses = geocoder.getFromLocation(lat, lon, 1);
 
-                            metadata.append(context.getString(R.string.metadata_latitude, lat)).append("\n");
-                            metadata.append(context.getString(R.string.metadata_longitude, lon)).append("\n");
-                            crashlytics.setCustomKey("has_location_data", true);
-                            crashlytics.log("Location data found in video");
+                                if (addresses != null && !addresses.isEmpty()) {
+                                    Address address = addresses.get(0);
+                                    StringBuilder addressText = new StringBuilder();
 
-                            // Try to get human-readable address from coordinates using Geocoder
-                            try {
-                                if (Geocoder.isPresent()) {
-                                    Geocoder geocoder = new Geocoder(context, Locale.getDefault());
-                                    List<Address> addresses = geocoder.getFromLocation(lat, lon, 1);
-
-                                    if (addresses != null && !addresses.isEmpty()) {
-                                        Address address = addresses.get(0);
-                                        StringBuilder addressText = new StringBuilder();
-
-                                        for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
-                                            addressText.append(address.getAddressLine(i));
-                                            if (i < address.getMaxAddressLineIndex()) {
-                                                addressText.append(", ");
-                                            }
+                                    for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
+                                        addressText.append(address.getAddressLine(i));
+                                        if (i < address.getMaxAddressLineIndex()) {
+                                            addressText.append(", ");
                                         }
-
-                                        metadata.append(context.getString(R.string.metadata_address, addressText)).append("\n");
-                                        crashlytics.log("Geocoding successful");
                                     }
+
+                                    metadata.append(context.getString(R.string.metadata_address, addressText)).append("\n");
+                                    crashlytics.log("Geocoding successful");
                                 }
-                            } catch (Exception e) {
-                                metadata.append(context.getString(R.string.metadata_geocoding_failed, e.getMessage())).append("\n");
-                                crashlytics.log("Geocoding failed: " + e.getMessage());
-                                crashlytics.recordException(e);
                             }
-                        } catch (NumberFormatException e) {
-                            crashlytics.log("Invalid location format: " + latitude);
+                        } catch (Exception e) {
+                            metadata.append(context.getString(R.string.metadata_geocoding_failed, e.getMessage())).append("\n");
+                            crashlytics.log("Geocoding failed: " + e.getMessage());
                             crashlytics.recordException(e);
                         }
+                    } else {
+                        crashlytics.log("Invalid location format: " + locationRaw);
                     }
                 } else {
                     metadata.append(context.getString(R.string.metadata_no_location_data)).append("\n");
@@ -853,11 +863,6 @@ public class MetadataDisplayer {
             if (frameRate != null) {
                 metadata.append(context.getString(R.string.metadata_frame_rate, frameRate)).append("\n");
                 crashlytics.setCustomKey("video_frame_rate", frameRate);
-            }
-
-            if (bitrate != null) {
-                long bitrateValue = Long.parseLong(bitrate);
-                metadata.append(context.getString(R.string.metadata_bitrate, bitrateValue / 1000)).append("\n");
             }
 
             String audioSampleRate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_SAMPLERATE);
@@ -1082,38 +1087,55 @@ public class MetadataDisplayer {
         }
     }
 
-    /**
-     * Attempts to retrieve the file path from a content URI.
-     * This is a helper method that may be useful for certain operations that require file paths.
-     *
-     * @param context Application context
-     * @param uri Content URI to resolve
-     * @return The file path if available, null otherwise
-     */
-    private static String getPathFromUri(Context context, Uri uri) {
-        FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
-        crashlytics.log("Attempting to get file path from URI");
-
-        try {
-            // Query the MediaStore to get the file path
-            String[] projection = {MediaStore.Images.Media.DATA};
-            Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null);
-
-            if (cursor != null) {
-                int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-                cursor.moveToFirst();
-                String path = cursor.getString(column_index);
-                cursor.close();
-                crashlytics.log("Successfully retrieved file path from URI");
-                return path;
-            }
-        } catch (Exception e) {
-            // Log the exception but don't throw it
-            Log.e(TAG, "Error getting path from URI", e);
-            crashlytics.recordException(e);
+    private static String trimTrailingWhitespace(String s) {
+        String metadataContent = s;
+        while (!metadataContent.isEmpty()
+                && Character.isWhitespace(metadataContent.charAt(metadataContent.length() - 1))) {
+            metadataContent = metadataContent.substring(0, metadataContent.length() - 1);
         }
+        return metadataContent;
+    }
 
-        crashlytics.log("Failed to get file path from URI");
+    private static boolean isLocationMetadataKey(String key) {
+        if (key == null) {
+            return false;
+        }
+        String upper = key.toUpperCase(Locale.ROOT);
+        return upper.startsWith("GPS") || "LOCATION".equals(upper);
+    }
+
+    /**
+     * Parses {@link MediaMetadataRetriever#METADATA_KEY_LOCATION} strings such as
+     * {@code +39.6594-104.9620} or {@code +39.6594+104.9620}.
+     *
+     * @return {@code [lat, lon]} or null if parsing fails
+     */
+    @Nullable
+    private static float[] parseVideoLocationCoordinates(@Nullable String raw) {
+        if (raw == null || raw.isEmpty()) {
+            return null;
+        }
+        String clean = raw;
+        if (clean.endsWith("/")) {
+            clean = clean.substring(0, clean.length() - 1);
+        }
+        int splitIndex = -1;
+        for (int i = 1; i < clean.length(); i++) {
+            char c = clean.charAt(i);
+            if (c == '+' || c == '-') {
+                splitIndex = i;
+                break;
+            }
+        }
+        if (splitIndex > 0) {
+            try {
+                float lat = Float.parseFloat(clean.substring(0, splitIndex));
+                float lon = Float.parseFloat(clean.substring(splitIndex));
+                return new float[]{lat, lon};
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
         return null;
     }
 

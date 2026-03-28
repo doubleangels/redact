@@ -12,7 +12,11 @@ import android.media.MediaMuxer;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
+import android.database.Cursor;
 import android.util.Log;
+
+import java.util.Locale;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -259,7 +263,7 @@ public class MetadataStripper {
             // Prepare MediaStore entry for the new video
             ContentValues values = new ContentValues();
             values.put(MediaStore.Video.Media.DISPLAY_NAME, newFilename);
-            values.put(MediaStore.Video.Media.MIME_TYPE, "video/" + extension.substring(1));
+            values.put(MediaStore.Video.Media.MIME_TYPE, videoMimeTypeForExtension(extension));
             values.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/Redact");
 
             // Create the new entry in MediaStore
@@ -648,7 +652,6 @@ public class MetadataStripper {
             // Clean up bitmap to free memory
             originalBitmap.recycle();
             originalBitmap = null;
-            System.gc();
 
             // Remove all EXIF metadata except essential tags
             updateProgress(4, 5, "Removing all metadata...");
@@ -664,13 +667,6 @@ public class MetadataStripper {
             crashlytics.setCustomKey("metadata_verification_passed", metadataRemoved);
             if (!metadataRemoved) {
                 crashlytics.log("Warning: Metadata verification found remaining metadata.");
-            }
-
-            // Zero-pad unused space for security
-            try {
-                zeroPadUnusedSpace(outputFile);
-            } catch (Exception e) {
-                crashlytics.log("Could not zero-pad file: " + e.getMessage() + ".");
             }
 
             // Get content URI using FileProvider for sharing
@@ -882,18 +878,60 @@ public class MetadataStripper {
     }
 
     /**
+     * Returns a correct {@code video/*} MIME type for MediaStore based on file extension.
+     */
+    @NonNull
+    private String videoMimeTypeForExtension(@NonNull String extensionWithDot) {
+        String ext = extensionWithDot.toLowerCase(Locale.US);
+        return switch (ext) {
+            case ".mp4" -> "video/mp4";
+            case ".webm" -> "video/webm";
+            case ".mkv" -> "video/x-matroska";
+            case ".mov" -> "video/quicktime";
+            case ".3gp" -> "video/3gpp";
+            case ".avi" -> "video/x-msvideo";
+            default -> "video/mp4";
+        };
+    }
+
+    /**
      * Determines the size of a file from its URI.
      *
      * This method tries multiple approaches to get the file size:
-     * 1. Using the file descriptor if available
-     * 2. Reading the entire file if necessary
+     * 1. OpenableColumns.SIZE (content URIs)
+     * 2. File length for {@code file://} URIs
+     * 3. AssetFileDescriptor length
+     * 4. Reading the stream (last resort; capped to avoid scanning multi-GB files)
      *
      * @param uri URI of the file to check, must not be null
      * @return Size of the file in bytes, or 0 if size couldn't be determined
      */
     private long getFileSizeFromUri(@NonNull Uri uri) {
+        final long maxMeasure = MAX_FILE_SIZE_MB * 1024L * 1024L + 1;
         try {
-            // Try to use ContentResolver to get file size directly
+            if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
+                try (Cursor cursor = contentResolver.query(uri,
+                        new String[]{OpenableColumns.SIZE}, null, null, null)) {
+                    if (cursor != null && cursor.moveToFirst()) {
+                        int idx = cursor.getColumnIndex(OpenableColumns.SIZE);
+                        if (idx >= 0 && !cursor.isNull(idx)) {
+                            long sz = cursor.getLong(idx);
+                            if (sz > 0) {
+                                return sz;
+                            }
+                        }
+                    }
+                }
+            } else if (ContentResolver.SCHEME_FILE.equals(uri.getScheme())) {
+                String path = uri.getPath();
+                if (path != null) {
+                    File f = new File(path);
+                    if (f.isFile()) {
+                        return f.length();
+                    }
+                }
+            }
+
             try (android.content.res.AssetFileDescriptor afd = contentResolver.openAssetFileDescriptor(uri, "r")) {
                 if (afd != null) {
                     long size = afd.getLength();
@@ -905,17 +943,18 @@ public class MetadataStripper {
                 // Fall through to stream-based approach
             }
 
-            // Fallback: read stream to determine size
             try (InputStream stream = contentResolver.openInputStream(uri)) {
-                if (stream == null)
+                if (stream == null) {
                     return 0;
-
-                // Use optimized buffer for size calculation
+                }
                 long size = 0;
                 byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
                 int bytesRead;
                 while ((bytesRead = stream.read(buffer)) != -1) {
                     size += bytesRead;
+                    if (size > maxMeasure) {
+                        return size;
+                    }
                 }
                 return size;
             }
@@ -1684,31 +1723,6 @@ public class MetadataStripper {
 
         crashlytics.log("Removed non-essential metadata from MediaFormat, kept only codec parameters.");
         return cleanFormat;
-    }
-
-    /**
-     * Zero-pads unused space in a file to prevent data recovery from slack space.
-     *
-     * @param file The file to zero-pad
-     * @throws IOException if padding fails
-     */
-    private void zeroPadUnusedSpace(@NonNull File file) throws IOException {
-        try (RandomAccessFile raf = new RandomAccessFile(file, "rws")) {
-            long fileSize = raf.length();
-            long currentPos = raf.getFilePointer();
-
-            // If file pointer is not at end, pad remaining space
-            if (currentPos < fileSize) {
-                raf.seek(currentPos);
-                byte[] zeros = new byte[SECURE_DELETE_BUFFER_SIZE];
-                while (currentPos < fileSize) {
-                    int bytesToWrite = (int) Math.min(zeros.length, fileSize - currentPos);
-                    raf.write(zeros, 0, bytesToWrite);
-                    currentPos += bytesToWrite;
-                }
-                raf.getFD().sync();
-            }
-        }
     }
 
     /**
