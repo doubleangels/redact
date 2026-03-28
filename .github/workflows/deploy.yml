@@ -52,7 +52,7 @@ jobs:
           sparse-checkout: whatsnew
 
       - name: Download Google Play bundle from Github release artifacts
-        uses: actions/download-artifact@v7.0.0
+        uses: actions/download-artifact@v8.0.1
         with:
           name: google-play-bundle
           path: .
