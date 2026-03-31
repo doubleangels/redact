@@ -1,6 +1,6 @@
 <b>Redact: Privacy & Metadata Remover</b>
 
-<p>Protect your privacy with Redact - the powerful yet simple app that removes all EXIF metadata from photos and videos before sharing online. Prevent location tracking, hide device information, and secure your personal data when posting on social media platforms.</p>
+<p>Protect your privacy with Redact - the powerful yet simple app that removes all EXIF metadata and converts formats of your photos and videos before sharing online. Prevent location tracking, hide device information, and secure your personal data when posting on social media platforms.</p>
 
 <b>Key Features:</b>
 
@@ -13,6 +13,9 @@ Easily scan and view all hidden EXIF data in your photos and videos before compl
 
 <li><b>User-Friendly Privacy Interface:</b><br>
 One-tap complete metadata removal makes protecting your digital privacy simple, quick, and accessible for everyone. Clean individual files or process multiple files at once.</li>
+
+<li><b>Universal Media Conversion:</b><br>
+Need a different format? Easily convert images to standard types like JPEG, PNG, WebP, or HEIC. Transcode unsupported videos into highly compatible MP4 or MKV files without relying on internet servers.</li>
 
 <li><b>Bulk Photo & Video Processing:</b><br>
 Clean multiple media files simultaneously, saving you time while enhancing your online privacy protection. Process entire batches with a single tap.</li>

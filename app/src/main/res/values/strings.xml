@@ -10,14 +10,14 @@
     <!-- Local notifications -->
     <string name="notification_channel_tasks_name">Tasks</string>
     <string name="notification_channel_tasks_description">Finished converting and cleaning media</string>
-    <string name="notification_convert_title">Conversion finished</string>
+    <string name="notification_convert_title">Conversion Finished</string>
     <string name="notification_convert_all_succeeded">Saved %1$d file(s) to the gallery.</string>
     <string name="notification_convert_partial">%1$d succeeded, %2$d failed.</string>
     <string name="notification_convert_failed">No files could be converted.</string>
-    <string name="notification_clean_title">Cleaning finished</string>
+    <string name="notification_clean_title">Cleaning Finished</string>
     <string name="notification_clean_body">Processed %1$d file(s).</string>
-    <string name="notification_convert_progress_title">Converting…</string>
-    <string name="notification_clean_progress_title">Cleaning metadata…</string>
+    <string name="notification_convert_progress_title">Converting Media…</string>
+    <string name="notification_clean_progress_title">Cleaning Metadata…</string>
 
     <!-- Navigation labels -->
     <string name="navigation_clean">Clean</string>
@@ -25,7 +25,7 @@
     <string name="navigation_convert">Convert</string>
 
     <!-- Convert tab -->
-    <string name="convert_subtitle">Images: JPEG, PNG, WebP, or HEIC (Android 14+) into Pictures/Redact. Videos: MP4 with H.264, H.265, VP9, or AV1 into Movies/Redact. The HEIC option is hidden on older devices.</string>
+    <string name="convert_subtitle">Images: JPEG, PNG, WebP, or HEIC (Android 14+) into Pictures/Redact. Videos: MP4, WebM, or MKV into Movies/Redact. The HEIC option is hidden on older devices.</string>
     <string name="convert_output_format_images">Image format</string>
     <string name="convert_output_format_videos">Video codec</string>
     <string name="convert_output_format_mixed">Formats (image / video)</string>
@@ -33,15 +33,15 @@
     <string name="convert_format_jpeg">JPEG</string>
     <string name="convert_format_png">PNG</string>
     <string name="convert_format_webp">WebP</string>
-    <string name="convert_format_h264">H.264</string>
-    <string name="convert_format_h265">H.265</string>
-    <string name="convert_format_vp9">VP9</string>
+    <string name="convert_format_h264">MP4 (H.264)</string>
+    <string name="convert_format_h265">MP4 (H.265)</string>
+    <string name="convert_format_vp9">WebM (VP9)</string>
     <string name="convert_format_heif">HEIC</string>
-    <string name="convert_format_av1">AV1</string>
+    <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">Select</string>
     <string name="convert_run">Convert</string>
     <string name="convert_status_hint">Select images or videos to convert.</string>
-    <string name="convert_status_ready">Ready to select media.</string>
+    <string name="convert_status_ready">Ready to select images/videos.</string>
     <string name="convert_selected_count">Selected: %1$d file(s)</string>
     <string name="convert_nothing_selected">Select at least one image first.</string>
     <string name="convert_progress_item">Converting %1$d of %2$d…</string>
@@ -53,7 +53,7 @@
     <string name="convert_done_all">Converted %1$d file(s) successfully.</string>
     <string name="convert_done_partial">Done: %1$d succeeded, %2$d failed.</string>
     <string name="convert_done_failed">Conversion failed.</string>
-    <string name="convert_saved_to_gallery">Saved to Pictures/Redact or Movies/Redact</string>
+    <string name="convert_saved_to_gallery">Saved to Gallery (Redact folder)</string>
     <string name="convert_clean_tab_hint">Conversion changes format only. To remove metadata from the new files, go to the Clean tab and run them through cleaning.</string>
 
     <!-- Button labels -->
@@ -65,10 +65,10 @@
     <string name="status_processed_items">Processed %1$d items!</string>
     <string name="status_selected_items">Selected: %1$d items</string>
     <string name="status_first_select_media_files">Please select media files first!</string>
-    <string name="status_ready">Ready to select media!</string>
+    <string name="status_ready">Ready to select images/videos.</string>
     <string name="status_permissions_required">Permissions required!</string>
     <string name="status_requesting_permissions">Requesting permissions…</string>
-    <string name="status_select_media_files">Select media to strip metadata!</string>
+    <string name="status_select_media_files">Select images or videos to strip their metadata!</string>
     <string name="status_analyzing">Analyzing metadata…</string>
     <string name="status_select_item">Select an image or video to view metadata!</string>
     <string name="status_extraction_complete">Metadata extraction complete!</string>

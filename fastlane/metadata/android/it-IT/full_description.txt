@@ -31,6 +31,8 @@ Pulisci facilmente i file da qualsiasi app tramite il menu di condivisione Andro
 
 <li><b>Supporto Multilingue:</b><br>
 Disponibile in 13 lingue tra cui inglese, spagnolo, francese, tedesco, italiano, portoghese, russo, giapponese, coreano, cinese (Semplificato e Tradizionale), hindi e arabo.</li>
+<li><b>Conversione multimediale universale:</b><br>Hai bisogno di un formato diverso? Converti facilmente le immagini in tipi standard come JPEG, PNG, WebP o HEIC. Transcodifica video non supportati in file MP4 o MKV altamente compatibili senza fare affidamento su server Internet.</li>
+
 </ul>
 
 <p>Prendi il controllo della tua impronta digitale! I metadati EXIF possono esporre le tue coordinate GPS precise, dettagli del dispositivo, impostazioni della fotocamera, timestamp e identificatori univoci. Redact elimina tutti questi rischi per la privacy preservando la qualità dei tuoi file multimediali. Perfetto per la condivisione sui social media, la fotografia professionale e chiunque sia preoccupato per la privacy digitale.</p>

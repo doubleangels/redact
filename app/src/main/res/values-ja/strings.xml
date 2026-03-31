@@ -11,6 +11,51 @@
     <string name="navigation_clean">クリーン</string>
     <string name="navigation_scan">スキャン</string>
 
+    <!-- Local notifications -->
+    <string name="notification_channel_tasks_name">タスク</string>
+    <string name="notification_channel_tasks_description">メディアの変換とクリーンアップが完了しました</string>
+    <string name="notification_convert_title">変換完了</string>
+    <string name="notification_convert_all_succeeded">%1$d個のファイルをギャラリーに保存しました。</string>
+    <string name="notification_convert_partial">%1$d個成功、%2$d個失敗。</string>
+    <string name="notification_convert_failed">変換できるファイルがありませんでした。</string>
+    <string name="notification_clean_title">クリーンアップ完了</string>
+    <string name="notification_clean_body">%1$d個のファイルを処理しました。</string>
+    <string name="notification_convert_progress_title">メディアを変換中…</string>
+    <string name="notification_clean_progress_title">メタデータを削除中…</string>
+
+    <string name="navigation_convert">変換</string>
+
+    <!-- Convert tab -->
+    <string name="convert_output_format_images">画像フォーマット</string>
+    <string name="convert_output_format_videos">ビデオコーデック</string>
+    <string name="convert_output_format_mixed">フォーマット (画像 / 動画)</string>
+    <string name="convert_format_mixed_pair">%1$s · %2$s</string>
+    <string name="convert_format_jpeg">JPEG</string>
+    <string name="convert_format_png">PNG</string>
+    <string name="convert_format_webp">WebP</string>
+    <string name="convert_format_h264">MP4 (H.264)</string>
+    <string name="convert_format_h265">MP4 (H.265)</string>
+    <string name="convert_format_vp9">WebM (VP9)</string>
+    <string name="convert_format_heif">HEIC</string>
+    <string name="convert_format_av1">MKV (AV1)</string>
+    <string name="convert_select_files">選択</string>
+    <string name="convert_run">変換</string>
+    <string name="convert_status_hint">変換する画像または動画を選択してください。</string>
+    <string name="convert_status_ready">画像/動画を選択する準備ができました。</string>
+    <string name="convert_selected_count">選択済み: %1$d個のファイル</string>
+    <string name="convert_nothing_selected">まず画像を1つ以上選択してください。</string>
+    <string name="convert_progress_item">%2$d個中%1$d個目を変換中…</string>
+    <string name="convert_progress_detail">%2$d個中%1$d個目 · %3$s\n%4$s</string>
+    <string name="convert_transcoding_percent">トランスコード中… %1$d%%</string>
+    <string name="convert_encoding_image">画像をエンコード中…</string>
+    <string name="progress_transcoding_percent">トランスコード中… %1$d%%</string>
+    <string name="clean_progress_batch">%2$d個中%1$d個目 · %3$s</string>
+    <string name="convert_done_all">%1$d個のファイルが正常に変換されました。</string>
+    <string name="convert_done_partial">完了: %1$d個成功、%2$d個失敗。</string>
+    <string name="convert_done_failed">変換に失敗しました。</string>
+    <string name="convert_saved_to_gallery">ギャラリー(Redactフォルダ)に保存しました</string>
+    <string name="convert_clean_tab_hint">変換はフォーマットのみを変更します。メタデータを削除するには「クリーン」タブを使用してください。</string>
+
     <!-- Button labels -->
     <string name="button_select_media">メディアを選択</string>
     <string name="button_strip_exif_data">メタデータをクリーン</string>
@@ -20,7 +65,7 @@
     <string name="status_processed_items">%1$d件のアイテムを処理しました！</string>
     <string name="status_selected_items">選択済み: %1$d件のアイテム</string>
     <string name="status_first_select_media_files">まずメディアファイルを選択してください！</string>
-    <string name="status_ready">メディアを選択する準備ができました！</string>
+    <string name="status_ready">画像/動画を選択する準備ができました！</string>
     <string name="status_permissions_required">権限が必要です！</string>
     <string name="status_requesting_permissions">権限をリクエスト中…</string>
     <string name="status_select_media_files">メタデータを削除するメディアを選択してください！</string>

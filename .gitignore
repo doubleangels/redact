@@ -43,3 +43,8 @@ gradlew.bat
 
 # Intermediate files
 /app/src/build/*
+
+# Test files
+*.mp4
+*.jpg
+*.png

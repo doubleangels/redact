@@ -33,6 +33,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import io.sentry.ITransaction;
+import io.sentry.SpanStatus;
+
 /**
  * Scan tab: metadata inspection UI; hosted in {@link MainActivity}'s fragment container.
  */
@@ -91,6 +94,7 @@ public class ScanFragment extends Fragment {
                     if (result.getResultCode() == android.app.Activity.RESULT_OK && result.getData() != null) {
                         Uri mediaUri = result.getData().getData();
                         if (mediaUri != null) {
+                            SentryManager.log("Media selected successfully in ScanFragment");
                             currentMediaUri = mediaUri;
                             checkLocationPermissionAndDisplayMetadata(mediaUri);
                         } else {
@@ -110,6 +114,7 @@ public class ScanFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        SentryManager.log("ScanFragment view created");
 
         statusText = view.findViewById(R.id.statusText);
         progressText = view.findViewById(R.id.progressText);
@@ -151,7 +156,10 @@ public class ScanFragment extends Fragment {
                     }
                 });
 
-        selectMediaButton.setOnClickListener(v -> openMediaPicker());
+        selectMediaButton.setOnClickListener(v -> {
+            SentryManager.log("Select button clicked in ScanFragment");
+            openMediaPicker();
+        });
         permissionManager.checkPermissions();
     }
 
@@ -180,6 +188,7 @@ public class ScanFragment extends Fragment {
 
     private void openMediaPicker() {
         try {
+            SentryManager.log("Launching media picker in ScanFragment");
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.setType("*/*");
             intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/*", "video/*"});
@@ -213,9 +222,12 @@ public class ScanFragment extends Fragment {
 
             progressText.setText(isVideo ? R.string.status_extracting_media : R.string.status_extracting_image);
 
+            final ITransaction transaction = SentryManager.startTransaction("extract_metadata", "task");
             MetadataDisplayer.extractSectionedMetadata(requireContext(), mediaUri, new MetadataDisplayer.SectionedMetadataCallback() {
                 @Override
                 public void onMetadataExtracted(Map<String, String> metadataSections, boolean isVideo) {
+                    transaction.setStatus(SpanStatus.OK);
+                    transaction.finish();
                     requireActivity().runOnUiThread(() -> {
                         try {
                             showProgress(false);
@@ -245,6 +257,8 @@ public class ScanFragment extends Fragment {
 
                 @Override
                 public void onExtractionFailed(String error) {
+                    transaction.setStatus(SpanStatus.INTERNAL_ERROR);
+                    transaction.finish();
                     requireActivity().runOnUiThread(() -> {
                         showProgress(false);
                         showStatus(getString(R.string.status_extraction_fail));

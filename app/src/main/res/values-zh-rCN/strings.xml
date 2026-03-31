@@ -11,6 +11,51 @@
     <string name="navigation_clean">清理</string>
     <string name="navigation_scan">扫描</string>
 
+    <!-- Local notifications -->
+    <string name="notification_channel_tasks_name">任务</string>
+    <string name="notification_channel_tasks_description">媒体转换与清理完成</string>
+    <string name="notification_convert_title">转换完成</string>
+    <string name="notification_convert_all_succeeded">已将 %1$d 个文件保存到相册。</string>
+    <string name="notification_convert_partial">%1$d 个成功，%2$d 个失败。</string>
+    <string name="notification_convert_failed">无法转换任何文件。</string>
+    <string name="notification_clean_title">清理完成</string>
+    <string name="notification_clean_body">已处理 %1$d 个文件。</string>
+    <string name="notification_convert_progress_title">正在转换媒体…</string>
+    <string name="notification_clean_progress_title">正在清理元数据…</string>
+
+    <string name="navigation_convert">转换</string>
+
+    <!-- Convert tab -->
+    <string name="convert_output_format_images">图片格式</string>
+    <string name="convert_output_format_videos">视频编码</string>
+    <string name="convert_output_format_mixed">格式（图片/视频）</string>
+    <string name="convert_format_mixed_pair">%1$s · %2$s</string>
+    <string name="convert_format_jpeg">JPEG</string>
+    <string name="convert_format_png">PNG</string>
+    <string name="convert_format_webp">WebP</string>
+    <string name="convert_format_h264">MP4 (H.264)</string>
+    <string name="convert_format_h265">MP4 (H.265)</string>
+    <string name="convert_format_vp9">WebM (VP9)</string>
+    <string name="convert_format_heif">HEIC</string>
+    <string name="convert_format_av1">MKV (AV1)</string>
+    <string name="convert_select_files">选择</string>
+    <string name="convert_run">转换</string>
+    <string name="convert_status_hint">选择要转换的图片或视频。</string>
+    <string name="convert_status_ready">准备选择图片/视频。</string>
+    <string name="convert_selected_count">已选择：%1$d 个文件</string>
+    <string name="convert_nothing_selected">请先至少选择一张图片。</string>
+    <string name="convert_progress_item">正在转换第 %1$d 个，共 %2$d 个…</string>
+    <string name="convert_progress_detail">第 %1$d 个，共 %2$d 个 · %3$s\n%4$s</string>
+    <string name="convert_transcoding_percent">转码中… %1$d%%</string>
+    <string name="convert_encoding_image">图片编码中…</string>
+    <string name="progress_transcoding_percent">转码中… %1$d%%</string>
+    <string name="clean_progress_batch">第 %1$d 个，共 %2$d 个 · %3$s</string>
+    <string name="convert_done_all">成功转换了 %1$d 个文件。</string>
+    <string name="convert_done_partial">完成：%1$d 个成功，%2$d 个失败。</string>
+    <string name="convert_done_failed">转换失败。</string>
+    <string name="convert_saved_to_gallery">已保存到相册（Redact 文件夹）</string>
+    <string name="convert_clean_tab_hint">转换仅改变格式。要删除元数据，请前往“清理”标签页。</string>
+
     <!-- Button labels -->
     <string name="button_select_media">选择媒体</string>
     <string name="button_strip_exif_data">清理元数据</string>
@@ -20,7 +65,7 @@
     <string name="status_processed_items">已处理 %1$d 项！</string>
     <string name="status_selected_items">已选择：%1$d 项</string>
     <string name="status_first_select_media_files">请先选择媒体文件！</string>
-    <string name="status_ready">准备选择媒体！</string>
+    <string name="status_ready">准备选择图片/视频！</string>
     <string name="status_permissions_required">需要权限！</string>
     <string name="status_requesting_permissions">正在请求权限…</string>
     <string name="status_select_media_files">选择媒体以删除元数据！</string>

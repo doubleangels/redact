@@ -11,6 +11,51 @@
     <string name="navigation_clean">정리</string>
     <string name="navigation_scan">스캔</string>
 
+    <!-- Local notifications -->
+    <string name="notification_channel_tasks_name">작업</string>
+    <string name="notification_channel_tasks_description">미디어 변환 및 정리 완료</string>
+    <string name="notification_convert_title">변환 완료</string>
+    <string name="notification_convert_all_succeeded">갤러리에 %1$d개의 파일을 저장했습니다.</string>
+    <string name="notification_convert_partial">%1$d개 성공, %2$d개 실패.</string>
+    <string name="notification_convert_failed">변환할 수 있는 파일이 없습니다.</string>
+    <string name="notification_clean_title">정리 완료</string>
+    <string name="notification_clean_body">%1$d개의 파일을 처리했습니다.</string>
+    <string name="notification_convert_progress_title">미디어 변환 중…</string>
+    <string name="notification_clean_progress_title">메타데이터 정리 중…</string>
+
+    <string name="navigation_convert">변환</string>
+
+    <!-- Convert tab -->
+    <string name="convert_output_format_images">이미지 형식</string>
+    <string name="convert_output_format_videos">비디오 코덱</string>
+    <string name="convert_output_format_mixed">형식 (이미지/비디오)</string>
+    <string name="convert_format_mixed_pair">%1$s · %2$s</string>
+    <string name="convert_format_jpeg">JPEG</string>
+    <string name="convert_format_png">PNG</string>
+    <string name="convert_format_webp">WebP</string>
+    <string name="convert_format_h264">MP4 (H.264)</string>
+    <string name="convert_format_h265">MP4 (H.265)</string>
+    <string name="convert_format_vp9">WebM (VP9)</string>
+    <string name="convert_format_heif">HEIC</string>
+    <string name="convert_format_av1">MKV (AV1)</string>
+    <string name="convert_select_files">선택</string>
+    <string name="convert_run">변환</string>
+    <string name="convert_status_hint">변환할 이미지나 비디오를 선택하세요.</string>
+    <string name="convert_status_ready">이미지/비디오를 선택할 준비가 되었습니다.</string>
+    <string name="convert_selected_count">선택됨: %1$d개 파일</string>
+    <string name="convert_nothing_selected">먼저 이미지를 하나 이상 선택하세요.</string>
+    <string name="convert_progress_item">%2$d개 중 %1$d개 변환 중…</string>
+    <string name="convert_progress_detail">%2$d개 중 %1$d개 · %3$s\n%4$s</string>
+    <string name="convert_transcoding_percent">트랜스코딩 중… %1$d%%</string>
+    <string name="convert_encoding_image">이미지 인코딩 중…</string>
+    <string name="progress_transcoding_percent">트랜스코딩 중… %1$d%%</string>
+    <string name="clean_progress_batch">%2$d개 중 %1$d개 · %3$s</string>
+    <string name="convert_done_all">%1$d개의 파일을 성공적으로 변환했습니다.</string>
+    <string name="convert_done_partial">완료: %1$d개 성공, %2$d개 실패.</string>
+    <string name="convert_done_failed">변환 실패.</string>
+    <string name="convert_saved_to_gallery">갤러리(Redact 폴더)에 저장되었습니다.</string>
+    <string name="convert_clean_tab_hint">변환은 형식만 변경합니다. 메타데이터를 제거하려면 정리 탭으로 이동하세요.</string>
+
     <!-- Button labels -->
     <string name="button_select_media">미디어 선택</string>
     <string name="button_strip_exif_data">메타데이터 정리</string>
@@ -20,7 +65,7 @@
     <string name="status_processed_items">%1$d개 항목 처리됨!</string>
     <string name="status_selected_items">선택됨: %1$d개 항목</string>
     <string name="status_first_select_media_files">먼저 미디어 파일을 선택하세요!</string>
-    <string name="status_ready">미디어 선택 준비 완료!</string>
+    <string name="status_ready">이미지/비디오 선택 준비 완료!</string>
     <string name="status_permissions_required">권한이 필요합니다!</string>
     <string name="status_requesting_permissions">권한 요청 중…</string>
     <string name="status_select_media_files">메타데이터를 제거할 미디어를 선택하세요!</string>

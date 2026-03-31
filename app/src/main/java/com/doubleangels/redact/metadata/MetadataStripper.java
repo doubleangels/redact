@@ -239,7 +239,6 @@ public class MetadataStripper {
     public Uri stripVideoMetadata(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Log operation start for analytics and debugging
         SentryManager.log("Starting video metadata stripping for MediaStore.");
-        SentryManager.setCustomKey("original_filename", originalFilename);
         SentryManager.setCustomKey("operation_type", "video_to_mediastore");
         Uri newUri = null;
 
@@ -251,49 +250,45 @@ public class MetadataStripper {
                 throw new IOException("File too large to process: " + fileSize / (1024 * 1024) + "MB");
             }
 
-            String extension = getFileExtension(originalFilename, ".mp4");
-
             updateProgress(1, 4, "Reading video...");
-            updateProgress(2, 4, "Transcoding...");
+            
+            int formatIndex = detectVideoFormatIndex(sourceUri, originalFilename);
+            
+            updateProgress(2, 4, "Transmuxing...");
+            File tempCleanFile = fastStripVideoMetadata(sourceUri);
+            Uri cleanSourceUri = tempCleanFile != null ? Uri.fromFile(tempCleanFile) : sourceUri;
+            
+            boolean needsTranscode = true;
+            if (tempCleanFile != null) {
+                if (formatIndex == 0 || formatIndex == 1) {
+                    if (tempCleanFile.getName().endsWith(".mp4")) needsTranscode = false;
+                } else if (formatIndex == 2) {
+                    if (tempCleanFile.getName().endsWith(".webm")) needsTranscode = false;
+                }
+            }
+
             try {
-                newUri = VideoMedia3Converter.transcodeToGallery(
-                        context.getApplicationContext(),
-                        sourceUri,
-                        generateShortRandomName(),
-                        VideoMedia3Converter.FORMAT_STRIP_METADATA,
-                        this::reportTranscodeProgress);
+                if (!needsTranscode && tempCleanFile != null) {
+                    updateProgress(3, 4, "Saving clean copy...");
+                    newUri = VideoMedia3Converter.copyToMoviesRedact(context, tempCleanFile, generateShortRandomName(), formatIndex);
+                } else {
+                    updateProgress(3, 4, "Transcoding to target format...");
+                    newUri = VideoMedia3Converter.transcodeToGallery(
+                            context.getApplicationContext(),
+                            cleanSourceUri,
+                            generateShortRandomName(),
+                            formatIndex,
+                            this::reportTranscodeProgress);
+                }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new IOException("Video transcoding interrupted", e);
+                throw new IOException("Video processing interrupted", e);
             } catch (Exception e) {
-                SentryManager.log(
-                        "Video transcoding failed, falling back to direct copy: " + e.getMessage());
-                String newFilename = generateShortRandomName() + extension;
-                ContentValues values = new ContentValues();
-                values.put(MediaStore.Video.Media.DISPLAY_NAME, newFilename);
-                values.put(MediaStore.Video.Media.MIME_TYPE, videoMimeTypeForExtension(extension));
-                values.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/Redact");
-
-                newUri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
-
-                if (newUri == null) {
-                    SentryManager.log("Failed to create MediaStore entry for video.");
-                    throw new IOException("Failed to create new video in MediaStore");
-                }
-
-                try (InputStream in = contentResolver.openInputStream(sourceUri);
-                        OutputStream out = contentResolver.openOutputStream(newUri)) {
-
-                    if (in == null || out == null) {
-                        throw new IOException("Failed to open streams for video processing");
-                    }
-
-                    byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-                    int length;
-                    while ((length = in.read(buffer)) > 0) {
-                        out.write(buffer, 0, length);
-                    }
-                    out.flush();
+                SentryManager.log("Video processing failed: " + e.getMessage());
+                throw new IOException("Failed to clean video safely", e);
+            } finally {
+                if (tempCleanFile != null && tempCleanFile.exists()) {
+                    secureDeleteFile(tempCleanFile);
                 }
             }
 
@@ -340,7 +335,6 @@ public class MetadataStripper {
     public Uri stripExifData(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Log operation start for analytics and debugging
         SentryManager.log("Starting image EXIF stripping for MediaStore.");
-        SentryManager.setCustomKey("original_filename", originalFilename);
         SentryManager.setCustomKey("operation_type", "image_to_mediastore");
         Uri newUri = null;
         Bitmap originalBitmap = null;
@@ -718,36 +712,55 @@ public class MetadataStripper {
                 }
             }
 
-            String newFilename = generateShortRandomName() + ".mp4";
+            int formatIndex = detectVideoFormatIndex(sourceUri, originalFilename);
+            String extension = VideoMedia3Converter.extensionForFormatIndex(formatIndex);
+
+            String newFilename = generateShortRandomName() + extension;
             outputFile = new File(outputDir, newFilename);
 
-            updateProgress(2, 4, "Transcoding...");
+            updateProgress(2, 4, "Transmuxing...");
+            File tempCleanFile = fastStripVideoMetadata(sourceUri);
+            Uri cleanSourceUri = tempCleanFile != null ? Uri.fromFile(tempCleanFile) : sourceUri;
+            
+            boolean needsTranscode = true;
+            if (tempCleanFile != null) {
+                if (formatIndex == 0 || formatIndex == 1) {
+                    if (tempCleanFile.getName().endsWith(".mp4")) needsTranscode = false;
+                } else if (formatIndex == 2) {
+                    if (tempCleanFile.getName().endsWith(".webm")) needsTranscode = false;
+                }
+            }
+
             try {
-                VideoMedia3Converter.transcodeToFile(
-                        context.getApplicationContext(),
-                        sourceUri,
-                        outputFile,
-                        VideoMedia3Converter.FORMAT_STRIP_METADATA,
-                        this::reportTranscodeProgress);
-                updateProgress(3, 4, "Processing video metadata...");
+                if (!needsTranscode && tempCleanFile != null) {
+                    updateProgress(3, 4, "Processing video metadata...");
+                    try (InputStream in = new FileInputStream(tempCleanFile);
+                            FileOutputStream out = new FileOutputStream(outputFile)) {
+                        byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+                        int length;
+                        while ((length = in.read(buffer)) > 0) {
+                            out.write(buffer, 0, length);
+                        }
+                        out.flush();
+                    }
+                } else {
+                    updateProgress(3, 4, "Transcoding...");
+                    VideoMedia3Converter.transcodeToFile(
+                            context.getApplicationContext(),
+                            cleanSourceUri,
+                            outputFile,
+                            formatIndex,
+                            this::reportTranscodeProgress);
+                }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new IOException("Video transcoding interrupted", e);
             } catch (Exception e) {
-                SentryManager.log("Video transcoding failed, falling back to direct copy: " + e.getMessage());
-                try (InputStream in = contentResolver.openInputStream(sourceUri);
-                        FileOutputStream out = new FileOutputStream(outputFile)) {
-
-                    if (in == null) {
-                        throw new IOException("Failed to open input stream for video");
-                    }
-
-                    byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-                    int length;
-                    while ((length = in.read(buffer)) > 0) {
-                        out.write(buffer, 0, length);
-                    }
-                    out.flush();
+                SentryManager.log("Video processing failed: " + e.getMessage());
+                throw new IOException("Failed to process video safely", e);
+            } finally {
+                if (tempCleanFile != null && tempCleanFile.exists()) {
+                    secureDeleteFile(tempCleanFile);
                 }
             }
 
@@ -771,6 +784,141 @@ public class MetadataStripper {
             SentryManager.setCustomKey("success", false);
             SentryManager.setCustomKey("error_type", e.getClass().getName());
             return null;
+        }
+    }
+
+    @androidx.annotation.VisibleForTesting
+    int detectVideoFormatIndex(Uri sourceUri, String fileName) {
+        if (fileName != null) {
+            String lower = fileName.toLowerCase();
+            if (lower.endsWith(".webm") || lower.endsWith(".vp9") || lower.endsWith(".vp8")) return 2;
+            if (lower.endsWith(".mkv")) return 3;
+        }
+        
+        try {
+            android.media.MediaExtractor extractor = new android.media.MediaExtractor();
+            extractor.setDataSource(context, sourceUri, null);
+            for (int i = 0; i < extractor.getTrackCount(); i++) {
+                android.media.MediaFormat format = extractor.getTrackFormat(i);
+                String mime = format.getString(android.media.MediaFormat.KEY_MIME);
+                if (mime != null) {
+                    if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_HEVC)) {
+                        extractor.release();
+                        return 1;
+                    }
+                    if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP9) || mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP8)) {
+                        extractor.release();
+                        return 2;
+                    }
+                    if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_AV1)) {
+                        extractor.release();
+                        return 3;
+                    }
+                }
+            }
+            extractor.release();
+        } catch (Exception ignored) {}
+        return 0;
+    }
+
+    private File fastStripVideoMetadata(Uri sourceUri) {
+        android.media.MediaExtractor extractor = new android.media.MediaExtractor();
+        android.media.MediaMuxer muxer = null;
+        File outputFile = null;
+        try {
+            extractor.setDataSource(context, sourceUri, null);
+            
+            boolean useWebm = false;
+            for (int i = 0; i < extractor.getTrackCount(); i++) {
+                android.media.MediaFormat format = extractor.getTrackFormat(i);
+                String mime = format.getString(android.media.MediaFormat.KEY_MIME);
+                if (mime != null && (mime.contains("vp8") || mime.contains("vp9") || mime.contains("opus"))) {
+                    useWebm = true;
+                    break;
+                }
+            }
+            
+            outputFile = new File(context.getCacheDir(), "vid_transmux_" + System.currentTimeMillis() + (useWebm ? ".webm" : ".mp4"));
+            int outputFormat = useWebm ? android.media.MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM 
+                                       : android.media.MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4;
+            
+            muxer = new android.media.MediaMuxer(outputFile.getAbsolutePath(), outputFormat);
+            
+            int videoTrackIndex = -1;
+            int audioTrackIndex = -1;
+            int muxerVideoTrackIndex = -1;
+            int muxerAudioTrackIndex = -1;
+            
+            for (int i = 0; i < extractor.getTrackCount(); i++) {
+                android.media.MediaFormat format = extractor.getTrackFormat(i);
+                String mime = format.getString(android.media.MediaFormat.KEY_MIME);
+                if (mime == null) continue;
+                if (mime.startsWith("video/") && videoTrackIndex == -1) {
+                    videoTrackIndex = i;
+                    extractor.selectTrack(i);
+                    if (format.containsKey(android.media.MediaFormat.KEY_ROTATION)) {
+                        muxer.setOrientationHint(format.getInteger(android.media.MediaFormat.KEY_ROTATION));
+                    } else {
+                        android.media.MediaMetadataRetriever retriever = new android.media.MediaMetadataRetriever();
+                        try {
+                            retriever.setDataSource(context, sourceUri);
+                            String rotation = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION);
+                            if (rotation != null) {
+                                muxer.setOrientationHint(Integer.parseInt(rotation));
+                            }
+                        } catch (Exception ignored) {} finally {
+                            try { retriever.release(); } catch (Exception ignored) {}
+                        }
+                    }
+                    muxerVideoTrackIndex = muxer.addTrack(format);
+                } else if (mime.startsWith("audio/") && audioTrackIndex == -1) {
+                    audioTrackIndex = i;
+                    extractor.selectTrack(i);
+                    muxerAudioTrackIndex = muxer.addTrack(format);
+                }
+            }
+            
+            if (videoTrackIndex == -1 && audioTrackIndex == -1) {
+                return null;
+            }
+            
+            muxer.start();
+            
+            java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(1024 * 1024 * 5);
+            android.media.MediaCodec.BufferInfo info = new android.media.MediaCodec.BufferInfo();
+            
+            while (true) {
+                int trackIndex = extractor.getSampleTrackIndex();
+                if (trackIndex == -1) break;
+                
+                info.size = extractor.readSampleData(buffer, 0);
+                if (info.size < 0) break;
+                
+                info.presentationTimeUs = extractor.getSampleTime();
+                info.flags = extractor.getSampleFlags();
+                
+                int muxerTrackIndex = (trackIndex == videoTrackIndex) ? muxerVideoTrackIndex :
+                                     (trackIndex == audioTrackIndex) ? muxerAudioTrackIndex : -1;
+                                     
+                if (muxerTrackIndex != -1) {
+                    muxer.writeSampleData(muxerTrackIndex, buffer, info);
+                }
+                extractor.advance();
+            }
+            
+            muxer.stop();
+            return outputFile;
+        } catch (Exception e) {
+            SentryManager.recordException(e);
+            if (outputFile != null && outputFile.exists()) {
+                outputFile.delete();
+            }
+            return null;
+        } finally {
+            try { extractor.release(); } catch (Exception ignored) {}
+            if (muxer != null) {
+                try { muxer.release(); } catch (Exception ignored) {}
+            }
         }
     }
 
@@ -816,7 +964,8 @@ public class MetadataStripper {
      * @return A random string of 12 characters (alphanumeric)
      */
     @NonNull
-    private String generateShortRandomName() {
+    @androidx.annotation.VisibleForTesting
+    String generateShortRandomName() {
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         StringBuilder sb = new StringBuilder(12);
         for (int i = 0; i < 12; i++) {

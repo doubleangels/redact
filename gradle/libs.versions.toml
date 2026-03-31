@@ -4,7 +4,6 @@ agp = "9.1.0"
 constraintlayout = "2.2.1"
 exifinterface = "1.4.2"
 ffmpegmediametadataretriever = "1.0.15"
-firebaseBom = "34.11.0"
 fragment = "1.8.9"
 glide = "5.0.5"
 googleMaterial = "1.13.0"
@@ -20,16 +19,16 @@ lifecycleViewmodelKtx = "2.10.0"
 navigationFragment = "2.9.7"
 navigationUi = "2.9.7"
 sentry = "8.17.0"
-
+mockito = "5.11.0"
+robolectric = "4.12.1"
+androidxTestCore = "1.5.0"
+leakcanary = "2.14"
 
 [libraries]
 activity = { module = "androidx.activity:activity", version.ref = "activity" }
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 exifinterface = { module = "androidx.exifinterface:exifinterface", version.ref = "exifinterface" }
 ffmpegmediametadataretriever = { module = "com.github.wseemann:FFmpegMediaMetadataRetriever", version.ref = "ffmpegmediametadataretriever" }
-firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
-firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
-firebase-perf = { module = "com.google.firebase:firebase-perf" }
 sentry-android = { module = "io.sentry:sentry-android", version.ref = "sentry" }
 fragment = { module = "androidx.fragment:fragment", version.ref = "fragment" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
@@ -47,6 +46,10 @@ lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-lived
 lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
 navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navigationFragment" }
 navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version.ref = "navigationUi" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTestCore" }
+leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -6,19 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".ConvertFragment">
 
-    <TextView
-        android:id="@+id/convertSubtitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/screen_edge_padding"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="@dimen/screen_edge_padding"
-        android:text="@string/convert_subtitle"
-        android:textAppearance="?attr/textAppearanceBodyMedium"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
         android:id="@+id/formatSection"
@@ -31,7 +18,7 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/convertSubtitle">
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
             android:id="@+id/formatLabel"
@@ -104,7 +91,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="bottom"
-        app:constraint_referenced_ids="convertSubtitle,formatSection" />
+        app:constraint_referenced_ids="formatSection" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/convertFileList"

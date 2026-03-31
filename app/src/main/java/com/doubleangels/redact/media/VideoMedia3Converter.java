@@ -132,6 +132,13 @@ public final class VideoMedia3Converter {
         return Composition.HDR_MODE_KEEP_HDR;
     }
 
+    private static String audioMimeTypeForVideoMime(@NonNull String videoMimeType) {
+        if (MimeTypes.VIDEO_VP9.equals(videoMimeType) || MimeTypes.VIDEO_VP8.equals(videoMimeType)) {
+            return MimeTypes.AUDIO_OPUS;
+        }
+        return MimeTypes.AUDIO_AAC;
+    }
+
     private static void transcodeToPathOnce(
             @NonNull Context app,
             @NonNull Uri sourceUri,
@@ -145,7 +152,10 @@ public final class VideoMedia3Converter {
 
         MediaItem mediaItem = MediaItem.fromUri(sourceUri);
         EditedMediaItem editedMediaItem =
-                new EditedMediaItem.Builder(mediaItem).setFrameRate(TARGET_FPS).build();
+                new EditedMediaItem.Builder(mediaItem)
+                        .setRemoveAudio(false)
+                        .setFrameRate(TARGET_FPS)
+                        .build();
 
         EditedMediaItemSequence sequence =
                 new EditedMediaItemSequence.Builder(
@@ -186,6 +196,7 @@ public final class VideoMedia3Converter {
                                 new Transformer.Builder(app)
                                         .setMuxerFactory(new DefaultMuxer.Factory())
                                         .setVideoMimeType(videoMimeType)
+                                        .setAudioMimeType(audioMimeTypeForVideoMime(videoMimeType))
                                         .addListener(
                                                 new Transformer.Listener() {
                                                     @Override
@@ -316,12 +327,13 @@ public final class VideoMedia3Converter {
             throws IOException, InterruptedException {
 
         Context app = context.getApplicationContext();
+        String ext = extensionForFormatIndex(formatIndex);
         File outFile =
-                new File(app.getCacheDir(), "vid_transform_" + System.currentTimeMillis() + ".mp4");
+                new File(app.getCacheDir(), "vid_transform_" + System.currentTimeMillis() + ext);
         transcodeToPath(app, sourceUri, outFile.getAbsolutePath(), formatIndex, progressListener);
 
         try {
-            return copyToMoviesRedact(app, outFile, baseDisplayName);
+            return copyToMoviesRedact(app, outFile, baseDisplayName, formatIndex);
         } finally {
             deleteQuietly(outFile);
         }
@@ -336,7 +348,8 @@ public final class VideoMedia3Converter {
 
     /** Maps format chip index to output video MIME (MP4). */
     @NonNull
-    private static String videoMimeTypeForFormatIndex(int formatIndex) {
+    @androidx.annotation.VisibleForTesting
+    static String videoMimeTypeForFormatIndex(int formatIndex) {
         switch (formatIndex) {
             case 1:
                 return MimeTypes.VIDEO_H265;
@@ -351,15 +364,45 @@ public final class VideoMedia3Converter {
     }
 
     @NonNull
-    private static Uri copyToMoviesRedact(Context context, File file, String baseDisplayName)
+    public static String extensionForFormatIndex(int formatIndex) {
+        switch (formatIndex) {
+            case 2:
+                return ".webm";
+            case 3:
+                return ".mkv";
+            case 0:
+            case 1:
+            default:
+                return ".mp4";
+        }
+    }
+
+    @NonNull
+    public static String containerMimeForFormatIndex(int formatIndex) {
+        switch (formatIndex) {
+            case 2:
+                return "video/webm";
+            case 3:
+                return "video/x-matroska";
+            case 0:
+            case 1:
+            default:
+                return "video/mp4";
+        }
+    }
+
+    @NonNull
+    public static Uri copyToMoviesRedact(Context context, File file, String baseDisplayName, int formatIndex)
             throws IOException {
         ContentResolver resolver = context.getContentResolver();
         String safeName = sanitizeFileName(stripExtension(baseDisplayName));
-        String outName = safeName + ".mp4";
+        String ext = extensionForFormatIndex(formatIndex);
+        String mime = containerMimeForFormatIndex(formatIndex);
+        String outName = safeName + ext;
 
         ContentValues values = new ContentValues();
         values.put(MediaStore.Video.Media.DISPLAY_NAME, outName);
-        values.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4");
+        values.put(MediaStore.Video.Media.MIME_TYPE, mime);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             values.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/Redact");
         }

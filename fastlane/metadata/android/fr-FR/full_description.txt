@@ -31,6 +31,8 @@ Nettoyez facilement les fichiers de n'importe quelle application via le menu de 
 
 <li><b>Support Multilingue :</b><br>
 Disponible en 13 langues : anglais, espagnol, français, allemand, italien, portugais, russe, japonais, coréen, chinois (Simplifié et Traditionnel), hindi et arabe.</li>
+<li><b>Conversion universelle de médias :</b><br>Besoin d'un format différent ? Convertissez facilement les images en types standard tels que JPEG, PNG, WebP ou HEIC. Transcodez les vidéos non prises en charge en fichiers MP4 ou MKV hautement compatibles, sans avoir besoin de serveurs Internet.</li>
+
 </ul>
 
 <p>Prenez le contrôle de votre empreinte numérique ! Les métadonnées EXIF peuvent révéler vos coordonnées GPS précises, les détails de l'appareil, les paramètres de l'appareil photo, les horodatages et les identifiants uniques. Redact élimine tous ces risques pour la vie privée tout en préservant la qualité de vos fichiers multimédias. Parfait pour le partage sur les réseaux sociaux, la photographie professionnelle et toute personne préoccupée par la vie privée numérique.</p>

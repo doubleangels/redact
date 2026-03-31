@@ -11,6 +11,51 @@
     <string name="navigation_clean">تنظيف</string>
     <string name="navigation_scan">مسح</string>
 
+    <!-- Local notifications -->
+    <string name="notification_channel_tasks_name">المهام</string>
+    <string name="notification_channel_tasks_description">اكتمل تحويل الوسائط وتنظيفها</string>
+    <string name="notification_convert_title">اكتمل التحويل</string>
+    <string name="notification_convert_all_succeeded">تم حفظ %1$d ملف(ملفات) في المعرض.</string>
+    <string name="notification_convert_partial">نجح %1$d، وفشل %2$d.</string>
+    <string name="notification_convert_failed">تعذر تحويل أي ملفات.</string>
+    <string name="notification_clean_title">اكتمل التنظيف</string>
+    <string name="notification_clean_body">تمت معالجة %1$d ملف(ملفات).</string>
+    <string name="notification_convert_progress_title">جارٍ تحويل الوسائط…</string>
+    <string name="notification_clean_progress_title">جارٍ تنظيف البيانات الوصفية…</string>
+
+    <string name="navigation_convert">تحويل</string>
+
+    <!-- Convert tab -->
+    <string name="convert_output_format_images">تنسيق الصورة</string>
+    <string name="convert_output_format_videos">ترميز الفيديو</string>
+    <string name="convert_output_format_mixed">التنسيقات (صورة / فيديو)</string>
+    <string name="convert_format_mixed_pair">%1$s · %2$s</string>
+    <string name="convert_format_jpeg">JPEG</string>
+    <string name="convert_format_png">PNG</string>
+    <string name="convert_format_webp">WebP</string>
+    <string name="convert_format_h264">MP4 (H.264)</string>
+    <string name="convert_format_h265">MP4 (H.265)</string>
+    <string name="convert_format_vp9">WebM (VP9)</string>
+    <string name="convert_format_heif">HEIC</string>
+    <string name="convert_format_av1">MKV (AV1)</string>
+    <string name="convert_select_files">تحديد</string>
+    <string name="convert_run">إجراء التحويل</string>
+    <string name="convert_status_hint">حدد الصور أو مقاطع الفيديو للتحويل.</string>
+    <string name="convert_status_ready">جاهز لتحديد الصور/مقاطع الفيديو.</string>
+    <string name="convert_selected_count">المحدد: %1$d ملف(ملفات)</string>
+    <string name="convert_nothing_selected">حدد صورة واحدة على الأقل أولاً.</string>
+    <string name="convert_progress_item">جارٍ تحويل %1$d من %2$d…</string>
+    <string name="convert_progress_detail">%1$d من %2$d · %3$s\n%4$s</string>
+    <string name="convert_transcoding_percent">جاري تحويل الترميز… %1$d%%</string>
+    <string name="convert_encoding_image">جارٍ ترميز الصورة…</string>
+    <string name="progress_transcoding_percent">جاري تحويل الترميز… %1$d%%</string>
+    <string name="clean_progress_batch">%1$d من %2$d · %3$s</string>
+    <string name="convert_done_all">تم تحويل %1$d ملف(ملفات) بنجاح.</string>
+    <string name="convert_done_partial">تمت: %1$d ناجح، %2$d فاشل.</string>
+    <string name="convert_done_failed">فشل التحويل.</string>
+    <string name="convert_saved_to_gallery">تم الحفظ في المعرض (مجلد Redact)</string>
+    <string name="convert_clean_tab_hint">التحويل يغير التنسيق فقط. لإزالة البيانات الوصفية، انتقل إلى علامة التبويب تنظيف.</string>
+
     <!-- Button labels -->
     <string name="button_select_media">اختر الوسائط</string>
     <string name="button_strip_exif_data">تنظيف البيانات الوصفية</string>
@@ -20,7 +65,7 @@
     <string name="status_processed_items">تمت معالجة %1$d عنصر!</string>
     <string name="status_selected_items">المحدد: %1$d عنصر</string>
     <string name="status_first_select_media_files">يرجى تحديد ملفات الوسائط أولاً!</string>
-    <string name="status_ready">جاهز لتحديد الوسائط!</string>
+    <string name="status_ready">جاهز لتحديد الصور/مقاطع الفيديو!</string>
     <string name="status_permissions_required">الأذونات مطلوبة!</string>
     <string name="status_requesting_permissions">جاري طلب الأذونات…</string>
     <string name="status_select_media_files">حدد الوسائط لإزالة البيانات الوصفية!</string>

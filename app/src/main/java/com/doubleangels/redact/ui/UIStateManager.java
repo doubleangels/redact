@@ -97,7 +97,7 @@ public final class UIStateManager {
      * Sets status text to indicate the app is ready for user interaction.
      */
     public void setReadyStatus() {
-        statusText.setText(activity.getString(R.string.status_ready));
+        statusText.setText(R.string.convert_status_ready);
     }
 
     /**
@@ -113,7 +113,11 @@ public final class UIStateManager {
      * @param count Number of selected media items
      */
     public void setSelectedItemsStatus(int count) {
-        statusText.setText(activity.getString(R.string.status_selected_items, count));
+        if (count == 0) {
+            setReadyStatus();
+        } else {
+            statusText.setText(activity.getString(R.string.convert_selected_count, count));
+        }
     }
 
     /**

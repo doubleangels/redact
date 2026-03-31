@@ -31,6 +31,8 @@ Bereinigen Sie Dateien nahtlos von jeder App über das Android-Share-Menü und e
 
 <li><b>Mehrsprachige Unterstützung:</b><br>
 Verfügbar in 13 Sprachen, einschließlich Englisch, Spanisch, Französisch, Deutsch, Italienisch, Portugiesisch, Russisch, Japanisch, Koreanisch, Chinesisch (Vereinfacht und Traditionell), Hindi und Arabisch.</li>
+<li><b>Universelle Medienkonvertierung:</b><br>Benötigen Sie ein anderes Format? Konvertieren Sie Bilder ganz einfach in Standardtypen wie JPEG, PNG, WebP oder HEIC. Transkodieren Sie nicht unterstützte Videos in hochkompatible MP4- oder MKV-Dateien, ohne auf Internetserver angewiesen zu sein.</li>
+
 </ul>
 
 <p>Übernehmen Sie die Kontrolle über Ihren digitalen Fußabdruck! EXIF-Metadaten können Ihre genauen GPS-Koordinaten, Gerätedetails, Kameraeinstellungen, Zeitstempel und eindeutige Kennungen preisgeben. Redact eliminiert alle diese Datenschutzrisiken, während die Qualität Ihrer Mediendateien erhalten bleibt. Perfekt für Social-Media-Sharing, professionelle Fotografie und alle, die sich um digitale Privatsphäre sorgen.</p>

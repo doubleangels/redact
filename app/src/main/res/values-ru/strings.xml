@@ -11,6 +11,51 @@
     <string name="navigation_clean">Очистить</string>
     <string name="navigation_scan">Сканировать</string>
 
+    <!-- Local notifications -->
+    <string name="notification_channel_tasks_name">Задачи</string>
+    <string name="notification_channel_tasks_description">Конвертация и очистка медиафайлов завершены</string>
+    <string name="notification_convert_title">Конвертация Завершена</string>
+    <string name="notification_convert_all_succeeded">Сохранено: %1$d файл(ов) в галерее.</string>
+    <string name="notification_convert_partial">Успешно: %1$d, ошибка: %2$d.</string>
+    <string name="notification_convert_failed">Не удалось конвертировать файлы.</string>
+    <string name="notification_clean_title">Очистка Завершена</string>
+    <string name="notification_clean_body">Обработано: %1$d файл(ов).</string>
+    <string name="notification_convert_progress_title">Конвертация Медиа…</string>
+    <string name="notification_clean_progress_title">Очистка Метаданных…</string>
+
+    <string name="navigation_convert">Конвертировать</string>
+
+    <!-- Convert tab -->
+    <string name="convert_output_format_images">Формат изображения</string>
+    <string name="convert_output_format_videos">Видеокодек</string>
+    <string name="convert_output_format_mixed">Форматы (изображение / видео)</string>
+    <string name="convert_format_mixed_pair">%1$s · %2$s</string>
+    <string name="convert_format_jpeg">JPEG</string>
+    <string name="convert_format_png">PNG</string>
+    <string name="convert_format_webp">WebP</string>
+    <string name="convert_format_h264">MP4 (H.264)</string>
+    <string name="convert_format_h265">MP4 (H.265)</string>
+    <string name="convert_format_vp9">WebM (VP9)</string>
+    <string name="convert_format_heif">HEIC</string>
+    <string name="convert_format_av1">MKV (AV1)</string>
+    <string name="convert_select_files">Выбрать</string>
+    <string name="convert_run">Конвертировать</string>
+    <string name="convert_status_hint">Выберите изображения или видео для конвертации.</string>
+    <string name="convert_status_ready">Готово к выбору изображений/видео.</string>
+    <string name="convert_selected_count">Выбрано: %1$d файл(ов)</string>
+    <string name="convert_nothing_selected">Сначала выберите хотя бы одно изображение.</string>
+    <string name="convert_progress_item">Конвертация %1$d из %2$d…</string>
+    <string name="convert_progress_detail">%1$d из %2$d · %3$s\n%4$s</string>
+    <string name="convert_transcoding_percent">Транскодирование… %1$d%%</string>
+    <string name="convert_encoding_image">Кодирование изображения…</string>
+    <string name="progress_transcoding_percent">Транскодирование… %1$d%%</string>
+    <string name="clean_progress_batch">%1$d из %2$d · %3$s</string>
+    <string name="convert_done_all">Успешно сконвертировано: %1$d файл(ов).</string>
+    <string name="convert_done_partial">Завершено: %1$d успешно, %2$d с ошибкой.</string>
+    <string name="convert_done_failed">Ошибка конвертации.</string>
+    <string name="convert_saved_to_gallery">Сохранено в Галерею (папка Redact)</string>
+    <string name="convert_clean_tab_hint">Конвертация изменяет только формат. Чтобы удалить метаданные, перейдите на вкладку Очистка.</string>
+
     <!-- Button labels -->
     <string name="button_select_media">Выбрать Медиа</string>
     <string name="button_strip_exif_data">Очистить Метаданные</string>
@@ -20,7 +65,7 @@
     <string name="status_processed_items">Обработано %1$d элементов!</string>
     <string name="status_selected_items">Выбрано: %1$d элементов</string>
     <string name="status_first_select_media_files">Пожалуйста, сначала выберите медиафайлы!</string>
-    <string name="status_ready">Готово к выбору медиа!</string>
+    <string name="status_ready">Готово к выбору изображений/видео!</string>
     <string name="status_permissions_required">Требуются разрешения!</string>
     <string name="status_requesting_permissions">Запрос разрешений…</string>
     <string name="status_select_media_files">Выберите медиа для удаления метаданных!</string>

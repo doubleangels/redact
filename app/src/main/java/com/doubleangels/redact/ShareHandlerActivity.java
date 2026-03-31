@@ -22,6 +22,9 @@ import com.doubleangels.redact.sentry.SentryManager;
 
 import java.util.ArrayList;
 
+import io.sentry.ITransaction;
+import io.sentry.SpanStatus;
+
 /**
  * Activity for handling media files shared from other applications.
  *
@@ -293,6 +296,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
      */
     private void processMediaItem(Uri uri, boolean isVideo) {
         new Thread(() -> {
+            ITransaction transaction = SentryManager.startTransaction("share_cleanup", "task");
             try {
                 // Get the file name from the URI
                 String fileName = mediaSelector.getFileName(uri);
@@ -300,6 +304,12 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
                 // Process using the "ForSharing" method which saves to cache
                 Uri processedUri = metadataStripper.stripMetadataForSharing(uri, fileName, isVideo);
+                if (processedUri != null) {
+                    transaction.setStatus(SpanStatus.OK);
+                } else {
+                    transaction.setStatus(SpanStatus.INTERNAL_ERROR);
+                }
+                transaction.finish();
 
                 runOnUiThread(() -> {
                     try {
@@ -368,6 +378,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 });
             } catch (Exception e) {
                 // Log and handle any errors during processing
+                if (!transaction.isFinished()) {
+                    transaction.setStatus(SpanStatus.INTERNAL_ERROR);
+                    transaction.finish();
+                }
                 SentryManager.recordException(e);
                 runOnUiThread(() -> finishWithError("Failed to process media: " + e.getMessage()));
             }

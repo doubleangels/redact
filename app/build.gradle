@@ -1,7 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    id 'com.google.gms.google-services'
-    id 'com.google.firebase.firebase-perf'
 }
 
 android {
@@ -13,14 +11,15 @@ android {
         minSdk 31
         targetSdk 36
         versionCode 10
-        versionName "1.3.0goog"
+        versionName "1.3.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -30,15 +29,20 @@ android {
     }
     buildFeatures {
         viewBinding true
+        dataBinding true
         buildConfig true
+    }
+    
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            returnDefaultValues = true
+        }
     }
 }
 
 dependencies {
-    implementation platform(libs.firebase.bom)
     implementation(libs.sentry.android)
-    implementation(libs.firebase.analytics)
-    implementation(libs.firebase.perf)
     implementation libs.activity
     implementation libs.appcompat
     implementation libs.constraintlayout
@@ -49,4 +53,11 @@ dependencies {
     implementation libs.media3.common
     implementation libs.media3.effect
     implementation libs.media3.transformer
+    
+    debugImplementation libs.leakcanary.android
+    
+    testImplementation libs.junit
+    testImplementation libs.mockito.core
+    testImplementation libs.robolectric
+    testImplementation libs.androidx.test.core
 }

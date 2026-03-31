@@ -11,6 +11,51 @@
     <string name="navigation_clean">Nettoyer</string>
     <string name="navigation_scan">Scanner</string>
 
+    <!-- Local notifications -->
+    <string name="notification_channel_tasks_name">Tâches</string>
+    <string name="notification_channel_tasks_description">Conversion et nettoyage des médias terminés</string>
+    <string name="notification_convert_title">Conversion Terminée</string>
+    <string name="notification_convert_all_succeeded">Enregistré %1$d fichier(s) dans la galerie.</string>
+    <string name="notification_convert_partial">%1$d ont réussi, %2$d ont échoué.</string>
+    <string name="notification_convert_failed">Aucun fichier n\'a pu être converti.</string>
+    <string name="notification_clean_title">Nettoyage Terminé</string>
+    <string name="notification_clean_body">Traité %1$d fichier(s).</string>
+    <string name="notification_convert_progress_title">Conversion des Médias…</string>
+    <string name="notification_clean_progress_title">Nettoyage des Métadonnées…</string>
+
+    <string name="navigation_convert">Convertir</string>
+
+    <!-- Convert tab -->
+    <string name="convert_output_format_images">Format d\'image</string>
+    <string name="convert_output_format_videos">Codec vidéo</string>
+    <string name="convert_output_format_mixed">Formats (image / vidéo)</string>
+    <string name="convert_format_mixed_pair">%1$s · %2$s</string>
+    <string name="convert_format_jpeg">JPEG</string>
+    <string name="convert_format_png">PNG</string>
+    <string name="convert_format_webp">WebP</string>
+    <string name="convert_format_h264">MP4 (H.264)</string>
+    <string name="convert_format_h265">MP4 (H.265)</string>
+    <string name="convert_format_vp9">WebM (VP9)</string>
+    <string name="convert_format_heif">HEIC</string>
+    <string name="convert_format_av1">MKV (AV1)</string>
+    <string name="convert_select_files">Sélectionner</string>
+    <string name="convert_run">Convertir</string>
+    <string name="convert_status_hint">Sélectionnez des images ou vidéos à convertir.</string>
+    <string name="convert_status_ready">Prêt à sélectionner des images/vidéos.</string>
+    <string name="convert_selected_count">Sélectionnés : %1$d fichier(s)</string>
+    <string name="convert_nothing_selected">Sélectionnez d\'abord une image.</string>
+    <string name="convert_progress_item">Conversion %1$d sur %2$d…</string>
+    <string name="convert_progress_detail">%1$d sur %2$d · %3$s\n%4$s</string>
+    <string name="convert_transcoding_percent">Transcodage… %1$d%%</string>
+    <string name="convert_encoding_image">Encodage de l\'image…</string>
+    <string name="progress_transcoding_percent">Transcodage… %1$d%%</string>
+    <string name="clean_progress_batch">%1$d sur %2$d · %3$s</string>
+    <string name="convert_done_all">Converti %1$d fichier(s) avec succès.</string>
+    <string name="convert_done_partial">Terminé : %1$d réussis, %2$d échoués.</string>
+    <string name="convert_done_failed">Échec de la conversion.</string>
+    <string name="convert_saved_to_gallery">Enregistré dans la Galerie (dossier Redact)</string>
+    <string name="convert_clean_tab_hint">La conversion modifie uniquement le format. Pour supprimer les métadonnées, allez dans l\'onglet Nettoyer.</string>
+
     <!-- Button labels -->
     <string name="button_select_media">Sélectionner un Média</string>
     <string name="button_strip_exif_data">Nettoyer les Métadonnées</string>
@@ -20,7 +65,7 @@
     <string name="status_processed_items">%1$d éléments traités !</string>
     <string name="status_selected_items">Sélectionnés : %1$d éléments</string>
     <string name="status_first_select_media_files">Veuillez d\'abord sélectionner des fichiers multimédias !</string>
-    <string name="status_ready">Prêt à sélectionner un média !</string>
+    <string name="status_ready">Prêt à sélectionner des images/vidéos !</string>
     <string name="status_permissions_required">Autorisations requises !</string>
     <string name="status_requesting_permissions">Demande d\'autorisations…</string>
     <string name="status_select_media_files">Sélectionnez un média pour supprimer les métadonnées !</string>

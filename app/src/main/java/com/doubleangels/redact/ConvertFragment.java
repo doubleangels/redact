@@ -38,6 +38,10 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import io.sentry.ISpan;
+import io.sentry.ITransaction;
+import io.sentry.SpanStatus;
+
 /**
  * Converts images to JPEG, PNG, WebP, or HEIC and transcodes videos to MP4; saves under
  * Pictures/Redact or Movies/Redact respectively.
@@ -81,16 +85,14 @@ public class ConvertFragment extends Fragment {
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() != Activity.RESULT_OK || result.getData() == null) {
+                        SentryManager.log("Media selection cancelled or failed in ConvertFragment");
                         return;
                     }
+                    SentryManager.log("Media selected successfully in ConvertFragment");
                     List<MediaItem> items = mediaSelector.processMediaResult(result.getData());
                     selectedItems.clear();
-                    List<String> names = new ArrayList<>();
-                    for (MediaItem item : items) {
-                        selectedItems.add(item);
-                        names.add(item.fileName());
-                    }
-                    convertFileAdapter.setFileNames(names);
+                    selectedItems.addAll(items);
+                    convertFileAdapter.setItems(items);
                     convertButton.setEnabled(!selectedItems.isEmpty());
                     statusText.setText(getString(R.string.convert_selected_count, selectedItems.size()));
                     refreshFormatSectionForSelection();
@@ -107,6 +109,7 @@ public class ConvertFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        SentryManager.log("ConvertFragment view created");
 
         statusText = view.findViewById(R.id.statusText);
         progressContainer = view.findViewById(R.id.progressContainer);
@@ -124,7 +127,7 @@ public class ConvertFragment extends Fragment {
 
         RecyclerView recyclerView = view.findViewById(R.id.convertFileList);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        convertFileAdapter = new ConvertFileAdapter();
+        convertFileAdapter = new ConvertFileAdapter(requireActivity());
         recyclerView.setAdapter(convertFileAdapter);
 
         permissionManager = new PermissionManager(
@@ -151,14 +154,20 @@ public class ConvertFragment extends Fragment {
         mediaSelector = new MediaSelector(requireActivity(), mediaPickerLauncher);
 
         selectButton.setOnClickListener(v -> {
+            SentryManager.log("Select button clicked in ConvertFragment");
             if (permissionManager.needsPermissions()) {
+                SentryManager.log("Requesting storage permissions in ConvertFragment");
                 permissionManager.requestStoragePermission();
             } else {
+                SentryManager.log("Launching media picker in ConvertFragment");
                 openMediaPicker();
             }
         });
 
-        convertButton.setOnClickListener(v -> runConversion());
+        convertButton.setOnClickListener(v -> {
+            SentryManager.log("Convert button clicked in ConvertFragment");
+            runConversion();
+        });
 
         refreshFormatSectionForSelection();
         permissionManager.checkPermissions();
@@ -262,7 +271,9 @@ public class ConvertFragment extends Fragment {
     }
 
     private void runConversion() {
+        SentryManager.log("runConversion started");
         if (selectedItems.isEmpty()) {
+            SentryManager.log("runConversion aborted: nothing selected");
             statusText.setText(R.string.convert_nothing_selected);
             return;
         }
@@ -277,25 +288,28 @@ public class ConvertFragment extends Fragment {
 
         final int total = selectedItems.size();
         executor.execute(() -> {
+            ITransaction transaction = SentryManager.startTransaction("convert_multiple", "task");
             int ok = 0;
             int fail = 0;
-            for (int i = 0; i < total; i++) {
-                MediaItem mediaItem = selectedItems.get(i);
-                Uri uri = mediaItem.uri();
-                final int index = i + 1;
-                requireActivity().runOnUiThread(() -> {
-                    if (!isAdded()) {
-                        return;
-                    }
-                    int overallStart = total > 0 ? ((index - 1) * 100) / total : 0;
-                    progressBar.setProgress(overallStart);
-                    String itemLine = getString(R.string.convert_progress_item, index, total);
-                    progressText.setText(itemLine);
-                    LocalNotifications.updateConversionProgress(
-                            requireContext(), overallStart, itemLine);
-                });
-                try {
+            try {
+                for (int i = 0; i < total; i++) {
+                    MediaItem mediaItem = selectedItems.get(i);
+                    Uri uri = mediaItem.uri();
+                    final int index = i + 1;
                     String name = mediaSelector.getFileName(uri);
+                    ISpan span = transaction.startChild("convert_item", name != null ? name : "unknown");
+                    requireActivity().runOnUiThread(() -> {
+                        if (!isAdded()) {
+                            return;
+                        }
+                        int overallStart = total > 0 ? ((index - 1) * 100) / total : 0;
+                        progressBar.setProgress(overallStart);
+                        String itemLine = getString(R.string.convert_progress_item, index, total);
+                        progressText.setText(itemLine);
+                        LocalNotifications.updateConversionProgress(
+                                requireContext(), overallStart, itemLine);
+                    });
+                    try {
                     if (mediaItem.isVideo()) {
                         FormatConverter.convertVideoToMovies(
                                 requireContext(),
@@ -354,15 +368,19 @@ public class ConvertFragment extends Fragment {
                                             }
                                         });
                         FormatConverter.convertImageToPictures(requireContext(), uri, format, name);
+                        }
+                        ok++;
+                        span.setStatus(SpanStatus.OK);
+                    } catch (Exception e) {
+                        fail++;
+                        SentryManager.recordException(e);
+                        span.setStatus(SpanStatus.INTERNAL_ERROR);
+                    } finally {
+                        span.finish();
                     }
-                    ok++;
-                } catch (Exception e) {
-                    fail++;
-                    SentryManager.recordException(e);
-                }
-                final int done = index;
-                requireActivity().runOnUiThread(() -> {
-                    if (isAdded()) {
+                    final int done = index;
+                    requireActivity().runOnUiThread(() -> {
+                        if (isAdded()) {
                         int overallDone = total > 0 ? (done * 100) / total : 0;
                         progressBar.setProgress(overallDone);
                         LocalNotifications.updateConversionProgress(
@@ -381,6 +399,7 @@ public class ConvertFragment extends Fragment {
                 showProgress(false);
                 convertButton.setEnabled(true);
                 selectButton.setEnabled(true);
+                SentryManager.log("Conversion complete: ok=" + okCount + ", fail=" + failCount);
                 if (failCount == 0) {
                     statusText.setText(getString(R.string.convert_done_all, okCount));
                     Toast.makeText(requireContext(), R.string.convert_saved_to_gallery, Toast.LENGTH_SHORT).show();
@@ -391,6 +410,9 @@ public class ConvertFragment extends Fragment {
                 }
                 LocalNotifications.showConversionComplete(requireContext(), okCount, failCount);
             });
+            } finally {
+                transaction.finish();
+            }
         });
     }
 

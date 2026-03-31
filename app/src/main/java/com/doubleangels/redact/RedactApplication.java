@@ -5,7 +5,6 @@ import android.util.Log;
 
 import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.sentry.SentryInitializer;
-import com.google.firebase.FirebaseApp;
 
 /**
  * Custom Application class for the Redact application.
@@ -21,11 +20,5 @@ public class RedactApplication extends Application {
 
         SentryInitializer.initialize(this);
         LocalNotifications.ensureChannels(this);
-
-        try {
-            FirebaseApp.initializeApp(this);
-        } catch (Exception e) {
-            Log.e(TAG, "Error during Firebase initialization:", e);
-        }
     }
 }

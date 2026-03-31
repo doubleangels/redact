@@ -112,7 +112,7 @@
         android:backgroundTint="?attr/colorSurfaceContainerHigh"
         android:paddingHorizontal="14dp"
         android:paddingVertical="12dp"
-        android:text="@string/status_select_media_files"
+        android:text="@string/convert_status_ready"
         android:textAlignment="center"
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textColor="?attr/colorOnSurface"

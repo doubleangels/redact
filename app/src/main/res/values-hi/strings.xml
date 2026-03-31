@@ -11,6 +11,51 @@
     <string name="navigation_clean">साफ करें</string>
     <string name="navigation_scan">स्कैन करें</string>
 
+    <!-- Local notifications -->
+    <string name="notification_channel_tasks_name">कार्य</string>
+    <string name="notification_channel_tasks_description">मीडिया बदलना और साफ़ करना पूरा हुआ</string>
+    <string name="notification_convert_title">रूपांतरण पूरा हुआ</string>
+    <string name="notification_convert_all_succeeded">%1$d फ़ाइल(फ़ाइलें) गैलरी में सहेजी गईं।</string>
+    <string name="notification_convert_partial">%1$d सफल, %2$d विफल।</string>
+    <string name="notification_convert_failed">कोई फ़ाइल नहीं बदली जा सकी।</string>
+    <string name="notification_clean_title">सफाई पूरी हुई</string>
+    <string name="notification_clean_body">%1$d फ़ाइल(फ़ाइलें) संसाधित।</string>
+    <string name="notification_convert_progress_title">मीडिया बदला जा रहा है…</string>
+    <string name="notification_clean_progress_title">मेटाडेटा साफ़ किया जा रहा है…</string>
+
+    <string name="navigation_convert">बदलें</string>
+
+    <!-- Convert tab -->
+    <string name="convert_output_format_images">छवि प्रारूप</string>
+    <string name="convert_output_format_videos">वीडियो कोडेक</string>
+    <string name="convert_output_format_mixed">प्रारूप (छवि / वीडियो)</string>
+    <string name="convert_format_mixed_pair">%1$s · %2$s</string>
+    <string name="convert_format_jpeg">JPEG</string>
+    <string name="convert_format_png">PNG</string>
+    <string name="convert_format_webp">WebP</string>
+    <string name="convert_format_h264">MP4 (H.264)</string>
+    <string name="convert_format_h265">MP4 (H.265)</string>
+    <string name="convert_format_vp9">WebM (VP9)</string>
+    <string name="convert_format_heif">HEIC</string>
+    <string name="convert_format_av1">MKV (AV1)</string>
+    <string name="convert_select_files">चुनें</string>
+    <string name="convert_run">बदलें</string>
+    <string name="convert_status_hint">बदलने के लिए चित्र या वीडियो चुनें।</string>
+    <string name="convert_status_ready">चित्र/वीडियो चुनने के लिए तैयार।</string>
+    <string name="convert_selected_count">चयनित: %1$d फ़ाइल(फ़ाइलें)</string>
+    <string name="convert_nothing_selected">कृपया पहले कम से कम एक चित्र चुनें।</string>
+    <string name="convert_progress_item">%2$d में से %1$d बदला जा रहा है…</string>
+    <string name="convert_progress_detail">%2$d में से %1$d · %3$s\n%4$s</string>
+    <string name="convert_transcoding_percent">ट्रांसकोडिंग… %1$d%%</string>
+    <string name="convert_encoding_image">छवि एन्कोड की जा रही है…</string>
+    <string name="progress_transcoding_percent">ट्रांसकोडिंग… %1$d%%</string>
+    <string name="clean_progress_batch">%2$d में से %1$d · %3$s</string>
+    <string name="convert_done_all">%1$d फ़ाइल(फ़ाइलें) सफलतापूर्वक बदली गईं।</string>
+    <string name="convert_done_partial">संपन्न: %1$d सफल, %2$d विफल।</string>
+    <string name="convert_done_failed">रूपांतरण विफल।</string>
+    <string name="convert_saved_to_gallery">गैलरी में सहेजा गया (Redact फ़ोल्डर)</string>
+    <string name="convert_clean_tab_hint">रूपांतरण केवल प्रारूप बदलता है। मेटाडेटा हटाने के लिए, साफ़ करें टैब पर जाएं।</string>
+
     <!-- Button labels -->
     <string name="button_select_media">मीडिया चुनें</string>
     <string name="button_strip_exif_data">मेटाडेटा साफ करें</string>
@@ -20,7 +65,7 @@
     <string name="status_processed_items">%1$d आइटम प्रसंस्कृत!</string>
     <string name="status_selected_items">चयनित: %1$d आइटम</string>
     <string name="status_first_select_media_files">कृपया पहले मीडिया फ़ाइलें चुनें!</string>
-    <string name="status_ready">मीडिया चुनने के लिए तैयार!</string>
+    <string name="status_ready">चित्र/वीडियो चुनने के लिए तैयार!</string>
     <string name="status_permissions_required">अनुमतियां आवश्यक!</string>
     <string name="status_requesting_permissions">अनुमतियां अनुरोध कर रहे हैं…</string>
     <string name="status_select_media_files">मेटाडेटा हटाने के लिए मीडिया चुनें!</string>

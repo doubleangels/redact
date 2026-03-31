@@ -11,6 +11,10 @@ import com.doubleangels.redact.sentry.SentryManager;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.sentry.ISpan;
+import io.sentry.ITransaction;
+import io.sentry.SpanStatus;
+
 /**
  * Handles the processing of media files (images and videos) to strip metadata.
  *
@@ -91,12 +95,14 @@ public class MediaProcessor {
             return;
         }
         new Thread(() -> {
+            ITransaction transaction = SentryManager.startTransaction("clean_multiple", "task");
             try {
                 int totalItems = items.size();
                 int successCount = 0;
 
                 for (int index = 0; index < totalItems; index++) {
                     MediaItem item = items.get(index);
+                    ISpan span = transaction.startChild("clean_item", "media_item");
                     final int itemIndex = index;
                     String batchLine =
                             activity.getString(
@@ -134,14 +140,19 @@ public class MediaProcessor {
                         if (processedUri != null) {
                             lastProcessedFileUri = processedUri;
                             successCount++;
+                            span.setStatus(SpanStatus.OK);
                         } else {
                             Log.e(TAG, "Failed to process item: " + item.fileName());
                             SentryManager.log("Failed to process item: " + item.fileName());
+                            span.setStatus(SpanStatus.INTERNAL_ERROR);
                         }
                     } catch (Exception e) {
                         metadataStripper.setProgressCallback(null);
                         Log.e(TAG, "Error processing item: " + item.fileName(), e);
                         SentryManager.recordException(e);
+                        span.setStatus(SpanStatus.INTERNAL_ERROR);
+                    } finally {
+                        span.finish();
                     }
                 }
 
@@ -149,6 +160,7 @@ public class MediaProcessor {
                 activity.runOnUiThread(() -> callback.onComplete(finalSuccessCount));
             } finally {
                 processing.set(false);
+                transaction.finish();
             }
         }).start();
     }

@@ -11,6 +11,51 @@
     <string name="navigation_clean">Pulisci</string>
     <string name="navigation_scan">Scansiona</string>
 
+    <!-- Local notifications -->
+    <string name="notification_channel_tasks_name">Attività</string>
+    <string name="notification_channel_tasks_description">Conversione e pulizia dei file completata</string>
+    <string name="notification_convert_title">Conversione Completata</string>
+    <string name="notification_convert_all_succeeded">Salvati %1$d file(s) nella galleria.</string>
+    <string name="notification_convert_partial">%1$d completati, %2$d non riusciti.</string>
+    <string name="notification_convert_failed">Impossibile convertire alcun file.</string>
+    <string name="notification_clean_title">Pulizia Completata</string>
+    <string name="notification_clean_body">Elaborati %1$d file(s).</string>
+    <string name="notification_convert_progress_title">Conversione Media…</string>
+    <string name="notification_clean_progress_title">Pulizia Metadati…</string>
+
+    <string name="navigation_convert">Converti</string>
+
+    <!-- Convert tab -->
+    <string name="convert_output_format_images">Formato immagine</string>
+    <string name="convert_output_format_videos">Codec video</string>
+    <string name="convert_output_format_mixed">Formati (immagine / video)</string>
+    <string name="convert_format_mixed_pair">%1$s · %2$s</string>
+    <string name="convert_format_jpeg">JPEG</string>
+    <string name="convert_format_png">PNG</string>
+    <string name="convert_format_webp">WebP</string>
+    <string name="convert_format_h264">MP4 (H.264)</string>
+    <string name="convert_format_h265">MP4 (H.265)</string>
+    <string name="convert_format_vp9">WebM (VP9)</string>
+    <string name="convert_format_heif">HEIC</string>
+    <string name="convert_format_av1">MKV (AV1)</string>
+    <string name="convert_select_files">Seleziona</string>
+    <string name="convert_run">Converti</string>
+    <string name="convert_status_hint">Seleziona immagini o video da convertire.</string>
+    <string name="convert_status_ready">Pronto a selezionare immagini/video.</string>
+    <string name="convert_selected_count">Selezionati: %1$d file(s)</string>
+    <string name="convert_nothing_selected">Seleziona prima un\'immagine.</string>
+    <string name="convert_progress_item">Conversione %1$d di %2$d…</string>
+    <string name="convert_progress_detail">%1$d di %2$d · %3$s\n%4$s</string>
+    <string name="convert_transcoding_percent">Transcodifica… %1$d%%</string>
+    <string name="convert_encoding_image">Codifica immagine…</string>
+    <string name="progress_transcoding_percent">Transcodifica… %1$d%%</string>
+    <string name="clean_progress_batch">%1$d di %2$d · %3$s</string>
+    <string name="convert_done_all">Convertiti %1$d file(s) con successo.</string>
+    <string name="convert_done_partial">Finito: %1$d completati, %2$d non riusciti.</string>
+    <string name="convert_done_failed">Conversione fallita.</string>
+    <string name="convert_saved_to_gallery">Salvato in Galleria (cartella Redact)</string>
+    <string name="convert_clean_tab_hint">La conversione cambia solo il formato. Per rimuovere i metadati, vai alla scheda Pulisci.</string>
+
     <!-- Button labels -->
     <string name="button_select_media">Seleziona Media</string>
     <string name="button_strip_exif_data">Pulisci Metadati</string>
@@ -20,7 +65,7 @@
     <string name="status_processed_items">%1$d elementi elaborati!</string>
     <string name="status_selected_items">Selezionati: %1$d elementi</string>
     <string name="status_first_select_media_files">Seleziona prima i file multimediali!</string>
-    <string name="status_ready">Pronto per selezionare i media!</string>
+    <string name="status_ready">Pronto a selezionare immagini/video!</string>
     <string name="status_permissions_required">Autorizzazioni richieste!</string>
     <string name="status_requesting_permissions">Richiesta autorizzazioni…</string>
     <string name="status_select_media_files">Seleziona i media per rimuovere i metadati!</string>

@@ -11,6 +11,51 @@
     <string name="navigation_clean">Limpar</string>
     <string name="navigation_scan">Escanear</string>
 
+    <!-- Local notifications -->
+    <string name="notification_channel_tasks_name">Tarefas</string>
+    <string name="notification_channel_tasks_description">Conversão e limpeza de mídias concluídas</string>
+    <string name="notification_convert_title">Conversão Concluída</string>
+    <string name="notification_convert_all_succeeded">Salvos %1$d arquivo(s) na galeria.</string>
+    <string name="notification_convert_partial">%1$d com sucesso, %2$d falharam.</string>
+    <string name="notification_convert_failed">Não foi possível converter os arquivos.</string>
+    <string name="notification_clean_title">Limpeza Concluída</string>
+    <string name="notification_clean_body">Processados %1$d arquivo(s).</string>
+    <string name="notification_convert_progress_title">Convertendo Mídias…</string>
+    <string name="notification_clean_progress_title">Limpando Metadados…</string>
+
+    <string name="navigation_convert">Converter</string>
+
+    <!-- Convert tab -->
+    <string name="convert_output_format_images">Formato de imagem</string>
+    <string name="convert_output_format_videos">Codec de vídeo</string>
+    <string name="convert_output_format_mixed">Formatos (imagem / vídeo)</string>
+    <string name="convert_format_mixed_pair">%1$s · %2$s</string>
+    <string name="convert_format_jpeg">JPEG</string>
+    <string name="convert_format_png">PNG</string>
+    <string name="convert_format_webp">WebP</string>
+    <string name="convert_format_h264">MP4 (H.264)</string>
+    <string name="convert_format_h265">MP4 (H.265)</string>
+    <string name="convert_format_vp9">WebM (VP9)</string>
+    <string name="convert_format_heif">HEIC</string>
+    <string name="convert_format_av1">MKV (AV1)</string>
+    <string name="convert_select_files">Selecionar</string>
+    <string name="convert_run">Converter</string>
+    <string name="convert_status_hint">Selecione imagens ou vídeos para converter.</string>
+    <string name="convert_status_ready">Pronto para selecionar imagens/vídeos.</string>
+    <string name="convert_selected_count">Selecionados: %1$d arquivo(s)</string>
+    <string name="convert_nothing_selected">Selecione pelo menos uma imagem primeiro.</string>
+    <string name="convert_progress_item">Convertendo %1$d de %2$d…</string>
+    <string name="convert_progress_detail">%1$d de %2$d · %3$s\n%4$s</string>
+    <string name="convert_transcoding_percent">Transcodificando… %1$d%%</string>
+    <string name="convert_encoding_image">Codificando imagem…</string>
+    <string name="progress_transcoding_percent">Transcodificando… %1$d%%</string>
+    <string name="clean_progress_batch">%1$d de %2$d · %3$s</string>
+    <string name="convert_done_all">Convertido(s) %1$d arquivo(s) com sucesso.</string>
+    <string name="convert_done_partial">Concluído: %1$d com sucesso, %2$d falharam.</string>
+    <string name="convert_done_failed">Conversão falhou.</string>
+    <string name="convert_saved_to_gallery">Salvo na Galeria (pasta Redact)</string>
+    <string name="convert_clean_tab_hint">A conversão altera apenas o formato. Para remover metadados, vá para a aba Limpar.</string>
+
     <!-- Button labels -->
     <string name="button_select_media">Selecionar Mídia</string>
     <string name="button_strip_exif_data">Limpar Metadados</string>
@@ -20,7 +65,7 @@
     <string name="status_processed_items">%1$d itens processados!</string>
     <string name="status_selected_items">Selecionados: %1$d itens</string>
     <string name="status_first_select_media_files">Por favor, selecione arquivos de mídia primeiro!</string>
-    <string name="status_ready">Pronto para selecionar mídia!</string>
+    <string name="status_ready">Pronto para selecionar imagens/vídeos!</string>
     <string name="status_permissions_required">Permissões necessárias!</string>
     <string name="status_requesting_permissions">Solicitando permissões…</string>
     <string name="status_select_media_files">Selecione mídia para remover metadados!</string>

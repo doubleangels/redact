@@ -12,6 +12,8 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 
 import io.sentry.Breadcrumb;
+import io.sentry.ISpan;
+import io.sentry.ITransaction;
 import io.sentry.Sentry;
 import io.sentry.SentryLevel;
 
@@ -43,6 +45,7 @@ public final class SentryManager {
     }
 
     public static void log(String message) {
+        Log.i(TAG, message);
         Breadcrumb b = new Breadcrumb();
         b.setMessage(message);
         b.setCategory("custom");
@@ -86,5 +89,9 @@ public final class SentryManager {
 
     public static void setCustomKey(String key, double value) {
         setCustomKey(key, String.valueOf(value));
+    }
+
+    public static ITransaction startTransaction(String name, String operation) {
+        return Sentry.startTransaction(name, operation);
     }
 }

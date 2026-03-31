@@ -31,6 +31,8 @@ Limpe arquivos perfeitamente de qualquer aplicativo através do menu de comparti
 
 <li><b>Suporte Multilíngue:</b><br>
 Disponível em 13 idiomas, incluindo inglês, espanhol, francês, alemão, italiano, português, russo, japonês, coreano, chinês (Simplificado e Tradicional), hindi e árabe.</li>
+<li><b>Conversão Universal de Mídia:</b><br>Precisa de um formato diferente? Converta facilmente imagens para tipos padrão, como JPEG, PNG, WebP ou HEIC. Transcodifique vídeos não suportados em arquivos MP4 ou MKV altamente compatíveis sem depender de servidores da Internet.</li>
+
 </ul>
 
 <p>Assuma o controle da sua pegada digital! Metadados EXIF podem expor suas coordenadas GPS precisas, detalhes do dispositivo, configurações da câmera, timestamps e identificadores únicos. Redact elimina todos esses riscos de privacidade preservando a qualidade de seus arquivos de mídia. Perfeito para compartilhamento em redes sociais, fotografia profissional e qualquer pessoa preocupada com privacidade digital.</p>

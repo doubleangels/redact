@@ -20,15 +20,25 @@ public final class SentryInitializer {
             options.setDsn(
                     "https://f92d27d08095710804ab4250a73b5ff8@o244019.ingest.us.sentry.io/4510514277580800");
             options.setRelease(BuildConfig.VERSION_NAME);
-            options.enableAllAutoBreadcrumbs(true);
-            options.setAttachScreenshot(true);
-            options.setAttachViewHierarchy(true);
-            options.setTracesSampleRate(1.0);
-            options.setEnableAppStartProfiling(true);
+
+            // Privacy: do NOT attach screenshots or view hierarchy — could capture user media.
+            options.setAttachScreenshot(false);
+            options.setAttachViewHierarchy(false);
+
+            // Privacy: do NOT collect broad device context or send all auto breadcrumbs.
+            options.setCollectAdditionalContext(false);
+            options.enableAllAutoBreadcrumbs(false);
+
+            // Keep ANR detection and frame tracking (crash diagnostics only, no PII).
             options.setAnrEnabled(true);
-            options.setCollectAdditionalContext(true);
-            options.setEnableFramesTracking(true);
-            options.setEnableRootCheck(true);
+            options.setEnableAppStartProfiling(false);
+            options.setEnableFramesTracking(false);
+            options.setEnableRootCheck(false);
+
+            // Sample only 5% of traces to minimize data sent to external servers.
+            options.setTracesSampleRate(0.05);
+
+            // Drop Sentry's own HTTP client errors (environmental noise).
             options.setBeforeSend((event, hint) -> {
                 if (event.getThrowable() != null
                         && event.getThrowable().getClass().getSimpleName().equals("SentryHttpClientException")) {
