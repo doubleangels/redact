@@ -13,8 +13,6 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      VERSION_NAME: ${{ steps.version.outputs.VERSION_NAME }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,34 +35,8 @@ jobs:
       - name: Run Unit Tests
         run: ./gradlew testReleaseUnitTest --no-daemon
 
-      - name: Extract versionName
-        id: version
-        run: |
-          VERSION_NAME=$(grep -oP 'versionName\s+"\K[^"]+' app/build.gradle || echo "0.0.0")
-          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_OUTPUT
-
-      - name: Build APK and Bundle
-        run: ./gradlew assembleRelease bundleRelease --no-daemon --parallel --build-cache
-
-      - name: Sign APK for GitHub release
-        uses: r0adkll/sign-android-release@v1
-        with:
-          releaseDirectory: app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-        env:
-          BUILD_TOOLS_VERSION: "34.0.0"
-
-      - name: Rename APK for GitHub release
-        run: mv app/build/outputs/apk/release/app-release-unsigned-signed.apk app/build/outputs/apk/release/app-release.apk
-
-      - name: Upload APK to GitHub release artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: github-release-apk
-          path: app/build/outputs/apk/release/app-release.apk
+      - name: Build Bundle
+        run: ./gradlew bundleRelease --no-daemon --parallel --build-cache
 
       - name: Sign bundle for Google Play release
         uses: r0adkll/sign-android-release@v1
@@ -77,15 +49,13 @@ jobs:
         env:
           BUILD_TOOLS_VERSION: "34.0.0"
 
-      - name: Upload bundle to GitHub release artifacts
+      - name: Upload bundle to artifacts
         uses: actions/upload-artifact@v4
         with:
           name: google-play-bundle
           path: app/build/outputs/bundle/release/app-release.aab
 
   publish:
-    permissions:
-      contents: write
     needs: ["build"]
     runs-on: ubuntu-latest
     steps:
@@ -94,44 +64,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Download APK from GitHub release artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: github-release-apk
-          path: .
-
-      - name: Download bundle from GitHub release artifacts
+      - name: Download bundle from artifacts
         uses: actions/download-artifact@v4
         with:
           name: google-play-bundle
           path: .
-
-      - name: Create GitHub release using release-drafter
-        id: create_release
-        uses: release-drafter/release-drafter@v6
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          tag: v${{ needs.build.outputs.VERSION_NAME }}
-          name: v${{ needs.build.outputs.VERSION_NAME }}
-
-      - name: Upload APK to GitHub release
-        uses: shogo82148/actions-upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: app-release.apk
-          asset_name: app-release.apk
-          asset_content_type: application/vnd.android.package-archive
-          overwrite: true
-
-      - name: Publish GitHub release
-        uses: eregon/publish-release@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          release_id: ${{ steps.create_release.outputs.id }}
 
       - name: Create service_account.json for Google Play release
         env:
