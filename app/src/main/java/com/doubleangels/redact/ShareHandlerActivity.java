@@ -391,9 +391,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
         }
     }
 
+    private static final int REQUEST_SHARE = 1001;
+
     /**
      * Creates and launches a share intent for the processed (clean) media file.
-     * The temporary file will be deleted after sharing completes (when activity resumes).
+     * Uses startActivityForResult so we only clean up after the chooser returns,
+     * not when it merely pauses this activity (which would delete the file before
+     * the receiving app has read it).
      *
      * @param isVideo Whether the processed file is a video (true) or image (false)
      * @param cleanedFileUri The URI of the processed file to share
@@ -403,60 +407,57 @@ public class ShareHandlerActivity extends AppCompatActivity {
             SentryManager.setCustomKey("cleaned_uri", cleanedFileUri != null ? cleanedFileUri.toString() : "null");
 
             if (cleanedFileUri != null) {
-                // Create a share intent with the appropriate MIME type
+                String mimeType = isVideo ? "video/*" : "image/*";
+
                 Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                shareIntent.setType(isVideo ? "video/*" : "image/*");
+                shareIntent.setType(mimeType);
                 shareIntent.putExtra(Intent.EXTRA_STREAM, cleanedFileUri);
                 shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-                // Mark that sharing has been initiated
-                sharingInitiated = true;
+                // Proactively grant read permission to every app that can handle this intent.
+                // This is required because some apps receive the URI through the chooser's
+                // indirection layer, which doesn't automatically forward FLAG_GRANT_READ_URI_PERMISSION.
+                for (android.content.pm.ResolveInfo resolveInfo :
+                        getPackageManager().queryIntentActivities(shareIntent, 0)) {
+                    String packageName = resolveInfo.activityInfo.packageName;
+                    grantUriPermission(packageName, cleanedFileUri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                }
 
-                // Launch the share intent
-                // Note: We don't finish() immediately so we can cleanup in onResume()
+                Intent chooser = Intent.createChooser(shareIntent, getString(R.string.share_chooser_title));
+                // The chooser itself is a separate process; it also needs the flag so it
+                // can forward the URI to whichever app the user picks.
+                chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                sharingInitiated = true;
                 SentryManager.log("Launching share intent");
-                startActivity(Intent.createChooser(shareIntent, getString(R.string.share_chooser_title)));
+                startActivityForResult(chooser, REQUEST_SHARE);
             } else {
-                // Handle case where processing didn't produce a valid file
                 SentryManager.log("Cleaned file URI is null");
                 finishWithError("Failed to get cleaned file");
             }
         } catch (Exception e) {
-            // Log and handle any errors during sharing
             SentryManager.recordException(e);
             finishWithError("Error sharing clean file: " + e.getMessage());
         }
     }
     
     /**
-     * Called when the activity is paused (e.g., when share chooser is shown).
-     * This is where we can detect that sharing has started.
+     * Called when the share chooser returns. This is the correct place to clean up
+     * the temporary file — it fires only after the chooser is fully dismissed, so the
+     * receiving app has already obtained its copy of the file via the FileProvider URI.
      */
     @Override
-    protected void onPause() {
-        super.onPause();
-        // When activity pauses, it means the share chooser or target app is shown
-        // We'll cleanup when the activity resumes (user returns from sharing)
-    }
-    
-    /**
-     * Called when the activity resumes (e.g., when user returns from share chooser).
-     * This is where we cleanup the temporary file after sharing is complete.
-     */
-    @Override
-    protected void onResume() {
-        super.onResume();
-        
-        // If sharing was initiated and we're resuming, it means the user has
-        // interacted with the share chooser (either shared or cancelled)
-        // Clean up the temporary file now
-        if (sharingInitiated) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_SHARE) {
+            SentryManager.log("Share chooser returned, cleaning up");
             cleanupProcessedFile();
-            // Finish the activity since sharing is complete
             finish();
         }
     }
-    
+
+
     /**
      * Deletes the temporary processed file from disk.
      * This is called after sharing completes to avoid saving files to disk.

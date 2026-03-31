@@ -1,5 +1,5 @@
 <resources>
-    <!-- Main theme -->
+    <!-- Main theme (night) -->
     <style name="Theme.Redact" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
@@ -13,8 +13,10 @@
         <item name="bottomNavigationStyle">@style/Widget.Redact.BottomNavigationView</item>
     </style>
 
-    <!-- Transparent theme for ShareHandlerActivity -->
-    <style name="Theme.Transparent" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <!-- Transparent theme for ShareHandlerActivity (night).
+         Must inherit Material3 (not MaterialComponents/Material2) so dialog_progress.xml
+         can resolve ?attr/colorSurfaceContainerHigh, textAppearanceBodyMedium, etc. -->
+    <style name="Theme.Transparent" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowContentOverlay">@null</item>
