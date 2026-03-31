@@ -326,14 +326,14 @@ public class ShareHandlerActivity extends AppCompatActivity {
                                 String lastSegment = processedUri.getLastPathSegment();
                                 if (lastSegment != null) {
                                     // FileProvider encodes the path as "processed/<filename>"
-                                    String fileName = lastSegment.contains("/")
+                                    String resolvedFileName = lastSegment.contains("/")
                                             ? lastSegment.substring(lastSegment.lastIndexOf('/') + 1)
                                             : lastSegment;
                                     File cacheDir = new File(getCacheDir(), "processed");
-                                    File candidate = new File(cacheDir, fileName);
+                                    File candidate = new File(cacheDir, resolvedFileName);
                                     if (candidate.exists() && candidate.isFile()) {
                                         processedFile = candidate;
-                                        SentryManager.log("Resolved processed file from URI: " + fileName);
+                                        SentryManager.log("Resolved processed file from URI: " + resolvedFileName);
                                     } else {
                                         SentryManager.log("Processed file not found at expected path: " + candidate);
                                     }
