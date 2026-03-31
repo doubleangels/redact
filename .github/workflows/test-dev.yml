@@ -1,24 +1,38 @@
-name: Test development build
+name: Development Build Testing
 
 on:
   push:
     branches:
       - dev
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
-  group: test-dev
+  group: test-dev-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  lint:
+  test:
+    if: |
+      (github.event_name == 'push' && github.actor != 'dependabot[bot]') ||
+      (github.event_name == 'pull_request' && github.actor == 'dependabot[bot]') ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5.2.0
+        uses: actions/setup-java@v4
         with:
           java-version: "21"
           distribution: "temurin"
@@ -34,3 +48,26 @@ jobs:
       - name: Run Lint
         run: ./gradlew lintRelease --no-daemon
         continue-on-error: false
+
+      - name: Build Release
+        if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
+        run: ./gradlew assembleRelease --no-daemon
+        continue-on-error: false
+
+  automerge:
+    needs: [test]
+    if: >
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      needs.test.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Enable auto-merge for Dependabot PRs
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ github.token }}
+          pull-request-number: ${{ github.event.pull_request.number }}
+          merge-method: merge

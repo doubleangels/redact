@@ -3,19 +3,26 @@ name: Deploy release
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: deploy-release
   cancel-in-progress: true
 
 jobs:
-  build-for-google-play:
+  build:
     runs-on: ubuntu-latest
+    outputs:
+      VERSION_NAME: ${{ steps.version.outputs.VERSION_NAME }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5.2.0
+        uses: actions/setup-java@v4
         with:
           java-version: 21
           distribution: "temurin"
@@ -24,11 +31,40 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run Unit Tests
-        run: ./gradlew testDebugUnitTest --no-daemon
+      - name: Run Android Lint
+        run: ./gradlew lintRelease --no-daemon
 
-      - name: Build bundle for Google Play release
-        run: ./gradlew bundleRelease --no-daemon
+      - name: Run Unit Tests
+        run: ./gradlew testReleaseUnitTest --no-daemon
+
+      - name: Extract versionName
+        id: version
+        run: |
+          VERSION_NAME=$(grep -oP 'versionName\s+"\K[^"]+' app/build.gradle || echo "0.0.0")
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_OUTPUT
+
+      - name: Build APK and Bundle
+        run: ./gradlew assembleRelease bundleRelease --no-daemon --parallel --build-cache
+
+      - name: Sign APK for GitHub release
+        uses: r0adkll/sign-android-release@v1
+        with:
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
+
+      - name: Rename APK for GitHub release
+        run: mv app/build/outputs/apk/release/app-release-unsigned-signed.apk app/build/outputs/apk/release/app-release.apk
+
+      - name: Upload APK to GitHub release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-release-apk
+          path: app/build/outputs/apk/release/app-release.apk
 
       - name: Sign bundle for Google Play release
         uses: r0adkll/sign-android-release@v1
@@ -38,25 +74,64 @@ jobs:
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
 
-      - name: Upload bundle to Github release artifacts
-        uses: actions/upload-artifact@v7.0.0
+      - name: Upload bundle to GitHub release artifacts
+        uses: actions/upload-artifact@v4
         with:
           name: google-play-bundle
           path: app/build/outputs/bundle/release/app-release.aab
 
-  publish-built-file:
-    needs: ["build-for-google-play"]
+  publish:
+    permissions:
+      contents: write
+    needs: ["build"]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6.0.2
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
-      - name: Download Google Play bundle from Github release artifacts
-        uses: actions/download-artifact@v8.0.1
+      - name: Download APK from GitHub release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: github-release-apk
+          path: .
+
+      - name: Download bundle from GitHub release artifacts
+        uses: actions/download-artifact@v4
         with:
           name: google-play-bundle
           path: .
+
+      - name: Create GitHub release using release-drafter
+        id: create_release
+        uses: release-drafter/release-drafter@v6
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tag: v${{ needs.build.outputs.VERSION_NAME }}
+          name: v${{ needs.build.outputs.VERSION_NAME }}
+
+      - name: Upload APK to GitHub release
+        uses: shogo82148/actions-upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: app-release.apk
+          asset_name: app-release.apk
+          asset_content_type: application/vnd.android.package-archive
+          overwrite: true
+
+      - name: Publish GitHub release
+        uses: eregon/publish-release@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          release_id: ${{ steps.create_release.outputs.id }}
 
       - name: Create service_account.json for Google Play release
         env:
@@ -72,20 +147,23 @@ jobs:
           track: production
           whatsNewDirectory: whatsnew
 
-      - name: Set up Ruby explicitly for Fastlane
+      - name: Set up Ruby for Fastlane
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.3'
+          ruby-version: "3.3"
 
-      - name: Install Fastlane Core CLI
+      - name: Install Fastlane
         run: gem install fastlane
 
-      - name: Push Fastlane metadata and localized images to Store
+      - name: Push Fastlane metadata to Play Store
         run: fastlane supply --skip_upload_apk true --skip_upload_aab true --json_key service_account.json --package_name com.doubleangels.redact --track production
 
   delete-workflow-runs:
-    needs: ["build-for-google-play", "publish-built-file"]
+    permissions:
+      actions: write
+    needs: ["build", "publish"]
     runs-on: ubuntu-latest
+    if: always()
     steps:
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2.1.0
@@ -93,4 +171,4 @@ jobs:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
           retain_days: 30
-          keep_minimum_runs: 1
+          keep_minimum_runs: 5
