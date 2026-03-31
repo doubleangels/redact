@@ -32,7 +32,7 @@ public class MediaProcessor {
     private final Activity activity;
 
     /** Stores the URI of the most recently processed file */
-    private Uri lastProcessedFileUri;
+    private volatile Uri lastProcessedFileUri;
 
     /** Prevents overlapping batch processing from multiple strip invocations */
     private final AtomicBoolean processing = new AtomicBoolean(false);

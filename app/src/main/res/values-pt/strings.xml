@@ -26,6 +26,7 @@
     <string name="navigation_convert">Converter</string>
 
     <!-- Convert tab -->
+    <string name="convert_subtitle">Imagens: JPEG, PNG, WebP ou HEIC (Android 14+) para Pictures/Redact. Vídeos: MP4, WebM ou MKV para Movies/Redact. A opção HEIC está oculta em dispositivos mais antigos.</string>
     <string name="convert_output_format_images">Formato de imagem</string>
     <string name="convert_output_format_videos">Codec de vídeo</string>
     <string name="convert_output_format_mixed">Formatos (imagem / vídeo)</string>
@@ -175,5 +176,20 @@
     <string name="metadata_error_file_open">Erro: Não foi possível abrir o arquivo de imagem</string>
     <string name="metadata_error_image_metadata">Erro ao extrair metadados de imagem: %s</string>
     <string name="metadata_error_video_metadata">Erro ao extrair metadados de vídeo: %s</string>
+    <!-- Additional App Strings -->
+    <string name="permission_rationale_media">O acesso à mídia é necessário para selecionar e processar arquivos de mídia.</string>
+    <string name="permission_rationale_storage">O acesso ao armazenamento é necessário para selecionar e processar arquivos de mídia.</string>
+    <string name="permission_rationale_location">A permissão de localização é necessária para acessar dados de geolocalização em arquivos de mídia.</string>
+    <string name="permission_denied_permanent">Permissão negada permanentemente. Por favor, ative-a nas Configurações.</string>
+    <string name="permission_denied_retry">São necessárias permissões para selecionar arquivos de mídia.</string>
+    <string name="permission_location_denied_permanent">Permissão de localização negada permanentemente. Ative-a nas Configurações para acessar dados de localização de mídia.</string>
+    <string name="permission_location_retry">A permissão de localização é necessária para acessar dados de geolocalização em arquivos de mídia.</string>
+    <string name="snackbar_action_settings">Configurações</string>
+    <string name="snackbar_action_retry">Repetir</string>
+    <string name="scan_metadata_subtitle">Campos detectados deste arquivo. Toque e segure nos valores para copiar.</string>
+    <string name="scan_open_in_maps">Abrir no Google Maps</string>
+    <string name="scan_maps_unavailable">Nenhum aplicativo de mapas encontrado para abrir esta localização.</string>
+    <string name="scan_search_camera">Pesquisar câmera</string>
+    <string name="scan_search_unavailable">Nenhum navegador encontrado para realizar esta pesquisa.</string>
 </resources>
 

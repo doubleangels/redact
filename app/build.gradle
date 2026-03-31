@@ -49,7 +49,7 @@ dependencies {
     implementation libs.exifinterface
     implementation libs.fragment
     implementation libs.glide
-    implementation libs.material.v1110
+    implementation libs.material
     implementation libs.media3.common
     implementation libs.media3.effect
     implementation libs.media3.transformer

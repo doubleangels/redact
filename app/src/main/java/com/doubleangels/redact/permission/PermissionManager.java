@@ -156,21 +156,37 @@ public class PermissionManager {
         try {
             boolean result;
 
-            // Android 13+ (API 33) uses granular media permissions
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                // Android 14+ (API 34): full access OR user-selected partial access are both valid.
+                // READ_MEDIA_VISUAL_USER_SELECTED is granted when the user picks specific photos/videos
+                // rather than granting all-or-nothing access.
+                boolean hasImagePermission = ContextCompat.checkSelfPermission(activity,
+                        Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED;
+                boolean hasVideoPermission = ContextCompat.checkSelfPermission(activity,
+                        Manifest.permission.READ_MEDIA_VIDEO) == PackageManager.PERMISSION_GRANTED;
+                boolean hasUserSelectedPermission = ContextCompat.checkSelfPermission(activity,
+                        Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED) == PackageManager.PERMISSION_GRANTED;
+
+                SentryManager.setCustomKey("has_image_permission", hasImagePermission);
+                SentryManager.setCustomKey("has_video_permission", hasVideoPermission);
+                SentryManager.setCustomKey("has_user_selected_permission", hasUserSelectedPermission);
+
+                // Either full (IMAGES+VIDEO) or partial (USER_SELECTED) grants are acceptable.
+                result = !(hasImagePermission && hasVideoPermission) && !hasUserSelectedPermission;
+
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                // Android 13 (API 33): granular media permissions, no partial access option.
                 boolean hasImagePermission = ContextCompat.checkSelfPermission(activity,
                         Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED;
                 boolean hasVideoPermission = ContextCompat.checkSelfPermission(activity,
                         Manifest.permission.READ_MEDIA_VIDEO) == PackageManager.PERMISSION_GRANTED;
 
-                // Log permission status for diagnostics
                 SentryManager.setCustomKey("has_image_permission", hasImagePermission);
                 SentryManager.setCustomKey("has_video_permission", hasVideoPermission);
 
-                // Need permissions if either images or videos permission is missing
                 result = !hasImagePermission || !hasVideoPermission;
             } else {
-                // Pre-Android 13 uses the storage permission
+                // Pre-Android 13: legacy READ_EXTERNAL_STORAGE
                 boolean hasStoragePermission = ContextCompat.checkSelfPermission(activity,
                         Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
 
@@ -179,10 +195,16 @@ public class PermissionManager {
             }
             return result;
         } catch (Exception e) {
-            // Log exception and fall back to direct permission check
             SentryManager.recordException(new Exception("Error checking permissions: " + e.getMessage(), e));
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                boolean fullAccess =
+                        ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED
+                        && ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_MEDIA_VIDEO) == PackageManager.PERMISSION_GRANTED;
+                boolean partialAccess =
+                        ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED) == PackageManager.PERMISSION_GRANTED;
+                return !fullAccess && !partialAccess;
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 return ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_MEDIA_IMAGES)
                         != PackageManager.PERMISSION_GRANTED
                         || ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_MEDIA_VIDEO)
@@ -222,12 +244,27 @@ public class PermissionManager {
      */
     public void requestStoragePermission() {
         try {
-            // Mark that we've shown rationale to track permanent denials
             hasShownRationale = true;
             SentryManager.setCustomKey("has_shown_rationale", true);
 
-            // Android 13+ (API 33) uses granular media permissions
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                // Android 14+: include READ_MEDIA_VISUAL_USER_SELECTED so the system dialog
+                // shows the "Select Photos" third option alongside "Allow All" and "Don't Allow".
+                boolean shouldShowImageRationale = ActivityCompat.shouldShowRequestPermissionRationale(
+                        activity, Manifest.permission.READ_MEDIA_IMAGES);
+                boolean shouldShowVideoRationale = ActivityCompat.shouldShowRequestPermissionRationale(
+                        activity, Manifest.permission.READ_MEDIA_VIDEO);
+                boolean shouldShowUserSelectedRationale = ActivityCompat.shouldShowRequestPermissionRationale(
+                        activity, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED);
+
+                SentryManager.log("Requesting Android 14+ media permissions with user-selected support");
+
+                if (shouldShowImageRationale || shouldShowVideoRationale || shouldShowUserSelectedRationale) {
+                    showMediaRationaleSnackbar();
+                } else {
+                    requestMediaPermissions();
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 boolean shouldShowImageRationale = ActivityCompat.shouldShowRequestPermissionRationale(
                         activity, Manifest.permission.READ_MEDIA_IMAGES);
                 boolean shouldShowVideoRationale = ActivityCompat.shouldShowRequestPermissionRationale(
@@ -235,23 +272,20 @@ public class PermissionManager {
 
                 SentryManager.setCustomKey("should_show_image_rationale", shouldShowImageRationale);
                 SentryManager.setCustomKey("should_show_video_rationale", shouldShowVideoRationale);
-                SentryManager.log("Requesting Android 13+ media permissions");
+                SentryManager.log("Requesting Android 13 media permissions");
 
-                // Show rationale if Android indicates we should
                 if (shouldShowImageRationale || shouldShowVideoRationale) {
                     showMediaRationaleSnackbar();
                 } else {
                     requestMediaPermissions();
                 }
             } else {
-                // Pre-Android 13 uses the storage permission
                 boolean shouldShowStorageRationale = ActivityCompat.shouldShowRequestPermissionRationale(
                         activity, Manifest.permission.READ_EXTERNAL_STORAGE);
 
                 SentryManager.setCustomKey("should_show_storage_rationale", shouldShowStorageRationale);
                 SentryManager.log("Requesting Android 12 storage permission");
 
-                // Show rationale if Android indicates we should
                 if (shouldShowStorageRationale) {
                     showStorageRationaleSnackbar();
                 } else {
@@ -259,10 +293,17 @@ public class PermissionManager {
                 }
             }
         } catch (Exception e) {
-            // Log exception and fall back to direct permission request
             SentryManager.recordException(new Exception("Error requesting permissions: " + e.getMessage(), e));
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                ActivityCompat.requestPermissions(activity,
+                        new String[]{
+                                Manifest.permission.READ_MEDIA_IMAGES,
+                                Manifest.permission.READ_MEDIA_VIDEO,
+                                Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
+                        },
+                        PERMISSION_REQUEST_CODE);
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 ActivityCompat.requestPermissions(activity,
                         new String[]{
                                 Manifest.permission.READ_MEDIA_IMAGES,
@@ -331,13 +372,26 @@ public class PermissionManager {
      */
     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     private void requestMediaPermissions() {
-        SentryManager.log("Requesting READ_MEDIA_IMAGES and READ_MEDIA_VIDEO permissions");
-        ActivityCompat.requestPermissions(activity,
-                new String[]{
-                        Manifest.permission.READ_MEDIA_IMAGES,
-                        Manifest.permission.READ_MEDIA_VIDEO
-                },
-                PERMISSION_REQUEST_CODE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            // Android 14+: include READ_MEDIA_VISUAL_USER_SELECTED to surface the
+            // "Select Photos" button in the system permission dialog.
+            SentryManager.log("Requesting Android 14+ media permissions with user-selected option");
+            ActivityCompat.requestPermissions(activity,
+                    new String[]{
+                            Manifest.permission.READ_MEDIA_IMAGES,
+                            Manifest.permission.READ_MEDIA_VIDEO,
+                            Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
+                    },
+                    PERMISSION_REQUEST_CODE);
+        } else {
+            SentryManager.log("Requesting READ_MEDIA_IMAGES and READ_MEDIA_VIDEO permissions");
+            ActivityCompat.requestPermissions(activity,
+                    new String[]{
+                            Manifest.permission.READ_MEDIA_IMAGES,
+                            Manifest.permission.READ_MEDIA_VIDEO
+                    },
+                    PERMISSION_REQUEST_CODE);
+        }
     }
 
     /**
@@ -439,30 +493,26 @@ public class PermissionManager {
      * @param grantResults Array of grant results for each permission
      */
     private void handleStoragePermissionResult(String[] permissions, int[] grantResults) {
-        boolean allPermissionsGranted = true;
-
-        // Check each permission result
+        // Log individual permission results for diagnostics
         for (int i = 0; i < permissions.length; i++) {
             String permission = permissions[i];
             boolean granted = (i < grantResults.length) &&
                     (grantResults[i] == PackageManager.PERMISSION_GRANTED);
-
-            // Log individual permission results for diagnostics
             SentryManager.setCustomKey("permission_" + permission.replace(".", "_"), granted);
-
-            if (!granted) {
-                allPermissionsGranted = false;
-            }
         }
 
-        SentryManager.setCustomKey("all_permissions_granted", allPermissionsGranted);
+        // On Android 14+, READ_MEDIA_VISUAL_USER_SELECTED will be denied when the user
+        // chooses "Allow All" (full access), and READ_MEDIA_IMAGES/VIDEO will be denied
+        // when the user chooses "Select Photos" (partial access). Checking individual grant
+        // results is therefore unreliable; delegate to needsPermissions() which handles all
+        // three cases correctly: full access, partial access, and denied.
+        boolean stillNeedsPermissions = needsPermissions();
+        SentryManager.setCustomKey("all_permissions_granted", !stillNeedsPermissions);
 
-        if (allPermissionsGranted) {
-            // All permissions were granted
+        if (!stillNeedsPermissions) {
             SentryManager.log("All permissions granted");
             callback.onPermissionsGranted();
         } else {
-            // At least one permission was denied
             SentryManager.log("Some permissions denied");
             callback.onPermissionsDenied();
             handlePermissionDenial();

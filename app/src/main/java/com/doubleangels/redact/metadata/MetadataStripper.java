@@ -790,7 +790,7 @@ public class MetadataStripper {
     @androidx.annotation.VisibleForTesting
     int detectVideoFormatIndex(Uri sourceUri, String fileName) {
         if (fileName != null) {
-            String lower = fileName.toLowerCase();
+            String lower = fileName.toLowerCase(java.util.Locale.ROOT);
             if (lower.endsWith(".webm") || lower.endsWith(".vp9") || lower.endsWith(".vp8")) return 2;
             if (lower.endsWith(".mkv")) return 3;
         }
@@ -895,7 +895,14 @@ public class MetadataStripper {
                 if (info.size < 0) break;
                 
                 info.presentationTimeUs = extractor.getSampleTime();
-                info.flags = extractor.getSampleFlags();
+                int sampleFlags = extractor.getSampleFlags();
+                info.flags = 0;
+                if ((sampleFlags & android.media.MediaExtractor.SAMPLE_FLAG_SYNC) != 0) {
+                    info.flags |= android.media.MediaCodec.BUFFER_FLAG_KEY_FRAME;
+                }
+                if ((sampleFlags & android.media.MediaExtractor.SAMPLE_FLAG_PARTIAL_FRAME) != 0) {
+                    info.flags |= android.media.MediaCodec.BUFFER_FLAG_PARTIAL_FRAME;
+                }
                 
                 int muxerTrackIndex = (trackIndex == videoTrackIndex) ? muxerVideoTrackIndex :
                                      (trackIndex == audioTrackIndex) ? muxerAudioTrackIndex : -1;

@@ -26,6 +26,7 @@
     <string name="navigation_convert">转换</string>
 
     <!-- Convert tab -->
+    <string name="convert_subtitle">图片：将 JPEG、PNG、WebP 或 HEIC（Android 14+）保存到 Pictures/Redact。视频：将 MP4、WebM 或 MKV 保存到 Movies/Redact。旧设备上会隐藏 HEIC 选项。</string>
     <string name="convert_output_format_images">图片格式</string>
     <string name="convert_output_format_videos">视频编码</string>
     <string name="convert_output_format_mixed">格式（图片/视频）</string>
@@ -175,5 +176,20 @@
     <string name="metadata_error_file_open">错误：无法打开图像文件</string>
     <string name="metadata_error_image_metadata">提取图像元数据时出错：%s</string>
     <string name="metadata_error_video_metadata">提取视频元数据时出错：%s</string>
+    <!-- Additional App Strings -->
+    <string name="permission_rationale_media">需要媒体访问权限才能选择和处理媒体文件。</string>
+    <string name="permission_rationale_storage">需要存储访问权限才能选择和处理媒体文件。</string>
+    <string name="permission_rationale_location">需要位置权限才能访问媒体文件中的地理定位数据。</string>
+    <string name="permission_denied_permanent">权限被永久拒绝。请在设置中启用。</string>
+    <string name="permission_denied_retry">需要权限才能选择媒体文件。</string>
+    <string name="permission_location_denied_permanent">位置权限被永久拒绝。请在设置中启用以访问媒体位置数据。</string>
+    <string name="permission_location_retry">需要位置权限才能访问媒体文件中的地理定位数据。</string>
+    <string name="snackbar_action_settings">设置</string>
+    <string name="snackbar_action_retry">重试</string>
+    <string name="scan_metadata_subtitle">从此文件中检测到的字段。长按值可复制。</string>
+    <string name="scan_open_in_maps">在 Google 地图中打开</string>
+    <string name="scan_maps_unavailable">未找到可打开此位置的地图应用。</string>
+    <string name="scan_search_camera">搜索相机</string>
+    <string name="scan_search_unavailable">未找到可执行此搜索的浏览器。</string>
 </resources>
 

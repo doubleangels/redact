@@ -26,6 +26,7 @@
     <string name="navigation_convert">변환</string>
 
     <!-- Convert tab -->
+    <string name="convert_subtitle">이미지: JPEG, PNG, WebP 또는 HEIC(Android 14+)를 Pictures/Redact로 변환합니다. 비디오: MP4, WebM 또는 MKV를 Movies/Redact로 변환합니다. 이전 기기에서는 HEIC 옵션이 숨겨져 있습니다.</string>
     <string name="convert_output_format_images">이미지 형식</string>
     <string name="convert_output_format_videos">비디오 코덱</string>
     <string name="convert_output_format_mixed">형식 (이미지/비디오)</string>
@@ -175,5 +176,20 @@
     <string name="metadata_error_file_open">오류: 이미지 파일을 열 수 없습니다</string>
     <string name="metadata_error_image_metadata">이미지 메타데이터 추출 오류: %s</string>
     <string name="metadata_error_video_metadata">동영상 메타데이터 추출 오류: %s</string>
+    <!-- Additional App Strings -->
+    <string name="permission_rationale_media">미디어 파일을 선택하고 처리하려면 미디어 액세스가 필요합니다.</string>
+    <string name="permission_rationale_storage">미디어 파일을 선택하고 처리하려면 저장소 액세스가 필요합니다.</string>
+    <string name="permission_rationale_location">미디어 파일의 위치 데이터에 액세스하려면 위치 권한이 필요합니다.</string>
+    <string name="permission_denied_permanent">권한이 영구적으로 거부되었습니다. 설정에서 활성화하세요.</string>
+    <string name="permission_denied_retry">미디어 파일을 선택하려면 권한이 필요합니다.</string>
+    <string name="permission_location_denied_permanent">위치 권한이 영구적으로 거부되었습니다. 미디어 위치 데이터에 액세스하려면 설정에서 활성화하세요.</string>
+    <string name="permission_location_retry">미디어 파일의 위치 데이터에 액세스하려면 위치 권한이 필요합니다.</string>
+    <string name="snackbar_action_settings">설정</string>
+    <string name="snackbar_action_retry">재시도</string>
+    <string name="scan_metadata_subtitle">이 파일에서 감지된 필드입니다. 값을 복사하려면 길게 누르세요.</string>
+    <string name="scan_open_in_maps">Google 지도에서 열기</string>
+    <string name="scan_maps_unavailable">이 위치를 열 수 있는 지도 앱을 찾을 수 없습니다.</string>
+    <string name="scan_search_camera">카메라 검색</string>
+    <string name="scan_search_unavailable">이 검색을 실행할 브라우저를 찾을 수 없습니다.</string>
 </resources>
 

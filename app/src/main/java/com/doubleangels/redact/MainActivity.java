@@ -144,10 +144,6 @@ public class MainActivity extends AppCompatActivity {
             SentryManager.setCustomKey("app_started", true);
         } catch (Exception e) {
             SentryManager.recordException(e);
-            try {
-                setContentView(R.layout.activity_main);
-            } catch (Exception ignored) {
-            }
         }
     }
 

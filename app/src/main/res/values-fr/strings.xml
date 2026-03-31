@@ -26,6 +26,7 @@
     <string name="navigation_convert">Convertir</string>
 
     <!-- Convert tab -->
+    <string name="convert_subtitle">Images : JPEG, PNG, WebP ou HEIC (Android 14+) dans Pictures/Redact. Vidéos : MP4, WebM ou MKV dans Movies/Redact. L\'option HEIC est masquée sur les anciens appareils.</string>
     <string name="convert_output_format_images">Format d\'image</string>
     <string name="convert_output_format_videos">Codec vidéo</string>
     <string name="convert_output_format_mixed">Formats (image / vidéo)</string>
@@ -175,5 +176,20 @@
     <string name="metadata_error_file_open">Erreur : Impossible d\'ouvrir le fichier image</string>
     <string name="metadata_error_image_metadata">Erreur lors de l\'extraction des métadonnées image : %s</string>
     <string name="metadata_error_video_metadata">Erreur lors de l\'extraction des métadonnées vidéo : %s</string>
+    <!-- Additional App Strings -->
+    <string name="permission_rationale_media">L\'accès aux médias est nécessaire pour sélectionner et traiter les fichiers.</string>
+    <string name="permission_rationale_storage">L\'accès au stockage est nécessaire pour sélectionner et traiter les fichiers multimédias.</string>
+    <string name="permission_rationale_location">L\'autorisation de localisation est nécessaire pour accéder aux données de géolocalisation dans les fichiers multimédias.</string>
+    <string name="permission_denied_permanent">Autorisation refusée de manière permanente. Veuillez l\'activer dans les Paramètres.</string>
+    <string name="permission_denied_retry">Les autorisations sont requises pour sélectionner des fichiers multimédias.</string>
+    <string name="permission_location_denied_permanent">Autorisation de localisation refusée de manière permanente. Activez-la dans les Paramètres pour accéder aux données de localisation des fichiers multimédias.</string>
+    <string name="permission_location_retry">L\'autorisation de localisation est nécessaire pour accéder aux données de géolocalisation dans les fichiers multimédias.</string>
+    <string name="snackbar_action_settings">Paramètres</string>
+    <string name="snackbar_action_retry">Réessayer</string>
+    <string name="scan_metadata_subtitle">Champs détectés à partir de ce fichier. Appuyez et maintenez sur les valeurs pour copier.</string>
+    <string name="scan_open_in_maps">Ouvrir dans Google Maps</string>
+    <string name="scan_maps_unavailable">Aucune application de cartes trouvée pour ouvrir cet emplacement.</string>
+    <string name="scan_search_camera">Rechercher l\'appareil photo</string>
+    <string name="scan_search_unavailable">Aucun navigateur trouvé pour effectuer cette recherche.</string>
 </resources>
 

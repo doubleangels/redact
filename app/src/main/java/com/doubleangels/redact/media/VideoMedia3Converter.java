@@ -36,12 +36,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
+import androidx.media3.common.util.UnstableApi;
 
 /**
  * Transcodes video with Jetpack Media3 {@link Transformer}, then copies the result into
  * {@code Movies/Redact} as MP4. Format index matches {@link FormatConverter#FORMAT_OPTION_COUNT}:
  * H.264, H.265, VP9, or AV1 (device-dependent).
  */
+@OptIn(markerClass = UnstableApi.class)
 public final class VideoMedia3Converter {
 
     /** H.264 / AAC MP4 — used for Clean metadata stripping (broad device support, audio preserved). */

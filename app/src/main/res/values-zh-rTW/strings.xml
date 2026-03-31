@@ -26,6 +26,7 @@
     <string name="navigation_convert">轉換</string>
 
     <!-- Convert tab -->
+    <string name="convert_subtitle">圖片：將 JPEG、PNG、WebP 或 HEIC（Android 14+）儲存到 Pictures/Redact。影片：將 MP4、WebM 或 MKV 儲存到 Movies/Redact。舊裝置上會隱藏 HEIC 選項。</string>
     <string name="convert_output_format_images">圖片格式</string>
     <string name="convert_output_format_videos">影片編碼</string>
     <string name="convert_output_format_mixed">格式（圖片/影片）</string>
@@ -175,5 +176,20 @@
     <string name="metadata_error_file_open">錯誤：無法開啟圖片檔案</string>
     <string name="metadata_error_image_metadata">擷取圖片中繼資料時發生錯誤：%s</string>
     <string name="metadata_error_video_metadata">擷取影片中繼資料時發生錯誤：%s</string>
+    <!-- Additional App Strings -->
+    <string name="permission_rationale_media">需要媒體存取權限才能選擇和處理媒體檔案。</string>
+    <string name="permission_rationale_storage">需要儲存空間存取權限才能選擇和處理媒體檔案。</string>
+    <string name="permission_rationale_location">需要位置權限才能存取媒體檔案中的地理定位資料。</string>
+    <string name="permission_denied_permanent">權限被永久拒絕。請在設定中啟用。</string>
+    <string name="permission_denied_retry">需要權限才能選擇媒體檔案。</string>
+    <string name="permission_location_denied_permanent">位置權限被永久拒絕。請在設定中啟用以存取媒體位置資料。</string>
+    <string name="permission_location_retry">需要位置權限才能存取媒體檔案中的地理定位資料。</string>
+    <string name="snackbar_action_settings">設定</string>
+    <string name="snackbar_action_retry">重試</string>
+    <string name="scan_metadata_subtitle">從此檔案中偵測到的欄位。長按值可複製。</string>
+    <string name="scan_open_in_maps">在 Google 地圖中打開</string>
+    <string name="scan_maps_unavailable">找不到可打開此位置的地圖應用程式。</string>
+    <string name="scan_search_camera">搜尋相機</string>
+    <string name="scan_search_unavailable">找不到可執行此搜尋的瀏覽器。</string>
 </resources>
 

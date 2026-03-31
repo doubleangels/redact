@@ -319,46 +319,27 @@ public class ShareHandlerActivity extends AppCompatActivity {
                         if (processedUri != null) {
                             // Find the processed file for later cleanup
                             // Try to get the file path from the URI first, then fall back to finding most recent
+                            // Derive the file directly from the URI path segment; the
+                            // FileProvider URI encodes the filename set by stripMetadataForSharing
+                            // so there is no need to scan by timestamp.
                             try {
-                            // Try to extract file path from the URI
-                            String uriPath = processedUri.getPath();
-                            if (uriPath != null) {
-                                // Remove the authority prefix if present (e.g., "/cache/processed/filename.jpg")
-                                if (uriPath.contains("/processed/")) {
-                                    String extractedFileName = uriPath.substring(uriPath.lastIndexOf("/") + 1);
+                                String lastSegment = processedUri.getLastPathSegment();
+                                if (lastSegment != null) {
+                                    // FileProvider encodes the path as "processed/<filename>"
+                                    String fileName = lastSegment.contains("/")
+                                            ? lastSegment.substring(lastSegment.lastIndexOf('/') + 1)
+                                            : lastSegment;
                                     File cacheDir = new File(getCacheDir(), "processed");
-                                    File potentialFile = new File(cacheDir, extractedFileName);
-                                    if (potentialFile.exists() && potentialFile.isFile()) {
-                                        processedFile = potentialFile;
-                                        SentryManager.log("Found processed file by name: " + extractedFileName);
-                                    }
-                                }
-                            }
-                                
-                                // Fallback: find the most recently modified file if we couldn't find by name
-                                if (processedFile == null) {
-                                    File cacheDir = new File(getCacheDir(), "processed");
-                                    if (cacheDir.exists() && cacheDir.isDirectory()) {
-                                        File[] files = cacheDir.listFiles();
-                                        if (files != null && files.length > 0) {
-                                            // Find the most recently modified file (should be the one we just created)
-                                            File mostRecent = null;
-                                            long mostRecentTime = 0;
-                                            for (File f : files) {
-                                                if (f.isFile() && f.lastModified() > mostRecentTime) {
-                                                    mostRecentTime = f.lastModified();
-                                                    mostRecent = f;
-                                                }
-                                            }
-                                            if (mostRecent != null) {
-                                                processedFile = mostRecent;
-                                                SentryManager.log("Found processed file by timestamp: " + mostRecent.getName());
-                                            }
-                                        }
+                                    File candidate = new File(cacheDir, fileName);
+                                    if (candidate.exists() && candidate.isFile()) {
+                                        processedFile = candidate;
+                                        SentryManager.log("Resolved processed file from URI: " + fileName);
+                                    } else {
+                                        SentryManager.log("Processed file not found at expected path: " + candidate);
                                     }
                                 }
                             } catch (Exception e) {
-                                SentryManager.log("Could not find processed file for cleanup: " + e.getMessage());
+                                SentryManager.log("Could not resolve processed file for cleanup: " + e.getMessage());
                                 SentryManager.recordException(e);
                             }
                             

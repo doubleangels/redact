@@ -100,7 +100,11 @@ public final class LocalNotifications {
                         .setCategory(NotificationCompat.CATEGORY_PROGRESS)
                         .setContentIntent(contentIntent(app, MainActivity.class));
 
-        NotificationManagerCompat.from(app).notify(NOTIFICATION_ID_CONVERT, builder.build());
+        try {
+            NotificationManagerCompat.from(app).notify(NOTIFICATION_ID_CONVERT, builder.build());
+        } catch (SecurityException e) {
+            // Covered by top-level canPostNotifications
+        }
     }
 
     /**
@@ -129,7 +133,11 @@ public final class LocalNotifications {
                         .setCategory(NotificationCompat.CATEGORY_PROGRESS)
                         .setContentIntent(contentIntent(app, MainActivity.class));
 
-        NotificationManagerCompat.from(app).notify(NOTIFICATION_ID_CLEAN, builder.build());
+        try {
+            NotificationManagerCompat.from(app).notify(NOTIFICATION_ID_CLEAN, builder.build());
+        } catch (SecurityException e) {
+            // Covered by top-level canPostNotifications
+        }
     }
 
     /**
@@ -160,7 +168,11 @@ public final class LocalNotifications {
                         .setAutoCancel(true)
                         .setContentIntent(contentIntent(app, MainActivity.class));
 
-        NotificationManagerCompat.from(app).notify(NOTIFICATION_ID_CONVERT, builder.build());
+        try {
+            NotificationManagerCompat.from(app).notify(NOTIFICATION_ID_CONVERT, builder.build());
+        } catch (SecurityException e) {
+            // Covered by top-level canPostNotifications
+        }
     }
 
     /**
@@ -185,7 +197,11 @@ public final class LocalNotifications {
                         .setAutoCancel(true)
                         .setContentIntent(contentIntent(app, MainActivity.class));
 
-        NotificationManagerCompat.from(app).notify(NOTIFICATION_ID_CLEAN, builder.build());
+        try {
+            NotificationManagerCompat.from(app).notify(NOTIFICATION_ID_CLEAN, builder.build());
+        } catch (SecurityException e) {
+            // Covered by top-level canPostNotifications
+        }
     }
 
     private static boolean shouldThrottleProgress(@NonNull AtomicLong lastNotifyMs) {

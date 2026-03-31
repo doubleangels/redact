@@ -51,7 +51,7 @@ public class ConvertFragment extends Fragment {
     private PermissionManager permissionManager;
     private MediaSelector mediaSelector;
     private final List<MediaItem> selectedItems = new ArrayList<>();
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private ExecutorService executor;
 
     private MaterialButton selectButton;
     private MaterialButton convertButton;
@@ -109,6 +109,7 @@ public class ConvertFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        executor = Executors.newSingleThreadExecutor();
         SentryManager.log("ConvertFragment view created");
 
         statusText = view.findViewById(R.id.statusText);
@@ -286,6 +287,10 @@ public class ConvertFragment extends Fragment {
         progressBar.setMax(100);
         progressBar.setProgress(0);
 
+        // Capture context now (on UI thread) so lambdas on background thread don't call
+        // requireContext() after the fragment may have been detached.
+        final android.content.Context ctx = requireContext().getApplicationContext();
+
         final int total = selectedItems.size();
         executor.execute(() -> {
             ITransaction transaction = SentryManager.startTransaction("convert_multiple", "task");
@@ -306,13 +311,12 @@ public class ConvertFragment extends Fragment {
                         progressBar.setProgress(overallStart);
                         String itemLine = getString(R.string.convert_progress_item, index, total);
                         progressText.setText(itemLine);
-                        LocalNotifications.updateConversionProgress(
-                                requireContext(), overallStart, itemLine);
+                        LocalNotifications.updateConversionProgress(ctx, overallStart, itemLine);
                     });
                     try {
                     if (mediaItem.isVideo()) {
                         FormatConverter.convertVideoToMovies(
-                                requireContext(),
+                                ctx,
                                 uri,
                                 name,
                                 formatIndex,
@@ -342,7 +346,7 @@ public class ConvertFragment extends Fragment {
                                                                                     p));
                                                             progressText.setText(detail);
                                                             LocalNotifications.updateConversionProgress(
-                                                                    requireContext(), overall, detail);
+                                                                    ctx, overall, detail);
                                                         }));
                     } else {
                         requireActivity()
@@ -364,10 +368,10 @@ public class ConvertFragment extends Fragment {
                                                                                 .convert_encoding_image));
                                                 progressText.setText(detail);
                                                 LocalNotifications.updateConversionProgress(
-                                                        requireContext(), overallImage, detail);
+                                                        ctx, overallImage, detail);
                                             }
                                         });
-                        FormatConverter.convertImageToPictures(requireContext(), uri, format, name);
+                        FormatConverter.convertImageToPictures(ctx, uri, format, name);
                         }
                         ok++;
                         span.setStatus(SpanStatus.OK);
@@ -384,7 +388,7 @@ public class ConvertFragment extends Fragment {
                         int overallDone = total > 0 ? (done * 100) / total : 0;
                         progressBar.setProgress(overallDone);
                         LocalNotifications.updateConversionProgress(
-                                requireContext(),
+                                ctx,
                                 overallDone,
                                 getString(R.string.convert_progress_item, done, total));
                     }
@@ -402,13 +406,13 @@ public class ConvertFragment extends Fragment {
                 SentryManager.log("Conversion complete: ok=" + okCount + ", fail=" + failCount);
                 if (failCount == 0) {
                     statusText.setText(getString(R.string.convert_done_all, okCount));
-                    Toast.makeText(requireContext(), R.string.convert_saved_to_gallery, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ctx, R.string.convert_saved_to_gallery, Toast.LENGTH_SHORT).show();
                 } else if (okCount != 0) {
                     statusText.setText(getString(R.string.convert_done_partial, okCount, failCount));
                 } else {
                     statusText.setText(R.string.convert_done_failed);
                 }
-                LocalNotifications.showConversionComplete(requireContext(), okCount, failCount);
+                LocalNotifications.showConversionComplete(ctx, okCount, failCount);
             });
             } finally {
                 transaction.finish();
@@ -433,8 +437,16 @@ public class ConvertFragment extends Fragment {
     }
 
     @Override
+    public void onDestroyView() {
+        if (executor != null) {
+            executor.shutdown();
+            executor = null;
+        }
+        super.onDestroyView();
+    }
+
+    @Override
     public void onDestroy() {
-        executor.shutdown();
         super.onDestroy();
     }
 }

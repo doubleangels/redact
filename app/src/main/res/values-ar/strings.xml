@@ -26,6 +26,7 @@
     <string name="navigation_convert">تحويل</string>
 
     <!-- Convert tab -->
+    <string name="convert_subtitle">الصور: JPEG أو PNG أو WebP أو HEIC (أندرويد 14+) إلى Pictures/Redact. مقاطع الفيديو: MP4 أو WebM أو MKV إلى Movies/Redact. خيار HEIC مخفي على الأجهزة القديمة.</string>
     <string name="convert_output_format_images">تنسيق الصورة</string>
     <string name="convert_output_format_videos">ترميز الفيديو</string>
     <string name="convert_output_format_mixed">التنسيقات (صورة / فيديو)</string>
@@ -175,5 +176,20 @@
     <string name="metadata_error_file_open">خطأ: تعذر فتح ملف الصورة</string>
     <string name="metadata_error_image_metadata">خطأ في استخراج بيانات الصورة الوصفية: %s</string>
     <string name="metadata_error_video_metadata">خطأ في استخراج بيانات الفيديو الوصفية: %s</string>
+    <!-- Additional App Strings -->
+    <string name="permission_rationale_media">مطلوب الوصول للوسائط لتحديد الملفات ومعالجتها.</string>
+    <string name="permission_rationale_storage">مطلوب الوصول للتخزين لتحديد الملفات ومعالجتها.</string>
+    <string name="permission_rationale_location">مطلوب إذن الموقع للوصول إلى بيانات تحديد الموقع في ملفات الوسائط.</string>
+    <string name="permission_denied_permanent">تم رفض الإذن نهائيًا. يرجى تمكينه في الإعدادات.</string>
+    <string name="permission_denied_retry">الأذونات مطلوبة لتحديد ملفات الوسائط.</string>
+    <string name="permission_location_denied_permanent">تم رفض إذن الموقع نهائيًا. قم بتمكينه في الإعدادات للوصول لبيانات موقع الوسائط.</string>
+    <string name="permission_location_retry">مطلوب إذن الموقع للوصول إلى بيانات تحديد الموقع في ملفات الوسائط.</string>
+    <string name="snackbar_action_settings">الإعدادات</string>
+    <string name="snackbar_action_retry">إعادة المحاولة</string>
+    <string name="scan_metadata_subtitle">الحقول المكتشفة من هذا الملف. اضغط مع الاستمرار على القيم لنسخها.</string>
+    <string name="scan_open_in_maps">فتح في خرائط جوجل</string>
+    <string name="scan_maps_unavailable">لم يتم العثور على تطبيق خرائط لفتح هذا الموقع.</string>
+    <string name="scan_search_camera">البحث عن الكاميرا</string>
+    <string name="scan_search_unavailable">لم يتم العثور على متصفح لإجراء هذا البحث.</string>
 </resources>
 

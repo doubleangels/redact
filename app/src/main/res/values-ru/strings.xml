@@ -26,6 +26,7 @@
     <string name="navigation_convert">Конвертировать</string>
 
     <!-- Convert tab -->
+    <string name="convert_subtitle">Изображения: JPEG, PNG, WebP или HEIC (Android 14+) в Pictures/Redact. Видео: MP4, WebM или MKV в Movies/Redact. Опция HEIC скрыта на старых устройствах.</string>
     <string name="convert_output_format_images">Формат изображения</string>
     <string name="convert_output_format_videos">Видеокодек</string>
     <string name="convert_output_format_mixed">Форматы (изображение / видео)</string>
@@ -175,5 +176,20 @@
     <string name="metadata_error_file_open">Ошибка: Не удалось открыть файл изображения</string>
     <string name="metadata_error_image_metadata">Ошибка при извлечении метаданных изображения: %s</string>
     <string name="metadata_error_video_metadata">Ошибка при извлечении метаданных видео: %s</string>
+    <!-- Additional App Strings -->
+    <string name="permission_rationale_media">Для выбора и обработки медиафайлов необходим доступ к медиа.</string>
+    <string name="permission_rationale_storage">Для выбора и обработки медиафайлов необходим доступ к хранилищу.</string>
+    <string name="permission_rationale_location">Для доступа к данным геолокации в медиафайлах требуется разрешение на местоположение.</string>
+    <string name="permission_denied_permanent">Разрешение отклонено навсегда. Пожалуйста, включите его в Настройках.</string>
+    <string name="permission_denied_retry">Для выбора медиафайлов требуются разрешения.</string>
+    <string name="permission_location_denied_permanent">Разрешение на местоположение отклонено навсегда. Включите его в Настройках для доступа к данным местоположения медиа.</string>
+    <string name="permission_location_retry">Для доступа к данным геолокации в медиафайлах требуется разрешение на местоположение.</string>
+    <string name="snackbar_action_settings">Настройки</string>
+    <string name="snackbar_action_retry">Повторить</string>
+    <string name="scan_metadata_subtitle">Обнаруженные поля из этого файла. Нажмите и удерживайте значения для копирования.</string>
+    <string name="scan_open_in_maps">Открыть в Google Картах</string>
+    <string name="scan_maps_unavailable">Приложение карт не найдено для открытия этого местоположения.</string>
+    <string name="scan_search_camera">Поиск камеры</string>
+    <string name="scan_search_unavailable">Браузер для выполнения этого поиска не найден.</string>
 </resources>
 

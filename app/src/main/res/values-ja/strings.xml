@@ -26,6 +26,7 @@
     <string name="navigation_convert">変換</string>
 
     <!-- Convert tab -->
+    <string name="convert_subtitle">画像: JPEG、PNG、WebP、またはHEIC（Android 14以降）をPictures/Redactに保存します。動画: MP4、WebM、またはMKVをMovies/Redactに保存します。古いデバイスではHEICオプションは非表示になります。</string>
     <string name="convert_output_format_images">画像フォーマット</string>
     <string name="convert_output_format_videos">ビデオコーデック</string>
     <string name="convert_output_format_mixed">フォーマット (画像 / 動画)</string>
@@ -175,5 +176,20 @@
     <string name="metadata_error_file_open">エラー: 画像ファイルを開けませんでした</string>
     <string name="metadata_error_image_metadata">画像メタデータの抽出エラー: %s</string>
     <string name="metadata_error_video_metadata">動画メタデータの抽出エラー: %s</string>
+    <!-- Additional App Strings -->
+    <string name="permission_rationale_media">メディアファイルを選択して処理するには、メディアへのアクセスが必要です。</string>
+    <string name="permission_rationale_storage">メディアファイルを選択して処理するには、ストレージへのアクセスが必要です。</string>
+    <string name="permission_rationale_location">メディアファイルの位置情報データにアクセスするには、位置情報の権限が必要です。</string>
+    <string name="permission_denied_permanent">権限が恒久的に拒否されました。設定で有効にしてください。</string>
+    <string name="permission_denied_retry">メディアファイルを選択するには権限が必要です。</string>
+    <string name="permission_location_denied_permanent">位置情報の権限が恒久的に拒否されました。メディアの位置情報データにアクセスするには、設定で権限を有効にしてください。</string>
+    <string name="permission_location_retry">メディアファイルの位置情報データにアクセスするには、位置情報の権限が必要です。</string>
+    <string name="snackbar_action_settings">設定</string>
+    <string name="snackbar_action_retry">再試行</string>
+    <string name="scan_metadata_subtitle">このファイルから検出されたフィールドです。長押しで値をコピーできます。</string>
+    <string name="scan_open_in_maps">Google マップで開く</string>
+    <string name="scan_maps_unavailable">この場所を開くためのマップアプリが見つかりません。</string>
+    <string name="scan_search_camera">カメラを検索</string>
+    <string name="scan_search_unavailable">この検索を実行するブラウザが見つかりません。</string>
 </resources>
 

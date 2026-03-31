@@ -26,6 +26,7 @@
     <string name="navigation_convert">Convertir</string>
 
     <!-- Convert tab -->
+    <string name="convert_subtitle">Imágenes: JPEG, PNG, WebP o HEIC (Android 14+) en Pictures/Redact. Videos: MP4, WebM o MKV en Movies/Redact. La opción HEIC está oculta en dispositivos más antiguos.</string>
     <string name="convert_output_format_images">Formato de imagen</string>
     <string name="convert_output_format_videos">Códec de video</string>
     <string name="convert_output_format_mixed">Formatos (imagen / video)</string>
@@ -175,5 +176,20 @@
     <string name="metadata_error_file_open">Error: No se pudo abrir el archivo de imagen</string>
     <string name="metadata_error_image_metadata">Error al extraer metadatos de imagen: %s</string>
     <string name="metadata_error_video_metadata">Error al extraer metadatos de video: %s</string>
+    <!-- Additional App Strings -->
+    <string name="permission_rationale_media">El acceso a los medios es necesario para seleccionar y procesar archivos multimedia.</string>
+    <string name="permission_rationale_storage">El acceso al almacenamiento es necesario para seleccionar y procesar archivos multimedia.</string>
+    <string name="permission_rationale_location">El permiso de ubicación es necesario para acceder a los datos de geolocalización en los archivos multimedia.</string>
+    <string name="permission_denied_permanent">Permiso denegado permanentemente. Por favor, actívelo en Configuración.</string>
+    <string name="permission_denied_retry">Los permisos son obligatorios para seleccionar archivos multimedia.</string>
+    <string name="permission_location_denied_permanent">Permiso de ubicación denegado permanentemente. Actívelo en Configuración para acceder a los datos de ubicación de los medios.</string>
+    <string name="permission_location_retry">El permiso de ubicación es necesario para acceder a los datos de geolocalización en los archivos multimedia.</string>
+    <string name="snackbar_action_settings">Configuración</string>
+    <string name="snackbar_action_retry">Reintentar</string>
+    <string name="scan_metadata_subtitle">Campos detectados en este archivo. Mantenga presionados los valores para copiar.</string>
+    <string name="scan_open_in_maps">Abrir en Google Maps</string>
+    <string name="scan_maps_unavailable">No se encontró ninguna aplicación de mapas para abrir esta ubicación.</string>
+    <string name="scan_search_camera">Buscar cámara</string>
+    <string name="scan_search_unavailable">No se encontró ningún navegador para realizar esta búsqueda.</string>
 </resources>
 

@@ -455,7 +455,13 @@ public class MetadataDisplayer {
             metadata.append("\n").append(context.getString(R.string.metadata_location_information_header)).append("\n");
 
             if (hasLocationPermission) {
-                double[] latLong = exifInterface.getLatLong();
+                double[] latLong = null;
+                try {
+                    latLong = exifInterface.getLatLong();
+                } catch (SecurityException e) {
+                    SentryManager.recordException(e);
+                    SentryManager.log("SecurityException reading lat/long: " + e.getMessage());
+                }
 
                 if (latLong != null) {
                     metadata.append(context.getString(R.string.metadata_latitude, latLong[0])).append("\n");
@@ -606,7 +612,7 @@ public class MetadataDisplayer {
                                 }
                                 
                                 // Add to single map (convert tag names to uppercase with underscores)
-                                String upperTagName = convertToSnakeCase(tagName).toUpperCase();
+                                String upperTagName = convertToSnakeCase(tagName).toUpperCase(java.util.Locale.ROOT);
                                 metadataMap.put(upperTagName, trimmedValue);
                             }
                         }
@@ -649,8 +655,8 @@ public class MetadataDisplayer {
             int width = exifInterface.getAttributeInt(ExifInterface.TAG_IMAGE_WIDTH, 0);
             int height = exifInterface.getAttributeInt(ExifInterface.TAG_IMAGE_LENGTH, 0);
             if (width > 0 && height > 0) {
-                String widthTagName = convertToSnakeCase(ExifInterface.TAG_IMAGE_WIDTH).toUpperCase();
-                String heightTagName = convertToSnakeCase(ExifInterface.TAG_IMAGE_LENGTH).toUpperCase();
+                String widthTagName = convertToSnakeCase(ExifInterface.TAG_IMAGE_WIDTH).toUpperCase(java.util.Locale.ROOT);
+                String heightTagName = convertToSnakeCase(ExifInterface.TAG_IMAGE_LENGTH).toUpperCase(java.util.Locale.ROOT);
                 // Only add if not already in the map (from reflection loop)
                 if (!metadataMap.containsKey(widthTagName)) {
                     metadataMap.put(widthTagName, String.valueOf(width));
@@ -671,7 +677,13 @@ public class MetadataDisplayer {
 
             // Location information is already extracted via TAG_GPS_* tags above
             if (hasLocationPermission) {
-                double[] latLong = exifInterface.getLatLong();
+                double[] latLong = null;
+                try {
+                    latLong = exifInterface.getLatLong();
+                } catch (SecurityException e) {
+                    SentryManager.recordException(e);
+                    SentryManager.log("SecurityException reading lat/long map: " + e.getMessage());
+                }
                 SentryManager.setCustomKey("has_location_data", latLong != null);
             }
 
@@ -946,12 +958,12 @@ public class MetadataDisplayer {
                             }
 
                             // Remove METADATA_KEY_ prefix and convert to uppercase with underscores, then add to single map
-                            String displayKeyName = keyName.toUpperCase();
+                            String displayKeyName = keyName.toUpperCase(java.util.Locale.ROOT);
                             if (displayKeyName.startsWith("METADATA_KEY_")) {
                                 displayKeyName = displayKeyName.substring("METADATA_KEY_".length());
                             }
                             // Convert to snake_case if needed (e.g., "VIDEOWIDTH" -> "VIDEO_WIDTH")
-                            displayKeyName = convertToSnakeCase(displayKeyName).toUpperCase();
+                            displayKeyName = convertToSnakeCase(displayKeyName).toUpperCase(java.util.Locale.ROOT);
                             metadataMap.put(displayKeyName, trimmedValue);
                             
                             // Log important keys for analytics

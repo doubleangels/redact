@@ -26,6 +26,7 @@
     <string name="navigation_convert">बदलें</string>
 
     <!-- Convert tab -->
+    <string name="convert_subtitle">चित्र: JPEG, PNG, WebP, या HEIC (Android 14+) Pictures/Redact में। वीडियो: MP4, WebM, या MKV Movies/Redact में। HEIC विकल्प पुराने उपकरणों पर छिपा हुआ है।</string>
     <string name="convert_output_format_images">छवि प्रारूप</string>
     <string name="convert_output_format_videos">वीडियो कोडेक</string>
     <string name="convert_output_format_mixed">प्रारूप (छवि / वीडियो)</string>
@@ -175,5 +176,20 @@
     <string name="metadata_error_file_open">त्रुटि: छवि फ़ाइल नहीं खोल सका</string>
     <string name="metadata_error_image_metadata">छवि मेटाडेटा निष्कर्षण त्रुटि: %s</string>
     <string name="metadata_error_video_metadata">वीडियो मेटाडेटा निष्कर्षण त्रुटि: %s</string>
+    <!-- Additional App Strings -->
+    <string name="permission_rationale_media">मीडिया फ़ाइलों को चुनने और संसाधित करने के लिए मीडिया एक्सेस की आवश्यकता है।</string>
+    <string name="permission_rationale_storage">मीडिया फ़ाइलों को चुनने और संसाधित करने के लिए स्टोरेज एक्सेस की आवश्यकता है।</string>
+    <string name="permission_rationale_location">मीडिया फ़ाइलों में भू-स्थान डेटा तक पहुंचने के लिए स्थान अनुमति की आवश्यकता है।</string>
+    <string name="permission_denied_permanent">अनुमति स्थायी रूप से अस्वीकार कर दी गई। कृपया इसे सेटिंग्स में सक्षम करें।</string>
+    <string name="permission_denied_retry">मीडिया फ़ाइलों का चयन करने के लिए अनुमति आवश्यक है।</string>
+    <string name="permission_location_denied_permanent">स्थान अनुमति स्थायी रूप से अस्वीकृत। मीडिया स्थान डेटा तक पहुँचने के लिए इसे सेटिंग्स में सक्षम करें।</string>
+    <string name="permission_location_retry">मीडिया फ़ाइलों में भू-स्थान डेटा तक पहुंचने के लिए स्थान अनुमति की आवश्यकता है।</string>
+    <string name="snackbar_action_settings">सेटिंग्स</string>
+    <string name="snackbar_action_retry">पुनः प्रयास करें</string>
+    <string name="scan_metadata_subtitle">इस फ़ाइल से पता लगाए गए फ़ील्ड। कॉपी करने के लिए मानों को दबाकर रखें।</string>
+    <string name="scan_open_in_maps">Google Maps में खोलें</string>
+    <string name="scan_maps_unavailable">इस स्थान को खोलने के लिए कोई मैप ऐप नहीं मिला।</string>
+    <string name="scan_search_camera">कैमरा खोजें</string>
+    <string name="scan_search_unavailable">इस खोज को चलाने के लिए कोई ब्राउज़र नहीं मिला।</string>
 </resources>
 

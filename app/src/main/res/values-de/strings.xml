@@ -26,6 +26,7 @@
     <string name="navigation_convert">Konvertieren</string>
 
     <!-- Convert tab -->
+    <string name="convert_subtitle">Bilder: JPEG, PNG, WebP oder HEIC (Android 14+) in Pictures/Redact. Videos: MP4, WebM oder MKV in Movies/Redact. Die HEIC-Option ist auf älteren Geräten ausgeblendet.</string>
     <string name="convert_output_format_images">Bildformat</string>
     <string name="convert_output_format_videos">Videocodec</string>
     <string name="convert_output_format_mixed">Formate (Bild / Video)</string>
@@ -175,5 +176,20 @@
     <string name="metadata_error_file_open">Fehler: Bilddatei konnte nicht geöffnet werden</string>
     <string name="metadata_error_image_metadata">Fehler beim Extrahieren der Bild-Metadaten: %s</string>
     <string name="metadata_error_video_metadata">Fehler beim Extrahieren der Video-Metadaten: %s</string>
+    <!-- Additional App Strings -->
+    <string name="permission_rationale_media">Zugriff auf Medien wird benötigt, um Mediendateien auszuwählen und zu verarbeiten.</string>
+    <string name="permission_rationale_storage">Speicherzugriff wird benötigt, um Mediendateien auszuwählen und zu verarbeiten.</string>
+    <string name="permission_rationale_location">Die Standortberechtigung wird benötigt, um auf Geolokalisierungsdaten in Mediendateien zuzugreifen.</string>
+    <string name="permission_denied_permanent">Berechtigung dauerhaft verweigert. Bitte in den Einstellungen aktivieren.</string>
+    <string name="permission_denied_retry">Berechtigungen sind erforderlich, um Mediendateien auszuwählen.</string>
+    <string name="permission_location_denied_permanent">Standortberechtigung dauerhaft verweigert. In den Einstellungen aktivieren, um auf Medienstandortdaten zuzugreifen.</string>
+    <string name="permission_location_retry">Die Standortberechtigung wird benötigt, um auf Geolokalisierungsdaten in Mediendateien zuzugreifen.</string>
+    <string name="snackbar_action_settings">Einstellungen</string>
+    <string name="snackbar_action_retry">Wiederholen</string>
+    <string name="scan_metadata_subtitle">Erkannte Felder aus dieser Datei. Werte gedrückt halten, um sie zu kopieren.</string>
+    <string name="scan_open_in_maps">In Google Maps öffnen</string>
+    <string name="scan_maps_unavailable">Keine Karten-App gefunden, um diesen Ort zu öffnen.</string>
+    <string name="scan_search_camera">Kamera suchen</string>
+    <string name="scan_search_unavailable">Kein Browser gefunden, um diese Suche auszuführen.</string>
 </resources>
 
