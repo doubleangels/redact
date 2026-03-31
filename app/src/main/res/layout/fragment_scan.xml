@@ -174,11 +174,14 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/selectButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="56dp"
             android:layout_weight="1"
+            android:gravity="center"
             android:text="@string/button_select_media"
             app:cornerRadius="@dimen/component_corner_medium"
             app:icon="@drawable/ic_add_photo"
+            app:iconGravity="textStart"
+            app:iconPadding="8dp"
             tools:ignore="TextContrastCheck,VisualLintButtonSize" />
     </LinearLayout>
 
