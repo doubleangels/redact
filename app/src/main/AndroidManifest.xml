@@ -10,7 +10,7 @@
     <!-- Android 14+: allows users to grant access to a subset of their photos/videos -->
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
     <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
-    <uses-permission android:name="com.android.vending.BILLING" />
+
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
