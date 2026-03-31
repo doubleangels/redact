@@ -101,12 +101,18 @@ public class ShareHandlerActivity extends AppCompatActivity {
      * the processing operation.
      */
     private void createProgressDialog() {
-        // Inflate the custom dialog layout
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_progress, null);
+        // Build the dialog first so we can use its Material3-themed context for inflation.
+        // ShareHandlerActivity uses Theme.Transparent which lacks Material attr definitions
+        // (colorSurfaceContainerHigh, textAppearanceBodyMedium, etc.), so inflating with
+        // LayoutInflater.from(this) causes UnsupportedOperationException. Using the builder's
+        // context applies the MaterialAlertDialog theme overlay that carries those attributes.
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
+        View dialogView = LayoutInflater.from(builder.getContext())
+                .inflate(R.layout.dialog_progress, null, false);
         progressMessageView = dialogView.findViewById(R.id.progress_message);
 
         // Create and configure the progress dialog
-        progressDialog = new MaterialAlertDialogBuilder(this)
+        progressDialog = builder
                 .setTitle(R.string.share_processing_title)
                 .setView(dialogView)
                 .setCancelable(false) // Prevent cancellation during processing
