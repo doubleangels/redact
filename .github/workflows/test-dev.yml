@@ -54,20 +54,3 @@ jobs:
         run: ./gradlew assembleRelease --no-daemon
         continue-on-error: false
 
-  automerge:
-    needs: [test]
-    if: >
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.user.login == 'dependabot[bot]' &&
-      needs.test.result == 'success'
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-      contents: write
-    steps:
-      - name: Enable auto-merge for Dependabot PRs
-        uses: peter-evans/enable-pull-request-automerge@v3
-        with:
-          token: ${{ github.token }}
-          pull-request-number: ${{ github.event.pull_request.number }}
-          merge-method: merge
