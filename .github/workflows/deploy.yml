@@ -33,7 +33,7 @@ jobs:
         run: ./gradlew lintRelease --no-daemon
 
       - name: Run Unit Tests
-        run: ./gradlew testReleaseUnitTest --no-daemon
+        run: ./gradlew testDebugUnitTest --no-daemon
 
       - name: Build Bundle
         run: ./gradlew bundleRelease --no-daemon --parallel --build-cache
