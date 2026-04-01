@@ -1,5 +1,7 @@
 package com.doubleangels.redact.sentry;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import java.net.SocketException;
@@ -25,6 +27,9 @@ public final class SentryManager {
 
     private static final String TAG = "SentryManager";
 
+    /** Application context set once from RedactApplication.onCreate(). */
+    private static Context appContext;
+
     private static final List<Class<? extends Throwable>> IGNORED_ERRORS = Arrays.asList(
             UnknownHostException.class,
             SocketTimeoutException.class,
@@ -33,6 +38,20 @@ public final class SentryManager {
             SSLHandshakeException.class);
 
     private SentryManager() {
+    }
+
+    /** Called once from {@link com.doubleangels.redact.RedactApplication#onCreate()}. */
+    public static void init(Context context) {
+        appContext = context.getApplicationContext();
+    }
+
+    /** Returns true when the user has not opted out of crash reporting. */
+    private static boolean isEnabled() {
+        if (appContext == null) return true;
+        SharedPreferences prefs = appContext.getSharedPreferences(
+                com.doubleangels.redact.SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getBoolean(
+                com.doubleangels.redact.SettingsFragment.KEY_CRASH_REPORTING_ENABLED, true);
     }
 
     public static boolean isIgnored(Throwable e) {
@@ -46,6 +65,7 @@ public final class SentryManager {
 
     public static void log(String message) {
         Log.i(TAG, message);
+        if (!isEnabled()) return;
         Breadcrumb b = new Breadcrumb();
         b.setMessage(message);
         b.setCategory("custom");
@@ -58,10 +78,15 @@ public final class SentryManager {
             Log.e(TAG, "Ignored error:", e);
             return;
         }
+        if (!isEnabled()) {
+            Log.e(TAG, "Crash reporting disabled — not sending:", e);
+            return;
+        }
         Sentry.captureException(e);
     }
 
     public static void setCustomKey(String key, String value) {
+        if (!isEnabled()) return;
         String v = value != null ? value : "";
         if (v.length() > 200) {
             v = v.substring(0, 200);
@@ -92,6 +117,7 @@ public final class SentryManager {
     }
 
     public static ITransaction startTransaction(String name, String operation) {
+        if (!isEnabled()) return Sentry.startTransaction(name, operation); // no-op transaction still needed
         return Sentry.startTransaction(name, operation);
     }
 }

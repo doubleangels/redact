@@ -20,10 +20,16 @@ public final class SentryInitializer {
             options.setDsn(
                     "https://f92d27d08095710804ab4250a73b5ff8@o244019.ingest.us.sentry.io/4510514277580800");
             options.setRelease(BuildConfig.VERSION_NAME);
+            options.setEnvironment(BuildConfig.DEBUG ? "development" : "production");
+            options.addInAppInclude("com.doubleangels.redact");
+
+            // Attach all thread stacktraces during a crash (no PII, helps concurrency bugs).
+            options.setAttachThreads(true);
 
             // Privacy: do NOT attach screenshots or view hierarchy — could capture user media.
             options.setAttachScreenshot(false);
             options.setAttachViewHierarchy(false);
+            options.setSendDefaultPii(false); // Explicit lock against future SDK defaults.
 
             // Privacy: do NOT collect broad device context or send all auto breadcrumbs.
             options.setCollectAdditionalContext(false);
@@ -31,6 +37,7 @@ public final class SentryInitializer {
 
             // Keep ANR detection and frame tracking (crash diagnostics only, no PII).
             options.setAnrEnabled(true);
+            options.setEnableAnrFingerprinting(true); // Groups noisy system-frame ANRs.
             options.setEnableAppStartProfiling(false);
             options.setEnableFramesTracking(false);
             options.setEnableRootCheck(false);

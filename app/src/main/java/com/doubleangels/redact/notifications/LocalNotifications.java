@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.SystemClock;
@@ -70,7 +71,32 @@ public final class LocalNotifications {
                 return false;
             }
         }
-        return NotificationManagerCompat.from(app).areNotificationsEnabled();
+        if (!NotificationManagerCompat.from(app).areNotificationsEnabled()) {
+            return false;
+        }
+        // Respect the in-app master toggle.
+        SharedPreferences prefs = app.getSharedPreferences(
+                com.doubleangels.redact.SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getBoolean(
+                com.doubleangels.redact.SettingsFragment.KEY_NOTIFICATIONS_ENABLED, true);
+    }
+
+    /** Whether clean-specific notifications are enabled (master must also be on). */
+    private static boolean canPostCleanNotifications(@NonNull Context context) {
+        if (!canPostNotifications(context)) return false;
+        SharedPreferences prefs = context.getApplicationContext().getSharedPreferences(
+                com.doubleangels.redact.SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getBoolean(
+                com.doubleangels.redact.SettingsFragment.KEY_CLEAN_NOTIFICATIONS_ENABLED, true);
+    }
+
+    /** Whether convert-specific notifications are enabled (master must also be on). */
+    private static boolean canPostConvertNotifications(@NonNull Context context) {
+        if (!canPostNotifications(context)) return false;
+        SharedPreferences prefs = context.getApplicationContext().getSharedPreferences(
+                com.doubleangels.redact.SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getBoolean(
+                com.doubleangels.redact.SettingsFragment.KEY_CONVERT_NOTIFICATIONS_ENABLED, true);
     }
 
     /**
@@ -79,7 +105,7 @@ public final class LocalNotifications {
      */
     public static void updateConversionProgress(
             @NonNull Context context, int percent, @NonNull String message) {
-        if (!canPostNotifications(context)) {
+        if (!canPostConvertNotifications(context)) {
             return;
         }
         if (shouldThrottleProgress(lastConvertProgressNotifyMs)) {
@@ -112,7 +138,7 @@ public final class LocalNotifications {
      */
     public static void updateCleanProgress(
             @NonNull Context context, int percent, @NonNull String message) {
-        if (!canPostNotifications(context)) {
+        if (!canPostCleanNotifications(context)) {
             return;
         }
         if (shouldThrottleProgress(lastCleanProgressNotifyMs)) {
@@ -145,7 +171,7 @@ public final class LocalNotifications {
      */
     public static void showConversionComplete(
             @NonNull Context context, int okCount, int failCount) {
-        if (!canPostNotifications(context)) {
+        if (!canPostConvertNotifications(context)) {
             return;
         }
         Context app = context.getApplicationContext();
@@ -176,15 +202,34 @@ public final class LocalNotifications {
     }
 
     /**
-     * Shown when metadata stripping on the Clean tab finishes with at least one success.
+     * Cancels any ongoing clean-progress notification. Call this whenever the batch ends,
+     * regardless of success/failure, so the persistent progress bar is never left behind.
+     */
+    public static void cancelCleanProgress(@NonNull Context context) {
+        NotificationManagerCompat.from(context.getApplicationContext()).cancel(NOTIFICATION_ID_CLEAN);
+        lastCleanProgressNotifyMs.set(0);
+    }
+
+    /**
+     * Shown when metadata stripping on the Clean tab finishes.
+     * Always cancels the ongoing progress notification first, then shows a result:
+     * success when at least one file was cleaned, failure otherwise.
      */
     public static void showCleanComplete(@NonNull Context context, int processedCount) {
-        if (!canPostNotifications(context) || processedCount <= 0) {
+        // Always dismiss the "ongoing" progress bar regardless of outcome.
+        cancelCleanProgress(context);
+
+        if (!canPostCleanNotifications(context)) {
             return;
         }
         Context app = context.getApplicationContext();
         String title = app.getString(R.string.notification_clean_title);
-        String text = app.getString(R.string.notification_clean_body, processedCount);
+        String text;
+        if (processedCount > 0) {
+            text = app.getString(R.string.notification_clean_body, processedCount);
+        } else {
+            text = app.getString(R.string.notification_clean_failed);
+        }
 
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(app, CHANNEL_ID_TASKS)

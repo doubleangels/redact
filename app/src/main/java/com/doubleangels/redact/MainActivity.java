@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG_CLEAN = "clean";
     private static final String TAG_SCAN = "scan";
     private static final String TAG_CONVERT = "convert";
+    private static final String TAG_SETTINGS = "settings";
     private static final String KEY_SELECTED_TAB = "selected_tab";
     private static final String PREFS_NAME = "redact_prefs";
     private static final String KEY_POST_NOTIFICATIONS_PROMPTED = "post_notifications_prompted";
@@ -68,34 +69,46 @@ public class MainActivity extends AppCompatActivity {
             if (savedInstanceState == null) {
                 ScanFragment scanFrag = new ScanFragment();
                 ConvertFragment convertFrag = new ConvertFragment();
+                SettingsFragment settingsFrag = new SettingsFragment();
                 getSupportFragmentManager().beginTransaction()
                         .add(R.id.fragment_container, new CleanFragment(), TAG_CLEAN)
                         .add(R.id.fragment_container, scanFrag, TAG_SCAN)
                         .add(R.id.fragment_container, convertFrag, TAG_CONVERT)
+                        .add(R.id.fragment_container, settingsFrag, TAG_SETTINGS)
                         .hide(scanFrag)
                         .hide(convertFrag)
+                        .hide(settingsFrag)
                         .commit();
             } else {
                 int tab = savedInstanceState.getInt(KEY_SELECTED_TAB, R.id.navigation_clean);
                 Fragment c = getSupportFragmentManager().findFragmentByTag(TAG_CLEAN);
                 Fragment s = getSupportFragmentManager().findFragmentByTag(TAG_SCAN);
                 Fragment cv = getSupportFragmentManager().findFragmentByTag(TAG_CONVERT);
+                Fragment st = getSupportFragmentManager().findFragmentByTag(TAG_SETTINGS);
                 if (cv == null) {
                     getSupportFragmentManager().beginTransaction()
                             .add(R.id.fragment_container, new ConvertFragment(), TAG_CONVERT)
+                            .commit();
+                }
+                if (st == null) {
+                    getSupportFragmentManager().beginTransaction()
+                            .add(R.id.fragment_container, new SettingsFragment(), TAG_SETTINGS)
                             .commit();
                 }
                 getSupportFragmentManager().executePendingTransactions();
                 c = getSupportFragmentManager().findFragmentByTag(TAG_CLEAN);
                 s = getSupportFragmentManager().findFragmentByTag(TAG_SCAN);
                 cv = getSupportFragmentManager().findFragmentByTag(TAG_CONVERT);
-                if (c != null && s != null && cv != null) {
+                st = getSupportFragmentManager().findFragmentByTag(TAG_SETTINGS);
+                if (c != null && s != null && cv != null && st != null) {
                     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                    ft.hide(c).hide(s).hide(cv);
+                    ft.hide(c).hide(s).hide(cv).hide(st);
                     if (tab == R.id.navigation_scan) {
                         ft.show(s);
                     } else if (tab == R.id.navigation_convert) {
                         ft.show(cv);
+                    } else if (tab == R.id.navigation_settings) {
+                        ft.show(st);
                     } else {
                         ft.show(c);
                     }
@@ -112,17 +125,20 @@ public class MainActivity extends AppCompatActivity {
                     Fragment clean = getSupportFragmentManager().findFragmentByTag(TAG_CLEAN);
                     Fragment scan = getSupportFragmentManager().findFragmentByTag(TAG_SCAN);
                     Fragment convert = getSupportFragmentManager().findFragmentByTag(TAG_CONVERT);
-                    if (clean == null || scan == null || convert == null) {
+                    Fragment settings = getSupportFragmentManager().findFragmentByTag(TAG_SETTINGS);
+                    if (clean == null || scan == null || convert == null || settings == null) {
                         return false;
                     }
                     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                    ft.hide(clean).hide(scan).hide(convert);
+                    ft.hide(clean).hide(scan).hide(convert).hide(settings);
                     if (itemId == R.id.navigation_clean) {
                         ft.show(clean);
                     } else if (itemId == R.id.navigation_scan) {
                         ft.show(scan);
                     } else if (itemId == R.id.navigation_convert) {
                         ft.show(convert);
+                    } else if (itemId == R.id.navigation_settings) {
+                        ft.show(settings);
                     } else {
                         return false;
                     }

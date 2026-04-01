@@ -98,11 +98,12 @@ public class MetadataStripper {
     private static final int MAX_BITMAP_SIZE = 4096;
 
     /**
-     * Maximum file size in megabytes that can be processed.
-     * Files larger than this will be rejected to prevent excessive memory/storage
-     * usage.
+     * Maximum image file size in megabytes.
+     * Images are decoded fully into RAM as bitmaps, so very large files risk OOM.
+     * Videos are not bounded here because they are streamed frame-by-frame through
+     * MediaMuxer/Transformer and are never held in memory in their entirety.
      */
-    private static final long MAX_FILE_SIZE_MB = 100;
+    private static final long MAX_IMAGE_FILE_SIZE_MB = 100;
 
     /**
      * Interface for reporting progress during media processing operations.
@@ -243,12 +244,9 @@ public class MetadataStripper {
         Uri newUri = null;
 
         try {
-            // Check if file is too large to process (using cached size)
+            // Videos are streamed frame-by-frame; no memory-based file-size cap applies.
             long fileSize = getFileSizeFromUriCached(sourceUri);
             SentryManager.setCustomKey("file_size_mb", fileSize / (1024 * 1024));
-            if (fileSize > MAX_FILE_SIZE_MB * 1024 * 1024) {
-                throw new IOException("File too large to process: " + fileSize / (1024 * 1024) + "MB");
-            }
 
             updateProgress(1, 4, "Reading video...");
             
@@ -344,7 +342,7 @@ public class MetadataStripper {
             // Check if file is too large to process (using cached size)
             long fileSize = getFileSizeFromUriCached(sourceUri);
             SentryManager.setCustomKey("file_size_mb", fileSize / (1024 * 1024));
-            if (fileSize > MAX_FILE_SIZE_MB * 1024 * 1024) {
+            if (fileSize > MAX_IMAGE_FILE_SIZE_MB * 1024 * 1024) {
                 throw new IOException("File too large to process: " + fileSize / (1024 * 1024) + "MB");
             }
 
@@ -536,7 +534,7 @@ public class MetadataStripper {
             // Check if file is too large to process (using cached size)
             long fileSize = getFileSizeFromUriCached(sourceUri);
             SentryManager.setCustomKey("file_size_mb", fileSize / (1024 * 1024));
-            if (fileSize > MAX_FILE_SIZE_MB * 1024 * 1024) {
+            if (fileSize > MAX_IMAGE_FILE_SIZE_MB * 1024 * 1024) {
                 throw new IOException("File too large to process: " + fileSize / (1024 * 1024) + "MB");
             }
 
@@ -695,12 +693,9 @@ public class MetadataStripper {
         File outputFile;
 
         try {
-            // Check if file is too large to process (using cached size)
+            // Videos are streamed frame-by-frame; no memory-based file-size cap applies.
             long fileSize = getFileSizeFromUriCached(sourceUri);
             SentryManager.setCustomKey("file_size_mb", fileSize / (1024 * 1024));
-            if (fileSize > MAX_FILE_SIZE_MB * 1024 * 1024) {
-                throw new IOException("File too large to process: " + fileSize / (1024 * 1024) + "MB");
-            }
 
             updateProgress(1, 4, "Reading video...");
 
@@ -1033,7 +1028,7 @@ public class MetadataStripper {
      * @return Size of the file in bytes, or 0 if size couldn't be determined
      */
     private long getFileSizeFromUri(@NonNull Uri uri) {
-        final long maxMeasure = MAX_FILE_SIZE_MB * 1024L * 1024L + 1;
+        final long maxMeasure = MAX_IMAGE_FILE_SIZE_MB * 1024L * 1024L + 1;
         try {
             if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
                 try (Cursor cursor = contentResolver.query(uri,
@@ -1432,7 +1427,7 @@ public class MetadataStripper {
     public boolean isFileTooLarge(@NonNull Uri uri) {
         try {
             long fileSize = getFileSizeFromUri(uri);
-            return fileSize > MAX_FILE_SIZE_MB * 1024 * 1024;
+            return fileSize > MAX_IMAGE_FILE_SIZE_MB * 1024 * 1024;
         } catch (Exception e) {
             SentryManager.log("Error checking file size: " + e.getMessage() + ".");
             return false;
@@ -1445,7 +1440,7 @@ public class MetadataStripper {
      * @return Maximum file size in MB
      */
     public long getMaxFileSizeMB() {
-        return MAX_FILE_SIZE_MB;
+        return MAX_IMAGE_FILE_SIZE_MB;
     }
 
     /**

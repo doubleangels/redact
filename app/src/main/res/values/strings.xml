@@ -16,6 +16,7 @@
     <string name="notification_convert_failed">No files could be converted.</string>
     <string name="notification_clean_title">Cleaning Finished</string>
     <string name="notification_clean_body">Processed %1$d file(s).</string>
+    <string name="notification_clean_failed">No files could be cleaned.</string>
     <string name="notification_convert_progress_title">Converting Media…</string>
     <string name="notification_clean_progress_title">Cleaning Metadata…</string>
 
@@ -23,6 +24,20 @@
     <string name="navigation_clean">Clean</string>
     <string name="navigation_scan">Scan</string>
     <string name="navigation_convert">Convert</string>
+    <string name="navigation_settings">Settings</string>
+
+    <!-- Settings screen -->
+    <string name="settings_section_notifications">Notifications</string>
+    <string name="settings_notifications_label">Enable Notifications</string>
+    <string name="settings_notifications_subtitle">Show completion alerts for all operations</string>
+    <string name="settings_notifications_clean_label">Clean Notifications</string>
+    <string name="settings_notifications_clean_subtitle">Alert when metadata stripping finishes</string>
+    <string name="settings_notifications_convert_label">Convert Notifications</string>
+    <string name="settings_notifications_convert_subtitle">Alert when file conversion finishes</string>
+
+    <string name="settings_section_privacy">Privacy</string>
+    <string name="settings_crash_reporting_label">Crash Reporting</string>
+    <string name="settings_crash_reporting_subtitle">Send anonymous diagnostic data if the app crashes</string>
 
     <!-- Convert tab -->
     <string name="convert_subtitle">Images: JPEG, PNG, WebP, or HEIC (Android 14+) into Pictures/Redact. Videos: MP4, WebM, or MKV into Movies/Redact. The HEIC option is hidden on older devices.</string>
