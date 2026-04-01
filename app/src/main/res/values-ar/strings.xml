@@ -191,5 +191,18 @@
     <string name="scan_maps_unavailable">لم يتم العثور على تطبيق خرائط لفتح هذا الموقع.</string>
     <string name="scan_search_camera">البحث عن الكاميرا</string>
     <string name="scan_search_unavailable">لم يتم العثور على متصفح لإجراء هذا البحث.</string>
+
+    <!-- Settings screen -->
+    <string name="navigation_settings">الإعدادات</string>
+    <string name="settings_section_notifications">الإشعارات</string>
+    <string name="settings_notifications_label">كل الإشعارات</string>
+    <string name="settings_notifications_subtitle">السماح لـ Redact بإرسال تنبيهات عندما تنتهي العمليات في الخلفية.</string>
+    <string name="settings_notifications_clean_label">تنظيف البيانات الوصفية</string>
+    <string name="settings_notifications_clean_subtitle">أعلمني عند اكتمال إزالة بيانات EXIF والبيانات الوصفية.</string>
+    <string name="settings_notifications_convert_label">تحويل التنسيق</string>
+    <string name="settings_notifications_convert_subtitle">أعلمني عند اكتمال تحويل ملف الفيديو أو الصورة.</string>
+    <string name="settings_section_privacy">الخصوصية</string>
+    <string name="settings_crash_reporting_label">تحسين Redact</string>
+    <string name="settings_crash_reporting_subtitle">إرسال سجلات الأخطاء المجهولة تلقائيًا لمساعدتنا في إصلاح الأعطال بشكل أسرع. لا يتم جمع أي بيانات شخصية أو وسائط.</string>
 </resources>
 

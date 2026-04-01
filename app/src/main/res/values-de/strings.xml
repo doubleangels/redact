@@ -191,5 +191,18 @@
     <string name="scan_maps_unavailable">Keine Karten-App gefunden, um diesen Ort zu öffnen.</string>
     <string name="scan_search_camera">Kamera suchen</string>
     <string name="scan_search_unavailable">Kein Browser gefunden, um diese Suche auszuführen.</string>
+
+    <!-- Settings screen -->
+    <string name="navigation_settings">Einstellungen</string>
+    <string name="settings_section_notifications">Benachrichtigungen</string>
+    <string name="settings_notifications_label">Alle Benachrichtigungen</string>
+    <string name="settings_notifications_subtitle">Redact erlauben, Push-Benachrichtigungen zu senden, wenn Vorgänge im Hintergrund abgeschlossen sind.</string>
+    <string name="settings_notifications_clean_label">Metadaten bereinigen</string>
+    <string name="settings_notifications_clean_subtitle">Benachrichtige mich, wenn das Entfernen von EXIF- und Metadaten abgeschlossen ist.</string>
+    <string name="settings_notifications_convert_label">Formatkonvertierung</string>
+    <string name="settings_notifications_convert_subtitle">Benachrichtige mich, wenn die Video- oder Bildkonvertierung abgeschlossen ist.</string>
+    <string name="settings_section_privacy">Datenschutz</string>
+    <string name="settings_crash_reporting_label">Redact verbessern</string>
+    <string name="settings_crash_reporting_subtitle">Senden Sie automatisch anonyme Fehlerprotokolle, um Abstürze schneller zu beheben. Es werden niemals persönliche Daten oder Medien erfasst.</string>
 </resources>
 

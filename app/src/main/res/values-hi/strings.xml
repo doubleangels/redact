@@ -191,5 +191,18 @@
     <string name="scan_maps_unavailable">इस स्थान को खोलने के लिए कोई मैप ऐप नहीं मिला।</string>
     <string name="scan_search_camera">कैमरा खोजें</string>
     <string name="scan_search_unavailable">इस खोज को चलाने के लिए कोई ब्राउज़र नहीं मिला।</string>
+
+    <!-- Settings screen -->
+    <string name="navigation_settings">सेटिंग्स</string>
+    <string name="settings_section_notifications">सूचनाएं</string>
+    <string name="settings_notifications_label">सभी सूचनाएं</string>
+    <string name="settings_notifications_subtitle">बैकग्राउंड में ऑपरेशन पूरा होने पर Redact को अलर्ट भेजने दें।</string>
+    <string name="settings_notifications_clean_label">मेटाडेटा सफाई</string>
+    <string name="settings_notifications_clean_subtitle">EXIF और मेटाडेटा हटने पर मुझे सूचित करें।</string>
+    <string name="settings_notifications_convert_label">प्रारूप रूपांतरण</string>
+    <string name="settings_notifications_convert_subtitle">वीडियो या चित्र रूपांतरण पूरा होने पर मुझे सूचित करें।</string>
+    <string name="settings_section_privacy">गोपनीयता</string>
+    <string name="settings_crash_reporting_label">Redact को बेहतर बनाएं</string>
+    <string name="settings_crash_reporting_subtitle">त्रुटियों को तेज़ी से सुधारने में हमारी मदद करने के लिए स्वचालित रूप से अनाम क्रैश लॉग भेजें। कोई व्यक्तिगत डेटा या मीडिया कभी एकत्र नहीं किया जाता है।</string>
 </resources>
 

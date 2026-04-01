@@ -191,5 +191,18 @@
     <string name="scan_maps_unavailable">Nessuna app mappe trovata per aprire questa posizione.</string>
     <string name="scan_search_camera">Cerca fotocamera</string>
     <string name="scan_search_unavailable">Nessun browser trovato per eseguire questa ricerca.</string>
+
+    <!-- Settings screen -->
+    <string name="navigation_settings">Impostazioni</string>
+    <string name="settings_section_notifications">Notifiche</string>
+    <string name="settings_notifications_label">Tutte le notifiche</string>
+    <string name="settings_notifications_subtitle">Consenti a Redact di inviare avvisi push quando le operazioni terminano in background.</string>
+    <string name="settings_notifications_clean_label">Pulizia metadati</string>
+    <string name="settings_notifications_clean_subtitle">Avvisami al termine della rimozione di EXIF e metadati.</string>
+    <string name="settings_notifications_convert_label">Conversione formato</string>
+    <string name="settings_notifications_convert_subtitle">Avvisami al termine della conversione del file video o immagine.</string>
+    <string name="settings_section_privacy">Privacy</string>
+    <string name="settings_crash_reporting_label">Migliora Redact</string>
+    <string name="settings_crash_reporting_subtitle">Invia automaticamente i registri degli errori anonimi per aiutarci a risolvere i problemi più velocemente. Non vengono mai raccolti dati personali o file multimediali.</string>
 </resources>
 

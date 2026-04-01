@@ -191,5 +191,18 @@
     <string name="scan_maps_unavailable">この場所を開くためのマップアプリが見つかりません。</string>
     <string name="scan_search_camera">カメラを検索</string>
     <string name="scan_search_unavailable">この検索を実行するブラウザが見つかりません。</string>
+
+    <!-- Settings screen -->
+    <string name="navigation_settings">設定</string>
+    <string name="settings_section_notifications">通知</string>
+    <string name="settings_notifications_label">すべての通知</string>
+    <string name="settings_notifications_subtitle">バックグラウンドでの操作が完了したときにRedactからのプッシュ通知を許可します。</string>
+    <string name="settings_notifications_clean_label">メタデータのクリーニング</string>
+    <string name="settings_notifications_clean_subtitle">EXIFとメタデータの削除が完了したときに通知します。</string>
+    <string name="settings_notifications_convert_label">フォーマット変換</string>
+    <string name="settings_notifications_convert_subtitle">動画または画像のファイル変換が完了したときに通知します。</string>
+    <string name="settings_section_privacy">プライバシー</string>
+    <string name="settings_crash_reporting_label">Redactの改善</string>
+    <string name="settings_crash_reporting_subtitle">クラッシュを迅速に修正するため、匿名の自動エラーログを送信します。個人データやメディアが収集されることはありません。</string>
 </resources>
 

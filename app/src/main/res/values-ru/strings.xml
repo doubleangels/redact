@@ -191,5 +191,18 @@
     <string name="scan_maps_unavailable">Приложение карт не найдено для открытия этого местоположения.</string>
     <string name="scan_search_camera">Поиск камеры</string>
     <string name="scan_search_unavailable">Браузер для выполнения этого поиска не найден.</string>
+
+    <!-- Settings screen -->
+    <string name="navigation_settings">Настройки</string>
+    <string name="settings_section_notifications">Уведомления</string>
+    <string name="settings_notifications_label">Все уведомления</string>
+    <string name="settings_notifications_subtitle">Разрешить Redact отправлять уведомления о завершении фоновых процессов.</string>
+    <string name="settings_notifications_clean_label">Очистка метаданных</string>
+    <string name="settings_notifications_clean_subtitle">Уведомлять о завершении удаления EXIF и метаданных.</string>
+    <string name="settings_notifications_convert_label">Смена формата</string>
+    <string name="settings_notifications_convert_subtitle">Уведомлять о завершении конвертации видео или изображений.</string>
+    <string name="settings_section_privacy">Конфиденциальность</string>
+    <string name="settings_crash_reporting_label">Улучшить Redact</string>
+    <string name="settings_crash_reporting_subtitle">Автоматически отправляйте анонимные отчеты об ошибках, чтобы помочь нам быстрее их исправлять. Личные данные или медиа не собираются.</string>
 </resources>
 

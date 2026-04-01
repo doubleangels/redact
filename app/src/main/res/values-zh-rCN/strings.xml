@@ -191,5 +191,18 @@
     <string name="scan_maps_unavailable">未找到可打开此位置的地图应用。</string>
     <string name="scan_search_camera">搜索相机</string>
     <string name="scan_search_unavailable">未找到可执行此搜索的浏览器。</string>
+
+    <!-- Settings screen -->
+    <string name="navigation_settings">设置</string>
+    <string name="settings_section_notifications">通知</string>
+    <string name="settings_notifications_label">所有通知</string>
+    <string name="settings_notifications_subtitle">允许 Redact 在后台操作完成时发送推送提醒。</string>
+    <string name="settings_notifications_clean_label">元数据清理</string>
+    <string name="settings_notifications_clean_subtitle">在 EXIF 和元数据剥离完成时通知我。</string>
+    <string name="settings_notifications_convert_label">格式转换</string>
+    <string name="settings_notifications_convert_subtitle">在视频或图像文件转换完成时通知我。</string>
+    <string name="settings_section_privacy">隐私</string>
+    <string name="settings_crash_reporting_label">改善 Redact</string>
+    <string name="settings_crash_reporting_subtitle">自动发送匿名的崩溃日志以帮助我们更快修复问题。永远不会收集甚至读取个人数据或媒体。</string>
 </resources>
 
