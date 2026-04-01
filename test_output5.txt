@@ -1,0 +1,91 @@
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:generateDebugResources
+> Task :app:dataBindingMergeDependencyArtifactsDebug
+> Task :app:packageDebugResources
+> Task :app:mergeDebugResources
+> Task :app:processDebugNavigationResources
+> Task :app:dataBindingTriggerDebug
+> Task :app:generateDebugBuildConfig
+> Task :app:javaPreCompileDebug
+> Task :app:mapDebugSourceSetPaths
+> Task :app:checkDebugAarMetadata
+> Task :app:parseDebugLocalResources
+> Task :app:compileDebugNavigationResources
+> Task :app:dataBindingGenBaseClassesDebug
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:generateDebugRFile
+> Task :app:processDebugMainManifest
+> Task :app:compileDebugKotlin NO-SOURCE
+
+> Task :app:compileDebugJavaWithJavac
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :app:processDebugManifest
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:javaPreCompileDebugUnitTest
+> Task :app:mergeDebugAssets
+> Task :app:processDebugUnitTestManifest
+> Task :app:processDebugJavaRes
+> Task :app:processDebugManifestForPackage
+> Task :app:processDebugResources
+> Task :app:packageDebugUnitTestForUnitTest
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:generateDebugUnitTestConfig
+> Task :app:compileDebugUnitTestKotlin NO-SOURCE
+
+> Task :app:compileDebugUnitTestJavaWithJavac
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+> Task :app:processDebugUnitTestJavaRes
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :app:testDebugUnitTest
+
+MetadataStripperTest > testFileSizeLimits FAILED
+    java.lang.AssertionError at MetadataStripperTest.java:122
+
+SettingsFragmentTest > testTogglesUpdateSharedPreferences FAILED
+    android.view.InflateException
+        Caused by: android.view.InflateException
+            Caused by: java.lang.reflect.InvocationTargetException at SettingsFragmentTest.java:35
+                Caused by: java.lang.IllegalArgumentException at SettingsFragmentTest.java:35
+
+SettingsFragmentTest > testMasterToggleDimsSubRows FAILED
+    android.view.InflateException
+        Caused by: android.view.InflateException
+            Caused by: java.lang.reflect.InvocationTargetException at SettingsFragmentTest.java:64
+                Caused by: java.lang.IllegalArgumentException at SettingsFragmentTest.java:64
+
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :app:testDebugUnitTest FAILED
+
+23 tests completed, 3 failed
+
+[Incubating] Problems report is available at: file:///C:/Users/mattv/AndroidStudioProjects/redact/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:testDebugUnitTest'.
+> There were failing tests. See the report at: file:///C:/Users/mattv/AndroidStudioProjects/redact/app/build/reports/tests/testDebugUnitTest/index.html
+
+* Try:
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 34s
+32 actionable tasks: 32 executed

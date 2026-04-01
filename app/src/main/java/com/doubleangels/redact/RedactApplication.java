@@ -1,7 +1,6 @@
 package com.doubleangels.redact;
 
 import android.app.Application;
-import android.util.Log;
 
 import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.sentry.SentryInitializer;
