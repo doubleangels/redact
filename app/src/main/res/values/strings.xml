@@ -28,16 +28,16 @@
 
     <!-- Settings screen -->
     <string name="settings_section_notifications">Notifications</string>
-    <string name="settings_notifications_label">Enable Notifications</string>
-    <string name="settings_notifications_subtitle">Show completion alerts for all operations</string>
-    <string name="settings_notifications_clean_label">Clean Notifications</string>
-    <string name="settings_notifications_clean_subtitle">Alert when metadata stripping finishes</string>
-    <string name="settings_notifications_convert_label">Convert Notifications</string>
-    <string name="settings_notifications_convert_subtitle">Alert when file conversion finishes</string>
+    <string name="settings_notifications_label">All Notifications</string>
+    <string name="settings_notifications_subtitle">Allow Redact to send you push alerts when operations finish in the background.</string>
+    <string name="settings_notifications_clean_label">Metadata Cleaning</string>
+    <string name="settings_notifications_clean_subtitle">Notify me when EXIF and metadata stripping completes.</string>
+    <string name="settings_notifications_convert_label">Format Conversion</string>
+    <string name="settings_notifications_convert_subtitle">Notify me when video or image file conversion completes.</string>
 
     <string name="settings_section_privacy">Privacy</string>
-    <string name="settings_crash_reporting_label">Crash Reporting</string>
-    <string name="settings_crash_reporting_subtitle">Send anonymous diagnostic data if the app crashes</string>
+    <string name="settings_crash_reporting_label">Improve Redact</string>
+    <string name="settings_crash_reporting_subtitle">Automatically send anonymous error logs to help us fix crashes faster. No personal data or media is ever collected.</string>
 
     <!-- Convert tab -->
     <string name="convert_subtitle">Images: JPEG, PNG, WebP, or HEIC (Android 14+) into Pictures/Redact. Videos: MP4, WebM, or MKV into Movies/Redact. The HEIC option is hidden on older devices.</string>
