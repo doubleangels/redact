@@ -409,6 +409,27 @@ public class MetadataStripper {
             }
 
             if (!usedLossless) {
+                try (OutputStream os = contentResolver.openOutputStream(newUri)) {
+                    if (os != null) {
+                        usedLossless = stripMetadataNativeExif(tempFile, os, extension);
+                    }
+                }
+            }
+
+            if (!usedLossless) {
+                // Determine appropriate sample size for memory-efficient loading
+                BitmapFactory.Options optionsJustBounds = new BitmapFactory.Options();
+                optionsJustBounds.inJustDecodeBounds = true;
+                BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsJustBounds);
+                int sampleSize = calculateInSampleSize(optionsJustBounds);
+
+                BitmapFactory.Options optionsLoad = new BitmapFactory.Options();
+                optionsLoad.inSampleSize = sampleSize;
+                originalBitmap = BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsLoad);
+
+                if (originalBitmap == null) {
+                    throw new IOException("Failed to decode bitmap");
+                }
 
                 // Save bitmap without metadata
                 try (OutputStream os = contentResolver.openOutputStream(newUri)) {
@@ -422,8 +443,10 @@ public class MetadataStripper {
                     os.flush();
                 }
 
-                originalBitmap.recycle();
-                originalBitmap = null;
+                if (originalBitmap != null) {
+                    originalBitmap.recycle();
+                    originalBitmap = null;
+                }
                 System.gc();
             }
 
@@ -1699,27 +1722,29 @@ public class MetadataStripper {
         try {
             androidx.exifinterface.media.ExifInterface exif = new androidx.exifinterface.media.ExifInterface(tempFile.getAbsolutePath());
             
-            // Clear PII tags
-            String[] piiTags = {
-                androidx.exifinterface.media.ExifInterface.TAG_GPS_LATITUDE,
-                androidx.exifinterface.media.ExifInterface.TAG_GPS_LONGITUDE,
-                androidx.exifinterface.media.ExifInterface.TAG_GPS_ALTITUDE,
-                androidx.exifinterface.media.ExifInterface.TAG_DATETIME,
-                androidx.exifinterface.media.ExifInterface.TAG_DATETIME_ORIGINAL,
-                androidx.exifinterface.media.ExifInterface.TAG_DATETIME_DIGITIZED,
-                androidx.exifinterface.media.ExifInterface.TAG_MAKE,
-                androidx.exifinterface.media.ExifInterface.TAG_MODEL,
-                androidx.exifinterface.media.ExifInterface.TAG_SOFTWARE,
-                androidx.exifinterface.media.ExifInterface.TAG_USER_COMMENT,
-                androidx.exifinterface.media.ExifInterface.TAG_ARTIST,
-                androidx.exifinterface.media.ExifInterface.TAG_COPYRIGHT,
-                androidx.exifinterface.media.ExifInterface.TAG_IMAGE_DESCRIPTION
-            };
+            // Clear all non-essential tags using the same reflection-based logic as removeAllExifMetadata
+            // but adapted for androidx.exifinterface
+            java.lang.reflect.Field[] fields = androidx.exifinterface.media.ExifInterface.class.getDeclaredFields();
+            java.util.Set<String> tagsToPreserve = new java.util.HashSet<>(List.of(
+                    androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION));
 
-            for (String tag : piiTags) {
-                exif.setAttribute(tag, null);
+            int removedCount = 0;
+            for (java.lang.reflect.Field field : fields) {
+                if (field.getType() == String.class && field.getName().startsWith("TAG_")) {
+                    try {
+                        String tagName = (String) field.get(null);
+                        if (tagName != null && !tagsToPreserve.contains(tagName)) {
+                            String value = exif.getAttribute(tagName);
+                            if (value != null) {
+                                exif.setAttribute(tagName, null);
+                                removedCount++;
+                            }
+                        }
+                    } catch (Exception ignored) {}
+                }
             }
-            
+
+            SentryManager.log("Native EXIF stripping removed " + removedCount + " tags.");
             exif.saveAttributes();
 
             // Copy the modified file to the output stream

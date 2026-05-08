@@ -22,6 +22,7 @@ mockito = "5.23.0"
 robolectric = "4.16.1"
 androidxTestCore = "1.7.0"
 commonsImaging = "1.0.0-alpha6"
+leakcanary = "2.14"
 
 [libraries]
 activity = { module = "androidx.activity:activity", version.ref = "activity" }
@@ -47,6 +48,7 @@ mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTestCore" }
 commons-imaging = { module = "org.apache.commons:commons-imaging", version.ref = "commonsImaging" }
+leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

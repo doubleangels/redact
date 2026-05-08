@@ -12,6 +12,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import android.os.Build;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 
 
 import com.doubleangels.redact.sentry.SentryManager;
@@ -108,9 +111,52 @@ public class SettingsFragment extends Fragment {
             });
 
 
+            MaterialButton buttonRequestPermissions = view.findViewById(R.id.buttonRequestPermissions);
+            if (buttonRequestPermissions != null) {
+                buttonRequestPermissions.setOnClickListener(v -> requestAppPermissions());
+            }
 
         } catch (Exception e) {
             SentryManager.recordException(e);
+        }
+    }
+
+    private final ActivityResultLauncher<String[]> permissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestMultiplePermissions(),
+            result -> {
+                boolean allGranted = true;
+                for (Boolean granted : result.values()) {
+                    if (!granted) allGranted = false;
+                }
+                if (allGranted) {
+                    Toast.makeText(requireContext(), "Permissions granted.", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(requireContext(), "Some permissions were denied.", Toast.LENGTH_SHORT).show();
+                }
+            }
+    );
+
+    private void requestAppPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            permissionLauncher.launch(new String[]{
+                    android.Manifest.permission.POST_NOTIFICATIONS,
+                    android.Manifest.permission.READ_MEDIA_IMAGES,
+                    android.Manifest.permission.READ_MEDIA_VIDEO,
+                    android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED,
+                    android.Manifest.permission.ACCESS_MEDIA_LOCATION
+            });
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionLauncher.launch(new String[]{
+                    android.Manifest.permission.POST_NOTIFICATIONS,
+                    android.Manifest.permission.READ_MEDIA_IMAGES,
+                    android.Manifest.permission.READ_MEDIA_VIDEO,
+                    android.Manifest.permission.ACCESS_MEDIA_LOCATION
+            });
+        } else {
+            permissionLauncher.launch(new String[]{
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                    android.Manifest.permission.ACCESS_MEDIA_LOCATION
+            });
         }
     }
 

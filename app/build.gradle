@@ -54,8 +54,8 @@ dependencies {
     implementation libs.media3.effect
     implementation libs.media3.transformer
     implementation libs.commons.imaging
-
     
+    debugImplementation libs.leakcanary.android  
     testImplementation libs.junit
     testImplementation libs.mockito.core
     testImplementation libs.robolectric

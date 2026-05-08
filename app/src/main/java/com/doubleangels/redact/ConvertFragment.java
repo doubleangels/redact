@@ -171,7 +171,9 @@ public class ConvertFragment extends Fragment {
         });
 
         refreshFormatSectionForSelection();
-        permissionManager.checkPermissions();
+        if (!isHidden()) {
+            permissionManager.checkPermissions();
+        }
     }
 
     /**
@@ -424,6 +426,14 @@ public class ConvertFragment extends Fragment {
         progressContainer.setVisibility(show ? View.VISIBLE : View.GONE);
         progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
         progressText.setVisibility(show ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (!hidden && permissionManager != null) {
+            permissionManager.checkPermissions();
+        }
     }
 
     void handlePermissionResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

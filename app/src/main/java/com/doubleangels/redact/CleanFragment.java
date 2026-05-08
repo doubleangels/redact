@@ -106,7 +106,9 @@ public class CleanFragment extends Fragment {
             setupViews(view);
             initUtilityClasses();
             setupObservers();
-            permissionManager.checkPermissions();
+            if (!isHidden()) {
+                permissionManager.checkPermissions();
+            }
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
@@ -310,6 +312,14 @@ public class CleanFragment extends Fragment {
             });
         } catch (Exception e) {
             SentryManager.recordException(e);
+        }
+    }
+
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (!hidden && permissionManager != null) {
+            permissionManager.checkPermissions();
         }
     }
 

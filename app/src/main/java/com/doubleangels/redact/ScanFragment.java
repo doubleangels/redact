@@ -160,7 +160,9 @@ public class ScanFragment extends Fragment {
             SentryManager.log("Select button clicked in ScanFragment");
             openMediaPicker();
         });
-        permissionManager.checkPermissions();
+        if (!isHidden()) {
+            permissionManager.checkPermissions();
+        }
     }
 
     private void checkLocationPermissionAndDisplayMetadata(Uri mediaUri) {
@@ -173,6 +175,14 @@ public class ScanFragment extends Fragment {
 
         if (!hasLocationPermission) {
             permissionManager.requestLocationPermission();
+        }
+    }
+
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (!hidden && permissionManager != null) {
+            permissionManager.checkPermissions();
         }
     }
 
