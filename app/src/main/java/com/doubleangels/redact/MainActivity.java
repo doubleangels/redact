@@ -10,13 +10,13 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.WindowInsetsController;
 
+import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
                                         .apply());
         try {
             DynamicColors.applyToActivityIfAvailable(this);
-            WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+            EdgeToEdge.enable(this);
 
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_main);
@@ -196,17 +196,20 @@ public class MainActivity extends AppCompatActivity {
         try {
             View rootView = findViewById(android.R.id.content);
             if (rootView != null) {
+                final int barsAndCutout = WindowInsetsCompat.Type.systemBars()
+                        | WindowInsetsCompat.Type.displayCutout();
                 ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, insets) -> {
-                    androidx.core.graphics.Insets systemBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                    androidx.core.graphics.Insets statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars());
-                    androidx.core.graphics.Insets navigationBarInsets = insets.getInsets(WindowInsetsCompat.Type.navigationBars());
+                    androidx.core.graphics.Insets outer = insets.getInsets(barsAndCutout);
+                    androidx.core.graphics.Insets nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars());
+                    androidx.core.graphics.Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+                    int bottomOverlap = Math.max(nav.bottom, ime.bottom);
 
                     View coordinatorLayout = findViewById(R.id.root_layout);
                     if (coordinatorLayout != null) {
                         coordinatorLayout.setPadding(
-                                systemBarInsets.left,
-                                statusBarInsets.top,
-                                systemBarInsets.right,
+                                outer.left,
+                                outer.top,
+                                outer.right,
                                 0
                         );
                     }
@@ -217,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
                                 bottomNav.getPaddingLeft(),
                                 bottomNav.getPaddingTop(),
                                 bottomNav.getPaddingRight(),
-                                navigationBarInsets.bottom
+                                bottomOverlap
                         );
                     }
 
@@ -237,12 +240,17 @@ public class MainActivity extends AppCompatActivity {
             WindowInsetsController insetsController = getWindow().getInsetsController();
             if (insetsController != null) {
                 if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
-                    insetsController.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
+                    insetsController.setSystemBarsAppearance(
+                            0,
+                            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                                    | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
                     SentryManager.setCustomKey("theme_mode", "dark");
                 } else {
                     insetsController.setSystemBarsAppearance(
-                            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
-                            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
+                            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                                    | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,
+                            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                                    | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
                     SentryManager.setCustomKey("theme_mode", "light");
                 }
             } else {

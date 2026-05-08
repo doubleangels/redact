@@ -383,26 +383,6 @@ public class MetadataStripper {
                 SentryManager.log("Could not remove thumbnails from temp file: " + e.getMessage() + ".");
             }
 
-            // Check image dimensions without loading the full bitmap
-            BitmapFactory.Options optionsJustBounds = new BitmapFactory.Options();
-            optionsJustBounds.inJustDecodeBounds = true;
-            BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsJustBounds);
-
-            // Calculate appropriate sample size for memory-efficient loading
-            int sampleSize = calculateInSampleSize(optionsJustBounds);
-            SentryManager.setCustomKey("bitmap_sample_size", sampleSize);
-            SentryManager.setCustomKey("original_width", optionsJustBounds.outWidth);
-            SentryManager.setCustomKey("original_height", optionsJustBounds.outHeight);
-
-            // Load bitmap with calculated sample size
-            BitmapFactory.Options optionsLoad = new BitmapFactory.Options();
-            optionsLoad.inSampleSize = sampleSize;
-
-            originalBitmap = BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsLoad);
-            if (originalBitmap == null) {
-                throw new IOException("Failed to decode bitmap");
-            }
-
             // Prepare MediaStore entry for the new image
             ContentValues values = new ContentValues();
             values.put(MediaStore.Images.Media.DISPLAY_NAME, newFilename);
@@ -418,25 +398,34 @@ public class MetadataStripper {
             }
 
             // Save bitmap without metadata
-            updateProgress(3, 5, "Saving image without metadata...");
+                        updateProgress(3, 5, "Removing metadata...");
 
+            boolean usedLossless = false;
             try (OutputStream os = contentResolver.openOutputStream(newUri)) {
                 if (os == null) {
                     throw new IOException("Failed to open output stream for new image");
                 }
-
-                // Compress bitmap directly to output stream (memory optimization - no
-                // ByteArrayOutputStream)
-                if (!originalBitmap.compress(Bitmap.CompressFormat.JPEG, 95, os)) {
-                    throw new IOException("Failed to compress bitmap");
-                }
-                os.flush();
+                usedLossless = stripMetadataLossless(tempFile, os, extension);
             }
 
-            // Clean up bitmap to free memory
-            originalBitmap.recycle();
-            originalBitmap = null;
-            System.gc();
+            if (!usedLossless) {
+
+                // Save bitmap without metadata
+                try (OutputStream os = contentResolver.openOutputStream(newUri)) {
+                    if (os == null) {
+                        throw new IOException("Failed to open output stream for new image");
+                    }
+
+                    if (!originalBitmap.compress(Bitmap.CompressFormat.JPEG, 95, os)) {
+                        throw new IOException("Failed to compress bitmap");
+                    }
+                    os.flush();
+                }
+
+                originalBitmap.recycle();
+                originalBitmap = null;
+                System.gc();
+            }
 
             // Restore only essential EXIF data (like orientation)
             updateProgress(4, 5, "Restoring essential metadata...");
@@ -523,7 +512,7 @@ public class MetadataStripper {
     public Uri stripExifDataForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Log operation start for analytics and debugging
         SentryManager.log("Starting image EXIF stripping for sharing.");
-        SentryManager.setCustomKey("original_filename", originalFilename);
+
         SentryManager.setCustomKey("operation_type", "image_for_sharing");
 
         Bitmap originalBitmap = null;
@@ -600,21 +589,59 @@ public class MetadataStripper {
             String newFilename = generateShortRandomName() + extension;
             outputFile = new File(outputDir, newFilename);
 
-            // Save bitmap to output file (direct streaming, no intermediate
-            // ByteArrayOutputStream)
-            // Use progressive JPEG for better perceived performance
+            updateProgress(3, 5, "Removing metadata...");
+
+            boolean usedLossless = false;
             try (FileOutputStream fos = new FileOutputStream(outputFile)) {
-                // Compress directly to file output stream (memory optimization)
-                if (!originalBitmap.compress(Bitmap.CompressFormat.JPEG, 95, fos)) {
-                    throw new IOException("Failed to compress bitmap");
-                }
-                fos.flush();
-                fos.getFD().sync(); // Ensure data is written to disk
+                usedLossless = stripMetadataLossless(tempFile, fos, extension);
             }
 
-            // Clean up bitmap to free memory
-            originalBitmap.recycle();
-            originalBitmap = null;
+            if (!usedLossless) {
+                try (OutputStream os = new java.io.FileOutputStream(outputFile)) {
+                    if (os != null) usedLossless = stripMetadataNativeExif(tempFile, os, extension);
+                }
+            }
+
+            if (!usedLossless) {
+                try (java.io.FileOutputStream fos = new java.io.FileOutputStream(outputFile)) {
+                    usedLossless = stripMetadataNativeExif(tempFile, fos, extension);
+                }
+            }
+
+            if (!usedLossless) {
+                // Check image dimensions without loading the full bitmap
+                optionsJustBounds = new BitmapFactory.Options();
+                optionsJustBounds.inJustDecodeBounds = true;
+                BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsJustBounds);
+
+                // Calculate appropriate sample size for memory-efficient loading
+                sampleSize = calculateInSampleSize(optionsJustBounds);
+                SentryManager.setCustomKey("bitmap_sample_size", sampleSize);
+                SentryManager.setCustomKey("original_width", optionsJustBounds.outWidth);
+                SentryManager.setCustomKey("original_height", optionsJustBounds.outHeight);
+
+                // Load bitmap with calculated sample size
+                optionsLoad = new BitmapFactory.Options();
+                optionsLoad.inSampleSize = sampleSize;
+                originalBitmap = BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsLoad);
+
+                if (originalBitmap == null) {
+                    throw new IOException("Failed to decode bitmap");
+                }
+
+                // Save bitmap to output file
+                try (FileOutputStream fos = new FileOutputStream(outputFile)) {
+                    if (!originalBitmap.compress(Bitmap.CompressFormat.JPEG, 95, fos)) {
+                        throw new IOException("Failed to compress bitmap");
+                    }
+                    fos.flush();
+                    fos.getFD().sync();
+                }
+
+                // Clean up bitmap to free memory
+                originalBitmap.recycle();
+                originalBitmap = null;
+            }
 
             // Remove all EXIF metadata except essential tags
             updateProgress(4, 5, "Removing all metadata...");
@@ -687,7 +714,7 @@ public class MetadataStripper {
     public Uri stripVideoMetadataForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Log operation start for analytics and debugging
         SentryManager.log("Starting video metadata stripping for sharing.");
-        SentryManager.setCustomKey("original_filename", originalFilename);
+
         SentryManager.setCustomKey("operation_type", "video_for_sharing");
 
         File outputFile;
@@ -879,7 +906,7 @@ public class MetadataStripper {
             
             muxer.start();
             
-            java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(1024 * 1024 * 5);
+            java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(1024 * 1024 * 2);
             android.media.MediaCodec.BufferInfo info = new android.media.MediaCodec.BufferInfo();
             
             while (true) {
@@ -1637,6 +1664,79 @@ public class MetadataStripper {
     /**
      * Clears the file size cache.
      */
+
+    /**
+     * Attempts to strip EXIF, XMP, and IPTC losslessly using apache commons-imaging.
+     * @return true if successful, false if it failed or was not a JPEG.
+     */
+    private boolean stripMetadataLossless(@NonNull File tempFile, @NonNull OutputStream finalOs, @NonNull String extension) {
+        if (!extension.equalsIgnoreCase(".jpg") && !extension.equalsIgnoreCase(".jpeg")) {
+            return false;
+        }
+        try {
+            java.io.ByteArrayOutputStream exifOut = new java.io.ByteArrayOutputStream();
+            new org.apache.commons.imaging.formats.jpeg.exif.ExifRewriter().removeExifMetadata(tempFile, exifOut);
+            
+            java.io.ByteArrayOutputStream xmpOut = new java.io.ByteArrayOutputStream();
+            new org.apache.commons.imaging.formats.jpeg.xmp.JpegXmpRewriter().removeXmpXml(exifOut.toByteArray(), xmpOut);
+            
+            finalOs.write(xmpOut.toByteArray());
+            return true;
+        } catch (Exception e) {
+            SentryManager.log("Lossless stripping failed: " + e.getMessage() + ". Falling back to Bitmap.");
+            return false;
+        }
+    }
+
+
+    private boolean stripMetadataNativeExif(@NonNull File tempFile, @NonNull OutputStream finalOs, @NonNull String extension) {
+        // Native ExifInterface supports JPEG, PNG, WEBP, and HEIF
+        boolean isSupported = extension.equalsIgnoreCase(".jpg") || extension.equalsIgnoreCase(".jpeg") ||
+                              extension.equalsIgnoreCase(".png") || extension.equalsIgnoreCase(".webp") ||
+                              extension.equalsIgnoreCase(".heic") || extension.equalsIgnoreCase(".heif");
+        if (!isSupported) return false;
+
+        try {
+            androidx.exifinterface.media.ExifInterface exif = new androidx.exifinterface.media.ExifInterface(tempFile.getAbsolutePath());
+            
+            // Clear PII tags
+            String[] piiTags = {
+                androidx.exifinterface.media.ExifInterface.TAG_GPS_LATITUDE,
+                androidx.exifinterface.media.ExifInterface.TAG_GPS_LONGITUDE,
+                androidx.exifinterface.media.ExifInterface.TAG_GPS_ALTITUDE,
+                androidx.exifinterface.media.ExifInterface.TAG_DATETIME,
+                androidx.exifinterface.media.ExifInterface.TAG_DATETIME_ORIGINAL,
+                androidx.exifinterface.media.ExifInterface.TAG_DATETIME_DIGITIZED,
+                androidx.exifinterface.media.ExifInterface.TAG_MAKE,
+                androidx.exifinterface.media.ExifInterface.TAG_MODEL,
+                androidx.exifinterface.media.ExifInterface.TAG_SOFTWARE,
+                androidx.exifinterface.media.ExifInterface.TAG_USER_COMMENT,
+                androidx.exifinterface.media.ExifInterface.TAG_ARTIST,
+                androidx.exifinterface.media.ExifInterface.TAG_COPYRIGHT,
+                androidx.exifinterface.media.ExifInterface.TAG_IMAGE_DESCRIPTION
+            };
+
+            for (String tag : piiTags) {
+                exif.setAttribute(tag, null);
+            }
+            
+            exif.saveAttributes();
+
+            // Copy the modified file to the output stream
+            try (java.io.InputStream in = new java.io.FileInputStream(tempFile)) {
+                byte[] buffer = new byte[8192];
+                int read;
+                while ((read = in.read(buffer)) != -1) {
+                    finalOs.write(buffer, 0, read);
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            SentryManager.log("Native EXIF stripping failed: " + e.getMessage());
+            return false;
+        }
+    }
+
     public void clearFileSizeCache() {
         fileSizeCache.clear();
     }

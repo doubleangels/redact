@@ -39,6 +39,11 @@
     <string name="settings_crash_reporting_label">Improve Redact</string>
     <string name="settings_crash_reporting_subtitle">Automatically send anonymous error logs to help us fix crashes faster. No personal data or media is ever collected.</string>
 
+    <string name="settings_section_developer">Developer</string>
+    <string name="settings_wormaceptor_button">Open WormaCeptor</string>
+    <string name="settings_wormaceptor_subtitle">On-device debug tools (debug builds only).</string>
+    <string name="settings_wormaceptor_unavailable">WormaCeptor is not available.</string>
+
     <!-- Convert tab -->
     <string name="convert_subtitle">Images: JPEG, PNG, WebP, or HEIC (Android 14+) into Pictures/Redact. Videos: MP4, WebM, or MKV into Movies/Redact. The HEIC option is hidden on older devices.</string>
     <string name="convert_output_format_images">Image format</string>

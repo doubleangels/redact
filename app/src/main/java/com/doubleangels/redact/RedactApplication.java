@@ -2,6 +2,7 @@ package com.doubleangels.redact;
 
 import android.app.Application;
 
+
 import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.sentry.SentryInitializer;
 import com.doubleangels.redact.sentry.SentryManager;
@@ -9,7 +10,8 @@ import com.doubleangels.redact.sentry.SentryManager;
 /**
  * Custom Application class for the Redact application.
  *
- * Initializes Sentry for error reporting and Firebase (Analytics, Performance) when configured.
+ *
+ * <p>Initializes Sentry and notification channels.
  */
 public class RedactApplication extends Application {
     private static final String TAG = "RedactApplication";
@@ -17,6 +19,8 @@ public class RedactApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+
 
         SentryManager.init(this);
         SentryInitializer.initialize(this);

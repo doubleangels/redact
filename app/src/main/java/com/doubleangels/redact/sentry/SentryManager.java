@@ -40,14 +40,18 @@ public final class SentryManager {
     private SentryManager() {
     }
 
-    /** Called once from {@link com.doubleangels.redact.RedactApplication#onCreate()}. */
+    /**
+     * Called once from
+     * {@link com.doubleangels.redact.RedactApplication#onCreate()}.
+     */
     public static void init(Context context) {
         appContext = context.getApplicationContext();
     }
 
     /** Returns true when the user has not opted out of crash reporting. */
     private static boolean isEnabled() {
-        if (appContext == null) return true;
+        if (appContext == null)
+            return true;
         SharedPreferences prefs = appContext.getSharedPreferences(
                 com.doubleangels.redact.SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE);
         return prefs.getBoolean(
@@ -65,7 +69,8 @@ public final class SentryManager {
 
     public static void log(String message) {
         Log.i(TAG, message);
-        if (!isEnabled()) return;
+        if (!isEnabled())
+            return;
         Breadcrumb b = new Breadcrumb();
         b.setMessage(message);
         b.setCategory("custom");
@@ -86,7 +91,8 @@ public final class SentryManager {
     }
 
     public static void setCustomKey(String key, String value) {
-        if (!isEnabled()) return;
+        if (!isEnabled())
+            return;
         String v = value != null ? value : "";
         if (v.length() > 200) {
             v = v.substring(0, 200);
@@ -117,7 +123,8 @@ public final class SentryManager {
     }
 
     public static ITransaction startTransaction(String name, String operation) {
-        if (!isEnabled()) return Sentry.startTransaction(name, operation); // no-op transaction still needed
+        if (!isEnabled())
+            return Sentry.startTransaction(name, operation); // no-op transaction still needed
         return Sentry.startTransaction(name, operation);
     }
 }

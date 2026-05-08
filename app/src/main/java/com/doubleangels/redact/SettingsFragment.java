@@ -1,16 +1,21 @@
 package com.doubleangels.redact;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+
 import com.doubleangels.redact.sentry.SentryManager;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
 /**
@@ -101,6 +106,8 @@ public class SettingsFragment extends Fragment {
                     android.util.Log.e("SettingsFragment", "Error saving crash reporting pref", e);
                 }
             });
+
+
 
         } catch (Exception e) {
             SentryManager.recordException(e);

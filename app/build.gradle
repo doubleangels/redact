@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace 'com.doubleangels.redact'
-    compileSdk 36
+    compileSdk 37
 
     defaultConfig {
         applicationId "com.doubleangels.redact"
@@ -53,8 +53,8 @@ dependencies {
     implementation libs.media3.common
     implementation libs.media3.effect
     implementation libs.media3.transformer
-    
-    debugImplementation libs.leakcanary.android
+    implementation libs.commons.imaging
+
     
     testImplementation libs.junit
     testImplementation libs.mockito.core

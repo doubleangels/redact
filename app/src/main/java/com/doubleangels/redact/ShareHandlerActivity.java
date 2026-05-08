@@ -9,9 +9,9 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.WindowCompat;
 
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.MediaSelector;
@@ -21,137 +21,76 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import io.sentry.ITransaction;
 import io.sentry.SpanStatus;
 
-/**
- * Activity for handling media files shared from other applications.
- *
- * This activity processes incoming shared media (images and videos),
- * removes metadata/sensitive information, and allows users to share
- * the cleaned version. It supports both single and multiple media items
- * shared via Android's standard sharing mechanism.
- */
 public class ShareHandlerActivity extends AppCompatActivity {
 
-    // Core components for media processing and selection
     private MediaSelector mediaSelector;
     private MetadataStripper metadataStripper;
     
-    // Track the processed file for cleanup after sharing
-    private File processedFile;
+    private final List<File> processedFiles = new ArrayList<>();
     
-    // Track whether sharing has been initiated
     private boolean sharingInitiated = false;
 
-    // UI elements for showing progress to the user
     private AlertDialog progressDialog;
     private TextView progressMessageView;
 
-    // URI of the media file received from the sharing application
-    private Uri receivedUri;
-
-    /**
-     * Initializes the activity and handles incoming share intent.
-     *
-     * Sets up required components, creates the progress dialog,
-     * and begins processing the shared media content.
-     *
-     * @param savedInstanceState If the activity is being re-initialized after
-     *     previously being shut down, this contains the data it most recently
-     *     supplied in onSaveInstanceState(Bundle)
-     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
 
-        // Enable edge-to-edge display
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-
         try {
-            // Initialize media processing components
             mediaSelector = new MediaSelector(this, null);
             metadataStripper = new MetadataStripper(this);
             
-            // Set up progress callback for metadata stripping
             metadataStripper.setProgressCallback(
                     (percent, message) -> runOnUiThread(() -> updateProgressMessage(message)));
 
-            // Log activity creation for debugging purposes
             SentryManager.log("ShareHandlerActivity created");
 
-            // Create and show the progress dialog
             createProgressDialog();
 
-            // Process the intent that launched this activity
             handleIntent(getIntent());
         } catch (Exception e) {
-            // Record any initialization errors and finish the activity
             SentryManager.recordException(e);
             finishWithError("Error during initialization: " + e.getMessage());
         }
     }
 
-    /**
-     * Creates and displays a progress dialog to show the user that media
-     * processing is underway.
-     *
-     * The dialog is non-cancelable to prevent users from interrupting
-     * the processing operation.
-     */
     private void createProgressDialog() {
-        // Build the dialog first so we can use its Material3-themed context for inflation.
-        // ShareHandlerActivity uses Theme.Transparent which lacks Material attr definitions
-        // (colorSurfaceContainerHigh, textAppearanceBodyMedium, etc.), so inflating with
-        // LayoutInflater.from(this) causes UnsupportedOperationException. Using the builder's
-        // context applies the MaterialAlertDialog theme overlay that carries those attributes.
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
         View dialogView = LayoutInflater.from(builder.getContext())
                 .inflate(R.layout.dialog_progress, null, false);
         progressMessageView = dialogView.findViewById(R.id.progress_message);
 
-        // Create and configure the progress dialog
         progressDialog = builder
                 .setTitle(R.string.share_processing_title)
                 .setView(dialogView)
-                .setCancelable(false) // Prevent cancellation during processing
+                .setCancelable(false)
                 .create();
 
-        // Set initial message and display the dialog
         progressMessageView.setText(getString(R.string.status_processing));
         progressDialog.show();
     }
 
-    /**
-     * Updates the progress message shown to the user.
-     *
-     * @param message The progress message to display
-     */
     private void updateProgressMessage(String message) {
         if (progressMessageView != null) {
             progressMessageView.setText(message);
         }
     }
 
-    /**
-     * Processes the incoming intent to determine the type of shared content
-     * and routes to appropriate handler methods.
-     *
-     * Handles single image/video sharing and multiple media sharing.
-     *
-     * @param intent The intent that started this activity
-     */
     private void handleIntent(Intent intent) {
         try {
             String action = intent.getAction();
             String type = intent.getType();
 
-            // Log intent details for debugging
             SentryManager.setCustomKey("intent_action", action != null ? action : "null");
             SentryManager.setCustomKey("intent_type", type != null ? type : "null");
 
-            // Handle single media item sharing
             if (Intent.ACTION_SEND.equals(action) && type != null) {
                 if (type.startsWith("image/")) {
                     SentryManager.log("Handling single image");
@@ -160,12 +99,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     SentryManager.log("Handling single video");
                     handleSentVideo(intent);
                 } else {
-                    // Unsupported media type
                     SentryManager.setCustomKey("unsupported_type", type);
                     finishWithError(getString(R.string.share_error_unsupported_media));
                 }
             }
-            // Handle multiple media items sharing (type is often image/*, video/*, or */*)
             else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
                 if (type == null || type.startsWith("image/") || type.startsWith("video/")
                         || "*/*".equals(type)) {
@@ -176,89 +113,61 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     finishWithError(getString(R.string.share_error_unsupported_media));
                 }
             } else {
-                // Unsupported action
                 SentryManager.setCustomKey("unsupported_action", action != null ? action : "null");
                 finishWithError(getString(R.string.share_error_unsupported_action));
             }
         } catch (Exception e) {
-            // Log and handle any errors during intent processing
             SentryManager.recordException(e);
             finishWithError(getString(R.string.status_extraction_media_fail));
         }
     }
 
-    /**
-     * Processes a single image received from another application.
-     *
-     * Extracts the image URI from the intent and initiates processing.
-     *
-     * @param intent The intent containing the image URI
-     */
     private void handleSentImage(Intent intent) {
         try {
-            // Extract the image URI from the intent
+            Uri receivedUri;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 receivedUri = intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri.class);
             } else {
                 receivedUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
             }
             if (receivedUri != null) {
-                // Log the URI and process the image
-                SentryManager.setCustomKey("received_uri", receivedUri.toString());
-                processMediaItem(receivedUri, false); // false indicates it's an image, not a video
+                List<Uri> uris = new ArrayList<>();
+                uris.add(receivedUri);
+                processMediaItems(uris);
             } else {
-                // Handle case where URI is missing
                 SentryManager.log("Received null image URI");
                 finishWithError("Failed to receive image");
             }
         } catch (Exception e) {
-            // Log and handle any errors
             SentryManager.recordException(e);
             finishWithError("Error handling image: " + e.getMessage());
         }
     }
 
-    /**
-     * Processes a single video received from another application.
-     *
-     * Extracts the video URI from the intent and initiates processing.
-     *
-     * @param intent The intent containing the video URI
-     */
     private void handleSentVideo(Intent intent) {
         try {
-            // Extract the video URI from the intent
+            Uri receivedUri;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 receivedUri = intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri.class);
             } else {
                 receivedUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
             }
             if (receivedUri != null) {
-                // Log the URI and process the video
-                SentryManager.setCustomKey("received_uri", receivedUri.toString());
-                processMediaItem(receivedUri, true); // true indicates it's a video
+                List<Uri> uris = new ArrayList<>();
+                uris.add(receivedUri);
+                processMediaItems(uris);
             } else {
-                // Handle case where URI is missing
                 SentryManager.log("Received null video URI");
                 finishWithError("Failed to receive video");
             }
         } catch (Exception e) {
-            // Log and handle any errors
             SentryManager.recordException(e);
             finishWithError("Error handling video: " + e.getMessage());
         }
     }
 
-    /**
-     * Processes multiple media items received from another application.
-     *
-     * Currently, this method only processes the first media item in the list.
-     *
-     * @param intent The intent containing multiple media URIs
-     */
     private void handleMultipleMedia(Intent intent) {
         try {
-            // Extract the list of media URIs from the intent
             ArrayList<Uri> uris;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri.class);
@@ -266,105 +175,98 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
             }
             if (uris != null && !uris.isEmpty()) {
-                // Log the count of media items
                 SentryManager.setCustomKey("media_count", uris.size());
-
-                // Process only the first item in the list
-                receivedUri = uris.get(0);
-
-                // Determine if it's a video or image by checking MIME type
-                String mimeType = getContentResolver().getType(receivedUri);
-                boolean isVideo = mimeType != null && mimeType.startsWith("video/");
-                SentryManager.setCustomKey("is_video", isVideo);
-
-                // Process the first media item
-                processMediaItem(receivedUri, isVideo);
+                processMediaItems(uris);
             } else {
-                // Handle case where URIs are missing
                 SentryManager.log("Received empty media list");
                 finishWithError("Failed to receive media");
             }
         } catch (Exception e) {
-            // Log and handle any errors
             SentryManager.recordException(e);
             finishWithError("Error handling multiple media: " + e.getMessage());
         }
     }
 
-    /**
-     * Processes a media item by stripping metadata for sharing.
-     *
-     * Uses the "ForSharing" methods which save to cache directory instead of MediaStore,
-     * and the file will be deleted after sharing.
-     *
-     * @param uri The URI of the media item to process
-     * @param isVideo Whether the media item is a video (true) or image (false)
-     */
-    private void processMediaItem(Uri uri, boolean isVideo) {
+    private void processMediaItems(List<Uri> uris) {
         new Thread(() -> {
             ITransaction transaction = SentryManager.startTransaction("share_cleanup", "task");
-            try {
-                // Get the file name from the URI
-                String fileName = mediaSelector.getFileName(uri);
-                SentryManager.setCustomKey("file_name", fileName);
+            ArrayList<Uri> processedUris = new ArrayList<>();
+            boolean allSuccess = true;
+            boolean hasVideo = false;
+            boolean hasImage = false;
 
-                // Process using the "ForSharing" method which saves to cache
-                Uri processedUri = metadataStripper.stripMetadataForSharing(uri, fileName, isVideo);
-                if (processedUri != null) {
+            try {
+                for (int i = 0; i < uris.size(); i++) {
+                    Uri uri = uris.get(i);
+                    final int currentIndex = i + 1;
+                    final int total = uris.size();
+                    
+                    runOnUiThread(() -> updateProgressMessage(getString(R.string.status_processing) + " (" + currentIndex + "/" + total + ")"));
+
+                    String mimeType = getContentResolver().getType(uri);
+                    boolean isVideo = mimeType != null && mimeType.startsWith("video/");
+                    if (isVideo) hasVideo = true;
+                    else hasImage = true;
+
+                    String fileName = mediaSelector.getFileName(uri);
+
+                    Uri processedUri = metadataStripper.stripMetadataForSharing(uri, fileName, isVideo);
+                    if (processedUri != null) {
+                        processedUris.add(processedUri);
+                        try {
+                            String lastSegment = processedUri.getLastPathSegment();
+                            if (lastSegment != null) {
+                                String resolvedFileName = lastSegment.contains("/")
+                                        ? lastSegment.substring(lastSegment.lastIndexOf('/') + 1)
+                                        : lastSegment;
+                                File cacheDir = new File(getCacheDir(), "processed");
+                                File candidate = new File(cacheDir, resolvedFileName);
+                                if (candidate.exists() && candidate.isFile()) {
+                                    processedFiles.add(candidate);
+                                    SentryManager.log("Resolved processed file from URI: " + resolvedFileName);
+                                }
+                            }
+                        } catch (Exception e) {
+                            SentryManager.log("Could not resolve processed file for cleanup: " + e.getMessage());
+                        }
+                    } else {
+                        allSuccess = false;
+                        break;
+                    }
+                }
+
+                if (allSuccess && !processedUris.isEmpty()) {
                     transaction.setStatus(SpanStatus.OK);
                 } else {
                     transaction.setStatus(SpanStatus.INTERNAL_ERROR);
                 }
                 transaction.finish();
 
+                final boolean finalHasVideo = hasVideo;
+                final boolean finalHasImage = hasImage;
+                final boolean finalAllSuccess = allSuccess;
+
                 runOnUiThread(() -> {
                     try {
-                        // Dismiss the progress dialog
                         dismissProgressDialog();
 
-                        if (processedUri != null) {
-                            // Find the processed file for later cleanup
-                            // Try to get the file path from the URI first, then fall back to finding most recent
-                            // Derive the file directly from the URI path segment; the
-                            // FileProvider URI encodes the filename set by stripMetadataForSharing
-                            // so there is no need to scan by timestamp.
-                            try {
-                                String lastSegment = processedUri.getLastPathSegment();
-                                if (lastSegment != null) {
-                                    // FileProvider encodes the path as "processed/<filename>"
-                                    String resolvedFileName = lastSegment.contains("/")
-                                            ? lastSegment.substring(lastSegment.lastIndexOf('/') + 1)
-                                            : lastSegment;
-                                    File cacheDir = new File(getCacheDir(), "processed");
-                                    File candidate = new File(cacheDir, resolvedFileName);
-                                    if (candidate.exists() && candidate.isFile()) {
-                                        processedFile = candidate;
-                                        SentryManager.log("Resolved processed file from URI: " + resolvedFileName);
-                                    } else {
-                                        SentryManager.log("Processed file not found at expected path: " + candidate);
-                                    }
-                                }
-                            } catch (Exception e) {
-                                SentryManager.log("Could not resolve processed file for cleanup: " + e.getMessage());
-                                SentryManager.recordException(e);
-                            }
-                            
-                            // Share the cleaned file
+                        if (finalAllSuccess && !processedUris.isEmpty()) {
                             SentryManager.log("Media processing completed successfully");
-                            shareCleanFile(isVideo, processedUri);
+                            if (processedUris.size() == 1) {
+                                shareCleanFile(finalHasVideo, processedUris.get(0));
+                            } else {
+                                shareCleanFiles(finalHasVideo, finalHasImage, processedUris);
+                            }
                         } else {
-                            // If processing failed, show an error
                             SentryManager.log("Media processing failed");
                             finishWithError("Processing failed");
                         }
                     } catch (Exception e) {
-                        // Handle any errors during completion
                         SentryManager.recordException(e);
                         finishWithError("Error in processing completion: " + e.getMessage());
                     }
                 });
             } catch (Exception e) {
-                // Log and handle any errors during processing
                 if (!transaction.isFinished()) {
                     transaction.setStatus(SpanStatus.INTERNAL_ERROR);
                     transaction.finish();
@@ -375,17 +277,11 @@ public class ShareHandlerActivity extends AppCompatActivity {
         }).start();
     }
 
-    /**
-     * Safely dismisses the progress dialog if it is showing.
-     *
-     * Handles any exceptions that might occur during dismissal.
-     */
     private void dismissProgressDialog() {
         if (progressDialog != null && progressDialog.isShowing()) {
             try {
                 progressDialog.dismiss();
             } catch (Exception e) {
-                // Log but don't crash if dialog dismissal fails
                 SentryManager.recordException(e);
             }
         }
@@ -393,19 +289,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     private static final int REQUEST_SHARE = 1001;
 
-    /**
-     * Creates and launches a share intent for the processed (clean) media file.
-     * Uses startActivityForResult so we only clean up after the chooser returns,
-     * not when it merely pauses this activity (which would delete the file before
-     * the receiving app has read it).
-     *
-     * @param isVideo Whether the processed file is a video (true) or image (false)
-     * @param cleanedFileUri The URI of the processed file to share
-     */
     private void shareCleanFile(boolean isVideo, Uri cleanedFileUri) {
         try {
-            SentryManager.setCustomKey("cleaned_uri", cleanedFileUri != null ? cleanedFileUri.toString() : "null");
-
             if (cleanedFileUri != null) {
                 String mimeType = isVideo ? "video/*" : "image/*";
 
@@ -414,26 +299,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 shareIntent.putExtra(Intent.EXTRA_STREAM, cleanedFileUri);
                 shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-                // Proactively grant read permission to every app that can handle this intent.
-                // This is required because some apps receive the URI through the chooser's
-                // indirection layer, which doesn't automatically forward FLAG_GRANT_READ_URI_PERMISSION.
-                for (android.content.pm.ResolveInfo resolveInfo :
-                        getPackageManager().queryIntentActivities(shareIntent, 0)) {
-                    String packageName = resolveInfo.activityInfo.packageName;
-                    grantUriPermission(packageName, cleanedFileUri,
-                            Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                }
-
                 Intent chooser = Intent.createChooser(shareIntent, getString(R.string.share_chooser_title));
-                // The chooser itself is a separate process; it also needs the flag so it
-                // can forward the URI to whichever app the user picks.
                 chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
                 sharingInitiated = true;
-                SentryManager.log("Launching share intent");
+                SentryManager.log("Launching single share intent");
                 startActivityForResult(chooser, REQUEST_SHARE);
             } else {
-                SentryManager.log("Cleaned file URI is null");
                 finishWithError("Failed to get cleaned file");
             }
         } catch (Exception e) {
@@ -441,79 +313,76 @@ public class ShareHandlerActivity extends AppCompatActivity {
             finishWithError("Error sharing clean file: " + e.getMessage());
         }
     }
-    
-    /**
-     * Called when the share chooser returns. This is the correct place to clean up
-     * the temporary file — it fires only after the chooser is fully dismissed, so the
-     * receiving app has already obtained its copy of the file via the FileProvider URI.
-     */
+
+    private void shareCleanFiles(boolean hasVideo, boolean hasImage, ArrayList<Uri> cleanedFileUris) {
+        try {
+            if (cleanedFileUris != null && !cleanedFileUris.isEmpty()) {
+                String mimeType = "*/*";
+                if (hasVideo && !hasImage) {
+                    mimeType = "video/*";
+                } else if (hasImage && !hasVideo) {
+                    mimeType = "image/*";
+                }
+
+                Intent shareIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+                shareIntent.setType(mimeType);
+                shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, cleanedFileUris);
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                Intent chooser = Intent.createChooser(shareIntent, getString(R.string.share_chooser_title));
+                chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                sharingInitiated = true;
+                SentryManager.log("Launching multiple share intent");
+                startActivityForResult(chooser, REQUEST_SHARE);
+            } else {
+                finishWithError("Failed to get cleaned files");
+            }
+        } catch (Exception e) {
+            SentryManager.recordException(e);
+            finishWithError("Error sharing clean files: " + e.getMessage());
+        }
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_SHARE) {
             SentryManager.log("Share chooser returned, cleaning up");
-            cleanupProcessedFile();
+            cleanupProcessedFiles();
             finish();
         }
     }
 
-
-    /**
-     * Deletes the temporary processed file from disk.
-     * This is called after sharing completes to avoid saving files to disk.
-     */
-    private void cleanupProcessedFile() {
-        if (processedFile != null && processedFile.exists()) {
-            try {
-                if (processedFile.delete()) {
-                    SentryManager.log("Deleted temporary processed file after sharing");
-                } else {
-                    SentryManager.log("Failed to delete temporary processed file");
-                    // Try to delete on exit as fallback
-                    processedFile.deleteOnExit();
+    private void cleanupProcessedFiles() {
+        for (File processedFile : processedFiles) {
+            if (processedFile != null && processedFile.exists()) {
+                try {
+                    if (processedFile.delete()) {
+                        SentryManager.log("Deleted temporary processed file after sharing");
+                    } else {
+                        SentryManager.log("Failed to delete temporary processed file");
+                        processedFile.deleteOnExit();
+                    }
+                } catch (Exception e) {
+                    SentryManager.log("Error deleting temporary file: " + e.getMessage());
                 }
-            } catch (Exception e) {
-                SentryManager.log("Error deleting temporary file: " + e.getMessage());
             }
         }
+        processedFiles.clear();
     }
 
-    /**
-     * Displays an error message to the user, logs it, and finishes the activity.
-     *
-     * This is the common error handling path for all failures.
-     *
-     * @param message The error message to show and log
-     */
     private void finishWithError(String message) {
-        // Log the error message
         SentryManager.log("Error: " + message);
-
-        // Show a toast with the error message
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-
-        // Dismiss any showing dialogs
         dismissProgressDialog();
-
-        // Finish this activity
         finish();
     }
 
-    /**
-     * Cleans up resources when the activity is destroyed.
-     *
-     * Ensures the progress dialog is dismissed to prevent window leaks,
-     * and deletes the temporary processed file if it still exists (fallback cleanup).
-     */
     @Override
     protected void onDestroy() {
-        // Make sure to dismiss the dialog to prevent window leaks
         dismissProgressDialog();
-        
-        // Clean up the temporary processed file if it still exists
-        // This is a fallback in case onResume() wasn't called for some reason
-        cleanupProcessedFile();
-        
+        cleanupProcessedFiles();
         super.onDestroy();
     }
 }
