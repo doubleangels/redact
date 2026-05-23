@@ -297,7 +297,6 @@ public class CleanFragment extends Fragment {
             viewModel.getProgressPercent().observe(getViewLifecycleOwner(), percent -> {
                 try {
                     progressBar.setProgress(percent);
-                    SentryManager.setCustomKey("progress_percent", percent);
                 } catch (Exception e) {
                     SentryManager.recordException(e);
                 }

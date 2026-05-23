@@ -203,6 +203,6 @@
     <string name="settings_notifications_convert_subtitle">在影片或圖片檔案轉換完成時通知我。</string>
     <string name="settings_section_privacy">隱私</string>
     <string name="settings_crash_reporting_label">改善 Redact</string>
-    <string name="settings_crash_reporting_subtitle">自動發送匿名的當機日誌以幫助我們更快修復問題。絕不會收集個人資料或媒體。</string>
+    <string name="settings_crash_reporting_subtitle">可選透過網際網路傳送匿名當機報告（Sentry）。您的相片與影片絕不會上傳—僅傳送技術診斷資訊。可隨時關閉。</string>
 </resources>
 

@@ -107,7 +107,7 @@
 # ---------------------------------------------------------------------------
 # Jetpack Media3 Transformer / Muxer — keep codec negotiation classes
 # ---------------------------------------------------------------------------
--keep class androidx.media3.** { *; }
+-keep,allowshrinking class androidx.media3.** { *; }
 -dontwarn androidx.media3.**
 
 # Android media classes used directly
@@ -174,12 +174,6 @@
 # ---------------------------------------------------------------------------
 -keep class org.apache.commons.imaging.** { *; }
 -dontwarn org.apache.commons.imaging.**
-
-# ---------------------------------------------------------------------------
-# FFmpegKit
-# ---------------------------------------------------------------------------
--keep class com.arthenica.ffmpegkit.** { *; }
--dontwarn com.arthenica.ffmpegkit.**
 
 # ---------------------------------------------------------------------------
 # Advanced Optimizations

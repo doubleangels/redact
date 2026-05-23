@@ -44,19 +44,11 @@ public final class FormatConverter {
                     if (pfd != null) {
                         androidx.exifinterface.media.ExifInterface newExif = new androidx.exifinterface.media.ExifInterface(pfd.getFileDescriptor());
                         
+                        // Copy non-location EXIF only; GPS tags are omitted for privacy.
                         String[] tags = {
                             androidx.exifinterface.media.ExifInterface.TAG_DATETIME,
                             androidx.exifinterface.media.ExifInterface.TAG_DATETIME_DIGITIZED,
                             androidx.exifinterface.media.ExifInterface.TAG_DATETIME_ORIGINAL,
-                            androidx.exifinterface.media.ExifInterface.TAG_GPS_LATITUDE,
-                            androidx.exifinterface.media.ExifInterface.TAG_GPS_LATITUDE_REF,
-                            androidx.exifinterface.media.ExifInterface.TAG_GPS_LONGITUDE,
-                            androidx.exifinterface.media.ExifInterface.TAG_GPS_LONGITUDE_REF,
-                            androidx.exifinterface.media.ExifInterface.TAG_GPS_ALTITUDE,
-                            androidx.exifinterface.media.ExifInterface.TAG_GPS_ALTITUDE_REF,
-                            androidx.exifinterface.media.ExifInterface.TAG_GPS_TIMESTAMP,
-                            androidx.exifinterface.media.ExifInterface.TAG_GPS_DATESTAMP,
-                            androidx.exifinterface.media.ExifInterface.TAG_GPS_PROCESSING_METHOD,
                             androidx.exifinterface.media.ExifInterface.TAG_MAKE,
                             androidx.exifinterface.media.ExifInterface.TAG_MODEL,
                             androidx.exifinterface.media.ExifInterface.TAG_FOCAL_LENGTH,

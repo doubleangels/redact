@@ -1,8 +1,10 @@
 package com.doubleangels.redact;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+import android.provider.OpenableColumns;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +29,11 @@ import io.sentry.ITransaction;
 import io.sentry.SpanStatus;
 
 public class ShareHandlerActivity extends AppCompatActivity {
+
+    /** Maximum items accepted from ACTION_SEND_MULTIPLE. */
+    private static final int MAX_SHARE_ITEMS = 20;
+    /** Per-stream size cap (~200 MB) to limit resource exhaustion from other apps. */
+    private static final long MAX_STREAM_BYTES = 200L * 1024L * 1024L;
 
     private MediaSelector mediaSelector;
     private MetadataStripper metadataStripper;
@@ -131,11 +138,15 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 receivedUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
             }
             if (receivedUri != null) {
+                if (!isUriWithinSizeLimit(receivedUri)) {
+                    finishWithError(getString(R.string.share_error_file_too_large));
+                    return;
+                }
                 List<Uri> uris = new ArrayList<>();
                 uris.add(receivedUri);
                 processMediaItems(uris);
             } else {
-                SentryManager.log("Received null image URI");
+                SentryManager.logEvent("share", "Received null image URI");
                 finishWithError("Failed to receive image");
             }
         } catch (Exception e) {
@@ -153,11 +164,15 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 receivedUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
             }
             if (receivedUri != null) {
+                if (!isUriWithinSizeLimit(receivedUri)) {
+                    finishWithError(getString(R.string.share_error_file_too_large));
+                    return;
+                }
                 List<Uri> uris = new ArrayList<>();
                 uris.add(receivedUri);
                 processMediaItems(uris);
             } else {
-                SentryManager.log("Received null video URI");
+                SentryManager.logEvent("share", "Received null video URI");
                 finishWithError("Failed to receive video");
             }
         } catch (Exception e) {
@@ -175,10 +190,24 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
             }
             if (uris != null && !uris.isEmpty()) {
-                SentryManager.setCustomKey("media_count", uris.size());
-                processMediaItems(uris);
+                if (uris.size() > MAX_SHARE_ITEMS) {
+                    finishWithError(getString(R.string.share_error_too_many_items, MAX_SHARE_ITEMS));
+                    return;
+                }
+                List<Uri> accepted = new ArrayList<>();
+                for (Uri uri : uris) {
+                    if (uri != null && isUriWithinSizeLimit(uri)) {
+                        accepted.add(uri);
+                    }
+                }
+                if (accepted.isEmpty()) {
+                    finishWithError(getString(R.string.share_error_file_too_large));
+                    return;
+                }
+                SentryManager.setCustomKey("media_count", accepted.size());
+                processMediaItems(accepted);
             } else {
-                SentryManager.log("Received empty media list");
+                SentryManager.logEvent("share", "Received empty media list");
                 finishWithError("Failed to receive media");
             }
         } catch (Exception e) {
@@ -223,7 +252,6 @@ public class ShareHandlerActivity extends AppCompatActivity {
                                 File candidate = new File(cacheDir, resolvedFileName);
                                 if (candidate.exists() && candidate.isFile()) {
                                     processedFiles.add(candidate);
-                                    SentryManager.log("Resolved processed file from URI: " + resolvedFileName);
                                 }
                             }
                         } catch (Exception e) {
@@ -372,8 +400,24 @@ public class ShareHandlerActivity extends AppCompatActivity {
         processedFiles.clear();
     }
 
+    private boolean isUriWithinSizeLimit(Uri uri) {
+        try (Cursor cursor = getContentResolver().query(
+                uri, new String[] {OpenableColumns.SIZE}, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int idx = cursor.getColumnIndex(OpenableColumns.SIZE);
+                if (idx >= 0 && !cursor.isNull(idx)) {
+                    long size = cursor.getLong(idx);
+                    return size <= 0 || size <= MAX_STREAM_BYTES;
+                }
+            }
+        } catch (Exception e) {
+            SentryManager.recordException(e);
+        }
+        return true;
+    }
+
     private void finishWithError(String message) {
-        SentryManager.log("Error: " + message);
+        SentryManager.logEvent("share", "Error");
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         dismissProgressDialog();
         finish();

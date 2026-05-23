@@ -203,6 +203,6 @@
     <string name="settings_notifications_convert_subtitle">वीडियो या चित्र रूपांतरण पूरा होने पर मुझे सूचित करें।</string>
     <string name="settings_section_privacy">गोपनीयता</string>
     <string name="settings_crash_reporting_label">Redact को बेहतर बनाएं</string>
-    <string name="settings_crash_reporting_subtitle">त्रुटियों को तेज़ी से सुधारने में हमारी मदद करने के लिए स्वचालित रूप से अनाम क्रैश लॉग भेजें। कोई व्यक्तिगत डेटा या मीडिया कभी एकत्र नहीं किया जाता है।</string>
+    <string name="settings_crash_reporting_subtitle">वैकल्पिक रूप से इंटरनेट पर अनाम क्रैश रिपोर्ट भेजता है (Sentry)। आपकी तस्वीरें और वीडियो कभी अपलोड नहीं होते—केवल तकनीकी निदान। कभी भी बंद कर सकते हैं।</string>
 </resources>
 

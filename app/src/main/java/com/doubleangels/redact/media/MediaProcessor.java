@@ -110,6 +110,7 @@ public class MediaProcessor {
                                     index + 1,
                                     totalItems,
                                     item.fileName());
+                    ProgressUpdateThrottler progressThrottler = new ProgressUpdateThrottler();
 
                     try {
                         metadataStripper.setProgressCallback(
@@ -119,14 +120,23 @@ public class MediaProcessor {
                                                     ? (itemIndex * 100 + percentOfCurrentItem) / totalItems
                                                     : 0;
                                     String combined = batchLine + "\n" + message;
-                                    activity.runOnUiThread(
-                                            () -> callback.onProgress(overall, combined));
+                                    progressThrottler.maybeRun(
+                                            () ->
+                                                    activity.runOnUiThread(
+                                                            () ->
+                                                                    callback.onProgress(
+                                                                            overall, combined)));
                                 });
 
-                        activity.runOnUiThread(
-                                () -> callback.onProgress(
-                                        totalItems > 0 ? (itemIndex * 100) / totalItems : 0,
-                                        batchLine));
+                        progressThrottler.forceRun(
+                                () ->
+                                        activity.runOnUiThread(
+                                                () ->
+                                                        callback.onProgress(
+                                                                totalItems > 0
+                                                                        ? (itemIndex * 100) / totalItems
+                                                                        : 0,
+                                                                batchLine)));
 
                         Uri processedUri;
                         if (item.isVideo()) {
@@ -143,7 +153,6 @@ public class MediaProcessor {
                             span.setStatus(SpanStatus.OK);
                         } else {
                             Log.e(TAG, "Failed to process item: " + item.fileName());
-                            SentryManager.log("Failed to process item: " + item.fileName());
                             span.setStatus(SpanStatus.INTERNAL_ERROR);
                         }
                     } catch (Exception e) {

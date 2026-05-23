@@ -203,6 +203,6 @@
     <string name="settings_notifications_convert_subtitle">Notificar-me quando a conversão do arquivo de vídeo ou imagem estiver concluída.</string>
     <string name="settings_section_privacy">Privacidade</string>
     <string name="settings_crash_reporting_label">Melhorar o Redact</string>
-    <string name="settings_crash_reporting_subtitle">Envie automaticamente relatórios anônimos de erro para nos ajudar a consertar falhas mais rápido. Nenhum dado pessoal ou mídia é coletado.</string>
+    <string name="settings_crash_reporting_subtitle">Envia opcionalmente relatorios de falhas anonimos pela Internet (Sentry). Suas fotos e videos nunca sao enviados—apenas diagnosticos tecnicos. Pode desativar a qualquer momento.</string>
 </resources>
 

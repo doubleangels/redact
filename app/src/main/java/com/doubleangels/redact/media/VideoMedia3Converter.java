@@ -189,7 +189,7 @@ public final class VideoMedia3Converter {
                             progressListener.onProgress(holder.progress);
                         }
                     }
-                    mainHandler.postDelayed(pollRunnable[0], 100);
+                    mainHandler.postDelayed(pollRunnable[0], 300);
                 };
 
         mainHandler.post(

@@ -69,9 +69,10 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
     public void onBindViewHolder(@NonNull MediaViewHolder holder, int position) {
         MediaItem item = mediaItems.get(position);
 
-        // Load thumbnail with Glide (activity-scoped for correct request lifecycle)
-        Glide.with(activity)
+        int thumbPx = thumbnailSizePx(holder.thumbnail);
+        Glide.with(holder.thumbnail)
                 .load(item.uri())
+                .override(thumbPx, thumbPx)
                 .placeholder(R.drawable.placeholder_image)
                 .error(R.drawable.error_image)
                 .centerCrop()
@@ -87,8 +88,22 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
      * @return The total number of media items
      */
     @Override
+    public void onViewRecycled(@NonNull MediaViewHolder holder) {
+        super.onViewRecycled(holder);
+        Glide.with(holder.thumbnail).clear(holder.thumbnail);
+    }
+
+    @Override
     public int getItemCount() {
         return mediaItems.size();
+    }
+
+    private int thumbnailSizePx(@NonNull ImageView target) {
+        int w = target.getWidth();
+        if (w > 0) {
+            return w;
+        }
+        return target.getResources().getDimensionPixelSize(R.dimen.media_thumbnail_px);
     }
 
     /**

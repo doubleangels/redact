@@ -55,12 +55,13 @@
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
-                <LinearLayout
-                    android:id="@+id/metadataItemsContainer"
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/metadataItemsRecycler"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    android:orientation="vertical" />
+                    android:nestedScrollingEnabled="false"
+                    android:overScrollMode="never" />
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/metadataFooter"

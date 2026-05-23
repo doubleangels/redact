@@ -114,7 +114,7 @@ Redact helps you protect your privacy in two simple ways:
    - Select Redact from the share menu
    - Get back a clean file ready to share further
 
-All processing happens locally on your device, with no internet connection required for core functionality. None of your files are ever sent to external servers.
+All media processing happens locally on your device. Your photos and videos are never uploaded to external servers. Optional crash reporting (off by default) uses the internet to send anonymized diagnostics only—see [Analytics & crash reporting](#analytics-tracking) below.
 
 ---
 
@@ -136,7 +136,7 @@ No. Redact is designed to preserve the original quality of your media files whil
 
 ### <a id="internet-access"></a>Does Redact need internet access?
 
-No. The core functionality works completely offline. Your files never leave your device.
+No, for core features. Cleaning, scanning, and converting work fully offline, and your media files never leave your device. If you enable **Improve Redact** in Settings, the app sends anonymized crash diagnostics to [Sentry](https://sentry.io) over HTTPS. That setting is off by default.
 
 ### <a id="file-storage"></a>Where are processed files stored?
 
@@ -144,15 +144,16 @@ Cleaned files are saved to your device's storage in a designated folder for easy
 
 ### <a id="analytics-tracking"></a>Are there any analytics or trackers?
 
-This app uses [Google Firebase](https://firebase.google.com) and only collects anonymized data to help diagnose issues. The information I receive includes:
+Optional crash reporting uses [Sentry](https://sentry.io) (not Firebase). It is **disabled by default** and can be enabled under Settings → Improve Redact.
 
-- **Device model and type**
-- **Operating system version**
+When enabled, anonymized crash data may include:
+
+- **Device model and Android version**
 - **App version**
-- **Battery life, memory usage, and storage status when an error occurs**
-- **Connection type (Wi-Fi/cellular) and VPN status at the time of an error** (No IP addresses are collected or logged)
-- **Detailed crash reports and error logs**
-- **Performance metrics for specific code sections**
+- **Stack traces and error types** (URIs, filenames, GPS coordinates, and media content are scrubbed before upload)
+- **Limited diagnostic tags** (e.g. whether processing succeeded)
+
+Your photos and videos are **never** uploaded. No advertising or behavioral analytics are used.
 
 ---
 

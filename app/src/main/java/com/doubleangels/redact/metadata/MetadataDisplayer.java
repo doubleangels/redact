@@ -111,7 +111,6 @@ public class MetadataDisplayer {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
             try {
-                SentryManager.log("Processing media URI: " + mediaUri);
                 ContentResolver contentResolver = context.getContentResolver();
                 String mimeType = contentResolver.getType(mediaUri);
                 // Determine if the file is a video based on MIME type
@@ -165,7 +164,6 @@ public class MetadataDisplayer {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
             try {
-                SentryManager.log("Processing media URI: " + mediaUri);
                 ContentResolver contentResolver = context.getContentResolver();
                 String mimeType = contentResolver.getType(mediaUri);
                 // Determine if the file is a video based on MIME type
@@ -265,12 +263,10 @@ public class MetadataDisplayer {
 
                     if (nameIndex != -1) {
                         fileName = cursor.getString(nameIndex);
-                        SentryManager.setCustomKey("file_name", fileName != null ? fileName : "unknown");
                     }
 
                     if (sizeIndex != -1) {
                         fileSize = cursor.getLong(sizeIndex);
-                        SentryManager.setCustomKey("file_size_bytes", fileSize);
                     }
                 }
             }
@@ -326,12 +322,10 @@ public class MetadataDisplayer {
 
                     if (nameIndex != -1) {
                         fileName = cursor.getString(nameIndex);
-                        SentryManager.setCustomKey("file_name", fileName != null ? fileName : "unknown");
                     }
 
                     if (sizeIndex != -1) {
                         fileSize = cursor.getLong(sizeIndex);
-                        SentryManager.setCustomKey("file_size_bytes", fileSize);
                     }
                 }
             }
@@ -467,7 +461,6 @@ public class MetadataDisplayer {
                     metadata.append(context.getString(R.string.metadata_latitude, latLong[0])).append("\n");
                     metadata.append(context.getString(R.string.metadata_longitude, latLong[1])).append("\n");
                     SentryManager.setCustomKey("has_location_data", true);
-                    SentryManager.log("Location data found in image");
 
                     // Try to get human-readable address from coordinates using Geocoder
                     try {
@@ -487,12 +480,10 @@ public class MetadataDisplayer {
                                 }
 
                                 metadata.append(context.getString(R.string.metadata_address, addressText)).append("\n");
-                                SentryManager.log("Geocoding successful");
                             }
                         }
                     } catch (Exception e) {
                         metadata.append(context.getString(R.string.metadata_geocoding_failed, e.getMessage())).append("\n");
-                        SentryManager.log("Geocoding failed: " + e.getMessage());
                         SentryManager.recordException(e);
                     }
                 } else {
@@ -572,9 +563,14 @@ public class MetadataDisplayer {
             String gpsLongitude = null;
             String gpsLongitudeRef = null;
             
-            // Get all TAG constants from ExifInterface using reflection
+            // Get TAG constants from ExifInterface using reflection (capped for performance).
+            final int maxExifTags = 80;
+            int exifTagsAdded = 0;
             java.lang.reflect.Field[] fields = ExifInterface.class.getDeclaredFields();
             for (java.lang.reflect.Field field : fields) {
+                if (exifTagsAdded >= maxExifTags) {
+                    break;
+                }
                 if (field.getType() == String.class && field.getName().startsWith("TAG_")) {
                     try {
                         String tagName = (String) field.get(null);
@@ -614,6 +610,7 @@ public class MetadataDisplayer {
                                 // Add to single map (convert tag names to uppercase with underscores)
                                 String upperTagName = convertToSnakeCase(tagName).toUpperCase(java.util.Locale.ROOT);
                                 metadataMap.put(upperTagName, trimmedValue);
+                                exifTagsAdded++;
                             }
                         }
                     } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -836,7 +833,6 @@ public class MetadataDisplayer {
                         metadata.append(context.getString(R.string.metadata_latitude, lat)).append("\n");
                         metadata.append(context.getString(R.string.metadata_longitude, lon)).append("\n");
                         SentryManager.setCustomKey("has_location_data", true);
-                        SentryManager.log("Location data found in video");
 
                         try {
                             if (Geocoder.isPresent()) {
@@ -855,12 +851,10 @@ public class MetadataDisplayer {
                                     }
 
                                     metadata.append(context.getString(R.string.metadata_address, addressText)).append("\n");
-                                    SentryManager.log("Geocoding successful");
                                 }
                             }
                         } catch (Exception e) {
                             metadata.append(context.getString(R.string.metadata_geocoding_failed, e.getMessage())).append("\n");
-                            SentryManager.log("Geocoding failed: " + e.getMessage());
                             SentryManager.recordException(e);
                         }
                     } else {
@@ -1027,7 +1021,6 @@ public class MetadataDisplayer {
                         metadataMap.put("GPS_LATITUDE", String.format(Locale.getDefault(), "%.15f", latitude));
                         metadataMap.put("GPS_LONGITUDE", String.format(Locale.getDefault(), "%.15f", longitude));
                         
-                        SentryManager.log("Parsed video location: lat=" + latitude + ", lon=" + longitude);
                     } else {
                         // Fallback: try splitting by + or - in the middle
                         // Format might be different, try alternative parsing
@@ -1036,7 +1029,6 @@ public class MetadataDisplayer {
                         metadataMap.put("LOCATION", locationValue);
                     }
                 } catch (Exception e) {
-                    SentryManager.log("Failed to parse video location: " + e.getMessage());
                     SentryManager.recordException(e);
                     // Add raw value as fallback
                     metadataMap.put("LOCATION", locationValue);
@@ -1054,7 +1046,6 @@ public class MetadataDisplayer {
             if (hasLocationPermission) {
                 if (locationValue != null && !locationValue.isEmpty()) {
                     SentryManager.setCustomKey("has_location_data", true);
-                    SentryManager.log("Location data found in video");
                 } else {
                     SentryManager.setCustomKey("has_location_data", false);
                 }

@@ -203,6 +203,6 @@
     <string name="settings_notifications_convert_subtitle">M\'avertir lorsque la conversion du fichier vidéo ou image est terminée.</string>
     <string name="settings_section_privacy">Confidentialité</string>
     <string name="settings_crash_reporting_label">Améliorer Redact</string>
-    <string name="settings_crash_reporting_subtitle">Envoyer automatiquement des rapports d\'erreur anonymes pour nous aider à corriger les plantages plus rapidement. Aucune donnée personnelle n\'est collectée.</string>
+    <string name="settings_crash_reporting_subtitle">Envoie optionnellement des rapports de plantage anonymises via Internet (Sentry). Vos photos et videos ne sont jamais telechargees—seulement des diagnostics techniques. Desactivable a tout moment.</string>
 </resources>
 

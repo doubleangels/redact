@@ -39,7 +39,7 @@ public class SettingsFragment extends Fragment {
     public static final String KEY_CLEAN_NOTIFICATIONS_ENABLED = "clean_notifications_enabled";
     public static final String KEY_CONVERT_NOTIFICATIONS_ENABLED = "convert_notifications_enabled";
 
-    /** Privacy: whether crash/error reports are sent to Sentry. Default on. */
+    /** Privacy: whether crash/error reports are sent to Sentry. Default off. */
     public static final String KEY_CRASH_REPORTING_ENABLED = "crash_reporting_enabled";
 
     @Nullable
@@ -68,7 +68,7 @@ public class SettingsFragment extends Fragment {
             switchNotifications.setChecked(masterOn);
             switchClean.setChecked(prefs.getBoolean(KEY_CLEAN_NOTIFICATIONS_ENABLED, true));
             switchConvert.setChecked(prefs.getBoolean(KEY_CONVERT_NOTIFICATIONS_ENABLED, true));
-            switchCrashReporting.setChecked(prefs.getBoolean(KEY_CRASH_REPORTING_ENABLED, true));
+            switchCrashReporting.setChecked(prefs.getBoolean(KEY_CRASH_REPORTING_ENABLED, false));
             setSubRowsEnabled(rowClean, switchClean, rowConvert, switchConvert, masterOn);
 
             switchNotifications.setOnCheckedChangeListener((btn, isChecked) -> {

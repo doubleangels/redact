@@ -506,7 +506,6 @@ public class MetadataStripper {
             if (tempFile != null && tempFile.exists()) {
                 // Use secure deletion for temp files
                 if (!secureDeleteFile(tempFile)) {
-                    SentryManager.log("Failed to securely delete temp file: " + tempFile.getAbsolutePath());
                     tempFile.deleteOnExit();
                 }
             }
@@ -709,7 +708,6 @@ public class MetadataStripper {
             if (tempFile != null && tempFile.exists()) {
                 // Use secure deletion for temp files
                 if (!secureDeleteFile(tempFile)) {
-                    SentryManager.log("Failed to securely delete temp file: " + tempFile.getAbsolutePath());
                     tempFile.deleteOnExit();
                 }
             }

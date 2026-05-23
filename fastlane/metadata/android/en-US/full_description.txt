@@ -23,11 +23,11 @@ Clean multiple media files simultaneously, saving you time while enhancing your 
 <li><b>Original Quality Preservation:</b><br>
 Remove all metadata without compressing or degrading your photos and videos - maintain full image and video quality. Essential codec parameters are preserved to ensure perfect playback.</li>
 
-<li><b>100% Local & Secure Processing:</b><br>
-All data cleaning happens directly on your device - your personal information never leaves your phone or connects to external servers. Files are securely deleted using multiple overwrite passes.</li>
+<li><b>100% Local Media Processing:</b><br>
+All cleaning, scanning, and conversion happens on your device—your photos and videos are never uploaded. Optional anonymized crash reporting (off by default) may use the internet for diagnostics only. Files are securely deleted using multiple overwrite passes.</li>
 
 <li><b>Ad-Free & Open-Source Privacy Tool:</b><br>
-Committed to transparency with no advertising, tracking, or data collection. Our code is fully open-source for community verification and contributions.</li>
+No advertising or behavioral tracking. Optional crash diagnostics via Sentry (disabled by default). Our code is fully open-source for community verification and contributions.</li>
 
 <li><b>Android Share Sheet Integration:</b><br>
 Seamlessly clean files from any app via Android's share menu and get back completely privacy-protected files ready to share. Temporary files are automatically cleaned up after sharing.</li>

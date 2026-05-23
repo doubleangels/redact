@@ -203,6 +203,6 @@
     <string name="settings_notifications_convert_subtitle">أعلمني عند اكتمال تحويل ملف الفيديو أو الصورة.</string>
     <string name="settings_section_privacy">الخصوصية</string>
     <string name="settings_crash_reporting_label">تحسين Redact</string>
-    <string name="settings_crash_reporting_subtitle">إرسال سجلات الأخطاء المجهولة تلقائيًا لمساعدتنا في إصلاح الأعطال بشكل أسرع. لا يتم جمع أي بيانات شخصية أو وسائط.</string>
+    <string name="settings_crash_reporting_subtitle">يرسل اختياريا تقارير أعطال مجهولة عبر الإنترنت (Sentry). لا يتم تحميل صورك أو مقاطع الفيديو—فقط بيانات تشخيص تقنية. يمكنك إيقافه في أي وقت.</string>
 </resources>
 

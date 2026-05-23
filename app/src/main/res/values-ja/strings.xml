@@ -203,6 +203,6 @@
     <string name="settings_notifications_convert_subtitle">動画または画像のファイル変換が完了したときに通知します。</string>
     <string name="settings_section_privacy">プライバシー</string>
     <string name="settings_crash_reporting_label">Redactの改善</string>
-    <string name="settings_crash_reporting_subtitle">クラッシュを迅速に修正するため、匿名の自動エラーログを送信します。個人データやメディアが収集されることはありません。</string>
+    <string name="settings_crash_reporting_subtitle">オプションで匿名のクラッシュレポートをインターネット経由で送信します（Sentry）。写真や動画はアップロードされず、技術的な診断情報のみです。いつでもオフにできます。</string>
 </resources>
 

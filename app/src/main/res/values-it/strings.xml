@@ -203,6 +203,6 @@
     <string name="settings_notifications_convert_subtitle">Avvisami al termine della conversione del file video o immagine.</string>
     <string name="settings_section_privacy">Privacy</string>
     <string name="settings_crash_reporting_label">Migliora Redact</string>
-    <string name="settings_crash_reporting_subtitle">Invia automaticamente i registri degli errori anonimi per aiutarci a risolvere i problemi più velocemente. Non vengono mai raccolti dati personali o file multimediali.</string>
+    <string name="settings_crash_reporting_subtitle">Invia facoltativamente report di crash anonimi via Internet (Sentry). Foto e video non vengono mai caricati—solo diagnostica tecnica. Disattivabile in qualsiasi momento.</string>
 </resources>
 

@@ -37,7 +37,7 @@
 
     <string name="settings_section_privacy">Privacy</string>
     <string name="settings_crash_reporting_label">Improve Redact</string>
-    <string name="settings_crash_reporting_subtitle">Automatically send anonymous error logs to help us fix crashes faster. No personal data or media is ever collected.</string>
+    <string name="settings_crash_reporting_subtitle">Optionally send anonymized crash reports over the internet (via Sentry). Your photos and videos are never uploaded—only technical diagnostics such as app version and stack traces. You can turn this off anytime.</string>
 
     <string name="settings_section_developer">Developer</string>
     <string name="settings_wormaceptor_button">Open WormaCeptor</string>
@@ -45,7 +45,7 @@
     <string name="settings_wormaceptor_unavailable">WormaCeptor is not available.</string>
 
     <!-- Convert tab -->
-    <string name="convert_subtitle">Images: JPEG, PNG, WebP, or HEIC (Android 14+) into Pictures/Redact. Videos: MP4, WebM, or MKV into Movies/Redact. The HEIC option is hidden on older devices.</string>
+    <string name="convert_subtitle">Images: JPEG, PNG, WebP, or HEIC (Android 14+) into Pictures/Redact. Videos: MP4, WebM, or MKV into Movies/Redact. GPS location is not copied to converted files. The HEIC option is hidden on older devices.</string>
     <string name="convert_output_format_images">Image format</string>
     <string name="convert_output_format_videos">Video codec</string>
     <string name="convert_output_format_mixed">Formats (image / video)</string>
@@ -115,6 +115,8 @@
     <string name="share_processing_title">Processing…</string>
     <string name="share_stripping_status">Stripping metadata…</string>
     <string name="share_chooser_title">Share clean media file via…</string>
+    <string name="share_error_file_too_large">File is too large to process (max 200 MB).</string>
+    <string name="share_error_too_many_items">Too many items (max %1$d at a time).</string>
     <string name="share_error_unsupported_media">Unsupported media type!</string>
     <string name="share_error_unsupported_action">Unsupported action!</string>
     <string name="share_error_receive_failed">Failed to receive media!</string>

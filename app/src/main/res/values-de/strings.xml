@@ -203,6 +203,6 @@
     <string name="settings_notifications_convert_subtitle">Benachrichtige mich, wenn die Video- oder Bildkonvertierung abgeschlossen ist.</string>
     <string name="settings_section_privacy">Datenschutz</string>
     <string name="settings_crash_reporting_label">Redact verbessern</string>
-    <string name="settings_crash_reporting_subtitle">Senden Sie automatisch anonyme Fehlerprotokolle, um Abstürze schneller zu beheben. Es werden niemals persönliche Daten oder Medien erfasst.</string>
+    <string name="settings_crash_reporting_subtitle">Sendet optional anonymisierte Absturzberichte ueber das Internet (Sentry). Fotos und Videos werden nie hochgeladen—nur technische Diagnosedaten. Jederzeit deaktivierbar.</string>
 </resources>
 

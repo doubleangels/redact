@@ -4,6 +4,8 @@ import android.content.Context;
 
 import com.doubleangels.redact.BuildConfig;
 
+import io.sentry.Breadcrumb;
+import io.sentry.SentryEvent;
 import io.sentry.android.core.SentryAndroid;
 
 /**
@@ -17,8 +19,11 @@ public final class SentryInitializer {
 
     public static void initialize(Context context) {
         new Thread(() -> SentryAndroid.init(context, options -> {
-            options.setDsn(
-                    "https://f92d27d08095710804ab4250a73b5ff8@o244019.ingest.us.sentry.io/4510514277580800");
+            String dsn = BuildConfig.SENTRY_DSN;
+            if (dsn == null || dsn.isEmpty()) {
+                return;
+            }
+            options.setDsn(dsn);
             options.setRelease(BuildConfig.VERSION_NAME);
             options.setEnvironment(BuildConfig.DEBUG ? "development" : "production");
             options.addInAppInclude("com.doubleangels.redact");
@@ -45,12 +50,21 @@ public final class SentryInitializer {
             // Sample only 5% of traces to minimize data sent to external servers.
             options.setTracesSampleRate(0.05);
 
-            // Drop Sentry's own HTTP client errors (environmental noise).
+            options.setBeforeBreadcrumb((breadcrumb, hint) -> {
+                SentryPrivacyScrubber.scrubBreadcrumb(breadcrumb);
+                return breadcrumb;
+            });
+
+            // Drop Sentry's own HTTP client errors; scrub remaining event data.
             options.setBeforeSend((event, hint) -> {
                 if (event.getThrowable() != null
                         && event.getThrowable().getClass().getSimpleName().equals("SentryHttpClientException")) {
                     return null;
                 }
+                if (!SentryManager.isEnabled()) {
+                    return null;
+                }
+                SentryPrivacyScrubber.scrubEvent(event);
                 return event;
             });
         })).start();

@@ -203,6 +203,6 @@
     <string name="settings_notifications_convert_subtitle">Уведомлять о завершении конвертации видео или изображений.</string>
     <string name="settings_section_privacy">Конфиденциальность</string>
     <string name="settings_crash_reporting_label">Улучшить Redact</string>
-    <string name="settings_crash_reporting_subtitle">Автоматически отправляйте анонимные отчеты об ошибках, чтобы помочь нам быстрее их исправлять. Личные данные или медиа не собираются.</string>
+    <string name="settings_crash_reporting_subtitle">По желанию отправляет анонимные отчеты о сбоях через интернет (Sentry). Фото и видео не загружаются—только техническая диагностика. Можно отключить в любой момент.</string>
 </resources>
 

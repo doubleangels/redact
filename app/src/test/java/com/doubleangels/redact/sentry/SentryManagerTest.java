@@ -28,6 +28,6 @@ public class SentryManagerTest {
         SentryManager.setCustomKey("key2", true);
         SentryManager.setCustomKey("key3", 5.0f);
         
-        SentryManager.log("Test breadcrumb");
+        SentryManager.logEvent("test", "Test breadcrumb");
     }
 }

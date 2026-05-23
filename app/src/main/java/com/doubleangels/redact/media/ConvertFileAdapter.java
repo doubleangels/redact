@@ -48,8 +48,10 @@ public final class ConvertFileAdapter extends RecyclerView.Adapter<ConvertFileAd
         MediaItem item = items.get(position);
         holder.text.setText(item.fileName());
 
-        Glide.with(activity)
+        int thumbPx = thumbnailSizePx(holder.thumbnail);
+        Glide.with(holder.thumbnail)
                 .load(item.uri())
+                .override(thumbPx, thumbPx)
                 .placeholder(R.drawable.placeholder_image)
                 .error(R.drawable.error_image)
                 .centerCrop()
@@ -59,8 +61,22 @@ public final class ConvertFileAdapter extends RecyclerView.Adapter<ConvertFileAd
     }
 
     @Override
+    public void onViewRecycled(@NonNull Holder holder) {
+        super.onViewRecycled(holder);
+        Glide.with(holder.thumbnail).clear(holder.thumbnail);
+    }
+
+    @Override
     public int getItemCount() {
         return items.size();
+    }
+
+    private int thumbnailSizePx(@NonNull ImageView target) {
+        int w = target.getWidth();
+        if (w > 0) {
+            return w;
+        }
+        return target.getResources().getDimensionPixelSize(R.dimen.media_thumbnail_px);
     }
 
     static final class Holder extends RecyclerView.ViewHolder {

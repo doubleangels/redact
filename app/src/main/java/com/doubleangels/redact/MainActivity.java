@@ -14,6 +14,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
@@ -27,7 +28,7 @@ import com.doubleangels.redact.sentry.SentryManager;
 
 /**
  * Single host activity: version line and bottom navigation stay fixed;
- * {@link CleanFragment}, {@link ScanFragment}, and {@link ConvertFragment} swap above.
+ * tab fragments are added on first visit to reduce cold-start cost.
  */
 public class MainActivity extends AppCompatActivity {
 
@@ -64,83 +65,33 @@ public class MainActivity extends AppCompatActivity {
             setupStatusBarColors();
             setupVersionNumber();
 
-            SentryManager.log("MainActivity created");
+            SentryManager.logEvent("lifecycle", "MainActivity created");
 
             if (savedInstanceState == null) {
-                ScanFragment scanFrag = new ScanFragment();
-                ConvertFragment convertFrag = new ConvertFragment();
-                SettingsFragment settingsFrag = new SettingsFragment();
                 getSupportFragmentManager().beginTransaction()
                         .add(R.id.fragment_container, new CleanFragment(), TAG_CLEAN)
-                        .add(R.id.fragment_container, scanFrag, TAG_SCAN)
-                        .add(R.id.fragment_container, convertFrag, TAG_CONVERT)
-                        .add(R.id.fragment_container, settingsFrag, TAG_SETTINGS)
-                        .hide(scanFrag)
-                        .hide(convertFrag)
-                        .hide(settingsFrag)
                         .commit();
-            } else {
-                int tab = savedInstanceState.getInt(KEY_SELECTED_TAB, R.id.navigation_clean);
-                Fragment c = getSupportFragmentManager().findFragmentByTag(TAG_CLEAN);
-                Fragment s = getSupportFragmentManager().findFragmentByTag(TAG_SCAN);
-                Fragment cv = getSupportFragmentManager().findFragmentByTag(TAG_CONVERT);
-                Fragment st = getSupportFragmentManager().findFragmentByTag(TAG_SETTINGS);
-                if (cv == null) {
-                    getSupportFragmentManager().beginTransaction()
-                            .add(R.id.fragment_container, new ConvertFragment(), TAG_CONVERT)
-                            .commit();
-                }
-                if (st == null) {
-                    getSupportFragmentManager().beginTransaction()
-                            .add(R.id.fragment_container, new SettingsFragment(), TAG_SETTINGS)
-                            .commit();
-                }
-                getSupportFragmentManager().executePendingTransactions();
-                c = getSupportFragmentManager().findFragmentByTag(TAG_CLEAN);
-                s = getSupportFragmentManager().findFragmentByTag(TAG_SCAN);
-                cv = getSupportFragmentManager().findFragmentByTag(TAG_CONVERT);
-                st = getSupportFragmentManager().findFragmentByTag(TAG_SETTINGS);
-                if (c != null && s != null && cv != null && st != null) {
-                    FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                    ft.hide(c).hide(s).hide(cv).hide(st);
-                    if (tab == R.id.navigation_scan) {
-                        ft.show(s);
-                    } else if (tab == R.id.navigation_convert) {
-                        ft.show(cv);
-                    } else if (tab == R.id.navigation_settings) {
-                        ft.show(st);
-                    } else {
-                        ft.show(c);
-                    }
-                    ft.commit();
-                }
             }
-            getSupportFragmentManager().executePendingTransactions();
 
             BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigation);
             bottomNavigationView.setOnItemSelectedListener(item -> {
                 try {
                     int itemId = item.getItemId();
-                    SentryManager.log("Bottom navigation item selected: " + itemId);
-                    Fragment clean = getSupportFragmentManager().findFragmentByTag(TAG_CLEAN);
-                    Fragment scan = getSupportFragmentManager().findFragmentByTag(TAG_SCAN);
-                    Fragment convert = getSupportFragmentManager().findFragmentByTag(TAG_CONVERT);
-                    Fragment settings = getSupportFragmentManager().findFragmentByTag(TAG_SETTINGS);
-                    if (clean == null || scan == null || convert == null || settings == null) {
+                    SentryManager.logEvent("navigation", "Tab selected");
+                    Fragment target = ensureFragmentForTab(itemId);
+                    if (target == null) {
                         return false;
                     }
                     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                    ft.hide(clean).hide(scan).hide(convert).hide(settings);
-                    if (itemId == R.id.navigation_clean) {
-                        ft.show(clean);
-                    } else if (itemId == R.id.navigation_scan) {
-                        ft.show(scan);
-                    } else if (itemId == R.id.navigation_convert) {
-                        ft.show(convert);
-                    } else if (itemId == R.id.navigation_settings) {
-                        ft.show(settings);
-                    } else {
-                        return false;
+                    for (String tag : new String[] {TAG_CLEAN, TAG_SCAN, TAG_CONVERT, TAG_SETTINGS}) {
+                        Fragment f = getSupportFragmentManager().findFragmentByTag(tag);
+                        if (f != null) {
+                            if (f == target) {
+                                ft.show(f);
+                            } else {
+                                ft.hide(f);
+                            }
+                        }
                     }
                     ft.commit();
                     return true;
@@ -150,17 +101,47 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             });
 
-            if (savedInstanceState == null) {
-                bottomNavigationView.setSelectedItemId(R.id.navigation_clean);
-            } else {
+            if (savedInstanceState != null) {
                 bottomNavigationView.setSelectedItemId(
                         savedInstanceState.getInt(KEY_SELECTED_TAB, R.id.navigation_clean));
+            } else {
+                bottomNavigationView.setSelectedItemId(R.id.navigation_clean);
             }
 
             SentryManager.setCustomKey("app_started", true);
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
+    }
+
+    @Nullable
+    private Fragment ensureFragmentForTab(int itemId) {
+        String tag;
+        Fragment newFragment;
+        if (itemId == R.id.navigation_scan) {
+            tag = TAG_SCAN;
+            newFragment = new ScanFragment();
+        } else if (itemId == R.id.navigation_convert) {
+            tag = TAG_CONVERT;
+            newFragment = new ConvertFragment();
+        } else if (itemId == R.id.navigation_settings) {
+            tag = TAG_SETTINGS;
+            newFragment = new SettingsFragment();
+        } else if (itemId == R.id.navigation_clean) {
+            tag = TAG_CLEAN;
+            newFragment = new CleanFragment();
+        } else {
+            return null;
+        }
+        Fragment existing = getSupportFragmentManager().findFragmentByTag(tag);
+        if (existing != null) {
+            return existing;
+        }
+        getSupportFragmentManager().beginTransaction()
+                .add(R.id.fragment_container, newFragment, tag)
+                .hide(newFragment)
+                .commitNow();
+        return getSupportFragmentManager().findFragmentByTag(tag);
     }
 
     /**
@@ -254,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
                     SentryManager.setCustomKey("theme_mode", "light");
                 }
             } else {
-                SentryManager.log("Insets controller is null");
+                SentryManager.logEvent("ui", "Insets controller is null");
             }
         } catch (Exception e) {
             SentryManager.recordException(e);
@@ -277,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         try {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-            SentryManager.log("Permission result received");
+            SentryManager.logEvent("permission", "Permission result received");
             SentryManager.setCustomKey("permission_request_code", requestCode);
 
             Fragment scan = getSupportFragmentManager().findFragmentByTag(TAG_SCAN);
@@ -306,7 +287,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         try {
             super.onResume();
-            SentryManager.log("MainActivity resumed");
+            SentryManager.logEvent("lifecycle", "MainActivity resumed");
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
@@ -316,7 +297,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         try {
             super.onPause();
-            SentryManager.log("MainActivity paused");
+            SentryManager.logEvent("lifecycle", "MainActivity paused");
         } catch (Exception e) {
             SentryManager.recordException(e);
         }

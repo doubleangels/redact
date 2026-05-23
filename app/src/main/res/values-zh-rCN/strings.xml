@@ -203,6 +203,6 @@
     <string name="settings_notifications_convert_subtitle">在视频或图像文件转换完成时通知我。</string>
     <string name="settings_section_privacy">隐私</string>
     <string name="settings_crash_reporting_label">改善 Redact</string>
-    <string name="settings_crash_reporting_subtitle">自动发送匿名的崩溃日志以帮助我们更快修复问题。永远不会收集甚至读取个人数据或媒体。</string>
+    <string name="settings_crash_reporting_subtitle">可选通过互联网发送匿名崩溃报告（Sentry）。您的照片和视频绝不会上传—仅发送技术诊断信息。可随时关闭。</string>
 </resources>
 

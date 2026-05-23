@@ -11,6 +11,9 @@ import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -22,6 +25,7 @@ import androidx.fragment.app.Fragment;
 
 import com.doubleangels.redact.metadata.MetadataDisplayer;
 import com.doubleangels.redact.permission.PermissionManager;
+import com.doubleangels.redact.ui.ScanMetadataAdapter;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.doubleangels.redact.sentry.SentryManager;
@@ -63,7 +67,8 @@ public class ScanFragment extends Fragment {
     private View progressBar;
     private MaterialButton selectMediaButton;
 
-    private LinearLayout metadataItemsContainer;
+    private RecyclerView metadataItemsRecycler;
+    private ScanMetadataAdapter scanMetadataAdapter;
     private TextView metadataFooter;
     private MaterialCardView metadataCard;
     private HorizontalScrollView scanActionCardsScroll;
@@ -121,7 +126,11 @@ public class ScanFragment extends Fragment {
         progressBar = view.findViewById(R.id.progressBar);
         selectMediaButton = view.findViewById(R.id.selectButton);
 
-        metadataItemsContainer = view.findViewById(R.id.metadataItemsContainer);
+        metadataItemsRecycler = view.findViewById(R.id.metadataItemsRecycler);
+        scanMetadataAdapter = new ScanMetadataAdapter();
+        metadataItemsRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
+        metadataItemsRecycler.setAdapter(scanMetadataAdapter);
+        metadataItemsRecycler.setNestedScrollingEnabled(false);
         metadataFooter = view.findViewById(R.id.metadataFooter);
         metadataCard = view.findViewById(R.id.metadataCard);
         scanActionCardsScroll = view.findViewById(R.id.scanActionCardsScroll);
@@ -273,10 +282,12 @@ public class ScanFragment extends Fragment {
                         showProgress(false);
                         showStatus(getString(R.string.status_extraction_fail));
                         clearMetadataUi();
-                        addMetadataRow(null, getString(R.string.scan_extraction_fail));
+                        List<ScanMetadataAdapter.Entry> errorRow = new ArrayList<>();
+                        errorRow.add(ScanMetadataAdapter.Entry.row(null, getString(R.string.scan_extraction_fail)));
+                        scanMetadataAdapter.setEntries(errorRow);
                         metadataCard.setVisibility(View.VISIBLE);
                         clearMapPreviewAction();
-                        SentryManager.log("Metadata extraction failed: " + error);
+                        SentryManager.logEvent("scan", "Metadata extraction failed");
                     });
                 }
             });
@@ -308,17 +319,17 @@ public class ScanFragment extends Fragment {
             }
         }
 
+        List<ScanMetadataAdapter.Entry> adapterEntries = new ArrayList<>();
         for (int i = 0; i < allRows.size(); i++) {
             if (i == firstLocationIndex && firstLocationIndex >= 0) {
-                View header = LayoutInflater.from(requireContext())
-                        .inflate(R.layout.item_scan_metadata_location_section_header, metadataItemsContainer, false);
-                metadataItemsContainer.addView(header);
+                adapterEntries.add(ScanMetadataAdapter.Entry.locationHeader());
             }
             Pair<String, String> row = allRows.get(i);
-            addMetadataRow(row.first, row.second);
+            adapterEntries.add(ScanMetadataAdapter.Entry.row(row.first, row.second));
         }
+        scanMetadataAdapter.setEntries(adapterEntries);
 
-        if (metadataItemsContainer.getChildCount() > 0) {
+        if (!adapterEntries.isEmpty()) {
             metadataCard.setVisibility(View.VISIBLE);
         } else {
             metadataCard.setVisibility(View.GONE);
@@ -329,7 +340,7 @@ public class ScanFragment extends Fragment {
     }
 
     private void clearMetadataUi() {
-        metadataItemsContainer.removeAllViews();
+        scanMetadataAdapter.clear();
         metadataFooter.setVisibility(View.GONE);
         metadataFooter.setText("");
         clearScanActionCards();
@@ -450,20 +461,6 @@ public class ScanFragment extends Fragment {
             }
         }
         return rows;
-    }
-
-    private void addMetadataRow(@Nullable String key, String value) {
-        View row = LayoutInflater.from(requireContext())
-                .inflate(R.layout.item_scan_metadata_row, metadataItemsContainer, false);
-        TextView keyView = row.findViewById(R.id.metadataFieldKey);
-        TextView valueView = row.findViewById(R.id.metadataFieldValue);
-        if (key == null || key.isEmpty()) {
-            keyView.setVisibility(View.GONE);
-        } else {
-            keyView.setText(key);
-        }
-        valueView.setText(value);
-        metadataItemsContainer.addView(row);
     }
 
     @Nullable
