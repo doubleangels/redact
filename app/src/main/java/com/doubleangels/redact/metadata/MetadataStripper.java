@@ -20,6 +20,7 @@ import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
 
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.VideoMedia3Converter;
 import com.doubleangels.redact.sentry.SentryManager;
 
@@ -346,15 +347,16 @@ public class MetadataStripper {
                 throw new IOException("File too large to process: " + fileSize / (1024 * 1024) + "MB");
             }
 
-            // Determine file extension from original filename or use default
-            String extension = getFileExtension(originalFilename, ".jpg");
+            FormatConverter.ImageFormatSpec outputFormat = resolveImageOutputFormat(sourceUri, originalFilename);
+            String extension = outputFormat.extension;
 
             // Generate unique filename for the processed file
             String newFilename = generateShortRandomName() + extension;
             updateProgress(1, 5, "Reading image...");
 
             // Create temporary file to hold the image during processing
-            tempFile = new File(context.getExternalCacheDir(), "temp_" + System.currentTimeMillis() + ".jpg");
+            tempFile = new File(
+                    context.getExternalCacheDir(), "temp_" + System.currentTimeMillis() + extension);
 
             // Copy source image to temporary file
             try (InputStream in = contentResolver.openInputStream(sourceUri);
@@ -386,7 +388,7 @@ public class MetadataStripper {
             // Prepare MediaStore entry for the new image
             ContentValues values = new ContentValues();
             values.put(MediaStore.Images.Media.DISPLAY_NAME, newFilename);
-            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+            values.put(MediaStore.Images.Media.MIME_TYPE, outputFormat.mimeType);
             values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Redact");
 
             // Create the new entry in MediaStore
@@ -417,7 +419,6 @@ public class MetadataStripper {
             }
 
             if (!usedLossless) {
-                // Determine appropriate sample size for memory-efficient loading
                 BitmapFactory.Options optionsJustBounds = new BitmapFactory.Options();
                 optionsJustBounds.inJustDecodeBounds = true;
                 BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsJustBounds);
@@ -431,22 +432,19 @@ public class MetadataStripper {
                     throw new IOException("Failed to decode bitmap");
                 }
 
-                // Save bitmap without metadata
                 try (OutputStream os = contentResolver.openOutputStream(newUri)) {
                     if (os == null) {
                         throw new IOException("Failed to open output stream for new image");
                     }
-
-                    if (!originalBitmap.compress(Bitmap.CompressFormat.JPEG, 95, os)) {
+                    if (!FormatConverter.compressBitmapToStream(
+                            originalBitmap, outputFormat.compressFormat, os)) {
                         throw new IOException("Failed to compress bitmap");
                     }
                     os.flush();
                 }
 
-                if (originalBitmap != null) {
-                    originalBitmap.recycle();
-                    originalBitmap = null;
-                }
+                originalBitmap.recycle();
+                originalBitmap = null;
                 System.gc();
             }
 
@@ -457,7 +455,8 @@ public class MetadataStripper {
             // Verify metadata removal (for MediaStore files, we need to read from URI)
             updateProgress(5, 5, "Verifying metadata removal...");
             try {
-                File tempVerifyFile = new File(context.getCacheDir(), "verify_" + System.currentTimeMillis() + ".jpg");
+                File tempVerifyFile = new File(
+                        context.getCacheDir(), "verify_" + System.currentTimeMillis() + extension);
                 try (InputStream is = contentResolver.openInputStream(newUri);
                         FileOutputStream fos = new FileOutputStream(tempVerifyFile)) {
                     byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
@@ -549,15 +548,13 @@ public class MetadataStripper {
                 throw new IOException("File too large to process: " + fileSize / (1024 * 1024) + "MB");
             }
 
-            // Determine file extension from original filename or use default
-            String extension = getFileExtension(originalFilename, ".jpg");
+            FormatConverter.ImageFormatSpec outputFormat = resolveImageOutputFormat(sourceUri, originalFilename);
+            String extension = outputFormat.extension;
 
             updateProgress(1, 4, "Reading image...");
 
-            // Create temporary file to hold the image during processing
             tempFile = new File(context.getCacheDir(), "temp_" + System.currentTimeMillis() + extension);
 
-            // Copy source image to temporary file
             try (InputStream in = contentResolver.openInputStream(sourceUri);
                     FileOutputStream out = new FileOutputStream(tempFile)) {
 
@@ -572,33 +569,9 @@ public class MetadataStripper {
                 }
             }
 
-            // Extract essential EXIF data to preserve (like orientation)
             updateProgress(2, 4, "Reading essential metadata...");
             readEssentialExifData(tempFile);
 
-            // Check image dimensions without loading the full bitmap
-            BitmapFactory.Options optionsJustBounds = new BitmapFactory.Options();
-            optionsJustBounds.inJustDecodeBounds = true;
-            BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsJustBounds);
-
-            // Calculate appropriate sample size for memory-efficient loading
-            int sampleSize = calculateInSampleSize(optionsJustBounds);
-            SentryManager.setCustomKey("bitmap_sample_size", sampleSize);
-            SentryManager.setCustomKey("original_width", optionsJustBounds.outWidth);
-            SentryManager.setCustomKey("original_height", optionsJustBounds.outHeight);
-
-            // Load bitmap with calculated sample size
-            BitmapFactory.Options optionsLoad = new BitmapFactory.Options();
-            optionsLoad.inSampleSize = sampleSize;
-            originalBitmap = BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsLoad);
-
-            if (originalBitmap == null) {
-                throw new IOException("Failed to decode bitmap");
-            }
-
-            updateProgress(3, 5, "Removing metadata...");
-
-            // Create directory for processed files if it doesn't exist
             File outputDir = new File(context.getCacheDir(), "processed");
             if (!outputDir.exists()) {
                 if (!outputDir.mkdirs()) {
@@ -606,8 +579,6 @@ public class MetadataStripper {
                 }
             }
 
-            // Generate unique filename for the processed file (same scheme as main cleaning
-            // process)
             String newFilename = generateShortRandomName() + extension;
             outputFile = new File(outputDir, newFilename);
 
@@ -619,31 +590,21 @@ public class MetadataStripper {
             }
 
             if (!usedLossless) {
-                try (OutputStream os = new java.io.FileOutputStream(outputFile)) {
-                    if (os != null) usedLossless = stripMetadataNativeExif(tempFile, os, extension);
+                try (OutputStream os = new FileOutputStream(outputFile)) {
+                    usedLossless = stripMetadataNativeExif(tempFile, os, extension);
                 }
             }
 
             if (!usedLossless) {
-                try (java.io.FileOutputStream fos = new java.io.FileOutputStream(outputFile)) {
-                    usedLossless = stripMetadataNativeExif(tempFile, fos, extension);
-                }
-            }
-
-            if (!usedLossless) {
-                // Check image dimensions without loading the full bitmap
-                optionsJustBounds = new BitmapFactory.Options();
+                BitmapFactory.Options optionsJustBounds = new BitmapFactory.Options();
                 optionsJustBounds.inJustDecodeBounds = true;
                 BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsJustBounds);
-
-                // Calculate appropriate sample size for memory-efficient loading
-                sampleSize = calculateInSampleSize(optionsJustBounds);
+                int sampleSize = calculateInSampleSize(optionsJustBounds);
                 SentryManager.setCustomKey("bitmap_sample_size", sampleSize);
                 SentryManager.setCustomKey("original_width", optionsJustBounds.outWidth);
                 SentryManager.setCustomKey("original_height", optionsJustBounds.outHeight);
 
-                // Load bitmap with calculated sample size
-                optionsLoad = new BitmapFactory.Options();
+                BitmapFactory.Options optionsLoad = new BitmapFactory.Options();
                 optionsLoad.inSampleSize = sampleSize;
                 originalBitmap = BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsLoad);
 
@@ -651,16 +612,15 @@ public class MetadataStripper {
                     throw new IOException("Failed to decode bitmap");
                 }
 
-                // Save bitmap to output file
                 try (FileOutputStream fos = new FileOutputStream(outputFile)) {
-                    if (!originalBitmap.compress(Bitmap.CompressFormat.JPEG, 95, fos)) {
+                    if (!FormatConverter.compressBitmapToStream(
+                            originalBitmap, outputFormat.compressFormat, fos)) {
                         throw new IOException("Failed to compress bitmap");
                     }
                     fos.flush();
                     fos.getFD().sync();
                 }
 
-                // Clean up bitmap to free memory
                 originalBitmap.recycle();
                 originalBitmap = null;
             }
@@ -1044,6 +1004,28 @@ public class MetadataStripper {
             extension = defaultExtension;
         }
         return extension;
+    }
+
+    @Nullable
+    private static String extensionFromFilename(@NonNull String originalFilename) {
+        int lastDotIndex = originalFilename.lastIndexOf(".");
+        if (lastDotIndex < 0 || lastDotIndex >= originalFilename.length() - 1) {
+            return null;
+        }
+        return originalFilename.substring(lastDotIndex).toLowerCase(Locale.US);
+    }
+
+    @NonNull
+    FormatConverter.ImageFormatSpec resolveImageOutputFormat(
+            @NonNull Uri sourceUri, @NonNull String originalFilename) throws IOException {
+        String extension = extensionFromFilename(originalFilename);
+        String mimeType = null;
+        try {
+            mimeType = contentResolver.getType(sourceUri);
+        } catch (Exception e) {
+            SentryManager.logEvent("metadata", "Could not read MIME type for source");
+        }
+        return FormatConverter.resolveImageFormat(extension, mimeType);
     }
 
     /**

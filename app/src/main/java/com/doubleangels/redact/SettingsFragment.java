@@ -1,20 +1,19 @@
 package com.doubleangels.redact;
 
-import android.content.ActivityNotFoundException;
-import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import android.os.Build;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 
 
 import com.doubleangels.redact.sentry.SentryManager;
@@ -31,6 +30,9 @@ public class SettingsFragment extends Fragment {
 
     /** SharedPreferences file name — must match the key used in LocalNotifications. */
     public static final String PREFS_NAME = "redact_prefs";
+
+    /** Avoid re-entrancy when reverting the master switch after a denied permission request. */
+    private boolean suppressNotificationToggleCallback;
 
     /** Master switch: when false, no completion notifications are posted. */
     public static final String KEY_NOTIFICATIONS_ENABLED = "notifications_enabled";
@@ -63,19 +65,31 @@ public class SettingsFragment extends Fragment {
             View rowClean = view.findViewById(R.id.rowCleanNotifications);
             View rowConvert = view.findViewById(R.id.rowConvertNotifications);
 
-            // Initialise state from prefs (default: all enabled).
-            boolean masterOn = prefs.getBoolean(KEY_NOTIFICATIONS_ENABLED, true);
+            // Initialise state from prefs (default: notifications off).
+            boolean masterOn = prefs.getBoolean(KEY_NOTIFICATIONS_ENABLED, false);
             switchNotifications.setChecked(masterOn);
-            switchClean.setChecked(prefs.getBoolean(KEY_CLEAN_NOTIFICATIONS_ENABLED, true));
-            switchConvert.setChecked(prefs.getBoolean(KEY_CONVERT_NOTIFICATIONS_ENABLED, true));
+            switchClean.setChecked(prefs.getBoolean(KEY_CLEAN_NOTIFICATIONS_ENABLED, false));
+            switchConvert.setChecked(prefs.getBoolean(KEY_CONVERT_NOTIFICATIONS_ENABLED, false));
             switchCrashReporting.setChecked(prefs.getBoolean(KEY_CRASH_REPORTING_ENABLED, false));
             setSubRowsEnabled(rowClean, switchClean, rowConvert, switchConvert, masterOn);
 
             switchNotifications.setOnCheckedChangeListener((btn, isChecked) -> {
+                if (suppressNotificationToggleCallback) {
+                    return;
+                }
                 try {
-                    prefs.edit().putBoolean(KEY_NOTIFICATIONS_ENABLED, isChecked).apply();
-                    setSubRowsEnabled(rowClean, switchClean, rowConvert, switchConvert, isChecked);
-                    SentryManager.setCustomKey("notifications_enabled", isChecked);
+                    if (!isChecked) {
+                        applyNotificationsEnabled(prefs, switchClean, switchConvert, rowClean, rowConvert, false);
+                        SentryManager.setCustomKey("notifications_enabled", false);
+                        return;
+                    }
+                    if (needsNotificationPermission() && !hasNotificationPermission()) {
+                        notificationPermissionLauncher.launch(
+                                android.Manifest.permission.POST_NOTIFICATIONS);
+                        return;
+                    }
+                    applyNotificationsEnabled(prefs, switchClean, switchConvert, rowClean, rowConvert, true);
+                    SentryManager.setCustomKey("notifications_enabled", true);
                 } catch (Exception e) {
                     SentryManager.recordException(e);
                 }
@@ -121,6 +135,38 @@ public class SettingsFragment extends Fragment {
         }
     }
 
+    private final ActivityResultLauncher<String> notificationPermissionLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.RequestPermission(),
+                    granted -> {
+                        MaterialSwitch master = requireView().findViewById(R.id.switchNotifications);
+                        MaterialSwitch clean = requireView().findViewById(R.id.switchCleanNotifications);
+                        MaterialSwitch convert = requireView().findViewById(R.id.switchConvertNotifications);
+                        View rowClean = requireView().findViewById(R.id.rowCleanNotifications);
+                        View rowConvert = requireView().findViewById(R.id.rowConvertNotifications);
+                        SharedPreferences prefs =
+                                requireContext().getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE);
+                        if (granted) {
+                            applyNotificationsEnabled(prefs, clean, convert, rowClean, rowConvert, true);
+                            SentryManager.setCustomKey("notifications_enabled", true);
+                            Toast.makeText(
+                                            requireContext(),
+                                            R.string.settings_notifications_permission_granted,
+                                            Toast.LENGTH_SHORT)
+                                    .show();
+                        } else {
+                            suppressNotificationToggleCallback = true;
+                            master.setChecked(false);
+                            suppressNotificationToggleCallback = false;
+                            applyNotificationsEnabled(prefs, clean, convert, rowClean, rowConvert, false);
+                            Toast.makeText(
+                                            requireContext(),
+                                            R.string.settings_notifications_permission_denied,
+                                            Toast.LENGTH_SHORT)
+                                    .show();
+                        }
+                    });
+
     private final ActivityResultLauncher<String[]> permissionLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestMultiplePermissions(),
             result -> {
@@ -139,7 +185,6 @@ public class SettingsFragment extends Fragment {
     private void requestAppPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             permissionLauncher.launch(new String[]{
-                    android.Manifest.permission.POST_NOTIFICATIONS,
                     android.Manifest.permission.READ_MEDIA_IMAGES,
                     android.Manifest.permission.READ_MEDIA_VIDEO,
                     android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED,
@@ -147,7 +192,6 @@ public class SettingsFragment extends Fragment {
             });
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissionLauncher.launch(new String[]{
-                    android.Manifest.permission.POST_NOTIFICATIONS,
                     android.Manifest.permission.READ_MEDIA_IMAGES,
                     android.Manifest.permission.READ_MEDIA_VIDEO,
                     android.Manifest.permission.ACCESS_MEDIA_LOCATION
@@ -160,8 +204,32 @@ public class SettingsFragment extends Fragment {
         }
     }
 
+    private static void applyNotificationsEnabled(
+            SharedPreferences prefs,
+            MaterialSwitch switchClean,
+            MaterialSwitch switchConvert,
+            View rowClean,
+            View rowConvert,
+            boolean enabled) {
+        prefs.edit().putBoolean(KEY_NOTIFICATIONS_ENABLED, enabled).apply();
+        setSubRowsEnabled(rowClean, switchClean, rowConvert, switchConvert, enabled);
+    }
+
+    private boolean needsNotificationPermission() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU;
+    }
+
+    private boolean hasNotificationPermission() {
+        if (!needsNotificationPermission()) {
+            return true;
+        }
+        return ContextCompat.checkSelfPermission(
+                        requireContext(), android.Manifest.permission.POST_NOTIFICATIONS)
+                == android.content.pm.PackageManager.PERMISSION_GRANTED;
+    }
+
     /** Dims and disables the per-feature rows while the master switch is off. */
-    private void setSubRowsEnabled(View rowClean, MaterialSwitch switchClean,
+    private static void setSubRowsEnabled(View rowClean, MaterialSwitch switchClean,
                                    View rowConvert, MaterialSwitch switchConvert,
                                    boolean enabled) {
         float alpha = enabled ? 1f : 0.38f;

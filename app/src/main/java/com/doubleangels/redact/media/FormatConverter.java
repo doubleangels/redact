@@ -84,8 +84,27 @@ public final class FormatConverter {
     /** Number of selectable output format options (chips). */
     public static final int FORMAT_OPTION_COUNT = 4;
 
+    /** {@link IOException#getMessage()} when HEIC clean/convert is requested below API 34. */
+    public static final String HEIC_REQUIRES_API_34 = "heic_requires_api_34";
+
     @NonNull
     public static Bitmap.CompressFormat formatAtIndex(int index) {
+        return formatAtIndexUnchecked(effectiveImageFormatIndex(index));
+    }
+
+    /**
+     * Maps format chip index to image output index. Index 3 (HEIC) is not allowed below API 34;
+     * JPEG (0) is used instead. Video index 3 (AV1) is unchanged — call only for image paths.
+     */
+    public static int effectiveImageFormatIndex(int formatIndex) {
+        if (formatIndex == 3 && !isHeicProcessingSupported()) {
+            return 0;
+        }
+        return formatIndex;
+    }
+
+    @NonNull
+    private static Bitmap.CompressFormat formatAtIndexUnchecked(int index) {
         switch (index) {
             case 1:
                 return Bitmap.CompressFormat.PNG;
@@ -115,8 +134,13 @@ public final class FormatConverter {
         }
     }
 
+    /** Whether HEIC images can be cleaned or converted on this device (API 34+). */
+    public static boolean isHeicProcessingSupported() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE;
+    }
+
     public static boolean isHeicOutputSupported() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        if (!isHeicProcessingSupported()) {
             return false;
         }
         try {
@@ -145,6 +169,125 @@ public final class FormatConverter {
         return 92;
     }
 
+    /** Resolved output format for metadata stripping (preserves source type when possible). */
+    public static final class ImageFormatSpec {
+        public final String extension;
+        public final String mimeType;
+        public final Bitmap.CompressFormat compressFormat;
+        /** False when HEIC bitmap encode is unavailable (API below 34). */
+        public final boolean bitmapFallbackSupported;
+
+        public ImageFormatSpec(
+                @NonNull String extension,
+                @NonNull String mimeType,
+                @NonNull Bitmap.CompressFormat compressFormat,
+                boolean bitmapFallbackSupported) {
+            this.extension = extension;
+            this.mimeType = mimeType;
+            this.compressFormat = compressFormat;
+            this.bitmapFallbackSupported = bitmapFallbackSupported;
+        }
+    }
+
+    /**
+     * Maps filename extension and/or MIME type to an output image format for cleaning.
+     * Prefers extension when recognized; falls back to MIME, then JPEG.
+     */
+    @NonNull
+    public static ImageFormatSpec resolveImageFormat(
+            @Nullable String extensionWithDot, @Nullable String mimeType) throws IOException {
+        if (isHeicSource(extensionWithDot, mimeType) && !isHeicProcessingSupported()) {
+            throw new IOException(HEIC_REQUIRES_API_34);
+        }
+        ImageFormatSpec fromExtension = specForExtension(extensionWithDot);
+        if (fromExtension != null) {
+            return fromExtension;
+        }
+        ImageFormatSpec fromMime = specForMime(mimeType);
+        if (fromMime != null) {
+            return fromMime;
+        }
+        return jpegSpec();
+    }
+
+    private static boolean isHeicSource(
+            @Nullable String extensionWithDot, @Nullable String mimeType) {
+        if (extensionWithDot != null) {
+            String ext = extensionWithDot.toLowerCase(java.util.Locale.US);
+            if (".heic".equals(ext) || ".heif".equals(ext)) {
+                return true;
+            }
+        }
+        if (mimeType != null) {
+            String mime = mimeType.toLowerCase(java.util.Locale.US);
+            return "image/heic".equals(mime) || "image/heif".equals(mime);
+        }
+        return false;
+    }
+
+    /**
+     * Writes a bitmap using the same encoding rules as {@link #convertImageToPictures}.
+     */
+    public static boolean compressBitmapToStream(
+            @NonNull Bitmap bitmap,
+            @NonNull Bitmap.CompressFormat format,
+            @NonNull OutputStream os) {
+        int q = qualityForFormat(format);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && isHeicFormat(format)) {
+            return bitmap.compress(format, q, os);
+        }
+        if (format == Bitmap.CompressFormat.WEBP && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, q, os);
+        }
+        return bitmap.compress(format, q, os);
+    }
+
+    @NonNull
+    private static ImageFormatSpec jpegSpec() {
+        return new ImageFormatSpec(".jpg", "image/jpeg", Bitmap.CompressFormat.JPEG, true);
+    }
+
+    @Nullable
+    private static ImageFormatSpec specForExtension(@Nullable String extensionWithDot) {
+        if (extensionWithDot == null || extensionWithDot.isEmpty()) {
+            return null;
+        }
+        String ext = extensionWithDot.toLowerCase(java.util.Locale.US);
+        return switch (ext) {
+            case ".jpg", ".jpeg" -> jpegSpec();
+            case ".png" -> new ImageFormatSpec(
+                    ".png", "image/png", Bitmap.CompressFormat.PNG, true);
+            case ".webp" -> new ImageFormatSpec(
+                    ".webp", "image/webp", Bitmap.CompressFormat.WEBP, true);
+            case ".heic", ".heif" -> heicSpec();
+            default -> null;
+        };
+    }
+
+    @Nullable
+    private static ImageFormatSpec specForMime(@Nullable String mimeType) {
+        if (mimeType == null || mimeType.isEmpty()) {
+            return null;
+        }
+        String mime = mimeType.toLowerCase(java.util.Locale.US);
+        return switch (mime) {
+            case "image/jpeg", "image/jpg" -> jpegSpec();
+            case "image/png" -> new ImageFormatSpec(
+                    ".png", "image/png", Bitmap.CompressFormat.PNG, true);
+            case "image/webp" -> new ImageFormatSpec(
+                    ".webp", "image/webp", Bitmap.CompressFormat.WEBP, true);
+            case "image/heic", "image/heif" -> heicSpec();
+            default -> null;
+        };
+    }
+
+    @NonNull
+    private static ImageFormatSpec heicSpec() {
+        Bitmap.CompressFormat heic = heicCompressFormatOrJpeg();
+        boolean supported = isHeicOutputSupported() && isHeicFormat(heic);
+        return new ImageFormatSpec(".heic", "image/heic", heic, supported);
+    }
+
     /**
      * Decodes the image at {@code sourceUri}, re-encodes as {@code format}, and inserts into
      * the user's gallery. Caller must have read access to the source URI.
@@ -167,8 +310,8 @@ public final class FormatConverter {
             throw new IOException("video_not_supported");
         }
 
-        if (isHeicFormat(format) && Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            throw new IOException("heic_requires_api_34");
+        if (isHeicFormat(format) && !isHeicProcessingSupported()) {
+            format = Bitmap.CompressFormat.JPEG;
         }
 
         String mime = mimeForFormat(format);

@@ -281,13 +281,23 @@ public class ConvertFragment extends Fragment {
             return;
         }
         int formatIndex = getSelectedFormatIndex();
-        Bitmap.CompressFormat format = FormatConverter.formatAtIndex(formatIndex);
+        int imageFormatIndex = FormatConverter.effectiveImageFormatIndex(formatIndex);
+        Bitmap.CompressFormat imageFormat = FormatConverter.formatAtIndex(imageFormatIndex);
+        final boolean heicOutputFallback =
+                formatIndex == 3 && imageFormatIndex != formatIndex;
         convertButton.setEnabled(false);
         selectButton.setEnabled(false);
         showProgress(true);
         progressBar.setIndeterminate(false);
         progressBar.setMax(100);
         progressBar.setProgress(0);
+        if (heicOutputFallback) {
+            Toast.makeText(
+                            requireContext(),
+                            R.string.convert_heic_fallback_jpeg,
+                            Toast.LENGTH_LONG)
+                    .show();
+        }
 
         // Capture context now (on UI thread) so lambdas on background thread don't call
         // requireContext() after the fragment may have been detached.
@@ -373,7 +383,7 @@ public class ConvertFragment extends Fragment {
                                                         ctx, overallImage, detail);
                                             }
                                         });
-                        FormatConverter.convertImageToPictures(ctx, uri, format, name);
+                        FormatConverter.convertImageToPictures(ctx, uri, imageFormat, name);
                         }
                         ok++;
                         span.setStatus(SpanStatus.OK);

@@ -4,7 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.net.Uri;
+
+import com.doubleangels.redact.media.FormatConverter;
 
 import androidx.test.core.app.ApplicationProvider;
 
@@ -53,6 +56,15 @@ public class MetadataStripperTest {
                 }
             }
         }
+    }
+
+    @Test
+    public void resolveImageOutputFormat_usesFilenameExtension() throws Exception {
+        Uri uri = Uri.parse("content://media/external/images/1");
+        FormatConverter.ImageFormatSpec spec = stripper.resolveImageOutputFormat(uri, "vacation.PNG");
+        assertEquals(".png", spec.extension);
+        assertEquals("image/png", spec.mimeType);
+        assertEquals(Bitmap.CompressFormat.PNG, spec.compressFormat);
     }
 
     @Test

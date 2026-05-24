@@ -79,7 +79,7 @@ public final class LocalNotifications {
         SharedPreferences prefs = app.getSharedPreferences(
                 com.doubleangels.redact.SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE);
         return prefs.getBoolean(
-                com.doubleangels.redact.SettingsFragment.KEY_NOTIFICATIONS_ENABLED, true);
+                com.doubleangels.redact.SettingsFragment.KEY_NOTIFICATIONS_ENABLED, false);
     }
 
     /**
@@ -91,7 +91,7 @@ public final class LocalNotifications {
         SharedPreferences prefs = context.getApplicationContext().getSharedPreferences(
                 com.doubleangels.redact.SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE);
         return prefs.getBoolean(
-                com.doubleangels.redact.SettingsFragment.KEY_CLEAN_NOTIFICATIONS_ENABLED, true);
+                com.doubleangels.redact.SettingsFragment.KEY_CLEAN_NOTIFICATIONS_ENABLED, false);
     }
 
     /**
@@ -103,7 +103,7 @@ public final class LocalNotifications {
         SharedPreferences prefs = context.getApplicationContext().getSharedPreferences(
                 com.doubleangels.redact.SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE);
         return prefs.getBoolean(
-                com.doubleangels.redact.SettingsFragment.KEY_CONVERT_NOTIFICATIONS_ENABLED, true);
+                com.doubleangels.redact.SettingsFragment.KEY_CONVERT_NOTIFICATIONS_ENABLED, false);
     }
 
     /**

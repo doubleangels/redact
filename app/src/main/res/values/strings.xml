@@ -29,7 +29,9 @@
     <!-- Settings screen -->
     <string name="settings_section_notifications">Notifications</string>
     <string name="settings_notifications_label">All Notifications</string>
-    <string name="settings_notifications_subtitle">Allow Redact to send you push alerts when operations finish in the background.</string>
+    <string name="settings_notifications_subtitle">Allow Redact to send alerts when cleaning or conversion finishes. Off by default; Android may ask for permission when you turn this on.</string>
+    <string name="settings_notifications_permission_granted">Notifications enabled.</string>
+    <string name="settings_notifications_permission_denied">Notification permission is required to show alerts.</string>
     <string name="settings_notifications_clean_label">Metadata Cleaning</string>
     <string name="settings_notifications_clean_subtitle">Notify me when EXIF and metadata stripping completes.</string>
     <string name="settings_notifications_convert_label">Format Conversion</string>
@@ -37,7 +39,7 @@
 
     <string name="settings_section_privacy">Privacy</string>
     <string name="settings_crash_reporting_label">Improve Redact</string>
-    <string name="settings_crash_reporting_subtitle">Optionally send anonymized crash reports over the internet (via Sentry). Your photos and videos are never uploaded—only technical diagnostics such as app version and stack traces. You can turn this off anytime.</string>
+    <string name="settings_crash_reporting_subtitle">Optionally send anonymized crash reports over the internet (via Sentry). Your photos and videos are never uploaded - only technical diagnostics such as app version and stack traces. You can turn this off anytime.</string>
 
     <string name="settings_section_developer">Developer</string>
     <string name="settings_wormaceptor_button">Open WormaCeptor</string>
@@ -46,6 +48,7 @@
 
     <!-- Convert tab -->
     <string name="convert_subtitle">Images: JPEG, PNG, WebP, or HEIC (Android 14+) into Pictures/Redact. Videos: MP4, WebM, or MKV into Movies/Redact. GPS location is not copied to converted files. The HEIC option is hidden on older devices.</string>
+    <string name="convert_heic_fallback_jpeg">HEIC output requires Android 14+. Images will be saved as JPEG instead.</string>
     <string name="convert_output_format_images">Image format</string>
     <string name="convert_output_format_videos">Video codec</string>
     <string name="convert_output_format_mixed">Formats (image / video)</string>
@@ -92,6 +95,7 @@
     <string name="status_analyzing">Analyzing metadata…</string>
     <string name="status_select_item">Select an image or video to view metadata!</string>
     <string name="status_extraction_complete">Metadata extraction complete!</string>
+    <string name="status_heic_requires_api_34">HEIC/HEIF images require Android 14 or newer.</string>
     <string name="status_extraction_media_fail">Error processing media file!</string>
     <string name="status_extraction_fail">Error extracting metadata!</string>
     <string name="status_extracting_media">Extracting video metadata…</string>
