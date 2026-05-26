@@ -144,7 +144,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 }
                 List<Uri> uris = new ArrayList<>();
                 uris.add(receivedUri);
-                processMediaItems(uris);
+                maybeConfirmAndProcess(uris);
             } else {
                 SentryManager.logEvent("share", "Received null image URI");
                 finishWithError("Failed to receive image");
@@ -170,7 +170,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 }
                 List<Uri> uris = new ArrayList<>();
                 uris.add(receivedUri);
-                processMediaItems(uris);
+                maybeConfirmAndProcess(uris);
             } else {
                 SentryManager.logEvent("share", "Received null video URI");
                 finishWithError("Failed to receive video");
@@ -205,7 +205,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     return;
                 }
                 SentryManager.setCustomKey("media_count", accepted.size());
-                processMediaItems(accepted);
+                maybeConfirmAndProcess(accepted);
             } else {
                 SentryManager.logEvent("share", "Received empty media list");
                 finishWithError("Failed to receive media");
@@ -214,6 +214,26 @@ public class ShareHandlerActivity extends AppCompatActivity {
             SentryManager.recordException(e);
             finishWithError("Error handling multiple media: " + e.getMessage());
         }
+    }
+
+    private void maybeConfirmAndProcess(List<Uri> uris) {
+        if (AppPreferences.isShareConfirmBeforeStrip(this)) {
+            if (progressDialog != null && progressDialog.isShowing()) {
+                progressDialog.dismiss();
+            }
+            new MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.settings_share_confirm_dialog_title)
+                    .setMessage(R.string.settings_share_confirm_dialog_message)
+                    .setPositiveButton(R.string.settings_share_confirm_dialog_confirm, (d, w) -> {
+                        createProgressDialog();
+                        processMediaItems(uris);
+                    })
+                    .setNegativeButton(R.string.settings_share_confirm_dialog_cancel, (d, w) -> finish())
+                    .setOnCancelListener(d -> finish())
+                    .show();
+            return;
+        }
+        processMediaItems(uris);
     }
 
     private void processMediaItems(List<Uri> uris) {

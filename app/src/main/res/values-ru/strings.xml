@@ -27,7 +27,7 @@
 
     <!-- Convert tab -->
     <string name="convert_subtitle">Изображения: JPEG, PNG, WebP или HEIC (Android 14+) в Pictures/Redact. Видео: MP4, WebM или MKV в Movies/Redact. Опция HEIC скрыта на старых устройствах.</string>
-    <string name="convert_output_format_images">Формат изображения</string>
+    <string name="convert_output_format_images">Формат Изображения</string>
     <string name="convert_output_format_videos">Видеокодек</string>
     <string name="convert_output_format_mixed">Форматы (изображение / видео)</string>
     <string name="convert_format_mixed_pair">%1$s · %2$s</string>
@@ -39,7 +39,7 @@
     <string name="convert_format_vp9">WebM (VP9)</string>
     <string name="convert_format_heif">HEIC</string>
     <string name="convert_format_av1">MKV (AV1)</string>
-    <string name="convert_select_files">Выбрать</string>
+    <string name="convert_select_files">Выбрать Файлы</string>
     <string name="convert_run">Конвертировать</string>
     <string name="convert_status_hint">Выберите изображения или видео для конвертации.</string>
     <string name="convert_status_ready">Готово к выбору изображений/видео.</string>
@@ -189,7 +189,7 @@
     <string name="scan_metadata_subtitle">Обнаруженные поля из этого файла. Нажмите и удерживайте значения для копирования.</string>
     <string name="scan_open_in_maps">Открыть в Google Картах</string>
     <string name="scan_maps_unavailable">Приложение карт не найдено для открытия этого местоположения.</string>
-    <string name="scan_search_camera">Поиск камеры</string>
+    <string name="scan_search_camera">Поиск Камеры</string>
     <string name="scan_search_unavailable">Браузер для выполнения этого поиска не найден.</string>
 
     <!-- Settings screen -->
@@ -204,5 +204,55 @@
     <string name="settings_section_privacy">Конфиденциальность</string>
     <string name="settings_crash_reporting_label">Улучшить Redact</string>
     <string name="settings_crash_reporting_subtitle">По желанию отправляет анонимные отчеты о сбоях через интернет (Sentry). Фото и видео не загружаются—только техническая диагностика. Можно отключить в любой момент.</string>
+    <string name="settings_section_conversion">Параметры Конвертации По Умолчанию</string>
+    <string name="settings_conversion_subtitle">Применяются при выборе файлов на вкладке «Конвертировать».</string>
+    <string name="settings_default_image_format">Формат Изображения По Умолчанию</string>
+    <string name="settings_default_video_format">Видеокодек По Умолчанию</string>
+    <string name="settings_image_quality">Качество Изображения</string>
+    <string name="settings_quality_high">Высокое</string>
+    <string name="settings_quality_balanced">Сбалансированное</string>
+    <string name="settings_quality_smaller">Меньший Файл</string>
+    <string name="settings_quality_subtitle">Влияет на вывод JPEG, WebP и HEIC. PNG остается без потерь.</string>
+    <string name="settings_section_share">Цель Общего Доступа</string>
+    <string name="settings_share_confirm_label">Спрашивать Перед Удалением Метаданных</string>
+    <string name="settings_share_confirm_subtitle">При отправке в Redact показывать подтверждение перед удалением метаданных.</string>
+    <string name="settings_share_confirm_dialog_title">Удалить Метаданные?</string>
+    <string name="settings_share_confirm_dialog_message">Redact удалит EXIF и другие метаданные из общих файлов перед их передачей.</string>
+    <string name="settings_share_confirm_dialog_confirm">Удалить И Продолжить</string>
+    <string name="settings_share_confirm_dialog_cancel">Отмена</string>
+    <string name="settings_section_permissions">Разрешения</string>
+    <string name="settings_permissions_subtitle">Выдайте разрешения в системных настройках Android, если функция в них нуждается.</string>
+    <string name="settings_permissions_media">Доступ К Медиа</string>
+    <string name="settings_permissions_location">Местоположение Медиа</string>
+    <string name="settings_permissions_notifications">Уведомления</string>
+    <string name="settings_permission_granted">Предоставлено</string>
+    <string name="settings_permission_denied">Отклонено</string>
+    <string name="settings_permission_not_required">Не Требуется</string>
+    <string name="settings_open_system_settings">Открыть Системные Настройки</string>
+    <string name="settings_section_storage">Хранилище</string>
+    <string name="settings_storage_size">Временные файлы: %1$s</string>
+    <string name="settings_storage_subtitle">Кэш обработки при очистке или отправке файлов.</string>
+    <string name="settings_storage_clear">Очистить Временные Файлы</string>
+    <string name="settings_storage_clear_confirm_title">Очистить Временные Файлы?</string>
+    <string name="settings_storage_clear_confirm_message">Удаляет кэшированные копии недавней обработки. Файлы в галерее не затрагиваются.</string>
+    <string name="settings_storage_clear_success">Временные файлы очищены.</string>
+    <string name="settings_storage_clear_empty">Нет временных файлов для очистки.</string>
+    <string name="settings_section_about">О приложении</string>
+    <string name="settings_about_version">Версия %1$s</string>
+    <string name="settings_about_subtitle">Вся очистка, сканирование и конвертация выполняется на устройстве. Фото и видео никогда не загружаются.</string>
+    <string name="settings_about_github">Исходный Код На GitHub</string>
+    <string name="settings_about_privacy">Политика Конфиденциальности</string>
+    <string name="settings_about_report_issue">Сообщить О Проблеме</string>
+    <string name="settings_link_unavailable">Не найдено приложение для открытия этой ссылки.</string>
+    <string name="settings_progress_notifications_label">Показывать Прогресс В Области Уведомлений</string>
+    <string name="settings_progress_notifications_subtitle">Прогресс в реальном времени при конвертации или очистке. Уведомления о завершении без изменений.</string>
+    <string name="settings_crash_reporting_learn_more">Что Передаётся?</string>
+    <string name="settings_crash_reporting_detail_title">Подробности Отчётов О Сбоях</string>
+    <string name="settings_crash_reporting_detail_message">Когда включено «Улучшить Redact», анонимная диагностика может отправляться через Sentry:\n\n• Модель устройства и версия Android\n• Версия приложения\n• Трассировки стека и типы ошибок\n• Очищенные диагностические теги (напр., успешность обработки)\n\nФото и видео никогда не загружаются. URI, имена файлов и GPS-координаты удаляются перед отправкой.</string>
+    <string name="settings_crash_reporting_privacy_policy">Политика Конфиденциальности</string>
+    <string name="settings_crash_reporting_dismiss">Закрыть</string>
+    <string name="url_github">https://github.com/doubleangels/redact</string>
+    <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
+    <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
 </resources>
 

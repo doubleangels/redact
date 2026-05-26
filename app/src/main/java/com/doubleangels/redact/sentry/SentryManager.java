@@ -1,8 +1,9 @@
 package com.doubleangels.redact.sentry;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Log;
+
+import com.doubleangels.redact.AppPreferences;
 
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -104,10 +105,7 @@ public final class SentryManager {
         if (appContext == null) {
             return false;
         }
-        SharedPreferences prefs = appContext.getSharedPreferences(
-                com.doubleangels.redact.SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE);
-        return prefs.getBoolean(
-                com.doubleangels.redact.SettingsFragment.KEY_CRASH_REPORTING_ENABLED, false);
+        return AppPreferences.isCrashReportingEnabled(appContext);
     }
 
     public static boolean isIgnored(Throwable e) {

@@ -46,11 +46,69 @@
     <string name="settings_wormaceptor_subtitle">On-device debug tools (debug builds only).</string>
     <string name="settings_wormaceptor_unavailable">WormaCeptor is not available.</string>
 
+    <string name="settings_section_conversion">Conversion Defaults</string>
+    <string name="settings_conversion_subtitle">Applied when you select files on the Convert tab.</string>
+    <string name="settings_default_image_format">Default Image Format</string>
+    <string name="settings_default_video_format">Default Video Codec</string>
+    <string name="settings_image_quality">Image Quality</string>
+    <string name="settings_quality_high">High</string>
+    <string name="settings_quality_balanced">Balanced</string>
+    <string name="settings_quality_smaller">Smaller File</string>
+    <string name="settings_quality_subtitle">Affects JPEG, WebP, and HEIC output. PNG stays lossless.</string>
+
+    <string name="settings_section_share">Share Target</string>
+    <string name="settings_share_confirm_label">Ask Before Stripping Metadata</string>
+    <string name="settings_share_confirm_subtitle">When sharing into Redact, show a confirmation before metadata is removed.</string>
+    <string name="settings_share_confirm_dialog_title">Strip Metadata?</string>
+    <string name="settings_share_confirm_dialog_message">Redact will remove EXIF and other metadata from the shared file(s) before you share them onward.</string>
+    <string name="settings_share_confirm_dialog_confirm">Strip and Continue</string>
+    <string name="settings_share_confirm_dialog_cancel">Cancel</string>
+
+    <string name="settings_section_permissions">Permissions</string>
+    <string name="settings_permissions_subtitle">Required for Clean, Convert, and Scan. Tap Open System Settings to grant or change access.</string>
+    <string name="settings_permissions_media">Media Access</string>
+    <string name="settings_permissions_location">Media Location</string>
+    <string name="settings_permissions_notifications">Notifications</string>
+    <string name="settings_permission_granted">Granted</string>
+    <string name="settings_permission_denied">Denied</string>
+    <string name="settings_permission_not_required">Not Required</string>
+    <string name="settings_open_system_settings">Open System Settings</string>
+
+    <string name="settings_section_storage">Storage</string>
+    <string name="settings_storage_size">Temporary files: %1$s</string>
+    <string name="settings_storage_subtitle">Processing cache used while cleaning or sharing files.</string>
+    <string name="settings_storage_clear">Clear Temporary Files</string>
+    <string name="settings_storage_clear_confirm_title">Clear Temporary Files?</string>
+    <string name="settings_storage_clear_confirm_message">This removes cached copies from recent processing. Your gallery files are not affected.</string>
+    <string name="settings_storage_clear_success">Temporary files cleared.</string>
+    <string name="settings_storage_clear_empty">No temporary files to clear.</string>
+
+    <string name="settings_section_about">About</string>
+    <string name="settings_about_version">Version %1$s</string>
+    <string name="settings_about_subtitle">All cleaning, scanning, and conversion runs on your device. Photos and videos are never uploaded.</string>
+    <string name="settings_about_github">View Source on GitHub</string>
+    <string name="settings_about_privacy">Privacy Policy</string>
+    <string name="settings_about_report_issue">Report an Issue</string>
+    <string name="settings_link_unavailable">No app found to open this link.</string>
+
+    <string name="settings_progress_notifications_label">Show Progress in Notification Shade</string>
+    <string name="settings_progress_notifications_subtitle">Live progress while converting or cleaning. Completion alerts are unchanged.</string>
+
+    <string name="settings_crash_reporting_learn_more">What Is Shared?</string>
+    <string name="settings_crash_reporting_detail_title">Crash Reporting Details</string>
+    <string name="settings_crash_reporting_detail_message">When Improve Redact is on, anonymized diagnostics may be sent via Sentry:\n\n• Device model and Android version\n• App version\n• Stack traces and error types\n• Scrubbed diagnostic tags (e.g. whether processing succeeded)\n\nYour photos and videos are never uploaded. URIs, filenames, and GPS coordinates are removed before upload.</string>
+    <string name="settings_crash_reporting_privacy_policy">Privacy Policy</string>
+    <string name="settings_crash_reporting_dismiss">Close</string>
+
+    <string name="url_github">https://github.com/doubleangels/redact</string>
+    <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
+    <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
+
     <!-- Convert tab -->
     <string name="convert_subtitle">Images: JPEG, PNG, WebP, or HEIC (Android 14+) into Pictures/Redact. Videos: MP4, WebM, or MKV into Movies/Redact. GPS location is not copied to converted files. The HEIC option is hidden on older devices.</string>
     <string name="convert_heic_fallback_jpeg">HEIC output requires Android 14+. Images will be saved as JPEG instead.</string>
-    <string name="convert_output_format_images">Image format</string>
-    <string name="convert_output_format_videos">Video codec</string>
+    <string name="convert_output_format_images">Image Format</string>
+    <string name="convert_output_format_videos">Video Codec</string>
     <string name="convert_output_format_mixed">Formats (image / video)</string>
     <string name="convert_format_mixed_pair">%1$s · %2$s</string>
     <string name="convert_format_jpeg">JPEG</string>
@@ -61,7 +119,7 @@
     <string name="convert_format_vp9">WebM (VP9)</string>
     <string name="convert_format_heif">HEIC</string>
     <string name="convert_format_av1">MKV (AV1)</string>
-    <string name="convert_select_files">Select</string>
+    <string name="convert_select_files">Select Files</string>
     <string name="convert_run">Convert</string>
     <string name="convert_status_hint">Select images or videos to convert.</string>
     <string name="convert_status_ready">Ready to select images/videos.</string>
@@ -139,7 +197,7 @@
     <string name="scan_extraction_fail">Failed to extract metadata!</string>
     <string name="scan_open_in_maps">Open in Google Maps</string>
     <string name="scan_maps_unavailable">No maps app found to open this location.</string>
-    <string name="scan_search_camera">Search camera</string>
+    <string name="scan_search_camera">Search Camera</string>
     <string name="scan_search_unavailable">No browser found to run this search.</string>
 
     <!-- Metadata output strings -->

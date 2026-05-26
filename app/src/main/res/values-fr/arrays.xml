@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="settings_image_format_labels">
+        <item>@string/convert_format_jpeg</item>
+        <item>@string/convert_format_png</item>
+        <item>@string/convert_format_webp</item>
+        <item>@string/convert_format_heif</item>
+    </string-array>
+    <string-array name="settings_video_format_labels">
+        <item>@string/convert_format_h264</item>
+        <item>@string/convert_format_h265</item>
+        <item>@string/convert_format_vp9</item>
+        <item>@string/convert_format_av1</item>
+    </string-array>
+    <string-array name="settings_quality_labels">
+        <item>@string/settings_quality_high</item>
+        <item>@string/settings_quality_balanced</item>
+        <item>@string/settings_quality_smaller</item>
+    </string-array>
+</resources>

@@ -62,9 +62,6 @@ final class XmlLikeMetadataFormatter {
             switch (event) {
                 case XmlPullParser.START_DOCUMENT:
                     break;
-                case XmlPullParser.PROCESSING_INSTRUCTION:
-                    sb.append('\n').append(indent.repeat(depth)).append("<?").append(p.getText()).append("?>");
-                    break;
                 case XmlPullParser.START_TAG: {
                     sb.append('\n').append(indent.repeat(depth)).append('<');
                     String prefix = p.getPrefix();
@@ -75,15 +72,11 @@ final class XmlLikeMetadataFormatter {
                     for (int i = 0; i < p.getAttributeCount(); i++) {
                         sb.append(' ');
                         String name = p.getAttributeName(i);
-                        if (name != null && name.indexOf(':') >= 0) {
-                            sb.append(name);
-                        } else {
-                            String ap = p.getAttributePrefix(i);
-                            if (ap != null && !ap.isEmpty()) {
-                                sb.append(ap).append(':');
-                            }
-                            sb.append(name != null ? name : "");
+                        String ap = p.getAttributePrefix(i);
+                        if (ap != null && !ap.isEmpty()) {
+                            sb.append(ap).append(':');
                         }
+                        sb.append(name != null ? name : "");
                         sb.append("=\"").append(escapeAttr(p.getAttributeValue(i))).append('"');
                     }
                     if (p.isEmptyElementTag()) {

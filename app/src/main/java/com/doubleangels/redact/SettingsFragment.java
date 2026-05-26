@@ -1,11 +1,16 @@
 package com.doubleangels.redact;
 
-import android.content.SharedPreferences;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -15,34 +20,45 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-
+import com.doubleangels.redact.permission.PermissionStatusHelper;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.color.MaterialColors;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
- * Settings screen. Currently exposes notification toggles (master, Clean, Convert).
- * Preferences are stored in the app's default SharedPreferences under well-known keys
- * so they can be read from {@link com.doubleangels.redact.notifications.LocalNotifications}
- * and the convert/clean flows without coupling them to this fragment.
+ * Settings screen for notifications, conversion defaults, privacy, permissions, and about info.
  */
 public class SettingsFragment extends Fragment {
 
-    /** SharedPreferences file name — must match the key used in LocalNotifications. */
-    public static final String PREFS_NAME = "redact_prefs";
-
-    /** Avoid re-entrancy when reverting the master switch after a denied permission request. */
     private boolean suppressNotificationToggleCallback;
 
-    /** Master switch: when false, no completion notifications are posted. */
-    public static final String KEY_NOTIFICATIONS_ENABLED = "notifications_enabled";
+    private MaterialSwitch switchNotifications;
+    private MaterialSwitch switchClean;
+    private MaterialSwitch switchConvert;
+    private MaterialSwitch switchProgress;
+    private MaterialSwitch switchCrashReporting;
+    private MaterialSwitch switchShareConfirm;
+    private View rowClean;
+    private View rowConvert;
+    private View rowProgress;
+    private TextView textPermissionMediaStatus;
+    private TextView textPermissionNotificationsStatus;
+    private TextView textStorageSize;
+    private MaterialAutoCompleteTextView dropdownDefaultImageFormat;
+    private MaterialAutoCompleteTextView dropdownDefaultVideoFormat;
+    private MaterialAutoCompleteTextView dropdownImageQuality;
 
-    /** Per-feature switches (only checked when master switch is on). */
-    public static final String KEY_CLEAN_NOTIFICATIONS_ENABLED = "clean_notifications_enabled";
-    public static final String KEY_CONVERT_NOTIFICATIONS_ENABLED = "convert_notifications_enabled";
+    private String[] imageFormatLabels;
+    private String[] videoFormatLabels;
+    private String[] qualityLabels;
 
-    /** Privacy: whether crash/error reports are sent to Sentry. Default off. */
-    public static final String KEY_CRASH_REPORTING_ENABLED = "crash_reporting_enabled";
+    private final ExecutorService backgroundExecutor = Executors.newSingleThreadExecutor();
 
     @Nullable
     @Override
@@ -55,83 +71,262 @@ public class SettingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
-            SharedPreferences prefs = requireContext()
-                    .getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE);
+            bindViews(view);
+            imageFormatLabels = getResources().getStringArray(R.array.settings_image_format_labels);
+            videoFormatLabels = getResources().getStringArray(R.array.settings_video_format_labels);
+            qualityLabels = getResources().getStringArray(R.array.settings_quality_labels);
 
-            MaterialSwitch switchNotifications = view.findViewById(R.id.switchNotifications);
-            MaterialSwitch switchClean = view.findViewById(R.id.switchCleanNotifications);
-            MaterialSwitch switchConvert = view.findViewById(R.id.switchConvertNotifications);
-            MaterialSwitch switchCrashReporting = view.findViewById(R.id.switchCrashReporting);
-            View rowClean = view.findViewById(R.id.rowCleanNotifications);
-            View rowConvert = view.findViewById(R.id.rowConvertNotifications);
-
-            // Initialise state from prefs (default: notifications off).
-            boolean masterOn = prefs.getBoolean(KEY_NOTIFICATIONS_ENABLED, false);
-            switchNotifications.setChecked(masterOn);
-            switchClean.setChecked(prefs.getBoolean(KEY_CLEAN_NOTIFICATIONS_ENABLED, false));
-            switchConvert.setChecked(prefs.getBoolean(KEY_CONVERT_NOTIFICATIONS_ENABLED, false));
-            switchCrashReporting.setChecked(prefs.getBoolean(KEY_CRASH_REPORTING_ENABLED, false));
-            setSubRowsEnabled(rowClean, switchClean, rowConvert, switchConvert, masterOn);
-
-            switchNotifications.setOnCheckedChangeListener((btn, isChecked) -> {
-                if (suppressNotificationToggleCallback) {
-                    return;
-                }
-                try {
-                    if (!isChecked) {
-                        applyNotificationsEnabled(prefs, switchClean, switchConvert, rowClean, rowConvert, false);
-                        SentryManager.setCustomKey("notifications_enabled", false);
-                        return;
-                    }
-                    if (needsNotificationPermission() && !hasNotificationPermission()) {
-                        notificationPermissionLauncher.launch(
-                                android.Manifest.permission.POST_NOTIFICATIONS);
-                        return;
-                    }
-                    applyNotificationsEnabled(prefs, switchClean, switchConvert, rowClean, rowConvert, true);
-                    SentryManager.setCustomKey("notifications_enabled", true);
-                } catch (Exception e) {
-                    SentryManager.recordException(e);
-                }
-            });
-
-            switchClean.setOnCheckedChangeListener((btn, isChecked) -> {
-                try {
-                    prefs.edit().putBoolean(KEY_CLEAN_NOTIFICATIONS_ENABLED, isChecked).apply();
-                    SentryManager.setCustomKey("clean_notifications_enabled", isChecked);
-                } catch (Exception e) {
-                    SentryManager.recordException(e);
-                }
-            });
-
-            switchConvert.setOnCheckedChangeListener((btn, isChecked) -> {
-                try {
-                    prefs.edit().putBoolean(KEY_CONVERT_NOTIFICATIONS_ENABLED, isChecked).apply();
-                    SentryManager.setCustomKey("convert_notifications_enabled", isChecked);
-                } catch (Exception e) {
-                    SentryManager.recordException(e);
-                }
-            });
-
-            switchCrashReporting.setOnCheckedChangeListener((btn, isChecked) -> {
-                try {
-                    prefs.edit().putBoolean(KEY_CRASH_REPORTING_ENABLED, isChecked).apply();
-                    // Note: SentryManager.isEnabled() will pick up the change immediately
-                    // on the next call — no restart needed.
-                } catch (Exception e) {
-                    // Can't use SentryManager here if it's being disabled, log locally.
-                    android.util.Log.e("SettingsFragment", "Error saving crash reporting pref", e);
-                }
-            });
-
-
-            MaterialButton buttonRequestPermissions = view.findViewById(R.id.buttonRequestPermissions);
-            if (buttonRequestPermissions != null) {
-                buttonRequestPermissions.setOnClickListener(v -> requestAppPermissions());
-            }
-
+            bindPermissions(view);
+            bindConversionDefaults();
+            bindShareTarget();
+            bindNotifications();
+            bindStorage(view);
+            bindPrivacy(view);
+            bindAbout(view);
         } catch (Exception e) {
             SentryManager.recordException(e);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        refreshPermissionStatuses();
+        refreshStorageSize();
+    }
+
+    @Override
+    public void onDestroyView() {
+        backgroundExecutor.shutdownNow();
+        super.onDestroyView();
+    }
+
+    private void bindViews(@NonNull View view) {
+        switchNotifications = view.findViewById(R.id.switchNotifications);
+        switchClean = view.findViewById(R.id.switchCleanNotifications);
+        switchConvert = view.findViewById(R.id.switchConvertNotifications);
+        switchProgress = view.findViewById(R.id.switchProgressNotifications);
+        switchCrashReporting = view.findViewById(R.id.switchCrashReporting);
+        switchShareConfirm = view.findViewById(R.id.switchShareConfirm);
+        rowClean = view.findViewById(R.id.rowCleanNotifications);
+        rowConvert = view.findViewById(R.id.rowConvertNotifications);
+        rowProgress = view.findViewById(R.id.rowProgressNotifications);
+        textPermissionMediaStatus = view.findViewById(R.id.textPermissionMediaStatus);
+        textPermissionNotificationsStatus = view.findViewById(R.id.textPermissionNotificationsStatus);
+        textStorageSize = view.findViewById(R.id.textStorageSize);
+        dropdownDefaultImageFormat = view.findViewById(R.id.dropdownDefaultImageFormat);
+        dropdownDefaultVideoFormat = view.findViewById(R.id.dropdownDefaultVideoFormat);
+        dropdownImageQuality = view.findViewById(R.id.dropdownImageQuality);
+    }
+
+    private void bindNotifications() {
+        boolean masterOn = AppPreferences.areNotificationsEnabled(requireContext());
+        switchNotifications.setChecked(masterOn);
+        switchClean.setChecked(AppPreferences.areCleanNotificationsEnabled(requireContext()));
+        switchConvert.setChecked(AppPreferences.areConvertNotificationsEnabled(requireContext()));
+        switchProgress.setChecked(AppPreferences.areProgressNotificationsEnabled(requireContext()));
+        setNotificationSubRowsEnabled(masterOn);
+
+        switchNotifications.setOnCheckedChangeListener((btn, isChecked) -> {
+            if (suppressNotificationToggleCallback) {
+                return;
+            }
+            try {
+                if (!isChecked) {
+                    applyNotificationsEnabled(false);
+                    SentryManager.setCustomKey("notifications_enabled", false);
+                    return;
+                }
+                if (needsNotificationPermission() && !hasNotificationPermission()) {
+                    notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS);
+                    return;
+                }
+                applyNotificationsEnabled(true);
+                SentryManager.setCustomKey("notifications_enabled", true);
+            } catch (Exception e) {
+                SentryManager.recordException(e);
+            }
+        });
+
+        switchClean.setOnCheckedChangeListener((btn, isChecked) -> {
+            AppPreferences.setCleanNotificationsEnabled(requireContext(), isChecked);
+            SentryManager.setCustomKey("clean_notifications_enabled", isChecked);
+        });
+
+        switchConvert.setOnCheckedChangeListener((btn, isChecked) -> {
+            AppPreferences.setConvertNotificationsEnabled(requireContext(), isChecked);
+            SentryManager.setCustomKey("convert_notifications_enabled", isChecked);
+        });
+
+        switchProgress.setOnCheckedChangeListener((btn, isChecked) ->
+                AppPreferences.setProgressNotificationsEnabled(requireContext(), isChecked));
+    }
+
+    private void bindPrivacy(@NonNull View view) {
+        switchCrashReporting.setChecked(AppPreferences.isCrashReportingEnabled(requireContext()));
+        switchCrashReporting.setOnCheckedChangeListener((btn, isChecked) -> {
+            try {
+                AppPreferences.setCrashReportingEnabled(requireContext(), isChecked);
+            } catch (Exception e) {
+                android.util.Log.e("SettingsFragment", "Error saving crash reporting pref", e);
+            }
+        });
+
+        MaterialButton learnMore = view.findViewById(R.id.buttonCrashReportingLearnMore);
+        learnMore.setOnClickListener(v -> new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.settings_crash_reporting_detail_title)
+                .setMessage(R.string.settings_crash_reporting_detail_message)
+                .setPositiveButton(R.string.settings_crash_reporting_privacy_policy, (d, w) ->
+                        openUrl(getString(R.string.url_privacy_policy)))
+                .setNegativeButton(R.string.settings_crash_reporting_dismiss, null)
+                .show());
+    }
+
+    private void bindConversionDefaults() {
+        String[] imageLabels = imageFormatLabels;
+        int imageIndex = AppPreferences.getDefaultImageFormatIndex(requireContext());
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            imageLabels = new String[]{
+                    imageFormatLabels[0], imageFormatLabels[1], imageFormatLabels[2]};
+            imageIndex = Math.min(imageIndex, 2);
+        }
+        setupDropdown(dropdownDefaultImageFormat, imageLabels, imageIndex,
+                index -> AppPreferences.setDefaultImageFormatIndex(requireContext(), index));
+
+        setupDropdown(dropdownDefaultVideoFormat, videoFormatLabels,
+                AppPreferences.getDefaultVideoFormatIndex(requireContext()),
+                index -> AppPreferences.setDefaultVideoFormatIndex(requireContext(), index));
+
+        setupDropdown(dropdownImageQuality, qualityLabels,
+                AppPreferences.getImageQualityPreset(requireContext()),
+                index -> AppPreferences.setImageQualityPreset(requireContext(), index));
+    }
+
+    private void bindShareTarget() {
+        switchShareConfirm.setChecked(AppPreferences.isShareConfirmBeforeStrip(requireContext()));
+        switchShareConfirm.setOnCheckedChangeListener((btn, isChecked) ->
+                AppPreferences.setShareConfirmBeforeStrip(requireContext(), isChecked));
+    }
+
+    private void bindPermissions(@NonNull View view) {
+        MaterialButton openSettings = view.findViewById(R.id.buttonOpenSystemSettings);
+        openSettings.setOnClickListener(v -> {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.fromParts("package", requireContext().getPackageName(), null));
+            startActivity(intent);
+        });
+        refreshPermissionStatuses();
+    }
+
+    private void bindStorage(@NonNull View view) {
+        MaterialButton clearButton = view.findViewById(R.id.buttonClearTempFiles);
+        clearButton.setOnClickListener(v -> new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.settings_storage_clear_confirm_title)
+                .setMessage(R.string.settings_storage_clear_confirm_message)
+                .setPositiveButton(R.string.settings_storage_clear, (d, w) -> clearTempFiles())
+                .setNegativeButton(android.R.string.cancel, null)
+                .show());
+        refreshStorageSize();
+    }
+
+    private void bindAbout(@NonNull View view) {
+        TextView version = view.findViewById(R.id.textAboutVersion);
+        version.setText(getString(R.string.settings_about_version, BuildConfig.VERSION_NAME));
+
+        view.findViewById(R.id.rowAboutGithub).setOnClickListener(v ->
+                openUrl(getString(R.string.url_github)));
+        view.findViewById(R.id.rowAboutPrivacy).setOnClickListener(v ->
+                openUrl(getString(R.string.url_privacy_policy)));
+        view.findViewById(R.id.rowAboutReportIssue).setOnClickListener(v ->
+                openUrl(getString(R.string.url_report_issue)));
+    }
+
+    private void setupDropdown(@NonNull MaterialAutoCompleteTextView dropdown,
+                               @NonNull String[] labels,
+                               int selectedIndex,
+                               @NonNull IndexConsumer onSelected) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                requireContext(),
+                android.R.layout.simple_dropdown_item_1line,
+                labels);
+        dropdown.setAdapter(adapter);
+        int clamped = Math.min(selectedIndex, labels.length - 1);
+        dropdown.setText(labels[clamped], false);
+        dropdown.setOnItemClickListener((parent, view, position, id) -> onSelected.accept(position));
+    }
+
+    private void refreshPermissionStatuses() {
+        if (textPermissionMediaStatus == null) {
+            return;
+        }
+        applyPermissionStatus(
+                textPermissionMediaStatus,
+                PermissionStatusHelper.getMediaAccessStatus(requireContext()));
+        applyPermissionStatus(
+                textPermissionNotificationsStatus,
+                PermissionStatusHelper.getNotificationsStatus(requireContext()));
+    }
+
+    private void applyPermissionStatus(
+            @NonNull TextView statusView,
+            @NonNull PermissionStatusHelper.Status status) {
+        statusView.setText(getString(statusLabel(status)));
+        int color = switch (status) {
+            case GRANTED -> ContextCompat.getColor(requireContext(), R.color.accent);
+            case DENIED -> ContextCompat.getColor(requireContext(), R.color.permission_status_denied);
+            case NOT_REQUIRED -> MaterialColors.getColor(
+                    requireContext(),
+                    com.google.android.material.R.attr.colorOnSurfaceVariant,
+                    ContextCompat.getColor(requireContext(), R.color.black));
+        };
+        statusView.setTextColor(color);
+    }
+
+    private int statusLabel(@NonNull PermissionStatusHelper.Status status) {
+        return switch (status) {
+            case GRANTED -> R.string.settings_permission_granted;
+            case DENIED -> R.string.settings_permission_denied;
+            case NOT_REQUIRED -> R.string.settings_permission_not_required;
+        };
+    }
+
+    private void refreshStorageSize() {
+        if (textStorageSize == null) {
+            return;
+        }
+        backgroundExecutor.execute(() -> {
+            long bytes = CacheCleanup.getTempCacheSizeBytes(requireContext());
+            if (!isAdded()) {
+                return;
+            }
+            requireActivity().runOnUiThread(() -> textStorageSize.setText(
+                    getString(R.string.settings_storage_size, CacheCleanup.formatSize(bytes))));
+        });
+    }
+
+    private void clearTempFiles() {
+        backgroundExecutor.execute(() -> {
+            long before = CacheCleanup.getTempCacheSizeBytes(requireContext());
+            int deleted = CacheCleanup.clearAllTempFiles(requireContext());
+            if (!isAdded()) {
+                return;
+            }
+            requireActivity().runOnUiThread(() -> {
+                refreshStorageSize();
+                if (before == 0 || deleted == 0) {
+                    Toast.makeText(requireContext(), R.string.settings_storage_clear_empty, Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(requireContext(), R.string.settings_storage_clear_success, Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+    }
+
+    private void openUrl(@NonNull String url) {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(requireContext(), R.string.settings_link_unavailable, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -139,15 +334,8 @@ public class SettingsFragment extends Fragment {
             registerForActivityResult(
                     new ActivityResultContracts.RequestPermission(),
                     granted -> {
-                        MaterialSwitch master = requireView().findViewById(R.id.switchNotifications);
-                        MaterialSwitch clean = requireView().findViewById(R.id.switchCleanNotifications);
-                        MaterialSwitch convert = requireView().findViewById(R.id.switchConvertNotifications);
-                        View rowClean = requireView().findViewById(R.id.rowCleanNotifications);
-                        View rowConvert = requireView().findViewById(R.id.rowConvertNotifications);
-                        SharedPreferences prefs =
-                                requireContext().getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE);
                         if (granted) {
-                            applyNotificationsEnabled(prefs, clean, convert, rowClean, rowConvert, true);
+                            applyNotificationsEnabled(true);
                             SentryManager.setCustomKey("notifications_enabled", true);
                             Toast.makeText(
                                             requireContext(),
@@ -156,9 +344,9 @@ public class SettingsFragment extends Fragment {
                                     .show();
                         } else {
                             suppressNotificationToggleCallback = true;
-                            master.setChecked(false);
+                            switchNotifications.setChecked(false);
                             suppressNotificationToggleCallback = false;
-                            applyNotificationsEnabled(prefs, clean, convert, rowClean, rowConvert, false);
+                            applyNotificationsEnabled(false);
                             Toast.makeText(
                                             requireContext(),
                                             R.string.settings_notifications_permission_denied,
@@ -167,52 +355,19 @@ public class SettingsFragment extends Fragment {
                         }
                     });
 
-    private final ActivityResultLauncher<String[]> permissionLauncher = registerForActivityResult(
-            new ActivityResultContracts.RequestMultiplePermissions(),
-            result -> {
-                boolean allGranted = true;
-                for (Boolean granted : result.values()) {
-                    if (!granted) allGranted = false;
-                }
-                if (allGranted) {
-                    Toast.makeText(requireContext(), "Permissions granted.", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(requireContext(), "Some permissions were denied.", Toast.LENGTH_SHORT).show();
-                }
-            }
-    );
-
-    private void requestAppPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            permissionLauncher.launch(new String[]{
-                    android.Manifest.permission.READ_MEDIA_IMAGES,
-                    android.Manifest.permission.READ_MEDIA_VIDEO,
-                    android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED,
-                    android.Manifest.permission.ACCESS_MEDIA_LOCATION
-            });
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissionLauncher.launch(new String[]{
-                    android.Manifest.permission.READ_MEDIA_IMAGES,
-                    android.Manifest.permission.READ_MEDIA_VIDEO,
-                    android.Manifest.permission.ACCESS_MEDIA_LOCATION
-            });
-        } else {
-            permissionLauncher.launch(new String[]{
-                    android.Manifest.permission.READ_EXTERNAL_STORAGE,
-                    android.Manifest.permission.ACCESS_MEDIA_LOCATION
-            });
-        }
+    private void applyNotificationsEnabled(boolean enabled) {
+        AppPreferences.setNotificationsEnabled(requireContext(), enabled);
+        setNotificationSubRowsEnabled(enabled);
     }
 
-    private static void applyNotificationsEnabled(
-            SharedPreferences prefs,
-            MaterialSwitch switchClean,
-            MaterialSwitch switchConvert,
-            View rowClean,
-            View rowConvert,
-            boolean enabled) {
-        prefs.edit().putBoolean(KEY_NOTIFICATIONS_ENABLED, enabled).apply();
-        setSubRowsEnabled(rowClean, switchClean, rowConvert, switchConvert, enabled);
+    private void setNotificationSubRowsEnabled(boolean enabled) {
+        float alpha = enabled ? 1f : 0.38f;
+        rowClean.setAlpha(alpha);
+        rowConvert.setAlpha(alpha);
+        rowProgress.setAlpha(alpha);
+        switchClean.setEnabled(enabled);
+        switchConvert.setEnabled(enabled);
+        switchProgress.setEnabled(enabled);
     }
 
     private boolean needsNotificationPermission() {
@@ -228,14 +383,29 @@ public class SettingsFragment extends Fragment {
                 == android.content.pm.PackageManager.PERMISSION_GRANTED;
     }
 
-    /** Dims and disables the per-feature rows while the master switch is off. */
-    private static void setSubRowsEnabled(View rowClean, MaterialSwitch switchClean,
-                                   View rowConvert, MaterialSwitch switchConvert,
-                                   boolean enabled) {
-        float alpha = enabled ? 1f : 0.38f;
-        rowClean.setAlpha(alpha);
-        rowConvert.setAlpha(alpha);
-        switchClean.setEnabled(enabled);
-        switchConvert.setEnabled(enabled);
+  /** Applies saved default format index to Convert tab chips. */
+    public static int defaultFormatIndexForSelection(@NonNull android.content.Context context,
+                                                     int numImages, int numVideos) {
+        if (numVideos == 0) {
+            return AppPreferences.getDefaultImageFormatIndex(context);
+        }
+        if (numImages == 0) {
+            return AppPreferences.getDefaultVideoFormatIndex(context);
+        }
+        return AppPreferences.getDefaultImageFormatIndex(context);
+    }
+
+    public static int chipIdForFormatIndex(int index) {
+        return switch (index) {
+            case 1 -> R.id.chipFormatPng;
+            case 2 -> R.id.chipFormatWebp;
+            case 3 -> R.id.chipFormatHeif;
+            default -> R.id.chipFormatJpeg;
+        };
+    }
+
+    @FunctionalInterface
+    private interface IndexConsumer {
+        void accept(int index);
     }
 }

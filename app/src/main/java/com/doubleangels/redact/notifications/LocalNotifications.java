@@ -5,7 +5,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.SystemClock;
@@ -15,6 +14,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 
+import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.MainActivity;
 import com.doubleangels.redact.R;
 
@@ -28,6 +28,8 @@ import java.util.concurrent.atomic.AtomicLong;
 public final class LocalNotifications {
 
     public static final String CHANNEL_ID_TASKS = "tasks";
+
+    static Integer testSdkIntOverride;
 
     private static final int NOTIFICATION_ID_CONVERT = 7101;
     private static final int NOTIFICATION_ID_CLEAN = 7102;
@@ -46,7 +48,8 @@ public final class LocalNotifications {
      * {@link android.app.Application#onCreate()}.
      */
     public static void ensureChannels(@NonNull Context context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        int sdk = testSdkIntOverride != null ? testSdkIntOverride : Build.VERSION.SDK_INT;
+        if (sdk < Build.VERSION_CODES.O) {
             return;
         }
         NotificationChannel channel = new NotificationChannel(
@@ -75,11 +78,7 @@ public final class LocalNotifications {
         if (!NotificationManagerCompat.from(app).areNotificationsEnabled()) {
             return false;
         }
-        // Respect the in-app master toggle.
-        SharedPreferences prefs = app.getSharedPreferences(
-                com.doubleangels.redact.SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE);
-        return prefs.getBoolean(
-                com.doubleangels.redact.SettingsFragment.KEY_NOTIFICATIONS_ENABLED, false);
+        return AppPreferences.areNotificationsEnabled(app);
     }
 
     /**
@@ -88,10 +87,7 @@ public final class LocalNotifications {
     private static boolean canPostCleanNotifications(@NonNull Context context) {
         if (!canPostNotifications(context))
             return false;
-        SharedPreferences prefs = context.getApplicationContext().getSharedPreferences(
-                com.doubleangels.redact.SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE);
-        return prefs.getBoolean(
-                com.doubleangels.redact.SettingsFragment.KEY_CLEAN_NOTIFICATIONS_ENABLED, false);
+        return AppPreferences.areCleanNotificationsEnabled(context);
     }
 
     /**
@@ -100,10 +96,7 @@ public final class LocalNotifications {
     private static boolean canPostConvertNotifications(@NonNull Context context) {
         if (!canPostNotifications(context))
             return false;
-        SharedPreferences prefs = context.getApplicationContext().getSharedPreferences(
-                com.doubleangels.redact.SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE);
-        return prefs.getBoolean(
-                com.doubleangels.redact.SettingsFragment.KEY_CONVERT_NOTIFICATIONS_ENABLED, false);
+        return AppPreferences.areConvertNotificationsEnabled(context);
     }
 
     /**
@@ -114,6 +107,9 @@ public final class LocalNotifications {
     public static void updateConversionProgress(
             @NonNull Context context, int percent, @NonNull String message) {
         if (!canPostConvertNotifications(context)) {
+            return;
+        }
+        if (!AppPreferences.areProgressNotificationsEnabled(context)) {
             return;
         }
         if (shouldThrottleProgress(lastConvertProgressNotifyMs)) {
@@ -146,6 +142,9 @@ public final class LocalNotifications {
     public static void updateCleanProgress(
             @NonNull Context context, int percent, @NonNull String message) {
         if (!canPostCleanNotifications(context)) {
+            return;
+        }
+        if (!AppPreferences.areProgressNotificationsEnabled(context)) {
             return;
         }
         if (shouldThrottleProgress(lastCleanProgressNotifyMs)) {

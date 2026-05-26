@@ -4,6 +4,8 @@ import android.content.Context;
 
 import com.doubleangels.redact.BuildConfig;
 
+import androidx.annotation.Nullable;
+
 import io.sentry.Breadcrumb;
 import io.sentry.SentryEvent;
 import io.sentry.android.core.SentryAndroid;
@@ -14,12 +16,15 @@ import io.sentry.android.core.SentryAndroid;
  */
 public final class SentryInitializer {
 
+    @Nullable
+    static String testDsnOverride;
+
     private SentryInitializer() {
     }
 
     public static void initialize(Context context) {
         new Thread(() -> SentryAndroid.init(context, options -> {
-            String dsn = BuildConfig.SENTRY_DSN;
+            String dsn = testDsnOverride != null ? testDsnOverride : BuildConfig.SENTRY_DSN;
             if (dsn == null || dsn.isEmpty()) {
                 return;
             }

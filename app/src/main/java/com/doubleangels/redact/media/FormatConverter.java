@@ -15,6 +15,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.doubleangels.redact.AppPreferences;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,53 +32,98 @@ public final class FormatConverter {
 
     private static final int MAX_DIMENSION = 4096;
 
+    @androidx.annotation.VisibleForTesting
+    @Nullable
+    static Bitmap.CompressFormat testHeicCompressFormatOverride;
+
+    @androidx.annotation.VisibleForTesting
+    @Nullable
+    static Bitmap.CompressFormat testTreatFormatAsHeic;
+
     private static void copyExifData(Context context, Uri sourceUri, Uri destUri) {
         try {
             androidx.exifinterface.media.ExifInterface oldExif = null;
-            try (InputStream in = context.getContentResolver().openInputStream(sourceUri)) {
-                if (in != null) {
-                    oldExif = new androidx.exifinterface.media.ExifInterface(in);
+            if ("file".equals(sourceUri.getScheme())) {
+                String path = sourceUri.getPath();
+                if (path != null) {
+                    oldExif = new androidx.exifinterface.media.ExifInterface(path);
+                }
+            }
+            if (oldExif == null) {
+                try (InputStream in = context.getContentResolver().openInputStream(sourceUri)) {
+                    if (in != null) {
+                        oldExif = new androidx.exifinterface.media.ExifInterface(in);
+                    }
                 }
             }
             
             if (oldExif != null) {
-                try (android.os.ParcelFileDescriptor pfd = context.getContentResolver().openFileDescriptor(destUri, "rw")) {
-                    if (pfd != null) {
-                        androidx.exifinterface.media.ExifInterface newExif = new androidx.exifinterface.media.ExifInterface(pfd.getFileDescriptor());
-                        
-                        // Copy non-location EXIF only; GPS tags are omitted for privacy.
-                        String[] tags = {
-                            androidx.exifinterface.media.ExifInterface.TAG_DATETIME,
-                            androidx.exifinterface.media.ExifInterface.TAG_DATETIME_DIGITIZED,
-                            androidx.exifinterface.media.ExifInterface.TAG_DATETIME_ORIGINAL,
-                            androidx.exifinterface.media.ExifInterface.TAG_MAKE,
-                            androidx.exifinterface.media.ExifInterface.TAG_MODEL,
-                            androidx.exifinterface.media.ExifInterface.TAG_FOCAL_LENGTH,
-                            androidx.exifinterface.media.ExifInterface.TAG_F_NUMBER,
-                            androidx.exifinterface.media.ExifInterface.TAG_EXPOSURE_TIME,
-                            androidx.exifinterface.media.ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY,
-                            androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION,
-                            androidx.exifinterface.media.ExifInterface.TAG_IMAGE_WIDTH,
-                            androidx.exifinterface.media.ExifInterface.TAG_IMAGE_LENGTH,
-                            androidx.exifinterface.media.ExifInterface.TAG_FLASH,
-                            androidx.exifinterface.media.ExifInterface.TAG_WHITE_BALANCE
-                        };
-
-                        for (String tag : tags) {
-                            String value = oldExif.getAttribute(tag);
-                            if (value != null) {
-                                newExif.setAttribute(tag, value);
-                            }
-                        }
-                        newExif.saveAttributes();
-                    }
-                }
+                copyExifAttributes(oldExif, openExifForWrite(context, destUri));
             }
         } catch (Exception e) {
             // Ignore exif copy errors
         }
     }
 
+    private static void copyExifAttributes(
+            @NonNull androidx.exifinterface.media.ExifInterface oldExif,
+            @Nullable androidx.exifinterface.media.ExifInterface newExif) {
+        if (newExif == null) {
+            return;
+        }
+        String[] tags = {
+                androidx.exifinterface.media.ExifInterface.TAG_DATETIME,
+                androidx.exifinterface.media.ExifInterface.TAG_DATETIME_DIGITIZED,
+                androidx.exifinterface.media.ExifInterface.TAG_DATETIME_ORIGINAL,
+                androidx.exifinterface.media.ExifInterface.TAG_MAKE,
+                androidx.exifinterface.media.ExifInterface.TAG_MODEL,
+                androidx.exifinterface.media.ExifInterface.TAG_FOCAL_LENGTH,
+                androidx.exifinterface.media.ExifInterface.TAG_F_NUMBER,
+                androidx.exifinterface.media.ExifInterface.TAG_EXPOSURE_TIME,
+                androidx.exifinterface.media.ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY,
+                androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION,
+                androidx.exifinterface.media.ExifInterface.TAG_IMAGE_WIDTH,
+                androidx.exifinterface.media.ExifInterface.TAG_IMAGE_LENGTH,
+                androidx.exifinterface.media.ExifInterface.TAG_FLASH,
+                androidx.exifinterface.media.ExifInterface.TAG_WHITE_BALANCE
+        };
+
+        try {
+            for (String tag : tags) {
+                String value = oldExif.getAttribute(tag);
+                if (value != null) {
+                    newExif.setAttribute(tag, value);
+                }
+            }
+            newExif.saveAttributes();
+        } catch (IOException e) {
+            // Ignore exif write errors
+        }
+    }
+
+    @Nullable
+    private static androidx.exifinterface.media.ExifInterface openExifForWrite(
+            @NonNull Context context, @NonNull Uri destUri) {
+        if ("file".equals(destUri.getScheme())) {
+            String path = destUri.getPath();
+            if (path != null) {
+                try {
+                    return new androidx.exifinterface.media.ExifInterface(path);
+                } catch (IOException e) {
+                    return null;
+                }
+            }
+        }
+        try (android.os.ParcelFileDescriptor pfd =
+                context.getContentResolver().openFileDescriptor(destUri, "rw")) {
+            if (pfd != null) {
+                return new androidx.exifinterface.media.ExifInterface(pfd.getFileDescriptor());
+            }
+        } catch (Exception e) {
+            // Ignore exif open errors
+        }
+        return null;
+    }
 
     private FormatConverter() {
     }
@@ -127,11 +174,15 @@ public final class FormatConverter {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             return Bitmap.CompressFormat.JPEG;
         }
-        try {
-            return Bitmap.CompressFormat.valueOf("HEIC");
-        } catch (IllegalArgumentException e) {
-            return Bitmap.CompressFormat.JPEG;
+        if (testHeicCompressFormatOverride != null) {
+            return testHeicCompressFormatOverride;
         }
+        for (Bitmap.CompressFormat format : Bitmap.CompressFormat.values()) {
+            if (isHeicFormat(format)) {
+                return format;
+            }
+        }
+        return Bitmap.CompressFormat.JPEG;
     }
 
     /** Whether HEIC images can be cleaned or converted on this device (API 34+). */
@@ -143,30 +194,36 @@ public final class FormatConverter {
         if (!isHeicProcessingSupported()) {
             return false;
         }
-        try {
-            Bitmap.CompressFormat.valueOf("HEIC");
-            return true;
-        } catch (IllegalArgumentException e) {
-            return false;
+        for (Bitmap.CompressFormat format : Bitmap.CompressFormat.values()) {
+            if (isHeicFormat(format)) {
+                return true;
+            }
         }
+        return false;
     }
 
     private static boolean isHeicFormat(@NonNull Bitmap.CompressFormat format) {
+        if (testTreatFormatAsHeic != null && testTreatFormatAsHeic == format) {
+            return true;
+        }
         String n = format.name();
         return "HEIC".equals(n) || "HEIF".equals(n);
     }
 
     public static int qualityForFormat(@NonNull Bitmap.CompressFormat format) {
+        return qualityForFormat(format, AppPreferences.QUALITY_PRESET_HIGH);
+    }
+
+    public static int qualityForFormat(@NonNull Bitmap.CompressFormat format, @NonNull Context context) {
+        return qualityForFormat(format, AppPreferences.getImageQualityPreset(context));
+    }
+
+    public static int qualityForFormat(@NonNull Bitmap.CompressFormat format, int qualityPreset) {
         if (format == Bitmap.CompressFormat.PNG) {
             return 100;
         }
-        if (format == Bitmap.CompressFormat.WEBP) {
-            return 90;
-        }
-        if (isHeicFormat(format)) {
-            return 90;
-        }
-        return 92;
+        boolean webpOrHeic = format == Bitmap.CompressFormat.WEBP || isHeicFormat(format);
+        return AppPreferences.qualityForLossyFormat(qualityPreset, webpOrHeic);
     }
 
     /** Resolved output format for metadata stripping (preserves source type when possible). */
@@ -229,10 +286,11 @@ public final class FormatConverter {
      * Writes a bitmap using the same encoding rules as {@link #convertImageToPictures}.
      */
     public static boolean compressBitmapToStream(
+            @NonNull Context context,
             @NonNull Bitmap bitmap,
             @NonNull Bitmap.CompressFormat format,
             @NonNull OutputStream os) {
-        int q = qualityForFormat(format);
+        int q = qualityForFormat(format, context);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && isHeicFormat(format)) {
             return bitmap.compress(format, q, os);
         }
@@ -370,7 +428,7 @@ public final class FormatConverter {
                 resolver.delete(outUri, null, null);
                 throw new IOException("Cannot open output stream");
             }
-            int q = qualityForFormat(format);
+            int q = qualityForFormat(format, context);
             boolean ok;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && isHeicFormat(format)) {
                 ok = bitmap.compress(format, q, os);

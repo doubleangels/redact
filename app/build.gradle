@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    id 'jacoco'
 }
 
 android {
@@ -29,6 +30,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            enableUnitTestCoverage true
+        }
         release {
             minifyEnabled true
             shrinkResources true
@@ -43,11 +47,23 @@ android {
         viewBinding true
         buildConfig true
     }
-    
+
     testOptions {
         unitTests {
             includeAndroidResources = true
             returnDefaultValues = true
+            all {
+                jacoco {
+                    includeNoLocationClasses = true
+                    excludes = [
+                            'jdk.internal.*',
+                            'androidx.*',
+                            'com.google.*',
+                            'io.sentry.*',
+                            'org.apache.commons.*'
+                    ]
+                }
+            }
         }
     }
 }
@@ -65,10 +81,101 @@ dependencies {
     implementation libs.media3.effect
     implementation libs.media3.transformer
     implementation libs.commons.imaging
-    
-    debugImplementation libs.leakcanary.android  
+
+    debugImplementation libs.leakcanary.android
+
     testImplementation libs.junit
     testImplementation libs.mockito.core
+    testImplementation libs.mockito.inline
+    testImplementation libs.truth
     testImplementation libs.robolectric
     testImplementation libs.androidx.test.core
+
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+    androidTestImplementation libs.androidx.test.rules
+    androidTestImplementation libs.fragment.testing
+    androidTestImplementation libs.navigation.testing
 }
+
+def jacocoDebugClassDir = "$buildDir/intermediates/javac/debug/compileDebugJavaWithJavac/classes"
+
+def jacocoLogicIncludes = [
+        'com/doubleangels/redact/AppPreferences.class',
+        'com/doubleangels/redact/CacheCleanup.class',
+        'com/doubleangels/redact/media/**',
+        'com/doubleangels/redact/metadata/**',
+        'com/doubleangels/redact/notifications/**',
+        'com/doubleangels/redact/permission/**',
+        'com/doubleangels/redact/sentry/**',
+]
+
+def jacocoLogicExcludes = [
+        '**/R.class',
+        '**/R$*.class',
+        '**/BuildConfig.class',
+        '**/*Adapter*.class',
+        '**/*Fragment*.class',
+        '**/*Activity*.class',
+        '**/ui/**',
+        '**/RedactApplication.class',
+]
+
+def jacocoLogicClassTree = {
+    fileTree(dir: jacocoDebugClassDir, includes: jacocoLogicIncludes, excludes: jacocoLogicExcludes)
+}
+
+def jacocoLogicSources = files([
+        'src/main/java',
+])
+
+tasks.register('jacocoTestReport', JacocoReport) {
+    dependsOn 'testDebugUnitTest'
+    group = 'verification'
+    description = 'Unit test coverage report for business-logic classes'
+
+    reports {
+        html.required = true
+        xml.required = true
+        csv.required = false
+    }
+
+    classDirectories.from = jacocoLogicClassTree()
+    sourceDirectories.from = jacocoLogicSources
+    // Ensure JaCoCo can resolve source paths for HTML "nc" lines.
+    additionalSourceDirs.from = jacocoLogicSources
+    executionData.from = fileTree(dir: buildDir, includes: [
+            'outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec',
+    ])
+}
+
+tasks.register('jacocoTestCoverageVerification') {
+    dependsOn 'jacocoTestReport'
+    group = 'verification'
+    description = 'Fails if business-logic line coverage is below 100%'
+
+    doLast {
+        def reportFile = layout.buildDirectory.file(
+                'reports/jacoco/jacocoTestReport/jacocoTestReport.xml').get().asFile
+        if (!reportFile.exists()) {
+            throw new GradleException("JaCoCo XML report not found: ${reportFile}")
+        }
+        def xml = reportFile.getText('UTF-8')
+        def matcher = (xml =~ /type="LINE" missed="(\d+)" covered="(\d+)"/)
+        int missed = -1
+        int covered = -1
+        matcher.each {
+            missed = it[1].toInteger()
+            covered = it[2].toInteger()
+        }
+        if (missed < 0) {
+            throw new GradleException('JaCoCo report is missing LINE counters')
+        }
+        if (missed > 0) {
+            throw new GradleException(
+                    "Logic line coverage missed ${missed} of ${missed + covered} lines (requires 100%)")
+        }
+    }
+}
+
+check.dependsOn jacocoTestCoverageVerification

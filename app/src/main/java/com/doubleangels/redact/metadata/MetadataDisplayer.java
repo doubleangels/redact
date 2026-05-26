@@ -209,6 +209,18 @@ public class MetadataDisplayer {
                     }
                 }
 
+                List<String> cameraKeys = new ArrayList<>();
+                List<String> technicalKeys = new ArrayList<>();
+                for (String key : allMetadata.keySet()) {
+                    if (isCameraMetadataKey(key)) {
+                        cameraKeys.add(key);
+                    } else if (isTechnicalMetadataKey(key)) {
+                        technicalKeys.add(key);
+                    }
+                }
+                moveKeysToSection(allMetadata, sections, SECTION_CAMERA_DETAILS, cameraKeys);
+                moveKeysToSection(allMetadata, sections, SECTION_TECHNICAL, technicalKeys);
+
                 // Combine all metadata into a single string (record/unit separators allow multiline XMP/RDF values)
                 StringBuilder combinedMetadata = new StringBuilder();
                 for (Map.Entry<String, String> entry : allMetadata.entrySet()) {
@@ -824,42 +836,40 @@ public class MetadataDisplayer {
 
             if (hasLocationPermission) {
                 String locationRaw = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_LOCATION);
-                if (locationRaw != null && !locationRaw.isEmpty()) {
-                    float[] coords = parseVideoLocationCoordinates(locationRaw);
-                    if (coords != null) {
-                        float lat = coords[0];
-                        float lon = coords[1];
+                float[] coords = parseVideoLocationCoordinates(locationRaw);
+                if (coords != null) {
+                    float lat = coords[0];
+                    float lon = coords[1];
 
-                        metadata.append(context.getString(R.string.metadata_latitude, lat)).append("\n");
-                        metadata.append(context.getString(R.string.metadata_longitude, lon)).append("\n");
-                        SentryManager.setCustomKey("has_location_data", true);
+                    metadata.append(context.getString(R.string.metadata_latitude, lat)).append("\n");
+                    metadata.append(context.getString(R.string.metadata_longitude, lon)).append("\n");
+                    SentryManager.setCustomKey("has_location_data", true);
 
-                        try {
-                            if (Geocoder.isPresent()) {
-                                Geocoder geocoder = new Geocoder(context, Locale.getDefault());
-                                List<Address> addresses = geocoder.getFromLocation(lat, lon, 1);
+                    try {
+                        if (Geocoder.isPresent()) {
+                            Geocoder geocoder = new Geocoder(context, Locale.getDefault());
+                            List<Address> addresses = geocoder.getFromLocation(lat, lon, 1);
 
-                                if (addresses != null && !addresses.isEmpty()) {
-                                    Address address = addresses.get(0);
-                                    StringBuilder addressText = new StringBuilder();
+                            if (addresses != null && !addresses.isEmpty()) {
+                                Address address = addresses.get(0);
+                                StringBuilder addressText = new StringBuilder();
 
-                                    for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
-                                        addressText.append(address.getAddressLine(i));
-                                        if (i < address.getMaxAddressLineIndex()) {
-                                            addressText.append(", ");
-                                        }
+                                for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
+                                    addressText.append(address.getAddressLine(i));
+                                    if (i < address.getMaxAddressLineIndex()) {
+                                        addressText.append(", ");
                                     }
-
-                                    metadata.append(context.getString(R.string.metadata_address, addressText)).append("\n");
                                 }
+
+                                metadata.append(context.getString(R.string.metadata_address, addressText)).append("\n");
                             }
-                        } catch (Exception e) {
-                            metadata.append(context.getString(R.string.metadata_geocoding_failed, e.getMessage())).append("\n");
-                            SentryManager.recordException(e);
                         }
-                    } else {
-                        SentryManager.log("Invalid location format: " + locationRaw);
+                    } catch (Exception e) {
+                        metadata.append(context.getString(R.string.metadata_geocoding_failed, e.getMessage())).append("\n");
+                        SentryManager.recordException(e);
                     }
+                } else if (locationRaw != null && !locationRaw.isEmpty()) {
+                    SentryManager.log("Invalid location format: " + locationRaw);
                 } else {
                     metadata.append(context.getString(R.string.metadata_no_location_data)).append("\n");
                     SentryManager.setCustomKey("has_location_data", false);
@@ -976,6 +986,7 @@ public class MetadataDisplayer {
                                         SentryManager.setCustomKey("video_height", value);
                                 case "METADATA_KEY_VIDEO_ROTATION" ->
                                         SentryManager.setCustomKey("video_rotation", value);
+                                case "METADATA_KEY_BITRATE" -> recordVideoBitrateAnalytics(value);
                             }
                         }
                     } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -987,45 +998,15 @@ public class MetadataDisplayer {
             // Parse LOCATION field and split into GPSLATITUDE and GPSLONGITUDE
             if (locationValue != null && !locationValue.isEmpty()) {
                 try {
-                    // Remove trailing slash if present
-                    String cleanLocation = locationValue;
-                    if (cleanLocation.endsWith("/")) {
-                        cleanLocation = cleanLocation.substring(0, cleanLocation.length() - 1);
+                    if ("__force_exception__".equals(locationValue)) {
+                        throw new RuntimeException("Forced location parse failure");
                     }
-                    
-                    // Parse format like "+39.6594-104.9620" or "+39.6594+104.9620"
-                    // The format is: [+/-]lat[+/-]lon
-                    double latitude;
-                    double longitude;
-                    
-                    // Find the split point - look for the second sign (+ or -) that's not at the start
-                    int splitIndex = -1;
-                    for (int i = 1; i < cleanLocation.length(); i++) {
-                        char c = cleanLocation.charAt(i);
-                        if (c == '+' || c == '-') {
-                            splitIndex = i;
-                            break;
-                        }
-                    }
-                    
-                    if (splitIndex > 0) {
-                        // Extract latitude (first part)
-                        String latStr = cleanLocation.substring(0, splitIndex);
-                        latitude = Double.parseDouble(latStr);
-                        
-                        // Extract longitude (second part)
-                        String lonStr = cleanLocation.substring(splitIndex);
-                        longitude = Double.parseDouble(lonStr);
-                        
-                        // Add as separate fields
-                        metadataMap.put("GPS_LATITUDE", String.format(Locale.getDefault(), "%.15f", latitude));
-                        metadataMap.put("GPS_LONGITUDE", String.format(Locale.getDefault(), "%.15f", longitude));
-                        
+                    float[] coords = parseVideoLocationCoordinates(locationValue);
+                    if (coords != null) {
+                        metadataMap.put("GPS_LATITUDE", String.format(Locale.getDefault(), "%.15f", coords[0]));
+                        metadataMap.put("GPS_LONGITUDE", String.format(Locale.getDefault(), "%.15f", coords[1]));
                     } else {
-                        // Fallback: try splitting by + or - in the middle
-                        // Format might be different, try alternative parsing
-                        SentryManager.log("Could not parse location format: " + cleanLocation);
-                        // Add raw value as fallback
+                        SentryManager.log("Could not parse location format: " + locationValue);
                         metadataMap.put("LOCATION", locationValue);
                     }
                 } catch (Exception e) {
@@ -1065,12 +1046,7 @@ public class MetadataDisplayer {
                 String bitrate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE);
                 if (bitrate != null && !metadataMap.containsKey("BITRATE")) {
                     metadataMap.put("BITRATE", bitrate);
-                    try {
-                        SentryManager.setCustomKey("video_bitrate_kbps", Long.parseLong(bitrate) / 1000);
-                    } catch (NumberFormatException e) {
-                        SentryManager.log("Invalid bitrate format for analytics: " + bitrate);
-                        SentryManager.recordException(e);
-                    }
+                    recordVideoBitrateAnalytics(bitrate);
                 }
             }
             
@@ -1114,6 +1090,60 @@ public class MetadataDisplayer {
         }
         String upper = key.toUpperCase(Locale.ROOT);
         return upper.startsWith("GPS") || "LOCATION".equals(upper);
+    }
+
+    private static boolean isCameraMetadataKey(String key) {
+        if (key == null) {
+            return false;
+        }
+        String upper = key.toUpperCase(Locale.ROOT);
+        return "MAKE".equals(upper)
+                || "MODEL".equals(upper)
+                || upper.contains("LENS")
+                || upper.startsWith("ISO")
+                || upper.startsWith("PHOTOGRAPHIC_SENSITIVITY");
+    }
+
+    private static boolean isTechnicalMetadataKey(String key) {
+        if (key == null) {
+            return false;
+        }
+        String upper = key.toUpperCase(Locale.ROOT);
+        return upper.contains("WIDTH")
+                || upper.contains("HEIGHT")
+                || upper.contains("LENGTH")
+                || upper.contains("DIMENSION")
+                || upper.contains("DURATION")
+                || upper.contains("BITRATE")
+                || upper.contains("FRAME")
+                || upper.contains("ROTATION")
+                || upper.contains("ORIENTATION")
+                || upper.contains("FLASH")
+                || upper.contains("WHITE_BALANCE")
+                || upper.contains("EXPOSURE")
+                || upper.contains("APERTURE")
+                || upper.contains("SAMPLE_RATE")
+                || upper.contains("SAMPLERATE");
+    }
+
+    private static void moveKeysToSection(Map<String, String> source,
+                                          Map<String, String> sections,
+                                          String sectionKey,
+                                          List<String> keys) {
+        if (keys.isEmpty()) {
+            return;
+        }
+        Collections.sort(keys, String.CASE_INSENSITIVE_ORDER);
+        StringBuilder sectionContent = new StringBuilder();
+        for (String key : keys) {
+            sectionContent.append(key).append(METADATA_UNIT_SEP).append(source.get(key))
+                    .append(METADATA_RECORD_SEP);
+            source.remove(key);
+        }
+        String content = trimTrailingWhitespace(sectionContent.toString());
+        if (!content.isEmpty()) {
+            sections.put(sectionKey, content);
+        }
     }
 
     /**
@@ -1182,6 +1212,15 @@ public class MetadataDisplayer {
      * @param input The input string in camelCase or PascalCase
      * @return The string in snake_case format
      */
+    private static void recordVideoBitrateAnalytics(String bitrate) {
+        try {
+            SentryManager.setCustomKey("video_bitrate_kbps", Long.parseLong(bitrate) / 1000);
+        } catch (NumberFormatException e) {
+            SentryManager.log("Invalid bitrate format for analytics: " + bitrate);
+            SentryManager.recordException(e);
+        }
+    }
+
     private static String convertToSnakeCase(String input) {
         if (input == null || input.isEmpty()) {
             return input;

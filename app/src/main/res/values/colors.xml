@@ -3,6 +3,7 @@
     <color name="primary">#4285F4</color>
     <color name="primary_dark">#3367D6</color>
     <color name="accent">#00C853</color>
+    <color name="permission_status_denied">#B3261E</color>
 
     <!-- Utility colors -->
     <color name="black">#FF000000</color>

@@ -27,8 +27,8 @@
 
     <!-- Convert tab -->
     <string name="convert_subtitle">Immagini: JPEG, PNG, WebP o HEIC (Android 14+) in Pictures/Redact. Video: MP4, WebM o MKV in Movies/Redact. L\'opzione HEIC è nascosta sui dispositivi più vecchi.</string>
-    <string name="convert_output_format_images">Formato immagine</string>
-    <string name="convert_output_format_videos">Codec video</string>
+    <string name="convert_output_format_images">Formato Immagine</string>
+    <string name="convert_output_format_videos">Codec Video</string>
     <string name="convert_output_format_mixed">Formati (immagine / video)</string>
     <string name="convert_format_mixed_pair">%1$s · %2$s</string>
     <string name="convert_format_jpeg">JPEG</string>
@@ -39,7 +39,7 @@
     <string name="convert_format_vp9">WebM (VP9)</string>
     <string name="convert_format_heif">HEIC</string>
     <string name="convert_format_av1">MKV (AV1)</string>
-    <string name="convert_select_files">Seleziona</string>
+    <string name="convert_select_files">Seleziona File</string>
     <string name="convert_run">Converti</string>
     <string name="convert_status_hint">Seleziona immagini o video da convertire.</string>
     <string name="convert_status_ready">Pronto a selezionare immagini/video.</string>
@@ -189,7 +189,7 @@
     <string name="scan_metadata_subtitle">Campi rilevati da questo file. Tieni premuto sui valori per copiarli.</string>
     <string name="scan_open_in_maps">Apri in Google Maps</string>
     <string name="scan_maps_unavailable">Nessuna app mappe trovata per aprire questa posizione.</string>
-    <string name="scan_search_camera">Cerca fotocamera</string>
+    <string name="scan_search_camera">Cerca Fotocamera</string>
     <string name="scan_search_unavailable">Nessun browser trovato per eseguire questa ricerca.</string>
 
     <!-- Settings screen -->
@@ -204,5 +204,55 @@
     <string name="settings_section_privacy">Privacy</string>
     <string name="settings_crash_reporting_label">Migliora Redact</string>
     <string name="settings_crash_reporting_subtitle">Invia facoltativamente report di crash anonimi via Internet (Sentry). Foto e video non vengono mai caricati—solo diagnostica tecnica. Disattivabile in qualsiasi momento.</string>
+    <string name="settings_section_conversion">Impostazioni Predefinite Di Conversione</string>
+    <string name="settings_conversion_subtitle">Si applicano quando selezioni file nella scheda Converti.</string>
+    <string name="settings_default_image_format">Formato Immagine Predefinito</string>
+    <string name="settings_default_video_format">Codec Video Predefinito</string>
+    <string name="settings_image_quality">Qualità Immagine</string>
+    <string name="settings_quality_high">Alta</string>
+    <string name="settings_quality_balanced">Bilanciata</string>
+    <string name="settings_quality_smaller">File Più Piccolo</string>
+    <string name="settings_quality_subtitle">Influisce su output JPEG, WebP e HEIC. PNG resta senza perdita.</string>
+    <string name="settings_section_share">Destinazione Condivisione</string>
+    <string name="settings_share_confirm_label">Chiedi Prima Di Rimuovere I Metadati</string>
+    <string name="settings_share_confirm_subtitle">Quando condividi in Redact, mostra una conferma prima di rimuovere i metadati.</string>
+    <string name="settings_share_confirm_dialog_title">Rimuovere I Metadati?</string>
+    <string name="settings_share_confirm_dialog_message">Redact rimuoverà EXIF e altri metadati dai file condivisi prima di inoltrarli.</string>
+    <string name="settings_share_confirm_dialog_confirm">Rimuovi E Continua</string>
+    <string name="settings_share_confirm_dialog_cancel">Annulla</string>
+    <string name="settings_section_permissions">Autorizzazioni</string>
+    <string name="settings_permissions_subtitle">Concedi le autorizzazioni nelle impostazioni di sistema Android se una funzione le richiede.</string>
+    <string name="settings_permissions_media">Accesso Ai Media</string>
+    <string name="settings_permissions_location">Posizione Dei Media</string>
+    <string name="settings_permissions_notifications">Notifiche</string>
+    <string name="settings_permission_granted">Concessa</string>
+    <string name="settings_permission_denied">Negata</string>
+    <string name="settings_permission_not_required">Non Richiesta</string>
+    <string name="settings_open_system_settings">Apri Impostazioni Di Sistema</string>
+    <string name="settings_section_storage">Archiviazione</string>
+    <string name="settings_storage_size">File temporanei: %1$s</string>
+    <string name="settings_storage_subtitle">Cache di elaborazione usata durante la pulizia o la condivisione dei file.</string>
+    <string name="settings_storage_clear">Cancella File Temporanei</string>
+    <string name="settings_storage_clear_confirm_title">Cancellare I File Temporanei?</string>
+    <string name="settings_storage_clear_confirm_message">Rimuove le copie in cache dell\'elaborazione recente. I file della galleria non sono interessati.</string>
+    <string name="settings_storage_clear_success">File temporanei cancellati.</string>
+    <string name="settings_storage_clear_empty">Nessun file temporaneo da cancellare.</string>
+    <string name="settings_section_about">Informazioni</string>
+    <string name="settings_about_version">Versione %1$s</string>
+    <string name="settings_about_subtitle">Tutta la pulizia, la scansione e la conversione avviene sul dispositivo. Foto e video non vengono mai caricati.</string>
+    <string name="settings_about_github">Visualizza Il Codice Su GitHub</string>
+    <string name="settings_about_privacy">Informativa Sulla Privacy</string>
+    <string name="settings_about_report_issue">Segnala Un Problema</string>
+    <string name="settings_link_unavailable">Nessuna app trovata per aprire questo link.</string>
+    <string name="settings_progress_notifications_label">Mostra Progresso Nell\'Area Notifiche</string>
+    <string name="settings_progress_notifications_subtitle">Progresso in tempo reale durante conversione o pulizia. Gli avvisi di completamento restano invariati.</string>
+    <string name="settings_crash_reporting_learn_more">Cosa Viene Condiviso?</string>
+    <string name="settings_crash_reporting_detail_title">Dettagli Segnalazione Crash</string>
+    <string name="settings_crash_reporting_detail_message">Quando Migliora Redact è attivo, possono essere inviati dati diagnostici anonimi tramite Sentry:\n\n• Modello dispositivo e versione Android\n• Versione app\n• Stack trace e tipi di errore\n• Tag diagnostici depurati (es. se l\'elaborazione è riuscita)\n\nFoto e video non vengono mai caricati. URI, nomi file e coordinate GPS vengono rimossi prima del caricamento.</string>
+    <string name="settings_crash_reporting_privacy_policy">Informativa Sulla Privacy</string>
+    <string name="settings_crash_reporting_dismiss">Chiudi</string>
+    <string name="url_github">https://github.com/doubleangels/redact</string>
+    <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
+    <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
 </resources>
 

@@ -31,7 +31,7 @@ public final class SentryPrivacyScrubber {
                     "\\b[-+]?\\d{1,3}\\.\\d+\\s*,\\s*[-+]?\\d{1,3}\\.\\d+\\b");
     private static final Pattern FILENAME_IN_MESSAGE =
             Pattern.compile(
-                    "(?:file(?:Name)?|resolved processed file|item:)\\s*[:=]?\\s*[^\\s,;]+\\.[a-zA-Z0-9]{1,8}",
+                    "((?:file(?:Name)?|resolved processed file|item:)\\s*[:=]?)\\s*[^\\s,;]+\\.[a-zA-Z0-9]{1,8}",
                     Pattern.CASE_INSENSITIVE);
 
     private SentryPrivacyScrubber() {

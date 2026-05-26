@@ -246,6 +246,15 @@ public class ConvertFragment extends Fragment {
                         getString(R.string.convert_format_heif), getString(R.string.convert_format_av1)));
             }
         }
+
+        int defaultIndex = SettingsFragment.defaultFormatIndexForSelection(
+                requireContext(), numImages, numVideos);
+        if (chipFormatHeif == null || chipFormatHeif.getVisibility() != View.VISIBLE) {
+            if (defaultIndex == 3) {
+                defaultIndex = 0;
+            }
+        }
+        formatChipGroup.check(SettingsFragment.chipIdForFormatIndex(defaultIndex));
     }
 
     private void openMediaPicker() {

@@ -95,6 +95,24 @@ Install Redact through the [Google Play Store](https://play.google.com/store/app
   - **Android 12 and below:** `READ_EXTERNAL_STORAGE` (required for selecting media files)
   - **Optional:** `ACCESS_MEDIA_LOCATION` (only needed to view GPS location metadata in media files)
 
+### Running tests locally
+
+Unit tests and the JaCoCo gate for business-logic packages:
+
+```bash
+./gradlew testDebugUnitTest jacocoTestCoverageVerification
+```
+
+HTML coverage report (after the command above):
+
+`app/build/reports/jacoco/jacocoTestReport/html/index.html`
+
+Instrumented UI smoke tests (device or emulator required):
+
+```bash
+./gradlew connectedDebugAndroidTest
+```
+
 ---
 
 ## How It Works

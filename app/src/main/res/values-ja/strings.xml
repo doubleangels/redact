@@ -27,8 +27,8 @@
 
     <!-- Convert tab -->
     <string name="convert_subtitle">画像: JPEG、PNG、WebP、またはHEIC（Android 14以降）をPictures/Redactに保存します。動画: MP4、WebM、またはMKVをMovies/Redactに保存します。古いデバイスではHEICオプションは非表示になります。</string>
-    <string name="convert_output_format_images">画像フォーマット</string>
-    <string name="convert_output_format_videos">ビデオコーデック</string>
+    <string name="convert_output_format_images">画像形式</string>
+    <string name="convert_output_format_videos">動画コーデック</string>
     <string name="convert_output_format_mixed">フォーマット (画像 / 動画)</string>
     <string name="convert_format_mixed_pair">%1$s · %2$s</string>
     <string name="convert_format_jpeg">JPEG</string>
@@ -39,7 +39,7 @@
     <string name="convert_format_vp9">WebM (VP9)</string>
     <string name="convert_format_heif">HEIC</string>
     <string name="convert_format_av1">MKV (AV1)</string>
-    <string name="convert_select_files">選択</string>
+    <string name="convert_select_files">ファイルを選択</string>
     <string name="convert_run">変換</string>
     <string name="convert_status_hint">変換する画像または動画を選択してください。</string>
     <string name="convert_status_ready">画像/動画を選択する準備ができました。</string>
@@ -204,5 +204,55 @@
     <string name="settings_section_privacy">プライバシー</string>
     <string name="settings_crash_reporting_label">Redactの改善</string>
     <string name="settings_crash_reporting_subtitle">オプションで匿名のクラッシュレポートをインターネット経由で送信します（Sentry）。写真や動画はアップロードされず、技術的な診断情報のみです。いつでもオフにできます。</string>
+    <string name="settings_section_conversion">変換の既定値</string>
+    <string name="settings_conversion_subtitle">変換タブでファイルを選択したときに適用されます。</string>
+    <string name="settings_default_image_format">既定の画像形式</string>
+    <string name="settings_default_video_format">既定の動画コーデック</string>
+    <string name="settings_image_quality">画像品質</string>
+    <string name="settings_quality_high">高</string>
+    <string name="settings_quality_balanced">バランス</string>
+    <string name="settings_quality_smaller">小さいファイル</string>
+    <string name="settings_quality_subtitle">JPEG、WebP、HEIC の出力に影響します。PNG は可逆のままです。</string>
+    <string name="settings_section_share">共有ターゲット</string>
+    <string name="settings_share_confirm_label">メタデータ削除前に確認する</string>
+    <string name="settings_share_confirm_subtitle">Redact に共有するとき、メタデータ削除前に確認を表示します。</string>
+    <string name="settings_share_confirm_dialog_title">メタデータを削除しますか？</string>
+    <string name="settings_share_confirm_dialog_message">Redact は共有ファイルから EXIF などのメタデータを削除してから先に共有します。</string>
+    <string name="settings_share_confirm_dialog_confirm">削除して続行</string>
+    <string name="settings_share_confirm_dialog_cancel">キャンセル</string>
+    <string name="settings_section_permissions">権限</string>
+    <string name="settings_permissions_subtitle">機能に必要な場合は Android のシステム設定で権限を付与してください。</string>
+    <string name="settings_permissions_media">メディアアクセス</string>
+    <string name="settings_permissions_location">メディアの位置</string>
+    <string name="settings_permissions_notifications">通知</string>
+    <string name="settings_permission_granted">許可済み</string>
+    <string name="settings_permission_denied">拒否</string>
+    <string name="settings_permission_not_required">不要</string>
+    <string name="settings_open_system_settings">システム設定を開く</string>
+    <string name="settings_section_storage">ストレージ</string>
+    <string name="settings_storage_size">一時ファイル: %1$s</string>
+    <string name="settings_storage_subtitle">クリーンアップや共有時に使う処理キャッシュです。</string>
+    <string name="settings_storage_clear">一時ファイルを削除</string>
+    <string name="settings_storage_clear_confirm_title">一時ファイルを削除しますか？</string>
+    <string name="settings_storage_clear_confirm_message">最近の処理のキャッシュコピーを削除します。ギャラリーのファイルには影響しません。</string>
+    <string name="settings_storage_clear_success">一時ファイルを削除しました。</string>
+    <string name="settings_storage_clear_empty">削除する一時ファイルはありません。</string>
+    <string name="settings_section_about">このアプリについて</string>
+    <string name="settings_about_version">バージョン %1$s</string>
+    <string name="settings_about_subtitle">クリーン、スキャン、変換はすべて端末上で実行されます。写真や動画はアップロードされません。</string>
+    <string name="settings_about_github">GitHubでソースを表示</string>
+    <string name="settings_about_privacy">プライバシーポリシー</string>
+    <string name="settings_about_report_issue">問題を報告</string>
+    <string name="settings_link_unavailable">このリンクを開くアプリが見つかりません。</string>
+    <string name="settings_progress_notifications_label">通知シェードに進捗を表示</string>
+    <string name="settings_progress_notifications_subtitle">変換やクリーン中のリアルタイム進捗。完了通知は従来どおりです。</string>
+    <string name="settings_crash_reporting_learn_more">何が共有されますか？</string>
+    <string name="settings_crash_reporting_detail_title">クラッシュレポートの詳細</string>
+    <string name="settings_crash_reporting_detail_message">Redactの改善がオンのとき、匿名の診断情報が Sentry 経由で送信される場合があります:\n\n• 端末モデルと Android バージョン\n• アプリのバージョン\n• スタックトレースとエラーの種類\n• マスキングされた診断タグ（処理の成功など）\n\n写真や動画はアップロードされません。URI、ファイル名、GPS 座標は送信前に削除されます。</string>
+    <string name="settings_crash_reporting_privacy_policy">プライバシーポリシー</string>
+    <string name="settings_crash_reporting_dismiss">閉じる</string>
+    <string name="url_github">https://github.com/doubleangels/redact</string>
+    <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
+    <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
 </resources>
 

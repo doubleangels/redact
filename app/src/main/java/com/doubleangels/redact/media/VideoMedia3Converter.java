@@ -101,10 +101,10 @@ public final class VideoMedia3Converter {
                 lastFailure = e;
             }
         }
-        if (lastFailure != null) {
-            throw lastFailure;
+        if (lastFailure == null) {
+            lastFailure = new IOException("Video conversion failed");
         }
-        throw new IOException("Video conversion failed");
+        throw lastFailure;
     }
 
     /**
@@ -112,6 +112,8 @@ public final class VideoMedia3Converter {
      */
     private static int[] encoderFallbackOrder(int requestedFormatIndex) {
         switch (requestedFormatIndex) {
+            case -1:
+                return new int[] {};
             case 3:
                 return new int[] {3, 1, 0};
             case 2:

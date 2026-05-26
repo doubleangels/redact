@@ -39,7 +39,7 @@
     <string name="convert_format_vp9">WebM (VP9)</string>
     <string name="convert_format_heif">HEIC</string>
     <string name="convert_format_av1">MKV (AV1)</string>
-    <string name="convert_select_files">Auswählen</string>
+    <string name="convert_select_files">Dateien Auswählen</string>
     <string name="convert_run">Konvertieren</string>
     <string name="convert_status_hint">Wählen Sie Bilder oder Videos zum Konvertieren aus.</string>
     <string name="convert_status_ready">Bereit, Bilder/Videos auszuwählen.</string>
@@ -189,7 +189,7 @@
     <string name="scan_metadata_subtitle">Erkannte Felder aus dieser Datei. Werte gedrückt halten, um sie zu kopieren.</string>
     <string name="scan_open_in_maps">In Google Maps öffnen</string>
     <string name="scan_maps_unavailable">Keine Karten-App gefunden, um diesen Ort zu öffnen.</string>
-    <string name="scan_search_camera">Kamera suchen</string>
+    <string name="scan_search_camera">Kamera Suchen</string>
     <string name="scan_search_unavailable">Kein Browser gefunden, um diese Suche auszuführen.</string>
 
     <!-- Settings screen -->
@@ -204,5 +204,55 @@
     <string name="settings_section_privacy">Datenschutz</string>
     <string name="settings_crash_reporting_label">Redact verbessern</string>
     <string name="settings_crash_reporting_subtitle">Sendet optional anonymisierte Absturzberichte ueber das Internet (Sentry). Fotos und Videos werden nie hochgeladen—nur technische Diagnosedaten. Jederzeit deaktivierbar.</string>
+    <string name="settings_section_conversion">Konvertierungsstandards</string>
+    <string name="settings_conversion_subtitle">Wird angewendet, wenn Sie Dateien auf der Registerkarte Konvertieren auswählen.</string>
+    <string name="settings_default_image_format">Standard-Bildformat</string>
+    <string name="settings_default_video_format">Standard-Video-Codec</string>
+    <string name="settings_image_quality">Bildqualität</string>
+    <string name="settings_quality_high">Hoch</string>
+    <string name="settings_quality_balanced">Ausgewogen</string>
+    <string name="settings_quality_smaller">Kleinere Datei</string>
+    <string name="settings_quality_subtitle">Betrifft JPEG-, WebP- und HEIC-Ausgabe. PNG bleibt verlustfrei.</string>
+    <string name="settings_section_share">Freigabeziel</string>
+    <string name="settings_share_confirm_label">Vor Dem Entfernen Von Metadaten Fragen</string>
+    <string name="settings_share_confirm_subtitle">Beim Teilen in Redact eine Bestätigung anzeigen, bevor Metadaten entfernt werden.</string>
+    <string name="settings_share_confirm_dialog_title">Metadaten Entfernen?</string>
+    <string name="settings_share_confirm_dialog_message">Redact entfernt EXIF und andere Metadaten aus den geteilten Dateien, bevor Sie sie weitergeben.</string>
+    <string name="settings_share_confirm_dialog_confirm">Entfernen Und Fortfahren</string>
+    <string name="settings_share_confirm_dialog_cancel">Abbrechen</string>
+    <string name="settings_section_permissions">Berechtigungen</string>
+    <string name="settings_permissions_subtitle">Erteilen Sie Berechtigungen in den Android-Systemeinstellungen, wenn eine Funktion sie benötigt.</string>
+    <string name="settings_permissions_media">Medienzugriff</string>
+    <string name="settings_permissions_location">Medienstandort</string>
+    <string name="settings_permissions_notifications">Benachrichtigungen</string>
+    <string name="settings_permission_granted">Erteilt</string>
+    <string name="settings_permission_denied">Verweigert</string>
+    <string name="settings_permission_not_required">Nicht Erforderlich</string>
+    <string name="settings_open_system_settings">Systemeinstellungen Öffnen</string>
+    <string name="settings_section_storage">Speicher</string>
+    <string name="settings_storage_size">Temporäre Dateien: %1$s</string>
+    <string name="settings_storage_subtitle">Verarbeitungs-Cache beim Bereinigen oder Teilen von Dateien.</string>
+    <string name="settings_storage_clear">Temporäre Dateien Löschen</string>
+    <string name="settings_storage_clear_confirm_title">Temporäre Dateien Löschen?</string>
+    <string name="settings_storage_clear_confirm_message">Dies entfernt zwischengespeicherte Kopien aus der letzten Verarbeitung. Ihre Galeriedateien sind nicht betroffen.</string>
+    <string name="settings_storage_clear_success">Temporäre Dateien gelöscht.</string>
+    <string name="settings_storage_clear_empty">Keine temporären Dateien zum Löschen.</string>
+    <string name="settings_section_about">Über</string>
+    <string name="settings_about_version">Version %1$s</string>
+    <string name="settings_about_subtitle">Alle Bereinigung, Analyse und Konvertierung läuft auf Ihrem Gerät. Fotos und Videos werden nie hochgeladen.</string>
+    <string name="settings_about_github">Quellcode Auf GitHub Ansehen</string>
+    <string name="settings_about_privacy">Datenschutzrichtlinie</string>
+    <string name="settings_about_report_issue">Problem Melden</string>
+    <string name="settings_link_unavailable">Keine App zum Öffnen dieses Links gefunden.</string>
+    <string name="settings_progress_notifications_label">Fortschritt Im Benachrichtigungsbereich Anzeigen</string>
+    <string name="settings_progress_notifications_subtitle">Live-Fortschritt beim Konvertieren oder Bereinigen. Abschlussbenachrichtigungen bleiben unverändert.</string>
+    <string name="settings_crash_reporting_learn_more">Was Wird Geteilt?</string>
+    <string name="settings_crash_reporting_detail_title">Details Zu Absturzberichten</string>
+    <string name="settings_crash_reporting_detail_message">Wenn Redact verbessern aktiviert ist, können anonymisierte Diagnosedaten über Sentry gesendet werden:\n\n• Gerätemodell und Android-Version\n• App-Version\n• Stack-Traces und Fehlertypen\n• Bereinigte Diagnose-Tags (z. B. ob die Verarbeitung erfolgreich war)\n\nIhre Fotos und Videos werden nie hochgeladen. URIs, Dateinamen und GPS-Koordinaten werden vor dem Upload entfernt.</string>
+    <string name="settings_crash_reporting_privacy_policy">Datenschutzrichtlinie</string>
+    <string name="settings_crash_reporting_dismiss">Schließen</string>
+    <string name="url_github">https://github.com/doubleangels/redact</string>
+    <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
+    <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
 </resources>
 

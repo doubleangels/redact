@@ -23,6 +23,11 @@ robolectric = "4.16.1"
 androidxTestCore = "1.7.0"
 commonsImaging = "1.0.0-alpha6"
 leakcanary = "2.14"
+mockitoInline = "5.2.0"
+truth = "1.4.4"
+testRules = "1.7.0"
+fragmentTesting = "1.8.9"
+navigationTesting = "2.9.7"
 
 [libraries]
 activity = { module = "androidx.activity:activity", version.ref = "activity" }
@@ -49,6 +54,11 @@ robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectr
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTestCore" }
 commons-imaging = { module = "org.apache.commons:commons-imaging", version.ref = "commonsImaging" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
+mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockitoInline" }
+truth = { module = "com.google.truth:truth", version.ref = "truth" }
+androidx-test-rules = { module = "androidx.test:rules", version.ref = "testRules" }
+fragment-testing = { module = "androidx.fragment:fragment-testing", version.ref = "fragmentTesting" }
+navigation-testing = { module = "androidx.navigation:navigation-testing", version.ref = "navigationTesting" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

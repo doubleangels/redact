@@ -146,6 +146,31 @@ public class MetadataStripper {
      */
     private Uri lastProcessedFileUri;
 
+    @androidx.annotation.VisibleForTesting
+    @Nullable
+    File testFastStripVideoMetadataOverride;
+
+    @androidx.annotation.VisibleForTesting
+    boolean testForceOutputDirMkdirsFailure;
+
+    @androidx.annotation.VisibleForTesting
+    boolean testForceXmpReadFailure;
+
+    @androidx.annotation.VisibleForTesting
+    void setTestFastStripVideoMetadataOverride(@Nullable File overrideFile) {
+        this.testFastStripVideoMetadataOverride = overrideFile;
+    }
+
+    @androidx.annotation.VisibleForTesting
+    void setTestForceOutputDirMkdirsFailure(boolean force) {
+        this.testForceOutputDirMkdirsFailure = force;
+    }
+
+    @androidx.annotation.VisibleForTesting
+    void setTestForceXmpReadFailure(boolean force) {
+        this.testForceXmpReadFailure = force;
+    }
+
     /**
      * Map to store essential EXIF values that should be preserved during
      * processing.
@@ -437,7 +462,7 @@ public class MetadataStripper {
                         throw new IOException("Failed to open output stream for new image");
                     }
                     if (!FormatConverter.compressBitmapToStream(
-                            originalBitmap, outputFormat.compressFormat, os)) {
+                            context, originalBitmap, outputFormat.compressFormat, os)) {
                         throw new IOException("Failed to compress bitmap");
                     }
                     os.flush();
@@ -504,9 +529,7 @@ public class MetadataStripper {
 
             if (tempFile != null && tempFile.exists()) {
                 // Use secure deletion for temp files
-                if (!secureDeleteFile(tempFile)) {
-                    tempFile.deleteOnExit();
-                }
+                secureDeleteFile(tempFile);
             }
 
             preservedExifValues.clear();
@@ -574,7 +597,7 @@ public class MetadataStripper {
 
             File outputDir = new File(context.getCacheDir(), "processed");
             if (!outputDir.exists()) {
-                if (!outputDir.mkdirs()) {
+                if (testForceOutputDirMkdirsFailure || !outputDir.mkdirs()) {
                     throw new IOException("Failed to create output directory");
                 }
             }
@@ -614,7 +637,7 @@ public class MetadataStripper {
 
                 try (FileOutputStream fos = new FileOutputStream(outputFile)) {
                     if (!FormatConverter.compressBitmapToStream(
-                            originalBitmap, outputFormat.compressFormat, fos)) {
+                            context, originalBitmap, outputFormat.compressFormat, fos)) {
                         throw new IOException("Failed to compress bitmap");
                     }
                     fos.flush();
@@ -667,9 +690,7 @@ public class MetadataStripper {
 
             if (tempFile != null && tempFile.exists()) {
                 // Use secure deletion for temp files
-                if (!secureDeleteFile(tempFile)) {
-                    tempFile.deleteOnExit();
-                }
+                secureDeleteFile(tempFile);
             }
 
             preservedExifValues.clear();
@@ -825,6 +846,9 @@ public class MetadataStripper {
     }
 
     private File fastStripVideoMetadata(Uri sourceUri) {
+        if (testFastStripVideoMetadataOverride != null) {
+            return testFastStripVideoMetadataOverride;
+        }
         android.media.MediaExtractor extractor = new android.media.MediaExtractor();
         android.media.MediaMuxer muxer = null;
         File outputFile = null;
@@ -1455,13 +1479,8 @@ public class MetadataStripper {
      * @return true if the file is too large to process, false otherwise
      */
     public boolean isFileTooLarge(@NonNull Uri uri) {
-        try {
-            long fileSize = getFileSizeFromUri(uri);
-            return fileSize > MAX_IMAGE_FILE_SIZE_MB * 1024 * 1024;
-        } catch (Exception e) {
-            SentryManager.log("Error checking file size: " + e.getMessage() + ".");
-            return false;
-        }
+        long fileSize = getFileSizeFromUri(uri);
+        return fileSize > MAX_IMAGE_FILE_SIZE_MB * 1024 * 1024;
     }
 
     /**
@@ -1573,6 +1592,9 @@ public class MetadataStripper {
      */
     private boolean containsXMPMetadata(@NonNull File file) {
         try (FileInputStream fis = new FileInputStream(file)) {
+            if (testForceXmpReadFailure) {
+                throw new IOException("Forced XMP read failure");
+            }
             byte[] buffer = new byte[8192];
             int bytesRead = fis.read(buffer);
             if (bytesRead > 0) {
@@ -1583,7 +1605,7 @@ public class MetadataStripper {
                         content.contains("x:xmpmeta");
             }
         } catch (Exception e) {
-            // Ignore errors in XMP detection
+            SentryManager.log("XMP detection failed: " + e.getMessage());
         }
         return false;
     }
