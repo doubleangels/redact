@@ -1,9 +1,24 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
 # Built application files
 *.apk
-*.aar
-*.aar
 *.ap_
 *.aab
+*.aar
 
 # Files for the ART/Dalvik VM
 *.dex
@@ -13,38 +28,19 @@
 
 # Generated files
 build/
-gradle/
-.gradle/
-
-# Java class files
-*.class
-
-# Generated files
-build/
-gradle/
-.gradle/
 
 # Local configuration files
 local.properties
 
 # IDE-specific files
 .idea/
-.iml/
 
 # Miscellaneous files
-.iml/
 *.log
 *.swp
-*.DS_Store
 
-# Gradle wrapper files
-gradlew
-gradlew.bat
+# macOS
+.DS_Store
 
 # Intermediate files
 /app/src/build/*
-
-# Test files
-*.mp4
-*.jpg
-*.png
