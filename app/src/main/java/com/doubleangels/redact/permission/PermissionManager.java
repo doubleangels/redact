@@ -588,21 +588,8 @@ public class PermissionManager {
             SentryManager.setCustomKey("should_show_settings", shouldShowSettings);
 
             if (shouldShowSettings) {
-                // Show settings Snackbar for permanent denial
-                SentryManager.log("Showing settings snackbar (permanent denial)");
-                Snackbar.make(
-                                rootView,
-                                activity.getString(R.string.permission_denied_permanent),
-                                Snackbar.LENGTH_LONG)
-                        .setAction(activity.getString(R.string.snackbar_action_settings), view -> {
-                            SentryManager.log("User opening app settings");
-                            // Open app settings page
-                            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                            Uri uri = Uri.fromParts("package", activity.getPackageName(), null);
-                            intent.setData(uri);
-                            settingsLauncher.launch(intent);
-                        })
-                        .show();
+                // Settings Snackbar for permanent denial was removed per user request
+                SentryManager.log("Permissions permanently denied (UI removed)");
             } else {
                 // Show retry Snackbar for temporary denial
                 SentryManager.log("Showing retry snackbar (temporary denial)");
@@ -641,21 +628,8 @@ public class PermissionManager {
             SentryManager.setCustomKey("should_show_location_settings", shouldShowSettings);
 
             if (shouldShowSettings) {
-                // Show settings Snackbar for permanent denial
-                SentryManager.log("Showing settings snackbar for location (permanent denial)");
-                Snackbar.make(
-                                rootView,
-                                activity.getString(R.string.permission_location_denied_permanent),
-                                Snackbar.LENGTH_LONG)
-                        .setAction(activity.getString(R.string.snackbar_action_settings), view -> {
-                            SentryManager.log("User opening app settings for location permission");
-                            // Open app settings page
-                            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                            Uri uri = Uri.fromParts("package", activity.getPackageName(), null);
-                            intent.setData(uri);
-                            settingsLauncher.launch(intent);
-                        })
-                        .show();
+                // Settings Snackbar for permanent denial was removed per user request
+                SentryManager.log("Location permission permanently denied (UI removed)");
             } else {
                 // Show retry Snackbar for temporary denial
                 SentryManager.log("Showing retry snackbar for location (temporary denial)");

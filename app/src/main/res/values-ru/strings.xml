@@ -3,7 +3,6 @@
     <string name="app_name">Redact</string>
 
     <!-- Content descriptions -->
-    <string name="content_description_media_thumbnail">Миниатюра медиа</string>
     <string name="content_description_image_view">Просмотр изображения</string>
     <string name="content_description_scroll_view">Прокрутка</string>
 
@@ -26,7 +25,6 @@
     <string name="navigation_convert">Конвертировать</string>
 
     <!-- Convert tab -->
-    <string name="convert_subtitle">Изображения: JPEG, PNG, WebP или HEIC (Android 14+) в Pictures/Redact. Видео: MP4, WebM или MKV в Movies/Redact. Опция HEIC скрыта на старых устройствах.</string>
     <string name="convert_output_format_images">Формат Изображения</string>
     <string name="convert_output_format_videos">Видеокодек</string>
     <string name="convert_output_format_mixed">Форматы (изображение / видео)</string>
@@ -63,49 +61,34 @@
 
     <!-- Status and progress messages -->
     <string name="status_processing">Обработка…</string>
-    <string name="status_processed_items">Обработано %1$d элементов!</string>
-    <string name="status_selected_items">Выбрано: %1$d элементов</string>
-    <string name="status_first_select_media_files">Пожалуйста, сначала выберите медиафайлы!</string>
-    <string name="status_ready">Готово к выбору изображений/видео!</string>
-    <string name="status_permissions_required">Требуются разрешения!</string>
+    <string name="status_processed_items">Обработано %1$d элементов.</string>
+    <string name="status_first_select_media_files">Пожалуйста, сначала выберите медиафайлы.</string>
+    <string name="status_permissions_required">Требуются разрешения.</string>
     <string name="status_requesting_permissions">Запрос разрешений…</string>
-    <string name="status_select_media_files">Выберите медиа для удаления метаданных!</string>
     <string name="status_analyzing">Анализ метаданных…</string>
-    <string name="status_select_item">Выберите изображение или видео для просмотра метаданных!</string>
-    <string name="status_extraction_complete">Извлечение метаданных завершено!</string>
-    <string name="status_extraction_media_fail">Ошибка при обработке медиафайла!</string>
-    <string name="status_extraction_fail">Ошибка при извлечении метаданных!</string>
+    <string name="status_extraction_complete">Извлечение метаданных завершено.</string>
+    <string name="status_extraction_media_fail">Ошибка при обработке медиафайла.</string>
+    <string name="status_extraction_fail">Ошибка при извлечении метаданных.</string>
     <string name="status_extracting_media">Извлечение метаданных видео…</string>
     <string name="status_extracting_image">Извлечение метаданных изображения…</string>
-    <string name="status_media_picker_fail">Ошибка при открытии выбора медиа!</string>
-    <string name="status_media_uri_fail">Не удалось получить URI медиа!</string>
-    <string name="status_storage_permissions_required">Требуются разрешения на хранение!</string>
+    <string name="status_media_picker_fail">Ошибка при открытии выбора медиа.</string>
+    <string name="status_media_uri_fail">Не удалось получить URI медиа.</string>
+    <string name="status_storage_permissions_required">Требуются разрешения на хранение.</string>
 
     <!-- Share processing strings -->
     <string name="share_processing_title">Обработка…</string>
-    <string name="share_stripping_status">Удаление метаданных…</string>
     <string name="share_chooser_title">Поделиться очищенным медиафайлом через…</string>
-    <string name="share_error_unsupported_media">Неподдерживаемый тип медиа!</string>
-    <string name="share_error_unsupported_action">Неподдерживаемое действие!</string>
-    <string name="share_error_receive_failed">Ошибка при получении медиа!</string>
-    <string name="share_error_processing_failed">Ошибка обработки!</string>
+    <string name="share_error_unsupported_media">Неподдерживаемый тип медиа.</string>
+    <string name="share_error_unsupported_action">Неподдерживаемое действие.</string>
 
     <!-- Scan section strings -->
-    <string name="scan_activity_title">ScanActivity</string>
     <string name="scan_metadata">Метаданные</string>
-    <string name="scan_basic_information">Основная Информация</string>
-    <string name="scan_camera_details">Детали Камеры</string>
     <string name="scan_location_information">Информация о Местоположении</string>
-    <string name="scan_technical_details">Технические Детали</string>
     <string name="scan_location_permission_missing">Данные о местоположении могут быть доступны, если вы предоставите разрешение на местоположение.</string>
-    <string name="scan_metadata_with_location_permission">%1$s\n%2$s</string>
-    <string name="scan_extraction_fail">Ошибка при извлечении метаданных!</string>
+    <string name="scan_extraction_fail">Ошибка при извлечении метаданных.</string>
 
     <!-- Metadata output strings -->
     <!-- Basic File Information -->
-    <string name="metadata_file_name">Имя Файла: %s</string>
-    <string name="metadata_file_size">Размер Файла: %s</string>
-    <string name="metadata_mime_type">Тип MIME: %s</string>
     <string name="metadata_unknown">Неизвестно</string>
     <string name="metadata_size_bytes">Б</string>
     <string name="metadata_size_kb">КБ</string>
@@ -152,12 +135,6 @@
     <string name="metadata_sample_rate">Частота Дискретизации: %s Гц</string>
 
     <!-- Additional Sectioned Metadata Strings -->
-    <string name="metadata_no_image_location_data">Данные о местоположении недоступны в этом изображении.</string>
-    <string name="metadata_no_video_location_data">Данные о местоположении недоступны в этом видео.</string>
-    <string name="metadata_location_permission_needed_full">Разрешение на местоположение не предоставлено. Предоставьте разрешение для просмотра всех данных о местоположении.</string>
-    <string name="metadata_software">Программное Обеспечение: %s</string>
-    <string name="metadata_focal_length">Фокусное Расстояние: %s мм</string>
-    <string name="metadata_digital_zoom">Цифровое Увеличение: %sx</string>
 
     <!-- Orientation Strings -->
     <string name="metadata_orientation_normal">Обычная</string>
@@ -203,7 +180,7 @@
     <string name="settings_notifications_convert_subtitle">Уведомлять о завершении конвертации видео или изображений.</string>
     <string name="settings_section_privacy">Конфиденциальность</string>
     <string name="settings_crash_reporting_label">Улучшить Redact</string>
-    <string name="settings_crash_reporting_subtitle">По желанию отправляет анонимные отчеты о сбоях через интернет (Sentry). Фото и видео не загружаются—только техническая диагностика. Можно отключить в любой момент.</string>
+    <string name="settings_crash_reporting_subtitle">По желанию отправляет анонимные отчеты о сбоях через интернет (Sentry). Фото и видео не загружаются - только техническая диагностика. Можно отключить в любой момент.</string>
     <string name="settings_section_conversion">Параметры Конвертации По Умолчанию</string>
     <string name="settings_conversion_subtitle">Применяются при выборе файлов на вкладке «Конвертировать».</string>
     <string name="settings_default_image_format">Формат Изображения По Умолчанию</string>
@@ -223,7 +200,6 @@
     <string name="settings_section_permissions">Разрешения</string>
     <string name="settings_permissions_subtitle">Выдайте разрешения в системных настройках Android, если функция в них нуждается.</string>
     <string name="settings_permissions_media">Доступ К Медиа</string>
-    <string name="settings_permissions_location">Местоположение Медиа</string>
     <string name="settings_permissions_notifications">Уведомления</string>
     <string name="settings_permission_granted">Предоставлено</string>
     <string name="settings_permission_denied">Отклонено</string>

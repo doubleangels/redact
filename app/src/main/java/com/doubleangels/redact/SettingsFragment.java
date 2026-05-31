@@ -54,9 +54,21 @@ public class SettingsFragment extends Fragment {
     private MaterialAutoCompleteTextView dropdownDefaultVideoFormat;
     private MaterialAutoCompleteTextView dropdownImageQuality;
 
+    private MaterialSwitch switchStrictClean;
+    private MaterialSwitch switchPreserveCamera;
+    private MaterialSwitch switchPreserveLocation;
+    private MaterialSwitch switchAutoClearTemp;
+    private MaterialSwitch switchVideoFallback;
+    private MaterialAutoCompleteTextView dropdownSecureDelete;
+    private MaterialAutoCompleteTextView dropdownMaxBitmapSize;
+    private MaterialAutoCompleteTextView dropdownMaxFileSize;
+
     private String[] imageFormatLabels;
     private String[] videoFormatLabels;
     private String[] qualityLabels;
+    private String[] secureDeleteLabels;
+    private String[] maxBitmapSizeLabels;
+    private String[] maxFileSizeLabels;
 
     private final ExecutorService backgroundExecutor = Executors.newSingleThreadExecutor();
 
@@ -75,6 +87,9 @@ public class SettingsFragment extends Fragment {
             imageFormatLabels = getResources().getStringArray(R.array.settings_image_format_labels);
             videoFormatLabels = getResources().getStringArray(R.array.settings_video_format_labels);
             qualityLabels = getResources().getStringArray(R.array.settings_quality_labels);
+            secureDeleteLabels = getResources().getStringArray(R.array.settings_secure_delete_labels);
+            maxBitmapSizeLabels = getResources().getStringArray(R.array.settings_max_bitmap_size_labels);
+            maxFileSizeLabels = getResources().getStringArray(R.array.settings_max_file_size_labels);
 
             bindPermissions(view);
             bindConversionDefaults();
@@ -82,6 +97,7 @@ public class SettingsFragment extends Fragment {
             bindNotifications();
             bindStorage(view);
             bindPrivacy(view);
+            bindAdvancedSettings();
             bindAbout(view);
         } catch (Exception e) {
             SentryManager.recordException(e);
@@ -117,6 +133,15 @@ public class SettingsFragment extends Fragment {
         dropdownDefaultImageFormat = view.findViewById(R.id.dropdownDefaultImageFormat);
         dropdownDefaultVideoFormat = view.findViewById(R.id.dropdownDefaultVideoFormat);
         dropdownImageQuality = view.findViewById(R.id.dropdownImageQuality);
+        
+        switchStrictClean = view.findViewById(R.id.switchStrictClean);
+        switchPreserveCamera = view.findViewById(R.id.switchPreserveCamera);
+        switchPreserveLocation = view.findViewById(R.id.switchPreserveLocation);
+        switchAutoClearTemp = view.findViewById(R.id.switchAutoClearTemp);
+        switchVideoFallback = view.findViewById(R.id.switchVideoFallback);
+        dropdownSecureDelete = view.findViewById(R.id.dropdownSecureDelete);
+        dropdownMaxBitmapSize = view.findViewById(R.id.dropdownMaxBitmapSize);
+        dropdownMaxFileSize = view.findViewById(R.id.dropdownMaxFileSize);
     }
 
     private void bindNotifications() {
@@ -180,6 +205,94 @@ public class SettingsFragment extends Fragment {
                         openUrl(getString(R.string.url_privacy_policy)))
                 .setNegativeButton(R.string.settings_crash_reporting_dismiss, null)
                 .show());
+    }
+
+    private void bindAdvancedSettings() {
+        switchStrictClean.setChecked(AppPreferences.isStrictClean(requireContext()));
+        switchPreserveCamera.setChecked(AppPreferences.isPreserveCameraSettings(requireContext()));
+        switchPreserveLocation.setChecked(AppPreferences.isPreserveLocation(requireContext()));
+        switchAutoClearTemp.setChecked(AppPreferences.isAutoClearTempFiles(requireContext()));
+        switchVideoFallback.setChecked(AppPreferences.isVideoFallbackCopy(requireContext()));
+
+        updatePreservationTogglesState(switchStrictClean.isChecked());
+
+        switchStrictClean.setOnCheckedChangeListener((btn, isChecked) -> {
+            AppPreferences.setStrictClean(requireContext(), isChecked);
+            updatePreservationTogglesState(isChecked);
+        });
+
+        switchPreserveCamera.setOnCheckedChangeListener((btn, isChecked) ->
+                AppPreferences.setPreserveCameraSettings(requireContext(), isChecked));
+
+        switchPreserveLocation.setOnCheckedChangeListener((btn, isChecked) ->
+                AppPreferences.setPreserveLocation(requireContext(), isChecked));
+
+        switchAutoClearTemp.setOnCheckedChangeListener((btn, isChecked) ->
+                AppPreferences.setAutoClearTempFiles(requireContext(), isChecked));
+
+        switchVideoFallback.setOnCheckedChangeListener((btn, isChecked) ->
+                AppPreferences.setVideoFallbackCopy(requireContext(), isChecked));
+
+        int secureDeleteIndex = switch (AppPreferences.getSecureDeletePasses(requireContext())) {
+            case 1 -> 0;
+            case 7 -> 2;
+            default -> 1;
+        };
+        setupDropdown(dropdownSecureDelete, secureDeleteLabels, secureDeleteIndex, index -> {
+            int passes = switch (index) {
+                case 0 -> 1;
+                case 2 -> 7;
+                default -> 3;
+            };
+            AppPreferences.setSecureDeletePasses(requireContext(), passes);
+        });
+
+        int maxBitmapSizeIndex = switch (AppPreferences.getMaxBitmapSize(requireContext())) {
+            case 2048 -> 0;
+            case 8192 -> 2;
+            default -> 1;
+        };
+        setupDropdown(dropdownMaxBitmapSize, maxBitmapSizeLabels, maxBitmapSizeIndex, index -> {
+            int size = switch (index) {
+                case 0 -> 2048;
+                case 2 -> 8192;
+                default -> 4096;
+            };
+            AppPreferences.setMaxBitmapSize(requireContext(), size);
+        });
+
+        int maxFileSizeIndex = switch (AppPreferences.getMaxImageFileSizeMb(requireContext())) {
+            case 50 -> 0;
+            case 200 -> 2;
+            default -> 1;
+        };
+        setupDropdown(dropdownMaxFileSize, maxFileSizeLabels, maxFileSizeIndex, index -> {
+            int mb = switch (index) {
+                case 0 -> 50;
+                case 2 -> 200;
+                default -> 100;
+            };
+            AppPreferences.setMaxImageFileSizeMb(requireContext(), mb);
+        });
+    }
+
+    private void updatePreservationTogglesState(boolean strictClean) {
+        boolean enabled = !strictClean;
+        float alpha = enabled ? 1f : 0.38f;
+        
+        switchPreserveCamera.setEnabled(enabled);
+        switchPreserveLocation.setEnabled(enabled);
+        
+        View rowCamera = getView().findViewById(R.id.rowPreserveCamera);
+        if (rowCamera != null) rowCamera.setAlpha(alpha);
+        
+        View rowLocation = getView().findViewById(R.id.rowPreserveLocation);
+        if (rowLocation != null) rowLocation.setAlpha(alpha);
+        
+        if (strictClean) {
+            switchPreserveCamera.setChecked(false);
+            switchPreserveLocation.setChecked(false);
+        }
     }
 
     private void bindConversionDefaults() {

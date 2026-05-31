@@ -96,9 +96,9 @@ public class MediaProcessor {
         }
         new Thread(() -> {
             ITransaction transaction = SentryManager.startTransaction("clean_multiple", "task");
+            int successCount = 0;
             try {
                 int totalItems = items.size();
-                int successCount = 0;
 
                 for (int index = 0; index < totalItems; index++) {
                     MediaItem item = items.get(index);
@@ -164,10 +164,12 @@ public class MediaProcessor {
                         span.finish();
                     }
                 }
-
+            } catch (Exception e) {
+                Log.e(TAG, "Error in processMediaItems thread", e);
+                SentryManager.recordException(e);
+            } finally {
                 final int finalSuccessCount = successCount;
                 activity.runOnUiThread(() -> callback.onComplete(finalSuccessCount));
-            } finally {
                 processing.set(false);
                 transaction.finish();
             }

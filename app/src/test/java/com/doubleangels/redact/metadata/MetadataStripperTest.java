@@ -1446,8 +1446,8 @@ public class MetadataStripperTest {
 
         // Pre-create the temp file path as a directory to make secureDeleteFile return false (not a file).
         long now = System.currentTimeMillis();
-        for (int i = 0; i < 75; i++) {
-            File candidate = new File(context.getExternalCacheDir(), "temp_" + (now + i) + ".jpg");
+        for (int i = 0; i < 2000; i++) {
+            File candidate = new File(context.getCacheDir(), "temp_" + (now + i) + ".jpg");
             // Best-effort; only one of these needs to match the method's timestamp.
             candidate.mkdirs();
         }
@@ -2094,6 +2094,80 @@ public class MetadataStripperTest {
         return Arrays.stream(files)
                 .max(Comparator.comparingLong(File::lastModified))
                 .orElse(null);
+    }
+
+    @Test
+    public void getTagsToPreserve_strictClean_overridesOtherPreservation() throws Exception {
+        com.doubleangels.redact.AppPreferences.setStrictClean(context, true);
+        com.doubleangels.redact.AppPreferences.setPreserveCameraSettings(context, true);
+        com.doubleangels.redact.AppPreferences.setPreserveLocation(context, true);
+
+        Method m = MetadataStripper.class.getDeclaredMethod("getTagsToPreserve");
+        m.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        List<String> tags = (List<String>) m.invoke(stripper);
+
+        assertEquals(0, tags.size());
+    }
+
+    @Test
+    public void getTagsToPreserve_preserveCameraSettings_includesCameraTags() throws Exception {
+        com.doubleangels.redact.AppPreferences.setStrictClean(context, false);
+        com.doubleangels.redact.AppPreferences.setPreserveCameraSettings(context, true);
+        com.doubleangels.redact.AppPreferences.setPreserveLocation(context, false);
+
+        Method m = MetadataStripper.class.getDeclaredMethod("getTagsToPreserve");
+        m.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        List<String> tags = (List<String>) m.invoke(stripper);
+
+        assertTrue(tags.contains(ExifInterface.TAG_MAKE));
+        assertTrue(tags.contains(ExifInterface.TAG_MODEL));
+        assertTrue(tags.contains(ExifInterface.TAG_ISO_SPEED));
+        assertFalse(tags.contains(ExifInterface.TAG_GPS_LATITUDE));
+    }
+
+    @Test
+    public void getTagsToPreserve_preserveLocation_includesGpsTags() throws Exception {
+        com.doubleangels.redact.AppPreferences.setStrictClean(context, false);
+        com.doubleangels.redact.AppPreferences.setPreserveCameraSettings(context, false);
+        com.doubleangels.redact.AppPreferences.setPreserveLocation(context, true);
+
+        Method m = MetadataStripper.class.getDeclaredMethod("getTagsToPreserve");
+        m.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        List<String> tags = (List<String>) m.invoke(stripper);
+
+        assertTrue(tags.contains(ExifInterface.TAG_GPS_LATITUDE));
+        assertTrue(tags.contains(ExifInterface.TAG_GPS_LONGITUDE));
+        assertFalse(tags.contains(ExifInterface.TAG_MAKE));
+    }
+
+    @Test
+    public void secureDeleteFile_usesDynamicPassCount() throws Exception {
+        com.doubleangels.redact.AppPreferences.setSecureDeletePasses(context, 5);
+        File testFile = createBinaryFixture("secure_delete_dynamic.bin", "erase-me");
+        
+        Method m = MetadataStripper.class.getDeclaredMethod("secureDeleteFile", File.class);
+        m.setAccessible(true);
+        boolean result = (boolean) m.invoke(stripper, testFile);
+
+        assertTrue(result);
+        assertFalse(testFile.exists());
+    }
+
+    @Test
+    public void isFileTooLarge_respectsDynamicLimit() throws Exception {
+        com.doubleangels.redact.AppPreferences.setMaxImageFileSizeMb(context, 10);
+        assertEquals(10L, stripper.getMaxFileSizeMB());
+
+        long bytes11MB = 11L * 1024L * 1024L;
+        File oversized = createSparseFixture("dynamic_oversized.jpg", bytes11MB);
+        assertTrue(stripper.isFileTooLarge(Uri.fromFile(oversized)));
+
+        long bytes9MB = 9L * 1024L * 1024L;
+        File withinLimit = createSparseFixture("dynamic_valid.jpg", bytes9MB);
+        assertFalse(stripper.isFileTooLarge(Uri.fromFile(withinLimit)));
     }
 
     private ContentResolver createMediaStoreResolver(

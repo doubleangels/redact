@@ -35,6 +35,15 @@ public class AppPreferencesTest {
         assertEquals(AppPreferences.FORMAT_INDEX_JPEG_H264, AppPreferences.getDefaultVideoFormatIndex(context));
         assertEquals(AppPreferences.QUALITY_PRESET_HIGH, AppPreferences.getImageQualityPreset(context));
         assertFalse(AppPreferences.isShareConfirmBeforeStrip(context));
+        
+        // Advanced Settings defaults
+        assertEquals(3, AppPreferences.getSecureDeletePasses(context));
+        assertEquals(4096, AppPreferences.getMaxBitmapSize(context));
+        assertEquals(100, AppPreferences.getMaxImageFileSizeMb(context));
+        assertFalse(AppPreferences.isAutoClearTempFiles(context));
+        assertFalse(AppPreferences.isStrictClean(context));
+        assertFalse(AppPreferences.isPreserveLocation(context));
+        assertFalse(AppPreferences.isPreserveCameraSettings(context));
     }
 
     @Test
@@ -52,6 +61,25 @@ public class AppPreferencesTest {
         assertFalse(AppPreferences.areProgressNotificationsEnabled(context));
         assertTrue(AppPreferences.isCrashReportingEnabled(context));
         assertTrue(AppPreferences.isShareConfirmBeforeStrip(context));
+    }
+
+    @Test
+    public void advancedPrefsRoundTrip() {
+        AppPreferences.setSecureDeletePasses(context, 7);
+        AppPreferences.setMaxBitmapSize(context, 4096);
+        AppPreferences.setMaxImageFileSizeMb(context, 50);
+        AppPreferences.setAutoClearTempFiles(context, true);
+        AppPreferences.setStrictClean(context, true);
+        AppPreferences.setPreserveLocation(context, true);
+        AppPreferences.setPreserveCameraSettings(context, true);
+
+        assertEquals(7, AppPreferences.getSecureDeletePasses(context));
+        assertEquals(4096, AppPreferences.getMaxBitmapSize(context));
+        assertEquals(50, AppPreferences.getMaxImageFileSizeMb(context));
+        assertTrue(AppPreferences.isAutoClearTempFiles(context));
+        assertTrue(AppPreferences.isStrictClean(context));
+        assertTrue(AppPreferences.isPreserveLocation(context));
+        assertTrue(AppPreferences.isPreserveCameraSettings(context));
     }
 
     @Test

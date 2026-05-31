@@ -47,6 +47,10 @@ public class MainActivity extends AppCompatActivity {
 
             SentryManager.logEvent("lifecycle", "MainActivity created");
 
+            if (AppPreferences.isAutoClearTempFiles(this)) {
+                com.doubleangels.redact.CacheCleanup.clearAllTempFiles(this);
+            }
+
             if (savedInstanceState == null) {
                 getSupportFragmentManager().beginTransaction()
                         .add(R.id.fragment_container, new CleanFragment(), TAG_CLEAN)

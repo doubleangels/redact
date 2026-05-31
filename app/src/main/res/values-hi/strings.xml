@@ -3,7 +3,6 @@
     <string name="app_name">Redact</string>
 
     <!-- Content descriptions -->
-    <string name="content_description_media_thumbnail">मीडिया थंबनेल</string>
     <string name="content_description_image_view">छवि दृश्य</string>
     <string name="content_description_scroll_view">स्क्रॉल दृश्य</string>
 
@@ -26,7 +25,6 @@
     <string name="navigation_convert">बदलें</string>
 
     <!-- Convert tab -->
-    <string name="convert_subtitle">चित्र: JPEG, PNG, WebP, या HEIC (Android 14+) Pictures/Redact में। वीडियो: MP4, WebM, या MKV Movies/Redact में। HEIC विकल्प पुराने उपकरणों पर छिपा हुआ है।</string>
     <string name="convert_output_format_images">छवि प्रारूप</string>
     <string name="convert_output_format_videos">वीडियो कोडेक</string>
     <string name="convert_output_format_mixed">प्रारूप (छवि / वीडियो)</string>
@@ -63,49 +61,34 @@
 
     <!-- Status and progress messages -->
     <string name="status_processing">प्रसंस्करण…</string>
-    <string name="status_processed_items">%1$d आइटम प्रसंस्कृत!</string>
-    <string name="status_selected_items">चयनित: %1$d आइटम</string>
-    <string name="status_first_select_media_files">कृपया पहले मीडिया फ़ाइलें चुनें!</string>
-    <string name="status_ready">चित्र/वीडियो चुनने के लिए तैयार!</string>
-    <string name="status_permissions_required">अनुमतियां आवश्यक!</string>
+    <string name="status_processed_items">%1$d आइटम प्रसंस्कृत।</string>
+    <string name="status_first_select_media_files">कृपया पहले मीडिया फ़ाइलें चुनें।</string>
+    <string name="status_permissions_required">अनुमतियां आवश्यक।</string>
     <string name="status_requesting_permissions">अनुमतियां अनुरोध कर रहे हैं…</string>
-    <string name="status_select_media_files">मेटाडेटा हटाने के लिए मीडिया चुनें!</string>
     <string name="status_analyzing">मेटाडेटा विश्लेषण कर रहे हैं…</string>
-    <string name="status_select_item">मेटाडेटा देखने के लिए एक छवि या वीडियो चुनें!</string>
-    <string name="status_extraction_complete">मेटाडेटा निष्कर्षण पूर्ण!</string>
-    <string name="status_extraction_media_fail">मीडिया फ़ाइल प्रसंस्करण त्रुटि!</string>
-    <string name="status_extraction_fail">मेटाडेटा निष्कर्षण त्रुटि!</string>
+    <string name="status_extraction_complete">मेटाडेटा निष्कर्षण पूर्ण।</string>
+    <string name="status_extraction_media_fail">मीडिया फ़ाइल प्रसंस्करण त्रुटि।</string>
+    <string name="status_extraction_fail">मेटाडेटा निष्कर्षण त्रुटि।</string>
     <string name="status_extracting_media">वीडियो मेटाडेटा निष्कर्षण कर रहे हैं…</string>
     <string name="status_extracting_image">छवि मेटाडेटा निष्कर्षण कर रहे हैं…</string>
-    <string name="status_media_picker_fail">मीडिया पिकर खोलने में त्रुटि!</string>
-    <string name="status_media_uri_fail">मीडिया URI प्राप्त नहीं कर सका!</string>
-    <string name="status_storage_permissions_required">भंडारण अनुमतियां आवश्यक!</string>
+    <string name="status_media_picker_fail">मीडिया पिकर खोलने में त्रुटि।</string>
+    <string name="status_media_uri_fail">मीडिया URI प्राप्त नहीं कर सका।</string>
+    <string name="status_storage_permissions_required">भंडारण अनुमतियां आवश्यक।</string>
 
     <!-- Share processing strings -->
     <string name="share_processing_title">प्रसंस्करण…</string>
-    <string name="share_stripping_status">मेटाडेटा हटा रहे हैं…</string>
     <string name="share_chooser_title">साफ मीडिया फ़ाइल साझा करें…</string>
-    <string name="share_error_unsupported_media">असमर्थित मीडिया प्रकार!</string>
-    <string name="share_error_unsupported_action">असमर्थित क्रिया!</string>
-    <string name="share_error_receive_failed">मीडिया प्राप्त करने में विफल!</string>
-    <string name="share_error_processing_failed">प्रसंस्करण विफल!</string>
+    <string name="share_error_unsupported_media">असमर्थित मीडिया प्रकार।</string>
+    <string name="share_error_unsupported_action">असमर्थित क्रिया।</string>
 
     <!-- Scan section strings -->
-    <string name="scan_activity_title">ScanActivity</string>
     <string name="scan_metadata">मेटाडेटा</string>
-    <string name="scan_basic_information">मूल जानकारी</string>
-    <string name="scan_camera_details">कैमरा विवरण</string>
     <string name="scan_location_information">स्थान जानकारी</string>
-    <string name="scan_technical_details">तकनीकी विवरण</string>
     <string name="scan_location_permission_missing">यदि आप स्थान अनुमति प्रदान करते हैं तो स्थान डेटा उपलब्ध हो सकता है।</string>
-    <string name="scan_metadata_with_location_permission">%1$s\n%2$s</string>
-    <string name="scan_extraction_fail">मेटाडेटा निष्कर्षण विफल!</string>
+    <string name="scan_extraction_fail">मेटाडेटा निष्कर्षण विफल।</string>
 
     <!-- Metadata output strings -->
     <!-- Basic File Information -->
-    <string name="metadata_file_name">फ़ाइल नाम: %s</string>
-    <string name="metadata_file_size">फ़ाइल आकार: %s</string>
-    <string name="metadata_mime_type">MIME प्रकार: %s</string>
     <string name="metadata_unknown">अज्ञात</string>
     <string name="metadata_size_bytes">B</string>
     <string name="metadata_size_kb">KB</string>
@@ -152,12 +135,6 @@
     <string name="metadata_sample_rate">सैंपल रेट: %s Hz</string>
 
     <!-- Additional Sectioned Metadata Strings -->
-    <string name="metadata_no_image_location_data">इस छवि में कोई स्थान डेटा उपलब्ध नहीं है।</string>
-    <string name="metadata_no_video_location_data">इस वीडियो में कोई स्थान डेटा उपलब्ध नहीं है।</string>
-    <string name="metadata_location_permission_needed_full">स्थान अनुमति प्रदान नहीं की गई। सभी स्थान डेटा देखने के लिए अनुमति प्रदान करें।</string>
-    <string name="metadata_software">सॉफ़्टवेयर: %s</string>
-    <string name="metadata_focal_length">फोकल लंबाई: %s mm</string>
-    <string name="metadata_digital_zoom">डिजिटल ज़ूम: %sx</string>
 
     <!-- Orientation Strings -->
     <string name="metadata_orientation_normal">सामान्य</string>
@@ -203,7 +180,7 @@
     <string name="settings_notifications_convert_subtitle">वीडियो या चित्र रूपांतरण पूरा होने पर मुझे सूचित करें।</string>
     <string name="settings_section_privacy">गोपनीयता</string>
     <string name="settings_crash_reporting_label">Redact को बेहतर बनाएं</string>
-    <string name="settings_crash_reporting_subtitle">वैकल्पिक रूप से इंटरनेट पर अनाम क्रैश रिपोर्ट भेजता है (Sentry)। आपकी तस्वीरें और वीडियो कभी अपलोड नहीं होते—केवल तकनीकी निदान। कभी भी बंद कर सकते हैं।</string>
+    <string name="settings_crash_reporting_subtitle">वैकल्पिक रूप से इंटरनेट पर अनाम क्रैश रिपोर्ट भेजता है (Sentry)। आपकी तस्वीरें और वीडियो कभी अपलोड नहीं होते - केवल तकनीकी निदान। कभी भी बंद कर सकते हैं।</string>
     <string name="settings_section_conversion">रूपांतरण डिफ़ॉल्ट सेटिंग</string>
     <string name="settings_conversion_subtitle">बदलें टैब पर फ़ाइलें चुनने पर लागू होता है।</string>
     <string name="settings_default_image_format">डिफ़ॉल्ट छवि प्रारूप</string>
@@ -223,7 +200,6 @@
     <string name="settings_section_permissions">अनुमतियाँ</string>
     <string name="settings_permissions_subtitle">यदि किसी सुविधा को ज़रूरत हो तो Android सिस्टम सेटिंग में अनुमतियाँ दें।</string>
     <string name="settings_permissions_media">मीडिया एक्सेस</string>
-    <string name="settings_permissions_location">मीडिया स्थान</string>
     <string name="settings_permissions_notifications">सूचनाएँ</string>
     <string name="settings_permission_granted">दी गई</string>
     <string name="settings_permission_denied">अस्वीकृत</string>

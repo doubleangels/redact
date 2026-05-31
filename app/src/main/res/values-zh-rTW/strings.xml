@@ -3,7 +3,6 @@
     <string name="app_name">Redact</string>
 
     <!-- Content descriptions -->
-    <string name="content_description_media_thumbnail">媒體縮圖</string>
     <string name="content_description_image_view">圖片檢視</string>
     <string name="content_description_scroll_view">捲動檢視</string>
 
@@ -26,7 +25,6 @@
     <string name="navigation_convert">轉換</string>
 
     <!-- Convert tab -->
-    <string name="convert_subtitle">圖片：將 JPEG、PNG、WebP 或 HEIC（Android 14+）儲存到 Pictures/Redact。影片：將 MP4、WebM 或 MKV 儲存到 Movies/Redact。舊裝置上會隱藏 HEIC 選項。</string>
     <string name="convert_output_format_images">圖片格式</string>
     <string name="convert_output_format_videos">影片編碼</string>
     <string name="convert_output_format_mixed">格式（圖片/影片）</string>
@@ -64,14 +62,10 @@
     <!-- Status and progress messages -->
     <string name="status_processing">處理中…</string>
     <string name="status_processed_items">已處理 %1$d 個項目！</string>
-    <string name="status_selected_items">已選擇：%1$d 個項目</string>
     <string name="status_first_select_media_files">請先選擇媒體檔案！</string>
-    <string name="status_ready">準備選擇圖片/影片！</string>
     <string name="status_permissions_required">需要權限！</string>
     <string name="status_requesting_permissions">正在請求權限…</string>
-    <string name="status_select_media_files">選擇媒體以移除中繼資料！</string>
     <string name="status_analyzing">正在分析中繼資料…</string>
-    <string name="status_select_item">選擇圖片或影片以檢視中繼資料！</string>
     <string name="status_extraction_complete">中繼資料擷取完成！</string>
     <string name="status_extraction_media_fail">處理媒體檔案時發生錯誤！</string>
     <string name="status_extraction_fail">擷取中繼資料時發生錯誤！</string>
@@ -83,29 +77,18 @@
 
     <!-- Share processing strings -->
     <string name="share_processing_title">處理中…</string>
-    <string name="share_stripping_status">正在移除中繼資料…</string>
     <string name="share_chooser_title">透過…分享清理後的媒體檔案</string>
     <string name="share_error_unsupported_media">不支援的媒體類型！</string>
     <string name="share_error_unsupported_action">不支援的動作！</string>
-    <string name="share_error_receive_failed">接收媒體失敗！</string>
-    <string name="share_error_processing_failed">處理失敗！</string>
 
     <!-- Scan section strings -->
-    <string name="scan_activity_title">ScanActivity</string>
     <string name="scan_metadata">中繼資料</string>
-    <string name="scan_basic_information">基本資訊</string>
-    <string name="scan_camera_details">相機詳細資訊</string>
     <string name="scan_location_information">位置資訊</string>
-    <string name="scan_technical_details">技術詳細資訊</string>
     <string name="scan_location_permission_missing">如果您授予位置權限，位置資料可能會可用。</string>
-    <string name="scan_metadata_with_location_permission">%1$s\n%2$s</string>
     <string name="scan_extraction_fail">擷取中繼資料失敗！</string>
 
     <!-- Metadata output strings -->
     <!-- Basic File Information -->
-    <string name="metadata_file_name">檔案名稱：%s</string>
-    <string name="metadata_file_size">檔案大小：%s</string>
-    <string name="metadata_mime_type">MIME 類型：%s</string>
     <string name="metadata_unknown">未知</string>
     <string name="metadata_size_bytes">B</string>
     <string name="metadata_size_kb">KB</string>
@@ -152,12 +135,6 @@
     <string name="metadata_sample_rate">取樣率：%s Hz</string>
 
     <!-- Additional Sectioned Metadata Strings -->
-    <string name="metadata_no_image_location_data">此圖片中無位置資料。</string>
-    <string name="metadata_no_video_location_data">此影片中無位置資料。</string>
-    <string name="metadata_location_permission_needed_full">未授予位置權限。授予權限以檢視所有位置資料。</string>
-    <string name="metadata_software">軟體：%s</string>
-    <string name="metadata_focal_length">焦距：%s mm</string>
-    <string name="metadata_digital_zoom">數位變焦：%sx</string>
 
     <!-- Orientation Strings -->
     <string name="metadata_orientation_normal">正常</string>
@@ -203,7 +180,7 @@
     <string name="settings_notifications_convert_subtitle">在影片或圖片檔案轉換完成時通知我。</string>
     <string name="settings_section_privacy">隱私</string>
     <string name="settings_crash_reporting_label">改善 Redact</string>
-    <string name="settings_crash_reporting_subtitle">可選透過網際網路傳送匿名當機報告（Sentry）。您的相片與影片絕不會上傳—僅傳送技術診斷資訊。可隨時關閉。</string>
+    <string name="settings_crash_reporting_subtitle">可選透過網際網路傳送匿名當機報告（Sentry）。您的相片與影片絕不會上傳 - 僅傳送技術診斷資訊。可隨時關閉。</string>
     <string name="settings_section_conversion">轉換預設設定</string>
     <string name="settings_conversion_subtitle">在「轉換」分頁選取檔案時套用。</string>
     <string name="settings_default_image_format">預設圖片格式</string>
@@ -223,7 +200,6 @@
     <string name="settings_section_permissions">權限</string>
     <string name="settings_permissions_subtitle">若功能需要，請在 Android 系統設定中授予權限。</string>
     <string name="settings_permissions_media">媒體存取</string>
-    <string name="settings_permissions_location">媒體位置</string>
     <string name="settings_permissions_notifications">通知</string>
     <string name="settings_permission_granted">已授予</string>
     <string name="settings_permission_denied">已拒絕</string>

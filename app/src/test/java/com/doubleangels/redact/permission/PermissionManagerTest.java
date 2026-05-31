@@ -616,17 +616,14 @@ public class PermissionManagerTest {
 
     @Test
     @Config(sdk = 32)
-    public void handlePermissionResult_storageDeniedPermanent_launchesSettings() {
+    public void handlePermissionResult_storageDeniedPermanent_gracefulDenial() {
         PermissionManager manager = createManager();
-        AtomicReference<View.OnClickListener> actionListener = new AtomicReference<>();
         AtomicReference<String[]> requestedPermissions = new AtomicReference<>();
 
-        try (MockedStatic<ActivityCompat> activityCompat = mockStatic(ActivityCompat.class);
-             MockedStatic<Snackbar> snackbarStatic = mockStatic(Snackbar.class)) {
+        try (MockedStatic<ActivityCompat> activityCompat = mockStatic(ActivityCompat.class)) {
             activityCompat.when(() -> ActivityCompat.shouldShowRequestPermissionRationale(activity,
                     Manifest.permission.READ_EXTERNAL_STORAGE)).thenReturn(false);
             capturePermissionRequest(activityCompat, requestedPermissions, new AtomicInteger(-1));
-            mockSnackbar(snackbarStatic, actionListener);
 
             manager.requestStoragePermission();
             manager.handlePermissionResult(manager.getPermissionRequestCode(),
@@ -634,16 +631,7 @@ public class PermissionManagerTest {
                     new int[]{PackageManager.PERMISSION_DENIED});
 
             verify(callback).onPermissionsDenied();
-            assertNotNull(actionListener.get());
-
-            actionListener.get().onClick(rootView);
         }
-
-        ArgumentCaptor<Intent> intentCaptor = ArgumentCaptor.forClass(Intent.class);
-        verify(settingsLauncher).launch(intentCaptor.capture());
-        assertEquals(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, intentCaptor.getValue().getAction());
-        assertEquals(Uri.fromParts("package", activity.getPackageName(), null),
-                intentCaptor.getValue().getData());
     }
 
     @Test
@@ -690,17 +678,14 @@ public class PermissionManagerTest {
 
     @Test
     @Config(sdk = 34)
-    public void handlePermissionResult_locationDeniedPermanent_launchesSettings() {
+    public void handlePermissionResult_locationDeniedPermanent_gracefulDenial() {
         PermissionManager manager = createManager();
-        AtomicReference<View.OnClickListener> actionListener = new AtomicReference<>();
         AtomicReference<String[]> requestedPermissions = new AtomicReference<>();
 
-        try (MockedStatic<ActivityCompat> activityCompat = mockStatic(ActivityCompat.class);
-             MockedStatic<Snackbar> snackbarStatic = mockStatic(Snackbar.class)) {
+        try (MockedStatic<ActivityCompat> activityCompat = mockStatic(ActivityCompat.class)) {
             activityCompat.when(() -> ActivityCompat.shouldShowRequestPermissionRationale(activity,
                     Manifest.permission.ACCESS_MEDIA_LOCATION)).thenReturn(false);
             capturePermissionRequest(activityCompat, requestedPermissions, new AtomicInteger(-1));
-            mockSnackbar(snackbarStatic, actionListener);
 
             manager.requestLocationPermission();
             manager.handlePermissionResult(manager.getLocationPermissionRequestCode(),
@@ -708,16 +693,7 @@ public class PermissionManagerTest {
                     new int[]{PackageManager.PERMISSION_DENIED});
 
             verify(callback).onLocationPermissionDenied();
-            assertNotNull(actionListener.get());
-
-            actionListener.get().onClick(rootView);
         }
-
-        ArgumentCaptor<Intent> intentCaptor = ArgumentCaptor.forClass(Intent.class);
-        verify(settingsLauncher).launch(intentCaptor.capture());
-        assertEquals(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, intentCaptor.getValue().getAction());
-        assertEquals(Uri.fromParts("package", activity.getPackageName(), null),
-                intentCaptor.getValue().getData());
     }
 
     @Test

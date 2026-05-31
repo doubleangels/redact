@@ -3,7 +3,6 @@
     <string name="app_name">Redact</string>
 
     <!-- Content descriptions -->
-    <string name="content_description_media_thumbnail">صورة مصغرة للوسائط</string>
     <string name="content_description_image_view">عرض الصورة</string>
     <string name="content_description_scroll_view">عرض التمرير</string>
 
@@ -26,7 +25,6 @@
     <string name="navigation_convert">تحويل</string>
 
     <!-- Convert tab -->
-    <string name="convert_subtitle">الصور: JPEG أو PNG أو WebP أو HEIC (أندرويد 14+) إلى Pictures/Redact. مقاطع الفيديو: MP4 أو WebM أو MKV إلى Movies/Redact. خيار HEIC مخفي على الأجهزة القديمة.</string>
     <string name="convert_output_format_images">تنسيق الصورة</string>
     <string name="convert_output_format_videos">ترميز الفيديو</string>
     <string name="convert_output_format_mixed">التنسيقات (صورة / فيديو)</string>
@@ -63,49 +61,34 @@
 
     <!-- Status and progress messages -->
     <string name="status_processing">جاري المعالجة…</string>
-    <string name="status_processed_items">تمت معالجة %1$d عنصر!</string>
-    <string name="status_selected_items">المحدد: %1$d عنصر</string>
-    <string name="status_first_select_media_files">يرجى تحديد ملفات الوسائط أولاً!</string>
-    <string name="status_ready">جاهز لتحديد الصور/مقاطع الفيديو!</string>
-    <string name="status_permissions_required">الأذونات مطلوبة!</string>
+    <string name="status_processed_items">تمت معالجة %1$d عنصر.</string>
+    <string name="status_first_select_media_files">يرجى تحديد ملفات الوسائط أولاً.</string>
+    <string name="status_permissions_required">الأذونات مطلوبة.</string>
     <string name="status_requesting_permissions">جاري طلب الأذونات…</string>
-    <string name="status_select_media_files">حدد الوسائط لإزالة البيانات الوصفية!</string>
     <string name="status_analyzing">جاري تحليل البيانات الوصفية…</string>
-    <string name="status_select_item">حدد صورة أو فيديو لعرض البيانات الوصفية!</string>
-    <string name="status_extraction_complete">اكتمل استخراج البيانات الوصفية!</string>
-    <string name="status_extraction_media_fail">خطأ في معالجة ملف الوسائط!</string>
-    <string name="status_extraction_fail">خطأ في استخراج البيانات الوصفية!</string>
+    <string name="status_extraction_complete">اكتمل استخراج البيانات الوصفية.</string>
+    <string name="status_extraction_media_fail">خطأ في معالجة ملف الوسائط.</string>
+    <string name="status_extraction_fail">خطأ في استخراج البيانات الوصفية.</string>
     <string name="status_extracting_media">جاري استخراج بيانات الفيديو الوصفية…</string>
     <string name="status_extracting_image">جاري استخراج بيانات الصورة الوصفية…</string>
-    <string name="status_media_picker_fail">خطأ في فتح منتقي الوسائط!</string>
-    <string name="status_media_uri_fail">تعذر الحصول على URI الوسائط!</string>
-    <string name="status_storage_permissions_required">أذونات التخزين مطلوبة!</string>
+    <string name="status_media_picker_fail">خطأ في فتح منتقي الوسائط.</string>
+    <string name="status_media_uri_fail">تعذر الحصول على URI الوسائط.</string>
+    <string name="status_storage_permissions_required">أذونات التخزين مطلوبة.</string>
 
     <!-- Share processing strings -->
     <string name="share_processing_title">جاري المعالجة…</string>
-    <string name="share_stripping_status">جاري إزالة البيانات الوصفية…</string>
     <string name="share_chooser_title">مشاركة ملف الوسائط النظيف عبر…</string>
-    <string name="share_error_unsupported_media">نوع الوسائط غير مدعوم!</string>
-    <string name="share_error_unsupported_action">الإجراء غير مدعوم!</string>
-    <string name="share_error_receive_failed">فشل استقبال الوسائط!</string>
-    <string name="share_error_processing_failed">فشلت المعالجة!</string>
+    <string name="share_error_unsupported_media">نوع الوسائط غير مدعوم.</string>
+    <string name="share_error_unsupported_action">الإجراء غير مدعوم.</string>
 
     <!-- Scan section strings -->
-    <string name="scan_activity_title">ScanActivity</string>
     <string name="scan_metadata">البيانات الوصفية</string>
-    <string name="scan_basic_information">المعلومات الأساسية</string>
-    <string name="scan_camera_details">تفاصيل الكاميرا</string>
     <string name="scan_location_information">معلومات الموقع</string>
-    <string name="scan_technical_details">التفاصيل التقنية</string>
     <string name="scan_location_permission_missing">قد تكون بيانات الموقع متاحة إذا منحت إذن الموقع.</string>
-    <string name="scan_metadata_with_location_permission">%1$s\n%2$s</string>
-    <string name="scan_extraction_fail">فشل استخراج البيانات الوصفية!</string>
+    <string name="scan_extraction_fail">فشل استخراج البيانات الوصفية.</string>
 
     <!-- Metadata output strings -->
     <!-- Basic File Information -->
-    <string name="metadata_file_name">اسم الملف: %s</string>
-    <string name="metadata_file_size">حجم الملف: %s</string>
-    <string name="metadata_mime_type">نوع MIME: %s</string>
     <string name="metadata_unknown">غير معروف</string>
     <string name="metadata_size_bytes">ب</string>
     <string name="metadata_size_kb">كيلوبايت</string>
@@ -152,12 +135,6 @@
     <string name="metadata_sample_rate">معدل العينة: %s هرتز</string>
 
     <!-- Additional Sectioned Metadata Strings -->
-    <string name="metadata_no_image_location_data">لا توجد بيانات موقع متاحة في هذه الصورة.</string>
-    <string name="metadata_no_video_location_data">لا توجد بيانات موقع متاحة في هذا الفيديو.</string>
-    <string name="metadata_location_permission_needed_full">لم يتم منح إذن الموقع. امنح الإذن لعرض جميع بيانات الموقع.</string>
-    <string name="metadata_software">البرنامج: %s</string>
-    <string name="metadata_focal_length">البعد البؤري: %s مم</string>
-    <string name="metadata_digital_zoom">التكبير الرقمي: %sx</string>
 
     <!-- Orientation Strings -->
     <string name="metadata_orientation_normal">عادي</string>
@@ -203,7 +180,7 @@
     <string name="settings_notifications_convert_subtitle">أعلمني عند اكتمال تحويل ملف الفيديو أو الصورة.</string>
     <string name="settings_section_privacy">الخصوصية</string>
     <string name="settings_crash_reporting_label">تحسين Redact</string>
-    <string name="settings_crash_reporting_subtitle">يرسل اختياريا تقارير أعطال مجهولة عبر الإنترنت (Sentry). لا يتم تحميل صورك أو مقاطع الفيديو—فقط بيانات تشخيص تقنية. يمكنك إيقافه في أي وقت.</string>
+    <string name="settings_crash_reporting_subtitle">يرسل اختياريا تقارير أعطال مجهولة عبر الإنترنت (Sentry). لا يتم تحميل صورك أو مقاطع الفيديو - فقط بيانات تشخيص تقنية. يمكنك إيقافه في أي وقت.</string>
     <string name="settings_section_conversion">إعدادات التحويل الافتراضية</string>
     <string name="settings_conversion_subtitle">تُطبَّق عند اختيار الملفات في تبويب تحويل.</string>
     <string name="settings_default_image_format">تنسيق الصورة الافتراضي</string>
@@ -223,7 +200,6 @@
     <string name="settings_section_permissions">الأذونات</string>
     <string name="settings_permissions_subtitle">امنح الأذونات في إعدادات نظام Android إذا احتاجت ميزة إليها.</string>
     <string name="settings_permissions_media">الوصول إلى الوسائط</string>
-    <string name="settings_permissions_location">موقع الوسائط</string>
     <string name="settings_permissions_notifications">الإشعارات</string>
     <string name="settings_permission_granted">ممنوح</string>
     <string name="settings_permission_denied">مرفوض</string>

@@ -294,7 +294,7 @@ public final class FormatConverter {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && isHeicFormat(format)) {
             return bitmap.compress(format, q, os);
         }
-        if (format == Bitmap.CompressFormat.WEBP && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        if (format == Bitmap.CompressFormat.WEBP) {
             return bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, q, os);
         }
         return bitmap.compress(format, q, os);
@@ -399,7 +399,7 @@ public final class FormatConverter {
             bitmap = null;
         }
 
-        if (bitmap == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        if (bitmap == null) {
             bitmap = decodeWithImageDecoder(resolver, sourceUri);
         }
         if (bitmap == null) {
@@ -412,9 +412,7 @@ public final class FormatConverter {
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.DISPLAY_NAME, outName);
         values.put(MediaStore.Images.Media.MIME_TYPE, mime);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Redact");
-        }
+        values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Redact");
 
         Uri collection = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         Uri outUri = resolver.insert(collection, values);
@@ -432,7 +430,7 @@ public final class FormatConverter {
             boolean ok;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && isHeicFormat(format)) {
                 ok = bitmap.compress(format, q, os);
-            } else if (format == Bitmap.CompressFormat.WEBP && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            } else if (format == Bitmap.CompressFormat.WEBP) {
                 ok = bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, q, os);
             } else {
                 ok = bitmap.compress(format, q, os);
@@ -449,7 +447,6 @@ public final class FormatConverter {
         return outUri;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.P)
     private static Bitmap decodeWithImageDecoder(ContentResolver resolver, Uri sourceUri)
             throws IOException {
         ImageDecoder.Source source = ImageDecoder.createSource(resolver, sourceUri);

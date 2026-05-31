@@ -3,7 +3,6 @@
     <string name="app_name">Redact</string>
 
     <!-- Content descriptions -->
-    <string name="content_description_media_thumbnail">Medien-Miniaturansicht</string>
     <string name="content_description_image_view">Bildansicht</string>
     <string name="content_description_scroll_view">Scrollansicht</string>
 
@@ -26,7 +25,6 @@
     <string name="navigation_convert">Konvertieren</string>
 
     <!-- Convert tab -->
-    <string name="convert_subtitle">Bilder: JPEG, PNG, WebP oder HEIC (Android 14+) in Pictures/Redact. Videos: MP4, WebM oder MKV in Movies/Redact. Die HEIC-Option ist auf älteren Geräten ausgeblendet.</string>
     <string name="convert_output_format_images">Bildformat</string>
     <string name="convert_output_format_videos">Videocodec</string>
     <string name="convert_output_format_mixed">Formate (Bild / Video)</string>
@@ -63,49 +61,34 @@
 
     <!-- Status and progress messages -->
     <string name="status_processing">Wird verarbeitet…</string>
-    <string name="status_processed_items">%1$d Elemente verarbeitet!</string>
-    <string name="status_selected_items">Ausgewählt: %1$d Elemente</string>
-    <string name="status_first_select_media_files">Bitte wählen Sie zuerst Mediendateien aus!</string>
-    <string name="status_ready">Bereit, Bilder/Videos auszuwählen!</string>
-    <string name="status_permissions_required">Berechtigungen erforderlich!</string>
+    <string name="status_processed_items">%1$d Elemente verarbeitet.</string>
+    <string name="status_first_select_media_files">Bitte wählen Sie zuerst Mediendateien aus.</string>
+    <string name="status_permissions_required">Berechtigungen erforderlich.</string>
     <string name="status_requesting_permissions">Berechtigungen werden angefordert…</string>
-    <string name="status_select_media_files">Wählen Sie Medien aus, um Metadaten zu entfernen!</string>
     <string name="status_analyzing">Metadaten werden analysiert…</string>
-    <string name="status_select_item">Wählen Sie ein Bild oder Video aus, um Metadaten anzuzeigen!</string>
-    <string name="status_extraction_complete">Metadatenextraktion abgeschlossen!</string>
-    <string name="status_extraction_media_fail">Fehler beim Verarbeiten der Mediendatei!</string>
-    <string name="status_extraction_fail">Fehler beim Extrahieren der Metadaten!</string>
+    <string name="status_extraction_complete">Metadatenextraktion abgeschlossen.</string>
+    <string name="status_extraction_media_fail">Fehler beim Verarbeiten der Mediendatei.</string>
+    <string name="status_extraction_fail">Fehler beim Extrahieren der Metadaten.</string>
     <string name="status_extracting_media">Video-Metadaten werden extrahiert…</string>
     <string name="status_extracting_image">Bild-Metadaten werden extrahiert…</string>
-    <string name="status_media_picker_fail">Fehler beim Öffnen des Medienauswahl-Dialogs!</string>
-    <string name="status_media_uri_fail">Medien-URI konnte nicht abgerufen werden!</string>
-    <string name="status_storage_permissions_required">Speicherberechtigungen erforderlich!</string>
+    <string name="status_media_picker_fail">Fehler beim Öffnen des Medienauswahl-Dialogs.</string>
+    <string name="status_media_uri_fail">Medien-URI konnte nicht abgerufen werden.</string>
+    <string name="status_storage_permissions_required">Speicherberechtigungen erforderlich.</string>
 
     <!-- Share processing strings -->
     <string name="share_processing_title">Wird verarbeitet…</string>
-    <string name="share_stripping_status">Metadaten werden entfernt…</string>
     <string name="share_chooser_title">Bereinigte Mediendatei teilen über…</string>
-    <string name="share_error_unsupported_media">Nicht unterstützter Medientyp!</string>
-    <string name="share_error_unsupported_action">Nicht unterstützte Aktion!</string>
-    <string name="share_error_receive_failed">Fehler beim Empfangen der Medien!</string>
-    <string name="share_error_processing_failed">Verarbeitung fehlgeschlagen!</string>
+    <string name="share_error_unsupported_media">Nicht unterstützter Medientyp.</string>
+    <string name="share_error_unsupported_action">Nicht unterstützte Aktion.</string>
 
     <!-- Scan section strings -->
-    <string name="scan_activity_title">ScanActivity</string>
     <string name="scan_metadata">Metadaten</string>
-    <string name="scan_basic_information">Grundinformationen</string>
-    <string name="scan_camera_details">Kameradetails</string>
     <string name="scan_location_information">Standortinformationen</string>
-    <string name="scan_technical_details">Technische Details</string>
     <string name="scan_location_permission_missing">Standortdaten könnten verfügbar sein, wenn Sie die Standortberechtigung erteilen.</string>
-    <string name="scan_metadata_with_location_permission">%1$s\n%2$s</string>
-    <string name="scan_extraction_fail">Fehler beim Extrahieren der Metadaten!</string>
+    <string name="scan_extraction_fail">Fehler beim Extrahieren der Metadaten.</string>
 
     <!-- Metadata output strings -->
     <!-- Basic File Information -->
-    <string name="metadata_file_name">Dateiname: %s</string>
-    <string name="metadata_file_size">Dateigröße: %s</string>
-    <string name="metadata_mime_type">MIME-Typ: %s</string>
     <string name="metadata_unknown">Unbekannt</string>
     <string name="metadata_size_bytes">B</string>
     <string name="metadata_size_kb">KB</string>
@@ -152,12 +135,6 @@
     <string name="metadata_sample_rate">Abtastrate: %s Hz</string>
 
     <!-- Additional Sectioned Metadata Strings -->
-    <string name="metadata_no_image_location_data">Keine Standortdaten in diesem Bild verfügbar.</string>
-    <string name="metadata_no_video_location_data">Keine Standortdaten in diesem Video verfügbar.</string>
-    <string name="metadata_location_permission_needed_full">Standortberechtigung nicht erteilt. Erteilen Sie die Berechtigung, um alle Standortdaten anzuzeigen.</string>
-    <string name="metadata_software">Software: %s</string>
-    <string name="metadata_focal_length">Brennweite: %s mm</string>
-    <string name="metadata_digital_zoom">Digitaler Zoom: %sx</string>
 
     <!-- Orientation Strings -->
     <string name="metadata_orientation_normal">Normal</string>
@@ -203,7 +180,7 @@
     <string name="settings_notifications_convert_subtitle">Benachrichtige mich, wenn die Video- oder Bildkonvertierung abgeschlossen ist.</string>
     <string name="settings_section_privacy">Datenschutz</string>
     <string name="settings_crash_reporting_label">Redact verbessern</string>
-    <string name="settings_crash_reporting_subtitle">Sendet optional anonymisierte Absturzberichte ueber das Internet (Sentry). Fotos und Videos werden nie hochgeladen—nur technische Diagnosedaten. Jederzeit deaktivierbar.</string>
+    <string name="settings_crash_reporting_subtitle">Sendet optional anonymisierte Absturzberichte ueber das Internet (Sentry). Fotos und Videos werden nie hochgeladen - nur technische Diagnosedaten. Jederzeit deaktivierbar.</string>
     <string name="settings_section_conversion">Konvertierungsstandards</string>
     <string name="settings_conversion_subtitle">Wird angewendet, wenn Sie Dateien auf der Registerkarte Konvertieren auswählen.</string>
     <string name="settings_default_image_format">Standard-Bildformat</string>
@@ -223,7 +200,6 @@
     <string name="settings_section_permissions">Berechtigungen</string>
     <string name="settings_permissions_subtitle">Erteilen Sie Berechtigungen in den Android-Systemeinstellungen, wenn eine Funktion sie benötigt.</string>
     <string name="settings_permissions_media">Medienzugriff</string>
-    <string name="settings_permissions_location">Medienstandort</string>
     <string name="settings_permissions_notifications">Benachrichtigungen</string>
     <string name="settings_permission_granted">Erteilt</string>
     <string name="settings_permission_denied">Verweigert</string>

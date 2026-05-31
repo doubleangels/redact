@@ -1,9 +1,8 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- App name -->
     <string name="app_name">Redact</string>
 
     <!-- Content descriptions -->
-    <string name="content_description_media_thumbnail">Media thumbnail</string>
     <string name="content_description_image_view">Image view</string>
     <string name="content_description_scroll_view">Scroll view</string>
 
@@ -11,12 +10,12 @@
     <string name="notification_channel_tasks_name">Tasks</string>
     <string name="notification_channel_tasks_description">Finished converting and cleaning media</string>
     <string name="notification_convert_title">Conversion Finished</string>
-    <string name="notification_convert_all_succeeded">Saved %1$d file(s) to the gallery.</string>
-    <string name="notification_convert_partial">%1$d succeeded, %2$d failed.</string>
-    <string name="notification_convert_failed">No files could be converted.</string>
+    <string name="notification_convert_all_succeeded" tools:ignore="PluralsCandidate">Saved %1$d file(s) to the gallery.</string>
+    <string name="notification_convert_partial" tools:ignore="PluralsCandidate">%1$d succeeded, %2$d failed.</string>
+    <string name="notification_convert_failed">We couldn\'t convert any files this time.</string>
     <string name="notification_clean_title">Cleaning Finished</string>
-    <string name="notification_clean_body">Processed %1$d file(s).</string>
-    <string name="notification_clean_failed">No files could be cleaned.</string>
+    <string name="notification_clean_body" tools:ignore="PluralsCandidate">Successfully cleaned %1$d file(s).</string>
+    <string name="notification_clean_failed" translatable="false">We couldn\'t clean any files this time.</string>
     <string name="notification_convert_progress_title">Converting Media…</string>
     <string name="notification_clean_progress_title">Cleaning Metadata…</string>
 
@@ -30,8 +29,8 @@
     <string name="settings_section_notifications">Notifications</string>
     <string name="settings_notifications_label">All Notifications</string>
     <string name="settings_notifications_subtitle">Allow Redact to send alerts when cleaning or conversion finishes. Off by default; Android may ask for permission when you turn this on.</string>
-    <string name="settings_notifications_permission_granted">Notifications enabled.</string>
-    <string name="settings_notifications_permission_denied">Notification permission is required to show alerts.</string>
+    <string name="settings_notifications_permission_granted" translatable="false">Notifications enabled.</string>
+    <string name="settings_notifications_permission_denied" translatable="false">Notification permission is required to show alerts.</string>
     <string name="settings_notifications_clean_label">Metadata Cleaning</string>
     <string name="settings_notifications_clean_subtitle">Notify me when EXIF and metadata stripping completes.</string>
     <string name="settings_notifications_convert_label">Format Conversion</string>
@@ -41,10 +40,9 @@
     <string name="settings_crash_reporting_label">Improve Redact</string>
     <string name="settings_crash_reporting_subtitle">Optionally send anonymized crash reports over the internet (via Sentry). Your photos and videos are never uploaded - only technical diagnostics such as app version and stack traces. You can turn this off anytime.</string>
 
-    <string name="settings_section_developer">Developer</string>
-    <string name="settings_wormaceptor_button">Open WormaCeptor</string>
-    <string name="settings_wormaceptor_subtitle">On-device debug tools (debug builds only).</string>
-    <string name="settings_wormaceptor_unavailable">WormaCeptor is not available.</string>
+    <string name="settings_section_developer" translatable="false">Developer</string>
+    <string name="settings_wormaceptor_button" translatable="false">Open WormaCeptor</string>
+    <string name="settings_wormaceptor_subtitle" translatable="false">On-device debug tools (debug builds only).</string>
 
     <string name="settings_section_conversion">Conversion Defaults</string>
     <string name="settings_conversion_subtitle">Applied when you select files on the Convert tab.</string>
@@ -67,7 +65,6 @@
     <string name="settings_section_permissions">Permissions</string>
     <string name="settings_permissions_subtitle">Required for Clean, Convert, and Scan. Tap Open System Settings to grant or change access.</string>
     <string name="settings_permissions_media">Media Access</string>
-    <string name="settings_permissions_location">Media Location</string>
     <string name="settings_permissions_notifications">Notifications</string>
     <string name="settings_permission_granted">Granted</string>
     <string name="settings_permission_denied">Denied</string>
@@ -105,8 +102,7 @@
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
 
     <!-- Convert tab -->
-    <string name="convert_subtitle">Images: JPEG, PNG, WebP, or HEIC (Android 14+) into Pictures/Redact. Videos: MP4, WebM, or MKV into Movies/Redact. GPS location is not copied to converted files. The HEIC option is hidden on older devices.</string>
-    <string name="convert_heic_fallback_jpeg">HEIC output requires Android 14+. Images will be saved as JPEG instead.</string>
+    <string name="convert_heic_fallback_jpeg" translatable="false">HEIC output requires Android 14+. Images will be saved as JPEG instead.</string>
     <string name="convert_output_format_images">Image Format</string>
     <string name="convert_output_format_videos">Video Codec</string>
     <string name="convert_output_format_mixed">Formats (image / video)</string>
@@ -123,7 +119,7 @@
     <string name="convert_run">Convert</string>
     <string name="convert_status_hint">Select images or videos to convert.</string>
     <string name="convert_status_ready">Ready to select images/videos.</string>
-    <string name="convert_selected_count">Selected: %1$d file(s)</string>
+    <string name="convert_selected_count" tools:ignore="PluralsCandidate">Selected: %1$d file(s)</string>
     <string name="convert_nothing_selected">Select at least one image first.</string>
     <string name="convert_progress_item">Converting %1$d of %2$d…</string>
     <string name="convert_progress_detail">%1$d of %2$d · %3$s\n%4$s</string>
@@ -131,8 +127,8 @@
     <string name="convert_encoding_image">Encoding image…</string>
     <string name="progress_transcoding_percent">Transcoding… %1$d%%</string>
     <string name="clean_progress_batch">%1$d of %2$d · %3$s</string>
-    <string name="convert_done_all">Converted %1$d file(s) successfully.</string>
-    <string name="convert_done_partial">Done: %1$d succeeded, %2$d failed.</string>
+    <string name="convert_done_all" tools:ignore="PluralsCandidate">Converted %1$d file(s) successfully.</string>
+    <string name="convert_done_partial" tools:ignore="PluralsCandidate">Done: %1$d succeeded, %2$d failed.</string>
     <string name="convert_done_failed">Conversion failed.</string>
     <string name="convert_saved_to_gallery">Saved to Gallery (Redact folder)</string>
     <string name="convert_clean_tab_hint">Conversion changes format only. To remove metadata from the new files, go to the Clean tab and run them through cleaning.</string>
@@ -143,24 +139,19 @@
 
     <!-- Status and progress messages -->
     <string name="status_processing">Processing…</string>
-    <string name="status_processed_items">Processed %1$d items!</string>
-    <string name="status_selected_items">Selected: %1$d items</string>
-    <string name="status_first_select_media_files">Please select media files first!</string>
-    <string name="status_ready">Ready to select images/videos.</string>
-    <string name="status_permissions_required">Permissions required!</string>
+    <string name="status_processed_items" tools:ignore="PluralsCandidate">Processed %1$d items.</string>
+    <string name="status_first_select_media_files">Please select some media files first.</string>
+    <string name="status_permissions_required">Permission needed to proceed.</string>
     <string name="status_requesting_permissions">Requesting permissions…</string>
-    <string name="status_select_media_files">Select images or videos to strip their metadata!</string>
     <string name="status_analyzing">Analyzing metadata…</string>
-    <string name="status_select_item">Select an image or video to view metadata!</string>
-    <string name="status_extraction_complete">Metadata extraction complete!</string>
-    <string name="status_heic_requires_api_34">HEIC/HEIF images require Android 14 or newer.</string>
-    <string name="status_extraction_media_fail">Error processing media file!</string>
-    <string name="status_extraction_fail">Error extracting metadata!</string>
+    <string name="status_extraction_complete">Metadata extraction is complete.</string>
+    <string name="status_extraction_media_fail">We couldn\'t process this media file.</string>
+    <string name="status_extraction_fail">We couldn\'t retrieve the metadata.</string>
     <string name="status_extracting_media">Extracting video metadata…</string>
     <string name="status_extracting_image">Extracting image metadata…</string>
-    <string name="status_media_picker_fail">Error opening media picker!</string>
-    <string name="status_media_uri_fail">Could not get media URI!</string>
-    <string name="status_storage_permissions_required">Storage permissions required!</string>
+    <string name="status_media_picker_fail">We couldn\'t open the media picker.</string>
+    <string name="status_media_uri_fail">We couldn\'t retrieve the media file location.</string>
+    <string name="status_storage_permissions_required">Storage permission is needed to access your files.</string>
 
     <!-- Permission rationale (runtime prompts) -->
     <string name="permission_rationale_media">Media access is needed to select and process media files.</string>
@@ -175,26 +166,18 @@
 
     <!-- Share processing strings -->
     <string name="share_processing_title">Processing…</string>
-    <string name="share_stripping_status">Stripping metadata…</string>
     <string name="share_chooser_title">Share clean media file via…</string>
-    <string name="share_error_file_too_large">File is too large to process (max 200 MB).</string>
-    <string name="share_error_too_many_items">Too many items (max %1$d at a time).</string>
-    <string name="share_error_unsupported_media">Unsupported media type!</string>
-    <string name="share_error_unsupported_action">Unsupported action!</string>
-    <string name="share_error_receive_failed">Failed to receive media!</string>
-    <string name="share_error_processing_failed">Processing failed!</string>
+    <string name="share_error_file_too_large" translatable="false">File is too large to process (max 200 MB).</string>
+    <string name="share_error_too_many_items" translatable="false">Too many items (max %1$d at a time).</string>
+    <string name="share_error_unsupported_media">This media type isn\'t supported.</string>
+    <string name="share_error_unsupported_action">This action isn\'t supported.</string>
 
     <!-- Scan section strings -->
-    <string name="scan_activity_title">ScanActivity</string>
     <string name="scan_metadata">Metadata</string>
     <string name="scan_metadata_subtitle">Detected fields from this file. Tap and hold values to copy.</string>
-    <string name="scan_basic_information">Basic Information</string>
-    <string name="scan_camera_details">Camera Details</string>
     <string name="scan_location_information">Location Information</string>
-    <string name="scan_technical_details">Technical Details</string>
     <string name="scan_location_permission_missing">Location data might be available if you grant the location permission.</string>
-    <string name="scan_metadata_with_location_permission">%1$s\n%2$s</string>
-    <string name="scan_extraction_fail">Failed to extract metadata!</string>
+    <string name="scan_extraction_fail">We couldn\'t retrieve the metadata.</string>
     <string name="scan_open_in_maps">Open in Google Maps</string>
     <string name="scan_maps_unavailable">No maps app found to open this location.</string>
     <string name="scan_search_camera">Search Camera</string>
@@ -202,9 +185,6 @@
 
     <!-- Metadata output strings -->
     <!-- Basic File Information -->
-    <string name="metadata_file_name">File Name: %s</string>
-    <string name="metadata_file_size">File Size: %s</string>
-    <string name="metadata_mime_type">MIME Type: %s</string>
     <string name="metadata_unknown">Unknown</string>
     <string name="metadata_size_bytes">B</string>
     <string name="metadata_size_kb">KB</string>
@@ -224,7 +204,7 @@
     <string name="metadata_camera_make">Camera Make: %s</string>
     <string name="metadata_camera_model">Camera Model: %s</string>
     <string name="metadata_aperture">Aperture: f/%s</string>
-    <string name="metadata_exposure_time_fraction">Exposure Time: 1/%d sec</string>
+    <string name="metadata_exposure_time_fraction" tools:ignore="PluralsCandidate">Exposure Time: 1/%d sec</string>
     <string name="metadata_exposure_time_seconds">Exposure Time: %.5f sec</string>
     <string name="metadata_latitude">Latitude: %.15f</string>
     <string name="metadata_longitude">Longitude: %.15f</string>
@@ -251,12 +231,6 @@
     <string name="metadata_sample_rate">Sample Rate: %s Hz</string>
 
     <!-- Additional Sectioned Metadata Strings -->
-    <string name="metadata_no_image_location_data">No location data available in this image.</string>
-    <string name="metadata_no_video_location_data">No location data available in this video.</string>
-    <string name="metadata_location_permission_needed_full">Location permission not granted. Grant permission to see full location data.</string>
-    <string name="metadata_software">Software: %s</string>
-    <string name="metadata_focal_length">Focal Length: %s mm</string>
-    <string name="metadata_digital_zoom">Digital Zoom: %sx</string>
 
     <!-- Orientation Strings -->
     <string name="metadata_orientation_normal">Normal</string>
@@ -275,4 +249,46 @@
     <string name="metadata_error_file_open">Error: Could not open image file</string>
     <string name="metadata_error_image_metadata">Error extracting image metadata: %s</string>
     <string name="metadata_error_video_metadata">Error extracting video metadata: %s</string>
+
+    <!-- Advanced Settings -->
+    <string name="settings_section_advanced_privacy">Advanced Privacy</string>
+    <string name="settings_advanced_privacy_subtitle">Granular control over what is deleted during metadata stripping.</string>
+    <string name="settings_secure_delete">Secure Deletion Passes</string>
+    <string name="settings_secure_delete_subtitle">Number of times to overwrite temporary files.</string>
+    <string name="settings_auto_clear_temp">Auto-Clear Temporary Files</string>
+    <string name="settings_auto_clear_temp_subtitle">Clear cache automatically on app startup.</string>
+    <string name="settings_preserve_camera">Preserve Camera Settings</string>
+    <string name="settings_preserve_camera_subtitle">Keep aperture, shutter speed, ISO, and make/model.</string>
+    <string name="settings_preserve_location">Preserve Location</string>
+    <string name="settings_preserve_location_subtitle">Keep GPS coordinates in the cleaned file.</string>
+    <string name="settings_strict_clean">Strict Clean</string>
+    <string name="settings_strict_clean_subtitle">Disable all preservation (including orientation) for absolute privacy.</string>
+    
+    <string name="settings_section_advanced_processing">Advanced Processing</string>
+    <string name="settings_advanced_processing_subtitle">Configure limits for handling large files.</string>
+    <string name="settings_max_bitmap_size">Max Image Processing Size</string>
+    <string name="settings_max_bitmap_size_subtitle">Max resolution before downsampling.</string>
+    <string name="settings_max_file_size">Max Image File Size</string>
+    <string name="settings_max_file_size_subtitle">Maximum allowed file size in MB.</string>
+    <string name="settings_video_fallback">Video Processing Fallback</string>
+    <string name="settings_video_fallback_subtitle">If transcoding fails, fall back to copying the original video without stripping.</string>
+
+    <string-array name="settings_secure_delete_labels">
+        <item>1 Pass (Fast)</item>
+        <item>3 Passes (Secure)</item>
+        <item>7 Passes (Ultra-Secure)</item>
+    </string-array>
+
+    <string-array name="settings_max_bitmap_size_labels">
+        <item>2048px (Low RAM)</item>
+        <item>4096px (Standard)</item>
+        <item>8192px (High Perf)</item>
+    </string-array>
+
+    <string-array name="settings_max_file_size_labels">
+        <item>50 MB</item>
+        <item>100 MB</item>
+        <item>200 MB</item>
+    </string-array>
+
 </resources>

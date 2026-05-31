@@ -8,6 +8,5 @@
 
     <dimen name="scan_screen_horizontal_padding">@dimen/screen_edge_padding</dimen>
     <dimen name="scan_metadata_card_corner">@dimen/component_corner_large</dimen>
-    <dimen name="scan_status_corner">@dimen/component_corner_medium</dimen>
     <dimen name="media_thumbnail_px">96dp</dimen>
 </resources>

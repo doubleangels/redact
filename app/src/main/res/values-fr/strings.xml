@@ -3,7 +3,6 @@
     <string name="app_name">Redact</string>
 
     <!-- Content descriptions -->
-    <string name="content_description_media_thumbnail">Miniature média</string>
     <string name="content_description_image_view">Vue d\'image</string>
     <string name="content_description_scroll_view">Vue de défilement</string>
 
@@ -26,7 +25,6 @@
     <string name="navigation_convert">Convertir</string>
 
     <!-- Convert tab -->
-    <string name="convert_subtitle">Images : JPEG, PNG, WebP ou HEIC (Android 14+) dans Pictures/Redact. Vidéos : MP4, WebM ou MKV dans Movies/Redact. L\'option HEIC est masquée sur les anciens appareils.</string>
     <string name="convert_output_format_images">Format D\'Image</string>
     <string name="convert_output_format_videos">Codec Vidéo</string>
     <string name="convert_output_format_mixed">Formats (image / vidéo)</string>
@@ -63,49 +61,34 @@
 
     <!-- Status and progress messages -->
     <string name="status_processing">Traitement en cours…</string>
-    <string name="status_processed_items">%1$d éléments traités !</string>
-    <string name="status_selected_items">Sélectionnés : %1$d éléments</string>
-    <string name="status_first_select_media_files">Veuillez d\'abord sélectionner des fichiers multimédias !</string>
-    <string name="status_ready">Prêt à sélectionner des images/vidéos !</string>
-    <string name="status_permissions_required">Autorisations requises !</string>
+    <string name="status_processed_items">%1$d éléments traités.</string>
+    <string name="status_first_select_media_files">Veuillez d\'abord sélectionner des fichiers multimédias.</string>
+    <string name="status_permissions_required">Autorisations requises.</string>
     <string name="status_requesting_permissions">Demande d\'autorisations…</string>
-    <string name="status_select_media_files">Sélectionnez un média pour supprimer les métadonnées !</string>
     <string name="status_analyzing">Analyse des métadonnées…</string>
-    <string name="status_select_item">Sélectionnez une image ou une vidéo pour voir les métadonnées !</string>
-    <string name="status_extraction_complete">Extraction des métadonnées terminée !</string>
-    <string name="status_extraction_media_fail">Erreur lors du traitement du fichier média !</string>
-    <string name="status_extraction_fail">Erreur lors de l\'extraction des métadonnées !</string>
+    <string name="status_extraction_complete">Extraction des métadonnées terminée.</string>
+    <string name="status_extraction_media_fail">Erreur lors du traitement du fichier média.</string>
+    <string name="status_extraction_fail">Erreur lors de l\'extraction des métadonnées.</string>
     <string name="status_extracting_media">Extraction des métadonnées vidéo…</string>
     <string name="status_extracting_image">Extraction des métadonnées image…</string>
-    <string name="status_media_picker_fail">Erreur lors de l\'ouverture du sélecteur de médias !</string>
-    <string name="status_media_uri_fail">Impossible d\'obtenir l\'URI du média !</string>
-    <string name="status_storage_permissions_required">Autorisations de stockage requises !</string>
+    <string name="status_media_picker_fail">Erreur lors de l\'ouverture du sélecteur de médias.</string>
+    <string name="status_media_uri_fail">Impossible d\'obtenir l\'URI du média.</string>
+    <string name="status_storage_permissions_required">Autorisations de stockage requises.</string>
 
     <!-- Share processing strings -->
     <string name="share_processing_title">Traitement en cours…</string>
-    <string name="share_stripping_status">Suppression des métadonnées…</string>
     <string name="share_chooser_title">Partager le fichier média nettoyé via…</string>
-    <string name="share_error_unsupported_media">Type de média non pris en charge !</string>
-    <string name="share_error_unsupported_action">Action non prise en charge !</string>
-    <string name="share_error_receive_failed">Échec de la réception du média !</string>
-    <string name="share_error_processing_failed">Échec du traitement !</string>
+    <string name="share_error_unsupported_media">Type de média non pris en charge.</string>
+    <string name="share_error_unsupported_action">Action non prise en charge.</string>
 
     <!-- Scan section strings -->
-    <string name="scan_activity_title">ScanActivity</string>
     <string name="scan_metadata">Métadonnées</string>
-    <string name="scan_basic_information">Informations de Base</string>
-    <string name="scan_camera_details">Détails de l\'Appareil Photo</string>
     <string name="scan_location_information">Informations de Localisation</string>
-    <string name="scan_technical_details">Détails Techniques</string>
     <string name="scan_location_permission_missing">Les données de localisation pourraient être disponibles si vous accordez l\'autorisation de localisation.</string>
-    <string name="scan_metadata_with_location_permission">%1$s\n%2$s</string>
-    <string name="scan_extraction_fail">Échec de l\'extraction des métadonnées !</string>
+    <string name="scan_extraction_fail">Échec de l\'extraction des métadonnées.</string>
 
     <!-- Metadata output strings -->
     <!-- Basic File Information -->
-    <string name="metadata_file_name">Nom du Fichier : %s</string>
-    <string name="metadata_file_size">Taille du Fichier : %s</string>
-    <string name="metadata_mime_type">Type MIME : %s</string>
     <string name="metadata_unknown">Inconnu</string>
     <string name="metadata_size_bytes">o</string>
     <string name="metadata_size_kb">Ko</string>
@@ -152,12 +135,6 @@
     <string name="metadata_sample_rate">Fréquence d\'Échantillonnage : %s Hz</string>
 
     <!-- Additional Sectioned Metadata Strings -->
-    <string name="metadata_no_image_location_data">Aucune donnée de localisation disponible dans cette image.</string>
-    <string name="metadata_no_video_location_data">Aucune donnée de localisation disponible dans cette vidéo.</string>
-    <string name="metadata_location_permission_needed_full">Autorisation de localisation non accordée. Accordez l\'autorisation pour voir toutes les données de localisation.</string>
-    <string name="metadata_software">Logiciel : %s</string>
-    <string name="metadata_focal_length">Distance Focale : %s mm</string>
-    <string name="metadata_digital_zoom">Zoom Numérique : %sx</string>
 
     <!-- Orientation Strings -->
     <string name="metadata_orientation_normal">Normal</string>
@@ -203,7 +180,7 @@
     <string name="settings_notifications_convert_subtitle">M\'avertir lorsque la conversion du fichier vidéo ou image est terminée.</string>
     <string name="settings_section_privacy">Confidentialité</string>
     <string name="settings_crash_reporting_label">Améliorer Redact</string>
-    <string name="settings_crash_reporting_subtitle">Envoie optionnellement des rapports de plantage anonymises via Internet (Sentry). Vos photos et videos ne sont jamais telechargees—seulement des diagnostics techniques. Desactivable a tout moment.</string>
+    <string name="settings_crash_reporting_subtitle">Envoie optionnellement des rapports de plantage anonymises via Internet (Sentry). Vos photos et videos ne sont jamais telechargees - seulement des diagnostics techniques. Desactivable a tout moment.</string>
     <string name="settings_section_conversion">Valeurs Par Défaut De Conversion</string>
     <string name="settings_conversion_subtitle">Appliquées lorsque vous sélectionnez des fichiers dans l\'onglet Convertir.</string>
     <string name="settings_default_image_format">Format D\'Image Par Défaut</string>
@@ -223,7 +200,6 @@
     <string name="settings_section_permissions">Autorisations</string>
     <string name="settings_permissions_subtitle">Accordez les autorisations dans les paramètres Android si une fonctionnalité en a besoin.</string>
     <string name="settings_permissions_media">Accès Aux Médias</string>
-    <string name="settings_permissions_location">Emplacement Des Médias</string>
     <string name="settings_permissions_notifications">Notifications</string>
     <string name="settings_permission_granted">Accordée</string>
     <string name="settings_permission_denied">Refusée</string>

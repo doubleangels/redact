@@ -3,7 +3,6 @@
     <string name="app_name">Redact</string>
 
     <!-- Content descriptions -->
-    <string name="content_description_media_thumbnail">メディアサムネイル</string>
     <string name="content_description_image_view">画像ビュー</string>
     <string name="content_description_scroll_view">スクロールビュー</string>
 
@@ -26,7 +25,6 @@
     <string name="navigation_convert">変換</string>
 
     <!-- Convert tab -->
-    <string name="convert_subtitle">画像: JPEG、PNG、WebP、またはHEIC（Android 14以降）をPictures/Redactに保存します。動画: MP4、WebM、またはMKVをMovies/Redactに保存します。古いデバイスではHEICオプションは非表示になります。</string>
     <string name="convert_output_format_images">画像形式</string>
     <string name="convert_output_format_videos">動画コーデック</string>
     <string name="convert_output_format_mixed">フォーマット (画像 / 動画)</string>
@@ -63,49 +61,34 @@
 
     <!-- Status and progress messages -->
     <string name="status_processing">処理中…</string>
-    <string name="status_processed_items">%1$d件のアイテムを処理しました！</string>
-    <string name="status_selected_items">選択済み: %1$d件のアイテム</string>
-    <string name="status_first_select_media_files">まずメディアファイルを選択してください！</string>
-    <string name="status_ready">画像/動画を選択する準備ができました！</string>
-    <string name="status_permissions_required">権限が必要です！</string>
+    <string name="status_processed_items">%1$d件のアイテムを処理しました。</string>
+    <string name="status_first_select_media_files">まずメディアファイルを選択してください。</string>
+    <string name="status_permissions_required">権限が必要です。</string>
     <string name="status_requesting_permissions">権限をリクエスト中…</string>
-    <string name="status_select_media_files">メタデータを削除するメディアを選択してください！</string>
     <string name="status_analyzing">メタデータを分析中…</string>
-    <string name="status_select_item">メタデータを表示する画像または動画を選択してください！</string>
-    <string name="status_extraction_complete">メタデータの抽出が完了しました！</string>
-    <string name="status_extraction_media_fail">メディアファイルの処理エラー！</string>
-    <string name="status_extraction_fail">メタデータの抽出エラー！</string>
+    <string name="status_extraction_complete">メタデータの抽出が完了しました。</string>
+    <string name="status_extraction_media_fail">メディアファイルの処理エラー。</string>
+    <string name="status_extraction_fail">メタデータの抽出エラー。</string>
     <string name="status_extracting_media">動画メタデータを抽出中…</string>
     <string name="status_extracting_image">画像メタデータを抽出中…</string>
-    <string name="status_media_picker_fail">メディアピッカーのオープンエラー！</string>
-    <string name="status_media_uri_fail">メディアURIを取得できませんでした！</string>
-    <string name="status_storage_permissions_required">ストレージ権限が必要です！</string>
+    <string name="status_media_picker_fail">メディアピッカーのオープンエラー。</string>
+    <string name="status_media_uri_fail">メディアURIを取得できませんでした。</string>
+    <string name="status_storage_permissions_required">ストレージ権限が必要です。</string>
 
     <!-- Share processing strings -->
     <string name="share_processing_title">処理中…</string>
-    <string name="share_stripping_status">メタデータを削除中…</string>
     <string name="share_chooser_title">クリーンなメディアファイルを共有…</string>
-    <string name="share_error_unsupported_media">サポートされていないメディアタイプ！</string>
-    <string name="share_error_unsupported_action">サポートされていないアクション！</string>
-    <string name="share_error_receive_failed">メディアの受信に失敗しました！</string>
-    <string name="share_error_processing_failed">処理に失敗しました！</string>
+    <string name="share_error_unsupported_media">サポートされていないメディアタイプ。</string>
+    <string name="share_error_unsupported_action">サポートされていないアクション。</string>
 
     <!-- Scan section strings -->
-    <string name="scan_activity_title">ScanActivity</string>
     <string name="scan_metadata">メタデータ</string>
-    <string name="scan_basic_information">基本情報</string>
-    <string name="scan_camera_details">カメラの詳細</string>
     <string name="scan_location_information">位置情報</string>
-    <string name="scan_technical_details">技術的詳細</string>
     <string name="scan_location_permission_missing">位置情報の権限を付与すると、位置データが利用可能になる場合があります。</string>
-    <string name="scan_metadata_with_location_permission">%1$s\n%2$s</string>
-    <string name="scan_extraction_fail">メタデータの抽出に失敗しました！</string>
+    <string name="scan_extraction_fail">メタデータの抽出に失敗しました。</string>
 
     <!-- Metadata output strings -->
     <!-- Basic File Information -->
-    <string name="metadata_file_name">ファイル名: %s</string>
-    <string name="metadata_file_size">ファイルサイズ: %s</string>
-    <string name="metadata_mime_type">MIMEタイプ: %s</string>
     <string name="metadata_unknown">不明</string>
     <string name="metadata_size_bytes">B</string>
     <string name="metadata_size_kb">KB</string>
@@ -152,12 +135,6 @@
     <string name="metadata_sample_rate">サンプルレート: %s Hz</string>
 
     <!-- Additional Sectioned Metadata Strings -->
-    <string name="metadata_no_image_location_data">この画像に位置データがありません。</string>
-    <string name="metadata_no_video_location_data">この動画に位置データがありません。</string>
-    <string name="metadata_location_permission_needed_full">位置情報の権限が付与されていません。すべての位置データを表示するには権限を付与してください。</string>
-    <string name="metadata_software">ソフトウェア: %s</string>
-    <string name="metadata_focal_length">焦点距離: %s mm</string>
-    <string name="metadata_digital_zoom">デジタルズーム: %sx</string>
 
     <!-- Orientation Strings -->
     <string name="metadata_orientation_normal">通常</string>
@@ -223,7 +200,6 @@
     <string name="settings_section_permissions">権限</string>
     <string name="settings_permissions_subtitle">機能に必要な場合は Android のシステム設定で権限を付与してください。</string>
     <string name="settings_permissions_media">メディアアクセス</string>
-    <string name="settings_permissions_location">メディアの位置</string>
     <string name="settings_permissions_notifications">通知</string>
     <string name="settings_permission_granted">許可済み</string>
     <string name="settings_permission_denied">拒否</string>

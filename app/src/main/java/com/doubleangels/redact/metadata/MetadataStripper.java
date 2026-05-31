@@ -19,6 +19,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
 
+import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.VideoMedia3Converter;
@@ -84,27 +85,6 @@ public class MetadataStripper {
      * Buffer size for secure file deletion operations.
      */
     private static final int SECURE_DELETE_BUFFER_SIZE = 65536;
-
-    /**
-     * Number of passes for secure file deletion (overwriting with random data).
-     */
-    private static final int SECURE_DELETE_PASSES = 3;
-
-    /**
-     * Maximum dimension (width or height) for bitmap processing.
-     * Images larger than this will be downsampled during processing to avoid
-     * out-of-memory errors. The original resolution is preserved in the output
-     * file.
-     */
-    private static final int MAX_BITMAP_SIZE = 4096;
-
-    /**
-     * Maximum image file size in megabytes.
-     * Images are decoded fully into RAM as bitmaps, so very large files risk OOM.
-     * Videos are not bounded here because they are streamed frame-by-frame through
-     * MediaMuxer/Transformer and are never held in memory in their entirety.
-     */
-    private static final long MAX_IMAGE_FILE_SIZE_MB = 100;
 
     /**
      * Interface for reporting progress during media processing operations.
@@ -290,6 +270,11 @@ public class MetadataStripper {
                     if (tempCleanFile.getName().endsWith(".webm")) needsTranscode = false;
                 }
             }
+            if (AppPreferences.isVideoFallbackCopy(context) && tempCleanFile != null) {
+                // Keep needsTranscode as evaluated
+            } else {
+                needsTranscode = true; // Force transcode or fail if fallback copy is disabled
+            }
 
             try {
                 if (!needsTranscode && tempCleanFile != null) {
@@ -368,7 +353,8 @@ public class MetadataStripper {
             // Check if file is too large to process (using cached size)
             long fileSize = getFileSizeFromUriCached(sourceUri);
             SentryManager.setCustomKey("file_size_mb", fileSize / (1024 * 1024));
-            if (fileSize > MAX_IMAGE_FILE_SIZE_MB * 1024 * 1024) {
+            long maxFileSizeMb = AppPreferences.getMaxImageFileSizeMb(context);
+            if (fileSize > maxFileSizeMb * 1024L * 1024L) {
                 throw new IOException("File too large to process: " + fileSize / (1024 * 1024) + "MB");
             }
 
@@ -381,7 +367,7 @@ public class MetadataStripper {
 
             // Create temporary file to hold the image during processing
             tempFile = new File(
-                    context.getExternalCacheDir(), "temp_" + System.currentTimeMillis() + extension);
+                    context.getCacheDir(), "temp_" + System.currentTimeMillis() + extension);
 
             // Copy source image to temporary file
             try (InputStream in = contentResolver.openInputStream(sourceUri);
@@ -567,7 +553,8 @@ public class MetadataStripper {
             // Check if file is too large to process (using cached size)
             long fileSize = getFileSizeFromUriCached(sourceUri);
             SentryManager.setCustomKey("file_size_mb", fileSize / (1024 * 1024));
-            if (fileSize > MAX_IMAGE_FILE_SIZE_MB * 1024 * 1024) {
+            long maxFileSizeMb = AppPreferences.getMaxImageFileSizeMb(context);
+            if (fileSize > maxFileSizeMb * 1024L * 1024L) {
                 throw new IOException("File too large to process: " + fileSize / (1024 * 1024) + "MB");
             }
 
@@ -753,6 +740,11 @@ public class MetadataStripper {
                 } else if (formatIndex == 2) {
                     if (tempCleanFile.getName().endsWith(".webm")) needsTranscode = false;
                 }
+            }
+            if (AppPreferences.isVideoFallbackCopy(context) && tempCleanFile != null) {
+                // Keep needsTranscode as evaluated
+            } else {
+                needsTranscode = true; // Force transcode or fail if fallback copy is disabled
             }
 
             try {
@@ -1082,7 +1074,7 @@ public class MetadataStripper {
      * @return Size of the file in bytes, or 0 if size couldn't be determined
      */
     private long getFileSizeFromUri(@NonNull Uri uri) {
-        final long maxMeasure = MAX_IMAGE_FILE_SIZE_MB * 1024L * 1024L + 1;
+        final long maxMeasure = AppPreferences.getMaxImageFileSizeMb(context) * 1024L * 1024L + 1;
         try {
             if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
                 try (Cursor cursor = contentResolver.query(uri,
@@ -1155,15 +1147,16 @@ public class MetadataStripper {
         final int height = options.outHeight;
         final int width = options.outWidth;
         int inSampleSize = 1;
+        int maxBitmapSize = AppPreferences.getMaxBitmapSize(context);
 
         // If image is larger than our maximum processing size, calculate sample size
-        if (height > MAX_BITMAP_SIZE || width > MAX_BITMAP_SIZE) {
+        if (height > maxBitmapSize || width > maxBitmapSize) {
             final int halfHeight = height / 2;
             final int halfWidth = width / 2;
 
             // Calculate the largest inSampleSize value that is a power of 2 and keeps both
             // height and width larger than the requested height and width
-            while ((halfHeight / inSampleSize) >= MAX_BITMAP_SIZE && (halfWidth / inSampleSize) >= MAX_BITMAP_SIZE) {
+            while ((halfHeight / inSampleSize) >= maxBitmapSize && (halfWidth / inSampleSize) >= maxBitmapSize) {
                 inSampleSize *= 2;
             }
         }
@@ -1188,14 +1181,7 @@ public class MetadataStripper {
         ExifInterface exif = new ExifInterface(imageFile.getAbsolutePath());
         preservedExifValues.clear();
 
-        // List of EXIF tags that should be preserved (only truly essential for image
-        // display)
-        // Only orientation is essential - it tells the viewer how to rotate the image
-        // All other metadata (color space, resolution, etc.) can be inferred or is not
-        // critical
-        String[] tagsToPreserve = {
-                ExifInterface.TAG_ORIENTATION
-        };
+        List<String> tagsToPreserve = getTagsToPreserve();
 
         // Store each tag that exists in the original file
         for (String tag : tagsToPreserve) {
@@ -1268,12 +1254,7 @@ public class MetadataStripper {
         try {
             // Get all TAG constants from ExifInterface using reflection
             java.lang.reflect.Field[] fields = ExifInterface.class.getDeclaredFields();
-            // Only preserve orientation - it's the only tag essential for proper image
-            // display
-            // All other metadata (color space, resolution, etc.) can be inferred or is not
-            // critical
-            java.util.Set<String> tagsToPreserve = new java.util.HashSet<>(List.of(
-                    ExifInterface.TAG_ORIENTATION));
+            java.util.Set<String> tagsToPreserve = new java.util.HashSet<>(getTagsToPreserve());
 
             int removedCount = 0;
             for (java.lang.reflect.Field field : fields) {
@@ -1397,6 +1378,42 @@ public class MetadataStripper {
         }
     }
 
+    private List<String> getTagsToPreserve() {
+        if (AppPreferences.isStrictClean(context)) {
+            return java.util.Collections.emptyList();
+        }
+
+        List<String> tags = new java.util.ArrayList<>();
+        tags.add(ExifInterface.TAG_ORIENTATION);
+
+        if (AppPreferences.isPreserveCameraSettings(context)) {
+            tags.addAll(List.of(
+                    ExifInterface.TAG_MAKE,
+                    ExifInterface.TAG_MODEL,
+                    ExifInterface.TAG_APERTURE_VALUE,
+                    ExifInterface.TAG_F_NUMBER,
+                    ExifInterface.TAG_SHUTTER_SPEED_VALUE,
+                    ExifInterface.TAG_EXPOSURE_TIME,
+                    ExifInterface.TAG_ISO_SPEED
+            ));
+        }
+
+        if (AppPreferences.isPreserveLocation(context)) {
+            tags.addAll(List.of(
+                    ExifInterface.TAG_GPS_LATITUDE,
+                    ExifInterface.TAG_GPS_LONGITUDE,
+                    ExifInterface.TAG_GPS_LATITUDE_REF,
+                    ExifInterface.TAG_GPS_LONGITUDE_REF,
+                    ExifInterface.TAG_GPS_ALTITUDE,
+                    ExifInterface.TAG_GPS_ALTITUDE_REF,
+                    ExifInterface.TAG_GPS_DATESTAMP,
+                    ExifInterface.TAG_GPS_TIMESTAMP
+            ));
+        }
+
+        return tags;
+    }
+
     /**
      * Deletes temporary files that are older than 24 hours.
      *
@@ -1480,7 +1497,8 @@ public class MetadataStripper {
      */
     public boolean isFileTooLarge(@NonNull Uri uri) {
         long fileSize = getFileSizeFromUri(uri);
-        return fileSize > MAX_IMAGE_FILE_SIZE_MB * 1024 * 1024;
+        long maxFileSizeMb = AppPreferences.getMaxImageFileSizeMb(context);
+        return fileSize > maxFileSizeMb * 1024L * 1024L;
     }
 
     /**
@@ -1489,7 +1507,7 @@ public class MetadataStripper {
      * @return Maximum file size in MB
      */
     public long getMaxFileSizeMB() {
-        return MAX_IMAGE_FILE_SIZE_MB;
+        return AppPreferences.getMaxImageFileSizeMb(context);
     }
 
     /**
@@ -1512,8 +1530,9 @@ public class MetadataStripper {
             }
 
             // Overwrite file with random data multiple times
+            int passes = AppPreferences.getSecureDeletePasses(context);
             byte[] randomData = new byte[SECURE_DELETE_BUFFER_SIZE];
-            for (int pass = 0; pass < SECURE_DELETE_PASSES; pass++) {
+            for (int pass = 0; pass < passes; pass++) {
                 try (RandomAccessFile raf = new RandomAccessFile(file, "rws")) {
                     long position = 0;
                     while (position < fileSize) {
@@ -1727,8 +1746,7 @@ public class MetadataStripper {
             // Clear all non-essential tags using the same reflection-based logic as removeAllExifMetadata
             // but adapted for androidx.exifinterface
             java.lang.reflect.Field[] fields = androidx.exifinterface.media.ExifInterface.class.getDeclaredFields();
-            java.util.Set<String> tagsToPreserve = new java.util.HashSet<>(List.of(
-                    androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION));
+            java.util.Set<String> tagsToPreserve = new java.util.HashSet<>(getTagsToPreserve());
 
             int removedCount = 0;
             for (java.lang.reflect.Field field : fields) {

@@ -21,6 +21,14 @@ public final class AppPreferences {
     private static final String KEY_DEFAULT_VIDEO_FORMAT_INDEX = "default_video_format_index";
     private static final String KEY_IMAGE_QUALITY_PRESET = "image_quality_preset";
     private static final String KEY_SHARE_CONFIRM_BEFORE_STRIP = "share_confirm_before_strip";
+    private static final String KEY_SECURE_DELETE_PASSES = "secure_delete_passes";
+    private static final String KEY_AUTO_CLEAR_TEMP_FILES = "auto_clear_temp_files";
+    private static final String KEY_MAX_BITMAP_SIZE = "max_bitmap_size";
+    private static final String KEY_MAX_IMAGE_FILE_SIZE_MB = "max_image_file_size_mb";
+    private static final String KEY_PRESERVE_CAMERA_SETTINGS = "preserve_camera_settings";
+    private static final String KEY_PRESERVE_LOCATION = "preserve_location";
+    private static final String KEY_STRICT_CLEAN = "strict_clean";
+    private static final String KEY_VIDEO_FALLBACK_COPY = "video_fallback_copy";
 
     /** High quality — matches legacy defaults. */
     public static final int QUALITY_PRESET_HIGH = 0;
@@ -142,5 +150,69 @@ public final class AppPreferences {
             return FORMAT_INDEX_HEIC_AV1;
         }
         return index;
+    }
+
+    public static int getSecureDeletePasses(@NonNull Context context) {
+        return prefs(context).getInt(KEY_SECURE_DELETE_PASSES, 3);
+    }
+
+    public static void setSecureDeletePasses(@NonNull Context context, int passes) {
+        prefs(context).edit().putInt(KEY_SECURE_DELETE_PASSES, passes).apply();
+    }
+
+    public static boolean isAutoClearTempFiles(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_AUTO_CLEAR_TEMP_FILES, false);
+    }
+
+    public static void setAutoClearTempFiles(@NonNull Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_AUTO_CLEAR_TEMP_FILES, enabled).apply();
+    }
+
+    public static int getMaxBitmapSize(@NonNull Context context) {
+        return prefs(context).getInt(KEY_MAX_BITMAP_SIZE, 4096);
+    }
+
+    public static void setMaxBitmapSize(@NonNull Context context, int size) {
+        prefs(context).edit().putInt(KEY_MAX_BITMAP_SIZE, size).apply();
+    }
+
+    public static int getMaxImageFileSizeMb(@NonNull Context context) {
+        return prefs(context).getInt(KEY_MAX_IMAGE_FILE_SIZE_MB, 100);
+    }
+
+    public static void setMaxImageFileSizeMb(@NonNull Context context, int size) {
+        prefs(context).edit().putInt(KEY_MAX_IMAGE_FILE_SIZE_MB, size).apply();
+    }
+
+    public static boolean isPreserveCameraSettings(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_PRESERVE_CAMERA_SETTINGS, false);
+    }
+
+    public static void setPreserveCameraSettings(@NonNull Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_PRESERVE_CAMERA_SETTINGS, enabled).apply();
+    }
+
+    public static boolean isPreserveLocation(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_PRESERVE_LOCATION, false);
+    }
+
+    public static void setPreserveLocation(@NonNull Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_PRESERVE_LOCATION, enabled).apply();
+    }
+
+    public static boolean isStrictClean(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_STRICT_CLEAN, false);
+    }
+
+    public static void setStrictClean(@NonNull Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_STRICT_CLEAN, enabled).apply();
+    }
+
+    public static boolean isVideoFallbackCopy(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_VIDEO_FALLBACK_COPY, true);
+    }
+
+    public static void setVideoFallbackCopy(@NonNull Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_VIDEO_FALLBACK_COPY, enabled).apply();
     }
 }

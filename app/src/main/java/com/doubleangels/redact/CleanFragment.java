@@ -133,6 +133,9 @@ public class CleanFragment extends Fragment {
             selectButton.setOnClickListener(v -> {
                 try {
                     SentryManager.log("Select button clicked");
+                    if (viewModel.getProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED) {
+                        viewModel.setProcessingState(MainViewModel.ProcessingState.IDLE);
+                    }
                     if (permissionManager.needsPermissions()) {
                         SentryManager.log("Requesting permissions");
                         permissionManager.requestStoragePermission();
@@ -255,6 +258,9 @@ public class CleanFragment extends Fragment {
                 try {
                     mediaAdapter.updateItems(items);
                     uiStateManager.enableStripButton(!items.isEmpty());
+                    if (viewModel.getProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED) {
+                        viewModel.setProcessingState(MainViewModel.ProcessingState.IDLE);
+                    }
                     uiStateManager.setSelectedItemsStatus(items.size());
                     SentryManager.setCustomKey("selected_items_count", items.size());
                 } catch (Exception e) {
@@ -280,7 +286,6 @@ public class CleanFragment extends Fragment {
                                 SentryManager.setCustomKey("processed_items", count);
                                 uiStateManager.setProcessedItemsStatus(count);
                             }
-                            viewModel.setProcessingState(MainViewModel.ProcessingState.IDLE);
                             break;
 
                         case IDLE:

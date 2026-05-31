@@ -46,12 +46,14 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
 
     private final List<Entry> entries = new ArrayList<>();
 
+    @android.annotation.SuppressLint("NotifyDataSetChanged")
     public void setEntries(@NonNull List<Entry> newEntries) {
         entries.clear();
         entries.addAll(newEntries);
         notifyDataSetChanged();
     }
 
+    @android.annotation.SuppressLint("NotifyDataSetChanged")
     public void clear() {
         if (entries.isEmpty()) {
             return;

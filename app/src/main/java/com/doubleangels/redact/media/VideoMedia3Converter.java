@@ -408,9 +408,7 @@ public final class VideoMedia3Converter {
         ContentValues values = new ContentValues();
         values.put(MediaStore.Video.Media.DISPLAY_NAME, outName);
         values.put(MediaStore.Video.Media.MIME_TYPE, mime);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            values.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/Redact");
-        }
+        values.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/Redact");
 
         Uri collection = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
         Uri outUri = resolver.insert(collection, values);

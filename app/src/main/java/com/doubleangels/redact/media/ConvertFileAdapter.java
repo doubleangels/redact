@@ -29,6 +29,7 @@ public final class ConvertFileAdapter extends RecyclerView.Adapter<ConvertFileAd
         this.activity = activity;
     }
 
+    @android.annotation.SuppressLint("NotifyDataSetChanged")
     public void setItems(@NonNull List<MediaItem> newItems) {
         items.clear();
         items.addAll(newItems);
