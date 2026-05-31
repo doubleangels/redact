@@ -582,6 +582,18 @@ public class MetadataStripperTest {
     }
 
     @Test
+    public void verifyMetadataRemoval_handlesXmpReadFailure() throws Exception {
+        stripper.setTestForceXmpReadFailure(true);
+        boolean result = (boolean) invokePrivate(
+                stripper,
+                "containsXMPMetadata",
+                new Class<?>[]{File.class},
+                sourceJpegFile);
+        assertFalse(result);
+        stripper.setTestForceXmpReadFailure(false);
+    }
+
+    @Test
     public void stripMetadataLossless_handlesJpegAndNonJpegInputs() throws Exception {
         ByteArrayOutputStream jpegOut = new ByteArrayOutputStream();
         boolean jpegResult = (boolean) invokePrivate(

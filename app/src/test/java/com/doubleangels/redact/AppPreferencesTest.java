@@ -80,6 +80,11 @@ public class AppPreferencesTest {
         assertTrue(AppPreferences.isStrictClean(context));
         assertTrue(AppPreferences.isPreserveLocation(context));
         assertTrue(AppPreferences.isPreserveCameraSettings(context));
+
+        // Test video fallback copy preference
+        assertTrue(AppPreferences.isVideoFallbackCopy(context));
+        AppPreferences.setVideoFallbackCopy(context, false);
+        assertFalse(AppPreferences.isVideoFallbackCopy(context));
     }
 
     @Test

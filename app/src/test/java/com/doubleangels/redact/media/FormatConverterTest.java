@@ -281,6 +281,32 @@ public class FormatConverterTest {
     }
 
     @Test
+    public void resolveImageFormat_unsupportedMime_returnsFallback() throws Exception {
+        FormatConverter.ImageFormatSpec spec =
+                FormatConverter.resolveImageFormat(".png", "image/invalid_unsupported_mime");
+        assertEquals(".png", spec.extension);
+    }
+
+    @Test
+    public void openExifForWriting_coversPfdFlow() throws Exception {
+        Context context = Mockito.mock(Context.class);
+        ContentResolver resolver = Mockito.mock(ContentResolver.class);
+        Mockito.when(context.getContentResolver()).thenReturn(resolver);
+        Uri uri = Uri.parse("content://mock/dest");
+        
+        android.os.ParcelFileDescriptor pfd = Mockito.mock(android.os.ParcelFileDescriptor.class);
+        java.io.FileDescriptor fd = new java.io.FileDescriptor();
+        Mockito.when(pfd.getFileDescriptor()).thenReturn(fd);
+        Mockito.when(resolver.openFileDescriptor(uri, "rw")).thenReturn(pfd);
+        
+        Method method = FormatConverter.class.getDeclaredMethod(
+                "openExifForWrite", Context.class, Uri.class);
+        method.setAccessible(true);
+        
+        method.invoke(null, context, uri);
+    }
+
+    @Test
     @Config(sdk = 33)
     public void convertImageToPictures_heicBelowApi34_fallsBackToJpeg() throws Exception {
         Context base = ApplicationProvider.getApplicationContext();

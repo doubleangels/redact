@@ -226,6 +226,26 @@ public class MediaProcessorTest {
     }
 
     @Test
+    public void processMediaItems_handlesExceptionInThread() throws Exception {
+        Activity activity = mockActivity();
+        CountDownLatch completionLatch = new CountDownLatch(1);
+        int[] completeCount = new int[1];
+
+        try (MockedStatic<SentryManager> sentry = mockSentry()) {
+            MediaProcessor processor = new MediaProcessor(activity);
+            
+            @SuppressWarnings("unchecked")
+            List<MediaItem> badList = mock(List.class);
+            when(badList.size()).thenThrow(new RuntimeException("forced thread error"));
+
+            processor.processMediaItems(badList, callback(completionLatch, completeCount, new ArrayList<>()));
+
+            assertTrue(completionLatch.await(5, TimeUnit.SECONDS));
+            assertEquals(0, completeCount[0]);
+        }
+    }
+
+    @Test
     public void processMediaItems_ignoresOverlappingInvocationsWhileBusy() throws Exception {
         Activity activity = mockActivity();
         Uri imageUri = Uri.parse("content://tests/input-image");
