@@ -247,8 +247,11 @@ public class ScanFragment extends Fragment {
                 public void onMetadataExtracted(Map<String, String> metadataSections, boolean isVideo) {
                     transaction.setStatus(SpanStatus.OK);
                     transaction.finish();
-                    requireActivity().runOnUiThread(() -> {
-                        try {
+                    android.app.Activity activity = getActivity();
+                    if (activity != null) {
+                        activity.runOnUiThread(() -> {
+                            if (!isAdded()) return;
+                            try {
                             showProgress(false);
                             showStatus(getString(R.string.status_extraction_complete));
 
@@ -273,6 +276,7 @@ public class ScanFragment extends Fragment {
                         }
                     });
                 }
+            }
 
                 @Override
                 public void onExtractionFailed(String error) {

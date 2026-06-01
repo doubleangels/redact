@@ -444,6 +444,17 @@ public class PermissionManager {
                 LOCATION_PERMISSION_REQUEST_CODE);
     }
 
+    private void openSettings() {
+        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        Uri uri = Uri.fromParts("package", activity.getPackageName(), null);
+        intent.setData(uri);
+        if (settingsLauncher != null) {
+            settingsLauncher.launch(intent);
+        } else {
+            activity.startActivity(intent);
+        }
+    }
+
     /**
      * Handles permission request results.
      * This should be called from the host Activity's onRequestPermissionsResult method.
@@ -588,8 +599,7 @@ public class PermissionManager {
             SentryManager.setCustomKey("should_show_settings", shouldShowSettings);
 
             if (shouldShowSettings) {
-                // Settings Snackbar for permanent denial was removed per user request
-                SentryManager.log("Permissions permanently denied (UI removed)");
+                SentryManager.log("Permissions permanently denied; skipping settings snackbar per user request.");
             } else {
                 // Show retry Snackbar for temporary denial
                 SentryManager.log("Showing retry snackbar (temporary denial)");
@@ -628,8 +638,7 @@ public class PermissionManager {
             SentryManager.setCustomKey("should_show_location_settings", shouldShowSettings);
 
             if (shouldShowSettings) {
-                // Settings Snackbar for permanent denial was removed per user request
-                SentryManager.log("Location permission permanently denied (UI removed)");
+                SentryManager.log("Location permission permanently denied; skipping settings snackbar per user request.");
             } else {
                 // Show retry Snackbar for temporary denial
                 SentryManager.log("Showing retry snackbar for location (temporary denial)");
@@ -666,5 +675,57 @@ public class PermissionManager {
      */
     public int getLocationPermissionRequestCode() {
         return LOCATION_PERMISSION_REQUEST_CODE;
+    }
+
+    /**
+     * Requests all necessary permissions (Media, Location, Notifications) on first startup.
+     * This avoids prompting the user sequentially across different screens.
+     */
+    public static void requestAllInitialPermissions(Activity activity) {
+        try {
+            java.util.List<String> permissions = new java.util.ArrayList<>();
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                    permissions.add(Manifest.permission.READ_MEDIA_IMAGES);
+                }
+                if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED) {
+                    permissions.add(Manifest.permission.READ_MEDIA_VIDEO);
+                }
+                if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED) != PackageManager.PERMISSION_GRANTED) {
+                    permissions.add(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED);
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                    permissions.add(Manifest.permission.READ_MEDIA_IMAGES);
+                }
+                if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED) {
+                    permissions.add(Manifest.permission.READ_MEDIA_VIDEO);
+                }
+            } else {
+                if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+                }
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_MEDIA_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    permissions.add(Manifest.permission.ACCESS_MEDIA_LOCATION);
+                }
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                    permissions.add(Manifest.permission.POST_NOTIFICATIONS);
+                }
+            }
+
+            if (!permissions.isEmpty()) {
+                SentryManager.log("Requesting all initial permissions: " + permissions);
+                ActivityCompat.requestPermissions(activity, permissions.toArray(new String[0]), PERMISSION_REQUEST_CODE);
+            }
+        } catch (Exception e) {
+            SentryManager.recordException(new Exception("Error requesting initial permissions: " + e.getMessage(), e));
+        }
     }
 }

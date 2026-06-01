@@ -1,16 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <!-- App name -->
+    
     <string name="app_name">Redact</string>
 
-    <!-- Content descriptions -->
+    
     <string name="content_description_image_view">Просмотр изображения</string>
     <string name="content_description_scroll_view">Прокрутка</string>
 
-    <!-- Navigation labels -->
+    
     <string name="navigation_clean">Очистить</string>
     <string name="navigation_scan">Сканировать</string>
 
-    <!-- Local notifications -->
+    
     <string name="notification_channel_tasks_name">Задачи</string>
     <string name="notification_channel_tasks_description">Конвертация и очистка медиафайлов завершены</string>
     <string name="notification_convert_title">Конвертация Завершена</string>
@@ -24,7 +25,7 @@
 
     <string name="navigation_convert">Конвертировать</string>
 
-    <!-- Convert tab -->
+    
     <string name="convert_output_format_images">Формат Изображения</string>
     <string name="convert_output_format_videos">Видеокодек</string>
     <string name="convert_output_format_mixed">Форматы (изображение / видео)</string>
@@ -55,11 +56,11 @@
     <string name="convert_saved_to_gallery">Сохранено в Галерею (папка Redact)</string>
     <string name="convert_clean_tab_hint">Конвертация изменяет только формат. Чтобы удалить метаданные, перейдите на вкладку Очистка.</string>
 
-    <!-- Button labels -->
+    
     <string name="button_select_media">Выбрать Медиа</string>
     <string name="button_strip_exif_data">Очистить Метаданные</string>
 
-    <!-- Status and progress messages -->
+    
     <string name="status_processing">Обработка…</string>
     <string name="status_processed_items">Обработано %1$d элементов.</string>
     <string name="status_first_select_media_files">Пожалуйста, сначала выберите медиафайлы.</string>
@@ -75,26 +76,26 @@
     <string name="status_media_uri_fail">Не удалось получить URI медиа.</string>
     <string name="status_storage_permissions_required">Требуются разрешения на хранение.</string>
 
-    <!-- Share processing strings -->
+    
     <string name="share_processing_title">Обработка…</string>
     <string name="share_chooser_title">Поделиться очищенным медиафайлом через…</string>
     <string name="share_error_unsupported_media">Неподдерживаемый тип медиа.</string>
     <string name="share_error_unsupported_action">Неподдерживаемое действие.</string>
 
-    <!-- Scan section strings -->
+    
     <string name="scan_metadata">Метаданные</string>
     <string name="scan_location_information">Информация о Местоположении</string>
     <string name="scan_location_permission_missing">Данные о местоположении могут быть доступны, если вы предоставите разрешение на местоположение.</string>
     <string name="scan_extraction_fail">Ошибка при извлечении метаданных.</string>
 
-    <!-- Metadata output strings -->
-    <!-- Basic File Information -->
+    
+    
     <string name="metadata_unknown">Неизвестно</string>
     <string name="metadata_size_bytes">Б</string>
     <string name="metadata_size_kb">КБ</string>
     <string name="metadata_size_mb">МБ</string>
 
-    <!-- Section Headers -->
+    
     <string name="metadata_image_properties_header">Свойства Изображения:</string>
     <string name="metadata_camera_information_header">Информация о Камере:</string>
     <string name="metadata_exposure_information_header">Информация об Экспозиции:</string>
@@ -102,7 +103,7 @@
     <string name="metadata_technical_details_header">Технические Детали:</string>
     <string name="metadata_video_properties_header">Свойства Видео:</string>
 
-    <!-- Image Metadata Fields -->
+    
     <string name="metadata_dimensions">Размеры: %1$d x %2$d</string>
     <string name="metadata_date_taken">Дата Съемки: %s</string>
     <string name="metadata_camera_make">Производитель Камеры: %s</string>
@@ -124,7 +125,7 @@
     <string name="metadata_white_balance_auto">Автоматический</string>
     <string name="metadata_white_balance_manual">Ручной</string>
 
-    <!-- Video Metadata Fields -->
+    
     <string name="metadata_duration_with_hours">Длительность: %s</string>
     <string name="metadata_duration_without_hours">Длительность: %s</string>
     <string name="metadata_resolution">Разрешение: %1$s x %2$s</string>
@@ -134,9 +135,9 @@
     <string name="metadata_frame_rate">Частота Кадров: %s кадр/с</string>
     <string name="metadata_sample_rate">Частота Дискретизации: %s Гц</string>
 
-    <!-- Additional Sectioned Metadata Strings -->
+    
 
-    <!-- Orientation Strings -->
+    
     <string name="metadata_orientation_normal">Обычная</string>
     <string name="metadata_orientation_rotate_90">Повернуть на 90°</string>
     <string name="metadata_orientation_rotate_180">Повернуть на 180°</string>
@@ -147,21 +148,18 @@
     <string name="metadata_orientation_transverse">Поперечная</string>
     <string name="metadata_orientation_unknown">Неизвестно (%d)</string>
 
-    <!-- Error Messages -->
+    
     <string name="metadata_error_extraction">Ошибка при извлечении метаданных: %s</string>
     <string name="metadata_error_basic_info">Ошибка при извлечении основной информации: %s</string>
     <string name="metadata_error_file_open">Ошибка: Не удалось открыть файл изображения</string>
     <string name="metadata_error_image_metadata">Ошибка при извлечении метаданных изображения: %s</string>
     <string name="metadata_error_video_metadata">Ошибка при извлечении метаданных видео: %s</string>
-    <!-- Additional App Strings -->
+    
     <string name="permission_rationale_media">Для выбора и обработки медиафайлов необходим доступ к медиа.</string>
     <string name="permission_rationale_storage">Для выбора и обработки медиафайлов необходим доступ к хранилищу.</string>
     <string name="permission_rationale_location">Для доступа к данным геолокации в медиафайлах требуется разрешение на местоположение.</string>
-    <string name="permission_denied_permanent">Разрешение отклонено навсегда. Пожалуйста, включите его в Настройках.</string>
     <string name="permission_denied_retry">Для выбора медиафайлов требуются разрешения.</string>
-    <string name="permission_location_denied_permanent">Разрешение на местоположение отклонено навсегда. Включите его в Настройках для доступа к данным местоположения медиа.</string>
     <string name="permission_location_retry">Для доступа к данным геолокации в медиафайлах требуется разрешение на местоположение.</string>
-    <string name="snackbar_action_settings">Настройки</string>
     <string name="snackbar_action_retry">Повторить</string>
     <string name="scan_metadata_subtitle">Обнаруженные поля из этого файла. Нажмите и удерживайте значения для копирования.</string>
     <string name="scan_open_in_maps">Открыть в Google Картах</string>
@@ -169,7 +167,7 @@
     <string name="scan_search_camera">Поиск Камеры</string>
     <string name="scan_search_unavailable">Браузер для выполнения этого поиска не найден.</string>
 
-    <!-- Settings screen -->
+    
     <string name="navigation_settings">Настройки</string>
     <string name="settings_section_notifications">Уведомления</string>
     <string name="settings_notifications_label">Все уведомления</string>
@@ -231,4 +229,3 @@
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
 </resources>
-

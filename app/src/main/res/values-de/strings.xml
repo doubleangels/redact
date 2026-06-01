@@ -1,16 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <!-- App name -->
+    
     <string name="app_name">Redact</string>
 
-    <!-- Content descriptions -->
+    
     <string name="content_description_image_view">Bildansicht</string>
     <string name="content_description_scroll_view">Scrollansicht</string>
 
-    <!-- Navigation labels -->
+    
     <string name="navigation_clean">Bereinigen</string>
     <string name="navigation_scan">Scannen</string>
 
-    <!-- Local notifications -->
+    
     <string name="notification_channel_tasks_name">Aufgaben</string>
     <string name="notification_channel_tasks_description">Medienkonvertierung und -bereinigung abgeschlossen</string>
     <string name="notification_convert_title">Konvertierung Abgeschlossen</string>
@@ -24,7 +25,7 @@
 
     <string name="navigation_convert">Konvertieren</string>
 
-    <!-- Convert tab -->
+    
     <string name="convert_output_format_images">Bildformat</string>
     <string name="convert_output_format_videos">Videocodec</string>
     <string name="convert_output_format_mixed">Formate (Bild / Video)</string>
@@ -55,11 +56,11 @@
     <string name="convert_saved_to_gallery">In Galerie gespeichert (Redact Ordner)</string>
     <string name="convert_clean_tab_hint">Durch die Konvertierung wird nur das Format geändert. Gehen Sie auf den Tab Bereinigen, um Metadaten zu entfernen.</string>
 
-    <!-- Button labels -->
+    
     <string name="button_select_media">Medien Auswählen</string>
     <string name="button_strip_exif_data">Metadaten Bereinigen</string>
 
-    <!-- Status and progress messages -->
+    
     <string name="status_processing">Wird verarbeitet…</string>
     <string name="status_processed_items">%1$d Elemente verarbeitet.</string>
     <string name="status_first_select_media_files">Bitte wählen Sie zuerst Mediendateien aus.</string>
@@ -75,26 +76,26 @@
     <string name="status_media_uri_fail">Medien-URI konnte nicht abgerufen werden.</string>
     <string name="status_storage_permissions_required">Speicherberechtigungen erforderlich.</string>
 
-    <!-- Share processing strings -->
+    
     <string name="share_processing_title">Wird verarbeitet…</string>
     <string name="share_chooser_title">Bereinigte Mediendatei teilen über…</string>
     <string name="share_error_unsupported_media">Nicht unterstützter Medientyp.</string>
     <string name="share_error_unsupported_action">Nicht unterstützte Aktion.</string>
 
-    <!-- Scan section strings -->
+    
     <string name="scan_metadata">Metadaten</string>
     <string name="scan_location_information">Standortinformationen</string>
     <string name="scan_location_permission_missing">Standortdaten könnten verfügbar sein, wenn Sie die Standortberechtigung erteilen.</string>
     <string name="scan_extraction_fail">Fehler beim Extrahieren der Metadaten.</string>
 
-    <!-- Metadata output strings -->
-    <!-- Basic File Information -->
+    
+    
     <string name="metadata_unknown">Unbekannt</string>
     <string name="metadata_size_bytes">B</string>
     <string name="metadata_size_kb">KB</string>
     <string name="metadata_size_mb">MB</string>
 
-    <!-- Section Headers -->
+    
     <string name="metadata_image_properties_header">Bildeigenschaften:</string>
     <string name="metadata_camera_information_header">Kamerainformationen:</string>
     <string name="metadata_exposure_information_header">Belichtungsinformationen:</string>
@@ -102,7 +103,7 @@
     <string name="metadata_technical_details_header">Technische Details:</string>
     <string name="metadata_video_properties_header">Videoeigenschaften:</string>
 
-    <!-- Image Metadata Fields -->
+    
     <string name="metadata_dimensions">Abmessungen: %1$d x %2$d</string>
     <string name="metadata_date_taken">Aufnahmedatum: %s</string>
     <string name="metadata_camera_make">Kameramarke: %s</string>
@@ -124,7 +125,7 @@
     <string name="metadata_white_balance_auto">Automatisch</string>
     <string name="metadata_white_balance_manual">Manuell</string>
 
-    <!-- Video Metadata Fields -->
+    
     <string name="metadata_duration_with_hours">Dauer: %s</string>
     <string name="metadata_duration_without_hours">Dauer: %s</string>
     <string name="metadata_resolution">Auflösung: %1$s x %2$s</string>
@@ -134,9 +135,9 @@
     <string name="metadata_frame_rate">Bildrate: %s fps</string>
     <string name="metadata_sample_rate">Abtastrate: %s Hz</string>
 
-    <!-- Additional Sectioned Metadata Strings -->
+    
 
-    <!-- Orientation Strings -->
+    
     <string name="metadata_orientation_normal">Normal</string>
     <string name="metadata_orientation_rotate_90">90° drehen</string>
     <string name="metadata_orientation_rotate_180">180° drehen</string>
@@ -147,21 +148,18 @@
     <string name="metadata_orientation_transverse">Transversal</string>
     <string name="metadata_orientation_unknown">Unbekannt (%d)</string>
 
-    <!-- Error Messages -->
+    
     <string name="metadata_error_extraction">Fehler beim Extrahieren der Metadaten: %s</string>
     <string name="metadata_error_basic_info">Fehler beim Extrahieren der Grundinformationen: %s</string>
     <string name="metadata_error_file_open">Fehler: Bilddatei konnte nicht geöffnet werden</string>
     <string name="metadata_error_image_metadata">Fehler beim Extrahieren der Bild-Metadaten: %s</string>
     <string name="metadata_error_video_metadata">Fehler beim Extrahieren der Video-Metadaten: %s</string>
-    <!-- Additional App Strings -->
+    
     <string name="permission_rationale_media">Zugriff auf Medien wird benötigt, um Mediendateien auszuwählen und zu verarbeiten.</string>
     <string name="permission_rationale_storage">Speicherzugriff wird benötigt, um Mediendateien auszuwählen und zu verarbeiten.</string>
     <string name="permission_rationale_location">Die Standortberechtigung wird benötigt, um auf Geolokalisierungsdaten in Mediendateien zuzugreifen.</string>
-    <string name="permission_denied_permanent">Berechtigung dauerhaft verweigert. Bitte in den Einstellungen aktivieren.</string>
     <string name="permission_denied_retry">Berechtigungen sind erforderlich, um Mediendateien auszuwählen.</string>
-    <string name="permission_location_denied_permanent">Standortberechtigung dauerhaft verweigert. In den Einstellungen aktivieren, um auf Medienstandortdaten zuzugreifen.</string>
     <string name="permission_location_retry">Die Standortberechtigung wird benötigt, um auf Geolokalisierungsdaten in Mediendateien zuzugreifen.</string>
-    <string name="snackbar_action_settings">Einstellungen</string>
     <string name="snackbar_action_retry">Wiederholen</string>
     <string name="scan_metadata_subtitle">Erkannte Felder aus dieser Datei. Werte gedrückt halten, um sie zu kopieren.</string>
     <string name="scan_open_in_maps">In Google Maps öffnen</string>
@@ -169,7 +167,7 @@
     <string name="scan_search_camera">Kamera Suchen</string>
     <string name="scan_search_unavailable">Kein Browser gefunden, um diese Suche auszuführen.</string>
 
-    <!-- Settings screen -->
+    
     <string name="navigation_settings">Einstellungen</string>
     <string name="settings_section_notifications">Benachrichtigungen</string>
     <string name="settings_notifications_label">Alle Benachrichtigungen</string>
@@ -231,4 +229,3 @@
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
 </resources>
-

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface"
+    tools:ignore="TooManyViews"
     android:clipToPadding="false"
     android:fillViewport="true">
 
@@ -927,6 +927,7 @@
                     android:layout_marginStart="40dp"
                     android:minHeight="36dp"
                     android:paddingStart="0dp"
+                    android:paddingEnd="0dp"
                     android:text="@string/settings_crash_reporting_learn_more"
                     app:icon="@drawable/ic_info_outline_20"
                     app:iconPadding="8dp" />

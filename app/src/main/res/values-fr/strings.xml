@@ -1,16 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <!-- App name -->
+    
     <string name="app_name">Redact</string>
 
-    <!-- Content descriptions -->
+    
     <string name="content_description_image_view">Vue d\'image</string>
     <string name="content_description_scroll_view">Vue de défilement</string>
 
-    <!-- Navigation labels -->
+    
     <string name="navigation_clean">Nettoyer</string>
     <string name="navigation_scan">Scanner</string>
 
-    <!-- Local notifications -->
+    
     <string name="notification_channel_tasks_name">Tâches</string>
     <string name="notification_channel_tasks_description">Conversion et nettoyage des médias terminés</string>
     <string name="notification_convert_title">Conversion Terminée</string>
@@ -24,7 +25,7 @@
 
     <string name="navigation_convert">Convertir</string>
 
-    <!-- Convert tab -->
+    
     <string name="convert_output_format_images">Format D\'Image</string>
     <string name="convert_output_format_videos">Codec Vidéo</string>
     <string name="convert_output_format_mixed">Formats (image / vidéo)</string>
@@ -55,11 +56,11 @@
     <string name="convert_saved_to_gallery">Enregistré dans la Galerie (dossier Redact)</string>
     <string name="convert_clean_tab_hint">La conversion modifie uniquement le format. Pour supprimer les métadonnées, allez dans l\'onglet Nettoyer.</string>
 
-    <!-- Button labels -->
+    
     <string name="button_select_media">Sélectionner un Média</string>
     <string name="button_strip_exif_data">Nettoyer les Métadonnées</string>
 
-    <!-- Status and progress messages -->
+    
     <string name="status_processing">Traitement en cours…</string>
     <string name="status_processed_items">%1$d éléments traités.</string>
     <string name="status_first_select_media_files">Veuillez d\'abord sélectionner des fichiers multimédias.</string>
@@ -75,26 +76,26 @@
     <string name="status_media_uri_fail">Impossible d\'obtenir l\'URI du média.</string>
     <string name="status_storage_permissions_required">Autorisations de stockage requises.</string>
 
-    <!-- Share processing strings -->
+    
     <string name="share_processing_title">Traitement en cours…</string>
     <string name="share_chooser_title">Partager le fichier média nettoyé via…</string>
     <string name="share_error_unsupported_media">Type de média non pris en charge.</string>
     <string name="share_error_unsupported_action">Action non prise en charge.</string>
 
-    <!-- Scan section strings -->
+    
     <string name="scan_metadata">Métadonnées</string>
     <string name="scan_location_information">Informations de Localisation</string>
     <string name="scan_location_permission_missing">Les données de localisation pourraient être disponibles si vous accordez l\'autorisation de localisation.</string>
     <string name="scan_extraction_fail">Échec de l\'extraction des métadonnées.</string>
 
-    <!-- Metadata output strings -->
-    <!-- Basic File Information -->
+    
+    
     <string name="metadata_unknown">Inconnu</string>
     <string name="metadata_size_bytes">o</string>
     <string name="metadata_size_kb">Ko</string>
     <string name="metadata_size_mb">Mo</string>
 
-    <!-- Section Headers -->
+    
     <string name="metadata_image_properties_header">Propriétés de l\'Image :</string>
     <string name="metadata_camera_information_header">Informations de l\'Appareil Photo :</string>
     <string name="metadata_exposure_information_header">Informations d\'Exposition :</string>
@@ -102,7 +103,7 @@
     <string name="metadata_technical_details_header">Détails Techniques :</string>
     <string name="metadata_video_properties_header">Propriétés de la Vidéo :</string>
 
-    <!-- Image Metadata Fields -->
+    
     <string name="metadata_dimensions">Dimensions : %1$d x %2$d</string>
     <string name="metadata_date_taken">Date de Prise : %s</string>
     <string name="metadata_camera_make">Marque de l\'Appareil : %s</string>
@@ -124,7 +125,7 @@
     <string name="metadata_white_balance_auto">Automatique</string>
     <string name="metadata_white_balance_manual">Manuel</string>
 
-    <!-- Video Metadata Fields -->
+    
     <string name="metadata_duration_with_hours">Durée : %s</string>
     <string name="metadata_duration_without_hours">Durée : %s</string>
     <string name="metadata_resolution">Résolution : %1$s x %2$s</string>
@@ -134,9 +135,9 @@
     <string name="metadata_frame_rate">Fréquence d\'Images : %s ips</string>
     <string name="metadata_sample_rate">Fréquence d\'Échantillonnage : %s Hz</string>
 
-    <!-- Additional Sectioned Metadata Strings -->
+    
 
-    <!-- Orientation Strings -->
+    
     <string name="metadata_orientation_normal">Normal</string>
     <string name="metadata_orientation_rotate_90">Rotation de 90°</string>
     <string name="metadata_orientation_rotate_180">Rotation de 180°</string>
@@ -147,21 +148,18 @@
     <string name="metadata_orientation_transverse">Transverse</string>
     <string name="metadata_orientation_unknown">Inconnu (%d)</string>
 
-    <!-- Error Messages -->
+    
     <string name="metadata_error_extraction">Erreur lors de l\'extraction des métadonnées : %s</string>
     <string name="metadata_error_basic_info">Erreur lors de l\'extraction des informations de base : %s</string>
     <string name="metadata_error_file_open">Erreur : Impossible d\'ouvrir le fichier image</string>
     <string name="metadata_error_image_metadata">Erreur lors de l\'extraction des métadonnées image : %s</string>
     <string name="metadata_error_video_metadata">Erreur lors de l\'extraction des métadonnées vidéo : %s</string>
-    <!-- Additional App Strings -->
+    
     <string name="permission_rationale_media">L\'accès aux médias est nécessaire pour sélectionner et traiter les fichiers.</string>
     <string name="permission_rationale_storage">L\'accès au stockage est nécessaire pour sélectionner et traiter les fichiers multimédias.</string>
     <string name="permission_rationale_location">L\'autorisation de localisation est nécessaire pour accéder aux données de géolocalisation dans les fichiers multimédias.</string>
-    <string name="permission_denied_permanent">Autorisation refusée de manière permanente. Veuillez l\'activer dans les Paramètres.</string>
     <string name="permission_denied_retry">Les autorisations sont requises pour sélectionner des fichiers multimédias.</string>
-    <string name="permission_location_denied_permanent">Autorisation de localisation refusée de manière permanente. Activez-la dans les Paramètres pour accéder aux données de localisation des fichiers multimédias.</string>
     <string name="permission_location_retry">L\'autorisation de localisation est nécessaire pour accéder aux données de géolocalisation dans les fichiers multimédias.</string>
-    <string name="snackbar_action_settings">Paramètres</string>
     <string name="snackbar_action_retry">Réessayer</string>
     <string name="scan_metadata_subtitle">Champs détectés à partir de ce fichier. Appuyez et maintenez sur les valeurs pour copier.</string>
     <string name="scan_open_in_maps">Ouvrir dans Google Maps</string>
@@ -169,7 +167,7 @@
     <string name="scan_search_camera">Rechercher L\'Appareil Photo</string>
     <string name="scan_search_unavailable">Aucun navigateur trouvé pour effectuer cette recherche.</string>
 
-    <!-- Settings screen -->
+    
     <string name="navigation_settings">Paramètres</string>
     <string name="settings_section_notifications">Notifications</string>
     <string name="settings_notifications_label">Toutes les notifications</string>
@@ -231,4 +229,3 @@
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
 </resources>
-

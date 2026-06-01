@@ -30,7 +30,7 @@ import java.io.OutputStream;
  */
 public final class FormatConverter {
 
-    private static final int MAX_DIMENSION = 4096;
+
 
     @androidx.annotation.VisibleForTesting
     @Nullable
@@ -58,14 +58,14 @@ public final class FormatConverter {
             }
             
             if (oldExif != null) {
-                copyExifAttributes(oldExif, openExifForWrite(context, destUri));
+                copyExifAttributes(context, oldExif, openExifForWrite(context, destUri));
             }
         } catch (Exception e) {
             // Ignore exif copy errors
         }
     }
 
-    private static void copyExifAttributes(
+    private static void copyExifAttributes(Context context,
             @NonNull androidx.exifinterface.media.ExifInterface oldExif,
             @Nullable androidx.exifinterface.media.ExifInterface newExif) {
         if (newExif == null) {
@@ -93,6 +93,24 @@ public final class FormatConverter {
                 String value = oldExif.getAttribute(tag);
                 if (value != null) {
                     newExif.setAttribute(tag, value);
+                }
+            }
+            if (AppPreferences.isPreserveLocation(context)) {
+                String[] locTags = {
+                    androidx.exifinterface.media.ExifInterface.TAG_GPS_LATITUDE,
+                    androidx.exifinterface.media.ExifInterface.TAG_GPS_LATITUDE_REF,
+                    androidx.exifinterface.media.ExifInterface.TAG_GPS_LONGITUDE,
+                    androidx.exifinterface.media.ExifInterface.TAG_GPS_LONGITUDE_REF,
+                    androidx.exifinterface.media.ExifInterface.TAG_GPS_ALTITUDE,
+                    androidx.exifinterface.media.ExifInterface.TAG_GPS_ALTITUDE_REF,
+                    androidx.exifinterface.media.ExifInterface.TAG_GPS_TIMESTAMP,
+                    androidx.exifinterface.media.ExifInterface.TAG_GPS_DATESTAMP
+                };
+                for (String tag : locTags) {
+                    String value = oldExif.getAttribute(tag);
+                    if (value != null) {
+                        newExif.setAttribute(tag, value);
+                    }
                 }
             }
             newExif.saveAttributes();
@@ -386,7 +404,7 @@ public final class FormatConverter {
 
         Bitmap bitmap;
         if (bounds.outWidth > 0 && bounds.outHeight > 0) {
-            int sampleSize = calculateInSampleSize(bounds);
+            int sampleSize = calculateInSampleSize(context, bounds);
             BitmapFactory.Options opts = new BitmapFactory.Options();
             opts.inSampleSize = sampleSize;
             try (InputStream in = resolver.openInputStream(sourceUri)) {
@@ -400,7 +418,7 @@ public final class FormatConverter {
         }
 
         if (bitmap == null) {
-            bitmap = decodeWithImageDecoder(resolver, sourceUri);
+            bitmap = decodeWithImageDecoder(context, sourceUri);
         }
         if (bitmap == null) {
             throw new IOException("Decode failed");
@@ -447,17 +465,18 @@ public final class FormatConverter {
         return outUri;
     }
 
-    private static Bitmap decodeWithImageDecoder(ContentResolver resolver, Uri sourceUri)
+    private static Bitmap decodeWithImageDecoder(Context context, Uri sourceUri)
             throws IOException {
-        ImageDecoder.Source source = ImageDecoder.createSource(resolver, sourceUri);
+        ImageDecoder.Source source = ImageDecoder.createSource(context.getContentResolver(), sourceUri);
         return ImageDecoder.decodeBitmap(
                 source,
                 (decoder, info, s) -> {
                     int w = info.getSize().getWidth();
                     int h = info.getSize().getHeight();
+                    int maxDimension = AppPreferences.getMaxBitmapSize(context);
                     int maxSide = Math.max(w, h);
-                    if (maxSide > MAX_DIMENSION) {
-                        float scale = MAX_DIMENSION / (float) maxSide;
+                    if (maxSide > maxDimension) {
+                        float scale = maxDimension / (float) maxSide;
                         decoder.setTargetSize(
                                 Math.max(1, Math.round(w * scale)),
                                 Math.max(1, Math.round(h * scale)));
@@ -513,15 +532,16 @@ public final class FormatConverter {
         return "image/jpeg";
     }
 
-    private static int calculateInSampleSize(BitmapFactory.Options options) {
+    public static int calculateInSampleSize(Context context, BitmapFactory.Options options) {
         int height = options.outHeight;
         int width = options.outWidth;
         int inSampleSize = 1;
-        if (height > MAX_DIMENSION || width > MAX_DIMENSION) {
+        int maxDimension = AppPreferences.getMaxBitmapSize(context);
+        if (height > maxDimension || width > maxDimension) {
             int halfHeight = height / 2;
             int halfWidth = width / 2;
-            while ((halfHeight / inSampleSize) >= MAX_DIMENSION
-                    && (halfWidth / inSampleSize) >= MAX_DIMENSION) {
+            while ((halfHeight / inSampleSize) >= maxDimension
+                    && (halfWidth / inSampleSize) >= maxDimension) {
                 inSampleSize *= 2;
             }
         }

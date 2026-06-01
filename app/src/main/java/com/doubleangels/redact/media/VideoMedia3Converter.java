@@ -333,8 +333,7 @@ public final class VideoMedia3Converter {
 
         Context app = context.getApplicationContext();
         String ext = extensionForFormatIndex(formatIndex);
-        File outFile =
-                new File(app.getCacheDir(), "vid_transform_" + System.currentTimeMillis() + ext);
+        File outFile = File.createTempFile("vid_transform_", ext, app.getCacheDir());
         transcodeToPath(app, sourceUri, outFile.getAbsolutePath(), formatIndex, progressListener);
 
         try {

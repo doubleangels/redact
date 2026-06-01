@@ -15,9 +15,9 @@
     </style>
 
     <!-- Transparent theme for ShareHandlerActivity (night).
-         Must inherit Material3 (not MaterialComponents/Material2) so dialog_progress.xml
-         can resolve ?attr/colorSurfaceContainerHigh, textAppearanceBodyMedium, etc. -->
-    <style name="Theme.Transparent" parent="Theme.Material3.DayNight.NoActionBar">
+         Inherits from Theme.Redact so dialogs pick up app colors and shapes, but overrides
+         window properties to remain transparent. -->
+    <style name="Theme.Transparent" parent="Theme.Redact">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowContentOverlay">@null</item>

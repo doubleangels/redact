@@ -21,6 +21,7 @@ import com.doubleangels.redact.metadata.MetadataStripper;
 import java.io.File;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.doubleangels.redact.sentry.SentryManager;
+import com.google.android.material.color.DynamicColors;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        DynamicColors.applyToActivityIfAvailable(this);
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
 

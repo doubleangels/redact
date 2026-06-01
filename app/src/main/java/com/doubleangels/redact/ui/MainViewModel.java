@@ -1,13 +1,28 @@
 package com.doubleangels.redact.ui;
 
+import android.app.Application;
+
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 
+import android.graphics.Bitmap;
+
+import com.doubleangels.redact.R;
+import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaItem;
+import com.doubleangels.redact.media.MediaProcessor;
+import com.doubleangels.redact.notifications.LocalNotifications;
+import com.doubleangels.redact.sentry.SentryManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import io.sentry.ISpan;
+import io.sentry.ITransaction;
+import io.sentry.SpanStatus;
 
 /**
  * ViewModel that manages UI-related data for the Redact application.
@@ -17,7 +32,26 @@ import java.util.List;
  * and provides a clean interface for communicating between UI components and
  * business logic through LiveData objects.
  */
-public class MainViewModel extends ViewModel {
+public class MainViewModel extends AndroidViewModel {
+
+    private final MediaProcessor mediaProcessor;
+    private final ExecutorService convertExecutor;
+
+    public MainViewModel(Application application) {
+        super(application);
+        mediaProcessor = new MediaProcessor(application);
+        convertExecutor = Executors.newSingleThreadExecutor();
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        mediaProcessor.cancel();
+        if (convertExecutor != null) {
+            convertExecutor.shutdownNow();
+        }
+    }
+
     /**
      * Represents different states of media processing workflow.
      */
@@ -147,5 +181,110 @@ public class MainViewModel extends ViewModel {
     public void updateProgressPercent(int percentComplete, String message) {
         progressPercent.postValue(Math.min(100, Math.max(0, percentComplete)));
         progressMessage.postValue(message != null ? message : "");
+    }
+
+    /**
+     * Starts the cleaning process for the given items.
+     */
+    public void startCleaning(List<MediaItem> items) {
+        if (items == null || items.isEmpty()) return;
+        setProcessingState(ProcessingState.PROCESSING);
+        mediaProcessor.processMediaItems(items, new MediaProcessor.ProcessingCallback() {
+            @Override
+            public void onProgress(int overallPercent, String message) {
+                updateProgressPercent(overallPercent, message);
+                LocalNotifications.updateCleanProgress(getApplication(), overallPercent, message);
+            }
+            @Override
+            public void onComplete(int processedCount) {
+                setProcessedItemCount(processedCount);
+                setProcessingState(ProcessingState.COMPLETED);
+                LocalNotifications.showCleanComplete(getApplication(), processedCount);
+            }
+        });
+    }
+
+    /**
+     * Starts the conversion process for the given items.
+     */
+    public void startConversion(List<MediaItem> items, int formatIndex, int imageFormatIndex, Bitmap.CompressFormat imageFormat) {
+        if (items == null || items.isEmpty()) return;
+        setProcessingState(ProcessingState.PROCESSING);
+        updateProgressPercent(0, "");
+
+        final int total = items.size();
+        convertExecutor.execute(() -> {
+            ITransaction transaction = SentryManager.startTransaction("convert_multiple", "task");
+            int ok = 0;
+            int fail = 0;
+            try {
+                for (int i = 0; i < total; i++) {
+                    if (Thread.currentThread().isInterrupted()) break;
+                    MediaItem mediaItem = items.get(i);
+                    android.net.Uri uri = mediaItem.uri();
+                    final int index = i + 1;
+                    final String name = mediaItem.fileName() != null ? mediaItem.fileName() : "unknown";
+                    ISpan span = transaction.startChild("convert_item", name);
+                    
+                    int overallStart = total > 0 ? ((index - 1) * 100) / total : 0;
+                    String itemLine = getApplication().getString(R.string.convert_progress_item, index, total);
+                    updateProgressPercent(overallStart, itemLine);
+                    LocalNotifications.updateConversionProgress(getApplication(), overallStart, itemLine);
+
+                    try {
+                        if (mediaItem.isVideo()) {
+                            FormatConverter.convertVideoToMovies(
+                                    getApplication(),
+                                    uri,
+                                    name,
+                                    formatIndex,
+                                    p -> {
+                                        int overall = total > 0 ? ((index - 1) * 100 + p) / total : 0;
+                                        String detail = getApplication().getString(
+                                                R.string.convert_progress_detail,
+                                                index,
+                                                total,
+                                                name,
+                                                getApplication().getString(R.string.convert_transcoding_percent, p));
+                                        updateProgressPercent(overall, detail);
+                                        LocalNotifications.updateConversionProgress(getApplication(), overall, detail);
+                                    });
+                        } else {
+                            int overallImage = total > 0 ? ((index - 1) * 100) / total : 0;
+                            String detail = getApplication().getString(
+                                    R.string.convert_progress_detail,
+                                    index,
+                                    total,
+                                    name,
+                                    getApplication().getString(R.string.convert_encoding_image));
+                            updateProgressPercent(overallImage, detail);
+                            LocalNotifications.updateConversionProgress(getApplication(), overallImage, detail);
+                            
+                            FormatConverter.convertImageToPictures(getApplication(), uri, imageFormat, name);
+                        }
+                        ok++;
+                        span.setStatus(SpanStatus.OK);
+                    } catch (Exception e) {
+                        fail++;
+                        SentryManager.recordException(e);
+                        span.setStatus(SpanStatus.INTERNAL_ERROR);
+                    } finally {
+                        span.finish();
+                    }
+                    int overallDone = total > 0 ? (index * 100) / total : 0;
+                    String doneLine = getApplication().getString(R.string.convert_progress_item, index, total);
+                    updateProgressPercent(overallDone, doneLine);
+                    LocalNotifications.updateConversionProgress(getApplication(), overallDone, doneLine);
+                }
+            } finally {
+                final int finalOk = ok;
+                final int finalFail = fail;
+                updateProgressPercent(100, getApplication().getString(R.string.convert_done_all, finalOk));
+                setProcessedItemCount(finalOk);
+                setProcessingState(ProcessingState.COMPLETED);
+                LocalNotifications.showConversionComplete(getApplication(), finalOk, finalFail);
+                transaction.finish();
+            }
+        });
     }
 }

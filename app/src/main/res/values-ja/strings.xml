@@ -1,16 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <!-- App name -->
+    
     <string name="app_name">Redact</string>
 
-    <!-- Content descriptions -->
+    
     <string name="content_description_image_view">画像ビュー</string>
     <string name="content_description_scroll_view">スクロールビュー</string>
 
-    <!-- Navigation labels -->
+    
     <string name="navigation_clean">クリーン</string>
     <string name="navigation_scan">スキャン</string>
 
-    <!-- Local notifications -->
+    
     <string name="notification_channel_tasks_name">タスク</string>
     <string name="notification_channel_tasks_description">メディアの変換とクリーンアップが完了しました</string>
     <string name="notification_convert_title">変換完了</string>
@@ -24,7 +25,7 @@
 
     <string name="navigation_convert">変換</string>
 
-    <!-- Convert tab -->
+    
     <string name="convert_output_format_images">画像形式</string>
     <string name="convert_output_format_videos">動画コーデック</string>
     <string name="convert_output_format_mixed">フォーマット (画像 / 動画)</string>
@@ -55,11 +56,11 @@
     <string name="convert_saved_to_gallery">ギャラリー(Redactフォルダ)に保存しました</string>
     <string name="convert_clean_tab_hint">変換はフォーマットのみを変更します。メタデータを削除するには「クリーン」タブを使用してください。</string>
 
-    <!-- Button labels -->
+    
     <string name="button_select_media">メディアを選択</string>
     <string name="button_strip_exif_data">メタデータをクリーン</string>
 
-    <!-- Status and progress messages -->
+    
     <string name="status_processing">処理中…</string>
     <string name="status_processed_items">%1$d件のアイテムを処理しました。</string>
     <string name="status_first_select_media_files">まずメディアファイルを選択してください。</string>
@@ -75,26 +76,26 @@
     <string name="status_media_uri_fail">メディアURIを取得できませんでした。</string>
     <string name="status_storage_permissions_required">ストレージ権限が必要です。</string>
 
-    <!-- Share processing strings -->
+    
     <string name="share_processing_title">処理中…</string>
     <string name="share_chooser_title">クリーンなメディアファイルを共有…</string>
     <string name="share_error_unsupported_media">サポートされていないメディアタイプ。</string>
     <string name="share_error_unsupported_action">サポートされていないアクション。</string>
 
-    <!-- Scan section strings -->
+    
     <string name="scan_metadata">メタデータ</string>
     <string name="scan_location_information">位置情報</string>
     <string name="scan_location_permission_missing">位置情報の権限を付与すると、位置データが利用可能になる場合があります。</string>
     <string name="scan_extraction_fail">メタデータの抽出に失敗しました。</string>
 
-    <!-- Metadata output strings -->
-    <!-- Basic File Information -->
+    
+    
     <string name="metadata_unknown">不明</string>
     <string name="metadata_size_bytes">B</string>
     <string name="metadata_size_kb">KB</string>
     <string name="metadata_size_mb">MB</string>
 
-    <!-- Section Headers -->
+    
     <string name="metadata_image_properties_header">画像プロパティ:</string>
     <string name="metadata_camera_information_header">カメラ情報:</string>
     <string name="metadata_exposure_information_header">露出情報:</string>
@@ -102,7 +103,7 @@
     <string name="metadata_technical_details_header">技術的詳細:</string>
     <string name="metadata_video_properties_header">動画プロパティ:</string>
 
-    <!-- Image Metadata Fields -->
+    
     <string name="metadata_dimensions">サイズ: %1$d x %2$d</string>
     <string name="metadata_date_taken">撮影日: %s</string>
     <string name="metadata_camera_make">カメラメーカー: %s</string>
@@ -124,7 +125,7 @@
     <string name="metadata_white_balance_auto">自動</string>
     <string name="metadata_white_balance_manual">手動</string>
 
-    <!-- Video Metadata Fields -->
+    
     <string name="metadata_duration_with_hours">長さ: %s</string>
     <string name="metadata_duration_without_hours">長さ: %s</string>
     <string name="metadata_resolution">解像度: %1$s x %2$s</string>
@@ -134,9 +135,9 @@
     <string name="metadata_frame_rate">フレームレート: %s fps</string>
     <string name="metadata_sample_rate">サンプルレート: %s Hz</string>
 
-    <!-- Additional Sectioned Metadata Strings -->
+    
 
-    <!-- Orientation Strings -->
+    
     <string name="metadata_orientation_normal">通常</string>
     <string name="metadata_orientation_rotate_90">90°回転</string>
     <string name="metadata_orientation_rotate_180">180°回転</string>
@@ -147,21 +148,18 @@
     <string name="metadata_orientation_transverse">横方向</string>
     <string name="metadata_orientation_unknown">不明 (%d)</string>
 
-    <!-- Error Messages -->
+    
     <string name="metadata_error_extraction">メタデータの抽出エラー: %s</string>
     <string name="metadata_error_basic_info">基本情報の抽出エラー: %s</string>
     <string name="metadata_error_file_open">エラー: 画像ファイルを開けませんでした</string>
     <string name="metadata_error_image_metadata">画像メタデータの抽出エラー: %s</string>
     <string name="metadata_error_video_metadata">動画メタデータの抽出エラー: %s</string>
-    <!-- Additional App Strings -->
+    
     <string name="permission_rationale_media">メディアファイルを選択して処理するには、メディアへのアクセスが必要です。</string>
     <string name="permission_rationale_storage">メディアファイルを選択して処理するには、ストレージへのアクセスが必要です。</string>
     <string name="permission_rationale_location">メディアファイルの位置情報データにアクセスするには、位置情報の権限が必要です。</string>
-    <string name="permission_denied_permanent">権限が恒久的に拒否されました。設定で有効にしてください。</string>
     <string name="permission_denied_retry">メディアファイルを選択するには権限が必要です。</string>
-    <string name="permission_location_denied_permanent">位置情報の権限が恒久的に拒否されました。メディアの位置情報データにアクセスするには、設定で権限を有効にしてください。</string>
     <string name="permission_location_retry">メディアファイルの位置情報データにアクセスするには、位置情報の権限が必要です。</string>
-    <string name="snackbar_action_settings">設定</string>
     <string name="snackbar_action_retry">再試行</string>
     <string name="scan_metadata_subtitle">このファイルから検出されたフィールドです。長押しで値をコピーできます。</string>
     <string name="scan_open_in_maps">Google マップで開く</string>
@@ -169,7 +167,7 @@
     <string name="scan_search_camera">カメラを検索</string>
     <string name="scan_search_unavailable">この検索を実行するブラウザが見つかりません。</string>
 
-    <!-- Settings screen -->
+    
     <string name="navigation_settings">設定</string>
     <string name="settings_section_notifications">通知</string>
     <string name="settings_notifications_label">すべての通知</string>
@@ -231,4 +229,3 @@
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
 </resources>
-

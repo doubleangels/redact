@@ -18,8 +18,11 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.doubleangels.redact.ui.MainViewModel;
 
 import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.media.ConvertFileAdapter;
@@ -51,7 +54,7 @@ public class ConvertFragment extends Fragment {
     private PermissionManager permissionManager;
     private MediaSelector mediaSelector;
     private final List<MediaItem> selectedItems = new ArrayList<>();
-    private ExecutorService executor;
+    private MainViewModel viewModel;
 
     private MaterialButton selectButton;
     private MaterialButton convertButton;
@@ -109,7 +112,8 @@ public class ConvertFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        executor = Executors.newSingleThreadExecutor();
+        viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
+        setupObservers();
         SentryManager.log("ConvertFragment view created");
 
         statusText = view.findViewById(R.id.statusText);
@@ -282,6 +286,42 @@ public class ConvertFragment extends Fragment {
         return 0;
     }
 
+    private void setupObservers() {
+        viewModel.getProcessingState().observe(getViewLifecycleOwner(), state -> {
+            if (state == MainViewModel.ProcessingState.PROCESSING) {
+                convertButton.setEnabled(false);
+                selectButton.setEnabled(false);
+                showProgress(true);
+            } else if (state == MainViewModel.ProcessingState.COMPLETED) {
+                convertButton.setEnabled(!selectedItems.isEmpty());
+                selectButton.setEnabled(true);
+                showProgress(false);
+                Integer okCount = viewModel.getProcessedItemCount().getValue();
+                if (okCount != null) {
+                    if (okCount == selectedItems.size() && okCount > 0) {
+                        statusText.setText(getString(R.string.convert_done_all, okCount));
+                        Toast.makeText(requireContext(), R.string.convert_saved_to_gallery, Toast.LENGTH_SHORT).show();
+                    } else if (okCount > 0) {
+                        statusText.setText(getString(R.string.convert_done_partial, okCount, selectedItems.size() - okCount));
+                    } else {
+                        statusText.setText(R.string.convert_done_failed);
+                    }
+                }
+                viewModel.setProcessingState(MainViewModel.ProcessingState.IDLE);
+            }
+        });
+        viewModel.getProgressPercent().observe(getViewLifecycleOwner(), percent -> {
+            if (progressBar.getVisibility() == View.VISIBLE) {
+                progressBar.setProgress(percent);
+            }
+        });
+        viewModel.getProgressMessage().observe(getViewLifecycleOwner(), msg -> {
+            if (progressText.getVisibility() == View.VISIBLE && msg != null) {
+                progressText.setText(msg);
+            }
+        });
+    }
+
     private void runConversion() {
         SentryManager.log("runConversion started");
         if (selectedItems.isEmpty()) {
@@ -294,9 +334,7 @@ public class ConvertFragment extends Fragment {
         Bitmap.CompressFormat imageFormat = FormatConverter.formatAtIndex(imageFormatIndex);
         final boolean heicOutputFallback =
                 formatIndex == 3 && imageFormatIndex != formatIndex;
-        convertButton.setEnabled(false);
-        selectButton.setEnabled(false);
-        showProgress(true);
+        
         progressBar.setIndeterminate(false);
         progressBar.setMax(100);
         progressBar.setProgress(0);
@@ -307,138 +345,7 @@ public class ConvertFragment extends Fragment {
                             Toast.LENGTH_LONG)
                     .show();
         }
-
-        // Capture context now (on UI thread) so lambdas on background thread don't call
-        // requireContext() after the fragment may have been detached.
-        final android.content.Context ctx = requireContext().getApplicationContext();
-
-        final int total = selectedItems.size();
-        executor.execute(() -> {
-            ITransaction transaction = SentryManager.startTransaction("convert_multiple", "task");
-            int ok = 0;
-            int fail = 0;
-            try {
-                for (int i = 0; i < total; i++) {
-                    MediaItem mediaItem = selectedItems.get(i);
-                    Uri uri = mediaItem.uri();
-                    final int index = i + 1;
-                    String name = mediaSelector.getFileName(uri);
-                    ISpan span = transaction.startChild("convert_item", name != null ? name : "unknown");
-                    requireActivity().runOnUiThread(() -> {
-                        if (!isAdded()) {
-                            return;
-                        }
-                        int overallStart = total > 0 ? ((index - 1) * 100) / total : 0;
-                        progressBar.setProgress(overallStart);
-                        String itemLine = getString(R.string.convert_progress_item, index, total);
-                        progressText.setText(itemLine);
-                        LocalNotifications.updateConversionProgress(ctx, overallStart, itemLine);
-                    });
-                    try {
-                    if (mediaItem.isVideo()) {
-                        FormatConverter.convertVideoToMovies(
-                                ctx,
-                                uri,
-                                name,
-                                formatIndex,
-                                p ->
-                                        requireActivity()
-                                                .runOnUiThread(
-                                                        () -> {
-                                                            if (!isAdded()) {
-                                                                return;
-                                                            }
-                                                            int overall =
-                                                                    total > 0
-                                                                            ? ((index - 1) * 100 + p)
-                                                                                    / total
-                                                                            : 0;
-                                                            progressBar.setProgress(overall);
-                                                            String detail =
-                                                                    getString(
-                                                                            R.string
-                                                                                    .convert_progress_detail,
-                                                                            index,
-                                                                            total,
-                                                                            name,
-                                                                            getString(
-                                                                                    R.string
-                                                                                            .convert_transcoding_percent,
-                                                                                    p));
-                                                            progressText.setText(detail);
-                                                            LocalNotifications.updateConversionProgress(
-                                                                    ctx, overall, detail);
-                                                        }));
-                    } else {
-                        requireActivity()
-                                .runOnUiThread(
-                                        () -> {
-                                            if (isAdded()) {
-                                                int overallImage =
-                                                        total > 0
-                                                                ? ((index - 1) * 100) / total
-                                                                : 0;
-                                                String detail =
-                                                        getString(
-                                                                R.string.convert_progress_detail,
-                                                                index,
-                                                                total,
-                                                                name,
-                                                                getString(
-                                                                        R.string
-                                                                                .convert_encoding_image));
-                                                progressText.setText(detail);
-                                                LocalNotifications.updateConversionProgress(
-                                                        ctx, overallImage, detail);
-                                            }
-                                        });
-                        FormatConverter.convertImageToPictures(ctx, uri, imageFormat, name);
-                        }
-                        ok++;
-                        span.setStatus(SpanStatus.OK);
-                    } catch (Exception e) {
-                        fail++;
-                        SentryManager.recordException(e);
-                        span.setStatus(SpanStatus.INTERNAL_ERROR);
-                    } finally {
-                        span.finish();
-                    }
-                    final int done = index;
-                    requireActivity().runOnUiThread(() -> {
-                        if (isAdded()) {
-                        int overallDone = total > 0 ? (done * 100) / total : 0;
-                        progressBar.setProgress(overallDone);
-                        LocalNotifications.updateConversionProgress(
-                                ctx,
-                                overallDone,
-                                getString(R.string.convert_progress_item, done, total));
-                    }
-                });
-            }
-            final int okCount = ok;
-            final int failCount = fail;
-            requireActivity().runOnUiThread(() -> {
-                if (!isAdded()) {
-                    return;
-                }
-                showProgress(false);
-                convertButton.setEnabled(true);
-                selectButton.setEnabled(true);
-                SentryManager.log("Conversion complete: ok=" + okCount + ", fail=" + failCount);
-                if (failCount == 0) {
-                    statusText.setText(getString(R.string.convert_done_all, okCount));
-                    Toast.makeText(ctx, R.string.convert_saved_to_gallery, Toast.LENGTH_SHORT).show();
-                } else if (okCount != 0) {
-                    statusText.setText(getString(R.string.convert_done_partial, okCount, failCount));
-                } else {
-                    statusText.setText(R.string.convert_done_failed);
-                }
-                LocalNotifications.showConversionComplete(ctx, okCount, failCount);
-            });
-            } finally {
-                transaction.finish();
-            }
-        });
+        viewModel.startConversion(selectedItems, formatIndex, imageFormatIndex, imageFormat);
     }
 
     private void showProgress(boolean show) {
@@ -467,10 +374,6 @@ public class ConvertFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
-        if (executor != null) {
-            executor.shutdown();
-            executor = null;
-        }
         super.onDestroyView();
     }
 

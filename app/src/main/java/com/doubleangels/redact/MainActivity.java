@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             if (savedInstanceState == null) {
+                com.doubleangels.redact.permission.PermissionManager.requestAllInitialPermissions(this);
                 getSupportFragmentManager().beginTransaction()
                         .add(R.id.fragment_container, new CleanFragment(), TAG_CLEAN)
                         .commit();
@@ -228,6 +229,14 @@ public class MainActivity extends AppCompatActivity {
             Fragment scan = getSupportFragmentManager().findFragmentByTag(TAG_SCAN);
             Fragment clean = getSupportFragmentManager().findFragmentByTag(TAG_CLEAN);
             Fragment convert = getSupportFragmentManager().findFragmentByTag(TAG_CONVERT);
+
+            for (int i = 0; i < permissions.length; i++) {
+                if (android.Manifest.permission.POST_NOTIFICATIONS.equals(permissions[i])) {
+                    if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                        AppPreferences.setNotificationsEnabled(this, true);
+                    }
+                }
+            }
 
             if (convert != null && convert.isVisible()) {
                 ((ConvertFragment) convert).handlePermissionResult(requestCode, permissions, grantResults);

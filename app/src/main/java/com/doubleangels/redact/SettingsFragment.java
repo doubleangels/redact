@@ -407,31 +407,38 @@ public class SettingsFragment extends Fragment {
         if (textStorageSize == null) {
             return;
         }
+        final android.content.Context ctx = requireContext().getApplicationContext();
         backgroundExecutor.execute(() -> {
-            long bytes = CacheCleanup.getTempCacheSizeBytes(requireContext());
-            if (!isAdded()) {
-                return;
+            long bytes = CacheCleanup.getTempCacheSizeBytes(ctx);
+            android.app.Activity activity = getActivity();
+            if (activity != null) {
+                activity.runOnUiThread(() -> {
+                    if (isAdded()) {
+                        textStorageSize.setText(getString(R.string.settings_storage_size, CacheCleanup.formatSize(bytes)));
+                    }
+                });
             }
-            requireActivity().runOnUiThread(() -> textStorageSize.setText(
-                    getString(R.string.settings_storage_size, CacheCleanup.formatSize(bytes))));
         });
     }
 
     private void clearTempFiles() {
+        final android.content.Context ctx = requireContext().getApplicationContext();
         backgroundExecutor.execute(() -> {
-            long before = CacheCleanup.getTempCacheSizeBytes(requireContext());
-            int deleted = CacheCleanup.clearAllTempFiles(requireContext());
-            if (!isAdded()) {
-                return;
+            long before = CacheCleanup.getTempCacheSizeBytes(ctx);
+            int deleted = CacheCleanup.clearAllTempFiles(ctx);
+            android.app.Activity activity = getActivity();
+            if (activity != null) {
+                activity.runOnUiThread(() -> {
+                    if (isAdded()) {
+                        refreshStorageSize();
+                        if (before == 0 || deleted == 0) {
+                            Toast.makeText(ctx, R.string.settings_storage_clear_empty, Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(ctx, R.string.settings_storage_clear_success, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
             }
-            requireActivity().runOnUiThread(() -> {
-                refreshStorageSize();
-                if (before == 0 || deleted == 0) {
-                    Toast.makeText(requireContext(), R.string.settings_storage_clear_empty, Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(requireContext(), R.string.settings_storage_clear_success, Toast.LENGTH_SHORT).show();
-                }
-            });
         });
     }
 

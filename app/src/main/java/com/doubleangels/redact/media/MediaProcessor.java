@@ -1,7 +1,9 @@
 package com.doubleangels.redact.media;
 
-import android.app.Activity;
+import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.doubleangels.redact.R;
@@ -28,14 +30,17 @@ public class MediaProcessor {
     /** Utility for stripping metadata from images and videos */
     private final MetadataStripper metadataStripper;
 
-    /** The activity context used for UI thread operations */
-    private final Activity activity;
+    /** The application context used for background operations */
+    private final Context context;
 
     /** Stores the URI of the most recently processed file */
     private volatile Uri lastProcessedFileUri;
 
     /** Prevents overlapping batch processing from multiple strip invocations */
     private final AtomicBoolean processing = new AtomicBoolean(false);
+
+    /** Flag to allow cancellation of ongoing processing */
+    private final AtomicBoolean cancelled = new AtomicBoolean(false);
 
     /**
      * Callback interface for reporting processing progress and completion.
@@ -61,11 +66,18 @@ public class MediaProcessor {
     /**
      * Creates a new MediaProcessor instance.
      *
-     * @param activity The activity context for UI thread operations
+     * @param context The context for operations
      */
-    public MediaProcessor(Activity activity) {
-        this.activity = activity;
-        this.metadataStripper = new MetadataStripper(activity);
+    public MediaProcessor(Context context) {
+        this.context = context.getApplicationContext();
+        this.metadataStripper = new MetadataStripper(this.context);
+    }
+
+    /**
+     * Cancels any ongoing processing.
+     */
+    public void cancel() {
+        cancelled.set(true);
     }
 
     /**
@@ -100,12 +112,17 @@ public class MediaProcessor {
             try {
                 int totalItems = items.size();
 
+                Handler mainHandler = new Handler(Looper.getMainLooper());
                 for (int index = 0; index < totalItems; index++) {
+                    if (cancelled.get()) {
+                        Log.i(TAG, "Processing cancelled by user or lifecycle");
+                        break;
+                    }
                     MediaItem item = items.get(index);
                     ISpan span = transaction.startChild("clean_item", "media_item");
                     final int itemIndex = index;
                     String batchLine =
-                            activity.getString(
+                            context.getString(
                                     R.string.clean_progress_batch,
                                     index + 1,
                                     totalItems,
@@ -115,6 +132,7 @@ public class MediaProcessor {
                     try {
                         metadataStripper.setProgressCallback(
                                 (percentOfCurrentItem, message) -> {
+                                    if (cancelled.get()) return;
                                     int overall =
                                             totalItems > 0
                                                     ? (itemIndex * 100 + percentOfCurrentItem) / totalItems
@@ -122,7 +140,7 @@ public class MediaProcessor {
                                     String combined = batchLine + "\n" + message;
                                     progressThrottler.maybeRun(
                                             () ->
-                                                    activity.runOnUiThread(
+                                                    mainHandler.post(
                                                             () ->
                                                                     callback.onProgress(
                                                                             overall, combined)));
@@ -130,7 +148,7 @@ public class MediaProcessor {
 
                         progressThrottler.forceRun(
                                 () ->
-                                        activity.runOnUiThread(
+                                        mainHandler.post(
                                                 () ->
                                                         callback.onProgress(
                                                                 totalItems > 0
@@ -169,8 +187,9 @@ public class MediaProcessor {
                 SentryManager.recordException(e);
             } finally {
                 final int finalSuccessCount = successCount;
-                activity.runOnUiThread(() -> callback.onComplete(finalSuccessCount));
+                new Handler(Looper.getMainLooper()).post(() -> callback.onComplete(finalSuccessCount));
                 processing.set(false);
+                cancelled.set(false);
                 transaction.finish();
             }
         }).start();

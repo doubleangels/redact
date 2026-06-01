@@ -169,7 +169,23 @@ public final class AppPreferences {
     }
 
     public static int getMaxBitmapSize(@NonNull Context context) {
-        return prefs(context).getInt(KEY_MAX_BITMAP_SIZE, 4096);
+        int defaultSize = 4096;
+        try {
+            android.app.ActivityManager am = (android.app.ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            if (am != null) {
+                int memoryClass = am.getMemoryClass();
+                if (memoryClass < 128) {
+                    defaultSize = 1024;
+                } else if (memoryClass < 256) {
+                    defaultSize = 2048;
+                } else {
+                    defaultSize = 4096;
+                }
+            }
+        } catch (Exception e) {
+            // Ignore and use default
+        }
+        return prefs(context).getInt(KEY_MAX_BITMAP_SIZE, defaultSize);
     }
 
     public static void setMaxBitmapSize(@NonNull Context context, int size) {

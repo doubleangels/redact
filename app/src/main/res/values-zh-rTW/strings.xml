@@ -1,16 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <!-- App name -->
+    
     <string name="app_name">Redact</string>
 
-    <!-- Content descriptions -->
+    
     <string name="content_description_image_view">圖片檢視</string>
     <string name="content_description_scroll_view">捲動檢視</string>
 
-    <!-- Navigation labels -->
+    
     <string name="navigation_clean">清理</string>
     <string name="navigation_scan">掃描</string>
 
-    <!-- Local notifications -->
+    
     <string name="notification_channel_tasks_name">任務</string>
     <string name="notification_channel_tasks_description">媒體轉換與清理完成</string>
     <string name="notification_convert_title">轉換完成</string>
@@ -24,7 +25,7 @@
 
     <string name="navigation_convert">轉換</string>
 
-    <!-- Convert tab -->
+    
     <string name="convert_output_format_images">圖片格式</string>
     <string name="convert_output_format_videos">影片編碼</string>
     <string name="convert_output_format_mixed">格式（圖片/影片）</string>
@@ -55,11 +56,11 @@
     <string name="convert_saved_to_gallery">已儲存至相簿（Redact 資料夾）</string>
     <string name="convert_clean_tab_hint">轉換僅改變格式。若要刪除中繼資料，請前往「清理」標籤頁。</string>
 
-    <!-- Button labels -->
+    
     <string name="button_select_media">選擇媒體</string>
     <string name="button_strip_exif_data">清理中繼資料</string>
 
-    <!-- Status and progress messages -->
+    
     <string name="status_processing">處理中…</string>
     <string name="status_processed_items">已處理 %1$d 個項目！</string>
     <string name="status_first_select_media_files">請先選擇媒體檔案！</string>
@@ -75,26 +76,26 @@
     <string name="status_media_uri_fail">無法取得媒體 URI！</string>
     <string name="status_storage_permissions_required">需要儲存權限！</string>
 
-    <!-- Share processing strings -->
+    
     <string name="share_processing_title">處理中…</string>
     <string name="share_chooser_title">透過…分享清理後的媒體檔案</string>
     <string name="share_error_unsupported_media">不支援的媒體類型！</string>
     <string name="share_error_unsupported_action">不支援的動作！</string>
 
-    <!-- Scan section strings -->
+    
     <string name="scan_metadata">中繼資料</string>
     <string name="scan_location_information">位置資訊</string>
     <string name="scan_location_permission_missing">如果您授予位置權限，位置資料可能會可用。</string>
     <string name="scan_extraction_fail">擷取中繼資料失敗！</string>
 
-    <!-- Metadata output strings -->
-    <!-- Basic File Information -->
+    
+    
     <string name="metadata_unknown">未知</string>
     <string name="metadata_size_bytes">B</string>
     <string name="metadata_size_kb">KB</string>
     <string name="metadata_size_mb">MB</string>
 
-    <!-- Section Headers -->
+    
     <string name="metadata_image_properties_header">圖片屬性：</string>
     <string name="metadata_camera_information_header">相機資訊：</string>
     <string name="metadata_exposure_information_header">曝光資訊：</string>
@@ -102,7 +103,7 @@
     <string name="metadata_technical_details_header">技術詳細資訊：</string>
     <string name="metadata_video_properties_header">影片屬性：</string>
 
-    <!-- Image Metadata Fields -->
+    
     <string name="metadata_dimensions">尺寸：%1$d x %2$d</string>
     <string name="metadata_date_taken">拍攝日期：%s</string>
     <string name="metadata_camera_make">相機品牌：%s</string>
@@ -124,7 +125,7 @@
     <string name="metadata_white_balance_auto">自動</string>
     <string name="metadata_white_balance_manual">手動</string>
 
-    <!-- Video Metadata Fields -->
+    
     <string name="metadata_duration_with_hours">長度：%s</string>
     <string name="metadata_duration_without_hours">長度：%s</string>
     <string name="metadata_resolution">解析度：%1$s x %2$s</string>
@@ -134,9 +135,9 @@
     <string name="metadata_frame_rate">影格率：%s fps</string>
     <string name="metadata_sample_rate">取樣率：%s Hz</string>
 
-    <!-- Additional Sectioned Metadata Strings -->
+    
 
-    <!-- Orientation Strings -->
+    
     <string name="metadata_orientation_normal">正常</string>
     <string name="metadata_orientation_rotate_90">旋轉 90°</string>
     <string name="metadata_orientation_rotate_180">旋轉 180°</string>
@@ -147,21 +148,18 @@
     <string name="metadata_orientation_transverse">橫向</string>
     <string name="metadata_orientation_unknown">未知 (%d)</string>
 
-    <!-- Error Messages -->
+    
     <string name="metadata_error_extraction">擷取中繼資料時發生錯誤：%s</string>
     <string name="metadata_error_basic_info">擷取基本資訊時發生錯誤：%s</string>
     <string name="metadata_error_file_open">錯誤：無法開啟圖片檔案</string>
     <string name="metadata_error_image_metadata">擷取圖片中繼資料時發生錯誤：%s</string>
     <string name="metadata_error_video_metadata">擷取影片中繼資料時發生錯誤：%s</string>
-    <!-- Additional App Strings -->
+    
     <string name="permission_rationale_media">需要媒體存取權限才能選擇和處理媒體檔案。</string>
     <string name="permission_rationale_storage">需要儲存空間存取權限才能選擇和處理媒體檔案。</string>
     <string name="permission_rationale_location">需要位置權限才能存取媒體檔案中的地理定位資料。</string>
-    <string name="permission_denied_permanent">權限被永久拒絕。請在設定中啟用。</string>
     <string name="permission_denied_retry">需要權限才能選擇媒體檔案。</string>
-    <string name="permission_location_denied_permanent">位置權限被永久拒絕。請在設定中啟用以存取媒體位置資料。</string>
     <string name="permission_location_retry">需要位置權限才能存取媒體檔案中的地理定位資料。</string>
-    <string name="snackbar_action_settings">設定</string>
     <string name="snackbar_action_retry">重試</string>
     <string name="scan_metadata_subtitle">從此檔案中偵測到的欄位。長按值可複製。</string>
     <string name="scan_open_in_maps">在 Google 地圖中打開</string>
@@ -169,7 +167,7 @@
     <string name="scan_search_camera">搜尋相機</string>
     <string name="scan_search_unavailable">找不到可執行此搜尋的瀏覽器。</string>
 
-    <!-- Settings screen -->
+    
     <string name="navigation_settings">設定</string>
     <string name="settings_section_notifications">通知</string>
     <string name="settings_notifications_label">所有通知</string>
@@ -231,4 +229,3 @@
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
 </resources>
-

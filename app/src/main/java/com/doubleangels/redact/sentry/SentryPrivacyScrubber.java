@@ -75,10 +75,11 @@ public final class SentryPrivacyScrubber {
         if (message != null && message.getMessage() != null) {
             message.setMessage(scrub(message.getMessage()));
         }
-        if (event.getThrowable() != null) {
-            String msg = event.getThrowable().getMessage();
-            if (msg != null) {
-                event.getThrowable().setStackTrace(event.getThrowable().getStackTrace());
+        if (event.getExceptions() != null) {
+            for (io.sentry.protocol.SentryException ex : event.getExceptions()) {
+                if (ex.getValue() != null) {
+                    ex.setValue(scrub(ex.getValue()));
+                }
             }
         }
         if (event.getBreadcrumbs() != null) {

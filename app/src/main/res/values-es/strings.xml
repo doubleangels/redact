@@ -1,16 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <!-- App name -->
+    
     <string name="app_name">Redact</string>
 
-    <!-- Content descriptions -->
+    
     <string name="content_description_image_view">Vista de imagen</string>
     <string name="content_description_scroll_view">Vista de desplazamiento</string>
 
-    <!-- Navigation labels -->
+    
     <string name="navigation_clean">Limpiar</string>
     <string name="navigation_scan">Escanear</string>
 
-    <!-- Local notifications -->
+    
     <string name="notification_channel_tasks_name">Tareas</string>
     <string name="notification_channel_tasks_description">Conversión y limpieza de medios finalizadas</string>
     <string name="notification_convert_title">Conversión Finalizada</string>
@@ -24,7 +25,7 @@
 
     <string name="navigation_convert">Convertir</string>
 
-    <!-- Convert tab -->
+    
     <string name="convert_output_format_images">Formato De Imagen</string>
     <string name="convert_output_format_videos">Códec De Video</string>
     <string name="convert_output_format_mixed">Formatos (imagen / video)</string>
@@ -55,11 +56,11 @@
     <string name="convert_saved_to_gallery">Guardado en Galería (carpeta Redact)</string>
     <string name="convert_clean_tab_hint">La conversión solo cambia el formato. Para eliminar los metadatos, ve a la pestaña Limpiar.</string>
 
-    <!-- Button labels -->
+    
     <string name="button_select_media">Seleccionar Medios</string>
     <string name="button_strip_exif_data">Limpiar Metadatos</string>
 
-    <!-- Status and progress messages -->
+    
     <string name="status_processing">Procesando…</string>
     <string name="status_processed_items">%1$d elementos procesados.</string>
     <string name="status_first_select_media_files">Por favor selecciona archivos de medios primero.</string>
@@ -75,26 +76,26 @@
     <string name="status_media_uri_fail">No se pudo obtener el URI del medio.</string>
     <string name="status_storage_permissions_required">Permisos de almacenamiento requeridos.</string>
 
-    <!-- Share processing strings -->
+    
     <string name="share_processing_title">Procesando…</string>
     <string name="share_chooser_title">Compartir archivo de medios limpio vía…</string>
     <string name="share_error_unsupported_media">Tipo de medio no soportado.</string>
     <string name="share_error_unsupported_action">Acción no soportada.</string>
 
-    <!-- Scan section strings -->
+    
     <string name="scan_metadata">Metadatos</string>
     <string name="scan_location_information">Información de Ubicación</string>
     <string name="scan_location_permission_missing">Los datos de ubicación podrían estar disponibles si otorgas el permiso de ubicación.</string>
     <string name="scan_extraction_fail">Error al extraer metadatos.</string>
 
-    <!-- Metadata output strings -->
-    <!-- Basic File Information -->
+    
+    
     <string name="metadata_unknown">Desconocido</string>
     <string name="metadata_size_bytes">B</string>
     <string name="metadata_size_kb">KB</string>
     <string name="metadata_size_mb">MB</string>
 
-    <!-- Section Headers -->
+    
     <string name="metadata_image_properties_header">Propiedades de la Imagen:</string>
     <string name="metadata_camera_information_header">Información de la Cámara:</string>
     <string name="metadata_exposure_information_header">Información de Exposición:</string>
@@ -102,7 +103,7 @@
     <string name="metadata_technical_details_header">Detalles Técnicos:</string>
     <string name="metadata_video_properties_header">Propiedades del Video:</string>
 
-    <!-- Image Metadata Fields -->
+    
     <string name="metadata_dimensions">Dimensiones: %1$d x %2$d</string>
     <string name="metadata_date_taken">Fecha de Captura: %s</string>
     <string name="metadata_camera_make">Marca de la Cámara: %s</string>
@@ -124,7 +125,7 @@
     <string name="metadata_white_balance_auto">Automático</string>
     <string name="metadata_white_balance_manual">Manual</string>
 
-    <!-- Video Metadata Fields -->
+    
     <string name="metadata_duration_with_hours">Duración: %s</string>
     <string name="metadata_duration_without_hours">Duración: %s</string>
     <string name="metadata_resolution">Resolución: %1$s x %2$s</string>
@@ -134,9 +135,9 @@
     <string name="metadata_frame_rate">Tasa de Cuadros: %s fps</string>
     <string name="metadata_sample_rate">Tasa de Muestreo: %s Hz</string>
 
-    <!-- Additional Sectioned Metadata Strings -->
+    
 
-    <!-- Orientation Strings -->
+    
     <string name="metadata_orientation_normal">Normal</string>
     <string name="metadata_orientation_rotate_90">Rotar 90°</string>
     <string name="metadata_orientation_rotate_180">Rotar 180°</string>
@@ -147,21 +148,18 @@
     <string name="metadata_orientation_transverse">Transverso</string>
     <string name="metadata_orientation_unknown">Desconocido (%d)</string>
 
-    <!-- Error Messages -->
+    
     <string name="metadata_error_extraction">Error al extraer metadatos: %s</string>
     <string name="metadata_error_basic_info">Error al extraer información básica: %s</string>
     <string name="metadata_error_file_open">Error: No se pudo abrir el archivo de imagen</string>
     <string name="metadata_error_image_metadata">Error al extraer metadatos de imagen: %s</string>
     <string name="metadata_error_video_metadata">Error al extraer metadatos de video: %s</string>
-    <!-- Additional App Strings -->
+    
     <string name="permission_rationale_media">El acceso a los medios es necesario para seleccionar y procesar archivos multimedia.</string>
     <string name="permission_rationale_storage">El acceso al almacenamiento es necesario para seleccionar y procesar archivos multimedia.</string>
     <string name="permission_rationale_location">El permiso de ubicación es necesario para acceder a los datos de geolocalización en los archivos multimedia.</string>
-    <string name="permission_denied_permanent">Permiso denegado permanentemente. Por favor, actívelo en Configuración.</string>
     <string name="permission_denied_retry">Los permisos son obligatorios para seleccionar archivos multimedia.</string>
-    <string name="permission_location_denied_permanent">Permiso de ubicación denegado permanentemente. Actívelo en Configuración para acceder a los datos de ubicación de los medios.</string>
     <string name="permission_location_retry">El permiso de ubicación es necesario para acceder a los datos de geolocalización en los archivos multimedia.</string>
-    <string name="snackbar_action_settings">Configuración</string>
     <string name="snackbar_action_retry">Reintentar</string>
     <string name="scan_metadata_subtitle">Campos detectados en este archivo. Mantenga presionados los valores para copiar.</string>
     <string name="scan_open_in_maps">Abrir en Google Maps</string>
@@ -169,7 +167,7 @@
     <string name="scan_search_camera">Buscar Cámara</string>
     <string name="scan_search_unavailable">No se encontró ningún navegador para realizar esta búsqueda.</string>
 
-    <!-- Settings screen -->
+    
     <string name="navigation_settings">Configuración</string>
     <string name="settings_section_notifications">Notificaciones</string>
     <string name="settings_notifications_label">Todas las notificaciones</string>
@@ -231,4 +229,3 @@
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
 </resources>
-

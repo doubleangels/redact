@@ -25,6 +25,7 @@ public final class PermissionStatusHelper {
     private PermissionStatusHelper() {
     }
 
+    @android.annotation.SuppressLint("InlinedApi")
     @NonNull
     public static Status getMediaAccessStatus(@NonNull Context context) {
         Context app = context.getApplicationContext();

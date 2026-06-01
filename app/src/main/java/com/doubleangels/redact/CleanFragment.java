@@ -154,34 +154,7 @@ public class CleanFragment extends Fragment {
                     List<MediaItem> items = viewModel.getSelectedItems().getValue();
                     if (items != null && !items.isEmpty()) {
                         SentryManager.setCustomKey("processing_items_count", items.size());
-                        viewModel.setProcessingState(MainViewModel.ProcessingState.PROCESSING);
-                        mediaProcessor.processMediaItems(items, new MediaProcessor.ProcessingCallback() {
-                            @Override
-                            public void onProgress(int overallPercent, String message) {
-                                try {
-                                    viewModel.updateProgressPercent(overallPercent, message);
-                                    SentryManager.setCustomKey(
-                                            "processing_progress_percent", overallPercent);
-                                    LocalNotifications.updateCleanProgress(
-                                            requireContext(), overallPercent, message);
-                                } catch (Exception e) {
-                                    SentryManager.recordException(e);
-                                }
-                            }
-
-                            @Override
-                            public void onComplete(int processedCount) {
-                                try {
-                                    SentryManager.log("Processing completed");
-                                    SentryManager.setCustomKey("processed_count", processedCount);
-                                    viewModel.setProcessedItemCount(processedCount);
-                                    viewModel.setProcessingState(MainViewModel.ProcessingState.COMPLETED);
-                                    LocalNotifications.showCleanComplete(requireContext(), processedCount);
-                                } catch (Exception e) {
-                                    SentryManager.recordException(e);
-                                }
-                            }
-                        });
+                        viewModel.startCleaning(items);
                     } else {
                         SentryManager.log("No items selected for processing");
                         uiStateManager.setFirstSelectMediaFilesStatus();
@@ -246,7 +219,6 @@ public class CleanFragment extends Fragment {
             );
 
             mediaSelector = new MediaSelector(requireActivity(), mediaPickerLauncher);
-            mediaProcessor = new MediaProcessor(requireActivity());
         } catch (Exception e) {
             SentryManager.recordException(e);
         }

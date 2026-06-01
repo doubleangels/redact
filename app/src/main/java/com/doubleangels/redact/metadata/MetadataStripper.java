@@ -433,7 +433,7 @@ public class MetadataStripper {
                 BitmapFactory.Options optionsJustBounds = new BitmapFactory.Options();
                 optionsJustBounds.inJustDecodeBounds = true;
                 BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsJustBounds);
-                int sampleSize = calculateInSampleSize(optionsJustBounds);
+                int sampleSize = FormatConverter.calculateInSampleSize(context, optionsJustBounds);
 
                 BitmapFactory.Options optionsLoad = new BitmapFactory.Options();
                 optionsLoad.inSampleSize = sampleSize;
@@ -609,7 +609,7 @@ public class MetadataStripper {
                 BitmapFactory.Options optionsJustBounds = new BitmapFactory.Options();
                 optionsJustBounds.inJustDecodeBounds = true;
                 BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsJustBounds);
-                int sampleSize = calculateInSampleSize(optionsJustBounds);
+                int sampleSize = FormatConverter.calculateInSampleSize(context, optionsJustBounds);
                 SentryManager.setCustomKey("bitmap_sample_size", sampleSize);
                 SentryManager.setCustomKey("original_width", optionsJustBounds.outWidth);
                 SentryManager.setCustomKey("original_height", optionsJustBounds.outHeight);
@@ -1129,39 +1129,6 @@ public class MetadataStripper {
             SentryManager.log("Error determining file size: " + e.getMessage() + ".");
             return 0;
         }
-    }
-
-    /**
-     * Calculates an appropriate sample size for loading large bitmaps efficiently.
-     *
-     * This method determines how much to downsample an image during decoding to
-     * avoid
-     * out-of-memory errors while processing very large images. The original
-     * resolution
-     * is preserved in the final output file.
-     *
-     * @param options BitmapFactory.Options containing the image dimensions
-     * @return Sample size to use for decoding (power of 2)
-     */
-    private int calculateInSampleSize(@NonNull BitmapFactory.Options options) {
-        final int height = options.outHeight;
-        final int width = options.outWidth;
-        int inSampleSize = 1;
-        int maxBitmapSize = AppPreferences.getMaxBitmapSize(context);
-
-        // If image is larger than our maximum processing size, calculate sample size
-        if (height > maxBitmapSize || width > maxBitmapSize) {
-            final int halfHeight = height / 2;
-            final int halfWidth = width / 2;
-
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width
-            while ((halfHeight / inSampleSize) >= maxBitmapSize && (halfWidth / inSampleSize) >= maxBitmapSize) {
-                inSampleSize *= 2;
-            }
-        }
-
-        return inSampleSize;
     }
 
     /**

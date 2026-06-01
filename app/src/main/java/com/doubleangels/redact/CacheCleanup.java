@@ -13,7 +13,7 @@ import java.util.Locale;
 public final class CacheCleanup {
 
     private static final String PROCESSED_SUBDIR = "processed";
-    private static final String TEMP_PREFIX = "temp_";
+    private static final String[] TEMP_PREFIXES = {"temp_", "verify_", "vid_transform_", "vid_transmux_"};
 
     private CacheCleanup() {
     }
@@ -24,6 +24,7 @@ public final class CacheCleanup {
         if (cacheDir != null) {
             File processedDir = new File(cacheDir, PROCESSED_SUBDIR);
             total += directorySizeBytes(processedDir);
+            total += tempPrefixSizeBytes(cacheDir);
         }
         File externalCacheDir = context.getExternalCacheDir();
         if (externalCacheDir != null && externalCacheDir.isDirectory()) {
@@ -37,6 +38,7 @@ public final class CacheCleanup {
         File cacheDir = context.getCacheDir();
         if (cacheDir != null) {
             deleted += deleteAllFilesInDirectory(new File(cacheDir, PROCESSED_SUBDIR));
+            deleted += deleteTempPrefixFiles(cacheDir);
         }
         File externalCacheDir = context.getExternalCacheDir();
         if (externalCacheDir != null && externalCacheDir.isDirectory()) {
@@ -80,8 +82,14 @@ public final class CacheCleanup {
             return 0;
         }
         for (File file : files) {
-            if (file.isFile() && file.getName().startsWith(TEMP_PREFIX)) {
-                total += file.length();
+            if (file.isFile()) {
+                String name = file.getName();
+                for (String prefix : TEMP_PREFIXES) {
+                    if (name.startsWith(prefix)) {
+                        total += file.length();
+                        break;
+                    }
+                }
             }
         }
         return total;
@@ -111,8 +119,16 @@ public final class CacheCleanup {
             return 0;
         }
         for (File file : files) {
-            if (file.isFile() && file.getName().startsWith(TEMP_PREFIX) && file.delete()) {
-                deleted++;
+            if (file.isFile()) {
+                String name = file.getName();
+                for (String prefix : TEMP_PREFIXES) {
+                    if (name.startsWith(prefix)) {
+                        if (file.delete()) {
+                            deleted++;
+                        }
+                        break;
+                    }
+                }
             }
         }
         return deleted;
