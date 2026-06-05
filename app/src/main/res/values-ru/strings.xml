@@ -62,7 +62,6 @@
 
     
     <string name="status_processing">Обработка…</string>
-    <string name="status_processed_items">Обработано %1$d элементов.</string>
     <string name="status_first_select_media_files">Пожалуйста, сначала выберите медиафайлы.</string>
     <string name="status_permissions_required">Требуются разрешения.</string>
     <string name="status_requesting_permissions">Запрос разрешений…</string>
@@ -73,7 +72,6 @@
     <string name="status_extracting_media">Извлечение метаданных видео…</string>
     <string name="status_extracting_image">Извлечение метаданных изображения…</string>
     <string name="status_media_picker_fail">Ошибка при открытии выбора медиа.</string>
-    <string name="status_media_uri_fail">Не удалось получить URI медиа.</string>
     <string name="status_storage_permissions_required">Требуются разрешения на хранение.</string>
 
     
@@ -84,7 +82,6 @@
 
     
     <string name="scan_metadata">Метаданные</string>
-    <string name="scan_location_information">Информация о Местоположении</string>
     <string name="scan_location_permission_missing">Данные о местоположении могут быть доступны, если вы предоставите разрешение на местоположение.</string>
     <string name="scan_extraction_fail">Ошибка при извлечении метаданных.</string>
 
@@ -113,8 +110,6 @@
     <string name="metadata_exposure_time_seconds">Время Экспозиции: %.5f сек</string>
     <string name="metadata_latitude">Широта: %.15f</string>
     <string name="metadata_longitude">Долгота: %.15f</string>
-    <string name="metadata_address">Адрес: %s</string>
-    <string name="metadata_geocoding_failed">Ошибка геокодирования: %s</string>
     <string name="metadata_no_location_data">Данные о местоположении недоступны.</string>
     <string name="metadata_location_permission_needed">Разрешение на местоположение не предоставлено. Предоставьте разрешение для просмотра данных о местоположении.</string>
     <string name="metadata_orientation">Ориентация: %s</string>
@@ -147,65 +142,93 @@
     <string name="metadata_orientation_transpose">Транспонировать</string>
     <string name="metadata_orientation_transverse">Поперечная</string>
     <string name="metadata_orientation_unknown">Неизвестно (%d)</string>
+    <string name="metadata_error_file_open">Ошибка: Не удалось открыть файл изображения</string>
 
     
-    <string name="metadata_error_extraction">Ошибка при извлечении метаданных: %s</string>
-    <string name="metadata_error_basic_info">Ошибка при извлечении основной информации: %s</string>
-    <string name="metadata_error_file_open">Ошибка: Не удалось открыть файл изображения</string>
-    <string name="metadata_error_image_metadata">Ошибка при извлечении метаданных изображения: %s</string>
-    <string name="metadata_error_video_metadata">Ошибка при извлечении метаданных видео: %s</string>
+    <string name="settings_section_advanced_privacy">Очистка метаданных</string>
+    <string name="settings_advanced_privacy_subtitle">Как Redact удаляет EXIF на вкладке Очистка. При отправке из других приложений местоположение и данные камеры всегда удаляются перед пересылкой.</string>
+    <string name="settings_secure_delete">Проходы Безопасного Удаления</string>
+    <string name="settings_secure_delete_subtitle">Сколько раз временные файлы перезаписываются перед удалением. Больше проходов — медленнее, но сложнее восстановить.</string>
+    <string name="settings_auto_clear_temp">Очищать кэш при запуске</string>
+    <string name="settings_auto_clear_temp_subtitle">Удалять оставшиеся файлы обработки при каждом открытии приложения.</string>
+    <string name="settings_preserve_camera">Сохранять настройки камеры</string>
+    <string name="settings_preserve_camera_subtitle">Сохранять диафрагму, выдержку, ISO и марку/модель камеры на Очистке. Игнорируется при Строгой Очистке или при отправке из других приложений.</string>
+    <string name="settings_preserve_location">Сохранять местоположение</string>
+    <string name="settings_preserve_location_subtitle">Сохранять GPS-координаты на Очистке. Игнорируется при Строгой Очистке или при отправке из других приложений.</string>
+    <string name="settings_strict_clean">Строгая Очистка</string>
+    <string name="settings_strict_clean_subtitle">Удалить все метаданные, включая ориентацию. Отключает опции сохранения и всегда полностью перекодирует видео.</string>
     
-    <string name="permission_rationale_media">Для выбора и обработки медиафайлов необходим доступ к медиа.</string>
-    <string name="permission_rationale_storage">Для выбора и обработки медиафайлов необходим доступ к хранилищу.</string>
-    <string name="permission_rationale_location">Для доступа к данным геолокации в медиафайлах требуется разрешение на местоположение.</string>
-    <string name="permission_denied_retry">Для выбора медиафайлов требуются разрешения.</string>
-    <string name="permission_location_retry">Для доступа к данным геолокации в медиафайлах требуется разрешение на местоположение.</string>
-    <string name="snackbar_action_retry">Повторить</string>
+    <string name="settings_section_advanced_processing">Большие файлы и память</string>
+    <string name="settings_advanced_processing_subtitle">Лимиты для очень больших изображений при очистке и конвертации. Не влияет на очистку видео.</string>
+    <string name="settings_max_bitmap_size">Макс. разрешение обработки</string>
+    <string name="settings_max_bitmap_size_subtitle">Длинная сторона в пикселях при декодировании в памяти. Меньшие значения используют меньше ОЗУ.</string>
+    <string name="settings_max_file_size">Макс. размер входного файла</string>
+    <string name="settings_max_file_size_subtitle">Пропускать или уменьшать изображения больше этого размера, чтобы избежать нехватки памяти.</string>
+    <string name="settings_video_fallback">Более Быстрая Очистка Видео</string>
+    <string name="settings_video_fallback_subtitle">Пропускать полное перекодирование после быстрого remux, если выход уже совместим с MP4. Экономит время и заряд; полная транскодировка удаляет больше метаданных. Выкл. при Строгой Очистке или отправке из других приложений.</string>
+
+    <string-array name="settings_secure_delete_labels">
+        <item>1 проход (быстро)</item>
+        <item>3 прохода (безопасно)</item>
+        <item>7 проходов (ультрабезопасно)</item>
+    </string-array>
+
+    <string-array name="settings_max_bitmap_size_labels">
+        <item>2048px (мало ОЗУ)</item>
+        <item>4096px (стандарт)</item>
+        <item>8192px (высокая производительность)</item>
+    </string-array>
+
+    <string-array name="settings_max_file_size_labels">
+        <item>50 МБ</item>
+        <item>100 МБ</item>
+        <item>200 МБ</item>
+    </string-array>
     <string name="scan_metadata_subtitle">Обнаруженные поля из этого файла. Нажмите и удерживайте значения для копирования.</string>
-    <string name="scan_open_in_maps">Открыть в Google Картах</string>
-    <string name="scan_maps_unavailable">Приложение карт не найдено для открытия этого местоположения.</string>
-    <string name="scan_search_camera">Поиск Камеры</string>
-    <string name="scan_search_unavailable">Браузер для выполнения этого поиска не найден.</string>
 
     
     <string name="navigation_settings">Настройки</string>
     <string name="settings_section_notifications">Уведомления</string>
-    <string name="settings_notifications_label">Все уведомления</string>
-    <string name="settings_notifications_subtitle">Разрешить Redact отправлять уведомления о завершении фоновых процессов.</string>
-    <string name="settings_notifications_clean_label">Очистка метаданных</string>
-    <string name="settings_notifications_clean_subtitle">Уведомлять о завершении удаления EXIF и метаданных.</string>
-    <string name="settings_notifications_convert_label">Смена формата</string>
-    <string name="settings_notifications_convert_subtitle">Уведомлять о завершении конвертации видео или изображений.</string>
-    <string name="settings_section_privacy">Конфиденциальность</string>
-    <string name="settings_crash_reporting_label">Улучшить Redact</string>
-    <string name="settings_crash_reporting_subtitle">По желанию отправляет анонимные отчеты о сбоях через интернет (Sentry). Фото и видео не загружаются - только техническая диагностика. Можно отключить в любой момент.</string>
-    <string name="settings_section_conversion">Параметры Конвертации По Умолчанию</string>
-    <string name="settings_conversion_subtitle">Применяются при выборе файлов на вкладке «Конвертировать».</string>
+    <string name="settings_section_notifications_subtitle">Уведомления по завершении задач и необязательный прогресс при очистке или конвертации.</string>
+    <string name="settings_notifications_label">Разрешить уведомления</string>
+    <string name="settings_notifications_subtitle">Главный переключатель всех оповещений Redact. По умолчанию выкл.; Android может запросить разрешение при включении.</string>
+    <string name="settings_notifications_clean_label">Очистка завершена</string>
+    <string name="settings_notifications_clean_subtitle">Оповещение о завершении удаления метаданных на вкладке Очистка.</string>
+    <string name="settings_notifications_convert_label">Конвертация завершена</string>
+    <string name="settings_notifications_convert_subtitle">Оповещение о завершении конвертации формата на вкладке Конвертация.</string>
+    <string name="settings_section_diagnostics">Диагностика и отзывы</string>
+    <string name="settings_section_diagnostics_subtitle">Необязательные отчёты о сбоях. Ваши медиафайлы никогда не покидают устройство.</string>
+    <string name="settings_crash_reporting_label">Отправлять отчёты о сбоях</string>
+    <string name="settings_crash_reporting_subtitle">Только анонимная диагностика (версия приложения, модель устройства, трассировки стека). Требует доступ к сети после подтверждения. Фото и видео никогда не загружаются.</string>
+    <string name="settings_section_conversion">Значения по умолчанию для Конвертация</string>
+    <string name="settings_conversion_subtitle">Предвыбранные форматы при выборе файлов в Конвертация. Можно менять для каждой партии.</string>
     <string name="settings_default_image_format">Формат Изображения По Умолчанию</string>
     <string name="settings_default_video_format">Видеокодек По Умолчанию</string>
     <string name="settings_image_quality">Качество Изображения</string>
     <string name="settings_quality_high">Высокое</string>
     <string name="settings_quality_balanced">Сбалансированное</string>
     <string name="settings_quality_smaller">Меньший Файл</string>
-    <string name="settings_quality_subtitle">Влияет на вывод JPEG, WebP и HEIC. PNG остается без потерь.</string>
-    <string name="settings_section_share">Цель Общего Доступа</string>
-    <string name="settings_share_confirm_label">Спрашивать Перед Удалением Метаданных</string>
-    <string name="settings_share_confirm_subtitle">При отправке в Redact показывать подтверждение перед удалением метаданных.</string>
+    <string name="settings_quality_subtitle">Применяется к JPEG, WebP и HEIC. Экспорт PNG остаётся без потерь.</string>
+    <string name="settings_section_share_subtitle">Когда другое приложение отправляет фото или видео в Redact.</string>
+
+    <string name="settings_section_share">Отправка в Redact</string>
+    <string name="settings_share_confirm_label">Подтверждать перед удалением метаданных</string>
+    <string name="settings_share_confirm_subtitle">Показывать запрос перед удалением EXIF и других метаданных из общих файлов.</string>
     <string name="settings_share_confirm_dialog_title">Удалить Метаданные?</string>
     <string name="settings_share_confirm_dialog_message">Redact удалит EXIF и другие метаданные из общих файлов перед их передачей.</string>
     <string name="settings_share_confirm_dialog_confirm">Удалить И Продолжить</string>
     <string name="settings_share_confirm_dialog_cancel">Отмена</string>
     <string name="settings_section_permissions">Разрешения</string>
-    <string name="settings_permissions_subtitle">Выдайте разрешения в системных настройках Android, если функция в них нуждается.</string>
-    <string name="settings_permissions_media">Доступ К Медиа</string>
-    <string name="settings_permissions_notifications">Уведомления</string>
+    <string name="settings_permissions_subtitle">Redact нужен доступ к медиа для Очистки, Конвертации и Сканирования. Уведомления необязательны и только для оповещений о задачах.</string>
+    <string name="settings_permissions_media">Фото и видео</string>
+    <string name="settings_permissions_notifications">Уведомления (необязательно)</string>
     <string name="settings_permission_granted">Предоставлено</string>
     <string name="settings_permission_denied">Отклонено</string>
     <string name="settings_permission_not_required">Не Требуется</string>
     <string name="settings_open_system_settings">Открыть Системные Настройки</string>
-    <string name="settings_section_storage">Хранилище</string>
-    <string name="settings_storage_size">Временные файлы: %1$s</string>
-    <string name="settings_storage_subtitle">Кэш обработки при очистке или отправке файлов.</string>
+    <string name="settings_section_storage">Хранилище и кэш</string>
+    <string name="settings_storage_size">Используется кэша: %1$s</string>
+    <string name="settings_storage_subtitle">Рабочие копии, создаваемые при обработке. Оригиналы в галерее не изменяются.</string>
     <string name="settings_storage_clear">Очистить Временные Файлы</string>
     <string name="settings_storage_clear_confirm_title">Очистить Временные Файлы?</string>
     <string name="settings_storage_clear_confirm_message">Удаляет кэшированные копии недавней обработки. Файлы в галерее не затрагиваются.</string>
@@ -218,14 +241,67 @@
     <string name="settings_about_privacy">Политика Конфиденциальности</string>
     <string name="settings_about_report_issue">Сообщить О Проблеме</string>
     <string name="settings_link_unavailable">Не найдено приложение для открытия этой ссылки.</string>
-    <string name="settings_progress_notifications_label">Показывать Прогресс В Области Уведомлений</string>
-    <string name="settings_progress_notifications_subtitle">Прогресс в реальном времени при конвертации или очистке. Уведомления о завершении без изменений.</string>
+    <string name="settings_progress_notifications_label">Прогресс текущей задачи</string>
+    <string name="settings_progress_notifications_subtitle">Постоянное уведомление с прогрессом при длительной очистке или конвертации.</string>
     <string name="settings_crash_reporting_learn_more">Что Передаётся?</string>
     <string name="settings_crash_reporting_detail_title">Подробности Отчётов О Сбоях</string>
-    <string name="settings_crash_reporting_detail_message">Когда включено «Улучшить Redact», анонимная диагностика может отправляться через Sentry:\n\n• Модель устройства и версия Android\n• Версия приложения\n• Трассировки стека и типы ошибок\n• Очищенные диагностические теги (напр., успешность обработки)\n\nФото и видео никогда не загружаются. URI, имена файлов и GPS-координаты удаляются перед отправкой.</string>
+    <string name="settings_crash_reporting_detail_message">Когда Отправлять отчёты о сбоях включено, анонимная диагностика может отправляться через Sentry:
+
+• Модель устройства и версия Android
+• Версия приложения
+• Трассировки стека и типы ошибок
+• Очищенные диагностические теги
+
+Ваши фото и видео не загружаются. URI, имена файлов и GPS удаляются перед отправкой.</string>
     <string name="settings_crash_reporting_privacy_policy">Политика Конфиденциальности</string>
     <string name="settings_crash_reporting_dismiss">Закрыть</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
+    <string name="button_cancel">Отмена</string>
+    <string name="clean_selected_count">Выбрано: %1$d файл(ов)</string>
+    <string name="clean_status_ready">Готово к выбору медиа для очистки.</string>
+    <string name="convert_codec_fallback">%1$s недоступен; сохранено как %2$s.</string>
+    <string name="metadata_error_basic_info_generic">Не удалось прочитать основную информацию о файле.</string>
+    <string name="metadata_error_image_generic">Не удалось прочитать метаданные изображения.</string>
+    <string name="metadata_error_video_generic">Не удалось прочитать метаданные видео.</string>
+    <string name="notification_clean_partial">%1$d очищено, %2$d не удалось.</string>
+    <string name="notification_progress_percent">%1$d%% завершено</string>
+    <string name="scan_clean_this_file">Очистить этот файл</string>
+    <string name="scan_convert_this_file">Конвертировать этот файл</string>
+    <string name="scan_copied_to_clipboard">Скопировано в буфер обмена</string>
+    <string name="scan_copy_all_metadata">Копировать все метаданные</string>
+    <string name="scan_copy_camera">Копировать данные камеры</string>
+    <string name="scan_copy_coordinates">Копировать координаты</string>
+    <string name="settings_network_grant_crash_hint">Доступ к сети включён. Включите «Отправлять отчёты о сбоях» отдельно, если нужна отправка ошибок.</string>
+    <string name="settings_external_link_disclaimer">Откроется браузер с использованием сети. Redact не получил сетевой доступ для функций приложения.</string>
+    <string name="settings_external_link_continue">Открыть Ссылку</string>
+    <string name="settings_network_access_grant">Разрешить Доступ к Сети</string>
+    <string name="settings_network_access_revoke">Отозвать Доступ к Сети</string>
+    <string name="settings_network_consent_allow">Разрешить Доступ к Сети</string>
+    <string name="settings_network_consent_cancel">Не Сейчас</string>
+    <string name="settings_network_consent_crash_title">Разрешить отправку отчётов о сбоях через сеть?</string>
+    <string name="settings_network_consent_crash_message">Отправка Отчётов о Сбоях загружает анонимную диагностику в Sentry через интернет. Redact не использует сеть, пока вы не разрешите.
+
+Фото, видео, имена файлов и GPS-координаты не загружаются.</string>
+    <string name="settings_network_consent_general_title">Разрешить Доступ к Сети?</string>
+    <string name="settings_network_consent_general_message">Redact не использует сеть, пока вы не разрешите здесь. Доступ к сети используется только при включении Отправки Отчётов о Сбоях.
+
+Фото, видео, имена файлов и GPS-координаты не загружаются.</string>
+    <string name="settings_network_revoke_confirm">Отозвать</string>
+    <string name="settings_network_revoke_confirm_message">Это отключит Отправку Отчётов о Сбоях. Redact перестанет использовать сеть, пока вы снова не предоставите доступ.</string>
+    <string name="settings_network_revoke_confirm_title">Отозвать Доступ к Сети?</string>
+    <string name="settings_permissions_location">Местоположение Фото</string>
+    <string name="settings_permissions_network">Доступ к Сети (Необязательно)</string>
+    <string name="settings_storage_clear_busy">Нельзя очистить во время обработки.</string>
+    <string name="share_error_failed_get_cleaned_file">Не удалось подготовить очищенный файл для отправки.</string>
+    <string name="share_error_failed_get_cleaned_files">Не удалось подготовить очищенные файлы для отправки.</string>
+    <string name="share_error_failed_receive_media">Не удалось получить общий медиафайл.</string>
+    <string name="share_error_generic">Что-то пошло не так. Попробуйте снова.</string>
+    <string name="share_error_processing_failed">Не удалось удалить метаданные из общего файла(ов).</string>
+    <string name="status_already_processing">Пакет уже выполняется. Дождитесь завершения.</string>
+    <string name="status_clean_done_all">%1$d файл(ов) успешно очищено.</string>
+    <string name="status_clean_done_failed">Очистка не удалась.</string>
+    <string name="status_clean_done_partial">Готово: %1$d очищено, %2$d не удалось.</string>
+    <string name="status_processing_cancelled">Обработка отменена.</string>
 </resources>

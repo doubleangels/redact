@@ -62,7 +62,6 @@
 
     
     <string name="status_processing">處理中…</string>
-    <string name="status_processed_items">已處理 %1$d 個項目！</string>
     <string name="status_first_select_media_files">請先選擇媒體檔案！</string>
     <string name="status_permissions_required">需要權限！</string>
     <string name="status_requesting_permissions">正在請求權限…</string>
@@ -73,7 +72,6 @@
     <string name="status_extracting_media">正在擷取影片中繼資料…</string>
     <string name="status_extracting_image">正在擷取圖片中繼資料…</string>
     <string name="status_media_picker_fail">開啟媒體選擇器時發生錯誤！</string>
-    <string name="status_media_uri_fail">無法取得媒體 URI！</string>
     <string name="status_storage_permissions_required">需要儲存權限！</string>
 
     
@@ -84,7 +82,6 @@
 
     
     <string name="scan_metadata">中繼資料</string>
-    <string name="scan_location_information">位置資訊</string>
     <string name="scan_location_permission_missing">如果您授予位置權限，位置資料可能會可用。</string>
     <string name="scan_extraction_fail">擷取中繼資料失敗！</string>
 
@@ -113,8 +110,6 @@
     <string name="metadata_exposure_time_seconds">曝光時間：%.5f 秒</string>
     <string name="metadata_latitude">緯度：%.15f</string>
     <string name="metadata_longitude">經度：%.15f</string>
-    <string name="metadata_address">地址：%s</string>
-    <string name="metadata_geocoding_failed">地理編碼失敗：%s</string>
     <string name="metadata_no_location_data">無位置資料可用。</string>
     <string name="metadata_location_permission_needed">未授予位置權限。授予權限以檢視位置資料。</string>
     <string name="metadata_orientation">方向：%s</string>
@@ -147,65 +142,93 @@
     <string name="metadata_orientation_transpose">轉置</string>
     <string name="metadata_orientation_transverse">橫向</string>
     <string name="metadata_orientation_unknown">未知 (%d)</string>
+    <string name="metadata_error_file_open">錯誤：無法開啟圖片檔案</string>
 
     
-    <string name="metadata_error_extraction">擷取中繼資料時發生錯誤：%s</string>
-    <string name="metadata_error_basic_info">擷取基本資訊時發生錯誤：%s</string>
-    <string name="metadata_error_file_open">錯誤：無法開啟圖片檔案</string>
-    <string name="metadata_error_image_metadata">擷取圖片中繼資料時發生錯誤：%s</string>
-    <string name="metadata_error_video_metadata">擷取影片中繼資料時發生錯誤：%s</string>
+    <string name="settings_section_advanced_privacy">中繼資料清理</string>
+    <string name="settings_advanced_privacy_subtitle">Redact 如何在清理分頁移除 EXIF。從其他 App 分享時，轉寄前一律會移除位置與相機資訊。</string>
+    <string name="settings_secure_delete">安全刪除次數</string>
+    <string name="settings_secure_delete_subtitle">刪除前暫存檔被覆寫的次數。次數越多越慢，但越難復原。</string>
+    <string name="settings_auto_clear_temp">啟動時清除快取</string>
+    <string name="settings_auto_clear_temp_subtitle">每次開啟應用程式時刪除剩餘的處理檔案。</string>
+    <string name="settings_preserve_camera">保留相機設定</string>
+    <string name="settings_preserve_camera_subtitle">在清理分頁保留光圈、快門速度、ISO 與相機品牌/型號。嚴格清理開啟或從其他 App 分享時忽略。</string>
+    <string name="settings_preserve_location">保留位置</string>
+    <string name="settings_preserve_location_subtitle">在清理分頁保留 GPS 座標。嚴格清理開啟或從其他 App 分享時忽略。</string>
+    <string name="settings_strict_clean">嚴格清理</string>
+    <string name="settings_strict_clean_subtitle">移除所有中繼資料（包括方向）。關閉保留選項並一律完整重新編碼影片。</string>
     
-    <string name="permission_rationale_media">需要媒體存取權限才能選擇和處理媒體檔案。</string>
-    <string name="permission_rationale_storage">需要儲存空間存取權限才能選擇和處理媒體檔案。</string>
-    <string name="permission_rationale_location">需要位置權限才能存取媒體檔案中的地理定位資料。</string>
-    <string name="permission_denied_retry">需要權限才能選擇媒體檔案。</string>
-    <string name="permission_location_retry">需要位置權限才能存取媒體檔案中的地理定位資料。</string>
-    <string name="snackbar_action_retry">重試</string>
+    <string name="settings_section_advanced_processing">大型檔案與記憶體</string>
+    <string name="settings_advanced_processing_subtitle">清理和轉換時超大影像的限制。不改變影片清理行為。</string>
+    <string name="settings_max_bitmap_size">最大處理解析度</string>
+    <string name="settings_max_bitmap_size_subtitle">在記憶體中解碼影像時的最長邊像素數。較低值使用較少 RAM。</string>
+    <string name="settings_max_file_size">最大輸入檔大小</string>
+    <string name="settings_max_file_size_subtitle">略過或縮小超過此大小的影像以避免記憶體不足。</string>
+    <string name="settings_video_fallback">更快的影片清理</string>
+    <string name="settings_video_fallback_subtitle">輸出已相容 MP4 時，快速 remux 後略過完整重新編碼。節省時間與電量；完整轉碼可移除更多中繼資料。嚴格清理或從其他 App 分享時關閉。</string>
+
+    <string-array name="settings_secure_delete_labels">
+        <item>1 次（快速）</item>
+        <item>3 次（安全）</item>
+        <item>7 次（超安全）</item>
+    </string-array>
+
+    <string-array name="settings_max_bitmap_size_labels">
+        <item>2048px（低記憶體）</item>
+        <item>4096px（標準）</item>
+        <item>8192px（高效能）</item>
+    </string-array>
+
+    <string-array name="settings_max_file_size_labels">
+        <item>50 MB</item>
+        <item>100 MB</item>
+        <item>200 MB</item>
+    </string-array>
     <string name="scan_metadata_subtitle">從此檔案中偵測到的欄位。長按值可複製。</string>
-    <string name="scan_open_in_maps">在 Google 地圖中打開</string>
-    <string name="scan_maps_unavailable">找不到可打開此位置的地圖應用程式。</string>
-    <string name="scan_search_camera">搜尋相機</string>
-    <string name="scan_search_unavailable">找不到可執行此搜尋的瀏覽器。</string>
 
     
     <string name="navigation_settings">設定</string>
     <string name="settings_section_notifications">通知</string>
-    <string name="settings_notifications_label">所有通知</string>
-    <string name="settings_notifications_subtitle">允許 Redact 在背景作業完成時發送推播提醒。</string>
-    <string name="settings_notifications_clean_label">中繼資料清理</string>
-    <string name="settings_notifications_clean_subtitle">在 EXIF 與中繼資料移除完成時通知我。</string>
-    <string name="settings_notifications_convert_label">格式轉換</string>
-    <string name="settings_notifications_convert_subtitle">在影片或圖片檔案轉換完成時通知我。</string>
-    <string name="settings_section_privacy">隱私</string>
-    <string name="settings_crash_reporting_label">改善 Redact</string>
-    <string name="settings_crash_reporting_subtitle">可選透過網際網路傳送匿名當機報告（Sentry）。您的相片與影片絕不會上傳 - 僅傳送技術診斷資訊。可隨時關閉。</string>
-    <string name="settings_section_conversion">轉換預設設定</string>
-    <string name="settings_conversion_subtitle">在「轉換」分頁選取檔案時套用。</string>
+    <string name="settings_section_notifications_subtitle">工作完成時提醒，清理或轉換時可選即時進度。</string>
+    <string name="settings_notifications_label">允許通知</string>
+    <string name="settings_notifications_subtitle">所有 Redact 提醒的主開關。預設關閉；開啟時 Android 可能要求權限。</string>
+    <string name="settings_notifications_clean_label">清理完成</string>
+    <string name="settings_notifications_clean_subtitle">在「清理」分頁完成中繼資料移除時提醒。</string>
+    <string name="settings_notifications_convert_label">轉換完成</string>
+    <string name="settings_notifications_convert_subtitle">在「轉換」分頁完成格式轉換時提醒。</string>
+    <string name="settings_section_diagnostics">診斷與意見回饋</string>
+    <string name="settings_section_diagnostics_subtitle">可選的當機報告以協助修復問題。您的媒體絕不會離開裝置。</string>
+    <string name="settings_crash_reporting_label">傳送當機報告</string>
+    <string name="settings_crash_reporting_subtitle">僅匿名診斷資訊（App 版本、裝置型號、堆疊追蹤）。確認後需要網路存取。照片與影片絕不會上傳。</string>
+    <string name="settings_section_conversion">轉換分頁預設值</string>
+    <string name="settings_conversion_subtitle">在「轉換」中選擇檔案時預先選取的格式。仍可為每批變更。</string>
     <string name="settings_default_image_format">預設圖片格式</string>
     <string name="settings_default_video_format">預設影片編碼</string>
     <string name="settings_image_quality">圖片品質</string>
     <string name="settings_quality_high">高</string>
     <string name="settings_quality_balanced">均衡</string>
     <string name="settings_quality_smaller">更小檔案</string>
-    <string name="settings_quality_subtitle">影響 JPEG、WebP 和 HEIC 輸出。PNG 維持無損。</string>
-    <string name="settings_section_share">分享目標</string>
+    <string name="settings_quality_subtitle">適用於 JPEG、WebP 和 HEIC。PNG 匯出保持無損。</string>
+    <string name="settings_section_share_subtitle">當其他應用程式將照片或影片傳送到 Redact 時。</string>
+
+    <string name="settings_section_share">分享到 Redact</string>
     <string name="settings_share_confirm_label">移除中繼資料前確認</string>
-    <string name="settings_share_confirm_subtitle">分享到 Redact 時，在移除中繼資料前顯示確認。</string>
+    <string name="settings_share_confirm_subtitle">在從共享檔案中移除 EXIF 和其他中繼資料之前顯示提示。</string>
     <string name="settings_share_confirm_dialog_title">移除中繼資料？</string>
     <string name="settings_share_confirm_dialog_message">Redact 會在您繼續分享前，從共用檔案中移除 EXIF 及其他中繼資料。</string>
     <string name="settings_share_confirm_dialog_confirm">移除並繼續</string>
     <string name="settings_share_confirm_dialog_cancel">取消</string>
     <string name="settings_section_permissions">權限</string>
-    <string name="settings_permissions_subtitle">若功能需要，請在 Android 系統設定中授予權限。</string>
-    <string name="settings_permissions_media">媒體存取</string>
-    <string name="settings_permissions_notifications">通知</string>
+    <string name="settings_permissions_subtitle">Redact 需要媒體存取權限以進行清理、轉換和掃描。通知為選用，僅用於工作提醒。</string>
+    <string name="settings_permissions_media">照片和影片</string>
+    <string name="settings_permissions_notifications">通知（選用）</string>
     <string name="settings_permission_granted">已授予</string>
     <string name="settings_permission_denied">已拒絕</string>
     <string name="settings_permission_not_required">無需授權</string>
     <string name="settings_open_system_settings">開啟系統設定</string>
-    <string name="settings_section_storage">儲存空間</string>
-    <string name="settings_storage_size">暫存檔案：%1$s</string>
-    <string name="settings_storage_subtitle">清理或分享檔案時使用的處理快取。</string>
+    <string name="settings_section_storage">儲存空間與快取</string>
+    <string name="settings_storage_size">快取使用中：%1$s</string>
+    <string name="settings_storage_subtitle">處理期間建立的工作副本。相簿原檔絕不會被修改。</string>
     <string name="settings_storage_clear">清除暫存檔案</string>
     <string name="settings_storage_clear_confirm_title">清除暫存檔案？</string>
     <string name="settings_storage_clear_confirm_message">這會移除最近處理的快取副本。您的相簿檔案不受影響。</string>
@@ -218,14 +241,67 @@
     <string name="settings_about_privacy">隱私權政策</string>
     <string name="settings_about_report_issue">回報問題</string>
     <string name="settings_link_unavailable">找不到可開啟此連結的應用程式。</string>
-    <string name="settings_progress_notifications_label">在通知列顯示進度</string>
-    <string name="settings_progress_notifications_subtitle">轉換或清理時的即時進度。完成提醒不變。</string>
+    <string name="settings_progress_notifications_label">進行中工作進度</string>
+    <string name="settings_progress_notifications_subtitle">長時間清理或轉換期間在通知列顯示持續進度。</string>
     <string name="settings_crash_reporting_learn_more">會分享哪些內容？</string>
     <string name="settings_crash_reporting_detail_title">當機報告詳情</string>
-    <string name="settings_crash_reporting_detail_message">開啟「改善 Redact」後，可能透過 Sentry 傳送匿名診斷資訊：\n\n• 裝置型號與 Android 版本\n• 應用程式版本\n• 堆疊追蹤與錯誤類型\n• 已去識別的診斷標籤（例如處理是否成功）\n\n您的相片與影片絕不會上傳。URI、檔名與 GPS 座標會在上傳前移除。</string>
+    <string name="settings_crash_reporting_detail_message">開啟「傳送當機報告」後，可能透過 Sentry 傳送匿名診斷：
+
+• 裝置型號和 Android 版本
+• 應用程式版本
+• 堆疊追蹤和錯誤類型
+• 已清理的診斷標籤
+
+您的照片和影片絕不會上傳。URI、檔名和 GPS 座標會在上傳前移除。</string>
     <string name="settings_crash_reporting_privacy_policy">隱私權政策</string>
     <string name="settings_crash_reporting_dismiss">關閉</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
+    <string name="button_cancel">取消</string>
+    <string name="clean_selected_count">已選取：%1$d 個檔案</string>
+    <string name="clean_status_ready">準備選取要清理的媒體。</string>
+    <string name="convert_codec_fallback">%1$s 無法使用；已改為儲存為 %2$s。</string>
+    <string name="metadata_error_basic_info_generic">無法讀取基本檔案資訊。</string>
+    <string name="metadata_error_image_generic">無法讀取影像中繼資料。</string>
+    <string name="metadata_error_video_generic">無法讀取影片中繼資料。</string>
+    <string name="notification_clean_partial">%1$d 個已清理，%2$d 個失敗。</string>
+    <string name="notification_progress_percent">已完成 %1$d%%</string>
+    <string name="scan_clean_this_file">清理此檔案</string>
+    <string name="scan_convert_this_file">轉換此檔案</string>
+    <string name="scan_copied_to_clipboard">已複製到剪貼簿</string>
+    <string name="scan_copy_all_metadata">複製全部中繼資料</string>
+    <string name="scan_copy_camera">複製相機資訊</string>
+    <string name="scan_copy_coordinates">複製座標</string>
+    <string name="settings_network_grant_crash_hint">網路存取已開啟。若要錯誤回報，請另外開啟「傳送當機報告」。</string>
+    <string name="settings_external_link_disclaimer">將開啟瀏覽器並使用網路。Redact 尚未取得應用程式功能的網路存取權。</string>
+    <string name="settings_external_link_continue">開啟連結</string>
+    <string name="settings_network_access_grant">授予網路存取</string>
+    <string name="settings_network_access_revoke">撤銷網路存取</string>
+    <string name="settings_network_consent_allow">允許網路存取</string>
+    <string name="settings_network_consent_cancel">暫不</string>
+    <string name="settings_network_consent_crash_title">允許透過網路傳送當機報告？</string>
+    <string name="settings_network_consent_crash_message">傳送當機報告會透過網際網路向 Sentry 上傳匿名診斷資訊。在您允許之前，Redact 不會使用網路。
+
+不會上傳任何照片、影片、檔名或 GPS 座標。</string>
+    <string name="settings_network_consent_general_title">允許網路存取？</string>
+    <string name="settings_network_consent_general_message">在您於此處允許之前，Redact 不會使用網路。網路存取僅在您開啟傳送當機報告時使用。
+
+不會上傳任何照片、影片、檔名或 GPS 座標。</string>
+    <string name="settings_network_revoke_confirm">撤銷</string>
+    <string name="settings_network_revoke_confirm_message">這將關閉傳送當機報告。Redact 將停止使用網路，直到您再次授予存取權限。</string>
+    <string name="settings_network_revoke_confirm_title">撤銷網路存取？</string>
+    <string name="settings_permissions_location">照片位置</string>
+    <string name="settings_permissions_network">網路存取（選用）</string>
+    <string name="settings_storage_clear_busy">處理進行中時無法清除。</string>
+    <string name="share_error_failed_get_cleaned_file">無法準備已清理的檔案以供分享。</string>
+    <string name="share_error_failed_get_cleaned_files">無法準備已清理的檔案以供分享。</string>
+    <string name="share_error_failed_receive_media">無法接收分享的媒體。</string>
+    <string name="share_error_generic">發生問題。請再試一次。</string>
+    <string name="share_error_processing_failed">無法從分享的檔案移除中繼資料。</string>
+    <string name="status_already_processing">已有批次正在執行。請等待其完成。</string>
+    <string name="status_clean_done_all">已成功清理 %1$d 個檔案。</string>
+    <string name="status_clean_done_failed">清理失敗。</string>
+    <string name="status_clean_done_partial">完成：%1$d 個已清理，%2$d 個失敗。</string>
+    <string name="status_processing_cancelled">處理已取消。</string>
 </resources>

@@ -62,7 +62,6 @@
 
     
     <string name="status_processing">Wird verarbeitet…</string>
-    <string name="status_processed_items">%1$d Elemente verarbeitet.</string>
     <string name="status_first_select_media_files">Bitte wählen Sie zuerst Mediendateien aus.</string>
     <string name="status_permissions_required">Berechtigungen erforderlich.</string>
     <string name="status_requesting_permissions">Berechtigungen werden angefordert…</string>
@@ -73,7 +72,6 @@
     <string name="status_extracting_media">Video-Metadaten werden extrahiert…</string>
     <string name="status_extracting_image">Bild-Metadaten werden extrahiert…</string>
     <string name="status_media_picker_fail">Fehler beim Öffnen des Medienauswahl-Dialogs.</string>
-    <string name="status_media_uri_fail">Medien-URI konnte nicht abgerufen werden.</string>
     <string name="status_storage_permissions_required">Speicherberechtigungen erforderlich.</string>
 
     
@@ -84,7 +82,6 @@
 
     
     <string name="scan_metadata">Metadaten</string>
-    <string name="scan_location_information">Standortinformationen</string>
     <string name="scan_location_permission_missing">Standortdaten könnten verfügbar sein, wenn Sie die Standortberechtigung erteilen.</string>
     <string name="scan_extraction_fail">Fehler beim Extrahieren der Metadaten.</string>
 
@@ -113,8 +110,6 @@
     <string name="metadata_exposure_time_seconds">Belichtungszeit: %.5f s</string>
     <string name="metadata_latitude">Breitengrad: %.15f</string>
     <string name="metadata_longitude">Längengrad: %.15f</string>
-    <string name="metadata_address">Adresse: %s</string>
-    <string name="metadata_geocoding_failed">Geocodierung fehlgeschlagen: %s</string>
     <string name="metadata_no_location_data">Keine Standortdaten verfügbar.</string>
     <string name="metadata_location_permission_needed">Standortberechtigung nicht erteilt. Erteilen Sie die Berechtigung, um Standortdaten anzuzeigen.</string>
     <string name="metadata_orientation">Ausrichtung: %s</string>
@@ -147,65 +142,92 @@
     <string name="metadata_orientation_transpose">Transponieren</string>
     <string name="metadata_orientation_transverse">Transversal</string>
     <string name="metadata_orientation_unknown">Unbekannt (%d)</string>
+    <string name="metadata_error_file_open">Fehler: Bilddatei konnte nicht geöffnet werden</string>
 
     
-    <string name="metadata_error_extraction">Fehler beim Extrahieren der Metadaten: %s</string>
-    <string name="metadata_error_basic_info">Fehler beim Extrahieren der Grundinformationen: %s</string>
-    <string name="metadata_error_file_open">Fehler: Bilddatei konnte nicht geöffnet werden</string>
-    <string name="metadata_error_image_metadata">Fehler beim Extrahieren der Bild-Metadaten: %s</string>
-    <string name="metadata_error_video_metadata">Fehler beim Extrahieren der Video-Metadaten: %s</string>
+    <string name="settings_section_advanced_privacy">Metadaten-Bereinigung</string>
+    <string name="settings_advanced_privacy_subtitle">Wie Redact EXIF auf dem Tab Bereinigen entfernt. Beim Teilen aus anderen Apps werden Standort und Kamerainfo immer vor dem Weiterleiten entfernt.</string>
+    <string name="settings_secure_delete">Sichere Löschdurchläufe</string>
+    <string name="settings_secure_delete_subtitle">Wie oft temporäre Dateien vor dem Löschen überschrieben werden. Mehr Durchläufe sind langsamer, aber schwerer wiederherstellbar.</string>
+    <string name="settings_auto_clear_temp">Cache beim Start leeren</string>
+    <string name="settings_auto_clear_temp_subtitle">Übrig gebliebene Verarbeitungsdateien bei jedem App-Start löschen.</string>
+    <string name="settings_preserve_camera">Kameraeinstellungen behalten</string>
+    <string name="settings_preserve_camera_subtitle">Blende, Verschlusszeit, ISO und Kameramarke/-modell auf Bereinigen behalten. Ignoriert bei Strikter Bereinigung oder beim Teilen aus anderen Apps.</string>
+    <string name="settings_preserve_location">Standort behalten</string>
+    <string name="settings_preserve_location_subtitle">GPS-Koordinaten auf Bereinigen behalten. Ignoriert bei Strikter Bereinigung oder beim Teilen aus anderen Apps.</string>
+    <string name="settings_strict_clean">Strikte Bereinigung</string>
+    <string name="settings_strict_clean_subtitle">Alle Metadaten entfernen, einschließlich Orientierung. Schaltet Behalten-Optionen aus und kodiert Videos immer vollständig neu.</string>
     
-    <string name="permission_rationale_media">Zugriff auf Medien wird benötigt, um Mediendateien auszuwählen und zu verarbeiten.</string>
-    <string name="permission_rationale_storage">Speicherzugriff wird benötigt, um Mediendateien auszuwählen und zu verarbeiten.</string>
-    <string name="permission_rationale_location">Die Standortberechtigung wird benötigt, um auf Geolokalisierungsdaten in Mediendateien zuzugreifen.</string>
-    <string name="permission_denied_retry">Berechtigungen sind erforderlich, um Mediendateien auszuwählen.</string>
-    <string name="permission_location_retry">Die Standortberechtigung wird benötigt, um auf Geolokalisierungsdaten in Mediendateien zuzugreifen.</string>
-    <string name="snackbar_action_retry">Wiederholen</string>
+    <string name="settings_section_advanced_processing">Große Dateien &amp; Speicher</string>
+    <string name="settings_advanced_processing_subtitle">Grenzen für sehr große Bilder beim Bereinigen und Konvertieren. Ändert nicht die Videobereinigung.</string>
+    <string name="settings_max_bitmap_size">Max. Verarbeitungsauflösung</string>
+    <string name="settings_max_bitmap_size_subtitle">Längste Kante in Pixeln beim Dekodieren im Speicher. Niedrigere Werte nutzen weniger RAM.</string>
+    <string name="settings_max_file_size">Max. Eingabedateigröße</string>
+    <string name="settings_max_file_size_subtitle">Bilder über dieser Größe überspringen oder verkleinern, um Speicherfehler zu vermeiden.</string>
+    <string name="settings_video_fallback">Schnellere Videobereinigung</string>
+    <string name="settings_video_fallback_subtitle">Vollständige Neukodierung nach schnellem Remux überspringen, wenn die Ausgabe bereits MP4-kompatibel ist. Spart Zeit und Akku; vollständige Transkodierung entfernt mehr Metadaten. Aus bei Strikter Bereinigung oder Teilen aus anderen Apps.</string>
+
+    <string-array name="settings_secure_delete_labels">
+        <item>1 Durchlauf (Schnell)</item>
+        <item>3 Durchläufe (Sicher)</item>
+        <item>7 Durchläufe (Ultra-Sicher)</item>
+    </string-array>
+
+    <string-array name="settings_max_bitmap_size_labels">
+        <item>2048px (Wenig RAM)</item>
+        <item>4096px (Standard)</item>
+        <item>8192px (Hohe Leistung)</item>
+    </string-array>
+
+    <string-array name="settings_max_file_size_labels">
+        <item>50 MB</item>
+        <item>100 MB</item>
+        <item>200 MB</item>
+    </string-array>
     <string name="scan_metadata_subtitle">Erkannte Felder aus dieser Datei. Werte gedrückt halten, um sie zu kopieren.</string>
-    <string name="scan_open_in_maps">In Google Maps öffnen</string>
-    <string name="scan_maps_unavailable">Keine Karten-App gefunden, um diesen Ort zu öffnen.</string>
-    <string name="scan_search_camera">Kamera Suchen</string>
-    <string name="scan_search_unavailable">Kein Browser gefunden, um diese Suche auszuführen.</string>
 
     
     <string name="navigation_settings">Einstellungen</string>
     <string name="settings_section_notifications">Benachrichtigungen</string>
-    <string name="settings_notifications_label">Alle Benachrichtigungen</string>
-    <string name="settings_notifications_subtitle">Redact erlauben, Push-Benachrichtigungen zu senden, wenn Vorgänge im Hintergrund abgeschlossen sind.</string>
-    <string name="settings_notifications_clean_label">Metadaten bereinigen</string>
-    <string name="settings_notifications_clean_subtitle">Benachrichtige mich, wenn das Entfernen von EXIF- und Metadaten abgeschlossen ist.</string>
-    <string name="settings_notifications_convert_label">Formatkonvertierung</string>
-    <string name="settings_notifications_convert_subtitle">Benachrichtige mich, wenn die Video- oder Bildkonvertierung abgeschlossen ist.</string>
-    <string name="settings_section_privacy">Datenschutz</string>
-    <string name="settings_crash_reporting_label">Redact verbessern</string>
-    <string name="settings_crash_reporting_subtitle">Sendet optional anonymisierte Absturzberichte ueber das Internet (Sentry). Fotos und Videos werden nie hochgeladen - nur technische Diagnosedaten. Jederzeit deaktivierbar.</string>
-    <string name="settings_section_conversion">Konvertierungsstandards</string>
-    <string name="settings_conversion_subtitle">Wird angewendet, wenn Sie Dateien auf der Registerkarte Konvertieren auswählen.</string>
+    <string name="settings_section_notifications_subtitle">Benachrichtigungen bei abgeschlossenen Aufgaben und optional Live-Fortschritt beim Bereinigen oder Konvertieren.</string>
+    <string name="settings_notifications_label">Benachrichtigungen erlauben</string>
+    <string name="settings_notifications_subtitle">Hauptschalter für alle Redact-Hinweise. Standard aus; Android kann beim Einschalten um Erlaubnis bitten.</string>
+    <string name="settings_notifications_clean_label">Bereinigung abgeschlossen</string>
+    <string name="settings_notifications_clean_subtitle">Hinweis, wenn die Metadatenentfernung auf Bereinigen fertig ist.</string>
+    <string name="settings_notifications_convert_label">Konvertierung abgeschlossen</string>
+    <string name="settings_notifications_convert_subtitle">Hinweis, wenn die Formatkonvertierung auf Konvertieren fertig ist.</string>
+    <string name="settings_section_diagnostics">Diagnose &amp; Feedback</string>
+    <string name="settings_section_diagnostics_subtitle">Optionale Absturzberichte helfen bei Fehlerbehebung. Ihre Medien verlassen nie das Gerät.</string>
+    <string name="settings_crash_reporting_label">Absturzberichte senden</string>
+    <string name="settings_crash_reporting_subtitle">Nur anonymisierte Diagnose (App-Version, Gerätemodell, Stack-Traces). Erfordert Netzwerkzugriff nach Ihrer Bestätigung. Fotos und Videos werden nie hochgeladen.</string>
+    <string name="settings_section_conversion">Standardwerte Konvertieren</string>
+    <string name="settings_conversion_subtitle">Vorausgewählte Formate beim Auswählen auf Konvertieren. Pro Stapel weiterhin änderbar.</string>
     <string name="settings_default_image_format">Standard-Bildformat</string>
     <string name="settings_default_video_format">Standard-Video-Codec</string>
     <string name="settings_image_quality">Bildqualität</string>
     <string name="settings_quality_high">Hoch</string>
     <string name="settings_quality_balanced">Ausgewogen</string>
     <string name="settings_quality_smaller">Kleinere Datei</string>
-    <string name="settings_quality_subtitle">Betrifft JPEG-, WebP- und HEIC-Ausgabe. PNG bleibt verlustfrei.</string>
-    <string name="settings_section_share">Freigabeziel</string>
-    <string name="settings_share_confirm_label">Vor Dem Entfernen Von Metadaten Fragen</string>
-    <string name="settings_share_confirm_subtitle">Beim Teilen in Redact eine Bestätigung anzeigen, bevor Metadaten entfernt werden.</string>
+    <string name="settings_quality_subtitle">Gilt für JPEG-, WebP- und HEIC-Ausgabe. PNG-Export bleibt verlustfrei.</string>
+    <string name="settings_section_share_subtitle">Wenn eine andere App Fotos oder Videos an Redact sendet.</string>
+    <string name="settings_section_share">Teilen in Redact</string>
+    <string name="settings_share_confirm_label">Vor dem Entfernen von Metadaten bestätigen</string>
+    <string name="settings_share_confirm_subtitle">Bestätigung anzeigen, bevor EXIF und andere Metadaten aus geteilten Dateien entfernt werden.</string>
     <string name="settings_share_confirm_dialog_title">Metadaten Entfernen?</string>
     <string name="settings_share_confirm_dialog_message">Redact entfernt EXIF und andere Metadaten aus den geteilten Dateien, bevor Sie sie weitergeben.</string>
     <string name="settings_share_confirm_dialog_confirm">Entfernen Und Fortfahren</string>
     <string name="settings_share_confirm_dialog_cancel">Abbrechen</string>
     <string name="settings_section_permissions">Berechtigungen</string>
-    <string name="settings_permissions_subtitle">Erteilen Sie Berechtigungen in den Android-Systemeinstellungen, wenn eine Funktion sie benötigt.</string>
-    <string name="settings_permissions_media">Medienzugriff</string>
-    <string name="settings_permissions_notifications">Benachrichtigungen</string>
+    <string name="settings_permissions_subtitle">Redact benötigt Medienzugriff für Bereinigen, Konvertieren und Scannen. Benachrichtigungen sind optional und nur für Aufgaben-Hinweise.</string>
+    <string name="settings_permissions_media">Fotos &amp; Videos</string>
+    <string name="settings_permissions_notifications">Benachrichtigungen (optional)</string>
     <string name="settings_permission_granted">Erteilt</string>
     <string name="settings_permission_denied">Verweigert</string>
     <string name="settings_permission_not_required">Nicht Erforderlich</string>
     <string name="settings_open_system_settings">Systemeinstellungen Öffnen</string>
-    <string name="settings_section_storage">Speicher</string>
-    <string name="settings_storage_size">Temporäre Dateien: %1$s</string>
-    <string name="settings_storage_subtitle">Verarbeitungs-Cache beim Bereinigen oder Teilen von Dateien.</string>
+    <string name="settings_section_storage">Speicher &amp; Cache</string>
+    <string name="settings_storage_size">Cache belegt: %1$s</string>
+    <string name="settings_storage_subtitle">Arbeitskopien während der Verarbeitung. Ihre Galerie-Originale werden nie geändert.</string>
     <string name="settings_storage_clear">Temporäre Dateien Löschen</string>
     <string name="settings_storage_clear_confirm_title">Temporäre Dateien Löschen?</string>
     <string name="settings_storage_clear_confirm_message">Dies entfernt zwischengespeicherte Kopien aus der letzten Verarbeitung. Ihre Galeriedateien sind nicht betroffen.</string>
@@ -218,14 +240,67 @@
     <string name="settings_about_privacy">Datenschutzrichtlinie</string>
     <string name="settings_about_report_issue">Problem Melden</string>
     <string name="settings_link_unavailable">Keine App zum Öffnen dieses Links gefunden.</string>
-    <string name="settings_progress_notifications_label">Fortschritt Im Benachrichtigungsbereich Anzeigen</string>
-    <string name="settings_progress_notifications_subtitle">Live-Fortschritt beim Konvertieren oder Bereinigen. Abschlussbenachrichtigungen bleiben unverändert.</string>
+    <string name="settings_progress_notifications_label">Laufender Aufgabenfortschritt</string>
+    <string name="settings_progress_notifications_subtitle">Dauerhafte Benachrichtigung mit Fortschritt bei langen Bereinigungs- oder Konvertierungsaufträgen.</string>
     <string name="settings_crash_reporting_learn_more">Was Wird Geteilt?</string>
     <string name="settings_crash_reporting_detail_title">Details Zu Absturzberichten</string>
-    <string name="settings_crash_reporting_detail_message">Wenn Redact verbessern aktiviert ist, können anonymisierte Diagnosedaten über Sentry gesendet werden:\n\n• Gerätemodell und Android-Version\n• App-Version\n• Stack-Traces und Fehlertypen\n• Bereinigte Diagnose-Tags (z. B. ob die Verarbeitung erfolgreich war)\n\nIhre Fotos und Videos werden nie hochgeladen. URIs, Dateinamen und GPS-Koordinaten werden vor dem Upload entfernt.</string>
+    <string name="settings_crash_reporting_detail_message">Wenn Absturzberichte senden aktiv ist, können anonymisierte Diagnosedaten über Sentry gesendet werden:
+
+• Gerätemodell und Android-Version
+• App-Version
+• Stack-Traces und Fehlertypen
+• Bereinigte Diagnose-Tags
+
+Ihre Fotos und Videos werden nie hochgeladen. URIs, Dateinamen und GPS-Koordinaten werden vor dem Upload entfernt.</string>
     <string name="settings_crash_reporting_privacy_policy">Datenschutzrichtlinie</string>
     <string name="settings_crash_reporting_dismiss">Schließen</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
+    <string name="button_cancel">Abbrechen</string>
+    <string name="clean_selected_count">Ausgewählt: %1$d Datei(en)</string>
+    <string name="clean_status_ready">Bereit, Medien zum Bereinigen auszuwählen.</string>
+    <string name="convert_codec_fallback">%1$s nicht verfügbar; stattdessen als %2$s gespeichert.</string>
+    <string name="metadata_error_basic_info_generic">Grundlegende Dateiinformationen konnten nicht gelesen werden.</string>
+    <string name="metadata_error_image_generic">Bild-Metadaten konnten nicht gelesen werden.</string>
+    <string name="metadata_error_video_generic">Video-Metadaten konnten nicht gelesen werden.</string>
+    <string name="notification_clean_partial">%1$d bereinigt, %2$d fehlgeschlagen.</string>
+    <string name="notification_progress_percent">%1$d%% abgeschlossen</string>
+    <string name="scan_clean_this_file">Diese Datei bereinigen</string>
+    <string name="scan_convert_this_file">Diese Datei konvertieren</string>
+    <string name="scan_copied_to_clipboard">In Zwischenablage kopiert</string>
+    <string name="scan_copy_all_metadata">Alle Metadaten kopieren</string>
+    <string name="scan_copy_camera">Kamerainfo kopieren</string>
+    <string name="scan_copy_coordinates">Koordinaten kopieren</string>
+    <string name="settings_network_grant_crash_hint">Netzwerkzugriff ist aktiv. Aktivieren Sie „Absturzberichte senden“ separat, wenn Sie Fehlerberichte wünschen.</string>
+    <string name="settings_external_link_disclaimer">Dies öffnet Ihren Browser und nutzt das Netzwerk. Redact hat keinen Netzwerkzugriff für In-App-Funktionen.</string>
+    <string name="settings_external_link_continue">Link Öffnen</string>
+    <string name="settings_network_access_grant">Netzwerkzugriff Gewähren</string>
+    <string name="settings_network_access_revoke">Netzwerkzugriff Widerrufen</string>
+    <string name="settings_network_consent_allow">Netzwerkzugriff Erlauben</string>
+    <string name="settings_network_consent_cancel">Nicht Jetzt</string>
+    <string name="settings_network_consent_crash_title">Absturzberichte über das Netzwerk erlauben?</string>
+    <string name="settings_network_consent_crash_message">Absturzberichte senden lädt anonymisierte Diagnosedaten über Sentry ins Internet hoch. Redact nutzt das Netzwerk erst, wenn Sie dies erlauben.
+
+Keine Fotos, Videos, Dateinamen oder GPS-Koordinaten werden hochgeladen.</string>
+    <string name="settings_network_consent_general_title">Netzwerkzugriff Erlauben?</string>
+    <string name="settings_network_consent_general_message">Redact nutzt das Netzwerk erst, wenn Sie es hier erlauben. Netzwerkzugriff wird nur verwendet, wenn Sie Absturzberichte senden aktivieren.
+
+Keine Fotos, Videos, Dateinamen oder GPS-Koordinaten werden hochgeladen.</string>
+    <string name="settings_network_revoke_confirm">Widerrufen</string>
+    <string name="settings_network_revoke_confirm_message">Dies schaltet Absturzberichte senden aus. Redact nutzt das Netzwerk erst wieder, wenn Sie den Zugriff erneut gewähren.</string>
+    <string name="settings_network_revoke_confirm_title">Netzwerkzugriff Widerrufen?</string>
+    <string name="settings_permissions_location">Foto-Standort</string>
+    <string name="settings_permissions_network">Netzwerkzugriff (Optional)</string>
+    <string name="settings_storage_clear_busy">Löschen während der Verarbeitung nicht möglich.</string>
+    <string name="share_error_failed_get_cleaned_file">Bereinigte Datei konnte nicht für die Freigabe vorbereitet werden.</string>
+    <string name="share_error_failed_get_cleaned_files">Bereinigte Dateien konnten nicht für die Freigabe vorbereitet werden.</string>
+    <string name="share_error_failed_receive_media">Geteilte Medien konnten nicht empfangen werden.</string>
+    <string name="share_error_generic">Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.</string>
+    <string name="share_error_processing_failed">Metadaten konnten nicht aus den geteilten Datei(en) entfernt werden.</string>
+    <string name="status_already_processing">Ein Stapel läuft bereits. Bitte warten Sie, bis er abgeschlossen ist.</string>
+    <string name="status_clean_done_all">%1$d Datei(en) erfolgreich bereinigt.</string>
+    <string name="status_clean_done_failed">Bereinigung fehlgeschlagen.</string>
+    <string name="status_clean_done_partial">Fertig: %1$d bereinigt, %2$d fehlgeschlagen.</string>
+    <string name="status_processing_cancelled">Verarbeitung abgebrochen.</string>
 </resources>

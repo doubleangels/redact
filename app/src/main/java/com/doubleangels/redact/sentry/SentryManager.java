@@ -105,7 +105,8 @@ public final class SentryManager {
         if (appContext == null) {
             return false;
         }
-        return AppPreferences.isCrashReportingEnabled(appContext);
+        return AppPreferences.isCrashReportingEnabled(appContext)
+                && AppPreferences.isNetworkAccessConfirmed(appContext);
     }
 
     public static boolean isIgnored(Throwable e) {

@@ -16,7 +16,9 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.doubleangels.redact.AppPreferences;
+import com.doubleangels.redact.R;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -41,6 +43,9 @@ public final class FormatConverter {
     static Bitmap.CompressFormat testTreatFormatAsHeic;
 
     private static void copyExifData(Context context, Uri sourceUri, Uri destUri) {
+        if (AppPreferences.isStrictClean(context)) {
+            return;
+        }
         try {
             androidx.exifinterface.media.ExifInterface oldExif = null;
             if ("file".equals(sourceUri.getScheme())) {
@@ -57,8 +62,20 @@ public final class FormatConverter {
                 }
             }
             
-            if (oldExif != null) {
+            if (oldExif == null) {
+                return;
+            }
+            if ("file".equals(destUri.getScheme())) {
                 copyExifAttributes(context, oldExif, openExifForWrite(context, destUri));
+            } else {
+                try (android.os.ParcelFileDescriptor pfd =
+                        context.getContentResolver().openFileDescriptor(destUri, "rw")) {
+                    if (pfd != null) {
+                        androidx.exifinterface.media.ExifInterface newExif =
+                                new androidx.exifinterface.media.ExifInterface(pfd.getFileDescriptor());
+                        copyExifAttributes(context, oldExif, newExif);
+                    }
+                }
             }
         } catch (Exception e) {
             // Ignore exif copy errors
@@ -71,7 +88,12 @@ public final class FormatConverter {
         if (newExif == null) {
             return;
         }
-        String[] tags = {
+        String[] alwaysTags = {
+                androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION,
+                androidx.exifinterface.media.ExifInterface.TAG_IMAGE_WIDTH,
+                androidx.exifinterface.media.ExifInterface.TAG_IMAGE_LENGTH,
+        };
+        String[] cameraTags = {
                 androidx.exifinterface.media.ExifInterface.TAG_DATETIME,
                 androidx.exifinterface.media.ExifInterface.TAG_DATETIME_DIGITIZED,
                 androidx.exifinterface.media.ExifInterface.TAG_DATETIME_ORIGINAL,
@@ -81,19 +103,14 @@ public final class FormatConverter {
                 androidx.exifinterface.media.ExifInterface.TAG_F_NUMBER,
                 androidx.exifinterface.media.ExifInterface.TAG_EXPOSURE_TIME,
                 androidx.exifinterface.media.ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY,
-                androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION,
-                androidx.exifinterface.media.ExifInterface.TAG_IMAGE_WIDTH,
-                androidx.exifinterface.media.ExifInterface.TAG_IMAGE_LENGTH,
                 androidx.exifinterface.media.ExifInterface.TAG_FLASH,
-                androidx.exifinterface.media.ExifInterface.TAG_WHITE_BALANCE
+                androidx.exifinterface.media.ExifInterface.TAG_WHITE_BALANCE,
         };
 
         try {
-            for (String tag : tags) {
-                String value = oldExif.getAttribute(tag);
-                if (value != null) {
-                    newExif.setAttribute(tag, value);
-                }
+            copyTags(oldExif, newExif, alwaysTags);
+            if (AppPreferences.isPreserveCameraSettings(context)) {
+                copyTags(oldExif, newExif, cameraTags);
             }
             if (AppPreferences.isPreserveLocation(context)) {
                 String[] locTags = {
@@ -119,28 +136,33 @@ public final class FormatConverter {
         }
     }
 
+    private static void copyTags(
+            @NonNull androidx.exifinterface.media.ExifInterface oldExif,
+            @NonNull androidx.exifinterface.media.ExifInterface newExif,
+            @NonNull String[] tags) throws IOException {
+        for (String tag : tags) {
+            String value = oldExif.getAttribute(tag);
+            if (value != null) {
+                newExif.setAttribute(tag, value);
+            }
+        }
+    }
+
     @Nullable
     private static androidx.exifinterface.media.ExifInterface openExifForWrite(
             @NonNull Context context, @NonNull Uri destUri) {
-        if ("file".equals(destUri.getScheme())) {
-            String path = destUri.getPath();
-            if (path != null) {
-                try {
-                    return new androidx.exifinterface.media.ExifInterface(path);
-                } catch (IOException e) {
-                    return null;
-                }
-            }
+        if (!"file".equals(destUri.getScheme())) {
+            return null;
         }
-        try (android.os.ParcelFileDescriptor pfd =
-                context.getContentResolver().openFileDescriptor(destUri, "rw")) {
-            if (pfd != null) {
-                return new androidx.exifinterface.media.ExifInterface(pfd.getFileDescriptor());
-            }
-        } catch (Exception e) {
-            // Ignore exif open errors
+        String path = destUri.getPath();
+        if (path == null) {
+            return null;
         }
-        return null;
+        try {
+            return new androidx.exifinterface.media.ExifInterface(path);
+        } catch (IOException e) {
+            return null;
+        }
     }
 
     private FormatConverter() {
@@ -225,7 +247,7 @@ public final class FormatConverter {
             return true;
         }
         String n = format.name();
-        return "HEIC".equals(n) || "HEIF".equals(n);
+        return "HEIC".equals(n);
     }
 
     public static int qualityForFormat(@NonNull Bitmap.CompressFormat format) {
@@ -384,6 +406,12 @@ public final class FormatConverter {
         String mimeIn = resolver.getType(sourceUri);
         if (mimeIn != null && mimeIn.startsWith("video/")) {
             throw new IOException("video_not_supported");
+        }
+
+        long declaredSize = MediaSizeLimits.declaredSizeBytes(resolver, sourceUri);
+        long maxBytes = MediaSizeLimits.maxImageBytes(context);
+        if (declaredSize > 0 && declaredSize > maxBytes) {
+            throw new IOException("stream_exceeds_size_limit");
         }
 
         if (isHeicFormat(format) && !isHeicProcessingSupported()) {
@@ -571,12 +599,51 @@ public final class FormatConverter {
             int formatIndex,
             @Nullable VideoMedia3Converter.TranscodeProgressListener progressListener)
             throws IOException {
+        return convertVideoToMovies(
+                context, sourceUri, baseDisplayName, formatIndex, progressListener, null);
+    }
+
+    @NonNull
+    public static Uri convertVideoToMovies(
+            @NonNull Context context,
+            @NonNull Uri sourceUri,
+            @NonNull String baseDisplayName,
+            int formatIndex,
+            @Nullable VideoMedia3Converter.TranscodeProgressListener progressListener,
+            @Nullable int[] outActualFormatIndex)
+            throws IOException {
         try {
-            return VideoMedia3Converter.transcodeToGallery(
-                    context, sourceUri, baseDisplayName, formatIndex, progressListener);
+            File outFile = File.createTempFile(
+                    "vid_transform_",
+                    VideoMedia3Converter.extensionForFormatIndex(formatIndex),
+                    context.getApplicationContext().getCacheDir());
+            int actualFormat = VideoMedia3Converter.transcodeToPath(
+                    context.getApplicationContext(),
+                    sourceUri,
+                    outFile.getAbsolutePath(),
+                    formatIndex,
+                    progressListener);
+            if (outActualFormatIndex != null && outActualFormatIndex.length > 0) {
+                outActualFormatIndex[0] = actualFormat;
+            }
+            try {
+                return VideoMedia3Converter.copyToMoviesRedact(
+                        context, outFile, baseDisplayName, actualFormat);
+            } finally {
+                if (outFile.exists() && !outFile.delete()) {
+                    outFile.deleteOnExit();
+                }
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IOException("Video conversion interrupted", e);
         }
+    }
+
+    @NonNull
+    public static String videoFormatLabel(@NonNull Context context, int formatIndex) {
+        String[] labels = context.getResources().getStringArray(R.array.settings_video_format_labels);
+        int idx = AppPreferences.clampFormatIndex(formatIndex);
+        return idx < labels.length ? labels[idx] : labels[0];
     }
 }

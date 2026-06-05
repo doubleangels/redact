@@ -21,6 +21,9 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.doubleangels.redact.permission.PermissionStatusHelper;
+import com.doubleangels.redact.privacy.NetworkAccess;
+import com.doubleangels.redact.ui.MainViewModel;
+import com.doubleangels.redact.sentry.SentryInitializer;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.color.MaterialColors;
@@ -37,6 +40,7 @@ import java.util.concurrent.Executors;
 public class SettingsFragment extends Fragment {
 
     private boolean suppressNotificationToggleCallback;
+    private boolean suppressCrashReportingToggleCallback;
 
     private MaterialSwitch switchNotifications;
     private MaterialSwitch switchClean;
@@ -48,7 +52,10 @@ public class SettingsFragment extends Fragment {
     private View rowConvert;
     private View rowProgress;
     private TextView textPermissionMediaStatus;
+    private TextView textPermissionLocationStatus;
     private TextView textPermissionNotificationsStatus;
+    private TextView textPermissionNetworkStatus;
+    private MaterialButton buttonNetworkAccess;
     private TextView textStorageSize;
     private MaterialAutoCompleteTextView dropdownDefaultImageFormat;
     private MaterialAutoCompleteTextView dropdownDefaultVideoFormat;
@@ -70,7 +77,8 @@ public class SettingsFragment extends Fragment {
     private String[] maxBitmapSizeLabels;
     private String[] maxFileSizeLabels;
 
-    private final ExecutorService backgroundExecutor = Executors.newSingleThreadExecutor();
+    @Nullable
+    private ExecutorService backgroundExecutor;
 
     @Nullable
     @Override
@@ -82,6 +90,7 @@ public class SettingsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        backgroundExecutor = Executors.newSingleThreadExecutor();
         try {
             bindViews(view);
             imageFormatLabels = getResources().getStringArray(R.array.settings_image_format_labels);
@@ -113,7 +122,10 @@ public class SettingsFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
-        backgroundExecutor.shutdownNow();
+        if (backgroundExecutor != null) {
+            backgroundExecutor.shutdownNow();
+            backgroundExecutor = null;
+        }
         super.onDestroyView();
     }
 
@@ -128,7 +140,10 @@ public class SettingsFragment extends Fragment {
         rowConvert = view.findViewById(R.id.rowConvertNotifications);
         rowProgress = view.findViewById(R.id.rowProgressNotifications);
         textPermissionMediaStatus = view.findViewById(R.id.textPermissionMediaStatus);
+        textPermissionLocationStatus = view.findViewById(R.id.textPermissionLocationStatus);
         textPermissionNotificationsStatus = view.findViewById(R.id.textPermissionNotificationsStatus);
+        textPermissionNetworkStatus = view.findViewById(R.id.textPermissionNetworkStatus);
+        buttonNetworkAccess = view.findViewById(R.id.buttonNetworkAccess);
         textStorageSize = view.findViewById(R.id.textStorageSize);
         dropdownDefaultImageFormat = view.findViewById(R.id.dropdownDefaultImageFormat);
         dropdownDefaultVideoFormat = view.findViewById(R.id.dropdownDefaultVideoFormat);
@@ -190,8 +205,33 @@ public class SettingsFragment extends Fragment {
     private void bindPrivacy(@NonNull View view) {
         switchCrashReporting.setChecked(AppPreferences.isCrashReportingEnabled(requireContext()));
         switchCrashReporting.setOnCheckedChangeListener((btn, isChecked) -> {
+            if (suppressCrashReportingToggleCallback) {
+                return;
+            }
             try {
-                AppPreferences.setCrashReportingEnabled(requireContext(), isChecked);
+                if (!isChecked) {
+                    AppPreferences.setCrashReportingEnabled(requireContext(), false);
+                    SentryInitializer.shutdown();
+                    NetworkAccess.revokeIfUnused(requireContext());
+                    SentryManager.setCustomKey("crash_reporting_enabled", false);
+                    return;
+                }
+                if (NetworkAccess.isConfirmed(requireContext())) {
+                    AppPreferences.setCrashReportingEnabled(requireContext(), true);
+                    SentryInitializer.initializeIfNeeded(requireContext());
+                    SentryManager.setCustomKey("crash_reporting_enabled", true);
+                    return;
+                }
+                revertSwitch(switchCrashReporting, false);
+                showNetworkConsentDialog(
+                        R.string.settings_network_consent_crash_title,
+                        R.string.settings_network_consent_crash_message,
+                        () -> {
+                            NetworkAccess.enableCrashReportingWithConsent(requireContext());
+                            setSwitchChecked(switchCrashReporting, true);
+                            SentryManager.setCustomKey("crash_reporting_enabled", true);
+                        },
+                        null);
             } catch (Exception e) {
                 android.util.Log.e("SettingsFragment", "Error saving crash reporting pref", e);
             }
@@ -218,6 +258,10 @@ public class SettingsFragment extends Fragment {
 
         switchStrictClean.setOnCheckedChangeListener((btn, isChecked) -> {
             AppPreferences.setStrictClean(requireContext(), isChecked);
+            if (isChecked) {
+                AppPreferences.setPreserveCameraSettings(requireContext(), false);
+                AppPreferences.setPreserveLocation(requireContext(), false);
+            }
             updatePreservationTogglesState(isChecked);
         });
 
@@ -328,6 +372,27 @@ public class SettingsFragment extends Fragment {
             intent.setData(Uri.fromParts("package", requireContext().getPackageName(), null));
             startActivity(intent);
         });
+        buttonNetworkAccess.setOnClickListener(v -> {
+            if (NetworkAccess.isConfirmed(requireContext())) {
+                confirmRevokeNetworkAccess();
+            } else {
+                showNetworkConsentDialog(
+                        R.string.settings_network_consent_general_title,
+                        R.string.settings_network_consent_general_message,
+                        () -> {
+                            NetworkAccess.confirm(requireContext());
+                            refreshPermissionStatuses();
+                            if (!AppPreferences.isCrashReportingEnabled(requireContext())) {
+                                Toast.makeText(
+                                                requireContext(),
+                                                R.string.settings_network_grant_crash_hint,
+                                                Toast.LENGTH_LONG)
+                                        .show();
+                            }
+                        },
+                        null);
+            }
+        });
         refreshPermissionStatuses();
     }
 
@@ -375,9 +440,41 @@ public class SettingsFragment extends Fragment {
         applyPermissionStatus(
                 textPermissionMediaStatus,
                 PermissionStatusHelper.getMediaAccessStatus(requireContext()));
+        if (textPermissionLocationStatus != null) {
+            applyPermissionStatus(
+                    textPermissionLocationStatus,
+                    PermissionStatusHelper.getLocationStatus(requireContext()));
+        }
         applyPermissionStatus(
                 textPermissionNotificationsStatus,
                 PermissionStatusHelper.getNotificationsStatus(requireContext()));
+        applyPermissionStatus(
+                textPermissionNetworkStatus,
+                PermissionStatusHelper.getNetworkAccessStatus(requireContext()));
+        if (buttonNetworkAccess != null) {
+            boolean granted = NetworkAccess.isConfirmed(requireContext());
+            buttonNetworkAccess.setText(granted
+                    ? R.string.settings_network_access_revoke
+                    : R.string.settings_network_access_grant);
+        }
+        syncNetworkDependentToggles();
+    }
+
+    private void confirmRevokeNetworkAccess() {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.settings_network_revoke_confirm_title)
+                .setMessage(R.string.settings_network_revoke_confirm_message)
+                .setPositiveButton(R.string.settings_network_revoke_confirm, (d, w) -> {
+                    NetworkAccess.revokeCompletely(requireContext());
+                    syncNetworkDependentToggles();
+                    refreshPermissionStatuses();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void syncNetworkDependentToggles() {
+        setSwitchChecked(switchCrashReporting, AppPreferences.isCrashReportingEnabled(requireContext()));
     }
 
     private void applyPermissionStatus(
@@ -404,7 +501,7 @@ public class SettingsFragment extends Fragment {
     }
 
     private void refreshStorageSize() {
-        if (textStorageSize == null) {
+        if (textStorageSize == null || backgroundExecutor == null) {
             return;
         }
         final android.content.Context ctx = requireContext().getApplicationContext();
@@ -422,6 +519,13 @@ public class SettingsFragment extends Fragment {
     }
 
     private void clearTempFiles() {
+        if (getActivity() != null && MainViewModel.isAnyProcessing(requireActivity())) {
+            Toast.makeText(requireContext(), R.string.settings_storage_clear_busy, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (backgroundExecutor == null) {
+            return;
+        }
         final android.content.Context ctx = requireContext().getApplicationContext();
         backgroundExecutor.execute(() -> {
             long before = CacheCleanup.getTempCacheSizeBytes(ctx);
@@ -443,11 +547,22 @@ public class SettingsFragment extends Fragment {
     }
 
     private void openUrl(@NonNull String url) {
-        try {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-        } catch (ActivityNotFoundException e) {
-            Toast.makeText(requireContext(), R.string.settings_link_unavailable, Toast.LENGTH_SHORT).show();
+        Runnable launch = () -> {
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(requireContext(), R.string.settings_link_unavailable, Toast.LENGTH_SHORT).show();
+            }
+        };
+        if (!NetworkAccess.isConfirmed(requireContext())) {
+            new MaterialAlertDialogBuilder(requireContext())
+                    .setMessage(R.string.settings_external_link_disclaimer)
+                    .setPositiveButton(R.string.settings_external_link_continue, (d, w) -> launch.run())
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+            return;
         }
+        launch.run();
     }
 
     private final ActivityResultLauncher<String> notificationPermissionLauncher =
@@ -522,6 +637,40 @@ public class SettingsFragment extends Fragment {
             case 3 -> R.id.chipFormatHeif;
             default -> R.id.chipFormatJpeg;
         };
+    }
+
+    private void showNetworkConsentDialog(
+            int titleRes,
+            int messageRes,
+            @NonNull Runnable onAllow,
+            @Nullable Runnable onDeny) {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(titleRes)
+                .setMessage(messageRes)
+                .setPositiveButton(R.string.settings_network_consent_allow, (d, w) -> onAllow.run())
+                .setNegativeButton(R.string.settings_network_consent_cancel, (d, w) -> {
+                    if (onDeny != null) {
+                        onDeny.run();
+                    }
+                })
+                .setOnCancelListener(d -> {
+                    if (onDeny != null) {
+                        onDeny.run();
+                    }
+                })
+                .show();
+    }
+
+    private void revertSwitch(@NonNull MaterialSwitch target, boolean checked) {
+        suppressCrashReportingToggleCallback = true;
+        target.setChecked(checked);
+        suppressCrashReportingToggleCallback = false;
+    }
+
+    private void setSwitchChecked(@NonNull MaterialSwitch target, boolean checked) {
+        suppressCrashReportingToggleCallback = true;
+        target.setChecked(checked);
+        suppressCrashReportingToggleCallback = false;
     }
 
     @FunctionalInterface

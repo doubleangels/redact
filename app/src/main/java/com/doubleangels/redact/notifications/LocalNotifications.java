@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat;
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.MainActivity;
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.sentry.SentryManager;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -116,11 +117,12 @@ public final class LocalNotifications {
             return;
         }
         Context app = context.getApplicationContext();
+        String safeText = app.getString(R.string.notification_progress_percent, clampPercent(percent));
         NotificationCompat.Builder builder = new NotificationCompat.Builder(app, CHANNEL_ID_TASKS)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(app.getString(R.string.notification_convert_progress_title))
-                .setContentText(message)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
+                .setContentText(safeText)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(safeText))
                 .setProgress(100, clampPercent(percent), false)
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
@@ -131,8 +133,10 @@ public final class LocalNotifications {
 
         try {
             NotificationManagerCompat.from(app).notify(NOTIFICATION_ID_CONVERT, builder.build());
+            ProcessingForegroundService.updateProgress(
+                    app, clampPercent(percent), app.getString(R.string.notification_convert_progress_title));
         } catch (SecurityException e) {
-            // Covered by top-level canPostNotifications
+            SentryManager.recordException(e);
         }
     }
 
@@ -151,11 +155,12 @@ public final class LocalNotifications {
             return;
         }
         Context app = context.getApplicationContext();
+        String safeText = app.getString(R.string.notification_progress_percent, clampPercent(percent));
         NotificationCompat.Builder builder = new NotificationCompat.Builder(app, CHANNEL_ID_TASKS)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(app.getString(R.string.notification_clean_progress_title))
-                .setContentText(message)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
+                .setContentText(safeText)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(safeText))
                 .setProgress(100, clampPercent(percent), false)
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
@@ -166,8 +171,10 @@ public final class LocalNotifications {
 
         try {
             NotificationManagerCompat.from(app).notify(NOTIFICATION_ID_CLEAN, builder.build());
+            ProcessingForegroundService.updateProgress(
+                    app, clampPercent(percent), app.getString(R.string.notification_clean_progress_title));
         } catch (SecurityException e) {
-            // Covered by top-level canPostNotifications
+            SentryManager.recordException(e);
         }
     }
 
@@ -201,7 +208,7 @@ public final class LocalNotifications {
         try {
             NotificationManagerCompat.from(app).notify(NOTIFICATION_ID_CONVERT, builder.build());
         } catch (SecurityException e) {
-            // Covered by top-level canPostNotifications
+            SentryManager.recordException(e);
         }
     }
 
@@ -216,13 +223,29 @@ public final class LocalNotifications {
         lastCleanProgressNotifyMs.set(0);
     }
 
+    public static void cancelConvertProgress(@NonNull Context context) {
+        NotificationManagerCompat.from(context.getApplicationContext()).cancel(NOTIFICATION_ID_CONVERT);
+        lastConvertProgressNotifyMs.set(0);
+    }
+
+    public static void startProcessingForeground(@NonNull Context context, @NonNull String title) {
+        ProcessingForegroundService.start(context, title);
+    }
+
+    public static void stopProcessingForeground(@NonNull Context context) {
+        ProcessingForegroundService.stop(context);
+    }
+
+    @NonNull
+    public static PendingIntent mainContentIntent(@NonNull Context context) {
+        return contentIntent(context.getApplicationContext(), MainActivity.class);
+    }
+
     /**
      * Shown when metadata stripping on the Clean tab finishes.
-     * Always cancels the ongoing progress notification first, then shows a result:
-     * success when at least one file was cleaned, failure otherwise.
+     * Always cancels the ongoing progress notification first, then shows a result.
      */
-    public static void showCleanComplete(@NonNull Context context, int processedCount) {
-        // Always dismiss the "ongoing" progress bar regardless of outcome.
+    public static void showCleanComplete(@NonNull Context context, int okCount, int failCount) {
         cancelCleanProgress(context);
 
         if (!canPostCleanNotifications(context)) {
@@ -231,8 +254,10 @@ public final class LocalNotifications {
         Context app = context.getApplicationContext();
         String title = app.getString(R.string.notification_clean_title);
         String text;
-        if (processedCount > 0) {
-            text = app.getString(R.string.notification_clean_body, processedCount);
+        if (failCount == 0 && okCount > 0) {
+            text = app.getString(R.string.notification_clean_body, okCount);
+        } else if (okCount > 0) {
+            text = app.getString(R.string.notification_clean_partial, okCount, failCount);
         } else {
             text = app.getString(R.string.notification_clean_failed);
         }
@@ -250,7 +275,7 @@ public final class LocalNotifications {
         try {
             NotificationManagerCompat.from(app).notify(NOTIFICATION_ID_CLEAN, builder.build());
         } catch (SecurityException e) {
-            // Covered by top-level canPostNotifications
+            SentryManager.recordException(e);
         }
     }
 

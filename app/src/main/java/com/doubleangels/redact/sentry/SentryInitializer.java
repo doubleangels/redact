@@ -6,7 +6,12 @@ import com.doubleangels.redact.BuildConfig;
 
 import androidx.annotation.Nullable;
 
+import com.doubleangels.redact.AppPreferences;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import io.sentry.Breadcrumb;
+import io.sentry.Sentry;
 import io.sentry.SentryEvent;
 import io.sentry.android.core.SentryAndroid;
 
@@ -19,59 +24,111 @@ public final class SentryInitializer {
     @Nullable
     static String testDsnOverride;
 
+    private static volatile boolean initialized;
+    private static final Object INIT_LOCK = new Object();
+    private static volatile boolean initializing;
+
     private SentryInitializer() {
     }
 
+    public static boolean isInitialized() {
+        return initialized;
+    }
+
+    /** Starts Sentry only when crash reporting and network consent are both enabled. */
+    public static void initializeIfNeeded(Context context) {
+        Context app = context.getApplicationContext();
+        if (initialized
+                || !AppPreferences.isCrashReportingEnabled(app)
+                || !AppPreferences.isNetworkAccessConfirmed(app)) {
+            return;
+        }
+        initialize(app);
+    }
+
     public static void initialize(Context context) {
-        new Thread(() -> SentryAndroid.init(context, options -> {
-            String dsn = testDsnOverride != null ? testDsnOverride : BuildConfig.SENTRY_DSN;
-            if (dsn == null || dsn.isEmpty()) {
+        synchronized (INIT_LOCK) {
+            if (initialized || initializing) {
                 return;
             }
-            options.setDsn(dsn);
-            options.setRelease(BuildConfig.VERSION_NAME);
-            options.setEnvironment(BuildConfig.DEBUG ? "development" : "production");
-            options.addInAppInclude("com.doubleangels.redact");
-
-            // Attach all thread stacktraces during a crash (no PII, helps concurrency bugs).
-            options.setAttachThreads(true);
-
-            // Privacy: do NOT attach screenshots or view hierarchy — could capture user media.
-            options.setAttachScreenshot(false);
-            options.setAttachViewHierarchy(false);
-            options.setSendDefaultPii(false); // Explicit lock against future SDK defaults.
-
-            // Privacy: do NOT collect broad device context or send all auto breadcrumbs.
-            options.setCollectAdditionalContext(false);
-            options.enableAllAutoBreadcrumbs(false);
-
-            // Keep ANR detection and frame tracking (crash diagnostics only, no PII).
-            options.setAnrEnabled(true);
-            options.setEnableAnrFingerprinting(true); // Groups noisy system-frame ANRs.
-            options.setEnableAppStartProfiling(false);
-            options.setEnableFramesTracking(false);
-            options.setEnableRootCheck(false);
-
-            // Sample only 5% of traces to minimize data sent to external servers.
-            options.setTracesSampleRate(0.05);
-
-            options.setBeforeBreadcrumb((breadcrumb, hint) -> {
-                SentryPrivacyScrubber.scrubBreadcrumb(breadcrumb);
-                return breadcrumb;
-            });
-
-            // Drop Sentry's own HTTP client errors; scrub remaining event data.
-            options.setBeforeSend((event, hint) -> {
-                if (event.getThrowable() != null
-                        && event.getThrowable().getClass().getSimpleName().equals("SentryHttpClientException")) {
-                    return null;
+            initializing = true;
+        }
+        new Thread(() -> {
+            AtomicBoolean configured = new AtomicBoolean(false);
+            SentryAndroid.init(context, options -> {
+                String dsn = testDsnOverride != null ? testDsnOverride : BuildConfig.SENTRY_DSN;
+                if (dsn == null || dsn.isEmpty()) {
+                    return;
                 }
-                if (!SentryManager.isEnabled()) {
-                    return null;
-                }
-                SentryPrivacyScrubber.scrubEvent(event);
-                return event;
+                configured.set(true);
+                options.setDsn(dsn);
+                options.setRelease(BuildConfig.VERSION_NAME);
+                options.setEnvironment(BuildConfig.DEBUG ? "development" : "production");
+                options.addInAppInclude("com.doubleangels.redact");
+
+                // Thread stacks are scrubbed in beforeSend; omit by default to limit path leakage.
+                options.setAttachThreads(false);
+
+                // Privacy: do NOT attach screenshots or view hierarchy — could capture user media.
+                options.setAttachScreenshot(false);
+                options.setAttachViewHierarchy(false);
+                options.setSendDefaultPii(false); // Explicit lock against future SDK defaults.
+
+                // Privacy: do NOT collect broad device context or send all auto breadcrumbs.
+                options.setCollectAdditionalContext(false);
+                options.enableAllAutoBreadcrumbs(false);
+
+                // Keep ANR detection and frame tracking (crash diagnostics only, no PII).
+                options.setAnrEnabled(true);
+                options.setEnableAnrFingerprinting(true); // Groups noisy system-frame ANRs.
+                options.setEnableAppStartProfiling(false);
+                options.setEnableFramesTracking(false);
+                options.setEnableRootCheck(false);
+
+                // Sample only 5% of traces to minimize data sent to external servers.
+                options.setTracesSampleRate(0.05);
+
+                options.setBeforeBreadcrumb((breadcrumb, hint) -> {
+                    SentryPrivacyScrubber.scrubBreadcrumb(breadcrumb);
+                    return breadcrumb;
+                });
+
+                // Drop Sentry's own HTTP client errors; scrub remaining event data.
+                options.setBeforeSend((event, hint) -> {
+                    if (event.getThrowable() != null
+                            && event.getThrowable().getClass().getSimpleName().equals("SentryHttpClientException")) {
+                        return null;
+                    }
+                    if (!SentryManager.isEnabled()) {
+                        return null;
+                    }
+                    SentryPrivacyScrubber.scrubEvent(event);
+                    return event;
+                });
             });
-        })).start();
+            synchronized (INIT_LOCK) {
+                if (configured.get()) {
+                    initialized = true;
+                }
+                initializing = false;
+            }
+        }).start();
+    }
+
+    public static void shutdown() {
+        synchronized (INIT_LOCK) {
+            if (!initialized) {
+                initializing = false;
+                return;
+            }
+            try {
+                Sentry.close();
+            } catch (Exception ignored) {
+                // Best-effort teardown when user revokes network consent.
+            } finally {
+                initialized = false;
+                initializing = false;
+            }
+        }
     }
 }

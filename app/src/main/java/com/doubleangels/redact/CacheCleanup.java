@@ -33,6 +33,24 @@ public final class CacheCleanup {
         return total;
     }
 
+    /**
+     * Deletes temp files older than {@code maxAgeMs} in processed/ and known temp prefixes.
+     */
+    public static int clearStaleTempFiles(@NonNull Context context, long maxAgeMs) {
+        long cutoff = System.currentTimeMillis() - maxAgeMs;
+        int deleted = 0;
+        File cacheDir = context.getCacheDir();
+        if (cacheDir != null) {
+            deleted += deleteStaleFilesInDirectory(new File(cacheDir, PROCESSED_SUBDIR), cutoff);
+            deleted += deleteStaleTempPrefixFiles(cacheDir, cutoff);
+        }
+        File externalCacheDir = context.getExternalCacheDir();
+        if (externalCacheDir != null && externalCacheDir.isDirectory()) {
+            deleted += deleteStaleTempPrefixFiles(externalCacheDir, cutoff);
+        }
+        return deleted;
+    }
+
     public static int clearAllTempFiles(@NonNull Context context) {
         int deleted = 0;
         File cacheDir = context.getCacheDir();
@@ -107,6 +125,46 @@ public final class CacheCleanup {
         for (File file : files) {
             if (file.isFile() && file.delete()) {
                 deleted++;
+            }
+        }
+        return deleted;
+    }
+
+    private static int deleteStaleFilesInDirectory(File directory, long cutoffTime) {
+        if (directory == null || !directory.isDirectory()) {
+            return 0;
+        }
+        int deleted = 0;
+        File[] files = directory.listFiles();
+        if (files == null) {
+            return 0;
+        }
+        for (File file : files) {
+            if (file.isFile() && file.lastModified() < cutoffTime && file.delete()) {
+                deleted++;
+            }
+        }
+        return deleted;
+    }
+
+    private static int deleteStaleTempPrefixFiles(File directory, long cutoffTime) {
+        int deleted = 0;
+        File[] files = directory.listFiles();
+        if (files == null) {
+            return 0;
+        }
+        for (File file : files) {
+            if (!file.isFile() || file.lastModified() >= cutoffTime) {
+                continue;
+            }
+            String name = file.getName();
+            for (String prefix : TEMP_PREFIXES) {
+                if (name.startsWith(prefix)) {
+                    if (file.delete()) {
+                        deleted++;
+                    }
+                    break;
+                }
             }
         }
         return deleted;

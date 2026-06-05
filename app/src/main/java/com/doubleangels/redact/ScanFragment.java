@@ -1,7 +1,8 @@
 package com.doubleangels.redact;
 
-import android.content.ActivityNotFoundException;
-import android.content.Intent;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Pair;
@@ -22,9 +23,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
+import com.doubleangels.redact.media.MediaItem;
 import com.doubleangels.redact.metadata.MetadataDisplayer;
 import com.doubleangels.redact.permission.PermissionManager;
+import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.ui.ScanMetadataAdapter;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -33,9 +37,11 @@ import com.doubleangels.redact.sentry.SentryManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.sentry.ITransaction;
 import io.sentry.SpanStatus;
@@ -76,35 +82,38 @@ public class ScanFragment extends Fragment {
 
     private double lastMapLatitude = Double.NaN;
     private double lastMapLongitude = Double.NaN;
+    private List<Pair<String, String>> lastMetadataRows = List.of();
+    private String lastMetadataPlainText = "";
+    @Nullable
+    private Map<String, String> lastMetadataSections;
+    private final AtomicInteger scanGeneration = new AtomicInteger(0);
 
-    private ActivityResultLauncher<Intent> mediaPickerLauncher;
-    private ActivityResultLauncher<Intent> settingsLauncher;
+    private ActivityResultLauncher<androidx.activity.result.PickVisualMediaRequest> mediaPickerLauncher;
     private PermissionManager permissionManager;
-    private Uri currentMediaUri;
+    private com.doubleangels.redact.media.MediaSelector mediaSelector;
+    @Nullable
+    private MediaItem currentMediaItem;
+    @Nullable
+    private io.sentry.ITransaction activeScanTransaction;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        settingsLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (currentMediaUri != null && permissionManager != null
-                            && !permissionManager.needsLocationPermission()) {
-                        displayMetadata(currentMediaUri);
-                    }
-                });
         mediaPickerLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == android.app.Activity.RESULT_OK && result.getData() != null) {
-                        Uri mediaUri = result.getData().getData();
-                        if (mediaUri != null) {
-                            SentryManager.log("Media selected successfully in ScanFragment");
-                            currentMediaUri = mediaUri;
-                            checkLocationPermissionAndDisplayMetadata(mediaUri);
+                new ActivityResultContracts.PickVisualMedia(),
+                uri -> {
+                    if (uri != null) {
+                        SentryManager.log("Media selected successfully in ScanFragment");
+                        if (mediaSelector != null) {
+                            MediaItem item = mediaSelector.processMediaUri(uri);
+                            currentMediaItem = item;
+                            checkLocationPermissionAndDisplayMetadata(item.uri());
                         } else {
-                            showStatus(getString(R.string.status_media_uri_fail));
+                            currentMediaItem = null;
+                            checkLocationPermissionAndDisplayMetadata(uri);
                         }
+                    } else {
+                        SentryManager.log("Media selection canceled or failed in ScanFragment");
                     }
                 });
     }
@@ -138,8 +147,9 @@ public class ScanFragment extends Fragment {
 
         metadataCard.setVisibility(View.GONE);
 
-        permissionManager = new PermissionManager(requireActivity(), requireActivity().findViewById(R.id.root_layout),
-                settingsLauncher,
+        mediaSelector = new com.doubleangels.redact.media.MediaSelector(requireActivity());
+
+        permissionManager = new PermissionManager(requireActivity(),
                 new PermissionManager.PermissionCallback() {
                     @Override
                     public void onPermissionsGranted() {
@@ -159,15 +169,22 @@ public class ScanFragment extends Fragment {
 
                     @Override
                     public void onLocationPermissionGranted() {
-                        if (currentMediaUri != null) {
-                            displayMetadata(currentMediaUri);
+                        if (currentMediaItem != null && lastMetadataSections != null) {
+                            refreshLocationSection(currentMediaItem.uri());
+                        } else if (currentMediaItem != null) {
+                            displayMetadata(currentMediaItem.uri());
                         }
                     }
                 });
+        permissionManager.applyPendingPermissionResultIfAny();
 
         selectMediaButton.setOnClickListener(v -> {
             SentryManager.log("Select button clicked in ScanFragment");
-            openMediaPicker();
+            if (permissionManager.needsPermissions()) {
+                permissionManager.requestStoragePermission();
+            } else {
+                openMediaPicker();
+            }
         });
         if (!isHidden()) {
             permissionManager.checkPermissions();
@@ -188,10 +205,21 @@ public class ScanFragment extends Fragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        if (metadataCard != null && metadataCard.getVisibility() == View.VISIBLE) {
+            updateScanActionCards(lastMetadataRows);
+        }
+    }
+
+    @Override
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
         if (!hidden && permissionManager != null) {
             permissionManager.checkPermissions();
+            if (metadataCard != null && metadataCard.getVisibility() == View.VISIBLE) {
+                updateScanActionCards(lastMetadataRows);
+            }
         }
     }
 
@@ -208,26 +236,63 @@ public class ScanFragment extends Fragment {
     private void openMediaPicker() {
         try {
             SentryManager.log("Launching media picker in ScanFragment");
-            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-            intent.setType("*/*");
-            intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/*", "video/*"});
-            intent.addCategory(Intent.CATEGORY_OPENABLE);
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            mediaPickerLauncher.launch(intent);
+            mediaPickerLauncher.launch(new androidx.activity.result.PickVisualMediaRequest.Builder()
+                    .setMediaType(ActivityResultContracts.PickVisualMedia.ImageAndVideo.INSTANCE)
+                    .build());
         } catch (Exception e) {
             SentryManager.recordException(e);
             showStatus(getString(R.string.status_media_picker_fail));
         }
     }
 
+    private void refreshLocationSection(Uri mediaUri) {
+        final int generation = scanGeneration.incrementAndGet();
+        MetadataDisplayer.extractLocationSectionOnly(
+                requireContext().getApplicationContext(),
+                mediaUri,
+                new MetadataDisplayer.LocationSectionCallback() {
+                    @Override
+                    public void onLocationSectionExtracted(@Nullable String locationSectionContent) {
+                        if (generation != scanGeneration.get() || !isAdded() || lastMetadataSections == null) {
+                            return;
+                        }
+                        Map<String, String> merged = new HashMap<>(lastMetadataSections);
+                        if (locationSectionContent != null && !locationSectionContent.isEmpty()) {
+                            merged.put(MetadataDisplayer.SECTION_LOCATION, locationSectionContent);
+                        } else {
+                            merged.remove(MetadataDisplayer.SECTION_LOCATION);
+                        }
+                        lastMetadataSections = merged;
+                        double[] coords = MetadataDisplayer.resolveMapCoordinates(merged);
+                        if (coords != null
+                                && MetadataDisplayer.isUsableMapCoordinate(coords[0], coords[1])) {
+                            lastMapLatitude = coords[0];
+                            lastMapLongitude = coords[1];
+                        }
+                        displayCombinedMetadata(merged);
+                        metadataFooter.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onExtractionFailed(String error) {
+                        if (generation != scanGeneration.get() || !isAdded()) {
+                            return;
+                        }
+                        SentryManager.logEvent("scan", "Location metadata refresh failed");
+                    }
+                });
+    }
+
     private void displayMetadata(Uri mediaUri) {
         try {
+            final int generation = scanGeneration.incrementAndGet();
             showStatus(getString(R.string.status_analyzing));
             showProgress(true);
 
             clearMetadataUi();
+            lastMetadataSections = null;
             metadataCard.setVisibility(View.GONE);
-            clearMapPreviewAction();
+            clearCoordinateState();
 
             String mimeType = requireContext().getContentResolver().getType(mediaUri);
             boolean isVideo = mimeType != null && mimeType.startsWith("video/");
@@ -241,22 +306,28 @@ public class ScanFragment extends Fragment {
 
             progressText.setText(isVideo ? R.string.status_extracting_media : R.string.status_extracting_image);
 
+            finishActiveScanTransaction(io.sentry.SpanStatus.CANCELLED);
             final ITransaction transaction = SentryManager.startTransaction("extract_metadata", "task");
-            MetadataDisplayer.extractSectionedMetadata(requireContext(), mediaUri, new MetadataDisplayer.SectionedMetadataCallback() {
+            activeScanTransaction = transaction;
+            MetadataDisplayer.extractSectionedMetadata(
+                    requireContext().getApplicationContext(), mediaUri, new MetadataDisplayer.SectionedMetadataCallback() {
                 @Override
                 public void onMetadataExtracted(Map<String, String> metadataSections, boolean isVideo) {
                     transaction.setStatus(SpanStatus.OK);
                     transaction.finish();
+                    activeScanTransaction = null;
                     android.app.Activity activity = getActivity();
                     if (activity != null) {
                         activity.runOnUiThread(() -> {
-                            if (!isAdded()) return;
+                            if (!isAdded() || generation != scanGeneration.get()) return;
                             try {
+                            lastMetadataSections = new HashMap<>(metadataSections);
                             showProgress(false);
                             showStatus(getString(R.string.status_extraction_complete));
 
-                            double[] coords = parseCoordinatesFromSections(metadataSections);
-                            if (coords != null) {
+                            double[] coords = MetadataDisplayer.resolveMapCoordinates(metadataSections);
+                            if (coords != null
+                                    && MetadataDisplayer.isUsableMapCoordinate(coords[0], coords[1])) {
                                 lastMapLatitude = coords[0];
                                 lastMapLongitude = coords[1];
                             } else {
@@ -282,7 +353,16 @@ public class ScanFragment extends Fragment {
                 public void onExtractionFailed(String error) {
                     transaction.setStatus(SpanStatus.INTERNAL_ERROR);
                     transaction.finish();
-                    requireActivity().runOnUiThread(() -> {
+                    activeScanTransaction = null;
+                    android.app.Activity activity = getActivity();
+                    if (activity == null) {
+                        return;
+                    }
+                    activity.runOnUiThread(() -> {
+                        if (!isAdded() || generation != scanGeneration.get()) {
+                            return;
+                        }
+                        lastMetadataSections = null;
                         showProgress(false);
                         showStatus(getString(R.string.status_extraction_fail));
                         clearMetadataUi();
@@ -290,7 +370,7 @@ public class ScanFragment extends Fragment {
                         errorRow.add(ScanMetadataAdapter.Entry.row(null, getString(R.string.scan_extraction_fail)));
                         scanMetadataAdapter.setEntries(errorRow);
                         metadataCard.setVisibility(View.VISIBLE);
-                        clearMapPreviewAction();
+                        clearCoordinateState();
                         SentryManager.logEvent("scan", "Metadata extraction failed");
                     });
                 }
@@ -314,30 +394,19 @@ public class ScanFragment extends Fragment {
         }
         Collections.sort(allRows, METADATA_ROW_KEY_ORDER);
 
-        int firstLocationIndex = -1;
-        for (int i = 0; i < allRows.size(); i++) {
-            String k = allRows.get(i).first;
-            if (k != null && MetadataDisplayer.isLocationMetadataKey(k)) {
-                firstLocationIndex = i;
-                break;
-            }
-        }
-
         List<ScanMetadataAdapter.Entry> adapterEntries = new ArrayList<>();
-        for (int i = 0; i < allRows.size(); i++) {
-            if (i == firstLocationIndex && firstLocationIndex >= 0) {
-                adapterEntries.add(ScanMetadataAdapter.Entry.locationHeader());
-            }
-            Pair<String, String> row = allRows.get(i);
+        for (Pair<String, String> row : allRows) {
             adapterEntries.add(ScanMetadataAdapter.Entry.row(row.first, row.second));
         }
         scanMetadataAdapter.setEntries(adapterEntries);
+        lastMetadataRows = allRows;
+        lastMetadataPlainText = metadataPlainTextFromRows(allRows);
 
         if (!adapterEntries.isEmpty()) {
             metadataCard.setVisibility(View.VISIBLE);
         } else {
             metadataCard.setVisibility(View.GONE);
-            clearMapPreviewAction();
+            clearCoordinateState();
         }
 
         updateScanActionCards(allRows);
@@ -345,6 +414,8 @@ public class ScanFragment extends Fragment {
 
     private void clearMetadataUi() {
         scanMetadataAdapter.clear();
+        lastMetadataRows = List.of();
+        lastMetadataPlainText = "";
         metadataFooter.setVisibility(View.GONE);
         metadataFooter.setText("");
         clearScanActionCards();
@@ -353,19 +424,37 @@ public class ScanFragment extends Fragment {
     private void updateScanActionCards(List<Pair<String, String>> allRows) {
         clearScanActionCards();
         boolean added = false;
-        boolean hasCoords = !Double.isNaN(lastMapLatitude) && !Double.isNaN(lastMapLongitude);
+
+        boolean hasCoords = !Double.isNaN(lastMapLatitude) && !Double.isNaN(lastMapLongitude)
+                && MetadataDisplayer.isUsableMapCoordinate(lastMapLatitude, lastMapLongitude);
         if (hasCoords) {
-            addScanActionCard(R.drawable.ic_map_24, getString(R.string.scan_open_in_maps),
-                    v -> openLocationInGoogleMaps(lastMapLatitude, lastMapLongitude));
+            String coordsLabel = String.format(Locale.US, "%.7f, %.7f", lastMapLatitude, lastMapLongitude);
+            addScanActionCard(R.drawable.ic_map_24, getString(R.string.scan_copy_coordinates),
+                    v -> copyPlainTextToClipboard(coordsLabel));
             added = true;
         }
+
         String cameraLabel = cameraLabelFromMetadataRows(allRows);
         if (cameraLabel != null && !cameraLabel.isEmpty()) {
-            addScanActionCard(R.drawable.ic_camera_24,
-                    getString(R.string.scan_search_camera) + ". " + cameraLabel,
-                    v -> openWebSearch(cameraLabel));
+            addScanActionCard(R.drawable.ic_camera_24, getString(R.string.scan_copy_camera),
+                    v -> copyPlainTextToClipboard(cameraLabel));
             added = true;
         }
+
+        if (lastMetadataPlainText != null && !lastMetadataPlainText.isEmpty()) {
+            addScanActionCard(R.drawable.ic_content_copy_24, getString(R.string.scan_copy_all_metadata),
+                    v -> copyPlainTextToClipboard(lastMetadataPlainText));
+            added = true;
+        }
+
+        if (currentMediaItem != null) {
+            addScanActionCard(R.drawable.ic_clean, getString(R.string.scan_clean_this_file),
+                    v -> openInCleanTab(currentMediaItem));
+            addScanActionCard(R.drawable.ic_convert, getString(R.string.scan_convert_this_file),
+                    v -> openInConvertTab(currentMediaItem));
+            added = true;
+        }
+
         if (added) {
             scanActionCardsScroll.setVisibility(View.VISIBLE);
         }
@@ -418,13 +507,48 @@ public class ScanFragment extends Fragment {
         return make + " " + model;
     }
 
-    private void openWebSearch(String query) {
-        try {
-            startActivity(new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("https://www.google.com/search?q=" + Uri.encode(query))));
-        } catch (ActivityNotFoundException e) {
-            Toast.makeText(requireContext(), R.string.scan_search_unavailable, Toast.LENGTH_SHORT).show();
+    private void copyPlainTextToClipboard(@NonNull String text) {
+        ClipboardManager clipboard = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboard == null) {
+            return;
         }
+        clipboard.setPrimaryClip(ClipData.newPlainText("metadata", text));
+        Toast.makeText(requireContext(), R.string.scan_copied_to_clipboard, Toast.LENGTH_SHORT).show();
+    }
+
+    private void openInCleanTab(@NonNull MediaItem item) {
+        MainViewModel viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
+        viewModel.setSelectedItems(List.of(item));
+        if (requireActivity() instanceof MainActivity mainActivity) {
+            mainActivity.selectTab(R.id.navigation_clean);
+        }
+    }
+
+    private void openInConvertTab(@NonNull MediaItem item) {
+        MainViewModel viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
+        viewModel.setConvertSelectedItems(List.of(item));
+        if (requireActivity() instanceof MainActivity mainActivity) {
+            mainActivity.selectTab(R.id.navigation_convert);
+        }
+    }
+
+    @NonNull
+    private static String metadataPlainTextFromRows(@NonNull List<Pair<String, String>> rows) {
+        StringBuilder sb = new StringBuilder();
+        for (Pair<String, String> row : rows) {
+            if (row.first != null && !row.first.isEmpty()) {
+                sb.append(row.first).append(": ");
+            }
+            if (row.second != null) {
+                sb.append(row.second);
+            }
+            sb.append('\n');
+        }
+        int len = sb.length();
+        if (len > 0 && sb.charAt(len - 1) == '\n') {
+            sb.setLength(len - 1);
+        }
+        return sb.toString();
     }
 
     private void clearScanActionCards() {
@@ -467,116 +591,22 @@ public class ScanFragment extends Fragment {
         return rows;
     }
 
-    @Nullable
-    private static double[] parseCoordinatesFromSections(Map<String, String> sections) {
-        String locationBlock = sections.get(MetadataDisplayer.SECTION_LOCATION);
-        String basicBlock = sections.get(MetadataDisplayer.SECTION_BASIC_INFO);
-
-        Double lat = parseMetadataCoordinate(locationBlock, "GPS_LATITUDE");
-        if (lat == null) {
-            lat = parseMetadataCoordinate(basicBlock, "GPS_LATITUDE");
-        }
-        if (lat == null) {
-            lat = parseMetadataCoordinate(locationBlock, "Latitude");
-        }
-        if (lat == null) {
-            lat = parseMetadataCoordinate(basicBlock, "Latitude");
-        }
-
-        Double lon = parseMetadataCoordinate(locationBlock, "GPS_LONGITUDE");
-        if (lon == null) {
-            lon = parseMetadataCoordinate(basicBlock, "GPS_LONGITUDE");
-        }
-        if (lon == null) {
-            lon = parseMetadataCoordinate(locationBlock, "Longitude");
-        }
-        if (lon == null) {
-            lon = parseMetadataCoordinate(basicBlock, "Longitude");
-        }
-
-        if (lat != null && lon != null) {
-            return new double[]{lat, lon};
-        }
-        return null;
-    }
-
-    private static Double parseMetadataCoordinate(@Nullable String block, String key) {
-        if (block == null || key == null) {
-            return null;
-        }
-        if (block.indexOf('\u001e') >= 0) {
-            for (String entry : block.split("\u001e", -1)) {
-                if (entry.isEmpty()) {
-                    continue;
-                }
-                int sep = entry.indexOf('\u001f');
-                if (sep <= 0) {
-                    continue;
-                }
-                String k = entry.substring(0, sep).trim();
-                if (!k.equalsIgnoreCase(key)) {
-                    continue;
-                }
-                String v = entry.substring(sep + 1).trim();
-                try {
-                    return Double.parseDouble(v);
-                } catch (NumberFormatException ignored) {
-                }
-            }
-            return null;
-        }
-        for (String rawLine : block.split("\n")) {
-            String line = rawLine.trim();
-            int sep = line.indexOf(':');
-            if (sep <= 0) {
-                continue;
-            }
-            String k = line.substring(0, sep).trim();
-            if (!k.equalsIgnoreCase(key)) {
-                continue;
-            }
-            String v = line.substring(sep + 1).trim();
-            try {
-                return Double.parseDouble(v);
-            } catch (NumberFormatException ignored) {
-            }
-        }
-        return null;
-    }
-
     private void clearMapPreviewCoordinatesOnly() {
         lastMapLatitude = Double.NaN;
         lastMapLongitude = Double.NaN;
     }
 
-    private void clearMapPreviewAction() {
+    private void clearCoordinateState() {
         clearMapPreviewCoordinatesOnly();
         clearScanActionCards();
     }
 
-    private void openLocationInGoogleMaps(double lat, double lon) {
-        if (Double.isNaN(lat) || Double.isNaN(lon)) {
-            return;
+    private void finishActiveScanTransaction(io.sentry.SpanStatus status) {
+        if (activeScanTransaction != null && !activeScanTransaction.isFinished()) {
+            activeScanTransaction.setStatus(status);
+            activeScanTransaction.finish();
         }
-        Uri geo = Uri.parse("geo:" + lat + "," + lon + "?q=" + lat + "," + lon);
-        Intent intent = new Intent(Intent.ACTION_VIEW, geo);
-        intent.setPackage("com.google.android.apps.maps");
-        try {
-            startActivity(intent);
-        } catch (ActivityNotFoundException e) {
-            intent.setPackage(null);
-            try {
-                startActivity(intent);
-            } catch (ActivityNotFoundException e2) {
-                Intent web = new Intent(Intent.ACTION_VIEW,
-                        Uri.parse("https://www.google.com/maps/search/?api=1&query=" + lat + "," + lon));
-                try {
-                    startActivity(web);
-                } catch (ActivityNotFoundException e3) {
-                    Toast.makeText(requireContext(), R.string.scan_maps_unavailable, Toast.LENGTH_SHORT).show();
-                }
-            }
-        }
+        activeScanTransaction = null;
     }
 
     private void showProgress(boolean show) {

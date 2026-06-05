@@ -1,9 +1,6 @@
 package com.doubleangels.redact;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -23,8 +20,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.doubleangels.redact.ui.MainViewModel;
-
-import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.media.ConvertFileAdapter;
 import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaItem;
@@ -38,12 +33,6 @@ import com.doubleangels.redact.sentry.SentryManager;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import io.sentry.ISpan;
-import io.sentry.ITransaction;
-import io.sentry.SpanStatus;
 
 /**
  * Converts images to JPEG, PNG, WebP, or HEIC and transcodes videos to MP4; saves under
@@ -53,7 +42,6 @@ public class ConvertFragment extends Fragment {
 
     private PermissionManager permissionManager;
     private MediaSelector mediaSelector;
-    private final List<MediaItem> selectedItems = new ArrayList<>();
     private MainViewModel viewModel;
 
     private MaterialButton selectButton;
@@ -70,35 +58,33 @@ public class ConvertFragment extends Fragment {
     private Chip chipFormatPng;
     private Chip chipFormatWebp;
     private Chip chipFormatHeif;
+    private int lastFormatNumImages = -1;
+    private int lastFormatNumVideos = -1;
 
-    private ActivityResultLauncher<Intent> settingsLauncher;
-    private ActivityResultLauncher<Intent> mediaPickerLauncher;
+    private ActivityResultLauncher<androidx.activity.result.PickVisualMediaRequest> mediaPickerLauncher;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        settingsLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (permissionManager != null) {
-                        permissionManager.checkPermissions();
-                    }
-                });
+        viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
+        if (getActivity() != null) {
+            mediaSelector = new MediaSelector(requireActivity());
+        }
         mediaPickerLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() != Activity.RESULT_OK || result.getData() == null) {
+                new ActivityResultContracts.PickMultipleVisualMedia(),
+                uris -> {
+                    if (uris == null || uris.isEmpty()) {
                         SentryManager.log("Media selection cancelled or failed in ConvertFragment");
                         return;
                     }
                     SentryManager.log("Media selected successfully in ConvertFragment");
-                    List<MediaItem> items = mediaSelector.processMediaResult(result.getData());
-                    selectedItems.clear();
-                    selectedItems.addAll(items);
-                    convertFileAdapter.setItems(items);
-                    convertButton.setEnabled(!selectedItems.isEmpty());
-                    statusText.setText(getString(R.string.convert_selected_count, selectedItems.size()));
-                    refreshFormatSectionForSelection();
+                    List<MediaItem> items = new ArrayList<>();
+                    for (android.net.Uri uri : uris) {
+                        if (mediaSelector != null) {
+                            items.add(mediaSelector.processMediaUri(uri));
+                        }
+                    }
+                    viewModel.setConvertSelectedItems(items);
                 });
     }
 
@@ -112,8 +98,6 @@ public class ConvertFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-        setupObservers();
         SentryManager.log("ConvertFragment view created");
 
         statusText = view.findViewById(R.id.statusText);
@@ -137,8 +121,6 @@ public class ConvertFragment extends Fragment {
 
         permissionManager = new PermissionManager(
                 requireActivity(),
-                requireActivity().findViewById(android.R.id.content),
-                settingsLauncher,
                 new PermissionManager.PermissionCallback() {
                     @Override
                     public void onPermissionsGranted() {
@@ -155,8 +137,11 @@ public class ConvertFragment extends Fragment {
                         statusText.setText(R.string.status_requesting_permissions);
                     }
                 });
+        permissionManager.applyPendingPermissionResultIfAny();
 
-        mediaSelector = new MediaSelector(requireActivity(), mediaPickerLauncher);
+        if (mediaSelector == null) {
+            mediaSelector = new MediaSelector(requireActivity());
+        }
 
         selectButton.setOnClickListener(v -> {
             SentryManager.log("Select button clicked in ConvertFragment");
@@ -170,21 +155,47 @@ public class ConvertFragment extends Fragment {
         });
 
         convertButton.setOnClickListener(v -> {
+            if (viewModel.getConvertProcessingState().getValue()
+                    == MainViewModel.ProcessingState.PROCESSING) {
+                SentryManager.log("Cancel convert requested");
+                viewModel.cancelConversion();
+                return;
+            }
             SentryManager.log("Convert button clicked in ConvertFragment");
             runConversion();
         });
 
-        refreshFormatSectionForSelection();
-        if (!isHidden()) {
-            permissionManager.checkPermissions();
+        setupObservers();
+        List<MediaItem> restored = viewModel.getConvertSelectedItems().getValue();
+        if (restored != null && !restored.isEmpty()) {
+            convertFileAdapter.setItems(restored);
+            convertButton.setEnabled(true);
+            statusText.setText(getString(R.string.convert_selected_count, restored.size()));
+            refreshFormatSectionForSelection(restored);
+        } else {
+            refreshFormatSectionForSelection(List.of());
         }
+        if (!isHidden()) {
+            if (permissionManager.needsPermissions()) {
+                statusText.setText(R.string.status_storage_permissions_required);
+                selectButton.setEnabled(false);
+            } else {
+                statusText.setText(R.string.convert_status_ready);
+                selectButton.setEnabled(true);
+            }
+        }
+    }
+
+    private List<MediaItem> currentSelectedItems() {
+        List<MediaItem> items = viewModel.getConvertSelectedItems().getValue();
+        return items != null ? items : List.of();
     }
 
     /**
      * Shows format chips only after media is selected; labels match image-only, video-only, or
      * mixed selection.
      */
-    private void refreshFormatSectionForSelection() {
+    private void refreshFormatSectionForSelection(List<MediaItem> selectedItems) {
         if (formatSection == null) {
             return;
         }
@@ -204,8 +215,6 @@ public class ConvertFragment extends Fragment {
         }
         formatSection.setVisibility(View.VISIBLE);
 
-        // Fourth chip: HEIC (images, API 34+), AV1 (videos), or HEIC·AV1 (mixed, API 34+). On API 33
-        // and below, mixed selection uses three pairs only (no AV1 in the UI).
         boolean showFourthChip;
         if (numVideos == 0) {
             showFourthChip = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE;
@@ -251,25 +260,27 @@ public class ConvertFragment extends Fragment {
             }
         }
 
-        int defaultIndex = SettingsFragment.defaultFormatIndexForSelection(
-                requireContext(), numImages, numVideos);
-        if (chipFormatHeif == null || chipFormatHeif.getVisibility() != View.VISIBLE) {
-            if (defaultIndex == 3) {
-                defaultIndex = 0;
+        boolean compositionChanged = numImages != lastFormatNumImages || numVideos != lastFormatNumVideos;
+        int checkedId = formatChipGroup.getCheckedChipId();
+        boolean noChipChecked = checkedId == View.NO_ID;
+        if (compositionChanged || noChipChecked) {
+            int defaultIndex = SettingsFragment.defaultFormatIndexForSelection(
+                    requireContext(), numImages, numVideos);
+            if (chipFormatHeif == null || chipFormatHeif.getVisibility() != View.VISIBLE) {
+                if (defaultIndex == 3) {
+                    defaultIndex = 0;
+                }
             }
+            formatChipGroup.check(SettingsFragment.chipIdForFormatIndex(defaultIndex));
         }
-        formatChipGroup.check(SettingsFragment.chipIdForFormatIndex(defaultIndex));
+        lastFormatNumImages = numImages;
+        lastFormatNumVideos = numVideos;
     }
 
     private void openMediaPicker() {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("*/*");
-        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/*", "video/*"});
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
-                | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-        mediaPickerLauncher.launch(intent);
+        mediaPickerLauncher.launch(new androidx.activity.result.PickVisualMediaRequest.Builder()
+                .setMediaType(androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageAndVideo.INSTANCE)
+                .build());
     }
 
     private int getSelectedFormatIndex() {
@@ -287,35 +298,63 @@ public class ConvertFragment extends Fragment {
     }
 
     private void setupObservers() {
-        viewModel.getProcessingState().observe(getViewLifecycleOwner(), state -> {
+        viewModel.getConvertSelectedItems().observe(getViewLifecycleOwner(), items -> {
+            List<MediaItem> list = items != null ? items : List.of();
+            convertFileAdapter.setItems(list);
+            convertButton.setEnabled(!list.isEmpty()
+                    && viewModel.getConvertProcessingState().getValue()
+                            != MainViewModel.ProcessingState.PROCESSING);
+            if (list.isEmpty()) {
+                statusText.setText(R.string.convert_status_ready);
+            } else if (viewModel.getConvertProcessingState().getValue()
+                    != MainViewModel.ProcessingState.COMPLETED) {
+                statusText.setText(getString(R.string.convert_selected_count, list.size()));
+            }
+            refreshFormatSectionForSelection(list);
+        });
+
+        viewModel.getConvertProcessingState().observe(getViewLifecycleOwner(), state -> {
             if (state == MainViewModel.ProcessingState.PROCESSING) {
-                convertButton.setEnabled(false);
+                convertButton.setText(R.string.button_cancel);
+                convertButton.setEnabled(true);
                 selectButton.setEnabled(false);
                 showProgress(true);
-            } else if (state == MainViewModel.ProcessingState.COMPLETED) {
-                convertButton.setEnabled(!selectedItems.isEmpty());
+            } else if (state == MainViewModel.ProcessingState.CANCELLED) {
+                convertButton.setText(R.string.convert_run);
+                List<MediaItem> selected = currentSelectedItems();
+                convertButton.setEnabled(!selected.isEmpty());
                 selectButton.setEnabled(true);
                 showProgress(false);
-                Integer okCount = viewModel.getProcessedItemCount().getValue();
+                statusText.setText(R.string.status_processing_cancelled);
+                viewModel.setConvertProcessingState(MainViewModel.ProcessingState.IDLE);
+            } else if (state == MainViewModel.ProcessingState.COMPLETED) {
+                convertButton.setText(R.string.convert_run);
+                List<MediaItem> selected = currentSelectedItems();
+                convertButton.setEnabled(!selected.isEmpty());
+                selectButton.setEnabled(true);
+                showProgress(false);
+                Integer okCount = viewModel.getConvertProcessedItemCount().getValue();
+                Integer batchTotal = viewModel.getConvertBatchTotalCount().getValue();
+                int total = batchTotal != null ? batchTotal : selected.size();
                 if (okCount != null) {
-                    if (okCount == selectedItems.size() && okCount > 0) {
+                    if (okCount == total && okCount > 0) {
                         statusText.setText(getString(R.string.convert_done_all, okCount));
                         Toast.makeText(requireContext(), R.string.convert_saved_to_gallery, Toast.LENGTH_SHORT).show();
                     } else if (okCount > 0) {
-                        statusText.setText(getString(R.string.convert_done_partial, okCount, selectedItems.size() - okCount));
+                        statusText.setText(getString(R.string.convert_done_partial, okCount, total - okCount));
                     } else {
                         statusText.setText(R.string.convert_done_failed);
                     }
                 }
-                viewModel.setProcessingState(MainViewModel.ProcessingState.IDLE);
+                viewModel.setConvertProcessingState(MainViewModel.ProcessingState.IDLE);
             }
         });
-        viewModel.getProgressPercent().observe(getViewLifecycleOwner(), percent -> {
+        viewModel.getConvertProgressPercent().observe(getViewLifecycleOwner(), percent -> {
             if (progressBar.getVisibility() == View.VISIBLE) {
                 progressBar.setProgress(percent);
             }
         });
-        viewModel.getProgressMessage().observe(getViewLifecycleOwner(), msg -> {
+        viewModel.getConvertProgressMessage().observe(getViewLifecycleOwner(), msg -> {
             if (progressText.getVisibility() == View.VISIBLE && msg != null) {
                 progressText.setText(msg);
             }
@@ -324,6 +363,7 @@ public class ConvertFragment extends Fragment {
 
     private void runConversion() {
         SentryManager.log("runConversion started");
+        List<MediaItem> selectedItems = currentSelectedItems();
         if (selectedItems.isEmpty()) {
             SentryManager.log("runConversion aborted: nothing selected");
             statusText.setText(R.string.convert_nothing_selected);
@@ -334,7 +374,7 @@ public class ConvertFragment extends Fragment {
         Bitmap.CompressFormat imageFormat = FormatConverter.formatAtIndex(imageFormatIndex);
         final boolean heicOutputFallback =
                 formatIndex == 3 && imageFormatIndex != formatIndex;
-        
+
         progressBar.setIndeterminate(false);
         progressBar.setMax(100);
         progressBar.setProgress(0);
@@ -357,7 +397,26 @@ public class ConvertFragment extends Fragment {
     @Override
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
-        if (!hidden && permissionManager != null) {
+        if (!hidden && permissionManager != null && viewModel != null) {
+            MainViewModel.ProcessingState state = viewModel.getConvertProcessingState().getValue();
+            if (state == MainViewModel.ProcessingState.PROCESSING
+                    || state == MainViewModel.ProcessingState.COMPLETED) {
+                return;
+            }
+            if (permissionManager.needsPermissions()) {
+                statusText.setText(R.string.status_storage_permissions_required);
+                selectButton.setEnabled(false);
+            } else {
+                statusText.setText(R.string.convert_status_ready);
+                selectButton.setEnabled(true);
+            }
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (!isHidden() && permissionManager != null) {
             permissionManager.checkPermissions();
         }
     }
@@ -370,15 +429,5 @@ public class ConvertFragment extends Fragment {
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
     }
 }

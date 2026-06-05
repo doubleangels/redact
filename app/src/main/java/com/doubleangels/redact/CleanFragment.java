@@ -2,7 +2,9 @@ package com.doubleangels.redact;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.widget.Toast;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +23,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.doubleangels.redact.media.MediaAdapter;
 import com.doubleangels.redact.media.MediaItem;
 import com.doubleangels.redact.notifications.LocalNotifications;
-import com.doubleangels.redact.media.MediaProcessor;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.ui.MainViewModel;
@@ -42,46 +43,40 @@ public class CleanFragment extends Fragment {
     private PermissionManager permissionManager;
     private MediaSelector mediaSelector;
     private UIStateManager uiStateManager;
-    private MediaProcessor mediaProcessor;
 
     private MaterialButton stripButton;
+    private MaterialButton selectButton;
     private TextView statusText;
     private LinearLayout progressContainer;
     private TextView progressText;
     private LinearProgressIndicator progressBar;
     private MediaAdapter mediaAdapter;
 
-    private ActivityResultLauncher<Intent> settingsLauncher;
-    private ActivityResultLauncher<Intent> mediaPickerLauncher;
+    private ActivityResultLauncher<androidx.activity.result.PickVisualMediaRequest> mediaPickerLauncher;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        settingsLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    try {
-                        SentryManager.log("Returned from settings");
-                        if (permissionManager != null) {
-                            permissionManager.checkPermissions();
-                        }
-                    } catch (Exception e) {
-                        SentryManager.recordException(e);
-                    }
-                }
-        );
+        viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
+        if (getActivity() != null) {
+            mediaSelector = new MediaSelector(requireActivity());
+        }
         mediaPickerLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
+                new ActivityResultContracts.PickMultipleVisualMedia(),
+                uris -> {
                     try {
-                        if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        if (uris != null && !uris.isEmpty()) {
                             SentryManager.log("Media selected successfully");
-                            List<MediaItem> items = mediaSelector.processMediaResult(result.getData());
+                            List<MediaItem> items = new ArrayList<>();
+                            for (android.net.Uri uri : uris) {
+                                if (mediaSelector != null) {
+                                    items.add(mediaSelector.processMediaUri(uri));
+                                }
+                            }
                             SentryManager.setCustomKey("selected_media_count", items.size());
                             viewModel.setSelectedItems(items);
                         } else {
                             SentryManager.log("Media selection canceled or failed");
-                            SentryManager.setCustomKey("media_result_code", result.getResultCode());
                         }
                     } catch (Exception e) {
                         SentryManager.recordException(e);
@@ -107,7 +102,7 @@ public class CleanFragment extends Fragment {
             initUtilityClasses();
             setupObservers();
             if (!isHidden()) {
-                permissionManager.checkPermissions();
+                syncPermissionUi();
             }
         } catch (Exception e) {
             SentryManager.recordException(e);
@@ -118,6 +113,7 @@ public class CleanFragment extends Fragment {
         try {
             RecyclerView selectedItemsGrid = view.findViewById(R.id.selectedItemsGrid);
             MaterialButton selectButton = view.findViewById(R.id.selectButton);
+            this.selectButton = selectButton;
             stripButton = view.findViewById(R.id.stripButton);
             statusText = view.findViewById(R.id.statusText);
             progressContainer = view.findViewById(R.id.progressContainer);
@@ -133,15 +129,22 @@ public class CleanFragment extends Fragment {
             selectButton.setOnClickListener(v -> {
                 try {
                     SentryManager.log("Select button clicked");
-                    if (viewModel.getProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED) {
-                        viewModel.setProcessingState(MainViewModel.ProcessingState.IDLE);
+                    if (viewModel.getCleanProcessingState().getValue()
+                            == MainViewModel.ProcessingState.PROCESSING) {
+                        return;
+                    }
+                    if (viewModel.getCleanProcessingState().getValue()
+                            == MainViewModel.ProcessingState.COMPLETED) {
+                        viewModel.setCleanProcessingState(MainViewModel.ProcessingState.IDLE);
                     }
                     if (permissionManager.needsPermissions()) {
                         SentryManager.log("Requesting permissions");
                         permissionManager.requestStoragePermission();
                     } else {
                         SentryManager.log("Launching media selector");
-                        mediaSelector.selectMedia();
+                        mediaPickerLauncher.launch(new androidx.activity.result.PickVisualMediaRequest.Builder()
+                                .setMediaType(androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageAndVideo.INSTANCE)
+                                .build());
                     }
                 } catch (Exception e) {
                     SentryManager.recordException(e);
@@ -150,9 +153,24 @@ public class CleanFragment extends Fragment {
 
             stripButton.setOnClickListener(v -> {
                 try {
+                    if (viewModel.getCleanProcessingState().getValue()
+                            == MainViewModel.ProcessingState.PROCESSING) {
+                        SentryManager.log("Cancel clean requested");
+                        viewModel.cancelCleaning();
+                        return;
+                    }
                     SentryManager.log("Strip button clicked");
                     List<MediaItem> items = viewModel.getSelectedItems().getValue();
                     if (items != null && !items.isEmpty()) {
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+                                && containsUnsupportedHeic(items)) {
+                            Toast.makeText(
+                                            requireContext(),
+                                            R.string.convert_heic_fallback_jpeg,
+                                            Toast.LENGTH_LONG)
+                                    .show();
+                            return;
+                        }
                         SentryManager.setCustomKey("processing_items_count", items.size());
                         viewModel.startCleaning(items);
                     } else {
@@ -181,8 +199,6 @@ public class CleanFragment extends Fragment {
 
             permissionManager = new PermissionManager(
                     requireActivity(),
-                    requireActivity().findViewById(android.R.id.content),
-                    settingsLauncher,
                     new PermissionManager.PermissionCallback() {
                         @Override
                         public void onPermissionsGranted() {
@@ -218,9 +234,29 @@ public class CleanFragment extends Fragment {
                     }
             );
 
-            mediaSelector = new MediaSelector(requireActivity(), mediaPickerLauncher);
+            if (mediaSelector == null) {
+                mediaSelector = new MediaSelector(requireActivity());
+            }
+            permissionManager.applyPendingPermissionResultIfAny();
         } catch (Exception e) {
             SentryManager.recordException(e);
+        }
+    }
+
+    private void syncPermissionUi() {
+        if (permissionManager == null || uiStateManager == null) {
+            return;
+        }
+        if (permissionManager.needsPermissions()) {
+            uiStateManager.setPermissionsRequiredStatus();
+            if (selectButton != null) {
+                selectButton.setEnabled(false);
+            }
+        } else {
+            uiStateManager.setReadyStatus();
+            if (selectButton != null) {
+                selectButton.setEnabled(true);
+            }
         }
     }
 
@@ -230,17 +266,18 @@ public class CleanFragment extends Fragment {
                 try {
                     mediaAdapter.updateItems(items);
                     uiStateManager.enableStripButton(!items.isEmpty());
-                    if (viewModel.getProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED) {
-                        viewModel.setProcessingState(MainViewModel.ProcessingState.IDLE);
+                    if (viewModel.getCleanProcessingState().getValue()
+                            == MainViewModel.ProcessingState.COMPLETED) {
+                        viewModel.setCleanProcessingState(MainViewModel.ProcessingState.IDLE);
                     }
-                    uiStateManager.setSelectedItemsStatus(items.size());
-                    SentryManager.setCustomKey("selected_items_count", items.size());
+                    uiStateManager.setSelectedItemsStatus(items != null ? items.size() : 0);
+                    SentryManager.setCustomKey("selected_items_count", items != null ? items.size() : 0);
                 } catch (Exception e) {
                     SentryManager.recordException(e);
                 }
             });
 
-            viewModel.getProcessingState().observe(getViewLifecycleOwner(), state -> {
+            viewModel.getCleanProcessingState().observe(getViewLifecycleOwner(), state -> {
                 try {
                     SentryManager.setCustomKey("processing_state", state.toString());
                     switch (state) {
@@ -248,22 +285,52 @@ public class CleanFragment extends Fragment {
                             SentryManager.log("Processing state: PROCESSING");
                             uiStateManager.showProgress(true);
                             uiStateManager.setProcessingStatus();
+                            if (selectButton != null) {
+                                selectButton.setEnabled(false);
+                            }
+                            stripButton.setText(R.string.button_cancel);
+                            stripButton.setEnabled(true);
+                            break;
+
+                        case CANCELLED:
+                            SentryManager.log("Processing state: CANCELLED");
+                            uiStateManager.showProgress(false);
+                            uiStateManager.setStatus(getString(R.string.status_processing_cancelled));
+                            stripButton.setText(R.string.button_strip_exif_data);
+                            if (selectButton != null) {
+                                selectButton.setEnabled(true);
+                            }
+                            List<MediaItem> cancelledItems = viewModel.getSelectedItems().getValue();
+                            uiStateManager.enableStripButton(cancelledItems != null && !cancelledItems.isEmpty());
+                            viewModel.setCleanProcessingState(MainViewModel.ProcessingState.IDLE);
                             break;
 
                         case COMPLETED:
                             SentryManager.log("Processing state: COMPLETED");
                             uiStateManager.showProgress(false);
-                            Integer count = viewModel.getProcessedItemCount().getValue();
+                            Integer count = viewModel.getCleanProcessedItemCount().getValue();
+                            Integer total = viewModel.getCleanBatchTotalCount().getValue();
                             if (count != null) {
                                 SentryManager.setCustomKey("processed_items", count);
-                                uiStateManager.setProcessedItemsStatus(count);
+                                int batchTotal = total != null ? total : count;
+                                uiStateManager.setProcessedItemsStatus(count, batchTotal);
                             }
+                            stripButton.setText(R.string.button_strip_exif_data);
+                            if (selectButton != null) {
+                                selectButton.setEnabled(true);
+                            }
+                            List<MediaItem> items = viewModel.getSelectedItems().getValue();
+                            uiStateManager.enableStripButton(items != null && !items.isEmpty());
                             break;
 
                         case IDLE:
                         default:
                             SentryManager.log("Processing state: IDLE");
                             uiStateManager.showProgress(false);
+                            stripButton.setText(R.string.button_strip_exif_data);
+                            if (selectButton != null) {
+                                selectButton.setEnabled(true);
+                            }
                             break;
                     }
                 } catch (Exception e) {
@@ -271,7 +338,7 @@ public class CleanFragment extends Fragment {
                 }
             });
 
-            viewModel.getProgressPercent().observe(getViewLifecycleOwner(), percent -> {
+            viewModel.getCleanProgressPercent().observe(getViewLifecycleOwner(), percent -> {
                 try {
                     progressBar.setProgress(percent);
                 } catch (Exception e) {
@@ -279,9 +346,11 @@ public class CleanFragment extends Fragment {
                 }
             });
 
-            viewModel.getProgressMessage().observe(getViewLifecycleOwner(), message -> {
+            viewModel.getCleanProgressMessage().observe(getViewLifecycleOwner(), message -> {
                 try {
-                    progressText.setText(message);
+                    if (message != null && !message.isEmpty()) {
+                        progressText.setText(message);
+                    }
                 } catch (Exception e) {
                     SentryManager.recordException(e);
                 }
@@ -294,7 +363,20 @@ public class CleanFragment extends Fragment {
     @Override
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
-        if (!hidden && permissionManager != null) {
+        if (!hidden) {
+            if (viewModel != null
+                    && viewModel.getCleanProcessingState().getValue()
+                            == MainViewModel.ProcessingState.PROCESSING) {
+                return;
+            }
+            syncPermissionUi();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (!isHidden() && permissionManager != null) {
             permissionManager.checkPermissions();
         }
     }
@@ -307,5 +389,21 @@ public class CleanFragment extends Fragment {
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
+    }
+
+    private static boolean containsUnsupportedHeic(@NonNull List<MediaItem> items) {
+        for (MediaItem item : items) {
+            if (item.isVideo()) {
+                continue;
+            }
+            String name = item.fileName();
+            if (name != null) {
+                String lower = name.toLowerCase(java.util.Locale.US);
+                if (lower.endsWith(".heic") || lower.endsWith(".heif")) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

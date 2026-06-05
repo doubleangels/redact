@@ -9,6 +9,8 @@ import androidx.annotation.NonNull;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 
+import com.doubleangels.redact.AppPreferences;
+
 /**
  * Read-only permission status checks for the Settings screen.
  */
@@ -35,7 +37,13 @@ public final class PermissionStatusHelper {
                     == PackageManager.PERMISSION_GRANTED;
             boolean videos = ContextCompat.checkSelfPermission(app, Manifest.permission.READ_MEDIA_VIDEO)
                     == PackageManager.PERMISSION_GRANTED;
-            return images && videos ? Status.GRANTED : Status.DENIED;
+            if (images && videos) {
+                return Status.GRANTED;
+            }
+            boolean userSelected = ContextCompat.checkSelfPermission(app,
+                    Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
+                    == PackageManager.PERMISSION_GRANTED;
+            return userSelected ? Status.GRANTED : Status.DENIED;
         }
         if (sdk >= Build.VERSION_CODES.TIRAMISU) {
             boolean images = ContextCompat.checkSelfPermission(app, Manifest.permission.READ_MEDIA_IMAGES)
@@ -72,5 +80,11 @@ public final class PermissionStatusHelper {
                     ? Status.GRANTED : Status.DENIED;
         }
         return Status.NOT_REQUIRED;
+    }
+
+    /** User-confirmed consent for outbound network use (Sentry crash reporting). */
+    @NonNull
+    public static Status getNetworkAccessStatus(@NonNull Context context) {
+        return AppPreferences.isNetworkAccessConfirmed(context) ? Status.GRANTED : Status.DENIED;
     }
 }

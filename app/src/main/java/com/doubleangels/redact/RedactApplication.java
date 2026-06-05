@@ -4,6 +4,7 @@ import android.app.Application;
 
 
 import com.doubleangels.redact.notifications.LocalNotifications;
+import com.doubleangels.redact.privacy.NetworkAccess;
 import com.doubleangels.redact.sentry.SentryInitializer;
 import com.doubleangels.redact.sentry.SentryManager;
 
@@ -23,7 +24,8 @@ public class RedactApplication extends Application {
 
 
         SentryManager.init(this);
-        SentryInitializer.initialize(this);
+        NetworkAccess.reconcileOrphanedFeatures(this);
+        SentryInitializer.initializeIfNeeded(this);
         LocalNotifications.ensureChannels(this);
     }
 }

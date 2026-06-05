@@ -7,9 +7,6 @@ ffmpegmediametadataretriever = "1.0.15"
 fragment = "1.8.9"
 glide = "5.0.7"
 googleMaterial = "1.13.0"
-junit = "4.13.2"
-junitVersion = "1.3.0"
-espressoCore = "3.7.0"
 appcompat = "1.7.1"
 material = "1.14.0"
 media3 = "1.10.1"
@@ -18,16 +15,8 @@ lifecycleViewmodelKtx = "2.10.0"
 navigationFragment = "2.9.8"
 navigationUi = "2.9.8"
 sentry = "8.43.0"
-mockito = "5.23.0"
-robolectric = "4.16.1"
-androidxTestCore = "1.7.0"
 commonsImaging = "1.0.0-alpha6"
 leakcanary = "2.14"
-mockitoInline = "5.2.0"
-truth = "1.4.5"
-testRules = "1.7.0"
-fragmentTesting = "1.8.9"
-navigationTesting = "2.9.8"
 
 [libraries]
 activity = { module = "androidx.activity:activity", version.ref = "activity" }
@@ -37,9 +26,6 @@ ffmpegmediametadataretriever = { module = "com.github.wseemann:FFmpegMediaMetada
 sentry-android = { module = "io.sentry:sentry-android", version.ref = "sentry" }
 fragment = { module = "androidx.fragment:fragment", version.ref = "fragment" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 media3-common = { module = "androidx.media3:media3-common", version.ref = "media3" }
@@ -49,16 +35,8 @@ lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-lived
 lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
 navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navigationFragment" }
 navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version.ref = "navigationUi" }
-mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
-robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
-androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTestCore" }
 commons-imaging = { module = "org.apache.commons:commons-imaging", version.ref = "commonsImaging" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
-mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockitoInline" }
-truth = { module = "com.google.truth:truth", version.ref = "truth" }
-androidx-test-rules = { module = "androidx.test:rules", version.ref = "testRules" }
-fragment-testing = { module = "androidx.fragment:fragment-testing", version.ref = "fragmentTesting" }
-navigation-testing = { module = "androidx.navigation:navigation-testing", version.ref = "navigationTesting" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

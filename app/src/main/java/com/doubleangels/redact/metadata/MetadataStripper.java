@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.database.Cursor;
@@ -20,8 +21,10 @@ import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
 
 import com.doubleangels.redact.AppPreferences;
+import com.doubleangels.redact.CacheCleanup;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.FormatConverter;
+import com.doubleangels.redact.media.MediaSizeLimits;
 import com.doubleangels.redact.media.VideoMedia3Converter;
 import com.doubleangels.redact.sentry.SentryManager;
 
@@ -126,6 +129,10 @@ public class MetadataStripper {
      */
     private Uri lastProcessedFileUri;
 
+    /** On-disk output from the most recent sharing operation (for cleanup and display names). */
+    @Nullable
+    private File lastProcessedOutputFile;
+
     @androidx.annotation.VisibleForTesting
     @Nullable
     File testFastStripVideoMetadataOverride;
@@ -166,10 +173,36 @@ public class MetadataStripper {
      */
     private final Map<String, Long> fileSizeCache = new ConcurrentHashMap<>();
 
+    private final java.util.concurrent.atomic.AtomicBoolean operationCancelled =
+            new java.util.concurrent.atomic.AtomicBoolean(false);
+
     /**
      * Secure random number generator for secure file deletion.
      */
     private final SecureRandom secureRandom = new SecureRandom();
+
+    public void resetCancellation() {
+        operationCancelled.set(false);
+    }
+
+    public void requestCancellation() {
+        operationCancelled.set(true);
+        VideoMedia3Converter.cancelActiveTranscode();
+    }
+
+    private void throwIfCancelled() throws IOException {
+        if (operationCancelled.get() || Thread.currentThread().isInterrupted()) {
+            throw new IOException("Processing cancelled");
+        }
+    }
+
+    private void checkCancelled() {
+        try {
+            throwIfCancelled();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Creates a new MetadataStripper instance.
@@ -221,6 +254,12 @@ public class MetadataStripper {
 
     /** Maps Media3 transcoding 0–100% into the middle of the current item’s progress (after “Transcoding…”). */
     private void reportTranscodeProgress(int transcoderPercent0To100) {
+        try {
+            throwIfCancelled();
+        } catch (IOException e) {
+            VideoMedia3Converter.cancelActiveTranscode();
+            throw new RuntimeException(e);
+        }
         if (progressCallback != null) {
             int p = Math.min(100, Math.max(0, transcoderPercent0To100));
             int itemPercent = 50 + p / 2;
@@ -233,9 +272,8 @@ public class MetadataStripper {
     /**
      * Process video to remove metadata and save to MediaStore (external storage).
      *
-     * <p>Re-encodes with Media3 {@code Transformer} (H.264/AAC MP4) so container and stream metadata are
-     * stripped; audio is preserved when the device can transcode the source. If transcoding fails, falls
-     * back to a direct copy (metadata may remain).
+     * <p>Re-encodes with Media3 so container and stream metadata are stripped. A fast transmux-only path
+     * is used only when {@link AppPreferences#isVideoFallbackCopy} is enabled and strict clean is off.
      *
      * @param sourceUri        URI of the source video, must not be null
      * @param originalFilename Original filename of the video, must not be null
@@ -250,9 +288,7 @@ public class MetadataStripper {
         Uri newUri = null;
 
         try {
-            // Videos are streamed frame-by-frame; no memory-based file-size cap applies.
-            long fileSize = getFileSizeFromUriCached(sourceUri);
-            SentryManager.setCustomKey("file_size_mb", fileSize / (1024 * 1024));
+            enforceVideoSizeLimit(sourceUri);
 
             updateProgress(1, 4, "Reading video...");
             
@@ -262,19 +298,7 @@ public class MetadataStripper {
             File tempCleanFile = fastStripVideoMetadata(sourceUri);
             Uri cleanSourceUri = tempCleanFile != null ? Uri.fromFile(tempCleanFile) : sourceUri;
             
-            boolean needsTranscode = true;
-            if (tempCleanFile != null) {
-                if (formatIndex == 0 || formatIndex == 1) {
-                    if (tempCleanFile.getName().endsWith(".mp4")) needsTranscode = false;
-                } else if (formatIndex == 2) {
-                    if (tempCleanFile.getName().endsWith(".webm")) needsTranscode = false;
-                }
-            }
-            if (AppPreferences.isVideoFallbackCopy(context) && tempCleanFile != null) {
-                // Keep needsTranscode as evaluated
-            } else {
-                needsTranscode = true; // Force transcode or fail if fallback copy is disabled
-            }
+            boolean needsTranscode = !shouldSkipVideoTranscode(formatIndex, tempCleanFile, false);
 
             try {
                 if (!needsTranscode && tempCleanFile != null) {
@@ -302,6 +326,7 @@ public class MetadataStripper {
             }
 
             updateProgress(4, 4, "Saving cleaned video...");
+            verifyGalleryVideoMetadata(newUri);
             lastProcessedFileUri = newUri;
             SentryManager.log("Video processed successfully.");
             SentryManager.setCustomKey("success", true);
@@ -350,13 +375,7 @@ public class MetadataStripper {
         File tempFile = null;
 
         try {
-            // Check if file is too large to process (using cached size)
-            long fileSize = getFileSizeFromUriCached(sourceUri);
-            SentryManager.setCustomKey("file_size_mb", fileSize / (1024 * 1024));
-            long maxFileSizeMb = AppPreferences.getMaxImageFileSizeMb(context);
-            if (fileSize > maxFileSizeMb * 1024L * 1024L) {
-                throw new IOException("File too large to process: " + fileSize / (1024 * 1024) + "MB");
-            }
+            ensureImageWithinSizeLimit(sourceUri);
 
             FormatConverter.ImageFormatSpec outputFormat = resolveImageOutputFormat(sourceUri, originalFilename);
             String extension = outputFormat.extension;
@@ -369,24 +388,11 @@ public class MetadataStripper {
             tempFile = new File(
                     context.getCacheDir(), "temp_" + System.currentTimeMillis() + extension);
 
-            // Copy source image to temporary file
-            try (InputStream in = contentResolver.openInputStream(sourceUri);
-                    FileOutputStream out = new FileOutputStream(tempFile)) {
-
-                if (in == null) {
-                    throw new IOException("Failed to open input stream");
-                }
-
-                byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-                int read;
-                while ((read = in.read(buffer)) != -1) {
-                    out.write(buffer, 0, read);
-                }
-            }
+            copySourceToTempFile(sourceUri, tempFile, MediaSizeLimits.maxImageBytes(context));
 
             // Extract essential EXIF data to preserve (like orientation)
             updateProgress(2, 5, "Reading essential metadata...");
-            readEssentialExifData(tempFile);
+            readEssentialExifData(tempFile, false);
 
             // Remove thumbnails from original
             try {
@@ -456,7 +462,6 @@ public class MetadataStripper {
 
                 originalBitmap.recycle();
                 originalBitmap = null;
-                System.gc();
             }
 
             // Restore only essential EXIF data (like orientation)
@@ -473,7 +478,7 @@ public class MetadataStripper {
                     byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
                     int bytesRead;
                     while (true) {
-                        assert is != null;
+                        
                         if (!((bytesRead = is.read(buffer)) > 0))
                             break;
                         fos.write(buffer, 0, bytesRead);
@@ -482,6 +487,9 @@ public class MetadataStripper {
                 boolean metadataRemoved = verifyMetadataRemoval(tempVerifyFile);
                 SentryManager.setCustomKey("metadata_verification_passed", metadataRemoved);
                 if (!metadataRemoved) {
+                    if (AppPreferences.isStrictClean(context)) {
+                        throw new IOException("Metadata verification failed");
+                    }
                     SentryManager.log("Warning: Metadata verification found remaining metadata.");
                 }
                 secureDeleteFile(tempVerifyFile);
@@ -547,16 +555,10 @@ public class MetadataStripper {
 
         Bitmap originalBitmap = null;
         File tempFile = null;
-        File outputFile;
+        File outputFile = null;
 
         try {
-            // Check if file is too large to process (using cached size)
-            long fileSize = getFileSizeFromUriCached(sourceUri);
-            SentryManager.setCustomKey("file_size_mb", fileSize / (1024 * 1024));
-            long maxFileSizeMb = AppPreferences.getMaxImageFileSizeMb(context);
-            if (fileSize > maxFileSizeMb * 1024L * 1024L) {
-                throw new IOException("File too large to process: " + fileSize / (1024 * 1024) + "MB");
-            }
+            ensureImageWithinSizeLimit(sourceUri);
 
             FormatConverter.ImageFormatSpec outputFormat = resolveImageOutputFormat(sourceUri, originalFilename);
             String extension = outputFormat.extension;
@@ -565,22 +567,10 @@ public class MetadataStripper {
 
             tempFile = new File(context.getCacheDir(), "temp_" + System.currentTimeMillis() + extension);
 
-            try (InputStream in = contentResolver.openInputStream(sourceUri);
-                    FileOutputStream out = new FileOutputStream(tempFile)) {
-
-                if (in == null) {
-                    throw new IOException("Failed to open input stream");
-                }
-
-                byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-                int read;
-                while ((read = in.read(buffer)) != -1) {
-                    out.write(buffer, 0, read);
-                }
-            }
+            copySourceToTempFile(sourceUri, tempFile, MediaSizeLimits.maxImageBytes(context));
 
             updateProgress(2, 4, "Reading essential metadata...");
-            readEssentialExifData(tempFile);
+            readEssentialExifData(tempFile, true);
 
             File outputDir = new File(context.getCacheDir(), "processed");
             if (!outputDir.exists()) {
@@ -601,7 +591,7 @@ public class MetadataStripper {
 
             if (!usedLossless) {
                 try (OutputStream os = new FileOutputStream(outputFile)) {
-                    usedLossless = stripMetadataNativeExif(tempFile, os, extension);
+                    usedLossless = stripMetadataNativeExif(tempFile, os, extension, true);
                 }
             }
 
@@ -638,7 +628,7 @@ public class MetadataStripper {
             // Remove all EXIF metadata except essential tags
             updateProgress(4, 5, "Removing all metadata...");
             ExifInterface newExif = new ExifInterface(outputFile.getAbsolutePath());
-            removeAllExifMetadata(newExif);
+            removeAllExifMetadata(newExif, true);
             // Restore only essential EXIF data (like orientation)
             restoreEssentialExifValues(newExif);
             newExif.saveAttributes();
@@ -648,6 +638,9 @@ public class MetadataStripper {
             boolean metadataRemoved = verifyMetadataRemoval(outputFile);
             SentryManager.setCustomKey("metadata_verification_passed", metadataRemoved);
             if (!metadataRemoved) {
+                if (AppPreferences.isStrictClean(context)) {
+                    throw new IOException("Metadata verification failed");
+                }
                 SentryManager.log("Warning: Metadata verification found remaining metadata.");
             }
 
@@ -658,6 +651,7 @@ public class MetadataStripper {
                     outputFile);
 
             lastProcessedFileUri = fileUri;
+            lastProcessedOutputFile = outputFile;
             SentryManager.log("Image processed successfully for sharing.");
             SentryManager.setCustomKey("success", true);
             return fileUri;
@@ -668,6 +662,10 @@ public class MetadataStripper {
             SentryManager.recordException(e);
             SentryManager.setCustomKey("success", false);
             SentryManager.setCustomKey("error_type", e.getClass().getName());
+            if (outputFile != null && outputFile.exists()) {
+                secureDeleteFile(outputFile);
+            }
+            lastProcessedOutputFile = null;
             return null;
         } finally {
             // Clean up resources
@@ -706,12 +704,10 @@ public class MetadataStripper {
 
         SentryManager.setCustomKey("operation_type", "video_for_sharing");
 
-        File outputFile;
+        File outputFile = null;
 
         try {
-            // Videos are streamed frame-by-frame; no memory-based file-size cap applies.
-            long fileSize = getFileSizeFromUriCached(sourceUri);
-            SentryManager.setCustomKey("file_size_mb", fileSize / (1024 * 1024));
+            enforceVideoSizeLimit(sourceUri);
 
             updateProgress(1, 4, "Reading video...");
 
@@ -733,19 +729,7 @@ public class MetadataStripper {
             File tempCleanFile = fastStripVideoMetadata(sourceUri);
             Uri cleanSourceUri = tempCleanFile != null ? Uri.fromFile(tempCleanFile) : sourceUri;
             
-            boolean needsTranscode = true;
-            if (tempCleanFile != null) {
-                if (formatIndex == 0 || formatIndex == 1) {
-                    if (tempCleanFile.getName().endsWith(".mp4")) needsTranscode = false;
-                } else if (formatIndex == 2) {
-                    if (tempCleanFile.getName().endsWith(".webm")) needsTranscode = false;
-                }
-            }
-            if (AppPreferences.isVideoFallbackCopy(context) && tempCleanFile != null) {
-                // Keep needsTranscode as evaluated
-            } else {
-                needsTranscode = true; // Force transcode or fail if fallback copy is disabled
-            }
+            boolean needsTranscode = !shouldSkipVideoTranscode(formatIndex, tempCleanFile, true);
 
             try {
                 if (!needsTranscode && tempCleanFile != null) {
@@ -782,6 +766,15 @@ public class MetadataStripper {
 
             updateProgress(4, 4, "Saving cleaned video...");
 
+            boolean videoClean = verifyVideoMetadataRemoval(outputFile);
+            SentryManager.setCustomKey("video_metadata_verification_passed", videoClean);
+            if (!videoClean) {
+                if (AppPreferences.isStrictClean(context)) {
+                    throw new IOException("Video metadata verification failed");
+                }
+                SentryManager.log("Warning: Video metadata verification found remaining tags.");
+            }
+
             // Get content URI using FileProvider for sharing
             Uri fileUri = FileProvider.getUriForFile(
                     context,
@@ -789,6 +782,7 @@ public class MetadataStripper {
                     outputFile);
 
             lastProcessedFileUri = fileUri;
+            lastProcessedOutputFile = outputFile;
             SentryManager.log("Video processed successfully for sharing.");
             SentryManager.setCustomKey("success", true);
             return fileUri;
@@ -799,6 +793,10 @@ public class MetadataStripper {
             SentryManager.recordException(e);
             SentryManager.setCustomKey("success", false);
             SentryManager.setCustomKey("error_type", e.getClass().getName());
+            if (outputFile != null && outputFile.exists()) {
+                secureDeleteFile(outputFile);
+            }
+            lastProcessedOutputFile = null;
             return null;
         }
     }
@@ -808,33 +806,80 @@ public class MetadataStripper {
         if (fileName != null) {
             String lower = fileName.toLowerCase(java.util.Locale.ROOT);
             if (lower.endsWith(".webm") || lower.endsWith(".vp9") || lower.endsWith(".vp8")) return 2;
-            if (lower.endsWith(".mkv")) return 3;
+            if (lower.endsWith(".mp4") || lower.endsWith(".m4v")) return 0;
+            // .mkv is a container; codec is resolved below via MediaExtractor.
         }
         
+        android.media.MediaExtractor extractor = new android.media.MediaExtractor();
         try {
-            android.media.MediaExtractor extractor = new android.media.MediaExtractor();
             extractor.setDataSource(context, sourceUri, null);
             for (int i = 0; i < extractor.getTrackCount(); i++) {
                 android.media.MediaFormat format = extractor.getTrackFormat(i);
                 String mime = format.getString(android.media.MediaFormat.KEY_MIME);
                 if (mime != null) {
                     if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_HEVC)) {
-                        extractor.release();
                         return 1;
                     }
                     if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP9) || mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP8)) {
-                        extractor.release();
                         return 2;
                     }
                     if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_AV1)) {
-                        extractor.release();
                         return 3;
                     }
                 }
             }
-            extractor.release();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            SentryManager.log("Ignored: " + ignored);
+        } finally {
+            try {
+                extractor.release();
+            } catch (Exception ignored) {
+                SentryManager.log("Ignored: " + ignored);
+            }
+        }
         return 0;
+    }
+
+    private void remuxSingleTrack(
+            android.media.MediaExtractor extractor,
+            int sourceTrackIndex,
+            android.media.MediaMuxer muxer,
+            int muxerTrackIndex) {
+        for (int i = 0; i < extractor.getTrackCount(); i++) {
+            extractor.unselectTrack(i);
+        }
+        extractor.selectTrack(sourceTrackIndex);
+        java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(1024 * 1024 * 2);
+        android.media.MediaCodec.BufferInfo info = new android.media.MediaCodec.BufferInfo();
+        while (true) {
+            checkCancelled();
+            if (extractor.getSampleTrackIndex() == -1) {
+                break;
+            }
+            info.size = extractor.readSampleData(buffer, 0);
+            if (info.size < 0) {
+                break;
+            }
+            if (info.size > buffer.capacity()) {
+                buffer = java.nio.ByteBuffer.allocate(info.size);
+                info.size = extractor.readSampleData(buffer, 0);
+                if (info.size < 0) {
+                    break;
+                }
+            }
+            info.presentationTimeUs = extractor.getSampleTime();
+            int sampleFlags = extractor.getSampleFlags();
+            info.flags = 0;
+            if ((sampleFlags & android.media.MediaExtractor.SAMPLE_FLAG_SYNC) != 0) {
+                info.flags |= android.media.MediaCodec.BUFFER_FLAG_KEY_FRAME;
+            }
+            if ((sampleFlags & android.media.MediaExtractor.SAMPLE_FLAG_PARTIAL_FRAME) != 0) {
+                info.flags |= android.media.MediaCodec.BUFFER_FLAG_PARTIAL_FRAME;
+            }
+            info.offset = 0;
+            muxer.writeSampleData(muxerTrackIndex, buffer, info);
+            extractor.advance();
+        }
     }
 
     private File fastStripVideoMetadata(Uri sourceUri) {
@@ -874,7 +919,6 @@ public class MetadataStripper {
                 if (mime == null) continue;
                 if (mime.startsWith("video/") && videoTrackIndex == -1) {
                     videoTrackIndex = i;
-                    extractor.selectTrack(i);
                     if (format.containsKey(android.media.MediaFormat.KEY_ROTATION)) {
                         muxer.setOrientationHint(format.getInteger(android.media.MediaFormat.KEY_ROTATION));
                     } else {
@@ -885,14 +929,13 @@ public class MetadataStripper {
                             if (rotation != null) {
                                 muxer.setOrientationHint(Integer.parseInt(rotation));
                             }
-                        } catch (Exception ignored) {} finally {
-                            try { retriever.release(); } catch (Exception ignored) {}
+                        } catch (Exception ignored) { SentryManager.log("Ignored: " + ignored); } finally {
+                            try { retriever.release(); } catch (Exception ignored) { SentryManager.log("Ignored: " + ignored); }
                         }
                     }
                     muxerVideoTrackIndex = muxer.addTrack(format);
                 } else if (mime.startsWith("audio/") && audioTrackIndex == -1) {
                     audioTrackIndex = i;
-                    extractor.selectTrack(i);
                     muxerAudioTrackIndex = muxer.addTrack(format);
                 }
             }
@@ -902,36 +945,17 @@ public class MetadataStripper {
             }
             
             muxer.start();
-            
-            java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(1024 * 1024 * 2);
-            android.media.MediaCodec.BufferInfo info = new android.media.MediaCodec.BufferInfo();
-            
-            while (true) {
-                int trackIndex = extractor.getSampleTrackIndex();
-                if (trackIndex == -1) break;
-                
-                info.size = extractor.readSampleData(buffer, 0);
-                if (info.size < 0) break;
-                
-                info.presentationTimeUs = extractor.getSampleTime();
-                int sampleFlags = extractor.getSampleFlags();
-                info.flags = 0;
-                if ((sampleFlags & android.media.MediaExtractor.SAMPLE_FLAG_SYNC) != 0) {
-                    info.flags |= android.media.MediaCodec.BUFFER_FLAG_KEY_FRAME;
-                }
-                if ((sampleFlags & android.media.MediaExtractor.SAMPLE_FLAG_PARTIAL_FRAME) != 0) {
-                    info.flags |= android.media.MediaCodec.BUFFER_FLAG_PARTIAL_FRAME;
-                }
-                
-                int muxerTrackIndex = (trackIndex == videoTrackIndex) ? muxerVideoTrackIndex :
-                                     (trackIndex == audioTrackIndex) ? muxerAudioTrackIndex : -1;
-                                     
-                if (muxerTrackIndex != -1) {
-                    muxer.writeSampleData(muxerTrackIndex, buffer, info);
-                }
-                extractor.advance();
+
+            if (videoTrackIndex != -1 && muxerVideoTrackIndex != -1) {
+                remuxSingleTrack(extractor, videoTrackIndex, muxer, muxerVideoTrackIndex);
             }
-            
+            if (audioTrackIndex != -1 && muxerAudioTrackIndex != -1) {
+                for (int i = 0; i < extractor.getTrackCount(); i++) {
+                    extractor.unselectTrack(i);
+                }
+                remuxSingleTrack(extractor, audioTrackIndex, muxer, muxerAudioTrackIndex);
+            }
+
             muxer.stop();
             return outputFile;
         } catch (Exception e) {
@@ -941,9 +965,9 @@ public class MetadataStripper {
             }
             return null;
         } finally {
-            try { extractor.release(); } catch (Exception ignored) {}
+            try { extractor.release(); } catch (Exception ignored) { SentryManager.log("Ignored: " + ignored); }
             if (muxer != null) {
-                try { muxer.release(); } catch (Exception ignored) {}
+                try { muxer.release(); } catch (Exception ignored) { SentryManager.log("Ignored: " + ignored); }
             }
         }
     }
@@ -981,6 +1005,11 @@ public class MetadataStripper {
     @Nullable
     public Uri getLastProcessedFileUri() {
         return lastProcessedFileUri;
+    }
+
+    @Nullable
+    public File getLastProcessedOutputFile() {
+        return lastProcessedOutputFile;
     }
 
     /**
@@ -1143,12 +1172,12 @@ public class MetadataStripper {
      * @throws IOException if the file cannot be read or EXIF data cannot be
      *                     extracted
      */
-    private void readEssentialExifData(@NonNull File imageFile) throws IOException {
+    private void readEssentialExifData(@NonNull File imageFile, boolean forSharing) throws IOException {
         // Create ExifInterface for reading EXIF data
         ExifInterface exif = new ExifInterface(imageFile.getAbsolutePath());
         preservedExifValues.clear();
 
-        List<String> tagsToPreserve = getTagsToPreserve();
+        List<String> tagsToPreserve = getTagsToPreserve(forSharing);
 
         // Store each tag that exists in the original file
         for (String tag : tagsToPreserve) {
@@ -1176,20 +1205,15 @@ public class MetadataStripper {
             return;
         }
 
-        try {
-            // Open the file for writing EXIF data
-            ExifInterface newExif = new ExifInterface(
-                    Objects.requireNonNull(contentResolver.openFileDescriptor(imageUri, "rw")).getFileDescriptor());
+        try (ParcelFileDescriptor pfd = contentResolver.openFileDescriptor(imageUri, "rw")) {
+            if (pfd == null) {
+                return;
+            }
+            ExifInterface newExif = new ExifInterface(pfd.getFileDescriptor());
 
-            // Remove all EXIF metadata except essential tags
             removeAllExifMetadata(newExif);
-
-            // Restore the preserved EXIF values
             restoreEssentialExifValues(newExif);
-
-            // Save the changes to the file
             newExif.saveAttributes();
-
         } catch (Exception e) {
             SentryManager.log("Failed to restore EXIF: " + e.getMessage() + ".");
             SentryManager.recordException(e);
@@ -1218,10 +1242,14 @@ public class MetadataStripper {
      * @param exif The ExifInterface instance to clean
      */
     private void removeAllExifMetadata(@NonNull ExifInterface exif) {
+        removeAllExifMetadata(exif, false);
+    }
+
+    private void removeAllExifMetadata(@NonNull ExifInterface exif, boolean forSharing) {
         try {
             // Get all TAG constants from ExifInterface using reflection
             java.lang.reflect.Field[] fields = ExifInterface.class.getDeclaredFields();
-            java.util.Set<String> tagsToPreserve = new java.util.HashSet<>(getTagsToPreserve());
+            java.util.Set<String> tagsToPreserve = new java.util.HashSet<>(getTagsToPreserve(forSharing));
 
             int removedCount = 0;
             for (java.lang.reflect.Field field : fields) {
@@ -1345,7 +1373,35 @@ public class MetadataStripper {
         }
     }
 
+    /**
+     * Whether transmux output can be saved without a full Media3 re-encode.
+     * Strict-clean always re-encodes. Sharing and gallery fallback copy may reuse
+     * {@link #fastStripVideoMetadata} output when it already matches the target container.
+     */
+    private boolean shouldSkipVideoTranscode(
+            int formatIndex, @Nullable File tempCleanFile, boolean forSharing) {
+        if (AppPreferences.isStrictClean(context) || tempCleanFile == null) {
+            return false;
+        }
+        String expectedExtension = VideoMedia3Converter.extensionForFormatIndex(formatIndex);
+        if (!tempCleanFile.getName().endsWith(expectedExtension)) {
+            return false;
+        }
+        // Sharing always re-encodes: transmux does not strip container metadata (GPS, udta, etc.).
+        if (forSharing) {
+            return false;
+        }
+        return AppPreferences.isVideoFallbackCopy(context);
+    }
+
     private List<String> getTagsToPreserve() {
+        return getTagsToPreserve(false);
+    }
+
+    private List<String> getTagsToPreserve(boolean forSharing) {
+        if (forSharing) {
+            return List.of(ExifInterface.TAG_ORIENTATION);
+        }
         if (AppPreferences.isStrictClean(context)) {
             return java.util.Collections.emptyList();
         }
@@ -1382,43 +1438,6 @@ public class MetadataStripper {
     }
 
     /**
-     * Deletes temporary files that are older than 24 hours.
-     *
-     * This method should be called periodically to prevent accumulation of
-     * temporary files in the app's cache directory.
-     */
-    public void cleanupTempFiles() {
-        try {
-            // Files older than 24 hours will be deleted
-            long cutoffTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000);
-
-            // Get the directory where processed files are stored
-            File cacheDir = new File(context.getCacheDir(), "processed");
-
-            if (cacheDir.exists() && cacheDir.isDirectory()) {
-                File[] files = cacheDir.listFiles();
-                if (files != null) {
-                    int deletedCount = 0;
-                    for (File file : files) {
-                        // Delete files older than the cutoff time
-                        if (file.lastModified() < cutoffTime) {
-                            if (file.delete()) {
-                                deletedCount++;
-                            }
-                        }
-                    }
-
-                    if (deletedCount > 0) {
-                        SentryManager.log("Cleaned up " + deletedCount + " temporary files.");
-                    }
-                }
-            }
-        } catch (Exception e) {
-            SentryManager.log("Error cleaning up temporary files: " + e.getMessage() + ".");
-        }
-    }
-
-    /**
      * Checks if available memory is running low.
      *
      * This method calculates the ratio of available memory to maximum memory
@@ -1449,32 +1468,48 @@ public class MetadataStripper {
      * but can be useful in specific cases when processing large media files.
      */
     private void tryFreeMemory() {
-        if (isMemoryLow()) {
-            System.gc();
-            Runtime.getRuntime().runFinalization();
-            System.gc();
+        // Rely on bitmap recycling and stream closure; avoid explicit GC hints.
+    }
+
+    private void ensureImageWithinSizeLimit(@NonNull Uri sourceUri) throws IOException {
+        long fileSize = getFileSizeFromUriCached(sourceUri);
+        SentryManager.setCustomKey("file_size_mb", fileSize / (1024 * 1024));
+        if (isFileTooLarge(sourceUri)) {
+            throw new IOException("File too large to process: " + fileSize / (1024 * 1024) + "MB");
         }
     }
 
-    /**
-     * Checks if a file exceeds the maximum size limit for processing.
-     *
-     * @param uri URI of the file to check, must not be null
-     * @return true if the file is too large to process, false otherwise
-     */
-    public boolean isFileTooLarge(@NonNull Uri uri) {
-        long fileSize = getFileSizeFromUri(uri);
-        long maxFileSizeMb = AppPreferences.getMaxImageFileSizeMb(context);
-        return fileSize > maxFileSizeMb * 1024L * 1024L;
+    private boolean isFileTooLarge(@NonNull Uri uri) {
+        long fileSize = getFileSizeFromUriCached(uri);
+        if (fileSize <= 0) {
+            return false;
+        }
+        return fileSize > AppPreferences.getMaxImageFileSizeMb(context) * 1024L * 1024L;
     }
 
-    /**
-     * Returns the maximum file size in megabytes that can be processed.
-     *
-     * @return Maximum file size in MB
-     */
-    public long getMaxFileSizeMB() {
-        return AppPreferences.getMaxImageFileSizeMb(context);
+    private void verifyGalleryVideoMetadata(@NonNull Uri galleryUri) throws IOException {
+        File tempVerifyFile = new File(
+                context.getCacheDir(), "verify_vid_" + System.currentTimeMillis() + ".mp4");
+        try (InputStream is = contentResolver.openInputStream(galleryUri);
+                FileOutputStream fos = new FileOutputStream(tempVerifyFile)) {
+            if (is == null) {
+                throw new IOException("Cannot open gallery video for verification");
+            }
+            MediaSizeLimits.copyWithLimit(is, fos, MediaSizeLimits.maxVideoBytes());
+        }
+        try {
+            boolean videoClean = verifyVideoMetadataRemoval(tempVerifyFile);
+            SentryManager.setCustomKey("video_metadata_verification_passed", videoClean);
+            if (!videoClean) {
+                if (AppPreferences.isStrictClean(context)) {
+                    contentResolver.delete(galleryUri, null, null);
+                    throw new IOException("Video metadata verification failed");
+                }
+                SentryManager.log("Warning: Video metadata verification found remaining tags.");
+            }
+        } finally {
+            secureDeleteFile(tempVerifyFile);
+        }
     }
 
     /**
@@ -1551,7 +1586,7 @@ public class MetadataStripper {
             for (String tag : identifyingTags) {
                 String value = exif.getAttribute(tag);
                 if (value != null && !value.isEmpty()) {
-                    SentryManager.log("Warning: Found remaining metadata tag: " + tag + " = " + value + ".");
+                    SentryManager.log("Warning: Found remaining metadata tag: " + tag + ".");
                     return false;
                 }
             }
@@ -1565,8 +1600,7 @@ public class MetadataStripper {
             return true;
         } catch (Exception e) {
             SentryManager.log("Error verifying metadata removal: " + e.getMessage() + ".");
-            // If verification fails, assume it's okay to avoid blocking the process
-            return true;
+            return !AppPreferences.isStrictClean(context);
         }
     }
 
@@ -1582,18 +1616,44 @@ public class MetadataStripper {
                 throw new IOException("Forced XMP read failure");
             }
             byte[] buffer = new byte[8192];
-            int bytesRead = fis.read(buffer);
-            if (bytesRead > 0) {
+            long totalRead = 0;
+            final long maxScan = 256L * 1024L;
+            int bytesRead;
+            while ((bytesRead = fis.read(buffer)) > 0 && totalRead < maxScan) {
                 String content = new String(buffer, 0, bytesRead, StandardCharsets.ISO_8859_1);
-                // Look for XMP header markers
-                return content.contains("http://ns.adobe.com/xap/1.0/") ||
-                        content.contains("xpacket") ||
-                        content.contains("x:xmpmeta");
+                if (content.contains("http://ns.adobe.com/xap/1.0/")
+                        || content.contains("xpacket")
+                        || content.contains("x:xmpmeta")) {
+                    return true;
+                }
+                totalRead += bytesRead;
             }
         } catch (Exception e) {
             SentryManager.log("XMP detection failed: " + e.getMessage());
         }
         return false;
+    }
+
+    private boolean verifyVideoMetadataRemoval(@NonNull File videoFile) {
+        try (android.media.MediaMetadataRetriever retriever = new android.media.MediaMetadataRetriever()) {
+            retriever.setDataSource(videoFile.getAbsolutePath());
+            int[] keys = {
+                    android.media.MediaMetadataRetriever.METADATA_KEY_LOCATION,
+                    android.media.MediaMetadataRetriever.METADATA_KEY_DATE,
+                    android.media.MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE
+            };
+            for (int key : keys) {
+                String value = retriever.extractMetadata(key);
+                if (value != null && !value.trim().isEmpty()) {
+                    SentryManager.log("Warning: Found remaining video metadata key: " + key);
+                    return false;
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            SentryManager.log("Video metadata verification failed: " + e.getMessage());
+            return !AppPreferences.isStrictClean(context);
+        }
     }
 
     /**
@@ -1619,32 +1679,23 @@ public class MetadataStripper {
         }
     }
 
-    /**
-     * Removes XMP and IPTC metadata from a JPEG file by parsing and rewriting
-     * without metadata segments.
-     * This is a basic implementation that removes common metadata markers.
-     *
-     * @param inputFile  Input file with metadata
-     * @param outputFile Output file without metadata
-     * @throws IOException if processing fails
-     */
-    private void removeXMPAndIPTCMetadata(@NonNull File inputFile, @NonNull File outputFile) throws IOException {
-        // For JPEG files, XMP and IPTC are typically in APP segments
-        // This is a simplified approach - a full implementation would parse JPEG
-        // segments
-        try (FileInputStream fis = new FileInputStream(inputFile);
-                FileOutputStream fos = new FileOutputStream(outputFile)) {
-
-            byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-            int bytesRead;
-            boolean inMetadataSegment = false;
-
-            while ((bytesRead = fis.read(buffer)) > 0) {
-                // Basic approach: The bitmap re-encoding already removes most metadata
-                // This method is a placeholder for more advanced XMP/IPTC removal
-                // A full implementation would require JPEG segment parsing
-                fos.write(buffer, 0, bytesRead);
+    private void copySourceToTempFile(@NonNull Uri sourceUri, @NonNull File tempFile, long maxBytes)
+            throws IOException {
+        try (InputStream in = contentResolver.openInputStream(sourceUri);
+                FileOutputStream out = new FileOutputStream(tempFile)) {
+            if (in == null) {
+                throw new IOException("Failed to open input stream");
             }
+            MediaSizeLimits.copyWithLimit(in, out, maxBytes, this::checkCancelled);
+        }
+    }
+
+    private void enforceVideoSizeLimit(@NonNull Uri sourceUri) throws IOException {
+        long fileSize = getFileSizeFromUriCached(sourceUri);
+        SentryManager.setCustomKey("file_size_mb", fileSize / (1024 * 1024));
+        long maxBytes = MediaSizeLimits.maxVideoBytes();
+        if (fileSize > 0 && fileSize > maxBytes) {
+            throw new IOException("Video too large to process");
         }
     }
 
@@ -1700,7 +1751,16 @@ public class MetadataStripper {
     }
 
 
-    private boolean stripMetadataNativeExif(@NonNull File tempFile, @NonNull OutputStream finalOs, @NonNull String extension) {
+    private boolean stripMetadataNativeExif(
+            @NonNull File tempFile, @NonNull OutputStream finalOs, @NonNull String extension) {
+        return stripMetadataNativeExif(tempFile, finalOs, extension, false);
+    }
+
+    private boolean stripMetadataNativeExif(
+            @NonNull File tempFile,
+            @NonNull OutputStream finalOs,
+            @NonNull String extension,
+            boolean forSharing) {
         // Native ExifInterface supports JPEG, PNG, WEBP, and HEIF
         boolean isSupported = extension.equalsIgnoreCase(".jpg") || extension.equalsIgnoreCase(".jpeg") ||
                               extension.equalsIgnoreCase(".png") || extension.equalsIgnoreCase(".webp") ||
@@ -1713,7 +1773,7 @@ public class MetadataStripper {
             // Clear all non-essential tags using the same reflection-based logic as removeAllExifMetadata
             // but adapted for androidx.exifinterface
             java.lang.reflect.Field[] fields = androidx.exifinterface.media.ExifInterface.class.getDeclaredFields();
-            java.util.Set<String> tagsToPreserve = new java.util.HashSet<>(getTagsToPreserve());
+            java.util.Set<String> tagsToPreserve = new java.util.HashSet<>(getTagsToPreserve(forSharing));
 
             int removedCount = 0;
             for (java.lang.reflect.Field field : fields) {
@@ -1727,7 +1787,7 @@ public class MetadataStripper {
                                 removedCount++;
                             }
                         }
-                    } catch (Exception ignored) {}
+                    } catch (Exception ignored) { SentryManager.log("Ignored: " + ignored); }
                 }
             }
 

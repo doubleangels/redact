@@ -97,7 +97,7 @@ public final class UIStateManager {
      * Sets status text to indicate the app is ready for user interaction.
      */
     public void setReadyStatus() {
-        statusText.setText(R.string.convert_status_ready);
+        statusText.setText(R.string.clean_status_ready);
     }
 
     /**
@@ -116,7 +116,7 @@ public final class UIStateManager {
         if (count == 0) {
             setReadyStatus();
         } else {
-            statusText.setText(activity.getString(R.string.convert_selected_count, count));
+            statusText.setText(activity.getString(R.string.clean_selected_count, count));
         }
     }
 
@@ -130,10 +130,22 @@ public final class UIStateManager {
     /**
      * Sets status text to show how many media items were processed successfully.
      *
-     * @param count Number of successfully processed media items
+     * @param successCount Successfully processed items
+     * @param totalCount   Items in the batch
      */
-    public void setProcessedItemsStatus(int count) {
-        statusText.setText(activity.getString(R.string.status_processed_items, count));
+    public void setProcessedItemsStatus(int successCount, int totalCount) {
+        if (totalCount > 0 && successCount < totalCount) {
+            if (successCount > 0) {
+                statusText.setText(activity.getString(R.string.status_clean_done_partial, successCount,
+                        totalCount - successCount));
+            } else {
+                statusText.setText(R.string.status_clean_done_failed);
+            }
+        } else if (successCount > 0) {
+            statusText.setText(activity.getString(R.string.status_clean_done_all, successCount));
+        } else {
+            statusText.setText(R.string.status_clean_done_failed);
+        }
     }
 
     /**

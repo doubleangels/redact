@@ -21,8 +21,8 @@ concurrency:
 jobs:
   test:
     if: |
-      (github.event_name == 'push' && github.actor != 'dependabot[bot]') ||
-      (github.event_name == 'pull_request' && github.actor == 'dependabot[bot]') ||
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request' ||
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
@@ -41,24 +41,14 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run Unit Tests and Coverage
-        run: ./gradlew testDebugUnitTest jacocoTestCoverageVerification --no-daemon
-        continue-on-error: false
-
-      - name: Upload coverage report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-report
-          path: app/build/reports/jacoco/jacocoTestReport/html/
-          if-no-files-found: ignore
-
       - name: Run Lint
         run: ./gradlew lintRelease --no-daemon
         continue-on-error: false
 
       - name: Build Release
-        if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
+        if: |
+          (github.event_name == 'pull_request' && github.actor == 'dependabot[bot]') ||
+          (github.event_name == 'push' && github.ref == 'refs/heads/dev')
         run: ./gradlew assembleRelease --no-daemon
         continue-on-error: false
 

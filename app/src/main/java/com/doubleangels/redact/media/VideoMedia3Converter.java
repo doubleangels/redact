@@ -34,6 +34,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
@@ -58,22 +59,41 @@ public final class VideoMedia3Converter {
     private static final int TARGET_FPS = 30;
     private static final long AWAIT_TIMEOUT_MINUTES = 60;
 
+    private static final AtomicReference<Transformer> activeTransformer = new AtomicReference<>();
+    /** Serializes Media3 exports so Clean and Convert cannot cancel each other's transformer. */
+    private static final ReentrantLock TRANSCODE_LOCK = new ReentrantLock();
+
     private VideoMedia3Converter() {
+    }
+
+    /** Cancels an in-flight Media3 export started on this VM (e.g. when clean batch is cancelled). */
+    public static void cancelActiveTranscode() {
+        Transformer transformer = activeTransformer.get();
+        if (transformer == null) {
+            return;
+        }
+        new Handler(Looper.getMainLooper()).post(() -> {
+            try {
+                transformer.cancel();
+            } catch (RuntimeException ignored) {
+                // Transformer may already be finished.
+            }
+        });
     }
 
     /**
      * Runs {@link Transformer} to {@code outputPath} (MP4).
      */
-    public static void transcodeToPath(
+    public static int transcodeToPath(
             @NonNull Context context,
             @NonNull Uri sourceUri,
             @NonNull String outputPath,
             int formatIndex)
             throws IOException, InterruptedException {
-        transcodeToPath(context, sourceUri, outputPath, formatIndex, null);
+        return transcodeToPath(context, sourceUri, outputPath, formatIndex, null);
     }
 
-    public static void transcodeToPath(
+    public static int transcodeToPath(
             @NonNull Context context,
             @NonNull Uri sourceUri,
             @NonNull String outputPath,
@@ -96,7 +116,7 @@ public final class VideoMedia3Converter {
                         videoMime,
                         hdrModeForMp4VideoMime(videoMime),
                         progressListener);
-                return;
+                return attemptIndex;
             } catch (IOException e) {
                 lastFailure = e;
             }
@@ -154,6 +174,24 @@ public final class VideoMedia3Converter {
             throws IOException, InterruptedException {
 
         File outFile = new File(outputPath);
+
+        TRANSCODE_LOCK.lock();
+        try {
+            transcodeToPathOnceLocked(app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, outFile);
+        } finally {
+            TRANSCODE_LOCK.unlock();
+        }
+    }
+
+    private static void transcodeToPathOnceLocked(
+            @NonNull Context app,
+            @NonNull Uri sourceUri,
+            @NonNull String outputPath,
+            @NonNull String videoMimeType,
+            int hdrMode,
+            @Nullable TranscodeProgressListener progressListener,
+            @NonNull File outFile)
+            throws IOException, InterruptedException {
 
         MediaItem mediaItem = MediaItem.fromUri(sourceUri);
         EditedMediaItem editedMediaItem =
@@ -230,6 +268,7 @@ public final class VideoMedia3Converter {
                                                 })
                                         .build();
                         transformerRef.set(transformer);
+                        activeTransformer.set(transformer);
                         transformer.start(composition, outputPath);
                         if (progressListener != null) {
                             mainHandler.post(pollRunnable[0]);
@@ -241,7 +280,12 @@ public final class VideoMedia3Converter {
                     }
                 });
 
-        boolean finished = latch.await(AWAIT_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+        boolean finished;
+        try {
+            finished = latch.await(AWAIT_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+        } finally {
+            activeTransformer.compareAndSet(transformerRef.get(), null);
+        }
         if (!finished) {
             CountDownLatch cancelDone = new CountDownLatch(1);
             mainHandler.post(
@@ -334,10 +378,11 @@ public final class VideoMedia3Converter {
         Context app = context.getApplicationContext();
         String ext = extensionForFormatIndex(formatIndex);
         File outFile = File.createTempFile("vid_transform_", ext, app.getCacheDir());
-        transcodeToPath(app, sourceUri, outFile.getAbsolutePath(), formatIndex, progressListener);
+        int actualFormatIndex =
+                transcodeToPath(app, sourceUri, outFile.getAbsolutePath(), formatIndex, progressListener);
 
         try {
-            return copyToMoviesRedact(app, outFile, baseDisplayName, formatIndex);
+            return copyToMoviesRedact(app, outFile, baseDisplayName, actualFormatIndex);
         } finally {
             deleteQuietly(outFile);
         }
@@ -431,6 +476,7 @@ public final class VideoMedia3Converter {
             try {
                 resolver.delete(outUri, null, null);
             } catch (Exception ignored) {
+                com.doubleangels.redact.sentry.SentryManager.recordException(ignored);
             }
             throw e;
         }

@@ -62,7 +62,6 @@
 
     
     <string name="status_processing">処理中…</string>
-    <string name="status_processed_items">%1$d件のアイテムを処理しました。</string>
     <string name="status_first_select_media_files">まずメディアファイルを選択してください。</string>
     <string name="status_permissions_required">権限が必要です。</string>
     <string name="status_requesting_permissions">権限をリクエスト中…</string>
@@ -73,7 +72,6 @@
     <string name="status_extracting_media">動画メタデータを抽出中…</string>
     <string name="status_extracting_image">画像メタデータを抽出中…</string>
     <string name="status_media_picker_fail">メディアピッカーのオープンエラー。</string>
-    <string name="status_media_uri_fail">メディアURIを取得できませんでした。</string>
     <string name="status_storage_permissions_required">ストレージ権限が必要です。</string>
 
     
@@ -84,7 +82,6 @@
 
     
     <string name="scan_metadata">メタデータ</string>
-    <string name="scan_location_information">位置情報</string>
     <string name="scan_location_permission_missing">位置情報の権限を付与すると、位置データが利用可能になる場合があります。</string>
     <string name="scan_extraction_fail">メタデータの抽出に失敗しました。</string>
 
@@ -113,8 +110,6 @@
     <string name="metadata_exposure_time_seconds">露出時間: %.5f秒</string>
     <string name="metadata_latitude">緯度: %.15f</string>
     <string name="metadata_longitude">経度: %.15f</string>
-    <string name="metadata_address">住所: %s</string>
-    <string name="metadata_geocoding_failed">ジオコーディングに失敗: %s</string>
     <string name="metadata_no_location_data">位置データが利用できません。</string>
     <string name="metadata_location_permission_needed">位置情報の権限が付与されていません。位置データを表示するには権限を付与してください。</string>
     <string name="metadata_orientation">向き: %s</string>
@@ -147,65 +142,93 @@
     <string name="metadata_orientation_transpose">転置</string>
     <string name="metadata_orientation_transverse">横方向</string>
     <string name="metadata_orientation_unknown">不明 (%d)</string>
+    <string name="metadata_error_file_open">エラー: 画像ファイルを開けませんでした</string>
 
     
-    <string name="metadata_error_extraction">メタデータの抽出エラー: %s</string>
-    <string name="metadata_error_basic_info">基本情報の抽出エラー: %s</string>
-    <string name="metadata_error_file_open">エラー: 画像ファイルを開けませんでした</string>
-    <string name="metadata_error_image_metadata">画像メタデータの抽出エラー: %s</string>
-    <string name="metadata_error_video_metadata">動画メタデータの抽出エラー: %s</string>
+    <string name="settings_section_advanced_privacy">メタデータのクリーン</string>
+    <string name="settings_advanced_privacy_subtitle">Redact がクリーンタブで EXIF を削除する方法。他アプリからの共有では、転送前に常に位置情報とカメラ情報を削除します。</string>
+    <string name="settings_secure_delete">安全な削除パス数</string>
+    <string name="settings_secure_delete_subtitle">削除前に一時ファイルを上書きする回数。回数が多いほど遅いが復元は困難。</string>
+    <string name="settings_auto_clear_temp">起動時にキャッシュをクリア</string>
+    <string name="settings_auto_clear_temp_subtitle">アプリを開くたびに残った処理ファイルを削除。</string>
+    <string name="settings_preserve_camera">カメラ設定を保持</string>
+    <string name="settings_preserve_camera_subtitle">クリーンタブで絞り値、シャッター速度、ISO、カメラのメーカー/モデルを保持。厳密クリーン時や他アプリからの共有時は無視されます。</string>
+    <string name="settings_preserve_location">位置情報を保持</string>
+    <string name="settings_preserve_location_subtitle">クリーンタブで GPS 座標を保持。厳密クリーン時や他アプリからの共有時は無視されます。</string>
+    <string name="settings_strict_clean">厳格クリーン</string>
+    <string name="settings_strict_clean_subtitle">向きを含むすべてのメタデータを削除。保持オプションをオフにし、動画は常に完全再エンコード。</string>
     
-    <string name="permission_rationale_media">メディアファイルを選択して処理するには、メディアへのアクセスが必要です。</string>
-    <string name="permission_rationale_storage">メディアファイルを選択して処理するには、ストレージへのアクセスが必要です。</string>
-    <string name="permission_rationale_location">メディアファイルの位置情報データにアクセスするには、位置情報の権限が必要です。</string>
-    <string name="permission_denied_retry">メディアファイルを選択するには権限が必要です。</string>
-    <string name="permission_location_retry">メディアファイルの位置情報データにアクセスするには、位置情報の権限が必要です。</string>
-    <string name="snackbar_action_retry">再試行</string>
+    <string name="settings_section_advanced_processing">大きなファイルとメモリ</string>
+    <string name="settings_advanced_processing_subtitle">クリーンと変換時の超大画像の制限。動画クリーンの動作は変わりません。</string>
+    <string name="settings_max_bitmap_size">最大処理解像度</string>
+    <string name="settings_max_bitmap_size_subtitle">メモリで画像をデコードするときの長辺ピクセル数。低いほどRAM使用量が少ない。</string>
+    <string name="settings_max_file_size">最大入力ファイルサイズ</string>
+    <string name="settings_max_file_size_subtitle">このサイズを超える画像をスキップまたは縮小してメモリ不足を防ぐ。</string>
+    <string name="settings_video_fallback">高速な動画クリーン</string>
+    <string name="settings_video_fallback_subtitle">出力が既に MP4 互換の場合、クイックリマックス後の完全再エンコードをスキップ。時間とバッテリーを節約；完全トランスコードはより多くのメタデータを削除。厳密クリーン時や他アプリからの共有時はオフ。</string>
+
+    <string-array name="settings_secure_delete_labels">
+        <item>1回（高速）</item>
+        <item>3回（安全）</item>
+        <item>7回（超安全）</item>
+    </string-array>
+
+    <string-array name="settings_max_bitmap_size_labels">
+        <item>2048px（低RAM）</item>
+        <item>4096px（標準）</item>
+        <item>8192px（高性能）</item>
+    </string-array>
+
+    <string-array name="settings_max_file_size_labels">
+        <item>50 MB</item>
+        <item>100 MB</item>
+        <item>200 MB</item>
+    </string-array>
     <string name="scan_metadata_subtitle">このファイルから検出されたフィールドです。長押しで値をコピーできます。</string>
-    <string name="scan_open_in_maps">Google マップで開く</string>
-    <string name="scan_maps_unavailable">この場所を開くためのマップアプリが見つかりません。</string>
-    <string name="scan_search_camera">カメラを検索</string>
-    <string name="scan_search_unavailable">この検索を実行するブラウザが見つかりません。</string>
 
     
     <string name="navigation_settings">設定</string>
     <string name="settings_section_notifications">通知</string>
-    <string name="settings_notifications_label">すべての通知</string>
-    <string name="settings_notifications_subtitle">バックグラウンドでの操作が完了したときにRedactからのプッシュ通知を許可します。</string>
-    <string name="settings_notifications_clean_label">メタデータのクリーニング</string>
-    <string name="settings_notifications_clean_subtitle">EXIFとメタデータの削除が完了したときに通知します。</string>
-    <string name="settings_notifications_convert_label">フォーマット変換</string>
-    <string name="settings_notifications_convert_subtitle">動画または画像のファイル変換が完了したときに通知します。</string>
-    <string name="settings_section_privacy">プライバシー</string>
-    <string name="settings_crash_reporting_label">Redactの改善</string>
-    <string name="settings_crash_reporting_subtitle">オプションで匿名のクラッシュレポートをインターネット経由で送信します（Sentry）。写真や動画はアップロードされず、技術的な診断情報のみです。いつでもオフにできます。</string>
-    <string name="settings_section_conversion">変換の既定値</string>
-    <string name="settings_conversion_subtitle">変換タブでファイルを選択したときに適用されます。</string>
+    <string name="settings_section_notifications_subtitle">タスク完了時のアラートと、クリーン／変換中のオプションのライブ進捗。</string>
+    <string name="settings_notifications_label">通知を許可</string>
+    <string name="settings_notifications_subtitle">Redactのすべてのアラートのマスタースイッチ。既定でオフ。オンにするとAndroidが権限を求める場合があります。</string>
+    <string name="settings_notifications_clean_label">クリーン完了</string>
+    <string name="settings_notifications_clean_subtitle">クリーンタブでのメタデータ削除が完了したときに通知。</string>
+    <string name="settings_notifications_convert_label">変換完了</string>
+    <string name="settings_notifications_convert_subtitle">変換タブでの形式変換が完了したときに通知。</string>
+    <string name="settings_section_diagnostics">診断とフィードバック</string>
+    <string name="settings_section_diagnostics_subtitle">クラッシュ修正のための任意のレポート。メディアが端末外に出ることはありません。</string>
+    <string name="settings_crash_reporting_label">クラッシュレポートを送信</string>
+    <string name="settings_crash_reporting_subtitle">匿名化された診断情報のみ（アプリ版、デバイスモデル、スタックトレース）。確認後にネットワークアクセスが必要。写真と動画はアップロードされません。</string>
+    <string name="settings_section_conversion">変換タブの既定値</string>
+    <string name="settings_conversion_subtitle">変換でファイルを選ぶときの事前選択形式。バッチごとに変更できます。</string>
     <string name="settings_default_image_format">既定の画像形式</string>
     <string name="settings_default_video_format">既定の動画コーデック</string>
     <string name="settings_image_quality">画像品質</string>
     <string name="settings_quality_high">高</string>
     <string name="settings_quality_balanced">バランス</string>
     <string name="settings_quality_smaller">小さいファイル</string>
-    <string name="settings_quality_subtitle">JPEG、WebP、HEIC の出力に影響します。PNG は可逆のままです。</string>
-    <string name="settings_section_share">共有ターゲット</string>
-    <string name="settings_share_confirm_label">メタデータ削除前に確認する</string>
-    <string name="settings_share_confirm_subtitle">Redact に共有するとき、メタデータ削除前に確認を表示します。</string>
+    <string name="settings_quality_subtitle">JPEG、WebP、HEICに適用。PNGエクスポートは可逆のままです。</string>
+    <string name="settings_section_share_subtitle">他のアプリからRedactに写真や動画が送られるとき。</string>
+
+    <string name="settings_section_share">Redactへの共有</string>
+    <string name="settings_share_confirm_label">メタデータ削除前に確認</string>
+    <string name="settings_share_confirm_subtitle">共有ファイルからEXIFなどのメタデータを削除する前に確認を表示。</string>
     <string name="settings_share_confirm_dialog_title">メタデータを削除しますか？</string>
     <string name="settings_share_confirm_dialog_message">Redact は共有ファイルから EXIF などのメタデータを削除してから先に共有します。</string>
     <string name="settings_share_confirm_dialog_confirm">削除して続行</string>
     <string name="settings_share_confirm_dialog_cancel">キャンセル</string>
     <string name="settings_section_permissions">権限</string>
-    <string name="settings_permissions_subtitle">機能に必要な場合は Android のシステム設定で権限を付与してください。</string>
-    <string name="settings_permissions_media">メディアアクセス</string>
-    <string name="settings_permissions_notifications">通知</string>
+    <string name="settings_permissions_subtitle">Redactはクリーン、変換、スキャンにメディアアクセスが必要です。通知は任意で、タスクアラートのみに使用します。</string>
+    <string name="settings_permissions_media">写真と動画</string>
+    <string name="settings_permissions_notifications">通知（任意）</string>
     <string name="settings_permission_granted">許可済み</string>
     <string name="settings_permission_denied">拒否</string>
     <string name="settings_permission_not_required">不要</string>
     <string name="settings_open_system_settings">システム設定を開く</string>
-    <string name="settings_section_storage">ストレージ</string>
-    <string name="settings_storage_size">一時ファイル: %1$s</string>
-    <string name="settings_storage_subtitle">クリーンアップや共有時に使う処理キャッシュです。</string>
+    <string name="settings_section_storage">ストレージとキャッシュ</string>
+    <string name="settings_storage_size">使用中のキャッシュ: %1$s</string>
+    <string name="settings_storage_subtitle">処理中に作成される作業コピー。ギャラリーの原本は変更されません。</string>
     <string name="settings_storage_clear">一時ファイルを削除</string>
     <string name="settings_storage_clear_confirm_title">一時ファイルを削除しますか？</string>
     <string name="settings_storage_clear_confirm_message">最近の処理のキャッシュコピーを削除します。ギャラリーのファイルには影響しません。</string>
@@ -218,14 +241,67 @@
     <string name="settings_about_privacy">プライバシーポリシー</string>
     <string name="settings_about_report_issue">問題を報告</string>
     <string name="settings_link_unavailable">このリンクを開くアプリが見つかりません。</string>
-    <string name="settings_progress_notifications_label">通知シェードに進捗を表示</string>
-    <string name="settings_progress_notifications_subtitle">変換やクリーン中のリアルタイム進捗。完了通知は従来どおりです。</string>
+    <string name="settings_progress_notifications_label">進行中のタスクの進捗</string>
+    <string name="settings_progress_notifications_subtitle">長いクリーンや変換中に進捗を表示する常駐通知。</string>
     <string name="settings_crash_reporting_learn_more">何が共有されますか？</string>
     <string name="settings_crash_reporting_detail_title">クラッシュレポートの詳細</string>
-    <string name="settings_crash_reporting_detail_message">Redactの改善がオンのとき、匿名の診断情報が Sentry 経由で送信される場合があります:\n\n• 端末モデルと Android バージョン\n• アプリのバージョン\n• スタックトレースとエラーの種類\n• マスキングされた診断タグ（処理の成功など）\n\n写真や動画はアップロードされません。URI、ファイル名、GPS 座標は送信前に削除されます。</string>
+    <string name="settings_crash_reporting_detail_message">クラッシュレポートを送信がオンのとき、Sentry経由で匿名診断が送信される場合があります:
+
+• 端末モデルとAndroid版
+• アプリ版
+• スタックトレースとエラー種別
+• スクラブ済み診断タグ
+
+写真と動画はアップロードされません。URI、ファイル名、GPS座標は送信前に削除されます。</string>
     <string name="settings_crash_reporting_privacy_policy">プライバシーポリシー</string>
     <string name="settings_crash_reporting_dismiss">閉じる</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
+    <string name="button_cancel">キャンセル</string>
+    <string name="clean_selected_count">選択済み: %1$d 件</string>
+    <string name="clean_status_ready">クリーンするメディアを選択できます。</string>
+    <string name="convert_codec_fallback">%1$s は利用できません。代わりに %2$s として保存しました。</string>
+    <string name="metadata_error_basic_info_generic">基本的なファイル情報を読み取れませんでした。</string>
+    <string name="metadata_error_image_generic">画像メタデータを読み取れませんでした。</string>
+    <string name="metadata_error_video_generic">動画メタデータを読み取れませんでした。</string>
+    <string name="notification_clean_partial">%1$d 件クリーン、%2$d 件失敗。</string>
+    <string name="notification_progress_percent">%1$d%% 完了</string>
+    <string name="scan_clean_this_file">このファイルをクリーン</string>
+    <string name="scan_convert_this_file">このファイルを変換</string>
+    <string name="scan_copied_to_clipboard">クリップボードにコピーしました</string>
+    <string name="scan_copy_all_metadata">すべてのメタデータをコピー</string>
+    <string name="scan_copy_camera">カメラ情報をコピー</string>
+    <string name="scan_copy_coordinates">座標をコピー</string>
+    <string name="settings_network_grant_crash_hint">ネットワークアクセスは有効です。エラー報告が必要な場合は「クラッシュレポートを送信」を別途オンにしてください。</string>
+    <string name="settings_external_link_disclaimer">ブラウザが開き、ネットワークを使用します。Redact はアプリ内機能のネットワークアクセスを許可されていません。</string>
+    <string name="settings_external_link_continue">リンクを開く</string>
+    <string name="settings_network_access_grant">ネットワークアクセスを許可</string>
+    <string name="settings_network_access_revoke">ネットワークアクセスを取り消し</string>
+    <string name="settings_network_consent_allow">ネットワークアクセスを許可</string>
+    <string name="settings_network_consent_cancel">後で</string>
+    <string name="settings_network_consent_crash_title">ネットワーク経由のクラッシュ報告を許可しますか？</string>
+    <string name="settings_network_consent_crash_message">クラッシュ報告の送信は、匿名化された診断情報を Sentry にインターネット経由でアップロードします。Redact は許可するまでネットワークを使用しません。
+
+写真、動画、ファイル名、GPS 座標はアップロードされません。</string>
+    <string name="settings_network_consent_general_title">ネットワークアクセスを許可しますか？</string>
+    <string name="settings_network_consent_general_message">Redact はここで許可するまでネットワークを使用しません。ネットワークアクセスはクラッシュ報告の送信をオンにした場合のみ使用されます。
+
+写真、動画、ファイル名、GPS 座標はアップロードされません。</string>
+    <string name="settings_network_revoke_confirm">取り消し</string>
+    <string name="settings_network_revoke_confirm_message">クラッシュ報告の送信がオフになります。再度許可するまで Redact はネットワークを使用しません。</string>
+    <string name="settings_network_revoke_confirm_title">ネットワークアクセスを取り消しますか？</string>
+    <string name="settings_permissions_location">写真の位置情報</string>
+    <string name="settings_permissions_network">ネットワークアクセス（任意）</string>
+    <string name="settings_storage_clear_busy">処理中はクリアできません。</string>
+    <string name="share_error_failed_get_cleaned_file">クリーンしたファイルを共有用に準備できませんでした。</string>
+    <string name="share_error_failed_get_cleaned_files">クリーンしたファイルを共有用に準備できませんでした。</string>
+    <string name="share_error_failed_receive_media">共有されたメディアを受信できませんでした。</string>
+    <string name="share_error_generic">問題が発生しました。もう一度お試しください。</string>
+    <string name="share_error_processing_failed">共有ファイルからメタデータを削除できませんでした。</string>
+    <string name="status_already_processing">バッチが既に実行中です。完了までお待ちください。</string>
+    <string name="status_clean_done_all">%1$d 件のファイルをクリーンしました。</string>
+    <string name="status_clean_done_failed">クリーンに失敗しました。</string>
+    <string name="status_clean_done_partial">完了: %1$d 件クリーン、%2$d 件失敗。</string>
+    <string name="status_processing_cancelled">処理をキャンセルしました。</string>
 </resources>

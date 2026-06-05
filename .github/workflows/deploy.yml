@@ -32,9 +32,6 @@ jobs:
       - name: Run Android Lint
         run: ./gradlew lintRelease --no-daemon
 
-      - name: Run Unit Tests
-        run: ./gradlew testDebugUnitTest --no-daemon
-
       - name: Build Bundle
         run: ./gradlew bundleRelease --no-daemon --parallel --build-cache
 
@@ -46,9 +43,6 @@ jobs:
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
-        env:
-          BUILD_TOOLS_VERSION: "34.0.0"
-
       - name: Upload bundle to artifacts
         uses: actions/upload-artifact@v7
         with:

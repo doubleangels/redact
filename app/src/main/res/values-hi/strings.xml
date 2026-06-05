@@ -62,7 +62,6 @@
 
     
     <string name="status_processing">प्रसंस्करण…</string>
-    <string name="status_processed_items">%1$d आइटम प्रसंस्कृत।</string>
     <string name="status_first_select_media_files">कृपया पहले मीडिया फ़ाइलें चुनें।</string>
     <string name="status_permissions_required">अनुमतियां आवश्यक।</string>
     <string name="status_requesting_permissions">अनुमतियां अनुरोध कर रहे हैं…</string>
@@ -73,7 +72,6 @@
     <string name="status_extracting_media">वीडियो मेटाडेटा निष्कर्षण कर रहे हैं…</string>
     <string name="status_extracting_image">छवि मेटाडेटा निष्कर्षण कर रहे हैं…</string>
     <string name="status_media_picker_fail">मीडिया पिकर खोलने में त्रुटि।</string>
-    <string name="status_media_uri_fail">मीडिया URI प्राप्त नहीं कर सका।</string>
     <string name="status_storage_permissions_required">भंडारण अनुमतियां आवश्यक।</string>
 
     
@@ -84,7 +82,6 @@
 
     
     <string name="scan_metadata">मेटाडेटा</string>
-    <string name="scan_location_information">स्थान जानकारी</string>
     <string name="scan_location_permission_missing">यदि आप स्थान अनुमति प्रदान करते हैं तो स्थान डेटा उपलब्ध हो सकता है।</string>
     <string name="scan_extraction_fail">मेटाडेटा निष्कर्षण विफल।</string>
 
@@ -113,8 +110,6 @@
     <string name="metadata_exposure_time_seconds">एक्सपोज़र समय: %.5f सेकंड</string>
     <string name="metadata_latitude">अक्षांश: %.15f</string>
     <string name="metadata_longitude">देशांतर: %.15f</string>
-    <string name="metadata_address">पता: %s</string>
-    <string name="metadata_geocoding_failed">जियोकोडिंग विफल: %s</string>
     <string name="metadata_no_location_data">कोई स्थान डेटा उपलब्ध नहीं है।</string>
     <string name="metadata_location_permission_needed">स्थान अनुमति प्रदान नहीं की गई। स्थान डेटा देखने के लिए अनुमति प्रदान करें।</string>
     <string name="metadata_orientation">अभिविन्यास: %s</string>
@@ -147,65 +142,93 @@
     <string name="metadata_orientation_transpose">ट्रांसपोज़ करें</string>
     <string name="metadata_orientation_transverse">ट्रांसवर्स</string>
     <string name="metadata_orientation_unknown">अज्ञात (%d)</string>
+    <string name="metadata_error_file_open">त्रुटि: छवि फ़ाइल नहीं खोल सका</string>
 
     
-    <string name="metadata_error_extraction">मेटाडेटा निष्कर्षण त्रुटि: %s</string>
-    <string name="metadata_error_basic_info">मूल जानकारी निष्कर्षण त्रुटि: %s</string>
-    <string name="metadata_error_file_open">त्रुटि: छवि फ़ाइल नहीं खोल सका</string>
-    <string name="metadata_error_image_metadata">छवि मेटाडेटा निष्कर्षण त्रुटि: %s</string>
-    <string name="metadata_error_video_metadata">वीडियो मेटाडेटा निष्कर्षण त्रुटि: %s</string>
+    <string name="settings_section_advanced_privacy">मेटाडेटा सफ़ाई</string>
+    <string name="settings_advanced_privacy_subtitle">Redact साफ़ करें टैब पर EXIF कैसे हटाता है। अन्य ऐप्स से साझा करने पर स्थान और कैमरा जानकारी हमेशा आगे भेजने से पहले हटा दी जाती है।</string>
+    <string name="settings_secure_delete">सुरक्षित हटाने के पास</string>
+    <string name="settings_secure_delete_subtitle">हटाने से पहले अस्थायी फ़ाइलें कितनी बार ओवरराइट होती हैं। अधिक पास धीमे लेकिन पुनर्प्राप्ति कठिन।</string>
+    <string name="settings_auto_clear_temp">शुरू पर कैश साफ़ करें</string>
+    <string name="settings_auto_clear_temp_subtitle">ऐप खोलने पर बची प्रसंस्करण फ़ाइलें हटाएँ।</string>
+    <string name="settings_preserve_camera">कैमरा सेटिंग्स रखें</string>
+    <string name="settings_preserve_camera_subtitle">साफ़ करें टैब पर एपर्चर, शटर स्पीड, ISO और कैमरा मेक/मॉडल रखें। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर अनदेखा।</string>
+    <string name="settings_preserve_location">स्थान रखें</string>
+    <string name="settings_preserve_location_subtitle">साफ़ करें टैब पर GPS निर्देशांक रखें। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर अनदेखा।</string>
+    <string name="settings_strict_clean">सख्त सफ़ाई</string>
+    <string name="settings_strict_clean_subtitle">ओरिएंटेशन सहित सभी मेटाडेटा हटाएँ। रखने के विकल्प बंद करता है और हमेशा वीडियो पूर्ण पुनः-एन्कोड करता है।</string>
     
-    <string name="permission_rationale_media">मीडिया फ़ाइलों को चुनने और संसाधित करने के लिए मीडिया एक्सेस की आवश्यकता है।</string>
-    <string name="permission_rationale_storage">मीडिया फ़ाइलों को चुनने और संसाधित करने के लिए स्टोरेज एक्सेस की आवश्यकता है।</string>
-    <string name="permission_rationale_location">मीडिया फ़ाइलों में भू-स्थान डेटा तक पहुंचने के लिए स्थान अनुमति की आवश्यकता है।</string>
-    <string name="permission_denied_retry">मीडिया फ़ाइलों का चयन करने के लिए अनुमति आवश्यक है।</string>
-    <string name="permission_location_retry">मीडिया फ़ाइलों में भू-स्थान डेटा तक पहुंचने के लिए स्थान अनुमति की आवश्यकता है।</string>
-    <string name="snackbar_action_retry">पुनः प्रयास करें</string>
+    <string name="settings_section_advanced_processing">बड़ी फ़ाइलें और मेमोरी</string>
+    <string name="settings_advanced_processing_subtitle">साफ़ और रूपांतरण के दौरान बहुत बड़ी छवियों की सीमाएँ। वीडियो सफ़ाई व्यवहार नहीं बदलता।</string>
+    <string name="settings_max_bitmap_size">अधिकतम प्रसंस्करण रिज़ॉल्यूशन</string>
+    <string name="settings_max_bitmap_size_subtitle">मेमोरी में छवियाँ डिकोड करते समय सबसे लंबी धार पिक्सेल में। कम मान कम RAM उपयोग करते हैं।</string>
+    <string name="settings_max_file_size">अधिकतम इनपुट फ़ाइल आकार</string>
+    <string name="settings_max_file_size_subtitle">मेमोरी त्रुटियों से बचने के लिए इस आकार से बड़ी छवियाँ छोड़ें या डाउनस्केल करें।</string>
+    <string name="settings_video_fallback">तेज़ वीडियो सफ़ाई</string>
+    <string name="settings_video_fallback_subtitle">जब आउटपुट पहले से MP4-संगत हो तो त्वरित रीमक्स के बाद पूर्ण पुनः एन्कोडिंग छोड़ें। समय और बैटरी बचाता है; पूर्ण ट्रांसकोड अधिक मेटाडेटा हटाता है। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर बंद।</string>
+
+    <string-array name="settings_secure_delete_labels">
+        <item>1 पास (तेज़)</item>
+        <item>3 पास (सुरक्षित)</item>
+        <item>7 पास (अति-सुरक्षित)</item>
+    </string-array>
+
+    <string-array name="settings_max_bitmap_size_labels">
+        <item>2048px (कम RAM)</item>
+        <item>4096px (मानक)</item>
+        <item>8192px (उच्च प्रदर्शन)</item>
+    </string-array>
+
+    <string-array name="settings_max_file_size_labels">
+        <item>50 MB</item>
+        <item>100 MB</item>
+        <item>200 MB</item>
+    </string-array>
     <string name="scan_metadata_subtitle">इस फ़ाइल से पता लगाए गए फ़ील्ड। कॉपी करने के लिए मानों को दबाकर रखें।</string>
-    <string name="scan_open_in_maps">Google Maps में खोलें</string>
-    <string name="scan_maps_unavailable">इस स्थान को खोलने के लिए कोई मैप ऐप नहीं मिला।</string>
-    <string name="scan_search_camera">कैमरा खोजें</string>
-    <string name="scan_search_unavailable">इस खोज को चलाने के लिए कोई ब्राउज़र नहीं मिला।</string>
 
     
     <string name="navigation_settings">सेटिंग्स</string>
     <string name="settings_section_notifications">सूचनाएं</string>
-    <string name="settings_notifications_label">सभी सूचनाएं</string>
-    <string name="settings_notifications_subtitle">बैकग्राउंड में ऑपरेशन पूरा होने पर Redact को अलर्ट भेजने दें।</string>
-    <string name="settings_notifications_clean_label">मेटाडेटा सफाई</string>
-    <string name="settings_notifications_clean_subtitle">EXIF और मेटाडेटा हटने पर मुझे सूचित करें।</string>
-    <string name="settings_notifications_convert_label">प्रारूप रूपांतरण</string>
-    <string name="settings_notifications_convert_subtitle">वीडियो या चित्र रूपांतरण पूरा होने पर मुझे सूचित करें।</string>
-    <string name="settings_section_privacy">गोपनीयता</string>
-    <string name="settings_crash_reporting_label">Redact को बेहतर बनाएं</string>
-    <string name="settings_crash_reporting_subtitle">वैकल्पिक रूप से इंटरनेट पर अनाम क्रैश रिपोर्ट भेजता है (Sentry)। आपकी तस्वीरें और वीडियो कभी अपलोड नहीं होते - केवल तकनीकी निदान। कभी भी बंद कर सकते हैं।</string>
-    <string name="settings_section_conversion">रूपांतरण डिफ़ॉल्ट सेटिंग</string>
-    <string name="settings_conversion_subtitle">बदलें टैब पर फ़ाइलें चुनने पर लागू होता है।</string>
+    <string name="settings_section_notifications_subtitle">कार्य समाप्त होने पर अलर्ट और साफ़/रूपांतरण के दौरान वैकल्पिक लाइव प्रगति।</string>
+    <string name="settings_notifications_label">सूचनाएँ अनुमत करें</string>
+    <string name="settings_notifications_subtitle">सभी Redact अलर्ट के लिए मास्टर स्विच। डिफ़ॉल्ट बंद; चालू करने पर Android अनुमति माँग सकता है।</string>
+    <string name="settings_notifications_clean_label">सफ़ाई पूर्ण</string>
+    <string name="settings_notifications_clean_subtitle">साफ़ टैब पर मेटाडेटा हटाना पूरा होने पर अलर्ट।</string>
+    <string name="settings_notifications_convert_label">रूपांतरण पूर्ण</string>
+    <string name="settings_notifications_convert_subtitle">रूपांतरित टैब पर प्रारूप रूपांतरण पूरा होने पर अलर्ट।</string>
+    <string name="settings_section_diagnostics">निदान और प्रतिक्रिया</string>
+    <string name="settings_section_diagnostics_subtitle">क्रैश ठीक करने के लिए वैकल्पिक रिपोर्ट। आपका मीडिया कभी डिवाइस से बाहर नहीं जाता।</string>
+    <string name="settings_crash_reporting_label">क्रैश रिपोर्ट भेजें</string>
+    <string name="settings_crash_reporting_subtitle">केवल अनाम निदान (ऐप संस्करण, डिवाइस मॉडल, स्टैक ट्रेस)। आपकी पुष्टि के बाद नेटवर्क एक्सेस आवश्यक। फ़ोटो और वीडियो कभी अपलोड नहीं होते।</string>
+    <string name="settings_section_conversion">रूपांतरित टैब डिफ़ॉल्ट</string>
+    <string name="settings_conversion_subtitle">रूपांतरित पर फ़ाइलें चुनते समय पूर्व-चयनित प्रारूप। प्रत्येक बैच के लिए बदल सकते हैं।</string>
     <string name="settings_default_image_format">डिफ़ॉल्ट छवि प्रारूप</string>
     <string name="settings_default_video_format">डिफ़ॉल्ट वीडियो कोडेक</string>
     <string name="settings_image_quality">छवि गुणवत्ता</string>
     <string name="settings_quality_high">उच्च</string>
     <string name="settings_quality_balanced">संतुलित</string>
     <string name="settings_quality_smaller">छोटी फ़ाइल</string>
-    <string name="settings_quality_subtitle">JPEG, WebP और HEIC आउटपुट पर प्रभाव। PNG बिना हानि रहता है।</string>
-    <string name="settings_section_share">शेयर लक्ष्य</string>
-    <string name="settings_share_confirm_label">मेटाडेटा हटाने से पहले पूछें</string>
-    <string name="settings_share_confirm_subtitle">Redact में शेयर करते समय, मेटाडेटा हटाने से पहले पुष्टि दिखाएं।</string>
+    <string name="settings_quality_subtitle">JPEG, WebP और HEIC पर लागू। PNG निर्यात लॉसलेस रहता है।</string>
+    <string name="settings_section_share_subtitle">जब कोई अन्य ऐप Redact को फ़ोटो या वीडियो भेजता है।</string>
+
+    <string name="settings_section_share">Redact में साझा करना</string>
+    <string name="settings_share_confirm_label">मेटाडेटा हटाने से पहले पुष्टि करें</string>
+    <string name="settings_share_confirm_subtitle">साझा फ़ाइलों से EXIF और अन्य मेटाडेटा हटाने से पहले संकेत दिखाएँ।</string>
     <string name="settings_share_confirm_dialog_title">मेटाडेटा हटाएं?</string>
     <string name="settings_share_confirm_dialog_message">Redact शेयर की गई फ़ाइलों से EXIF और अन्य मेटाडेटा हटाकर आगे शेयर करेगा।</string>
     <string name="settings_share_confirm_dialog_confirm">हटाएँ और जारी रखें</string>
     <string name="settings_share_confirm_dialog_cancel">रद्द करें</string>
     <string name="settings_section_permissions">अनुमतियाँ</string>
-    <string name="settings_permissions_subtitle">यदि किसी सुविधा को ज़रूरत हो तो Android सिस्टम सेटिंग में अनुमतियाँ दें।</string>
-    <string name="settings_permissions_media">मीडिया एक्सेस</string>
-    <string name="settings_permissions_notifications">सूचनाएँ</string>
+    <string name="settings_permissions_subtitle">Redact को साफ़, रूपांतरित और स्कैन के लिए मीडिया एक्सेस चाहिए। सूचनाएँ वैकल्पिक हैं और केवल कार्य अलर्ट के लिए।</string>
+    <string name="settings_permissions_media">फ़ोटो और वीडियो</string>
+    <string name="settings_permissions_notifications">सूचनाएँ (वैकल्पिक)</string>
     <string name="settings_permission_granted">दी गई</string>
     <string name="settings_permission_denied">अस्वीकृत</string>
     <string name="settings_permission_not_required">आवश्यक नहीं</string>
     <string name="settings_open_system_settings">सिस्टम सेटिंग खोलें</string>
-    <string name="settings_section_storage">संग्रहण</string>
-    <string name="settings_storage_size">अस्थायी फ़ाइलें: %1$s</string>
-    <string name="settings_storage_subtitle">सफ़ाई या शेयर करते समय उपयोग होने वाला प्रोसेसिंग कैश।</string>
+    <string name="settings_section_storage">संग्रहण और कैश</string>
+    <string name="settings_storage_size">उपयोग में कैश: %1$s</string>
+    <string name="settings_storage_subtitle">प्रसंस्करण के दौरान बनाई गई कार्य प्रतियाँ। आपकी गैलरी मूल कभी संशोधित नहीं होते।</string>
     <string name="settings_storage_clear">अस्थायी फ़ाइलें साफ़ करें</string>
     <string name="settings_storage_clear_confirm_title">अस्थायी फ़ाइलें साफ़ करें?</string>
     <string name="settings_storage_clear_confirm_message">हाल की प्रोसेसिंग की कैश प्रतियाँ हटाता है। आपकी गैलरी फ़ाइलें प्रभावित नहीं होतीं।</string>
@@ -218,14 +241,67 @@
     <string name="settings_about_privacy">गोपनीयता नीति</string>
     <string name="settings_about_report_issue">समस्या रिपोर्ट करें</string>
     <string name="settings_link_unavailable">इस लिंक को खोलने के लिए कोई ऐप नहीं मिला।</string>
-    <string name="settings_progress_notifications_label">सूचना शेड में प्रगति दिखाएँ</string>
-    <string name="settings_progress_notifications_subtitle">रूपांतरण या सफ़ाई के दौरान लाइव प्रगति। पूर्णता अलर्ट अपरिवर्तित।</string>
+    <string name="settings_progress_notifications_label">चल रहे कार्य की प्रगति</string>
+    <string name="settings_progress_notifications_subtitle">लंबी साफ़ या रूपांतरण नौकरियों के दौरान प्रगति के साथ स्थायी सूचना।</string>
     <string name="settings_crash_reporting_learn_more">क्या साझा होता है?</string>
     <string name="settings_crash_reporting_detail_title">क्रैश रिपोर्टिंग विवरण</string>
-    <string name="settings_crash_reporting_detail_message">जब Redact को बेहतर बनाएं चालू हो, Sentry के माध्यम से अनाम निदान भेजे जा सकते हैं:\n\n• डिवाइस मॉडल और Android संस्करण\n• ऐप संस्करण\n• स्टैक ट्रेस और त्रुटि प्रकार\n• स्क्रब किए गए निदान टैग (जैसे प्रोसेसिंग सफल या नहीं)\n\nआपकी तस्वीरें और वीडियो कभी अपलोड नहीं होते। URI, फ़ाइल नाम और GPS निर्देशांक अपलोड से पहले हटाए जाते हैं।</string>
+    <string name="settings_crash_reporting_detail_message">जब क्रैश रिपोर्ट भेजें चालू है, Sentry के माध्यम से अनाम निदान भेजा जा सकता है:
+
+• डिवाइस मॉडल और Android संस्करण
+• ऐप संस्करण
+• स्टैक ट्रेस और त्रुटि प्रकार
+• स्क्रब किए गए निदान टैग
+
+आपकी फ़ोटो और वीडियो कभी अपलोड नहीं होते। URI, फ़ाइल नाम और GPS निर्देशांक अपलोड से पहले हटाए जाते हैं।</string>
     <string name="settings_crash_reporting_privacy_policy">गोपनीयता नीति</string>
     <string name="settings_crash_reporting_dismiss">बंद करें</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
+    <string name="button_cancel">रद्द करें</string>
+    <string name="clean_selected_count">चयनित: %1$d फ़ाइल(ें)</string>
+    <string name="clean_status_ready">साफ़ करने के लिए मीडिया चुनने के लिए तैयार।</string>
+    <string name="convert_codec_fallback">%1$s उपलब्ध नहीं; इसके बजाय %2$s के रूप में सहेजा गया।</string>
+    <string name="metadata_error_basic_info_generic">मूल फ़ाइल जानकारी पढ़ नहीं सकी।</string>
+    <string name="metadata_error_image_generic">छवि मेटाडेटा पढ़ नहीं सका।</string>
+    <string name="metadata_error_video_generic">वीडियो मेटाडेटा पढ़ नहीं सका।</string>
+    <string name="notification_clean_partial">%1$d साफ़, %2$d विफल।</string>
+    <string name="notification_progress_percent">%1$d%% पूर्ण</string>
+    <string name="scan_clean_this_file">इस फ़ाइल को साफ़ करें</string>
+    <string name="scan_convert_this_file">इस फ़ाइल को कनवर्ट करें</string>
+    <string name="scan_copied_to_clipboard">क्लिपबोर्ड पर कॉपी किया गया</string>
+    <string name="scan_copy_all_metadata">सभी मेटाडेटा कॉपी करें</string>
+    <string name="scan_copy_camera">कैमरा जानकारी कॉपी करें</string>
+    <string name="scan_copy_coordinates">निर्देशांक कॉपी करें</string>
+    <string name="settings_network_grant_crash_hint">नेटवर्क एक्सेस चालू है। त्रुटि रिपोर्टिंग चाहिए तो \'क्रैश रिपोर्ट भेजें\' अलग से चालू करें।</string>
+    <string name="settings_external_link_disclaimer">यह ब्राउज़र खोलता है और नेटवर्क का उपयोग करता है। Redact को इन-ऐप सुविधाओं के लिए नेटवर्क एक्सेस नहीं मिला है।</string>
+    <string name="settings_external_link_continue">लिंक खोलें</string>
+    <string name="settings_network_access_grant">नेटवर्क एक्सेस दें</string>
+    <string name="settings_network_access_revoke">नेटवर्क एक्सेस रद्द करें</string>
+    <string name="settings_network_consent_allow">नेटवर्क एक्सेस की अनुमति दें</string>
+    <string name="settings_network_consent_cancel">अभी नहीं</string>
+    <string name="settings_network_consent_crash_title">नेटवर्क पर क्रैश रिपोर्टिंग की अनुमति दें?</string>
+    <string name="settings_network_consent_crash_message">क्रैश रिपोर्ट भेजें Sentry पर इंटरनेट के माध्यम से अनाम निदान अपलोड करता है। Redact तब तक नेटवर्क का उपयोग नहीं करता जब तक आप अनुमति न दें।
+
+कोई फ़ोटो, वीडियो, फ़ाइल नाम या GPS निर्देशांक अपलोड नहीं होते।</string>
+    <string name="settings_network_consent_general_title">नेटवर्क एक्सेस की अनुमति दें?</string>
+    <string name="settings_network_consent_general_message">Redact तब तक नेटवर्क का उपयोग नहीं करता जब तक आप यहाँ अनुमति न दें। नेटवर्क एक्सेस केवल तब उपयोग होता है जब आप क्रैश रिपोर्ट भेजें चालू करते हैं।
+
+कोई फ़ोटो, वीडियो, फ़ाइल नाम या GPS निर्देशांक अपलोड नहीं होते।</string>
+    <string name="settings_network_revoke_confirm">रद्द करें</string>
+    <string name="settings_network_revoke_confirm_message">यह क्रैश रिपोर्ट भेजें बंद कर देगा। Redact तब तक नेटवर्क का उपयोग नहीं करेगा जब तक आप फिर से एक्सेस न दें।</string>
+    <string name="settings_network_revoke_confirm_title">नेटवर्क एक्सेस रद्द करें?</string>
+    <string name="settings_permissions_location">फ़ोटो स्थान</string>
+    <string name="settings_permissions_network">नेटवर्क एक्सेस (वैकल्पिक)</string>
+    <string name="settings_storage_clear_busy">प्रसंस्करण चल रहा होने पर साफ़ नहीं किया जा सकता।</string>
+    <string name="share_error_failed_get_cleaned_file">साफ़ की गई फ़ाइल साझा करने के लिए तैयार नहीं की जा सकी।</string>
+    <string name="share_error_failed_get_cleaned_files">साफ़ की गई फ़ाइलें साझा करने के लिए तैयार नहीं की जा सकीं।</string>
+    <string name="share_error_failed_receive_media">साझा किया गया मीडिया प्राप्त नहीं हो सका।</string>
+    <string name="share_error_generic">कुछ गलत हो गया। कृपया पुनः प्रयास करें।</string>
+    <string name="share_error_processing_failed">साझा फ़ाइल(ों) से मेटाडेटा हटाया नहीं जा सका।</string>
+    <string name="status_already_processing">एक बैच पहले से चल रहा है। कृपया समाप्त होने की प्रतीक्षा करें।</string>
+    <string name="status_clean_done_all">%1$d फ़ाइल(ें) सफलतापूर्वक साफ़ की गईं।</string>
+    <string name="status_clean_done_failed">सफ़ाई विफल।</string>
+    <string name="status_clean_done_partial">पूर्ण: %1$d साफ़, %2$d विफल।</string>
+    <string name="status_processing_cancelled">प्रसंस्करण रद्द किया गया।</string>
 </resources>

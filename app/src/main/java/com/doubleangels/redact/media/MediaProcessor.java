@@ -11,6 +11,8 @@ import com.doubleangels.redact.metadata.MetadataStripper;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.sentry.ISpan;
@@ -42,6 +44,8 @@ public class MediaProcessor {
     /** Flag to allow cancellation of ongoing processing */
     private final AtomicBoolean cancelled = new AtomicBoolean(false);
 
+    private final ExecutorService processingExecutor = Executors.newSingleThreadExecutor();
+
     /**
      * Callback interface for reporting processing progress and completion.
      * Implementations should handle updating the UI accordingly.
@@ -58,9 +62,20 @@ public class MediaProcessor {
         /**
          * Called when all processing has completed.
          *
-         * @param processedCount The number of items successfully processed
+         * @param successCount Items successfully processed
+         * @param totalCount   Items in the batch (including failures)
          */
-        void onComplete(int processedCount);
+        void onComplete(int successCount, int totalCount);
+
+        /**
+         * Called when the user or lifecycle cancelled the batch before it finished.
+         */
+        default void onCancelled(int successCount, int totalCount) {}
+
+        /**
+         * Called when a batch is already running and a second start was ignored.
+         */
+        default void onAlreadyProcessing() {}
     }
 
     /**
@@ -78,6 +93,14 @@ public class MediaProcessor {
      */
     public void cancel() {
         cancelled.set(true);
+        metadataStripper.requestCancellation();
+        VideoMedia3Converter.cancelActiveTranscode();
+    }
+
+    /** Stops the background worker; safe to call when the owner is destroyed. */
+    public void shutdown() {
+        cancel();
+        processingExecutor.shutdownNow();
     }
 
     /**
@@ -100,22 +123,26 @@ public class MediaProcessor {
      * @param callback The callback to report progress and completion
      */
     public void processMediaItems(List<MediaItem> items, ProcessingCallback callback) {
+        Handler mainHandler = new Handler(Looper.getMainLooper());
         if (items == null || items.isEmpty()) {
+            mainHandler.post(() -> callback.onComplete(0, 0));
             return;
         }
         if (!processing.compareAndSet(false, true)) {
+            mainHandler.post(callback::onAlreadyProcessing);
             return;
         }
-        new Thread(() -> {
+        cancelled.set(false);
+        metadataStripper.resetCancellation();
+        processingExecutor.execute(() -> {
             ITransaction transaction = SentryManager.startTransaction("clean_multiple", "task");
             int successCount = 0;
+            final int totalItems = items.size();
             try {
-                int totalItems = items.size();
-
-                Handler mainHandler = new Handler(Looper.getMainLooper());
                 for (int index = 0; index < totalItems; index++) {
                     if (cancelled.get()) {
                         Log.i(TAG, "Processing cancelled by user or lifecycle");
+                        VideoMedia3Converter.cancelActiveTranscode();
                         break;
                     }
                     MediaItem item = items.get(index);
@@ -133,10 +160,7 @@ public class MediaProcessor {
                         metadataStripper.setProgressCallback(
                                 (percentOfCurrentItem, message) -> {
                                     if (cancelled.get()) return;
-                                    int overall =
-                                            totalItems > 0
-                                                    ? (itemIndex * 100 + percentOfCurrentItem) / totalItems
-                                                    : 0;
+                                    int overall = (itemIndex * 100 + percentOfCurrentItem) / totalItems;
                                     String combined = batchLine + "\n" + message;
                                     progressThrottler.maybeRun(
                                             () ->
@@ -151,9 +175,7 @@ public class MediaProcessor {
                                         mainHandler.post(
                                                 () ->
                                                         callback.onProgress(
-                                                                totalItems > 0
-                                                                        ? (itemIndex * 100) / totalItems
-                                                                        : 0,
+                                                                (itemIndex * 100) / totalItems,
                                                                 batchLine)));
 
                         Uri processedUri;
@@ -170,12 +192,12 @@ public class MediaProcessor {
                             successCount++;
                             span.setStatus(SpanStatus.OK);
                         } else {
-                            Log.e(TAG, "Failed to process item: " + item.fileName());
+                            Log.e(TAG, "Failed to process item at index " + index);
                             span.setStatus(SpanStatus.INTERNAL_ERROR);
                         }
                     } catch (Exception e) {
                         metadataStripper.setProgressCallback(null);
-                        Log.e(TAG, "Error processing item: " + item.fileName(), e);
+                        Log.e(TAG, "Error processing item at index " + index, e);
                         SentryManager.recordException(e);
                         span.setStatus(SpanStatus.INTERNAL_ERROR);
                     } finally {
@@ -187,11 +209,19 @@ public class MediaProcessor {
                 SentryManager.recordException(e);
             } finally {
                 final int finalSuccessCount = successCount;
-                new Handler(Looper.getMainLooper()).post(() -> callback.onComplete(finalSuccessCount));
+                final int finalTotal = totalItems;
+                final boolean wasCancelled = cancelled.get();
+                mainHandler.post(() -> {
+                    if (wasCancelled) {
+                        callback.onCancelled(finalSuccessCount, finalTotal);
+                    } else {
+                        callback.onComplete(finalSuccessCount, finalTotal);
+                    }
+                });
                 processing.set(false);
                 cancelled.set(false);
                 transaction.finish();
             }
-        }).start();
+        });
     }
 }

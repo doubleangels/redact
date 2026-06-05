@@ -29,6 +29,7 @@ public final class AppPreferences {
     private static final String KEY_PRESERVE_LOCATION = "preserve_location";
     private static final String KEY_STRICT_CLEAN = "strict_clean";
     private static final String KEY_VIDEO_FALLBACK_COPY = "video_fallback_copy";
+    private static final String KEY_NETWORK_ACCESS_CONFIRMED = "network_access_confirmed";
 
     /** High quality — matches legacy defaults. */
     public static final int QUALITY_PRESET_HIGH = 0;
@@ -157,11 +158,16 @@ public final class AppPreferences {
     }
 
     public static void setSecureDeletePasses(@NonNull Context context, int passes) {
-        prefs(context).edit().putInt(KEY_SECURE_DELETE_PASSES, passes).apply();
+        int clamped = switch (passes) {
+            case 1 -> 1;
+            case 7 -> 7;
+            default -> 3;
+        };
+        prefs(context).edit().putInt(KEY_SECURE_DELETE_PASSES, clamped).apply();
     }
 
     public static boolean isAutoClearTempFiles(@NonNull Context context) {
-        return prefs(context).getBoolean(KEY_AUTO_CLEAR_TEMP_FILES, false);
+        return prefs(context).getBoolean(KEY_AUTO_CLEAR_TEMP_FILES, true);
     }
 
     public static void setAutoClearTempFiles(@NonNull Context context, boolean enabled) {
@@ -183,13 +189,18 @@ public final class AppPreferences {
                 }
             }
         } catch (Exception e) {
-            // Ignore and use default
+            com.doubleangels.redact.sentry.SentryManager.recordException(e);
         }
         return prefs(context).getInt(KEY_MAX_BITMAP_SIZE, defaultSize);
     }
 
     public static void setMaxBitmapSize(@NonNull Context context, int size) {
-        prefs(context).edit().putInt(KEY_MAX_BITMAP_SIZE, size).apply();
+        int clamped = switch (size) {
+            case 2048 -> 2048;
+            case 8192 -> 8192;
+            default -> 4096;
+        };
+        prefs(context).edit().putInt(KEY_MAX_BITMAP_SIZE, clamped).apply();
     }
 
     public static int getMaxImageFileSizeMb(@NonNull Context context) {
@@ -197,7 +208,12 @@ public final class AppPreferences {
     }
 
     public static void setMaxImageFileSizeMb(@NonNull Context context, int size) {
-        prefs(context).edit().putInt(KEY_MAX_IMAGE_FILE_SIZE_MB, size).apply();
+        int clamped = switch (size) {
+            case 50 -> 50;
+            case 200 -> 200;
+            default -> 100;
+        };
+        prefs(context).edit().putInt(KEY_MAX_IMAGE_FILE_SIZE_MB, clamped).apply();
     }
 
     public static boolean isPreserveCameraSettings(@NonNull Context context) {
@@ -217,7 +233,7 @@ public final class AppPreferences {
     }
 
     public static boolean isStrictClean(@NonNull Context context) {
-        return prefs(context).getBoolean(KEY_STRICT_CLEAN, false);
+        return prefs(context).getBoolean(KEY_STRICT_CLEAN, true);
     }
 
     public static void setStrictClean(@NonNull Context context, boolean enabled) {
@@ -225,10 +241,18 @@ public final class AppPreferences {
     }
 
     public static boolean isVideoFallbackCopy(@NonNull Context context) {
-        return prefs(context).getBoolean(KEY_VIDEO_FALLBACK_COPY, true);
+        return prefs(context).getBoolean(KEY_VIDEO_FALLBACK_COPY, false);
     }
 
     public static void setVideoFallbackCopy(@NonNull Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_VIDEO_FALLBACK_COPY, enabled).apply();
+    }
+
+    public static boolean isNetworkAccessConfirmed(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_NETWORK_ACCESS_CONFIRMED, false);
+    }
+
+    public static void setNetworkAccessConfirmed(@NonNull Context context, boolean confirmed) {
+        prefs(context).edit().putBoolean(KEY_NETWORK_ACCESS_CONFIRMED, confirmed).apply();
     }
 }

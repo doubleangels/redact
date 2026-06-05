@@ -62,7 +62,6 @@
 
     
     <string name="status_processing">جاري المعالجة…</string>
-    <string name="status_processed_items">تمت معالجة %1$d عنصر.</string>
     <string name="status_first_select_media_files">يرجى تحديد ملفات الوسائط أولاً.</string>
     <string name="status_permissions_required">الأذونات مطلوبة.</string>
     <string name="status_requesting_permissions">جاري طلب الأذونات…</string>
@@ -73,7 +72,6 @@
     <string name="status_extracting_media">جاري استخراج بيانات الفيديو الوصفية…</string>
     <string name="status_extracting_image">جاري استخراج بيانات الصورة الوصفية…</string>
     <string name="status_media_picker_fail">خطأ في فتح منتقي الوسائط.</string>
-    <string name="status_media_uri_fail">تعذر الحصول على URI الوسائط.</string>
     <string name="status_storage_permissions_required">أذونات التخزين مطلوبة.</string>
 
     
@@ -84,7 +82,6 @@
 
     
     <string name="scan_metadata">البيانات الوصفية</string>
-    <string name="scan_location_information">معلومات الموقع</string>
     <string name="scan_location_permission_missing">قد تكون بيانات الموقع متاحة إذا منحت إذن الموقع.</string>
     <string name="scan_extraction_fail">فشل استخراج البيانات الوصفية.</string>
 
@@ -113,8 +110,6 @@
     <string name="metadata_exposure_time_seconds">وقت التعرض: %.5f ثانية</string>
     <string name="metadata_latitude">خط العرض: %.15f</string>
     <string name="metadata_longitude">خط الطول: %.15f</string>
-    <string name="metadata_address">العنوان: %s</string>
-    <string name="metadata_geocoding_failed">فشل الترميز الجغرافي: %s</string>
     <string name="metadata_no_location_data">لا توجد بيانات موقع متاحة.</string>
     <string name="metadata_location_permission_needed">لم يتم منح إذن الموقع. امنح الإذن لعرض بيانات الموقع.</string>
     <string name="metadata_orientation">الاتجاه: %s</string>
@@ -147,65 +142,93 @@
     <string name="metadata_orientation_transpose">نقل</string>
     <string name="metadata_orientation_transverse">عرضي</string>
     <string name="metadata_orientation_unknown">غير معروف (%d)</string>
+    <string name="metadata_error_file_open">خطأ: تعذر فتح ملف الصورة</string>
 
     
-    <string name="metadata_error_extraction">خطأ في استخراج البيانات الوصفية: %s</string>
-    <string name="metadata_error_basic_info">خطأ في استخراج المعلومات الأساسية: %s</string>
-    <string name="metadata_error_file_open">خطأ: تعذر فتح ملف الصورة</string>
-    <string name="metadata_error_image_metadata">خطأ في استخراج بيانات الصورة الوصفية: %s</string>
-    <string name="metadata_error_video_metadata">خطأ في استخراج بيانات الفيديو الوصفية: %s</string>
+    <string name="settings_section_advanced_privacy">تنظيف البيانات الوصفية</string>
+    <string name="settings_advanced_privacy_subtitle">كيف يزيل Redact بيانات EXIF في تبويب التنظيف. المشاركة من تطبيقات أخرى تزيل دائماً الموقع ومعلومات الكاميرا قبل الإرسال.</string>
+    <string name="settings_secure_delete">مرات الحذف الآمن</string>
+    <string name="settings_secure_delete_subtitle">عدد مرات الكتابة فوق الملفات المؤقتة قبل الحذف. المزيد أبطأ وأصعب استرداداً.</string>
+    <string name="settings_auto_clear_temp">مسح الذاكرة عند البدء</string>
+    <string name="settings_auto_clear_temp_subtitle">حذف ملفات المعالجة المتبقية في كل مرة تفتح التطبيق.</string>
+    <string name="settings_preserve_camera">الاحتفاظ بإعدادات الكاميرا</string>
+    <string name="settings_preserve_camera_subtitle">الاحتفاظ بالفتحة وسرعة الغالق وISO وماركة/طراز الكاميرا في تبويب التنظيف. يُتجاهل عند التنظيف الصارم أو عند المشاركة من تطبيقات أخرى.</string>
+    <string name="settings_preserve_location">الاحتفاظ بالموقع</string>
+    <string name="settings_preserve_location_subtitle">الاحتفاظ بإحداثيات GPS في تبويب التنظيف. يُتجاهل عند التنظيف الصارم أو عند المشاركة من تطبيقات أخرى.</string>
+    <string name="settings_strict_clean">التنظيف الصارم</string>
+    <string name="settings_strict_clean_subtitle">إزالة كل البيانات الوصفية بما فيها الاتجاه. يعطّل خيارات الاحتفاظ ويعيد ترميز الفيديو بالكامل دائماً.</string>
     
-    <string name="permission_rationale_media">مطلوب الوصول للوسائط لتحديد الملفات ومعالجتها.</string>
-    <string name="permission_rationale_storage">مطلوب الوصول للتخزين لتحديد الملفات ومعالجتها.</string>
-    <string name="permission_rationale_location">مطلوب إذن الموقع للوصول إلى بيانات تحديد الموقع في ملفات الوسائط.</string>
-    <string name="permission_denied_retry">الأذونات مطلوبة لتحديد ملفات الوسائط.</string>
-    <string name="permission_location_retry">مطلوب إذن الموقع للوصول إلى بيانات تحديد الموقع في ملفات الوسائط.</string>
-    <string name="snackbar_action_retry">إعادة المحاولة</string>
+    <string name="settings_section_advanced_processing">الملفات الكبيرة والذاكرة</string>
+    <string name="settings_advanced_processing_subtitle">حدود الصور الكبيرة جداً أثناء التنظيف والتحويل. لا يغيّر تنظيف الفيديو.</string>
+    <string name="settings_max_bitmap_size">أقصى دقة معالجة</string>
+    <string name="settings_max_bitmap_size_subtitle">أطول حافة بالبكسل عند فك الصور في الذاكرة. القيم الأقل تستخدم ذاكرة أقل.</string>
+    <string name="settings_max_file_size">أقصى حجم ملف إدخال</string>
+    <string name="settings_max_file_size_subtitle">تخطّي أو تصغير الصور فوق هذا الحجم لتجنب نفاد الذاكرة.</string>
+    <string name="settings_video_fallback">تنظيف فيديو أسرع</string>
+    <string name="settings_video_fallback_subtitle">تخطي إعادة الترميز الكامل بعد إعادة التغليف السريعة عندما يكون الإخراج متوافقاً مع MP4. يوفر الوقت والبطارية؛ الترميز الكامل يزيل المزيد من البيانات الوصفية. متوقف عند التنظيف الصارم أو عند المشاركة من تطبيقات أخرى.</string>
+
+    <string-array name="settings_secure_delete_labels">
+        <item>مرة واحدة (سريع)</item>
+        <item>3 مرات (آمن)</item>
+        <item>7 مرات (فائق الأمان)</item>
+    </string-array>
+
+    <string-array name="settings_max_bitmap_size_labels">
+        <item>2048 بكسل (ذاكرة منخفضة)</item>
+        <item>4096 بكسل (قياسي)</item>
+        <item>8192 بكسل (أداء عالٍ)</item>
+    </string-array>
+
+    <string-array name="settings_max_file_size_labels">
+        <item>50 ميجابايت</item>
+        <item>100 ميجابايت</item>
+        <item>200 ميجابايت</item>
+    </string-array>
     <string name="scan_metadata_subtitle">الحقول المكتشفة من هذا الملف. اضغط مع الاستمرار على القيم لنسخها.</string>
-    <string name="scan_open_in_maps">فتح في خرائط جوجل</string>
-    <string name="scan_maps_unavailable">لم يتم العثور على تطبيق خرائط لفتح هذا الموقع.</string>
-    <string name="scan_search_camera">البحث عن الكاميرا</string>
-    <string name="scan_search_unavailable">لم يتم العثور على متصفح لإجراء هذا البحث.</string>
 
     
     <string name="navigation_settings">الإعدادات</string>
     <string name="settings_section_notifications">الإشعارات</string>
-    <string name="settings_notifications_label">كل الإشعارات</string>
-    <string name="settings_notifications_subtitle">السماح لـ Redact بإرسال تنبيهات عندما تنتهي العمليات في الخلفية.</string>
-    <string name="settings_notifications_clean_label">تنظيف البيانات الوصفية</string>
-    <string name="settings_notifications_clean_subtitle">أعلمني عند اكتمال إزالة بيانات EXIF والبيانات الوصفية.</string>
-    <string name="settings_notifications_convert_label">تحويل التنسيق</string>
-    <string name="settings_notifications_convert_subtitle">أعلمني عند اكتمال تحويل ملف الفيديو أو الصورة.</string>
-    <string name="settings_section_privacy">الخصوصية</string>
-    <string name="settings_crash_reporting_label">تحسين Redact</string>
-    <string name="settings_crash_reporting_subtitle">يرسل اختياريا تقارير أعطال مجهولة عبر الإنترنت (Sentry). لا يتم تحميل صورك أو مقاطع الفيديو - فقط بيانات تشخيص تقنية. يمكنك إيقافه في أي وقت.</string>
-    <string name="settings_section_conversion">إعدادات التحويل الافتراضية</string>
-    <string name="settings_conversion_subtitle">تُطبَّق عند اختيار الملفات في تبويب تحويل.</string>
+    <string name="settings_section_notifications_subtitle">تنبيهات عند انتهاء المهام وتقدم مباشر اختياري أثناء التنظيف أو التحويل.</string>
+    <string name="settings_notifications_label">السماح بالإشعارات</string>
+    <string name="settings_notifications_subtitle">المفتاح الرئيسي لجميع تنبيهات Redact. مغلق افتراضياً؛ قد يطلب Android الإذن عند التفعيل.</string>
+    <string name="settings_notifications_clean_label">اكتمل التنظيف</string>
+    <string name="settings_notifications_clean_subtitle">تنبيه عند اكتمال إزالة البيانات الوصفية في تبويب التنظيف.</string>
+    <string name="settings_notifications_convert_label">اكتمل التحويل</string>
+    <string name="settings_notifications_convert_subtitle">تنبيه عند اكتمال تحويل التنسيق في تبويب التحويل.</string>
+    <string name="settings_section_diagnostics">التشخيص والملاحظات</string>
+    <string name="settings_section_diagnostics_subtitle">تقارير اختيارية للمساعدة في إصلاح الأعطال. وسائطك لا تغادر الجهاز أبداً.</string>
+    <string name="settings_crash_reporting_label">إرسال تقارير الأعطال</string>
+    <string name="settings_crash_reporting_subtitle">تشخيصات مجهولة فقط (إصدار التطبيق، طراز الجهاز، تتبعات المكدس). يتطلب الوصول إلى الشبكة بعد تأكيدك. لا يتم تحميل الصور أو الفيديوهات أبداً.</string>
+    <string name="settings_section_conversion">افتراضيات تبويب التحويل</string>
+    <string name="settings_conversion_subtitle">التنسيقات المحددة مسبقاً عند اختيار الملفات في التحويل. يمكنك تغييرها لكل دفعة.</string>
     <string name="settings_default_image_format">تنسيق الصورة الافتراضي</string>
     <string name="settings_default_video_format">ترميز الفيديو الافتراضي</string>
     <string name="settings_image_quality">جودة الصورة</string>
     <string name="settings_quality_high">عالية</string>
     <string name="settings_quality_balanced">متوازنة</string>
     <string name="settings_quality_smaller">ملف أصغر</string>
-    <string name="settings_quality_subtitle">يؤثر على مخرجات JPEG وWebP وHEIC. يبقى PNG بدون فقد.</string>
-    <string name="settings_section_share">هدف المشاركة</string>
-    <string name="settings_share_confirm_label">السؤال قبل إزالة البيانات الوصفية</string>
-    <string name="settings_share_confirm_subtitle">عند المشاركة إلى Redact، اعرض تأكيدًا قبل إزالة البيانات الوصفية.</string>
+    <string name="settings_quality_subtitle">ينطبق على JPEG وWebP وHEIC. تصدير PNG يبقى بدون فقدان.</string>
+    <string name="settings_section_share_subtitle">عندما يرسل تطبيق آخر صوراً أو فيديوهات إلى Redact.</string>
+
+    <string name="settings_section_share">المشاركة إلى Redact</string>
+    <string name="settings_share_confirm_label">التأكيد قبل إزالة البيانات الوصفية</string>
+    <string name="settings_share_confirm_subtitle">عرض مطالبة قبل إزالة EXIF والبيانات الوصفية من الملفات المشتركة.</string>
     <string name="settings_share_confirm_dialog_title">إزالة البيانات الوصفية؟</string>
     <string name="settings_share_confirm_dialog_message">سيزيل Redact بيانات EXIF وغيرها من الملفات المشتركة قبل إعادة مشاركتها.</string>
     <string name="settings_share_confirm_dialog_confirm">إزالة ومتابعة</string>
     <string name="settings_share_confirm_dialog_cancel">إلغاء</string>
     <string name="settings_section_permissions">الأذونات</string>
-    <string name="settings_permissions_subtitle">امنح الأذونات في إعدادات نظام Android إذا احتاجت ميزة إليها.</string>
-    <string name="settings_permissions_media">الوصول إلى الوسائط</string>
-    <string name="settings_permissions_notifications">الإشعارات</string>
+    <string name="settings_permissions_subtitle">يحتاج Redact إلى الوصول للوسائط للتنظيف والتحويل والمسح. الإشعارات اختيارية ولتنبيهات المهام فقط.</string>
+    <string name="settings_permissions_media">الصور والفيديو</string>
+    <string name="settings_permissions_notifications">الإشعارات (اختياري)</string>
     <string name="settings_permission_granted">ممنوح</string>
     <string name="settings_permission_denied">مرفوض</string>
     <string name="settings_permission_not_required">غير مطلوب</string>
     <string name="settings_open_system_settings">فتح إعدادات النظام</string>
-    <string name="settings_section_storage">التخزين</string>
-    <string name="settings_storage_size">الملفات المؤقتة: %1$s</string>
-    <string name="settings_storage_subtitle">ذاكرة تخزين مؤقت للمعالجة أثناء التنظيف أو المشاركة.</string>
+    <string name="settings_section_storage">التخزين والذاكرة المؤقتة</string>
+    <string name="settings_storage_size">الذاكرة المؤقتة المستخدمة: %1$s</string>
+    <string name="settings_storage_subtitle">نسخ عمل تُنشأ أثناء المعالجة. ملفات المعرض الأصلية لا تُعدّل أبداً.</string>
     <string name="settings_storage_clear">مسح الملفات المؤقتة</string>
     <string name="settings_storage_clear_confirm_title">مسح الملفات المؤقتة؟</string>
     <string name="settings_storage_clear_confirm_message">يزيل النسخ المخزنة مؤقتًا من المعالجة الأخيرة. ملفات المعرض غير متأثرة.</string>
@@ -218,14 +241,67 @@
     <string name="settings_about_privacy">سياسة الخصوصية</string>
     <string name="settings_about_report_issue">الإبلاغ عن مشكلة</string>
     <string name="settings_link_unavailable">لم يُعثر على تطبيق لفتح هذا الرابط.</string>
-    <string name="settings_progress_notifications_label">إظهار التقدم في لوحة الإشعارات</string>
-    <string name="settings_progress_notifications_subtitle">تقدم مباشر أثناء التحويل أو التنظيف. تنبيهات الإكمال دون تغيير.</string>
+    <string name="settings_progress_notifications_label">تقدم المهمة الجارية</string>
+    <string name="settings_progress_notifications_subtitle">إشعار دائم بالتقدم أثناء مهام التنظيف أو التحويل الطويلة.</string>
     <string name="settings_crash_reporting_learn_more">ما الذي يُشارك؟</string>
     <string name="settings_crash_reporting_detail_title">تفاصيل تقارير الأعطال</string>
-    <string name="settings_crash_reporting_detail_message">عند تفعيل تحسين Redact، قد تُرسل بيانات تشخيص مجهولة عبر Sentry:\n\n• طراز الجهاز وإصدار Android\n• إصدار التطبيق\n• تتبعات المكدس وأنواع الأخطاء\n• علامات تشخيص منقّاة (مثل نجاح المعالجة)\n\nلا يتم تحميل صورك ومقاطع الفيديو أبدًا. تُزال URIs وأسماء الملفات وإحداثيات GPS قبل الرفع.</string>
+    <string name="settings_crash_reporting_detail_message">عند تفعيل إرسال تقارير الأعطال، قد تُرسل تشخيصات مجهولة عبر Sentry:
+
+• طراز الجهاز وإصدار Android
+• إصدار التطبيق
+• تتبعات المكدس وأنواع الأخطاء
+• وسوم تشخيص مُنقّاة
+
+لا يتم رفع صورك أو فيديوهاتك. تُزال URIs وأسماء الملفات وإحداثيات GPS قبل الرفع.</string>
     <string name="settings_crash_reporting_privacy_policy">سياسة الخصوصية</string>
     <string name="settings_crash_reporting_dismiss">إغلاق</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
+    <string name="button_cancel">إلغاء</string>
+    <string name="clean_selected_count">المحدد: %1$d ملف(ات)</string>
+    <string name="clean_status_ready">جاهز لاختيار الوسائط للتنظيف.</string>
+    <string name="convert_codec_fallback">%1$s غير متاح؛ تم الحفظ كـ %2$s بدلاً من ذلك.</string>
+    <string name="metadata_error_basic_info_generic">تعذر قراءة معلومات الملف الأساسية.</string>
+    <string name="metadata_error_image_generic">تعذر قراءة بيانات الصورة الوصفية.</string>
+    <string name="metadata_error_video_generic">تعذر قراءة بيانات الفيديو الوصفية.</string>
+    <string name="notification_clean_partial">%1$d تم تنظيفها، %2$d فشلت.</string>
+    <string name="notification_progress_percent">%1$d%% مكتمل</string>
+    <string name="scan_clean_this_file">تنظيف هذا الملف</string>
+    <string name="scan_convert_this_file">تحويل هذا الملف</string>
+    <string name="scan_copied_to_clipboard">تم النسخ إلى الحافظة</string>
+    <string name="scan_copy_all_metadata">نسخ كل البيانات الوصفية</string>
+    <string name="scan_copy_camera">نسخ معلومات الكاميرا</string>
+    <string name="scan_copy_coordinates">نسخ الإحداثيات</string>
+    <string name="settings_network_grant_crash_hint">الوصول إلى الشبكة مفعّل. فعّل إرسال تقارير الأعطال بشكل منفصل إذا أردت الإبلاغ عن الأخطاء.</string>
+    <string name="settings_external_link_disclaimer">يفتح المتصفح ويستخدم الشبكة. لم يُمنح Redact الوصول إلى الشبكة لميزات التطبيق.</string>
+    <string name="settings_external_link_continue">فتح الرابط</string>
+    <string name="settings_network_access_grant">منح الوصول إلى الشبكة</string>
+    <string name="settings_network_access_revoke">إلغاء الوصول إلى الشبكة</string>
+    <string name="settings_network_consent_allow">السماح بالوصول إلى الشبكة</string>
+    <string name="settings_network_consent_cancel">ليس الآن</string>
+    <string name="settings_network_consent_crash_title">السماح بإرسال تقارير الأعطال عبر الشبكة؟</string>
+    <string name="settings_network_consent_crash_message">يرسل خيار إرسال تقارير الأعطال تشخيصات مجهولة إلى Sentry عبر الإنترنت. لا يستخدم Redact الشبكة حتى تسمح بذلك.
+
+لا يتم تحميل أي صور أو فيديوهات أو أسماء ملفات أو إحداثيات GPS.</string>
+    <string name="settings_network_consent_general_title">السماح بالوصول إلى الشبكة؟</string>
+    <string name="settings_network_consent_general_message">لا يستخدم Redact الشبكة حتى تسمح بذلك هنا. يُستخدم الوصول إلى الشبكة فقط عند تشغيل إرسال تقارير الأعطال.
+
+لا يتم تحميل أي صور أو فيديوهات أو أسماء ملفات أو إحداثيات GPS.</string>
+    <string name="settings_network_revoke_confirm">إلغاء</string>
+    <string name="settings_network_revoke_confirm_message">سيؤدي هذا إلى إيقاف إرسال تقارير الأعطال. سيتوقف Redact عن استخدام الشبكة حتى تمنح الوصول مرة أخرى.</string>
+    <string name="settings_network_revoke_confirm_title">إلغاء الوصول إلى الشبكة؟</string>
+    <string name="settings_permissions_location">موقع الصورة</string>
+    <string name="settings_permissions_network">الوصول إلى الشبكة (اختياري)</string>
+    <string name="settings_storage_clear_busy">لا يمكن المسح أثناء المعالجة.</string>
+    <string name="share_error_failed_get_cleaned_file">تعذر تجهيز الملف المنظف للمشاركة.</string>
+    <string name="share_error_failed_get_cleaned_files">تعذر تجهيز الملفات المنظفة للمشاركة.</string>
+    <string name="share_error_failed_receive_media">تعذر استلام الوسائط المشاركة.</string>
+    <string name="share_error_generic">حدث خطأ ما. يرجى المحاولة مرة أخرى.</string>
+    <string name="share_error_processing_failed">تعذر إزالة البيانات الوصفية من الملف(ات) المشاركة.</string>
+    <string name="status_already_processing">دفعة قيد التشغيل بالفعل. يرجى الانتظار حتى تنتهي.</string>
+    <string name="status_clean_done_all">تم تنظيف %1$d ملف(ات) بنجاح.</string>
+    <string name="status_clean_done_failed">فشل التنظيف.</string>
+    <string name="status_clean_done_partial">تم: %1$d تم تنظيفها، %2$d فشلت.</string>
+    <string name="status_processing_cancelled">تم إلغاء المعالجة.</string>
 </resources>

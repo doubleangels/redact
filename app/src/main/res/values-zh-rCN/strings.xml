@@ -62,7 +62,6 @@
 
     
     <string name="status_processing">处理中…</string>
-    <string name="status_processed_items">已处理 %1$d 项！</string>
     <string name="status_first_select_media_files">请先选择媒体文件！</string>
     <string name="status_permissions_required">需要权限！</string>
     <string name="status_requesting_permissions">正在请求权限…</string>
@@ -73,7 +72,6 @@
     <string name="status_extracting_media">正在提取视频元数据…</string>
     <string name="status_extracting_image">正在提取图像元数据…</string>
     <string name="status_media_picker_fail">打开媒体选择器时出错！</string>
-    <string name="status_media_uri_fail">无法获取媒体 URI！</string>
     <string name="status_storage_permissions_required">需要存储权限！</string>
 
     
@@ -84,7 +82,6 @@
 
     
     <string name="scan_metadata">元数据</string>
-    <string name="scan_location_information">位置信息</string>
     <string name="scan_location_permission_missing">如果您授予位置权限，位置数据可能会可用。</string>
     <string name="scan_extraction_fail">提取元数据失败！</string>
 
@@ -113,8 +110,6 @@
     <string name="metadata_exposure_time_seconds">曝光时间：%.5f 秒</string>
     <string name="metadata_latitude">纬度：%.15f</string>
     <string name="metadata_longitude">经度：%.15f</string>
-    <string name="metadata_address">地址：%s</string>
-    <string name="metadata_geocoding_failed">地理编码失败：%s</string>
     <string name="metadata_no_location_data">无位置数据可用。</string>
     <string name="metadata_location_permission_needed">未授予位置权限。授予权限以查看位置数据。</string>
     <string name="metadata_orientation">方向：%s</string>
@@ -147,65 +142,93 @@
     <string name="metadata_orientation_transpose">转置</string>
     <string name="metadata_orientation_transverse">横向</string>
     <string name="metadata_orientation_unknown">未知 (%d)</string>
+    <string name="metadata_error_file_open">错误：无法打开图像文件</string>
 
     
-    <string name="metadata_error_extraction">提取元数据时出错：%s</string>
-    <string name="metadata_error_basic_info">提取基本信息时出错：%s</string>
-    <string name="metadata_error_file_open">错误：无法打开图像文件</string>
-    <string name="metadata_error_image_metadata">提取图像元数据时出错：%s</string>
-    <string name="metadata_error_video_metadata">提取视频元数据时出错：%s</string>
+    <string name="settings_section_advanced_privacy">元数据清理</string>
+    <string name="settings_advanced_privacy_subtitle">Redact 如何在清理标签页移除 EXIF。从其他应用分享时，转发前始终会移除位置和相机信息。</string>
+    <string name="settings_secure_delete">安全删除遍数</string>
+    <string name="settings_secure_delete_subtitle">删除前临时文件被覆盖的次数。次数越多越慢，但更难恢复。</string>
+    <string name="settings_auto_clear_temp">启动时清除缓存</string>
+    <string name="settings_auto_clear_temp_subtitle">每次打开应用时删除剩余的处理文件。</string>
+    <string name="settings_preserve_camera">保留相机设置</string>
+    <string name="settings_preserve_camera_subtitle">在清理标签页保留光圈、快门速度、ISO 和相机品牌/型号。严格清理开启或从其他应用分享时忽略。</string>
+    <string name="settings_preserve_location">保留位置</string>
+    <string name="settings_preserve_location_subtitle">在清理标签页保留 GPS 坐标。严格清理开启或从其他应用分享时忽略。</string>
+    <string name="settings_strict_clean">严格清理</string>
+    <string name="settings_strict_clean_subtitle">移除所有元数据（包括方向）。关闭保留选项并始终完全重新编码视频。</string>
     
-    <string name="permission_rationale_media">需要媒体访问权限才能选择和处理媒体文件。</string>
-    <string name="permission_rationale_storage">需要存储访问权限才能选择和处理媒体文件。</string>
-    <string name="permission_rationale_location">需要位置权限才能访问媒体文件中的地理定位数据。</string>
-    <string name="permission_denied_retry">需要权限才能选择媒体文件。</string>
-    <string name="permission_location_retry">需要位置权限才能访问媒体文件中的地理定位数据。</string>
-    <string name="snackbar_action_retry">重试</string>
+    <string name="settings_section_advanced_processing">大文件与内存</string>
+    <string name="settings_advanced_processing_subtitle">清理和转换时超大图像的限制。不改变视频清理行为。</string>
+    <string name="settings_max_bitmap_size">最大处理分辨率</string>
+    <string name="settings_max_bitmap_size_subtitle">在内存中解码图像时的最长边像素数。较低值使用更少 RAM。</string>
+    <string name="settings_max_file_size">最大输入文件大小</string>
+    <string name="settings_max_file_size_subtitle">跳过或缩小超过此大小的图像以避免内存不足。</string>
+    <string name="settings_video_fallback">更快的视频清理</string>
+    <string name="settings_video_fallback_subtitle">当输出已兼容 MP4 时，快速 remux 后跳过完整重新编码。节省时间和电量；完整转码可移除更多元数据。严格清理或从其他应用分享时关闭。</string>
+
+    <string-array name="settings_secure_delete_labels">
+        <item>1 遍（快速）</item>
+        <item>3 遍（安全）</item>
+        <item>7 遍（超安全）</item>
+    </string-array>
+
+    <string-array name="settings_max_bitmap_size_labels">
+        <item>2048px（低内存）</item>
+        <item>4096px（标准）</item>
+        <item>8192px（高性能）</item>
+    </string-array>
+
+    <string-array name="settings_max_file_size_labels">
+        <item>50 MB</item>
+        <item>100 MB</item>
+        <item>200 MB</item>
+    </string-array>
     <string name="scan_metadata_subtitle">从此文件中检测到的字段。长按值可复制。</string>
-    <string name="scan_open_in_maps">在 Google 地图中打开</string>
-    <string name="scan_maps_unavailable">未找到可打开此位置的地图应用。</string>
-    <string name="scan_search_camera">搜索相机</string>
-    <string name="scan_search_unavailable">未找到可执行此搜索的浏览器。</string>
 
     
     <string name="navigation_settings">设置</string>
     <string name="settings_section_notifications">通知</string>
-    <string name="settings_notifications_label">所有通知</string>
-    <string name="settings_notifications_subtitle">允许 Redact 在后台操作完成时发送推送提醒。</string>
-    <string name="settings_notifications_clean_label">元数据清理</string>
-    <string name="settings_notifications_clean_subtitle">在 EXIF 和元数据剥离完成时通知我。</string>
-    <string name="settings_notifications_convert_label">格式转换</string>
-    <string name="settings_notifications_convert_subtitle">在视频或图像文件转换完成时通知我。</string>
-    <string name="settings_section_privacy">隐私</string>
-    <string name="settings_crash_reporting_label">改善 Redact</string>
-    <string name="settings_crash_reporting_subtitle">可选通过互联网发送匿名崩溃报告（Sentry）。您的照片和视频绝不会上传 - 仅发送技术诊断信息。可随时关闭。</string>
-    <string name="settings_section_conversion">转换默认设置</string>
-    <string name="settings_conversion_subtitle">在“转换”标签页选择文件时应用。</string>
+    <string name="settings_section_notifications_subtitle">任务完成时提醒，清理或转换时可选实时进度。</string>
+    <string name="settings_notifications_label">允许通知</string>
+    <string name="settings_notifications_subtitle">所有 Redact 提醒的总开关。默认关闭；开启时 Android 可能请求权限。</string>
+    <string name="settings_notifications_clean_label">清理完成</string>
+    <string name="settings_notifications_clean_subtitle">在“清理”标签页完成元数据移除时提醒。</string>
+    <string name="settings_notifications_convert_label">转换完成</string>
+    <string name="settings_notifications_convert_subtitle">在“转换”标签页完成格式转换时提醒。</string>
+    <string name="settings_section_diagnostics">诊断与反馈</string>
+    <string name="settings_section_diagnostics_subtitle">可选崩溃报告以帮助修复问题。您的媒体永远不会离开设备。</string>
+    <string name="settings_crash_reporting_label">发送崩溃报告</string>
+    <string name="settings_crash_reporting_subtitle">仅匿名诊断信息（应用版本、设备型号、堆栈跟踪）。确认后需要网络访问。照片和视频绝不会上传。</string>
+    <string name="settings_section_conversion">转换标签页默认值</string>
+    <string name="settings_conversion_subtitle">在“转换”中选择文件时预选格式。仍可为每批更改。</string>
     <string name="settings_default_image_format">默认图片格式</string>
     <string name="settings_default_video_format">默认视频编码</string>
     <string name="settings_image_quality">图片质量</string>
     <string name="settings_quality_high">高</string>
     <string name="settings_quality_balanced">均衡</string>
     <string name="settings_quality_smaller">更小文件</string>
-    <string name="settings_quality_subtitle">影响 JPEG、WebP 和 HEIC 输出。PNG 保持无损。</string>
-    <string name="settings_section_share">分享目标</string>
-    <string name="settings_share_confirm_label">删除元数据前确认</string>
-    <string name="settings_share_confirm_subtitle">分享到 Redact 时，在删除元数据前显示确认。</string>
+    <string name="settings_quality_subtitle">适用于 JPEG、WebP 和 HEIC。PNG 导出保持无损。</string>
+    <string name="settings_section_share_subtitle">当其他应用将照片或视频发送到 Redact 时。</string>
+
+    <string name="settings_section_share">分享到 Redact</string>
+    <string name="settings_share_confirm_label">移除元数据前确认</string>
+    <string name="settings_share_confirm_subtitle">在从共享文件中剥离 EXIF 和其他元数据之前显示提示。</string>
     <string name="settings_share_confirm_dialog_title">删除元数据？</string>
     <string name="settings_share_confirm_dialog_message">Redact 会在您继续分享前，从共享文件中移除 EXIF 及其他元数据。</string>
     <string name="settings_share_confirm_dialog_confirm">删除并继续</string>
     <string name="settings_share_confirm_dialog_cancel">取消</string>
     <string name="settings_section_permissions">权限</string>
-    <string name="settings_permissions_subtitle">若功能需要，请在 Android 系统设置中授予权限。</string>
-    <string name="settings_permissions_media">媒体访问</string>
-    <string name="settings_permissions_notifications">通知</string>
+    <string name="settings_permissions_subtitle">Redact 需要媒体访问权限以进行清理、转换和扫描。通知为可选，仅用于任务提醒。</string>
+    <string name="settings_permissions_media">照片和视频</string>
+    <string name="settings_permissions_notifications">通知（可选）</string>
     <string name="settings_permission_granted">已授予</string>
     <string name="settings_permission_denied">已拒绝</string>
     <string name="settings_permission_not_required">无需授权</string>
     <string name="settings_open_system_settings">打开系统设置</string>
-    <string name="settings_section_storage">存储</string>
-    <string name="settings_storage_size">临时文件：%1$s</string>
-    <string name="settings_storage_subtitle">清理或分享文件时使用的处理缓存。</string>
+    <string name="settings_section_storage">存储与缓存</string>
+    <string name="settings_storage_size">缓存占用：%1$s</string>
+    <string name="settings_storage_subtitle">处理期间创建的工作副本。相册原文件绝不会被修改。</string>
     <string name="settings_storage_clear">清除临时文件</string>
     <string name="settings_storage_clear_confirm_title">清除临时文件？</string>
     <string name="settings_storage_clear_confirm_message">这将删除最近处理的缓存副本。您的图库文件不受影响。</string>
@@ -218,14 +241,67 @@
     <string name="settings_about_privacy">隐私政策</string>
     <string name="settings_about_report_issue">报告问题</string>
     <string name="settings_link_unavailable">未找到可打开此链接的应用。</string>
-    <string name="settings_progress_notifications_label">在通知栏显示进度</string>
-    <string name="settings_progress_notifications_subtitle">转换或清理时的实时进度。完成提醒不变。</string>
+    <string name="settings_progress_notifications_label">进行中任务进度</string>
+    <string name="settings_progress_notifications_subtitle">长时间清理或转换期间在通知栏显示持续进度。</string>
     <string name="settings_crash_reporting_learn_more">会分享哪些内容？</string>
     <string name="settings_crash_reporting_detail_title">崩溃报告详情</string>
-    <string name="settings_crash_reporting_detail_message">开启“改善 Redact”后，可能通过 Sentry 发送匿名诊断信息：\n\n• 设备型号和 Android 版本\n• 应用版本\n• 堆栈跟踪和错误类型\n• 已脱敏的诊断标签（例如处理是否成功）\n\n您的照片和视频绝不会上传。URI、文件名和 GPS 坐标会在上传前移除。</string>
+    <string name="settings_crash_reporting_detail_message">开启“发送崩溃报告”后，可能通过 Sentry 发送匿名诊断：
+
+• 设备型号和 Android 版本
+• 应用版本
+• 堆栈跟踪和错误类型
+• 已清理的诊断标签
+
+您的照片和视频绝不会上传。URI、文件名和 GPS 坐标会在上传前移除。</string>
     <string name="settings_crash_reporting_privacy_policy">隐私政策</string>
     <string name="settings_crash_reporting_dismiss">关闭</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
+    <string name="button_cancel">取消</string>
+    <string name="clean_selected_count">已选择：%1$d 个文件</string>
+    <string name="clean_status_ready">准备选择要清理的媒体。</string>
+    <string name="convert_codec_fallback">%1$s 不可用；已改为保存为 %2$s。</string>
+    <string name="metadata_error_basic_info_generic">无法读取基本文件信息。</string>
+    <string name="metadata_error_image_generic">无法读取图像元数据。</string>
+    <string name="metadata_error_video_generic">无法读取视频元数据。</string>
+    <string name="notification_clean_partial">%1$d 个已清理，%2$d 个失败。</string>
+    <string name="notification_progress_percent">已完成 %1$d%%</string>
+    <string name="scan_clean_this_file">清理此文件</string>
+    <string name="scan_convert_this_file">转换此文件</string>
+    <string name="scan_copied_to_clipboard">已复制到剪贴板</string>
+    <string name="scan_copy_all_metadata">复制全部元数据</string>
+    <string name="scan_copy_camera">复制相机信息</string>
+    <string name="scan_copy_coordinates">复制坐标</string>
+    <string name="settings_network_grant_crash_hint">网络访问已开启。如需错误报告，请单独开启“发送崩溃报告”。</string>
+    <string name="settings_external_link_disclaimer">将打开浏览器并使用网络。Redact 尚未获得应用功能的网络访问权限。</string>
+    <string name="settings_external_link_continue">打开链接</string>
+    <string name="settings_network_access_grant">授予网络访问</string>
+    <string name="settings_network_access_revoke">撤销网络访问</string>
+    <string name="settings_network_consent_allow">允许网络访问</string>
+    <string name="settings_network_consent_cancel">暂不</string>
+    <string name="settings_network_consent_crash_title">允许通过网络发送崩溃报告？</string>
+    <string name="settings_network_consent_crash_message">发送崩溃报告会通过互联网向 Sentry 上传匿名诊断信息。在您允许之前，Redact 不会使用网络。
+
+不会上传任何照片、视频、文件名或 GPS 坐标。</string>
+    <string name="settings_network_consent_general_title">允许网络访问？</string>
+    <string name="settings_network_consent_general_message">在您此处允许之前，Redact 不会使用网络。网络访问仅在您开启发送崩溃报告时使用。
+
+不会上传任何照片、视频、文件名或 GPS 坐标。</string>
+    <string name="settings_network_revoke_confirm">撤销</string>
+    <string name="settings_network_revoke_confirm_message">这将关闭发送崩溃报告。Redact 将停止使用网络，直到您再次授予访问权限。</string>
+    <string name="settings_network_revoke_confirm_title">撤销网络访问？</string>
+    <string name="settings_permissions_location">照片位置</string>
+    <string name="settings_permissions_network">网络访问（可选）</string>
+    <string name="settings_storage_clear_busy">处理进行中时无法清除。</string>
+    <string name="share_error_failed_get_cleaned_file">无法准备已清理的文件以供分享。</string>
+    <string name="share_error_failed_get_cleaned_files">无法准备已清理的文件以供分享。</string>
+    <string name="share_error_failed_receive_media">无法接收分享的媒体。</string>
+    <string name="share_error_generic">出了点问题。请重试。</string>
+    <string name="share_error_processing_failed">无法从分享的文件中移除元数据。</string>
+    <string name="status_already_processing">已有批次正在运行。请等待其完成。</string>
+    <string name="status_clean_done_all">已成功清理 %1$d 个文件。</string>
+    <string name="status_clean_done_failed">清理失败。</string>
+    <string name="status_clean_done_partial">完成：%1$d 个已清理，%2$d 个失败。</string>
+    <string name="status_processing_cancelled">处理已取消。</string>
 </resources>

@@ -16,9 +16,11 @@
     <string name="notification_convert_failed">We couldn\'t convert any files this time.</string>
     <string name="notification_clean_title">Cleaning Finished</string>
     <string name="notification_clean_body" tools:ignore="PluralsCandidate">Successfully cleaned %1$d file(s).</string>
+    <string name="notification_clean_partial" tools:ignore="PluralsCandidate">%1$d cleaned, %2$d failed.</string>
     <string name="notification_clean_failed" translatable="false">We couldn\'t clean any files this time.</string>
     <string name="notification_convert_progress_title">Converting Media…</string>
     <string name="notification_clean_progress_title">Cleaning Metadata…</string>
+    <string name="notification_progress_percent">%1$d%% complete</string>
 
     
     <string name="navigation_clean">Clean</string>
@@ -28,58 +30,74 @@
 
     
     <string name="settings_section_notifications">Notifications</string>
-    <string name="settings_notifications_label">All Notifications</string>
-    <string name="settings_notifications_subtitle">Allow Redact to send alerts when cleaning or conversion finishes. Off by default; Android may ask for permission when you turn this on.</string>
+    <string name="settings_section_notifications_subtitle">Alerts when tasks finish and optional live progress while cleaning or converting.</string>
+    <string name="settings_notifications_label">Allow Notifications</string>
+    <string name="settings_notifications_subtitle">Master switch for all Redact alerts. Off by default; Android may ask for permission when you turn this on.</string>
     <string name="settings_notifications_permission_granted" translatable="false">Notifications enabled.</string>
     <string name="settings_notifications_permission_denied" translatable="false">Notification permission is required to show alerts.</string>
-    <string name="settings_notifications_clean_label">Metadata Cleaning</string>
-    <string name="settings_notifications_clean_subtitle">Notify me when EXIF and metadata stripping completes.</string>
-    <string name="settings_notifications_convert_label">Format Conversion</string>
-    <string name="settings_notifications_convert_subtitle">Notify me when video or image file conversion completes.</string>
+    <string name="settings_notifications_clean_label">Cleaning Finished</string>
+    <string name="settings_notifications_clean_subtitle">Alert when metadata removal on the Clean tab completes.</string>
+    <string name="settings_notifications_convert_label">Conversion Finished</string>
+    <string name="settings_notifications_convert_subtitle">Alert when format conversion on the Convert tab completes.</string>
 
-    <string name="settings_section_privacy">Privacy</string>
-    <string name="settings_crash_reporting_label">Improve Redact</string>
-    <string name="settings_crash_reporting_subtitle">Optionally send anonymized crash reports over the internet (via Sentry). Your photos and videos are never uploaded - only technical diagnostics such as app version and stack traces. You can turn this off anytime.</string>
+    <string name="settings_section_diagnostics">Diagnostics &amp; Feedback</string>
+    <string name="settings_section_diagnostics_subtitle">Optional reports to help fix crashes. Your media never leaves the device.</string>
+    <string name="settings_crash_reporting_label">Send Crash Reports</string>
+    <string name="settings_crash_reporting_subtitle">Anonymized diagnostics only (app version, device model, stack traces). Requires network access after you confirm. Photos and videos are never uploaded.</string>
 
     <string name="settings_section_developer" translatable="false">Developer</string>
     <string name="settings_wormaceptor_button" translatable="false">Open WormaCeptor</string>
     <string name="settings_wormaceptor_subtitle" translatable="false">On-device debug tools (debug builds only).</string>
 
-    <string name="settings_section_conversion">Conversion Defaults</string>
-    <string name="settings_conversion_subtitle">Applied when you select files on the Convert tab.</string>
+    <string name="settings_section_conversion">Convert Tab Defaults</string>
+    <string name="settings_conversion_subtitle">Pre-selected formats when you pick files on Convert. You can still change them for each batch.</string>
     <string name="settings_default_image_format">Default Image Format</string>
     <string name="settings_default_video_format">Default Video Codec</string>
     <string name="settings_image_quality">Image Quality</string>
     <string name="settings_quality_high">High</string>
     <string name="settings_quality_balanced">Balanced</string>
     <string name="settings_quality_smaller">Smaller File</string>
-    <string name="settings_quality_subtitle">Affects JPEG, WebP, and HEIC output. PNG stays lossless.</string>
+    <string name="settings_quality_subtitle">Applies to JPEG, WebP, and HEIC. PNG export stays lossless.</string>
 
-    <string name="settings_section_share">Share Target</string>
-    <string name="settings_share_confirm_label">Ask Before Stripping Metadata</string>
-    <string name="settings_share_confirm_subtitle">When sharing into Redact, show a confirmation before metadata is removed.</string>
+    <string name="settings_section_share">Sharing Into Redact</string>
+    <string name="settings_section_share_subtitle">When another app sends photos or videos to Redact.</string>
+    <string name="settings_share_confirm_label">Confirm Before Removing Metadata</string>
+    <string name="settings_share_confirm_subtitle">Show a prompt before stripping EXIF and other metadata from shared files.</string>
     <string name="settings_share_confirm_dialog_title">Strip Metadata?</string>
     <string name="settings_share_confirm_dialog_message">Redact will remove EXIF and other metadata from the shared file(s) before you share them onward.</string>
     <string name="settings_share_confirm_dialog_confirm">Strip and Continue</string>
     <string name="settings_share_confirm_dialog_cancel">Cancel</string>
 
     <string name="settings_section_permissions">Permissions</string>
-    <string name="settings_permissions_subtitle">Required for Clean, Convert, and Scan. Tap Open System Settings to grant or change access.</string>
-    <string name="settings_permissions_media">Media Access</string>
-    <string name="settings_permissions_notifications">Notifications</string>
+    <string name="settings_permissions_subtitle">Redact needs media access for Clean, Convert, and Scan. Notifications and network access are optional.</string>
+    <string name="settings_permissions_media">Photos &amp; Videos</string>
+    <string name="settings_permissions_location">Photo Location</string>
+    <string name="settings_permissions_notifications">Notifications (Optional)</string>
+    <string name="settings_permissions_network">Network Access (Optional)</string>
+    <string name="settings_network_grant_crash_hint">Network access is on. Turn on Send Crash Reports separately if you want error reporting.</string>
+    <string name="settings_external_link_disclaimer">This opens your browser and uses the network. Redact has not been granted network access for in-app features.</string>
+    <string name="settings_external_link_continue">Open Link</string>
+    <string name="settings_network_access_grant">Grant Network Access</string>
+    <string name="settings_network_access_revoke">Revoke Network Access</string>
+    <string name="settings_network_consent_general_title">Allow Network Access?</string>
+    <string name="settings_network_consent_general_message">Redact does not use the network until you allow it here. Network access is only used when you turn on Send Crash Reports.\n\nNo photos, videos, filenames, or GPS coordinates are uploaded.</string>
+    <string name="settings_network_revoke_confirm_title">Revoke Network Access?</string>
+    <string name="settings_network_revoke_confirm_message">This turns off Send Crash Reports. Redact will stop using the network until you grant access again.</string>
+    <string name="settings_network_revoke_confirm">Revoke</string>
     <string name="settings_permission_granted">Granted</string>
     <string name="settings_permission_denied">Denied</string>
     <string name="settings_permission_not_required">Not Required</string>
     <string name="settings_open_system_settings">Open System Settings</string>
 
-    <string name="settings_section_storage">Storage</string>
-    <string name="settings_storage_size">Temporary files: %1$s</string>
-    <string name="settings_storage_subtitle">Processing cache used while cleaning or sharing files.</string>
+    <string name="settings_section_storage">Storage &amp; Cache</string>
+    <string name="settings_storage_size">Cache in use: %1$s</string>
+    <string name="settings_storage_subtitle">Working copies created during processing. Your gallery originals are never modified.</string>
     <string name="settings_storage_clear">Clear Temporary Files</string>
     <string name="settings_storage_clear_confirm_title">Clear Temporary Files?</string>
     <string name="settings_storage_clear_confirm_message">This removes cached copies from recent processing. Your gallery files are not affected.</string>
     <string name="settings_storage_clear_success">Temporary files cleared.</string>
     <string name="settings_storage_clear_empty">No temporary files to clear.</string>
+    <string name="settings_storage_clear_busy">Cannot clear while processing is in progress.</string>
 
     <string name="settings_section_about">About</string>
     <string name="settings_about_version">Version %1$s</string>
@@ -89,12 +107,12 @@
     <string name="settings_about_report_issue">Report an Issue</string>
     <string name="settings_link_unavailable">No app found to open this link.</string>
 
-    <string name="settings_progress_notifications_label">Show Progress in Notification Shade</string>
-    <string name="settings_progress_notifications_subtitle">Live progress while converting or cleaning. Completion alerts are unchanged.</string>
+    <string name="settings_progress_notifications_label">Ongoing Task Progress</string>
+    <string name="settings_progress_notifications_subtitle">Persistent notification with progress during long clean or convert jobs.</string>
 
     <string name="settings_crash_reporting_learn_more">What Is Shared?</string>
     <string name="settings_crash_reporting_detail_title">Crash Reporting Details</string>
-    <string name="settings_crash_reporting_detail_message">When Improve Redact is on, anonymized diagnostics may be sent via Sentry:\n\n• Device model and Android version\n• App version\n• Stack traces and error types\n• Scrubbed diagnostic tags (e.g. whether processing succeeded)\n\nYour photos and videos are never uploaded. URIs, filenames, and GPS coordinates are removed before upload.</string>
+    <string name="settings_crash_reporting_detail_message">When Send Crash Reports is on, anonymized diagnostics may be sent via Sentry:\n\n• Device model and Android version\n• App version\n• Stack traces and error types\n• Scrubbed diagnostic tags (e.g. whether processing succeeded)\n\nYour photos and videos are never uploaded. URIs, filenames, and GPS coordinates are removed before upload.</string>
     <string name="settings_crash_reporting_privacy_policy">Privacy Policy</string>
     <string name="settings_crash_reporting_dismiss">Close</string>
 
@@ -104,6 +122,7 @@
 
     
     <string name="convert_heic_fallback_jpeg" translatable="false">HEIC output requires Android 14+. Images will be saved as JPEG instead.</string>
+    <string name="convert_codec_fallback">%1$s unavailable; saved as %2$s instead.</string>
     <string name="convert_output_format_images">Image Format</string>
     <string name="convert_output_format_videos">Video Codec</string>
     <string name="convert_output_format_mixed">Formats (image / video)</string>
@@ -120,7 +139,9 @@
     <string name="convert_run">Convert</string>
     <string name="convert_status_hint">Select images or videos to convert.</string>
     <string name="convert_status_ready">Ready to select images/videos.</string>
+    <string name="clean_status_ready">Ready to select media to clean.</string>
     <string name="convert_selected_count" tools:ignore="PluralsCandidate">Selected: %1$d file(s)</string>
+    <string name="clean_selected_count" tools:ignore="PluralsCandidate">Selected: %1$d file(s)</string>
     <string name="convert_nothing_selected">Select at least one image first.</string>
     <string name="convert_progress_item">Converting %1$d of %2$d…</string>
     <string name="convert_progress_detail">%1$d of %2$d · %3$s\n%4$s</string>
@@ -137,10 +158,15 @@
     
     <string name="button_select_media">Select Media</string>
     <string name="button_strip_exif_data">Clean Metadata</string>
+    <string name="button_cancel">Cancel</string>
 
     
     <string name="status_processing">Processing…</string>
-    <string name="status_processed_items" tools:ignore="PluralsCandidate">Processed %1$d items.</string>
+    <string name="status_processing_cancelled">Processing cancelled.</string>
+    <string name="status_already_processing">A batch is already running. Please wait for it to finish.</string>
+    <string name="status_clean_done_all" tools:ignore="PluralsCandidate">Cleaned %1$d file(s) successfully.</string>
+    <string name="status_clean_done_partial" tools:ignore="PluralsCandidate">Done: %1$d cleaned, %2$d failed.</string>
+    <string name="status_clean_done_failed">Cleaning failed.</string>
     <string name="status_first_select_media_files">Please select some media files first.</string>
     <string name="status_permissions_required">Permission needed to proceed.</string>
     <string name="status_requesting_permissions">Requesting permissions…</string>
@@ -151,35 +177,33 @@
     <string name="status_extracting_media">Extracting video metadata…</string>
     <string name="status_extracting_image">Extracting image metadata…</string>
     <string name="status_media_picker_fail">We couldn\'t open the media picker.</string>
-    <string name="status_media_uri_fail">We couldn\'t retrieve the media file location.</string>
     <string name="status_storage_permissions_required">Storage permission is needed to access your files.</string>
-
-    
-    <string name="permission_rationale_media">Media access is needed to select and process media files.</string>
-    <string name="permission_rationale_storage">Storage access is needed to select and process media files.</string>
-    <string name="permission_rationale_location">Location permission is needed to access geolocation data in media files.</string>
-    <string name="permission_denied_retry">Permissions are required to select media files.</string>
-    <string name="permission_location_retry">Location permission is needed to access geolocation data in media files.</string>
-    <string name="snackbar_action_retry">Retry</string>
 
     
     <string name="share_processing_title">Processing…</string>
     <string name="share_chooser_title">Share clean media file via…</string>
     <string name="share_error_file_too_large" translatable="false">File is too large to process (max 200 MB).</string>
+    <string name="share_error_skipped_oversized" translatable="false">Skipped %1$d file(s) over the size limit.</string>
     <string name="share_error_too_many_items" translatable="false">Too many items (max %1$d at a time).</string>
     <string name="share_error_unsupported_media">This media type isn\'t supported.</string>
     <string name="share_error_unsupported_action">This action isn\'t supported.</string>
+    <string name="share_error_generic">Something went wrong. Please try again.</string>
+    <string name="share_error_failed_receive_media">Couldn\'t receive the shared media.</string>
+    <string name="share_error_processing_failed">Couldn\'t remove metadata from the shared file(s).</string>
+    <string name="share_error_failed_get_cleaned_file">Couldn\'t prepare the cleaned file for sharing.</string>
+    <string name="share_error_failed_get_cleaned_files">Couldn\'t prepare the cleaned files for sharing.</string>
 
     
     <string name="scan_metadata">Metadata</string>
     <string name="scan_metadata_subtitle">Detected fields from this file. Tap and hold values to copy.</string>
-    <string name="scan_location_information">Location Information</string>
-    <string name="scan_location_permission_missing">Location data might be available if you grant the location permission.</string>
+    <string name="scan_location_permission_missing">GPS coordinates might be available if you grant the location permission.</string>
     <string name="scan_extraction_fail">We couldn\'t retrieve the metadata.</string>
-    <string name="scan_open_in_maps">Open in Google Maps</string>
-    <string name="scan_maps_unavailable">No maps app found to open this location.</string>
-    <string name="scan_search_camera">Search Camera</string>
-    <string name="scan_search_unavailable">No browser found to run this search.</string>
+    <string name="scan_copy_coordinates">Copy coordinates</string>
+    <string name="scan_copy_camera">Copy camera info</string>
+    <string name="scan_copy_all_metadata">Copy all metadata</string>
+    <string name="scan_clean_this_file">Clean this file</string>
+    <string name="scan_convert_this_file">Convert this file</string>
+    <string name="scan_copied_to_clipboard">Copied to clipboard</string>
 
     
     
@@ -206,8 +230,6 @@
     <string name="metadata_exposure_time_seconds">Exposure Time: %.5f sec</string>
     <string name="metadata_latitude">Latitude: %.15f</string>
     <string name="metadata_longitude">Longitude: %.15f</string>
-    <string name="metadata_address">Address: %s</string>
-    <string name="metadata_geocoding_failed">Geocoding failed: %s</string>
     <string name="metadata_no_location_data">No location data available.</string>
     <string name="metadata_location_permission_needed">Location permission not granted. Grant permission to see location data.</string>
     <string name="metadata_orientation">Orientation: %s</string>
@@ -240,33 +262,37 @@
     <string name="metadata_orientation_transpose">Transpose</string>
     <string name="metadata_orientation_transverse">Transverse</string>
     <string name="metadata_orientation_unknown">Unknown (%d)</string>
-
-    
-    <string name="metadata_error_extraction">Error extracting metadata: %s</string>
-    <string name="metadata_error_basic_info">Error extracting basic info: %s</string>
     <string name="metadata_error_file_open">Error: Could not open image file</string>
-    <string name="metadata_error_image_metadata">Error extracting image metadata: %s</string>
-    <string name="metadata_error_video_metadata">Error extracting video metadata: %s</string>
+    <string name="metadata_error_basic_info_generic">Could not read basic file information.</string>
+    <string name="metadata_error_image_generic">Could not read image metadata.</string>
+    <string name="metadata_error_video_generic">Could not read video metadata.</string>
 
     
-    <string name="settings_section_advanced_privacy">Advanced Privacy</string>
-    <string name="settings_advanced_privacy_subtitle">Granular control over what is deleted during metadata stripping.</string>
+    <string name="settings_section_advanced_privacy">Metadata Cleaning</string>
+    <string name="settings_advanced_privacy_subtitle">How Redact removes EXIF on the Clean tab. Share-in always strips location and camera info before forwarding.</string>
     <string name="settings_secure_delete">Secure Deletion Passes</string>
-    <string name="settings_auto_clear_temp">Auto-Clear Temporary Files</string>
-    <string name="settings_auto_clear_temp_subtitle">Clear cache automatically on app startup.</string>
-    <string name="settings_preserve_camera">Preserve Camera Settings</string>
-    <string name="settings_preserve_camera_subtitle">Keep aperture, shutter speed, ISO, and make/model.</string>
-    <string name="settings_preserve_location">Preserve Location</string>
-    <string name="settings_preserve_location_subtitle">Keep GPS coordinates in the cleaned file.</string>
+    <string name="settings_secure_delete_subtitle">How many times temporary files are overwritten before deletion. More passes are slower but harder to recover.</string>
+    <string name="settings_auto_clear_temp">Clear Cache on Startup</string>
+    <string name="settings_auto_clear_temp_subtitle">Delete leftover processing files each time you open the app.</string>
+    <string name="settings_preserve_camera">Keep Camera Settings</string>
+    <string name="settings_preserve_camera_subtitle">Retain aperture, shutter speed, ISO, and camera make/model on the Clean tab. Ignored when Strict Clean is on or when sharing from other apps.</string>
+    <string name="settings_preserve_location">Keep Location</string>
+    <string name="settings_preserve_location_subtitle">Retain GPS coordinates on the Clean tab. Ignored when Strict Clean is on or when sharing from other apps.</string>
+    <string name="settings_network_consent_allow">Allow Network Access</string>
+    <string name="settings_network_consent_cancel">Not Now</string>
+    <string name="settings_network_consent_crash_title">Allow crash reporting over the network?</string>
+    <string name="settings_network_consent_crash_message">Send Crash Reports uploads anonymized diagnostics to Sentry over the internet. Redact does not use the network until you allow this.\n\nNo photos, videos, filenames, or GPS coordinates are uploaded.</string>
     <string name="settings_strict_clean">Strict Clean</string>
-    <string name="settings_strict_clean_subtitle">Disable all preservation (including orientation) for absolute privacy.</string>
+    <string name="settings_strict_clean_subtitle">Remove all metadata, including orientation. Turns off keep options above and always fully re-encodes video.</string>
+    <string name="settings_video_fallback">Faster Video Cleaning</string>
+    <string name="settings_video_fallback_subtitle">Skip full re-encoding after a quick remux when output is already MP4-compatible. Saves time and battery; full transcode removes more metadata. Off when Strict Clean is on or when sharing from other apps.</string>
     
-    <string name="settings_section_advanced_processing">Advanced Processing</string>
-    <string name="settings_advanced_processing_subtitle">Configure limits for handling large files.</string>
-    <string name="settings_max_bitmap_size">Max Image Processing Size</string>
-    <string name="settings_max_file_size">Max Image File Size</string>
-    <string name="settings_video_fallback">Video Processing Fallback</string>
-    <string name="settings_video_fallback_subtitle">If transcoding fails, fall back to copying the original video without stripping.</string>
+    <string name="settings_section_advanced_processing">Large Files &amp; Memory</string>
+    <string name="settings_advanced_processing_subtitle">Limits for very large images during clean and convert. Does not change video cleaning behavior.</string>
+    <string name="settings_max_bitmap_size">Max Processing Resolution</string>
+    <string name="settings_max_bitmap_size_subtitle">Largest edge in pixels when decoding images in memory. Lower values use less RAM.</string>
+    <string name="settings_max_file_size">Max Input File Size</string>
+    <string name="settings_max_file_size_subtitle">Skip or downscale images above this size to avoid out-of-memory errors.</string>
 
     <string-array name="settings_secure_delete_labels">
         <item>1 Pass (Fast)</item>

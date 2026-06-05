@@ -32,6 +32,20 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG_CONVERT = "convert";
     private static final String TAG_SETTINGS = "settings";
     private static final String KEY_SELECTED_TAB = "selected_tab";
+
+    @Nullable
+    private java.util.concurrent.ExecutorService cacheClearExecutor;
+
+    @Override
+    protected void onDestroy() {
+        com.doubleangels.redact.permission.PermissionManager.clearRuntimePermissionRequestOnDestroy();
+        if (cacheClearExecutor != null) {
+            cacheClearExecutor.shutdown();
+            cacheClearExecutor = null;
+        }
+        super.onDestroy();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         try {
@@ -47,15 +61,20 @@ public class MainActivity extends AppCompatActivity {
 
             SentryManager.logEvent("lifecycle", "MainActivity created");
 
-            if (AppPreferences.isAutoClearTempFiles(this)) {
-                com.doubleangels.redact.CacheCleanup.clearAllTempFiles(this);
+            if (AppPreferences.isAutoClearTempFiles(this)
+                    && !ShareHandlerActivity.isShareProcessingActive()
+                    && !com.doubleangels.redact.ui.MainViewModel.isAnyProcessing(this)) {
+                cacheClearExecutor = java.util.concurrent.Executors.newSingleThreadExecutor();
+                cacheClearExecutor.execute(
+                        () -> com.doubleangels.redact.CacheCleanup.clearAllTempFiles(
+                                getApplicationContext()));
             }
 
             if (savedInstanceState == null) {
                 com.doubleangels.redact.permission.PermissionManager.requestAllInitialPermissions(this);
                 getSupportFragmentManager().beginTransaction()
                         .add(R.id.fragment_container, new CleanFragment(), TAG_CLEAN)
-                        .commit();
+                        .commitNow();
             }
 
             BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigation);
@@ -87,8 +106,9 @@ public class MainActivity extends AppCompatActivity {
             });
 
             if (savedInstanceState != null) {
-                bottomNavigationView.setSelectedItemId(
-                        savedInstanceState.getInt(KEY_SELECTED_TAB, R.id.navigation_clean));
+                int restoredTab = savedInstanceState.getInt(KEY_SELECTED_TAB, R.id.navigation_clean);
+                bottomNavigationView.setSelectedItemId(restoredTab);
+                restoreTabVisibility(restoredTab);
             } else {
                 bottomNavigationView.setSelectedItemId(R.id.navigation_clean);
             }
@@ -96,6 +116,14 @@ public class MainActivity extends AppCompatActivity {
             SentryManager.setCustomKey("app_started", true);
         } catch (Exception e) {
             SentryManager.recordException(e);
+        }
+    }
+
+    /** Switches bottom navigation and shows the tab fragment. */
+    public void selectTab(int navigationItemId) {
+        BottomNavigationView nav = findViewById(R.id.bottomNavigation);
+        if (nav != null) {
+            nav.setSelectedItemId(navigationItemId);
         }
     }
 
@@ -219,6 +247,25 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void restoreTabVisibility(int selectedItemId) {
+        Fragment target = ensureFragmentForTab(selectedItemId);
+        if (target == null) {
+            return;
+        }
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        for (String tag : new String[] {TAG_CLEAN, TAG_SCAN, TAG_CONVERT, TAG_SETTINGS}) {
+            Fragment f = getSupportFragmentManager().findFragmentByTag(tag);
+            if (f != null) {
+                if (f == target) {
+                    ft.show(f);
+                } else {
+                    ft.hide(f);
+                }
+            }
+        }
+        ft.commit();
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         try {
@@ -226,30 +273,21 @@ public class MainActivity extends AppCompatActivity {
             SentryManager.logEvent("permission", "Permission result received");
             SentryManager.setCustomKey("permission_request_code", requestCode);
 
-            Fragment scan = getSupportFragmentManager().findFragmentByTag(TAG_SCAN);
+            com.doubleangels.redact.permission.PermissionManager.storeActivityPermissionResult(
+                    requestCode, permissions, grantResults);
+
             Fragment clean = getSupportFragmentManager().findFragmentByTag(TAG_CLEAN);
+            Fragment scan = getSupportFragmentManager().findFragmentByTag(TAG_SCAN);
             Fragment convert = getSupportFragmentManager().findFragmentByTag(TAG_CONVERT);
 
-            for (int i = 0; i < permissions.length; i++) {
-                if (android.Manifest.permission.POST_NOTIFICATIONS.equals(permissions[i])) {
-                    if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                        AppPreferences.setNotificationsEnabled(this, true);
-                    }
-                }
+            if (clean != null) {
+                ((CleanFragment) clean).handlePermissionResult(requestCode, permissions, grantResults);
             }
-
-            if (convert != null && convert.isVisible()) {
-                ((ConvertFragment) convert).handlePermissionResult(requestCode, permissions, grantResults);
-            } else if (scan != null && scan.isVisible()) {
+            if (scan != null) {
                 ((ScanFragment) scan).handlePermissionResult(requestCode, permissions, grantResults);
-            } else if (clean != null && clean.isVisible()) {
-                ((CleanFragment) clean).handlePermissionResult(requestCode, permissions, grantResults);
-            } else if (convert != null) {
+            }
+            if (convert != null) {
                 ((ConvertFragment) convert).handlePermissionResult(requestCode, permissions, grantResults);
-            } else if (scan != null) {
-                ((ScanFragment) scan).handlePermissionResult(requestCode, permissions, grantResults);
-            } else if (clean != null) {
-                ((CleanFragment) clean).handlePermissionResult(requestCode, permissions, grantResults);
             }
         } catch (Exception e) {
             SentryManager.recordException(e);
@@ -261,6 +299,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             super.onResume();
             SentryManager.logEvent("lifecycle", "MainActivity resumed");
+            com.doubleangels.redact.permission.PermissionManager.requestInitialPermissionsIfNeeded(this);
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
