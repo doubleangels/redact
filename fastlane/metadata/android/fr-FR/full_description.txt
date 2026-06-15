@@ -36,6 +36,3 @@ Disponible en 13 langues : anglais, espagnol, français, allemand, italien, port
 </ul>
 
 <p>Prenez le contrôle de votre empreinte numérique ! Les métadonnées EXIF peuvent révéler vos coordonnées GPS précises, les détails de l'appareil, les paramètres de l'appareil photo, les horodatages et les identifiants uniques. Redact élimine tous ces risques pour la vie privée tout en préservant la qualité de vos fichiers multimédias. Parfait pour le partage sur les réseaux sociaux, la photographie professionnelle et toute personne préoccupée par la vie privée numérique.</p>
-
-<p><b>Comment Ça Marche :</b></p>
-<p>Sélectionnez vos photos ou vidéos, appuyez sur "Nettoyer les Métadonnées" et Redact supprimera toutes les informations d'identification tout en préservant les propriétés d'affichage essentielles comme l'orientation de l'image. Pour les vidéos, nous utilisons une technologie de remuxage pour supprimer les conteneurs de métadonnées tout en maintenant une qualité de lecture parfaite.</p>

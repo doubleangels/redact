@@ -291,27 +291,48 @@ public class MetadataStripper {
             enforceVideoSizeLimit(sourceUri);
 
             updateProgress(1, 4, "Reading video...");
-            
+
+            VideoPrivacySnapshot sourceSnapshot = extractVideoPrivacyMetadata(sourceUri);
+
             int formatIndex = detectVideoFormatIndex(sourceUri, originalFilename);
-            
+
             updateProgress(2, 4, "Transmuxing...");
             File tempCleanFile = fastStripVideoMetadata(sourceUri);
             Uri cleanSourceUri = tempCleanFile != null ? Uri.fromFile(tempCleanFile) : sourceUri;
-            
+
             boolean needsTranscode = !shouldSkipVideoTranscode(formatIndex, tempCleanFile, false);
 
             try {
                 if (!needsTranscode && tempCleanFile != null) {
-                    updateProgress(3, 4, "Saving clean copy...");
-                    newUri = VideoMedia3Converter.copyToMoviesRedact(context, tempCleanFile, generateShortRandomName(), formatIndex);
+                    updateProgress(3, 4, "Verifying metadata removal...");
+                    requireVideoMetadataClean(tempCleanFile, sourceSnapshot);
+                    updateProgress(4, 4, "Saving clean copy...");
+                    newUri = VideoMedia3Converter.copyToMoviesRedact(
+                            context, tempCleanFile, generateShortRandomName(), formatIndex);
                 } else {
                     updateProgress(3, 4, "Transcoding to target format...");
-                    newUri = VideoMedia3Converter.transcodeToGallery(
-                            context.getApplicationContext(),
-                            cleanSourceUri,
-                            generateShortRandomName(),
-                            formatIndex,
-                            this::reportTranscodeProgress);
+                    String ext = VideoMedia3Converter.extensionForFormatIndex(formatIndex);
+                    File transcodeOutput =
+                            File.createTempFile("vid_transform_", ext, context.getCacheDir());
+                    try {
+                        int actualFormatIndex =
+                                VideoMedia3Converter.transcodeToPath(
+                                        context.getApplicationContext(),
+                                        cleanSourceUri,
+                                        transcodeOutput.getAbsolutePath(),
+                                        formatIndex,
+                                        this::reportTranscodeProgress);
+                        requireVideoMetadataClean(transcodeOutput, sourceSnapshot);
+                        updateProgress(4, 4, "Saving cleaned video...");
+                        newUri =
+                                VideoMedia3Converter.copyToMoviesRedact(
+                                        context,
+                                        transcodeOutput,
+                                        generateShortRandomName(),
+                                        actualFormatIndex);
+                    } finally {
+                        secureDeleteFile(transcodeOutput);
+                    }
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -325,8 +346,6 @@ public class MetadataStripper {
                 }
             }
 
-            updateProgress(4, 4, "Saving cleaned video...");
-            verifyGalleryVideoMetadata(newUri);
             lastProcessedFileUri = newUri;
             SentryManager.log("Video processed successfully.");
             SentryManager.setCustomKey("success", true);
@@ -711,6 +730,8 @@ public class MetadataStripper {
 
             updateProgress(1, 4, "Reading video...");
 
+            VideoPrivacySnapshot sourceSnapshot = extractVideoPrivacyMetadata(sourceUri);
+
             // Create directory for processed files if it doesn't exist
             File outputDir = new File(context.getCacheDir(), "processed");
             if (!outputDir.exists()) {
@@ -764,16 +785,9 @@ public class MetadataStripper {
                 }
             }
 
-            updateProgress(4, 4, "Saving cleaned video...");
+            updateProgress(4, 4, "Verifying metadata removal...");
 
-            boolean videoClean = verifyVideoMetadataRemoval(outputFile);
-            SentryManager.setCustomKey("video_metadata_verification_passed", videoClean);
-            if (!videoClean) {
-                if (AppPreferences.isStrictClean(context)) {
-                    throw new IOException("Video metadata verification failed");
-                }
-                SentryManager.log("Warning: Video metadata verification found remaining tags.");
-            }
+            requireVideoMetadataClean(outputFile, sourceSnapshot);
 
             // Get content URI using FileProvider for sharing
             Uri fileUri = FileProvider.getUriForFile(
@@ -1487,29 +1501,118 @@ public class MetadataStripper {
         return fileSize > AppPreferences.getMaxImageFileSizeMb(context) * 1024L * 1024L;
     }
 
-    private void verifyGalleryVideoMetadata(@NonNull Uri galleryUri) throws IOException {
-        File tempVerifyFile = new File(
-                context.getCacheDir(), "verify_vid_" + System.currentTimeMillis() + ".mp4");
-        try (InputStream is = contentResolver.openInputStream(galleryUri);
-                FileOutputStream fos = new FileOutputStream(tempVerifyFile)) {
-            if (is == null) {
-                throw new IOException("Cannot open gallery video for verification");
-            }
-            MediaSizeLimits.copyWithLimit(is, fos, MediaSizeLimits.maxVideoBytes());
+    /** Source location/date used to detect preserved privacy metadata after cleaning. */
+    @androidx.annotation.VisibleForTesting
+    static final class VideoPrivacySnapshot {
+        @Nullable final String location;
+        @Nullable final String date;
+
+        VideoPrivacySnapshot(@Nullable String location, @Nullable String date) {
+            this.location = location;
+            this.date = date;
         }
-        try {
-            boolean videoClean = verifyVideoMetadataRemoval(tempVerifyFile);
-            SentryManager.setCustomKey("video_metadata_verification_passed", videoClean);
-            if (!videoClean) {
-                if (AppPreferences.isStrictClean(context)) {
-                    contentResolver.delete(galleryUri, null, null);
-                    throw new IOException("Video metadata verification failed");
+
+        static VideoPrivacySnapshot empty() {
+            return new VideoPrivacySnapshot(null, null);
+        }
+    }
+
+    @NonNull
+    private VideoPrivacySnapshot extractVideoPrivacyMetadata(@NonNull Uri sourceUri) {
+        try (android.media.MediaMetadataRetriever retriever = new android.media.MediaMetadataRetriever()) {
+            retriever.setDataSource(context, sourceUri);
+            return new VideoPrivacySnapshot(
+                    normalizeMetadataValue(
+                            retriever.extractMetadata(
+                                    android.media.MediaMetadataRetriever.METADATA_KEY_LOCATION)),
+                    normalizeMetadataValue(
+                            retriever.extractMetadata(
+                                    android.media.MediaMetadataRetriever.METADATA_KEY_DATE)));
+        } catch (Exception e) {
+            SentryManager.log("Could not read source video privacy metadata: " + e.getMessage());
+            return VideoPrivacySnapshot.empty();
+        }
+    }
+
+    private void requireVideoMetadataClean(
+            @NonNull File videoFile, @NonNull VideoPrivacySnapshot sourceSnapshot) throws IOException {
+        boolean videoClean = verifyVideoMetadataRemoval(videoFile, sourceSnapshot);
+        SentryManager.setCustomKey("video_metadata_verification_passed", videoClean);
+        if (!videoClean) {
+            if (AppPreferences.isStrictClean(context)) {
+                throw new IOException("Video metadata verification failed");
+            }
+            SentryManager.log("Warning: Video metadata verification found remaining tags.");
+        }
+    }
+
+    @Nullable
+    private static String normalizeMetadataValue(@Nullable String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    @NonNull
+    private static String videoMetadataKeyName(int key) {
+        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_LOCATION) {
+            return "METADATA_KEY_LOCATION";
+        }
+        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_DATE) {
+            return "METADATA_KEY_DATE";
+        }
+        return "METADATA_KEY_" + key;
+    }
+
+    @androidx.annotation.VisibleForTesting
+    boolean verifyVideoMetadataRemoval(
+            @NonNull File videoFile, @NonNull VideoPrivacySnapshot sourceSnapshot) {
+        try (android.media.MediaMetadataRetriever retriever = new android.media.MediaMetadataRetriever()) {
+            retriever.setDataSource(videoFile.getAbsolutePath());
+
+            String location =
+                    normalizeMetadataValue(
+                            retriever.extractMetadata(
+                                    android.media.MediaMetadataRetriever.METADATA_KEY_LOCATION));
+            if (location != null) {
+                SentryManager.setCustomKey("video_verify_failed_key", "LOCATION");
+                SentryManager.log(
+                        "Warning: Found remaining video metadata key: "
+                                + videoMetadataKeyName(
+                                        android.media.MediaMetadataRetriever.METADATA_KEY_LOCATION));
+                return false;
+            }
+
+            if (sourceSnapshot.date != null) {
+                String outputDate =
+                        normalizeMetadataValue(
+                                retriever.extractMetadata(
+                                        android.media.MediaMetadataRetriever.METADATA_KEY_DATE));
+                if (outputDate != null && outputDate.equals(sourceSnapshot.date)) {
+                    SentryManager.setCustomKey("video_verify_failed_key", "DATE_PRESERVED");
+                    SentryManager.setCustomKey("video_verify_source_date", truncateForSentry(sourceSnapshot.date));
+                    SentryManager.setCustomKey("video_verify_output_date", truncateForSentry(outputDate));
+                    SentryManager.log(
+                            "Warning: Original recording date preserved in output: "
+                                    + videoMetadataKeyName(
+                                            android.media.MediaMetadataRetriever.METADATA_KEY_DATE));
+                    return false;
                 }
-                SentryManager.log("Warning: Video metadata verification found remaining tags.");
             }
-        } finally {
-            secureDeleteFile(tempVerifyFile);
+
+            return true;
+        } catch (Exception e) {
+            SentryManager.setCustomKey("video_verify_failed_key", "RETRIEVER_ERROR");
+            SentryManager.log("Video metadata verification read failed (non-fatal): " + e.getMessage());
+            return true;
         }
+    }
+
+    @NonNull
+    private static String truncateForSentry(@NonNull String value) {
+        return value.length() <= 64 ? value : value.substring(0, 64);
     }
 
     /**
@@ -1632,28 +1735,6 @@ public class MetadataStripper {
             SentryManager.log("XMP detection failed: " + e.getMessage());
         }
         return false;
-    }
-
-    private boolean verifyVideoMetadataRemoval(@NonNull File videoFile) {
-        try (android.media.MediaMetadataRetriever retriever = new android.media.MediaMetadataRetriever()) {
-            retriever.setDataSource(videoFile.getAbsolutePath());
-            int[] keys = {
-                    android.media.MediaMetadataRetriever.METADATA_KEY_LOCATION,
-                    android.media.MediaMetadataRetriever.METADATA_KEY_DATE,
-                    android.media.MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE
-            };
-            for (int key : keys) {
-                String value = retriever.extractMetadata(key);
-                if (value != null && !value.trim().isEmpty()) {
-                    SentryManager.log("Warning: Found remaining video metadata key: " + key);
-                    return false;
-                }
-            }
-            return true;
-        } catch (Exception e) {
-            SentryManager.log("Video metadata verification failed: " + e.getMessage());
-            return !AppPreferences.isStrictClean(context);
-        }
     }
 
     /**

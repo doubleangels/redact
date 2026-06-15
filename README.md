@@ -58,6 +58,9 @@ Protect your privacy with Redact - the powerful yet simple app that removes all 
 - **User-Friendly Privacy Interface:**  
   One-tap complete metadata removal makes protecting your digital privacy simple, quick, and accessible for everyone.
 
+- **Universal Media Conversion:**  
+  Need a different format? Easily convert images to standard types like JPEG, PNG, WebP, or HEIC. Transcode unsupported videos into highly compatible MP4 or MKV files without relying on internet servers.
+
 - **Bulk Photo & Video Processing:**  
   Clean multiple media files simultaneously, saving you time while enhancing your online privacy protection.
 

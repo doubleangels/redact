@@ -36,7 +36,3 @@ Disponible en 13 idiomas incluyendo inglés, español, francés, alemán, italia
 </ul>
 
 <p>¡Toma el control de tu huella digital! Los metadatos EXIF pueden exponer tus coordenadas GPS precisas, detalles del dispositivo, configuraciones de cámara, marcas de tiempo e identificadores únicos. Redact elimina todos estos riesgos de privacidad mientras preserva la calidad de tus archivos multimedia. Perfecto para compartir en redes sociales, fotografía profesional y cualquiera preocupado por la privacidad digital.</p>
-
-<p><b>Cómo Funciona:</b></p>
-<p>Simplemente selecciona tus fotos o videos, toca "Limpiar Metadatos" y Redact eliminará toda la información identificadora mientras preserva propiedades esenciales de visualización como la orientación de la imagen. Para videos, usamos tecnología avanzada de remuxing para eliminar contenedores de metadatos mientras mantenemos una calidad de reproducción perfecta.</p>
-

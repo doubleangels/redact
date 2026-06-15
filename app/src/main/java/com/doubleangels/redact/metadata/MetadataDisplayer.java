@@ -9,6 +9,8 @@ import android.database.Cursor;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
@@ -52,6 +54,16 @@ public class MetadataDisplayer {
         return thread;
     });
     private static final AtomicReference<Future<?>> ACTIVE_SCAN = new AtomicReference<>();
+    private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
+
+    /** Delivers scan callbacks on the main thread for UI updates. */
+    private static void deliverOnMain(Runnable action) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            action.run();
+        } else {
+            MAIN_HANDLER.post(action);
+        }
+    }
 
     // Constants defining metadata section keys
     public static final String SECTION_BASIC_INFO = "basic_info";
@@ -151,7 +163,8 @@ public class MetadataDisplayer {
 
                 SentryManager.log("Metadata extraction completed successfully");
                 if (isActiveScan(taskRef[0])) {
-                    callback.onMetadataExtracted(metadata.toString(), isVideo);
+                    String metadataResult = metadata.toString();
+                    deliverOnMain(() -> callback.onMetadataExtracted(metadataResult, isVideo));
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error extracting metadata", e);
@@ -159,7 +172,8 @@ public class MetadataDisplayer {
                 SentryManager.setCustomKey("extraction_failed", true);
                 SentryManager.setCustomKey("error_type", e.getClass().getName());
                 if (isActiveScan(taskRef[0])) {
-                    callback.onExtractionFailed(context.getString(R.string.status_extraction_fail));
+                    String errorMessage = context.getString(R.string.status_extraction_fail);
+                    deliverOnMain(() -> callback.onExtractionFailed(errorMessage));
                 }
             }
             return null;
@@ -277,7 +291,8 @@ public class MetadataDisplayer {
                 SentryManager.log("Sectioned metadata extraction completed successfully");
 
                 if (isActiveScan(taskRef[0])) {
-                    callback.onMetadataExtracted(sections, isVideo);
+                    Map<String, String> sectionsResult = sections;
+                    deliverOnMain(() -> callback.onMetadataExtracted(sectionsResult, isVideo));
                 }
             } catch (Exception e) {
                 // Log the exception and notify callback of failure
@@ -286,7 +301,8 @@ public class MetadataDisplayer {
                 SentryManager.setCustomKey("extraction_failed", true);
                 SentryManager.setCustomKey("error_type", e.getClass().getName());
                 if (isActiveScan(taskRef[0])) {
-                    callback.onExtractionFailed(context.getString(R.string.status_extraction_fail));
+                    String errorMessage = context.getString(R.string.status_extraction_fail);
+                    deliverOnMain(() -> callback.onExtractionFailed(errorMessage));
                 }
             }
             return null;
@@ -338,13 +354,15 @@ public class MetadataDisplayer {
                 }
 
                 if (isActiveScan(taskRef[0])) {
-                    callback.onLocationSectionExtracted(locationContent);
+                    String locationResult = locationContent;
+                    deliverOnMain(() -> callback.onLocationSectionExtracted(locationResult));
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error extracting location metadata", e);
                 SentryManager.recordException(e);
                 if (isActiveScan(taskRef[0])) {
-                    callback.onExtractionFailed(context.getString(R.string.status_extraction_fail));
+                    String errorMessage = context.getString(R.string.status_extraction_fail);
+                    deliverOnMain(() -> callback.onExtractionFailed(errorMessage));
                 }
             }
             return null;

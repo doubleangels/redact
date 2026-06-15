@@ -71,15 +71,9 @@ public class ProcessingForegroundService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null && ACTION_STOP.equals(intent.getAction())) {
-            stopForeground(STOP_FOREGROUND_REMOVE);
-            stopSelf();
-            return START_NOT_STICKY;
-        }
-        if (!LocalNotifications.canPostNotifications(this)) {
-            stopSelf();
-            return START_NOT_STICKY;
-        }
+        // Android requires startForeground() to be called within 5 seconds of
+        // startForegroundService(), regardless of what we decide to do afterward.
+        // Always build and post a minimal notification first, then stop if needed.
         String title = intent != null && intent.hasExtra(EXTRA_TITLE)
                 ? intent.getStringExtra(EXTRA_TITLE)
                 : getString(R.string.status_processing);
@@ -88,6 +82,7 @@ public class ProcessingForegroundService extends Service {
         if (title == null) {
             title = getString(R.string.status_processing);
         }
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, LocalNotifications.CHANNEL_ID_TASKS)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(title)
@@ -97,12 +92,29 @@ public class ProcessingForegroundService extends Service {
                 .setOnlyAlertOnce(true)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setContentIntent(LocalNotifications.mainContentIntent(this));
+
         try {
             startForeground(NOTIFICATION_ID, builder.build());
         } catch (SecurityException e) {
+            // POST_NOTIFICATIONS denied; we still satisfied the startForeground
+            // contract via the try, so just stop cleanly.
             stopSelf();
             return START_NOT_STICKY;
         }
+
+        // Now that we've satisfied Android's startForeground requirement, handle
+        // stop/permission-denied cases by removing the foreground state immediately.
+        if (intent != null && ACTION_STOP.equals(intent.getAction())) {
+            stopForeground(STOP_FOREGROUND_REMOVE);
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+        if (!LocalNotifications.canPostNotifications(this)) {
+            stopForeground(STOP_FOREGROUND_REMOVE);
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+
         return START_NOT_STICKY;
     }
 
