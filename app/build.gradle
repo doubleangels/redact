@@ -25,7 +25,6 @@ android {
             }
         }
         buildConfigField "String", "SENTRY_DSN", "\"${sentryDsn}\""
-        multiDexKeepProguard file('multidex-keep.pro')
     }
 
     buildTypes {
