@@ -75,7 +75,7 @@ jobs:
           serviceAccountJson: service_account.json
           packageName: com.doubleangels.redact
           releaseFiles: app-release.aab
-          track: production
+          tracks: production
           whatsNewDirectory: whatsnew
 
       - name: Set up Ruby for Fastlane

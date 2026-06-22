@@ -26,6 +26,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.doubleangels.redact.media.MediaItem;
+import com.doubleangels.redact.media.MediaPickerContracts;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.metadata.MetadataDisplayer;
 import com.doubleangels.redact.permission.PermissionManager;
@@ -89,7 +90,7 @@ public class ScanFragment extends Fragment {
     private Map<String, String> lastMetadataSections;
     private final AtomicInteger scanGeneration = new AtomicInteger(0);
 
-    private ActivityResultLauncher<androidx.activity.result.PickVisualMediaRequest> mediaPickerLauncher;
+    private ActivityResultLauncher<String[]> mediaPickerLauncher;
     private PermissionManager permissionManager;
     private com.doubleangels.redact.media.MediaSelector mediaSelector;
     @Nullable
@@ -101,7 +102,7 @@ public class ScanFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mediaPickerLauncher = registerForActivityResult(
-                new ActivityResultContracts.PickVisualMedia(),
+                new ActivityResultContracts.OpenDocument(),
                 uri -> {
                     if (uri != null) {
                         SentryManager.log("Media selected successfully in ScanFragment");
@@ -154,13 +155,12 @@ public class ScanFragment extends Fragment {
                 new PermissionManager.PermissionCallback() {
                     @Override
                     public void onPermissionsGranted() {
-                        selectMediaButton.setEnabled(true);
+                        syncSelectButtonForPickerAccess();
                     }
 
                     @Override
                     public void onPermissionsDenied() {
-                        selectMediaButton.setEnabled(false);
-                        showStatus(getString(R.string.status_storage_permissions_required));
+                        syncSelectButtonForPickerAccess();
                     }
 
                     @Override
@@ -236,12 +236,22 @@ public class ScanFragment extends Fragment {
     private void openMediaPicker() {
         try {
             SentryManager.log("Launching media picker in ScanFragment");
-            mediaPickerLauncher.launch(new androidx.activity.result.PickVisualMediaRequest.Builder()
-                    .setMediaType(ActivityResultContracts.PickVisualMedia.ImageAndVideo.INSTANCE)
-                    .build());
+            mediaPickerLauncher.launch(MediaPickerContracts.IMAGE_AND_VIDEO_MIME_TYPES);
         } catch (Exception e) {
             SentryManager.recordException(e);
             showStatus(getString(R.string.status_media_picker_fail));
+        }
+    }
+
+    private void syncSelectButtonForPickerAccess() {
+        if (permissionManager == null || selectMediaButton == null) {
+            return;
+        }
+        if (permissionManager.isMediaPickerAvailable()) {
+            selectMediaButton.setEnabled(true);
+        } else {
+            selectMediaButton.setEnabled(false);
+            showStatus(getString(R.string.status_storage_permissions_required));
         }
     }
 

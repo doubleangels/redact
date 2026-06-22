@@ -183,6 +183,7 @@
     <string name="status_extracting_media">Extracting video metadata…</string>
     <string name="status_extracting_image">Extracting image metadata…</string>
     <string name="status_media_picker_fail">We couldn\'t open the media picker.</string>
+    <string name="media_picker_selection_capped">Only %1$d files can be selected at a time.</string>
     <string name="status_storage_permissions_required">Storage permission is needed to access your files.</string>
 
     

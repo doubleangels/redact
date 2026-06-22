@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.doubleangels.redact.media.MediaAdapter;
 import com.doubleangels.redact.media.MediaItem;
+import com.doubleangels.redact.media.MediaPickerContracts;
 import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.permission.PermissionManager;
@@ -52,7 +53,7 @@ public class CleanFragment extends Fragment {
     private LinearProgressIndicator progressBar;
     private MediaAdapter mediaAdapter;
 
-    private ActivityResultLauncher<androidx.activity.result.PickVisualMediaRequest> mediaPickerLauncher;
+    private ActivityResultLauncher<String[]> mediaPickerLauncher;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -62,10 +63,18 @@ public class CleanFragment extends Fragment {
             mediaSelector = new MediaSelector(requireActivity());
         }
         mediaPickerLauncher = registerForActivityResult(
-                new ActivityResultContracts.PickMultipleVisualMedia(MAX_PICK_ITEMS),
+                new ActivityResultContracts.OpenMultipleDocuments(),
                 uris -> {
                     try {
                         if (uris != null && !uris.isEmpty()) {
+                            if (uris.size() > MAX_PICK_ITEMS) {
+                                Toast.makeText(
+                                                requireContext(),
+                                                getString(R.string.media_picker_selection_capped, MAX_PICK_ITEMS),
+                                                Toast.LENGTH_LONG)
+                                        .show();
+                                uris = MediaPickerContracts.trimToMax(uris, MAX_PICK_ITEMS);
+                            }
                             SentryManager.log("Media selected successfully");
                             List<MediaItem> items = new ArrayList<>();
                             for (android.net.Uri uri : uris) {
@@ -142,9 +151,7 @@ public class CleanFragment extends Fragment {
                         permissionManager.requestStoragePermission();
                     } else {
                         SentryManager.log("Launching media selector");
-                        mediaPickerLauncher.launch(new androidx.activity.result.PickVisualMediaRequest.Builder()
-                                .setMediaType(androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageAndVideo.INSTANCE)
-                                .build());
+                        mediaPickerLauncher.launch(MediaPickerContracts.IMAGE_AND_VIDEO_MIME_TYPES);
                     }
                 } catch (Exception e) {
                     SentryManager.recordException(e);
@@ -214,7 +221,17 @@ public class CleanFragment extends Fragment {
                             try {
                                 SentryManager.log("Permissions denied");
                                 SentryManager.setCustomKey("permissions_granted", false);
-                                uiStateManager.setPermissionsRequiredStatus();
+                                if (permissionManager.isMediaPickerAvailable()) {
+                                    uiStateManager.setReadyStatus();
+                                    if (selectButton != null) {
+                                        selectButton.setEnabled(true);
+                                    }
+                                } else {
+                                    uiStateManager.setPermissionsRequiredStatus();
+                                    if (selectButton != null) {
+                                        selectButton.setEnabled(false);
+                                    }
+                                }
                             } catch (Exception e) {
                                 SentryManager.recordException(e);
                             }
@@ -246,15 +263,15 @@ public class CleanFragment extends Fragment {
         if (permissionManager == null || uiStateManager == null) {
             return;
         }
-        if (permissionManager.needsPermissions()) {
-            uiStateManager.setPermissionsRequiredStatus();
-            if (selectButton != null) {
-                selectButton.setEnabled(false);
-            }
-        } else {
+        if (permissionManager.isMediaPickerAvailable()) {
             uiStateManager.setReadyStatus();
             if (selectButton != null) {
                 selectButton.setEnabled(true);
+            }
+        } else {
+            uiStateManager.setPermissionsRequiredStatus();
+            if (selectButton != null) {
+                selectButton.setEnabled(false);
             }
         }
     }

@@ -23,6 +23,7 @@ import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.media.ConvertFileAdapter;
 import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaItem;
+import com.doubleangels.redact.media.MediaPickerContracts;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.google.android.material.button.MaterialButton;
@@ -63,7 +64,7 @@ public class ConvertFragment extends Fragment {
     private int lastFormatNumImages = -1;
     private int lastFormatNumVideos = -1;
 
-    private ActivityResultLauncher<androidx.activity.result.PickVisualMediaRequest> mediaPickerLauncher;
+    private ActivityResultLauncher<String[]> mediaPickerLauncher;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -73,11 +74,19 @@ public class ConvertFragment extends Fragment {
             mediaSelector = new MediaSelector(requireActivity());
         }
         mediaPickerLauncher = registerForActivityResult(
-                new ActivityResultContracts.PickMultipleVisualMedia(MAX_PICK_ITEMS),
+                new ActivityResultContracts.OpenMultipleDocuments(),
                 uris -> {
                     if (uris == null || uris.isEmpty()) {
                         SentryManager.log("Media selection cancelled or failed in ConvertFragment");
                         return;
+                    }
+                    if (uris.size() > MAX_PICK_ITEMS) {
+                        Toast.makeText(
+                                        requireContext(),
+                                        getString(R.string.media_picker_selection_capped, MAX_PICK_ITEMS),
+                                        Toast.LENGTH_LONG)
+                                .show();
+                        uris = MediaPickerContracts.trimToMax(uris, MAX_PICK_ITEMS);
                     }
                     SentryManager.log("Media selected successfully in ConvertFragment");
                     List<MediaItem> items = new ArrayList<>();
@@ -127,11 +136,18 @@ public class ConvertFragment extends Fragment {
                     @Override
                     public void onPermissionsGranted() {
                         statusText.setText(R.string.convert_status_ready);
+                        selectButton.setEnabled(true);
                     }
 
                     @Override
                     public void onPermissionsDenied() {
-                        statusText.setText(R.string.status_storage_permissions_required);
+                        if (permissionManager.isMediaPickerAvailable()) {
+                            statusText.setText(R.string.convert_status_ready);
+                            selectButton.setEnabled(true);
+                        } else {
+                            statusText.setText(R.string.status_storage_permissions_required);
+                            selectButton.setEnabled(false);
+                        }
                     }
 
                     @Override
@@ -179,13 +195,20 @@ public class ConvertFragment extends Fragment {
             refreshFormatSectionForSelection(List.of());
         }
         if (!isHidden()) {
-            if (permissionManager.shouldRequestStorageBeforePicker()) {
-                statusText.setText(R.string.status_storage_permissions_required);
-                selectButton.setEnabled(false);
-            } else {
-                statusText.setText(R.string.convert_status_ready);
-                selectButton.setEnabled(true);
-            }
+            syncSelectButtonForPickerAccess();
+        }
+    }
+
+    private void syncSelectButtonForPickerAccess() {
+        if (permissionManager == null || selectButton == null || statusText == null) {
+            return;
+        }
+        if (permissionManager.isMediaPickerAvailable()) {
+            statusText.setText(R.string.convert_status_ready);
+            selectButton.setEnabled(true);
+        } else {
+            statusText.setText(R.string.status_storage_permissions_required);
+            selectButton.setEnabled(false);
         }
     }
 
@@ -281,9 +304,7 @@ public class ConvertFragment extends Fragment {
     }
 
     private void openMediaPicker() {
-        mediaPickerLauncher.launch(new androidx.activity.result.PickVisualMediaRequest.Builder()
-                .setMediaType(androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageAndVideo.INSTANCE)
-                .build());
+        mediaPickerLauncher.launch(MediaPickerContracts.IMAGE_AND_VIDEO_MIME_TYPES);
     }
 
     private int getSelectedFormatIndex() {
@@ -440,13 +461,7 @@ public class ConvertFragment extends Fragment {
                 viewModel.setConvertProcessingState(MainViewModel.ProcessingState.IDLE);
                 return;
             }
-            if (permissionManager.shouldRequestStorageBeforePicker()) {
-                statusText.setText(R.string.status_storage_permissions_required);
-                selectButton.setEnabled(false);
-            } else {
-                statusText.setText(R.string.convert_status_ready);
-                selectButton.setEnabled(true);
-            }
+            syncSelectButtonForPickerAccess();
         }
     }
 

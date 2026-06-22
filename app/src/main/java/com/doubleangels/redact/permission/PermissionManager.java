@@ -205,6 +205,13 @@ public class PermissionManager {
     }
 
     /**
+     * Whether Select can open a file picker. On API 33+, SAF does not require READ_MEDIA_*.
+     */
+    public boolean isMediaPickerAvailable() {
+        return !shouldRequestStorageBeforePicker() || !needsPermissions();
+    }
+
+    /**
      * Checks if location permission is needed.
      * This permission is required to access geolocation metadata in media files.
      *
