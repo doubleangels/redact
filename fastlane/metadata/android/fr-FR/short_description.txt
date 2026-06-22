@@ -1,1 +1,1 @@
-Supprimez les métadonnées, analysez l'EXIF et convertissez vos médias — sur l'appareil.
+Supprimez métadonnées, analysez EXIF et convertissez médias — sur l'appareil.
