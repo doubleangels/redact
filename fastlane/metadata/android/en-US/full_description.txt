@@ -15,7 +15,7 @@ Scan any photo or video to see organized EXIF and container metadata before you 
 Clean metadata in batches (up to 20 files). Convert image/video formats without uploading to a server — then run Clean if you also want metadata removed from converted files. Share into Redact from any app; cancel long jobs or continue with partial success if one file fails.</li>
 
 <li><b>Privacy-First Permissions:</b><br>
-On Android 13+, pick files with the system photo picker without granting broad library access. Optional photo-location permission unlocks GPS fields in Scan. Crash reporting and notifications are off by default.</li>
+On Android 13+, browse and pick files from Downloads, Files, or gallery folders with the system document picker—no broad library access required. Optional photo-location permission unlocks GPS fields in Scan. Crash reporting and notifications are off by default.</li>
 
 <li><b>100% Local Processing:</b><br>
 Cleaning, scanning, and conversion run on your device. Optional anonymized crash diagnostics (Sentry) never upload your media. Temporary cache can be cleared manually or pruned on startup.</li>
@@ -30,4 +30,4 @@ English, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean
 <p>EXIF metadata can reveal GPS coordinates, device model, and capture settings. Redact helps you share on your terms — with quality preserved and your files kept on your phone.</p>
 
 <p><b>How It Works:</b></p>
-<p>Select media in Redact or share from another app, tap Clean Metadata, and save privacy-safe copies to your gallery. For share-in, Redact strips metadata before you forward files onward. Strict Clean and share paths always remove location data.</p>
+<p>Select files in Redact or share from another app, tap Clean Metadata, and save privacy-safe copies to your gallery. For share-in, Redact strips metadata before you forward files onward. Strict Clean and share paths always remove location data.</p>

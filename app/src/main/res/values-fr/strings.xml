@@ -40,8 +40,8 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">Sélectionner Les Fichiers</string>
     <string name="convert_run">Convertir</string>
-    <string name="convert_status_hint">Sélectionnez des images ou vidéos à convertir.</string>
-    <string name="convert_status_ready">Prêt à sélectionner des images/vidéos.</string>
+    <string name="convert_status_hint">Sélectionnez des fichiers à convertir.</string>
+    <string name="convert_status_ready">Prêt à sélectionner des fichiers à convertir.</string>
     <string name="convert_selected_count">Sélectionnés : %1$d fichier(s)</string>
     <string name="convert_nothing_selected">Sélectionnez d\'abord une image.</string>
     <string name="convert_progress_item">Conversion %1$d sur %2$d…</string>
@@ -57,7 +57,7 @@
     <string name="convert_clean_tab_hint">La conversion modifie uniquement le format. Pour supprimer les métadonnées, allez dans l\'onglet Nettoyer.</string>
 
     
-    <string name="button_select_media">Sélectionner un Média</string>
+    <string name="button_select_media">Sélectionner des fichiers</string>
     <string name="button_strip_exif_data">Nettoyer les Métadonnées</string>
 
     
@@ -219,7 +219,7 @@
     <string name="settings_share_confirm_dialog_confirm">Supprimer Et Continuer</string>
     <string name="settings_share_confirm_dialog_cancel">Annuler</string>
     <string name="settings_section_permissions">Autorisations</string>
-    <string name="settings_permissions_subtitle">Sur Android 13+, le sélecteur système fonctionne sans accès large à la bibliothèque. L\'accès complet aide Nettoyer et Convertir à lire les fichiers existants. Notifications et réseau sont optionnels.</string>
+    <string name="settings_permissions_subtitle">Sur Android 13+, Redact utilise le sélecteur de fichiers système : Téléchargements, Fichiers ou dossiers galerie sans accès large à la bibliothèque. L\'accès photo/vidéo complet est optionnel. Notifications et réseau sont optionnels.</string>
     <string name="settings_permissions_media">Photos et vidéos</string>
     <string name="settings_permissions_notifications">Notifications (facultatif)</string>
     <string name="settings_permission_granted">Accordée</string>
@@ -260,7 +260,7 @@ Vos photos et vidéos ne sont jamais téléversées. Les URI, noms de fichier et
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">Annuler</string>
     <string name="clean_selected_count">Sélectionné : %1$d fichier(s)</string>
-    <string name="clean_status_ready">Prêt à sélectionner des médias à nettoyer.</string>
+    <string name="clean_status_ready">Prêt à sélectionner des fichiers à nettoyer.</string>
     <string name="convert_codec_fallback">%1$s indisponible ; enregistré en %2$s à la place.</string>
     <string name="metadata_error_basic_info_generic">Impossible de lire les informations de base du fichier.</string>
     <string name="metadata_error_image_generic">Impossible de lire les métadonnées de l\'image.</string>
@@ -305,7 +305,7 @@ Aucune photo, vidéo, nom de fichier ou coordonnée GPS n\'est téléversé.</st
     <string name="status_clean_done_partial">Terminé : %1$d nettoyé(s), %2$d échoué(s).</string>
     <string name="status_processing_cancelled">Traitement annulé.</string>
     <string name="settings_permission_partial">Partiel</string>
-    <string name="scan_status_ready">Sélectionnez une photo ou une vidéo pour analyser ses métadonnées.</string>
+    <string name="scan_status_ready">Sélectionnez un fichier pour analyser ses métadonnées.</string>
     <string name="animated_image_warning">Les images animées sont enregistrées comme une seule image fixe.</string>
     <string name="clean_item_failed">Échec : %1$s</string>
     <string name="settings_preserve_location_confirm_title">Conserver le GPS sur les photos nettoyées ?</string>
@@ -317,4 +317,5 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="settings_crash_reporting_unconfigured">Les rapports de plantage sont activés mais non configurés sur cette version.</string>
     <string name="settings_crash_reporting_init_failed">Impossible de démarrer les rapports de plantage. Réessayez plus tard.</string>
     <string name="share_error_partial_success">%1$d fichier(s) nettoyé(s) ; %2$d en échec.</string>
+    <string name="media_picker_selection_capped">Seuls %1$d fichiers peuvent être sélectionnés à la fois.</string>
 </resources>

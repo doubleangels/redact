@@ -40,8 +40,8 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">Dateien Auswählen</string>
     <string name="convert_run">Konvertieren</string>
-    <string name="convert_status_hint">Wählen Sie Bilder oder Videos zum Konvertieren aus.</string>
-    <string name="convert_status_ready">Bereit, Bilder/Videos auszuwählen.</string>
+    <string name="convert_status_hint">Dateien zum Konvertieren auswählen.</string>
+    <string name="convert_status_ready">Bereit, Dateien zum Konvertieren auszuwählen.</string>
     <string name="convert_selected_count">Ausgewählt: %1$d Datei(en)</string>
     <string name="convert_nothing_selected">Wählen Sie zuerst ein Bild aus.</string>
     <string name="convert_progress_item">Konvertiere %1$d von %2$d…</string>
@@ -57,7 +57,7 @@
     <string name="convert_clean_tab_hint">Durch die Konvertierung wird nur das Format geändert. Gehen Sie auf den Tab Bereinigen, um Metadaten zu entfernen.</string>
 
     
-    <string name="button_select_media">Medien Auswählen</string>
+    <string name="button_select_media">Dateien auswählen</string>
     <string name="button_strip_exif_data">Metadaten Bereinigen</string>
 
     
@@ -218,7 +218,7 @@
     <string name="settings_share_confirm_dialog_confirm">Entfernen Und Fortfahren</string>
     <string name="settings_share_confirm_dialog_cancel">Abbrechen</string>
     <string name="settings_section_permissions">Berechtigungen</string>
-    <string name="settings_permissions_subtitle">Ab Android 13 funktioniert die System-Fotoauswahl ohne breiten Medienzugriff. Vollzugriff hilft Bereinigen und Konvertieren beim Lesen vorhandener Galerie-Dateien. Benachrichtigungen und Netzwerk sind optional.</string>
+    <string name="settings_permissions_subtitle">Ab Android 13+ nutzt Redact die System-Dateiauswahl — Downloads, Dateien oder Galerieordner ohne breiten Medienzugriff. Vollständiger Foto-/Videozugriff ist optional. Benachrichtigungen und Netzwerk sind optional.</string>
     <string name="settings_permissions_media">Fotos &amp; Videos</string>
     <string name="settings_permissions_notifications">Benachrichtigungen (optional)</string>
     <string name="settings_permission_granted">Erteilt</string>
@@ -259,7 +259,7 @@ Ihre Fotos und Videos werden nie hochgeladen. URIs, Dateinamen und GPS-Koordinat
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">Abbrechen</string>
     <string name="clean_selected_count">Ausgewählt: %1$d Datei(en)</string>
-    <string name="clean_status_ready">Bereit, Medien zum Bereinigen auszuwählen.</string>
+    <string name="clean_status_ready">Bereit, Dateien zum Bereinigen auszuwählen.</string>
     <string name="convert_codec_fallback">%1$s nicht verfügbar; stattdessen als %2$s gespeichert.</string>
     <string name="metadata_error_basic_info_generic">Grundlegende Dateiinformationen konnten nicht gelesen werden.</string>
     <string name="metadata_error_image_generic">Bild-Metadaten konnten nicht gelesen werden.</string>
@@ -316,4 +316,5 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_crash_reporting_unconfigured">Absturzberichte sind aktiv, aber in diesem Build nicht konfiguriert.</string>
     <string name="settings_crash_reporting_init_failed">Absturzberichte konnten nicht gestartet werden. Versuchen Sie es später erneut.</string>
     <string name="share_error_partial_success">%1$d Datei(en) bereinigt; %2$d fehlgeschlagen.</string>
+    <string name="media_picker_selection_capped">Es können höchstens %1$d Dateien gleichzeitig ausgewählt werden.</string>
 </resources>

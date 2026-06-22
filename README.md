@@ -51,7 +51,7 @@ Protect your privacy with Redact — remove hidden EXIF and container metadata f
 
 - **Share sheet integration:** Share photos or videos into Redact from any app. Optional confirmation dialog, cancelable progress, partial batch success, and automatic cleanup of temporary share files.
 
-- **Privacy-first permissions:** On **Android 13+**, the system photo picker works without broad `READ_MEDIA_*` access. Optional `ACCESS_MEDIA_LOCATION` reveals GPS fields in Scan. Notifications and network access are **off by default**.
+- **Privacy-first permissions:** Pick files with Android’s **document picker** (Downloads, Files, gallery folders) without broad `READ_MEDIA_*` access on **Android 13+**. Optional `ACCESS_MEDIA_LOCATION` reveals GPS fields in Scan. Notifications and network access are **off by default**.
 
 - **100% on-device processing:** Your media is never uploaded for core features. Optional crash reporting sends anonymized diagnostics only (see below).
 
@@ -72,7 +72,8 @@ Install Redact through the [Google Play Store](https://play.google.com/store/app
 - **Minimum Android:** Android 12 (API 31)
 - **Target Android:** API 37
 - **Permissions:**
-  - **Android 13+:** Optional `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO` (or partial user-selected access on Android 14+) for reading existing gallery files. The **system photo picker** does not require broad library access for selecting files.
+  - **Android 13+:** File selection uses the **system document picker** — browse Downloads, Files, or any folder without broad `READ_MEDIA_*` access. Optional `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO` (or partial access on Android 14+) can still help in some cases.
+  - **Optional:** `FOREGROUND_SERVICE` (data sync / media processing) — shows progress during long clean or convert jobs when notifications are enabled.
   - **Android 12 and below:** `READ_EXTERNAL_STORAGE` for gallery access.
   - **Optional:** `ACCESS_MEDIA_LOCATION` — needed to read GPS coordinates embedded in media during Scan.
   - **Optional:** `POST_NOTIFICATIONS` — for task-finished and progress alerts (master toggle off by default).
@@ -81,13 +82,14 @@ Install Redact through the [Google Play Store](https://play.google.com/store/app
 
 ## How It Works
 
-### 1. Gallery / in-app picker
+### 1. In-app file picker
 
 1. Open **Clean**, **Scan**, or **Convert**.
-2. Select up to 20 photos or videos (system photo picker on Android 13+).
-3. **Clean** — strip metadata and save to `Pictures/Redact` or `Movies/Redact`.
-4. **Scan** — view metadata; optionally grant photo-location permission to see GPS.
-5. **Convert** — change format/codec; use **Clean** afterward if you need metadata removed too.
+2. Tap **Select Files** and browse **Downloads**, **Documents**, gallery folders, or any storage provider.
+3. Choose up to **20** images or videos on Clean/Convert, or **one file** on Scan.
+4. **Clean** — strip metadata and save to `Pictures/Redact` or `Movies/Redact`.
+5. **Scan** — view metadata; use action buttons to copy fields, open in Clean, or send to Convert. Grant photo-location permission to see GPS.
+6. **Convert** — change format/codec; use **Clean** afterward if you need metadata removed too.
 
 ### 2. Share integration
 

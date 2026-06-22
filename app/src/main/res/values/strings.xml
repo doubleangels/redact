@@ -69,7 +69,7 @@
     <string name="settings_share_confirm_dialog_cancel">Cancel</string>
 
     <string name="settings_section_permissions">Permissions</string>
-    <string name="settings_permissions_subtitle">On Android 13+, the system photo picker works without broad library access. Full access helps Clean and Convert read existing gallery files. Notifications and network access are optional.</string>
+    <string name="settings_permissions_subtitle">On Android 13+, Redact uses the system file picker so you can browse Downloads, Files, or gallery folders without granting broad library access. Optional full photo/video permission can help with some paths. Notifications and network access are optional.</string>
     <string name="settings_permissions_media">Photos &amp; Videos</string>
     <string name="settings_permissions_location">Photo Location</string>
     <string name="settings_permissions_notifications">Notifications (Optional)</string>
@@ -138,9 +138,9 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">Select Files</string>
     <string name="convert_run">Convert</string>
-    <string name="convert_status_hint">Select images or videos to convert.</string>
-    <string name="convert_status_ready">Ready to select images/videos.</string>
-    <string name="clean_status_ready">Ready to select media to clean.</string>
+    <string name="convert_status_hint">Select files to convert.</string>
+    <string name="convert_status_ready">Ready to select files to convert.</string>
+    <string name="clean_status_ready">Ready to select files to clean.</string>
     <string name="convert_selected_count" tools:ignore="PluralsCandidate">Selected: %1$d file(s)</string>
     <string name="clean_selected_count" tools:ignore="PluralsCandidate">Selected: %1$d file(s)</string>
     <string name="convert_nothing_selected">Select at least one image first.</string>
@@ -155,13 +155,13 @@
     <string name="convert_done_failed">Conversion failed.</string>
     <string name="convert_saved_to_gallery">Saved to Gallery (Redact folder)</string>
     <string name="convert_clean_tab_hint">Conversion changes format only. To remove metadata from the new files, go to the Clean tab and run them through cleaning.</string>
-    <string name="scan_status_ready">Select a photo or video to scan its metadata.</string>
+    <string name="scan_status_ready">Select a file to scan its metadata.</string>
     <string name="animated_image_warning">Animated images are saved as a single still frame.</string>
     <string name="scan_metadata_truncated_key" translatable="false">SCAN_NOTE</string>
     <string name="scan_metadata_truncated">Some EXIF tags were omitted from this scan (display limit).</string>
 
     
-    <string name="button_select_media">Select Media</string>
+    <string name="button_select_media">Select Files</string>
     <string name="button_strip_exif_data">Clean Metadata</string>
     <string name="button_cancel">Cancel</string>
 

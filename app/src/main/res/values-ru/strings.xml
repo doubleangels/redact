@@ -40,8 +40,8 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">Выбрать Файлы</string>
     <string name="convert_run">Конвертировать</string>
-    <string name="convert_status_hint">Выберите изображения или видео для конвертации.</string>
-    <string name="convert_status_ready">Готово к выбору изображений/видео.</string>
+    <string name="convert_status_hint">Выберите файлы для конвертации.</string>
+    <string name="convert_status_ready">Готово к выбору файлов для конвертации.</string>
     <string name="convert_selected_count">Выбрано: %1$d файл(ов)</string>
     <string name="convert_nothing_selected">Сначала выберите хотя бы одно изображение.</string>
     <string name="convert_progress_item">Конвертация %1$d из %2$d…</string>
@@ -57,7 +57,7 @@
     <string name="convert_clean_tab_hint">Конвертация изменяет только формат. Чтобы удалить метаданные, перейдите на вкладку Очистка.</string>
 
     
-    <string name="button_select_media">Выбрать Медиа</string>
+    <string name="button_select_media">Выбрать файлы</string>
     <string name="button_strip_exif_data">Очистить Метаданные</string>
 
     
@@ -219,7 +219,7 @@
     <string name="settings_share_confirm_dialog_confirm">Удалить И Продолжить</string>
     <string name="settings_share_confirm_dialog_cancel">Отмена</string>
     <string name="settings_section_permissions">Разрешения</string>
-    <string name="settings_permissions_subtitle">На Android 13+ системный выбор фото работает без широкого доступа к медиатеке. Полный доступ помогает Очистке и Конвертации читать существующие файлы. Уведомления и сеть необязательны.</string>
+    <string name="settings_permissions_subtitle">На Android 13+ Redact использует системный выбор файлов — «Загрузки», «Файлы» или папки галереи без широкого доступа к медиатеке. Полный доступ к фото/видео необязателен. Уведомления и сеть необязательны.</string>
     <string name="settings_permissions_media">Фото и видео</string>
     <string name="settings_permissions_notifications">Уведомления (необязательно)</string>
     <string name="settings_permission_granted">Предоставлено</string>
@@ -260,7 +260,7 @@
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">Отмена</string>
     <string name="clean_selected_count">Выбрано: %1$d файл(ов)</string>
-    <string name="clean_status_ready">Готово к выбору медиа для очистки.</string>
+    <string name="clean_status_ready">Готово к выбору файлов для очистки.</string>
     <string name="convert_codec_fallback">%1$s недоступен; сохранено как %2$s.</string>
     <string name="metadata_error_basic_info_generic">Не удалось прочитать основную информацию о файле.</string>
     <string name="metadata_error_image_generic">Не удалось прочитать метаданные изображения.</string>
@@ -305,7 +305,7 @@
     <string name="status_clean_done_partial">Готово: %1$d очищено, %2$d не удалось.</string>
     <string name="status_processing_cancelled">Обработка отменена.</string>
     <string name="settings_permission_partial">Частично</string>
-    <string name="scan_status_ready">Выберите фото или видео для просмотра метаданных.</string>
+    <string name="scan_status_ready">Выберите файл для просмотра метаданных.</string>
     <string name="animated_image_warning">Анимированные изображения сохраняются как один кадр.</string>
     <string name="clean_item_failed">Ошибка: %1$s</string>
     <string name="settings_preserve_location_confirm_title">Сохранять GPS на очищенных фото?</string>
@@ -317,4 +317,5 @@
     <string name="settings_crash_reporting_unconfigured">Отчёты о сбоях включены, но не настроены в этой сборке.</string>
     <string name="settings_crash_reporting_init_failed">Не удалось запустить отчёты о сбоях. Попробуйте позже.</string>
     <string name="share_error_partial_success">Очищено %1$d файл(ов); ошибка: %2$d.</string>
+    <string name="media_picker_selection_capped">За раз можно выбрать не более %1$d файлов.</string>
 </resources>

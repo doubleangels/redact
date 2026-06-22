@@ -40,8 +40,8 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">फ़ाइलें चुनें</string>
     <string name="convert_run">बदलें</string>
-    <string name="convert_status_hint">बदलने के लिए चित्र या वीडियो चुनें।</string>
-    <string name="convert_status_ready">चित्र/वीडियो चुनने के लिए तैयार।</string>
+    <string name="convert_status_hint">कन्वर्ट करने के लिए फ़ाइलें चुनें।</string>
+    <string name="convert_status_ready">कन्वर्ट करने के लिए फ़ाइलें चुनने के लिए तैयार।</string>
     <string name="convert_selected_count">चयनित: %1$d फ़ाइल(फ़ाइलें)</string>
     <string name="convert_nothing_selected">कृपया पहले कम से कम एक चित्र चुनें।</string>
     <string name="convert_progress_item">%2$d में से %1$d बदला जा रहा है…</string>
@@ -57,7 +57,7 @@
     <string name="convert_clean_tab_hint">रूपांतरण केवल प्रारूप बदलता है। मेटाडेटा हटाने के लिए, साफ़ करें टैब पर जाएं।</string>
 
     
-    <string name="button_select_media">मीडिया चुनें</string>
+    <string name="button_select_media">फ़ाइलें चुनें</string>
     <string name="button_strip_exif_data">मेटाडेटा साफ करें</string>
 
     
@@ -219,7 +219,7 @@
     <string name="settings_share_confirm_dialog_confirm">हटाएँ और जारी रखें</string>
     <string name="settings_share_confirm_dialog_cancel">रद्द करें</string>
     <string name="settings_section_permissions">अनुमतियाँ</string>
-    <string name="settings_permissions_subtitle">Android 13+ पर सिस्टम फ़ोटो पिकर बिना व्यापक लाइब्रेरी एक्सेस के काम करता है। पूर्ण एक्सेस साफ़ करें और कन्वर्ट में मौजूदा गैलरी फ़ाइलें पढ़ने में मदद करता है। नोटिफ़िकेशन और नेटवर्क वैकल्पिक हैं।</string>
+    <string name="settings_permissions_subtitle">Android 13+ पर Redact सिस्टम फ़ाइल पिकर का उपयोग करता है — डाउनलोड, फ़ाइलें या गैलरी फ़ोल्डर व्यापक लाइब्रेरी एक्सेस के बिना। पूर्ण फ़ोटो/वीडियो एक्सेस वैकल्पिक है। नोटिफ़िकेशन और नेटवर्क वैकल्पिक हैं।</string>
     <string name="settings_permissions_media">फ़ोटो और वीडियो</string>
     <string name="settings_permissions_notifications">सूचनाएँ (वैकल्पिक)</string>
     <string name="settings_permission_granted">दी गई</string>
@@ -260,7 +260,7 @@
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">रद्द करें</string>
     <string name="clean_selected_count">चयनित: %1$d फ़ाइल(ें)</string>
-    <string name="clean_status_ready">साफ़ करने के लिए मीडिया चुनने के लिए तैयार।</string>
+    <string name="clean_status_ready">साफ़ करने के लिए फ़ाइलें चुनने के लिए तैयार।</string>
     <string name="convert_codec_fallback">%1$s उपलब्ध नहीं; इसके बजाय %2$s के रूप में सहेजा गया।</string>
     <string name="metadata_error_basic_info_generic">मूल फ़ाइल जानकारी पढ़ नहीं सकी।</string>
     <string name="metadata_error_image_generic">छवि मेटाडेटा पढ़ नहीं सका।</string>
@@ -305,7 +305,7 @@
     <string name="status_clean_done_partial">पूर्ण: %1$d साफ़, %2$d विफल।</string>
     <string name="status_processing_cancelled">प्रसंस्करण रद्द किया गया।</string>
     <string name="settings_permission_partial">आंशिक</string>
-    <string name="scan_status_ready">मेटाडेटा स्कैन करने के लिए फ़ोटो या वीडियो चुनें।</string>
+    <string name="scan_status_ready">मेटाडेटा स्कैन करने के लिए एक फ़ाइल चुनें।</string>
     <string name="animated_image_warning">एनिमेटेड छवियाँ एक स्थिर फ़्रेम के रूप में सहेजी जाती हैं।</string>
     <string name="clean_item_failed">विफल: %1$s</string>
     <string name="settings_preserve_location_confirm_title">साफ़ की गई फ़ोटो में GPS रखें?</string>
@@ -317,4 +317,5 @@
     <string name="settings_crash_reporting_unconfigured">क्रैश रिपोर्टिंग चालू है लेकिन इस बिल्ड में कॉन्फ़िगर नहीं है।</string>
     <string name="settings_crash_reporting_init_failed">क्रैश रिपोर्टिंग शुरू नहीं हो सकी। बाद में पुनः प्रयास करें।</string>
     <string name="share_error_partial_success">%1$d फ़ाइल(ें) साफ़; %2$d विफल।</string>
+    <string name="media_picker_selection_capped">एक बार में अधिकतम %1$d फ़ाइलें चुनी जा सकती हैं।</string>
 </resources>

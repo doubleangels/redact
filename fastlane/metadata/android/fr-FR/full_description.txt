@@ -15,7 +15,7 @@ Analysez photos ou vidéos pour voir EXIF et métadonnées du conteneur avant ne
 Nettoyez les métadonnées par lots (jusqu'à 20 fichiers). Convertissez les formats sans serveur — puis Nettoyer si vous voulez aussi supprimer les métadonnées des fichiers convertis. Partagez vers Redact depuis toute app ; annulez les longues tâches ou continuez en cas de succès partiel.</li>
 
 <li><b>Autorisations axées sur la confidentialité :</b><br>
-Sur Android 13+, choisissez des fichiers avec le sélecteur système sans accès large à la bibliothèque. L'autorisation optionnelle de localisation photo affiche le GPS dans Analyser. Rapports de plantage et notifications désactivés par défaut.</li>
+Sur Android 13+, parcourez Téléchargements, Fichiers ou dossiers galerie avec le sélecteur de documents système — sans accès large à la bibliothèque. L'autorisation optionnelle de localisation photo affiche le GPS dans Analyser. Rapports de plantage et notifications désactivés par défaut.</li>
 
 <li><b>Traitement 100 % local :</b><br>
 Nettoyage, analyse et conversion sur l'appareil. Diagnostics de plantage optionnels (Sentry) n'envoient jamais vos médias. Videz le cache manuellement ou supprimez les anciens fichiers au démarrage.</li>

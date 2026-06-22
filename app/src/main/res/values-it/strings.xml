@@ -40,8 +40,8 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">Seleziona File</string>
     <string name="convert_run">Converti</string>
-    <string name="convert_status_hint">Seleziona immagini o video da convertire.</string>
-    <string name="convert_status_ready">Pronto a selezionare immagini/video.</string>
+    <string name="convert_status_hint">Seleziona file da convertire.</string>
+    <string name="convert_status_ready">Pronto per selezionare file da convertire.</string>
     <string name="convert_selected_count">Selezionati: %1$d file(s)</string>
     <string name="convert_nothing_selected">Seleziona prima un\'immagine.</string>
     <string name="convert_progress_item">Conversione %1$d di %2$d…</string>
@@ -57,7 +57,7 @@
     <string name="convert_clean_tab_hint">La conversione cambia solo il formato. Per rimuovere i metadati, vai alla scheda Pulisci.</string>
 
     
-    <string name="button_select_media">Seleziona Media</string>
+    <string name="button_select_media">Seleziona file</string>
     <string name="button_strip_exif_data">Pulisci Metadati</string>
 
     
@@ -219,7 +219,7 @@
     <string name="settings_share_confirm_dialog_confirm">Rimuovi E Continua</string>
     <string name="settings_share_confirm_dialog_cancel">Annulla</string>
     <string name="settings_section_permissions">Autorizzazioni</string>
-    <string name="settings_permissions_subtitle">Su Android 13+, il selettore di sistema funziona senza accesso ampio alla libreria. L\'accesso completo aiuta Pulisci e Converti a leggere i file esistenti. Notifiche e rete sono opzionali.</string>
+    <string name="settings_permissions_subtitle">Su Android 13+, Redact usa il selettore file di sistema: Download, File o cartelle galleria senza accesso ampio alla libreria. L\'accesso completo a foto/video è opzionale. Notifiche e rete sono opzionali.</string>
     <string name="settings_permissions_media">Foto e video</string>
     <string name="settings_permissions_notifications">Notifiche (opzionale)</string>
     <string name="settings_permission_granted">Concessa</string>
@@ -260,7 +260,7 @@ Le tue foto e video non vengono mai caricati. URI, nomi file e coordinate GPS ve
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">Annulla</string>
     <string name="clean_selected_count">Selezionati: %1$d file</string>
-    <string name="clean_status_ready">Pronto per selezionare i media da pulire.</string>
+    <string name="clean_status_ready">Pronto per selezionare file da pulire.</string>
     <string name="convert_codec_fallback">%1$s non disponibile; salvato come %2$s.</string>
     <string name="metadata_error_basic_info_generic">Impossibile leggere le informazioni di base del file.</string>
     <string name="metadata_error_image_generic">Impossibile leggere i metadati dell\'immagine.</string>
@@ -305,7 +305,7 @@ Nessuna foto, video, nome file o coordinate GPS vengono caricati.</string>
     <string name="status_clean_done_partial">Fatto: %1$d puliti, %2$d non riusciti.</string>
     <string name="status_processing_cancelled">Elaborazione annullata.</string>
     <string name="settings_permission_partial">Parziale</string>
-    <string name="scan_status_ready">Seleziona una foto o un video per analizzarne i metadati.</string>
+    <string name="scan_status_ready">Seleziona un file per analizzarne i metadati.</string>
     <string name="animated_image_warning">Le immagini animate vengono salvate come un singolo fotogramma.</string>
     <string name="clean_item_failed">Non riuscito: %1$s</string>
     <string name="settings_preserve_location_confirm_title">Mantenere il GPS sulle foto pulite?</string>
@@ -317,4 +317,5 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="settings_crash_reporting_unconfigured">Segnalazione crash attiva ma non configurata in questa build.</string>
     <string name="settings_crash_reporting_init_failed">Impossibile avviare la segnalazione crash. Riprova più tardi.</string>
     <string name="share_error_partial_success">%1$d file puliti; %2$d non riusciti.</string>
+    <string name="media_picker_selection_capped">È possibile selezionare al massimo %1$d file alla volta.</string>
 </resources>

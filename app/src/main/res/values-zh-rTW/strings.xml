@@ -40,8 +40,8 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">選擇檔案</string>
     <string name="convert_run">轉換</string>
-    <string name="convert_status_hint">選擇要轉換的圖片或影片。</string>
-    <string name="convert_status_ready">準備選擇圖片/影片。</string>
+    <string name="convert_status_hint">選擇要轉換的檔案。</string>
+    <string name="convert_status_ready">準備選擇要轉換的檔案。</string>
     <string name="convert_selected_count">已選擇：%1$d 個檔案</string>
     <string name="convert_nothing_selected">請先至少選擇一張圖片。</string>
     <string name="convert_progress_item">正在轉換第 %1$d 個，共 %2$d 個…</string>
@@ -57,7 +57,7 @@
     <string name="convert_clean_tab_hint">轉換僅改變格式。若要刪除中繼資料，請前往「清理」標籤頁。</string>
 
     
-    <string name="button_select_media">選擇媒體</string>
+    <string name="button_select_media">選擇檔案</string>
     <string name="button_strip_exif_data">清理中繼資料</string>
 
     
@@ -219,7 +219,7 @@
     <string name="settings_share_confirm_dialog_confirm">移除並繼續</string>
     <string name="settings_share_confirm_dialog_cancel">取消</string>
     <string name="settings_section_permissions">權限</string>
-    <string name="settings_permissions_subtitle">Android 13+ 上，系統照片選擇器無需廣泛的媒體庫權限即可選檔案。完整存取有助於清理與轉換讀取既有圖庫檔案。通知與網路為選用。</string>
+    <string name="settings_permissions_subtitle">Android 13+ 上，Redact 使用系統檔案選擇器，可瀏覽下載、檔案或圖庫資料夾，無需廣泛的媒體庫權限。完整的照片/影片存取為選用。通知與網路為選用。</string>
     <string name="settings_permissions_media">照片和影片</string>
     <string name="settings_permissions_notifications">通知（選用）</string>
     <string name="settings_permission_granted">已授予</string>
@@ -260,7 +260,7 @@
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">取消</string>
     <string name="clean_selected_count">已選取：%1$d 個檔案</string>
-    <string name="clean_status_ready">準備選取要清理的媒體。</string>
+    <string name="clean_status_ready">準備選擇要清理的檔案。</string>
     <string name="convert_codec_fallback">%1$s 無法使用；已改為儲存為 %2$s。</string>
     <string name="metadata_error_basic_info_generic">無法讀取基本檔案資訊。</string>
     <string name="metadata_error_image_generic">無法讀取影像中繼資料。</string>
@@ -305,7 +305,7 @@
     <string name="status_clean_done_partial">完成：%1$d 個已清理，%2$d 個失敗。</string>
     <string name="status_processing_cancelled">處理已取消。</string>
     <string name="settings_permission_partial">部分</string>
-    <string name="scan_status_ready">選擇照片或影片以掃描其中繼資料。</string>
+    <string name="scan_status_ready">選擇檔案以掃描其中繼資料。</string>
     <string name="animated_image_warning">動畫圖像將儲存為單一靜止畫面。</string>
     <string name="clean_item_failed">失敗：%1$s</string>
     <string name="settings_preserve_location_confirm_title">在清理後的照片中保留 GPS？</string>
@@ -317,4 +317,5 @@
     <string name="settings_crash_reporting_unconfigured">已啟用當機回報，但此版本未設定。</string>
     <string name="settings_crash_reporting_init_failed">無法啟動當機回報，請稍後再試。</string>
     <string name="share_error_partial_success">已清理 %1$d 個檔案；%2$d 個失敗。</string>
+    <string name="media_picker_selection_capped">一次最多只能選擇 %1$d 個檔案。</string>
 </resources>

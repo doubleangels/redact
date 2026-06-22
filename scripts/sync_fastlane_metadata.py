@@ -37,7 +37,7 @@ Scannen Sie Fotos oder Videos, um organisierte EXIF- und Container-Metadaten vor
 Metadaten in Stapeln bereinigen (bis zu 20 Dateien). Formate ohne Server-Upload konvertieren — danach Bereinigen, wenn auch konvertierte Dateien ohne Metadaten sein sollen. Teilen in Redact aus jeder App; lange Aufträge abbrechen oder bei Teilerfolg fortfahren.</li>
 
 <li><b>Datenschutz zuerst bei Berechtigungen:</b><br>
-Ab Android 13 Dateien mit der System-Fotoauswahl ohne breiten Bibliothekszugriff wählen. Optionale Foto-Standortberechtigung zeigt GPS in Scannen. Absturzberichte und Benachrichtigungen sind standardmäßig aus.</li>
+Ab Android 13+ Dateien aus Downloads, Dateien oder Galerieordnern mit der System-Dateiauswahl wählen — ohne breiten Bibliothekszugriff. Optionale Foto-Standortberechtigung zeigt GPS in Scannen. Absturzberichte und Benachrichtigungen sind standardmäßig aus.</li>
 
 <li><b>100 % lokale Verarbeitung:</b><br>
 Bereinigung, Scan und Konvertierung laufen auf Ihrem Gerät. Optionale anonymisierte Absturzdiagnose (Sentry) lädt niemals Ihre Medien hoch. Cache manuell leeren oder beim Start alte Dateien entfernen.</li>
@@ -71,7 +71,7 @@ Escanea fotos o videos para ver EXIF y metadatos del contenedor organizados ante
 Limpia metadatos por lotes (hasta 20 archivos). Convierte formatos sin subir a un servidor; luego usa Limpiar si también quieres quitar metadatos de los convertidos. Comparte a Redact desde cualquier app; cancela trabajos largos o continúa con éxito parcial.</li>
 
 <li><b>Permisos con privacidad primero:</b><br>
-En Android 13+, elige archivos con el selector del sistema sin acceso amplio a la biblioteca. El permiso opcional de ubicación de fotos muestra GPS en Escanear. Informes de fallos y notificaciones desactivados por defecto.</li>
+En Android 13+, elige archivos desde Descargas, Archivos o carpetas de la galería con el selector de documentos del sistema, sin acceso amplio a la biblioteca. El permiso opcional de ubicación de fotos muestra GPS en Escanear. Informes de fallos y notificaciones desactivados por defecto.</li>
 
 <li><b>100 % procesamiento local:</b><br>
 Limpieza, escaneo y conversión en tu dispositivo. Diagnósticos de fallos opcionales (Sentry) nunca suben tus medios. Limpia la caché manualmente o elimina archivos antiguos al iniciar.</li>
@@ -105,7 +105,7 @@ Analysez photos ou vidéos pour voir EXIF et métadonnées du conteneur avant ne
 Nettoyez les métadonnées par lots (jusqu'à 20 fichiers). Convertissez les formats sans serveur — puis Nettoyer si vous voulez aussi supprimer les métadonnées des fichiers convertis. Partagez vers Redact depuis toute app ; annulez les longues tâches ou continuez en cas de succès partiel.</li>
 
 <li><b>Autorisations axées sur la confidentialité :</b><br>
-Sur Android 13+, choisissez des fichiers avec le sélecteur système sans accès large à la bibliothèque. L'autorisation optionnelle de localisation photo affiche le GPS dans Analyser. Rapports de plantage et notifications désactivés par défaut.</li>
+Sur Android 13+, parcourez Téléchargements, Fichiers ou dossiers galerie avec le sélecteur de documents système — sans accès large à la bibliothèque. L'autorisation optionnelle de localisation photo affiche le GPS dans Analyser. Rapports de plantage et notifications désactivés par défaut.</li>
 
 <li><b>Traitement 100 % local :</b><br>
 Nettoyage, analyse et conversion sur l'appareil. Diagnostics de plantage optionnels (Sentry) n'envoient jamais vos médias. Videz le cache manuellement ou supprimez les anciens fichiers au démarrage.</li>
@@ -139,7 +139,7 @@ Scansiona foto o video per vedere EXIF e metadati del contenitore organizzati pr
 Pulisci metadati in batch (fino a 20 file). Converti formati senza caricare su server — poi Pulisci se vuoi rimuovere metadati anche dai file convertiti. Condividi in Redact da qualsiasi app; annulla lavori lunghi o continua con successo parziale.</li>
 
 <li><b>Autorizzazioni privacy-first:</b><br>
-Su Android 13+, scegli file con il selettore di sistema senza accesso ampio alla libreria. Il permesso opzionale posizione foto mostra il GPS in Scansione. Segnalazione crash e notifiche disattivate di default.</li>
+Su Android 13+, scegli file da Download, File o cartelle galleria con il selettore documenti di sistema — senza accesso ampio alla libreria. Il permesso opzionale posizione foto mostra il GPS in Scansione. Segnalazione crash e notifiche disattivate di default.</li>
 
 <li><b>Elaborazione 100% locale:</b><br>
 Pulizia, scansione e conversione sul dispositivo. Diagnostica crash opzionale (Sentry) non carica mai i tuoi media. Svuota la cache manualmente o rimuovi file vecchi all'avvio.</li>
@@ -173,7 +173,7 @@ Escaneie fotos ou vídeos para ver EXIF e metadados do contêiner organizados an
 Limpe metadados em lotes (até 20 arquivos). Converta formatos sem enviar a um servidor — depois use Limpar se quiser remover metadados dos convertidos. Compartilhe para o Redact de qualquer app; cancele trabalhos longos ou continue com sucesso parcial.</li>
 
 <li><b>Permissões com privacidade em primeiro lugar:</b><br>
-No Android 13+, escolha arquivos com o seletor do sistema sem acesso amplo à biblioteca. Permissão opcional de localização de fotos mostra GPS em Escanear. Relatórios de falha e notificações desativados por padrão.</li>
+No Android 13+, escolha arquivos em Downloads, Arquivos ou pastas da galeria com o seletor de documentos do sistema — sem acesso amplo à biblioteca. Permissão opcional de localização de fotos mostra GPS em Escanear. Relatórios de falha e notificações desativados por padrão.</li>
 
 <li><b>Processamento 100% local:</b><br>
 Limpeza, escaneamento e conversão no dispositivo. Diagnósticos de falha opcionais (Sentry) nunca enviam sua mídia. Limpe o cache manualmente ou remova arquivos antigos na inicialização.</li>
@@ -207,7 +207,7 @@ Inglês, espanhol, francês, alemão, italiano, português, russo, japonês, cor
 Очистка метаданных пакетами (до 20 файлов). Конвертация форматов без загрузки на сервер — затем Очистка, если нужно убрать метаданные и с конвертированных файлов. Отправка в Redact из любого приложения; отмена длительных задач или продолжение при частичном успехе.</li>
 
 <li><b>Разрешения с приоритетом конфиденциальности:</b><br>
-На Android 13+ выбор файлов через системный фотопикер без широкого доступа к библиотеке. Опциональное разрешение геоданных фото показывает GPS в Сканировании. Отчёты о сбоях и уведомления по умолчанию выключены.</li>
+На Android 13+ выбирайте файлы из «Загрузки», «Файлы» или папок галереи через системный выбор документов — без широкого доступа к библиотеке. Опциональное разрешение геоданных фото показывает GPS в Сканировании. Отчёты о сбоях и уведомления по умолчанию выключены.</li>
 
 <li><b>100% локальная обработка:</b><br>
 Очистка, сканирование и конвертация на устройстве. Опциональная анонимная диагностика (Sentry) никогда не загружает ваши медиа. Очистка кэша вручную или удаление старых файлов при запуске.</li>
@@ -241,7 +241,7 @@ GPS位置、端末情報、タイムスタンプ、カメラ設定などの隠�
 最大20ファイルのバッチでメタデータをクリーン。サーバーにアップロードせず形式変換 — 変換後のファイルからもメタデータを除く場合はクリーンを実行。任意のアプリからRedactへ共有、長時間ジョブのキャンセルや部分成功時の継続に対応。</li>
 
 <li><b>プライバシー優先の権限:</b><br>
-Android 13以降、システム写真ピッカーで広いライブラリアクセスなしに選択。任意の写真位置権限でスキャンにGPS表示。クラッシュ報告と通知はデフォルトでオフ。</li>
+Android 13以降、ダウンロード、ファイル、ギャラリーフォルダからシステムのドキュメント選択で選べます（広いライブラリアクセス不要）。任意の写真位置権限でスキャンにGPS表示。クラッシュ報告と通知はデフォルトでオフ。</li>
 
 <li><b>100%ローカル処理:</b><br>
 クリーン、スキャン、変換は端末内で実行。任意の匿名クラッシュ診断（Sentry）はメディアをアップロードしません。キャッシュは手動削除または起動時に古いファイルを整理。</li>
@@ -275,7 +275,7 @@ GPS 위치, 기기 정보, 타임스탬프, 카메라 설정 등 숨은 메타�
 최대 20개 파일 배치로 메타데이터 정리. 서버 업로드 없이 형식 변환 — 변환된 파일에서도 메타데이터를 제거하려면 정리 실행. 모든 앱에서 Redact로 공유, 긴 작업 취소 또는 부분 성공 시 계속.</li>
 
 <li><b>개인정보 우선 권한:</b><br>
-Android 13 이상에서 시스템 사진 선택기로 넓은 라이브러리 접근 없이 선택. 선택적 사진 위치 권한으로 스캔에서 GPS 표시. 충돌 보고 및 알림은 기본 꺼짐.</li>
+Android 13 이상에서 다운로드, 파일 또는 갤러리 폴더를 시스템 문서 선택기로 고를 수 있습니다(넓은 라이브러리 접근 불필요). 선택적 사진 위치 권한으로 스캔에서 GPS 표시. 충돌 보고 및 알림은 기본 꺼짐.</li>
 
 <li><b>100% 로컬 처리:</b><br>
 정리, 스캔, 변환은 기기에서 실행. 선택적 익명 충돌 진단(Sentry)은 미디어를 업로드하지 않음. 캐시 수동 삭제 또는 시작 시 오래된 파일 정리.</li>
@@ -309,7 +309,7 @@ Android 13 이상에서 시스템 사진 선택기로 넓은 라이브러리 접
 批量清理元数据（最多 20 个文件）。无需上传服务器即可转换格式 — 若也要移除转换后文件的元数据，请再运行清理。从任意应用分享到 Redact；可取消长时间任务或在部分成功时继续。</li>
 
 <li><b>隐私优先的权限：</b><br>
-Android 13+ 可用系统照片选择器，无需广泛的媒体库权限。可选的照片位置权限可在扫描中显示 GPS。崩溃报告和通知默认关闭。</li>
+Android 13+ 可用系统文档选择器从下载、文件或图库文件夹中选择，无需广泛的媒体库权限。可选的照片位置权限可在扫描中显示 GPS。崩溃报告和通知默认关闭。</li>
 
 <li><b>100% 本地处理：</b><br>
 清理、扫描和转换均在设备上完成。可选的匿名崩溃诊断（Sentry）从不上传您的媒体。可手动清理缓存或在启动时删除过期文件。</li>
@@ -343,7 +343,7 @@ Android 13+ 可用系统照片选择器，无需广泛的媒体库权限。可�
 批次清理中繼資料（最多 20 個檔案）。無需上傳伺服器即可轉換格式 — 若也要移除轉換後檔案的中繼資料，請再執行清理。從任意 App 分享至 Redact；可取消長時間工作或在部分成功時繼續。</li>
 
 <li><b>隱私優先的權限：</b><br>
-Android 13+ 可使用系統照片選擇器，無需廣泛的媒體庫權限。可選的照片位置權限可在掃描中顯示 GPS。當機回報與通知預設關閉。</li>
+Android 13+ 可使用系統文件選擇器從下載、檔案或圖庫資料夾選取，無需廣泛的媒體庫權限。可選的照片位置權限可在掃描中顯示 GPS。當機回報與通知預設關閉。</li>
 
 <li><b>100% 本機處理：</b><br>
 清理、掃描與轉換均在裝置上完成。可選的匿名當機診斷（Sentry）從不上傳您的媒體。可手動清理快取或在啟動時刪除過期檔案。</li>
@@ -377,7 +377,7 @@ GPS स्थान, डिवाइस विवरण, टाइमस्ट�
 बैच में मेटाडेटा साफ़ करें (अधिकतम 20 फ़ाइलें)। सर्वर पर अपलोड किए बिना फ़ॉर्मैट बदलें — कन्वर्ट की गई फ़ाइलों से भी मेटाडेटा हटाना हो तो साफ़ करें चलाएँ। किसी भी ऐप से Redact में शेयर; लंबे कार्य रद्द या आंशिक सफलता पर जारी रखें।</li>
 
 <li><b>गोपनीयता-प्रथम अनुमतियाँ:</b><br>
-Android 13+ पर सिस्टम फ़ोटो पिकर से व्यापक लाइब्रेरी एक्सेस के बिना चुनें। वैकल्पिक फ़ोटो स्थान अनुमति स्कैन में GPS दिखाती है। क्रैश रिपोर्टिंग और नोटिफ़िकेशन डिफ़ॉल्ट बंद।</li>
+Android 13+ पर डाउनलोड, फ़ाइलें या गैलरी फ़ोल्डर से सिस्टम दस्तावेज़ पिकर से चुनें — व्यापक लाइब्रेरी एक्सेस की ज़रूरत नहीं। वैकल्पिक फ़ोटो स्थान अनुमति स्कैन में GPS दिखाती है। क्रैश रिपोर्टिंग और नोटिफ़िकेशन डिफ़ॉल्ट बंद।</li>
 
 <li><b>100% स्थानीय प्रोसेसिंग:</b><br>
 सफ़ाई, स्कैन और कन्वर्शन आपके डिवाइस पर। वैकल्पिक अनाम क्रैश डायग्नोस्टिक (Sentry) आपका मीडिया कभी अपलोड नहीं करता। कैश मैन्युअल साफ़ या स्टार्टअप पर पुरानी फ़ाइलें हटाएँ।</li>
@@ -411,7 +411,7 @@ Android 13+ पर सिस्टम फ़ोटो पिकर से व्
 نظّف البيانات الوصفية دفعات (حتى 20 ملفاً). حوّل الصيغ دون رفع إلى خادم — ثم نظّف إذا أردت إزالة البيانات الوصفية من الملفات المحوّلة أيضاً. شارك إلى Redact من أي تطبيق؛ ألغِ المهام الطويلة أو تابع عند النجاح الجزئي.</li>
 
 <li><b>أذونات تُعطي الخصوصية الأولوية:</b><br>
-على Android 13+، اختر الملفات بمنتقي الصور دون وصول واسع للمكتبة. إذن موقع الصورة الاختياري يعرض GPS في الفحص. تقارير الأعطال والإشعارات معطّلة افتراضياً.</li>
+على Android 13+، تصفّح التنزيلات أو الملفات أو مجلدات المعرض واختر الملفات بمنتقي المستندات دون وصول واسع للمكتبة. إذن موقع الصورة الاختياري يعرض GPS في الفحص. تقارير الأعطال والإشعارات معطّلة افتراضياً.</li>
 
 <li><b>معالجة محلية 100%:</b><br>
 التنظيف والفحص والتحويل على جهازك. التشخيص الاختياري للأعطال (Sentry) لا يرفع وسائطك أبداً. امسح الذاكرة المؤقتة يدوياً أو أزل الملفات القديمة عند البدء.</li>

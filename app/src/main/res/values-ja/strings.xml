@@ -40,8 +40,8 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">ファイルを選択</string>
     <string name="convert_run">変換</string>
-    <string name="convert_status_hint">変換する画像または動画を選択してください。</string>
-    <string name="convert_status_ready">画像/動画を選択する準備ができました。</string>
+    <string name="convert_status_hint">変換するファイルを選択してください。</string>
+    <string name="convert_status_ready">変換するファイルを選択する準備ができました。</string>
     <string name="convert_selected_count">選択済み: %1$d個のファイル</string>
     <string name="convert_nothing_selected">まず画像を1つ以上選択してください。</string>
     <string name="convert_progress_item">%2$d個中%1$d個目を変換中…</string>
@@ -57,7 +57,7 @@
     <string name="convert_clean_tab_hint">変換はフォーマットのみを変更します。メタデータを削除するには「クリーン」タブを使用してください。</string>
 
     
-    <string name="button_select_media">メディアを選択</string>
+    <string name="button_select_media">ファイルを選択</string>
     <string name="button_strip_exif_data">メタデータをクリーン</string>
 
     
@@ -219,7 +219,7 @@
     <string name="settings_share_confirm_dialog_confirm">削除して続行</string>
     <string name="settings_share_confirm_dialog_cancel">キャンセル</string>
     <string name="settings_section_permissions">権限</string>
-    <string name="settings_permissions_subtitle">Android 13以降は、システムの写真ピッカーでライブラリへの広いアクセスなしに選択できます。フルアクセスはクリーンと変換で既存ファイルを読むのに役立ちます。通知とネットワークは任意です。</string>
+    <string name="settings_permissions_subtitle">Android 13以降、Redactはシステムのファイル選択を使用します。ダウンロード、ファイル、ギャラリーフォルダを広いライブラリアクセスなしで参照できます。写真/動画へのフルアクセスは任意です。通知とネットワークも任意です。</string>
     <string name="settings_permissions_media">写真と動画</string>
     <string name="settings_permissions_notifications">通知（任意）</string>
     <string name="settings_permission_granted">許可済み</string>
@@ -260,7 +260,7 @@
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">キャンセル</string>
     <string name="clean_selected_count">選択済み: %1$d 件</string>
-    <string name="clean_status_ready">クリーンするメディアを選択できます。</string>
+    <string name="clean_status_ready">クリーンするファイルを選択する準備ができました。</string>
     <string name="convert_codec_fallback">%1$s は利用できません。代わりに %2$s として保存しました。</string>
     <string name="metadata_error_basic_info_generic">基本的なファイル情報を読み取れませんでした。</string>
     <string name="metadata_error_image_generic">画像メタデータを読み取れませんでした。</string>
@@ -305,7 +305,7 @@
     <string name="status_clean_done_partial">完了: %1$d 件クリーン、%2$d 件失敗。</string>
     <string name="status_processing_cancelled">処理をキャンセルしました。</string>
     <string name="settings_permission_partial">一部</string>
-    <string name="scan_status_ready">写真または動画を選択してメタデータをスキャンします。</string>
+    <string name="scan_status_ready">メタデータをスキャンするファイルを選択してください。</string>
     <string name="animated_image_warning">アニメーション画像は静止画1枚として保存されます。</string>
     <string name="clean_item_failed">失敗: %1$s</string>
     <string name="settings_preserve_location_confirm_title">クリーン後の写真にGPSを残しますか？</string>
@@ -317,4 +317,5 @@
     <string name="settings_crash_reporting_unconfigured">クラッシュ報告は有効ですが、このビルドでは未設定です。</string>
     <string name="settings_crash_reporting_init_failed">クラッシュ報告を開始できませんでした。後でもう一度お試しください。</string>
     <string name="share_error_partial_success">%1$d 件をクリーン化、%2$d 件が失敗しました。</string>
+    <string name="media_picker_selection_capped">一度に選択できるのは %1$d ファイルまでです。</string>
 </resources>

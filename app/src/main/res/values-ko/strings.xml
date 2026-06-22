@@ -40,8 +40,8 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">파일 선택</string>
     <string name="convert_run">변환</string>
-    <string name="convert_status_hint">변환할 이미지나 비디오를 선택하세요.</string>
-    <string name="convert_status_ready">이미지/비디오를 선택할 준비가 되었습니다.</string>
+    <string name="convert_status_hint">변환할 파일을 선택하세요.</string>
+    <string name="convert_status_ready">변환할 파일을 선택할 준비가 되었습니다.</string>
     <string name="convert_selected_count">선택됨: %1$d개 파일</string>
     <string name="convert_nothing_selected">먼저 이미지를 하나 이상 선택하세요.</string>
     <string name="convert_progress_item">%2$d개 중 %1$d개 변환 중…</string>
@@ -57,7 +57,7 @@
     <string name="convert_clean_tab_hint">변환은 형식만 변경합니다. 메타데이터를 제거하려면 정리 탭으로 이동하세요.</string>
 
     
-    <string name="button_select_media">미디어 선택</string>
+    <string name="button_select_media">파일 선택</string>
     <string name="button_strip_exif_data">메타데이터 정리</string>
 
     
@@ -219,7 +219,7 @@
     <string name="settings_share_confirm_dialog_confirm">제거하고 계속</string>
     <string name="settings_share_confirm_dialog_cancel">취소</string>
     <string name="settings_section_permissions">권한</string>
-    <string name="settings_permissions_subtitle">Android 13 이상에서는 시스템 사진 선택기로 넓은 미디어 접근 없이 선택할 수 있습니다. 전체 접근은 정리 및 변환에서 기존 갤러리 파일 읽기에 도움이 됩니다. 알림과 네트워크는 선택 사항입니다.</string>
+    <string name="settings_permissions_subtitle">Android 13 이상에서 Redact는 시스템 파일 선택기를 사용합니다. 다운로드, 파일 또는 갤러리 폴더를 넓은 라이브러리 접근 없이 탐색할 수 있습니다. 전체 사진/동영상 접근은 선택 사항입니다. 알림과 네트워크도 선택 사항입니다.</string>
     <string name="settings_permissions_media">사진 및 동영상</string>
     <string name="settings_permissions_notifications">알림(선택)</string>
     <string name="settings_permission_granted">허용됨</string>
@@ -260,7 +260,7 @@
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">취소</string>
     <string name="clean_selected_count">선택됨: %1$d개 파일</string>
-    <string name="clean_status_ready">정리할 미디어를 선택할 준비가 되었습니다.</string>
+    <string name="clean_status_ready">정리할 파일을 선택할 준비가 되었습니다.</string>
     <string name="convert_codec_fallback">%1$s을(를) 사용할 수 없어 %2$s(으)로 저장했습니다.</string>
     <string name="metadata_error_basic_info_generic">기본 파일 정보를 읽을 수 없습니다.</string>
     <string name="metadata_error_image_generic">이미지 메타데이터를 읽을 수 없습니다.</string>
@@ -305,7 +305,7 @@
     <string name="status_clean_done_partial">완료: %1$d개 정리, %2$d개 실패.</string>
     <string name="status_processing_cancelled">처리가 취소되었습니다.</string>
     <string name="settings_permission_partial">부분</string>
-    <string name="scan_status_ready">사진 또는 동영상을 선택하여 메타데이터를 스캔하세요.</string>
+    <string name="scan_status_ready">메타데이터를 스캔할 파일을 선택하세요.</string>
     <string name="animated_image_warning">애니메이션 이미지는 단일 정지 프레임으로 저장됩니다.</string>
     <string name="clean_item_failed">실패: %1$s</string>
     <string name="settings_preserve_location_confirm_title">정리된 사진에 GPS를 유지할까요?</string>
@@ -317,4 +317,5 @@
     <string name="settings_crash_reporting_unconfigured">충돌 보고가 켜져 있지만 이 빌드에서는 구성되지 않았습니다.</string>
     <string name="settings_crash_reporting_init_failed">충돌 보고를 시작할 수 없습니다. 나중에 다시 시도하세요.</string>
     <string name="share_error_partial_success">%1$d개 정리됨, %2$d개 실패.</string>
+    <string name="media_picker_selection_capped">한 번에 %1$d개 파일만 선택할 수 있습니다.</string>
 </resources>

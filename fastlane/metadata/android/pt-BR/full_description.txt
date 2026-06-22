@@ -15,7 +15,7 @@ Escaneie fotos ou vídeos para ver EXIF e metadados do contêiner organizados an
 Limpe metadados em lotes (até 20 arquivos). Converta formatos sem enviar a um servidor — depois use Limpar se quiser remover metadados dos convertidos. Compartilhe para o Redact de qualquer app; cancele trabalhos longos ou continue com sucesso parcial.</li>
 
 <li><b>Permissões com privacidade em primeiro lugar:</b><br>
-No Android 13+, escolha arquivos com o seletor do sistema sem acesso amplo à biblioteca. Permissão opcional de localização de fotos mostra GPS em Escanear. Relatórios de falha e notificações desativados por padrão.</li>
+No Android 13+, escolha arquivos em Downloads, Arquivos ou pastas da galeria com o seletor de documentos do sistema — sem acesso amplo à biblioteca. Permissão opcional de localização de fotos mostra GPS em Escanear. Relatórios de falha e notificações desativados por padrão.</li>
 
 <li><b>Processamento 100% local:</b><br>
 Limpeza, escaneamento e conversão no dispositivo. Diagnósticos de falha opcionais (Sentry) nunca enviam sua mídia. Limpe o cache manualmente ou remova arquivos antigos na inicialização.</li>

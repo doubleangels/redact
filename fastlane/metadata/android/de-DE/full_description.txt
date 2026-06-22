@@ -15,7 +15,7 @@ Scannen Sie Fotos oder Videos, um organisierte EXIF- und Container-Metadaten vor
 Metadaten in Stapeln bereinigen (bis zu 20 Dateien). Formate ohne Server-Upload konvertieren — danach Bereinigen, wenn auch konvertierte Dateien ohne Metadaten sein sollen. Teilen in Redact aus jeder App; lange Aufträge abbrechen oder bei Teilerfolg fortfahren.</li>
 
 <li><b>Datenschutz zuerst bei Berechtigungen:</b><br>
-Ab Android 13 Dateien mit der System-Fotoauswahl ohne breiten Bibliothekszugriff wählen. Optionale Foto-Standortberechtigung zeigt GPS in Scannen. Absturzberichte und Benachrichtigungen sind standardmäßig aus.</li>
+Ab Android 13+ Dateien aus Downloads, Dateien oder Galerieordnern mit der System-Dateiauswahl wählen — ohne breiten Bibliothekszugriff. Optionale Foto-Standortberechtigung zeigt GPS in Scannen. Absturzberichte und Benachrichtigungen sind standardmäßig aus.</li>
 
 <li><b>100 % lokale Verarbeitung:</b><br>
 Bereinigung, Scan und Konvertierung laufen auf Ihrem Gerät. Optionale anonymisierte Absturzdiagnose (Sentry) lädt niemals Ihre Medien hoch. Cache manuell leeren oder beim Start alte Dateien entfernen.</li>

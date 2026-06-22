@@ -40,8 +40,8 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">Seleccionar Archivos</string>
     <string name="convert_run">Convertir</string>
-    <string name="convert_status_hint">Selecciona imágenes o videos para convertir.</string>
-    <string name="convert_status_ready">Listo para seleccionar imágenes/videos.</string>
+    <string name="convert_status_hint">Selecciona archivos para convertir.</string>
+    <string name="convert_status_ready">Listo para seleccionar archivos para convertir.</string>
     <string name="convert_selected_count">Seleccionados: %1$d archivo(s)</string>
     <string name="convert_nothing_selected">Selecciona al menos una imagen primero.</string>
     <string name="convert_progress_item">Convirtiendo %1$d de %2$d…</string>
@@ -57,7 +57,7 @@
     <string name="convert_clean_tab_hint">La conversión solo cambia el formato. Para eliminar los metadatos, ve a la pestaña Limpiar.</string>
 
     
-    <string name="button_select_media">Seleccionar Medios</string>
+    <string name="button_select_media">Seleccionar archivos</string>
     <string name="button_strip_exif_data">Limpiar Metadatos</string>
 
     
@@ -219,7 +219,7 @@
     <string name="settings_share_confirm_dialog_confirm">Eliminar Y Continuar</string>
     <string name="settings_share_confirm_dialog_cancel">Cancelar</string>
     <string name="settings_section_permissions">Permisos</string>
-    <string name="settings_permissions_subtitle">En Android 13+, el selector del sistema funciona sin acceso amplio a la biblioteca. El acceso completo ayuda a Limpiar y Convertir a leer archivos existentes. Notificaciones y red son opcionales.</string>
+    <string name="settings_permissions_subtitle">En Android 13+, Redact usa el selector de archivos del sistema: Descargas, Archivos o carpetas de la galería sin acceso amplio a la biblioteca. El acceso completo a fotos/vídeo es opcional. Notificaciones y red son opcionales.</string>
     <string name="settings_permissions_media">Fotos y videos</string>
     <string name="settings_permissions_notifications">Notificaciones (opcional)</string>
     <string name="settings_permission_granted">Concedido</string>
@@ -260,7 +260,7 @@ Tus fotos y videos nunca se suben. Se eliminan URIs, nombres de archivo y coorde
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">Cancelar</string>
     <string name="clean_selected_count">Seleccionados: %1$d archivo(s)</string>
-    <string name="clean_status_ready">Listo para seleccionar medios para limpiar.</string>
+    <string name="clean_status_ready">Listo para seleccionar archivos para limpiar.</string>
     <string name="convert_codec_fallback">%1$s no disponible; guardado como %2$s en su lugar.</string>
     <string name="metadata_error_basic_info_generic">No se pudo leer la información básica del archivo.</string>
     <string name="metadata_error_image_generic">No se pudieron leer los metadatos de la imagen.</string>
@@ -305,7 +305,7 @@ No se suben fotos, videos, nombres de archivo ni coordenadas GPS.</string>
     <string name="status_clean_done_partial">Hecho: %1$d limpiados, %2$d fallidos.</string>
     <string name="status_processing_cancelled">Procesamiento cancelado.</string>
     <string name="settings_permission_partial">Parcial</string>
-    <string name="scan_status_ready">Selecciona una foto o video para escanear sus metadatos.</string>
+    <string name="scan_status_ready">Selecciona un archivo para escanear sus metadatos.</string>
     <string name="animated_image_warning">Las imágenes animadas se guardan como un solo fotograma.</string>
     <string name="clean_item_failed">Error: %1$s</string>
     <string name="settings_preserve_location_confirm_title">¿Conservar GPS en fotos limpiadas?</string>
@@ -317,4 +317,5 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="settings_crash_reporting_unconfigured">Los informes de fallos están activados pero no configurados en esta compilación.</string>
     <string name="settings_crash_reporting_init_failed">No se pudieron iniciar los informes de fallos. Inténtalo más tarde.</string>
     <string name="share_error_partial_success">%1$d archivo(s) limpiado(s); %2$d con error.</string>
+    <string name="media_picker_selection_capped">Solo se pueden seleccionar %1$d archivos a la vez.</string>
 </resources>

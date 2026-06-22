@@ -15,7 +15,7 @@ Scansiona foto o video per vedere EXIF e metadati del contenitore organizzati pr
 Pulisci metadati in batch (fino a 20 file). Converti formati senza caricare su server — poi Pulisci se vuoi rimuovere metadati anche dai file convertiti. Condividi in Redact da qualsiasi app; annulla lavori lunghi o continua con successo parziale.</li>
 
 <li><b>Autorizzazioni privacy-first:</b><br>
-Su Android 13+, scegli file con il selettore di sistema senza accesso ampio alla libreria. Il permesso opzionale posizione foto mostra il GPS in Scansione. Segnalazione crash e notifiche disattivate di default.</li>
+Su Android 13+, scegli file da Download, File o cartelle galleria con il selettore documenti di sistema — senza accesso ampio alla libreria. Il permesso opzionale posizione foto mostra il GPS in Scansione. Segnalazione crash e notifiche disattivate di default.</li>
 
 <li><b>Elaborazione 100% locale:</b><br>
 Pulizia, scansione e conversione sul dispositivo. Diagnostica crash opzionale (Sentry) non carica mai i tuoi media. Svuota la cache manualmente o rimuovi file vecchi all'avvio.</li>

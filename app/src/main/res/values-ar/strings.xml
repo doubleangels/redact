@@ -40,8 +40,8 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">تحديد الملفات</string>
     <string name="convert_run">إجراء التحويل</string>
-    <string name="convert_status_hint">حدد الصور أو مقاطع الفيديو للتحويل.</string>
-    <string name="convert_status_ready">جاهز لتحديد الصور/مقاطع الفيديو.</string>
+    <string name="convert_status_hint">حدد الملفات للتحويل.</string>
+    <string name="convert_status_ready">جاهز لتحديد الملفات للتحويل.</string>
     <string name="convert_selected_count">المحدد: %1$d ملف(ملفات)</string>
     <string name="convert_nothing_selected">حدد صورة واحدة على الأقل أولاً.</string>
     <string name="convert_progress_item">جارٍ تحويل %1$d من %2$d…</string>
@@ -57,7 +57,7 @@
     <string name="convert_clean_tab_hint">التحويل يغير التنسيق فقط. لإزالة البيانات الوصفية، انتقل إلى علامة التبويب تنظيف.</string>
 
     
-    <string name="button_select_media">اختر الوسائط</string>
+    <string name="button_select_media">تحديد الملفات</string>
     <string name="button_strip_exif_data">تنظيف البيانات الوصفية</string>
 
     
@@ -219,7 +219,7 @@
     <string name="settings_share_confirm_dialog_confirm">إزالة ومتابعة</string>
     <string name="settings_share_confirm_dialog_cancel">إلغاء</string>
     <string name="settings_section_permissions">الأذونات</string>
-    <string name="settings_permissions_subtitle">على Android 13+، يعمل منتقي الصور دون وصول واسع للمكتبة. الوصول الكامل يساعد التنظيف والتحويل في قراءة ملفات المعرض. الإشعارات والشبكة اختيارية.</string>
+    <string name="settings_permissions_subtitle">على Android 13+، يستخدم Redact منتقي ملفات النظام — التنزيلات أو الملفات أو مجلدات المعرض دون وصول واسع للمكتبة. الوصول الكامل للصور/الفيديو اختياري. الإشعارات والشبكة اختيارية.</string>
     <string name="settings_permissions_media">الصور والفيديو</string>
     <string name="settings_permissions_notifications">الإشعارات (اختياري)</string>
     <string name="settings_permission_granted">ممنوح</string>
@@ -260,7 +260,7 @@
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">إلغاء</string>
     <string name="clean_selected_count">المحدد: %1$d ملف(ات)</string>
-    <string name="clean_status_ready">جاهز لاختيار الوسائط للتنظيف.</string>
+    <string name="clean_status_ready">جاهز لتحديد الملفات للتنظيف.</string>
     <string name="convert_codec_fallback">%1$s غير متاح؛ تم الحفظ كـ %2$s بدلاً من ذلك.</string>
     <string name="metadata_error_basic_info_generic">تعذر قراءة معلومات الملف الأساسية.</string>
     <string name="metadata_error_image_generic">تعذر قراءة بيانات الصورة الوصفية.</string>
@@ -305,7 +305,7 @@
     <string name="status_clean_done_partial">تم: %1$d تم تنظيفها، %2$d فشلت.</string>
     <string name="status_processing_cancelled">تم إلغاء المعالجة.</string>
     <string name="settings_permission_partial">جزئي</string>
-    <string name="scan_status_ready">اختر صورة أو فيديو لفحص بياناته الوصفية.</string>
+    <string name="scan_status_ready">اختر ملفاً لفحص بياناته الوصفية.</string>
     <string name="animated_image_warning">تُحفظ الصور المتحركة كإطار ثابت واحد.</string>
     <string name="clean_item_failed">فشل: %1$s</string>
     <string name="settings_preserve_location_confirm_title">الإبقاء على GPS في الصور المنظفة؟</string>
@@ -317,4 +317,5 @@
     <string name="settings_crash_reporting_unconfigured">تقارير الأعطال مفعّلة لكن غير مهيأة في هذا الإصدار.</string>
     <string name="settings_crash_reporting_init_failed">تعذر بدء تقارير الأعطال. حاول لاحقاً.</string>
     <string name="share_error_partial_success">تم تنظيف %1$d ملف(ات)؛ فشل %2$d.</string>
+    <string name="media_picker_selection_capped">يمكن تحديد %1$d ملفات فقط في المرة الواحدة.</string>
 </resources>
