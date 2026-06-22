@@ -82,12 +82,10 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.3"
-
-      - name: Install pinned Fastlane
-        run: gem install fastlane -v "~> 2.227.0" --no-document
+          bundler-cache: true
 
       - name: Push Fastlane metadata to Play Store
-        run: fastlane supply --skip_upload_apk true --skip_upload_aab true --json_key service_account.json --package_name com.doubleangels.redact --track production
+        run: bundle exec fastlane supply --skip_upload_apk true --skip_upload_aab true --skip_upload_changelogs true --json_key service_account.json --package_name com.doubleangels.redact --track production
 
       - name: Read app version for Sentry release
         id: version
