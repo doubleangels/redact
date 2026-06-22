@@ -21,7 +21,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.AppCompatImageView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -477,12 +476,12 @@ public class ScanFragment extends Fragment {
     }
 
     private void addScanActionCard(int iconRes, String contentDescription, View.OnClickListener listener) {
-        View card = LayoutInflater.from(requireContext()).inflate(R.layout.item_scan_action_card, scanActionCardsContainer, false);
-        AppCompatImageView icon = card.findViewById(R.id.actionCardIcon);
-        icon.setImageResource(iconRes);
-        card.setContentDescription(contentDescription);
-        card.setOnClickListener(listener);
-        scanActionCardsContainer.addView(card);
+        MaterialButton button = (MaterialButton) LayoutInflater.from(requireContext())
+                .inflate(R.layout.item_scan_action_card, scanActionCardsContainer, false);
+        button.setIconResource(iconRes);
+        button.setContentDescription(contentDescription);
+        button.setOnClickListener(listener);
+        scanActionCardsContainer.addView(button);
     }
 
     @Nullable

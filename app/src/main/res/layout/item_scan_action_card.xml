@@ -1,29 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.button.MaterialButton xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_marginHorizontal="6dp"
-    android:clickable="true"
-    android:focusable="true"
-    app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
-    app:cardCornerRadius="@dimen/component_corner_medium"
-    app:cardElevation="2dp"
-    app:strokeWidth="0dp">
-
-    <FrameLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minWidth="52dp"
-        android:minHeight="52dp"
-        android:padding="14dp">
-
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/actionCardIcon"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_gravity="center"
-            android:importantForAccessibility="no"
-            app:tint="?attr/colorPrimary" />
-    </FrameLayout>
-</com.google.android.material.card.MaterialCardView>
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/actionCardButton"
+    android:layout_width="56dp"
+    android:layout_height="56dp"
+    android:layout_marginHorizontal="4dp"
+    android:insetLeft="0dp"
+    android:insetTop="0dp"
+    android:insetRight="0dp"
+    android:insetBottom="0dp"
+    android:padding="0dp"
+    app:cornerRadius="@dimen/component_corner_medium"
+    app:iconGravity="textStart"
+    app:iconPadding="0dp"
+    app:iconSize="24dp"
+    tools:icon="@drawable/ic_content_copy_24"
+    tools:ignore="VisualLintButtonSize" />
