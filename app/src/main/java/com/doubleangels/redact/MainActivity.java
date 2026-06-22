@@ -66,12 +66,12 @@ public class MainActivity extends AppCompatActivity {
                     && !com.doubleangels.redact.ui.MainViewModel.isAnyProcessing(this)) {
                 cacheClearExecutor = java.util.concurrent.Executors.newSingleThreadExecutor();
                 cacheClearExecutor.execute(
-                        () -> com.doubleangels.redact.CacheCleanup.clearAllTempFiles(
-                                getApplicationContext()));
+                        () -> com.doubleangels.redact.CacheCleanup.clearStaleTempFiles(
+                                getApplicationContext(),
+                                com.doubleangels.redact.CacheCleanup.DEFAULT_STALE_TEMP_MAX_AGE_MS));
             }
 
             if (savedInstanceState == null) {
-                com.doubleangels.redact.permission.PermissionManager.requestAllInitialPermissions(this);
                 getSupportFragmentManager().beginTransaction()
                         .add(R.id.fragment_container, new CleanFragment(), TAG_CLEAN)
                         .commitNow();
@@ -266,6 +266,39 @@ public class MainActivity extends AppCompatActivity {
         ft.commit();
     }
 
+    @Nullable
+    private Fragment resolvePermissionResultTarget(int requestCode) {
+        if (requestCode
+                == com.doubleangels.redact.permission.PermissionManager.LOCATION_PERMISSION_REQUEST_CODE) {
+            return getSupportFragmentManager().findFragmentByTag(TAG_SCAN);
+        }
+        if (requestCode
+                == com.doubleangels.redact.permission.PermissionManager.STORAGE_PERMISSION_REQUEST_CODE) {
+            return getVisibleTabFragment();
+        }
+        return null;
+    }
+
+    @Nullable
+    private Fragment getVisibleTabFragment() {
+        BottomNavigationView nav = findViewById(R.id.bottomNavigation);
+        if (nav == null) {
+            return null;
+        }
+        int selectedItemId = nav.getSelectedItemId();
+        String tag;
+        if (selectedItemId == R.id.navigation_scan) {
+            tag = TAG_SCAN;
+        } else if (selectedItemId == R.id.navigation_convert) {
+            tag = TAG_CONVERT;
+        } else if (selectedItemId == R.id.navigation_settings) {
+            tag = TAG_SETTINGS;
+        } else {
+            tag = TAG_CLEAN;
+        }
+        return getSupportFragmentManager().findFragmentByTag(tag);
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         try {
@@ -276,18 +309,13 @@ public class MainActivity extends AppCompatActivity {
             com.doubleangels.redact.permission.PermissionManager.storeActivityPermissionResult(
                     requestCode, permissions, grantResults);
 
-            Fragment clean = getSupportFragmentManager().findFragmentByTag(TAG_CLEAN);
-            Fragment scan = getSupportFragmentManager().findFragmentByTag(TAG_SCAN);
-            Fragment convert = getSupportFragmentManager().findFragmentByTag(TAG_CONVERT);
-
-            if (clean != null) {
-                ((CleanFragment) clean).handlePermissionResult(requestCode, permissions, grantResults);
-            }
-            if (scan != null) {
-                ((ScanFragment) scan).handlePermissionResult(requestCode, permissions, grantResults);
-            }
-            if (convert != null) {
-                ((ConvertFragment) convert).handlePermissionResult(requestCode, permissions, grantResults);
+            Fragment target = resolvePermissionResultTarget(requestCode);
+            if (target instanceof CleanFragment cleanFragment) {
+                cleanFragment.handlePermissionResult(requestCode, permissions, grantResults);
+            } else if (target instanceof ScanFragment scanFragment) {
+                scanFragment.handlePermissionResult(requestCode, permissions, grantResults);
+            } else if (target instanceof ConvertFragment convertFragment) {
+                convertFragment.handlePermissionResult(requestCode, permissions, grantResults);
             }
         } catch (Exception e) {
             SentryManager.recordException(e);
@@ -299,7 +327,6 @@ public class MainActivity extends AppCompatActivity {
         try {
             super.onResume();
             SentryManager.logEvent("lifecycle", "MainActivity resumed");
-            com.doubleangels.redact.permission.PermissionManager.requestInitialPermissionsIfNeeded(this);
         } catch (Exception e) {
             SentryManager.recordException(e);
         }

@@ -1,6 +1,5 @@
 package com.doubleangels.redact.media;
 
-import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,17 +26,12 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
     /** The collection of media items to display */
     private final List<MediaItem> mediaItems;
 
-    /** Host activity for Glide lifecycle binding */
-    private final Activity activity;
-
     /**
      * Creates a new MediaAdapter instance.
      *
-     * @param activity Host activity for image loading lifecycle
      * @param mediaItems Initial list of media items to display
      */
-    public MediaAdapter(Activity activity, List<MediaItem> mediaItems) {
-        this.activity = activity;
+    public MediaAdapter(List<MediaItem> mediaItems) {
         this.mediaItems = mediaItems;
     }
 

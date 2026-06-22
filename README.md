@@ -21,9 +21,9 @@
 
 # Redact: Privacy & Metadata Remover
 
-Protect your privacy with Redact - the powerful yet simple app that removes all EXIF metadata from photos and videos before sharing online. Prevent location tracking, hide device information, and secure your personal data when posting on social media platforms.
+Protect your privacy with Redact — remove hidden EXIF and container metadata from photos and videos, inspect what is embedded before you share, and convert formats locally on your device.
 
-**Take control of your digital footprint and share content on your terms!**
+**Take control of your digital footprint and share content on your terms.**
 
 ---
 
@@ -32,54 +32,32 @@ Protect your privacy with Redact - the powerful yet simple app that removes all 
 - [Features](#features)
 - [Installation](#installation)
 - [How It Works](#how-it-works)
-
 - [FAQ](#faq)
-
-  - [What exactly is EXIF data?](#what-is-exif-data)
-  - [Does Redact alter the quality of my photos or videos?](#quality-preservation)
-  - [Does Redact need internet access?](#internet-access)
-  - [Where are processed files stored?](#file-storage)
-  - [Are there any analytics or trackers?](#analytics-tracking)
-
 - [Reporting Issues & Feedback](#reporting-issues--feedback)
 - [Privacy & Security](#privacy--security)
 - [License](#license)
 
 ---
 
-## Key Features:
+## Key Features
 
-- **Complete Privacy Protection & EXIF Cleaner:**  
-  Remove all metadata including GPS location data, device information, timestamps, and personal details hidden in your media files. Uses advanced remuxing for videos to ensure complete metadata removal.
+- **Complete metadata cleaning:** Remove GPS, device info, timestamps, and hidden EXIF/XMP from images and videos. Strict Clean re-encodes video for maximum removal; a faster remux path is available when compatible.
 
-- **Metadata Viewer & Inspector:**  
-  Easily scan and view all hidden EXIF data in your photos and videos before completely removing it. View metadata in an organized, alphabetically sorted format.
+- **Metadata scanner:** View organized metadata before cleaning. Copy fields, open a file in Clean, or send it to Convert.
 
-- **User-Friendly Privacy Interface:**  
-  One-tap complete metadata removal makes protecting your digital privacy simple, quick, and accessible for everyone.
+- **Format conversion (local):** Convert images (JPEG, PNG, WebP, HEIC on supported devices) and transcode video (H.264, H.265, VP9, AV1) without cloud upload. **Convert changes format only** — run Clean afterward if you also want metadata stripped from converted files.
 
-- **Universal Media Conversion:**  
-  Need a different format? Easily convert images to standard types like JPEG, PNG, WebP, or HEIC. Transcode unsupported videos into highly compatible MP4 or MKV files without relying on internet servers.
+- **Batch processing:** Clean or convert up to **20 files** per batch. Partial success is reported when some items fail.
 
-- **Bulk Photo & Video Processing:**  
-  Clean multiple media files simultaneously, saving you time while enhancing your online privacy protection.
+- **Share sheet integration:** Share photos or videos into Redact from any app. Optional confirmation dialog, cancelable progress, partial batch success, and automatic cleanup of temporary share files.
 
-- **Original Quality Preservation:**  
-  Remove all metadata without compressing or degrading your photos and videos - maintain full image quality. Only essential codec parameters are preserved for proper playback.
+- **Privacy-first permissions:** On **Android 13+**, the system photo picker works without broad `READ_MEDIA_*` access. Optional `ACCESS_MEDIA_LOCATION` reveals GPS fields in Scan. Notifications and network access are **off by default**.
 
-- **100% Local & Secure Processing:**  
-  All data cleaning happens directly on your device - your personal information never leaves your phone or connects to external servers. Secure file deletion ensures no metadata traces remain.
+- **100% on-device processing:** Your media is never uploaded for core features. Optional crash reporting sends anonymized diagnostics only (see below).
 
-- **Multi-Language Support:**  
-  Available in 13 languages: English, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean, Chinese (Simplified & Traditional), Hindi, and Arabic. Supports Android's native per-app language settings.
+- **13 languages:** English, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean, Chinese (Simplified & Traditional), Hindi, and Arabic.
 
-- **Ad-Free & Open-Source Privacy Tool:**  
-  Committed to transparency with no advertising, tracking, or data collection. Our code is fully open-source for community verification.
-
-- **Android Share Sheet Integration:**  
-  Seamlessly clean files from any app via Android's share menu and get back completely privacy-protected files ready to share.
-
-Take control of your digital footprint! EXIF metadata can expose your precise GPS coordinates, device details, camera settings, timestamps, and unique identifiers. Redact eliminates all these privacy risks while preserving the quality of your media files.
+- **Open source & ad-free:** No ads or behavioral analytics. Code is on GitHub for community review.
 
 ---
 
@@ -91,101 +69,94 @@ Install Redact through the [Google Play Store](https://play.google.com/store/app
 
 ### Requirements
 
-- **Minimum Android Version:** Android 12 (API 31)
-- **Target Android Version:** Android 15 (API 35)
-- **Permissions Required:**
-  - **Android 13+:** `READ_MEDIA_IMAGES` and `READ_MEDIA_VIDEO` (required for selecting media files)
-  - **Android 12 and below:** `READ_EXTERNAL_STORAGE` (required for selecting media files)
-  - **Optional:** `ACCESS_MEDIA_LOCATION` (only needed to view GPS location metadata in media files)
+- **Minimum Android:** Android 12 (API 31)
+- **Target Android:** API 37
+- **Permissions:**
+  - **Android 13+:** Optional `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO` (or partial user-selected access on Android 14+) for reading existing gallery files. The **system photo picker** does not require broad library access for selecting files.
+  - **Android 12 and below:** `READ_EXTERNAL_STORAGE` for gallery access.
+  - **Optional:** `ACCESS_MEDIA_LOCATION` — needed to read GPS coordinates embedded in media during Scan.
+  - **Optional:** `POST_NOTIFICATIONS` — for task-finished and progress alerts (master toggle off by default).
 
 ---
 
 ## How It Works
 
-Redact helps you protect your privacy in two simple ways:
+### 1. Gallery / in-app picker
 
-1. **Gallery Selection:**
+1. Open **Clean**, **Scan**, or **Convert**.
+2. Select up to 20 photos or videos (system photo picker on Android 13+).
+3. **Clean** — strip metadata and save to `Pictures/Redact` or `Movies/Redact`.
+4. **Scan** — view metadata; optionally grant photo-location permission to see GPS.
+5. **Convert** — change format/codec; use **Clean** afterward if you need metadata removed too.
 
-   - Open Redact
-   - Select multiple photos and videos
-   - Tap once to remove EXIF data from all selected files
-   - Share your cleaned files without privacy concerns
+### 2. Share integration
 
-2. **Share Integration:**
-   - When viewing a photo or video in any app
-   - Use the share function
-   - Select Redact from the share menu
-   - Get back a clean file ready to share further
+1. Share a photo or video from any app to Redact.
+2. Confirm stripping (if enabled in Settings).
+3. Redact removes metadata locally, then opens the share chooser with clean file(s).
+4. Cancel a long job from the progress dialog if needed.
 
-All media processing happens locally on your device. Your photos and videos are never uploaded to external servers. Optional crash reporting (off by default) uses the internet to send anonymized diagnostics only—see [Analytics & crash reporting](#analytics-tracking) below.
+All core processing runs locally. Optional crash reporting (off by default) may use the network for anonymized diagnostics only.
 
 ---
 
 ## FAQ
 
-### <a id="what-is-exif-data"></a>What exactly is EXIF data?
+### What exactly is EXIF data?
 
-EXIF (Exchangeable Image File Format) data is hidden metadata embedded in photos and videos that can include:
+EXIF (Exchangeable Image File Format) and related container metadata can include:
 
 - GPS location coordinates
-- Date, time, and timezone information
+- Date, time, and timezone
 - Device manufacturer and model
-- Camera settings (aperture, shutter speed, etc.)
-- Sometimes even unique identifiers
+- Camera settings (aperture, shutter speed, ISO, etc.)
+- XMP/IPTC and video container tags
 
-### <a id="quality-preservation"></a>Does Redact alter the quality of my photos or videos?
+### Does Redact alter the quality of my photos or videos?
 
-No. Redact is designed to preserve the original quality of your media files while removing only the metadata.
+Cleaning aims to preserve visual quality while removing metadata. Strict Clean and full video transcode re-encode video and may change encoding parameters. Image cleaning preserves orientation when possible.
 
-### <a id="internet-access"></a>Does Redact need internet access?
+### Does Convert remove metadata?
 
-No, for core features. Cleaning, scanning, and converting work fully offline, and your media files never leave your device. If you enable **Improve Redact** in Settings, the app sends anonymized crash diagnostics to [Sentry](https://sentry.io) over HTTPS. That setting is off by default.
+**No.** Convert changes format/codec only. Use the **Clean** tab (or share-in) to strip metadata.
 
-### <a id="file-storage"></a>Where are processed files stored?
+### Does Redact need internet access?
 
-Cleaned files are saved to your device's storage in a designated folder for easy access. When sharing files via the share menu, temporary cleaned files are automatically deleted after sharing to protect your privacy.
+**No**, for cleaning, scanning, and converting. If you enable **Send Crash Reports** in Settings (off by default) and grant network consent, anonymized crash diagnostics may be sent to [Sentry](https://sentry.io) over HTTPS.
 
-### <a id="analytics-tracking"></a>Are there any analytics or trackers?
+### Where are processed files stored?
 
-Optional crash reporting uses [Sentry](https://sentry.io) (not Firebase). It is **disabled by default** and can be enabled under Settings → Improve Redact.
+Cleaned and converted files are saved under `Pictures/Redact` and `Movies/Redact` in the MediaStore. Share-in uses app cache; temporary files are deleted after sharing (with a short delay so the target app can read them).
 
-When enabled, anonymized crash data may include:
+### What about secure delete and cache cleanup?
 
-- **Device model and Android version**
-- **App version**
-- **Stack traces and error types** (URIs, filenames, GPS coordinates, and media content are scrubbed before upload)
-- **Limited diagnostic tags** (e.g. whether processing succeeded)
+Settings let you overwrite temporary files before deletion (limited benefit on modern flash storage). **Clear Cache on Startup** removes processing cache files **older than 24 hours** when the app opens.
 
-Your photos and videos are **never** uploaded. No advertising or behavioral analytics are used.
+### Are there any analytics or trackers?
+
+Optional crash reporting uses [Sentry](https://sentry.io). It is **disabled by default** and requires explicit network consent.
+
+When enabled, anonymized data may include device model, Android version, app version, stack traces, and scrubbed diagnostic tags. URIs, filenames, and GPS are redacted before upload. Your photos and videos are **never** uploaded.
 
 ---
 
 ## Reporting Issues & Feedback
 
-If you encounter any issues or have suggestions to improve Redact, please:
-
-1. Check for existing issues in the [GitHub Issues](https://github.com/doubleangels/redact/issues) section
-2. Open a new issue with a detailed description if your problem hasn't been reported
-
-Your feedback helps make Redact better for everyone!
+1. Check [GitHub Issues](https://github.com/doubleangels/redact/issues)
+2. Open a new issue with steps to reproduce if needed
 
 ---
 
 ## Privacy & Security
 
-Redact is built with privacy as its core principle:
-
-- Your files remain yours, they never leave your device
-- No network requests needed for core functionality
+- Files stay on your device for core features
+- No network required for clean / scan / convert
 - Open-source code for transparency
-- Secure file deletion with data overwriting
-- Comprehensive metadata removal using reflection to catch all possible EXIF tags
-- Video metadata removal via remuxing (only essential codec parameters preserved)
-- Temporary files are automatically cleaned up after sharing
+- Configurable secure deletion of temp files (flash-storage limitations apply)
+- Share-in always strips location; Clean can preserve location only if you explicitly enable **Keep Location** (with confirmation) and Strict Clean is off
+- Temporary and stale cache cleanup options in Settings
 
-Your privacy is not just a feature - it's the entire point of this app.
-
-**[Read my full Privacy Policy](https://doubleangels.github.io/privacypolicy/redact.html)**
+**[Privacy Policy](https://doubleangels.github.io/privacypolicy/redact.html)**
 
 ---
 

@@ -120,7 +120,7 @@
         android:backgroundTint="?attr/colorSurfaceContainerHigh"
         android:paddingHorizontal="14dp"
         android:paddingVertical="12dp"
-        android:text="@string/convert_status_hint"
+        android:text="@string/convert_clean_tab_hint"
         android:textAlignment="center"
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textColor="?attr/colorOnSurface"

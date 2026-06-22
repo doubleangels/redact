@@ -20,6 +20,7 @@ public final class PermissionStatusHelper {
 
     public enum Status {
         GRANTED,
+        PARTIAL,
         DENIED,
         NOT_REQUIRED
     }
@@ -43,7 +44,7 @@ public final class PermissionStatusHelper {
             boolean userSelected = ContextCompat.checkSelfPermission(app,
                     Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
                     == PackageManager.PERMISSION_GRANTED;
-            return userSelected ? Status.GRANTED : Status.DENIED;
+            return userSelected ? Status.PARTIAL : Status.DENIED;
         }
         if (sdk >= Build.VERSION_CODES.TIRAMISU) {
             boolean images = ContextCompat.checkSelfPermission(app, Manifest.permission.READ_MEDIA_IMAGES)

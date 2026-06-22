@@ -9,6 +9,8 @@ import java.util.regex.Pattern;
 import io.sentry.Breadcrumb;
 import io.sentry.SentryEvent;
 import io.sentry.protocol.Message;
+import io.sentry.protocol.SentrySpan;
+import io.sentry.protocol.SentryTransaction;
 
 /**
  * Redacts URIs, filesystem paths, filenames, and GPS coordinates from Sentry payloads.
@@ -31,7 +33,7 @@ public final class SentryPrivacyScrubber {
                     Pattern.CASE_INSENSITIVE);
     private static final Pattern GPS_COORD_PAIR =
             Pattern.compile(
-                    "\\b[-+]?\\d{1,3}\\.\\d+\\s*,\\s*[-+]?\\d{1,3}\\.\\d+\\b");
+                    "\\b[-+]?(?:90(?:\\.0+)?|[1-8]?\\d(?:\\.\\d+)?)\\s*,\\s*[-+]?(?:180(?:\\.0+)?|1[0-7]\\d(?:\\.\\d+)?|0?\\d{1,2}(?:\\.\\d+)?)\\b");
     /** Video location format e.g. +39.6594-104.9620 */
     private static final Pattern GPS_VIDEO_LOCATION =
             Pattern.compile("\\+?[-]?\\d{1,3}\\.\\d+[-+]\\d{1,3}\\.\\d+");
@@ -72,6 +74,36 @@ public final class SentryPrivacyScrubber {
         }
         if (breadcrumb.getData() != null) {
             breadcrumb.getData().replaceAll((k, v) -> v instanceof String ? scrub((String) v) : v);
+        }
+    }
+
+    public static void scrubTransaction(SentryTransaction transaction) {
+        if (transaction == null) {
+            return;
+        }
+        if (transaction.getSpans() != null) {
+            for (SentrySpan span : transaction.getSpans()) {
+                if (span.getData() != null) {
+                    span.getData().replaceAll((k, v) -> v instanceof String ? scrub((String) v) : v);
+                }
+                if (span.getTags() != null) {
+                    span.getTags().replaceAll((k, v) -> scrubTag(k, v));
+                }
+            }
+        }
+        if (transaction.getTags() != null) {
+            transaction.getTags().replaceAll((k, v) -> scrubTag(k, v));
+        }
+        scrubStringObjectMap(transaction.getExtras());
+        if (transaction.getContexts() != null) {
+            for (Map.Entry<String, Object> entry : transaction.getContexts().entrySet()) {
+                if (entry.getValue() instanceof Map<?, ?> map) {
+                    scrubStringObjectMap(castToStringObjectMap(map));
+                }
+            }
+        }
+        if (transaction.getUnknown() != null) {
+            scrubStringObjectMap(transaction.getUnknown());
         }
     }
 
@@ -133,8 +165,11 @@ public final class SentryPrivacyScrubber {
             return;
         }
         for (Map.Entry<String, Object> entry : map.entrySet()) {
-            if (entry.getValue() instanceof String value) {
-                entry.setValue(scrub(value));
+            Object value = entry.getValue();
+            if (value instanceof String stringValue) {
+                entry.setValue(scrub(stringValue));
+            } else if (value instanceof Map<?, ?> nested) {
+                scrubStringObjectMap(castToStringObjectMap(nested));
             }
         }
     }

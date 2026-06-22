@@ -444,15 +444,15 @@ public final class VideoMedia3Converter {
     public static Uri copyToMoviesRedact(Context context, File file, String baseDisplayName, int formatIndex)
             throws IOException {
         ContentResolver resolver = context.getContentResolver();
-        String safeName = sanitizeFileName(stripExtension(baseDisplayName));
         String ext = extensionForFormatIndex(formatIndex);
         String mime = containerMimeForFormatIndex(formatIndex);
-        String outName = safeName + ext;
+        String outName = MediaFileNames.generateShortRandomName() + ext;
 
         ContentValues values = new ContentValues();
         values.put(MediaStore.Video.Media.DISPLAY_NAME, outName);
         values.put(MediaStore.Video.Media.MIME_TYPE, mime);
         values.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/Redact");
+        MediaStoreWrites.markPending(values);
 
         Uri collection = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
         Uri outUri = resolver.insert(collection, values);
@@ -480,6 +480,7 @@ public final class VideoMedia3Converter {
             }
             throw e;
         }
+        MediaStoreWrites.markPublished(resolver, outUri);
         return outUri;
     }
 

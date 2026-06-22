@@ -1,1 +1,1 @@
-Remove hidden metadata and convert photos and videos to protect your privacy.
+Remove hidden metadata, scan EXIF, and convert media — all on-device.

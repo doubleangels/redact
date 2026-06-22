@@ -83,6 +83,21 @@ public final class LocalNotifications {
     }
 
     /**
+     * Whether a foreground service may be started for long-running work. Does not require the
+     * in-app notifications master toggle so processing can stay alive when only FGS is needed.
+     */
+    public static boolean canStartForegroundService(@NonNull Context context) {
+        Context app = context.getApplicationContext();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(app,
+                    android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return NotificationManagerCompat.from(app).areNotificationsEnabled();
+    }
+
+    /**
      * Whether clean-specific notifications are enabled (master must also be on).
      */
     private static boolean canPostCleanNotifications(@NonNull Context context) {
@@ -117,24 +132,10 @@ public final class LocalNotifications {
             return;
         }
         Context app = context.getApplicationContext();
-        String safeText = app.getString(R.string.notification_progress_percent, clampPercent(percent));
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(app, CHANNEL_ID_TASKS)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(app.getString(R.string.notification_convert_progress_title))
-                .setContentText(safeText)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(safeText))
-                .setProgress(100, clampPercent(percent), false)
-                .setOngoing(true)
-                .setOnlyAlertOnce(true)
-                .setSilent(true)
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setCategory(NotificationCompat.CATEGORY_PROGRESS)
-                .setContentIntent(contentIntent(app, MainActivity.class));
-
+        String title = app.getString(R.string.notification_convert_progress_title);
         try {
-            NotificationManagerCompat.from(app).notify(NOTIFICATION_ID_CONVERT, builder.build());
             ProcessingForegroundService.updateProgress(
-                    app, clampPercent(percent), app.getString(R.string.notification_convert_progress_title));
+                    app, clampPercent(percent), title, message);
         } catch (SecurityException e) {
             SentryManager.recordException(e);
         }
@@ -155,24 +156,10 @@ public final class LocalNotifications {
             return;
         }
         Context app = context.getApplicationContext();
-        String safeText = app.getString(R.string.notification_progress_percent, clampPercent(percent));
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(app, CHANNEL_ID_TASKS)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(app.getString(R.string.notification_clean_progress_title))
-                .setContentText(safeText)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(safeText))
-                .setProgress(100, clampPercent(percent), false)
-                .setOngoing(true)
-                .setOnlyAlertOnce(true)
-                .setSilent(true)
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setCategory(NotificationCompat.CATEGORY_PROGRESS)
-                .setContentIntent(contentIntent(app, MainActivity.class));
-
+        String title = app.getString(R.string.notification_clean_progress_title);
         try {
-            NotificationManagerCompat.from(app).notify(NOTIFICATION_ID_CLEAN, builder.build());
             ProcessingForegroundService.updateProgress(
-                    app, clampPercent(percent), app.getString(R.string.notification_clean_progress_title));
+                    app, clampPercent(percent), title, message);
         } catch (SecurityException e) {
             SentryManager.recordException(e);
         }

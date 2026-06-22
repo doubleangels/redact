@@ -186,7 +186,7 @@ public class MetadataDisplayer {
         return ACTIVE_SCAN.get() == future && !Thread.currentThread().isInterrupted();
     }
 
-    private static void cancelActiveScan() {
+    public static void cancelActiveScan() {
         Future<?> previous = ACTIVE_SCAN.getAndSet(null);
         if (previous != null) {
             previous.cancel(true);
@@ -681,11 +681,13 @@ public class MetadataDisplayer {
             String gpsLongitudeRef = null;
             
             // Get TAG constants from ExifInterface using reflection (capped for performance).
-            final int maxExifTags = 80;
+            final int maxExifTags = 200;
             int exifTagsAdded = 0;
+            boolean exifTagCapReached = false;
             java.lang.reflect.Field[] fields = ExifInterface.class.getDeclaredFields();
             for (java.lang.reflect.Field field : fields) {
                 if (exifTagsAdded >= maxExifTags) {
+                    exifTagCapReached = true;
                     break;
                 }
                 if (field.getType() == String.class && field.getName().startsWith("TAG_")) {
@@ -822,6 +824,12 @@ public class MetadataDisplayer {
                                 && metadataMap.containsKey("GPS_LONGITUDE"));
             }
 
+            if (exifTagCapReached) {
+                metadataMap.put(
+                        context.getString(R.string.scan_metadata_truncated_key),
+                        context.getString(R.string.scan_metadata_truncated));
+            }
+
             SentryManager.log("Image metadata extraction completed");
 
         } catch (IOException e) {
@@ -841,7 +849,7 @@ public class MetadataDisplayer {
         // Split by comma to get degrees, minutes, seconds
         String[] parts = rationalString.split(",");
         if (parts.length != 3) {
-            throw new IllegalArgumentException("Invalid GPS rational format: " + rationalString);
+            throw new IllegalArgumentException("Invalid GPS rational format");
         }
         
         // Parse degrees
@@ -971,7 +979,7 @@ public class MetadataDisplayer {
                     metadata.append(context.getString(R.string.metadata_longitude, lon)).append("\n");
                     SentryManager.setCustomKey("has_location_data", true);
                 } else if (locationRaw != null && !locationRaw.isEmpty()) {
-                    SentryManager.log("Invalid location format: " + locationRaw);
+                    SentryManager.log("Invalid video location format");
                 } else {
                     metadata.append(context.getString(R.string.metadata_no_location_data)).append("\n");
                     SentryManager.setCustomKey("has_location_data", false);
@@ -1100,9 +1108,6 @@ public class MetadataDisplayer {
             
             if (hasLocationPermission && locationValue != null && !locationValue.isEmpty()) {
                 try {
-                    if ("__force_exception__".equals(locationValue)) {
-                        throw new RuntimeException("Forced location parse failure");
-                    }
                     float[] coords = parseVideoLocationCoordinates(locationValue);
                     if (coords != null && isUsableMapCoordinate(coords[0], coords[1])) {
                         metadataMap.put("GPS_LATITUDE", formatGpsCoordinate(coords[0]));
@@ -1392,18 +1397,6 @@ public class MetadataDisplayer {
         return resolved != null ? resolved : uri;
     }
 
-    private static boolean canQueryMediaUri(Context context, Uri mediaUri) {
-        try (Cursor cursor = context.getContentResolver().query(
-                mediaUri,
-                new String[]{MediaStore.MediaColumns._ID},
-                null, null, null)) {
-            return cursor != null && cursor.moveToFirst();
-        } catch (Exception e) {
-            SentryManager.log("MediaStore URI probe failed: " + e.getMessage());
-            return false;
-        }
-    }
-
     private static boolean isPhotoPickerUri(@Nullable Uri uri) {
         return com.doubleangels.redact.media.MediaUriResolver.isPhotoPickerUri(uri);
     }
@@ -1441,8 +1434,7 @@ public class MetadataDisplayer {
                         SentryManager.log("Resolved GPS coordinates from MediaStore columns");
                         return new double[]{lat, lon};
                     }
-                    SentryManager.log("MediaStore GPS columns present but unusable: "
-                            + lat + ", " + lon);
+                    SentryManager.log("MediaStore GPS columns present but unusable");
                 }
             }
         } catch (Exception e) {

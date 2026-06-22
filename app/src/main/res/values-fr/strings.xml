@@ -148,9 +148,9 @@
     <string name="settings_section_advanced_privacy">Nettoyage des métadonnées</string>
     <string name="settings_advanced_privacy_subtitle">Comment Redact supprime l\'EXIF dans l\'onglet Nettoyer. Le partage depuis d\'autres apps supprime toujours la localisation et les infos appareil photo avant le transfert.</string>
     <string name="settings_secure_delete">Passes De Suppression Sécurisée</string>
-    <string name="settings_secure_delete_subtitle">Nombre de réécritures des fichiers temporaires avant suppression. Plus de passes = plus lent mais plus difficile à récupérer.</string>
+    <string name="settings_secure_delete_subtitle">Nombre de passes d\'écrasement des fichiers temporaires avant suppression. Plus de passes = plus lent ; sur stockage flash, une récupération reste possible.</string>
     <string name="settings_auto_clear_temp">Vider le cache au démarrage</string>
-    <string name="settings_auto_clear_temp_subtitle">Supprimer les fichiers de traitement restants à chaque ouverture de l\'app.</string>
+    <string name="settings_auto_clear_temp_subtitle">Supprime les fichiers cache de traitement de plus de 24 heures à l\'ouverture de l\'app.</string>
     <string name="settings_preserve_camera">Conserver les réglages photo</string>
     <string name="settings_preserve_camera_subtitle">Conserver ouverture, vitesse d\'obturation, ISO et marque/modèle appareil photo dans Nettoyer. Ignoré avec Nettoyage Strict ou lors d\'un partage depuis d\'autres apps.</string>
     <string name="settings_preserve_location">Conserver la position</string>
@@ -219,7 +219,7 @@
     <string name="settings_share_confirm_dialog_confirm">Supprimer Et Continuer</string>
     <string name="settings_share_confirm_dialog_cancel">Annuler</string>
     <string name="settings_section_permissions">Autorisations</string>
-    <string name="settings_permissions_subtitle">Redact a besoin de l\'accès aux médias pour Nettoyer, Convertir et Analyser. Les notifications sont optionnelles et réservées aux alertes de tâches.</string>
+    <string name="settings_permissions_subtitle">Sur Android 13+, le sélecteur système fonctionne sans accès large à la bibliothèque. L\'accès complet aide Nettoyer et Convertir à lire les fichiers existants. Notifications et réseau sont optionnels.</string>
     <string name="settings_permissions_media">Photos et vidéos</string>
     <string name="settings_permissions_notifications">Notifications (facultatif)</string>
     <string name="settings_permission_granted">Accordée</string>
@@ -242,7 +242,7 @@
     <string name="settings_about_report_issue">Signaler Un Problème</string>
     <string name="settings_link_unavailable">Aucune application trouvée pour ouvrir ce lien.</string>
     <string name="settings_progress_notifications_label">Progression de la tâche en cours</string>
-    <string name="settings_progress_notifications_subtitle">Notification persistante avec progression pendant les longs nettoyages ou conversions.</string>
+    <string name="settings_progress_notifications_subtitle">Notification persistante avec progression pour les longues tâches. Désactivée par défaut jusqu\'à activation des notifications.</string>
     <string name="settings_crash_reporting_learn_more">Qu\'Est-Ce Qui Est Partagé ?</string>
     <string name="settings_crash_reporting_detail_title">Détails Des Rapports De Plantage</string>
     <string name="settings_crash_reporting_detail_message">Lorsque Envoyer les rapports de plantage est activé, des diagnostics anonymisés peuvent être envoyés via Sentry :
@@ -304,4 +304,17 @@ Aucune photo, vidéo, nom de fichier ou coordonnée GPS n\'est téléversé.</st
     <string name="status_clean_done_failed">Échec du nettoyage.</string>
     <string name="status_clean_done_partial">Terminé : %1$d nettoyé(s), %2$d échoué(s).</string>
     <string name="status_processing_cancelled">Traitement annulé.</string>
+    <string name="settings_permission_partial">Partiel</string>
+    <string name="scan_status_ready">Sélectionnez une photo ou une vidéo pour analyser ses métadonnées.</string>
+    <string name="animated_image_warning">Les images animées sont enregistrées comme une seule image fixe.</string>
+    <string name="clean_item_failed">Échec : %1$s</string>
+    <string name="settings_preserve_location_confirm_title">Conserver le GPS sur les photos nettoyées ?</string>
+    <string name="settings_preserve_location_confirm_message">Les fichiers nettoyés dans Nettoyer peuvent encore contenir des coordonnées GPS. Le partage depuis d\'autres apps supprime toujours la position.
+
+Activez ceci uniquement si vous souhaitez conserver la position volontairement.</string>
+    <string name="settings_location_permission_granted">Autorisation de localisation photo accordée.</string>
+    <string name="settings_location_permission_denied">Autorisation de localisation photo refusée.</string>
+    <string name="settings_crash_reporting_unconfigured">Les rapports de plantage sont activés mais non configurés sur cette version.</string>
+    <string name="settings_crash_reporting_init_failed">Impossible de démarrer les rapports de plantage. Réessayez plus tard.</string>
+    <string name="share_error_partial_success">%1$d fichier(s) nettoyé(s) ; %2$d en échec.</string>
 </resources>

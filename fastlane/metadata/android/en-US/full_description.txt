@@ -1,42 +1,33 @@
 <b>Redact: Privacy & Metadata Remover</b>
 
-<p>Protect your privacy with Redact - the powerful yet simple app that removes all EXIF metadata and converts formats of your photos and videos before sharing online. Prevent location tracking, hide device information, and secure your personal data when posting on social media platforms.</p>
+<p>Protect your privacy with Redact — remove hidden EXIF metadata from photos and videos, inspect what is embedded before you share, and convert formats locally on your device.</p>
 
 <b>Key Features:</b>
 
 <ul>
 <li><b>Complete Privacy Protection:</b><br>
-Remove all metadata including GPS location data, device information, timestamps, camera settings, and personal details hidden in your media files. Our advanced remuxing technology ensures videos are completely stripped of metadata while preserving playback quality.</li>
+Remove GPS location, device details, timestamps, camera settings, and other hidden metadata. Video cleaning uses remuxing or full transcode (your choice in Settings) while preserving playback quality.</li>
 
-<li><b>Metadata Viewer & Inspector:</b><br>
-Easily scan and view all hidden EXIF data in your photos and videos before completely removing it. See exactly what information is embedded in your files with our comprehensive metadata display.</li>
+<li><b>Metadata Viewer:</b><br>
+Scan any photo or video to see organized EXIF and container metadata before you clean it. Copy values or send a file to Clean or Convert.</li>
 
-<li><b>User-Friendly Privacy Interface:</b><br>
-One-tap complete metadata removal makes protecting your digital privacy simple, quick, and accessible for everyone. Clean individual files or process multiple files at once.</li>
+<li><b>Clean, Scan, Convert &amp; Share:</b><br>
+Clean metadata in batches (up to 20 files). Convert image/video formats without uploading to a server — then run Clean if you also want metadata removed from converted files. Share into Redact from any app; cancel long jobs or continue with partial success if one file fails.</li>
 
-<li><b>Universal Media Conversion:</b><br>
-Need a different format? Easily convert images to standard types like JPEG, PNG, WebP, or HEIC. Transcode unsupported videos into highly compatible MP4 or MKV files without relying on internet servers.</li>
+<li><b>Privacy-First Permissions:</b><br>
+On Android 13+, pick files with the system photo picker without granting broad library access. Optional photo-location permission unlocks GPS fields in Scan. Crash reporting and notifications are off by default.</li>
 
-<li><b>Bulk Photo & Video Processing:</b><br>
-Clean multiple media files simultaneously, saving you time while enhancing your online privacy protection. Process entire batches with a single tap.</li>
+<li><b>100% Local Processing:</b><br>
+Cleaning, scanning, and conversion run on your device. Optional anonymized crash diagnostics (Sentry) never upload your media. Temporary cache can be cleared manually or pruned on startup.</li>
 
-<li><b>Original Quality Preservation:</b><br>
-Remove all metadata without compressing or degrading your photos and videos - maintain full image and video quality. Essential codec parameters are preserved to ensure perfect playback.</li>
+<li><b>Open Source &amp; Ad-Free:</b><br>
+No ads or behavioral tracking. Source code is available on GitHub for community review.</li>
 
-<li><b>100% Local Media Processing:</b><br>
-All cleaning, scanning, and conversion happens on your device—your photos and videos are never uploaded. Optional anonymized crash reporting (off by default) may use the internet for diagnostics only. Files are securely deleted using multiple overwrite passes.</li>
-
-<li><b>Ad-Free & Open-Source Privacy Tool:</b><br>
-No advertising or behavioral tracking. Optional crash diagnostics via Sentry (disabled by default). Our code is fully open-source for community verification and contributions.</li>
-
-<li><b>Android Share Sheet Integration:</b><br>
-Seamlessly clean files from any app via Android's share menu and get back completely privacy-protected files ready to share. Temporary files are automatically cleaned up after sharing.</li>
-
-<li><b>Multi-Language Support:</b><br>
-Available in 13 languages including English, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean, Chinese (Simplified & Traditional), Hindi, and Arabic.</li>
+<li><b>13 Languages:</b><br>
+English, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean, Chinese (Simplified &amp; Traditional), Hindi, and Arabic.</li>
 </ul>
 
-<p>Take control of your digital footprint! EXIF metadata can expose your precise GPS coordinates, device details, camera settings, timestamps, and unique identifiers. Redact eliminates all these privacy risks while preserving the quality of your media files. Perfect for social media sharing, professional photography, and anyone concerned about digital privacy.</p>
+<p>EXIF metadata can reveal GPS coordinates, device model, and capture settings. Redact helps you share on your terms — with quality preserved and your files kept on your phone.</p>
 
 <p><b>How It Works:</b></p>
-<p>Simply select your photos or videos, tap "Clean Metadata," and Redact will remove all identifying information while preserving essential display properties like image orientation. For videos, we use advanced remuxing technology to strip metadata containers while maintaining perfect playback quality.</p>
+<p>Select media in Redact or share from another app, tap Clean Metadata, and save privacy-safe copies to your gallery. For share-in, Redact strips metadata before you forward files onward. Strict Clean and share paths always remove location data.</p>

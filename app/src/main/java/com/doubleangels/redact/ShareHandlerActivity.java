@@ -2,20 +2,18 @@ package com.doubleangels.redact;
 
 import android.content.ClipData;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.ParcelFileDescriptor;
-import android.provider.OpenableColumns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -28,6 +26,7 @@ import com.doubleangels.redact.media.VideoMedia3Converter;
 import com.doubleangels.redact.metadata.MetadataStripper;
 import com.doubleangels.redact.notifications.LocalNotifications;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
@@ -62,6 +61,19 @@ public class ShareHandlerActivity extends AppCompatActivity {
         return activeShareSessions.get() > 0;
     }
 
+    private final ActivityResultLauncher<Intent> shareResultLauncher =
+            registerForActivityResult(
+                    new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == RESULT_CANCELED) {
+                            SentryManager.log("Share chooser canceled, cleaning up immediately");
+                            cleanupProcessedFiles();
+                        } else {
+                            scheduleDelayedShareCleanup();
+                        }
+                        finish();
+                    });
+
     private MediaSelector mediaSelector;
     private MetadataStripper metadataStripper;
     
@@ -72,6 +84,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private boolean sharingInitiated = false;
     private volatile boolean processingActive = false;
     private final AtomicBoolean activityDestroyed = new AtomicBoolean(false);
+    private final AtomicBoolean shareSessionEnded = new AtomicBoolean(false);
     private volatile Thread processingThread;
 
     private AlertDialog progressDialog;
@@ -96,10 +109,6 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
             if (savedInstanceState != null) {
                 sharingInitiated = savedInstanceState.getBoolean(KEY_SHARING_INITIATED, false);
-                if (savedInstanceState.getBoolean(KEY_PROCESSING_ACTIVE, false)) {
-                    finishWithError(getString(R.string.share_error_generic));
-                    return;
-                }
             }
 
             createProgressDialog();
@@ -125,6 +134,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         LocalNotifications.stopProcessingForeground(this);
         processingActive = false;
         sharingInitiated = false;
+        shareSessionEnded.set(false);
         cleanupProcessedFiles();
         dismissProgressDialog();
         createProgressDialog();
@@ -147,7 +157,9 @@ public class ShareHandlerActivity extends AppCompatActivity {
         progressDialog = builder
                 .setTitle(R.string.share_processing_title)
                 .setView(dialogView)
-                .setCancelable(false)
+                .setNegativeButton(R.string.button_cancel, (d, w) -> cancelShareProcessing())
+                .setCancelable(true)
+                .setOnCancelListener(d -> cancelShareProcessing())
                 .create();
 
         progressMessageView.setText(getString(R.string.status_processing));
@@ -224,7 +236,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 finishWithError(getString(R.string.share_error_file_too_large));
                 return;
             }
-            maybeConfirmAndProcess(accepted);
+            maybeConfirmAndProcess(snapshotInboundUris(accepted));
         } catch (Exception e) {
             SentryManager.recordException(e);
             finishWithError(getString(R.string.share_error_generic));
@@ -266,7 +278,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private List<Uri> snapshotInboundUris(@NonNull List<Uri> uris) {
         List<Uri> stable = new ArrayList<>();
         for (Uri uri : uris) {
-            if ("content".equals(uri.getScheme())) {
+            String scheme = uri.getScheme();
+            if ("content".equalsIgnoreCase(scheme) || "file".equalsIgnoreCase(scheme)) {
                 try {
                     File snapshot = copyInboundUriToCache(uri);
                     inboundSnapshotFiles.add(snapshot);
@@ -284,6 +297,20 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     @NonNull
     private File copyInboundUriToCache(@NonNull Uri uri) throws IOException {
+        if ("file".equalsIgnoreCase(uri.getScheme())) {
+            String path = uri.getPath();
+            if (path == null || path.isEmpty()) {
+                throw new IOException("Invalid file URI path");
+            }
+            File source = new File(path);
+            String suffix = suffixForPath(path);
+            File dest = new File(getCacheDir(), "inbound_" + System.nanoTime() + suffix);
+            try (FileInputStream in = new FileInputStream(source);
+                    FileOutputStream out = new FileOutputStream(dest)) {
+                MediaSizeLimits.copyWithLimit(in, out, MAX_STREAM_BYTES);
+            }
+            return dest;
+        }
         String suffix = ".bin";
         String type = getContentResolver().getType(uri);
         if (type != null && type.startsWith("video/")) {
@@ -300,6 +327,20 @@ public class ShareHandlerActivity extends AppCompatActivity {
             MediaSizeLimits.copyWithLimit(in, out, MAX_STREAM_BYTES);
         }
         return dest;
+    }
+
+    @NonNull
+    private static String suffixForPath(@NonNull String path) {
+        String lower = path.toLowerCase(java.util.Locale.US);
+        if (lower.endsWith(".mp4") || lower.endsWith(".m4v") || lower.endsWith(".mov")) {
+            return ".mp4";
+        }
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png")
+                || lower.endsWith(".webp") || lower.endsWith(".heic") || lower.endsWith(".heif")
+                || lower.endsWith(".gif")) {
+            return ".jpg";
+        }
+        return ".bin";
     }
 
     private void maybeConfirmAndProcess(List<Uri> uris) {
@@ -324,19 +365,21 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     private void processMediaItems(List<Uri> uris) {
         processingActive = true;
+        shareSessionEnded.set(false);
         activeShareSessions.incrementAndGet();
         LocalNotifications.startProcessingForeground(this, getString(R.string.share_processing_title));
         Thread worker = new Thread(() -> {
             ITransaction transaction = SentryManager.startTransaction("share_cleanup", "task");
             ArrayList<Uri> processedUris = new ArrayList<>();
-            boolean allSuccess = true;
+            int failCount = 0;
             boolean hasVideo = false;
             boolean hasImage = false;
 
             try {
                 for (int i = 0; i < uris.size(); i++) {
-                    if (activityDestroyed.get() || Thread.currentThread().isInterrupted()) {
-                        allSuccess = false;
+                    if (activityDestroyed.get()
+                            || Thread.currentThread().isInterrupted()
+                            || shareSessionEnded.get()) {
                         break;
                     }
                     Uri uri = uris.get(i);
@@ -365,12 +408,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
                             SentryManager.log("Could not resolve processed file for cleanup: " + e.getMessage());
                         }
                     } else {
-                        allSuccess = false;
-                        break;
+                        failCount++;
                     }
                 }
 
-                if (allSuccess && !processedUris.isEmpty()) {
+                if (!processedUris.isEmpty() && failCount == 0) {
+                    transaction.setStatus(SpanStatus.OK);
+                } else if (!processedUris.isEmpty()) {
                     transaction.setStatus(SpanStatus.OK);
                 } else {
                     transaction.setStatus(SpanStatus.INTERNAL_ERROR);
@@ -379,13 +423,36 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
                 final boolean finalHasVideo = hasVideo;
                 final boolean finalHasImage = hasImage;
-                final boolean finalAllSuccess = allSuccess;
+                final int finalFailCount = failCount;
+                final boolean cancelled = shareSessionEnded.get()
+                        || Thread.currentThread().isInterrupted();
 
                 safeRunOnUiThread(() -> {
                     try {
                         dismissProgressDialog();
 
-                        if (finalAllSuccess && !processedUris.isEmpty()) {
+                        if (cancelled) {
+                            Toast.makeText(
+                                            ShareHandlerActivity.this,
+                                            R.string.status_processing_cancelled,
+                                            Toast.LENGTH_SHORT)
+                                    .show();
+                            cleanupProcessedFiles();
+                            finish();
+                            return;
+                        }
+
+                        if (!processedUris.isEmpty()) {
+                            if (finalFailCount > 0) {
+                                Toast.makeText(
+                                                ShareHandlerActivity.this,
+                                                getString(
+                                                        R.string.share_error_partial_success,
+                                                        processedUris.size(),
+                                                        finalFailCount),
+                                                Toast.LENGTH_LONG)
+                                        .show();
+                            }
                             SentryManager.log("Media processing completed successfully");
                             if (processedUris.size() == 1) {
                                 shareCleanFile(finalHasVideo, processedUris.get(0));
@@ -409,13 +476,35 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 SentryManager.recordException(e);
                 safeRunOnUiThread(() -> finishWithError(getString(R.string.share_error_generic)));
             } finally {
-                processingActive = false;
-                activeShareSessions.decrementAndGet();
-                LocalNotifications.stopProcessingForeground(ShareHandlerActivity.this);
+                endShareSession();
             }
         });
         processingThread = worker;
         worker.start();
+    }
+
+    private void endShareSession() {
+        if (shareSessionEnded.compareAndSet(false, true)) {
+            processingActive = false;
+            activeShareSessions.decrementAndGet();
+            LocalNotifications.stopProcessingForeground(ShareHandlerActivity.this);
+        }
+    }
+
+    private void cancelShareProcessing() {
+        Thread thread = processingThread;
+        if (thread != null) {
+            thread.interrupt();
+        }
+        VideoMedia3Converter.cancelActiveTranscode();
+        if (metadataStripper != null) {
+            metadataStripper.requestCancellation();
+        }
+        endShareSession();
+        dismissProgressDialog();
+        cleanupProcessedFiles();
+        Toast.makeText(this, R.string.status_processing_cancelled, Toast.LENGTH_SHORT).show();
+        finish();
     }
 
     private void dismissProgressDialog() {
@@ -428,7 +517,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
         }
     }
 
-    private static final int REQUEST_SHARE = 1001;
+    private void launchShareChooser(Intent chooser) {
+        sharingInitiated = true;
+        shareResultLauncher.launch(chooser);
+    }
 
     private void shareCleanFile(boolean isVideo, Uri cleanedFileUri) {
         try {
@@ -450,7 +542,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
                 sharingInitiated = true;
                 SentryManager.log("Launching single share intent");
-                startActivityForResult(chooser, REQUEST_SHARE);
+                launchShareChooser(chooser);
             } else {
                 finishWithError(getString(R.string.share_error_failed_get_cleaned_file));
             }
@@ -488,28 +580,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
                 sharingInitiated = true;
                 SentryManager.log("Launching multiple share intent");
-                startActivityForResult(chooser, REQUEST_SHARE);
+                launchShareChooser(chooser);
             } else {
                 finishWithError(getString(R.string.share_error_failed_get_cleaned_files));
             }
         } catch (Exception e) {
             SentryManager.recordException(e);
             finishWithError(getString(R.string.share_error_generic));
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_SHARE) {
-            if (resultCode == RESULT_CANCELED) {
-                SentryManager.log("Share chooser canceled, cleaning up immediately");
-                cleanupProcessedFiles();
-            } else {
-                SentryManager.log("Share chooser returned, scheduling delayed cleanup");
-                scheduleDelayedShareCleanup();
-            }
-            finish();
         }
     }
 
@@ -616,7 +693,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         if ("content".equalsIgnoreCase(scheme)) {
             return true;
         }
-        return false;
+        return "file".equalsIgnoreCase(scheme);
     }
 
     @NonNull
@@ -639,29 +716,20 @@ public class ShareHandlerActivity extends AppCompatActivity {
     }
 
     private boolean isUriWithinSizeLimit(Uri uri) {
-        try (Cursor cursor = getContentResolver().query(
-                uri, new String[] {OpenableColumns.SIZE}, null, null, null)) {
-            if (cursor != null && cursor.moveToFirst()) {
-                int idx = cursor.getColumnIndex(OpenableColumns.SIZE);
-                if (idx >= 0 && !cursor.isNull(idx)) {
-                    long size = cursor.getLong(idx);
-                    return size > 0 && size <= MAX_STREAM_BYTES;
-                }
+        if ("file".equalsIgnoreCase(uri.getScheme())) {
+            String path = uri.getPath();
+            if (path == null || path.isEmpty()) {
+                return false;
             }
-        } catch (Exception e) {
-            SentryManager.recordException(e);
+            long length = new File(path).length();
+            return length <= 0 || length <= MAX_STREAM_BYTES;
         }
-        try (ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "r")) {
-            if (pfd != null) {
-                long length = pfd.getStatSize();
-                if (length > 0) {
-                    return length <= MAX_STREAM_BYTES;
-                }
-            }
-        } catch (Exception e) {
-            SentryManager.recordException(e);
+        long declared = MediaSizeLimits.declaredSizeBytes(getContentResolver(), uri);
+        if (declared <= 0) {
+            // Unknown size: allow entry; snapshot/processing paths enforce stream limits.
+            return true;
         }
-        return false;
+        return declared <= MAX_STREAM_BYTES;
     }
 
     private void finishWithError(String message) {
@@ -680,6 +748,9 @@ public class ShareHandlerActivity extends AppCompatActivity {
             thread.interrupt();
         }
         VideoMedia3Converter.cancelActiveTranscode();
+        if (metadataStripper != null) {
+            metadataStripper.requestCancellation();
+        }
         LocalNotifications.stopProcessingForeground(getApplicationContext());
         dismissProgressDialog();
         if (isFinishing()) {

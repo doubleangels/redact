@@ -15,7 +15,6 @@ import com.doubleangels.redact.sentry.SentryManager;
  * <p>Initializes Sentry and notification channels.
  */
 public class RedactApplication extends Application {
-    private static final String TAG = "RedactApplication";
 
     @Override
     public void onCreate() {

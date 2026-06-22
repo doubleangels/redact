@@ -20,6 +20,7 @@ public class ProcessingForegroundService extends Service {
     public static final String ACTION_UPDATE = "com.doubleangels.redact.action.PROCESSING_UPDATE";
     public static final String EXTRA_TITLE = "extra_title";
     public static final String EXTRA_PERCENT = "extra_percent";
+    public static final String EXTRA_MESSAGE = "extra_message";
 
     static final int NOTIFICATION_ID = 7103;
 
@@ -28,7 +29,7 @@ public class ProcessingForegroundService extends Service {
             return;
         }
         Context app = context.getApplicationContext();
-        if (!LocalNotifications.canPostNotifications(app)) {
+        if (!LocalNotifications.canStartForegroundService(app)) {
             return;
         }
         LocalNotifications.ensureChannels(app);
@@ -43,11 +44,16 @@ public class ProcessingForegroundService extends Service {
     }
 
     public static void updateProgress(@Nullable Context context, int percent, @Nullable String title) {
+        updateProgress(context, percent, title, null);
+    }
+
+    public static void updateProgress(
+            @Nullable Context context, int percent, @Nullable String title, @Nullable String message) {
         if (context == null) {
             return;
         }
         Context app = context.getApplicationContext();
-        if (!LocalNotifications.canPostNotifications(app)) {
+        if (!LocalNotifications.canStartForegroundService(app)) {
             return;
         }
         Intent intent = new Intent(app, ProcessingForegroundService.class);
@@ -55,6 +61,9 @@ public class ProcessingForegroundService extends Service {
         intent.putExtra(EXTRA_PERCENT, percent);
         if (title != null) {
             intent.putExtra(EXTRA_TITLE, title);
+        }
+        if (message != null && !message.isEmpty()) {
+            intent.putExtra(EXTRA_MESSAGE, message);
         }
         app.startService(intent);
     }
@@ -82,11 +91,19 @@ public class ProcessingForegroundService extends Service {
         if (title == null) {
             title = getString(R.string.status_processing);
         }
+        String detail = intent != null && intent.hasExtra(EXTRA_MESSAGE)
+                ? intent.getStringExtra(EXTRA_MESSAGE)
+                : null;
+        if (detail == null || detail.isEmpty()) {
+            detail = getString(R.string.notification_progress_percent, percent);
+        } else if (detail.length() > 120) {
+            detail = detail.substring(0, 117) + "…";
+        }
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, LocalNotifications.CHANNEL_ID_TASKS)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(title)
-                .setContentText(getString(R.string.notification_progress_percent, percent))
+                .setContentText(detail)
                 .setProgress(100, percent, false)
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
@@ -109,7 +126,7 @@ public class ProcessingForegroundService extends Service {
             stopSelf();
             return START_NOT_STICKY;
         }
-        if (!LocalNotifications.canPostNotifications(this)) {
+        if (!LocalNotifications.canStartForegroundService(this)) {
             stopForeground(STOP_FOREGROUND_REMOVE);
             stopSelf();
             return START_NOT_STICKY;
@@ -120,8 +137,6 @@ public class ProcessingForegroundService extends Service {
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        stopForeground(STOP_FOREGROUND_REMOVE);
-        stopSelf();
         super.onTaskRemoved(rootIntent);
     }
 

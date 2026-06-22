@@ -28,16 +28,27 @@ import com.doubleangels.redact.sentry.SentryManager;
  */
 public class PermissionManager {
     // Request codes for identifying permission requests in onRequestPermissionsResult
-    private static final int PERMISSION_REQUEST_CODE = 123;
-    private static final int LOCATION_PERMISSION_REQUEST_CODE = 124;
+    public static final int STORAGE_PERMISSION_REQUEST_CODE = 123;
+    public static final int LOCATION_PERMISSION_REQUEST_CODE = 124;
     private static final String TAG = "PermissionManager";
+
+    private static final class PendingPermissionResult {
+        final int requestCode;
+        final String[] permissions;
+        final int[] grantResults;
+
+        PendingPermissionResult(int requestCode, String[] permissions, int[] grantResults) {
+            this.requestCode = requestCode;
+            this.permissions = permissions.clone();
+            this.grantResults = grantResults.clone();
+        }
+    }
+
+    private static final java.util.concurrent.ConcurrentLinkedQueue<PendingPermissionResult>
+            pendingPermissionResults = new java.util.concurrent.ConcurrentLinkedQueue<>();
 
     /** Avoid stacking duplicate system dialogs when MainActivity and fragments both check on launch. */
     private static volatile boolean runtimePermissionRequestInFlight = false;
-
-    private static volatile int pendingRequestCode = -1;
-    private static volatile String[] pendingPermissions;
-    private static volatile int[] pendingGrantResults;
 
     /** Activity context used for permission requests */
     private final Activity activity;
@@ -135,15 +146,6 @@ public class PermissionManager {
         }
     }
 
-    /**
-     * Checks if any required permissions are still missing.
-     * Different permissions are checked based on the Android version.
-     *
-     * For Android 13+ (Tiramisu): Checks READ_MEDIA_IMAGES and READ_MEDIA_VIDEO
-     * For Android 12 and below: Checks READ_EXTERNAL_STORAGE
-     *
-     * @return true if permissions need to be requested, false if all are granted
-     */
     public boolean needsPermissions() {
         try {
             boolean result;
@@ -190,6 +192,16 @@ public class PermissionManager {
             SentryManager.recordException(new Exception("Error checking permissions: " + e.getMessage(), e));
             return true;
         }
+    }
+
+    /** On API 33+, the system photo picker does not require READ_MEDIA_* for selection. */
+    public static boolean canUseSystemPhotoPickerWithoutMediaRead() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU;
+    }
+
+    /** Whether the picker should be blocked until storage permissions are granted. */
+    public boolean shouldRequestStorageBeforePicker() {
+        return !canUseSystemPhotoPickerWithoutMediaRead() && needsPermissions();
     }
 
     /**
@@ -279,31 +291,31 @@ public class PermissionManager {
     public static void storeActivityPermissionResult(
             int requestCode, String[] permissions, int[] grantResults) {
         runtimePermissionRequestInFlight = false;
-        pendingRequestCode = requestCode;
-        pendingPermissions = permissions;
-        pendingGrantResults = grantResults;
+        pendingPermissionResults.offer(
+                new PendingPermissionResult(requestCode, permissions, grantResults));
     }
 
-    /** Applies a stored activity-level permission result, if any. */
-    public void applyPendingPermissionResultIfAny() {
-        int code = pendingRequestCode;
-        if (code == -1) {
+    /** Applies a stored activity-level permission result matching one of the given request codes. */
+    public void applyPendingPermissionResultIfAny(int... requestCodes) {
+        if (requestCodes == null || requestCodes.length == 0) {
             return;
         }
-        String[] permissions = pendingPermissions;
-        int[] grantResults = pendingGrantResults;
-        pendingRequestCode = -1;
-        pendingPermissions = null;
-        pendingGrantResults = null;
-        if (permissions != null && grantResults != null) {
-            handlePermissionResult(code, permissions, grantResults);
+        for (PendingPermissionResult pending : pendingPermissionResults) {
+            for (int requestCode : requestCodes) {
+                if (pending.requestCode == requestCode
+                        && pendingPermissionResults.remove(pending)) {
+                    handlePermissionResult(
+                            pending.requestCode, pending.permissions, pending.grantResults);
+                    return;
+                }
+            }
         }
     }
 
     public void handlePermissionResult(int requestCode, String[] permissions, int[] grantResults) {
         try {
             // Route to appropriate handler based on request code
-            if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (requestCode == STORAGE_PERMISSION_REQUEST_CODE) {
                 handleStoragePermissionResult(permissions, grantResults);
             } else if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
                 handleLocationPermissionResult(permissions, grantResults);
@@ -315,7 +327,7 @@ public class PermissionManager {
             boolean allGranted = grantResults.length > 0 &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED;
 
-            if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (requestCode == STORAGE_PERMISSION_REQUEST_CODE) {
                 if (allGranted) {
                     callback.onPermissionsGranted();
                 } else {
@@ -482,7 +494,7 @@ public class PermissionManager {
      * @return The permission request code
      */
     public int getPermissionRequestCode() {
-        return PERMISSION_REQUEST_CODE;
+        return STORAGE_PERMISSION_REQUEST_CODE;
     }
 
     /**
@@ -511,9 +523,9 @@ public class PermissionManager {
                 return;
             }
             runtimePermissionRequestInFlight = true;
-            SentryManager.log("Requesting runtime permissions: " + permissions);
+            SentryManager.log("Requesting runtime permissions count: " + permissions.size());
             ActivityCompat.requestPermissions(
-                    activity, permissions.toArray(new String[0]), PERMISSION_REQUEST_CODE);
+                    activity, permissions.toArray(new String[0]), STORAGE_PERMISSION_REQUEST_CODE);
         } catch (Exception e) {
             runtimePermissionRequestInFlight = false;
             SentryManager.recordException(new Exception("Error requesting runtime permissions: "
@@ -575,8 +587,6 @@ public class PermissionManager {
     /** Visible for unit tests. */
     static void resetRuntimePermissionRequestStateForTests() {
         runtimePermissionRequestInFlight = false;
-        pendingRequestCode = -1;
-        pendingPermissions = null;
-        pendingGrantResults = null;
+        pendingPermissionResults.clear();
     }
 }

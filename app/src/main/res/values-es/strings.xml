@@ -148,9 +148,9 @@
     <string name="settings_section_advanced_privacy">Limpieza de metadatos</string>
     <string name="settings_advanced_privacy_subtitle">Cómo Redact elimina EXIF en la pestaña Limpiar. Al compartir desde otras apps siempre se eliminan ubicación e info de cámara antes de reenviar.</string>
     <string name="settings_secure_delete">Pasadas De Borrado Seguro</string>
-    <string name="settings_secure_delete_subtitle">Cuántas veces se sobrescriben los archivos temporales antes de borrarlos. Más pasadas son más lentas pero más difíciles de recuperar.</string>
+    <string name="settings_secure_delete_subtitle">Cuántas veces se sobrescriben los archivos temporales antes de borrarlos. Más pasadas son más lentas; en almacenamiento flash la recuperación puede seguir siendo posible.</string>
     <string name="settings_auto_clear_temp">Vaciar caché al iniciar</string>
-    <string name="settings_auto_clear_temp_subtitle">Eliminar archivos de procesamiento sobrantes cada vez que abres la app.</string>
+    <string name="settings_auto_clear_temp_subtitle">Elimina archivos de caché de procesamiento de más de 24 horas al abrir la app.</string>
     <string name="settings_preserve_camera">Conservar ajustes de cámara</string>
     <string name="settings_preserve_camera_subtitle">Conservar apertura, velocidad de obturación, ISO y marca/modelo de cámara en Limpiar. Ignorado con Limpieza Estricta o al compartir desde otras apps.</string>
     <string name="settings_preserve_location">Conservar ubicación</string>
@@ -219,7 +219,7 @@
     <string name="settings_share_confirm_dialog_confirm">Eliminar Y Continuar</string>
     <string name="settings_share_confirm_dialog_cancel">Cancelar</string>
     <string name="settings_section_permissions">Permisos</string>
-    <string name="settings_permissions_subtitle">Redact necesita acceso a medios para Limpiar, Convertir y Escanear. Las notificaciones son opcionales y solo para alertas de tareas.</string>
+    <string name="settings_permissions_subtitle">En Android 13+, el selector del sistema funciona sin acceso amplio a la biblioteca. El acceso completo ayuda a Limpiar y Convertir a leer archivos existentes. Notificaciones y red son opcionales.</string>
     <string name="settings_permissions_media">Fotos y videos</string>
     <string name="settings_permissions_notifications">Notificaciones (opcional)</string>
     <string name="settings_permission_granted">Concedido</string>
@@ -242,7 +242,7 @@
     <string name="settings_about_report_issue">Informar Un Problema</string>
     <string name="settings_link_unavailable">No se encontró una app para abrir este enlace.</string>
     <string name="settings_progress_notifications_label">Progreso de tarea en curso</string>
-    <string name="settings_progress_notifications_subtitle">Notificación persistente con progreso durante limpiezas o conversiones largas.</string>
+    <string name="settings_progress_notifications_subtitle">Notificación persistente con progreso en tareas largas. Desactivada por defecto hasta que actives Permitir notificaciones.</string>
     <string name="settings_crash_reporting_learn_more">¿Qué Se Comparte?</string>
     <string name="settings_crash_reporting_detail_title">Detalles De Informes De Fallos</string>
     <string name="settings_crash_reporting_detail_message">Cuando Enviar informes de fallos está activado, pueden enviarse diagnósticos anónimos vía Sentry:
@@ -304,4 +304,17 @@ No se suben fotos, videos, nombres de archivo ni coordenadas GPS.</string>
     <string name="status_clean_done_failed">La limpieza falló.</string>
     <string name="status_clean_done_partial">Hecho: %1$d limpiados, %2$d fallidos.</string>
     <string name="status_processing_cancelled">Procesamiento cancelado.</string>
+    <string name="settings_permission_partial">Parcial</string>
+    <string name="scan_status_ready">Selecciona una foto o video para escanear sus metadatos.</string>
+    <string name="animated_image_warning">Las imágenes animadas se guardan como un solo fotograma.</string>
+    <string name="clean_item_failed">Error: %1$s</string>
+    <string name="settings_preserve_location_confirm_title">¿Conservar GPS en fotos limpiadas?</string>
+    <string name="settings_preserve_location_confirm_message">Los archivos limpiados en Limpiar pueden seguir conteniendo coordenadas GPS. Compartir desde otras apps siempre elimina la ubicación.
+
+Activa esto solo si quieres conservar la ubicación a propósito.</string>
+    <string name="settings_location_permission_granted">Permiso de ubicación de fotos concedido.</string>
+    <string name="settings_location_permission_denied">Permiso de ubicación de fotos denegado.</string>
+    <string name="settings_crash_reporting_unconfigured">Los informes de fallos están activados pero no configurados en esta compilación.</string>
+    <string name="settings_crash_reporting_init_failed">No se pudieron iniciar los informes de fallos. Inténtalo más tarde.</string>
+    <string name="share_error_partial_success">%1$d archivo(s) limpiado(s); %2$d con error.</string>
 </resources>

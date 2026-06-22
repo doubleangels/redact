@@ -1,1 +1,1 @@
-Entferne Metadaten und konvertiere Fotos/Videos für deine Privatsphäre.
+Metadaten entfernen, EXIF scannen und Medien konvertieren — alles auf dem Gerät.

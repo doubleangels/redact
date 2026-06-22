@@ -148,9 +148,9 @@
     <string name="settings_section_advanced_privacy">تنظيف البيانات الوصفية</string>
     <string name="settings_advanced_privacy_subtitle">كيف يزيل Redact بيانات EXIF في تبويب التنظيف. المشاركة من تطبيقات أخرى تزيل دائماً الموقع ومعلومات الكاميرا قبل الإرسال.</string>
     <string name="settings_secure_delete">مرات الحذف الآمن</string>
-    <string name="settings_secure_delete_subtitle">عدد مرات الكتابة فوق الملفات المؤقتة قبل الحذف. المزيد أبطأ وأصعب استرداداً.</string>
+    <string name="settings_secure_delete_subtitle">عدد مرات الكتابة فوق الملفات المؤقتة قبل الحذف. المزيد أبطأ؛ على التخزين الفلاشي قد يبقى الاسترداد ممكناً.</string>
     <string name="settings_auto_clear_temp">مسح الذاكرة عند البدء</string>
-    <string name="settings_auto_clear_temp_subtitle">حذف ملفات المعالجة المتبقية في كل مرة تفتح التطبيق.</string>
+    <string name="settings_auto_clear_temp_subtitle">يزيل ملفات ذاكرة المعالجة الأقدم من 24 ساعة عند فتح التطبيق.</string>
     <string name="settings_preserve_camera">الاحتفاظ بإعدادات الكاميرا</string>
     <string name="settings_preserve_camera_subtitle">الاحتفاظ بالفتحة وسرعة الغالق وISO وماركة/طراز الكاميرا في تبويب التنظيف. يُتجاهل عند التنظيف الصارم أو عند المشاركة من تطبيقات أخرى.</string>
     <string name="settings_preserve_location">الاحتفاظ بالموقع</string>
@@ -219,7 +219,7 @@
     <string name="settings_share_confirm_dialog_confirm">إزالة ومتابعة</string>
     <string name="settings_share_confirm_dialog_cancel">إلغاء</string>
     <string name="settings_section_permissions">الأذونات</string>
-    <string name="settings_permissions_subtitle">يحتاج Redact إلى الوصول للوسائط للتنظيف والتحويل والمسح. الإشعارات اختيارية ولتنبيهات المهام فقط.</string>
+    <string name="settings_permissions_subtitle">على Android 13+، يعمل منتقي الصور دون وصول واسع للمكتبة. الوصول الكامل يساعد التنظيف والتحويل في قراءة ملفات المعرض. الإشعارات والشبكة اختيارية.</string>
     <string name="settings_permissions_media">الصور والفيديو</string>
     <string name="settings_permissions_notifications">الإشعارات (اختياري)</string>
     <string name="settings_permission_granted">ممنوح</string>
@@ -242,7 +242,7 @@
     <string name="settings_about_report_issue">الإبلاغ عن مشكلة</string>
     <string name="settings_link_unavailable">لم يُعثر على تطبيق لفتح هذا الرابط.</string>
     <string name="settings_progress_notifications_label">تقدم المهمة الجارية</string>
-    <string name="settings_progress_notifications_subtitle">إشعار دائم بالتقدم أثناء مهام التنظيف أو التحويل الطويلة.</string>
+    <string name="settings_progress_notifications_subtitle">إشعار دائم يعرض التقدم في المهام الطويلة. معطّل افتراضياً حتى تفعّل السماح بالإشعارات.</string>
     <string name="settings_crash_reporting_learn_more">ما الذي يُشارك؟</string>
     <string name="settings_crash_reporting_detail_title">تفاصيل تقارير الأعطال</string>
     <string name="settings_crash_reporting_detail_message">عند تفعيل إرسال تقارير الأعطال، قد تُرسل تشخيصات مجهولة عبر Sentry:
@@ -304,4 +304,17 @@
     <string name="status_clean_done_failed">فشل التنظيف.</string>
     <string name="status_clean_done_partial">تم: %1$d تم تنظيفها، %2$d فشلت.</string>
     <string name="status_processing_cancelled">تم إلغاء المعالجة.</string>
+    <string name="settings_permission_partial">جزئي</string>
+    <string name="scan_status_ready">اختر صورة أو فيديو لفحص بياناته الوصفية.</string>
+    <string name="animated_image_warning">تُحفظ الصور المتحركة كإطار ثابت واحد.</string>
+    <string name="clean_item_failed">فشل: %1$s</string>
+    <string name="settings_preserve_location_confirm_title">الإبقاء على GPS في الصور المنظفة؟</string>
+    <string name="settings_preserve_location_confirm_message">قد تحتوي الملفات المنظفة في تبويب التنظيف على إحداثيات GPS. المشاركة من تطبيقات أخرى تزيل الموقع دائماً.
+
+فعّل هذا فقط إذا أردت الإبقاء على الموقع عمداً.</string>
+    <string name="settings_location_permission_granted">تم منح إذن موقع الصورة.</string>
+    <string name="settings_location_permission_denied">تم رفض إذن موقع الصورة.</string>
+    <string name="settings_crash_reporting_unconfigured">تقارير الأعطال مفعّلة لكن غير مهيأة في هذا الإصدار.</string>
+    <string name="settings_crash_reporting_init_failed">تعذر بدء تقارير الأعطال. حاول لاحقاً.</string>
+    <string name="share_error_partial_success">تم تنظيف %1$d ملف(ات)؛ فشل %2$d.</string>
 </resources>

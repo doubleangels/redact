@@ -12,8 +12,13 @@ import java.util.Locale;
  */
 public final class CacheCleanup {
 
+    /** Default age for startup stale-temp cleanup (24 hours). */
+    public static final long DEFAULT_STALE_TEMP_MAX_AGE_MS = 24L * 60L * 60L * 1000L;
+
     private static final String PROCESSED_SUBDIR = "processed";
-    private static final String[] TEMP_PREFIXES = {"temp_", "verify_", "vid_transform_", "vid_transmux_"};
+    private static final String[] TEMP_PREFIXES = {
+            "temp_", "verify_", "vid_transform_", "vid_transmux_", "inbound_"
+    };
 
     private CacheCleanup() {
     }

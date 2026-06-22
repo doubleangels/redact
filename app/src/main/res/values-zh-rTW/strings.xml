@@ -148,9 +148,9 @@
     <string name="settings_section_advanced_privacy">中繼資料清理</string>
     <string name="settings_advanced_privacy_subtitle">Redact 如何在清理分頁移除 EXIF。從其他 App 分享時，轉寄前一律會移除位置與相機資訊。</string>
     <string name="settings_secure_delete">安全刪除次數</string>
-    <string name="settings_secure_delete_subtitle">刪除前暫存檔被覆寫的次數。次數越多越慢，但越難復原。</string>
+    <string name="settings_secure_delete_subtitle">刪除前覆寫暫存檔的次數。次數越多越慢；在快閃記憶體上仍可能復原資料。</string>
     <string name="settings_auto_clear_temp">啟動時清除快取</string>
-    <string name="settings_auto_clear_temp_subtitle">每次開啟應用程式時刪除剩餘的處理檔案。</string>
+    <string name="settings_auto_clear_temp_subtitle">開啟應用程式時刪除超過 24 小時的處理快取檔案。</string>
     <string name="settings_preserve_camera">保留相機設定</string>
     <string name="settings_preserve_camera_subtitle">在清理分頁保留光圈、快門速度、ISO 與相機品牌/型號。嚴格清理開啟或從其他 App 分享時忽略。</string>
     <string name="settings_preserve_location">保留位置</string>
@@ -219,7 +219,7 @@
     <string name="settings_share_confirm_dialog_confirm">移除並繼續</string>
     <string name="settings_share_confirm_dialog_cancel">取消</string>
     <string name="settings_section_permissions">權限</string>
-    <string name="settings_permissions_subtitle">Redact 需要媒體存取權限以進行清理、轉換和掃描。通知為選用，僅用於工作提醒。</string>
+    <string name="settings_permissions_subtitle">Android 13+ 上，系統照片選擇器無需廣泛的媒體庫權限即可選檔案。完整存取有助於清理與轉換讀取既有圖庫檔案。通知與網路為選用。</string>
     <string name="settings_permissions_media">照片和影片</string>
     <string name="settings_permissions_notifications">通知（選用）</string>
     <string name="settings_permission_granted">已授予</string>
@@ -242,7 +242,7 @@
     <string name="settings_about_report_issue">回報問題</string>
     <string name="settings_link_unavailable">找不到可開啟此連結的應用程式。</string>
     <string name="settings_progress_notifications_label">進行中工作進度</string>
-    <string name="settings_progress_notifications_subtitle">長時間清理或轉換期間在通知列顯示持續進度。</string>
+    <string name="settings_progress_notifications_subtitle">長時間工作期間顯示進度的持續通知。預設關閉，需先開啟允許通知。</string>
     <string name="settings_crash_reporting_learn_more">會分享哪些內容？</string>
     <string name="settings_crash_reporting_detail_title">當機報告詳情</string>
     <string name="settings_crash_reporting_detail_message">開啟「傳送當機報告」後，可能透過 Sentry 傳送匿名診斷：
@@ -304,4 +304,17 @@
     <string name="status_clean_done_failed">清理失敗。</string>
     <string name="status_clean_done_partial">完成：%1$d 個已清理，%2$d 個失敗。</string>
     <string name="status_processing_cancelled">處理已取消。</string>
+    <string name="settings_permission_partial">部分</string>
+    <string name="scan_status_ready">選擇照片或影片以掃描其中繼資料。</string>
+    <string name="animated_image_warning">動畫圖像將儲存為單一靜止畫面。</string>
+    <string name="clean_item_failed">失敗：%1$s</string>
+    <string name="settings_preserve_location_confirm_title">在清理後的照片中保留 GPS？</string>
+    <string name="settings_preserve_location_confirm_message">在清理分頁清理的檔案可能仍含 GPS 座標。從其他 App 分享時一律會移除位置資訊。
+
+僅在您有意保留位置時才開啟。</string>
+    <string name="settings_location_permission_granted">已授予照片位置權限。</string>
+    <string name="settings_location_permission_denied">已拒絕照片位置權限。</string>
+    <string name="settings_crash_reporting_unconfigured">已啟用當機回報，但此版本未設定。</string>
+    <string name="settings_crash_reporting_init_failed">無法啟動當機回報，請稍後再試。</string>
+    <string name="share_error_partial_success">已清理 %1$d 個檔案；%2$d 個失敗。</string>
 </resources>

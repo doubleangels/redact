@@ -75,7 +75,10 @@ public final class AppPreferences {
     }
 
     public static boolean areProgressNotificationsEnabled(@NonNull Context context) {
-        return prefs(context).getBoolean(KEY_PROGRESS_NOTIFICATIONS_ENABLED, true);
+        if (!areNotificationsEnabled(context)) {
+            return false;
+        }
+        return prefs(context).getBoolean(KEY_PROGRESS_NOTIFICATIONS_ENABLED, false);
     }
 
     public static void setProgressNotificationsEnabled(@NonNull Context context, boolean enabled) {
@@ -154,7 +157,12 @@ public final class AppPreferences {
     }
 
     public static int getSecureDeletePasses(@NonNull Context context) {
-        return prefs(context).getInt(KEY_SECURE_DELETE_PASSES, 3);
+        int passes = prefs(context).getInt(KEY_SECURE_DELETE_PASSES, 3);
+        return switch (passes) {
+            case 1 -> 1;
+            case 7 -> 7;
+            default -> 3;
+        };
     }
 
     public static void setSecureDeletePasses(@NonNull Context context, int passes) {

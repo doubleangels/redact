@@ -194,6 +194,15 @@ public class MediaProcessor {
                         } else {
                             Log.e(TAG, "Failed to process item at index " + index);
                             span.setStatus(SpanStatus.INTERNAL_ERROR);
+                            final String failLine =
+                                    context.getString(R.string.clean_item_failed, item.fileName());
+                            progressThrottler.forceRun(
+                                    () ->
+                                            mainHandler.post(
+                                                    () ->
+                                                            callback.onProgress(
+                                                                    (itemIndex * 100) / totalItems,
+                                                                    batchLine + "\n" + failLine)));
                         }
                     } catch (Exception e) {
                         metadataStripper.setProgressCallback(null);

@@ -148,9 +148,9 @@
     <string name="settings_section_advanced_privacy">메타데이터 정리</string>
     <string name="settings_advanced_privacy_subtitle">Redact가 정리 탭에서 EXIF를 제거하는 방법. 다른 앱에서 공유할 때는 전달 전에 항상 위치 및 카메라 정보를 제거합니다.</string>
     <string name="settings_secure_delete">보안 삭제 패스 횟수</string>
-    <string name="settings_secure_delete_subtitle">삭제 전 임시 파일을 덮어쓰는 횟수. 횟수가 많을수록 느리지만 복구가 어렵습니다.</string>
+    <string name="settings_secure_delete_subtitle">삭제 전 임시 파일을 덮어쓰는 횟수. 횟수가 많을수록 느리며, 플래시 저장소에서는 복구가 가능할 수 있습니다.</string>
     <string name="settings_auto_clear_temp">시작 시 캐시 지우기</string>
-    <string name="settings_auto_clear_temp_subtitle">앱을 열 때마다 남은 처리 파일 삭제.</string>
+    <string name="settings_auto_clear_temp_subtitle">앱을 열 때 24시간보다 오래된 처리 캐시 파일을 제거합니다.</string>
     <string name="settings_preserve_camera">카메라 설정 유지</string>
     <string name="settings_preserve_camera_subtitle">정리 탭에서 조리개, 셔터 속도, ISO, 카메라 제조사/모델 유지. 엄격 정리 또는 다른 앱에서 공유 시 무시됩니다.</string>
     <string name="settings_preserve_location">위치 정보 유지</string>
@@ -219,7 +219,7 @@
     <string name="settings_share_confirm_dialog_confirm">제거하고 계속</string>
     <string name="settings_share_confirm_dialog_cancel">취소</string>
     <string name="settings_section_permissions">권한</string>
-    <string name="settings_permissions_subtitle">Redact는 정리, 변환, 스캔에 미디어 액세스가 필요합니다. 알림은 선택 사항이며 작업 알림에만 사용됩니다.</string>
+    <string name="settings_permissions_subtitle">Android 13 이상에서는 시스템 사진 선택기로 넓은 미디어 접근 없이 선택할 수 있습니다. 전체 접근은 정리 및 변환에서 기존 갤러리 파일 읽기에 도움이 됩니다. 알림과 네트워크는 선택 사항입니다.</string>
     <string name="settings_permissions_media">사진 및 동영상</string>
     <string name="settings_permissions_notifications">알림(선택)</string>
     <string name="settings_permission_granted">허용됨</string>
@@ -242,7 +242,7 @@
     <string name="settings_about_report_issue">문제 신고</string>
     <string name="settings_link_unavailable">이 링크를 열 앱을 찾을 수 없습니다.</string>
     <string name="settings_progress_notifications_label">진행 중 작업 진행률</string>
-    <string name="settings_progress_notifications_subtitle">긴 정리 또는 변환 작업 중 진행률을 표시하는 지속 알림.</string>
+    <string name="settings_progress_notifications_subtitle">긴 작업 중 진행 상황을 보여주는 지속 알림. 알림 허용을 켤 때까지 기본적으로 꺼져 있습니다.</string>
     <string name="settings_crash_reporting_learn_more">무엇이 공유되나요?</string>
     <string name="settings_crash_reporting_detail_title">충돌 보고 세부 정보</string>
     <string name="settings_crash_reporting_detail_message">충돌 보고서 보내기가 켜져 있으면 Sentry를 통해 익명 진단이 전송될 수 있습니다:
@@ -304,4 +304,17 @@
     <string name="status_clean_done_failed">정리에 실패했습니다.</string>
     <string name="status_clean_done_partial">완료: %1$d개 정리, %2$d개 실패.</string>
     <string name="status_processing_cancelled">처리가 취소되었습니다.</string>
+    <string name="settings_permission_partial">부분</string>
+    <string name="scan_status_ready">사진 또는 동영상을 선택하여 메타데이터를 스캔하세요.</string>
+    <string name="animated_image_warning">애니메이션 이미지는 단일 정지 프레임으로 저장됩니다.</string>
+    <string name="clean_item_failed">실패: %1$s</string>
+    <string name="settings_preserve_location_confirm_title">정리된 사진에 GPS를 유지할까요?</string>
+    <string name="settings_preserve_location_confirm_message">정리 탭의 파일에 GPS 좌표가 남을 수 있습니다. 다른 앱에서 공유할 때는 항상 위치가 제거됩니다.
+
+의도적으로 유지하려는 경우에만 켜세요.</string>
+    <string name="settings_location_permission_granted">사진 위치 권한이 허용되었습니다.</string>
+    <string name="settings_location_permission_denied">사진 위치 권한이 거부되었습니다.</string>
+    <string name="settings_crash_reporting_unconfigured">충돌 보고가 켜져 있지만 이 빌드에서는 구성되지 않았습니다.</string>
+    <string name="settings_crash_reporting_init_failed">충돌 보고를 시작할 수 없습니다. 나중에 다시 시도하세요.</string>
+    <string name="share_error_partial_success">%1$d개 정리됨, %2$d개 실패.</string>
 </resources>

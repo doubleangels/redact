@@ -1,38 +1,33 @@
-<b>Redact : Suppresseur de Métadonnées et de Confidentialité</b>
+<b>Redact : confidentialité et suppression de métadonnées</b>
 
-<p>Protégez votre vie privée avec Redact : l'application puissante et simple qui supprime toutes les métadonnées EXIF des photos et vidéos avant de les partager en ligne. Empêchez le suivi de localisation, masquez les informations de l'appareil et sécurisez vos données personnelles lors de la publication sur les réseaux sociaux.</p>
+<p>Protégez votre vie privée avec Redact — supprimez les métadonnées EXIF cachées des photos et vidéos, inspectez ce qui est embarqué avant de partager et convertissez les formats localement sur votre appareil.</p>
 
-<b>Caractéristiques Principales :</b>
+<b>Fonctionnalités clés :</b>
 
 <ul>
-<li><b>Protection Complète de la Confidentialité :</b><br>
-Supprimez toutes les métadonnées, y compris les données de localisation GPS, les informations de l'appareil, les horodatages, les paramètres de l'appareil photo et les détails personnels cachés dans vos fichiers multimédias. Notre technologie de remuxage garantit que les vidéos sont complètement dépouillées des métadonnées tout en préservant la qualité de lecture.</li>
+<li><b>Protection complète de la vie privée :</b><br>
+Supprimez la localisation GPS, les détails de l'appareil, les horodatages, les réglages photo et autres métadonnées cachées. Le nettoyage vidéo utilise remux ou transcodage complet (au choix dans les réglages) tout en préservant la qualité de lecture.</li>
 
-<li><b>Visualiseur et Inspecteur de Métadonnées :</b><br>
-Scannez et visualisez facilement toutes les données EXIF cachées dans vos photos et vidéos avant de les supprimer complètement. Voyez exactement quelles informations sont intégrées dans vos fichiers avec notre affichage complet.</li>
+<li><b>Visionneuse de métadonnées :</b><br>
+Analysez photos ou vidéos pour voir EXIF et métadonnées du conteneur avant nettoyage. Copiez des valeurs ou envoyez vers Nettoyer ou Convertir.</li>
 
-<li><b>Interface de Confidentialité Conviviale :</b><br>
-La suppression complète des métadonnées en un seul appui rend la protection de votre vie privée numérique simple, rapide et accessible à tous. Nettoyez des fichiers individuels ou traitez plusieurs fichiers à la fois.</li>
+<li><b>Nettoyer, analyser, convertir et partager :</b><br>
+Nettoyez les métadonnées par lots (jusqu'à 20 fichiers). Convertissez les formats sans serveur — puis Nettoyer si vous voulez aussi supprimer les métadonnées des fichiers convertis. Partagez vers Redact depuis toute app ; annulez les longues tâches ou continuez en cas de succès partiel.</li>
 
-<li><b>Traitement en Lot de Photos et Vidéos :</b><br>
-Nettoyez plusieurs fichiers multimédias simultanément, vous faisant gagner du temps tout en améliorant votre protection de la vie privée en ligne. Traitez des lots entiers en un seul appui.</li>
+<li><b>Autorisations axées sur la confidentialité :</b><br>
+Sur Android 13+, choisissez des fichiers avec le sélecteur système sans accès large à la bibliothèque. L'autorisation optionnelle de localisation photo affiche le GPS dans Analyser. Rapports de plantage et notifications désactivés par défaut.</li>
 
-<li><b>Préservation de la Qualité Originale :</b><br>
-Supprimez toutes les métadonnées sans compresser ou dégrader vos photos et vidéos : maintenez une qualité d'image et vidéo complète. Les paramètres essentiels du codec sont préservés pour garantir une lecture parfaite.</li>
+<li><b>Traitement 100 % local :</b><br>
+Nettoyage, analyse et conversion sur l'appareil. Diagnostics de plantage optionnels (Sentry) n'envoient jamais vos médias. Videz le cache manuellement ou supprimez les anciens fichiers au démarrage.</li>
 
-<li><b>Traitement 100% Local et Sécurisé :</b><br>
-Tout le nettoyage des données se fait directement sur votre appareil : vos informations personnelles ne quittent jamais votre téléphone ni ne se connectent à des serveurs externes. Les fichiers sont supprimés de manière sécurisée.</li>
+<li><b>Open source et sans publicité :</b><br>
+Pas de pubs ni de suivi comportemental. Code sur GitHub pour revue communautaire.</li>
 
-<li><b>Outil de Confidentialité Sans Publicité et Open Source :</b><br>
-Engagé envers la transparence sans publicité, suivi ou collecte de données. Notre code est entièrement open source pour la vérification et les contributions de la communauté.</li>
-
-<li><b>Intégration du Menu de Partage Android :</b><br>
-Nettoyez facilement les fichiers de n'importe quelle application via le menu de partage Android et obtenez des fichiers complètement protégés prêts à être partagés. Les fichiers temporaires sont automatiquement nettoyés après le partage.</li>
-
-<li><b>Support Multilingue :</b><br>
-Disponible en 13 langues : anglais, espagnol, français, allemand, italien, portugais, russe, japonais, coréen, chinois (Simplifié et Traditionnel), hindi et arabe.</li>
-<li><b>Conversion universelle de médias :</b><br>Besoin d'un format différent ? Convertissez facilement les images en types standard tels que JPEG, PNG, WebP ou HEIC. Transcodez les vidéos non prises en charge en fichiers MP4 ou MKV hautement compatibles, sans avoir besoin de serveurs Internet.</li>
-
+<li><b>13 langues :</b><br>
+Anglais, espagnol, français, allemand, italien, portugais, russe, japonais, coréen, chinois (simplifié et traditionnel), hindi et arabe.</li>
 </ul>
 
-<p>Prenez le contrôle de votre empreinte numérique ! Les métadonnées EXIF peuvent révéler vos coordonnées GPS précises, les détails de l'appareil, les paramètres de l'appareil photo, les horodatages et les identifiants uniques. Redact élimine tous ces risques pour la vie privée tout en préservant la qualité de vos fichiers multimédias. Parfait pour le partage sur les réseaux sociaux, la photographie professionnelle et toute personne préoccupée par la vie privée numérique.</p>
+<p>Les métadonnées EXIF peuvent révéler coordonnées GPS, modèle d'appareil et réglages de prise de vue. Redact vous aide à partager selon vos conditions — qualité préservée, fichiers sur votre téléphone.</p>
+
+<p><b>Comment ça marche :</b></p>
+<p>Sélectionnez des médias dans Redact ou partagez depuis une autre app, appuyez sur Nettoyer les métadonnées et enregistrez des copies sûres dans la galerie. Lors d'un partage entrant, Redact supprime les métadonnées avant de transférer. Nettoyage strict et partage retirent toujours la localisation.</p>

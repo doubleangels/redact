@@ -25,6 +25,7 @@ import com.doubleangels.redact.CacheCleanup;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaSizeLimits;
+import com.doubleangels.redact.media.MediaStoreWrites;
 import com.doubleangels.redact.media.VideoMedia3Converter;
 import com.doubleangels.redact.sentry.SentryManager;
 
@@ -426,6 +427,7 @@ public class MetadataStripper {
             values.put(MediaStore.Images.Media.DISPLAY_NAME, newFilename);
             values.put(MediaStore.Images.Media.MIME_TYPE, outputFormat.mimeType);
             values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Redact");
+            MediaStoreWrites.markPending(values);
 
             // Create the new entry in MediaStore
             newUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
@@ -486,6 +488,7 @@ public class MetadataStripper {
             // Restore only essential EXIF data (like orientation)
             updateProgress(4, 5, "Restoring essential metadata...");
             restoreEssentialExifData(newUri);
+            MediaStoreWrites.markPublished(contentResolver, newUri);
 
             // Verify metadata removal (for MediaStore files, we need to read from URI)
             updateProgress(5, 5, "Verifying metadata removal...");
@@ -647,9 +650,12 @@ public class MetadataStripper {
             // Remove all EXIF metadata except essential tags
             updateProgress(4, 5, "Removing all metadata...");
             ExifInterface newExif = new ExifInterface(outputFile.getAbsolutePath());
-            removeAllExifMetadata(newExif, true);
-            // Restore only essential EXIF data (like orientation)
-            restoreEssentialExifValues(newExif);
+            if (usedLossless) {
+                restoreEssentialExifValues(newExif);
+            } else {
+                removeAllExifMetadata(newExif, true);
+                restoreEssentialExifValues(newExif);
+            }
             newExif.saveAttributes();
 
             // Verify metadata removal
@@ -926,12 +932,16 @@ public class MetadataStripper {
             int audioTrackIndex = -1;
             int muxerVideoTrackIndex = -1;
             int muxerAudioTrackIndex = -1;
+            int videoTrackCount = 0;
+            int audioTrackCount = 0;
             
             for (int i = 0; i < extractor.getTrackCount(); i++) {
                 android.media.MediaFormat format = extractor.getTrackFormat(i);
                 String mime = format.getString(android.media.MediaFormat.KEY_MIME);
                 if (mime == null) continue;
-                if (mime.startsWith("video/") && videoTrackIndex == -1) {
+                if (mime.startsWith("video/")) {
+                    videoTrackCount++;
+                    if (videoTrackIndex == -1) {
                     videoTrackIndex = i;
                     if (format.containsKey(android.media.MediaFormat.KEY_ROTATION)) {
                         muxer.setOrientationHint(format.getInteger(android.media.MediaFormat.KEY_ROTATION));
@@ -948,9 +958,20 @@ public class MetadataStripper {
                         }
                     }
                     muxerVideoTrackIndex = muxer.addTrack(format);
-                } else if (mime.startsWith("audio/") && audioTrackIndex == -1) {
+                    }
+                } else if (mime.startsWith("audio/")) {
+                    audioTrackCount++;
+                    if (audioTrackIndex == -1) {
                     audioTrackIndex = i;
                     muxerAudioTrackIndex = muxer.addTrack(format);
+                    }
+                }
+            }
+            
+            if (videoTrackCount > 1 || audioTrackCount > 1) {
+                SentryManager.log("Video has extra tracks; fast transmux keeps first video and audio only");
+                if (AppPreferences.isStrictClean(context)) {
+                    return null;
                 }
             }
             
@@ -1053,18 +1074,6 @@ public class MetadataStripper {
      *                         be null
      * @return File extension including the dot (e.g., ".jpg")
      */
-    @NonNull
-    private String getFileExtension(@NonNull String originalFilename, @NonNull String defaultExtension) {
-        String extension;
-        int lastDotIndex = originalFilename.lastIndexOf(".");
-        if (lastDotIndex != -1) {
-            extension = originalFilename.substring(lastDotIndex);
-        } else {
-            extension = defaultExtension;
-        }
-        return extension;
-    }
-
     @Nullable
     private static String extensionFromFilename(@NonNull String originalFilename) {
         int lastDotIndex = originalFilename.lastIndexOf(".");
@@ -1085,23 +1094,6 @@ public class MetadataStripper {
             SentryManager.logEvent("metadata", "Could not read MIME type for source");
         }
         return FormatConverter.resolveImageFormat(extension, mimeType);
-    }
-
-    /**
-     * Returns a correct {@code video/*} MIME type for MediaStore based on file extension.
-     */
-    @NonNull
-    private String videoMimeTypeForExtension(@NonNull String extensionWithDot) {
-        String ext = extensionWithDot.toLowerCase(Locale.US);
-        return switch (ext) {
-            case ".mp4" -> "video/mp4";
-            case ".webm" -> "video/webm";
-            case ".mkv" -> "video/x-matroska";
-            case ".mov" -> "video/quicktime";
-            case ".3gp" -> "video/3gpp";
-            case ".avi" -> "video/x-msvideo";
-            default -> "video/mp4";
-        };
     }
 
     /**
@@ -1373,21 +1365,6 @@ public class MetadataStripper {
     }
 
     /**
-     * Safely closes a Closeable resource, suppressing any exceptions.
-     *
-     * @param closeable Resource to close, may be null
-     */
-    private void closeQuietly(@Nullable Closeable closeable) {
-        if (closeable != null) {
-            try {
-                closeable.close();
-            } catch (IOException e) {
-                SentryManager.log("Error closing resource: " + e.getMessage() + ".");
-            }
-        }
-    }
-
-    /**
      * Whether transmux output can be saved without a full Media3 re-encode.
      * Strict-clean always re-encodes. Sharing and gallery fallback copy may reuse
      * {@link #fastStripVideoMetadata} output when it already matches the target container.
@@ -1406,10 +1383,6 @@ public class MetadataStripper {
             return false;
         }
         return AppPreferences.isVideoFallbackCopy(context);
-    }
-
-    private List<String> getTagsToPreserve() {
-        return getTagsToPreserve(false);
     }
 
     private List<String> getTagsToPreserve(boolean forSharing) {
@@ -1451,45 +1424,11 @@ public class MetadataStripper {
         return tags;
     }
 
-    /**
-     * Checks if available memory is running low.
-     *
-     * This method calculates the ratio of available memory to maximum memory
-     * and returns true if less than 20% is available.
-     *
-     * @return true if memory is running low, false otherwise
-     */
-    private boolean isMemoryLow() {
-        Runtime runtime = Runtime.getRuntime();
-        long maxMemory = runtime.maxMemory();
-        long usedMemory = runtime.totalMemory() - runtime.freeMemory();
-        long availableMemory = maxMemory - usedMemory;
-
-        boolean isLow = availableMemory < (maxMemory * 0.2);
-        if (isLow) {
-            SentryManager.log("Memory is running low: " +
-                    (availableMemory / (1024 * 1024)) + "MB available out of " +
-                    (maxMemory / (1024 * 1024)) + "MB max.");
-        }
-        return isLow;
-    }
-
-    /**
-     * Attempts to free memory by triggering garbage collection if memory is low.
-     *
-     * Note: This is generally not recommended in Android as the system manages
-     * memory,
-     * but can be useful in specific cases when processing large media files.
-     */
-    private void tryFreeMemory() {
-        // Rely on bitmap recycling and stream closure; avoid explicit GC hints.
-    }
-
     private void ensureImageWithinSizeLimit(@NonNull Uri sourceUri) throws IOException {
         long fileSize = getFileSizeFromUriCached(sourceUri);
         SentryManager.setCustomKey("file_size_mb", fileSize / (1024 * 1024));
         if (isFileTooLarge(sourceUri)) {
-            throw new IOException("File too large to process: " + fileSize / (1024 * 1024) + "MB");
+            throw new IOException("File too large to process");
         }
     }
 
@@ -1605,8 +1544,8 @@ public class MetadataStripper {
             return true;
         } catch (Exception e) {
             SentryManager.setCustomKey("video_verify_failed_key", "RETRIEVER_ERROR");
-            SentryManager.log("Video metadata verification read failed (non-fatal): " + e.getMessage());
-            return true;
+            SentryManager.log("Video metadata verification read failed");
+            return false;
         }
     }
 
@@ -1702,8 +1641,8 @@ public class MetadataStripper {
 
             return true;
         } catch (Exception e) {
-            SentryManager.log("Error verifying metadata removal: " + e.getMessage() + ".");
-            return !AppPreferences.isStrictClean(context);
+            SentryManager.log("Error verifying metadata removal");
+            return false;
         }
     }
 
@@ -1814,6 +1753,11 @@ public class MetadataStripper {
      */
     private boolean stripMetadataLossless(@NonNull File tempFile, @NonNull OutputStream finalOs, @NonNull String extension) {
         if (!extension.equalsIgnoreCase(".jpg") && !extension.equalsIgnoreCase(".jpeg")) {
+            return false;
+        }
+        final long losslessMaxBytes = 20L * 1024L * 1024L;
+        if (tempFile.length() > losslessMaxBytes) {
+            SentryManager.log("Skipping lossless JPEG strip for large file");
             return false;
         }
         try {

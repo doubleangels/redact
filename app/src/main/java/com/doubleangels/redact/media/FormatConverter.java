@@ -294,7 +294,7 @@ public final class FormatConverter {
     public static ImageFormatSpec resolveImageFormat(
             @Nullable String extensionWithDot, @Nullable String mimeType) throws IOException {
         if (isHeicSource(extensionWithDot, mimeType) && !isHeicProcessingSupported()) {
-            throw new IOException(HEIC_REQUIRES_API_34);
+            return jpegSpec();
         }
         ImageFormatSpec fromExtension = specForExtension(extensionWithDot);
         if (fromExtension != null) {
@@ -452,13 +452,13 @@ public final class FormatConverter {
             throw new IOException("Decode failed");
         }
 
-        String safeName = sanitizeFileName(stripExtension(baseDisplayName));
-        String outName = safeName + ext;
+        String outName = MediaFileNames.generateShortRandomName() + ext;
 
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.DISPLAY_NAME, outName);
         values.put(MediaStore.Images.Media.MIME_TYPE, mime);
         values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Redact");
+        MediaStoreWrites.markPending(values);
 
         Uri collection = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         Uri outUri = resolver.insert(collection, values);
@@ -490,6 +490,7 @@ public final class FormatConverter {
             bitmap.recycle();
         }
         copyExifData(context, sourceUri, outUri);
+        MediaStoreWrites.markPublished(resolver, outUri);
         return outUri;
     }
 

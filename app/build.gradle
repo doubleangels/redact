@@ -57,7 +57,11 @@ dependencies {
     implementation libs.media3.common
     implementation libs.media3.effect
     implementation libs.media3.transformer
+  // Latest published release (still alpha); used for lossless JPEG EXIF strip only.
     implementation libs.commons.imaging
+    implementation libs.lifecycle.viewmodel.ktx
+
+    testImplementation libs.junit
 
     debugImplementation libs.leakcanary.android
 }

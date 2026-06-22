@@ -40,6 +40,8 @@ import java.util.List;
  */
 public class ConvertFragment extends Fragment {
 
+    private static final int MAX_PICK_ITEMS = 20;
+
     private PermissionManager permissionManager;
     private MediaSelector mediaSelector;
     private MainViewModel viewModel;
@@ -71,7 +73,7 @@ public class ConvertFragment extends Fragment {
             mediaSelector = new MediaSelector(requireActivity());
         }
         mediaPickerLauncher = registerForActivityResult(
-                new ActivityResultContracts.PickMultipleVisualMedia(),
+                new ActivityResultContracts.PickMultipleVisualMedia(MAX_PICK_ITEMS),
                 uris -> {
                     if (uris == null || uris.isEmpty()) {
                         SentryManager.log("Media selection cancelled or failed in ConvertFragment");
@@ -116,7 +118,7 @@ public class ConvertFragment extends Fragment {
 
         RecyclerView recyclerView = view.findViewById(R.id.convertFileList);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        convertFileAdapter = new ConvertFileAdapter(requireActivity());
+        convertFileAdapter = new ConvertFileAdapter();
         recyclerView.setAdapter(convertFileAdapter);
 
         permissionManager = new PermissionManager(
@@ -137,7 +139,8 @@ public class ConvertFragment extends Fragment {
                         statusText.setText(R.string.status_requesting_permissions);
                     }
                 });
-        permissionManager.applyPendingPermissionResultIfAny();
+        permissionManager.applyPendingPermissionResultIfAny(
+                com.doubleangels.redact.permission.PermissionManager.STORAGE_PERMISSION_REQUEST_CODE);
 
         if (mediaSelector == null) {
             mediaSelector = new MediaSelector(requireActivity());
@@ -145,7 +148,7 @@ public class ConvertFragment extends Fragment {
 
         selectButton.setOnClickListener(v -> {
             SentryManager.log("Select button clicked in ConvertFragment");
-            if (permissionManager.needsPermissions()) {
+            if (permissionManager.shouldRequestStorageBeforePicker()) {
                 SentryManager.log("Requesting storage permissions in ConvertFragment");
                 permissionManager.requestStoragePermission();
             } else {
@@ -176,7 +179,7 @@ public class ConvertFragment extends Fragment {
             refreshFormatSectionForSelection(List.of());
         }
         if (!isHidden()) {
-            if (permissionManager.needsPermissions()) {
+            if (permissionManager.shouldRequestStorageBeforePicker()) {
                 statusText.setText(R.string.status_storage_permissions_required);
                 selectButton.setEnabled(false);
             } else {
@@ -385,6 +388,13 @@ public class ConvertFragment extends Fragment {
                             Toast.LENGTH_LONG)
                     .show();
         }
+        if (containsAnimatedImage(selectedItems)) {
+            Toast.makeText(
+                            requireContext(),
+                            R.string.animated_image_warning,
+                            Toast.LENGTH_LONG)
+                    .show();
+        }
         viewModel.startConversion(selectedItems, formatIndex, imageFormatIndex, imageFormat);
     }
 
@@ -394,16 +404,43 @@ public class ConvertFragment extends Fragment {
         progressText.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
+    private boolean containsAnimatedImage(@NonNull List<MediaItem> items) {
+        if (mediaSelector == null) {
+            return false;
+        }
+        for (MediaItem item : items) {
+            if (mediaSelector.isAnimatedImage(item)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
         if (!hidden && permissionManager != null && viewModel != null) {
             MainViewModel.ProcessingState state = viewModel.getConvertProcessingState().getValue();
-            if (state == MainViewModel.ProcessingState.PROCESSING
-                    || state == MainViewModel.ProcessingState.COMPLETED) {
+            if (state == MainViewModel.ProcessingState.PROCESSING) {
                 return;
             }
-            if (permissionManager.needsPermissions()) {
+            if (state == MainViewModel.ProcessingState.COMPLETED) {
+                Integer ok = viewModel.getConvertProcessedItemCount().getValue();
+                Integer total = viewModel.getConvertBatchTotalCount().getValue();
+                if (ok != null && total != null) {
+                    int fail = Math.max(0, total - ok);
+                    if (fail > 0 && ok > 0) {
+                        statusText.setText(getString(R.string.convert_done_partial, ok, fail));
+                    } else if (ok > 0) {
+                        statusText.setText(getString(R.string.convert_done_all, ok));
+                    } else {
+                        statusText.setText(R.string.convert_done_failed);
+                    }
+                }
+                viewModel.setConvertProcessingState(MainViewModel.ProcessingState.IDLE);
+                return;
+            }
+            if (permissionManager.shouldRequestStorageBeforePicker()) {
                 statusText.setText(R.string.status_storage_permissions_required);
                 selectButton.setEnabled(false);
             } else {

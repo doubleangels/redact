@@ -1,6 +1,5 @@
 package com.doubleangels.redact.media;
 
-import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,10 +22,8 @@ import java.util.List;
 public final class ConvertFileAdapter extends RecyclerView.Adapter<ConvertFileAdapter.Holder> {
 
     private final List<MediaItem> items = new ArrayList<>();
-    private final Activity activity;
 
-    public ConvertFileAdapter(Activity activity) {
-        this.activity = activity;
+    public ConvertFileAdapter() {
     }
 
     @android.annotation.SuppressLint("NotifyDataSetChanged")

@@ -43,6 +43,13 @@ public final class UIStateManager {
         this.progressText = progressText;
     }
 
+    private void runOnUi(Runnable action) {
+        if (activity.isFinishing()) {
+            return;
+        }
+        activity.runOnUiThread(action);
+    }
+
     /**
      * Updates the progress indicators with current processing progress.
      * <p>
@@ -57,7 +64,7 @@ public final class UIStateManager {
         int progressPercentage = total <= 0 ? 0
                 : Math.min(100, Math.max(0, (current * 100) / total));
 
-        activity.runOnUiThread(() -> {
+        runOnUi(() -> {
             progressBar.setProgress(progressPercentage);
             progressText.setText(message);
         });
@@ -71,10 +78,12 @@ public final class UIStateManager {
      * @param visible True to show the progress container, false to hide it
      */
     public void showProgress(boolean visible) {
-        progressContainer.setVisibility(visible ? View.VISIBLE : View.GONE);
-        if (visible) {
-            progressBar.setProgress(0);
-        }
+        runOnUi(() -> {
+            progressContainer.setVisibility(visible ? View.VISIBLE : View.GONE);
+            if (visible) {
+                progressBar.setProgress(0);
+            }
+        });
     }
 
     /**
@@ -83,28 +92,28 @@ public final class UIStateManager {
      * @param status The status message to display
      */
     public void setStatus(String status) {
-        statusText.setText(status);
+        runOnUi(() -> statusText.setText(status));
     }
 
     /**
      * Sets status text to indicate permissions are being requested.
      */
     public void setPermissionRequestingStatus() {
-        statusText.setText(activity.getString(R.string.status_requesting_permissions));
+        runOnUi(() -> statusText.setText(activity.getString(R.string.status_requesting_permissions)));
     }
 
     /**
      * Sets status text to indicate the app is ready for user interaction.
      */
     public void setReadyStatus() {
-        statusText.setText(R.string.clean_status_ready);
+        runOnUi(() -> statusText.setText(R.string.clean_status_ready));
     }
 
     /**
      * Sets status text to indicate permissions are required but not granted.
      */
     public void setPermissionsRequiredStatus() {
-        statusText.setText(activity.getString(R.string.status_permissions_required));
+        runOnUi(() -> statusText.setText(activity.getString(R.string.status_permissions_required)));
     }
 
     /**
@@ -113,18 +122,20 @@ public final class UIStateManager {
      * @param count Number of selected media items
      */
     public void setSelectedItemsStatus(int count) {
-        if (count == 0) {
-            setReadyStatus();
-        } else {
-            statusText.setText(activity.getString(R.string.clean_selected_count, count));
-        }
+        runOnUi(() -> {
+            if (count == 0) {
+                statusText.setText(R.string.clean_status_ready);
+            } else {
+                statusText.setText(activity.getString(R.string.clean_selected_count, count));
+            }
+        });
     }
 
     /**
      * Sets status text to indicate media processing is in progress.
      */
     public void setProcessingStatus() {
-        statusText.setText(activity.getString(R.string.status_processing));
+        runOnUi(() -> statusText.setText(activity.getString(R.string.status_processing)));
     }
 
     /**
@@ -134,18 +145,20 @@ public final class UIStateManager {
      * @param totalCount   Items in the batch
      */
     public void setProcessedItemsStatus(int successCount, int totalCount) {
-        if (totalCount > 0 && successCount < totalCount) {
-            if (successCount > 0) {
-                statusText.setText(activity.getString(R.string.status_clean_done_partial, successCount,
-                        totalCount - successCount));
+        runOnUi(() -> {
+            if (totalCount > 0 && successCount < totalCount) {
+                if (successCount > 0) {
+                    statusText.setText(activity.getString(R.string.status_clean_done_partial, successCount,
+                            totalCount - successCount));
+                } else {
+                    statusText.setText(R.string.status_clean_done_failed);
+                }
+            } else if (successCount > 0) {
+                statusText.setText(activity.getString(R.string.status_clean_done_all, successCount));
             } else {
                 statusText.setText(R.string.status_clean_done_failed);
             }
-        } else if (successCount > 0) {
-            statusText.setText(activity.getString(R.string.status_clean_done_all, successCount));
-        } else {
-            statusText.setText(R.string.status_clean_done_failed);
-        }
+        });
     }
 
     /**
@@ -154,7 +167,7 @@ public final class UIStateManager {
      * This is used when the user attempts to process files without selecting any.
      */
     public void setFirstSelectMediaFilesStatus() {
-        statusText.setText(activity.getString(R.string.status_first_select_media_files));
+        runOnUi(() -> statusText.setText(activity.getString(R.string.status_first_select_media_files)));
     }
 
     /**
@@ -165,6 +178,6 @@ public final class UIStateManager {
      * @param enable True to enable the button, false to disable it
      */
     public void enableStripButton(boolean enable) {
-        stripButton.setEnabled(enable);
+        runOnUi(() -> stripButton.setEnabled(enable));
     }
 }

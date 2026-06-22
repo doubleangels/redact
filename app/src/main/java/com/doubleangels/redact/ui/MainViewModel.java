@@ -436,6 +436,13 @@ public class MainViewModel extends AndroidViewModel {
 
         if (items == null || items.isEmpty()) return;
 
+        if (convertInProgress.get()
+                || convertProcessingState.getValue() == ProcessingState.PROCESSING) {
+            cleanProgressMessage.postValue(
+                    getApplication().getString(R.string.status_already_processing));
+            return;
+        }
+
         cleanBatchTotalCount.setValue(items.size());
 
         setCleanProcessingState(ProcessingState.PROCESSING);
@@ -514,6 +521,12 @@ public class MainViewModel extends AndroidViewModel {
 
         if (items == null || items.isEmpty()) return;
 
+        if (cleanProcessingState.getValue() == ProcessingState.PROCESSING) {
+            convertProgressMessage.postValue(
+                    getApplication().getString(R.string.status_already_processing));
+            return;
+        }
+
         if (!convertInProgress.compareAndSet(false, true)) {
 
             convertProgressMessage.postValue(getApplication().getString(R.string.status_already_processing));
@@ -556,7 +569,7 @@ public class MainViewModel extends AndroidViewModel {
 
                     final String name = mediaItem.fileName() != null ? mediaItem.fileName() : "unknown";
 
-                    ISpan span = transaction.startChild("convert_item", name);
+                    ISpan span = transaction.startChild("convert_item", "media_item");
 
 
 
@@ -645,7 +658,8 @@ public class MainViewModel extends AndroidViewModel {
 
                             FormatConverter.convertImageToPictures(
 
-                                    getApplication(), uri, imageFormat, name);
+                                    getApplication(), uri,
+                                    FormatConverter.formatAtIndex(imageFormatIndex), name);
 
                         }
 

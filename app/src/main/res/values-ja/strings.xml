@@ -148,9 +148,9 @@
     <string name="settings_section_advanced_privacy">メタデータのクリーン</string>
     <string name="settings_advanced_privacy_subtitle">Redact がクリーンタブで EXIF を削除する方法。他アプリからの共有では、転送前に常に位置情報とカメラ情報を削除します。</string>
     <string name="settings_secure_delete">安全な削除パス数</string>
-    <string name="settings_secure_delete_subtitle">削除前に一時ファイルを上書きする回数。回数が多いほど遅いが復元は困難。</string>
+    <string name="settings_secure_delete_subtitle">削除前に一時ファイルを上書きする回数。回数が多いほど遅くなります。フラッシュストレージでは復元が可能な場合があります。</string>
     <string name="settings_auto_clear_temp">起動時にキャッシュをクリア</string>
-    <string name="settings_auto_clear_temp_subtitle">アプリを開くたびに残った処理ファイルを削除。</string>
+    <string name="settings_auto_clear_temp_subtitle">アプリ起動時に24時間より古い処理キャッシュを削除します。</string>
     <string name="settings_preserve_camera">カメラ設定を保持</string>
     <string name="settings_preserve_camera_subtitle">クリーンタブで絞り値、シャッター速度、ISO、カメラのメーカー/モデルを保持。厳密クリーン時や他アプリからの共有時は無視されます。</string>
     <string name="settings_preserve_location">位置情報を保持</string>
@@ -219,7 +219,7 @@
     <string name="settings_share_confirm_dialog_confirm">削除して続行</string>
     <string name="settings_share_confirm_dialog_cancel">キャンセル</string>
     <string name="settings_section_permissions">権限</string>
-    <string name="settings_permissions_subtitle">Redactはクリーン、変換、スキャンにメディアアクセスが必要です。通知は任意で、タスクアラートのみに使用します。</string>
+    <string name="settings_permissions_subtitle">Android 13以降は、システムの写真ピッカーでライブラリへの広いアクセスなしに選択できます。フルアクセスはクリーンと変換で既存ファイルを読むのに役立ちます。通知とネットワークは任意です。</string>
     <string name="settings_permissions_media">写真と動画</string>
     <string name="settings_permissions_notifications">通知（任意）</string>
     <string name="settings_permission_granted">許可済み</string>
@@ -242,7 +242,7 @@
     <string name="settings_about_report_issue">問題を報告</string>
     <string name="settings_link_unavailable">このリンクを開くアプリが見つかりません。</string>
     <string name="settings_progress_notifications_label">進行中のタスクの進捗</string>
-    <string name="settings_progress_notifications_subtitle">長いクリーンや変換中に進捗を表示する常駐通知。</string>
+    <string name="settings_progress_notifications_subtitle">長時間ジョブの進行を表示する常駐通知。通知を許可するまでデフォルトでオフです。</string>
     <string name="settings_crash_reporting_learn_more">何が共有されますか？</string>
     <string name="settings_crash_reporting_detail_title">クラッシュレポートの詳細</string>
     <string name="settings_crash_reporting_detail_message">クラッシュレポートを送信がオンのとき、Sentry経由で匿名診断が送信される場合があります:
@@ -304,4 +304,17 @@
     <string name="status_clean_done_failed">クリーンに失敗しました。</string>
     <string name="status_clean_done_partial">完了: %1$d 件クリーン、%2$d 件失敗。</string>
     <string name="status_processing_cancelled">処理をキャンセルしました。</string>
+    <string name="settings_permission_partial">一部</string>
+    <string name="scan_status_ready">写真または動画を選択してメタデータをスキャンします。</string>
+    <string name="animated_image_warning">アニメーション画像は静止画1枚として保存されます。</string>
+    <string name="clean_item_failed">失敗: %1$s</string>
+    <string name="settings_preserve_location_confirm_title">クリーン後の写真にGPSを残しますか？</string>
+    <string name="settings_preserve_location_confirm_message">クリーンタブの出力にGPS座標が残る場合があります。他アプリからの共有では常に位置情報を削除します。
+
+意図的に残す場合のみオンにしてください。</string>
+    <string name="settings_location_permission_granted">写真の位置情報の権限が許可されました。</string>
+    <string name="settings_location_permission_denied">写真の位置情報の権限が拒否されました。</string>
+    <string name="settings_crash_reporting_unconfigured">クラッシュ報告は有効ですが、このビルドでは未設定です。</string>
+    <string name="settings_crash_reporting_init_failed">クラッシュ報告を開始できませんでした。後でもう一度お試しください。</string>
+    <string name="share_error_partial_success">%1$d 件をクリーン化、%2$d 件が失敗しました。</string>
 </resources>

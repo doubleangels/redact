@@ -148,9 +148,9 @@
     <string name="settings_section_advanced_privacy">元数据清理</string>
     <string name="settings_advanced_privacy_subtitle">Redact 如何在清理标签页移除 EXIF。从其他应用分享时，转发前始终会移除位置和相机信息。</string>
     <string name="settings_secure_delete">安全删除遍数</string>
-    <string name="settings_secure_delete_subtitle">删除前临时文件被覆盖的次数。次数越多越慢，但更难恢复。</string>
+    <string name="settings_secure_delete_subtitle">删除前覆写临时文件的次数。次数越多越慢；在闪存上仍可能恢复数据。</string>
     <string name="settings_auto_clear_temp">启动时清除缓存</string>
-    <string name="settings_auto_clear_temp_subtitle">每次打开应用时删除剩余的处理文件。</string>
+    <string name="settings_auto_clear_temp_subtitle">打开应用时删除超过 24 小时的处理缓存文件。</string>
     <string name="settings_preserve_camera">保留相机设置</string>
     <string name="settings_preserve_camera_subtitle">在清理标签页保留光圈、快门速度、ISO 和相机品牌/型号。严格清理开启或从其他应用分享时忽略。</string>
     <string name="settings_preserve_location">保留位置</string>
@@ -219,7 +219,7 @@
     <string name="settings_share_confirm_dialog_confirm">删除并继续</string>
     <string name="settings_share_confirm_dialog_cancel">取消</string>
     <string name="settings_section_permissions">权限</string>
-    <string name="settings_permissions_subtitle">Redact 需要媒体访问权限以进行清理、转换和扫描。通知为可选，仅用于任务提醒。</string>
+    <string name="settings_permissions_subtitle">Android 13+ 上，系统照片选择器无需广泛的媒体库权限即可选文件。完整访问有助于清理和转换读取已有图库文件。通知和网络为可选。</string>
     <string name="settings_permissions_media">照片和视频</string>
     <string name="settings_permissions_notifications">通知（可选）</string>
     <string name="settings_permission_granted">已授予</string>
@@ -242,7 +242,7 @@
     <string name="settings_about_report_issue">报告问题</string>
     <string name="settings_link_unavailable">未找到可打开此链接的应用。</string>
     <string name="settings_progress_notifications_label">进行中任务进度</string>
-    <string name="settings_progress_notifications_subtitle">长时间清理或转换期间在通知栏显示持续进度。</string>
+    <string name="settings_progress_notifications_subtitle">长时间任务期间显示进度的持续通知。默认关闭，需先开启允许通知。</string>
     <string name="settings_crash_reporting_learn_more">会分享哪些内容？</string>
     <string name="settings_crash_reporting_detail_title">崩溃报告详情</string>
     <string name="settings_crash_reporting_detail_message">开启“发送崩溃报告”后，可能通过 Sentry 发送匿名诊断：
@@ -304,4 +304,17 @@
     <string name="status_clean_done_failed">清理失败。</string>
     <string name="status_clean_done_partial">完成：%1$d 个已清理，%2$d 个失败。</string>
     <string name="status_processing_cancelled">处理已取消。</string>
+    <string name="settings_permission_partial">部分</string>
+    <string name="scan_status_ready">选择照片或视频以扫描其元数据。</string>
+    <string name="animated_image_warning">动画图像将保存为单帧静态图。</string>
+    <string name="clean_item_failed">失败：%1$s</string>
+    <string name="settings_preserve_location_confirm_title">在清理后的照片中保留 GPS？</string>
+    <string name="settings_preserve_location_confirm_message">在清理标签页清理的文件可能仍含 GPS 坐标。从其他应用分享时始终会移除位置信息。
+
+仅在您有意保留位置时才开启。</string>
+    <string name="settings_location_permission_granted">已授予照片位置权限。</string>
+    <string name="settings_location_permission_denied">已拒绝照片位置权限。</string>
+    <string name="settings_crash_reporting_unconfigured">已启用崩溃报告，但此版本未配置。</string>
+    <string name="settings_crash_reporting_init_failed">无法启动崩溃报告，请稍后重试。</string>
+    <string name="share_error_partial_success">已清理 %1$d 个文件；%2$d 个失败。</string>
 </resources>

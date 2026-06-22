@@ -41,6 +41,7 @@ public class SettingsFragment extends Fragment {
 
     private boolean suppressNotificationToggleCallback;
     private boolean suppressCrashReportingToggleCallback;
+    private boolean suppressPreserveLocationToggleCallback;
 
     private MaterialSwitch switchNotifications;
     private MaterialSwitch switchClean;
@@ -214,11 +215,21 @@ public class SettingsFragment extends Fragment {
                     SentryInitializer.shutdown();
                     NetworkAccess.revokeIfUnused(requireContext());
                     SentryManager.setCustomKey("crash_reporting_enabled", false);
+                    refreshPermissionStatuses();
                     return;
                 }
                 if (NetworkAccess.isConfirmed(requireContext())) {
                     AppPreferences.setCrashReportingEnabled(requireContext(), true);
-                    SentryInitializer.initializeIfNeeded(requireContext());
+                    SentryInitializer.initializeBlocking(requireContext());
+                    if (!SentryInitializer.isInitialized()) {
+                        Toast.makeText(
+                                        requireContext(),
+                                        SentryInitializer.hasConfiguredDsn()
+                                                ? R.string.settings_crash_reporting_init_failed
+                                                : R.string.settings_crash_reporting_unconfigured,
+                                        Toast.LENGTH_LONG)
+                                .show();
+                    }
                     SentryManager.setCustomKey("crash_reporting_enabled", true);
                     return;
                 }
@@ -230,6 +241,7 @@ public class SettingsFragment extends Fragment {
                             NetworkAccess.enableCrashReportingWithConsent(requireContext());
                             setSwitchChecked(switchCrashReporting, true);
                             SentryManager.setCustomKey("crash_reporting_enabled", true);
+                            refreshPermissionStatuses();
                         },
                         null);
             } catch (Exception e) {
@@ -268,8 +280,29 @@ public class SettingsFragment extends Fragment {
         switchPreserveCamera.setOnCheckedChangeListener((btn, isChecked) ->
                 AppPreferences.setPreserveCameraSettings(requireContext(), isChecked));
 
-        switchPreserveLocation.setOnCheckedChangeListener((btn, isChecked) ->
-                AppPreferences.setPreserveLocation(requireContext(), isChecked));
+        switchPreserveLocation.setOnCheckedChangeListener((btn, isChecked) -> {
+            if (suppressPreserveLocationToggleCallback) {
+                return;
+            }
+            if (isChecked) {
+                suppressPreserveLocationToggleCallback = true;
+                switchPreserveLocation.setChecked(false);
+                suppressPreserveLocationToggleCallback = false;
+                new MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(R.string.settings_preserve_location_confirm_title)
+                        .setMessage(R.string.settings_preserve_location_confirm_message)
+                        .setPositiveButton(android.R.string.ok, (d, w) -> {
+                            AppPreferences.setPreserveLocation(requireContext(), true);
+                            suppressPreserveLocationToggleCallback = true;
+                            switchPreserveLocation.setChecked(true);
+                            suppressPreserveLocationToggleCallback = false;
+                        })
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show();
+            } else {
+                AppPreferences.setPreserveLocation(requireContext(), false);
+            }
+        });
 
         switchAutoClearTemp.setOnCheckedChangeListener((btn, isChecked) ->
                 AppPreferences.setAutoClearTempFiles(requireContext(), isChecked));
@@ -444,6 +477,12 @@ public class SettingsFragment extends Fragment {
             applyPermissionStatus(
                     textPermissionLocationStatus,
                     PermissionStatusHelper.getLocationStatus(requireContext()));
+            View locationRow = textPermissionLocationStatus.getParent() instanceof View parent
+                    ? parent
+                    : null;
+            if (locationRow != null) {
+                locationRow.setOnClickListener(v -> requestLocationPermissionFromSettings());
+            }
         }
         applyPermissionStatus(
                 textPermissionNotificationsStatus,
@@ -483,6 +522,10 @@ public class SettingsFragment extends Fragment {
         statusView.setText(getString(statusLabel(status)));
         int color = switch (status) {
             case GRANTED -> ContextCompat.getColor(requireContext(), R.color.accent);
+            case PARTIAL -> MaterialColors.getColor(
+                    requireContext(),
+                    com.google.android.material.R.attr.colorSecondary,
+                    ContextCompat.getColor(requireContext(), R.color.accent));
             case DENIED -> ContextCompat.getColor(requireContext(), R.color.permission_status_denied);
             case NOT_REQUIRED -> MaterialColors.getColor(
                     requireContext(),
@@ -495,6 +538,7 @@ public class SettingsFragment extends Fragment {
     private int statusLabel(@NonNull PermissionStatusHelper.Status status) {
         return switch (status) {
             case GRANTED -> R.string.settings_permission_granted;
+            case PARTIAL -> R.string.settings_permission_partial;
             case DENIED -> R.string.settings_permission_denied;
             case NOT_REQUIRED -> R.string.settings_permission_not_required;
         };
@@ -564,6 +608,29 @@ public class SettingsFragment extends Fragment {
         }
         launch.run();
     }
+
+    private void requestLocationPermissionFromSettings() {
+        if (ContextCompat.checkSelfPermission(
+                        requireContext(), android.Manifest.permission.ACCESS_MEDIA_LOCATION)
+                == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        locationPermissionLauncher.launch(android.Manifest.permission.ACCESS_MEDIA_LOCATION);
+    }
+
+    private final ActivityResultLauncher<String> locationPermissionLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.RequestPermission(),
+                    granted -> {
+                        refreshPermissionStatuses();
+                        Toast.makeText(
+                                        requireContext(),
+                                        granted
+                                                ? R.string.settings_location_permission_granted
+                                                : R.string.settings_location_permission_denied,
+                                        Toast.LENGTH_SHORT)
+                                .show();
+                    });
 
     private final ActivityResultLauncher<String> notificationPermissionLauncher =
             registerForActivityResult(

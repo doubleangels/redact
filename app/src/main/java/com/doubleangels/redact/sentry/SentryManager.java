@@ -3,6 +3,8 @@ package com.doubleangels.redact.sentry;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.doubleangels.redact.AppPreferences;
 
 import java.net.SocketException;
@@ -87,7 +89,25 @@ public final class SentryManager {
             "processing_success",
             "batch_size",
             "items_processed",
-            "items_failed"));
+            "items_failed",
+            "success",
+            "file_size_mb",
+            "metadata_verification_passed",
+            "preserved_exif_count",
+            "exif_tags_removed",
+            "bitmap_sample_size",
+            "original_width",
+            "original_height",
+            "video_metadata_verification_passed",
+            "video_verify_failed_key",
+            "permissions_granted",
+            "selected_media_count",
+            "processing_state",
+            "processed_items",
+            "processing_items_count",
+            "has_shown_rationale",
+            "all_permissions_granted",
+            "has_storage_permission"));
 
     private SentryManager() {
     }
@@ -148,7 +168,7 @@ public final class SentryManager {
             Log.e(TAG, "Crash reporting disabled — not sending:", e);
             return;
         }
-        Sentry.captureException(e);
+        Sentry.captureException(scrubThrowable(e));
     }
 
     public static void setCustomKey(String key, String value) {
@@ -188,7 +208,25 @@ public final class SentryManager {
         if (key == null) {
             return false;
         }
-        return ALLOWED_TAG_KEYS.contains(key.toLowerCase(Locale.US));
+        String lower = key.toLowerCase(Locale.US);
+        if (ALLOWED_TAG_KEYS.contains(lower)) {
+            return true;
+        }
+        return lower.startsWith("permission_")
+                || lower.startsWith("video_verify_")
+                || lower.startsWith("can_ask_");
+    }
+
+    private static Throwable scrubThrowable(@NonNull Throwable e) {
+        String message = e.getMessage();
+        if (message == null || message.isEmpty()) {
+            return e;
+        }
+        String scrubbed = SentryPrivacyScrubber.scrub(message);
+        if (scrubbed.equals(message)) {
+            return e;
+        }
+        return new Exception(scrubbed, e);
     }
 
     public static ITransaction startTransaction(String name, String operation) {

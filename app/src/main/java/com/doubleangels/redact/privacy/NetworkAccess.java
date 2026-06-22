@@ -27,7 +27,7 @@ public final class NetworkAccess {
     public static void confirm(@NonNull Context context) {
         AppPreferences.setNetworkAccessConfirmed(context, true);
         if (AppPreferences.isCrashReportingEnabled(context)) {
-            SentryInitializer.initializeIfNeeded(context);
+            SentryInitializer.initializeBlocking(context);
         }
     }
 
@@ -35,7 +35,6 @@ public final class NetworkAccess {
     public static void enableCrashReportingWithConsent(@NonNull Context context) {
         AppPreferences.setCrashReportingEnabled(context, true);
         confirm(context);
-        SentryInitializer.initializeIfNeeded(context);
     }
 
     /**

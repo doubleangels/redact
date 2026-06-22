@@ -1,8 +1,6 @@
 package com.doubleangels.redact;
 
 import android.app.Activity;
-import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
 import android.view.LayoutInflater;
@@ -39,6 +37,8 @@ import java.util.List;
  */
 public class CleanFragment extends Fragment {
 
+    private static final int MAX_PICK_ITEMS = 20;
+
     private MainViewModel viewModel;
     private PermissionManager permissionManager;
     private MediaSelector mediaSelector;
@@ -62,7 +62,7 @@ public class CleanFragment extends Fragment {
             mediaSelector = new MediaSelector(requireActivity());
         }
         mediaPickerLauncher = registerForActivityResult(
-                new ActivityResultContracts.PickMultipleVisualMedia(),
+                new ActivityResultContracts.PickMultipleVisualMedia(MAX_PICK_ITEMS),
                 uris -> {
                     try {
                         if (uris != null && !uris.isEmpty()) {
@@ -122,7 +122,7 @@ public class CleanFragment extends Fragment {
 
             stripButton.setEnabled(false);
 
-            mediaAdapter = new MediaAdapter(requireActivity(), new ArrayList<>());
+            mediaAdapter = new MediaAdapter(new ArrayList<>());
             selectedItemsGrid.setAdapter(mediaAdapter);
             selectedItemsGrid.setLayoutManager(new GridLayoutManager(requireContext(), 3));
 
@@ -137,7 +137,7 @@ public class CleanFragment extends Fragment {
                             == MainViewModel.ProcessingState.COMPLETED) {
                         viewModel.setCleanProcessingState(MainViewModel.ProcessingState.IDLE);
                     }
-                    if (permissionManager.needsPermissions()) {
+                    if (permissionManager.shouldRequestStorageBeforePicker()) {
                         SentryManager.log("Requesting permissions");
                         permissionManager.requestStoragePermission();
                     } else {
@@ -162,14 +162,12 @@ public class CleanFragment extends Fragment {
                     SentryManager.log("Strip button clicked");
                     List<MediaItem> items = viewModel.getSelectedItems().getValue();
                     if (items != null && !items.isEmpty()) {
-                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE
-                                && containsUnsupportedHeic(items)) {
+                        if (containsAnimatedImage(items)) {
                             Toast.makeText(
                                             requireContext(),
-                                            R.string.convert_heic_fallback_jpeg,
+                                            R.string.animated_image_warning,
                                             Toast.LENGTH_LONG)
                                     .show();
-                            return;
                         }
                         SentryManager.setCustomKey("processing_items_count", items.size());
                         viewModel.startCleaning(items);
@@ -237,7 +235,8 @@ public class CleanFragment extends Fragment {
             if (mediaSelector == null) {
                 mediaSelector = new MediaSelector(requireActivity());
             }
-            permissionManager.applyPendingPermissionResultIfAny();
+            permissionManager.applyPendingPermissionResultIfAny(
+                    com.doubleangels.redact.permission.PermissionManager.STORAGE_PERMISSION_REQUEST_CODE);
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
@@ -391,17 +390,13 @@ public class CleanFragment extends Fragment {
         }
     }
 
-    private static boolean containsUnsupportedHeic(@NonNull List<MediaItem> items) {
+    private boolean containsAnimatedImage(@NonNull List<MediaItem> items) {
+        if (mediaSelector == null) {
+            return false;
+        }
         for (MediaItem item : items) {
-            if (item.isVideo()) {
-                continue;
-            }
-            String name = item.fileName();
-            if (name != null) {
-                String lower = name.toLowerCase(java.util.Locale.US);
-                if (lower.endsWith(".heic") || lower.endsWith(".heif")) {
-                    return true;
-                }
+            if (mediaSelector.isAnimatedImage(item)) {
+                return true;
             }
         }
         return false;

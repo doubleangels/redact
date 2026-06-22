@@ -1,38 +1,33 @@
-<b>Redact: Eliminador de Privacidad y Metadatos</b>
+<b>Redact: Privacidad y eliminador de metadatos</b>
 
-<p>Protege tu privacidad con Redact: la aplicación potente y sencilla que elimina todos los metadatos EXIF de fotos y videos antes de compartirlos en línea. Previene el rastreo de ubicación, oculta información del dispositivo y protege tus datos personales al publicar en plataformas de redes sociales.</p>
+<p>Protege tu privacidad con Redact: elimina metadatos EXIF ocultos de fotos y videos, revisa lo embebido antes de compartir y convierte formatos localmente en tu dispositivo.</p>
 
-<b>Características Principales:</b>
+<b>Funciones principales:</b>
 
 <ul>
-<li><b>Protección Completa de Privacidad:</b><br>
-Elimina todos los metadatos incluyendo datos de ubicación GPS, información del dispositivo, marcas de tiempo, configuraciones de cámara y detalles personales ocultos en tus archivos multimedia. Nuestra tecnología avanzada de remuxing garantiza que los videos se eliminen completamente de metadatos mientras se preserva la calidad de reproducción.</li>
+<li><b>Protección de privacidad completa:</b><br>
+Elimina ubicación GPS, detalles del dispositivo, marcas de tiempo, ajustes de cámara y otros metadatos ocultos. La limpieza de video usa remux o transcodificación completa (configurable) preservando la calidad de reproducción.</li>
 
-<li><b>Visor e Inspector de Metadatos:</b><br>
-Escanea y visualiza fácilmente todos los datos EXIF ocultos en tus fotos y videos antes de eliminarlos por completo. Ve exactamente qué información está incrustada en tus archivos con nuestra visualización completa de metadatos.</li>
+<li><b>Visor de metadatos:</b><br>
+Escanea fotos o videos para ver EXIF y metadatos del contenedor organizados antes de limpiar. Copia valores o envía archivos a Limpiar o Convertir.</li>
 
-<li><b>Interfaz de Privacidad Fácil de Usar:</b><br>
-La eliminación completa de metadatos con un solo toque hace que proteger tu privacidad digital sea simple, rápido y accesible para todos. Limpia archivos individuales o procesa múltiples archivos a la vez.</li>
+<li><b>Limpiar, escanear, convertir y compartir:</b><br>
+Limpia metadatos por lotes (hasta 20 archivos). Convierte formatos sin subir a un servidor; luego usa Limpiar si también quieres quitar metadatos de los convertidos. Comparte a Redact desde cualquier app; cancela trabajos largos o continúa con éxito parcial.</li>
 
-<li><b>Procesamiento Masivo de Fotos y Videos:</b><br>
-Limpia múltiples archivos multimedia simultáneamente, ahorrándote tiempo mientras mejoras tu protección de privacidad en línea. Procesa lotes completos con un solo toque.</li>
+<li><b>Permisos con privacidad primero:</b><br>
+En Android 13+, elige archivos con el selector del sistema sin acceso amplio a la biblioteca. El permiso opcional de ubicación de fotos muestra GPS en Escanear. Informes de fallos y notificaciones desactivados por defecto.</li>
 
-<li><b>Preservación de Calidad Original:</b><br>
-Elimina todos los metadatos sin comprimir o degradar tus fotos y videos: mantén la calidad completa de imagen y video. Los parámetros esenciales del códec se preservan para garantizar una reproducción perfecta.</li>
+<li><b>100 % procesamiento local:</b><br>
+Limpieza, escaneo y conversión en tu dispositivo. Diagnósticos de fallos opcionales (Sentry) nunca suben tus medios. Limpia la caché manualmente o elimina archivos antiguos al iniciar.</li>
 
-<li><b>Procesamiento 100% Local y Seguro:</b><br>
-Toda la limpieza de datos ocurre directamente en tu dispositivo: tu información personal nunca sale de tu teléfono ni se conecta a servidores externos. Los archivos se eliminan de forma segura usando múltiples pasadas de sobrescritura.</li>
+<li><b>Código abierto y sin anuncios:</b><br>
+Sin anuncios ni seguimiento conductual. Código en GitHub para revisión comunitaria.</li>
 
-<li><b>Herramienta de Privacidad Sin Anuncios y de Código Abierto:</b><br>
-Comprometidos con la transparencia sin publicidad, rastreo o recopilación de datos. Nuestro código es completamente de código abierto para verificación y contribuciones de la comunidad.</li>
-
-<li><b>Integración con el Menú de Compartir de Android:</b><br>
-Limpia archivos sin problemas desde cualquier aplicación a través del menú de compartir de Android y obtén archivos completamente protegidos listos para compartir. Los archivos temporales se limpian automáticamente después de compartir.</li>
-
-<li><b>Soporte Multiidioma:</b><br>
-Disponible en 13 idiomas incluyendo inglés, español, francés, alemán, italiano, portugués, ruso, japonés, coreano, chino (Simplificado y Tradicional), hindi y árabe.</li>
-<li><b>Conversión universal de medios:</b><br>¿Necesitas un formato diferente? Convierte imágenes fácilmente a tipos estándar como JPEG, PNG, WebP o HEIC. Transcodifica videos no compatibles a archivos MP4 o MKV altamente compatibles sin depender de servidores de Internet.</li>
-
+<li><b>13 idiomas:</b><br>
+Inglés, español, francés, alemán, italiano, portugués, ruso, japonés, coreano, chino (simplificado y tradicional), hindi y árabe.</li>
 </ul>
 
-<p>¡Toma el control de tu huella digital! Los metadatos EXIF pueden exponer tus coordenadas GPS precisas, detalles del dispositivo, configuraciones de cámara, marcas de tiempo e identificadores únicos. Redact elimina todos estos riesgos de privacidad mientras preserva la calidad de tus archivos multimedia. Perfecto para compartir en redes sociales, fotografía profesional y cualquiera preocupado por la privacidad digital.</p>
+<p>Los metadatos EXIF pueden revelar coordenadas GPS, modelo del dispositivo y ajustes de captura. Redact te ayuda a compartir en tus términos, con calidad preservada y archivos en tu teléfono.</p>
+
+<p><b>Cómo funciona:</b></p>
+<p>Selecciona medios en Redact o comparte desde otra app, toca Limpiar metadatos y guarda copias seguras en la galería. Al compartir hacia Redact, elimina metadatos antes de reenviar. Limpieza estricta y compartir siempre quitan la ubicación.</p>

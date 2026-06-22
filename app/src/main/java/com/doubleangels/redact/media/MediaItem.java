@@ -2,6 +2,9 @@ package com.doubleangels.redact.media;
 
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import java.util.Objects;
 
 /**
@@ -20,7 +23,10 @@ public final class MediaItem {
     private final boolean isVideo;
     private final String fileName;
 
-    public MediaItem(Uri uri, boolean isVideo, String fileName) {
+    public MediaItem(@NonNull Uri uri, boolean isVideo, @Nullable String fileName) {
+        if (uri == null) {
+            throw new IllegalArgumentException("uri must not be null");
+        }
         this.uri = uri;
         this.isVideo = isVideo;
         this.fileName = fileName;

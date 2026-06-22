@@ -28,7 +28,10 @@ public final class MediaSelector {
     }
 
     public MediaItem processMediaUri(Uri uri) {
-        tryTakePersistableReadPermission(uri);
+        boolean persistable = tryTakePersistableReadPermission(uri);
+        if (!persistable && "content".equals(uri.getScheme())) {
+            SentryManager.setCustomKey("persistable_uri_permission", false);
+        }
         String fileName = getFileName(uri);
         boolean isVideo = isVideoContent(uri, fileName);
         return new MediaItem(uri, isVideo, fileName);
@@ -46,19 +49,22 @@ public final class MediaSelector {
         }
     }
 
-    private void tryTakePersistableReadPermission(Uri uri) {
+    private boolean tryTakePersistableReadPermission(Uri uri) {
         if (!"content".equals(uri.getScheme())) {
-            return;
+            return true;
         }
         try {
             activity.getContentResolver().takePersistableUriPermission(
                     uri,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            return true;
         } catch (SecurityException e) {
             Log.d(TAG, "Persistable permission not available for picker URI");
+            return false;
         } catch (Exception e) {
             Log.e(TAG, "Failed to take persistable permission for media URI", e);
             SentryManager.recordException(e);
+            return false;
         }
     }
 
@@ -102,6 +108,29 @@ public final class MediaSelector {
             return false;
         }
         return false;
+    }
+
+    public static boolean isAnimatedImageFile(@Nullable String fileName, @Nullable String mimeType) {
+        if (mimeType != null && "image/gif".equalsIgnoreCase(mimeType)) {
+            return true;
+        }
+        if (fileName != null) {
+            return fileName.toLowerCase(java.util.Locale.US).endsWith(".gif");
+        }
+        return false;
+    }
+
+    public boolean isAnimatedImage(@NonNull MediaItem item) {
+        if (item.isVideo()) {
+            return false;
+        }
+        String mime = null;
+        try {
+            mime = activity.getContentResolver().getType(item.uri());
+        } catch (Exception ignored) {
+            // Fall back to filename only.
+        }
+        return isAnimatedImageFile(item.fileName(), mime);
     }
 
     public String getFileName(Uri uri) {

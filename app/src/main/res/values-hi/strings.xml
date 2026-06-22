@@ -148,9 +148,9 @@
     <string name="settings_section_advanced_privacy">मेटाडेटा सफ़ाई</string>
     <string name="settings_advanced_privacy_subtitle">Redact साफ़ करें टैब पर EXIF कैसे हटाता है। अन्य ऐप्स से साझा करने पर स्थान और कैमरा जानकारी हमेशा आगे भेजने से पहले हटा दी जाती है।</string>
     <string name="settings_secure_delete">सुरक्षित हटाने के पास</string>
-    <string name="settings_secure_delete_subtitle">हटाने से पहले अस्थायी फ़ाइलें कितनी बार ओवरराइट होती हैं। अधिक पास धीमे लेकिन पुनर्प्राप्ति कठिन।</string>
+    <string name="settings_secure_delete_subtitle">हटाने से पहले अस्थायी फ़ाइलें कितनी बार ओवरराइट हों। अधिक पास = धीमा; फ़्लैश स्टोरेज पर पुनर्प्राप्ति संभव हो सकती है।</string>
     <string name="settings_auto_clear_temp">शुरू पर कैश साफ़ करें</string>
-    <string name="settings_auto_clear_temp_subtitle">ऐप खोलने पर बची प्रसंस्करण फ़ाइलें हटाएँ।</string>
+    <string name="settings_auto_clear_temp_subtitle">ऐप खोलने पर 24 घंटे से पुरानी प्रोसेसिंग कैश फ़ाइलें हटाता है।</string>
     <string name="settings_preserve_camera">कैमरा सेटिंग्स रखें</string>
     <string name="settings_preserve_camera_subtitle">साफ़ करें टैब पर एपर्चर, शटर स्पीड, ISO और कैमरा मेक/मॉडल रखें। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर अनदेखा।</string>
     <string name="settings_preserve_location">स्थान रखें</string>
@@ -219,7 +219,7 @@
     <string name="settings_share_confirm_dialog_confirm">हटाएँ और जारी रखें</string>
     <string name="settings_share_confirm_dialog_cancel">रद्द करें</string>
     <string name="settings_section_permissions">अनुमतियाँ</string>
-    <string name="settings_permissions_subtitle">Redact को साफ़, रूपांतरित और स्कैन के लिए मीडिया एक्सेस चाहिए। सूचनाएँ वैकल्पिक हैं और केवल कार्य अलर्ट के लिए।</string>
+    <string name="settings_permissions_subtitle">Android 13+ पर सिस्टम फ़ोटो पिकर बिना व्यापक लाइब्रेरी एक्सेस के काम करता है। पूर्ण एक्सेस साफ़ करें और कन्वर्ट में मौजूदा गैलरी फ़ाइलें पढ़ने में मदद करता है। नोटिफ़िकेशन और नेटवर्क वैकल्पिक हैं।</string>
     <string name="settings_permissions_media">फ़ोटो और वीडियो</string>
     <string name="settings_permissions_notifications">सूचनाएँ (वैकल्पिक)</string>
     <string name="settings_permission_granted">दी गई</string>
@@ -242,7 +242,7 @@
     <string name="settings_about_report_issue">समस्या रिपोर्ट करें</string>
     <string name="settings_link_unavailable">इस लिंक को खोलने के लिए कोई ऐप नहीं मिला।</string>
     <string name="settings_progress_notifications_label">चल रहे कार्य की प्रगति</string>
-    <string name="settings_progress_notifications_subtitle">लंबी साफ़ या रूपांतरण नौकरियों के दौरान प्रगति के साथ स्थायी सूचना।</string>
+    <string name="settings_progress_notifications_subtitle">लंबे कार्यों के दौरान प्रगति वाली स्थायी सूचना। नोटिफ़िकेशन अनुमति चालू होने तक डिफ़ॉल्ट बंद।</string>
     <string name="settings_crash_reporting_learn_more">क्या साझा होता है?</string>
     <string name="settings_crash_reporting_detail_title">क्रैश रिपोर्टिंग विवरण</string>
     <string name="settings_crash_reporting_detail_message">जब क्रैश रिपोर्ट भेजें चालू है, Sentry के माध्यम से अनाम निदान भेजा जा सकता है:
@@ -304,4 +304,17 @@
     <string name="status_clean_done_failed">सफ़ाई विफल।</string>
     <string name="status_clean_done_partial">पूर्ण: %1$d साफ़, %2$d विफल।</string>
     <string name="status_processing_cancelled">प्रसंस्करण रद्द किया गया।</string>
+    <string name="settings_permission_partial">आंशिक</string>
+    <string name="scan_status_ready">मेटाडेटा स्कैन करने के लिए फ़ोटो या वीडियो चुनें।</string>
+    <string name="animated_image_warning">एनिमेटेड छवियाँ एक स्थिर फ़्रेम के रूप में सहेजी जाती हैं।</string>
+    <string name="clean_item_failed">विफल: %1$s</string>
+    <string name="settings_preserve_location_confirm_title">साफ़ की गई फ़ोटो में GPS रखें?</string>
+    <string name="settings_preserve_location_confirm_message">साफ़ करें टैब की फ़ाइलों में GPS रह सकता है। अन्य ऐप्स से शेयर करने पर स्थान हमेशा हटाया जाता है।
+
+केवल तभी चालू करें जब आप जानबूझकर स्थान रखना चाहते हों।</string>
+    <string name="settings_location_permission_granted">फ़ोटो स्थान अनुमति दी गई।</string>
+    <string name="settings_location_permission_denied">फ़ोटो स्थान अनुमति अस्वीकृत।</string>
+    <string name="settings_crash_reporting_unconfigured">क्रैश रिपोर्टिंग चालू है लेकिन इस बिल्ड में कॉन्फ़िगर नहीं है।</string>
+    <string name="settings_crash_reporting_init_failed">क्रैश रिपोर्टिंग शुरू नहीं हो सकी। बाद में पुनः प्रयास करें।</string>
+    <string name="share_error_partial_success">%1$d फ़ाइल(ें) साफ़; %2$d विफल।</string>
 </resources>

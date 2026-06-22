@@ -26,6 +26,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.doubleangels.redact.media.MediaItem;
+import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.metadata.MetadataDisplayer;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.ui.MainViewModel;
@@ -176,11 +177,13 @@ public class ScanFragment extends Fragment {
                         }
                     }
                 });
-        permissionManager.applyPendingPermissionResultIfAny();
+        permissionManager.applyPendingPermissionResultIfAny(
+                com.doubleangels.redact.permission.PermissionManager.STORAGE_PERMISSION_REQUEST_CODE,
+                com.doubleangels.redact.permission.PermissionManager.LOCATION_PERMISSION_REQUEST_CODE);
 
         selectMediaButton.setOnClickListener(v -> {
             SentryManager.log("Select button clicked in ScanFragment");
-            if (permissionManager.needsPermissions()) {
+            if (permissionManager.shouldRequestStorageBeforePicker()) {
                 permissionManager.requestStoragePermission();
             } else {
                 openMediaPicker();
@@ -192,16 +195,7 @@ public class ScanFragment extends Fragment {
     }
 
     private void checkLocationPermissionAndDisplayMetadata(Uri mediaUri) {
-        boolean hasLocationPermission = !permissionManager.needsLocationPermission();
-
-        SentryManager.log("Has location permission: " + hasLocationPermission);
-        SentryManager.setCustomKey("has_location_permission", hasLocationPermission);
-
         displayMetadata(mediaUri);
-
-        if (!hasLocationPermission) {
-            permissionManager.requestLocationPermission();
-        }
     }
 
     @Override
@@ -231,6 +225,12 @@ public class ScanFragment extends Fragment {
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        MetadataDisplayer.cancelActiveScan();
+        super.onDestroyView();
     }
 
     private void openMediaPicker() {
@@ -295,13 +295,14 @@ public class ScanFragment extends Fragment {
             clearCoordinateState();
 
             String mimeType = requireContext().getContentResolver().getType(mediaUri);
-            boolean isVideo = mimeType != null && mimeType.startsWith("video/");
+            String fileName = mediaSelector != null ? mediaSelector.getFileName(mediaUri) : null;
+            boolean isVideo = MediaSelector.isVideoFromMimeAndName(mimeType, fileName);
 
-            SentryManager.log("Processing media with MIME type: " + mimeType);
+            SentryManager.logEvent("scan", "Starting metadata extraction");
             SentryManager.setCustomKey("media_type", mimeType != null ? mimeType : "unknown");
+            SentryManager.setCustomKey("is_video", isVideo);
 
             boolean hasLocationPermission = !permissionManager.needsLocationPermission();
-            SentryManager.log("Has location permission: " + hasLocationPermission);
             SentryManager.setCustomKey("has_location_permission", hasLocationPermission);
 
             progressText.setText(isVideo ? R.string.status_extracting_media : R.string.status_extracting_image);
@@ -341,6 +342,11 @@ public class ScanFragment extends Fragment {
                                 metadataFooter.setVisibility(View.VISIBLE);
                                 metadataFooter.setText(getString(R.string.scan_location_permission_missing));
                                 metadataCard.setVisibility(View.VISIBLE);
+                            } else if (permissionManager.needsLocationPermission()
+                                    && locationSection != null
+                                    && locationSection.contains(
+                                            getString(R.string.metadata_location_permission_needed))) {
+                                permissionManager.requestLocationPermission();
                             }
                         } catch (Exception e) {
                             SentryManager.recordException(e);
