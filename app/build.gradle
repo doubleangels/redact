@@ -16,7 +16,7 @@ android {
         minSdk 31
         targetSdk 37
         versionCode 10
-        versionName "1.3.0"
+        versionName "1.3.1"
 
         def sentryRelease = "${applicationId}@${versionName}+${versionCode}"
         buildConfigField "String", "SENTRY_RELEASE", "\"${sentryRelease}\""
