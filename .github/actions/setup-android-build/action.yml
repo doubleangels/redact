@@ -14,12 +14,13 @@ runs:
     - name: Prepare Android SDK
       shell: bash
       run: |
-        set -euo pipefail
+        set -eu
         SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
         SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
         echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
 
-        yes | "$SDKMANAGER" --licenses >/dev/null
+        # yes exits with SIGPIPE once sdkmanager stops reading; that is expected.
+        yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
 
         # Google publishes API 37 as android-37.0, not android-37.
         if [ ! -d "$SDK_ROOT/platforms/android-37.0" ]; then
