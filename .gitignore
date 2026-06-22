@@ -46,3 +46,10 @@ Gemfile.lock
 
 # Intermediate files
 /app/src/build/*
+
+# Python (if scripts are re-run locally)
+__pycache__/
+*.py[cod]
+
+# Ruby local output
+vendor/bundle/
