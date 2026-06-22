@@ -1,5 +1,5 @@
 name: Setup Android build
-description: JDK 21, Android SDK platform 37, and Gradle wrapper permissions.
+description: JDK 21, Android SDK licenses, API 37.0 platform, and Gradle wrapper permissions.
 
 runs:
   using: composite
@@ -11,10 +11,25 @@ runs:
         distribution: temurin
         cache: gradle
 
-    - name: Set up Android SDK
-      uses: android-actions/setup-android@v4
-      with:
-        packages: platforms;android-37 build-tools;36.0.0
+    - name: Prepare Android SDK
+      shell: bash
+      run: |
+        set -euo pipefail
+        SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+        SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+        echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+
+        yes | "$SDKMANAGER" --licenses >/dev/null
+
+        # Google publishes API 37 as android-37.0, not android-37.
+        if [ ! -d "$SDK_ROOT/platforms/android-37.0" ]; then
+          "$SDKMANAGER" "platforms;android-37.0"
+        fi
+
+        # Some tooling still resolves platforms/android-37.
+        if [ ! -e "$SDK_ROOT/platforms/android-37" ]; then
+          ln -sf android-37.0 "$SDK_ROOT/platforms/android-37"
+        fi
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
