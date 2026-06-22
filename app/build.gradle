@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.sentry.android.gradle)
 }
 
 android {
@@ -12,6 +13,9 @@ android {
         targetSdk 37
         versionCode 10
         versionName "1.3.0"
+
+        def sentryRelease = "${applicationId}@${versionName}+${versionCode}"
+        buildConfigField "String", "SENTRY_RELEASE", "\"${sentryRelease}\""
 
         def sentryDsn =
                 "https://f92d27d08095710804ab4250a73b5ff8@o244019.ingest.us.sentry.io/4510514277580800"
@@ -64,4 +68,16 @@ dependencies {
     testImplementation libs.junit
 
     debugImplementation libs.leakcanary.android
+}
+
+sentry {
+    org = "doubleangels"
+    projectName = "redact"
+    authToken = System.getenv("SENTRY_AUTH_TOKEN")
+    includeProguardMapping = true
+    autoUploadProguardMapping = System.getenv("SENTRY_AUTH_TOKEN") != null
+    telemetry = false
+    autoInstallation {
+        enabled = false
+    }
 }

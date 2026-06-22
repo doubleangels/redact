@@ -38,6 +38,8 @@ local.properties
 # Miscellaneous files
 *.log
 *.swp
+sentry.properties
+Gemfile.lock
 
 # macOS
 .DS_Store

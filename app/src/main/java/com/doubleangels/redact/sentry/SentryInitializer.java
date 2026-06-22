@@ -111,7 +111,7 @@ public final class SentryInitializer {
             }
             configured.set(true);
             options.setDsn(dsn);
-            options.setRelease(BuildConfig.VERSION_NAME);
+            options.setRelease(BuildConfig.SENTRY_RELEASE);
             options.setEnvironment(BuildConfig.DEBUG ? "development" : "production");
             options.addInAppInclude("com.doubleangels.redact");
 

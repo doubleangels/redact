@@ -31,27 +31,17 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v5
-        with:
-          java-version: "21"
-          distribution: "temurin"
-          cache: gradle
+      - name: Setup Android build
+        uses: ./.github/actions/setup-android-build
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Run unit tests
+        run: ./gradlew test --no-daemon
 
-      - name: Run Lint
+      - name: Run Android Lint
         run: ./gradlew lintRelease --no-daemon
-        continue-on-error: false
 
-      - name: Build Release
-        if: |
-          (github.event_name == 'pull_request' && github.actor == 'dependabot[bot]') ||
-          (github.event_name == 'push' && github.ref == 'refs/heads/dev')
+      - name: Build Release APK
         run: ./gradlew assembleRelease --no-daemon
-        continue-on-error: false
-
 
   automerge:
     needs: [test]

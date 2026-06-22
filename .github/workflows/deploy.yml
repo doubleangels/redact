@@ -19,20 +19,18 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v5
-        with:
-          java-version: 21
-          distribution: "temurin"
-          cache: gradle
+      - name: Setup Android build
+        uses: ./.github/actions/setup-android-build
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Run unit tests
+        run: ./gradlew test --no-daemon
 
       - name: Run Android Lint
         run: ./gradlew lintRelease --no-daemon
 
-      - name: Build Bundle
+      - name: Build release bundle and upload ProGuard mapping to Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: ./gradlew bundleRelease --no-daemon --parallel --build-cache
 
       - name: Sign bundle for Google Play release
@@ -43,6 +41,7 @@ jobs:
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
+
       - name: Upload bundle to artifacts
         uses: actions/upload-artifact@v7
         with:
@@ -56,6 +55,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Download bundle from artifacts
@@ -83,11 +83,28 @@ jobs:
         with:
           ruby-version: "3.3"
 
-      - name: Install Fastlane
-        run: gem install fastlane
+      - name: Install pinned Fastlane
+        run: gem install fastlane -v "~> 2.227.0" --no-document
 
       - name: Push Fastlane metadata to Play Store
         run: fastlane supply --skip_upload_apk true --skip_upload_aab true --json_key service_account.json --package_name com.doubleangels.redact --track production
+
+      - name: Read app version for Sentry release
+        id: version
+        run: |
+          VERSION_NAME=$(grep 'versionName' app/build.gradle | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
+          VERSION_CODE=$(grep 'versionCode' app/build.gradle | head -1 | sed -E 's/.*versionCode[[:space:]]+([0-9]+).*/\1/')
+          echo "release=com.doubleangels.redact@${VERSION_NAME}+${VERSION_CODE}" >> "$GITHUB_OUTPUT"
+
+      - name: Finalize Sentry release
+        uses: getsentry/action-release@v3
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: doubleangels
+          SENTRY_PROJECT: redact
+        with:
+          environment: production
+          release: ${{ steps.version.outputs.release }}
 
   delete-workflow-runs:
     permissions:
