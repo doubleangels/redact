@@ -710,8 +710,22 @@ public class PermissionManager {
     }
 
     public static void requestMissingRuntimePermissions(Activity activity) {
+        requestMissingRuntimePermissions(activity, false);
+    }
+
+    /**
+     * Requests missing media permissions, optionally including photo location in the same
+     * system dialog (recommended on Android 14+ when the user is enabling GPS in Scan).
+     */
+    public static void requestMissingRuntimePermissions(Activity activity, boolean includePhotoLocation) {
         try {
             java.util.List<String> permissions = collectMissingRuntimePermissions(activity);
+            if (includePhotoLocation
+                    && ContextCompat.checkSelfPermission(
+                            activity, Manifest.permission.ACCESS_MEDIA_LOCATION)
+                            != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(Manifest.permission.ACCESS_MEDIA_LOCATION);
+            }
             if (permissions.isEmpty()) {
                 runtimePermissionRequestInFlight = false;
                 return;

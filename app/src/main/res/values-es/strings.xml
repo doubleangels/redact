@@ -312,6 +312,11 @@ No se suben fotos, videos, nombres de archivo ni coordenadas GPS.</string>
     <string name="settings_preserve_location_confirm_message">Los archivos limpiados en Limpiar pueden seguir conteniendo coordenadas GPS. Compartir desde otras apps siempre elimina la ubicación.
 
 Activa esto solo si quieres conservar la ubicación a propósito.</string>
+    <string name="settings_permission_needs_media">Fotos requeridas</string>
+    <string name="settings_location_permission_grant">Conceder ubicación de fotos</string>
+    <string name="settings_location_needs_media_title">¿Permitir fotos y videos primero?</string>
+    <string name="settings_location_needs_media_message">Ubicación de la foto permite a Redact leer coordenadas GPS incrustadas en tus medios. Primero se requiere acceso a la biblioteca de fotos y videos; elegir archivos individualmente no es suficiente.\n\nEn la siguiente pantalla, toca Permitir todas las fotos y videos. Tu dispositivo suele conceder Ubicación de la foto al mismo tiempo.</string>
+    <string name="settings_location_grant_media_first">Continuar</string>
     <string name="settings_location_permission_granted">Permiso de ubicación de fotos concedido.</string>
     <string name="settings_location_permission_denied">Permiso de ubicación de fotos denegado.</string>
     <string name="settings_crash_reporting_unconfigured">Los informes de fallos están activados pero no configurados en esta compilación.</string>

@@ -538,11 +538,8 @@ public class SettingsFragment extends Fragment {
                     requireContext(),
                     com.google.android.material.R.attr.colorSecondary,
                     ContextCompat.getColor(requireContext(), R.color.accent));
-            case DENIED -> ContextCompat.getColor(requireContext(), R.color.permission_status_denied);
-            case BLOCKED -> MaterialColors.getColor(
-                    requireContext(),
-                    com.google.android.material.R.attr.colorSecondary,
-                    ContextCompat.getColor(requireContext(), R.color.accent));
+            case DENIED, BLOCKED -> ContextCompat.getColor(
+                    requireContext(), R.color.permission_status_denied);
             case NOT_REQUIRED -> MaterialColors.getColor(
                     requireContext(),
                     com.google.android.material.R.attr.colorOnSurfaceVariant,
@@ -638,7 +635,8 @@ public class SettingsFragment extends Fragment {
                     .setMessage(R.string.settings_location_needs_media_message)
                     .setPositiveButton(R.string.settings_location_grant_media_first, (d, w) -> {
                         requestLocationAfterMediaGrant = true;
-                        PermissionManager.requestMissingRuntimePermissions(requireActivity());
+                        PermissionManager.requestMissingRuntimePermissions(
+                                requireActivity(), true);
                     })
                     .setNegativeButton(android.R.string.cancel, null)
                     .show();

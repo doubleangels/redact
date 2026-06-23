@@ -312,6 +312,11 @@
     <string name="settings_preserve_location_confirm_message">Очищенные файлы могут содержать GPS-координаты. При отправке из других приложений местоположение всегда удаляется.
 
 Включайте только если намеренно хотите сохранить местоположение.</string>
+    <string name="settings_permission_needs_media">Требуются фото</string>
+    <string name="settings_location_permission_grant">Предоставить геоданные фото</string>
+    <string name="settings_location_needs_media_title">Сначала разрешить фото и видео?</string>
+    <string name="settings_location_needs_media_message">Местоположение фото позволяет Redact читать GPS-координаты, встроенные в ваши медиафайлы. Сначала требуется доступ к библиотеке фото и видео — выбор отдельных файлов недостаточен.\n\nНа следующем экране нажмите «Разрешить доступ ко всем фото и видео». Обычно устройство одновременно предоставляет местоположение фото.</string>
+    <string name="settings_location_grant_media_first">Продолжить</string>
     <string name="settings_location_permission_granted">Разрешение на геоданные фото предоставлено.</string>
     <string name="settings_location_permission_denied">Разрешение на геоданные фото отклонено.</string>
     <string name="settings_crash_reporting_unconfigured">Отчёты о сбоях включены, но не настроены в этой сборке.</string>

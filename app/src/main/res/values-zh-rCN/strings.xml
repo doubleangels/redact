@@ -312,6 +312,11 @@
     <string name="settings_preserve_location_confirm_message">在清理标签页清理的文件可能仍含 GPS 坐标。从其他应用分享时始终会移除位置信息。
 
 仅在您有意保留位置时才开启。</string>
+    <string name="settings_permission_needs_media">需要照片权限</string>
+    <string name="settings_location_permission_grant">授予照片位置权限</string>
+    <string name="settings_location_needs_media_title">是否先允许照片和视频？</string>
+    <string name="settings_location_needs_media_message">照片位置权限可让 Redact 读取媒体中嵌入的 GPS 坐标。必须先授予照片和视频库访问权限——逐个选择文件不满足要求。\n\n在下一屏点按允许访问所有照片和视频。您的设备通常会在同一步骤授予照片位置权限。</string>
+    <string name="settings_location_grant_media_first">继续</string>
     <string name="settings_location_permission_granted">已授予照片位置权限。</string>
     <string name="settings_location_permission_denied">已拒绝照片位置权限。</string>
     <string name="settings_crash_reporting_unconfigured">已启用崩溃报告，但此版本未配置。</string>

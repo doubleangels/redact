@@ -312,6 +312,11 @@
     <string name="settings_preserve_location_confirm_message">साफ़ करें टैब की फ़ाइलों में GPS रह सकता है। अन्य ऐप्स से शेयर करने पर स्थान हमेशा हटाया जाता है।
 
 केवल तभी चालू करें जब आप जानबूझकर स्थान रखना चाहते हों।</string>
+    <string name="settings_permission_needs_media">फ़ोटो आवश्यक</string>
+    <string name="settings_location_permission_grant">फ़ोटो स्थान अनुमति दें</string>
+    <string name="settings_location_needs_media_title">पहले फ़ोटो और वीडियो की अनुमति दें?</string>
+    <string name="settings_location_needs_media_message">फ़ोटो स्थान Redact को आपके मीडिया में मौजूद GPS निर्देशांक पढ़ने देता है। पहले फ़ोटो और वीडियो लाइब्रेरी एक्सेस आवश्यक है — अलग-अलग फ़ाइलें चुनना पर्याप्त नहीं है।\n\nअगली स्क्रीन पर सभी फ़ोटो और वीडियो की अनुमति दें पर टैप करें। आपका डिवाइस आमतौर पर फ़ोटो स्थान भी उसी समय दे देता है।</string>
+    <string name="settings_location_grant_media_first">जारी रखें</string>
     <string name="settings_location_permission_granted">फ़ोटो स्थान अनुमति दी गई।</string>
     <string name="settings_location_permission_denied">फ़ोटो स्थान अनुमति अस्वीकृत।</string>
     <string name="settings_crash_reporting_unconfigured">क्रैश रिपोर्टिंग चालू है लेकिन इस बिल्ड में कॉन्फ़िगर नहीं है।</string>

@@ -312,6 +312,11 @@ Aucune photo, vidéo, nom de fichier ou coordonnée GPS n\'est téléversé.</st
     <string name="settings_preserve_location_confirm_message">Les fichiers nettoyés dans Nettoyer peuvent encore contenir des coordonnées GPS. Le partage depuis d\'autres apps supprime toujours la position.
 
 Activez ceci uniquement si vous souhaitez conserver la position volontairement.</string>
+    <string name="settings_permission_needs_media">Photos requises</string>
+    <string name="settings_location_permission_grant">Accorder l\'emplacement photo</string>
+    <string name="settings_location_needs_media_title">Autoriser d\'abord Photos et vidéos ?</string>
+    <string name="settings_location_needs_media_message">Emplacement de la photo permet à Redact de lire les coordonnées GPS intégrées à vos médias. L\'accès à la bibliothèque photos et vidéos est d\'abord requis — sélectionner des fichiers un par un ne suffit pas.\n\nÀ l\'écran suivant, appuyez sur Autoriser toutes les photos et vidéos. Votre appareil accorde généralement Emplacement de la photo en même temps.</string>
+    <string name="settings_location_grant_media_first">Continuer</string>
     <string name="settings_location_permission_granted">Autorisation de localisation photo accordée.</string>
     <string name="settings_location_permission_denied">Autorisation de localisation photo refusée.</string>
     <string name="settings_crash_reporting_unconfigured">Les rapports de plantage sont activés mais non configurés sur cette version.</string>

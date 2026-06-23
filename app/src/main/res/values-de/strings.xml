@@ -311,6 +311,11 @@ Keine Fotos, Videos, Dateinamen oder GPS-Koordinaten werden hochgeladen.</string
     <string name="settings_preserve_location_confirm_message">Bereinigte Dateien auf Bereinigen können weiterhin GPS-Koordinaten enthalten. Teilen aus anderen Apps entfernt den Standort immer.
 
 Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
+    <string name="settings_permission_needs_media">Fotos erforderlich</string>
+    <string name="settings_location_permission_grant">Foto-Standort gewähren</string>
+    <string name="settings_location_needs_media_title">Zuerst Fotos &amp; Videos erlauben?</string>
+    <string name="settings_location_needs_media_message">Foto-Standort ermöglicht Redact, in Ihren Medien eingebettete GPS-Koordinaten zu lesen. Zuerst ist Bibliothekszugriff auf Fotos und Videos erforderlich — einzelne Dateien auswählen reicht nicht aus.\n\nTippen Sie auf dem nächsten Bildschirm auf Alle Fotos und Videos erlauben. Ihr Gerät gewährt Foto-Standort in der Regel gleichzeitig.</string>
+    <string name="settings_location_grant_media_first">Weiter</string>
     <string name="settings_location_permission_granted">Foto-Standortberechtigung erteilt.</string>
     <string name="settings_location_permission_denied">Foto-Standortberechtigung verweigert.</string>
     <string name="settings_crash_reporting_unconfigured">Absturzberichte sind aktiv, aber in diesem Build nicht konfiguriert.</string>

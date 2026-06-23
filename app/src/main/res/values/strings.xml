@@ -87,11 +87,11 @@
     <string name="settings_permission_granted">Granted</string>
     <string name="settings_permission_partial">Partial</string>
     <string name="settings_permission_denied">Denied</string>
-    <string name="settings_permission_needs_media">Photo access needed</string>
+    <string name="settings_permission_needs_media">Photos Required</string>
     <string name="settings_permission_not_required">Not Required</string>
     <string name="settings_location_permission_grant">Grant Photo Location</string>
-    <string name="settings_location_needs_media_title">Grant photo library access first</string>
-    <string name="settings_location_needs_media_message">Android only shows the photo location permission after you allow Redact to access photos or videos in your library. File-picker access alone is not enough to read GPS coordinates embedded in media.\n\nOn the next screen, choose Allow all photos and videos (not just selected items), then you can grant photo location access.</string>
+    <string name="settings_location_needs_media_title">Allow Photos &amp; Videos First?</string>
+    <string name="settings_location_needs_media_message">Photo Location lets Redact read GPS coordinates embedded in your media. Library access to photos and videos is required first — picking files individually does not qualify.\n\nOn the next screen, tap Allow all photos and videos. Your device will usually grant Photo Location at the same time.</string>
     <string name="settings_location_grant_media_first">Continue</string>
     <string name="settings_open_system_settings">Open System Settings</string>
 
