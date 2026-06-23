@@ -312,6 +312,11 @@ Nessuna foto, video, nome file o coordinate GPS vengono caricati.</string>
     <string name="settings_preserve_location_confirm_message">I file puliti in Pulisci possono ancora contenere coordinate GPS. La condivisione da altre app rimuove sempre la posizione.
 
 Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
+    <string name="settings_permission_needs_media">Foto richieste</string>
+    <string name="settings_location_permission_grant">Concedi posizione foto</string>
+    <string name="settings_location_needs_media_title">Consentire prima Foto e video?</string>
+    <string name="settings_location_needs_media_message">Posizione foto consente a Redact di leggere le coordinate GPS incorporate nei tuoi media. È richiesto prima l\'accesso alla libreria di foto e video — selezionare file singolarmente non è sufficiente.\n\nNella schermata successiva, tocca Consenti tutte le foto e i video. Il dispositivo di solito concede Posizione foto contemporaneamente.</string>
+    <string name="settings_location_grant_media_first">Continua</string>
     <string name="settings_location_permission_granted">Autorizzazione posizione foto concessa.</string>
     <string name="settings_location_permission_denied">Autorizzazione posizione foto negata.</string>
     <string name="settings_crash_reporting_unconfigured">Segnalazione crash attiva ma non configurata in questa build.</string>

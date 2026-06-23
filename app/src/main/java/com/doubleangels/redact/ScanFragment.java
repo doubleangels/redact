@@ -216,6 +216,15 @@ public class ScanFragment extends Fragment {
         }
     }
 
+    void onHostPermissionFlowCompleted() {
+        if (permissionManager != null) {
+            permissionManager.applyPendingPermissionResultIfAny(
+                    PermissionManager.STORAGE_PERMISSION_REQUEST_CODE,
+                    PermissionManager.LOCATION_PERMISSION_REQUEST_CODE);
+        }
+        syncSelectButtonForPickerAccess();
+    }
+
     void handlePermissionResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         try {
             if (permissionManager != null) {

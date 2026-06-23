@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        com.doubleangels.redact.permission.PermissionManager.setInitialFlowCompletedCallback(null);
         com.doubleangels.redact.permission.PermissionManager.clearRuntimePermissionRequestOnDestroy();
         if (cacheClearExecutor != null) {
             cacheClearExecutor.shutdown();
@@ -49,6 +50,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         try {
+            if (savedInstanceState == null
+                    && com.doubleangels.redact.permission.PermissionManager.shouldPromptInitialPermissions(this)) {
+                com.doubleangels.redact.permission.PermissionManager.prepareInitialPermissionFlow();
+            }
+
             DynamicColors.applyToActivityIfAvailable(this);
             EdgeToEdge.enable(this);
 
@@ -114,6 +120,12 @@ public class MainActivity extends AppCompatActivity {
             }
 
             SentryManager.setCustomKey("app_started", true);
+
+            com.doubleangels.redact.permission.PermissionManager.setInitialFlowCompletedCallback(
+                    this::notifyVisibleFragmentPermissionFlowCompleted);
+            if (com.doubleangels.redact.permission.PermissionManager.isInitialPermissionFlowInProgress()) {
+                com.doubleangels.redact.permission.PermissionManager.startInitialPermissionFlow(this);
+            }
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
@@ -273,10 +285,25 @@ public class MainActivity extends AppCompatActivity {
             return getSupportFragmentManager().findFragmentByTag(TAG_SCAN);
         }
         if (requestCode
+                == com.doubleangels.redact.permission.PermissionManager.NOTIFICATION_PERMISSION_REQUEST_CODE) {
+            return getSupportFragmentManager().findFragmentByTag(TAG_SETTINGS);
+        }
+        if (requestCode
                 == com.doubleangels.redact.permission.PermissionManager.STORAGE_PERMISSION_REQUEST_CODE) {
             return getVisibleTabFragment();
         }
         return null;
+    }
+
+    private void notifyVisibleFragmentPermissionFlowCompleted() {
+        Fragment target = getVisibleTabFragment();
+        if (target instanceof CleanFragment cleanFragment) {
+            cleanFragment.onHostPermissionFlowCompleted();
+        } else if (target instanceof ScanFragment scanFragment) {
+            scanFragment.onHostPermissionFlowCompleted();
+        } else if (target instanceof ConvertFragment convertFragment) {
+            convertFragment.onHostPermissionFlowCompleted();
+        }
     }
 
     @Nullable
@@ -308,6 +335,11 @@ public class MainActivity extends AppCompatActivity {
 
             com.doubleangels.redact.permission.PermissionManager.storeActivityPermissionResult(
                     requestCode, permissions, grantResults);
+
+            if (com.doubleangels.redact.permission.PermissionManager.handleInitialPermissionFlowResult(
+                    this, requestCode, permissions, grantResults)) {
+                return;
+            }
 
             Fragment target = resolvePermissionResultTarget(requestCode);
             if (target instanceof CleanFragment cleanFragment) {

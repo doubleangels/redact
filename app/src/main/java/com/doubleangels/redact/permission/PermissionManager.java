@@ -5,10 +5,13 @@ import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Build;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.sentry.SentryManager;
 
 /**
@@ -30,7 +33,20 @@ public class PermissionManager {
     // Request codes for identifying permission requests in onRequestPermissionsResult
     public static final int STORAGE_PERMISSION_REQUEST_CODE = 123;
     public static final int LOCATION_PERMISSION_REQUEST_CODE = 124;
+    public static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 125;
     private static final String TAG = "PermissionManager";
+
+    private enum InitialFlowStep {
+        MEDIA,
+        LOCATION,
+        NOTIFICATIONS,
+        DONE
+    }
+
+    private static volatile boolean initialPermissionFlowInProgress = false;
+    private static InitialFlowStep initialFlowStep = InitialFlowStep.DONE;
+    @Nullable
+    private static Runnable initialFlowCompletedCallback;
 
     private static final class PendingPermissionResult {
         final int requestCode;
@@ -89,6 +105,9 @@ public class PermissionManager {
     /** Tracks whether location permission request has been shown to the user */
     private boolean hasShownLocationRationale = false;
 
+    /** Request photo location after the user grants full media library access. */
+    private boolean pendingLocationAfterMedia = false;
+
     /**
      * Creates a new PermissionManager instance.
      *
@@ -112,6 +131,9 @@ public class PermissionManager {
      * are properly requested before accessing media files.
      */
     public void checkPermissions() {
+        if (shouldDeferPermissionChecks(activity)) {
+            return;
+        }
         try {
             java.util.List<String> missing = collectMissingRuntimePermissions(activity);
             SentryManager.setCustomKey("needs_permissions", !missing.isEmpty());
@@ -250,9 +272,20 @@ public class PermissionManager {
 
     /**
      * Requests the ACCESS_MEDIA_LOCATION permission for accessing media geolocation data.
+     * On Android 13+, the system only shows this prompt after full photo/video library access
+     * is granted, so this method requests media access first when needed.
      */
     public void requestLocationPermission() {
         try {
+            if (!needsLocationPermission()) {
+                return;
+            }
+            if (!PermissionStatusHelper.hasMediaReadPrerequisiteForLocation(activity)) {
+                pendingLocationAfterMedia = true;
+                SentryManager.log("Requesting media access before photo location permission");
+                requestMissingRuntimePermissions(activity);
+                return;
+            }
             hasShownLocationRationale = true;
             SentryManager.setCustomKey("has_shown_location_rationale", true);
             SentryManager.log("Requesting ACCESS_MEDIA_LOCATION permission");
@@ -380,7 +413,14 @@ public class PermissionManager {
         if (!stillNeedsPermissions) {
             SentryManager.log("All media permissions granted");
             callback.onPermissionsGranted();
+            if (pendingLocationAfterMedia && needsLocationPermission()) {
+                pendingLocationAfterMedia = false;
+                requestMediaLocationPermission();
+            } else {
+                pendingLocationAfterMedia = false;
+            }
         } else {
+            pendingLocationAfterMedia = false;
             SentryManager.log("Some media permissions denied");
             callback.onPermissionsDenied();
             handlePermissionDenial();
@@ -519,12 +559,173 @@ public class PermissionManager {
      * This avoids prompting the user sequentially across different screens.
      */
     public static void requestAllInitialPermissions(Activity activity) {
+        if (!shouldPromptInitialPermissions(activity)) {
+            return;
+        }
+        prepareInitialPermissionFlow();
+        startInitialPermissionFlow(activity);
+    }
+
+    /** Whether the first-launch permission sequence should run. */
+    public static boolean shouldPromptInitialPermissions(@NonNull Activity activity) {
+        return !AppPreferences.hasCompletedInitialPermissionsPrompt(activity);
+    }
+
+    /** Marks the flow in progress before fragments resume so they do not duplicate prompts. */
+    public static void prepareInitialPermissionFlow() {
+        initialPermissionFlowInProgress = true;
+        initialFlowStep = InitialFlowStep.MEDIA;
+    }
+
+    public static boolean isInitialPermissionFlowInProgress() {
+        return initialPermissionFlowInProgress;
+    }
+
+    public static void setInitialFlowCompletedCallback(@Nullable Runnable callback) {
+        initialFlowCompletedCallback = callback;
+    }
+
+    /** Starts or continues the first-launch permission sequence. */
+    public static void startInitialPermissionFlow(@NonNull Activity activity) {
+        if (!initialPermissionFlowInProgress) {
+            return;
+        }
+        requestCurrentInitialFlowStep(activity);
+    }
+
+    /**
+     * Handles permission results for the first-launch flow at the activity level.
+     *
+     * @return true when the result was consumed by the initial flow
+     */
+    public static boolean handleInitialPermissionFlowResult(@NonNull Activity activity,
+            int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (!initialPermissionFlowInProgress) {
+            return false;
+        }
+        if (requestCode != STORAGE_PERMISSION_REQUEST_CODE
+                && requestCode != LOCATION_PERMISSION_REQUEST_CODE
+                && requestCode != NOTIFICATION_PERMISSION_REQUEST_CODE) {
+            return false;
+        }
+
+        runtimePermissionRequestInFlight = false;
+        SentryManager.log("Initial permission flow step completed: " + initialFlowStep);
+        for (int i = 0; i < permissions.length; i++) {
+            String permission = permissions[i];
+            boolean granted = i < grantResults.length
+                    && grantResults[i] == PackageManager.PERMISSION_GRANTED;
+            SentryManager.setCustomKey("permission_" + permission.replace(".", "_"), granted);
+        }
+
+        advanceInitialFlowStep();
+        activity.getWindow().getDecorView().post(() -> requestCurrentInitialFlowStep(activity));
+        return true;
+    }
+
+    /** Fragment permission checks defer to MainActivity during the first-launch flow. */
+    public static boolean shouldDeferPermissionChecks(@NonNull Activity activity) {
+        return initialPermissionFlowInProgress
+                || !AppPreferences.hasCompletedInitialPermissionsPrompt(activity);
+    }
+
+    private static void advanceInitialFlowStep() {
+        initialFlowStep = switch (initialFlowStep) {
+            case MEDIA -> InitialFlowStep.LOCATION;
+            case LOCATION -> InitialFlowStep.NOTIFICATIONS;
+            case NOTIFICATIONS, DONE -> InitialFlowStep.DONE;
+        };
+    }
+
+    private static void requestCurrentInitialFlowStep(@NonNull Activity activity) {
+        if (!initialPermissionFlowInProgress) {
+            return;
+        }
+        switch (initialFlowStep) {
+            case MEDIA -> requestInitialMediaStep(activity);
+            case LOCATION -> requestInitialLocationStep(activity);
+            case NOTIFICATIONS -> requestInitialNotificationsStep(activity);
+            case DONE -> finishInitialPermissionFlow(activity);
+            default -> finishInitialPermissionFlow(activity);
+        }
+    }
+
+    private static void requestInitialMediaStep(@NonNull Activity activity) {
+        java.util.List<String> missing = collectMissingRuntimePermissions(activity);
+        if (missing.isEmpty()) {
+            advanceInitialFlowStep();
+            requestCurrentInitialFlowStep(activity);
+            return;
+        }
         requestMissingRuntimePermissions(activity);
     }
 
-    static void requestMissingRuntimePermissions(Activity activity) {
+    private static void requestInitialLocationStep(@NonNull Activity activity) {
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_MEDIA_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            advanceInitialFlowStep();
+            requestCurrentInitialFlowStep(activity);
+            return;
+        }
+        if (!PermissionStatusHelper.hasMediaReadPrerequisiteForLocation(activity)) {
+            advanceInitialFlowStep();
+            requestCurrentInitialFlowStep(activity);
+            return;
+        }
+        runtimePermissionRequestInFlight = true;
+        SentryManager.log("Initial flow: requesting ACCESS_MEDIA_LOCATION");
+        ActivityCompat.requestPermissions(
+                activity,
+                new String[]{Manifest.permission.ACCESS_MEDIA_LOCATION},
+                LOCATION_PERMISSION_REQUEST_CODE);
+    }
+
+    private static void requestInitialNotificationsStep(@NonNull Activity activity) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            finishInitialPermissionFlow(activity);
+            return;
+        }
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS)
+                == PackageManager.PERMISSION_GRANTED) {
+            finishInitialPermissionFlow(activity);
+            return;
+        }
+        runtimePermissionRequestInFlight = true;
+        SentryManager.log("Initial flow: requesting POST_NOTIFICATIONS");
+        ActivityCompat.requestPermissions(
+                activity,
+                new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                NOTIFICATION_PERMISSION_REQUEST_CODE);
+    }
+
+    private static void finishInitialPermissionFlow(@NonNull Activity activity) {
+        initialPermissionFlowInProgress = false;
+        initialFlowStep = InitialFlowStep.DONE;
+        AppPreferences.setInitialPermissionsPromptCompleted(activity);
+        SentryManager.log("Initial permission flow completed");
+        Runnable callback = initialFlowCompletedCallback;
+        if (callback != null) {
+            activity.getWindow().getDecorView().post(callback);
+        }
+    }
+
+    public static void requestMissingRuntimePermissions(Activity activity) {
+        requestMissingRuntimePermissions(activity, false);
+    }
+
+    /**
+     * Requests missing media permissions, optionally including photo location in the same
+     * system dialog (recommended on Android 14+ when the user is enabling GPS in Scan).
+     */
+    public static void requestMissingRuntimePermissions(Activity activity, boolean includePhotoLocation) {
         try {
             java.util.List<String> permissions = collectMissingRuntimePermissions(activity);
+            if (includePhotoLocation
+                    && ContextCompat.checkSelfPermission(
+                            activity, Manifest.permission.ACCESS_MEDIA_LOCATION)
+                            != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(Manifest.permission.ACCESS_MEDIA_LOCATION);
+            }
             if (permissions.isEmpty()) {
                 runtimePermissionRequestInFlight = false;
                 return;
@@ -578,7 +779,11 @@ public class PermissionManager {
 
     /** Requests missing runtime permissions when the activity resumes without an in-flight dialog. */
     public static void requestInitialPermissionsIfNeeded(Activity activity) {
-        if (runtimePermissionRequestInFlight) {
+        if (runtimePermissionRequestInFlight || initialPermissionFlowInProgress) {
+            return;
+        }
+        if (!AppPreferences.hasCompletedInitialPermissionsPrompt(activity)) {
+            requestAllInitialPermissions(activity);
             return;
         }
         if (!collectMissingRuntimePermissions(activity).isEmpty()) {
@@ -594,6 +799,9 @@ public class PermissionManager {
     /** Visible for unit tests. */
     static void resetRuntimePermissionRequestStateForTests() {
         runtimePermissionRequestInFlight = false;
+        initialPermissionFlowInProgress = false;
+        initialFlowStep = InitialFlowStep.DONE;
+        initialFlowCompletedCallback = null;
         pendingPermissionResults.clear();
     }
 }

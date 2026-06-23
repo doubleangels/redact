@@ -259,6 +259,10 @@ public class CleanFragment extends Fragment {
         }
     }
 
+    void onHostPermissionFlowCompleted() {
+        syncPermissionUi();
+    }
+
     private void syncPermissionUi() {
         if (permissionManager == null || uiStateManager == null) {
             return;
@@ -281,7 +285,10 @@ public class CleanFragment extends Fragment {
             viewModel.getSelectedItems().observe(getViewLifecycleOwner(), items -> {
                 try {
                     mediaAdapter.updateItems(items);
-                    uiStateManager.enableStripButton(!items.isEmpty());
+                    if (viewModel.getCleanProcessingState().getValue()
+                            != MainViewModel.ProcessingState.PROCESSING) {
+                        uiStateManager.enableStripButton(!items.isEmpty());
+                    }
                     if (viewModel.getCleanProcessingState().getValue()
                             == MainViewModel.ProcessingState.COMPLETED) {
                         viewModel.setCleanProcessingState(MainViewModel.ProcessingState.IDLE);

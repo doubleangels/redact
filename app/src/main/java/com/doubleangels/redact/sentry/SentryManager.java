@@ -135,6 +135,23 @@ public final class SentryManager {
                 return true;
             }
         }
+        return isUserCancellation(e);
+    }
+
+    /** True when video/clean work was stopped by the user or lifecycle, not a real failure. */
+    public static boolean isUserCancellation(Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            if (t instanceof InterruptedException) {
+                return true;
+            }
+            String msg = t.getMessage();
+            if (msg != null) {
+                String lower = msg.toLowerCase(Locale.US);
+                if (lower.contains("interrupted") || lower.contains("cancelled")) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -161,7 +178,11 @@ public final class SentryManager {
 
     public static void recordException(Throwable e) {
         if (isIgnored(e)) {
-            Log.e(TAG, "Ignored error:", e);
+            if (isUserCancellation(e)) {
+                Log.i(TAG, "User cancellation — not sending:", e);
+            } else {
+                Log.e(TAG, "Ignored error:", e);
+            }
             return;
         }
         if (!isEnabled()) {

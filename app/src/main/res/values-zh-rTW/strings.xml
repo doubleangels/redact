@@ -312,6 +312,11 @@
     <string name="settings_preserve_location_confirm_message">在清理分頁清理的檔案可能仍含 GPS 座標。從其他 App 分享時一律會移除位置資訊。
 
 僅在您有意保留位置時才開啟。</string>
+    <string name="settings_permission_needs_media">需要照片權限</string>
+    <string name="settings_location_permission_grant">授予照片位置權限</string>
+    <string name="settings_location_needs_media_title">是否先允許照片和影片？</string>
+    <string name="settings_location_needs_media_message">照片位置權限可讓 Redact 讀取媒體中嵌入的 GPS 座標。必須先授予照片和影片資料庫存取權限——逐一選擇檔案不符合要求。\n\n在下一個畫面點按允許存取所有照片和影片。您的裝置通常會在同一步驟授予照片位置權限。</string>
+    <string name="settings_location_grant_media_first">繼續</string>
     <string name="settings_location_permission_granted">已授予照片位置權限。</string>
     <string name="settings_location_permission_denied">已拒絕照片位置權限。</string>
     <string name="settings_crash_reporting_unconfigured">已啟用當機回報，但此版本未設定。</string>

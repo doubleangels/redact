@@ -312,6 +312,11 @@
     <string name="settings_preserve_location_confirm_message">クリーンタブの出力にGPS座標が残る場合があります。他アプリからの共有では常に位置情報を削除します。
 
 意図的に残す場合のみオンにしてください。</string>
+    <string name="settings_permission_needs_media">写真へのアクセスが必要</string>
+    <string name="settings_location_permission_grant">写真の位置情報を許可</string>
+    <string name="settings_location_needs_media_title">先に写真と動画を許可しますか？</string>
+    <string name="settings_location_needs_media_message">写真の位置情報により、Redactはメディアに埋め込まれたGPS座標を読み取れます。まず写真と動画のライブラリアクセスが必要です。個別にファイルを選ぶだけでは不十分です。\n\n次の画面で「すべての写真と動画を許可」をタップしてください。多くの端末では写真の位置情報も同時に付与されます。</string>
+    <string name="settings_location_grant_media_first">続行</string>
     <string name="settings_location_permission_granted">写真の位置情報の権限が許可されました。</string>
     <string name="settings_location_permission_denied">写真の位置情報の権限が拒否されました。</string>
     <string name="settings_crash_reporting_unconfigured">クラッシュ報告は有効ですが、このビルドでは未設定です。</string>

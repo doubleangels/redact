@@ -312,6 +312,11 @@
     <string name="settings_preserve_location_confirm_message">قد تحتوي الملفات المنظفة في تبويب التنظيف على إحداثيات GPS. المشاركة من تطبيقات أخرى تزيل الموقع دائماً.
 
 فعّل هذا فقط إذا أردت الإبقاء على الموقع عمداً.</string>
+    <string name="settings_permission_needs_media">الصور مطلوبة</string>
+    <string name="settings_location_permission_grant">منح إذن موقع الصورة</string>
+    <string name="settings_location_needs_media_title">السماح بالصور والفيديو أولاً؟</string>
+    <string name="settings_location_needs_media_message">يتيح موقع الصورة لـ Redact قراءة إحداثيات GPS المضمنة في وسائطك. يلزم أولاً الوصول إلى مكتبة الصور والفيديو — اختيار الملفات بشكل فردي لا يكفي.\n\nفي الشاشة التالية، اضغط على السماح بجميع الصور والفيديو. عادةً يمنح جهازك إذن موقع الصورة في نفس الخطوة.</string>
+    <string name="settings_location_grant_media_first">متابعة</string>
     <string name="settings_location_permission_granted">تم منح إذن موقع الصورة.</string>
     <string name="settings_location_permission_denied">تم رفض إذن موقع الصورة.</string>
     <string name="settings_crash_reporting_unconfigured">تقارير الأعطال مفعّلة لكن غير مهيأة في هذا الإصدار.</string>
