@@ -669,11 +669,16 @@ public class MainViewModel extends AndroidViewModel {
 
                     } catch (Exception e) {
 
-                        fail++;
-
-                        SentryManager.recordException(e);
-
-                        span.setStatus(SpanStatus.INTERNAL_ERROR);
+                        boolean cancelled = Thread.currentThread().isInterrupted()
+                                || runGeneration != convertGeneration.get()
+                                || SentryManager.isUserCancellation(e);
+                        if (cancelled) {
+                            span.setStatus(SpanStatus.CANCELLED);
+                        } else {
+                            fail++;
+                            SentryManager.recordException(e);
+                            span.setStatus(SpanStatus.INTERNAL_ERROR);
+                        }
 
                     } finally {
 
