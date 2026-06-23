@@ -259,6 +259,10 @@ public class CleanFragment extends Fragment {
         }
     }
 
+    void onHostPermissionFlowCompleted() {
+        syncPermissionUi();
+    }
+
     private void syncPermissionUi() {
         if (permissionManager == null || uiStateManager == null) {
             return;

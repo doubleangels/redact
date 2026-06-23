@@ -473,6 +473,10 @@ public class ConvertFragment extends Fragment {
         }
     }
 
+    void onHostPermissionFlowCompleted() {
+        syncSelectButtonForPickerAccess();
+    }
+
     void handlePermissionResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         try {
             if (permissionManager != null) {
