@@ -89,6 +89,9 @@ public class PermissionManager {
     /** Tracks whether location permission request has been shown to the user */
     private boolean hasShownLocationRationale = false;
 
+    /** Request photo location after the user grants full media library access. */
+    private boolean pendingLocationAfterMedia = false;
+
     /**
      * Creates a new PermissionManager instance.
      *
@@ -250,9 +253,20 @@ public class PermissionManager {
 
     /**
      * Requests the ACCESS_MEDIA_LOCATION permission for accessing media geolocation data.
+     * On Android 13+, the system only shows this prompt after full photo/video library access
+     * is granted, so this method requests media access first when needed.
      */
     public void requestLocationPermission() {
         try {
+            if (!needsLocationPermission()) {
+                return;
+            }
+            if (!PermissionStatusHelper.hasMediaReadPrerequisiteForLocation(activity)) {
+                pendingLocationAfterMedia = true;
+                SentryManager.log("Requesting media access before photo location permission");
+                requestMissingRuntimePermissions(activity);
+                return;
+            }
             hasShownLocationRationale = true;
             SentryManager.setCustomKey("has_shown_location_rationale", true);
             SentryManager.log("Requesting ACCESS_MEDIA_LOCATION permission");
@@ -380,7 +394,14 @@ public class PermissionManager {
         if (!stillNeedsPermissions) {
             SentryManager.log("All media permissions granted");
             callback.onPermissionsGranted();
+            if (pendingLocationAfterMedia && needsLocationPermission()) {
+                pendingLocationAfterMedia = false;
+                requestMediaLocationPermission();
+            } else {
+                pendingLocationAfterMedia = false;
+            }
         } else {
+            pendingLocationAfterMedia = false;
             SentryManager.log("Some media permissions denied");
             callback.onPermissionsDenied();
             handlePermissionDenial();

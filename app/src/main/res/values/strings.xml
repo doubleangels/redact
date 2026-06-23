@@ -69,7 +69,7 @@
     <string name="settings_share_confirm_dialog_cancel">Cancel</string>
 
     <string name="settings_section_permissions">Permissions</string>
-    <string name="settings_permissions_subtitle">On Android 13+, Redact uses the system file picker so you can browse Downloads, Files, or gallery folders without granting broad library access. Optional full photo/video permission can help with some paths. Notifications and network access are optional.</string>
+    <string name="settings_permissions_subtitle">On Android 13+, Redact uses the system file picker so you can browse Downloads, Files, or gallery folders without granting broad library access. To read GPS coordinates in Scan, grant Photos &amp; Videos access, then Photo Location. Notifications and network access are optional.</string>
     <string name="settings_permissions_media">Photos &amp; Videos</string>
     <string name="settings_permissions_location">Photo Location</string>
     <string name="settings_permissions_notifications">Notifications (Optional)</string>
@@ -87,7 +87,12 @@
     <string name="settings_permission_granted">Granted</string>
     <string name="settings_permission_partial">Partial</string>
     <string name="settings_permission_denied">Denied</string>
+    <string name="settings_permission_needs_media">Photo access needed</string>
     <string name="settings_permission_not_required">Not Required</string>
+    <string name="settings_location_permission_grant">Grant Photo Location</string>
+    <string name="settings_location_needs_media_title">Grant photo library access first</string>
+    <string name="settings_location_needs_media_message">Android only shows the photo location permission after you allow Redact to access photos or videos in your library. File-picker access alone is not enough to read GPS coordinates embedded in media.\n\nOn the next screen, choose Allow all photos and videos (not just selected items), then you can grant photo location access.</string>
+    <string name="settings_location_grant_media_first">Continue</string>
     <string name="settings_open_system_settings">Open System Settings</string>
 
     <string name="settings_section_storage">Storage &amp; Cache</string>

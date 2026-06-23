@@ -22,6 +22,8 @@ public final class PermissionStatusHelper {
         GRANTED,
         PARTIAL,
         DENIED,
+        /** Location permission cannot be requested until full photo/video library access is granted. */
+        BLOCKED,
         NOT_REQUIRED
     }
 
@@ -57,8 +59,30 @@ public final class PermissionStatusHelper {
                 == PackageManager.PERMISSION_GRANTED ? Status.GRANTED : Status.DENIED;
     }
 
+    /**
+     * Android only shows the photo-location permission prompt when the app already holds
+     * {@link Manifest.permission#READ_MEDIA_IMAGES} or {@link Manifest.permission#READ_MEDIA_VIDEO}
+     * (or legacy storage read on older API levels).
+     */
+    public static boolean hasMediaReadPrerequisiteForLocation(@NonNull Context context) {
+        Context app = context.getApplicationContext();
+        int sdk = testSdkIntOverride != null ? testSdkIntOverride : Build.VERSION.SDK_INT;
+        if (sdk >= Build.VERSION_CODES.TIRAMISU) {
+            boolean images = ContextCompat.checkSelfPermission(app, Manifest.permission.READ_MEDIA_IMAGES)
+                    == PackageManager.PERMISSION_GRANTED;
+            boolean videos = ContextCompat.checkSelfPermission(app, Manifest.permission.READ_MEDIA_VIDEO)
+                    == PackageManager.PERMISSION_GRANTED;
+            return images || videos;
+        }
+        return ContextCompat.checkSelfPermission(app, Manifest.permission.READ_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
     @NonNull
     public static Status getLocationStatus(@NonNull Context context) {
+        if (!hasMediaReadPrerequisiteForLocation(context)) {
+            return Status.BLOCKED;
+        }
         Context app = context.getApplicationContext();
         return ContextCompat.checkSelfPermission(app, Manifest.permission.ACCESS_MEDIA_LOCATION)
                 == PackageManager.PERMISSION_GRANTED ? Status.GRANTED : Status.DENIED;

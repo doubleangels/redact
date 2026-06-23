@@ -72,8 +72,12 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/rowPermissionLocation"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:paddingTop="6dp"
@@ -95,6 +99,17 @@
                         tools:text="Denied"
                         tools:textColor="@color/permission_status_denied" />
                 </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonLocationPermission"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:minHeight="48dp"
+                    android:text="@string/settings_location_permission_grant"
+                    android:visibility="gone"
+                    app:cornerRadius="@dimen/component_corner_medium" />
 
                 <LinearLayout
                     android:layout_width="match_parent"

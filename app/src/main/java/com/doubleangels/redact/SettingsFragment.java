@@ -20,6 +20,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.permission.PermissionStatusHelper;
 import com.doubleangels.redact.privacy.NetworkAccess;
 import com.doubleangels.redact.ui.MainViewModel;
@@ -42,6 +43,7 @@ public class SettingsFragment extends Fragment {
     private boolean suppressNotificationToggleCallback;
     private boolean suppressCrashReportingToggleCallback;
     private boolean suppressPreserveLocationToggleCallback;
+    private boolean requestLocationAfterMediaGrant;
 
     private MaterialSwitch switchNotifications;
     private MaterialSwitch switchClean;
@@ -54,6 +56,7 @@ public class SettingsFragment extends Fragment {
     private View rowProgress;
     private TextView textPermissionMediaStatus;
     private TextView textPermissionLocationStatus;
+    private MaterialButton buttonLocationPermission;
     private TextView textPermissionNotificationsStatus;
     private TextView textPermissionNetworkStatus;
     private MaterialButton buttonNetworkAccess;
@@ -119,6 +122,7 @@ public class SettingsFragment extends Fragment {
         super.onResume();
         refreshPermissionStatuses();
         refreshStorageSize();
+        maybeRequestLocationAfterMediaGrant();
     }
 
     @Override
@@ -142,6 +146,7 @@ public class SettingsFragment extends Fragment {
         rowProgress = view.findViewById(R.id.rowProgressNotifications);
         textPermissionMediaStatus = view.findViewById(R.id.textPermissionMediaStatus);
         textPermissionLocationStatus = view.findViewById(R.id.textPermissionLocationStatus);
+        buttonLocationPermission = view.findViewById(R.id.buttonLocationPermission);
         textPermissionNotificationsStatus = view.findViewById(R.id.textPermissionNotificationsStatus);
         textPermissionNetworkStatus = view.findViewById(R.id.textPermissionNetworkStatus);
         buttonNetworkAccess = view.findViewById(R.id.buttonNetworkAccess);
@@ -426,6 +431,13 @@ public class SettingsFragment extends Fragment {
                         null);
             }
         });
+        View rowPermissionLocation = view.findViewById(R.id.rowPermissionLocation);
+        if (rowPermissionLocation != null) {
+            rowPermissionLocation.setOnClickListener(v -> requestLocationPermissionFromSettings());
+        }
+        if (buttonLocationPermission != null) {
+            buttonLocationPermission.setOnClickListener(v -> requestLocationPermissionFromSettings());
+        }
         refreshPermissionStatuses();
     }
 
@@ -474,14 +486,14 @@ public class SettingsFragment extends Fragment {
                 textPermissionMediaStatus,
                 PermissionStatusHelper.getMediaAccessStatus(requireContext()));
         if (textPermissionLocationStatus != null) {
-            applyPermissionStatus(
-                    textPermissionLocationStatus,
-                    PermissionStatusHelper.getLocationStatus(requireContext()));
-            View locationRow = textPermissionLocationStatus.getParent() instanceof View parent
-                    ? parent
-                    : null;
-            if (locationRow != null) {
-                locationRow.setOnClickListener(v -> requestLocationPermissionFromSettings());
+            PermissionStatusHelper.Status locationStatus =
+                    PermissionStatusHelper.getLocationStatus(requireContext());
+            applyPermissionStatus(textPermissionLocationStatus, locationStatus);
+            if (buttonLocationPermission != null) {
+                buttonLocationPermission.setVisibility(
+                        locationStatus == PermissionStatusHelper.Status.GRANTED
+                                ? View.GONE
+                                : View.VISIBLE);
             }
         }
         applyPermissionStatus(
@@ -527,6 +539,10 @@ public class SettingsFragment extends Fragment {
                     com.google.android.material.R.attr.colorSecondary,
                     ContextCompat.getColor(requireContext(), R.color.accent));
             case DENIED -> ContextCompat.getColor(requireContext(), R.color.permission_status_denied);
+            case BLOCKED -> MaterialColors.getColor(
+                    requireContext(),
+                    com.google.android.material.R.attr.colorSecondary,
+                    ContextCompat.getColor(requireContext(), R.color.accent));
             case NOT_REQUIRED -> MaterialColors.getColor(
                     requireContext(),
                     com.google.android.material.R.attr.colorOnSurfaceVariant,
@@ -540,6 +556,7 @@ public class SettingsFragment extends Fragment {
             case GRANTED -> R.string.settings_permission_granted;
             case PARTIAL -> R.string.settings_permission_partial;
             case DENIED -> R.string.settings_permission_denied;
+            case BLOCKED -> R.string.settings_permission_needs_media;
             case NOT_REQUIRED -> R.string.settings_permission_not_required;
         };
     }
@@ -615,7 +632,35 @@ public class SettingsFragment extends Fragment {
                 == android.content.pm.PackageManager.PERMISSION_GRANTED) {
             return;
         }
+        if (!PermissionStatusHelper.hasMediaReadPrerequisiteForLocation(requireContext())) {
+            new MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.settings_location_needs_media_title)
+                    .setMessage(R.string.settings_location_needs_media_message)
+                    .setPositiveButton(R.string.settings_location_grant_media_first, (d, w) -> {
+                        requestLocationAfterMediaGrant = true;
+                        PermissionManager.requestMissingRuntimePermissions(requireActivity());
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+            return;
+        }
         locationPermissionLauncher.launch(android.Manifest.permission.ACCESS_MEDIA_LOCATION);
+    }
+
+    private void maybeRequestLocationAfterMediaGrant() {
+        if (!requestLocationAfterMediaGrant) {
+            return;
+        }
+        if (!PermissionStatusHelper.hasMediaReadPrerequisiteForLocation(requireContext())) {
+            requestLocationAfterMediaGrant = false;
+            return;
+        }
+        requestLocationAfterMediaGrant = false;
+        if (ContextCompat.checkSelfPermission(
+                        requireContext(), android.Manifest.permission.ACCESS_MEDIA_LOCATION)
+                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            locationPermissionLauncher.launch(android.Manifest.permission.ACCESS_MEDIA_LOCATION);
+        }
     }
 
     private final ActivityResultLauncher<String> locationPermissionLauncher =
