@@ -3,15 +3,24 @@ updates:
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
-      interval: "daily"
-    target-branch: "dev"
+      interval: daily
+    target-branch: dev
     commit-message:
       prefix: "[Github Actions]"
 
-  - package-ecosystem: npm
+  - package-ecosystem: gradle
     directory: "/"
     schedule:
-      interval: "daily"
-    target-branch: "dev"
+      interval: weekly
+    target-branch: dev
     commit-message:
-      prefix: "[NPM]"
+      prefix: "[Gradle]"
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: bundler
+    directory: "/"
+    schedule:
+      interval: weekly
+    target-branch: dev
+    commit-message:
+      prefix: "[Bundler]"
