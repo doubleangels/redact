@@ -709,7 +709,7 @@ public class PermissionManager {
         }
     }
 
-    static void requestMissingRuntimePermissions(Activity activity) {
+    public static void requestMissingRuntimePermissions(Activity activity) {
         try {
             java.util.List<String> permissions = collectMissingRuntimePermissions(activity);
             if (permissions.isEmpty()) {
