@@ -51,6 +51,12 @@ android {
         buildConfig true
     }
 
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+
 }
 
 dependencies {
@@ -70,6 +76,8 @@ dependencies {
     implementation libs.lifecycle.viewmodel.ktx
 
     testImplementation libs.junit
+    testImplementation libs.robolectric
+    testImplementation libs.arch.core.testing
 
     debugImplementation libs.leakcanary.android
 }

@@ -325,9 +325,10 @@ public class ConvertFragment extends Fragment {
         viewModel.getConvertSelectedItems().observe(getViewLifecycleOwner(), items -> {
             List<MediaItem> list = items != null ? items : List.of();
             convertFileAdapter.setItems(list);
-            convertButton.setEnabled(!list.isEmpty()
-                    && viewModel.getConvertProcessingState().getValue()
-                            != MainViewModel.ProcessingState.PROCESSING);
+            if (viewModel.getConvertProcessingState().getValue()
+                    != MainViewModel.ProcessingState.PROCESSING) {
+                convertButton.setEnabled(!list.isEmpty());
+            }
             if (list.isEmpty()) {
                 statusText.setText(R.string.convert_status_ready);
             } else if (viewModel.getConvertProcessingState().getValue()

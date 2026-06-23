@@ -191,6 +191,10 @@ public class MediaProcessor {
                             lastProcessedFileUri = processedUri;
                             successCount++;
                             span.setStatus(SpanStatus.OK);
+                        } else if (cancelled.get()) {
+                            VideoMedia3Converter.cancelActiveTranscode();
+                            span.setStatus(SpanStatus.CANCELLED);
+                            break;
                         } else {
                             Log.e(TAG, "Failed to process item at index " + index);
                             span.setStatus(SpanStatus.INTERNAL_ERROR);
@@ -206,6 +210,11 @@ public class MediaProcessor {
                         }
                     } catch (Exception e) {
                         metadataStripper.setProgressCallback(null);
+                        if (cancelled.get() || SentryManager.isUserCancellation(e)) {
+                            VideoMedia3Converter.cancelActiveTranscode();
+                            span.setStatus(SpanStatus.CANCELLED);
+                            break;
+                        }
                         Log.e(TAG, "Error processing item at index " + index, e);
                         SentryManager.recordException(e);
                         span.setStatus(SpanStatus.INTERNAL_ERROR);

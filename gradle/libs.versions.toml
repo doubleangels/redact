@@ -15,6 +15,8 @@ sentryGradlePlugin = "6.12.0"
 commonsImaging = "1.0.0-alpha6"
 leakcanary = "2.14"
 junit = "4.13.2"
+robolectric = "4.14.1"
+archCoreTesting = "2.2.0"
 
 [libraries]
 activity = { module = "androidx.activity:activity", version.ref = "activity" }
@@ -32,6 +34,8 @@ lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-view
 commons-imaging = { module = "org.apache.commons:commons-imaging", version.ref = "commonsImaging" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 junit = { module = "junit:junit", version.ref = "junit" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+arch-core-testing = { module = "androidx.arch.core:core-testing", version.ref = "archCoreTesting" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

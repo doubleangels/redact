@@ -352,6 +352,10 @@ public class MainViewModel extends AndroidViewModel {
     public void cancelCleaning() {
         cleanGeneration.incrementAndGet();
         mediaProcessor.cancel();
+        LocalNotifications.cancelCleanProgress(getApplication());
+        LocalNotifications.stopProcessingForeground(getApplication());
+        setCleanProcessingState(ProcessingState.CANCELLED);
+        cleanProgressMessage.postValue(getApplication().getString(R.string.status_processing_cancelled));
     }
 
     public void cancelConversion() {

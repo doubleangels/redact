@@ -205,6 +205,21 @@ public class MetadataStripper {
         }
     }
 
+    private static boolean shouldPropagateCancellation(Throwable e) {
+        if (SentryManager.isUserCancellation(e)) {
+            return true;
+        }
+        Throwable cause = e.getCause();
+        return cause != null && SentryManager.isUserCancellation(cause);
+    }
+
+    private static RuntimeException asCancellationException(Throwable e) {
+        if (e instanceof RuntimeException runtimeException) {
+            return runtimeException;
+        }
+        return new RuntimeException(e);
+    }
+
     /**
      * Creates a new MetadataStripper instance.
      *
@@ -289,12 +304,14 @@ public class MetadataStripper {
         Uri newUri = null;
 
         try {
+            throwIfCancelled();
             enforceVideoSizeLimit(sourceUri);
 
             updateProgress(1, 4, "Reading video...");
 
             VideoPrivacySnapshot sourceSnapshot = extractVideoPrivacyMetadata(sourceUri);
 
+            throwIfCancelled();
             int formatIndex = detectVideoFormatIndex(sourceUri, originalFilename);
 
             updateProgress(2, 4, "Transmuxing...");
@@ -308,6 +325,7 @@ public class MetadataStripper {
                     updateProgress(3, 4, "Verifying metadata removal...");
                     requireVideoMetadataClean(tempCleanFile, sourceSnapshot);
                     updateProgress(4, 4, "Saving clean copy...");
+                    checkCancelled();
                     newUri = VideoMedia3Converter.copyToMoviesRedact(
                             context, tempCleanFile, generateShortRandomName(), formatIndex);
                 } else {
@@ -325,6 +343,7 @@ public class MetadataStripper {
                                         this::reportTranscodeProgress);
                         requireVideoMetadataClean(transcodeOutput, sourceSnapshot);
                         updateProgress(4, 4, "Saving cleaned video...");
+                        checkCancelled();
                         newUri =
                                 VideoMedia3Converter.copyToMoviesRedact(
                                         context,
@@ -351,7 +370,26 @@ public class MetadataStripper {
             SentryManager.log("Video processed successfully.");
             SentryManager.setCustomKey("success", true);
 
+        } catch (RuntimeException e) {
+            if (shouldPropagateCancellation(e)) {
+                throw e;
+            }
+            Log.e(TAG, "Error processing video", e);
+            SentryManager.recordException(e);
+            SentryManager.setCustomKey("success", false);
+            SentryManager.setCustomKey("error_type", e.getClass().getName());
+
+            if (newUri != null) {
+                try {
+                    contentResolver.delete(newUri, null, null);
+                } catch (Exception cleanupEx) {
+                    SentryManager.log("Failed to clean up partial file: " + cleanupEx.getMessage());
+                }
+            }
         } catch (Exception e) {
+            if (shouldPropagateCancellation(e)) {
+                throw asCancellationException(e);
+            }
             // Log error and clean up any partial files
             Log.e(TAG, "Error processing video", e);
             SentryManager.recordException(e);
@@ -523,7 +561,26 @@ public class MetadataStripper {
             SentryManager.log("Image processed successfully.");
             SentryManager.setCustomKey("success", true);
 
+        } catch (RuntimeException e) {
+            if (shouldPropagateCancellation(e)) {
+                throw e;
+            }
+            Log.e(TAG, "Error processing image", e);
+            SentryManager.recordException(e);
+            SentryManager.setCustomKey("success", false);
+            SentryManager.setCustomKey("error_type", e.getClass().getName());
+
+            if (newUri != null) {
+                try {
+                    contentResolver.delete(newUri, null, null);
+                } catch (Exception cleanupEx) {
+                    SentryManager.log("Failed to clean up partial file: " + cleanupEx.getMessage());
+                }
+            }
         } catch (Exception e) {
+            if (shouldPropagateCancellation(e)) {
+                throw asCancellationException(e);
+            }
             // Log error and clean up any partial files
             Log.e(TAG, "Error processing image", e);
             SentryManager.recordException(e);
