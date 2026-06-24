@@ -4,8 +4,8 @@
     <string name="app_name">Redact</string>
 
     
-    <string name="content_description_image_view">Image view</string>
-    <string name="content_description_scroll_view">Scroll view</string>
+    <string name="content_description_image_view">Image View</string>
+    <string name="content_description_scroll_view">Scroll View</string>
 
     
     <string name="notification_channel_tasks_name">Tasks</string>
@@ -133,7 +133,7 @@
     <string name="convert_codec_fallback">%1$s unavailable; saved as %2$s instead.</string>
     <string name="convert_output_format_images">Image Format</string>
     <string name="convert_output_format_videos">Video Codec</string>
-    <string name="convert_output_format_mixed">Formats (image / video)</string>
+    <string name="convert_output_format_mixed">Formats (Image / Video)</string>
     <string name="convert_format_mixed_pair">%1$s · %2$s</string>
     <string name="convert_format_jpeg">JPEG</string>
     <string name="convert_format_png">PNG</string>
@@ -213,11 +213,11 @@
     <string name="scan_metadata_subtitle">Detected fields from this file. Tap and hold values to copy.</string>
     <string name="scan_location_permission_missing">GPS coordinates might be available if you grant the location permission.</string>
     <string name="scan_extraction_fail">We couldn\'t retrieve the metadata.</string>
-    <string name="scan_copy_coordinates">Copy coordinates</string>
-    <string name="scan_copy_camera">Copy camera info</string>
-    <string name="scan_copy_all_metadata">Copy all metadata</string>
-    <string name="scan_clean_this_file">Clean this file</string>
-    <string name="scan_convert_this_file">Convert this file</string>
+    <string name="scan_copy_coordinates">Copy Coordinates</string>
+    <string name="scan_copy_camera">Copy Camera Info</string>
+    <string name="scan_copy_all_metadata">Copy All Metadata</string>
+    <string name="scan_clean_this_file">Clean This File</string>
+    <string name="scan_convert_this_file">Convert This File</string>
     <string name="scan_copied_to_clipboard">Copied to clipboard</string>
 
     
@@ -293,7 +293,7 @@
     <string name="settings_preserve_camera_subtitle">Retain aperture, shutter speed, ISO, and camera make/model on the Clean tab. Ignored when Strict Clean is on or when sharing from other apps.</string>
     <string name="settings_preserve_location">Keep Location</string>
     <string name="settings_preserve_location_subtitle">Retain GPS coordinates on the Clean tab. Ignored when Strict Clean is on or when sharing from other apps.</string>
-    <string name="settings_preserve_location_confirm_title">Keep GPS on cleaned photos?</string>
+    <string name="settings_preserve_location_confirm_title">Keep GPS on Cleaned Photos?</string>
     <string name="settings_preserve_location_confirm_message">Cleaned files on the Clean tab may still contain GPS coordinates. Sharing from other apps always strips location.\n\nTurn this on only if you intentionally want location kept.</string>
     <string name="settings_location_permission_granted">Photo location permission granted.</string>
     <string name="settings_location_permission_denied">Photo location permission denied.</string>
@@ -301,7 +301,7 @@
     <string name="settings_crash_reporting_init_failed">Crash reporting could not start. Try again later.</string>
     <string name="settings_network_consent_allow">Allow Network Access</string>
     <string name="settings_network_consent_cancel">Not Now</string>
-    <string name="settings_network_consent_crash_title">Allow crash reporting over the network?</string>
+    <string name="settings_network_consent_crash_title">Allow Crash Reporting over the Network?</string>
     <string name="settings_network_consent_crash_message">Send Crash Reports uploads anonymized diagnostics to Sentry over the internet. Redact does not use the network until you allow this.\n\nNo photos, videos, filenames, or GPS coordinates are uploaded.</string>
     <string name="settings_strict_clean">Strict Clean</string>
     <string name="settings_strict_clean_subtitle">Remove all metadata, including orientation. Turns off keep options above and always fully re-encodes video.</string>
