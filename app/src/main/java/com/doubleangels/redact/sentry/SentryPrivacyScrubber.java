@@ -87,7 +87,8 @@ public final class SentryPrivacyScrubber {
                     continue;
                 }
                 SentryLogEventAttributeValue value = logEvent.getAttributes().get(key);
-                if (value != null && value.getType() == SentryAttributeType.STRING) {
+                if (value != null
+                        && SentryAttributeType.STRING.apiName().equals(value.getType())) {
                     Object raw = value.getValue();
                     if (raw instanceof String stringValue) {
                         logEvent.setAttribute(
@@ -111,7 +112,8 @@ public final class SentryPrivacyScrubber {
                     continue;
                 }
                 SentryLogEventAttributeValue value = metric.getAttributes().get(key);
-                if (value != null && value.getType() == SentryAttributeType.STRING) {
+                if (value != null
+                        && SentryAttributeType.STRING.apiName().equals(value.getType())) {
                     Object raw = value.getValue();
                     if (raw instanceof String stringValue) {
                         metric.setAttribute(
