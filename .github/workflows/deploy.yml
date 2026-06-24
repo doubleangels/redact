@@ -79,7 +79,7 @@ jobs:
         with:
           serviceAccountJson: service_account.json
           packageName: com.doubleangels.redact
-          releaseFiles: app/build/outputs/bundle/release/app-release.aab
+          releaseFiles: app-release.aab
           tracks: production
           whatsNewDirectory: whatsnew
 
