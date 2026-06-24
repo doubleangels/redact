@@ -135,9 +135,11 @@ public class MediaProcessor {
         cancelled.set(false);
         metadataStripper.resetCancellation();
         processingExecutor.execute(() -> {
-            ITransaction transaction = SentryManager.startTransaction("clean_multiple", "task");
-            int successCount = 0;
             final int totalItems = items.size();
+            ITransaction transaction = SentryManager.startTransaction("clean_multiple", "task");
+            long batchStartMs = System.currentTimeMillis();
+            SentryManager.distribution("processing.batch.size", totalItems, "operation_type", "clean");
+            int successCount = 0;
             try {
                 for (int index = 0; index < totalItems; index++) {
                     if (cancelled.get()) {
@@ -190,6 +192,8 @@ public class MediaProcessor {
                         if (processedUri != null) {
                             lastProcessedFileUri = processedUri;
                             successCount++;
+                            SentryManager.count(
+                                    "processing.clean.success", 1, "is_video", String.valueOf(item.isVideo()));
                             span.setStatus(SpanStatus.OK);
                         } else if (cancelled.get()) {
                             VideoMedia3Converter.cancelActiveTranscode();
@@ -197,6 +201,8 @@ public class MediaProcessor {
                             break;
                         } else {
                             Log.e(TAG, "Failed to process item at index " + index);
+                            SentryManager.count(
+                                    "processing.clean.failure", 1, "is_video", String.valueOf(item.isVideo()));
                             span.setStatus(SpanStatus.INTERNAL_ERROR);
                             final String failLine =
                                     context.getString(R.string.clean_item_failed, item.fileName());
@@ -217,6 +223,13 @@ public class MediaProcessor {
                         }
                         Log.e(TAG, "Error processing item at index " + index, e);
                         SentryManager.recordException(e);
+                        SentryManager.count(
+                                "processing.clean.failure",
+                                1,
+                                "is_video",
+                                String.valueOf(item.isVideo()),
+                                "error_type",
+                                e.getClass().getSimpleName());
                         span.setStatus(SpanStatus.INTERNAL_ERROR);
                     } finally {
                         span.finish();
@@ -238,6 +251,11 @@ public class MediaProcessor {
                 });
                 processing.set(false);
                 cancelled.set(false);
+                SentryManager.distributionDurationMs(
+                        "processing.duration_ms",
+                        System.currentTimeMillis() - batchStartMs,
+                        "operation_type",
+                        "clean");
                 transaction.finish();
             }
         });

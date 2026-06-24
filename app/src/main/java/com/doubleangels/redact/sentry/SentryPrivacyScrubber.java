@@ -7,10 +7,14 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import io.sentry.Breadcrumb;
+import io.sentry.SentryAttributeType;
 import io.sentry.SentryEvent;
+import io.sentry.SentryLogEventAttributeValue;
 import io.sentry.protocol.Message;
 import io.sentry.protocol.SentrySpan;
 import io.sentry.protocol.SentryTransaction;
+import io.sentry.SentryLogEvent;
+import io.sentry.SentryMetricsEvent;
 
 /**
  * Redacts URIs, filesystem paths, filenames, and GPS coordinates from Sentry payloads.
@@ -42,6 +46,10 @@ public final class SentryPrivacyScrubber {
                     "((?:file(?:Name)?|resolved processed file|item:)\\s*[:=]?)\\s*[^\\s,;]+\\.[a-zA-Z0-9]{1,8}",
                     Pattern.CASE_INSENSITIVE);
 
+    private static final String[] PII_ATTRIBUTE_KEYS = {
+            "user.id", "user.name", "user.email", "user_id", "user_name", "user_email"
+    };
+
     private SentryPrivacyScrubber() {
     }
 
@@ -63,6 +71,57 @@ public final class SentryPrivacyScrubber {
             s = s.substring(0, 500) + "…";
         }
         return s;
+    }
+
+    public static void scrubLog(@Nullable SentryLogEvent logEvent) {
+        if (logEvent == null) {
+            return;
+        }
+        if (logEvent.getBody() != null) {
+            logEvent.setBody(scrub(logEvent.getBody()));
+        }
+        if (logEvent.getAttributes() != null) {
+            for (String key : new java.util.ArrayList<>(logEvent.getAttributes().keySet())) {
+                if (isPiiAttributeKey(key)) {
+                    logEvent.getAttributes().remove(key);
+                    continue;
+                }
+                SentryLogEventAttributeValue value = logEvent.getAttributes().get(key);
+                if (value != null && value.getType() == SentryAttributeType.STRING) {
+                    Object raw = value.getValue();
+                    if (raw instanceof String stringValue) {
+                        logEvent.setAttribute(
+                                key,
+                                new SentryLogEventAttributeValue(
+                                        SentryAttributeType.STRING, scrub(stringValue)));
+                    }
+                }
+            }
+        }
+    }
+
+    public static void scrubMetric(@Nullable SentryMetricsEvent metric) {
+        if (metric == null) {
+            return;
+        }
+        if (metric.getAttributes() != null) {
+            for (String key : new java.util.ArrayList<>(metric.getAttributes().keySet())) {
+                if (isPiiAttributeKey(key) || isSensitiveMetricAttributeKey(key)) {
+                    metric.getAttributes().remove(key);
+                    continue;
+                }
+                SentryLogEventAttributeValue value = metric.getAttributes().get(key);
+                if (value != null && value.getType() == SentryAttributeType.STRING) {
+                    Object raw = value.getValue();
+                    if (raw instanceof String stringValue) {
+                        metric.setAttribute(
+                                key,
+                                new SentryLogEventAttributeValue(
+                                        SentryAttributeType.STRING, scrub(stringValue)));
+                    }
+                }
+            }
+        }
     }
 
     public static void scrubBreadcrumb(Breadcrumb breadcrumb) {
@@ -197,6 +256,32 @@ public final class SentryPrivacyScrubber {
                 frame.setFunction(scrub(frame.getFunction()));
             }
         }
+    }
+
+    private static boolean isPiiAttributeKey(@Nullable String key) {
+        if (key == null) {
+            return false;
+        }
+        String lower = key.toLowerCase(Locale.US);
+        for (String pii : PII_ATTRIBUTE_KEYS) {
+            if (lower.equals(pii)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isSensitiveMetricAttributeKey(@Nullable String key) {
+        if (key == null) {
+            return false;
+        }
+        String lower = key.toLowerCase(Locale.US);
+        return lower.contains("file")
+                || lower.contains("path")
+                || lower.contains("uri")
+                || lower.contains("location")
+                || lower.contains("latitude")
+                || lower.contains("longitude");
     }
 
     private static String scrubTag(String key, String value) {

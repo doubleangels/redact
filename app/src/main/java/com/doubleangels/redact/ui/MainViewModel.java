@@ -554,6 +554,8 @@ public class MainViewModel extends AndroidViewModel {
         convertExecutor.execute(() -> {
 
             ITransaction transaction = SentryManager.startTransaction("convert_multiple", "task");
+            long batchStartMs = System.currentTimeMillis();
+            SentryManager.distribution("processing.batch.size", total, "operation_type", "convert");
 
             int ok = 0;
 
@@ -668,6 +670,8 @@ public class MainViewModel extends AndroidViewModel {
                         }
 
                         ok++;
+                        SentryManager.count(
+                                "processing.convert.success", 1, "is_video", String.valueOf(mediaItem.isVideo()));
 
                         span.setStatus(SpanStatus.OK);
 
@@ -681,6 +685,13 @@ public class MainViewModel extends AndroidViewModel {
                         } else {
                             fail++;
                             SentryManager.recordException(e);
+                            SentryManager.count(
+                                    "processing.convert.failure",
+                                    1,
+                                    "is_video",
+                                    String.valueOf(mediaItem.isVideo()),
+                                    "error_type",
+                                    e.getClass().getSimpleName());
                             span.setStatus(SpanStatus.INTERNAL_ERROR);
                         }
 
@@ -725,6 +736,11 @@ public class MainViewModel extends AndroidViewModel {
                         LocalNotifications.showConversionComplete(getApplication(), finalOk, finalFail);
                     }
                 });
+                SentryManager.distributionDurationMs(
+                        "processing.duration_ms",
+                        System.currentTimeMillis() - batchStartMs,
+                        "operation_type",
+                        "convert");
                 transaction.finish();
             }
 
