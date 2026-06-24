@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Filter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -468,10 +469,30 @@ public class SettingsFragment extends Fragment {
                                @NonNull String[] labels,
                                int selectedIndex,
                                @NonNull IndexConsumer onSelected) {
+        // Exposed dropdown menus must not filter by the current text, or only the selected item appears.
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 requireContext(),
                 android.R.layout.simple_dropdown_item_1line,
-                labels);
+                labels) {
+            @NonNull
+            @Override
+            public Filter getFilter() {
+                return new Filter() {
+                    @Override
+                    protected FilterResults performFiltering(CharSequence constraint) {
+                        FilterResults results = new FilterResults();
+                        results.values = labels;
+                        results.count = labels.length;
+                        return results;
+                    }
+
+                    @Override
+                    protected void publishResults(CharSequence constraint, FilterResults results) {
+                        notifyDataSetChanged();
+                    }
+                };
+            }
+        };
         dropdown.setAdapter(adapter);
         int clamped = Math.min(selectedIndex, labels.length - 1);
         dropdown.setText(labels[clamped], false);
