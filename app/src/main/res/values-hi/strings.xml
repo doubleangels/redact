@@ -240,6 +240,7 @@
     <string name="settings_about_github">GitHub पर स्रोत देखें</string>
     <string name="settings_about_privacy">गोपनीयता नीति</string>
     <string name="settings_about_report_issue">समस्या रिपोर्ट करें</string>
+    <string name="settings_about_donate">दान करें</string>
     <string name="settings_link_unavailable">इस लिंक को खोलने के लिए कोई ऐप नहीं मिला।</string>
     <string name="settings_progress_notifications_label">चल रहे कार्य की प्रगति</string>
     <string name="settings_progress_notifications_subtitle">लंबे कार्यों के दौरान प्रगति वाली स्थायी सूचना। नोटिफ़िकेशन अनुमति चालू होने तक डिफ़ॉल्ट बंद।</string>

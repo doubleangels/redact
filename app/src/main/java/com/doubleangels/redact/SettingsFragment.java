@@ -463,6 +463,8 @@ public class SettingsFragment extends Fragment {
                 openUrl(getString(R.string.url_privacy_policy)));
         view.findViewById(R.id.rowAboutReportIssue).setOnClickListener(v ->
                 openUrl(getString(R.string.url_report_issue)));
+        view.findViewById(R.id.rowAboutDonate).setOnClickListener(v ->
+                openUrl(getString(R.string.url_donate)));
     }
 
     private void setupDropdown(@NonNull MaterialAutoCompleteTextView dropdown,

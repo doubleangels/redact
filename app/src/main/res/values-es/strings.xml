@@ -240,6 +240,7 @@
     <string name="settings_about_github">Ver Código En GitHub</string>
     <string name="settings_about_privacy">Política De Privacidad</string>
     <string name="settings_about_report_issue">Informar Un Problema</string>
+    <string name="settings_about_donate">Donar</string>
     <string name="settings_link_unavailable">No se encontró una app para abrir este enlace.</string>
     <string name="settings_progress_notifications_label">Progreso de tarea en curso</string>
     <string name="settings_progress_notifications_subtitle">Notificación persistente con progreso en tareas largas. Desactivada por defecto hasta que actives Permitir notificaciones.</string>

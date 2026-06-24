@@ -111,6 +111,7 @@
     <string name="settings_about_github">View Source on GitHub</string>
     <string name="settings_about_privacy">Privacy Policy</string>
     <string name="settings_about_report_issue">Report an Issue</string>
+    <string name="settings_about_donate">Donate</string>
     <string name="settings_link_unavailable">No app found to open this link.</string>
 
     <string name="settings_progress_notifications_label">Ongoing Task Progress</string>
@@ -125,6 +126,7 @@
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
+    <string name="url_donate" translatable="false">https://donate.stripe.com/4gw8yhbvH0mg6SQ7ss</string>
 
     
     <string name="convert_heic_fallback_jpeg" translatable="false">HEIC output requires Android 14+. Images will be saved as JPEG instead.</string>

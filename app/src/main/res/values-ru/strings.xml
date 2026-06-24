@@ -240,6 +240,7 @@
     <string name="settings_about_github">Исходный Код На GitHub</string>
     <string name="settings_about_privacy">Политика Конфиденциальности</string>
     <string name="settings_about_report_issue">Сообщить О Проблеме</string>
+    <string name="settings_about_donate">Пожертвовать</string>
     <string name="settings_link_unavailable">Не найдено приложение для открытия этой ссылки.</string>
     <string name="settings_progress_notifications_label">Прогресс текущей задачи</string>
     <string name="settings_progress_notifications_subtitle">Постоянное уведомление о прогрессе длительных задач. По умолчанию выкл., пока не включите уведомления.</string>

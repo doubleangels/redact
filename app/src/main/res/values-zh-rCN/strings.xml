@@ -240,6 +240,7 @@
     <string name="settings_about_github">在 GitHub 查看源码</string>
     <string name="settings_about_privacy">隐私政策</string>
     <string name="settings_about_report_issue">报告问题</string>
+    <string name="settings_about_donate">捐赠</string>
     <string name="settings_link_unavailable">未找到可打开此链接的应用。</string>
     <string name="settings_progress_notifications_label">进行中任务进度</string>
     <string name="settings_progress_notifications_subtitle">长时间任务期间显示进度的持续通知。默认关闭，需先开启允许通知。</string>

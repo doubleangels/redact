@@ -240,6 +240,7 @@
     <string name="settings_about_github">GitHub에서 소스 보기</string>
     <string name="settings_about_privacy">개인정보 처리방침</string>
     <string name="settings_about_report_issue">문제 신고</string>
+    <string name="settings_about_donate">기부</string>
     <string name="settings_link_unavailable">이 링크를 열 앱을 찾을 수 없습니다.</string>
     <string name="settings_progress_notifications_label">진행 중 작업 진행률</string>
     <string name="settings_progress_notifications_subtitle">긴 작업 중 진행 상황을 보여주는 지속 알림. 알림 허용을 켤 때까지 기본적으로 꺼져 있습니다.</string>

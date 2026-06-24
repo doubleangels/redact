@@ -240,6 +240,7 @@
     <string name="settings_about_github">在 GitHub 檢視原始碼</string>
     <string name="settings_about_privacy">隱私權政策</string>
     <string name="settings_about_report_issue">回報問題</string>
+    <string name="settings_about_donate">捐贈</string>
     <string name="settings_link_unavailable">找不到可開啟此連結的應用程式。</string>
     <string name="settings_progress_notifications_label">進行中工作進度</string>
     <string name="settings_progress_notifications_subtitle">長時間工作期間顯示進度的持續通知。預設關閉，需先開啟允許通知。</string>

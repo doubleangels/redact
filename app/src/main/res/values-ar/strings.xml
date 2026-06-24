@@ -240,6 +240,7 @@
     <string name="settings_about_github">عرض المصدر على GitHub</string>
     <string name="settings_about_privacy">سياسة الخصوصية</string>
     <string name="settings_about_report_issue">الإبلاغ عن مشكلة</string>
+    <string name="settings_about_donate">تبرع</string>
     <string name="settings_link_unavailable">لم يُعثر على تطبيق لفتح هذا الرابط.</string>
     <string name="settings_progress_notifications_label">تقدم المهمة الجارية</string>
     <string name="settings_progress_notifications_subtitle">إشعار دائم يعرض التقدم في المهام الطويلة. معطّل افتراضياً حتى تفعّل السماح بالإشعارات.</string>

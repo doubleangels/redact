@@ -240,6 +240,7 @@
     <string name="settings_about_github">GitHubでソースを表示</string>
     <string name="settings_about_privacy">プライバシーポリシー</string>
     <string name="settings_about_report_issue">問題を報告</string>
+    <string name="settings_about_donate">寄付</string>
     <string name="settings_link_unavailable">このリンクを開くアプリが見つかりません。</string>
     <string name="settings_progress_notifications_label">進行中のタスクの進捗</string>
     <string name="settings_progress_notifications_subtitle">長時間ジョブの進行を表示する常駐通知。通知を許可するまでデフォルトでオフです。</string>

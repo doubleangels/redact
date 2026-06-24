@@ -239,6 +239,7 @@
     <string name="settings_about_github">Quellcode Auf GitHub Ansehen</string>
     <string name="settings_about_privacy">Datenschutzrichtlinie</string>
     <string name="settings_about_report_issue">Problem Melden</string>
+    <string name="settings_about_donate">Spenden</string>
     <string name="settings_link_unavailable">Keine App zum Öffnen dieses Links gefunden.</string>
     <string name="settings_progress_notifications_label">Laufender Aufgabenfortschritt</string>
     <string name="settings_progress_notifications_subtitle">Dauerhafte Fortschrittsbenachrichtigung bei langen Aufträgen. Standard aus, bis Sie Benachrichtigungen erlauben aktivieren.</string>

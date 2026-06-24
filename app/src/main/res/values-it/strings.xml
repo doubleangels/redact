@@ -240,6 +240,7 @@
     <string name="settings_about_github">Visualizza Il Codice Su GitHub</string>
     <string name="settings_about_privacy">Informativa Sulla Privacy</string>
     <string name="settings_about_report_issue">Segnala Un Problema</string>
+    <string name="settings_about_donate">Fai una donazione</string>
     <string name="settings_link_unavailable">Nessuna app trovata per aprire questo link.</string>
     <string name="settings_progress_notifications_label">Progresso attività in corso</string>
     <string name="settings_progress_notifications_subtitle">Notifica persistente con avanzamento per lavori lunghi. Disattivata di default finché non abiliti le notifiche.</string>
