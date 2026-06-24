@@ -155,6 +155,10 @@
     <string name="settings_preserve_camera_subtitle">Conservar apertura, velocidad de obturación, ISO y marca/modelo de cámara en Limpiar. Ignorado con Limpieza Estricta o al compartir desde otras apps.</string>
     <string name="settings_preserve_location">Conservar Ubicación</string>
     <string name="settings_preserve_location_subtitle">Conservar coordenadas GPS en Limpiar. Ignorado con Limpieza Estricta o al compartir desde otras apps.</string>
+        <string name="settings_sentry_consent_allow">Activar</string>
+    <string name="settings_sentry_consent_cancel">Ahora No</string>
+    <string name="settings_sentry_consent_title">¿Activar Informes de Fallos?</string>
+    <string name="settings_sentry_consent_message">Enviar Informes de Fallos sube diagnósticos anonimizados a Sentry por internet.\n\nNo se suben fotos, videos, nombres de archivo ni coordenadas GPS.</string>
     <string name="settings_strict_clean">Limpieza Estricta</string>
     <string name="settings_strict_clean_subtitle">Eliminar todos los metadatos, incluida la orientación. Desactiva las opciones de conservar y siempre recodifica video por completo.</string>
     
@@ -199,7 +203,7 @@
     <string name="settings_section_diagnostics">Diagnóstico y Comentarios</string>
     <string name="settings_section_diagnostics_subtitle">Informes opcionales para corregir fallos. Tus archivos multimedia nunca salen del dispositivo.</string>
     <string name="settings_crash_reporting_label">Enviar Informes de Fallos</string>
-    <string name="settings_crash_reporting_subtitle">Solo diagnósticos anonimizados (versión de la app, modelo del dispositivo, trazas de pila). Requiere acceso a la red tras su confirmación. Las fotos y videos nunca se suben.</string>
+    <string name="settings_crash_reporting_subtitle">Solo diagnósticos anonimizados (versión de la app, modelo del dispositivo, trazas de pila). Si está activado, los datos se envían a Sentry por internet. Las fotos y videos nunca se suben.</string>
     <string name="settings_section_conversion">Valores Predeterminados de Convertir</string>
     <string name="settings_conversion_subtitle">Formatos preseleccionados al elegir archivos en Convertir. Puedes cambiarlos en cada lote.</string>
     <string name="settings_default_image_format">Formato de Imagen Predeterminado</string>
@@ -219,7 +223,7 @@
     <string name="settings_share_confirm_dialog_confirm">Eliminar y Continuar</string>
     <string name="settings_share_confirm_dialog_cancel">Cancelar</string>
     <string name="settings_section_permissions">Permisos</string>
-    <string name="settings_permissions_subtitle">En Android 13+, Redact usa el selector de archivos del sistema: Descargas, Archivos o carpetas de la galería sin acceso amplio a la biblioteca. El acceso completo a fotos/vídeo es opcional. Notificaciones y red son opcionales.</string>
+    <string name="settings_permissions_subtitle">En Android 13+, Redact usa el selector de archivos del sistema: Descargas, Archivos o carpetas de la galería sin acceso amplio a la biblioteca. El acceso completo a fotos/vídeo es opcional. Las notificaciones son opcionales.</string>
     <string name="settings_permissions_media">Fotos y Videos</string>
     <string name="settings_permissions_notifications">Notificaciones (Opcional)</string>
     <string name="settings_permission_granted">Concedido</string>
@@ -274,27 +278,8 @@ Tus fotos y videos nunca se suben. Se eliminan URIs, nombres de archivo y coorde
     <string name="scan_copy_all_metadata">Copiar Todos los Metadatos</string>
     <string name="scan_copy_camera">Copiar Info de Cámara</string>
     <string name="scan_copy_coordinates">Copiar Coordenadas</string>
-    <string name="settings_network_grant_crash_hint">El acceso a la red está activo. Activa Enviar informes de fallos por separado si quieres informes de errores.</string>
-    <string name="settings_external_link_disclaimer">Esto abre el navegador y usa la red. Redact no tiene acceso a la red para funciones de la app.</string>
-    <string name="settings_external_link_continue">Abrir Enlace</string>
-    <string name="settings_network_access_grant">Conceder Acceso a la Red</string>
-    <string name="settings_network_access_revoke">Revocar Acceso a la Red</string>
-    <string name="settings_network_consent_allow">Permitir Acceso a la Red</string>
-    <string name="settings_network_consent_cancel">Ahora No</string>
-    <string name="settings_network_consent_crash_title">¿Permitir Informes de Fallos por la Red?</string>
-    <string name="settings_network_consent_crash_message">Enviar Informes de Fallos sube diagnósticos anonimizados a Sentry por internet. Redact no usa la red hasta que lo permita.
-
-No se suben fotos, videos, nombres de archivo ni coordenadas GPS.</string>
-    <string name="settings_network_consent_general_title">¿Permitir Acceso a la Red?</string>
-    <string name="settings_network_consent_general_message">Redact no usa la red hasta que lo permita aquí. El acceso a la red solo se usa cuando activa Enviar Informes de Fallos.
-
-No se suben fotos, videos, nombres de archivo ni coordenadas GPS.</string>
-    <string name="settings_network_revoke_confirm">Revocar</string>
-    <string name="settings_network_revoke_confirm_message">Esto desactiva Enviar Informes de Fallos. Redact dejará de usar la red hasta que conceda acceso de nuevo.</string>
-    <string name="settings_network_revoke_confirm_title">¿Revocar Acceso a la Red?</string>
-    <string name="settings_permissions_location">Ubicación de la Foto</string>
-    <string name="settings_permissions_network">Acceso a la Red (Opcional)</string>
-    <string name="settings_storage_clear_busy">No se puede borrar mientras hay un proceso en curso.</string>
+<string name="settings_permissions_location">Ubicación de la Foto</string>
+<string name="settings_storage_clear_busy">No se puede borrar mientras hay un proceso en curso.</string>
     <string name="share_error_failed_get_cleaned_file">No se pudo preparar el archivo limpio para compartir.</string>
     <string name="share_error_failed_get_cleaned_files">No se pudieron preparar los archivos limpios para compartir.</string>
     <string name="share_error_failed_receive_media">No se pudo recibir el medio compartido.</string>

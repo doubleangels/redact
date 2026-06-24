@@ -155,6 +155,10 @@
     <string name="settings_preserve_camera_subtitle">Manter abertura, velocidade do obturador, ISO e marca/modelo da câmera em Limpar. Ignorado com Limpeza Rigorosa ou ao compartilhar de outros apps.</string>
     <string name="settings_preserve_location">Manter Localização</string>
     <string name="settings_preserve_location_subtitle">Manter coordenadas GPS em Limpar. Ignorado com Limpeza Rigorosa ou ao compartilhar de outros apps.</string>
+        <string name="settings_sentry_consent_allow">Ativar</string>
+    <string name="settings_sentry_consent_cancel">Agora Não</string>
+    <string name="settings_sentry_consent_title">Ativar Relatórios de Falha?</string>
+    <string name="settings_sentry_consent_message">Enviar Relatórios de Falha envia diagnósticos anonimizados ao Sentry pela internet.\n\nFotos, vídeos, nomes de arquivo e coordenadas GPS não são enviados.</string>
     <string name="settings_strict_clean">Limpeza Rigorosa</string>
     <string name="settings_strict_clean_subtitle">Remover todos os metadados, incluindo orientação. Desativa as opções de manter e sempre recodifica vídeo por completo.</string>
     
@@ -199,7 +203,7 @@
     <string name="settings_section_diagnostics">Diagnóstico e Feedback</string>
     <string name="settings_section_diagnostics_subtitle">Relatórios opcionais para corrigir falhas. Sua mídia nunca sai do dispositivo.</string>
     <string name="settings_crash_reporting_label">Enviar Relatórios de Falha</string>
-    <string name="settings_crash_reporting_subtitle">Apenas diagnósticos anonimizados (versão do app, modelo do dispositivo, stack traces). Requer acesso à rede após sua confirmação. Fotos e vídeos nunca são enviados.</string>
+    <string name="settings_crash_reporting_subtitle">Apenas diagnósticos anonimizados (versão do app, modelo do dispositivo, stack traces). Quando ativado, os dados são enviados ao Sentry pela internet. Fotos e vídeos nunca são enviados.</string>
     <string name="settings_section_conversion">Padrões da Aba Converter</string>
     <string name="settings_conversion_subtitle">Formatos pré-selecionados ao escolher arquivos em Converter. Você ainda pode alterá-los em cada lote.</string>
     <string name="settings_default_image_format">Formato de Imagem Padrão</string>
@@ -219,7 +223,7 @@
     <string name="settings_share_confirm_dialog_confirm">Remover e Continuar</string>
     <string name="settings_share_confirm_dialog_cancel">Cancelar</string>
     <string name="settings_section_permissions">Permissões</string>
-    <string name="settings_permissions_subtitle">No Android 13+, o Redact usa o seletor de arquivos do sistema: Downloads, Arquivos ou pastas da galeria sem acesso amplo à biblioteca. Acesso total a fotos/vídeo é opcional. Notificações e rede são opcionais.</string>
+    <string name="settings_permissions_subtitle">No Android 13+, o Redact usa o seletor de arquivos do sistema: Downloads, Arquivos ou pastas da galeria sem acesso amplo à biblioteca. Acesso total a fotos/vídeo é opcional. Notificações são opcionais.</string>
     <string name="settings_permissions_media">Fotos e Vídeos</string>
     <string name="settings_permissions_notifications">Notificações (Opcional)</string>
     <string name="settings_permission_granted">Concedida</string>
@@ -274,27 +278,8 @@ Suas fotos e vídeos nunca são enviados. URIs, nomes de arquivo e coordenadas G
     <string name="scan_copy_all_metadata">Copiar Todos Os Metadados</string>
     <string name="scan_copy_camera">Copiar Info da Câmera</string>
     <string name="scan_copy_coordinates">Copiar Coordenadas</string>
-    <string name="settings_network_grant_crash_hint">O acesso à rede está ativo. Ative Enviar relatórios de falhas separadamente se quiser relatórios de erros.</string>
-    <string name="settings_external_link_disclaimer">Isso abre o navegador e usa a rede. O Redact não tem acesso à rede para recursos do app.</string>
-    <string name="settings_external_link_continue">Abrir Link</string>
-    <string name="settings_network_access_grant">Conceder Acesso À Rede</string>
-    <string name="settings_network_access_revoke">Revogar Acesso À Rede</string>
-    <string name="settings_network_consent_allow">Permitir Acesso À Rede</string>
-    <string name="settings_network_consent_cancel">Agora Não</string>
-    <string name="settings_network_consent_crash_title">Permitir Relatórios de Falha Pela Rede?</string>
-    <string name="settings_network_consent_crash_message">Enviar Relatórios de Falha envia diagnósticos anonimizados ao Sentry pela internet. O Redact não usa a rede até você permitir.
-
-Nenhuma foto, vídeo, nome de arquivo ou coordenada GPS é enviado.</string>
-    <string name="settings_network_consent_general_title">Permitir Acesso À Rede?</string>
-    <string name="settings_network_consent_general_message">O Redact não usa a rede até você permitir aqui. O acesso à rede só é usado quando você ativa Enviar Relatórios de Falha.
-
-Nenhuma foto, vídeo, nome de arquivo ou coordenada GPS é enviado.</string>
-    <string name="settings_network_revoke_confirm">Revogar</string>
-    <string name="settings_network_revoke_confirm_message">Isso desativa Enviar Relatórios de Falha. O Redact parará de usar a rede até você conceder acesso novamente.</string>
-    <string name="settings_network_revoke_confirm_title">Revogar Acesso À Rede?</string>
-    <string name="settings_permissions_location">Localização da Foto</string>
-    <string name="settings_permissions_network">Acesso À Rede (Opcional)</string>
-    <string name="settings_storage_clear_busy">Não é possível limpar durante o processamento.</string>
+<string name="settings_permissions_location">Localização da Foto</string>
+<string name="settings_storage_clear_busy">Não é possível limpar durante o processamento.</string>
     <string name="share_error_failed_get_cleaned_file">Não foi possível preparar o arquivo limpo para compartilhar.</string>
     <string name="share_error_failed_get_cleaned_files">Não foi possível preparar os arquivos limpos para compartilhar.</string>
     <string name="share_error_failed_receive_media">Não foi possível receber a mídia compartilhada.</string>

@@ -106,10 +106,4 @@ public final class PermissionStatusHelper {
         }
         return Status.NOT_REQUIRED;
     }
-
-    /** User-confirmed consent for outbound network use (Sentry crash reporting). */
-    @NonNull
-    public static Status getNetworkAccessStatus(@NonNull Context context) {
-        return AppPreferences.isNetworkAccessConfirmed(context) ? Status.GRANTED : Status.DENIED;
-    }
 }

@@ -15,7 +15,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROCESSING" />
 
-    <!-- INTERNET is only used after explicit Settings consent (NetworkAccess). -->
+    <!-- INTERNET is only used when Send Crash Reports is enabled (Sentry). -->
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application

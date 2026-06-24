@@ -43,7 +43,7 @@
     <string name="settings_section_diagnostics">Diagnostics &amp; Feedback</string>
     <string name="settings_section_diagnostics_subtitle">Optional reports to help fix crashes. Your media never leaves the device.</string>
     <string name="settings_crash_reporting_label">Send Crash Reports</string>
-    <string name="settings_crash_reporting_subtitle">Anonymized diagnostics only (app version, device model, stack traces). Requires network access after you confirm. Photos and videos are never uploaded.</string>
+    <string name="settings_crash_reporting_subtitle">Anonymized diagnostics only (app version, device model, stack traces). When enabled, data is sent to Sentry over the internet. Photos and videos are never uploaded.</string>
 
     <string name="settings_section_developer" translatable="false">Developer</string>
     <string name="settings_wormaceptor_button" translatable="false">Open WormaCeptor</string>
@@ -69,21 +69,10 @@
     <string name="settings_share_confirm_dialog_cancel">Cancel</string>
 
     <string name="settings_section_permissions">Permissions</string>
-    <string name="settings_permissions_subtitle">On Android 13+, Redact uses the system file picker so you can browse Downloads, Files, or gallery folders without granting broad library access. To read GPS coordinates in Scan, grant Photos &amp; Videos access, then Photo Location. Notifications and network access are optional.</string>
+    <string name="settings_permissions_subtitle">On Android 13+, Redact uses the system file picker so you can browse Downloads, Files, or gallery folders without granting broad library access. To read GPS coordinates in Scan, grant Photos &amp; Videos access, then Photo Location. Notifications are optional.</string>
     <string name="settings_permissions_media">Photos &amp; Videos</string>
     <string name="settings_permissions_location">Photo Location</string>
     <string name="settings_permissions_notifications">Notifications (Optional)</string>
-    <string name="settings_permissions_network">Network Access (Optional)</string>
-    <string name="settings_network_grant_crash_hint">Network access is on. Turn on Send Crash Reports separately if you want error reporting.</string>
-    <string name="settings_external_link_disclaimer">This opens your browser and uses the network. Redact has not been granted network access for in-app features.</string>
-    <string name="settings_external_link_continue">Open Link</string>
-    <string name="settings_network_access_grant">Grant Network Access</string>
-    <string name="settings_network_access_revoke">Revoke Network Access</string>
-    <string name="settings_network_consent_general_title">Allow Network Access?</string>
-    <string name="settings_network_consent_general_message">Redact does not use the network until you allow it here. Network access is only used when you turn on Send Crash Reports.\n\nNo photos, videos, filenames, or GPS coordinates are uploaded.</string>
-    <string name="settings_network_revoke_confirm_title">Revoke Network Access?</string>
-    <string name="settings_network_revoke_confirm_message">This turns off Send Crash Reports. Redact will stop using the network until you grant access again.</string>
-    <string name="settings_network_revoke_confirm">Revoke</string>
     <string name="settings_permission_granted">Granted</string>
     <string name="settings_permission_partial">Partial</string>
     <string name="settings_permission_denied">Denied</string>
@@ -315,10 +304,10 @@
     <string name="settings_location_permission_denied">Photo location permission denied.</string>
     <string name="settings_crash_reporting_unconfigured">Crash reporting is enabled but not configured on this build.</string>
     <string name="settings_crash_reporting_init_failed">Crash reporting could not start. Try again later.</string>
-    <string name="settings_network_consent_allow">Allow Network Access</string>
-    <string name="settings_network_consent_cancel">Not Now</string>
-    <string name="settings_network_consent_crash_title">Allow Crash Reporting over the Network?</string>
-    <string name="settings_network_consent_crash_message">Send Crash Reports uploads anonymized diagnostics to Sentry over the internet. Redact does not use the network until you allow this.\n\nNo photos, videos, filenames, or GPS coordinates are uploaded.</string>
+    <string name="settings_sentry_consent_allow">Enable</string>
+    <string name="settings_sentry_consent_cancel">Not Now</string>
+    <string name="settings_sentry_consent_title">Enable Crash Reporting?</string>
+    <string name="settings_sentry_consent_message">Send Crash Reports uploads anonymized diagnostics to Sentry over the internet.\n\nNo photos, videos, filenames, or GPS coordinates are uploaded.</string>
     <string name="settings_strict_clean">Strict Clean</string>
     <string name="settings_strict_clean_subtitle">Remove all metadata, including orientation. Turns off keep options above and always fully re-encodes video.</string>
     <string name="settings_video_fallback">Faster Video Cleaning</string>

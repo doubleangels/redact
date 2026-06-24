@@ -155,6 +155,10 @@
     <string name="settings_preserve_camera_subtitle">Conserver ouverture, vitesse d\'obturation, ISO et marque/modèle appareil photo dans Nettoyer. Ignoré avec Nettoyage Strict ou lors d\'un partage depuis d\'autres apps.</string>
     <string name="settings_preserve_location">Conserver la Position</string>
     <string name="settings_preserve_location_subtitle">Conserver les coordonnées GPS dans Nettoyer. Ignoré avec Nettoyage Strict ou lors d\'un partage depuis d\'autres apps.</string>
+        <string name="settings_sentry_consent_allow">Activer</string>
+    <string name="settings_sentry_consent_cancel">Pas Maintenant</string>
+    <string name="settings_sentry_consent_title">Activer les Rapports de Plantage ?</string>
+    <string name="settings_sentry_consent_message">Envoyer les Rapports de Plantage envoie des diagnostics anonymisés à Sentry via Internet.\n\nAucune photo, vidéo, nom de fichier ni coordonnée GPS n\'est téléversé.</string>
     <string name="settings_strict_clean">Nettoyage Strict</string>
     <string name="settings_strict_clean_subtitle">Supprimer toutes les métadonnées, y compris l\'orientation. Désactive les options de conservation et réencode toujours entièrement la vidéo.</string>
     
@@ -199,7 +203,7 @@
     <string name="settings_section_diagnostics">Diagnostic et Commentaires</string>
     <string name="settings_section_diagnostics_subtitle">Rapports optionnels pour corriger les plantages. Vos médias ne quittent jamais l\'appareil.</string>
     <string name="settings_crash_reporting_label">Envoyer les Rapports de Plantage</string>
-    <string name="settings_crash_reporting_subtitle">Diagnostics anonymisés uniquement (version de l\'app, modèle d\'appareil, traces de pile). Nécessite l\'accès réseau après votre confirmation. Les photos et vidéos ne sont jamais téléversées.</string>
+    <string name="settings_crash_reporting_subtitle">Diagnostics anonymisés uniquement (version de l\'app, modèle d\'appareil, traces de pile). Si activé, les données sont envoyées à Sentry via Internet. Les photos et vidéos ne sont jamais téléversées.</string>
     <string name="settings_section_conversion">Valeurs par Défaut de Convertir</string>
     <string name="settings_conversion_subtitle">Formats présélectionnés lors du choix des fichiers dans Convertir. Modifiables pour chaque lot.</string>
     <string name="settings_default_image_format">Format d\'Image par Défaut</string>
@@ -219,7 +223,7 @@
     <string name="settings_share_confirm_dialog_confirm">Supprimer et Continuer</string>
     <string name="settings_share_confirm_dialog_cancel">Annuler</string>
     <string name="settings_section_permissions">Autorisations</string>
-    <string name="settings_permissions_subtitle">Sur Android 13+, Redact utilise le sélecteur de fichiers système : Téléchargements, Fichiers ou dossiers galerie sans accès large à la bibliothèque. L\'accès photo/vidéo complet est optionnel. Notifications et réseau sont optionnels.</string>
+    <string name="settings_permissions_subtitle">Sur Android 13+, Redact utilise le sélecteur de fichiers système : Téléchargements, Fichiers ou dossiers galerie sans accès large à la bibliothèque. L\'accès photo/vidéo complet est optionnel. Les notifications sont optionnelles.</string>
     <string name="settings_permissions_media">Photos et Vidéos</string>
     <string name="settings_permissions_notifications">Notifications (Facultatif)</string>
     <string name="settings_permission_granted">Accordée</string>
@@ -274,27 +278,8 @@ Vos photos et vidéos ne sont jamais téléversées. Les URI, noms de fichier et
     <string name="scan_copy_all_metadata">Copier Toutes les Métadonnées</string>
     <string name="scan_copy_camera">Copier les Infos Appareil Photo</string>
     <string name="scan_copy_coordinates">Copier les Coordonnées</string>
-    <string name="settings_network_grant_crash_hint">L\'accès réseau est activé. Activez Envoyer les rapports de plantage séparément pour le signalement d\'erreurs.</string>
-    <string name="settings_external_link_disclaimer">Cela ouvre votre navigateur et utilise le réseau. Redact n\'a pas reçu l\'accès réseau pour les fonctions de l\'app.</string>
-    <string name="settings_external_link_continue">Ouvrir le Lien</string>
-    <string name="settings_network_access_grant">Accorder l\'Accès Réseau</string>
-    <string name="settings_network_access_revoke">Révoquer l\'Accès Réseau</string>
-    <string name="settings_network_consent_allow">Autoriser l\'Accès Réseau</string>
-    <string name="settings_network_consent_cancel">Pas Maintenant</string>
-    <string name="settings_network_consent_crash_title">Autoriser les Rapports de Plantage Via le Réseau ?</string>
-    <string name="settings_network_consent_crash_message">Envoyer les Rapports de Plantage envoie des diagnostics anonymisés à Sentry via Internet. Redact n\'utilise pas le réseau tant que vous ne l\'autorisez pas.
-
-Aucune photo, vidéo, nom de fichier ou coordonnée GPS n\'est téléversé.</string>
-    <string name="settings_network_consent_general_title">Autoriser l\'Accès Réseau ?</string>
-    <string name="settings_network_consent_general_message">Redact n\'utilise pas le réseau tant que vous ne l\'autorisez pas ici. L\'accès réseau n\'est utilisé que lorsque vous activez Envoyer les Rapports de Plantage.
-
-Aucune photo, vidéo, nom de fichier ou coordonnée GPS n\'est téléversé.</string>
-    <string name="settings_network_revoke_confirm">Révoquer</string>
-    <string name="settings_network_revoke_confirm_message">Cela désactive Envoyer les Rapports de Plantage. Redact cessera d\'utiliser le réseau jusqu\'à ce que vous accordiez à nouveau l\'accès.</string>
-    <string name="settings_network_revoke_confirm_title">Révoquer l\'Accès Réseau ?</string>
-    <string name="settings_permissions_location">Emplacement de la Photo</string>
-    <string name="settings_permissions_network">Accès Réseau (Optionnel)</string>
-    <string name="settings_storage_clear_busy">Impossible de vider pendant un traitement en cours.</string>
+<string name="settings_permissions_location">Emplacement de la Photo</string>
+<string name="settings_storage_clear_busy">Impossible de vider pendant un traitement en cours.</string>
     <string name="share_error_failed_get_cleaned_file">Impossible de préparer le fichier nettoyé pour le partage.</string>
     <string name="share_error_failed_get_cleaned_files">Impossible de préparer les fichiers nettoyés pour le partage.</string>
     <string name="share_error_failed_receive_media">Impossible de recevoir le média partagé.</string>

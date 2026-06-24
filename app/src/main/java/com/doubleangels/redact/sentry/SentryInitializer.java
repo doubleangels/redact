@@ -47,12 +47,10 @@ public final class SentryInitializer {
         return dsn != null && !dsn.isEmpty();
     }
 
-    /** Starts Sentry only when crash reporting and network consent are both enabled. */
+    /** Starts Sentry only when crash reporting is enabled. */
     public static void initializeIfNeeded(Context context) {
         Context app = context.getApplicationContext();
-        if (initialized
-                || !AppPreferences.isCrashReportingEnabled(app)
-                || !AppPreferences.isNetworkAccessConfirmed(app)) {
+        if (initialized || !AppPreferences.isCrashReportingEnabled(app)) {
             return;
         }
         initialize(app);
@@ -64,9 +62,7 @@ public final class SentryInitializer {
      */
     public static void initializeBlocking(Context context) {
         Context app = context.getApplicationContext();
-        if (initialized
-                || !AppPreferences.isCrashReportingEnabled(app)
-                || !AppPreferences.isNetworkAccessConfirmed(app)) {
+        if (initialized || !AppPreferences.isCrashReportingEnabled(app)) {
             return;
         }
         synchronized (INIT_LOCK) {

@@ -155,6 +155,10 @@
     <string name="settings_preserve_camera_subtitle">Mantieni apertura, velocità otturatore, ISO e marca/modello fotocamera in Pulisci. Ignorato con Pulizia Rigorosa o condivisione da altre app.</string>
     <string name="settings_preserve_location">Mantieni Posizione</string>
     <string name="settings_preserve_location_subtitle">Mantieni coordinate GPS in Pulisci. Ignorato con Pulizia Rigorosa o condivisione da altre app.</string>
+        <string name="settings_sentry_consent_allow">Attiva</string>
+    <string name="settings_sentry_consent_cancel">Non Ora</string>
+    <string name="settings_sentry_consent_title">Attivare Segnalazioni Crash?</string>
+    <string name="settings_sentry_consent_message">Invia Segnalazioni Crash carica diagnostica anonima su Sentry via internet.\n\nFoto, video, nomi file e coordinate GPS non vengono caricati.</string>
     <string name="settings_strict_clean">Pulizia Rigorosa</string>
     <string name="settings_strict_clean_subtitle">Rimuovi tutti i metadati, incluso l\'orientamento. Disattiva le opzioni di mantenimento e ricodifica sempre completamente i video.</string>
     
@@ -199,7 +203,7 @@
     <string name="settings_section_diagnostics">Diagnostica e Feedback</string>
     <string name="settings_section_diagnostics_subtitle">Report opzionali per correggere i crash. I tuoi media non lasciano mai il dispositivo.</string>
     <string name="settings_crash_reporting_label">Invia Report di Crash</string>
-    <string name="settings_crash_reporting_subtitle">Solo diagnostica anonima (versione app, modello dispositivo, stack trace). Richiede accesso alla rete dopo la conferma. Foto e video non vengono mai caricati.</string>
+    <string name="settings_crash_reporting_subtitle">Solo diagnostica anonima (versione app, modello dispositivo, stack trace). Se attivato, i dati vengono inviati a Sentry via internet. Foto e video non vengono mai caricati.</string>
     <string name="settings_section_conversion">Predefiniti Scheda Converti</string>
     <string name="settings_conversion_subtitle">Formati preselezionati quando scegli file in Converti. Puoi cambiarli per ogni batch.</string>
     <string name="settings_default_image_format">Formato Immagine Predefinito</string>
@@ -219,7 +223,7 @@
     <string name="settings_share_confirm_dialog_confirm">Rimuovi e Continua</string>
     <string name="settings_share_confirm_dialog_cancel">Annulla</string>
     <string name="settings_section_permissions">Autorizzazioni</string>
-    <string name="settings_permissions_subtitle">Su Android 13+, Redact usa il selettore file di sistema: Download, File o cartelle galleria senza accesso ampio alla libreria. L\'accesso completo a foto/video è opzionale. Notifiche e rete sono opzionali.</string>
+    <string name="settings_permissions_subtitle">Su Android 13+, Redact usa il selettore file di sistema: Download, File o cartelle galleria senza accesso ampio alla libreria. L\'accesso completo a foto/video è opzionale. Le notifiche sono opzionali.</string>
     <string name="settings_permissions_media">Foto e Video</string>
     <string name="settings_permissions_notifications">Notifiche (Opzionale)</string>
     <string name="settings_permission_granted">Concessa</string>
@@ -274,27 +278,8 @@ Le tue foto e video non vengono mai caricati. URI, nomi file e coordinate GPS ve
     <string name="scan_copy_all_metadata">Copia Tutti I Metadati</string>
     <string name="scan_copy_camera">Copia Info Fotocamera</string>
     <string name="scan_copy_coordinates">Copia Coordinate</string>
-    <string name="settings_network_grant_crash_hint">L\'accesso alla rete è attivo. Attiva Invia segnalazioni crash separatamente per i report errori.</string>
-    <string name="settings_external_link_disclaimer">Si apre il browser e usa la rete. Redact non ha accesso alla rete per le funzioni in-app.</string>
-    <string name="settings_external_link_continue">Apri Link</string>
-    <string name="settings_network_access_grant">Concedi Accesso Alla Rete</string>
-    <string name="settings_network_access_revoke">Revoca Accesso Alla Rete</string>
-    <string name="settings_network_consent_allow">Consenti Accesso Alla Rete</string>
-    <string name="settings_network_consent_cancel">Non Ora</string>
-    <string name="settings_network_consent_crash_title">Consentire Segnalazione Crash Via Rete?</string>
-    <string name="settings_network_consent_crash_message">Invia Segnalazioni Crash carica diagnostica anonima su Sentry via internet. Redact non usa la rete finché non lo consenti.
-
-Nessuna foto, video, nome file o coordinate GPS vengono caricati.</string>
-    <string name="settings_network_consent_general_title">Consentire Accesso Alla Rete?</string>
-    <string name="settings_network_consent_general_message">Redact non usa la rete finché non lo consenti qui. L\'accesso alla rete è usato solo quando attivi Invia Segnalazioni Crash.
-
-Nessuna foto, video, nome file o coordinate GPS vengono caricati.</string>
-    <string name="settings_network_revoke_confirm">Revoca</string>
-    <string name="settings_network_revoke_confirm_message">Questo disattiva Invia Segnalazioni Crash. Redact smetterà di usare la rete finché non concedi di nuovo l\'accesso.</string>
-    <string name="settings_network_revoke_confirm_title">Revocare Accesso Alla Rete?</string>
-    <string name="settings_permissions_location">Posizione Foto</string>
-    <string name="settings_permissions_network">Accesso Alla Rete (Opzionale)</string>
-    <string name="settings_storage_clear_busy">Impossibile svuotare durante l\'elaborazione.</string>
+<string name="settings_permissions_location">Posizione Foto</string>
+<string name="settings_storage_clear_busy">Impossibile svuotare durante l\'elaborazione.</string>
     <string name="share_error_failed_get_cleaned_file">Impossibile preparare il file pulito per la condivisione.</string>
     <string name="share_error_failed_get_cleaned_files">Impossibile preparare i file puliti per la condivisione.</string>
     <string name="share_error_failed_receive_media">Impossibile ricevere il media condiviso.</string>

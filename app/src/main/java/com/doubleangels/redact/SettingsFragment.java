@@ -24,7 +24,6 @@ import androidx.fragment.app.Fragment;
 import com.doubleangels.redact.ShareHandlerActivity;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.permission.PermissionStatusHelper;
-import com.doubleangels.redact.privacy.NetworkAccess;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.sentry.SentryInitializer;
 import com.doubleangels.redact.sentry.SentryManager;
@@ -60,8 +59,6 @@ public class SettingsFragment extends Fragment {
     private TextView textPermissionLocationStatus;
     private MaterialButton buttonLocationPermission;
     private TextView textPermissionNotificationsStatus;
-    private TextView textPermissionNetworkStatus;
-    private MaterialButton buttonNetworkAccess;
     private TextView textStorageSize;
     private MaterialAutoCompleteTextView dropdownDefaultImageFormat;
     private MaterialAutoCompleteTextView dropdownDefaultVideoFormat;
@@ -150,8 +147,6 @@ public class SettingsFragment extends Fragment {
         textPermissionLocationStatus = view.findViewById(R.id.textPermissionLocationStatus);
         buttonLocationPermission = view.findViewById(R.id.buttonLocationPermission);
         textPermissionNotificationsStatus = view.findViewById(R.id.textPermissionNotificationsStatus);
-        textPermissionNetworkStatus = view.findViewById(R.id.textPermissionNetworkStatus);
-        buttonNetworkAccess = view.findViewById(R.id.buttonNetworkAccess);
         textStorageSize = view.findViewById(R.id.textStorageSize);
         dropdownDefaultImageFormat = view.findViewById(R.id.dropdownDefaultImageFormat);
         dropdownDefaultVideoFormat = view.findViewById(R.id.dropdownDefaultVideoFormat);
@@ -220,35 +215,25 @@ public class SettingsFragment extends Fragment {
                 if (!isChecked) {
                     AppPreferences.setCrashReportingEnabled(requireContext(), false);
                     SentryInitializer.shutdown();
-                    NetworkAccess.revokeIfUnused(requireContext());
                     SentryManager.setCustomKey("crash_reporting_enabled", false);
-                    refreshPermissionStatuses();
-                    return;
-                }
-                if (NetworkAccess.isConfirmed(requireContext())) {
-                    AppPreferences.setCrashReportingEnabled(requireContext(), true);
-                    SentryInitializer.initializeBlocking(requireContext());
-                    if (!SentryInitializer.isInitialized()) {
-                        Toast.makeText(
-                                        requireContext(),
-                                        SentryInitializer.hasConfiguredDsn()
-                                                ? R.string.settings_crash_reporting_init_failed
-                                                : R.string.settings_crash_reporting_unconfigured,
-                                        Toast.LENGTH_LONG)
-                                .show();
-                    }
-                    SentryManager.setCustomKey("crash_reporting_enabled", true);
                     return;
                 }
                 revertSwitch(switchCrashReporting, false);
-                showNetworkConsentDialog(
-                        R.string.settings_network_consent_crash_title,
-                        R.string.settings_network_consent_crash_message,
+                showSentryConsentDialog(
                         () -> {
-                            NetworkAccess.enableCrashReportingWithConsent(requireContext());
+                            AppPreferences.setCrashReportingEnabled(requireContext(), true);
+                            SentryInitializer.initializeBlocking(requireContext());
+                            if (!SentryInitializer.isInitialized()) {
+                                Toast.makeText(
+                                                requireContext(),
+                                                SentryInitializer.hasConfiguredDsn()
+                                                        ? R.string.settings_crash_reporting_init_failed
+                                                        : R.string.settings_crash_reporting_unconfigured,
+                                                Toast.LENGTH_LONG)
+                                        .show();
+                            }
                             setSwitchChecked(switchCrashReporting, true);
                             SentryManager.setCustomKey("crash_reporting_enabled", true);
-                            refreshPermissionStatuses();
                         },
                         null);
             } catch (Exception e) {
@@ -412,27 +397,6 @@ public class SettingsFragment extends Fragment {
             intent.setData(Uri.fromParts("package", requireContext().getPackageName(), null));
             startActivity(intent);
         });
-        buttonNetworkAccess.setOnClickListener(v -> {
-            if (NetworkAccess.isConfirmed(requireContext())) {
-                confirmRevokeNetworkAccess();
-            } else {
-                showNetworkConsentDialog(
-                        R.string.settings_network_consent_general_title,
-                        R.string.settings_network_consent_general_message,
-                        () -> {
-                            NetworkAccess.confirm(requireContext());
-                            refreshPermissionStatuses();
-                            if (!AppPreferences.isCrashReportingEnabled(requireContext())) {
-                                Toast.makeText(
-                                                requireContext(),
-                                                R.string.settings_network_grant_crash_hint,
-                                                Toast.LENGTH_LONG)
-                                        .show();
-                            }
-                        },
-                        null);
-            }
-        });
         View rowPermissionLocation = view.findViewById(R.id.rowPermissionLocation);
         if (rowPermissionLocation != null) {
             rowPermissionLocation.setOnClickListener(v -> requestLocationPermissionFromSettings());
@@ -523,33 +487,6 @@ public class SettingsFragment extends Fragment {
         applyPermissionStatus(
                 textPermissionNotificationsStatus,
                 PermissionStatusHelper.getNotificationsStatus(requireContext()));
-        applyPermissionStatus(
-                textPermissionNetworkStatus,
-                PermissionStatusHelper.getNetworkAccessStatus(requireContext()));
-        if (buttonNetworkAccess != null) {
-            boolean granted = NetworkAccess.isConfirmed(requireContext());
-            buttonNetworkAccess.setText(granted
-                    ? R.string.settings_network_access_revoke
-                    : R.string.settings_network_access_grant);
-        }
-        syncNetworkDependentToggles();
-    }
-
-    private void confirmRevokeNetworkAccess() {
-        new MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.settings_network_revoke_confirm_title)
-                .setMessage(R.string.settings_network_revoke_confirm_message)
-                .setPositiveButton(R.string.settings_network_revoke_confirm, (d, w) -> {
-                    NetworkAccess.revokeCompletely(requireContext());
-                    syncNetworkDependentToggles();
-                    refreshPermissionStatuses();
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
-    }
-
-    private void syncNetworkDependentToggles() {
-        setSwitchChecked(switchCrashReporting, AppPreferences.isCrashReportingEnabled(requireContext()));
     }
 
     private void applyPermissionStatus(
@@ -633,22 +570,11 @@ public class SettingsFragment extends Fragment {
     }
 
     private void openUrl(@NonNull String url) {
-        Runnable launch = () -> {
-            try {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-            } catch (ActivityNotFoundException e) {
-                Toast.makeText(requireContext(), R.string.settings_link_unavailable, Toast.LENGTH_SHORT).show();
-            }
-        };
-        if (!NetworkAccess.isConfirmed(requireContext())) {
-            new MaterialAlertDialogBuilder(requireContext())
-                    .setMessage(R.string.settings_external_link_disclaimer)
-                    .setPositiveButton(R.string.settings_external_link_continue, (d, w) -> launch.run())
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show();
-            return;
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(requireContext(), R.string.settings_link_unavailable, Toast.LENGTH_SHORT).show();
         }
-        launch.run();
     }
 
     private void requestLocationPermissionFromSettings() {
@@ -777,16 +703,14 @@ public class SettingsFragment extends Fragment {
         };
     }
 
-    private void showNetworkConsentDialog(
-            int titleRes,
-            int messageRes,
+    private void showSentryConsentDialog(
             @NonNull Runnable onAllow,
             @Nullable Runnable onDeny) {
         new MaterialAlertDialogBuilder(requireContext())
-                .setTitle(titleRes)
-                .setMessage(messageRes)
-                .setPositiveButton(R.string.settings_network_consent_allow, (d, w) -> onAllow.run())
-                .setNegativeButton(R.string.settings_network_consent_cancel, (d, w) -> {
+                .setTitle(R.string.settings_sentry_consent_title)
+                .setMessage(R.string.settings_sentry_consent_message)
+                .setPositiveButton(R.string.settings_sentry_consent_allow, (d, w) -> onAllow.run())
+                .setNegativeButton(R.string.settings_sentry_consent_cancel, (d, w) -> {
                     if (onDeny != null) {
                         onDeny.run();
                     }
