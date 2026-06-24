@@ -155,6 +155,10 @@
     <string name="settings_preserve_camera_subtitle">クリーンタブで絞り値、シャッター速度、ISO、カメラのメーカー/モデルを保持。厳密クリーン時や他アプリからの共有時は無視されます。</string>
     <string name="settings_preserve_location">位置情報を保持</string>
     <string name="settings_preserve_location_subtitle">クリーンタブで GPS 座標を保持。厳密クリーン時や他アプリからの共有時は無視されます。</string>
+        <string name="settings_sentry_consent_allow">有効にする</string>
+    <string name="settings_sentry_consent_cancel">後で</string>
+    <string name="settings_sentry_consent_title">クラッシュレポートを有効にしますか？</string>
+    <string name="settings_sentry_consent_message">クラッシュレポートの送信は、匿名化された診断情報をインターネット経由で Sentry にアップロードします。\n\n写真、動画、ファイル名、GPS 座標はアップロードされません。</string>
     <string name="settings_strict_clean">厳格クリーン</string>
     <string name="settings_strict_clean_subtitle">向きを含むすべてのメタデータを削除。保持オプションをオフにし、動画は常に完全再エンコード。</string>
     
@@ -199,7 +203,7 @@
     <string name="settings_section_diagnostics">診断とフィードバック</string>
     <string name="settings_section_diagnostics_subtitle">クラッシュ修正のための任意のレポート。メディアが端末外に出ることはありません。</string>
     <string name="settings_crash_reporting_label">クラッシュレポートを送信</string>
-    <string name="settings_crash_reporting_subtitle">匿名化された診断情報のみ（アプリ版、デバイスモデル、スタックトレース）。確認後にネットワークアクセスが必要。写真と動画はアップロードされません。</string>
+    <string name="settings_crash_reporting_subtitle">匿名化された診断情報のみ（アプリ版、デバイスモデル、スタックトレース）。有効にすると、データはインターネット経由で Sentry に送信されます。写真と動画はアップロードされません。</string>
     <string name="settings_section_conversion">変換タブの既定値</string>
     <string name="settings_conversion_subtitle">変換でファイルを選ぶときの事前選択形式。バッチごとに変更できます。</string>
     <string name="settings_default_image_format">既定の画像形式</string>
@@ -219,7 +223,7 @@
     <string name="settings_share_confirm_dialog_confirm">削除して続行</string>
     <string name="settings_share_confirm_dialog_cancel">キャンセル</string>
     <string name="settings_section_permissions">権限</string>
-    <string name="settings_permissions_subtitle">Android 13以降、Redactはシステムのファイル選択を使用します。ダウンロード、ファイル、ギャラリーフォルダを広いライブラリアクセスなしで参照できます。写真/動画へのフルアクセスは任意です。通知とネットワークも任意です。</string>
+    <string name="settings_permissions_subtitle">Android 13以降、Redactはシステムのファイル選択を使用します。ダウンロード、ファイル、ギャラリーフォルダを広いライブラリアクセスなしで参照できます。写真/動画へのフルアクセスは任意です。通知も任意です。</string>
     <string name="settings_permissions_media">写真と動画</string>
     <string name="settings_permissions_notifications">通知（任意）</string>
     <string name="settings_permission_granted">許可済み</string>
@@ -240,6 +244,7 @@
     <string name="settings_about_github">GitHubでソースを表示</string>
     <string name="settings_about_privacy">プライバシーポリシー</string>
     <string name="settings_about_report_issue">問題を報告</string>
+    <string name="settings_about_donate">寄付</string>
     <string name="settings_link_unavailable">このリンクを開くアプリが見つかりません。</string>
     <string name="settings_progress_notifications_label">進行中のタスクの進捗</string>
     <string name="settings_progress_notifications_subtitle">長時間ジョブの進行を表示する常駐通知。通知を許可するまでデフォルトでオフです。</string>
@@ -273,27 +278,8 @@
     <string name="scan_copy_all_metadata">すべてのメタデータをコピー</string>
     <string name="scan_copy_camera">カメラ情報をコピー</string>
     <string name="scan_copy_coordinates">座標をコピー</string>
-    <string name="settings_network_grant_crash_hint">ネットワークアクセスは有効です。エラー報告が必要な場合は「クラッシュレポートを送信」を別途オンにしてください。</string>
-    <string name="settings_external_link_disclaimer">ブラウザが開き、ネットワークを使用します。Redact はアプリ内機能のネットワークアクセスを許可されていません。</string>
-    <string name="settings_external_link_continue">リンクを開く</string>
-    <string name="settings_network_access_grant">ネットワークアクセスを許可</string>
-    <string name="settings_network_access_revoke">ネットワークアクセスを取り消し</string>
-    <string name="settings_network_consent_allow">ネットワークアクセスを許可</string>
-    <string name="settings_network_consent_cancel">後で</string>
-    <string name="settings_network_consent_crash_title">ネットワーク経由のクラッシュ報告を許可しますか？</string>
-    <string name="settings_network_consent_crash_message">クラッシュ報告の送信は、匿名化された診断情報を Sentry にインターネット経由でアップロードします。Redact は許可するまでネットワークを使用しません。
-
-写真、動画、ファイル名、GPS 座標はアップロードされません。</string>
-    <string name="settings_network_consent_general_title">ネットワークアクセスを許可しますか？</string>
-    <string name="settings_network_consent_general_message">Redact はここで許可するまでネットワークを使用しません。ネットワークアクセスはクラッシュ報告の送信をオンにした場合のみ使用されます。
-
-写真、動画、ファイル名、GPS 座標はアップロードされません。</string>
-    <string name="settings_network_revoke_confirm">取り消し</string>
-    <string name="settings_network_revoke_confirm_message">クラッシュ報告の送信がオフになります。再度許可するまで Redact はネットワークを使用しません。</string>
-    <string name="settings_network_revoke_confirm_title">ネットワークアクセスを取り消しますか？</string>
-    <string name="settings_permissions_location">写真の位置情報</string>
-    <string name="settings_permissions_network">ネットワークアクセス（任意）</string>
-    <string name="settings_storage_clear_busy">処理中はクリアできません。</string>
+<string name="settings_permissions_location">写真の位置情報</string>
+<string name="settings_storage_clear_busy">処理中はクリアできません。</string>
     <string name="share_error_failed_get_cleaned_file">クリーンしたファイルを共有用に準備できませんでした。</string>
     <string name="share_error_failed_get_cleaned_files">クリーンしたファイルを共有用に準備できませんでした。</string>
     <string name="share_error_failed_receive_media">共有されたメディアを受信できませんでした。</string>

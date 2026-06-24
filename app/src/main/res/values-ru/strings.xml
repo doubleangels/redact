@@ -155,6 +155,10 @@
     <string name="settings_preserve_camera_subtitle">Сохранять диафрагму, выдержку, ISO и марку/модель камеры на Очистке. Игнорируется при Строгой Очистке или при отправке из других приложений.</string>
     <string name="settings_preserve_location">Сохранять местоположение</string>
     <string name="settings_preserve_location_subtitle">Сохранять GPS-координаты на Очистке. Игнорируется при Строгой Очистке или при отправке из других приложений.</string>
+        <string name="settings_sentry_consent_allow">Включить</string>
+    <string name="settings_sentry_consent_cancel">Не Сейчас</string>
+    <string name="settings_sentry_consent_title">Включить Отчёты о Сбоях?</string>
+    <string name="settings_sentry_consent_message">Отправка отчётов о сбоях загружает анонимную диагностику в Sentry через интернет.\n\nФото, видео, имена файлов и GPS-координаты не загружаются.</string>
     <string name="settings_strict_clean">Строгая Очистка</string>
     <string name="settings_strict_clean_subtitle">Удалить все метаданные, включая ориентацию. Отключает опции сохранения и всегда полностью перекодирует видео.</string>
     
@@ -199,7 +203,7 @@
     <string name="settings_section_diagnostics">Диагностика и отзывы</string>
     <string name="settings_section_diagnostics_subtitle">Необязательные отчёты о сбоях. Ваши медиафайлы никогда не покидают устройство.</string>
     <string name="settings_crash_reporting_label">Отправлять отчёты о сбоях</string>
-    <string name="settings_crash_reporting_subtitle">Только анонимная диагностика (версия приложения, модель устройства, трассировки стека). Требует доступ к сети после подтверждения. Фото и видео никогда не загружаются.</string>
+    <string name="settings_crash_reporting_subtitle">Только анонимная диагностика (версия приложения, модель устройства, трассировки стека). При включении данные отправляются в Sentry через интернет. Фото и видео никогда не загружаются.</string>
     <string name="settings_section_conversion">Значения по умолчанию для Конвертация</string>
     <string name="settings_conversion_subtitle">Предвыбранные форматы при выборе файлов в Конвертация. Можно менять для каждой партии.</string>
     <string name="settings_default_image_format">Формат Изображения По Умолчанию</string>
@@ -219,7 +223,7 @@
     <string name="settings_share_confirm_dialog_confirm">Удалить И Продолжить</string>
     <string name="settings_share_confirm_dialog_cancel">Отмена</string>
     <string name="settings_section_permissions">Разрешения</string>
-    <string name="settings_permissions_subtitle">На Android 13+ Redact использует системный выбор файлов — «Загрузки», «Файлы» или папки галереи без широкого доступа к медиатеке. Полный доступ к фото/видео необязателен. Уведомления и сеть необязательны.</string>
+    <string name="settings_permissions_subtitle">На Android 13+ Redact использует системный выбор файлов — «Загрузки», «Файлы» или папки галереи без широкого доступа к медиатеке. Полный доступ к фото/видео необязателен. Уведомления необязательны.</string>
     <string name="settings_permissions_media">Фото и видео</string>
     <string name="settings_permissions_notifications">Уведомления (необязательно)</string>
     <string name="settings_permission_granted">Предоставлено</string>
@@ -240,6 +244,7 @@
     <string name="settings_about_github">Исходный Код На GitHub</string>
     <string name="settings_about_privacy">Политика Конфиденциальности</string>
     <string name="settings_about_report_issue">Сообщить О Проблеме</string>
+    <string name="settings_about_donate">Пожертвовать</string>
     <string name="settings_link_unavailable">Не найдено приложение для открытия этой ссылки.</string>
     <string name="settings_progress_notifications_label">Прогресс текущей задачи</string>
     <string name="settings_progress_notifications_subtitle">Постоянное уведомление о прогрессе длительных задач. По умолчанию выкл., пока не включите уведомления.</string>
@@ -273,27 +278,8 @@
     <string name="scan_copy_all_metadata">Копировать все метаданные</string>
     <string name="scan_copy_camera">Копировать данные камеры</string>
     <string name="scan_copy_coordinates">Копировать координаты</string>
-    <string name="settings_network_grant_crash_hint">Доступ к сети включён. Включите «Отправлять отчёты о сбоях» отдельно, если нужна отправка ошибок.</string>
-    <string name="settings_external_link_disclaimer">Откроется браузер с использованием сети. Redact не получил сетевой доступ для функций приложения.</string>
-    <string name="settings_external_link_continue">Открыть Ссылку</string>
-    <string name="settings_network_access_grant">Разрешить Доступ к Сети</string>
-    <string name="settings_network_access_revoke">Отозвать Доступ к Сети</string>
-    <string name="settings_network_consent_allow">Разрешить Доступ к Сети</string>
-    <string name="settings_network_consent_cancel">Не Сейчас</string>
-    <string name="settings_network_consent_crash_title">Разрешить отправку отчётов о сбоях через сеть?</string>
-    <string name="settings_network_consent_crash_message">Отправка Отчётов о Сбоях загружает анонимную диагностику в Sentry через интернет. Redact не использует сеть, пока вы не разрешите.
-
-Фото, видео, имена файлов и GPS-координаты не загружаются.</string>
-    <string name="settings_network_consent_general_title">Разрешить Доступ к Сети?</string>
-    <string name="settings_network_consent_general_message">Redact не использует сеть, пока вы не разрешите здесь. Доступ к сети используется только при включении Отправки Отчётов о Сбоях.
-
-Фото, видео, имена файлов и GPS-координаты не загружаются.</string>
-    <string name="settings_network_revoke_confirm">Отозвать</string>
-    <string name="settings_network_revoke_confirm_message">Это отключит Отправку Отчётов о Сбоях. Redact перестанет использовать сеть, пока вы снова не предоставите доступ.</string>
-    <string name="settings_network_revoke_confirm_title">Отозвать Доступ к Сети?</string>
-    <string name="settings_permissions_location">Местоположение Фото</string>
-    <string name="settings_permissions_network">Доступ к Сети (Необязательно)</string>
-    <string name="settings_storage_clear_busy">Нельзя очистить во время обработки.</string>
+<string name="settings_permissions_location">Местоположение Фото</string>
+<string name="settings_storage_clear_busy">Нельзя очистить во время обработки.</string>
     <string name="share_error_failed_get_cleaned_file">Не удалось подготовить очищенный файл для отправки.</string>
     <string name="share_error_failed_get_cleaned_files">Не удалось подготовить очищенные файлы для отправки.</string>
     <string name="share_error_failed_receive_media">Не удалось получить общий медиафайл.</string>

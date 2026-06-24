@@ -31,6 +31,7 @@ import com.doubleangels.redact.metadata.MetadataDisplayer;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.ui.ScanMetadataAdapter;
+import com.doubleangels.redact.ui.ScanViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.doubleangels.redact.sentry.SentryManager;
@@ -92,6 +93,7 @@ public class ScanFragment extends Fragment {
     private ActivityResultLauncher<String[]> mediaPickerLauncher;
     private PermissionManager permissionManager;
     private com.doubleangels.redact.media.MediaSelector mediaSelector;
+    private ScanViewModel scanViewModel;
     @Nullable
     private MediaItem currentMediaItem;
     @Nullable
@@ -130,6 +132,8 @@ public class ScanFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         SentryManager.log("ScanFragment view created");
+
+        scanViewModel = new ViewModelProvider(requireActivity()).get(ScanViewModel.class);
 
         statusText = view.findViewById(R.id.statusText);
         progressText = view.findViewById(R.id.progressText);
@@ -190,6 +194,46 @@ public class ScanFragment extends Fragment {
         });
         if (!isHidden()) {
             permissionManager.checkPermissions();
+        }
+        restoreScanUiIfNeeded();
+    }
+
+    private void restoreScanUiIfNeeded() {
+        if (scanViewModel == null || !scanViewModel.hasMetadataToRestore()) {
+            return;
+        }
+        lastMetadataSections = scanViewModel.getMetadataSections() != null
+                ? new HashMap<>(scanViewModel.getMetadataSections()) : null;
+        lastMetadataRows = scanViewModel.getMetadataRows();
+        lastMetadataPlainText = scanViewModel.getMetadataPlainText();
+        lastMapLatitude = scanViewModel.getMapLatitude();
+        lastMapLongitude = scanViewModel.getMapLongitude();
+        currentMediaItem = scanViewModel.getCurrentMediaItem();
+        String status = scanViewModel.getStatusMessage();
+        if (status != null && !status.isEmpty()) {
+            showStatus(status);
+        }
+        showProgress(false);
+        if (lastMetadataSections != null) {
+            displayCombinedMetadata(lastMetadataSections);
+        }
+    }
+
+    private void syncScanStateToViewModel() {
+        if (scanViewModel == null) {
+            return;
+        }
+        scanViewModel.setMetadataSections(lastMetadataSections);
+        scanViewModel.setMetadataRows(lastMetadataRows);
+        scanViewModel.setMetadataPlainText(lastMetadataPlainText);
+        if (!Double.isNaN(lastMapLatitude) && !Double.isNaN(lastMapLongitude)) {
+            scanViewModel.setMapCoordinates(lastMapLatitude, lastMapLongitude);
+        } else {
+            scanViewModel.clearMapCoordinates();
+        }
+        scanViewModel.setCurrentMediaItem(currentMediaItem);
+        if (statusText != null && statusText.getText() != null) {
+            scanViewModel.setStatusMessage(statusText.getText().toString());
         }
     }
 
@@ -353,6 +397,7 @@ public class ScanFragment extends Fragment {
                                 clearMapPreviewCoordinatesOnly();
                             }
                             displayCombinedMetadata(metadataSections);
+                            syncScanStateToViewModel();
 
                             String locationSection = metadataSections.get(MetadataDisplayer.SECTION_LOCATION);
                             boolean hasLocationRows = locationSection != null && !locationSection.trim().isEmpty();
@@ -434,6 +479,7 @@ public class ScanFragment extends Fragment {
         }
 
         updateScanActionCards(allRows);
+        syncScanStateToViewModel();
     }
 
     private void clearMetadataUi() {

@@ -40,5 +40,5 @@ jobs:
       - name: Run Android Lint
         run: ./gradlew lintRelease --no-daemon
 
-      - name: Build Release APK
-        run: ./gradlew assembleRelease --no-daemon
+      - name: Build release bundle
+        run: ./gradlew bundleRelease --no-daemon

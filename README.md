@@ -51,7 +51,7 @@ Protect your privacy with Redact — remove hidden EXIF and container metadata f
 
 - **Share sheet integration:** Share photos or videos into Redact from any app. Optional confirmation dialog, cancelable progress, partial batch success, and automatic cleanup of temporary share files.
 
-- **Privacy-first permissions:** Pick files with Android’s **document picker** (Downloads, Files, gallery folders) without broad `READ_MEDIA_*` access on **Android 13+**. Optional `ACCESS_MEDIA_LOCATION` reveals GPS fields in Scan. Notifications and network access are **off by default**.
+- **Privacy-first permissions:** Pick files with Android’s **document picker** (Downloads, Files, gallery folders) without broad `READ_MEDIA_*` access on **Android 13+**. Optional `ACCESS_MEDIA_LOCATION` reveals GPS fields in Scan. Notifications are **off by default**.
 
 - **100% on-device processing:** Your media is never uploaded for core features. Optional crash reporting sends anonymized diagnostics only (see below).
 
@@ -124,7 +124,7 @@ Cleaning aims to preserve visual quality while removing metadata. Strict Clean a
 
 ### Does Redact need internet access?
 
-**No**, for cleaning, scanning, and converting. If you enable **Send Crash Reports** in Settings (off by default) and grant network consent, anonymized crash diagnostics may be sent to [Sentry](https://sentry.io) over HTTPS.
+**No**, for cleaning, scanning, and converting. If you enable **Send Crash Reports** in Settings (off by default), anonymized crash diagnostics may be sent to [Sentry](https://sentry.io) over HTTPS.
 
 ### Where are processed files stored?
 
@@ -136,7 +136,7 @@ Settings let you overwrite temporary files before deletion (limited benefit on m
 
 ### Are there any analytics or trackers?
 
-Optional crash reporting uses [Sentry](https://sentry.io). It is **disabled by default** and requires explicit network consent.
+Optional crash reporting uses [Sentry](https://sentry.io). It is **disabled by default** and must be turned on in Settings.
 
 When enabled, anonymized data may include device model, Android version, app version, stack traces, and scrubbed diagnostic tags. URIs, filenames, and GPS are redacted before upload. Your photos and videos are **never** uploaded.
 

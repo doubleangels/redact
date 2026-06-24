@@ -155,6 +155,10 @@
     <string name="settings_preserve_camera_subtitle">在清理分頁保留光圈、快門速度、ISO 與相機品牌/型號。嚴格清理開啟或從其他 App 分享時忽略。</string>
     <string name="settings_preserve_location">保留位置</string>
     <string name="settings_preserve_location_subtitle">在清理分頁保留 GPS 座標。嚴格清理開啟或從其他 App 分享時忽略。</string>
+        <string name="settings_sentry_consent_allow">啟用</string>
+    <string name="settings_sentry_consent_cancel">暫不</string>
+    <string name="settings_sentry_consent_title">啟用當機報告？</string>
+    <string name="settings_sentry_consent_message">傳送當機報告會透過網際網路向 Sentry 上傳匿名診斷資訊。\n\n不會上傳照片、影片、檔名或 GPS 座標。</string>
     <string name="settings_strict_clean">嚴格清理</string>
     <string name="settings_strict_clean_subtitle">移除所有中繼資料（包括方向）。關閉保留選項並一律完整重新編碼影片。</string>
     
@@ -199,7 +203,7 @@
     <string name="settings_section_diagnostics">診斷與意見回饋</string>
     <string name="settings_section_diagnostics_subtitle">可選的當機報告以協助修復問題。您的媒體絕不會離開裝置。</string>
     <string name="settings_crash_reporting_label">傳送當機報告</string>
-    <string name="settings_crash_reporting_subtitle">僅匿名診斷資訊（App 版本、裝置型號、堆疊追蹤）。確認後需要網路存取。照片與影片絕不會上傳。</string>
+    <string name="settings_crash_reporting_subtitle">僅匿名診斷資訊（App 版本、裝置型號、堆疊追蹤）。啟用後，資料會透過網際網路傳送至 Sentry。照片與影片絕不會上傳。</string>
     <string name="settings_section_conversion">轉換分頁預設值</string>
     <string name="settings_conversion_subtitle">在「轉換」中選擇檔案時預先選取的格式。仍可為每批變更。</string>
     <string name="settings_default_image_format">預設圖片格式</string>
@@ -219,7 +223,7 @@
     <string name="settings_share_confirm_dialog_confirm">移除並繼續</string>
     <string name="settings_share_confirm_dialog_cancel">取消</string>
     <string name="settings_section_permissions">權限</string>
-    <string name="settings_permissions_subtitle">Android 13+ 上，Redact 使用系統檔案選擇器，可瀏覽下載、檔案或圖庫資料夾，無需廣泛的媒體庫權限。完整的照片/影片存取為選用。通知與網路為選用。</string>
+    <string name="settings_permissions_subtitle">Android 13+ 上，Redact 使用系統檔案選擇器，可瀏覽下載、檔案或圖庫資料夾，無需廣泛的媒體庫權限。完整的照片/影片存取為選用。通知為選用。</string>
     <string name="settings_permissions_media">照片和影片</string>
     <string name="settings_permissions_notifications">通知（選用）</string>
     <string name="settings_permission_granted">已授予</string>
@@ -240,6 +244,7 @@
     <string name="settings_about_github">在 GitHub 檢視原始碼</string>
     <string name="settings_about_privacy">隱私權政策</string>
     <string name="settings_about_report_issue">回報問題</string>
+    <string name="settings_about_donate">捐贈</string>
     <string name="settings_link_unavailable">找不到可開啟此連結的應用程式。</string>
     <string name="settings_progress_notifications_label">進行中工作進度</string>
     <string name="settings_progress_notifications_subtitle">長時間工作期間顯示進度的持續通知。預設關閉，需先開啟允許通知。</string>
@@ -273,27 +278,8 @@
     <string name="scan_copy_all_metadata">複製全部中繼資料</string>
     <string name="scan_copy_camera">複製相機資訊</string>
     <string name="scan_copy_coordinates">複製座標</string>
-    <string name="settings_network_grant_crash_hint">網路存取已開啟。若要錯誤回報，請另外開啟「傳送當機報告」。</string>
-    <string name="settings_external_link_disclaimer">將開啟瀏覽器並使用網路。Redact 尚未取得應用程式功能的網路存取權。</string>
-    <string name="settings_external_link_continue">開啟連結</string>
-    <string name="settings_network_access_grant">授予網路存取</string>
-    <string name="settings_network_access_revoke">撤銷網路存取</string>
-    <string name="settings_network_consent_allow">允許網路存取</string>
-    <string name="settings_network_consent_cancel">暫不</string>
-    <string name="settings_network_consent_crash_title">允許透過網路傳送當機報告？</string>
-    <string name="settings_network_consent_crash_message">傳送當機報告會透過網際網路向 Sentry 上傳匿名診斷資訊。在您允許之前，Redact 不會使用網路。
-
-不會上傳任何照片、影片、檔名或 GPS 座標。</string>
-    <string name="settings_network_consent_general_title">允許網路存取？</string>
-    <string name="settings_network_consent_general_message">在您於此處允許之前，Redact 不會使用網路。網路存取僅在您開啟傳送當機報告時使用。
-
-不會上傳任何照片、影片、檔名或 GPS 座標。</string>
-    <string name="settings_network_revoke_confirm">撤銷</string>
-    <string name="settings_network_revoke_confirm_message">這將關閉傳送當機報告。Redact 將停止使用網路，直到您再次授予存取權限。</string>
-    <string name="settings_network_revoke_confirm_title">撤銷網路存取？</string>
-    <string name="settings_permissions_location">照片位置</string>
-    <string name="settings_permissions_network">網路存取（選用）</string>
-    <string name="settings_storage_clear_busy">處理進行中時無法清除。</string>
+<string name="settings_permissions_location">照片位置</string>
+<string name="settings_storage_clear_busy">處理進行中時無法清除。</string>
     <string name="share_error_failed_get_cleaned_file">無法準備已清理的檔案以供分享。</string>
     <string name="share_error_failed_get_cleaned_files">無法準備已清理的檔案以供分享。</string>
     <string name="share_error_failed_receive_media">無法接收分享的媒體。</string>

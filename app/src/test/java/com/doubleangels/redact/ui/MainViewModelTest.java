@@ -8,6 +8,9 @@ import android.app.Application;
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
 
+import com.doubleangels.redact.media.AppProcessingScope;
+
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,6 +27,11 @@ public class MainViewModelTest {
 
     @Rule
     public InstantTaskExecutorRule instantTaskExecutorRule = new InstantTaskExecutorRule();
+
+    @After
+    public void tearDown() {
+        AppProcessingScope.resetForTests();
+    }
 
     @Test
     public void cancelCleaning_immediatelySetsCancelledState() {

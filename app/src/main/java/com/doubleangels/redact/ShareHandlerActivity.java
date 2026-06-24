@@ -85,6 +85,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private volatile boolean processingActive = false;
     private final AtomicBoolean activityDestroyed = new AtomicBoolean(false);
     private final AtomicBoolean shareSessionEnded = new AtomicBoolean(false);
+    private final java.util.concurrent.atomic.AtomicInteger shareSessionId =
+            new java.util.concurrent.atomic.AtomicInteger(0);
     private volatile Thread processingThread;
 
     private AlertDialog progressDialog;
@@ -109,6 +111,15 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
             if (savedInstanceState != null) {
                 sharingInitiated = savedInstanceState.getBoolean(KEY_SHARING_INITIATED, false);
+                boolean wasProcessing = savedInstanceState.getBoolean(KEY_PROCESSING_ACTIVE, false);
+                if (wasProcessing) {
+                    finishWithError(getString(R.string.share_error_interrupted));
+                    return;
+                }
+                if (sharingInitiated) {
+                    finish();
+                    return;
+                }
             }
 
             createProgressDialog();
@@ -126,19 +137,28 @@ public class ShareHandlerActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
+        invalidateShareSession();
         Thread thread = processingThread;
         if (thread != null) {
             thread.interrupt();
         }
-        VideoMedia3Converter.cancelActiveTranscode();
+        VideoMedia3Converter.cancelActiveTranscode(shareSessionId.get());
         LocalNotifications.stopProcessingForeground(this);
         processingActive = false;
         sharingInitiated = false;
-        shareSessionEnded.set(false);
         cleanupProcessedFiles();
         dismissProgressDialog();
         createProgressDialog();
         handleIntent(intent);
+    }
+
+    private void invalidateShareSession() {
+        shareSessionId.incrementAndGet();
+        shareSessionEnded.set(true);
+        if (activeShareSessions.get() > 0) {
+            activeShareSessions.decrementAndGet();
+        }
+        shareSessionEnded.set(false);
     }
 
     @Override
@@ -366,7 +386,9 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private void processMediaItems(List<Uri> uris) {
         processingActive = true;
         shareSessionEnded.set(false);
+        final int session = shareSessionId.incrementAndGet();
         activeShareSessions.incrementAndGet();
+        metadataStripper.setTranscodeOwnerId(session);
         LocalNotifications.startProcessingForeground(this, getString(R.string.share_processing_title));
         Thread worker = new Thread(() -> {
             ITransaction transaction = SentryManager.startTransaction("share_cleanup", "task");
@@ -476,17 +498,20 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 SentryManager.recordException(e);
                 safeRunOnUiThread(() -> finishWithError(getString(R.string.share_error_generic)));
             } finally {
-                endShareSession();
+                endShareSession(session);
             }
         });
         processingThread = worker;
         worker.start();
     }
 
-    private void endShareSession() {
+    private void endShareSession(int session) {
+        if (session != shareSessionId.get()) {
+            return;
+        }
         if (shareSessionEnded.compareAndSet(false, true)) {
             processingActive = false;
-            activeShareSessions.decrementAndGet();
+            activeShareSessions.updateAndGet(count -> Math.max(0, count - 1));
             LocalNotifications.stopProcessingForeground(ShareHandlerActivity.this);
         }
     }
@@ -496,11 +521,11 @@ public class ShareHandlerActivity extends AppCompatActivity {
         if (thread != null) {
             thread.interrupt();
         }
-        VideoMedia3Converter.cancelActiveTranscode();
+        VideoMedia3Converter.cancelActiveTranscode(shareSessionId.get());
         if (metadataStripper != null) {
             metadataStripper.requestCancellation();
         }
-        endShareSession();
+        endShareSession(shareSessionId.get());
         dismissProgressDialog();
         cleanupProcessedFiles();
         Toast.makeText(this, R.string.status_processing_cancelled, Toast.LENGTH_SHORT).show();
@@ -722,12 +747,11 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 return false;
             }
             long length = new File(path).length();
-            return length <= 0 || length <= MAX_STREAM_BYTES;
+            return length > 0 && length <= MAX_STREAM_BYTES;
         }
         long declared = MediaSizeLimits.declaredSizeBytes(getContentResolver(), uri);
         if (declared <= 0) {
-            // Unknown size: allow entry; snapshot/processing paths enforce stream limits.
-            return true;
+            return !"file".equalsIgnoreCase(uri.getScheme());
         }
         return declared <= MAX_STREAM_BYTES;
     }
@@ -747,9 +771,12 @@ public class ShareHandlerActivity extends AppCompatActivity {
         if (thread != null) {
             thread.interrupt();
         }
-        VideoMedia3Converter.cancelActiveTranscode();
+        VideoMedia3Converter.cancelActiveTranscode(shareSessionId.get());
         if (metadataStripper != null) {
             metadataStripper.requestCancellation();
+        }
+        if (!shareSessionEnded.get()) {
+            endShareSession(shareSessionId.get());
         }
         LocalNotifications.stopProcessingForeground(getApplicationContext());
         dismissProgressDialog();

@@ -76,6 +76,11 @@ public class MediaProcessor {
          * Called when a batch is already running and a second start was ignored.
          */
         default void onAlreadyProcessing() {}
+
+        /**
+         * Called on the main thread when this batch was accepted and will run.
+         */
+        default void onBatchStarted() {}
     }
 
     /**
@@ -94,7 +99,12 @@ public class MediaProcessor {
     public void cancel() {
         cancelled.set(true);
         metadataStripper.requestCancellation();
-        VideoMedia3Converter.cancelActiveTranscode();
+        VideoMedia3Converter.cancelActiveTranscode(metadataStripper.getTranscodeOwnerId());
+    }
+
+    /** Associates subsequent video transcodes with {@code ownerId} for scoped cancellation. */
+    public void setTranscodeOwnerId(long ownerId) {
+        metadataStripper.setTranscodeOwnerId(ownerId);
     }
 
     /** Stops the background worker; safe to call when the owner is destroyed. */
@@ -110,6 +120,11 @@ public class MediaProcessor {
      */
     public Uri getLastProcessedFileUri() {
         return lastProcessedFileUri;
+    }
+
+    /** Whether a clean batch is currently running on the shared worker. */
+    public boolean isBusy() {
+        return processing.get();
     }
 
     /**
@@ -134,15 +149,18 @@ public class MediaProcessor {
         }
         cancelled.set(false);
         metadataStripper.resetCancellation();
+        mainHandler.post(callback::onBatchStarted);
         processingExecutor.execute(() -> {
-            ITransaction transaction = SentryManager.startTransaction("clean_multiple", "task");
-            int successCount = 0;
             final int totalItems = items.size();
+            ITransaction transaction = SentryManager.startTransaction("clean_multiple", "task");
+            long batchStartMs = System.currentTimeMillis();
+            SentryManager.distribution("processing.batch.size", totalItems, "operation_type", "clean");
+            int successCount = 0;
             try {
                 for (int index = 0; index < totalItems; index++) {
                     if (cancelled.get()) {
                         Log.i(TAG, "Processing cancelled by user or lifecycle");
-                        VideoMedia3Converter.cancelActiveTranscode();
+                        VideoMedia3Converter.cancelActiveTranscode(metadataStripper.getTranscodeOwnerId());
                         break;
                     }
                     MediaItem item = items.get(index);
@@ -190,13 +208,17 @@ public class MediaProcessor {
                         if (processedUri != null) {
                             lastProcessedFileUri = processedUri;
                             successCount++;
+                            SentryManager.count(
+                                    "processing.clean.success", 1, "is_video", String.valueOf(item.isVideo()));
                             span.setStatus(SpanStatus.OK);
                         } else if (cancelled.get()) {
-                            VideoMedia3Converter.cancelActiveTranscode();
+                            VideoMedia3Converter.cancelActiveTranscode(metadataStripper.getTranscodeOwnerId());
                             span.setStatus(SpanStatus.CANCELLED);
                             break;
                         } else {
                             Log.e(TAG, "Failed to process item at index " + index);
+                            SentryManager.count(
+                                    "processing.clean.failure", 1, "is_video", String.valueOf(item.isVideo()));
                             span.setStatus(SpanStatus.INTERNAL_ERROR);
                             final String failLine =
                                     context.getString(R.string.clean_item_failed, item.fileName());
@@ -211,12 +233,19 @@ public class MediaProcessor {
                     } catch (Exception e) {
                         metadataStripper.setProgressCallback(null);
                         if (cancelled.get() || SentryManager.isUserCancellation(e)) {
-                            VideoMedia3Converter.cancelActiveTranscode();
+                            VideoMedia3Converter.cancelActiveTranscode(metadataStripper.getTranscodeOwnerId());
                             span.setStatus(SpanStatus.CANCELLED);
                             break;
                         }
                         Log.e(TAG, "Error processing item at index " + index, e);
                         SentryManager.recordException(e);
+                        SentryManager.count(
+                                "processing.clean.failure",
+                                1,
+                                "is_video",
+                                String.valueOf(item.isVideo()),
+                                "error_type",
+                                e.getClass().getSimpleName());
                         span.setStatus(SpanStatus.INTERNAL_ERROR);
                     } finally {
                         span.finish();
@@ -238,6 +267,11 @@ public class MediaProcessor {
                 });
                 processing.set(false);
                 cancelled.set(false);
+                SentryManager.distributionDurationMs(
+                        "processing.duration_ms",
+                        System.currentTimeMillis() - batchStartMs,
+                        "operation_type",
+                        "clean");
                 transaction.finish();
             }
         });

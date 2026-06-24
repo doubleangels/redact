@@ -177,6 +177,8 @@ public class MetadataStripper {
     private final java.util.concurrent.atomic.AtomicBoolean operationCancelled =
             new java.util.concurrent.atomic.AtomicBoolean(false);
 
+    private volatile long transcodeOwnerId = -1L;
+
     /**
      * Secure random number generator for secure file deletion.
      */
@@ -186,9 +188,17 @@ public class MetadataStripper {
         operationCancelled.set(false);
     }
 
+    public void setTranscodeOwnerId(long ownerId) {
+        transcodeOwnerId = ownerId;
+    }
+
+    public long getTranscodeOwnerId() {
+        return transcodeOwnerId;
+    }
+
     public void requestCancellation() {
         operationCancelled.set(true);
-        VideoMedia3Converter.cancelActiveTranscode();
+        VideoMedia3Converter.cancelActiveTranscode(transcodeOwnerId);
     }
 
     private void throwIfCancelled() throws IOException {
@@ -273,7 +283,7 @@ public class MetadataStripper {
         try {
             throwIfCancelled();
         } catch (IOException e) {
-            VideoMedia3Converter.cancelActiveTranscode();
+            VideoMedia3Converter.cancelActiveTranscode(transcodeOwnerId);
             throw new RuntimeException(e);
         }
         if (progressCallback != null) {
@@ -307,29 +317,38 @@ public class MetadataStripper {
             throwIfCancelled();
             enforceVideoSizeLimit(sourceUri);
 
-            updateProgress(1, 4, "Reading video...");
+            updateProgress(1, 4, context.getString(R.string.strip_progress_reading_video));
 
             VideoPrivacySnapshot sourceSnapshot = extractVideoPrivacyMetadata(sourceUri);
 
             throwIfCancelled();
             int formatIndex = detectVideoFormatIndex(sourceUri, originalFilename);
 
-            updateProgress(2, 4, "Transmuxing...");
+            updateProgress(2, 4, context.getString(R.string.strip_progress_transmuxing));
             File tempCleanFile = fastStripVideoMetadata(sourceUri);
             Uri cleanSourceUri = tempCleanFile != null ? Uri.fromFile(tempCleanFile) : sourceUri;
 
             boolean needsTranscode = !shouldSkipVideoTranscode(formatIndex, tempCleanFile, false);
+            boolean savedViaFastPath = false;
 
             try {
                 if (!needsTranscode && tempCleanFile != null) {
-                    updateProgress(3, 4, "Verifying metadata removal...");
-                    requireVideoMetadataClean(tempCleanFile, sourceSnapshot);
-                    updateProgress(4, 4, "Saving clean copy...");
-                    checkCancelled();
-                    newUri = VideoMedia3Converter.copyToMoviesRedact(
-                            context, tempCleanFile, generateShortRandomName(), formatIndex);
-                } else {
-                    updateProgress(3, 4, "Transcoding to target format...");
+                    try {
+                        updateProgress(3, 4, context.getString(R.string.strip_progress_verifying));
+                        requireVideoMetadataClean(tempCleanFile, sourceSnapshot);
+                        updateProgress(4, 4, context.getString(R.string.strip_progress_saving_clean_copy));
+                        checkCancelled();
+                        newUri = VideoMedia3Converter.copyToMoviesRedact(
+                                context, tempCleanFile, generateShortRandomName(), formatIndex);
+                        savedViaFastPath = true;
+                    } catch (IOException fastPathFailed) {
+                        SentryManager.log(
+                                "Fast video clean failed verification; re-encoding: "
+                                        + fastPathFailed.getMessage());
+                    }
+                }
+                if (!savedViaFastPath) {
+                    updateProgress(3, 4, context.getString(R.string.strip_progress_transcoding_target));
                     String ext = VideoMedia3Converter.extensionForFormatIndex(formatIndex);
                     File transcodeOutput =
                             File.createTempFile("vid_transform_", ext, context.getCacheDir());
@@ -340,9 +359,10 @@ public class MetadataStripper {
                                         cleanSourceUri,
                                         transcodeOutput.getAbsolutePath(),
                                         formatIndex,
-                                        this::reportTranscodeProgress);
+                                        this::reportTranscodeProgress,
+                                        transcodeOwnerId);
                         requireVideoMetadataClean(transcodeOutput, sourceSnapshot);
-                        updateProgress(4, 4, "Saving cleaned video...");
+                        updateProgress(4, 4, context.getString(R.string.strip_progress_saving_clean_video));
                         checkCancelled();
                         newUri =
                                 VideoMedia3Converter.copyToMoviesRedact(
@@ -440,7 +460,7 @@ public class MetadataStripper {
 
             // Generate unique filename for the processed file
             String newFilename = generateShortRandomName() + extension;
-            updateProgress(1, 5, "Reading image...");
+            updateProgress(1, 5, context.getString(R.string.strip_progress_reading_image));
 
             // Create temporary file to hold the image during processing
             tempFile = new File(
@@ -449,7 +469,7 @@ public class MetadataStripper {
             copySourceToTempFile(sourceUri, tempFile, MediaSizeLimits.maxImageBytes(context));
 
             // Extract essential EXIF data to preserve (like orientation)
-            updateProgress(2, 5, "Reading essential metadata...");
+            updateProgress(2, 5, context.getString(R.string.strip_progress_reading_essential_metadata));
             readEssentialExifData(tempFile, false);
 
             // Remove thumbnails from original
@@ -476,7 +496,7 @@ public class MetadataStripper {
             }
 
             // Save bitmap without metadata
-                        updateProgress(3, 5, "Removing metadata...");
+                        updateProgress(3, 5, context.getString(R.string.strip_progress_removing_metadata));
 
             boolean usedLossless = false;
             try (OutputStream os = contentResolver.openOutputStream(newUri)) {
@@ -495,6 +515,10 @@ public class MetadataStripper {
             }
 
             if (!usedLossless) {
+                FormatConverter.ImageFormatSpec bitmapOutput = outputFormat;
+                if (!outputFormat.bitmapFallbackSupported) {
+                    bitmapOutput = FormatConverter.jpegFormatSpec();
+                }
                 BitmapFactory.Options optionsJustBounds = new BitmapFactory.Options();
                 optionsJustBounds.inJustDecodeBounds = true;
                 BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsJustBounds);
@@ -505,6 +529,9 @@ public class MetadataStripper {
                 originalBitmap = BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsLoad);
 
                 if (originalBitmap == null) {
+                    originalBitmap = FormatConverter.decodeBitmapFromUri(context, sourceUri);
+                }
+                if (originalBitmap == null) {
                     throw new IOException("Failed to decode bitmap");
                 }
 
@@ -513,7 +540,7 @@ public class MetadataStripper {
                         throw new IOException("Failed to open output stream for new image");
                     }
                     if (!FormatConverter.compressBitmapToStream(
-                            context, originalBitmap, outputFormat.compressFormat, os)) {
+                            context, originalBitmap, bitmapOutput.compressFormat, os)) {
                         throw new IOException("Failed to compress bitmap");
                     }
                     os.flush();
@@ -524,38 +551,13 @@ public class MetadataStripper {
             }
 
             // Restore only essential EXIF data (like orientation)
-            updateProgress(4, 5, "Restoring essential metadata...");
+            updateProgress(4, 5, context.getString(R.string.strip_progress_restoring_essential_metadata));
             restoreEssentialExifData(newUri);
             MediaStoreWrites.markPublished(contentResolver, newUri);
 
             // Verify metadata removal (for MediaStore files, we need to read from URI)
-            updateProgress(5, 5, "Verifying metadata removal...");
-            try {
-                File tempVerifyFile = new File(
-                        context.getCacheDir(), "verify_" + System.currentTimeMillis() + extension);
-                try (InputStream is = contentResolver.openInputStream(newUri);
-                        FileOutputStream fos = new FileOutputStream(tempVerifyFile)) {
-                    byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-                    int bytesRead;
-                    while (true) {
-                        
-                        if (!((bytesRead = is.read(buffer)) > 0))
-                            break;
-                        fos.write(buffer, 0, bytesRead);
-                    }
-                }
-                boolean metadataRemoved = verifyMetadataRemoval(tempVerifyFile);
-                SentryManager.setCustomKey("metadata_verification_passed", metadataRemoved);
-                if (!metadataRemoved) {
-                    if (AppPreferences.isStrictClean(context)) {
-                        throw new IOException("Metadata verification failed");
-                    }
-                    SentryManager.log("Warning: Metadata verification found remaining metadata.");
-                }
-                secureDeleteFile(tempVerifyFile);
-            } catch (Exception e) {
-                SentryManager.log("Could not verify metadata: " + e.getMessage() + ".");
-            }
+            updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
+            verifyCleanedImageAtUri(newUri, extension);
 
             lastProcessedFileUri = newUri;
             SentryManager.log("Image processed successfully.");
@@ -642,13 +644,13 @@ public class MetadataStripper {
             FormatConverter.ImageFormatSpec outputFormat = resolveImageOutputFormat(sourceUri, originalFilename);
             String extension = outputFormat.extension;
 
-            updateProgress(1, 4, "Reading image...");
+            updateProgress(1, 4, context.getString(R.string.strip_progress_reading_image));
 
             tempFile = new File(context.getCacheDir(), "temp_" + System.currentTimeMillis() + extension);
 
             copySourceToTempFile(sourceUri, tempFile, MediaSizeLimits.maxImageBytes(context));
 
-            updateProgress(2, 4, "Reading essential metadata...");
+            updateProgress(2, 4, context.getString(R.string.strip_progress_reading_essential_metadata));
             readEssentialExifData(tempFile, true);
 
             File outputDir = new File(context.getCacheDir(), "processed");
@@ -661,7 +663,7 @@ public class MetadataStripper {
             String newFilename = generateShortRandomName() + extension;
             outputFile = new File(outputDir, newFilename);
 
-            updateProgress(3, 5, "Removing metadata...");
+            updateProgress(3, 5, context.getString(R.string.strip_progress_removing_metadata));
 
             boolean usedLossless = false;
             try (FileOutputStream fos = new FileOutputStream(outputFile)) {
@@ -705,7 +707,7 @@ public class MetadataStripper {
             }
 
             // Remove all EXIF metadata except essential tags
-            updateProgress(4, 5, "Removing all metadata...");
+            updateProgress(4, 5, context.getString(R.string.strip_progress_removing_all_metadata));
             ExifInterface newExif = new ExifInterface(outputFile.getAbsolutePath());
             if (usedLossless) {
                 restoreEssentialExifValues(newExif);
@@ -716,17 +718,16 @@ public class MetadataStripper {
             newExif.saveAttributes();
 
             // Verify metadata removal
-            updateProgress(5, 5, "Verifying metadata removal...");
+            updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
             boolean metadataRemoved = verifyMetadataRemoval(outputFile);
             SentryManager.setCustomKey("metadata_verification_passed", metadataRemoved);
             if (!metadataRemoved) {
-                if (AppPreferences.isStrictClean(context)) {
-                    throw new IOException("Metadata verification failed");
-                }
                 SentryManager.log("Warning: Metadata verification found remaining metadata.");
+                if (outputFile != null && outputFile.exists()) {
+                    secureDeleteFile(outputFile);
+                }
+                return null;
             }
-
-            // Get content URI using FileProvider for sharing
             Uri fileUri = FileProvider.getUriForFile(
                     context,
                     context.getPackageName() + ".fileprovider",
@@ -791,7 +792,7 @@ public class MetadataStripper {
         try {
             enforceVideoSizeLimit(sourceUri);
 
-            updateProgress(1, 4, "Reading video...");
+            updateProgress(1, 4, context.getString(R.string.strip_progress_reading_video));
 
             VideoPrivacySnapshot sourceSnapshot = extractVideoPrivacyMetadata(sourceUri);
 
@@ -809,7 +810,7 @@ public class MetadataStripper {
             String newFilename = generateShortRandomName() + extension;
             outputFile = new File(outputDir, newFilename);
 
-            updateProgress(2, 4, "Transmuxing...");
+            updateProgress(2, 4, context.getString(R.string.strip_progress_transmuxing));
             File tempCleanFile = fastStripVideoMetadata(sourceUri);
             Uri cleanSourceUri = tempCleanFile != null ? Uri.fromFile(tempCleanFile) : sourceUri;
             
@@ -817,7 +818,7 @@ public class MetadataStripper {
 
             try {
                 if (!needsTranscode && tempCleanFile != null) {
-                    updateProgress(3, 4, "Processing video metadata...");
+                    updateProgress(3, 4, context.getString(R.string.strip_progress_processing_video_metadata));
                     try (InputStream in = new FileInputStream(tempCleanFile);
                             FileOutputStream out = new FileOutputStream(outputFile)) {
                         byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
@@ -828,13 +829,14 @@ public class MetadataStripper {
                         out.flush();
                     }
                 } else {
-                    updateProgress(3, 4, "Transcoding...");
+                    updateProgress(3, 4, context.getString(R.string.strip_progress_transcoding));
                     VideoMedia3Converter.transcodeToFile(
                             context.getApplicationContext(),
                             cleanSourceUri,
                             outputFile,
                             formatIndex,
-                            this::reportTranscodeProgress);
+                            this::reportTranscodeProgress,
+                            transcodeOwnerId);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -848,7 +850,7 @@ public class MetadataStripper {
                 }
             }
 
-            updateProgress(4, 4, "Verifying metadata removal...");
+            updateProgress(4, 4, context.getString(R.string.strip_progress_verifying));
 
             requireVideoMetadataClean(outputFile, sourceSnapshot);
 
@@ -1491,10 +1493,12 @@ public class MetadataStripper {
 
     private boolean isFileTooLarge(@NonNull Uri uri) {
         long fileSize = getFileSizeFromUriCached(uri);
-        if (fileSize <= 0) {
-            return false;
+        long maxBytes = AppPreferences.getMaxImageFileSizeMb(context) * 1024L * 1024L;
+        if (fileSize > 0) {
+            return fileSize > maxBytes;
         }
-        return fileSize > AppPreferences.getMaxImageFileSizeMb(context) * 1024L * 1024L;
+        long declared = MediaSizeLimits.declaredSizeBytes(contentResolver, uri);
+        return declared > 0 && declared > maxBytes;
     }
 
     /** Source location/date used to detect preserved privacy metadata after cleaning. */
@@ -1535,10 +1539,7 @@ public class MetadataStripper {
         boolean videoClean = verifyVideoMetadataRemoval(videoFile, sourceSnapshot);
         SentryManager.setCustomKey("video_metadata_verification_passed", videoClean);
         if (!videoClean) {
-            if (AppPreferences.isStrictClean(context)) {
-                throw new IOException("Video metadata verification failed");
-            }
-            SentryManager.log("Warning: Video metadata verification found remaining tags.");
+            throw new IOException("Video metadata verification failed");
         }
     }
 
@@ -1729,8 +1730,38 @@ public class MetadataStripper {
             }
         } catch (Exception e) {
             SentryManager.log("XMP detection failed: " + e.getMessage());
+            return true;
         }
         return false;
+    }
+
+    /**
+     * Verifies a cleaned gallery image; throws in strict mode when metadata remains or checks fail.
+     */
+    private void verifyCleanedImageAtUri(@NonNull Uri imageUri, @NonNull String extension)
+            throws IOException {
+        File tempVerifyFile = new File(
+                context.getCacheDir(), "verify_" + System.currentTimeMillis() + extension);
+        try {
+            try (InputStream is = contentResolver.openInputStream(imageUri);
+                    FileOutputStream fos = new FileOutputStream(tempVerifyFile)) {
+                if (is == null) {
+                    throw new IOException("Cannot open cleaned image for verification");
+                }
+                byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+                int bytesRead;
+                while ((bytesRead = is.read(buffer)) > 0) {
+                    fos.write(buffer, 0, bytesRead);
+                }
+            }
+            boolean metadataRemoved = verifyMetadataRemoval(tempVerifyFile);
+            SentryManager.setCustomKey("metadata_verification_passed", metadataRemoved);
+            if (!metadataRemoved) {
+                throw new IOException("Metadata verification failed");
+            }
+        } finally {
+            secureDeleteFile(tempVerifyFile);
+        }
     }
 
     /**
@@ -1876,13 +1907,17 @@ public class MetadataStripper {
             SentryManager.log("Native EXIF stripping removed " + removedCount + " tags.");
             exif.saveAttributes();
 
-            // Copy the modified file to the output stream
             try (java.io.InputStream in = new java.io.FileInputStream(tempFile)) {
                 byte[] buffer = new byte[8192];
                 int read;
                 while ((read = in.read(buffer)) != -1) {
                     finalOs.write(buffer, 0, read);
                 }
+            }
+            if (!extension.equalsIgnoreCase(".jpg") && !extension.equalsIgnoreCase(".jpeg")
+                    && containsXMPMetadata(tempFile)) {
+                SentryManager.log("Native EXIF strip left XMP; falling back to re-encode.");
+                return false;
             }
             return true;
         } catch (Exception e) {

@@ -4,8 +4,8 @@
     <string name="app_name">Redact</string>
 
     
-    <string name="content_description_image_view">Vista de imagen</string>
-    <string name="content_description_scroll_view">Vista de desplazamiento</string>
+    <string name="content_description_image_view">Vista de Imagen</string>
+    <string name="content_description_scroll_view">Vista de Desplazamiento</string>
 
     
     <string name="navigation_clean">Limpiar</string>
@@ -26,9 +26,9 @@
     <string name="navigation_convert">Convertir</string>
 
     
-    <string name="convert_output_format_images">Formato De Imagen</string>
-    <string name="convert_output_format_videos">Códec De Video</string>
-    <string name="convert_output_format_mixed">Formatos (imagen / video)</string>
+    <string name="convert_output_format_images">Formato de Imagen</string>
+    <string name="convert_output_format_videos">Códec de Video</string>
+    <string name="convert_output_format_mixed">Formatos (Imagen / Video)</string>
     <string name="convert_format_mixed_pair">%1$s · %2$s</string>
     <string name="convert_format_jpeg">JPEG</string>
     <string name="convert_format_png">PNG</string>
@@ -57,7 +57,7 @@
     <string name="convert_clean_tab_hint">La conversión solo cambia el formato. Para eliminar los metadatos, ve a la pestaña Limpiar.</string>
 
     
-    <string name="button_select_media">Seleccionar archivos</string>
+    <string name="button_select_media">Seleccionar Archivos</string>
     <string name="button_strip_exif_data">Limpiar Metadatos</string>
 
     
@@ -145,38 +145,42 @@
     <string name="metadata_error_file_open">Error: No se pudo abrir el archivo de imagen</string>
 
     
-    <string name="settings_section_advanced_privacy">Limpieza de metadatos</string>
+    <string name="settings_section_advanced_privacy">Limpieza de Metadatos</string>
     <string name="settings_advanced_privacy_subtitle">Cómo Redact elimina EXIF en la pestaña Limpiar. Al compartir desde otras apps siempre se eliminan ubicación e info de cámara antes de reenviar.</string>
-    <string name="settings_secure_delete">Pasadas De Borrado Seguro</string>
+    <string name="settings_secure_delete">Pasadas de Borrado Seguro</string>
     <string name="settings_secure_delete_subtitle">Cuántas veces se sobrescriben los archivos temporales antes de borrarlos. Más pasadas son más lentas; en almacenamiento flash la recuperación puede seguir siendo posible.</string>
-    <string name="settings_auto_clear_temp">Vaciar caché al iniciar</string>
+    <string name="settings_auto_clear_temp">Vaciar Caché al Iniciar</string>
     <string name="settings_auto_clear_temp_subtitle">Elimina archivos de caché de procesamiento de más de 24 horas al abrir la app.</string>
-    <string name="settings_preserve_camera">Conservar ajustes de cámara</string>
+    <string name="settings_preserve_camera">Conservar Ajustes de Cámara</string>
     <string name="settings_preserve_camera_subtitle">Conservar apertura, velocidad de obturación, ISO y marca/modelo de cámara en Limpiar. Ignorado con Limpieza Estricta o al compartir desde otras apps.</string>
-    <string name="settings_preserve_location">Conservar ubicación</string>
+    <string name="settings_preserve_location">Conservar Ubicación</string>
     <string name="settings_preserve_location_subtitle">Conservar coordenadas GPS en Limpiar. Ignorado con Limpieza Estricta o al compartir desde otras apps.</string>
+        <string name="settings_sentry_consent_allow">Activar</string>
+    <string name="settings_sentry_consent_cancel">Ahora No</string>
+    <string name="settings_sentry_consent_title">¿Activar Informes de Fallos?</string>
+    <string name="settings_sentry_consent_message">Enviar Informes de Fallos sube diagnósticos anonimizados a Sentry por internet.\n\nNo se suben fotos, videos, nombres de archivo ni coordenadas GPS.</string>
     <string name="settings_strict_clean">Limpieza Estricta</string>
     <string name="settings_strict_clean_subtitle">Eliminar todos los metadatos, incluida la orientación. Desactiva las opciones de conservar y siempre recodifica video por completo.</string>
     
-    <string name="settings_section_advanced_processing">Archivos grandes y memoria</string>
+    <string name="settings_section_advanced_processing">Archivos Grandes y Memoria</string>
     <string name="settings_advanced_processing_subtitle">Límites para imágenes muy grandes al limpiar y convertir. No cambia la limpieza de video.</string>
-    <string name="settings_max_bitmap_size">Resolución máxima de procesamiento</string>
+    <string name="settings_max_bitmap_size">Resolución Máxima de Procesamiento</string>
     <string name="settings_max_bitmap_size_subtitle">Lado más largo en píxeles al decodificar en memoria. Valores más bajos usan menos RAM.</string>
-    <string name="settings_max_file_size">Tamaño máximo de archivo de entrada</string>
+    <string name="settings_max_file_size">Tamaño Máximo de Archivo de Entrada</string>
     <string name="settings_max_file_size_subtitle">Omitir o reducir imágenes por encima de este tamaño para evitar errores de memoria.</string>
-    <string name="settings_video_fallback">Limpieza De Video Más Rápida</string>
+    <string name="settings_video_fallback">Limpieza de Video Más Rápida</string>
     <string name="settings_video_fallback_subtitle">Omitir la recodificación completa tras un remux rápido cuando la salida ya es compatible con MP4. Ahorra tiempo y batería; la transcodificación completa elimina más metadatos. Desactivado con Limpieza Estricta o al compartir desde otras apps.</string>
 
     <string-array name="settings_secure_delete_labels">
-        <item>1 pasada (rápida)</item>
-        <item>3 pasadas (segura)</item>
-        <item>7 pasadas (ultrasegura)</item>
+        <item>1 Pasada (Rápida)</item>
+        <item>3 Pasadas (Segura)</item>
+        <item>7 Pasadas (Ultrasegura)</item>
     </string-array>
 
     <string-array name="settings_max_bitmap_size_labels">
-        <item>2048px (poca RAM)</item>
-        <item>4096px (estándar)</item>
-        <item>8192px (alto rendimiento)</item>
+        <item>2048px (Poca RAM)</item>
+        <item>4096px (Estándar)</item>
+        <item>8192px (Alto Rendimiento)</item>
     </string-array>
 
     <string-array name="settings_max_file_size_labels">
@@ -190,21 +194,21 @@
     <string name="navigation_settings">Configuración</string>
     <string name="settings_section_notifications">Notificaciones</string>
     <string name="settings_section_notifications_subtitle">Alertas al terminar tareas y progreso en vivo opcional al limpiar o convertir.</string>
-    <string name="settings_notifications_label">Permitir notificaciones</string>
+    <string name="settings_notifications_label">Permitir Notificaciones</string>
     <string name="settings_notifications_subtitle">Interruptor principal de alertas de Redact. Desactivado por defecto; Android puede pedir permiso al activarlo.</string>
-    <string name="settings_notifications_clean_label">Limpieza terminada</string>
+    <string name="settings_notifications_clean_label">Limpieza Terminada</string>
     <string name="settings_notifications_clean_subtitle">Aviso cuando termina la eliminación de metadatos en la pestaña Limpiar.</string>
-    <string name="settings_notifications_convert_label">Conversión terminada</string>
+    <string name="settings_notifications_convert_label">Conversión Terminada</string>
     <string name="settings_notifications_convert_subtitle">Aviso cuando termina la conversión de formato en la pestaña Convertir.</string>
-    <string name="settings_section_diagnostics">Diagnóstico y comentarios</string>
+    <string name="settings_section_diagnostics">Diagnóstico y Comentarios</string>
     <string name="settings_section_diagnostics_subtitle">Informes opcionales para corregir fallos. Tus archivos multimedia nunca salen del dispositivo.</string>
-    <string name="settings_crash_reporting_label">Enviar informes de fallos</string>
-    <string name="settings_crash_reporting_subtitle">Solo diagnósticos anonimizados (versión de la app, modelo del dispositivo, trazas de pila). Requiere acceso a la red tras su confirmación. Las fotos y videos nunca se suben.</string>
-    <string name="settings_section_conversion">Valores predeterminados de Convertir</string>
+    <string name="settings_crash_reporting_label">Enviar Informes de Fallos</string>
+    <string name="settings_crash_reporting_subtitle">Solo diagnósticos anonimizados (versión de la app, modelo del dispositivo, trazas de pila). Si está activado, los datos se envían a Sentry por internet. Las fotos y videos nunca se suben.</string>
+    <string name="settings_section_conversion">Valores Predeterminados de Convertir</string>
     <string name="settings_conversion_subtitle">Formatos preseleccionados al elegir archivos en Convertir. Puedes cambiarlos en cada lote.</string>
-    <string name="settings_default_image_format">Formato De Imagen Predeterminado</string>
-    <string name="settings_default_video_format">Códec De Video Predeterminado</string>
-    <string name="settings_image_quality">Calidad De Imagen</string>
+    <string name="settings_default_image_format">Formato de Imagen Predeterminado</string>
+    <string name="settings_default_video_format">Códec de Video Predeterminado</string>
+    <string name="settings_image_quality">Calidad de Imagen</string>
     <string name="settings_quality_high">Alta</string>
     <string name="settings_quality_balanced">Equilibrada</string>
     <string name="settings_quality_smaller">Archivo Más Pequeño</string>
@@ -212,21 +216,21 @@
     <string name="settings_section_share_subtitle">Cuando otra app envía fotos o videos a Redact.</string>
 
     <string name="settings_section_share">Compartir en Redact</string>
-    <string name="settings_share_confirm_label">Confirmar antes de quitar metadatos</string>
+    <string name="settings_share_confirm_label">Confirmar Antes de Quitar Metadatos</string>
     <string name="settings_share_confirm_subtitle">Mostrar un aviso antes de eliminar EXIF y otros metadatos de archivos compartidos.</string>
     <string name="settings_share_confirm_dialog_title">¿Eliminar Metadatos?</string>
     <string name="settings_share_confirm_dialog_message">Redact eliminará EXIF y otros metadatos de los archivos compartidos antes de compartirlos.</string>
-    <string name="settings_share_confirm_dialog_confirm">Eliminar Y Continuar</string>
+    <string name="settings_share_confirm_dialog_confirm">Eliminar y Continuar</string>
     <string name="settings_share_confirm_dialog_cancel">Cancelar</string>
     <string name="settings_section_permissions">Permisos</string>
-    <string name="settings_permissions_subtitle">En Android 13+, Redact usa el selector de archivos del sistema: Descargas, Archivos o carpetas de la galería sin acceso amplio a la biblioteca. El acceso completo a fotos/vídeo es opcional. Notificaciones y red son opcionales.</string>
-    <string name="settings_permissions_media">Fotos y videos</string>
-    <string name="settings_permissions_notifications">Notificaciones (opcional)</string>
+    <string name="settings_permissions_subtitle">En Android 13+, Redact usa el selector de archivos del sistema: Descargas, Archivos o carpetas de la galería sin acceso amplio a la biblioteca. El acceso completo a fotos/vídeo es opcional. Las notificaciones son opcionales.</string>
+    <string name="settings_permissions_media">Fotos y Videos</string>
+    <string name="settings_permissions_notifications">Notificaciones (Opcional)</string>
     <string name="settings_permission_granted">Concedido</string>
     <string name="settings_permission_denied">Denegado</string>
     <string name="settings_permission_not_required">No Requerido</string>
-    <string name="settings_open_system_settings">Abrir Configuración Del Sistema</string>
-    <string name="settings_section_storage">Almacenamiento y caché</string>
+    <string name="settings_open_system_settings">Abrir Configuración del Sistema</string>
+    <string name="settings_section_storage">Almacenamiento y Caché</string>
     <string name="settings_storage_size">Caché en uso: %1$s</string>
     <string name="settings_storage_subtitle">Copias de trabajo creadas durante el procesamiento. Tus originales de la galería nunca se modifican.</string>
     <string name="settings_storage_clear">Borrar Archivos Temporales</string>
@@ -237,14 +241,15 @@
     <string name="settings_section_about">Acerca de</string>
     <string name="settings_about_version">Versión %1$s</string>
     <string name="settings_about_subtitle">Toda la limpieza, exploración y conversión se ejecuta en tu dispositivo. Las fotos y videos nunca se suben.</string>
-    <string name="settings_about_github">Ver Código En GitHub</string>
-    <string name="settings_about_privacy">Política De Privacidad</string>
-    <string name="settings_about_report_issue">Informar Un Problema</string>
+    <string name="settings_about_github">Ver Código en GitHub</string>
+    <string name="settings_about_privacy">Política de Privacidad</string>
+    <string name="settings_about_report_issue">Informar un Problema</string>
+    <string name="settings_about_donate">Donar</string>
     <string name="settings_link_unavailable">No se encontró una app para abrir este enlace.</string>
-    <string name="settings_progress_notifications_label">Progreso de tarea en curso</string>
+    <string name="settings_progress_notifications_label">Progreso de Tarea en Curso</string>
     <string name="settings_progress_notifications_subtitle">Notificación persistente con progreso en tareas largas. Desactivada por defecto hasta que actives Permitir notificaciones.</string>
     <string name="settings_crash_reporting_learn_more">¿Qué Se Comparte?</string>
-    <string name="settings_crash_reporting_detail_title">Detalles De Informes De Fallos</string>
+    <string name="settings_crash_reporting_detail_title">Detalles de Informes de Fallos</string>
     <string name="settings_crash_reporting_detail_message">Cuando Enviar informes de fallos está activado, pueden enviarse diagnósticos anónimos vía Sentry:
 
 • Modelo del dispositivo y versión de Android
@@ -253,7 +258,7 @@
 • Etiquetas de diagnóstico depuradas
 
 Tus fotos y videos nunca se suben. Se eliminan URIs, nombres de archivo y coordenadas GPS antes de la carga.</string>
-    <string name="settings_crash_reporting_privacy_policy">Política De Privacidad</string>
+    <string name="settings_crash_reporting_privacy_policy">Política de Privacidad</string>
     <string name="settings_crash_reporting_dismiss">Cerrar</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
@@ -267,33 +272,14 @@ Tus fotos y videos nunca se suben. Se eliminan URIs, nombres de archivo y coorde
     <string name="metadata_error_video_generic">No se pudieron leer los metadatos del video.</string>
     <string name="notification_clean_partial">%1$d limpiados, %2$d fallidos.</string>
     <string name="notification_progress_percent">%1$d%% completado</string>
-    <string name="scan_clean_this_file">Limpiar este archivo</string>
-    <string name="scan_convert_this_file">Convertir este archivo</string>
+    <string name="scan_clean_this_file">Limpiar Este Archivo</string>
+    <string name="scan_convert_this_file">Convertir Este Archivo</string>
     <string name="scan_copied_to_clipboard">Copiado al portapapeles</string>
-    <string name="scan_copy_all_metadata">Copiar todos los metadatos</string>
-    <string name="scan_copy_camera">Copiar info de cámara</string>
-    <string name="scan_copy_coordinates">Copiar coordenadas</string>
-    <string name="settings_network_grant_crash_hint">El acceso a la red está activo. Activa Enviar informes de fallos por separado si quieres informes de errores.</string>
-    <string name="settings_external_link_disclaimer">Esto abre el navegador y usa la red. Redact no tiene acceso a la red para funciones de la app.</string>
-    <string name="settings_external_link_continue">Abrir Enlace</string>
-    <string name="settings_network_access_grant">Conceder Acceso a la Red</string>
-    <string name="settings_network_access_revoke">Revocar Acceso a la Red</string>
-    <string name="settings_network_consent_allow">Permitir Acceso a la Red</string>
-    <string name="settings_network_consent_cancel">Ahora No</string>
-    <string name="settings_network_consent_crash_title">¿Permitir informes de fallos por la red?</string>
-    <string name="settings_network_consent_crash_message">Enviar Informes de Fallos sube diagnósticos anonimizados a Sentry por internet. Redact no usa la red hasta que lo permita.
-
-No se suben fotos, videos, nombres de archivo ni coordenadas GPS.</string>
-    <string name="settings_network_consent_general_title">¿Permitir Acceso a la Red?</string>
-    <string name="settings_network_consent_general_message">Redact no usa la red hasta que lo permita aquí. El acceso a la red solo se usa cuando activa Enviar Informes de Fallos.
-
-No se suben fotos, videos, nombres de archivo ni coordenadas GPS.</string>
-    <string name="settings_network_revoke_confirm">Revocar</string>
-    <string name="settings_network_revoke_confirm_message">Esto desactiva Enviar Informes de Fallos. Redact dejará de usar la red hasta que conceda acceso de nuevo.</string>
-    <string name="settings_network_revoke_confirm_title">¿Revocar Acceso a la Red?</string>
-    <string name="settings_permissions_location">Ubicación de la Foto</string>
-    <string name="settings_permissions_network">Acceso a la Red (Opcional)</string>
-    <string name="settings_storage_clear_busy">No se puede borrar mientras hay un proceso en curso.</string>
+    <string name="scan_copy_all_metadata">Copiar Todos los Metadatos</string>
+    <string name="scan_copy_camera">Copiar Info de Cámara</string>
+    <string name="scan_copy_coordinates">Copiar Coordenadas</string>
+<string name="settings_permissions_location">Ubicación de la Foto</string>
+<string name="settings_storage_clear_busy">No se puede borrar mientras hay un proceso en curso.</string>
     <string name="share_error_failed_get_cleaned_file">No se pudo preparar el archivo limpio para compartir.</string>
     <string name="share_error_failed_get_cleaned_files">No se pudieron preparar los archivos limpios para compartir.</string>
     <string name="share_error_failed_receive_media">No se pudo recibir el medio compartido.</string>
@@ -308,13 +294,13 @@ No se suben fotos, videos, nombres de archivo ni coordenadas GPS.</string>
     <string name="scan_status_ready">Selecciona un archivo para escanear sus metadatos.</string>
     <string name="animated_image_warning">Las imágenes animadas se guardan como un solo fotograma.</string>
     <string name="clean_item_failed">Error: %1$s</string>
-    <string name="settings_preserve_location_confirm_title">¿Conservar GPS en fotos limpiadas?</string>
+    <string name="settings_preserve_location_confirm_title">¿Conservar GPS en Fotos Limpiadas?</string>
     <string name="settings_preserve_location_confirm_message">Los archivos limpiados en Limpiar pueden seguir conteniendo coordenadas GPS. Compartir desde otras apps siempre elimina la ubicación.
 
 Activa esto solo si quieres conservar la ubicación a propósito.</string>
-    <string name="settings_permission_needs_media">Fotos requeridas</string>
-    <string name="settings_location_permission_grant">Conceder ubicación de fotos</string>
-    <string name="settings_location_needs_media_title">¿Permitir fotos y videos primero?</string>
+    <string name="settings_permission_needs_media">Fotos Requeridas</string>
+    <string name="settings_location_permission_grant">Conceder Ubicación de Fotos</string>
+    <string name="settings_location_needs_media_title">¿Permitir Fotos y Videos Primero?</string>
     <string name="settings_location_needs_media_message">Ubicación de la foto permite a Redact leer coordenadas GPS incrustadas en tus medios. Primero se requiere acceso a la biblioteca de fotos y videos; elegir archivos individualmente no es suficiente.\n\nEn la siguiente pantalla, toca Permitir todas las fotos y videos. Tu dispositivo suele conceder Ubicación de la foto al mismo tiempo.</string>
     <string name="settings_location_grant_media_first">Continuar</string>
     <string name="settings_location_permission_granted">Permiso de ubicación de fotos concedido.</string>

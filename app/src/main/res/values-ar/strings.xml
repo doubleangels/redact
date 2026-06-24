@@ -155,6 +155,10 @@
     <string name="settings_preserve_camera_subtitle">الاحتفاظ بالفتحة وسرعة الغالق وISO وماركة/طراز الكاميرا في تبويب التنظيف. يُتجاهل عند التنظيف الصارم أو عند المشاركة من تطبيقات أخرى.</string>
     <string name="settings_preserve_location">الاحتفاظ بالموقع</string>
     <string name="settings_preserve_location_subtitle">الاحتفاظ بإحداثيات GPS في تبويب التنظيف. يُتجاهل عند التنظيف الصارم أو عند المشاركة من تطبيقات أخرى.</string>
+        <string name="settings_sentry_consent_allow">تفعيل</string>
+    <string name="settings_sentry_consent_cancel">ليس الآن</string>
+    <string name="settings_sentry_consent_title">تفعيل تقارير الأعطال؟</string>
+    <string name="settings_sentry_consent_message">إرسال تقارير الأعطال يرفع تشخيصات مجهولة إلى Sentry عبر الإنترنت.\n\nلا يتم تحميل الصور أو الفيديوهات أو أسماء الملفات أو إحداثيات GPS.</string>
     <string name="settings_strict_clean">التنظيف الصارم</string>
     <string name="settings_strict_clean_subtitle">إزالة كل البيانات الوصفية بما فيها الاتجاه. يعطّل خيارات الاحتفاظ ويعيد ترميز الفيديو بالكامل دائماً.</string>
     
@@ -199,7 +203,7 @@
     <string name="settings_section_diagnostics">التشخيص والملاحظات</string>
     <string name="settings_section_diagnostics_subtitle">تقارير اختيارية للمساعدة في إصلاح الأعطال. وسائطك لا تغادر الجهاز أبداً.</string>
     <string name="settings_crash_reporting_label">إرسال تقارير الأعطال</string>
-    <string name="settings_crash_reporting_subtitle">تشخيصات مجهولة فقط (إصدار التطبيق، طراز الجهاز، تتبعات المكدس). يتطلب الوصول إلى الشبكة بعد تأكيدك. لا يتم تحميل الصور أو الفيديوهات أبداً.</string>
+    <string name="settings_crash_reporting_subtitle">تشخيصات مجهولة فقط (إصدار التطبيق، طراز الجهاز، تتبعات المكدس). عند التفعيل، تُرسل البيانات إلى Sentry عبر الإنترنت. لا يتم تحميل الصور أو الفيديوهات أبداً.</string>
     <string name="settings_section_conversion">افتراضيات تبويب التحويل</string>
     <string name="settings_conversion_subtitle">التنسيقات المحددة مسبقاً عند اختيار الملفات في التحويل. يمكنك تغييرها لكل دفعة.</string>
     <string name="settings_default_image_format">تنسيق الصورة الافتراضي</string>
@@ -219,7 +223,7 @@
     <string name="settings_share_confirm_dialog_confirm">إزالة ومتابعة</string>
     <string name="settings_share_confirm_dialog_cancel">إلغاء</string>
     <string name="settings_section_permissions">الأذونات</string>
-    <string name="settings_permissions_subtitle">على Android 13+، يستخدم Redact منتقي ملفات النظام — التنزيلات أو الملفات أو مجلدات المعرض دون وصول واسع للمكتبة. الوصول الكامل للصور/الفيديو اختياري. الإشعارات والشبكة اختيارية.</string>
+    <string name="settings_permissions_subtitle">على Android 13+، يستخدم Redact منتقي ملفات النظام — التنزيلات أو الملفات أو مجلدات المعرض دون وصول واسع للمكتبة. الوصول الكامل للصور/الفيديو اختياري. الإشعارات اختيارية.</string>
     <string name="settings_permissions_media">الصور والفيديو</string>
     <string name="settings_permissions_notifications">الإشعارات (اختياري)</string>
     <string name="settings_permission_granted">ممنوح</string>
@@ -240,6 +244,7 @@
     <string name="settings_about_github">عرض المصدر على GitHub</string>
     <string name="settings_about_privacy">سياسة الخصوصية</string>
     <string name="settings_about_report_issue">الإبلاغ عن مشكلة</string>
+    <string name="settings_about_donate">تبرع</string>
     <string name="settings_link_unavailable">لم يُعثر على تطبيق لفتح هذا الرابط.</string>
     <string name="settings_progress_notifications_label">تقدم المهمة الجارية</string>
     <string name="settings_progress_notifications_subtitle">إشعار دائم يعرض التقدم في المهام الطويلة. معطّل افتراضياً حتى تفعّل السماح بالإشعارات.</string>
@@ -273,27 +278,8 @@
     <string name="scan_copy_all_metadata">نسخ كل البيانات الوصفية</string>
     <string name="scan_copy_camera">نسخ معلومات الكاميرا</string>
     <string name="scan_copy_coordinates">نسخ الإحداثيات</string>
-    <string name="settings_network_grant_crash_hint">الوصول إلى الشبكة مفعّل. فعّل إرسال تقارير الأعطال بشكل منفصل إذا أردت الإبلاغ عن الأخطاء.</string>
-    <string name="settings_external_link_disclaimer">يفتح المتصفح ويستخدم الشبكة. لم يُمنح Redact الوصول إلى الشبكة لميزات التطبيق.</string>
-    <string name="settings_external_link_continue">فتح الرابط</string>
-    <string name="settings_network_access_grant">منح الوصول إلى الشبكة</string>
-    <string name="settings_network_access_revoke">إلغاء الوصول إلى الشبكة</string>
-    <string name="settings_network_consent_allow">السماح بالوصول إلى الشبكة</string>
-    <string name="settings_network_consent_cancel">ليس الآن</string>
-    <string name="settings_network_consent_crash_title">السماح بإرسال تقارير الأعطال عبر الشبكة؟</string>
-    <string name="settings_network_consent_crash_message">يرسل خيار إرسال تقارير الأعطال تشخيصات مجهولة إلى Sentry عبر الإنترنت. لا يستخدم Redact الشبكة حتى تسمح بذلك.
-
-لا يتم تحميل أي صور أو فيديوهات أو أسماء ملفات أو إحداثيات GPS.</string>
-    <string name="settings_network_consent_general_title">السماح بالوصول إلى الشبكة؟</string>
-    <string name="settings_network_consent_general_message">لا يستخدم Redact الشبكة حتى تسمح بذلك هنا. يُستخدم الوصول إلى الشبكة فقط عند تشغيل إرسال تقارير الأعطال.
-
-لا يتم تحميل أي صور أو فيديوهات أو أسماء ملفات أو إحداثيات GPS.</string>
-    <string name="settings_network_revoke_confirm">إلغاء</string>
-    <string name="settings_network_revoke_confirm_message">سيؤدي هذا إلى إيقاف إرسال تقارير الأعطال. سيتوقف Redact عن استخدام الشبكة حتى تمنح الوصول مرة أخرى.</string>
-    <string name="settings_network_revoke_confirm_title">إلغاء الوصول إلى الشبكة؟</string>
-    <string name="settings_permissions_location">موقع الصورة</string>
-    <string name="settings_permissions_network">الوصول إلى الشبكة (اختياري)</string>
-    <string name="settings_storage_clear_busy">لا يمكن المسح أثناء المعالجة.</string>
+<string name="settings_permissions_location">موقع الصورة</string>
+<string name="settings_storage_clear_busy">لا يمكن المسح أثناء المعالجة.</string>
     <string name="share_error_failed_get_cleaned_file">تعذر تجهيز الملف المنظف للمشاركة.</string>
     <string name="share_error_failed_get_cleaned_files">تعذر تجهيز الملفات المنظفة للمشاركة.</string>
     <string name="share_error_failed_receive_media">تعذر استلام الوسائط المشاركة.</string>

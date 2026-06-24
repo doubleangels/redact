@@ -11,16 +11,21 @@ import com.doubleangels.redact.AppPreferences;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.sentry.ProfileLifecycle;
 import io.sentry.Sentry;
+import io.sentry.SentryLogLevel;
 import io.sentry.android.core.SentryAndroid;
 
 /**
  * Initializes Sentry on a background thread with options aligned to production diagnostics:
- * release tracking, breadcrumbs, screenshots, view hierarchy, tracing, ANR, and frame tracking.
+ * release tracking, breadcrumbs, tracing, continuous UI profiling, structured logs, metrics, and ANR.
  */
 public final class SentryInitializer {
 
     private static final String TAG = "SentryInitializer";
+
+    /** Trace and profiling session sample rate in release (debug uses 100%). */
+    private static final double RELEASE_TELEMETRY_SAMPLE_RATE = 0.25;
 
     @Nullable
     static String testDsnOverride;
@@ -42,12 +47,10 @@ public final class SentryInitializer {
         return dsn != null && !dsn.isEmpty();
     }
 
-    /** Starts Sentry only when crash reporting and network consent are both enabled. */
+    /** Starts Sentry only when crash reporting is enabled. */
     public static void initializeIfNeeded(Context context) {
         Context app = context.getApplicationContext();
-        if (initialized
-                || !AppPreferences.isCrashReportingEnabled(app)
-                || !AppPreferences.isNetworkAccessConfirmed(app)) {
+        if (initialized || !AppPreferences.isCrashReportingEnabled(app)) {
             return;
         }
         initialize(app);
@@ -59,9 +62,7 @@ public final class SentryInitializer {
      */
     public static void initializeBlocking(Context context) {
         Context app = context.getApplicationContext();
-        if (initialized
-                || !AppPreferences.isCrashReportingEnabled(app)
-                || !AppPreferences.isNetworkAccessConfirmed(app)) {
+        if (initialized || !AppPreferences.isCrashReportingEnabled(app)) {
             return;
         }
         synchronized (INIT_LOCK) {
@@ -130,12 +131,39 @@ public final class SentryInitializer {
             // Keep ANR detection and frame tracking (crash diagnostics only, no PII).
             options.setAnrEnabled(true);
             options.setEnableAnrFingerprinting(true); // Groups noisy system-frame ANRs.
-            options.setEnableAppStartProfiling(false);
             options.setEnableFramesTracking(false);
             options.setEnableRootCheck(false);
 
-            // Sample only 5% of traces to minimize data sent to external servers.
-            options.setTracesSampleRate(0.05);
+            // Sample 25% of traces in release to balance diagnostics vs. data sent externally.
+            options.setTracesSampleRate(BuildConfig.DEBUG ? 1.0 : RELEASE_TELEMETRY_SAMPLE_RATE);
+
+            // Continuous UI profiling tied to sampled transactions (SDK ≥ 8.7).
+            options.setProfileSessionSampleRate(
+                    BuildConfig.DEBUG ? 1.0 : RELEASE_TELEMETRY_SAMPLE_RATE);
+            options.setProfileLifecycle(ProfileLifecycle.TRACE);
+
+            options.getLogs().setEnabled(true);
+            options.getLogs().setBeforeSend(logEvent -> {
+                if (!SentryManager.isEnabled()) {
+                    return null;
+                }
+                if (!BuildConfig.DEBUG && isVerboseLogLevel(logEvent.getLevel())) {
+                    return null;
+                }
+                SentryPrivacyScrubber.scrubLog(logEvent);
+                return logEvent;
+            });
+
+            options.getMetrics().setBeforeSend((metric, hint) -> {
+                if (!SentryManager.isEnabled()) {
+                    return null;
+                }
+                if (!BuildConfig.DEBUG && metric.getName() != null && metric.getName().startsWith("debug.")) {
+                    return null;
+                }
+                SentryPrivacyScrubber.scrubMetric(metric);
+                return metric;
+            });
 
             options.setBeforeBreadcrumb((breadcrumb, hint) -> {
                 SentryPrivacyScrubber.scrubBreadcrumb(breadcrumb);
@@ -163,7 +191,15 @@ public final class SentryInitializer {
                 return transaction;
             });
         });
+        if (configured.get() && BuildConfig.DEBUG) {
+            Sentry.logger().info("Redact Sentry telemetry enabled");
+            Sentry.metrics().count("debug.init", 1.0);
+        }
         return configured.get();
+    }
+
+    private static boolean isVerboseLogLevel(@Nullable SentryLogLevel level) {
+        return level == SentryLogLevel.TRACE || level == SentryLogLevel.DEBUG;
     }
 
     public static void shutdown() {

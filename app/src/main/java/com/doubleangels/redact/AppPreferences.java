@@ -29,7 +29,6 @@ public final class AppPreferences {
     private static final String KEY_PRESERVE_LOCATION = "preserve_location";
     private static final String KEY_STRICT_CLEAN = "strict_clean";
     private static final String KEY_VIDEO_FALLBACK_COPY = "video_fallback_copy";
-    private static final String KEY_NETWORK_ACCESS_CONFIRMED = "network_access_confirmed";
     private static final String KEY_INITIAL_PERMISSIONS_PROMPTED = "initial_permissions_prompted";
 
     /** High quality — matches legacy defaults. */
@@ -255,14 +254,6 @@ public final class AppPreferences {
 
     public static void setVideoFallbackCopy(@NonNull Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_VIDEO_FALLBACK_COPY, enabled).apply();
-    }
-
-    public static boolean isNetworkAccessConfirmed(@NonNull Context context) {
-        return prefs(context).getBoolean(KEY_NETWORK_ACCESS_CONFIRMED, false);
-    }
-
-    public static void setNetworkAccessConfirmed(@NonNull Context context, boolean confirmed) {
-        prefs(context).edit().putBoolean(KEY_NETWORK_ACCESS_CONFIRMED, confirmed).apply();
     }
 
     /** Whether the first-launch permission sequence has already been shown. */

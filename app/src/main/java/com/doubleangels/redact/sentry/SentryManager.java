@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.doubleangels.redact.AppPreferences;
 
@@ -24,10 +25,14 @@ import io.sentry.ISpan;
 import io.sentry.ITransaction;
 import io.sentry.NoOpTransaction;
 import io.sentry.Sentry;
+import io.sentry.SentryAttribute;
+import io.sentry.SentryAttributes;
 import io.sentry.SentryLevel;
+import io.sentry.metrics.MetricsUnit;
+import io.sentry.metrics.SentryMetricsParameters;
 
 /**
- * Crashlytics-style helpers: breadcrumbs, scoped tags, and exception capture.
+ * Crashlytics-style helpers: breadcrumbs, structured logs, metrics, scoped tags, and exception capture.
  * Network-related errors that are usually environmental are not sent to Sentry.
  * User-derived strings (URIs, paths, filenames, GPS) are blocked or scrubbed.
  */
@@ -125,8 +130,7 @@ public final class SentryManager {
         if (appContext == null) {
             return false;
         }
-        return AppPreferences.isCrashReportingEnabled(appContext)
-                && AppPreferences.isNetworkAccessConfirmed(appContext);
+        return AppPreferences.isCrashReportingEnabled(appContext);
     }
 
     public static boolean isIgnored(Throwable e) {
@@ -168,6 +172,68 @@ public final class SentryManager {
         b.setCategory(safeCategory);
         b.setLevel(SentryLevel.INFO);
         Sentry.addBreadcrumb(b);
+        Sentry.logger().info("%s: %s", safeCategory, safeMessage);
+    }
+
+    /** Counter metric with no attributes. */
+    public static void count(String name, double value) {
+        if (!isEnabled() || name == null || name.isEmpty()) {
+            return;
+        }
+        Sentry.metrics().count(name, value);
+    }
+
+    /** Counter metric with one allowed attribute dimension. */
+    public static void count(String name, double value, String attrKey, String attrValue) {
+        SentryMetricsParameters params = metricsParams(attrKey, attrValue);
+        if (!isEnabled() || params == null) {
+            return;
+        }
+        Sentry.metrics().count(name, value, null, params);
+    }
+
+    /** Counter metric with two allowed attribute dimensions. */
+    public static void count(
+            String name, double value, String attrKey1, String attrValue1, String attrKey2, String attrValue2) {
+        SentryMetricsParameters params = metricsParams(attrKey1, attrValue1, attrKey2, attrValue2);
+        if (!isEnabled() || params == null) {
+            return;
+        }
+        Sentry.metrics().count(name, value, null, params);
+    }
+
+    /** Distribution metric (dimensionless). */
+    public static void distribution(String name, double value) {
+        if (!isEnabled() || name == null || name.isEmpty()) {
+            return;
+        }
+        Sentry.metrics().distribution(name, value);
+    }
+
+    /** Distribution metric with one allowed attribute dimension. */
+    public static void distribution(String name, double value, String attrKey, String attrValue) {
+        SentryMetricsParameters params = metricsParams(attrKey, attrValue);
+        if (!isEnabled() || params == null) {
+            return;
+        }
+        Sentry.metrics().distribution(name, value, null, params);
+    }
+
+    /** Duration distribution in milliseconds with one allowed attribute dimension. */
+    public static void distributionDurationMs(String name, double millis, String attrKey, String attrValue) {
+        SentryMetricsParameters params = metricsParams(attrKey, attrValue);
+        if (!isEnabled() || params == null) {
+            return;
+        }
+        Sentry.metrics().distribution(name, millis, MetricsUnit.Duration.MILLISECOND, params);
+    }
+
+    /** Point-in-time gauge (dimensionless). */
+    public static void gauge(String name, double value) {
+        if (!isEnabled() || name == null || name.isEmpty()) {
+            return;
+        }
+        Sentry.metrics().gauge(name, value);
     }
 
     /** @deprecated Use {@link #logEvent(String, String)} with non-identifying messages. */
@@ -236,6 +302,30 @@ public final class SentryManager {
         return lower.startsWith("permission_")
                 || lower.startsWith("video_verify_")
                 || lower.startsWith("can_ask_");
+    }
+
+    @Nullable
+    private static SentryMetricsParameters metricsParams(String attrKey, String attrValue) {
+        if (!isAllowedTagKey(attrKey)) {
+            return null;
+        }
+        String safe = SentryPrivacyScrubber.scrub(attrValue != null ? attrValue : "");
+        return SentryMetricsParameters.create(
+                SentryAttributes.of(SentryAttribute.stringAttribute(attrKey, safe)));
+    }
+
+    @Nullable
+    private static SentryMetricsParameters metricsParams(
+            String attrKey1, String attrValue1, String attrKey2, String attrValue2) {
+        if (!isAllowedTagKey(attrKey1) || !isAllowedTagKey(attrKey2)) {
+            return null;
+        }
+        return SentryMetricsParameters.create(
+                SentryAttributes.of(
+                        SentryAttribute.stringAttribute(
+                                attrKey1, SentryPrivacyScrubber.scrub(attrValue1 != null ? attrValue1 : "")),
+                        SentryAttribute.stringAttribute(
+                                attrKey2, SentryPrivacyScrubber.scrub(attrValue2 != null ? attrValue2 : ""))));
     }
 
     private static Throwable scrubThrowable(@NonNull Throwable e) {

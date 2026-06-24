@@ -155,6 +155,10 @@
     <string name="settings_preserve_camera_subtitle">साफ़ करें टैब पर एपर्चर, शटर स्पीड, ISO और कैमरा मेक/मॉडल रखें। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर अनदेखा।</string>
     <string name="settings_preserve_location">स्थान रखें</string>
     <string name="settings_preserve_location_subtitle">साफ़ करें टैब पर GPS निर्देशांक रखें। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर अनदेखा।</string>
+        <string name="settings_sentry_consent_allow">सक्षम करें</string>
+    <string name="settings_sentry_consent_cancel">अभी नहीं</string>
+    <string name="settings_sentry_consent_title">क्रैश रिपोर्टिंग सक्षम करें?</string>
+    <string name="settings_sentry_consent_message">क्रैश रिपोर्ट भेजना इंटरनेट पर Sentry को अनाम निदान अपलोड करता है।\n\nफ़ोटो, वीडियो, फ़ाइल नाम या GPS निर्देशांक अपलोड नहीं होते।</string>
     <string name="settings_strict_clean">सख्त सफ़ाई</string>
     <string name="settings_strict_clean_subtitle">ओरिएंटेशन सहित सभी मेटाडेटा हटाएँ। रखने के विकल्प बंद करता है और हमेशा वीडियो पूर्ण पुनः-एन्कोड करता है।</string>
     
@@ -199,7 +203,7 @@
     <string name="settings_section_diagnostics">निदान और प्रतिक्रिया</string>
     <string name="settings_section_diagnostics_subtitle">क्रैश ठीक करने के लिए वैकल्पिक रिपोर्ट। आपका मीडिया कभी डिवाइस से बाहर नहीं जाता।</string>
     <string name="settings_crash_reporting_label">क्रैश रिपोर्ट भेजें</string>
-    <string name="settings_crash_reporting_subtitle">केवल अनाम निदान (ऐप संस्करण, डिवाइस मॉडल, स्टैक ट्रेस)। आपकी पुष्टि के बाद नेटवर्क एक्सेस आवश्यक। फ़ोटो और वीडियो कभी अपलोड नहीं होते।</string>
+    <string name="settings_crash_reporting_subtitle">केवल अनाम निदान (ऐप संस्करण, डिवाइस मॉडल, स्टैक ट्रेस)। सक्षम होने पर डेटा इंटरनेट पर Sentry को भेजा जाता है। फ़ोटो और वीडियो कभी अपलोड नहीं होते।</string>
     <string name="settings_section_conversion">रूपांतरित टैब डिफ़ॉल्ट</string>
     <string name="settings_conversion_subtitle">रूपांतरित पर फ़ाइलें चुनते समय पूर्व-चयनित प्रारूप। प्रत्येक बैच के लिए बदल सकते हैं।</string>
     <string name="settings_default_image_format">डिफ़ॉल्ट छवि प्रारूप</string>
@@ -219,7 +223,7 @@
     <string name="settings_share_confirm_dialog_confirm">हटाएँ और जारी रखें</string>
     <string name="settings_share_confirm_dialog_cancel">रद्द करें</string>
     <string name="settings_section_permissions">अनुमतियाँ</string>
-    <string name="settings_permissions_subtitle">Android 13+ पर Redact सिस्टम फ़ाइल पिकर का उपयोग करता है — डाउनलोड, फ़ाइलें या गैलरी फ़ोल्डर व्यापक लाइब्रेरी एक्सेस के बिना। पूर्ण फ़ोटो/वीडियो एक्सेस वैकल्पिक है। नोटिफ़िकेशन और नेटवर्क वैकल्पिक हैं।</string>
+    <string name="settings_permissions_subtitle">Android 13+ पर Redact सिस्टम फ़ाइल पिकर का उपयोग करता है — डाउनलोड, फ़ाइलें या गैलरी फ़ोल्डर व्यापक लाइब्रेरी एक्सेस के बिना। पूर्ण फ़ोटो/वीडियो एक्सेस वैकल्पिक है। नोटिफ़िकेशन वैकल्पिक हैं।</string>
     <string name="settings_permissions_media">फ़ोटो और वीडियो</string>
     <string name="settings_permissions_notifications">सूचनाएँ (वैकल्पिक)</string>
     <string name="settings_permission_granted">दी गई</string>
@@ -240,6 +244,7 @@
     <string name="settings_about_github">GitHub पर स्रोत देखें</string>
     <string name="settings_about_privacy">गोपनीयता नीति</string>
     <string name="settings_about_report_issue">समस्या रिपोर्ट करें</string>
+    <string name="settings_about_donate">दान करें</string>
     <string name="settings_link_unavailable">इस लिंक को खोलने के लिए कोई ऐप नहीं मिला।</string>
     <string name="settings_progress_notifications_label">चल रहे कार्य की प्रगति</string>
     <string name="settings_progress_notifications_subtitle">लंबे कार्यों के दौरान प्रगति वाली स्थायी सूचना। नोटिफ़िकेशन अनुमति चालू होने तक डिफ़ॉल्ट बंद।</string>
@@ -273,27 +278,8 @@
     <string name="scan_copy_all_metadata">सभी मेटाडेटा कॉपी करें</string>
     <string name="scan_copy_camera">कैमरा जानकारी कॉपी करें</string>
     <string name="scan_copy_coordinates">निर्देशांक कॉपी करें</string>
-    <string name="settings_network_grant_crash_hint">नेटवर्क एक्सेस चालू है। त्रुटि रिपोर्टिंग चाहिए तो \'क्रैश रिपोर्ट भेजें\' अलग से चालू करें।</string>
-    <string name="settings_external_link_disclaimer">यह ब्राउज़र खोलता है और नेटवर्क का उपयोग करता है। Redact को इन-ऐप सुविधाओं के लिए नेटवर्क एक्सेस नहीं मिला है।</string>
-    <string name="settings_external_link_continue">लिंक खोलें</string>
-    <string name="settings_network_access_grant">नेटवर्क एक्सेस दें</string>
-    <string name="settings_network_access_revoke">नेटवर्क एक्सेस रद्द करें</string>
-    <string name="settings_network_consent_allow">नेटवर्क एक्सेस की अनुमति दें</string>
-    <string name="settings_network_consent_cancel">अभी नहीं</string>
-    <string name="settings_network_consent_crash_title">नेटवर्क पर क्रैश रिपोर्टिंग की अनुमति दें?</string>
-    <string name="settings_network_consent_crash_message">क्रैश रिपोर्ट भेजें Sentry पर इंटरनेट के माध्यम से अनाम निदान अपलोड करता है। Redact तब तक नेटवर्क का उपयोग नहीं करता जब तक आप अनुमति न दें।
-
-कोई फ़ोटो, वीडियो, फ़ाइल नाम या GPS निर्देशांक अपलोड नहीं होते।</string>
-    <string name="settings_network_consent_general_title">नेटवर्क एक्सेस की अनुमति दें?</string>
-    <string name="settings_network_consent_general_message">Redact तब तक नेटवर्क का उपयोग नहीं करता जब तक आप यहाँ अनुमति न दें। नेटवर्क एक्सेस केवल तब उपयोग होता है जब आप क्रैश रिपोर्ट भेजें चालू करते हैं।
-
-कोई फ़ोटो, वीडियो, फ़ाइल नाम या GPS निर्देशांक अपलोड नहीं होते।</string>
-    <string name="settings_network_revoke_confirm">रद्द करें</string>
-    <string name="settings_network_revoke_confirm_message">यह क्रैश रिपोर्ट भेजें बंद कर देगा। Redact तब तक नेटवर्क का उपयोग नहीं करेगा जब तक आप फिर से एक्सेस न दें।</string>
-    <string name="settings_network_revoke_confirm_title">नेटवर्क एक्सेस रद्द करें?</string>
-    <string name="settings_permissions_location">फ़ोटो स्थान</string>
-    <string name="settings_permissions_network">नेटवर्क एक्सेस (वैकल्पिक)</string>
-    <string name="settings_storage_clear_busy">प्रसंस्करण चल रहा होने पर साफ़ नहीं किया जा सकता।</string>
+<string name="settings_permissions_location">फ़ोटो स्थान</string>
+<string name="settings_storage_clear_busy">प्रसंस्करण चल रहा होने पर साफ़ नहीं किया जा सकता।</string>
     <string name="share_error_failed_get_cleaned_file">साफ़ की गई फ़ाइल साझा करने के लिए तैयार नहीं की जा सकी।</string>
     <string name="share_error_failed_get_cleaned_files">साफ़ की गई फ़ाइलें साझा करने के लिए तैयार नहीं की जा सकीं।</string>
     <string name="share_error_failed_receive_media">साझा किया गया मीडिया प्राप्त नहीं हो सका।</string>
