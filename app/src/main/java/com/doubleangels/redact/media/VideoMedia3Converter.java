@@ -33,6 +33,7 @@ import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -60,14 +61,27 @@ public final class VideoMedia3Converter {
     private static final long AWAIT_TIMEOUT_MINUTES = 60;
 
     private static final AtomicReference<Transformer> activeTransformer = new AtomicReference<>();
+    /** Owner id of the flow that started the active export; -1 when idle. */
+    private static final AtomicLong activeTranscodeOwner = new AtomicLong(-1L);
     /** Serializes Media3 exports so Clean and Convert cannot cancel each other's transformer. */
     private static final ReentrantLock TRANSCODE_LOCK = new ReentrantLock();
 
     private VideoMedia3Converter() {
     }
 
-    /** Cancels an in-flight Media3 export started on this VM (e.g. when clean batch is cancelled). */
+    /** Cancels an in-flight Media3 export (any owner). */
     public static void cancelActiveTranscode() {
+        cancelActiveTranscode(-1L);
+    }
+
+    /**
+     * Cancels an in-flight export only when it belongs to {@code ownerId}.
+     * Pass {@code -1} to cancel regardless of owner.
+     */
+    public static void cancelActiveTranscode(long ownerId) {
+        if (ownerId >= 0 && activeTranscodeOwner.get() != ownerId) {
+            return;
+        }
         Transformer transformer = activeTransformer.get();
         if (transformer == null) {
             return;
@@ -100,6 +114,17 @@ public final class VideoMedia3Converter {
             int formatIndex,
             @Nullable TranscodeProgressListener progressListener)
             throws IOException, InterruptedException {
+        return transcodeToPath(context, sourceUri, outputPath, formatIndex, progressListener, -1L);
+    }
+
+    public static int transcodeToPath(
+            @NonNull Context context,
+            @NonNull Uri sourceUri,
+            @NonNull String outputPath,
+            int formatIndex,
+            @Nullable TranscodeProgressListener progressListener,
+            long ownerId)
+            throws IOException, InterruptedException {
 
         File outFile = new File(outputPath);
         Context app = context.getApplicationContext();
@@ -115,7 +140,8 @@ public final class VideoMedia3Converter {
                         outputPath,
                         videoMime,
                         hdrModeForMp4VideoMime(videoMime),
-                        progressListener);
+                        progressListener,
+                        ownerId);
                 return attemptIndex;
             } catch (IOException e) {
                 lastFailure = e;
@@ -170,17 +196,30 @@ public final class VideoMedia3Converter {
             @NonNull String outputPath,
             @NonNull String videoMimeType,
             int hdrMode,
-            @Nullable TranscodeProgressListener progressListener)
+            @Nullable TranscodeProgressListener progressListener,
+            long ownerId)
             throws IOException, InterruptedException {
 
         File outFile = new File(outputPath);
 
         TRANSCODE_LOCK.lock();
         try {
-            transcodeToPathOnceLocked(app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, outFile);
+            transcodeToPathOnceLocked(
+                    app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, outFile, ownerId);
         } finally {
             TRANSCODE_LOCK.unlock();
         }
+    }
+
+    private static void transcodeToPathOnce(
+            @NonNull Context app,
+            @NonNull Uri sourceUri,
+            @NonNull String outputPath,
+            @NonNull String videoMimeType,
+            int hdrMode,
+            @Nullable TranscodeProgressListener progressListener)
+            throws IOException, InterruptedException {
+        transcodeToPathOnce(app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, -1L);
     }
 
     private static void transcodeToPathOnceLocked(
@@ -190,9 +229,11 @@ public final class VideoMedia3Converter {
             @NonNull String videoMimeType,
             int hdrMode,
             @Nullable TranscodeProgressListener progressListener,
-            @NonNull File outFile)
+            @NonNull File outFile,
+            long ownerId)
             throws IOException, InterruptedException {
 
+        activeTranscodeOwner.set(ownerId);
         MediaItem mediaItem = MediaItem.fromUri(sourceUri);
         EditedMediaItem editedMediaItem =
                 new EditedMediaItem.Builder(mediaItem)
@@ -284,6 +325,7 @@ public final class VideoMedia3Converter {
         try {
             finished = latch.await(AWAIT_TIMEOUT_MINUTES, TimeUnit.MINUTES);
         } finally {
+            activeTranscodeOwner.compareAndSet(ownerId, -1L);
             activeTransformer.compareAndSet(transformerRef.get(), null);
         }
         if (!finished) {
@@ -354,7 +396,25 @@ public final class VideoMedia3Converter {
                 throw new IOException("Failed to create output directory");
             }
         }
-        transcodeToPath(context, sourceUri, outputFile.getAbsolutePath(), formatIndex, progressListener);
+        transcodeToPath(context, sourceUri, outputFile.getAbsolutePath(), formatIndex, progressListener, -1L);
+    }
+
+    public static void transcodeToFile(
+            @NonNull Context context,
+            @NonNull Uri sourceUri,
+            @NonNull File outputFile,
+            int formatIndex,
+            @Nullable TranscodeProgressListener progressListener,
+            long ownerId)
+            throws IOException, InterruptedException {
+        File parent = outputFile.getParentFile();
+        if (parent != null && !parent.exists()) {
+            if (!parent.mkdirs()) {
+                throw new IOException("Failed to create output directory");
+            }
+        }
+        transcodeToPath(
+                context, sourceUri, outputFile.getAbsolutePath(), formatIndex, progressListener, ownerId);
     }
 
     @NonNull

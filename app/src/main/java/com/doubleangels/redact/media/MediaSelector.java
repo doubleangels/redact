@@ -120,6 +120,60 @@ public final class MediaSelector {
         return false;
     }
 
+    /**
+     * Reads up to {@code maxBytes} from {@code uri} and detects animated WebP/APNG payloads.
+     */
+    public static boolean isAnimatedImageUri(@NonNull Context context, @NonNull Uri uri, int maxBytes) {
+        try (java.io.InputStream in = context.getContentResolver().openInputStream(uri)) {
+            if (in == null) {
+                return false;
+            }
+            byte[] buffer = new byte[Math.min(maxBytes, 65536)];
+            int read = 0;
+            int n;
+            while (read < buffer.length && (n = in.read(buffer, read, buffer.length - read)) > 0) {
+                read += n;
+            }
+            return containsAnimatedImagePayload(buffer, read);
+        } catch (Exception e) {
+            SentryManager.log("Animated image probe failed: " + e.getMessage());
+            return false;
+        }
+    }
+
+    static boolean containsAnimatedImagePayload(@NonNull byte[] data, int length) {
+        if (length < 12) {
+            return false;
+        }
+        if (data[0] == (byte) 0x89 && data[1] == 'P' && data[2] == 'N' && data[3] == 'G') {
+            return indexOf(data, length, "acTL".getBytes(java.nio.charset.StandardCharsets.US_ASCII)) >= 0;
+        }
+        if (data[0] == 'R' && data[1] == 'I' && data[2] == 'F' && data[3] == 'F'
+                && length >= 12
+                && data[8] == 'W' && data[9] == 'E' && data[10] == 'B' && data[11] == 'P') {
+            byte[] anim = "ANIM".getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+            byte[] anmf = "ANMF".getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+            return indexOf(data, length, anim) >= 0 || indexOf(data, length, anmf) >= 0;
+        }
+        return false;
+    }
+
+    private static int indexOf(@NonNull byte[] haystack, int length, @NonNull byte[] needle) {
+        if (needle.length == 0 || length < needle.length) {
+            return -1;
+        }
+        outer:
+        for (int i = 0; i <= length - needle.length; i++) {
+            for (int j = 0; j < needle.length; j++) {
+                if (haystack[i + j] != needle[j]) {
+                    continue outer;
+                }
+            }
+            return i;
+        }
+        return -1;
+    }
+
     public boolean isAnimatedImage(@NonNull MediaItem item) {
         if (item.isVideo()) {
             return false;
@@ -130,7 +184,20 @@ public final class MediaSelector {
         } catch (Exception ignored) {
             // Fall back to filename only.
         }
-        return isAnimatedImageFile(item.fileName(), mime);
+        if (mime != null && "image/gif".equalsIgnoreCase(mime)) {
+            return true;
+        }
+        if (item.fileName() != null
+                && item.fileName().toLowerCase(Locale.US).endsWith(".gif")) {
+            return true;
+        }
+        if (mime != null || (item.fileName() != null && (
+                item.fileName().toLowerCase(Locale.US).endsWith(".webp")
+                        || item.fileName().toLowerCase(Locale.US).endsWith(".png")
+                        || item.fileName().toLowerCase(Locale.US).endsWith(".apng")))) {
+            return isAnimatedImageUri(activity, item.uri(), 65536);
+        }
+        return false;
     }
 
     public String getFileName(Uri uri) {

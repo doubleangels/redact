@@ -20,26 +20,17 @@ android {
 
         def sentryRelease = "${applicationId}@${versionName}+${versionCode}"
         buildConfigField "String", "SENTRY_RELEASE", "\"${sentryRelease}\""
-
-        def sentryDsn =
-                "https://f92d27d08095710804ab4250a73b5ff8@o244019.ingest.us.sentry.io/4510514277580800"
-        def localProps = new Properties()
-        def localPropsFile = rootProject.file("local.properties")
-        if (localPropsFile.exists()) {
-            localPropsFile.withInputStream { localProps.load(it) }
-            def fromLocal = localProps.getProperty("sentry.dsn")
-            if (fromLocal != null && !fromLocal.trim().isEmpty()) {
-                sentryDsn = fromLocal.trim()
-            }
-        }
-        buildConfigField "String", "SENTRY_DSN", "\"${sentryDsn}\""
     }
 
     buildTypes {
+        debug {
+            buildConfigField "String", "SENTRY_DSN", "\"${resolveSentryDsnForDebug()}\""
+        }
         release {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField "String", "SENTRY_DSN", "\"${resolveSentryDsnForRelease()}\""
         }
     }
     compileOptions {
@@ -57,6 +48,49 @@ android {
         }
     }
 
+}
+
+def resolveSentryDsnForRelease() {
+    def ciDsn = System.getenv("SENTRY_DSN")
+    if (ciDsn != null && !ciDsn.trim().isEmpty()) {
+        return ciDsn.trim()
+    }
+    return ""
+}
+
+def resolveSentryDsnForDebug() {
+    def ciDsn = System.getenv("SENTRY_DSN")
+    if (ciDsn != null && !ciDsn.trim().isEmpty()) {
+        return ciDsn.trim()
+    }
+    def fromFile = readSentryDsnLocalFile()
+    if (!fromFile.isEmpty()) {
+        return fromFile
+    }
+    def localProps = new Properties()
+    def localPropsFile = rootProject.file("local.properties")
+    if (localPropsFile.exists()) {
+        localPropsFile.withInputStream { localProps.load(it) }
+        def fromLocal = localProps.getProperty("sentry.dsn")
+        if (fromLocal != null && !fromLocal.trim().isEmpty()) {
+            return fromLocal.trim()
+        }
+    }
+    return ""
+}
+
+def readSentryDsnLocalFile() {
+    def dsnFile = rootProject.file("sentry.dsn.local")
+    if (!dsnFile.exists()) {
+        return ""
+    }
+    for (line in dsnFile.readLines()) {
+        def trimmed = line.trim()
+        if (!trimmed.isEmpty() && !trimmed.startsWith("#")) {
+            return trimmed
+        }
+    }
+    return ""
 }
 
 dependencies {

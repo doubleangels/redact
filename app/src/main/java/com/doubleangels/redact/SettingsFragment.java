@@ -21,6 +21,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.doubleangels.redact.ShareHandlerActivity;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.permission.PermissionStatusHelper;
 import com.doubleangels.redact.privacy.NetworkAccess;
@@ -129,7 +130,7 @@ public class SettingsFragment extends Fragment {
     @Override
     public void onDestroyView() {
         if (backgroundExecutor != null) {
-            backgroundExecutor.shutdownNow();
+            backgroundExecutor.shutdown();
             backgroundExecutor = null;
         }
         super.onDestroyView();
@@ -600,6 +601,10 @@ public class SettingsFragment extends Fragment {
     }
 
     private void clearTempFiles() {
+        if (ShareHandlerActivity.isShareProcessingActive()) {
+            Toast.makeText(requireContext(), R.string.settings_storage_clear_busy, Toast.LENGTH_SHORT).show();
+            return;
+        }
         if (getActivity() != null && MainViewModel.isAnyProcessing(requireActivity())) {
             Toast.makeText(requireContext(), R.string.settings_storage_clear_busy, Toast.LENGTH_SHORT).show();
             return;

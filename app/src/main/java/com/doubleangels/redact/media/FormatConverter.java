@@ -345,6 +345,12 @@ public final class FormatConverter {
         return new ImageFormatSpec(".jpg", "image/jpeg", Bitmap.CompressFormat.JPEG, true);
     }
 
+    /** JPEG output spec for callers that need a public accessor. */
+    @NonNull
+    public static ImageFormatSpec jpegFormatSpec() {
+        return jpegSpec();
+    }
+
     @Nullable
     private static ImageFormatSpec specForExtension(@Nullable String extensionWithDot) {
         if (extensionWithDot == null || extensionWithDot.isEmpty()) {
@@ -382,8 +388,10 @@ public final class FormatConverter {
     @NonNull
     private static ImageFormatSpec heicSpec() {
         Bitmap.CompressFormat heic = heicCompressFormatOrJpeg();
-        boolean supported = isHeicOutputSupported() && isHeicFormat(heic);
-        return new ImageFormatSpec(".heic", "image/heic", heic, supported);
+        if (!isHeicFormat(heic)) {
+            return jpegSpec();
+        }
+        return new ImageFormatSpec(".heic", "image/heic", heic, true);
     }
 
     /**
@@ -446,7 +454,7 @@ public final class FormatConverter {
         }
 
         if (bitmap == null) {
-            bitmap = decodeWithImageDecoder(context, sourceUri);
+            bitmap = decodeBitmapFromUri(context, sourceUri);
         }
         if (bitmap == null) {
             throw new IOException("Decode failed");
@@ -492,6 +500,15 @@ public final class FormatConverter {
         copyExifData(context, sourceUri, outUri);
         MediaStoreWrites.markPublished(resolver, outUri);
         return outUri;
+    }
+
+    /**
+     * Decodes a bitmap from a URI, using {@link ImageDecoder} when {@link BitmapFactory} cannot.
+     */
+    @Nullable
+    public static Bitmap decodeBitmapFromUri(@NonNull Context context, @NonNull Uri sourceUri)
+            throws IOException {
+        return decodeWithImageDecoder(context, sourceUri);
     }
 
     private static Bitmap decodeWithImageDecoder(Context context, Uri sourceUri)
@@ -601,7 +618,7 @@ public final class FormatConverter {
             @Nullable VideoMedia3Converter.TranscodeProgressListener progressListener)
             throws IOException {
         return convertVideoToMovies(
-                context, sourceUri, baseDisplayName, formatIndex, progressListener, null);
+                context, sourceUri, baseDisplayName, formatIndex, progressListener, null, -1L);
     }
 
     @NonNull
@@ -613,6 +630,26 @@ public final class FormatConverter {
             @Nullable VideoMedia3Converter.TranscodeProgressListener progressListener,
             @Nullable int[] outActualFormatIndex)
             throws IOException {
+        return convertVideoToMovies(
+                context, sourceUri, baseDisplayName, formatIndex, progressListener, outActualFormatIndex, -1L);
+    }
+
+    @NonNull
+    public static Uri convertVideoToMovies(
+            @NonNull Context context,
+            @NonNull Uri sourceUri,
+            @NonNull String baseDisplayName,
+            int formatIndex,
+            @Nullable VideoMedia3Converter.TranscodeProgressListener progressListener,
+            @Nullable int[] outActualFormatIndex,
+            long transcodeOwnerId)
+            throws IOException {
+        long declaredSize = MediaSizeLimits.declaredSizeBytes(
+                context.getContentResolver(), sourceUri);
+        long maxVideoBytes = MediaSizeLimits.maxVideoBytes();
+        if (declaredSize > maxVideoBytes) {
+            throw new IOException("stream_exceeds_size_limit");
+        }
         try {
             File outFile = File.createTempFile(
                     "vid_transform_",
@@ -623,7 +660,8 @@ public final class FormatConverter {
                     sourceUri,
                     outFile.getAbsolutePath(),
                     formatIndex,
-                    progressListener);
+                    progressListener,
+                    transcodeOwnerId);
             if (outActualFormatIndex != null && outActualFormatIndex.length > 0) {
                 outActualFormatIndex[0] = actualFormat;
             }

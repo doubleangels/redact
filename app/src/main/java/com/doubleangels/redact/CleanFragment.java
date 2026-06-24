@@ -40,6 +40,9 @@ public class CleanFragment extends Fragment {
 
     private static final int MAX_PICK_ITEMS = 20;
 
+    @Nullable
+    private List<MediaItem> lastObservedSelectedItems;
+
     private MainViewModel viewModel;
     private PermissionManager permissionManager;
     private MediaSelector mediaSelector;
@@ -289,10 +292,16 @@ public class CleanFragment extends Fragment {
                             != MainViewModel.ProcessingState.PROCESSING) {
                         uiStateManager.enableStripButton(!items.isEmpty());
                     }
-                    if (viewModel.getCleanProcessingState().getValue()
-                            == MainViewModel.ProcessingState.COMPLETED) {
+                    List<MediaItem> previous = lastObservedSelectedItems;
+                    boolean selectionChanged = previous != null
+                            && !java.util.Objects.equals(previous, items);
+                    if (selectionChanged
+                            && viewModel.getCleanProcessingState().getValue()
+                                    == MainViewModel.ProcessingState.COMPLETED) {
                         viewModel.setCleanProcessingState(MainViewModel.ProcessingState.IDLE);
                     }
+                    lastObservedSelectedItems = items != null
+                            ? new ArrayList<>(items) : new ArrayList<>();
                     uiStateManager.setSelectedItemsStatus(items != null ? items.size() : 0);
                     SentryManager.setCustomKey("selected_items_count", items != null ? items.size() : 0);
                 } catch (Exception e) {
@@ -386,11 +395,25 @@ public class CleanFragment extends Fragment {
     @Override
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
-        if (!hidden) {
-            if (viewModel != null
-                    && viewModel.getCleanProcessingState().getValue()
-                            == MainViewModel.ProcessingState.PROCESSING) {
+        if (!hidden && viewModel != null) {
+            MainViewModel.ProcessingState state = viewModel.getCleanProcessingState().getValue();
+            if (state == MainViewModel.ProcessingState.PROCESSING) {
                 return;
+            }
+            if (state == MainViewModel.ProcessingState.COMPLETED && uiStateManager != null) {
+                uiStateManager.showProgress(false);
+                Integer count = viewModel.getCleanProcessedItemCount().getValue();
+                Integer total = viewModel.getCleanBatchTotalCount().getValue();
+                if (count != null) {
+                    int batchTotal = total != null ? total : count;
+                    uiStateManager.setProcessedItemsStatus(count, batchTotal);
+                }
+                stripButton.setText(R.string.button_strip_exif_data);
+                if (selectButton != null) {
+                    selectButton.setEnabled(true);
+                }
+                List<MediaItem> items = viewModel.getSelectedItems().getValue();
+                uiStateManager.enableStripButton(items != null && !items.isEmpty());
             }
             syncPermissionUi();
         }

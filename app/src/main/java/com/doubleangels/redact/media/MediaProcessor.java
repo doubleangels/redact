@@ -76,6 +76,11 @@ public class MediaProcessor {
          * Called when a batch is already running and a second start was ignored.
          */
         default void onAlreadyProcessing() {}
+
+        /**
+         * Called on the main thread when this batch was accepted and will run.
+         */
+        default void onBatchStarted() {}
     }
 
     /**
@@ -94,7 +99,12 @@ public class MediaProcessor {
     public void cancel() {
         cancelled.set(true);
         metadataStripper.requestCancellation();
-        VideoMedia3Converter.cancelActiveTranscode();
+        VideoMedia3Converter.cancelActiveTranscode(metadataStripper.getTranscodeOwnerId());
+    }
+
+    /** Associates subsequent video transcodes with {@code ownerId} for scoped cancellation. */
+    public void setTranscodeOwnerId(long ownerId) {
+        metadataStripper.setTranscodeOwnerId(ownerId);
     }
 
     /** Stops the background worker; safe to call when the owner is destroyed. */
@@ -110,6 +120,11 @@ public class MediaProcessor {
      */
     public Uri getLastProcessedFileUri() {
         return lastProcessedFileUri;
+    }
+
+    /** Whether a clean batch is currently running on the shared worker. */
+    public boolean isBusy() {
+        return processing.get();
     }
 
     /**
@@ -134,6 +149,7 @@ public class MediaProcessor {
         }
         cancelled.set(false);
         metadataStripper.resetCancellation();
+        mainHandler.post(callback::onBatchStarted);
         processingExecutor.execute(() -> {
             final int totalItems = items.size();
             ITransaction transaction = SentryManager.startTransaction("clean_multiple", "task");
@@ -144,7 +160,7 @@ public class MediaProcessor {
                 for (int index = 0; index < totalItems; index++) {
                     if (cancelled.get()) {
                         Log.i(TAG, "Processing cancelled by user or lifecycle");
-                        VideoMedia3Converter.cancelActiveTranscode();
+                        VideoMedia3Converter.cancelActiveTranscode(metadataStripper.getTranscodeOwnerId());
                         break;
                     }
                     MediaItem item = items.get(index);
@@ -196,7 +212,7 @@ public class MediaProcessor {
                                     "processing.clean.success", 1, "is_video", String.valueOf(item.isVideo()));
                             span.setStatus(SpanStatus.OK);
                         } else if (cancelled.get()) {
-                            VideoMedia3Converter.cancelActiveTranscode();
+                            VideoMedia3Converter.cancelActiveTranscode(metadataStripper.getTranscodeOwnerId());
                             span.setStatus(SpanStatus.CANCELLED);
                             break;
                         } else {
@@ -217,7 +233,7 @@ public class MediaProcessor {
                     } catch (Exception e) {
                         metadataStripper.setProgressCallback(null);
                         if (cancelled.get() || SentryManager.isUserCancellation(e)) {
-                            VideoMedia3Converter.cancelActiveTranscode();
+                            VideoMedia3Converter.cancelActiveTranscode(metadataStripper.getTranscodeOwnerId());
                             span.setStatus(SpanStatus.CANCELLED);
                             break;
                         }

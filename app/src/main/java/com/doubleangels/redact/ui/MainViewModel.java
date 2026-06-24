@@ -16,12 +16,15 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModelProvider;
 
 
 
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.ShareHandlerActivity;
 
+import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.FormatConverter;
 
 import com.doubleangels.redact.media.MediaItem;
@@ -46,7 +49,8 @@ import java.util.List;
 
 import java.util.concurrent.ExecutorService;
 
-import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 
@@ -78,37 +82,165 @@ public class MainViewModel extends AndroidViewModel {
 
 
 
+    private final AppProcessingScope processingScope;
+
     private final MediaProcessor mediaProcessor;
 
-    private ExecutorService convertExecutor;
+    private final ExecutorService convertExecutor;
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
-    private final java.util.concurrent.atomic.AtomicBoolean convertInProgress = new java.util.concurrent.atomic.AtomicBoolean(false);
+    private final AtomicBoolean convertInProgress;
 
-    private final java.util.concurrent.atomic.AtomicInteger convertGeneration =
-            new java.util.concurrent.atomic.AtomicInteger(0);
+    private final AtomicInteger convertGeneration;
 
-    private final java.util.concurrent.atomic.AtomicInteger cleanGeneration =
-            new java.util.concurrent.atomic.AtomicInteger(0);
+    private final AtomicInteger cleanGeneration;
 
     private final ProgressUpdateThrottler convertProgressThrottler = new ProgressUpdateThrottler();
 
 
 
+    private static final String KEY_CLEAN_STATE = "clean_processing_state";
+    private static final String KEY_CONVERT_STATE = "convert_processing_state";
+    private static final String KEY_CLEAN_URIS = "clean_selected_uris";
+    private static final String KEY_CLEAN_NAMES = "clean_selected_names";
+    private static final String KEY_CLEAN_VIDEOS = "clean_selected_videos";
+    private static final String KEY_CONVERT_URIS = "convert_selected_uris";
+    private static final String KEY_CONVERT_NAMES = "convert_selected_names";
+    private static final String KEY_CONVERT_VIDEOS = "convert_selected_videos";
+    private static final String KEY_CLEAN_PROCESSED = "clean_processed_count";
+    private static final String KEY_CLEAN_BATCH = "clean_batch_total";
+    private static final String KEY_CONVERT_PROCESSED = "convert_processed_count";
+    private static final String KEY_CONVERT_BATCH = "convert_batch_total";
+
+    private final SavedStateHandle savedStateHandle;
+
     public MainViewModel(Application application) {
+        this(application, new SavedStateHandle());
+    }
+
+    public MainViewModel(Application application, SavedStateHandle savedStateHandle) {
 
         super(application);
 
-        mediaProcessor = new MediaProcessor(application);
+        this.savedStateHandle = savedStateHandle;
+        processingScope = AppProcessingScope.get(application);
+        mediaProcessor = processingScope.mediaProcessor();
+        convertExecutor = processingScope.convertExecutor();
+        convertInProgress = processingScope.convertInProgress();
+        convertGeneration = processingScope.convertGeneration();
+        cleanGeneration = processingScope.cleanGeneration();
 
-        convertExecutor = Executors.newSingleThreadExecutor();
+        restorePersistedProcessingState();
 
+    }
+
+    private void restorePersistedProcessingState() {
+        List<MediaItem> cleanItems = restoreMediaItems(KEY_CLEAN_URIS, KEY_CLEAN_NAMES, KEY_CLEAN_VIDEOS);
+        if (!cleanItems.isEmpty()) {
+            selectedItems.setValue(cleanItems);
+        }
+        List<MediaItem> convertItems =
+                restoreMediaItems(KEY_CONVERT_URIS, KEY_CONVERT_NAMES, KEY_CONVERT_VIDEOS);
+        if (!convertItems.isEmpty()) {
+            convertSelectedItems.setValue(convertItems);
+        }
+
+        Integer cleanProcessed = savedStateHandle.get(KEY_CLEAN_PROCESSED);
+        if (cleanProcessed != null) {
+            cleanProcessedItemCount.setValue(cleanProcessed);
+        }
+        Integer cleanBatch = savedStateHandle.get(KEY_CLEAN_BATCH);
+        if (cleanBatch != null) {
+            cleanBatchTotalCount.setValue(cleanBatch);
+        }
+        Integer convertProcessed = savedStateHandle.get(KEY_CONVERT_PROCESSED);
+        if (convertProcessed != null) {
+            convertProcessedItemCount.setValue(convertProcessed);
+        }
+        Integer convertBatch = savedStateHandle.get(KEY_CONVERT_BATCH);
+        if (convertBatch != null) {
+            convertBatchTotalCount.setValue(convertBatch);
+        }
+
+        ProcessingState clean = savedStateHandle.get(KEY_CLEAN_STATE);
+        if (clean != null && clean != ProcessingState.PROCESSING) {
+            cleanProcessingState.setValue(clean);
+        } else if (processingScope.isCleanBusy()) {
+            cleanProcessingState.setValue(ProcessingState.PROCESSING);
+        }
+        ProcessingState convert = savedStateHandle.get(KEY_CONVERT_STATE);
+        if (convert != null && convert != ProcessingState.PROCESSING) {
+            convertProcessingState.setValue(convert);
+        } else if (processingScope.isConvertBusy()) {
+            convertProcessingState.setValue(ProcessingState.PROCESSING);
+        }
+    }
+
+    private void persistMediaItems(
+            String urisKey, String namesKey, String videosKey, List<MediaItem> items) {
+        if (items == null || items.isEmpty()) {
+            savedStateHandle.remove(urisKey);
+            savedStateHandle.remove(namesKey);
+            savedStateHandle.remove(videosKey);
+            return;
+        }
+        ArrayList<String> uris = new ArrayList<>(items.size());
+        ArrayList<String> names = new ArrayList<>(items.size());
+        ArrayList<Boolean> videos = new ArrayList<>(items.size());
+        for (MediaItem item : items) {
+            uris.add(item.uri().toString());
+            names.add(item.fileName() != null ? item.fileName() : "");
+            videos.add(item.isVideo());
+        }
+        savedStateHandle.set(urisKey, uris);
+        savedStateHandle.set(namesKey, names);
+        savedStateHandle.set(videosKey, videos);
+    }
+
+    private List<MediaItem> restoreMediaItems(String urisKey, String namesKey, String videosKey) {
+        ArrayList<String> uris = savedStateHandle.get(urisKey);
+        ArrayList<String> names = savedStateHandle.get(namesKey);
+        ArrayList<Boolean> videos = savedStateHandle.get(videosKey);
+        if (uris == null || names == null || videos == null || uris.isEmpty()) {
+            return new ArrayList<>();
+        }
+        int count = Math.min(uris.size(), Math.min(names.size(), videos.size()));
+        ArrayList<MediaItem> items = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            items.add(
+                    new MediaItem(
+                            android.net.Uri.parse(uris.get(i)),
+                            Boolean.TRUE.equals(videos.get(i)),
+                            names.get(i)));
+        }
+        return items;
+    }
+
+    private void persistBatchCounts(int processed, int batchTotal, String processedKey, String batchKey) {
+        savedStateHandle.set(processedKey, processed);
+        savedStateHandle.set(batchKey, batchTotal);
+    }
+
+    private void persistProcessingState(ProcessingState state, String key) {
+        if (state == ProcessingState.PROCESSING) {
+            savedStateHandle.remove(key);
+        } else {
+            savedStateHandle.set(key, state);
+        }
     }
 
     public static boolean isAnyProcessing(FragmentActivity activity) {
         if (activity == null) {
             return false;
+        }
+        if (ShareHandlerActivity.isShareProcessingActive()) {
+            return true;
+        }
+        Application app = activity.getApplication();
+        AppProcessingScope scope = AppProcessingScope.get(app);
+        if (scope.isCleanBusy() || scope.isConvertBusy()) {
+            return true;
         }
         return new ViewModelProvider(activity).get(MainViewModel.class).isProcessingActive();
     }
@@ -118,31 +250,17 @@ public class MainViewModel extends AndroidViewModel {
         ProcessingState convert = convertProcessingState.getValue();
         return clean == ProcessingState.PROCESSING
                 || convert == ProcessingState.PROCESSING
-                || convertInProgress.get();
+                || convertInProgress.get()
+                || processingScope.isCleanBusy()
+                || processingScope.isConvertBusy();
     }
 
 
 
     @Override
-
     protected void onCleared() {
-
         super.onCleared();
-
-        cancelCleaning();
-        cancelConversion();
-        mediaProcessor.shutdown();
-        VideoMedia3Converter.cancelActiveTranscode();
-        LocalNotifications.stopProcessingForeground(getApplication());
-        LocalNotifications.cancelCleanProgress(getApplication());
-        LocalNotifications.cancelConvertProgress(getApplication());
-
-        if (convertExecutor != null) {
-
-            convertExecutor.shutdownNow();
-
-        }
-
+        // Clean/convert work continues in AppProcessingScope; do not cancel or shut down workers here.
     }
 
 
@@ -329,6 +447,7 @@ public class MainViewModel extends AndroidViewModel {
             }
         }
         selectedItems.setValue(items != null ? new ArrayList<>(items) : new ArrayList<>());
+        persistMediaItems(KEY_CLEAN_URIS, KEY_CLEAN_NAMES, KEY_CLEAN_VIDEOS, items);
     }
 
 
@@ -341,6 +460,7 @@ public class MainViewModel extends AndroidViewModel {
             }
         }
         convertSelectedItems.setValue(items != null ? new ArrayList<>(items) : new ArrayList<>());
+        persistMediaItems(KEY_CONVERT_URIS, KEY_CONVERT_NAMES, KEY_CONVERT_VIDEOS, items);
     }
 
 
@@ -350,8 +470,10 @@ public class MainViewModel extends AndroidViewModel {
     }
 
     public void cancelCleaning() {
+        final int runGeneration = cleanGeneration.get();
         cleanGeneration.incrementAndGet();
         mediaProcessor.cancel();
+        VideoMedia3Converter.cancelActiveTranscode(runGeneration);
         LocalNotifications.cancelCleanProgress(getApplication());
         LocalNotifications.stopProcessingForeground(getApplication());
         setCleanProcessingState(ProcessingState.CANCELLED);
@@ -359,13 +481,10 @@ public class MainViewModel extends AndroidViewModel {
     }
 
     public void cancelConversion() {
+        final int runGeneration = convertGeneration.get();
         convertGeneration.incrementAndGet();
         convertInProgress.set(false);
-        VideoMedia3Converter.cancelActiveTranscode();
-        if (convertExecutor != null) {
-            convertExecutor.shutdownNow();
-        }
-        convertExecutor = Executors.newSingleThreadExecutor();
+        VideoMedia3Converter.cancelActiveTranscode(runGeneration);
         LocalNotifications.cancelConvertProgress(getApplication());
         LocalNotifications.stopProcessingForeground(getApplication());
         setConvertProcessingState(ProcessingState.CANCELLED);
@@ -378,10 +497,12 @@ public class MainViewModel extends AndroidViewModel {
         if (Looper.myLooper() == Looper.getMainLooper()) {
 
             cleanProcessingState.setValue(state);
+            persistProcessingState(state, KEY_CLEAN_STATE);
 
         } else {
 
             cleanProcessingState.postValue(state);
+            mainHandler.post(() -> persistProcessingState(state, KEY_CLEAN_STATE));
 
         }
 
@@ -394,10 +515,12 @@ public class MainViewModel extends AndroidViewModel {
         if (Looper.myLooper() == Looper.getMainLooper()) {
 
             convertProcessingState.setValue(state);
+            persistProcessingState(state, KEY_CONVERT_STATE);
 
         } else {
 
             convertProcessingState.postValue(state);
+            mainHandler.post(() -> persistProcessingState(state, KEY_CONVERT_STATE));
 
         }
 
@@ -440,6 +563,12 @@ public class MainViewModel extends AndroidViewModel {
 
         if (items == null || items.isEmpty()) return;
 
+        if (ShareHandlerActivity.isShareProcessingActive()) {
+            cleanProgressMessage.postValue(
+                    getApplication().getString(R.string.status_already_processing));
+            return;
+        }
+
         if (convertInProgress.get()
                 || convertProcessingState.getValue() == ProcessingState.PROCESSING) {
             cleanProgressMessage.postValue(
@@ -448,13 +577,22 @@ public class MainViewModel extends AndroidViewModel {
         }
 
         cleanBatchTotalCount.setValue(items.size());
-
-        setCleanProcessingState(ProcessingState.PROCESSING);
-        LocalNotifications.startProcessingForeground(
-                getApplication(), getApplication().getString(R.string.notification_clean_progress_title));
+        persistBatchCounts(0, items.size(), KEY_CLEAN_PROCESSED, KEY_CLEAN_BATCH);
 
         final int runGeneration = cleanGeneration.incrementAndGet();
         mediaProcessor.processMediaItems(items, new MediaProcessor.ProcessingCallback() {
+
+            @Override
+            public void onBatchStarted() {
+                if (runGeneration != cleanGeneration.get()) {
+                    return;
+                }
+                mediaProcessor.setTranscodeOwnerId(runGeneration);
+                setCleanProcessingState(ProcessingState.PROCESSING);
+                LocalNotifications.startProcessingForeground(
+                        getApplication(),
+                        getApplication().getString(R.string.notification_clean_progress_title));
+            }
 
             @Override
 
@@ -478,6 +616,7 @@ public class MainViewModel extends AndroidViewModel {
                 }
                 cleanProcessedItemCount.setValue(successCount);
                 cleanBatchTotalCount.setValue(totalCount);
+                persistBatchCounts(successCount, totalCount, KEY_CLEAN_PROCESSED, KEY_CLEAN_BATCH);
                 setCleanProcessingState(ProcessingState.COMPLETED);
                 int failCount = Math.max(0, totalCount - successCount);
                 LocalNotifications.stopProcessingForeground(getApplication());
@@ -491,6 +630,7 @@ public class MainViewModel extends AndroidViewModel {
                 }
                 cleanProcessedItemCount.setValue(successCount);
                 cleanBatchTotalCount.setValue(totalCount);
+                persistBatchCounts(successCount, totalCount, KEY_CLEAN_PROCESSED, KEY_CLEAN_BATCH);
                 setCleanProcessingState(ProcessingState.CANCELLED);
                 LocalNotifications.cancelCleanProgress(getApplication());
                 LocalNotifications.stopProcessingForeground(getApplication());
@@ -525,6 +665,12 @@ public class MainViewModel extends AndroidViewModel {
 
         if (items == null || items.isEmpty()) return;
 
+        if (ShareHandlerActivity.isShareProcessingActive()) {
+            convertProgressMessage.postValue(
+                    getApplication().getString(R.string.status_already_processing));
+            return;
+        }
+
         if (cleanProcessingState.getValue() == ProcessingState.PROCESSING) {
             convertProgressMessage.postValue(
                     getApplication().getString(R.string.status_already_processing));
@@ -542,8 +688,9 @@ public class MainViewModel extends AndroidViewModel {
         final int total = items.size();
 
         convertBatchTotalCount.setValue(total);
+        persistBatchCounts(0, total, KEY_CONVERT_PROCESSED, KEY_CONVERT_BATCH);
 
-        convertSelectedItems.setValue(new ArrayList<>(items));
+        setConvertSelectedItems(new ArrayList<>(items));
 
         setConvertProcessingState(ProcessingState.PROCESSING);
         updateConvertProgressPercent(0, "");
@@ -565,7 +712,10 @@ public class MainViewModel extends AndroidViewModel {
 
                 for (int i = 0; i < total; i++) {
 
-                    if (Thread.currentThread().isInterrupted()) break;
+                    if (Thread.currentThread().isInterrupted()
+                            || runGeneration != convertGeneration.get()) {
+                        break;
+                    }
 
                     MediaItem mediaItem = items.get(i);
 
@@ -627,7 +777,8 @@ public class MainViewModel extends AndroidViewModel {
                                                 getApplication(), overall, detail);
 
                                     },
-                                    actualFormatIndex);
+                                    actualFormatIndex,
+                                    runGeneration);
                             if (actualFormatIndex[0] != formatIndex) {
                                 String requested = FormatConverter.videoFormatLabel(
                                         getApplication(), formatIndex);
@@ -714,9 +865,11 @@ public class MainViewModel extends AndroidViewModel {
             } finally {
                 final int finalOk = ok;
                 final int finalFail = fail;
-                final boolean interrupted = Thread.currentThread().isInterrupted();
-                convertInProgress.set(false);
                 final int capturedGeneration = runGeneration;
+                final boolean interrupted =
+                        Thread.currentThread().isInterrupted()
+                                || capturedGeneration != convertGeneration.get();
+                convertInProgress.set(false);
                 mainHandler.post(() -> {
                     if (capturedGeneration != convertGeneration.get()) {
                         return;
@@ -725,6 +878,7 @@ public class MainViewModel extends AndroidViewModel {
                     if (interrupted) {
                         LocalNotifications.cancelConvertProgress(getApplication());
                         convertProcessedItemCount.setValue(finalOk);
+                        persistBatchCounts(finalOk, total, KEY_CONVERT_PROCESSED, KEY_CONVERT_BATCH);
                         setConvertProcessingState(ProcessingState.CANCELLED);
                         convertProgressMessage.postValue(
                                 getApplication().getString(R.string.status_processing_cancelled));
@@ -732,6 +886,7 @@ public class MainViewModel extends AndroidViewModel {
                         updateConvertProgressPercentForce(
                                 100, convertCompletionMessage(finalOk, finalFail));
                         convertProcessedItemCount.setValue(finalOk);
+                        persistBatchCounts(finalOk, total, KEY_CONVERT_PROCESSED, KEY_CONVERT_BATCH);
                         setConvertProcessingState(ProcessingState.COMPLETED);
                         LocalNotifications.showConversionComplete(getApplication(), finalOk, finalFail);
                     }

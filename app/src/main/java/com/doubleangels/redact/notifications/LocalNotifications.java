@@ -83,8 +83,8 @@ public final class LocalNotifications {
     }
 
     /**
-     * Whether a foreground service may be started for long-running work. Does not require the
-     * in-app notifications master toggle so processing can stay alive when only FGS is needed.
+     * Whether optional progress notification updates may be posted. Starting the processing
+     * foreground service is always attempted so long work can continue when the app is backgrounded.
      */
     public static boolean canStartForegroundService(@NonNull Context context) {
         Context app = context.getApplicationContext();
@@ -135,7 +135,7 @@ public final class LocalNotifications {
         String title = app.getString(R.string.notification_convert_progress_title);
         try {
             ProcessingForegroundService.updateProgress(
-                    app, clampPercent(percent), title, message);
+                    app, clampPercent(percent), title, null);
         } catch (SecurityException e) {
             SentryManager.recordException(e);
         }
@@ -159,7 +159,7 @@ public final class LocalNotifications {
         String title = app.getString(R.string.notification_clean_progress_title);
         try {
             ProcessingForegroundService.updateProgress(
-                    app, clampPercent(percent), title, message);
+                    app, clampPercent(percent), title, null);
         } catch (SecurityException e) {
             SentryManager.recordException(e);
         }

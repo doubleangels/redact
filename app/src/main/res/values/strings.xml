@@ -196,9 +196,24 @@
     
     <string name="share_processing_title">Processing…</string>
     <string name="share_chooser_title">Share clean media file via…</string>
-    <string name="share_error_file_too_large" translatable="false">File is too large to process (max 200 MB).</string>
-    <string name="share_error_skipped_oversized" translatable="false">Skipped %1$d file(s) over the size limit.</string>
-    <string name="share_error_too_many_items" translatable="false">Too many items (max %1$d at a time).</string>
+    <string name="strip_progress_reading_image">Reading image…</string>
+    <string name="strip_progress_reading_video">Reading video…</string>
+    <string name="strip_progress_reading_essential_metadata">Reading essential metadata…</string>
+    <string name="strip_progress_removing_metadata">Removing metadata…</string>
+    <string name="strip_progress_removing_all_metadata">Removing all metadata…</string>
+    <string name="strip_progress_restoring_essential_metadata">Restoring essential metadata…</string>
+    <string name="strip_progress_verifying">Verifying metadata removal…</string>
+    <string name="strip_progress_transmuxing">Transmuxing…</string>
+    <string name="strip_progress_transcoding">Transcoding…</string>
+    <string name="strip_progress_transcoding_target">Transcoding to target format…</string>
+    <string name="strip_progress_saving_clean_copy">Saving clean copy…</string>
+    <string name="strip_progress_processing_video_metadata">Processing video metadata…</string>
+
+    <string name="strip_progress_saving_clean_video">Saving cleaned video…</string>
+
+    <string name="share_error_file_too_large">File is too large to process (max 200 MB).</string>
+    <string name="share_error_skipped_oversized">Skipped %1$d file(s) over the size limit.</string>
+    <string name="share_error_too_many_items">Too many items (max %1$d at a time).</string>
     <string name="share_error_unsupported_media">This media type isn\'t supported.</string>
     <string name="share_error_unsupported_action">This action isn\'t supported.</string>
     <string name="share_error_generic">Something went wrong. Please try again.</string>
@@ -207,6 +222,7 @@
     <string name="share_error_partial_success">%1$d file(s) cleaned; %2$d failed.</string>
     <string name="share_error_failed_get_cleaned_file">Couldn\'t prepare the cleaned file for sharing.</string>
     <string name="share_error_failed_get_cleaned_files">Couldn\'t prepare the cleaned files for sharing.</string>
+    <string name="share_error_interrupted">Sharing was interrupted. Please try again.</string>
 
     
     <string name="scan_metadata">Metadata</string>

@@ -48,6 +48,9 @@ public class ConvertFragment extends Fragment {
     private MainViewModel viewModel;
 
     private MaterialButton selectButton;
+    @Nullable
+    private List<MediaItem> lastObservedConvertItems;
+
     private MaterialButton convertButton;
     private TextView statusText;
     private LinearLayout progressContainer;
@@ -329,6 +332,14 @@ public class ConvertFragment extends Fragment {
                     != MainViewModel.ProcessingState.PROCESSING) {
                 convertButton.setEnabled(!list.isEmpty());
             }
+            List<MediaItem> previous = lastObservedConvertItems;
+            boolean selectionChanged = previous != null && !java.util.Objects.equals(previous, list);
+            if (selectionChanged
+                    && viewModel.getConvertProcessingState().getValue()
+                            == MainViewModel.ProcessingState.COMPLETED) {
+                viewModel.setConvertProcessingState(MainViewModel.ProcessingState.IDLE);
+            }
+            lastObservedConvertItems = new java.util.ArrayList<>(list);
             if (list.isEmpty()) {
                 statusText.setText(R.string.convert_status_ready);
             } else if (viewModel.getConvertProcessingState().getValue()
@@ -358,20 +369,16 @@ public class ConvertFragment extends Fragment {
                 convertButton.setEnabled(!selected.isEmpty());
                 selectButton.setEnabled(true);
                 showProgress(false);
-                Integer okCount = viewModel.getConvertProcessedItemCount().getValue();
-                Integer batchTotal = viewModel.getConvertBatchTotalCount().getValue();
-                int total = batchTotal != null ? batchTotal : selected.size();
-                if (okCount != null) {
-                    if (okCount == total && okCount > 0) {
-                        statusText.setText(getString(R.string.convert_done_all, okCount));
-                        Toast.makeText(requireContext(), R.string.convert_saved_to_gallery, Toast.LENGTH_SHORT).show();
-                    } else if (okCount > 0) {
-                        statusText.setText(getString(R.string.convert_done_partial, okCount, total - okCount));
-                    } else {
-                        statusText.setText(R.string.convert_done_failed);
+                applyConvertCompletedStatus(selected);
+                if (!isHidden()) {
+                    Integer okCount = viewModel.getConvertProcessedItemCount().getValue();
+                    Integer batchTotal = viewModel.getConvertBatchTotalCount().getValue();
+                    int total = batchTotal != null ? batchTotal : selected.size();
+                    if (okCount != null && okCount == total && okCount > 0) {
+                        Toast.makeText(requireContext(), R.string.convert_saved_to_gallery, Toast.LENGTH_SHORT)
+                                .show();
                     }
                 }
-                viewModel.setConvertProcessingState(MainViewModel.ProcessingState.IDLE);
             }
         });
         viewModel.getConvertProgressPercent().observe(getViewLifecycleOwner(), percent -> {
@@ -438,6 +445,22 @@ public class ConvertFragment extends Fragment {
         return false;
     }
 
+    private void applyConvertCompletedStatus(@NonNull List<MediaItem> selected) {
+        Integer okCount = viewModel.getConvertProcessedItemCount().getValue();
+        Integer batchTotal = viewModel.getConvertBatchTotalCount().getValue();
+        int total = batchTotal != null ? batchTotal : selected.size();
+        if (okCount == null) {
+            return;
+        }
+        if (okCount == total && okCount > 0) {
+            statusText.setText(getString(R.string.convert_done_all, okCount));
+        } else if (okCount > 0) {
+            statusText.setText(getString(R.string.convert_done_partial, okCount, total - okCount));
+        } else {
+            statusText.setText(R.string.convert_done_failed);
+        }
+    }
+
     @Override
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
@@ -447,19 +470,7 @@ public class ConvertFragment extends Fragment {
                 return;
             }
             if (state == MainViewModel.ProcessingState.COMPLETED) {
-                Integer ok = viewModel.getConvertProcessedItemCount().getValue();
-                Integer total = viewModel.getConvertBatchTotalCount().getValue();
-                if (ok != null && total != null) {
-                    int fail = Math.max(0, total - ok);
-                    if (fail > 0 && ok > 0) {
-                        statusText.setText(getString(R.string.convert_done_partial, ok, fail));
-                    } else if (ok > 0) {
-                        statusText.setText(getString(R.string.convert_done_all, ok));
-                    } else {
-                        statusText.setText(R.string.convert_done_failed);
-                    }
-                }
-                viewModel.setConvertProcessingState(MainViewModel.ProcessingState.IDLE);
+                applyConvertCompletedStatus(currentSelectedItems());
                 return;
             }
             syncSelectButtonForPickerAccess();

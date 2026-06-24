@@ -3,10 +3,13 @@ package com.doubleangels.redact.notifications;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
+import android.os.Build;
 import android.os.IBinder;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.core.app.ServiceCompat;
 
 import com.doubleangels.redact.R;
 
@@ -29,9 +32,6 @@ public class ProcessingForegroundService extends Service {
             return;
         }
         Context app = context.getApplicationContext();
-        if (!LocalNotifications.canStartForegroundService(app)) {
-            return;
-        }
         LocalNotifications.ensureChannels(app);
         Intent intent = new Intent(app, ProcessingForegroundService.class);
         intent.setAction(ACTION_START);
@@ -111,7 +111,15 @@ public class ProcessingForegroundService extends Service {
                 .setContentIntent(LocalNotifications.mainContentIntent(this));
 
         try {
-            startForeground(NOTIFICATION_ID, builder.build());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ServiceCompat.startForeground(
+                        this,
+                        NOTIFICATION_ID,
+                        builder.build(),
+                        ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING);
+            } else {
+                startForeground(NOTIFICATION_ID, builder.build());
+            }
         } catch (SecurityException e) {
             // POST_NOTIFICATIONS denied; we still satisfied the startForeground
             // contract via the try, so just stop cleanly.
@@ -122,11 +130,6 @@ public class ProcessingForegroundService extends Service {
         // Now that we've satisfied Android's startForeground requirement, handle
         // stop/permission-denied cases by removing the foreground state immediately.
         if (intent != null && ACTION_STOP.equals(intent.getAction())) {
-            stopForeground(STOP_FOREGROUND_REMOVE);
-            stopSelf();
-            return START_NOT_STICKY;
-        }
-        if (!LocalNotifications.canStartForegroundService(this)) {
             stopForeground(STOP_FOREGROUND_REMOVE);
             stopSelf();
             return START_NOT_STICKY;

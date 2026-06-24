@@ -12,6 +12,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,6 +32,7 @@ jobs:
       - name: Build release bundle and upload ProGuard mapping to Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: ./gradlew bundleRelease --no-daemon --parallel --build-cache
 
       - name: Sign bundle for Google Play release
@@ -50,6 +52,9 @@ jobs:
 
   publish:
     needs: ["build"]
+    # Requires a "production" environment in repo Settings → Environments with required reviewers.
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    environment: production
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -74,7 +79,7 @@ jobs:
         with:
           serviceAccountJson: service_account.json
           packageName: com.doubleangels.redact
-          releaseFiles: app-release.aab
+          releaseFiles: app/build/outputs/bundle/release/app-release.aab
           tracks: production
           whatsNewDirectory: whatsnew
 
@@ -82,7 +87,13 @@ jobs:
         uses: ruby/setup-ruby@v1.314.0
         with:
           ruby-version: "3.3"
-          bundler-cache: true
+          bundler-cache: false
+
+      - name: Lock Ruby gems for reproducible Fastlane
+        run: bundle lock
+
+      - name: Install Ruby gems
+        run: bundle install --deployment
 
       - name: Push Fastlane metadata to Play Store
         run: bundle exec fastlane supply --skip_upload_apk true --skip_upload_aab true --skip_upload_changelogs true --json_key service_account.json --package_name com.doubleangels.redact --track production
