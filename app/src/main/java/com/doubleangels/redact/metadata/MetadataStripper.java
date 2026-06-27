@@ -40,10 +40,15 @@ import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.commons.imaging.bytesource.ByteSource;
+import org.apache.commons.imaging.formats.jpeg.xmp.JpegXmpRewriter;
 
 /**
  * Provides functionality to strip metadata from media files (images and
@@ -578,6 +583,7 @@ public class MetadataStripper {
                 } catch (Exception cleanupEx) {
                     SentryManager.log("Failed to clean up partial file: " + cleanupEx.getMessage());
                 }
+                newUri = null;
             }
         } catch (Exception e) {
             if (shouldPropagateCancellation(e)) {
@@ -595,6 +601,7 @@ public class MetadataStripper {
                 } catch (Exception cleanupEx) {
                     SentryManager.log("Failed to clean up partial file: " + cleanupEx.getMessage());
                 }
+                newUri = null;
             }
         } finally {
             // Clean up resources
@@ -719,7 +726,7 @@ public class MetadataStripper {
 
             // Verify metadata removal
             updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
-            boolean metadataRemoved = verifyMetadataRemoval(outputFile);
+            boolean metadataRemoved = verifyMetadataRemoval(outputFile, true);
             SentryManager.setCustomKey("metadata_verification_passed", metadataRemoved);
             if (!metadataRemoved) {
                 SentryManager.log("Warning: Metadata verification found remaining metadata.");
@@ -1663,8 +1670,9 @@ public class MetadataStripper {
      * @param imageFile The image file to verify
      * @return true if no identifying metadata was found, false if metadata remains
      */
-    private boolean verifyMetadataRemoval(@NonNull File imageFile) {
+    private boolean verifyMetadataRemoval(@NonNull File imageFile, boolean forSharing) {
         try {
+            Set<String> allowedTags = new HashSet<>(getTagsToPreserve(forSharing));
             ExifInterface exif = new ExifInterface(imageFile.getAbsolutePath());
 
             // Check for any remaining identifying EXIF tags
@@ -1684,6 +1692,9 @@ public class MetadataStripper {
             };
 
             for (String tag : identifyingTags) {
+                if (allowedTags.contains(tag)) {
+                    continue;
+                }
                 String value = exif.getAttribute(tag);
                 if (value != null && !value.isEmpty()) {
                     SentryManager.log("Warning: Found remaining metadata tag: " + tag + ".");
@@ -1691,7 +1702,6 @@ public class MetadataStripper {
                 }
             }
 
-            // Check for XMP metadata (basic check - look for XMP header in file)
             if (containsXMPMetadata(imageFile)) {
                 SentryManager.log("Warning: Found XMP metadata in file.");
                 return false;
@@ -1705,12 +1715,18 @@ public class MetadataStripper {
     }
 
     /**
-     * Checks if a file contains XMP metadata by looking for XMP header.
-     *
-     * @param file The file to check
-     * @return true if XMP metadata is found, false otherwise
+     * Checks if a JPEG file still contains XMP APP1 segments, or if a non-JPEG file
+     * contains well-formed XMP packet markers.
      */
     private boolean containsXMPMetadata(@NonNull File file) {
+        String name = file.getName().toLowerCase(Locale.ROOT);
+        if (name.endsWith(".jpg") || name.endsWith(".jpeg")) {
+            return JpegXmpSegmentInspector.hasXmpSegment(file);
+        }
+        return containsXmpPacketMarkers(file);
+    }
+
+    private boolean containsXmpPacketMarkers(@NonNull File file) {
         try (FileInputStream fis = new FileInputStream(file)) {
             if (testForceXmpReadFailure) {
                 throw new IOException("Forced XMP read failure");
@@ -1721,18 +1737,65 @@ public class MetadataStripper {
             int bytesRead;
             while ((bytesRead = fis.read(buffer)) > 0 && totalRead < maxScan) {
                 String content = new String(buffer, 0, bytesRead, StandardCharsets.ISO_8859_1);
-                if (content.contains("http://ns.adobe.com/xap/1.0/")
-                        || content.contains("xpacket")
-                        || content.contains("x:xmpmeta")) {
+                if (content.contains("<?xpacket begin")
+                        || content.contains("<x:xmpmeta")) {
                     return true;
                 }
                 totalRead += bytesRead;
             }
         } catch (Exception e) {
             SentryManager.log("XMP detection failed: " + e.getMessage());
-            return true;
+            return false;
         }
         return false;
+    }
+
+    private static boolean isJpegExtension(@NonNull String extension) {
+        return extension.equalsIgnoreCase(".jpg") || extension.equalsIgnoreCase(".jpeg");
+    }
+
+    private static void writeProcessedImageBytes(
+            @NonNull File tempFile, @NonNull OutputStream finalOs, @NonNull String extension)
+            throws IOException {
+        if (isJpegExtension(extension)) {
+            try {
+                new JpegXmpRewriter().removeXmpXml(tempFile, finalOs);
+                return;
+            } catch (Exception e) {
+                SentryManager.log("JPEG XMP removal before output failed: " + e.getMessage() + ".");
+            }
+        }
+        try (InputStream in = new FileInputStream(tempFile)) {
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                finalOs.write(buffer, 0, read);
+            }
+        }
+    }
+
+    private static final class JpegXmpSegmentInspector extends JpegXmpRewriter {
+        private JpegXmpSegmentInspector() {
+        }
+
+        static boolean hasXmpSegment(@NonNull File file) {
+            try {
+                return new JpegXmpSegmentInspector().scanForXmpSegment(file);
+            } catch (Exception e) {
+                SentryManager.log("XMP segment scan failed: " + e.getMessage());
+                return false;
+            }
+        }
+
+        private boolean scanForXmpSegment(@NonNull File file) throws Exception {
+            JFIFPieces pieces = analyzeJfif(ByteSource.file(file));
+            for (JFIFPiece piece : pieces.segmentPieces) {
+                if (piece instanceof JFIFPieceSegment segment && segment.isXmpSegment()) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     /**
@@ -1754,7 +1817,7 @@ public class MetadataStripper {
                     fos.write(buffer, 0, bytesRead);
                 }
             }
-            boolean metadataRemoved = verifyMetadataRemoval(tempVerifyFile);
+            boolean metadataRemoved = verifyMetadataRemoval(tempVerifyFile, false);
             SentryManager.setCustomKey("metadata_verification_passed", metadataRemoved);
             if (!metadataRemoved) {
                 throw new IOException("Metadata verification failed");
@@ -1907,15 +1970,8 @@ public class MetadataStripper {
             SentryManager.log("Native EXIF stripping removed " + removedCount + " tags.");
             exif.saveAttributes();
 
-            try (java.io.InputStream in = new java.io.FileInputStream(tempFile)) {
-                byte[] buffer = new byte[8192];
-                int read;
-                while ((read = in.read(buffer)) != -1) {
-                    finalOs.write(buffer, 0, read);
-                }
-            }
-            if (!extension.equalsIgnoreCase(".jpg") && !extension.equalsIgnoreCase(".jpeg")
-                    && containsXMPMetadata(tempFile)) {
+            writeProcessedImageBytes(tempFile, finalOs, extension);
+            if (!isJpegExtension(extension) && containsXMPMetadata(tempFile)) {
                 SentryManager.log("Native EXIF strip left XMP; falling back to re-encode.");
                 return false;
             }
