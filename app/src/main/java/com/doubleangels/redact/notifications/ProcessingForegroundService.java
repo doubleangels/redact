@@ -9,7 +9,6 @@ import android.os.IBinder;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.ServiceCompat;
 
 import com.doubleangels.redact.R;
 
@@ -111,9 +110,11 @@ public class ProcessingForegroundService extends Service {
                 .setContentIntent(LocalNotifications.mainContentIntent(this));
 
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                ServiceCompat.startForeground(
-                        this,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                // Call Service.startForeground directly: ServiceCompat masks out
+                // FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING on API 34+, which becomes type
+                // none and crashes on targetSdk 34+.
+                startForeground(
                         NOTIFICATION_ID,
                         builder.build(),
                         ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING);
@@ -123,6 +124,10 @@ public class ProcessingForegroundService extends Service {
         } catch (SecurityException e) {
             // POST_NOTIFICATIONS denied; we still satisfied the startForeground
             // contract via the try, so just stop cleanly.
+            stopSelf();
+            return START_NOT_STICKY;
+        } catch (RuntimeException e) {
+            // InvalidForegroundServiceTypeException and similar FGS failures on newer Android.
             stopSelf();
             return START_NOT_STICKY;
         }
