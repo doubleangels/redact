@@ -163,11 +163,9 @@
     <string name="settings_strict_clean_subtitle">Alle Metadaten entfernen, einschließlich Orientierung. Schaltet Behalten-Optionen aus und kodiert Videos immer vollständig neu.</string>
     
     <string name="settings_section_advanced_processing">Große Dateien &amp; Speicher</string>
-    <string name="settings_advanced_processing_subtitle">Grenzen für sehr große Bilder beim Bereinigen und Konvertieren. Ändert nicht die Videobereinigung.</string>
+    <string name="settings_advanced_processing_subtitle">Steuert den RAM-Verbrauch beim Dekodieren großer Bilder beim Bereinigen und Konvertieren.</string>
     <string name="settings_max_bitmap_size">Max. Verarbeitungsauflösung</string>
     <string name="settings_max_bitmap_size_subtitle">Längste Kante in Pixeln beim Dekodieren im Speicher. Niedrigere Werte nutzen weniger RAM.</string>
-    <string name="settings_max_file_size">Max. Eingabedateigröße</string>
-    <string name="settings_max_file_size_subtitle">Bilder über dieser Größe überspringen oder verkleinern, um Speicherfehler zu vermeiden.</string>
     <string name="settings_video_fallback">Schnellere Videobereinigung</string>
     <string name="settings_video_fallback_subtitle">Vollständige Neukodierung nach schnellem Remux überspringen, wenn die Ausgabe bereits MP4-kompatibel ist. Spart Zeit und Akku; vollständige Transkodierung entfernt mehr Metadaten. Aus bei Strikter Bereinigung oder Teilen aus anderen Apps.</string>
 
@@ -181,12 +179,6 @@
         <item>2048px (Wenig RAM)</item>
         <item>4096px (Standard)</item>
         <item>8192px (Hohe Leistung)</item>
-    </string-array>
-
-    <string-array name="settings_max_file_size_labels">
-        <item>50 MB</item>
-        <item>100 MB</item>
-        <item>200 MB</item>
     </string-array>
     <string name="scan_metadata_subtitle">Erkannte Felder aus dieser Datei. Werte gedrückt halten, um sie zu kopieren.</string>
 
@@ -292,6 +284,12 @@ Ihre Fotos und Videos werden nie hochgeladen. URIs, Dateinamen und GPS-Koordinat
     <string name="settings_permission_partial">Teilweise</string>
     <string name="scan_status_ready">Wählen Sie ein Foto oder Video, um dessen Metadaten zu scannen.</string>
     <string name="animated_image_warning">Animierte Bilder werden als einzelnes Standbild gespeichert.</string>
+    <string name="processing_warning_low_storage">Wenig Speicherplatz (%1$s frei). Verarbeitung kann fehlschlagen — temporäre Dateien in Einstellungen löschen.</string>
+    <string name="processing_warning_critical_storage_title">Nicht Genug Speicher</string>
+    <string name="processing_warning_critical_storage_message">Redact benötigt etwa %1$s temporären Speicher, aber nur %2$s sind frei. Verarbeitung könnte fehlschlagen.</string>
+    <string name="processing_warning_low_memory">Ihr Gerät hat wenig Arbeitsspeicher. Große Dateien können fehlschlagen oder langsam sein.</string>
+    <string name="processing_warning_large_video">Große(s) Video(s) ausgewählt. Verarbeitung benötigt zusätzlichen temporären Speicher und kann länger dauern.</string>
+    <string name="processing_warning_continue">Trotzdem Fortfahren</string>
     <string name="clean_item_failed">Fehlgeschlagen: %1$s</string>
     <string name="settings_preserve_location_confirm_title">GPS in bereinigten Fotos behalten?</string>
     <string name="settings_preserve_location_confirm_message">Bereinigte Dateien auf Bereinigen können weiterhin GPS-Koordinaten enthalten. Teilen aus anderen Apps entfernt den Standort immer.

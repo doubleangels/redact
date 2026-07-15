@@ -163,11 +163,9 @@
     <string name="settings_strict_clean_subtitle">Удалить все метаданные, включая ориентацию. Отключает опции сохранения и всегда полностью перекодирует видео.</string>
     
     <string name="settings_section_advanced_processing">Большие файлы и память</string>
-    <string name="settings_advanced_processing_subtitle">Лимиты для очень больших изображений при очистке и конвертации. Не влияет на очистку видео.</string>
+    <string name="settings_advanced_processing_subtitle">Управляет использованием ОЗУ при декодировании больших изображений при очистке и конвертации.</string>
     <string name="settings_max_bitmap_size">Макс. разрешение обработки</string>
     <string name="settings_max_bitmap_size_subtitle">Длинная сторона в пикселях при декодировании в памяти. Меньшие значения используют меньше ОЗУ.</string>
-    <string name="settings_max_file_size">Макс. размер входного файла</string>
-    <string name="settings_max_file_size_subtitle">Пропускать или уменьшать изображения больше этого размера, чтобы избежать нехватки памяти.</string>
     <string name="settings_video_fallback">Более Быстрая Очистка Видео</string>
     <string name="settings_video_fallback_subtitle">Пропускать полное перекодирование после быстрого remux, если выход уже совместим с MP4. Экономит время и заряд; полная транскодировка удаляет больше метаданных. Выкл. при Строгой Очистке или отправке из других приложений.</string>
 
@@ -181,12 +179,6 @@
         <item>2048px (мало ОЗУ)</item>
         <item>4096px (стандарт)</item>
         <item>8192px (высокая производительность)</item>
-    </string-array>
-
-    <string-array name="settings_max_file_size_labels">
-        <item>50 МБ</item>
-        <item>100 МБ</item>
-        <item>200 МБ</item>
     </string-array>
     <string name="scan_metadata_subtitle">Обнаруженные поля из этого файла. Нажмите и удерживайте значения для копирования.</string>
 
@@ -293,6 +285,12 @@
     <string name="settings_permission_partial">Частично</string>
     <string name="scan_status_ready">Выберите файл для просмотра метаданных.</string>
     <string name="animated_image_warning">Анимированные изображения сохраняются как один кадр.</string>
+    <string name="processing_warning_low_storage">Мало места (%1$s свободно). Обработка может не удаться — очистите временные файлы в Настройках.</string>
+    <string name="processing_warning_critical_storage_title">Недостаточно Места</string>
+    <string name="processing_warning_critical_storage_message">Redact может потребовать около %1$s временного пространства, но свободно только %2$s. Обработка может не удаться.</string>
+    <string name="processing_warning_low_memory">На устройстве мало памяти. Большие файлы могут не обработаться или работать медленно.</string>
+    <string name="processing_warning_large_video">Выбраны большие видео. Обработке нужно дополнительное временное пространство и может потребоваться время.</string>
+    <string name="processing_warning_continue">Всё равно Продолжить</string>
     <string name="clean_item_failed">Ошибка: %1$s</string>
     <string name="settings_preserve_location_confirm_title">Сохранять GPS на очищенных фото?</string>
     <string name="settings_preserve_location_confirm_message">Очищенные файлы могут содержать GPS-координаты. При отправке из других приложений местоположение всегда удаляется.

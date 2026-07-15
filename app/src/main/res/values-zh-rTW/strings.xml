@@ -163,11 +163,9 @@
     <string name="settings_strict_clean_subtitle">移除所有中繼資料（包括方向）。關閉保留選項並一律完整重新編碼影片。</string>
     
     <string name="settings_section_advanced_processing">大型檔案與記憶體</string>
-    <string name="settings_advanced_processing_subtitle">清理和轉換時超大影像的限制。不改變影片清理行為。</string>
+    <string name="settings_advanced_processing_subtitle">控制清理和轉換時解碼大型影像的記憶體使用。</string>
     <string name="settings_max_bitmap_size">最大處理解析度</string>
     <string name="settings_max_bitmap_size_subtitle">在記憶體中解碼影像時的最長邊像素數。較低值使用較少 RAM。</string>
-    <string name="settings_max_file_size">最大輸入檔大小</string>
-    <string name="settings_max_file_size_subtitle">略過或縮小超過此大小的影像以避免記憶體不足。</string>
     <string name="settings_video_fallback">更快的影片清理</string>
     <string name="settings_video_fallback_subtitle">輸出已相容 MP4 時，快速 remux 後略過完整重新編碼。節省時間與電量；完整轉碼可移除更多中繼資料。嚴格清理或從其他 App 分享時關閉。</string>
 
@@ -181,12 +179,6 @@
         <item>2048px（低記憶體）</item>
         <item>4096px（標準）</item>
         <item>8192px（高效能）</item>
-    </string-array>
-
-    <string-array name="settings_max_file_size_labels">
-        <item>50 MB</item>
-        <item>100 MB</item>
-        <item>200 MB</item>
     </string-array>
     <string name="scan_metadata_subtitle">從此檔案中偵測到的欄位。長按值可複製。</string>
 
@@ -293,6 +285,12 @@
     <string name="settings_permission_partial">部分</string>
     <string name="scan_status_ready">選擇檔案以掃描其中繼資料。</string>
     <string name="animated_image_warning">動畫圖像將儲存為單一靜止畫面。</string>
+    <string name="processing_warning_low_storage">儲存空間不足（剩餘 %1$s）。處理可能失敗 — 請在設定中清除暫存檔。</string>
+    <string name="processing_warning_critical_storage_title">儲存空間不足</string>
+    <string name="processing_warning_critical_storage_message">Redact 大約需要 %1$s 暫存空間，但僅有 %2$s 可用。處理可能會失敗。</string>
+    <string name="processing_warning_low_memory">裝置記憶體不足。大型檔案可能失敗或執行緩慢。</string>
+    <string name="processing_warning_large_video">已選取大型影片。處理需要額外暫存空間，可能需要較長時間。</string>
+    <string name="processing_warning_continue">仍然繼續</string>
     <string name="clean_item_failed">失敗：%1$s</string>
     <string name="settings_preserve_location_confirm_title">在清理後的照片中保留 GPS？</string>
     <string name="settings_preserve_location_confirm_message">在清理分頁清理的檔案可能仍含 GPS 座標。從其他 App 分享時一律會移除位置資訊。

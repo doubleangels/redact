@@ -31,6 +31,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import com.doubleangels.redact.media.MediaSizeLimits;
+import com.doubleangels.redact.media.ProcessingResourceWarnings;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.google.android.material.color.DynamicColors;
@@ -46,8 +47,6 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     /** Maximum items accepted from ACTION_SEND_MULTIPLE. */
     private static final int MAX_SHARE_ITEMS = 20;
-    /** Per-stream size cap (~200 MB) to limit resource exhaustion from other apps. */
-    private static final long MAX_STREAM_BYTES = 200L * 1024L * 1024L;
     /** Delay before deleting shared files so the target app can finish reading the URI. */
     private static final long SHARE_CLEANUP_DELAY_MS = 2L * 60L * 1000L;
     private static final String KEY_SHARING_INITIATED = "sharing_initiated";
@@ -251,9 +250,9 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 finishWithError(getString(R.string.share_error_too_many_items, MAX_SHARE_ITEMS));
                 return;
             }
-            List<Uri> accepted = filterAcceptedUris(uris);
+            List<Uri> accepted = filterSupportedUris(uris);
             if (accepted.isEmpty()) {
-                finishWithError(getString(R.string.share_error_file_too_large));
+                finishWithError(getString(R.string.share_error_failed_receive_media));
                 return;
             }
             maybeConfirmAndProcess(snapshotInboundUris(accepted));
@@ -271,16 +270,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     finishWithError(getString(R.string.share_error_too_many_items, MAX_SHARE_ITEMS));
                     return;
                 }
-                int skipped = uris.size();
-                List<Uri> accepted = filterAcceptedUris(uris);
-                skipped -= accepted.size();
+                List<Uri> accepted = filterSupportedUris(uris);
                 if (accepted.isEmpty()) {
-                    finishWithError(getString(R.string.share_error_file_too_large));
+                    finishWithError(getString(R.string.share_error_failed_receive_media));
                     return;
-                }
-                if (skipped > 0) {
-                    Toast.makeText(this, getString(R.string.share_error_skipped_oversized, skipped),
-                            Toast.LENGTH_LONG).show();
                 }
                 SentryManager.setCustomKey("media_count", accepted.size());
                 maybeConfirmAndProcess(snapshotInboundUris(accepted));
@@ -327,7 +320,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             File dest = new File(getCacheDir(), "inbound_" + System.nanoTime() + suffix);
             try (FileInputStream in = new FileInputStream(source);
                     FileOutputStream out = new FileOutputStream(dest)) {
-                MediaSizeLimits.copyWithLimit(in, out, MAX_STREAM_BYTES);
+                MediaSizeLimits.copyStream(in, out);
             }
             return dest;
         }
@@ -344,7 +337,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             if (in == null) {
                 throw new IOException("Cannot open inbound stream");
             }
-            MediaSizeLimits.copyWithLimit(in, out, MAX_STREAM_BYTES);
+            MediaSizeLimits.copyStream(in, out);
         }
         return dest;
     }
@@ -364,23 +357,34 @@ public class ShareHandlerActivity extends AppCompatActivity {
     }
 
     private void maybeConfirmAndProcess(List<Uri> uris) {
-        if (AppPreferences.isShareConfirmBeforeStrip(this)) {
-            if (progressDialog != null && progressDialog.isShowing()) {
-                progressDialog.dismiss();
-            }
-            new MaterialAlertDialogBuilder(this)
-                    .setTitle(R.string.settings_share_confirm_dialog_title)
-                    .setMessage(R.string.settings_share_confirm_dialog_message)
-                    .setPositiveButton(R.string.settings_share_confirm_dialog_confirm, (d, w) -> {
-                        createProgressDialog();
+        Runnable startProcessing =
+                () -> {
+                    if (AppPreferences.isShareConfirmBeforeStrip(this)) {
+                        if (progressDialog != null && progressDialog.isShowing()) {
+                            progressDialog.dismiss();
+                        }
+                        new MaterialAlertDialogBuilder(this)
+                                .setTitle(R.string.settings_share_confirm_dialog_title)
+                                .setMessage(R.string.settings_share_confirm_dialog_message)
+                                .setPositiveButton(
+                                        R.string.settings_share_confirm_dialog_confirm,
+                                        (d, w) -> {
+                                            createProgressDialog();
+                                            processMediaItems(uris);
+                                        })
+                                .setNegativeButton(
+                                        R.string.settings_share_confirm_dialog_cancel, (d, w) -> finish())
+                                .setOnCancelListener(d -> finish())
+                                .show();
+                    } else {
                         processMediaItems(uris);
-                    })
-                    .setNegativeButton(R.string.settings_share_confirm_dialog_cancel, (d, w) -> finish())
-                    .setOnCancelListener(d -> finish())
-                    .show();
-            return;
-        }
-        processMediaItems(uris);
+                    }
+                };
+        ProcessingResourceWarnings.runWithWarnings(
+                this,
+                ProcessingResourceWarnings.assessShareUris(
+                        this, getContentResolver(), uris, mediaSelector),
+                startProcessing);
     }
 
     private void processMediaItems(List<Uri> uris) {
@@ -722,10 +726,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
     }
 
     @NonNull
-    private List<Uri> filterAcceptedUris(List<Uri> uris) {
+    private List<Uri> filterSupportedUris(List<Uri> uris) {
         List<Uri> accepted = new ArrayList<>();
         for (Uri uri : uris) {
-            if (uri != null && isUriWithinSizeLimit(uri)) {
+            if (uri != null && isSupportedInboundUri(uri)) {
                 accepted.add(uri);
             }
         }
@@ -738,22 +742,6 @@ public class ShareHandlerActivity extends AppCompatActivity {
             return null;
         }
         return mediaSelector.getFileName(uri);
-    }
-
-    private boolean isUriWithinSizeLimit(Uri uri) {
-        if ("file".equalsIgnoreCase(uri.getScheme())) {
-            String path = uri.getPath();
-            if (path == null || path.isEmpty()) {
-                return false;
-            }
-            long length = new File(path).length();
-            return length > 0 && length <= MAX_STREAM_BYTES;
-        }
-        long declared = MediaSizeLimits.declaredSizeBytes(getContentResolver(), uri);
-        if (declared <= 0) {
-            return !"file".equalsIgnoreCase(uri.getScheme());
-        }
-        return declared <= MAX_STREAM_BYTES;
     }
 
     private void finishWithError(String message) {

@@ -12,7 +12,7 @@ Remove GPS location, device details, timestamps, camera settings, and other hidd
 Scan any photo or video to see organized EXIF and container metadata before you clean it. Copy values or send a file to Clean or Convert.</li>
 
 <li><b>Clean, Scan, Convert &amp; Share:</b><br>
-Clean metadata in batches (up to 20 files). Convert image/video formats without uploading to a server — then run Clean if you also want metadata removed from converted files. Share into Redact from any app; cancel long jobs or continue with partial success if one file fails.</li>
+Clean metadata in batches (up to 20 files). Convert image/video formats without uploading to a server — then run Clean if you also want metadata removed from converted files. Share into Redact from any app; cancel long jobs or continue with partial success if one file fails. No hard file-size cap; storage and memory warnings appear before large jobs.</li>
 
 <li><b>Privacy-First Permissions:</b><br>
 On Android 13+, browse and pick files from Downloads, Files, or gallery folders with the system document picker—no broad library access required. Optional photo-location permission unlocks GPS fields in Scan. Crash reporting and notifications are off by default.</li>

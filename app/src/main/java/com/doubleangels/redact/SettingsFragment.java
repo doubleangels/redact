@@ -71,14 +71,12 @@ public class SettingsFragment extends Fragment {
     private MaterialSwitch switchVideoFallback;
     private MaterialAutoCompleteTextView dropdownSecureDelete;
     private MaterialAutoCompleteTextView dropdownMaxBitmapSize;
-    private MaterialAutoCompleteTextView dropdownMaxFileSize;
 
     private String[] imageFormatLabels;
     private String[] videoFormatLabels;
     private String[] qualityLabels;
     private String[] secureDeleteLabels;
     private String[] maxBitmapSizeLabels;
-    private String[] maxFileSizeLabels;
 
     @Nullable
     private ExecutorService backgroundExecutor;
@@ -101,7 +99,6 @@ public class SettingsFragment extends Fragment {
             qualityLabels = getResources().getStringArray(R.array.settings_quality_labels);
             secureDeleteLabels = getResources().getStringArray(R.array.settings_secure_delete_labels);
             maxBitmapSizeLabels = getResources().getStringArray(R.array.settings_max_bitmap_size_labels);
-            maxFileSizeLabels = getResources().getStringArray(R.array.settings_max_file_size_labels);
 
             bindPermissions(view);
             bindConversionDefaults();
@@ -159,7 +156,6 @@ public class SettingsFragment extends Fragment {
         switchVideoFallback = view.findViewById(R.id.switchVideoFallback);
         dropdownSecureDelete = view.findViewById(R.id.dropdownSecureDelete);
         dropdownMaxBitmapSize = view.findViewById(R.id.dropdownMaxBitmapSize);
-        dropdownMaxFileSize = view.findViewById(R.id.dropdownMaxFileSize);
     }
 
     private void bindNotifications() {
@@ -328,20 +324,6 @@ public class SettingsFragment extends Fragment {
                 default -> 4096;
             };
             AppPreferences.setMaxBitmapSize(requireContext(), size);
-        });
-
-        int maxFileSizeIndex = switch (AppPreferences.getMaxImageFileSizeMb(requireContext())) {
-            case 50 -> 0;
-            case 200 -> 2;
-            default -> 1;
-        };
-        setupDropdown(dropdownMaxFileSize, maxFileSizeLabels, maxFileSizeIndex, index -> {
-            int mb = switch (index) {
-                case 0 -> 50;
-                case 2 -> 200;
-                default -> 100;
-            };
-            AppPreferences.setMaxImageFileSizeMb(requireContext(), mb);
         });
     }
 

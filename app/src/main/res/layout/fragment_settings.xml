@@ -891,21 +891,6 @@
                         android:inputType="none" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/layoutMaxFileSize"
-                    app:helperText="@string/settings_max_file_size_subtitle"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/settings_max_file_size">
-
-                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                        android:id="@+id/dropdownMaxFileSize"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="none" />
-                </com.google.android.material.textfield.TextInputLayout>
-
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
