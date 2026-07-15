@@ -163,11 +163,9 @@
     <string name="settings_strict_clean_subtitle">방향을 포함한 모든 메타데이터 제거. 유지 옵션을 끄고 동영상은 항상 완전 재인코딩.</string>
     
     <string name="settings_section_advanced_processing">대용량 파일 및 메모리</string>
-    <string name="settings_advanced_processing_subtitle">정리 및 변환 시 매우 큰 이미지의 제한. 동영상 정리 동작은 변경되지 않습니다.</string>
+    <string name="settings_advanced_processing_subtitle">정리 및 변환 시 큰 이미지를 디코딩할 때 RAM 사용량을 제어합니다.</string>
     <string name="settings_max_bitmap_size">최대 처리 해상도</string>
     <string name="settings_max_bitmap_size_subtitle">메모리에서 이미지를 디코딩할 때 긴 변 픽셀 수. 낮을수록 RAM 사용량 감소.</string>
-    <string name="settings_max_file_size">최대 입력 파일 크기</string>
-    <string name="settings_max_file_size_subtitle">이 크기를 초과하는 이미지는 건너뛰거나 축소하여 메모리 부족 방지.</string>
     <string name="settings_video_fallback">더 빠른 동영상 정리</string>
     <string name="settings_video_fallback_subtitle">출력이 이미 MP4 호환일 때 빠른 리먹스 후 전체 재인코딩 건너뛰기. 시간과 배터리 절약; 전체 트랜스코드는 더 많은 메타데이터 제거. 엄격 정리 또는 다른 앱 공유 시 꺼짐.</string>
 
@@ -181,12 +179,6 @@
         <item>2048px(낮은 RAM)</item>
         <item>4096px(표준)</item>
         <item>8192px(고성능)</item>
-    </string-array>
-
-    <string-array name="settings_max_file_size_labels">
-        <item>50MB</item>
-        <item>100MB</item>
-        <item>200MB</item>
     </string-array>
     <string name="scan_metadata_subtitle">이 파일에서 감지된 필드입니다. 값을 복사하려면 길게 누르세요.</string>
 
@@ -293,6 +285,12 @@
     <string name="settings_permission_partial">부분</string>
     <string name="scan_status_ready">메타데이터를 스캔할 파일을 선택하세요.</string>
     <string name="animated_image_warning">애니메이션 이미지는 단일 정지 프레임으로 저장됩니다.</string>
+    <string name="processing_warning_low_storage">저장 공간 부족 (%1$s 여유). 처리가 실패할 수 있습니다 — 설정에서 임시 파일을 삭제해 보세요.</string>
+    <string name="processing_warning_critical_storage_title">저장 공간 부족</string>
+    <string name="processing_warning_critical_storage_message">Redact에 약 %1$s의 임시 공간이 필요하지만 %2$s만 사용 가능합니다. 처리가 실패할 수 있습니다.</string>
+    <string name="processing_warning_low_memory">기기 메모리가 부족합니다. 큰 파일은 실패하거나 느려질 수 있습니다.</string>
+    <string name="processing_warning_large_video">큰 동영상이 선택되었습니다. 처리에 추가 임시 공간이 필요하며 시간이 걸릴 수 있습니다.</string>
+    <string name="processing_warning_continue">계속 진행</string>
     <string name="clean_item_failed">실패: %1$s</string>
     <string name="settings_preserve_location_confirm_title">정리된 사진에 GPS를 유지할까요?</string>
     <string name="settings_preserve_location_confirm_message">정리 탭의 파일에 GPS 좌표가 남을 수 있습니다. 다른 앱에서 공유할 때는 항상 위치가 제거됩니다.

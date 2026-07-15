@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.doubleangels.redact.media.MediaAdapter;
 import com.doubleangels.redact.media.MediaItem;
 import com.doubleangels.redact.media.MediaPickerContracts;
+import com.doubleangels.redact.media.ProcessingResourceWarnings;
 import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.permission.PermissionManager;
@@ -180,7 +181,10 @@ public class CleanFragment extends Fragment {
                                     .show();
                         }
                         SentryManager.setCustomKey("processing_items_count", items.size());
-                        viewModel.startCleaning(items);
+                        ProcessingResourceWarnings.runWithWarnings(
+                                requireActivity(),
+                                ProcessingResourceWarnings.assess(requireContext(), items),
+                                () -> viewModel.startCleaning(items));
                     } else {
                         SentryManager.log("No items selected for processing");
                         uiStateManager.setFirstSelectMediaFilesStatus();

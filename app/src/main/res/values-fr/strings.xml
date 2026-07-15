@@ -163,11 +163,9 @@
     <string name="settings_strict_clean_subtitle">Supprimer toutes les métadonnées, y compris l\'orientation. Désactive les options de conservation et réencode toujours entièrement la vidéo.</string>
     
     <string name="settings_section_advanced_processing">Fichiers Volumineux et Mémoire</string>
-    <string name="settings_advanced_processing_subtitle">Limites pour les très grandes images lors du nettoyage et de la conversion. N\'affecte pas le nettoyage vidéo.</string>
+    <string name="settings_advanced_processing_subtitle">Contrôle l\'utilisation de la RAM lors du décodage de grandes images pendant le nettoyage et la conversion.</string>
     <string name="settings_max_bitmap_size">Résolution Max. de Traitement</string>
     <string name="settings_max_bitmap_size_subtitle">Côté le plus long en pixels lors du décodage en mémoire. Des valeurs plus basses utilisent moins de RAM.</string>
-    <string name="settings_max_file_size">Taille Max. du Fichier d\'Entrée</string>
-    <string name="settings_max_file_size_subtitle">Ignorer ou réduire les images au-dessus de cette taille pour éviter les erreurs mémoire.</string>
     <string name="settings_video_fallback">Nettoyage Vidéo Plus Rapide</string>
     <string name="settings_video_fallback_subtitle">Ignorer le réencodage complet après un remux rapide lorsque la sortie est déjà compatible MP4. Économise temps et batterie ; la transcodification complète supprime plus de métadonnées. Désactivé avec Nettoyage Strict ou partage depuis d\'autres apps.</string>
 
@@ -181,12 +179,6 @@
         <item>2048px (Faible RAM)</item>
         <item>4096px (Standard)</item>
         <item>8192px (Hautes Perfs)</item>
-    </string-array>
-
-    <string-array name="settings_max_file_size_labels">
-        <item>50 Mo</item>
-        <item>100 Mo</item>
-        <item>200 Mo</item>
     </string-array>
     <string name="scan_metadata_subtitle">Champs détectés à partir de ce fichier. Appuyez et maintenez sur les valeurs pour copier.</string>
 
@@ -293,6 +285,12 @@ Vos photos et vidéos ne sont jamais téléversées. Les URI, noms de fichier et
     <string name="settings_permission_partial">Partiel</string>
     <string name="scan_status_ready">Sélectionnez un fichier pour analyser ses métadonnées.</string>
     <string name="animated_image_warning">Les images animées sont enregistrées comme une seule image fixe.</string>
+    <string name="processing_warning_low_storage">Espace de stockage faible (%1$s libres). Le traitement peut échouer — essayez de supprimer les fichiers temporaires dans Paramètres.</string>
+    <string name="processing_warning_critical_storage_title">Stockage Insuffisant</string>
+    <string name="processing_warning_critical_storage_message">Redact peut nécessiter environ %1$s d\'espace temporaire, mais seulement %2$s sont libres. Le traitement pourrait échouer.</string>
+    <string name="processing_warning_low_memory">Votre appareil manque de mémoire. Les gros fichiers peuvent échouer ou être lents.</string>
+    <string name="processing_warning_large_video">Vidéo(s) volumineuse(s) sélectionnée(s). Le traitement nécessite de l\'espace temporaire supplémentaire et peut prendre du temps.</string>
+    <string name="processing_warning_continue">Continuer quand même</string>
     <string name="clean_item_failed">Échec : %1$s</string>
     <string name="settings_preserve_location_confirm_title">Conserver le GPS sur les Photos Nettoyées ?</string>
     <string name="settings_preserve_location_confirm_message">Les fichiers nettoyés dans Nettoyer peuvent encore contenir des coordonnées GPS. Le partage depuis d\'autres apps supprime toujours la position.

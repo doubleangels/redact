@@ -25,6 +25,7 @@ import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaItem;
 import com.doubleangels.redact.media.MediaPickerContracts;
 import com.doubleangels.redact.media.MediaSelector;
+import com.doubleangels.redact.media.ProcessingResourceWarnings;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
@@ -424,7 +425,12 @@ public class ConvertFragment extends Fragment {
                             Toast.LENGTH_LONG)
                     .show();
         }
-        viewModel.startConversion(selectedItems, formatIndex, imageFormatIndex, imageFormat);
+        ProcessingResourceWarnings.runWithWarnings(
+                requireActivity(),
+                ProcessingResourceWarnings.assess(requireContext(), selectedItems),
+                () ->
+                        viewModel.startConversion(
+                                selectedItems, formatIndex, imageFormatIndex, imageFormat));
     }
 
     private void showProgress(boolean show) {

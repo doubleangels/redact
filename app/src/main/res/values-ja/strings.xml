@@ -163,11 +163,9 @@
     <string name="settings_strict_clean_subtitle">向きを含むすべてのメタデータを削除。保持オプションをオフにし、動画は常に完全再エンコード。</string>
     
     <string name="settings_section_advanced_processing">大きなファイルとメモリ</string>
-    <string name="settings_advanced_processing_subtitle">クリーンと変換時の超大画像の制限。動画クリーンの動作は変わりません。</string>
+    <string name="settings_advanced_processing_subtitle">クリーンと変換時に大きな画像をデコードする際のRAM使用量を制御します。</string>
     <string name="settings_max_bitmap_size">最大処理解像度</string>
     <string name="settings_max_bitmap_size_subtitle">メモリで画像をデコードするときの長辺ピクセル数。低いほどRAM使用量が少ない。</string>
-    <string name="settings_max_file_size">最大入力ファイルサイズ</string>
-    <string name="settings_max_file_size_subtitle">このサイズを超える画像をスキップまたは縮小してメモリ不足を防ぐ。</string>
     <string name="settings_video_fallback">高速な動画クリーン</string>
     <string name="settings_video_fallback_subtitle">出力が既に MP4 互換の場合、クイックリマックス後の完全再エンコードをスキップ。時間とバッテリーを節約；完全トランスコードはより多くのメタデータを削除。厳密クリーン時や他アプリからの共有時はオフ。</string>
 
@@ -181,12 +179,6 @@
         <item>2048px（低RAM）</item>
         <item>4096px（標準）</item>
         <item>8192px（高性能）</item>
-    </string-array>
-
-    <string-array name="settings_max_file_size_labels">
-        <item>50 MB</item>
-        <item>100 MB</item>
-        <item>200 MB</item>
     </string-array>
     <string name="scan_metadata_subtitle">このファイルから検出されたフィールドです。長押しで値をコピーできます。</string>
 
@@ -293,6 +285,12 @@
     <string name="settings_permission_partial">一部</string>
     <string name="scan_status_ready">メタデータをスキャンするファイルを選択してください。</string>
     <string name="animated_image_warning">アニメーション画像は静止画1枚として保存されます。</string>
+    <string name="processing_warning_low_storage">ストレージ不足（空き %1$s）。処理に失敗する可能性があります — 設定で一時ファイルを削除してください。</string>
+    <string name="processing_warning_critical_storage_title">ストレージ不足</string>
+    <string name="processing_warning_critical_storage_message">Redact は約 %1$s の一時領域が必要ですが、空きは %2$s だけです。処理に失敗する可能性があります。</string>
+    <string name="processing_warning_low_memory">デバイスのメモリが不足しています。大きなファイルは失敗したり遅くなったりする可能性があります。</string>
+    <string name="processing_warning_large_video">大きな動画が選択されています。処理には追加の一時領域が必要で、時間がかかる場合があります。</string>
+    <string name="processing_warning_continue">続行する</string>
     <string name="clean_item_failed">失敗: %1$s</string>
     <string name="settings_preserve_location_confirm_title">クリーン後の写真にGPSを残しますか？</string>
     <string name="settings_preserve_location_confirm_message">クリーンタブの出力にGPS座標が残る場合があります。他アプリからの共有では常に位置情報を削除します。

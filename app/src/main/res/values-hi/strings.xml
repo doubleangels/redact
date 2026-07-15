@@ -163,11 +163,9 @@
     <string name="settings_strict_clean_subtitle">ओरिएंटेशन सहित सभी मेटाडेटा हटाएँ। रखने के विकल्प बंद करता है और हमेशा वीडियो पूर्ण पुनः-एन्कोड करता है।</string>
     
     <string name="settings_section_advanced_processing">बड़ी फ़ाइलें और मेमोरी</string>
-    <string name="settings_advanced_processing_subtitle">साफ़ और रूपांतरण के दौरान बहुत बड़ी छवियों की सीमाएँ। वीडियो सफ़ाई व्यवहार नहीं बदलता।</string>
+    <string name="settings_advanced_processing_subtitle">साफ़ और रूपांतरण के दौरान बड़ी छवियों को डिकोड करते समय RAM उपयोग को नियंत्रित करता है।</string>
     <string name="settings_max_bitmap_size">अधिकतम प्रसंस्करण रिज़ॉल्यूशन</string>
     <string name="settings_max_bitmap_size_subtitle">मेमोरी में छवियाँ डिकोड करते समय सबसे लंबी धार पिक्सेल में। कम मान कम RAM उपयोग करते हैं।</string>
-    <string name="settings_max_file_size">अधिकतम इनपुट फ़ाइल आकार</string>
-    <string name="settings_max_file_size_subtitle">मेमोरी त्रुटियों से बचने के लिए इस आकार से बड़ी छवियाँ छोड़ें या डाउनस्केल करें।</string>
     <string name="settings_video_fallback">तेज़ वीडियो सफ़ाई</string>
     <string name="settings_video_fallback_subtitle">जब आउटपुट पहले से MP4-संगत हो तो त्वरित रीमक्स के बाद पूर्ण पुनः एन्कोडिंग छोड़ें। समय और बैटरी बचाता है; पूर्ण ट्रांसकोड अधिक मेटाडेटा हटाता है। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर बंद।</string>
 
@@ -181,12 +179,6 @@
         <item>2048px (कम RAM)</item>
         <item>4096px (मानक)</item>
         <item>8192px (उच्च प्रदर्शन)</item>
-    </string-array>
-
-    <string-array name="settings_max_file_size_labels">
-        <item>50 MB</item>
-        <item>100 MB</item>
-        <item>200 MB</item>
     </string-array>
     <string name="scan_metadata_subtitle">इस फ़ाइल से पता लगाए गए फ़ील्ड। कॉपी करने के लिए मानों को दबाकर रखें।</string>
 
@@ -293,6 +285,12 @@
     <string name="settings_permission_partial">आंशिक</string>
     <string name="scan_status_ready">मेटाडेटा स्कैन करने के लिए एक फ़ाइल चुनें।</string>
     <string name="animated_image_warning">एनिमेटेड छवियाँ एक स्थिर फ़्रेम के रूप में सहेजी जाती हैं।</string>
+    <string name="processing_warning_low_storage">कम संग्रहण (%1$s खाली)। प्रसंस्करण विफल हो सकता है — सेटिंग्स में अस्थायी फ़ाइलें साफ़ करें।</string>
+    <string name="processing_warning_critical_storage_title">पर्याप्त संग्रहण नहीं</string>
+    <string name="processing_warning_critical_storage_message">Redact को लगभग %1$s अस्थायी स्थान चाहिए, लेकिन केवल %2$s उपलब्ध है। प्रसंस्करण विफल हो सकता है।</string>
+    <string name="processing_warning_low_memory">आपके डिवाइस में कम मेमोरी है। बड़ी फ़ाइलें विफल या धीमी हो सकती हैं।</string>
+    <string name="processing_warning_large_video">बड़े वीडियो चुने गए। प्रसंस्करण को अतिरिक्त अस्थायी स्थान चाहिए और समय लग सकता है।</string>
+    <string name="processing_warning_continue">फिर भी जारी रखें</string>
     <string name="clean_item_failed">विफल: %1$s</string>
     <string name="settings_preserve_location_confirm_title">साफ़ की गई फ़ोटो में GPS रखें?</string>
     <string name="settings_preserve_location_confirm_message">साफ़ करें टैब की फ़ाइलों में GPS रह सकता है। अन्य ऐप्स से शेयर करने पर स्थान हमेशा हटाया जाता है।

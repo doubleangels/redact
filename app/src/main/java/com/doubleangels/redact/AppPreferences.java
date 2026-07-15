@@ -24,7 +24,6 @@ public final class AppPreferences {
     private static final String KEY_SECURE_DELETE_PASSES = "secure_delete_passes";
     private static final String KEY_AUTO_CLEAR_TEMP_FILES = "auto_clear_temp_files";
     private static final String KEY_MAX_BITMAP_SIZE = "max_bitmap_size";
-    private static final String KEY_MAX_IMAGE_FILE_SIZE_MB = "max_image_file_size_mb";
     private static final String KEY_PRESERVE_CAMERA_SETTINGS = "preserve_camera_settings";
     private static final String KEY_PRESERVE_LOCATION = "preserve_location";
     private static final String KEY_STRICT_CLEAN = "strict_clean";
@@ -209,19 +208,6 @@ public final class AppPreferences {
             default -> 4096;
         };
         prefs(context).edit().putInt(KEY_MAX_BITMAP_SIZE, clamped).apply();
-    }
-
-    public static int getMaxImageFileSizeMb(@NonNull Context context) {
-        return prefs(context).getInt(KEY_MAX_IMAGE_FILE_SIZE_MB, 100);
-    }
-
-    public static void setMaxImageFileSizeMb(@NonNull Context context, int size) {
-        int clamped = switch (size) {
-            case 50 -> 50;
-            case 200 -> 200;
-            default -> 100;
-        };
-        prefs(context).edit().putInt(KEY_MAX_IMAGE_FILE_SIZE_MB, clamped).apply();
     }
 
     public static boolean isPreserveCameraSettings(@NonNull Context context) {

@@ -163,11 +163,9 @@
     <string name="settings_strict_clean_subtitle">移除所有元数据（包括方向）。关闭保留选项并始终完全重新编码视频。</string>
     
     <string name="settings_section_advanced_processing">大文件与内存</string>
-    <string name="settings_advanced_processing_subtitle">清理和转换时超大图像的限制。不改变视频清理行为。</string>
+    <string name="settings_advanced_processing_subtitle">控制清理和转换时解码大图像的内存使用。</string>
     <string name="settings_max_bitmap_size">最大处理分辨率</string>
     <string name="settings_max_bitmap_size_subtitle">在内存中解码图像时的最长边像素数。较低值使用更少 RAM。</string>
-    <string name="settings_max_file_size">最大输入文件大小</string>
-    <string name="settings_max_file_size_subtitle">跳过或缩小超过此大小的图像以避免内存不足。</string>
     <string name="settings_video_fallback">更快的视频清理</string>
     <string name="settings_video_fallback_subtitle">当输出已兼容 MP4 时，快速 remux 后跳过完整重新编码。节省时间和电量；完整转码可移除更多元数据。严格清理或从其他应用分享时关闭。</string>
 
@@ -181,12 +179,6 @@
         <item>2048px（低内存）</item>
         <item>4096px（标准）</item>
         <item>8192px（高性能）</item>
-    </string-array>
-
-    <string-array name="settings_max_file_size_labels">
-        <item>50 MB</item>
-        <item>100 MB</item>
-        <item>200 MB</item>
     </string-array>
     <string name="scan_metadata_subtitle">从此文件中检测到的字段。长按值可复制。</string>
 
@@ -293,6 +285,12 @@
     <string name="settings_permission_partial">部分</string>
     <string name="scan_status_ready">选择文件以扫描其元数据。</string>
     <string name="animated_image_warning">动画图像将保存为单帧静态图。</string>
+    <string name="processing_warning_low_storage">存储空间不足（剩余 %1$s）。处理可能失败 — 请在设置中清除临时文件。</string>
+    <string name="processing_warning_critical_storage_title">存储空间不足</string>
+    <string name="processing_warning_critical_storage_message">Redact 大约需要 %1$s 临时空间，但只有 %2$s 可用。处理可能会失败。</string>
+    <string name="processing_warning_low_memory">设备内存不足。大文件可能失败或运行缓慢。</string>
+    <string name="processing_warning_large_video">已选择大型视频。处理需要额外临时空间，可能需要较长时间。</string>
+    <string name="processing_warning_continue">仍然继续</string>
     <string name="clean_item_failed">失败：%1$s</string>
     <string name="settings_preserve_location_confirm_title">在清理后的照片中保留 GPS？</string>
     <string name="settings_preserve_location_confirm_message">在清理标签页清理的文件可能仍含 GPS 坐标。从其他应用分享时始终会移除位置信息。

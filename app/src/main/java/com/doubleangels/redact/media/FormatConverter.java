@@ -416,12 +416,6 @@ public final class FormatConverter {
             throw new IOException("video_not_supported");
         }
 
-        long declaredSize = MediaSizeLimits.declaredSizeBytes(resolver, sourceUri);
-        long maxBytes = MediaSizeLimits.maxImageBytes(context);
-        if (declaredSize > 0 && declaredSize > maxBytes) {
-            throw new IOException("stream_exceeds_size_limit");
-        }
-
         if (isHeicFormat(format) && !isHeicProcessingSupported()) {
             format = Bitmap.CompressFormat.JPEG;
         }
@@ -644,12 +638,6 @@ public final class FormatConverter {
             @Nullable int[] outActualFormatIndex,
             long transcodeOwnerId)
             throws IOException {
-        long declaredSize = MediaSizeLimits.declaredSizeBytes(
-                context.getContentResolver(), sourceUri);
-        long maxVideoBytes = MediaSizeLimits.maxVideoBytes();
-        if (declaredSize > maxVideoBytes) {
-            throw new IOException("stream_exceeds_size_limit");
-        }
         try {
             File outFile = File.createTempFile(
                     "vid_transform_",

@@ -163,11 +163,9 @@
     <string name="settings_strict_clean_subtitle">Eliminar todos los metadatos, incluida la orientación. Desactiva las opciones de conservar y siempre recodifica video por completo.</string>
     
     <string name="settings_section_advanced_processing">Archivos Grandes y Memoria</string>
-    <string name="settings_advanced_processing_subtitle">Límites para imágenes muy grandes al limpiar y convertir. No cambia la limpieza de video.</string>
+    <string name="settings_advanced_processing_subtitle">Controla el uso de RAM al decodificar imágenes grandes durante la limpieza y conversión.</string>
     <string name="settings_max_bitmap_size">Resolución Máxima de Procesamiento</string>
     <string name="settings_max_bitmap_size_subtitle">Lado más largo en píxeles al decodificar en memoria. Valores más bajos usan menos RAM.</string>
-    <string name="settings_max_file_size">Tamaño Máximo de Archivo de Entrada</string>
-    <string name="settings_max_file_size_subtitle">Omitir o reducir imágenes por encima de este tamaño para evitar errores de memoria.</string>
     <string name="settings_video_fallback">Limpieza de Video Más Rápida</string>
     <string name="settings_video_fallback_subtitle">Omitir la recodificación completa tras un remux rápido cuando la salida ya es compatible con MP4. Ahorra tiempo y batería; la transcodificación completa elimina más metadatos. Desactivado con Limpieza Estricta o al compartir desde otras apps.</string>
 
@@ -181,12 +179,6 @@
         <item>2048px (Poca RAM)</item>
         <item>4096px (Estándar)</item>
         <item>8192px (Alto Rendimiento)</item>
-    </string-array>
-
-    <string-array name="settings_max_file_size_labels">
-        <item>50 MB</item>
-        <item>100 MB</item>
-        <item>200 MB</item>
     </string-array>
     <string name="scan_metadata_subtitle">Campos detectados en este archivo. Mantenga presionados los valores para copiar.</string>
 
@@ -293,6 +285,12 @@ Tus fotos y videos nunca se suben. Se eliminan URIs, nombres de archivo y coorde
     <string name="settings_permission_partial">Parcial</string>
     <string name="scan_status_ready">Selecciona un archivo para escanear sus metadatos.</string>
     <string name="animated_image_warning">Las imágenes animadas se guardan como un solo fotograma.</string>
+    <string name="processing_warning_low_storage">Espacio de almacenamiento bajo (%1$s libres). El procesamiento puede fallar — intenta borrar archivos temporales en Ajustes.</string>
+    <string name="processing_warning_critical_storage_title">Almacenamiento Insuficiente</string>
+    <string name="processing_warning_critical_storage_message">Redact puede necesitar alrededor de %1$s de espacio temporal, pero solo hay %2$s libres. El procesamiento podría fallar.</string>
+    <string name="processing_warning_low_memory">Tu dispositivo tiene poca memoria. Los archivos grandes pueden fallar o ir lentos.</string>
+    <string name="processing_warning_large_video">Video(s) grande(s) seleccionado(s). El procesamiento necesita espacio temporal extra y puede tardar.</string>
+    <string name="processing_warning_continue">Continuar de todos modos</string>
     <string name="clean_item_failed">Error: %1$s</string>
     <string name="settings_preserve_location_confirm_title">¿Conservar GPS en Fotos Limpiadas?</string>
     <string name="settings_preserve_location_confirm_message">Los archivos limpiados en Limpiar pueden seguir conteniendo coordenadas GPS. Compartir desde otras apps siempre elimina la ubicación.

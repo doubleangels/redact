@@ -49,6 +49,8 @@ Protect your privacy with Redact — remove hidden EXIF and container metadata f
 
 - **Batch processing:** Clean or convert up to **20 files** per batch. Partial success is reported when some items fail.
 
+- **Large file support:** No hard file-size cap on clean, convert, or share-in. Redact warns you before processing when storage or memory looks tight, so you can clear cache or free space first.
+
 - **Share sheet integration:** Share photos or videos into Redact from any app. Optional confirmation dialog, cancelable progress, partial batch success, and automatic cleanup of temporary share files.
 
 - **Privacy-first permissions:** Pick files with Android’s **document picker** (Downloads, Files, gallery folders) without broad `READ_MEDIA_*` access on **Android 13+**. Optional `ACCESS_MEDIA_LOCATION` reveals GPS fields in Scan. Notifications are **off by default**.
@@ -132,7 +134,11 @@ Cleaned and converted files are saved under `Pictures/Redact` and `Movies/Redact
 
 ### What about secure delete and cache cleanup?
 
-Settings let you overwrite temporary files before deletion (limited benefit on modern flash storage). **Clear Cache on Startup** removes processing cache files **older than 24 hours** when the app opens.
+Settings let you overwrite temporary files before deletion (limited benefit on modern flash storage). **Clear Cache on Startup** removes processing cache files **older than 24 hours** when the app opens. You can also clear temporary files manually from Settings.
+
+### Are there file size limits?
+
+**No hard cap.** Redact no longer rejects photos or videos based on a fixed megabyte limit. Very large files may still fail on devices with low free storage or memory — Redact shows warnings before processing when that looks likely. You can lower **Max Processing Resolution** in Settings to reduce RAM use when decoding large images.
 
 ### Are there any analytics or trackers?
 

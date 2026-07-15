@@ -1,0 +1,3 @@
+Removed hard file size limits for clean, convert, and share-in processing.
+Added storage and memory warnings before starting large jobs.
+Updated dependencies (AGP 9.3, Sentry 8.48, Glide 5.0.9).

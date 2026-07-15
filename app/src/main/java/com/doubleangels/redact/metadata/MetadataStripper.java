@@ -320,7 +320,6 @@ public class MetadataStripper {
 
         try {
             throwIfCancelled();
-            enforceVideoSizeLimit(sourceUri);
 
             updateProgress(1, 4, context.getString(R.string.strip_progress_reading_video));
 
@@ -458,8 +457,6 @@ public class MetadataStripper {
         File tempFile = null;
 
         try {
-            ensureImageWithinSizeLimit(sourceUri);
-
             FormatConverter.ImageFormatSpec outputFormat = resolveImageOutputFormat(sourceUri, originalFilename);
             String extension = outputFormat.extension;
 
@@ -471,7 +468,7 @@ public class MetadataStripper {
             tempFile = new File(
                     context.getCacheDir(), "temp_" + System.currentTimeMillis() + extension);
 
-            copySourceToTempFile(sourceUri, tempFile, MediaSizeLimits.maxImageBytes(context));
+            copySourceToTempFile(sourceUri, tempFile);
 
             // Extract essential EXIF data to preserve (like orientation)
             updateProgress(2, 5, context.getString(R.string.strip_progress_reading_essential_metadata));
@@ -646,8 +643,6 @@ public class MetadataStripper {
         File outputFile = null;
 
         try {
-            ensureImageWithinSizeLimit(sourceUri);
-
             FormatConverter.ImageFormatSpec outputFormat = resolveImageOutputFormat(sourceUri, originalFilename);
             String extension = outputFormat.extension;
 
@@ -655,7 +650,7 @@ public class MetadataStripper {
 
             tempFile = new File(context.getCacheDir(), "temp_" + System.currentTimeMillis() + extension);
 
-            copySourceToTempFile(sourceUri, tempFile, MediaSizeLimits.maxImageBytes(context));
+            copySourceToTempFile(sourceUri, tempFile);
 
             updateProgress(2, 4, context.getString(R.string.strip_progress_reading_essential_metadata));
             readEssentialExifData(tempFile, true);
@@ -797,8 +792,6 @@ public class MetadataStripper {
         File outputFile = null;
 
         try {
-            enforceVideoSizeLimit(sourceUri);
-
             updateProgress(1, 4, context.getString(R.string.strip_progress_reading_video));
 
             VideoPrivacySnapshot sourceSnapshot = extractVideoPrivacyMetadata(sourceUri);
@@ -1169,13 +1162,12 @@ public class MetadataStripper {
      * 1. OpenableColumns.SIZE (content URIs)
      * 2. File length for {@code file://} URIs
      * 3. AssetFileDescriptor length
-     * 4. Reading the stream (last resort; capped to avoid scanning multi-GB files)
+     * 4. Reading the stream (last resort)
      *
      * @param uri URI of the file to check, must not be null
      * @return Size of the file in bytes, or 0 if size couldn't be determined
      */
     private long getFileSizeFromUri(@NonNull Uri uri) {
-        final long maxMeasure = AppPreferences.getMaxImageFileSizeMb(context) * 1024L * 1024L + 1;
         try {
             if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
                 try (Cursor cursor = contentResolver.query(uri,
@@ -1220,9 +1212,6 @@ public class MetadataStripper {
                 int bytesRead;
                 while ((bytesRead = stream.read(buffer)) != -1) {
                     size += bytesRead;
-                    if (size > maxMeasure) {
-                        return size;
-                    }
                 }
                 return size;
             }
@@ -1488,24 +1477,6 @@ public class MetadataStripper {
         }
 
         return tags;
-    }
-
-    private void ensureImageWithinSizeLimit(@NonNull Uri sourceUri) throws IOException {
-        long fileSize = getFileSizeFromUriCached(sourceUri);
-        SentryManager.setCustomKey("file_size_mb", fileSize / (1024 * 1024));
-        if (isFileTooLarge(sourceUri)) {
-            throw new IOException("File too large to process");
-        }
-    }
-
-    private boolean isFileTooLarge(@NonNull Uri uri) {
-        long fileSize = getFileSizeFromUriCached(uri);
-        long maxBytes = AppPreferences.getMaxImageFileSizeMb(context) * 1024L * 1024L;
-        if (fileSize > 0) {
-            return fileSize > maxBytes;
-        }
-        long declared = MediaSizeLimits.declaredSizeBytes(contentResolver, uri);
-        return declared > 0 && declared > maxBytes;
     }
 
     /** Source location/date used to detect preserved privacy metadata after cleaning. */
@@ -1850,23 +1821,14 @@ public class MetadataStripper {
         }
     }
 
-    private void copySourceToTempFile(@NonNull Uri sourceUri, @NonNull File tempFile, long maxBytes)
+    private void copySourceToTempFile(@NonNull Uri sourceUri, @NonNull File tempFile)
             throws IOException {
         try (InputStream in = contentResolver.openInputStream(sourceUri);
                 FileOutputStream out = new FileOutputStream(tempFile)) {
             if (in == null) {
                 throw new IOException("Failed to open input stream");
             }
-            MediaSizeLimits.copyWithLimit(in, out, maxBytes, this::checkCancelled);
-        }
-    }
-
-    private void enforceVideoSizeLimit(@NonNull Uri sourceUri) throws IOException {
-        long fileSize = getFileSizeFromUriCached(sourceUri);
-        SentryManager.setCustomKey("file_size_mb", fileSize / (1024 * 1024));
-        long maxBytes = MediaSizeLimits.maxVideoBytes();
-        if (fileSize > 0 && fileSize > maxBytes) {
-            throw new IOException("Video too large to process");
+            MediaSizeLimits.copyStream(in, out, this::checkCancelled);
         }
     }
 
