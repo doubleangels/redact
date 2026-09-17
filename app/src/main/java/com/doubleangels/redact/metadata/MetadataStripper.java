@@ -1722,13 +1722,20 @@ public class MetadataStripper {
         return extension.equalsIgnoreCase(".jpg") || extension.equalsIgnoreCase(".jpeg");
     }
 
-    private static void writeProcessedImageBytes(
+    /**
+     * Writes the temp file's bytes to {@code finalOs}, stripping JPEG XMP along the way.
+     *
+     * @return true if the output is known to be free of XMP (non-JPEG, or JPEG XMP removal
+     *     succeeded); false if a JPEG's XMP could not be removed and the raw bytes were copied
+     *     unmodified instead, so the caller should fall back to a full re-encode.
+     */
+    private static boolean writeProcessedImageBytes(
             @NonNull File tempFile, @NonNull OutputStream finalOs, @NonNull String extension)
             throws IOException {
         if (isJpegExtension(extension)) {
             try {
                 new JpegXmpRewriter().removeXmpXml(tempFile, finalOs);
-                return;
+                return true;
             } catch (Exception e) {
                 SentryManager.log("JPEG XMP removal before output failed: " + e.getMessage() + ".");
             }
@@ -1740,6 +1747,7 @@ public class MetadataStripper {
                 finalOs.write(buffer, 0, read);
             }
         }
+        return !isJpegExtension(extension);
     }
 
     private static final class JpegXmpSegmentInspector extends JpegXmpRewriter {
@@ -1929,8 +1937,13 @@ public class MetadataStripper {
             SentryManager.log("Native EXIF stripping removed " + removedCount + " tags.");
             exif.saveAttributes();
 
-            writeProcessedImageBytes(tempFile, finalOs, extension);
-            if (!isJpegExtension(extension) && containsXMPMetadata(tempFile)) {
+            boolean xmpFree = writeProcessedImageBytes(tempFile, finalOs, extension);
+            if (isJpegExtension(extension)) {
+                if (!xmpFree) {
+                    SentryManager.log("JPEG XMP rewrite failed; falling back to re-encode.");
+                    return false;
+                }
+            } else if (containsXMPMetadata(tempFile)) {
                 SentryManager.log("Native EXIF strip left XMP; falling back to re-encode.");
                 return false;
             }
