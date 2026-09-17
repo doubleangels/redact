@@ -22,8 +22,7 @@ public final class ProgressUpdateThrottler {
     public void maybeRun(Runnable action) {
         long now = System.currentTimeMillis();
         long prev = lastPostMs.get();
-        if (now - prev >= intervalMs) {
-            lastPostMs.set(now);
+        if (now - prev >= intervalMs && lastPostMs.compareAndSet(prev, now)) {
             action.run();
         }
     }
