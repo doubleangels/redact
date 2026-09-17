@@ -1702,23 +1702,20 @@ public class MetadataStripper {
             if (testForceXmpReadFailure) {
                 throw new IOException("Forced XMP read failure");
             }
-            byte[] buffer = new byte[8192];
-            long totalRead = 0;
-            final long maxScan = 256L * 1024L;
+            final int maxScan = 256 * 1024;
+            byte[] buffer = new byte[maxScan];
+            int totalRead = 0;
             int bytesRead;
-            while ((bytesRead = fis.read(buffer)) > 0 && totalRead < maxScan) {
-                String content = new String(buffer, 0, bytesRead, StandardCharsets.ISO_8859_1);
-                if (content.contains("<?xpacket begin")
-                        || content.contains("<x:xmpmeta")) {
-                    return true;
-                }
+            while (totalRead < maxScan
+                    && (bytesRead = fis.read(buffer, totalRead, maxScan - totalRead)) > 0) {
                 totalRead += bytesRead;
             }
+            String content = new String(buffer, 0, totalRead, StandardCharsets.ISO_8859_1);
+            return content.contains("<?xpacket begin") || content.contains("<x:xmpmeta");
         } catch (Exception e) {
             SentryManager.log("XMP detection failed: " + e.getMessage());
             return false;
         }
-        return false;
     }
 
     private static boolean isJpegExtension(@NonNull String extension) {
