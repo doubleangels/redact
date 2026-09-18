@@ -76,6 +76,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private MediaSelector mediaSelector;
     private MetadataStripper metadataStripper;
     
+    private final Object fileListLock = new Object();
     private final List<File> processedFiles = new ArrayList<>();
     private final List<File> inboundSnapshotFiles = new ArrayList<>();
     private final List<String> processedDisplayNames = new ArrayList<>();
@@ -136,12 +137,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
+        int previousSession = shareSessionId.get();
         invalidateShareSession();
         Thread thread = processingThread;
         if (thread != null) {
             thread.interrupt();
         }
-        VideoMedia3Converter.cancelActiveTranscode(shareSessionId.get());
+        VideoMedia3Converter.cancelActiveTranscode(previousSession);
         LocalNotifications.stopProcessingForeground(this);
         processingActive = false;
         sharingInitiated = false;
@@ -295,7 +297,9 @@ public class ShareHandlerActivity extends AppCompatActivity {
             if ("content".equalsIgnoreCase(scheme) || "file".equalsIgnoreCase(scheme)) {
                 try {
                     File snapshot = copyInboundUriToCache(uri);
-                    inboundSnapshotFiles.add(snapshot);
+                    synchronized (fileListLock) {
+                        inboundSnapshotFiles.add(snapshot);
+                    }
                     stable.add(Uri.fromFile(snapshot));
                 } catch (IOException e) {
                     SentryManager.recordException(e);
@@ -427,8 +431,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
                         try {
                             File outputFile = metadataStripper.getLastProcessedOutputFile();
                             if (outputFile != null && outputFile.exists() && outputFile.isFile()) {
-                                processedFiles.add(outputFile);
-                                processedDisplayNames.add(outputFile.getName());
+                                synchronized (fileListLock) {
+                                    processedFiles.add(outputFile);
+                                    processedDisplayNames.add(outputFile.getName());
+                                }
                             }
                         } catch (Exception e) {
                             SentryManager.log("Could not resolve processed file for cleanup: " + e.getMessage());
@@ -555,9 +561,15 @@ public class ShareHandlerActivity extends AppCompatActivity {
         try {
             if (cleanedFileUri != null) {
                 String mimeType = isVideo ? "video/*" : "image/*";
-                String displayName = processedDisplayNames.isEmpty()
-                        ? displayNameFromUri(cleanedFileUri)
-                        : processedDisplayNames.get(0);
+                String firstDisplayName;
+                synchronized (fileListLock) {
+                    firstDisplayName = processedDisplayNames.isEmpty()
+                            ? null
+                            : processedDisplayNames.get(0);
+                }
+                String displayName = firstDisplayName != null
+                        ? firstDisplayName
+                        : displayNameFromUri(cleanedFileUri);
 
                 Intent shareIntent = new Intent(Intent.ACTION_SEND);
                 shareIntent.setType(mimeType);
@@ -620,28 +632,39 @@ public class ShareHandlerActivity extends AppCompatActivity {
     }
 
     private void cleanupInboundSnapshots() {
-        for (File file : inboundSnapshotFiles) {
+        List<File> filesToDelete;
+        synchronized (fileListLock) {
+            filesToDelete = new ArrayList<>(inboundSnapshotFiles);
+            inboundSnapshotFiles.clear();
+        }
+        for (File file : filesToDelete) {
             if (file != null && file.exists() && !file.delete()) {
                 file.deleteOnExit();
             }
         }
-        inboundSnapshotFiles.clear();
     }
 
     private void cleanupProcessedFiles() {
         cleanupInboundSnapshots();
-        deleteProcessedFileList(processedFiles);
-        processedFiles.clear();
-        processedDisplayNames.clear();
+        List<File> filesToDelete;
+        synchronized (fileListLock) {
+            filesToDelete = new ArrayList<>(processedFiles);
+            processedFiles.clear();
+            processedDisplayNames.clear();
+        }
+        deleteProcessedFileList(filesToDelete);
     }
 
     private void scheduleDelayedShareCleanup() {
-        if (processedFiles.isEmpty()) {
-            return;
+        List<File> filesToDelete;
+        synchronized (fileListLock) {
+            if (processedFiles.isEmpty()) {
+                return;
+            }
+            filesToDelete = new ArrayList<>(processedFiles);
+            processedFiles.clear();
+            processedDisplayNames.clear();
         }
-        List<File> filesToDelete = new ArrayList<>(processedFiles);
-        processedFiles.clear();
-        processedDisplayNames.clear();
         Handler handler = new Handler(getApplicationContext().getMainLooper());
         handler.postDelayed(() -> deleteProcessedFileList(filesToDelete), SHARE_CLEANUP_DELAY_MS);
     }
@@ -771,8 +794,14 @@ public class ShareHandlerActivity extends AppCompatActivity {
         if (isFinishing()) {
             if (!sharingInitiated) {
                 cleanupProcessedFiles();
-            } else if (!processedFiles.isEmpty()) {
-                scheduleDelayedShareCleanup();
+            } else {
+                boolean hasProcessedFiles;
+                synchronized (fileListLock) {
+                    hasProcessedFiles = !processedFiles.isEmpty();
+                }
+                if (hasProcessedFiles) {
+                    scheduleDelayedShareCleanup();
+                }
             }
         }
         super.onDestroy();

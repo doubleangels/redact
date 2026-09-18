@@ -441,11 +441,7 @@ public class MainViewModel extends AndroidViewModel {
 
     public void setSelectedItems(List<MediaItem> items) {
         List<MediaItem> previous = selectedItems.getValue();
-        if (previous != null) {
-            for (MediaItem item : previous) {
-                MediaSelector.releasePersistableReadPermission(getApplication(), item.uri());
-            }
-        }
+        releaseStalePermissions(previous, items);
         selectedItems.setValue(items != null ? new ArrayList<>(items) : new ArrayList<>());
         persistMediaItems(KEY_CLEAN_URIS, KEY_CLEAN_NAMES, KEY_CLEAN_VIDEOS, items);
     }
@@ -454,13 +450,31 @@ public class MainViewModel extends AndroidViewModel {
 
     public void setConvertSelectedItems(List<MediaItem> items) {
         List<MediaItem> previous = convertSelectedItems.getValue();
-        if (previous != null) {
-            for (MediaItem item : previous) {
+        releaseStalePermissions(previous, items);
+        convertSelectedItems.setValue(items != null ? new ArrayList<>(items) : new ArrayList<>());
+        persistMediaItems(KEY_CONVERT_URIS, KEY_CONVERT_NAMES, KEY_CONVERT_VIDEOS, items);
+    }
+
+    /**
+     * Releases the persistable read permission for every item in {@code previous} that is not
+     * also present in {@code next}, so a URI re-picked into the new selection keeps its
+     * just-taken permission instead of losing it to the old selection's cleanup.
+     */
+    private void releaseStalePermissions(List<MediaItem> previous, List<MediaItem> next) {
+        if (previous == null || previous.isEmpty()) {
+            return;
+        }
+        java.util.Set<android.net.Uri> keepUris = new java.util.HashSet<>();
+        if (next != null) {
+            for (MediaItem item : next) {
+                keepUris.add(item.uri());
+            }
+        }
+        for (MediaItem item : previous) {
+            if (!keepUris.contains(item.uri())) {
                 MediaSelector.releasePersistableReadPermission(getApplication(), item.uri());
             }
         }
-        convertSelectedItems.setValue(items != null ? new ArrayList<>(items) : new ArrayList<>());
-        persistMediaItems(KEY_CONVERT_URIS, KEY_CONVERT_NAMES, KEY_CONVERT_VIDEOS, items);
     }
 
 

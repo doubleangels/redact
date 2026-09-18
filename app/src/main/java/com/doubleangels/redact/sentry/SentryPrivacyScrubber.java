@@ -45,6 +45,17 @@ public final class SentryPrivacyScrubber {
             Pattern.compile(
                     "((?:file(?:Name)?|resolved processed file|item:)\\s*[:=]?)\\s*[^\\s,;]+\\.[a-zA-Z0-9]{1,8}",
                     Pattern.CASE_INSENSITIVE);
+    /**
+     * Catches a media filename anywhere in text, not just after one of the literal prefixes
+     * {@link #FILENAME_IN_MESSAGE} requires (e.g. a raw filename embedded in a vendor
+     * IOException/FileNotFoundException message). Scoped to this app's own media extensions
+     * so it doesn't also redact harmless tokens like source file names in stack traces.
+     */
+    private static final Pattern MEDIA_FILENAME =
+            Pattern.compile(
+                    "\\b[\\w.\\-]+\\.(?:jpe?g|png|webp|heif?|gif|bmp|apng"
+                            + "|mp4|mov|m4v|avi|mkv|webm|3gp|vp[89]|bin)\\b",
+                    Pattern.CASE_INSENSITIVE);
 
     private static final String[] PII_ATTRIBUTE_KEYS = {
             "user.id", "user.name", "user.email", "user_id", "user_name", "user_email"
@@ -67,6 +78,7 @@ public final class SentryPrivacyScrubber {
         s = GPS_COORD_PAIR.matcher(s).replaceAll(REDACTED);
         s = GPS_VIDEO_LOCATION.matcher(s).replaceAll(REDACTED);
         s = FILENAME_IN_MESSAGE.matcher(s).replaceAll("$1 " + REDACTED);
+        s = MEDIA_FILENAME.matcher(s).replaceAll(REDACTED);
         if (s.length() > 500) {
             s = s.substring(0, 500) + "…";
         }
@@ -134,7 +146,7 @@ public final class SentryPrivacyScrubber {
             breadcrumb.setMessage(scrub(breadcrumb.getMessage()));
         }
         if (breadcrumb.getData() != null) {
-            breadcrumb.getData().replaceAll((k, v) -> v instanceof String ? scrub((String) v) : v);
+            breadcrumb.getData().replaceAll((k, v) -> scrubValue(v));
         }
     }
 
@@ -145,7 +157,7 @@ public final class SentryPrivacyScrubber {
         if (transaction.getSpans() != null) {
             for (SentrySpan span : transaction.getSpans()) {
                 if (span.getData() != null) {
-                    span.getData().replaceAll((k, v) -> v instanceof String ? scrub((String) v) : v);
+                    span.getData().replaceAll((k, v) -> scrubValue(v));
                 }
                 if (span.getTags() != null) {
                     span.getTags().replaceAll((k, v) -> scrubTag(k, v));
@@ -226,13 +238,34 @@ public final class SentryPrivacyScrubber {
             return;
         }
         for (Map.Entry<String, Object> entry : map.entrySet()) {
-            Object value = entry.getValue();
-            if (value instanceof String stringValue) {
-                entry.setValue(scrub(stringValue));
-            } else if (value instanceof Map<?, ?> nested) {
-                scrubStringObjectMap(castToStringObjectMap(nested));
-            }
+            entry.setValue(scrubValue(entry.getValue()));
         }
+    }
+
+    @Nullable
+    private static Object scrubValue(@Nullable Object value) {
+        if (value instanceof String stringValue) {
+            return scrub(stringValue);
+        }
+        if (value instanceof Map<?, ?> nested) {
+            scrubStringObjectMap(castToStringObjectMap(nested));
+            return nested;
+        }
+        if (value instanceof java.util.List<?> list) {
+            java.util.List<Object> scrubbed = new java.util.ArrayList<>(list.size());
+            for (Object item : list) {
+                scrubbed.add(scrubValue(item));
+            }
+            return scrubbed;
+        }
+        if (value instanceof Object[] array) {
+            Object[] scrubbed = array.clone();
+            for (int i = 0; i < scrubbed.length; i++) {
+                scrubbed[i] = scrubValue(scrubbed[i]);
+            }
+            return scrubbed;
+        }
+        return value;
     }
 
     @SuppressWarnings("unchecked")

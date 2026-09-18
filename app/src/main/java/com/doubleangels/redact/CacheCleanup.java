@@ -19,6 +19,12 @@ public final class CacheCleanup {
     private static final String[] TEMP_PREFIXES = {
             "temp_", "verify_", "vid_transform_", "vid_transmux_", "inbound_"
     };
+    /**
+     * Grace period below which a temp file is left alone even for a "clear all" request, so a
+     * file created by an operation that just started (after the caller's busy check passed but
+     * before this runs on a background executor) is not deleted out from under it.
+     */
+    private static final long MIN_DELETE_AGE_MS = 10L * 1000L;
 
     private CacheCleanup() {
     }
@@ -57,17 +63,7 @@ public final class CacheCleanup {
     }
 
     public static int clearAllTempFiles(@NonNull Context context) {
-        int deleted = 0;
-        File cacheDir = context.getCacheDir();
-        if (cacheDir != null) {
-            deleted += deleteAllFilesInDirectory(new File(cacheDir, PROCESSED_SUBDIR));
-            deleted += deleteTempPrefixFiles(cacheDir);
-        }
-        File externalCacheDir = context.getExternalCacheDir();
-        if (externalCacheDir != null && externalCacheDir.isDirectory()) {
-            deleted += deleteTempPrefixFiles(externalCacheDir);
-        }
-        return deleted;
+        return clearStaleTempFiles(context, MIN_DELETE_AGE_MS);
     }
 
     @NonNull
@@ -118,23 +114,6 @@ public final class CacheCleanup {
         return total;
     }
 
-    private static int deleteAllFilesInDirectory(File directory) {
-        if (directory == null || !directory.isDirectory()) {
-            return 0;
-        }
-        int deleted = 0;
-        File[] files = directory.listFiles();
-        if (files == null) {
-            return 0;
-        }
-        for (File file : files) {
-            if (file.isFile() && file.delete()) {
-                deleted++;
-            }
-        }
-        return deleted;
-    }
-
     private static int deleteStaleFilesInDirectory(File directory, long cutoffTime) {
         if (directory == null || !directory.isDirectory()) {
             return 0;
@@ -169,28 +148,6 @@ public final class CacheCleanup {
                         deleted++;
                     }
                     break;
-                }
-            }
-        }
-        return deleted;
-    }
-
-    private static int deleteTempPrefixFiles(File directory) {
-        int deleted = 0;
-        File[] files = directory.listFiles();
-        if (files == null) {
-            return 0;
-        }
-        for (File file : files) {
-            if (file.isFile()) {
-                String name = file.getName();
-                for (String prefix : TEMP_PREFIXES) {
-                    if (name.startsWith(prefix)) {
-                        if (file.delete()) {
-                            deleted++;
-                        }
-                        break;
-                    }
                 }
             }
         }
