@@ -43,9 +43,6 @@ public final class FormatConverter {
     static Bitmap.CompressFormat testTreatFormatAsHeic;
 
     private static void copyExifData(Context context, Uri sourceUri, Uri destUri) {
-        if (AppPreferences.isStrictClean(context)) {
-            return;
-        }
         try {
             androidx.exifinterface.media.ExifInterface oldExif = null;
             if ("file".equals(sourceUri.getScheme())) {
@@ -86,6 +83,22 @@ public final class FormatConverter {
             @NonNull androidx.exifinterface.media.ExifInterface oldExif,
             @Nullable androidx.exifinterface.media.ExifInterface newExif) {
         if (newExif == null) {
+            return;
+        }
+        boolean strictClean = AppPreferences.isStrictClean(context);
+        String[] orientationTag = {
+                androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION,
+        };
+        if (strictClean) {
+            // Orientation isn't personally-identifying, and BitmapFactory never rotates the
+            // decoded pixels itself, so dropping this tag leaves the converted image displayed
+            // sideways or upside down. Copy it even in strict-clean mode.
+            try {
+                copyTags(oldExif, newExif, orientationTag);
+                newExif.saveAttributes();
+            } catch (IOException e) {
+                // Ignore exif write errors
+            }
             return;
         }
         String[] alwaysTags = {

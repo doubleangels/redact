@@ -64,7 +64,12 @@ public class ProcessingForegroundService extends Service {
         if (message != null && !message.isEmpty()) {
             intent.putExtra(EXTRA_MESSAGE, message);
         }
-        app.startService(intent);
+        try {
+            app.startService(intent);
+        } catch (IllegalStateException ignored) {
+            // Service already stopped (e.g. self-stopped after a permission denial) and the
+            // app is now backgrounded, so this would start a new instance; nothing to update.
+        }
     }
 
     public static void stop(@Nullable Context context) {
@@ -74,7 +79,11 @@ public class ProcessingForegroundService extends Service {
         Context app = context.getApplicationContext();
         Intent intent = new Intent(app, ProcessingForegroundService.class);
         intent.setAction(ACTION_STOP);
-        app.startService(intent);
+        try {
+            app.startService(intent);
+        } catch (IllegalStateException ignored) {
+            // Service already stopped and the app is backgrounded; nothing to stop.
+        }
     }
 
     @Override
