@@ -1,6 +1,7 @@
 package com.doubleangels.redact;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.widget.Toast;
 import android.view.LayoutInflater;
@@ -173,18 +174,34 @@ public class CleanFragment extends Fragment {
                     SentryManager.log("Strip button clicked");
                     List<MediaItem> items = viewModel.getSelectedItems().getValue();
                     if (items != null && !items.isEmpty()) {
-                        if (containsAnimatedImage(items)) {
-                            Toast.makeText(
-                                            requireContext(),
-                                            R.string.animated_image_warning,
-                                            Toast.LENGTH_LONG)
-                                    .show();
-                        }
                         SentryManager.setCustomKey("processing_items_count", items.size());
-                        ProcessingResourceWarnings.runWithWarnings(
-                                requireActivity(),
-                                ProcessingResourceWarnings.assess(requireContext(), items),
-                                () -> viewModel.startCleaning(items));
+                        // Animated-image detection and resource assessment both do
+                        // content-resolver I/O (up to 64KB reads and a cache-directory walk
+                        // per selected item), which can be slow for cloud-backed URIs; run
+                        // them off the main thread to avoid jank/ANRs.
+                        Context appContext = requireContext().getApplicationContext();
+                        new Thread(() -> {
+                            try {
+                                boolean hasAnimatedImage = containsAnimatedImage(items);
+                                List<ProcessingResourceWarnings.Warning> warnings =
+                                        ProcessingResourceWarnings.assess(appContext, items);
+                                runOnUiThreadIfAdded(() -> {
+                                    if (hasAnimatedImage) {
+                                        Toast.makeText(
+                                                        requireContext(),
+                                                        R.string.animated_image_warning,
+                                                        Toast.LENGTH_LONG)
+                                                .show();
+                                    }
+                                    ProcessingResourceWarnings.runWithWarnings(
+                                            requireActivity(),
+                                            warnings,
+                                            () -> viewModel.startCleaning(items));
+                                });
+                            } catch (Exception e) {
+                                SentryManager.recordException(e);
+                            }
+                        }).start();
                     } else {
                         SentryManager.log("No items selected for processing");
                         uiStateManager.setFirstSelectMediaFilesStatus();
@@ -451,5 +468,17 @@ public class CleanFragment extends Fragment {
             }
         }
         return false;
+    }
+
+    private void runOnUiThreadIfAdded(Runnable action) {
+        Activity activity = getActivity();
+        if (activity == null || !isAdded()) {
+            return;
+        }
+        activity.runOnUiThread(() -> {
+            if (isAdded()) {
+                action.run();
+            }
+        });
     }
 }

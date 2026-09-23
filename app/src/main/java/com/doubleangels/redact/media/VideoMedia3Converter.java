@@ -267,7 +267,16 @@ public final class VideoMedia3Converter {
                         ProgressHolder holder = new ProgressHolder();
                         int state = t.getProgress(holder);
                         if (state == Transformer.PROGRESS_STATE_AVAILABLE) {
-                            progressListener.onProgress(holder.progress);
+                            try {
+                                progressListener.onProgress(holder.progress);
+                            } catch (RuntimeException e) {
+                                // A listener (e.g. MetadataStripper.reportTranscodeProgress)
+                                // signals cancellation by throwing here after already calling
+                                // cancelActiveTranscode; stop polling instead of letting this
+                                // escape uncaught from the main thread's Handler loop.
+                                pollingActive.set(false);
+                                return;
+                            }
                         }
                     }
                     mainHandler.postDelayed(pollRunnable[0], 300);
