@@ -1,5 +1,7 @@
 package com.doubleangels.redact;
 
+import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
@@ -418,19 +420,46 @@ public class ConvertFragment extends Fragment {
                             Toast.LENGTH_LONG)
                     .show();
         }
-        if (containsAnimatedImage(selectedItems)) {
-            Toast.makeText(
-                            requireContext(),
-                            R.string.animated_image_warning,
-                            Toast.LENGTH_LONG)
-                    .show();
+        // Animated-image detection and resource assessment both do content-resolver I/O
+        // (up to 64KB reads and a cache-directory walk per selected item), which can be slow
+        // for cloud-backed URIs; run them off the main thread to avoid jank/ANRs.
+        Context appContext = requireContext().getApplicationContext();
+        new Thread(() -> {
+            try {
+                boolean hasAnimatedImage = containsAnimatedImage(selectedItems);
+                List<ProcessingResourceWarnings.Warning> warnings =
+                        ProcessingResourceWarnings.assess(appContext, selectedItems);
+                runOnUiThreadIfAdded(() -> {
+                    if (hasAnimatedImage) {
+                        Toast.makeText(
+                                        requireContext(),
+                                        R.string.animated_image_warning,
+                                        Toast.LENGTH_LONG)
+                                .show();
+                    }
+                    ProcessingResourceWarnings.runWithWarnings(
+                            requireActivity(),
+                            warnings,
+                            () ->
+                                    viewModel.startConversion(
+                                            selectedItems, formatIndex, imageFormatIndex, imageFormat));
+                });
+            } catch (Exception e) {
+                SentryManager.recordException(e);
+            }
+        }).start();
+    }
+
+    private void runOnUiThreadIfAdded(Runnable action) {
+        Activity activity = getActivity();
+        if (activity == null || !isAdded()) {
+            return;
         }
-        ProcessingResourceWarnings.runWithWarnings(
-                requireActivity(),
-                ProcessingResourceWarnings.assess(requireContext(), selectedItems),
-                () ->
-                        viewModel.startConversion(
-                                selectedItems, formatIndex, imageFormatIndex, imageFormat));
+        activity.runOnUiThread(() -> {
+            if (isAdded()) {
+                action.run();
+            }
+        });
     }
 
     private void showProgress(boolean show) {
