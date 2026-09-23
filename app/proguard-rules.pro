@@ -53,11 +53,13 @@
 -keep class com.doubleangels.redact.media.VideoMedia3Converter { *; }
 
 # ---------------------------------------------------------------------------
-# Metadata package — uses reflection internally (ExifInterface TAG_ constants)
+# Metadata package — no keep needed: these classes are called directly (not
+# via reflection or XML) and are reachable from the kept fragments/activities
+# above, so R8 keeps them present while still renaming/shrinking their
+# members. The reflection this app does elsewhere is on ExifInterface's own
+# TAG_ fields and MediaMetadataRetriever's own METADATA_KEY_ fields, which
+# are kept separately below/above on those external classes.
 # ---------------------------------------------------------------------------
--keep class com.doubleangels.redact.metadata.MetadataStripper { *; }
--keep class com.doubleangels.redact.metadata.MetadataDisplayer { *; }
--keep class com.doubleangels.redact.metadata.XmlLikeMetadataFormatter { *; }
 
 # ---------------------------------------------------------------------------
 # Sentry — keep SDK + BeforeSend lambda + breadcrumb infrastructure

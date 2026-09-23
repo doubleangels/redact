@@ -702,13 +702,18 @@ public class MetadataDisplayer {
                                     trimmedValue = trimmedValue.substring(0, trimmedValue.length() - 1);
                                 }
 
-                                if (XmlLikeMetadataFormatter.looksLikeRdfOrXmp(trimmedValue)) {
-                                    trimmedValue = XmlLikeMetadataFormatter.formatForDisplay(trimmedValue);
+                                boolean looksLikeXmp = XmlLikeMetadataFormatter.looksLikeRdfOrXmp(trimmedValue);
+                                String upperTagName = convertToSnakeCase(tagName).toUpperCase(java.util.Locale.ROOT);
+                                if (!hasLocationPermission
+                                        && (isLocationMetadataKey(upperTagName) || looksLikeXmp)) {
+                                    // An RDF/XMP blob (e.g. TAG_XMP) can embed its own GPS fields that
+                                    // isLocationMetadataKey cannot see since it only checks the tag name,
+                                    // so withhold the whole blob rather than risk leaking location data.
+                                    continue;
                                 }
 
-                                String upperTagName = convertToSnakeCase(tagName).toUpperCase(java.util.Locale.ROOT);
-                                if (!hasLocationPermission && isLocationMetadataKey(upperTagName)) {
-                                    continue;
+                                if (looksLikeXmp) {
+                                    trimmedValue = XmlLikeMetadataFormatter.formatForDisplay(trimmedValue);
                                 }
 
                                 // Store GPS coordinates for later conversion

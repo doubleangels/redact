@@ -18,6 +18,9 @@ import java.io.OutputStream;
  */
 public final class MediaSizeLimits {
 
+    /** Matches the copy buffer size used elsewhere in the codebase (e.g. MetadataStripper). */
+    private static final int COPY_BUFFER_SIZE = 65536;
+
     private MediaSizeLimits() {
     }
 
@@ -62,7 +65,7 @@ public final class MediaSizeLimits {
             @NonNull OutputStream out,
             @Nullable Runnable cancelCheck)
             throws IOException {
-        byte[] buffer = new byte[8192];
+        byte[] buffer = new byte[COPY_BUFFER_SIZE];
         long total = 0;
         int read;
         while ((read = in.read(buffer)) != -1) {
