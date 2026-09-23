@@ -25,32 +25,27 @@
 -keep public class * extends android.content.ContentProvider
 
 # ---------------------------------------------------------------------------
-# App fragments and activities (referenced by name in XML / navigation)
+# App activities/fragments/application class — no keep needed. RedactApplication,
+# MainActivity, and ShareHandlerActivity are already covered by the generic
+# "extends Application/Activity" rules above (and by AGP's own automatic
+# manifest-component keep rules); CleanFragment/ConvertFragment/ScanFragment
+# aren't referenced from any XML or by reflection anywhere in this app
+# (verified: they're only ever constructed directly with `new`), so R8 keeps
+# them present through normal reachability while renaming their members.
 # ---------------------------------------------------------------------------
--keep class com.doubleangels.redact.RedactApplication { *; }
--keep class com.doubleangels.redact.MainActivity { *; }
--keep class com.doubleangels.redact.ShareHandlerActivity { *; }
--keep class com.doubleangels.redact.CleanFragment { *; }
--keep class com.doubleangels.redact.ConvertFragment { *; }
--keep class com.doubleangels.redact.ScanFragment { *; }
 
 # ---------------------------------------------------------------------------
-# UI / ViewModel — keep public API, allow internal member obfuscation
+# UI / ViewModel
 # ---------------------------------------------------------------------------
--keep class com.doubleangels.redact.ui.MainViewModel { *; }
--keep class com.doubleangels.redact.ui.UIStateManager { *; }
-
-# ---------------------------------------------------------------------------
-# Media package — public API called across package boundaries
-# ---------------------------------------------------------------------------
--keep class com.doubleangels.redact.media.MediaItem { *; }
--keep class com.doubleangels.redact.media.MediaSelector { *; }
--keep class com.doubleangels.redact.media.MediaProcessor { *; }
--keep class com.doubleangels.redact.media.MediaAdapter { *; }
--keep class com.doubleangels.redact.media.ConvertFileAdapter { *; }
-# FormatConverter and VideoMedia3Converter are accessed via static methods
--keep class com.doubleangels.redact.media.FormatConverter { *; }
--keep class com.doubleangels.redact.media.VideoMedia3Converter { *; }
+# ViewModelProvider resolves a ViewModel's constructor reflectively; keep just
+# the constructors it needs. (ScanViewModel needs no rule here at all: it has
+# never had one and already works, confirming AndroidX Lifecycle's own bundled
+# consumer rules already protect ViewModel constructors app-wide — this rule
+# is extra insurance for MainViewModel specifically, not a functional need.)
+-keepclassmembers class com.doubleangels.redact.ui.MainViewModel {
+    <init>(...);
+}
+# UIStateManager is only ever constructed directly with `new`; no keep needed.
 
 # ---------------------------------------------------------------------------
 # Metadata package — no keep needed: these classes are called directly (not
@@ -62,11 +57,14 @@
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
-# Sentry — keep SDK + BeforeSend lambda + breadcrumb infrastructure
+# Sentry — keep the SDK itself (official recommendation, needed for stack
+# trace symbolication). The app's own sentry package (SentryInitializer,
+# SentryManager, SentryPrivacyScrubber) needs no keep: BeforeSend/breadcrumb
+# callbacks are registered as inline lambdas that call these classes'
+# methods directly, not via reflection or a Sentry-side name lookup.
 # ---------------------------------------------------------------------------
 -keep class io.sentry.** { *; }
 -dontwarn io.sentry.**
--keep class com.doubleangels.redact.sentry.** { *; }
 
 # ---------------------------------------------------------------------------
 # AndroidX core libraries
