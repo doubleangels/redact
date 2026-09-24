@@ -1524,6 +1524,20 @@ public class MetadataStripper {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
+    /**
+     * Textual video metadata keys beyond location/date that our own encoder never sets, so any
+     * non-empty value found in an output file must have survived from the source container.
+     */
+    private static final int[] ADDITIONAL_VIDEO_PRIVACY_KEYS = {
+            android.media.MediaMetadataRetriever.METADATA_KEY_AUTHOR,
+            android.media.MediaMetadataRetriever.METADATA_KEY_WRITER,
+            android.media.MediaMetadataRetriever.METADATA_KEY_ALBUM,
+            android.media.MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST,
+            android.media.MediaMetadataRetriever.METADATA_KEY_ARTIST,
+            android.media.MediaMetadataRetriever.METADATA_KEY_COMPOSER,
+            android.media.MediaMetadataRetriever.METADATA_KEY_TITLE,
+    };
+
     @NonNull
     private static String videoMetadataKeyName(int key) {
         if (key == android.media.MediaMetadataRetriever.METADATA_KEY_LOCATION) {
@@ -1531,6 +1545,27 @@ public class MetadataStripper {
         }
         if (key == android.media.MediaMetadataRetriever.METADATA_KEY_DATE) {
             return "METADATA_KEY_DATE";
+        }
+        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_AUTHOR) {
+            return "METADATA_KEY_AUTHOR";
+        }
+        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_WRITER) {
+            return "METADATA_KEY_WRITER";
+        }
+        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_ALBUM) {
+            return "METADATA_KEY_ALBUM";
+        }
+        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST) {
+            return "METADATA_KEY_ALBUMARTIST";
+        }
+        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_ARTIST) {
+            return "METADATA_KEY_ARTIST";
+        }
+        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_COMPOSER) {
+            return "METADATA_KEY_COMPOSER";
+        }
+        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_TITLE) {
+            return "METADATA_KEY_TITLE";
         }
         return "METADATA_KEY_" + key;
     }
@@ -1567,6 +1602,16 @@ public class MetadataStripper {
                             "Warning: Original recording date preserved in output: "
                                     + videoMetadataKeyName(
                                             android.media.MediaMetadataRetriever.METADATA_KEY_DATE));
+                    return false;
+                }
+            }
+
+            for (int key : ADDITIONAL_VIDEO_PRIVACY_KEYS) {
+                String value = normalizeMetadataValue(retriever.extractMetadata(key));
+                if (value != null) {
+                    SentryManager.setCustomKey("video_verify_failed_key", videoMetadataKeyName(key));
+                    SentryManager.log(
+                            "Warning: Found remaining video metadata key: " + videoMetadataKeyName(key));
                     return false;
                 }
             }
