@@ -1653,24 +1653,21 @@ public class MetadataStripper {
             Set<String> allowedTags = new HashSet<>(getTagsToPreserve(forSharing));
             ExifInterface exif = new ExifInterface(imageFile.getAbsolutePath());
 
-            // Check for any remaining identifying EXIF tags
-            String[] identifyingTags = {
-                    ExifInterface.TAG_DATETIME,
-                    ExifInterface.TAG_DATETIME_ORIGINAL,
-                    ExifInterface.TAG_GPS_LATITUDE,
-                    ExifInterface.TAG_GPS_LONGITUDE,
-                    ExifInterface.TAG_MAKE,
-                    ExifInterface.TAG_MODEL,
-                    ExifInterface.TAG_SOFTWARE,
-                    ExifInterface.TAG_ARTIST,
-                    ExifInterface.TAG_COPYRIGHT,
-                    ExifInterface.TAG_IMAGE_DESCRIPTION,
-                    ExifInterface.TAG_USER_COMMENT,
-                    ExifInterface.TAG_MAKER_NOTE
-            };
-
-            for (String tag : identifyingTags) {
-                if (allowedTags.contains(tag)) {
+            // Sweep every TAG_* constant, mirroring the reflection-based removal in
+            // removeAllExifMetadata/stripMetadataNativeExif, so verification can't pass a file
+            // that still carries a tag the fixed identifyingTags list used to miss (e.g. lens
+            // make/model, body/lens serial numbers, camera owner name, GPS area info).
+            for (java.lang.reflect.Field field : ExifInterface.class.getDeclaredFields()) {
+                if (field.getType() != String.class || !field.getName().startsWith("TAG_")) {
+                    continue;
+                }
+                String tag;
+                try {
+                    tag = (String) field.get(null);
+                } catch (IllegalAccessException | IllegalArgumentException e) {
+                    continue;
+                }
+                if (tag == null || allowedTags.contains(tag)) {
                     continue;
                 }
                 String value = exif.getAttribute(tag);
