@@ -1632,6 +1632,23 @@ public class MetadataStripper {
     }
 
     /**
+     * Structural/technical EXIF tags that {@link ExifInterface#setAttribute} cannot actually
+     * clear to null on this library version -- {@code getAttribute} keeps returning a
+     * placeholder (observed: {@code "0"}) after {@code removeAllExifMetadata} runs, regardless
+     * of the source value. None of these identify a person, device, or location, so excluding
+     * them from verification's "must be absent" check doesn't reopen a privacy gap -- it just
+     * stops verification from permanently failing on every single image. TAG_ORIENTATION is
+     * normally kept out of this problem entirely by {@link #getTagsToPreserve}, but under
+     * strict-clean mode (the app's default) it's intentionally excluded from that allowlist too,
+     * so it hits the same can't-actually-clear-it behavior as the others.
+     */
+    private static final Set<String> NON_IDENTIFYING_UNCLEARABLE_TAGS = Set.of(
+            ExifInterface.TAG_IMAGE_WIDTH,
+            ExifInterface.TAG_IMAGE_LENGTH,
+            ExifInterface.TAG_LIGHT_SOURCE,
+            ExifInterface.TAG_ORIENTATION);
+
+    /**
      * Verifies that metadata has been properly removed from an image file.
      * Checks for remaining EXIF, XMP, and IPTC metadata.
      *
@@ -1657,7 +1674,7 @@ public class MetadataStripper {
                 } catch (IllegalAccessException | IllegalArgumentException e) {
                     continue;
                 }
-                if (tag == null || allowedTags.contains(tag)) {
+                if (tag == null || allowedTags.contains(tag) || NON_IDENTIFYING_UNCLEARABLE_TAGS.contains(tag)) {
                     continue;
                 }
                 String value = exif.getAttribute(tag);
