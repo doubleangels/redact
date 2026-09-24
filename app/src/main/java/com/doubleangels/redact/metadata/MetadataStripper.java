@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -177,11 +176,6 @@ public class MetadataStripper {
             new java.util.concurrent.atomic.AtomicBoolean(false);
 
     private volatile long transcodeOwnerId = -1L;
-
-    /**
-     * Secure random number generator for secure file deletion.
-     */
-    private final SecureRandom secureRandom = new SecureRandom();
 
     public void resetCancellation() {
         operationCancelled.set(false);
@@ -1109,13 +1103,7 @@ public class MetadataStripper {
     @NonNull
     @androidx.annotation.VisibleForTesting
     String generateShortRandomName() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        StringBuilder sb = new StringBuilder(12);
-        for (int i = 0; i < 12; i++) {
-            int index = secureRandom.nextInt(chars.length());
-            sb.append(chars.charAt(index));
-        }
-        return sb.toString();
+        return com.doubleangels.redact.media.MediaFileNames.generateShortRandomName();
     }
 
     /**
