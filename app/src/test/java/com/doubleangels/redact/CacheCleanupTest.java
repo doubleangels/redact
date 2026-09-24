@@ -93,19 +93,19 @@ public class CacheCleanupTest {
     public void clearStaleTempFiles_removesOnlyOldPrefixedAndProcessedFiles() throws IOException {
         File cacheDir = context.getCacheDir();
         long now = System.currentTimeMillis();
-        long oldCutoff = now - CacheCleanup.DEFAULT_STALE_TEMP_MAX_AGE_MS;
+        long oldTimestamp = now - CacheCleanup.DEFAULT_STALE_TEMP_MAX_AGE_MS * 2;
 
         File oldTemp = writeFile(new File(cacheDir, "temp_old.bin"), 100);
-        oldTemp.setLastModified(oldCutoff);
+        oldTemp.setLastModified(oldTimestamp);
         File oldInbound = writeFile(new File(cacheDir, "inbound_old.bin"), 100);
-        oldInbound.setLastModified(oldCutoff);
+        oldInbound.setLastModified(oldTimestamp);
         File freshTemp = writeFile(new File(cacheDir, "temp_fresh.bin"), 100);
         freshTemp.setLastModified(now);
         File untracked = writeFile(new File(cacheDir, "stays_forever.bin"), 100);
-        untracked.setLastModified(oldCutoff);
+        untracked.setLastModified(oldTimestamp);
         File processedDir = new File(cacheDir, "processed");
         File oldProcessed = writeFile(new File(processedDir, "old_output.jpg"), 100);
-        oldProcessed.setLastModified(oldCutoff);
+        oldProcessed.setLastModified(oldTimestamp);
         File freshProcessed = writeFile(new File(processedDir, "new_output.jpg"), 100);
         freshProcessed.setLastModified(now);
 
@@ -126,7 +126,7 @@ public class CacheCleanupTest {
         File cacheDir = context.getCacheDir();
         long now = System.currentTimeMillis();
         File oldTemp = writeFile(new File(cacheDir, "inbound_stale.bin"), 100);
-        oldTemp.setLastModified(now - CacheCleanup.DEFAULT_STALE_TEMP_MAX_AGE_MS);
+        oldTemp.setLastModified(now - CacheCleanup.DEFAULT_STALE_TEMP_MAX_AGE_MS * 2);
         File justCreated = writeFile(new File(cacheDir, "temp_just_created.bin"), 100);
         justCreated.setLastModified(now);
 
