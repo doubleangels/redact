@@ -543,11 +543,13 @@ public class MetadataStripper {
             // Restore only essential EXIF data (like orientation)
             updateProgress(4, 5, context.getString(R.string.strip_progress_restoring_essential_metadata));
             restoreEssentialExifData(newUri);
-            MediaStoreWrites.markPublished(contentResolver, newUri);
 
-            // Verify metadata removal (for MediaStore files, we need to read from URI)
+            // Verify metadata removal while the entry is still IS_PENDING=1, so a file that
+            // fails verification is never visible to other apps via MediaStore even briefly.
+            // The owning app can read/write its own pending entry; only other apps are blocked.
             updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
             verifyCleanedImageAtUri(newUri, extension);
+            MediaStoreWrites.markPublished(contentResolver, newUri);
 
             lastProcessedFileUri = newUri;
             SentryManager.log("Image processed successfully.");
