@@ -4,6 +4,8 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
+import com.doubleangels.redact.media.SecureDelete;
+
 import java.io.File;
 import java.util.Locale;
 
@@ -52,12 +54,12 @@ public final class CacheCleanup {
         int deleted = 0;
         File cacheDir = context.getCacheDir();
         if (cacheDir != null) {
-            deleted += deleteStaleFilesInDirectory(new File(cacheDir, PROCESSED_SUBDIR), cutoff);
-            deleted += deleteStaleTempPrefixFiles(cacheDir, cutoff);
+            deleted += deleteStaleFilesInDirectory(context, new File(cacheDir, PROCESSED_SUBDIR), cutoff);
+            deleted += deleteStaleTempPrefixFiles(context, cacheDir, cutoff);
         }
         File externalCacheDir = context.getExternalCacheDir();
         if (externalCacheDir != null && externalCacheDir.isDirectory()) {
-            deleted += deleteStaleTempPrefixFiles(externalCacheDir, cutoff);
+            deleted += deleteStaleTempPrefixFiles(context, externalCacheDir, cutoff);
         }
         return deleted;
     }
@@ -114,7 +116,8 @@ public final class CacheCleanup {
         return total;
     }
 
-    private static int deleteStaleFilesInDirectory(File directory, long cutoffTime) {
+    private static int deleteStaleFilesInDirectory(
+            @NonNull Context context, File directory, long cutoffTime) {
         if (directory == null || !directory.isDirectory()) {
             return 0;
         }
@@ -124,14 +127,17 @@ public final class CacheCleanup {
             return 0;
         }
         for (File file : files) {
-            if (file.isFile() && file.lastModified() < cutoffTime && file.delete()) {
+            if (file.isFile()
+                    && file.lastModified() < cutoffTime
+                    && SecureDelete.secureDelete(context, file)) {
                 deleted++;
             }
         }
         return deleted;
     }
 
-    private static int deleteStaleTempPrefixFiles(File directory, long cutoffTime) {
+    private static int deleteStaleTempPrefixFiles(
+            @NonNull Context context, File directory, long cutoffTime) {
         int deleted = 0;
         File[] files = directory.listFiles();
         if (files == null) {
@@ -144,7 +150,7 @@ public final class CacheCleanup {
             String name = file.getName();
             for (String prefix : TEMP_PREFIXES) {
                 if (name.startsWith(prefix)) {
-                    if (file.delete()) {
+                    if (SecureDelete.secureDelete(context, file)) {
                         deleted++;
                     }
                     break;

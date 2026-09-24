@@ -36,7 +36,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.HashMap;
@@ -89,11 +88,6 @@ public class MetadataStripper {
      * Larger buffers reduce system calls and improve throughput.
      */
     private static final int DEFAULT_BUFFER_SIZE = 65536; // 64KB
-
-    /**
-     * Buffer size for secure file deletion operations.
-     */
-    private static final int SECURE_DELETE_BUFFER_SIZE = 65536;
 
     /**
      * Interface for reporting progress during media processing operations.
@@ -1599,39 +1593,7 @@ public class MetadataStripper {
      * @return true if the file was successfully deleted, false otherwise
      */
     private boolean secureDeleteFile(@NonNull File file) {
-        if (!file.exists() || !file.isFile()) {
-            return false;
-        }
-
-        try {
-            long fileSize = file.length();
-            if (fileSize == 0) {
-                return file.delete();
-            }
-
-            // Overwrite file with random data multiple times
-            int passes = AppPreferences.getSecureDeletePasses(context);
-            byte[] randomData = new byte[SECURE_DELETE_BUFFER_SIZE];
-            for (int pass = 0; pass < passes; pass++) {
-                try (RandomAccessFile raf = new RandomAccessFile(file, "rws")) {
-                    long position = 0;
-                    while (position < fileSize) {
-                        secureRandom.nextBytes(randomData);
-                        int bytesToWrite = (int) Math.min(randomData.length, fileSize - position);
-                        raf.write(randomData, 0, bytesToWrite);
-                        position += bytesToWrite;
-                    }
-                    raf.getFD().sync(); // Force write to disk
-                }
-            }
-
-            // Finally delete the file
-            return file.delete();
-        } catch (Exception e) {
-            SentryManager.log("Error during secure file deletion: " + e.getMessage() + ".");
-            // Fallback to regular deletion
-            return file.delete();
-        }
+        return com.doubleangels.redact.media.SecureDelete.secureDelete(context, file);
     }
 
     /**

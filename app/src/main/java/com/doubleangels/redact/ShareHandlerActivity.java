@@ -1,6 +1,7 @@
 package com.doubleangels.redact;
 
 import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -22,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.media.ProgressUpdateThrottler;
+import com.doubleangels.redact.media.SecureDelete;
 import com.doubleangels.redact.media.VideoMedia3Converter;
 import com.doubleangels.redact.metadata.MetadataStripper;
 import com.doubleangels.redact.notifications.LocalNotifications;
@@ -637,8 +639,9 @@ public class ShareHandlerActivity extends AppCompatActivity {
             filesToDelete = new ArrayList<>(inboundSnapshotFiles);
             inboundSnapshotFiles.clear();
         }
+        Context appContext = getApplicationContext();
         for (File file : filesToDelete) {
-            if (file != null && file.exists() && !file.delete()) {
+            if (file != null && file.exists() && !SecureDelete.secureDelete(appContext, file)) {
                 file.deleteOnExit();
             }
         }
@@ -652,7 +655,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             processedFiles.clear();
             processedDisplayNames.clear();
         }
-        deleteProcessedFileList(filesToDelete);
+        deleteProcessedFileList(getApplicationContext(), filesToDelete);
     }
 
     private void scheduleDelayedShareCleanup() {
@@ -665,15 +668,17 @@ public class ShareHandlerActivity extends AppCompatActivity {
             processedFiles.clear();
             processedDisplayNames.clear();
         }
-        Handler handler = new Handler(getApplicationContext().getMainLooper());
-        handler.postDelayed(() -> deleteProcessedFileList(filesToDelete), SHARE_CLEANUP_DELAY_MS);
+        Context appContext = getApplicationContext();
+        Handler handler = new Handler(appContext.getMainLooper());
+        handler.postDelayed(
+                () -> deleteProcessedFileList(appContext, filesToDelete), SHARE_CLEANUP_DELAY_MS);
     }
 
-    private static void deleteProcessedFileList(List<File> files) {
+    private static void deleteProcessedFileList(@NonNull Context context, List<File> files) {
         for (File processedFile : files) {
             if (processedFile != null && processedFile.exists()) {
                 try {
-                    if (processedFile.delete()) {
+                    if (SecureDelete.secureDelete(context, processedFile)) {
                         SentryManager.log("Deleted temporary processed file after sharing");
                     } else {
                         SentryManager.log("Failed to delete temporary processed file");
