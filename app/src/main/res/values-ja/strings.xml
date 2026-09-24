@@ -146,9 +146,10 @@
 
     
     <string name="settings_section_advanced_privacy">メタデータのクリーン</string>
-    <string name="settings_advanced_privacy_subtitle">Redact がクリーンタブで EXIF を削除する方法。他アプリからの共有では、転送前に常に位置情報とカメラ情報を削除します。</string>
+    <string name="settings_advanced_privacy_subtitle">Redact がクリーンタブで、位置情報やカメラの詳細(EXIF)などの隠れた情報をどのように削除するか。他アプリから共有されたファイルは、転送前に必ずこれらの情報が削除されます。</string>
     <string name="settings_secure_delete">安全な削除パス数</string>
-    <string name="settings_secure_delete_subtitle">削除前に一時ファイルを上書きする回数。回数が多いほど遅くなります。フラッシュストレージでは復元が可能な場合があります。</string>
+    <string name="settings_secure_delete_subtitle">削除前に一時ファイル（クリーン処理前の元の写真・動画のコピーを含む）を上書きする回数。これにより、ディスクからデータを復元できなくなります。回数が多いほど遅くなります。フラッシュストレージでは復元が可能な場合があります。</string>
+
     <string name="settings_auto_clear_temp">起動時にキャッシュをクリア</string>
     <string name="settings_auto_clear_temp_subtitle">アプリ起動時に24時間より古い処理キャッシュを削除します。</string>
     <string name="settings_preserve_camera">カメラ設定を保持</string>
@@ -160,14 +161,14 @@
     <string name="settings_sentry_consent_title">クラッシュレポートを有効にしますか？</string>
     <string name="settings_sentry_consent_message">クラッシュレポートの送信は、匿名化された診断情報をインターネット経由で Sentry にアップロードします。\n\n写真、動画、ファイル名、GPS 座標はアップロードされません。</string>
     <string name="settings_strict_clean">厳格クリーン</string>
-    <string name="settings_strict_clean_subtitle">向きを含むすべてのメタデータを削除。保持オプションをオフにし、動画は常に完全再エンコード。</string>
+    <string name="settings_strict_clean_subtitle">向きのタグを含む、メタデータのあらゆる痕跡を削除します。そのため、回転させた写真は後で横向きに表示されることがあります。上の保持オプションをオフにし、最も徹底したクリーンのために動画を常に完全に再エンコードします。</string>
     
     <string name="settings_section_advanced_processing">大きなファイルとメモリ</string>
     <string name="settings_advanced_processing_subtitle">クリーンと変換時に大きな画像をデコードする際のRAM使用量を制御します。</string>
     <string name="settings_max_bitmap_size">最大処理解像度</string>
     <string name="settings_max_bitmap_size_subtitle">メモリで画像をデコードするときの長辺ピクセル数。低いほどRAM使用量が少ない。</string>
     <string name="settings_video_fallback">高速な動画クリーン</string>
-    <string name="settings_video_fallback_subtitle">出力が既に MP4 互換の場合、クイックリマックス後の完全再エンコードをスキップ。時間とバッテリーを節約；完全トランスコードはより多くのメタデータを削除。厳密クリーン時や他アプリからの共有時はオフ。</string>
+    <string name="settings_video_fallback_subtitle">動画がすでに互換性のある形式である場合、Redact は完全に再エンコードする代わりに、クイック処理でメタデータを削除します。より速くバッテリーにも優しくなりますが、完全な再エンコードの方がわずかに多く削除できます。厳密クリーンがオンの場合や、他アプリから共有されたファイルをクリーンする場合は自動的にオフになります。</string>
 
     <string-array name="settings_secure_delete_labels">
         <item>1回（高速）</item>
@@ -195,7 +196,7 @@
     <string name="settings_section_diagnostics">診断とフィードバック</string>
     <string name="settings_section_diagnostics_subtitle">クラッシュ修正のための任意のレポート。メディアが端末外に出ることはありません。</string>
     <string name="settings_crash_reporting_label">クラッシュレポートを送信</string>
-    <string name="settings_crash_reporting_subtitle">匿名化された診断情報のみ（アプリ版、デバイスモデル、スタックトレース）。有効にすると、データはインターネット経由で Sentry に送信されます。写真と動画はアップロードされません。</string>
+    <string name="settings_crash_reporting_subtitle">共有するのは匿名化された技術情報のみです（アプリのバージョン、デバイスモデル、クラッシュ発生時にアプリが何をしていたか）。写真や動画が共有されることはありません。有効にすると、クラッシュ報告サービスである Sentry にインターネット経由で送信されます。</string>
     <string name="settings_section_conversion">変換タブの既定値</string>
     <string name="settings_conversion_subtitle">変換でファイルを選ぶときの事前選択形式。バッチごとに変更できます。</string>
     <string name="settings_default_image_format">既定の画像形式</string>

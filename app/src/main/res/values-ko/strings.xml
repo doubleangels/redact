@@ -146,9 +146,9 @@
 
     
     <string name="settings_section_advanced_privacy">메타데이터 정리</string>
-    <string name="settings_advanced_privacy_subtitle">Redact가 정리 탭에서 EXIF를 제거하는 방법. 다른 앱에서 공유할 때는 전달 전에 항상 위치 및 카메라 정보를 제거합니다.</string>
+    <string name="settings_advanced_privacy_subtitle">Redact가 정리 탭에서 위치 및 카메라 세부 정보(EXIF)와 같은 숨겨진 정보를 제거하는 방법. 다른 앱에서 공유된 파일은 전달 전에 항상 이 정보가 제거됩니다.</string>
     <string name="settings_secure_delete">보안 삭제 패스 횟수</string>
-    <string name="settings_secure_delete_subtitle">삭제 전 임시 파일을 덮어쓰는 횟수. 횟수가 많을수록 느리며, 플래시 저장소에서는 복구가 가능할 수 있습니다.</string>
+    <string name="settings_secure_delete_subtitle">삭제 전 임시 파일(정리 전 원본 사진·동영상 사본 포함)을 덮어쓰는 횟수로, 디스크에서 데이터를 복구할 수 없게 합니다. 횟수가 많을수록 느리며, 플래시 저장소에서는 복구가 가능할 수 있습니다.</string>
     <string name="settings_auto_clear_temp">시작 시 캐시 지우기</string>
     <string name="settings_auto_clear_temp_subtitle">앱을 열 때 24시간보다 오래된 처리 캐시 파일을 제거합니다.</string>
     <string name="settings_preserve_camera">카메라 설정 유지</string>
@@ -160,14 +160,14 @@
     <string name="settings_sentry_consent_title">크래시 보고를 사용하시겠습니까?</string>
     <string name="settings_sentry_consent_message">크래시 보고 전송은 익명 진단 정보를 인터넷을 통해 Sentry로 업로드합니다.\n\n사진, 동영상, 파일 이름, GPS 좌표는 업로드되지 않습니다.</string>
     <string name="settings_strict_clean">엄격한 정리</string>
-    <string name="settings_strict_clean_subtitle">방향을 포함한 모든 메타데이터 제거. 유지 옵션을 끄고 동영상은 항상 완전 재인코딩.</string>
+    <string name="settings_strict_clean_subtitle">방향 태그를 포함해 메타데이터의 모든 흔적을 제거합니다. 따라서 회전된 사진은 이후 옆으로 누워 보일 수 있습니다. 위의 유지 옵션을 끄고, 가장 철저한 정리를 위해 동영상을 항상 완전히 재인코딩합니다.</string>
     
     <string name="settings_section_advanced_processing">대용량 파일 및 메모리</string>
     <string name="settings_advanced_processing_subtitle">정리 및 변환 시 큰 이미지를 디코딩할 때 RAM 사용량을 제어합니다.</string>
     <string name="settings_max_bitmap_size">최대 처리 해상도</string>
     <string name="settings_max_bitmap_size_subtitle">메모리에서 이미지를 디코딩할 때 긴 변 픽셀 수. 낮을수록 RAM 사용량 감소.</string>
     <string name="settings_video_fallback">더 빠른 동영상 정리</string>
-    <string name="settings_video_fallback_subtitle">출력이 이미 MP4 호환일 때 빠른 리먹스 후 전체 재인코딩 건너뛰기. 시간과 배터리 절약; 전체 트랜스코드는 더 많은 메타데이터 제거. 엄격 정리 또는 다른 앱 공유 시 꺼짐.</string>
+    <string name="settings_video_fallback_subtitle">동영상이 이미 호환 형식인 경우, Redact는 완전히 재인코딩하는 대신 빠른 처리로 메타데이터를 제거합니다. 더 빠르고 배터리 소모도 적지만, 완전 재인코딩이 조금 더 많이 제거합니다. 엄격 정리가 켜져 있거나 다른 앱에서 공유된 파일을 정리할 때는 자동으로 꺼집니다.</string>
 
     <string-array name="settings_secure_delete_labels">
         <item>1회(빠름)</item>
@@ -195,7 +195,7 @@
     <string name="settings_section_diagnostics">진단 및 피드백</string>
     <string name="settings_section_diagnostics_subtitle">충돌 수정을 위한 선택적 보고서. 미디어는 기기를 벗어나지 않습니다.</string>
     <string name="settings_crash_reporting_label">충돌 보고서 보내기</string>
-    <string name="settings_crash_reporting_subtitle">익명 진단만(앱 버전, 기기 모델, 스택 추적). 사용 시 데이터가 인터넷을 통해 Sentry로 전송됩니다. 사진과 동영상은 업로드되지 않습니다.</string>
+    <string name="settings_crash_reporting_subtitle">익명화된 기술 정보만 공유합니다(앱 버전, 기기 모델, 충돌 당시 앱이 하던 작업) — 사진이나 동영상은 절대 공유하지 않습니다. 사용 설정 시 저희 충돌 보고 서비스인 Sentry로 인터넷을 통해 전송됩니다.</string>
     <string name="settings_section_conversion">변환 탭 기본값</string>
     <string name="settings_conversion_subtitle">변환에서 파일을 선택할 때 미리 선택된 형식. 배치마다 변경할 수 있습니다.</string>
     <string name="settings_default_image_format">기본 이미지 형식</string>

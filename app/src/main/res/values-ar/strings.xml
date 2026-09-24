@@ -146,9 +146,9 @@
 
     
     <string name="settings_section_advanced_privacy">تنظيف البيانات الوصفية</string>
-    <string name="settings_advanced_privacy_subtitle">كيف يزيل Redact بيانات EXIF في تبويب التنظيف. المشاركة من تطبيقات أخرى تزيل دائماً الموقع ومعلومات الكاميرا قبل الإرسال.</string>
+    <string name="settings_advanced_privacy_subtitle">كيف يزيل Redact المعلومات المخفية — مثل الموقع وتفاصيل الكاميرا (EXIF) — في تبويب التنظيف. الملفات المشارَكة من تطبيقات أخرى تتم إزالة هذه المعلومات منها دائماً قبل إعادة إرسالها.</string>
     <string name="settings_secure_delete">مرات الحذف الآمن</string>
-    <string name="settings_secure_delete_subtitle">عدد مرات الكتابة فوق الملفات المؤقتة قبل الحذف. المزيد أبطأ؛ على التخزين الفلاشي قد يبقى الاسترداد ممكناً.</string>
+    <string name="settings_secure_delete_subtitle">عدد مرات الكتابة فوق الملفات المؤقتة — بما في ذلك النسخ الأصلية غير المنقّحة من الصور والفيديوهات قبل التنظيف — قبل الحذف، بحيث لا يمكن استرداد بياناتها من القرص. المزيد من المرات أبطأ؛ على التخزين الفلاشي قد يبقى الاسترداد ممكناً.</string>
     <string name="settings_auto_clear_temp">مسح الذاكرة عند البدء</string>
     <string name="settings_auto_clear_temp_subtitle">يزيل ملفات ذاكرة المعالجة الأقدم من 24 ساعة عند فتح التطبيق.</string>
     <string name="settings_preserve_camera">الاحتفاظ بإعدادات الكاميرا</string>
@@ -160,14 +160,14 @@
     <string name="settings_sentry_consent_title">تفعيل تقارير الأعطال؟</string>
     <string name="settings_sentry_consent_message">إرسال تقارير الأعطال يرفع تشخيصات مجهولة إلى Sentry عبر الإنترنت.\n\nلا يتم تحميل الصور أو الفيديوهات أو أسماء الملفات أو إحداثيات GPS.</string>
     <string name="settings_strict_clean">التنظيف الصارم</string>
-    <string name="settings_strict_clean_subtitle">إزالة كل البيانات الوصفية بما فيها الاتجاه. يعطّل خيارات الاحتفاظ ويعيد ترميز الفيديو بالكامل دائماً.</string>
+    <string name="settings_strict_clean_subtitle">يزيل كل أثر للبيانات الوصفية، حتى علامة الاتجاه — لذا قد تبدو الصورة المُدارة مائلة بعد ذلك. يعطّل خيارات الاحتفاظ أعلاه ويعيد ترميز الفيديو بالكامل دائماً لأشمل تنظيف ممكن.</string>
     
     <string name="settings_section_advanced_processing">الملفات الكبيرة والذاكرة</string>
     <string name="settings_advanced_processing_subtitle">يتحكم في استخدام الذاكرة عند فك ترميز الصور الكبيرة أثناء التنظيف والتحويل.</string>
     <string name="settings_max_bitmap_size">أقصى دقة معالجة</string>
     <string name="settings_max_bitmap_size_subtitle">أطول حافة بالبكسل عند فك الصور في الذاكرة. القيم الأقل تستخدم ذاكرة أقل.</string>
     <string name="settings_video_fallback">تنظيف فيديو أسرع</string>
-    <string name="settings_video_fallback_subtitle">تخطي إعادة الترميز الكامل بعد إعادة التغليف السريعة عندما يكون الإخراج متوافقاً مع MP4. يوفر الوقت والبطارية؛ الترميز الكامل يزيل المزيد من البيانات الوصفية. متوقف عند التنظيف الصارم أو عند المشاركة من تطبيقات أخرى.</string>
+    <string name="settings_video_fallback_subtitle">عندما يكون الفيديو بصيغة متوافقة بالفعل، يزيل Redact بياناته الوصفية بعملية سريعة بدلاً من إعادة الترميز الكاملة — أسرع وأخف على البطارية، رغم أن إعادة الترميز الكاملة تزيل القليل الإضافي. يُعطَّل تلقائياً عند تفعيل التنظيف الصارم أو عند تنظيف ملفات مُشارَكة من تطبيقات أخرى.</string>
 
     <string-array name="settings_secure_delete_labels">
         <item>مرة واحدة (سريع)</item>
@@ -195,7 +195,7 @@
     <string name="settings_section_diagnostics">التشخيص والملاحظات</string>
     <string name="settings_section_diagnostics_subtitle">تقارير اختيارية للمساعدة في إصلاح الأعطال. وسائطك لا تغادر الجهاز أبداً.</string>
     <string name="settings_crash_reporting_label">إرسال تقارير الأعطال</string>
-    <string name="settings_crash_reporting_subtitle">تشخيصات مجهولة فقط (إصدار التطبيق، طراز الجهاز، تتبعات المكدس). عند التفعيل، تُرسل البيانات إلى Sentry عبر الإنترنت. لا يتم تحميل الصور أو الفيديوهات أبداً.</string>
+    <string name="settings_crash_reporting_subtitle">يشارك فقط تفاصيل تقنية مجهولة الهوية (إصدار التطبيق، طراز الجهاز، ما كان يفعله التطبيق عند حدوث العطل) — ولا يشارك صورك أو مقاطع الفيديو أبداً. تُرسَل عبر الإنترنت إلى خدمة الإبلاغ عن الأعطال التي نستخدمها، Sentry، عند التفعيل.</string>
     <string name="settings_section_conversion">افتراضيات تبويب التحويل</string>
     <string name="settings_conversion_subtitle">التنسيقات المحددة مسبقاً عند اختيار الملفات في التحويل. يمكنك تغييرها لكل دفعة.</string>
     <string name="settings_default_image_format">تنسيق الصورة الافتراضي</string>
