@@ -146,9 +146,9 @@
 
     
     <string name="settings_section_advanced_privacy">Limpieza de Metadatos</string>
-    <string name="settings_advanced_privacy_subtitle">Cómo Redact elimina EXIF en la pestaña Limpiar. Al compartir desde otras apps siempre se eliminan ubicación e info de cámara antes de reenviar.</string>
+    <string name="settings_advanced_privacy_subtitle">Cómo Redact elimina la información oculta — como la ubicación y los datos de la cámara (EXIF) — en la pestaña Limpiar. Los archivos compartidos desde otras apps siempre se limpian de esto antes de reenviarlos.</string>
     <string name="settings_secure_delete">Pasadas de Borrado Seguro</string>
-    <string name="settings_secure_delete_subtitle">Cuántas veces se sobrescriben los archivos temporales antes de borrarlos. Más pasadas son más lentas; en almacenamiento flash la recuperación puede seguir siendo posible.</string>
+    <string name="settings_secure_delete_subtitle">Cuántas veces se sobrescriben los archivos temporales — incluidas las copias originales sin editar de fotos y videos antes de la limpieza — antes de borrarlos, para que sus datos no puedan recuperarse del disco. Más pasadas son más lentas; en almacenamiento flash la recuperación puede seguir siendo posible.</string>
     <string name="settings_auto_clear_temp">Vaciar Caché al Iniciar</string>
     <string name="settings_auto_clear_temp_subtitle">Elimina archivos de caché de procesamiento de más de 24 horas al abrir la app.</string>
     <string name="settings_preserve_camera">Conservar Ajustes de Cámara</string>
@@ -160,14 +160,14 @@
     <string name="settings_sentry_consent_title">¿Activar Informes de Fallos?</string>
     <string name="settings_sentry_consent_message">Enviar Informes de Fallos sube diagnósticos anonimizados a Sentry por internet.\n\nNo se suben fotos, videos, nombres de archivo ni coordenadas GPS.</string>
     <string name="settings_strict_clean">Limpieza Estricta</string>
-    <string name="settings_strict_clean_subtitle">Eliminar todos los metadatos, incluida la orientación. Desactiva las opciones de conservar y siempre recodifica video por completo.</string>
+    <string name="settings_strict_clean_subtitle">Elimina todo rastro de metadatos, incluso la etiqueta de orientación — por lo que una foto girada puede verse torcida después. Desactiva las opciones de conservar de arriba y siempre recodifica el video por completo para la limpieza más profunda.</string>
     
     <string name="settings_section_advanced_processing">Archivos Grandes y Memoria</string>
     <string name="settings_advanced_processing_subtitle">Controla el uso de RAM al decodificar imágenes grandes durante la limpieza y conversión.</string>
     <string name="settings_max_bitmap_size">Resolución Máxima de Procesamiento</string>
     <string name="settings_max_bitmap_size_subtitle">Lado más largo en píxeles al decodificar en memoria. Valores más bajos usan menos RAM.</string>
     <string name="settings_video_fallback">Limpieza de Video Más Rápida</string>
-    <string name="settings_video_fallback_subtitle">Omitir la recodificación completa tras un remux rápido cuando la salida ya es compatible con MP4. Ahorra tiempo y batería; la transcodificación completa elimina más metadatos. Desactivado con Limpieza Estricta o al compartir desde otras apps.</string>
+    <string name="settings_video_fallback_subtitle">Cuando tu video ya está en un formato compatible, Redact elimina sus metadatos con un paso rápido en lugar de recodificarlo por completo — más rápido y más suave con la batería, aunque una recodificación completa elimina un poco más. Se desactiva automáticamente con Limpieza Estricta o al limpiar archivos compartidos desde otras apps.</string>
 
     <string-array name="settings_secure_delete_labels">
         <item>1 Pasada (Rápida)</item>
@@ -195,7 +195,7 @@
     <string name="settings_section_diagnostics">Diagnóstico y Comentarios</string>
     <string name="settings_section_diagnostics_subtitle">Informes opcionales para corregir fallos. Tus archivos multimedia nunca salen del dispositivo.</string>
     <string name="settings_crash_reporting_label">Enviar Informes de Fallos</string>
-    <string name="settings_crash_reporting_subtitle">Solo diagnósticos anonimizados (versión de la app, modelo del dispositivo, trazas de pila). Si está activado, los datos se envían a Sentry por internet. Las fotos y videos nunca se suben.</string>
+    <string name="settings_crash_reporting_subtitle">Solo comparte datos técnicos anonimizados (versión de la app, modelo del dispositivo, qué estaba haciendo la app cuando falló) — nunca tus fotos ni videos. Se envían por internet a nuestro servicio de informes de fallos, Sentry, cuando está activado.</string>
     <string name="settings_section_conversion">Valores Predeterminados de Convertir</string>
     <string name="settings_conversion_subtitle">Formatos preseleccionados al elegir archivos en Convertir. Puedes cambiarlos en cada lote.</string>
     <string name="settings_default_image_format">Formato de Imagen Predeterminado</string>
@@ -307,4 +307,20 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="settings_crash_reporting_init_failed">No se pudieron iniciar los informes de fallos. Inténtalo más tarde.</string>
     <string name="share_error_partial_success">%1$d archivo(s) limpiado(s); %2$d con error.</string>
     <string name="media_picker_selection_capped">Solo se pueden seleccionar %1$d archivos a la vez.</string>
+    <string name="scan_metadata_truncated">Algunas etiquetas EXIF se omitieron en este escaneo (límite de visualización).</string>
+    <string name="share_error_interrupted">Se interrumpió el uso compartido. Inténtelo de nuevo.</string>
+    <string name="share_error_too_many_items">Demasiados elementos (máx. %1$d a la vez).</string>
+    <string name="strip_progress_processing_video_metadata">Procesando metadatos de video…</string>
+    <string name="strip_progress_reading_essential_metadata">Leyendo metadatos esenciales…</string>
+    <string name="strip_progress_reading_image">Leyendo imagen…</string>
+    <string name="strip_progress_reading_video">Leyendo video…</string>
+    <string name="strip_progress_removing_all_metadata">Eliminando todos los metadatos…</string>
+    <string name="strip_progress_removing_metadata">Eliminando metadatos…</string>
+    <string name="strip_progress_restoring_essential_metadata">Restaurando metadatos esenciales…</string>
+    <string name="strip_progress_saving_clean_copy">Guardando copia limpia…</string>
+    <string name="strip_progress_saving_clean_video">Guardando video limpio…</string>
+    <string name="strip_progress_transcoding">Transcodificando…</string>
+    <string name="strip_progress_transcoding_target">Transcodificando al formato de destino…</string>
+    <string name="strip_progress_transmuxing">Remultiplexando video…</string>
+    <string name="strip_progress_verifying">Verificando la eliminación de metadatos…</string>
 </resources>

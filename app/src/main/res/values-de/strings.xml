@@ -146,9 +146,9 @@
 
     
     <string name="settings_section_advanced_privacy">Metadaten-Bereinigung</string>
-    <string name="settings_advanced_privacy_subtitle">Wie Redact EXIF auf dem Tab Bereinigen entfernt. Beim Teilen aus anderen Apps werden Standort und Kamerainfo immer vor dem Weiterleiten entfernt.</string>
+    <string name="settings_advanced_privacy_subtitle">Wie Redact versteckte Infos — wie Standort und Kameradetails (EXIF) — auf dem Tab Bereinigen entfernt. Aus anderen Apps geteilte Dateien werden vor dem Weiterleiten immer davon befreit.</string>
     <string name="settings_secure_delete">Sichere Löschdurchläufe</string>
-    <string name="settings_secure_delete_subtitle">Wie oft temporäre Dateien vor dem Löschen überschrieben werden. Mehr Durchläufe sind langsamer; auf Flash-Speicher ist Wiederherstellung ggf. trotzdem möglich.</string>
+    <string name="settings_secure_delete_subtitle">Wie oft temporäre Dateien — einschließlich der originalen, ungeschwärzten Fotos und Videos vor der Bereinigung — vor dem Löschen überschrieben werden, damit ihre Daten nicht von der Festplatte wiederhergestellt werden können. Mehr Durchläufe sind langsamer; auf Flash-Speicher ist Wiederherstellung ggf. trotzdem möglich.</string>
     <string name="settings_auto_clear_temp">Cache beim Start leeren</string>
     <string name="settings_auto_clear_temp_subtitle">Entfernt Verarbeitungs-Cache-Dateien älter als 24 Stunden beim App-Start.</string>
     <string name="settings_preserve_camera">Kameraeinstellungen behalten</string>
@@ -160,14 +160,14 @@
     <string name="settings_sentry_consent_title">Absturzberichte Aktivieren?</string>
     <string name="settings_sentry_consent_message">Absturzberichte senden lädt anonymisierte Diagnosedaten über Sentry ins Internet hoch.\n\nKeine Fotos, Videos, Dateinamen oder GPS-Koordinaten werden hochgeladen.</string>
     <string name="settings_strict_clean">Strikte Bereinigung</string>
-    <string name="settings_strict_clean_subtitle">Alle Metadaten entfernen, einschließlich Orientierung. Schaltet Behalten-Optionen aus und kodiert Videos immer vollständig neu.</string>
+    <string name="settings_strict_clean_subtitle">Entfernt jede Spur von Metadaten, sogar den Orientierungs-Tag — ein gedrehtes Foto kann danach also schräg aussehen. Schaltet die Behalten-Optionen oben aus und kodiert Videos für die gründlichste Bereinigung immer vollständig neu.</string>
     
     <string name="settings_section_advanced_processing">Große Dateien &amp; Speicher</string>
     <string name="settings_advanced_processing_subtitle">Steuert den RAM-Verbrauch beim Dekodieren großer Bilder beim Bereinigen und Konvertieren.</string>
     <string name="settings_max_bitmap_size">Max. Verarbeitungsauflösung</string>
     <string name="settings_max_bitmap_size_subtitle">Längste Kante in Pixeln beim Dekodieren im Speicher. Niedrigere Werte nutzen weniger RAM.</string>
     <string name="settings_video_fallback">Schnellere Videobereinigung</string>
-    <string name="settings_video_fallback_subtitle">Vollständige Neukodierung nach schnellem Remux überspringen, wenn die Ausgabe bereits MP4-kompatibel ist. Spart Zeit und Akku; vollständige Transkodierung entfernt mehr Metadaten. Aus bei Strikter Bereinigung oder Teilen aus anderen Apps.</string>
+    <string name="settings_video_fallback_subtitle">Wenn Ihr Video bereits in einem kompatiblen Format vorliegt, entfernt Redact dessen Metadaten mit einem schnellen Durchgang statt einer vollständigen Neukodierung — schneller und akkuschonender, auch wenn eine vollständige Neukodierung etwas gründlicher ist. Wird automatisch deaktiviert, wenn Strikte Bereinigung aktiv ist oder Dateien aus anderen Apps bereinigt werden.</string>
 
     <string-array name="settings_secure_delete_labels">
         <item>1 Durchlauf (Schnell)</item>
@@ -195,7 +195,7 @@
     <string name="settings_section_diagnostics">Diagnose &amp; Feedback</string>
     <string name="settings_section_diagnostics_subtitle">Optionale Absturzberichte helfen bei Fehlerbehebung. Ihre Medien verlassen nie das Gerät.</string>
     <string name="settings_crash_reporting_label">Absturzberichte Senden</string>
-    <string name="settings_crash_reporting_subtitle">Nur anonymisierte Diagnose (App-Version, Gerätemodell, Stack-Traces). Wenn aktiviert, werden Daten über das Internet an Sentry gesendet. Fotos und Videos werden nie hochgeladen.</string>
+    <string name="settings_crash_reporting_subtitle">Teilt nur anonymisierte technische Details (App-Version, Gerätemodell, was die App beim Absturz gerade tat) — niemals Ihre Fotos oder Videos. Wird bei Aktivierung über das Internet an unseren Absturzbericht-Dienst Sentry gesendet.</string>
     <string name="settings_section_conversion">Standardwerte Konvertieren</string>
     <string name="settings_conversion_subtitle">Vorausgewählte Formate beim Auswählen auf Konvertieren. Pro Stapel weiterhin änderbar.</string>
     <string name="settings_default_image_format">Standard-Bildformat</string>
@@ -306,4 +306,20 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_crash_reporting_init_failed">Absturzberichte konnten nicht gestartet werden. Versuchen Sie es später erneut.</string>
     <string name="share_error_partial_success">%1$d Datei(en) bereinigt; %2$d fehlgeschlagen.</string>
     <string name="media_picker_selection_capped">Es können höchstens %1$d Dateien gleichzeitig ausgewählt werden.</string>
+    <string name="scan_metadata_truncated">Einige EXIF-Tags wurden bei diesem Scan ausgelassen (Anzeigelimit).</string>
+    <string name="share_error_interrupted">Das Teilen wurde unterbrochen. Bitte versuchen Sie es erneut.</string>
+    <string name="share_error_too_many_items">Zu viele Elemente (max. %1$d gleichzeitig).</string>
+    <string name="strip_progress_processing_video_metadata">Video-Metadaten werden verarbeitet…</string>
+    <string name="strip_progress_reading_essential_metadata">Wichtige Metadaten werden gelesen…</string>
+    <string name="strip_progress_reading_image">Bild wird gelesen…</string>
+    <string name="strip_progress_reading_video">Video wird gelesen…</string>
+    <string name="strip_progress_removing_all_metadata">Alle Metadaten werden entfernt…</string>
+    <string name="strip_progress_removing_metadata">Metadaten werden entfernt…</string>
+    <string name="strip_progress_restoring_essential_metadata">Wichtige Metadaten werden wiederhergestellt…</string>
+    <string name="strip_progress_saving_clean_copy">Bereinigte Kopie wird gespeichert…</string>
+    <string name="strip_progress_saving_clean_video">Bereinigtes Video wird gespeichert…</string>
+    <string name="strip_progress_transcoding">Wird transkodiert…</string>
+    <string name="strip_progress_transcoding_target">Wird in Zielformat transkodiert…</string>
+    <string name="strip_progress_transmuxing">Container wird neu gemuxt…</string>
+    <string name="strip_progress_verifying">Überprüfung der Metadatenentfernung…</string>
 </resources>

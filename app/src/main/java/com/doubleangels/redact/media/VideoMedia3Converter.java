@@ -131,7 +131,7 @@ public final class VideoMedia3Converter {
 
         IOException lastFailure = null;
         for (int attemptIndex : encoderFallbackOrder(formatIndex)) {
-            deleteQuietly(outFile);
+            deleteQuietly(app, outFile);
             try {
                 String videoMime = videoMimeTypeForFormatIndex(attemptIndex);
                 transcodeToPathOnce(
@@ -349,25 +349,25 @@ public final class VideoMedia3Converter {
                         cancelDone.countDown();
                     });
             cancelDone.await(5, TimeUnit.SECONDS);
-            deleteQuietly(outFile);
+            deleteQuietly(app, outFile);
             throw new IOException("Video conversion timed out");
         }
 
         ExportException exportException = errorRef.get();
         if (exportException != null) {
-            deleteQuietly(outFile);
+            deleteQuietly(app, outFile);
             throw new IOException(
                     "Video conversion failed: " + exportException.getMessage(), exportException);
         }
         Throwable syncFailure = syncFailureRef.get();
         if (syncFailure != null) {
-            deleteQuietly(outFile);
+            deleteQuietly(app, outFile);
             throw new IOException(
                     "Video conversion failed: " + syncFailure.getMessage(), syncFailure);
         }
 
         if (!outFile.exists() || outFile.length() == 0) {
-            deleteQuietly(outFile);
+            deleteQuietly(app, outFile);
             throw new IOException("Video conversion produced no output");
         }
     }
@@ -453,14 +453,13 @@ public final class VideoMedia3Converter {
         try {
             return copyToMoviesRedact(app, outFile, baseDisplayName, actualFormatIndex);
         } finally {
-            deleteQuietly(outFile);
+            deleteQuietly(app, outFile);
         }
     }
 
-    private static void deleteQuietly(File file) {
+    private static void deleteQuietly(@NonNull Context context, @Nullable File file) {
         if (file != null && file.exists()) {
-            //noinspection ResultOfMethodCallIgnored
-            file.delete();
+            SecureDelete.secureDelete(context, file);
         }
     }
 

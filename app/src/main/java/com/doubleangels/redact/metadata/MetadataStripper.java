@@ -36,9 +36,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -89,11 +87,6 @@ public class MetadataStripper {
      * Larger buffers reduce system calls and improve throughput.
      */
     private static final int DEFAULT_BUFFER_SIZE = 65536; // 64KB
-
-    /**
-     * Buffer size for secure file deletion operations.
-     */
-    private static final int SECURE_DELETE_BUFFER_SIZE = 65536;
 
     /**
      * Interface for reporting progress during media processing operations.
@@ -183,11 +176,6 @@ public class MetadataStripper {
             new java.util.concurrent.atomic.AtomicBoolean(false);
 
     private volatile long transcodeOwnerId = -1L;
-
-    /**
-     * Secure random number generator for secure file deletion.
-     */
-    private final SecureRandom secureRandom = new SecureRandom();
 
     public void resetCancellation() {
         operationCancelled.set(false);
@@ -555,11 +543,13 @@ public class MetadataStripper {
             // Restore only essential EXIF data (like orientation)
             updateProgress(4, 5, context.getString(R.string.strip_progress_restoring_essential_metadata));
             restoreEssentialExifData(newUri);
-            MediaStoreWrites.markPublished(contentResolver, newUri);
 
-            // Verify metadata removal (for MediaStore files, we need to read from URI)
+            // Verify metadata removal while the entry is still IS_PENDING=1, so a file that
+            // fails verification is never visible to other apps via MediaStore even briefly.
+            // The owning app can read/write its own pending entry; only other apps are blocked.
             updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
             verifyCleanedImageAtUri(newUri, extension);
+            MediaStoreWrites.markPublished(contentResolver, newUri);
 
             lastProcessedFileUri = newUri;
             SentryManager.log("Image processed successfully.");
@@ -1115,13 +1105,7 @@ public class MetadataStripper {
     @NonNull
     @androidx.annotation.VisibleForTesting
     String generateShortRandomName() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        StringBuilder sb = new StringBuilder(12);
-        for (int i = 0; i < 12; i++) {
-            int index = secureRandom.nextInt(chars.length());
-            sb.append(chars.charAt(index));
-        }
-        return sb.toString();
+        return com.doubleangels.redact.media.MediaFileNames.generateShortRandomName();
     }
 
     /**
@@ -1530,6 +1514,20 @@ public class MetadataStripper {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
+    /**
+     * Textual video metadata keys beyond location/date that our own encoder never sets, so any
+     * non-empty value found in an output file must have survived from the source container.
+     */
+    private static final int[] ADDITIONAL_VIDEO_PRIVACY_KEYS = {
+            android.media.MediaMetadataRetriever.METADATA_KEY_AUTHOR,
+            android.media.MediaMetadataRetriever.METADATA_KEY_WRITER,
+            android.media.MediaMetadataRetriever.METADATA_KEY_ALBUM,
+            android.media.MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST,
+            android.media.MediaMetadataRetriever.METADATA_KEY_ARTIST,
+            android.media.MediaMetadataRetriever.METADATA_KEY_COMPOSER,
+            android.media.MediaMetadataRetriever.METADATA_KEY_TITLE,
+    };
+
     @NonNull
     private static String videoMetadataKeyName(int key) {
         if (key == android.media.MediaMetadataRetriever.METADATA_KEY_LOCATION) {
@@ -1537,6 +1535,27 @@ public class MetadataStripper {
         }
         if (key == android.media.MediaMetadataRetriever.METADATA_KEY_DATE) {
             return "METADATA_KEY_DATE";
+        }
+        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_AUTHOR) {
+            return "METADATA_KEY_AUTHOR";
+        }
+        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_WRITER) {
+            return "METADATA_KEY_WRITER";
+        }
+        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_ALBUM) {
+            return "METADATA_KEY_ALBUM";
+        }
+        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST) {
+            return "METADATA_KEY_ALBUMARTIST";
+        }
+        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_ARTIST) {
+            return "METADATA_KEY_ARTIST";
+        }
+        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_COMPOSER) {
+            return "METADATA_KEY_COMPOSER";
+        }
+        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_TITLE) {
+            return "METADATA_KEY_TITLE";
         }
         return "METADATA_KEY_" + key;
     }
@@ -1577,6 +1596,16 @@ public class MetadataStripper {
                 }
             }
 
+            for (int key : ADDITIONAL_VIDEO_PRIVACY_KEYS) {
+                String value = normalizeMetadataValue(retriever.extractMetadata(key));
+                if (value != null) {
+                    SentryManager.setCustomKey("video_verify_failed_key", videoMetadataKeyName(key));
+                    SentryManager.log(
+                            "Warning: Found remaining video metadata key: " + videoMetadataKeyName(key));
+                    return false;
+                }
+            }
+
             return true;
         } catch (Exception e) {
             SentryManager.setCustomKey("video_verify_failed_key", "RETRIEVER_ERROR");
@@ -1599,40 +1628,25 @@ public class MetadataStripper {
      * @return true if the file was successfully deleted, false otherwise
      */
     private boolean secureDeleteFile(@NonNull File file) {
-        if (!file.exists() || !file.isFile()) {
-            return false;
-        }
-
-        try {
-            long fileSize = file.length();
-            if (fileSize == 0) {
-                return file.delete();
-            }
-
-            // Overwrite file with random data multiple times
-            int passes = AppPreferences.getSecureDeletePasses(context);
-            byte[] randomData = new byte[SECURE_DELETE_BUFFER_SIZE];
-            for (int pass = 0; pass < passes; pass++) {
-                try (RandomAccessFile raf = new RandomAccessFile(file, "rws")) {
-                    long position = 0;
-                    while (position < fileSize) {
-                        secureRandom.nextBytes(randomData);
-                        int bytesToWrite = (int) Math.min(randomData.length, fileSize - position);
-                        raf.write(randomData, 0, bytesToWrite);
-                        position += bytesToWrite;
-                    }
-                    raf.getFD().sync(); // Force write to disk
-                }
-            }
-
-            // Finally delete the file
-            return file.delete();
-        } catch (Exception e) {
-            SentryManager.log("Error during secure file deletion: " + e.getMessage() + ".");
-            // Fallback to regular deletion
-            return file.delete();
-        }
+        return com.doubleangels.redact.media.SecureDelete.secureDelete(context, file);
     }
+
+    /**
+     * Structural/technical EXIF tags that {@link ExifInterface#setAttribute} cannot actually
+     * clear to null on this library version -- {@code getAttribute} keeps returning a
+     * placeholder (observed: {@code "0"}) after {@code removeAllExifMetadata} runs, regardless
+     * of the source value. None of these identify a person, device, or location, so excluding
+     * them from verification's "must be absent" check doesn't reopen a privacy gap -- it just
+     * stops verification from permanently failing on every single image. TAG_ORIENTATION is
+     * normally kept out of this problem entirely by {@link #getTagsToPreserve}, but under
+     * strict-clean mode (the app's default) it's intentionally excluded from that allowlist too,
+     * so it hits the same can't-actually-clear-it behavior as the others.
+     */
+    private static final Set<String> NON_IDENTIFYING_UNCLEARABLE_TAGS = Set.of(
+            ExifInterface.TAG_IMAGE_WIDTH,
+            ExifInterface.TAG_IMAGE_LENGTH,
+            ExifInterface.TAG_LIGHT_SOURCE,
+            ExifInterface.TAG_ORIENTATION);
 
     /**
      * Verifies that metadata has been properly removed from an image file.
@@ -1646,24 +1660,21 @@ public class MetadataStripper {
             Set<String> allowedTags = new HashSet<>(getTagsToPreserve(forSharing));
             ExifInterface exif = new ExifInterface(imageFile.getAbsolutePath());
 
-            // Check for any remaining identifying EXIF tags
-            String[] identifyingTags = {
-                    ExifInterface.TAG_DATETIME,
-                    ExifInterface.TAG_DATETIME_ORIGINAL,
-                    ExifInterface.TAG_GPS_LATITUDE,
-                    ExifInterface.TAG_GPS_LONGITUDE,
-                    ExifInterface.TAG_MAKE,
-                    ExifInterface.TAG_MODEL,
-                    ExifInterface.TAG_SOFTWARE,
-                    ExifInterface.TAG_ARTIST,
-                    ExifInterface.TAG_COPYRIGHT,
-                    ExifInterface.TAG_IMAGE_DESCRIPTION,
-                    ExifInterface.TAG_USER_COMMENT,
-                    ExifInterface.TAG_MAKER_NOTE
-            };
-
-            for (String tag : identifyingTags) {
-                if (allowedTags.contains(tag)) {
+            // Sweep every TAG_* constant, mirroring the reflection-based removal in
+            // removeAllExifMetadata/stripMetadataNativeExif, so verification can't pass a file
+            // that still carries a tag the fixed identifyingTags list used to miss (e.g. lens
+            // make/model, body/lens serial numbers, camera owner name, GPS area info).
+            for (java.lang.reflect.Field field : ExifInterface.class.getDeclaredFields()) {
+                if (field.getType() != String.class || !field.getName().startsWith("TAG_")) {
+                    continue;
+                }
+                String tag;
+                try {
+                    tag = (String) field.get(null);
+                } catch (IllegalAccessException | IllegalArgumentException e) {
+                    continue;
+                }
+                if (tag == null || allowedTags.contains(tag) || NON_IDENTIFYING_UNCLEARABLE_TAGS.contains(tag)) {
                     continue;
                 }
                 String value = exif.getAttribute(tag);

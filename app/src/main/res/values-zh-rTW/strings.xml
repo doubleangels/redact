@@ -146,9 +146,9 @@
 
     
     <string name="settings_section_advanced_privacy">中繼資料清理</string>
-    <string name="settings_advanced_privacy_subtitle">Redact 如何在清理分頁移除 EXIF。從其他 App 分享時，轉寄前一律會移除位置與相機資訊。</string>
+    <string name="settings_advanced_privacy_subtitle">Redact 如何在清理分頁移除隱藏資訊——例如位置與相機詳情（EXIF）。從其他 App 分享的檔案在轉寄前一律會移除這些資訊。</string>
     <string name="settings_secure_delete">安全刪除次數</string>
-    <string name="settings_secure_delete_subtitle">刪除前覆寫暫存檔的次數。次數越多越慢；在快閃記憶體上仍可能復原資料。</string>
+    <string name="settings_secure_delete_subtitle">刪除前覆寫暫存檔（包含清理前的原始相片和影片副本）的次數，使其資料無法從磁碟復原。次數越多越慢；在快閃記憶體上仍可能復原資料。</string>
     <string name="settings_auto_clear_temp">啟動時清除快取</string>
     <string name="settings_auto_clear_temp_subtitle">開啟應用程式時刪除超過 24 小時的處理快取檔案。</string>
     <string name="settings_preserve_camera">保留相機設定</string>
@@ -160,14 +160,14 @@
     <string name="settings_sentry_consent_title">啟用當機報告？</string>
     <string name="settings_sentry_consent_message">傳送當機報告會透過網際網路向 Sentry 上傳匿名診斷資訊。\n\n不會上傳照片、影片、檔名或 GPS 座標。</string>
     <string name="settings_strict_clean">嚴格清理</string>
-    <string name="settings_strict_clean_subtitle">移除所有中繼資料（包括方向）。關閉保留選項並一律完整重新編碼影片。</string>
+    <string name="settings_strict_clean_subtitle">移除所有中繼資料痕跡，甚至包括方向標籤——因此旋轉過的相片之後可能會顯示為歪斜。關閉上方的保留選項，並一律完整重新編碼影片，以達到最徹底的清理。</string>
     
     <string name="settings_section_advanced_processing">大型檔案與記憶體</string>
     <string name="settings_advanced_processing_subtitle">控制清理和轉換時解碼大型影像的記憶體使用。</string>
     <string name="settings_max_bitmap_size">最大處理解析度</string>
     <string name="settings_max_bitmap_size_subtitle">在記憶體中解碼影像時的最長邊像素數。較低值使用較少 RAM。</string>
     <string name="settings_video_fallback">更快的影片清理</string>
-    <string name="settings_video_fallback_subtitle">輸出已相容 MP4 時，快速 remux 後略過完整重新編碼。節省時間與電量；完整轉碼可移除更多中繼資料。嚴格清理或從其他 App 分享時關閉。</string>
+    <string name="settings_video_fallback_subtitle">當影片已是相容格式時，Redact 會以快速處理移除其中繼資料，而非完整重新編碼——速度更快、更省電，不過完整重新編碼能多移除一些。在開啟嚴格清理或清理從其他 App 分享的檔案時，會自動關閉此功能。</string>
 
     <string-array name="settings_secure_delete_labels">
         <item>1 次（快速）</item>
@@ -195,7 +195,7 @@
     <string name="settings_section_diagnostics">診斷與意見回饋</string>
     <string name="settings_section_diagnostics_subtitle">可選的當機報告以協助修復問題。您的媒體絕不會離開裝置。</string>
     <string name="settings_crash_reporting_label">傳送當機報告</string>
-    <string name="settings_crash_reporting_subtitle">僅匿名診斷資訊（App 版本、裝置型號、堆疊追蹤）。啟用後，資料會透過網際網路傳送至 Sentry。照片與影片絕不會上傳。</string>
+    <string name="settings_crash_reporting_subtitle">僅分享匿名的技術資訊（App 版本、裝置型號、當機時 App 正在做什麼）——絕不包含您的相片或影片。啟用後會透過網際網路傳送至我們的當機回報服務 Sentry。</string>
     <string name="settings_section_conversion">轉換分頁預設值</string>
     <string name="settings_conversion_subtitle">在「轉換」中選擇檔案時預先選取的格式。仍可為每批變更。</string>
     <string name="settings_default_image_format">預設圖片格式</string>
@@ -307,4 +307,20 @@
     <string name="settings_crash_reporting_init_failed">無法啟動當機回報，請稍後再試。</string>
     <string name="share_error_partial_success">已清理 %1$d 個檔案；%2$d 個失敗。</string>
     <string name="media_picker_selection_capped">一次最多只能選擇 %1$d 個檔案。</string>
+    <string name="scan_metadata_truncated">本次掃描省略了部分 EXIF 標籤（顯示上限）。</string>
+    <string name="share_error_interrupted">分享已中斷。請再試一次。</string>
+    <string name="share_error_too_many_items">項目過多（一次最多 %1$d 個）。</string>
+    <string name="strip_progress_processing_video_metadata">正在處理影片中繼資料…</string>
+    <string name="strip_progress_reading_essential_metadata">正在讀取基本中繼資料…</string>
+    <string name="strip_progress_reading_image">正在讀取影像…</string>
+    <string name="strip_progress_reading_video">正在讀取影片…</string>
+    <string name="strip_progress_removing_all_metadata">正在移除所有中繼資料…</string>
+    <string name="strip_progress_removing_metadata">正在移除中繼資料…</string>
+    <string name="strip_progress_restoring_essential_metadata">正在還原基本中繼資料…</string>
+    <string name="strip_progress_saving_clean_copy">正在儲存清理後的副本…</string>
+    <string name="strip_progress_saving_clean_video">正在儲存清理後的影片…</string>
+    <string name="strip_progress_transcoding">正在轉碼…</string>
+    <string name="strip_progress_transcoding_target">正在轉碼為目標格式…</string>
+    <string name="strip_progress_transmuxing">正在重新封裝…</string>
+    <string name="strip_progress_verifying">正在驗證中繼資料是否已移除…</string>
 </resources>

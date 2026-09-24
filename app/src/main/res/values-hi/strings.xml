@@ -146,9 +146,9 @@
 
     
     <string name="settings_section_advanced_privacy">मेटाडेटा सफ़ाई</string>
-    <string name="settings_advanced_privacy_subtitle">Redact साफ़ करें टैब पर EXIF कैसे हटाता है। अन्य ऐप्स से साझा करने पर स्थान और कैमरा जानकारी हमेशा आगे भेजने से पहले हटा दी जाती है।</string>
+    <string name="settings_advanced_privacy_subtitle">Redact छिपी हुई जानकारी — जैसे स्थान और कैमरा विवरण (EXIF) — को साफ़ करें टैब पर कैसे हटाता है। अन्य ऐप्स से साझा की गई फ़ाइलों से यह जानकारी आगे भेजने से पहले हमेशा हटा दी जाती है।</string>
     <string name="settings_secure_delete">सुरक्षित हटाने के पास</string>
-    <string name="settings_secure_delete_subtitle">हटाने से पहले अस्थायी फ़ाइलें कितनी बार ओवरराइट हों। अधिक पास = धीमा; फ़्लैश स्टोरेज पर पुनर्प्राप्ति संभव हो सकती है।</string>
+    <string name="settings_secure_delete_subtitle">अस्थायी फ़ाइलें — जिनमें सफ़ाई से पहले फ़ोटो और वीडियो की मूल, असंपादित प्रतियां शामिल हैं — हटाने से पहले कितनी बार ओवरराइट हों, ताकि उनका डेटा डिस्क से पुनर्प्राप्त न किया जा सके। अधिक पास = धीमा; फ़्लैश स्टोरेज पर पुनर्प्राप्ति संभव हो सकती है।</string>
     <string name="settings_auto_clear_temp">शुरू पर कैश साफ़ करें</string>
     <string name="settings_auto_clear_temp_subtitle">ऐप खोलने पर 24 घंटे से पुरानी प्रोसेसिंग कैश फ़ाइलें हटाता है।</string>
     <string name="settings_preserve_camera">कैमरा सेटिंग्स रखें</string>
@@ -160,14 +160,14 @@
     <string name="settings_sentry_consent_title">क्रैश रिपोर्टिंग सक्षम करें?</string>
     <string name="settings_sentry_consent_message">क्रैश रिपोर्ट भेजना इंटरनेट पर Sentry को अनाम निदान अपलोड करता है।\n\nफ़ोटो, वीडियो, फ़ाइल नाम या GPS निर्देशांक अपलोड नहीं होते।</string>
     <string name="settings_strict_clean">सख्त सफ़ाई</string>
-    <string name="settings_strict_clean_subtitle">ओरिएंटेशन सहित सभी मेटाडेटा हटाएँ। रखने के विकल्प बंद करता है और हमेशा वीडियो पूर्ण पुनः-एन्कोड करता है।</string>
+    <string name="settings_strict_clean_subtitle">मेटाडेटा का हर निशान हटाता है, यहाँ तक कि ओरिएंटेशन टैग भी — इसलिए घुमाई गई फ़ोटो बाद में तिरछी दिख सकती है। ऊपर के रखने के विकल्प बंद करता है और सबसे गहन सफ़ाई के लिए वीडियो को हमेशा पूरी तरह पुनः-एन्कोड करता है।</string>
     
     <string name="settings_section_advanced_processing">बड़ी फ़ाइलें और मेमोरी</string>
     <string name="settings_advanced_processing_subtitle">साफ़ और रूपांतरण के दौरान बड़ी छवियों को डिकोड करते समय RAM उपयोग को नियंत्रित करता है।</string>
     <string name="settings_max_bitmap_size">अधिकतम प्रसंस्करण रिज़ॉल्यूशन</string>
     <string name="settings_max_bitmap_size_subtitle">मेमोरी में छवियाँ डिकोड करते समय सबसे लंबी धार पिक्सेल में। कम मान कम RAM उपयोग करते हैं।</string>
     <string name="settings_video_fallback">तेज़ वीडियो सफ़ाई</string>
-    <string name="settings_video_fallback_subtitle">जब आउटपुट पहले से MP4-संगत हो तो त्वरित रीमक्स के बाद पूर्ण पुनः एन्कोडिंग छोड़ें। समय और बैटरी बचाता है; पूर्ण ट्रांसकोड अधिक मेटाडेटा हटाता है। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर बंद।</string>
+    <string name="settings_video_fallback_subtitle">जब आपका वीडियो पहले से संगत प्रारूप में हो, तो Redact पूरी तरह पुनः-एन्कोड करने के बजाय एक त्वरित पास से उसका मेटाडेटा हटाता है — तेज़ और बैटरी पर हल्का, हालांकि पूर्ण पुनः-एन्कोड थोड़ा अधिक हटाता है। सख्त सफ़ाई चालू होने पर या अन्य ऐप्स से साझा फ़ाइलें साफ़ करते समय यह अपने आप बंद हो जाता है।</string>
 
     <string-array name="settings_secure_delete_labels">
         <item>1 पास (तेज़)</item>
@@ -195,7 +195,7 @@
     <string name="settings_section_diagnostics">निदान और प्रतिक्रिया</string>
     <string name="settings_section_diagnostics_subtitle">क्रैश ठीक करने के लिए वैकल्पिक रिपोर्ट। आपका मीडिया कभी डिवाइस से बाहर नहीं जाता।</string>
     <string name="settings_crash_reporting_label">क्रैश रिपोर्ट भेजें</string>
-    <string name="settings_crash_reporting_subtitle">केवल अनाम निदान (ऐप संस्करण, डिवाइस मॉडल, स्टैक ट्रेस)। सक्षम होने पर डेटा इंटरनेट पर Sentry को भेजा जाता है। फ़ोटो और वीडियो कभी अपलोड नहीं होते।</string>
+    <string name="settings_crash_reporting_subtitle">केवल अनाम तकनीकी विवरण साझा करता है (ऐप संस्करण, डिवाइस मॉडल, क्रैश होने पर ऐप क्या कर रहा था) — आपकी फ़ोटो या वीडियो कभी नहीं। सक्षम होने पर हमारी क्रैश-रिपोर्टिंग सेवा, Sentry, को इंटरनेट पर भेजा जाता है।</string>
     <string name="settings_section_conversion">रूपांतरित टैब डिफ़ॉल्ट</string>
     <string name="settings_conversion_subtitle">रूपांतरित पर फ़ाइलें चुनते समय पूर्व-चयनित प्रारूप। प्रत्येक बैच के लिए बदल सकते हैं।</string>
     <string name="settings_default_image_format">डिफ़ॉल्ट छवि प्रारूप</string>
@@ -307,4 +307,20 @@
     <string name="settings_crash_reporting_init_failed">क्रैश रिपोर्टिंग शुरू नहीं हो सकी। बाद में पुनः प्रयास करें।</string>
     <string name="share_error_partial_success">%1$d फ़ाइल(ें) साफ़; %2$d विफल।</string>
     <string name="media_picker_selection_capped">एक बार में अधिकतम %1$d फ़ाइलें चुनी जा सकती हैं।</string>
+    <string name="scan_metadata_truncated">इस स्कैन से कुछ EXIF टैग हटा दिए गए (प्रदर्शन सीमा)।</string>
+    <string name="share_error_interrupted">साझा करना बाधित हुआ। कृपया पुनः प्रयास करें।</string>
+    <string name="share_error_too_many_items">बहुत अधिक आइटम (एक बार में अधिकतम %1$d)।</string>
+    <string name="strip_progress_processing_video_metadata">वीडियो मेटाडेटा संसाधित किया जा रहा है…</string>
+    <string name="strip_progress_reading_essential_metadata">आवश्यक मेटाडेटा पढ़ा जा रहा है…</string>
+    <string name="strip_progress_reading_image">छवि पढ़ी जा रही है…</string>
+    <string name="strip_progress_reading_video">वीडियो पढ़ा जा रहा है…</string>
+    <string name="strip_progress_removing_all_metadata">सभी मेटाडेटा हटाया जा रहा है…</string>
+    <string name="strip_progress_removing_metadata">मेटाडेटा हटाया जा रहा है…</string>
+    <string name="strip_progress_restoring_essential_metadata">आवश्यक मेटाडेटा पुनर्स्थापित किया जा रहा है…</string>
+    <string name="strip_progress_saving_clean_copy">साफ़ प्रति सहेजी जा रही है…</string>
+    <string name="strip_progress_saving_clean_video">साफ़ किया गया वीडियो सहेजा जा रहा है…</string>
+    <string name="strip_progress_transcoding">ट्रांसकोड किया जा रहा है…</string>
+    <string name="strip_progress_transcoding_target">लक्ष्य प्रारूप में ट्रांसकोड किया जा रहा है…</string>
+    <string name="strip_progress_transmuxing">ट्रांसमक्स किया जा रहा है…</string>
+    <string name="strip_progress_verifying">मेटाडेटा निष्कासन सत्यापित किया जा रहा है…</string>
 </resources>

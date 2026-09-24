@@ -146,9 +146,9 @@
 
     
     <string name="settings_section_advanced_privacy">元数据清理</string>
-    <string name="settings_advanced_privacy_subtitle">Redact 如何在清理标签页移除 EXIF。从其他应用分享时，转发前始终会移除位置和相机信息。</string>
+    <string name="settings_advanced_privacy_subtitle">Redact 如何在清理标签页移除隐藏信息——例如位置和相机详情（EXIF）。从其他应用分享的文件在转发前始终会移除这些信息。</string>
     <string name="settings_secure_delete">安全删除遍数</string>
-    <string name="settings_secure_delete_subtitle">删除前覆写临时文件的次数。次数越多越慢；在闪存上仍可能恢复数据。</string>
+    <string name="settings_secure_delete_subtitle">删除前覆写临时文件（包括清理前的原始照片和视频副本）的次数，使其数据无法从磁盘恢复。次数越多越慢；在闪存上仍可能恢复数据。</string>
     <string name="settings_auto_clear_temp">启动时清除缓存</string>
     <string name="settings_auto_clear_temp_subtitle">打开应用时删除超过 24 小时的处理缓存文件。</string>
     <string name="settings_preserve_camera">保留相机设置</string>
@@ -160,14 +160,14 @@
     <string name="settings_sentry_consent_title">启用崩溃报告？</string>
     <string name="settings_sentry_consent_message">发送崩溃报告会通过互联网向 Sentry 上传匿名诊断信息。\n\n不会上传照片、视频、文件名或 GPS 坐标。</string>
     <string name="settings_strict_clean">严格清理</string>
-    <string name="settings_strict_clean_subtitle">移除所有元数据（包括方向）。关闭保留选项并始终完全重新编码视频。</string>
+    <string name="settings_strict_clean_subtitle">移除所有元数据痕迹，甚至包括方向标签——因此旋转过的照片之后可能会显示为歪斜。关闭上方的保留选项，并始终完全重新编码视频以实现最彻底的清理。</string>
     
     <string name="settings_section_advanced_processing">大文件与内存</string>
     <string name="settings_advanced_processing_subtitle">控制清理和转换时解码大图像的内存使用。</string>
     <string name="settings_max_bitmap_size">最大处理分辨率</string>
     <string name="settings_max_bitmap_size_subtitle">在内存中解码图像时的最长边像素数。较低值使用更少 RAM。</string>
     <string name="settings_video_fallback">更快的视频清理</string>
-    <string name="settings_video_fallback_subtitle">当输出已兼容 MP4 时，快速 remux 后跳过完整重新编码。节省时间和电量；完整转码可移除更多元数据。严格清理或从其他应用分享时关闭。</string>
+    <string name="settings_video_fallback_subtitle">当视频已经是兼容格式时，Redact 会用快速处理来移除其元数据，而不是完全重新编码——速度更快、更省电，不过完全重新编码能多移除一点。在开启严格清理或清理从其他应用分享的文件时会自动关闭此功能。</string>
 
     <string-array name="settings_secure_delete_labels">
         <item>1 遍（快速）</item>
@@ -195,7 +195,7 @@
     <string name="settings_section_diagnostics">诊断与反馈</string>
     <string name="settings_section_diagnostics_subtitle">可选崩溃报告以帮助修复问题。您的媒体永远不会离开设备。</string>
     <string name="settings_crash_reporting_label">发送崩溃报告</string>
-    <string name="settings_crash_reporting_subtitle">仅匿名诊断信息（应用版本、设备型号、堆栈跟踪）。启用后，数据会通过互联网发送至 Sentry。照片和视频绝不会上传。</string>
+    <string name="settings_crash_reporting_subtitle">仅分享匿名的技术信息（应用版本、设备型号、崩溃时应用正在做什么）——绝不包含您的照片或视频。启用后会通过互联网发送至我们的崩溃报告服务 Sentry。</string>
     <string name="settings_section_conversion">转换标签页默认值</string>
     <string name="settings_conversion_subtitle">在“转换”中选择文件时预选格式。仍可为每批更改。</string>
     <string name="settings_default_image_format">默认图片格式</string>
@@ -307,4 +307,20 @@
     <string name="settings_crash_reporting_init_failed">无法启动崩溃报告，请稍后重试。</string>
     <string name="share_error_partial_success">已清理 %1$d 个文件；%2$d 个失败。</string>
     <string name="media_picker_selection_capped">一次最多只能选择 %1$d 个文件。</string>
+    <string name="scan_metadata_truncated">此次扫描省略了部分 EXIF 标签（显示上限）。</string>
+    <string name="share_error_interrupted">分享已中断。请重试。</string>
+    <string name="share_error_too_many_items">项目过多（一次最多 %1$d 个）。</string>
+    <string name="strip_progress_processing_video_metadata">正在处理视频元数据…</string>
+    <string name="strip_progress_reading_essential_metadata">正在读取基本元数据…</string>
+    <string name="strip_progress_reading_image">正在读取图像…</string>
+    <string name="strip_progress_reading_video">正在读取视频…</string>
+    <string name="strip_progress_removing_all_metadata">正在删除全部元数据…</string>
+    <string name="strip_progress_removing_metadata">正在删除元数据…</string>
+    <string name="strip_progress_restoring_essential_metadata">正在恢复基本元数据…</string>
+    <string name="strip_progress_saving_clean_copy">正在保存清理后的副本…</string>
+    <string name="strip_progress_saving_clean_video">正在保存清理后的视频…</string>
+    <string name="strip_progress_transcoding">正在转码…</string>
+    <string name="strip_progress_transcoding_target">正在转码为目标格式…</string>
+    <string name="strip_progress_transmuxing">正在重新封装…</string>
+    <string name="strip_progress_verifying">正在验证元数据是否已删除…</string>
 </resources>
