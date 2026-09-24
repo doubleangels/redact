@@ -306,4 +306,20 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_crash_reporting_init_failed">Absturzberichte konnten nicht gestartet werden. Versuchen Sie es später erneut.</string>
     <string name="share_error_partial_success">%1$d Datei(en) bereinigt; %2$d fehlgeschlagen.</string>
     <string name="media_picker_selection_capped">Es können höchstens %1$d Dateien gleichzeitig ausgewählt werden.</string>
+    <string name="scan_metadata_truncated">Einige EXIF-Tags wurden bei diesem Scan ausgelassen (Anzeigelimit).</string>
+    <string name="share_error_interrupted">Das Teilen wurde unterbrochen. Bitte versuchen Sie es erneut.</string>
+    <string name="share_error_too_many_items">Zu viele Elemente (max. %1$d gleichzeitig).</string>
+    <string name="strip_progress_processing_video_metadata">Video-Metadaten werden verarbeitet…</string>
+    <string name="strip_progress_reading_essential_metadata">Wichtige Metadaten werden gelesen…</string>
+    <string name="strip_progress_reading_image">Bild wird gelesen…</string>
+    <string name="strip_progress_reading_video">Video wird gelesen…</string>
+    <string name="strip_progress_removing_all_metadata">Alle Metadaten werden entfernt…</string>
+    <string name="strip_progress_removing_metadata">Metadaten werden entfernt…</string>
+    <string name="strip_progress_restoring_essential_metadata">Wichtige Metadaten werden wiederhergestellt…</string>
+    <string name="strip_progress_saving_clean_copy">Bereinigte Kopie wird gespeichert…</string>
+    <string name="strip_progress_saving_clean_video">Bereinigtes Video wird gespeichert…</string>
+    <string name="strip_progress_transcoding">Wird transkodiert…</string>
+    <string name="strip_progress_transcoding_target">Wird in Zielformat transkodiert…</string>
+    <string name="strip_progress_transmuxing">Container wird neu gemuxt…</string>
+    <string name="strip_progress_verifying">Überprüfung der Metadatenentfernung…</string>
 </resources>

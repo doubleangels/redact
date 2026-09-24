@@ -307,4 +307,20 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="settings_crash_reporting_init_failed">Não foi possível iniciar relatórios de falha. Tente novamente mais tarde.</string>
     <string name="share_error_partial_success">%1$d arquivo(s) limpo(s); %2$d falharam.</string>
     <string name="media_picker_selection_capped">Somente %1$d arquivos podem ser selecionados por vez.</string>
+    <string name="scan_metadata_truncated">Algumas tags EXIF foram omitidas desta verificação (limite de exibição).</string>
+    <string name="share_error_interrupted">O compartilhamento foi interrompido. Tente novamente.</string>
+    <string name="share_error_too_many_items">Muitos itens (máx. %1$d por vez).</string>
+    <string name="strip_progress_processing_video_metadata">Processando metadados do vídeo…</string>
+    <string name="strip_progress_reading_essential_metadata">Lendo metadados essenciais…</string>
+    <string name="strip_progress_reading_image">Lendo imagem…</string>
+    <string name="strip_progress_reading_video">Lendo vídeo…</string>
+    <string name="strip_progress_removing_all_metadata">Removendo todos os metadados…</string>
+    <string name="strip_progress_removing_metadata">Removendo metadados…</string>
+    <string name="strip_progress_restoring_essential_metadata">Restaurando metadados essenciais…</string>
+    <string name="strip_progress_saving_clean_copy">Salvando cópia limpa…</string>
+    <string name="strip_progress_saving_clean_video">Salvando vídeo limpo…</string>
+    <string name="strip_progress_transcoding">Transcodificando…</string>
+    <string name="strip_progress_transcoding_target">Transcodificando para o formato de destino…</string>
+    <string name="strip_progress_transmuxing">Remultiplexando o vídeo…</string>
+    <string name="strip_progress_verifying">Verificando remoção de metadados…</string>
 </resources>

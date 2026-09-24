@@ -307,4 +307,20 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="settings_crash_reporting_init_failed">Impossible de démarrer les rapports de plantage. Réessayez plus tard.</string>
     <string name="share_error_partial_success">%1$d fichier(s) nettoyé(s) ; %2$d en échec.</string>
     <string name="media_picker_selection_capped">Seuls %1$d fichiers peuvent être sélectionnés à la fois.</string>
+    <string name="scan_metadata_truncated">Certaines balises EXIF ont été omises de cette analyse (limite d\'affichage).</string>
+    <string name="share_error_interrupted">Le partage a été interrompu. Veuillez réessayer.</string>
+    <string name="share_error_too_many_items">Trop d\'éléments (max. %1$d à la fois).</string>
+    <string name="strip_progress_processing_video_metadata">Traitement des métadonnées vidéo en cours…</string>
+    <string name="strip_progress_reading_essential_metadata">Lecture des métadonnées essentielles en cours…</string>
+    <string name="strip_progress_reading_image">Lecture de l\'image en cours…</string>
+    <string name="strip_progress_reading_video">Lecture de la vidéo en cours…</string>
+    <string name="strip_progress_removing_all_metadata">Suppression de toutes les métadonnées en cours…</string>
+    <string name="strip_progress_removing_metadata">Suppression des métadonnées en cours…</string>
+    <string name="strip_progress_restoring_essential_metadata">Restauration des métadonnées essentielles en cours…</string>
+    <string name="strip_progress_saving_clean_copy">Enregistrement de la copie nettoyée en cours…</string>
+    <string name="strip_progress_saving_clean_video">Enregistrement de la vidéo nettoyée en cours…</string>
+    <string name="strip_progress_transcoding">Transcodage en cours…</string>
+    <string name="strip_progress_transcoding_target">Transcodage vers le format cible en cours…</string>
+    <string name="strip_progress_transmuxing">Remultiplexage en cours…</string>
+    <string name="strip_progress_verifying">Vérification de la suppression des métadonnées en cours…</string>
 </resources>

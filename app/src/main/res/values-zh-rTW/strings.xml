@@ -307,4 +307,20 @@
     <string name="settings_crash_reporting_init_failed">無法啟動當機回報，請稍後再試。</string>
     <string name="share_error_partial_success">已清理 %1$d 個檔案；%2$d 個失敗。</string>
     <string name="media_picker_selection_capped">一次最多只能選擇 %1$d 個檔案。</string>
+    <string name="scan_metadata_truncated">本次掃描省略了部分 EXIF 標籤（顯示上限）。</string>
+    <string name="share_error_interrupted">分享已中斷。請再試一次。</string>
+    <string name="share_error_too_many_items">項目過多（一次最多 %1$d 個）。</string>
+    <string name="strip_progress_processing_video_metadata">正在處理影片中繼資料…</string>
+    <string name="strip_progress_reading_essential_metadata">正在讀取基本中繼資料…</string>
+    <string name="strip_progress_reading_image">正在讀取影像…</string>
+    <string name="strip_progress_reading_video">正在讀取影片…</string>
+    <string name="strip_progress_removing_all_metadata">正在移除所有中繼資料…</string>
+    <string name="strip_progress_removing_metadata">正在移除中繼資料…</string>
+    <string name="strip_progress_restoring_essential_metadata">正在還原基本中繼資料…</string>
+    <string name="strip_progress_saving_clean_copy">正在儲存清理後的副本…</string>
+    <string name="strip_progress_saving_clean_video">正在儲存清理後的影片…</string>
+    <string name="strip_progress_transcoding">正在轉碼…</string>
+    <string name="strip_progress_transcoding_target">正在轉碼為目標格式…</string>
+    <string name="strip_progress_transmuxing">正在重新封裝…</string>
+    <string name="strip_progress_verifying">正在驗證中繼資料是否已移除…</string>
 </resources>

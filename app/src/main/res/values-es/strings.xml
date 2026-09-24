@@ -307,4 +307,20 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="settings_crash_reporting_init_failed">No se pudieron iniciar los informes de fallos. Inténtalo más tarde.</string>
     <string name="share_error_partial_success">%1$d archivo(s) limpiado(s); %2$d con error.</string>
     <string name="media_picker_selection_capped">Solo se pueden seleccionar %1$d archivos a la vez.</string>
+    <string name="scan_metadata_truncated">Algunas etiquetas EXIF se omitieron en este escaneo (límite de visualización).</string>
+    <string name="share_error_interrupted">Se interrumpió el uso compartido. Inténtelo de nuevo.</string>
+    <string name="share_error_too_many_items">Demasiados elementos (máx. %1$d a la vez).</string>
+    <string name="strip_progress_processing_video_metadata">Procesando metadatos de video…</string>
+    <string name="strip_progress_reading_essential_metadata">Leyendo metadatos esenciales…</string>
+    <string name="strip_progress_reading_image">Leyendo imagen…</string>
+    <string name="strip_progress_reading_video">Leyendo video…</string>
+    <string name="strip_progress_removing_all_metadata">Eliminando todos los metadatos…</string>
+    <string name="strip_progress_removing_metadata">Eliminando metadatos…</string>
+    <string name="strip_progress_restoring_essential_metadata">Restaurando metadatos esenciales…</string>
+    <string name="strip_progress_saving_clean_copy">Guardando copia limpia…</string>
+    <string name="strip_progress_saving_clean_video">Guardando video limpio…</string>
+    <string name="strip_progress_transcoding">Transcodificando…</string>
+    <string name="strip_progress_transcoding_target">Transcodificando al formato de destino…</string>
+    <string name="strip_progress_transmuxing">Remultiplexando video…</string>
+    <string name="strip_progress_verifying">Verificando la eliminación de metadatos…</string>
 </resources>

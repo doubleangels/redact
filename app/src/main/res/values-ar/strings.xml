@@ -307,4 +307,20 @@
     <string name="settings_crash_reporting_init_failed">تعذر بدء تقارير الأعطال. حاول لاحقاً.</string>
     <string name="share_error_partial_success">تم تنظيف %1$d ملف(ات)؛ فشل %2$d.</string>
     <string name="media_picker_selection_capped">يمكن تحديد %1$d ملفات فقط في المرة الواحدة.</string>
+    <string name="scan_metadata_truncated">تم حذف بعض علامات EXIF من هذا الفحص (حد العرض).</string>
+    <string name="share_error_interrupted">تمت مقاطعة المشاركة. يرجى المحاولة مرة أخرى.</string>
+    <string name="share_error_too_many_items">عدد العناصر كبير جدًا (الحد الأقصى %1$d في المرة الواحدة).</string>
+    <string name="strip_progress_processing_video_metadata">جارٍ معالجة بيانات الفيديو الوصفية…</string>
+    <string name="strip_progress_reading_essential_metadata">جارٍ قراءة البيانات الوصفية الأساسية…</string>
+    <string name="strip_progress_reading_image">جارٍ قراءة الصورة…</string>
+    <string name="strip_progress_reading_video">جارٍ قراءة الفيديو…</string>
+    <string name="strip_progress_removing_all_metadata">جارٍ إزالة جميع البيانات الوصفية…</string>
+    <string name="strip_progress_removing_metadata">جارٍ إزالة البيانات الوصفية…</string>
+    <string name="strip_progress_restoring_essential_metadata">جارٍ استعادة البيانات الوصفية الأساسية…</string>
+    <string name="strip_progress_saving_clean_copy">جارٍ حفظ النسخة النظيفة…</string>
+    <string name="strip_progress_saving_clean_video">جارٍ حفظ الفيديو النظيف…</string>
+    <string name="strip_progress_transcoding">جارٍ إعادة الترميز…</string>
+    <string name="strip_progress_transcoding_target">جارٍ إعادة الترميز إلى الصيغة المطلوبة…</string>
+    <string name="strip_progress_transmuxing">جارٍ إعادة تعبئة الفيديو…</string>
+    <string name="strip_progress_verifying">جارٍ التحقق من إزالة البيانات الوصفية…</string>
 </resources>

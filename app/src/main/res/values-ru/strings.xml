@@ -307,4 +307,20 @@
     <string name="settings_crash_reporting_init_failed">Не удалось запустить отчёты о сбоях. Попробуйте позже.</string>
     <string name="share_error_partial_success">Очищено %1$d файл(ов); ошибка: %2$d.</string>
     <string name="media_picker_selection_capped">За раз можно выбрать не более %1$d файлов.</string>
+    <string name="scan_metadata_truncated">Некоторые теги EXIF были опущены при этом сканировании (ограничение отображения).</string>
+    <string name="share_error_interrupted">Отправка была прервана. Попробуйте снова.</string>
+    <string name="share_error_too_many_items">Слишком много элементов (макс. %1$d за раз).</string>
+    <string name="strip_progress_processing_video_metadata">Обработка метаданных видео…</string>
+    <string name="strip_progress_reading_essential_metadata">Чтение основных метаданных…</string>
+    <string name="strip_progress_reading_image">Чтение изображения…</string>
+    <string name="strip_progress_reading_video">Чтение видео…</string>
+    <string name="strip_progress_removing_all_metadata">Удаление всех метаданных…</string>
+    <string name="strip_progress_removing_metadata">Удаление метаданных…</string>
+    <string name="strip_progress_restoring_essential_metadata">Восстановление основных метаданных…</string>
+    <string name="strip_progress_saving_clean_copy">Сохранение очищенной копии…</string>
+    <string name="strip_progress_saving_clean_video">Сохранение очищенного видео…</string>
+    <string name="strip_progress_transcoding">Транскодирование…</string>
+    <string name="strip_progress_transcoding_target">Транскодирование в целевой формат…</string>
+    <string name="strip_progress_transmuxing">Ремультиплексирование видео…</string>
+    <string name="strip_progress_verifying">Проверка удаления метаданных…</string>
 </resources>

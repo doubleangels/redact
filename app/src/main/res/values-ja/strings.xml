@@ -307,4 +307,20 @@
     <string name="settings_crash_reporting_init_failed">クラッシュ報告を開始できませんでした。後でもう一度お試しください。</string>
     <string name="share_error_partial_success">%1$d 件をクリーン化、%2$d 件が失敗しました。</string>
     <string name="media_picker_selection_capped">一度に選択できるのは %1$d ファイルまでです。</string>
+    <string name="scan_metadata_truncated">一部のEXIFタグはこのスキャンで省略されました(表示上限のため)。</string>
+    <string name="share_error_interrupted">共有が中断されました。もう一度お試しください。</string>
+    <string name="share_error_too_many_items">アイテムが多すぎます(一度に最大%1$d件まで)。</string>
+    <string name="strip_progress_processing_video_metadata">動画のメタデータを処理中…</string>
+    <string name="strip_progress_reading_essential_metadata">重要なメタデータを読み取り中…</string>
+    <string name="strip_progress_reading_image">画像を読み取り中…</string>
+    <string name="strip_progress_reading_video">動画を読み取り中…</string>
+    <string name="strip_progress_removing_all_metadata">すべてのメタデータを削除中…</string>
+    <string name="strip_progress_removing_metadata">メタデータを削除中…</string>
+    <string name="strip_progress_restoring_essential_metadata">重要なメタデータを復元中…</string>
+    <string name="strip_progress_saving_clean_copy">クリーンなコピーを保存中…</string>
+    <string name="strip_progress_saving_clean_video">クリーンな動画を保存中…</string>
+    <string name="strip_progress_transcoding">トランスコード中…</string>
+    <string name="strip_progress_transcoding_target">目的の形式にトランスコード中…</string>
+    <string name="strip_progress_transmuxing">コンテナを再構成中…</string>
+    <string name="strip_progress_verifying">メタデータの削除を確認中…</string>
 </resources>

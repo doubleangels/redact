@@ -307,4 +307,20 @@
     <string name="settings_crash_reporting_init_failed">충돌 보고를 시작할 수 없습니다. 나중에 다시 시도하세요.</string>
     <string name="share_error_partial_success">%1$d개 정리됨, %2$d개 실패.</string>
     <string name="media_picker_selection_capped">한 번에 %1$d개 파일만 선택할 수 있습니다.</string>
+    <string name="scan_metadata_truncated">이 스캔에서 일부 EXIF 태그가 생략되었습니다(표시 제한).</string>
+    <string name="share_error_interrupted">공유가 중단되었습니다. 다시 시도해 주세요.</string>
+    <string name="share_error_too_many_items">항목이 너무 많습니다(한 번에 최대 %1$d개).</string>
+    <string name="strip_progress_processing_video_metadata">동영상 메타데이터 처리 중…</string>
+    <string name="strip_progress_reading_essential_metadata">필수 메타데이터 읽는 중…</string>
+    <string name="strip_progress_reading_image">이미지 읽는 중…</string>
+    <string name="strip_progress_reading_video">동영상 읽는 중…</string>
+    <string name="strip_progress_removing_all_metadata">모든 메타데이터 삭제 중…</string>
+    <string name="strip_progress_removing_metadata">메타데이터 삭제 중…</string>
+    <string name="strip_progress_restoring_essential_metadata">필수 메타데이터 복원 중…</string>
+    <string name="strip_progress_saving_clean_copy">정리된 사본 저장 중…</string>
+    <string name="strip_progress_saving_clean_video">정리된 동영상 저장 중…</string>
+    <string name="strip_progress_transcoding">트랜스코딩 중…</string>
+    <string name="strip_progress_transcoding_target">대상 형식으로 트랜스코딩 중…</string>
+    <string name="strip_progress_transmuxing">컨테이너 재구성 중…</string>
+    <string name="strip_progress_verifying">메타데이터 삭제 확인 중…</string>
 </resources>
