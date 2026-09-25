@@ -34,6 +34,7 @@ import com.doubleangels.redact.ui.ScanMetadataAdapter;
 import com.doubleangels.redact.ui.ScanViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.divider.MaterialDividerItemDecoration;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.util.ArrayList;
@@ -144,6 +145,13 @@ public class ScanFragment extends Fragment {
         scanMetadataAdapter = new ScanMetadataAdapter();
         metadataItemsRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         metadataItemsRecycler.setAdapter(scanMetadataAdapter);
+        MaterialDividerItemDecoration metadataDivider = new MaterialDividerItemDecoration(
+                requireContext(), LinearLayoutManager.VERTICAL);
+        int dividerInset = getResources().getDimensionPixelSize(R.dimen.scan_metadata_row_horizontal_padding);
+        metadataDivider.setDividerInsetStart(dividerInset);
+        metadataDivider.setDividerInsetEnd(dividerInset);
+        metadataDivider.setLastItemDecorated(false);
+        metadataItemsRecycler.addItemDecoration(metadataDivider);
         metadataItemsRecycler.setNestedScrollingEnabled(false);
         metadataFooter = view.findViewById(R.id.metadataFooter);
         metadataCard = view.findViewById(R.id.metadataCard);
