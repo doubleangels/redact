@@ -29,7 +29,9 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 import org.robolectric.shadows.ShadowDialog;
+import org.robolectric.shadows.ShadowLog;
 import org.robolectric.shadows.ShadowToast;
 
 import java.io.File;
@@ -40,6 +42,7 @@ import java.util.List;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 34)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class ShareHandlerActivityTest {
 
     private static final long PROCESSING_TIMEOUT_MS = 20_000L;
@@ -116,6 +119,20 @@ public class ShareHandlerActivityTest {
     private static void assumeFileProviderUsable() {
         assumeFalse("FileProvider path matching fails on Windows hosts",
                 System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).startsWith("windows"));
+    }
+
+    /** Error-level logcat captured during the test, to make CI failures diagnosable. */
+    private static String loggedErrors() {
+        StringBuilder sb = new StringBuilder();
+        for (ShadowLog.LogItem item : ShadowLog.getLogs()) {
+            if (item.type >= android.util.Log.WARN) {
+                sb.append(System.lineSeparator()).append(item.tag).append(": ").append(item.msg);
+                if (item.throwable != null) {
+                    sb.append(" -> ").append(item.throwable);
+                }
+            }
+        }
+        return sb.toString();
     }
 
     private void assertFinishedWithError(ShareHandlerActivity activity, int messageRes) {
@@ -252,7 +269,8 @@ public class ShareHandlerActivityTest {
 
         Intent chooser = awaitStartedActivity(activity);
 
-        assertNotNull("Expected share chooser; toast was: " + ShadowToast.getTextOfLatestToast(),
+        assertNotNull("Expected share chooser; toast was: " + ShadowToast.getTextOfLatestToast()
+                        + loggedErrors(),
                 chooser);
         assertEquals(Intent.ACTION_CHOOSER, chooser.getAction());
         Intent share = chooser.getParcelableExtra(Intent.EXTRA_INTENT, Intent.class);
@@ -276,7 +294,8 @@ public class ShareHandlerActivityTest {
 
         Intent chooser = awaitStartedActivity(activity);
 
-        assertNotNull("Expected share chooser; toast was: " + ShadowToast.getTextOfLatestToast(),
+        assertNotNull("Expected share chooser; toast was: " + ShadowToast.getTextOfLatestToast()
+                        + loggedErrors(),
                 chooser);
         Intent share = chooser.getParcelableExtra(Intent.EXTRA_INTENT, Intent.class);
         assertNotNull(share);
@@ -299,7 +318,7 @@ public class ShareHandlerActivityTest {
 
         Intent started = awaitStartedActivity(activity);
 
-        assertNull(started);
+        assertNull("Unexpected share chooser" + loggedErrors(), started);
         assertFinishedWithError(activity, R.string.share_error_processing_failed);
         assertFalse(ShareHandlerActivity.isShareProcessingActive());
     }
