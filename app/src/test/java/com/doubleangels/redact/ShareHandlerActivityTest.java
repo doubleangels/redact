@@ -56,6 +56,25 @@ public class ShareHandlerActivityTest {
         app = RuntimeEnvironment.getApplication();
         AppPreferences.setShareConfirmBeforeStrip(app, false);
         deleteInboundSnapshots();
+        clearFileProviderCache();
+    }
+
+    /**
+     * FileProvider caches its path roots statically, but Robolectric gives each test a new
+     * data directory, so a cached strategy from an earlier test rejects this test's files.
+     */
+    private static void clearFileProviderCache() {
+        try {
+            java.lang.reflect.Field cache =
+                    androidx.core.content.FileProvider.class.getDeclaredField("sCache");
+            cache.setAccessible(true);
+            Object map = cache.get(null);
+            synchronized (map) {
+                ((java.util.Map<?, ?>) map).clear();
+            }
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Could not reset FileProvider cache", e);
+        }
     }
 
     @After
