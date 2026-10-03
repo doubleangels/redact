@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.sentry.android.gradle)
+    alias(libs.plugins.baselineprofile)
 }
 
 android {
@@ -115,6 +116,8 @@ dependencies {
   // Latest published release (still alpha); used for lossless JPEG EXIF strip only.
     implementation libs.commons.imaging
     implementation libs.lifecycle.viewmodel.ktx
+    implementation libs.profileinstaller
+    baselineProfile project(':baselineprofile')
 
     testImplementation libs.junit
     testImplementation libs.robolectric
