@@ -1,33 +1,33 @@
 <b>Redact : confidentialité et suppression de métadonnées</b>
 
-<p>Protégez votre vie privée avec Redact — supprimez les métadonnées EXIF cachées des photos et vidéos, inspectez ce qui est embarqué avant de partager et convertissez les formats localement sur votre appareil.</p>
+<p>Protégez votre vie privée avec Redact. L'application supprime les métadonnées EXIF cachées de vos photos et vidéos, vous montre exactement ce qui est intégré dans un fichier avant que vous le partagiez, et convertit les formats directement sur votre appareil.</p>
 
 <b>Fonctionnalités clés :</b>
 
 <ul>
 <li><b>Protection complète de la vie privée :</b><br>
-Supprimez la localisation GPS, les détails de l'appareil, les horodatages, les réglages photo et autres métadonnées cachées. Le nettoyage vidéo utilise remux ou transcodage complet (au choix dans les réglages) tout en préservant la qualité de lecture.</li>
+Redact supprime la localisation GPS, les détails de l'appareil, les horodatages, les réglages de l'appareil photo et d'autres métadonnées cachées. Pour le nettoyage vidéo, vous pouvez choisir dans les réglages entre un remux rapide ou un transcodage complet, tout en conservant la qualité de lecture.</li>
 
-<li><b>Visionneuse de métadonnées :</b><br>
-Analysez photos ou vidéos pour voir EXIF et métadonnées du conteneur avant nettoyage. Copiez des valeurs ou envoyez vers Nettoyer ou Convertir.</li>
+<li><b>Une visionneuse de métadonnées vraiment lisible :</b><br>
+Analysez n'importe quelle photo ou vidéo pour voir ses métadonnées EXIF et de conteneur présentées clairement, avant de décider quoi en faire. Copiez des valeurs, envoyez le fichier vers Nettoyer ou Convertir, ou ouvrez une localisation associée directement dans votre application de cartes par défaut. Ouvrir une localisation partage ces coordonnées avec cette application séparée, c'est pourquoi Redact vous demande votre permission la première fois que vous essayez.</li>
 
 <li><b>Nettoyer, analyser, convertir et partager :</b><br>
-Nettoyez les métadonnées par lots (jusqu'à 20 fichiers). Convertissez les formats sans serveur — puis Nettoyer si vous voulez aussi supprimer les métadonnées des fichiers convertis. Partagez vers Redact depuis toute app ; annulez les longues tâches ou continuez en cas de succès partiel.</li>
+Nettoyez les métadonnées par lots allant jusqu'à 20 fichiers. Convertissez des formats d'image et de vidéo sans rien envoyer à un serveur, puis utilisez Nettoyer ensuite si vous voulez aussi supprimer les métadonnées des fichiers convertis. Partagez vers Redact depuis n'importe quelle application, annulez les tâches longues à tout moment, et Redact continue avec un succès partiel si un fichier échoue. Redact n'impose aucune limite de taille de fichier, et il affiche des avertissements sur le stockage et la mémoire avant toute tâche importante.</li>
 
-<li><b>Autorisations axées sur la confidentialité :</b><br>
-Sur Android 13+, parcourez Téléchargements, Fichiers ou dossiers galerie avec le sélecteur de documents système — sans accès large à la bibliothèque. L'autorisation optionnelle de localisation photo affiche le GPS dans Analyser. Rapports de plantage et notifications désactivés par défaut.</li>
+<li><b>Des autorisations pensées pour votre vie privée :</b><br>
+À partir d'Android 13, Redact utilise le sélecteur de documents du système, ce qui vous permet de choisir des fichiers dans Téléchargements, dans l'application Fichiers ou dans vos dossiers de galerie, sans accorder un accès large à votre bibliothèque. L'autorisation optionnelle de localisation des photos affiche les champs GPS dans Analyser. Les rapports de plantage et les notifications restent désactivés jusqu'à ce que vous les activiez vous-même.</li>
 
-<li><b>Traitement 100 % local :</b><br>
-Nettoyage, analyse et conversion sur l'appareil. Diagnostics de plantage optionnels (Sentry) n'envoient jamais vos médias. Videz le cache manuellement ou supprimez les anciens fichiers au démarrage.</li>
+<li><b>Un traitement qui reste sur votre appareil :</b><br>
+Le nettoyage, l'analyse et la conversion se déroulent entièrement en local. La seule exception est l'ouverture d'une localisation analysée dans votre application de cartes, ce qui n'arrive qu'après votre accord. Le diagnostic de plantage optionnel et anonymisé via Sentry n'inclut jamais vos médias, et les fichiers temporaires du cache sont supprimés automatiquement ou quand vous le décidez depuis les réglages.</li>
 
 <li><b>Open source et sans publicité :</b><br>
-Pas de pubs ni de suivi comportemental. Code sur GitHub pour revue communautaire.</li>
+Redact n'a ni publicité ni suivi comportemental, et son code source est disponible sur GitHub pour que chacun puisse le vérifier.</li>
 
 <li><b>13 langues :</b><br>
 Anglais, espagnol, français, allemand, italien, portugais, russe, japonais, coréen, chinois (simplifié et traditionnel), hindi et arabe.</li>
 </ul>
 
-<p>Les métadonnées EXIF peuvent révéler coordonnées GPS, modèle d'appareil et réglages de prise de vue. Redact vous aide à partager selon vos conditions — qualité préservée, fichiers sur votre téléphone.</p>
+<p>Les métadonnées EXIF peuvent révéler les coordonnées GPS, le modèle de votre appareil et les réglages exacts utilisés pour prendre une photo. Redact vous aide à partager vos photos et vidéos selon vos propres conditions, en préservant la qualité et en gardant vos fichiers sur votre téléphone.</p>
 
 <p><b>Comment ça marche :</b></p>
-<p>Sélectionnez des médias dans Redact ou partagez depuis une autre app, appuyez sur Nettoyer les métadonnées et enregistrez des copies sûres dans la galerie. Lors d'un partage entrant, Redact supprime les métadonnées avant de transférer. Nettoyage strict et partage retirent toujours la localisation.</p>
+<p>Sélectionnez des fichiers dans Redact, ou partagez-les depuis une autre application, appuyez sur Nettoyer les métadonnées et enregistrez des copies sûres directement dans votre galerie. Le partage entrant supprime les métadonnées avant que vous ne transfériez les fichiers, et le Nettoyage strict comme le partage suppriment toujours la localisation.</p>
