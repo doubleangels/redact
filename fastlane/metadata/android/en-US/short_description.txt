@@ -1,1 +1,1 @@
-Remove hidden metadata, scan EXIF, and convert media — all on-device.
+Remove hidden metadata, scan EXIF, and convert media, all on your device.

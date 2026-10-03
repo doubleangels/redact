@@ -1,33 +1,33 @@
 <b>Redact: privacidade e removedor de metadados</b>
 
-<p>Proteja sua privacidade com o Redact — remova metadados EXIF ocultos de fotos e vídeos, inspecione o que está embutido antes de compartilhar e converta formatos localmente no dispositivo.</p>
+<p>Proteja sua privacidade com o Redact. O aplicativo remove os metadados EXIF ocultos de suas fotos e vídeos, mostra exatamente o que está embutido em um arquivo antes de você compartilhá-lo, e converte formatos diretamente no seu dispositivo.</p>
 
 <b>Recursos principais:</b>
 
 <ul>
 <li><b>Proteção completa de privacidade:</b><br>
-Remova localização GPS, detalhes do dispositivo, carimbos de data/hora, configurações da câmera e outros metadados ocultos. Limpeza de vídeo por remux ou transcodificação completa (nas configurações), preservando a qualidade de reprodução.</li>
+O Redact remove a localização GPS, detalhes do dispositivo, carimbos de data e hora, configurações de câmera e outros metadados ocultos. Para a limpeza de vídeo, você pode escolher nas configurações entre um remux rápido ou uma transcodificação completa, sempre preservando a qualidade de reprodução.</li>
 
-<li><b>Visualizador de metadados:</b><br>
-Escaneie fotos ou vídeos para ver EXIF e metadados do contêiner organizados antes de limpar. Copie valores ou envie para Limpar ou Converter.</li>
+<li><b>Um visualizador de metadados que você realmente entende:</b><br>
+Escaneie qualquer foto ou vídeo para ver seus metadados EXIF e de contêiner organizados com clareza, antes de decidir o que fazer com eles. Copie valores, envie o arquivo para Limpar ou Converter, ou abra uma localização anexada direto no seu aplicativo de mapas padrão. Abrir uma localização compartilha essas coordenadas com esse aplicativo separado, por isso o Redact pede sua permissão na primeira vez que você usa esse recurso.</li>
 
 <li><b>Limpar, escanear, converter e compartilhar:</b><br>
-Limpe metadados em lotes (até 20 arquivos). Converta formatos sem enviar a um servidor — depois use Limpar se quiser remover metadados dos convertidos. Compartilhe para o Redact de qualquer app; cancele trabalhos longos ou continue com sucesso parcial.</li>
+Limpe metadados em lotes de até 20 arquivos. Converta formatos de imagem e vídeo sem enviar nada a um servidor, e use Limpar depois se também quiser remover os metadados dos arquivos convertidos. Compartilhe para o Redact a partir de qualquer app, cancele trabalhos longos quando quiser, e o Redact continua com sucesso parcial se algum arquivo falhar. O Redact não impõe um limite rígido de tamanho de arquivo, e mostra avisos de armazenamento e memória antes de qualquer trabalho grande.</li>
 
-<li><b>Permissões com privacidade em primeiro lugar:</b><br>
-No Android 13+, escolha arquivos em Downloads, Arquivos ou pastas da galeria com o seletor de documentos do sistema — sem acesso amplo à biblioteca. Permissão opcional de localização de fotos mostra GPS em Escanear. Relatórios de falha e notificações desativados por padrão.</li>
+<li><b>Permissões que respeitam sua privacidade:</b><br>
+A partir do Android 13, o Redact usa o seletor de documentos do sistema, então você pode escolher arquivos em Downloads, no app Arquivos ou nas pastas da galeria sem conceder acesso amplo à sua biblioteca. A permissão opcional de localização de fotos mostra os campos de GPS em Escanear. Relatórios de falha e notificações permanecem desativados até você mesmo ativá-los.</li>
 
-<li><b>Processamento 100% local:</b><br>
-Limpeza, escaneamento e conversão no dispositivo. Diagnósticos de falha opcionais (Sentry) nunca enviam sua mídia. Limpe o cache manualmente ou remova arquivos antigos na inicialização.</li>
+<li><b>Processamento que fica no seu dispositivo:</b><br>
+Limpeza, escaneamento e conversão acontecem totalmente no dispositivo. A única exceção é abrir uma localização escaneada no seu aplicativo de mapas, o que só acontece depois que você concorda. O diagnóstico de falhas opcional e anonimizado via Sentry nunca inclui sua mídia, e os arquivos temporários de cache são removidos automaticamente ou quando você escolhe, pelas configurações.</li>
 
 <li><b>Código aberto e sem anúncios:</b><br>
-Sem anúncios ou rastreamento comportamental. Código no GitHub para revisão da comunidade.</li>
+O Redact não tem anúncios nem rastreamento de comportamento, e seu código-fonte está no GitHub para qualquer pessoa revisar.</li>
 
 <li><b>13 idiomas:</b><br>
 Inglês, espanhol, francês, alemão, italiano, português, russo, japonês, coreano, chinês (simplificado e tradicional), hindi e árabe.</li>
 </ul>
 
-<p>Metadados EXIF podem revelar coordenadas GPS, modelo do dispositivo e configurações de captura. O Redact ajuda você a compartilhar nos seus termos — com qualidade preservada e arquivos no telefone.</p>
+<p>Metadados EXIF podem revelar coordenadas GPS, o modelo do seu dispositivo e as configurações exatas usadas para capturar uma foto. O Redact ajuda você a compartilhar suas fotos e vídeos nos seus próprios termos, com a qualidade preservada e os arquivos guardados no seu telefone.</p>
 
 <p><b>Como funciona:</b></p>
-<p>Selecione mídia no Redact ou compartilhe de outro app, toque em Limpar metadados e salve cópias seguras na galeria. Ao compartilhar para o Redact, remove metadados antes de encaminhar. Limpeza rigorosa e compartilhamento sempre removem a localização.</p>
+<p>Selecione arquivos no Redact, ou compartilhe-os a partir de outro app, toque em Limpar metadados e salve cópias seguras direto na sua galeria. Compartilhar para o Redact remove os metadados antes de você reenviar os arquivos, e tanto a Limpeza rigorosa quanto o caminho de compartilhamento sempre removem a localização.</p>

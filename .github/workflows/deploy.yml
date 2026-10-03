@@ -56,11 +56,14 @@ jobs:
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     environment: production
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed only to move the last-metadata-publish tag below.
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
+          fetch-tags: true
           persist-credentials: false
 
       - name: Download bundle from artifacts
@@ -83,20 +86,49 @@ jobs:
           tracks: production
           whatsNewDirectory: whatsnew
 
+      - name: Check whether the store listing changed
+        id: metadata_diff
+        run: |
+          # fastlane supply re-uploads title/descriptions/screenshots on every run
+          # regardless of whether they changed, and Google Play can treat that as a
+          # store-listing change needing its own review, slowing down approval of
+          # releases that didn't touch the listing at all. Skip the push entirely
+          # when nothing under fastlane/metadata (besides the unused changelogs/
+          # folder, which supply is told to skip anyway) has changed since the last
+          # commit we actually pushed from.
+          if git rev-parse --verify --quiet refs/tags/last-metadata-publish >/dev/null; then
+            if git diff --quiet refs/tags/last-metadata-publish HEAD -- fastlane/metadata ':(exclude)fastlane/metadata/android/*/changelogs'; then
+              echo "changed=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Set up Ruby for Fastlane
+        if: steps.metadata_diff.outputs.changed == 'true'
         uses: ruby/setup-ruby@v1.327.0
         with:
           ruby-version: "3.3"
           bundler-cache: false
 
       - name: Lock Ruby gems for reproducible Fastlane
+        if: steps.metadata_diff.outputs.changed == 'true'
         run: bundle lock
 
       - name: Install Ruby gems
+        if: steps.metadata_diff.outputs.changed == 'true'
         run: bundle install --deployment
 
       - name: Push Fastlane metadata to Play Store
+        if: steps.metadata_diff.outputs.changed == 'true'
         run: bundle exec fastlane supply --skip_upload_apk true --skip_upload_aab true --skip_upload_changelogs true --json_key service_account.json --package_name com.doubleangels.redact --track production
+
+      - name: Record metadata publish point
+        run: |
+          git tag -f last-metadata-publish
+          git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" last-metadata-publish --force
 
       - name: Read app version for Sentry release
         id: version
