@@ -223,16 +223,12 @@
     <string name="scan_metadata_subtitle">Detected fields from this file. Tap and hold values to copy.</string>
     <string name="scan_location_permission_missing">GPS coordinates might be available if you grant the location permission.</string>
     <string name="scan_extraction_fail">We couldn\'t retrieve the metadata.</string>
-    <string name="scan_open_coordinates_in_maps">Open in Maps</string>
+    <string name="scan_copy_coordinates">Copy Coordinates</string>
     <string name="scan_copy_camera">Copy Camera Info</string>
     <string name="scan_copy_all_metadata">Copy All Metadata</string>
     <string name="scan_clean_this_file">Clean This File</string>
     <string name="scan_convert_this_file">Convert This File</string>
     <string name="scan_copied_to_clipboard">Copied to clipboard</string>
-    <string name="scan_maps_consent_title">Open location in Maps?</string>
-    <string name="scan_maps_consent_message">This opens the coordinates in your device\'s default maps app. Unlike every other action on this screen, that hands your exact GPS location to a separate app, which may send it off this device, for example to load map tiles or look up the address. Redact itself never sends this data anywhere.\n\nYou\'ll only see this message once. Choosing to continue is remembered, so this won\'t ask again.</string>
-    <string name="scan_maps_consent_continue">Open Maps</string>
-    <string name="scan_maps_not_available">No maps app is available to open this location.</string>
 
     
     

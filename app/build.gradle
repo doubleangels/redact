@@ -15,8 +15,8 @@ android {
         applicationId "com.doubleangels.redact"
         minSdk 31
         targetSdk 37
-        versionCode 21
-        versionName "1.3.11"
+        versionCode 20
+        versionName "1.3.10"
 
         def sentryRelease = "${applicationId}@${versionName}+${versionCode}"
         buildConfigField "String", "SENTRY_RELEASE", "\"${sentryRelease}\""
@@ -45,12 +45,6 @@ android {
     testOptions {
         unitTests {
             includeAndroidResources = true
-            all {
-                testLogging {
-                    events "failed"
-                    exceptionFormat "full"
-                }
-            }
         }
     }
 

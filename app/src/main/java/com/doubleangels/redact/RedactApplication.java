@@ -26,12 +26,6 @@ public class RedactApplication extends Application {
         SentryManager.init(this);
         SentryInitializer.initializeIfNeeded(this);
         LocalNotifications.ensureChannels(this);
-
-        // Runs on every process start, including a cold start into ShareHandlerActivity via the
-        // share sheet -- not just when MainActivity happens to be opened -- so stale temp copies
-        // of source media (unredacted EXIF/GPS included) don't linger past the cutoff just
-        // because the user never opens the main app.
-        CacheCleanup.scheduleAutoCleanupIfEnabled(this);
     }
 
     @NonNull

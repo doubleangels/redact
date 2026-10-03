@@ -29,7 +29,6 @@ public final class AppPreferences {
     private static final String KEY_STRICT_CLEAN = "strict_clean";
     private static final String KEY_VIDEO_FALLBACK_COPY = "video_fallback_copy";
     private static final String KEY_INITIAL_PERMISSIONS_PROMPTED = "initial_permissions_prompted";
-    private static final String KEY_MAPS_LOCATION_CONSENT_GIVEN = "maps_location_consent_given";
 
     /** High quality — matches legacy defaults. */
     public static final int QUALITY_PRESET_HIGH = 0;
@@ -250,19 +249,5 @@ public final class AppPreferences {
 
     public static void setInitialPermissionsPromptCompleted(@NonNull Context context) {
         prefs(context).edit().putBoolean(KEY_INITIAL_PERMISSIONS_PROMPTED, true).apply();
-    }
-
-    /**
-     * Whether the user has already agreed, once, that opening a Scan coordinate in the device's
-     * maps app is okay. That action hands the GPS coordinates to a third-party app, which may
-     * in turn send them off-device (tile/geocoding requests), unlike every other Scan action,
-     * which stays entirely on-device. False until the user explicitly consents.
-     */
-    public static boolean hasConsentedToOpenLocationInMaps(@NonNull Context context) {
-        return prefs(context).getBoolean(KEY_MAPS_LOCATION_CONSENT_GIVEN, false);
-    }
-
-    public static void setConsentedToOpenLocationInMaps(@NonNull Context context, boolean consented) {
-        prefs(context).edit().putBoolean(KEY_MAPS_LOCATION_CONSENT_GIVEN, consented).apply();
     }
 }

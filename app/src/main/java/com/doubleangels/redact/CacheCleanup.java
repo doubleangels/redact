@@ -3,13 +3,11 @@ package com.doubleangels.redact;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.VisibleForTesting;
 
 import com.doubleangels.redact.media.SecureDelete;
 
 import java.io.File;
 import java.util.Locale;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Utilities for measuring and clearing temporary processing files in app cache.
@@ -18,14 +16,6 @@ public final class CacheCleanup {
 
     /** Default age for startup stale-temp cleanup (24 hours). */
     public static final long DEFAULT_STALE_TEMP_MAX_AGE_MS = 24L * 60L * 60L * 1000L;
-
-    /**
-     * Ensures {@link #scheduleAutoCleanupIfEnabled} runs at most once per process, however many
-     * entry points call it (the Application on cold start, MainActivity on open).
-     */
-    private static final AtomicBoolean autoCleanupScheduledThisProcess = new AtomicBoolean(false);
-
-    private static volatile Thread autoCleanupThread;
 
     private static final String PROCESSED_SUBDIR = "processed";
     private static final String[] TEMP_PREFIXES = {
@@ -76,55 +66,6 @@ public final class CacheCleanup {
 
     public static int clearAllTempFiles(@NonNull Context context) {
         return clearStaleTempFiles(context, MIN_DELETE_AGE_MS);
-    }
-
-    /**
-     * Runs the stale-temp sweep in the background, at most once per process, as soon as any
-     * entry point reaches this call -- {@code RedactApplication.onCreate} on cold start, or
-     * {@code MainActivity.onCreate} on open, whichever comes first.
-     *
-     * <p>Previously this sweep only ran from {@code MainActivity}, so a user who only ever used
-     * the share-sheet entry point ({@code ShareHandlerActivity}) without opening the main app
-     * could leave unredacted source snapshots sitting in cache well past the 24-hour cutoff --
-     * bounded only by the next time they happened to launch the app, or uninstalled it.
-     */
-    public static void scheduleAutoCleanupIfEnabled(@NonNull Context context) {
-        if (!shouldRunAutoCleanup(context)) {
-            return;
-        }
-        Context appContext = context.getApplicationContext();
-        // Guarded to once per process, so a one-shot thread beats a never-released executor.
-        Thread thread = new Thread(() -> performAutoCleanup(appContext), "redact-auto-cleanup");
-        autoCleanupThread = thread;
-        thread.start();
-    }
-
-    @VisibleForTesting
-    static boolean shouldRunAutoCleanup(@NonNull Context context) {
-        if (!AppPreferences.isAutoClearTempFiles(context)
-                || ShareHandlerActivity.isShareProcessingActive()) {
-            return false;
-        }
-        return autoCleanupScheduledThisProcess.compareAndSet(false, true);
-    }
-
-    @VisibleForTesting
-    static void performAutoCleanup(@NonNull Context appContext) {
-        clearStaleTempFiles(appContext, DEFAULT_STALE_TEMP_MAX_AGE_MS);
-    }
-
-    @VisibleForTesting
-    public static void resetAutoCleanupStateForTests() {
-        // Let any sweep started by Application.onCreate finish so it can't race the test's files.
-        Thread thread = autoCleanupThread;
-        if (thread != null) {
-            try {
-                thread.join(5000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
-        autoCleanupScheduledThisProcess.set(false);
     }
 
     @NonNull

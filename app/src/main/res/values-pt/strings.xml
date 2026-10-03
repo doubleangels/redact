@@ -269,6 +269,7 @@ Suas fotos e vídeos nunca são enviados. URIs, nomes de arquivo e coordenadas G
     <string name="scan_copied_to_clipboard">Copiado para a área de transferência</string>
     <string name="scan_copy_all_metadata">Copiar Todos Os Metadados</string>
     <string name="scan_copy_camera">Copiar Info da Câmera</string>
+    <string name="scan_copy_coordinates">Copiar Coordenadas</string>
 <string name="settings_permissions_location">Localização da Foto</string>
 <string name="settings_storage_clear_busy">Não é possível limpar durante o processamento.</string>
     <string name="share_error_failed_get_cleaned_file">Não foi possível preparar o arquivo limpo para compartilhar.</string>
@@ -322,9 +323,4 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="strip_progress_transcoding_target">Transcodificando para o formato de destino…</string>
     <string name="strip_progress_transmuxing">Remultiplexando o vídeo…</string>
     <string name="strip_progress_verifying">Verificando remoção de metadados…</string>
-    <string name="scan_open_coordinates_in_maps">Abrir no Mapas</string>
-    <string name="scan_maps_consent_title">Abrir a localização no Mapas?</string>
-    <string name="scan_maps_consent_message">Isso abre as coordenadas no app de mapas padrão do seu dispositivo. Ao contrário de todas as outras ações desta tela, isso entrega sua localização GPS exata a um app separado, que pode enviá-la para fora deste dispositivo, por exemplo para carregar blocos do mapa ou buscar o endereço. O próprio Redact nunca envia esses dados a lugar nenhum.\n\nVocê verá esta mensagem apenas uma vez. Sua escolha de continuar é lembrada, então não será perguntado novamente.</string>
-    <string name="scan_maps_consent_continue">Abrir Mapas</string>
-    <string name="scan_maps_not_available">Nenhum app de mapas disponível para abrir esta localização.</string>
 </resources>

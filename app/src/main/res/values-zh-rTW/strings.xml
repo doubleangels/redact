@@ -269,6 +269,7 @@
     <string name="scan_copied_to_clipboard">已複製到剪貼簿</string>
     <string name="scan_copy_all_metadata">複製全部中繼資料</string>
     <string name="scan_copy_camera">複製相機資訊</string>
+    <string name="scan_copy_coordinates">複製座標</string>
 <string name="settings_permissions_location">照片位置</string>
 <string name="settings_storage_clear_busy">處理進行中時無法清除。</string>
     <string name="share_error_failed_get_cleaned_file">無法準備已清理的檔案以供分享。</string>
@@ -322,9 +323,4 @@
     <string name="strip_progress_transcoding_target">正在轉碼為目標格式…</string>
     <string name="strip_progress_transmuxing">正在重新封裝…</string>
     <string name="strip_progress_verifying">正在驗證中繼資料是否已移除…</string>
-    <string name="scan_open_coordinates_in_maps">在地圖中開啟</string>
-    <string name="scan_maps_consent_title">要在地圖中開啟位置嗎？</string>
-    <string name="scan_maps_consent_message">這會在您裝置的預設地圖應用程式中開啟座標。與此畫面上的其他所有操作不同，這會將您的精確 GPS 位置交給另一個應用程式，該應用程式可能會將其傳送到此裝置之外，例如載入地圖圖磚或查詢地址。Redact 本身絕不會將這些資料傳送到任何地方。\n\n此訊息只會顯示一次。您選擇繼續後會被記住，因此不會再次詢問。</string>
-    <string name="scan_maps_consent_continue">開啟地圖</string>
-    <string name="scan_maps_not_available">沒有可用於開啟此位置的地圖應用程式。</string>
 </resources>

@@ -269,6 +269,7 @@
     <string name="scan_copied_to_clipboard">क्लिपबोर्ड पर कॉपी किया गया</string>
     <string name="scan_copy_all_metadata">सभी मेटाडेटा कॉपी करें</string>
     <string name="scan_copy_camera">कैमरा जानकारी कॉपी करें</string>
+    <string name="scan_copy_coordinates">निर्देशांक कॉपी करें</string>
 <string name="settings_permissions_location">फ़ोटो स्थान</string>
 <string name="settings_storage_clear_busy">प्रसंस्करण चल रहा होने पर साफ़ नहीं किया जा सकता।</string>
     <string name="share_error_failed_get_cleaned_file">साफ़ की गई फ़ाइल साझा करने के लिए तैयार नहीं की जा सकी।</string>
@@ -322,9 +323,4 @@
     <string name="strip_progress_transcoding_target">लक्ष्य प्रारूप में ट्रांसकोड किया जा रहा है…</string>
     <string name="strip_progress_transmuxing">ट्रांसमक्स किया जा रहा है…</string>
     <string name="strip_progress_verifying">मेटाडेटा निष्कासन सत्यापित किया जा रहा है…</string>
-    <string name="scan_open_coordinates_in_maps">मैप्स में खोलें</string>
-    <string name="scan_maps_consent_title">स्थान को मैप्स में खोलें?</string>
-    <string name="scan_maps_consent_message">यह निर्देशांक को आपके डिवाइस के डिफ़ॉल्ट मैप ऐप में खोलता है। इस स्क्रीन की हर दूसरी कार्रवाई के विपरीत, यह आपका सटीक GPS स्थान एक अलग ऐप को सौंप देता है, जो इसे इस डिवाइस से बाहर भेज सकता है, जैसे मैप टाइल लोड करने या पता खोजने के लिए। Redact स्वयं यह डेटा कहीं नहीं भेजता।\n\nआपको यह संदेश केवल एक बार दिखेगा। जारी रखने का आपका चुनाव याद रखा जाता है, इसलिए यह दोबारा नहीं पूछेगा।</string>
-    <string name="scan_maps_consent_continue">मैप्स खोलें</string>
-    <string name="scan_maps_not_available">इस स्थान को खोलने के लिए कोई मैप ऐप उपलब्ध नहीं है।</string>
 </resources>

@@ -7,6 +7,7 @@ import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -33,6 +34,7 @@ public class PermissionManager {
     public static final int STORAGE_PERMISSION_REQUEST_CODE = 123;
     public static final int LOCATION_PERMISSION_REQUEST_CODE = 124;
     public static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 125;
+    private static final String TAG = "PermissionManager";
 
     private enum InitialFlowStep {
         MEDIA,
@@ -292,6 +294,15 @@ public class PermissionManager {
             SentryManager.recordException(new Exception("Error requesting location permission: " + e.getMessage(), e));
             requestMediaLocationPermission();
         }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+    private void requestMediaPermissions() {
+        requestMissingRuntimePermissions(activity);
+    }
+
+    private void requestStoragePermissions() {
+        requestMissingRuntimePermissions(activity);
     }
 
     private void requestMediaLocationPermission() {

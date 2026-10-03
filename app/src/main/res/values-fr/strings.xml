@@ -269,6 +269,7 @@ Vos photos et vidéos ne sont jamais téléversées. Les URI, noms de fichier et
     <string name="scan_copied_to_clipboard">Copié dans le presse-papiers</string>
     <string name="scan_copy_all_metadata">Copier Toutes les Métadonnées</string>
     <string name="scan_copy_camera">Copier les Infos Appareil Photo</string>
+    <string name="scan_copy_coordinates">Copier les Coordonnées</string>
 <string name="settings_permissions_location">Emplacement de la Photo</string>
 <string name="settings_storage_clear_busy">Impossible de vider pendant un traitement en cours.</string>
     <string name="share_error_failed_get_cleaned_file">Impossible de préparer le fichier nettoyé pour le partage.</string>
@@ -322,9 +323,4 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="strip_progress_transcoding_target">Transcodage vers le format cible en cours…</string>
     <string name="strip_progress_transmuxing">Remultiplexage en cours…</string>
     <string name="strip_progress_verifying">Vérification de la suppression des métadonnées en cours…</string>
-    <string name="scan_open_coordinates_in_maps">Ouvrir dans Plans</string>
-    <string name="scan_maps_consent_title">Ouvrir la position dans Plans ?</string>
-    <string name="scan_maps_consent_message">Cela ouvre les coordonnées dans l\'application de cartes par défaut de votre appareil. Contrairement à toutes les autres actions de cet écran, cela transmet votre position GPS exacte à une application distincte, qui peut l\'envoyer hors de cet appareil, par exemple pour charger les tuiles de la carte ou rechercher l\'adresse. Redact n\'envoie jamais ces données nulle part.\n\nVous ne verrez ce message qu\'une seule fois. Votre choix de continuer est mémorisé, il ne sera donc plus demandé.</string>
-    <string name="scan_maps_consent_continue">Ouvrir Plans</string>
-    <string name="scan_maps_not_available">Aucune application de cartes n\'est disponible pour ouvrir cette position.</string>
 </resources>

@@ -58,15 +58,6 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private static final java.util.concurrent.atomic.AtomicInteger activeShareSessions =
             new java.util.concurrent.atomic.AtomicInteger(0);
 
-    /**
-     * Runs secure-delete cleanup off the calling thread. Overwriting a large video file with
-     * random data multiple times plus fsync (see {@link SecureDelete}) can take long enough to
-     * trip Android's ANR watchdog when it runs synchronously on the main thread, which is where
-     * cancel/finish/onDestroy call into cleanup.
-     */
-    private static final java.util.concurrent.ExecutorService cleanupExecutor =
-            java.util.concurrent.Executors.newSingleThreadExecutor();
-
     public static boolean isShareProcessingActive() {
         return activeShareSessions.get() > 0;
     }
@@ -268,12 +259,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 finishWithError(getString(R.string.share_error_failed_receive_media));
                 return;
             }
-            List<Uri> snapshotted = snapshotInboundUris(accepted);
-            if (snapshotted.isEmpty()) {
-                finishWithError(getString(R.string.share_error_failed_receive_media));
-                return;
-            }
-            maybeConfirmAndProcess(snapshotted);
+            maybeConfirmAndProcess(snapshotInboundUris(accepted));
         } catch (Exception e) {
             SentryManager.recordException(e);
             finishWithError(getString(R.string.share_error_generic));
@@ -293,13 +279,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     finishWithError(getString(R.string.share_error_failed_receive_media));
                     return;
                 }
-                List<Uri> snapshotted = snapshotInboundUris(accepted);
-                if (snapshotted.isEmpty()) {
-                    finishWithError(getString(R.string.share_error_failed_receive_media));
-                    return;
-                }
-                SentryManager.setCustomKey("media_count", snapshotted.size());
-                maybeConfirmAndProcess(snapshotted);
+                SentryManager.setCustomKey("media_count", accepted.size());
+                maybeConfirmAndProcess(snapshotInboundUris(accepted));
             } else {
                 SentryManager.logEvent("share", "Received empty media list");
                 finishWithError(getString(R.string.share_error_failed_receive_media));
@@ -310,13 +291,9 @@ public class ShareHandlerActivity extends AppCompatActivity {
         }
     }
 
-    /** Items dropped by {@link #snapshotInboundUris}; counted as failures in the final toast. */
-    private volatile int snapshotFailCount;
-
     @NonNull
     private List<Uri> snapshotInboundUris(@NonNull List<Uri> uris) {
         List<Uri> stable = new ArrayList<>();
-        snapshotFailCount = 0;
         for (Uri uri : uris) {
             String scheme = uri.getScheme();
             if ("content".equalsIgnoreCase(scheme) || "file".equalsIgnoreCase(scheme)) {
@@ -327,13 +304,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     }
                     stable.add(Uri.fromFile(snapshot));
                 } catch (IOException e) {
-                    // The source is already unreadable here, so forwarding the original URI
-                    // would only fail identically at every later processing stage (extractor,
-                    // transcoder, verifier), each logging its own duplicate exception for what
-                    // is really a single failure. Drop this item instead, but count it so the
-                    // user still sees the partial-success message.
-                    snapshotFailCount++;
                     SentryManager.recordException(e);
+                    stable.add(uri);
                 }
             } else {
                 stable.add(uri);
@@ -431,7 +403,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         Thread worker = new Thread(() -> {
             ITransaction transaction = SentryManager.startTransaction("share_cleanup", "task");
             ArrayList<Uri> processedUris = new ArrayList<>();
-            int failCount = snapshotFailCount;
+            int failCount = 0;
             boolean hasVideo = false;
             boolean hasImage = false;
 
@@ -667,17 +639,12 @@ public class ShareHandlerActivity extends AppCompatActivity {
             filesToDelete = new ArrayList<>(inboundSnapshotFiles);
             inboundSnapshotFiles.clear();
         }
-        if (filesToDelete.isEmpty()) {
-            return;
-        }
         Context appContext = getApplicationContext();
-        cleanupExecutor.execute(() -> {
-            for (File file : filesToDelete) {
-                if (file != null && file.exists() && !SecureDelete.secureDelete(appContext, file)) {
-                    file.deleteOnExit();
-                }
+        for (File file : filesToDelete) {
+            if (file != null && file.exists() && !SecureDelete.secureDelete(appContext, file)) {
+                file.deleteOnExit();
             }
-        });
+        }
     }
 
     private void cleanupProcessedFiles() {
@@ -688,11 +655,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             processedFiles.clear();
             processedDisplayNames.clear();
         }
-        if (filesToDelete.isEmpty()) {
-            return;
-        }
-        Context appContext = getApplicationContext();
-        cleanupExecutor.execute(() -> deleteProcessedFileList(appContext, filesToDelete));
+        deleteProcessedFileList(getApplicationContext(), filesToDelete);
     }
 
     private void scheduleDelayedShareCleanup() {
@@ -708,8 +671,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         Context appContext = getApplicationContext();
         Handler handler = new Handler(appContext.getMainLooper());
         handler.postDelayed(
-                () -> cleanupExecutor.execute(() -> deleteProcessedFileList(appContext, filesToDelete)),
-                SHARE_CLEANUP_DELAY_MS);
+                () -> deleteProcessedFileList(appContext, filesToDelete), SHARE_CLEANUP_DELAY_MS);
     }
 
     private static void deleteProcessedFileList(@NonNull Context context, List<File> files) {

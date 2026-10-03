@@ -269,6 +269,7 @@ Le tue foto e video non vengono mai caricati. URI, nomi file e coordinate GPS ve
     <string name="scan_copied_to_clipboard">Copiato negli appunti</string>
     <string name="scan_copy_all_metadata">Copia Tutti I Metadati</string>
     <string name="scan_copy_camera">Copia Info Fotocamera</string>
+    <string name="scan_copy_coordinates">Copia Coordinate</string>
 <string name="settings_permissions_location">Posizione Foto</string>
 <string name="settings_storage_clear_busy">Impossibile svuotare durante l\'elaborazione.</string>
     <string name="share_error_failed_get_cleaned_file">Impossibile preparare il file pulito per la condivisione.</string>
@@ -322,9 +323,4 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="strip_progress_transcoding_target">Transcodifica nel formato di destinazione in corso…</string>
     <string name="strip_progress_transmuxing">Remux del contenitore in corso…</string>
     <string name="strip_progress_verifying">Verifica della rimozione dei metadati in corso…</string>
-    <string name="scan_open_coordinates_in_maps">Apri in Mappe</string>
-    <string name="scan_maps_consent_title">Aprire la posizione in Mappe?</string>
-    <string name="scan_maps_consent_message">Questo apre le coordinate nell\'app di mappe predefinita del dispositivo. A differenza di ogni altra azione di questa schermata, consegna la tua posizione GPS esatta a un\'app separata, che potrebbe inviarla fuori da questo dispositivo, ad esempio per caricare i riquadri della mappa o cercare l\'indirizzo. Redact non invia mai questi dati da nessuna parte.\n\nVedrai questo messaggio solo una volta. La scelta di continuare viene ricordata, quindi non verrà chiesto di nuovo.</string>
-    <string name="scan_maps_consent_continue">Apri Mappe</string>
-    <string name="scan_maps_not_available">Nessuna app di mappe disponibile per aprire questa posizione.</string>
 </resources>
