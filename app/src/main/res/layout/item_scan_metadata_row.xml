@@ -3,29 +3,28 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:minHeight="56dp"
+    android:gravity="center_vertical"
     android:orientation="vertical"
-    android:paddingTop="10dp"
-    android:paddingBottom="10dp">
+    android:paddingHorizontal="@dimen/scan_metadata_row_horizontal_padding"
+    android:paddingVertical="12dp">
 
     <TextView
         android:id="@+id/metadataFieldKey"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:letterSpacing="0.02"
         android:textAllCaps="false"
         android:textAppearance="?attr/textAppearanceLabelMedium"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        tools:text="DISPLAY_NAME" />
+        android:textColor="?attr/colorPrimary"
+        tools:text="Display name" />
 
     <TextView
         android:id="@+id/metadataFieldValue"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="2dp"
         android:breakStrategy="simple"
-        android:fontFamily="monospace"
-        android:lineSpacingMultiplier="1.15"
-        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
         android:textColor="?attr/colorOnSurface"
         android:textIsSelectable="true"
         tools:text="IMG_0001.jpg" />

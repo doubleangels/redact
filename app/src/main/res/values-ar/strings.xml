@@ -269,7 +269,6 @@
     <string name="scan_copied_to_clipboard">تم النسخ إلى الحافظة</string>
     <string name="scan_copy_all_metadata">نسخ كل البيانات الوصفية</string>
     <string name="scan_copy_camera">نسخ معلومات الكاميرا</string>
-    <string name="scan_copy_coordinates">نسخ الإحداثيات</string>
 <string name="settings_permissions_location">موقع الصورة</string>
 <string name="settings_storage_clear_busy">لا يمكن المسح أثناء المعالجة.</string>
     <string name="share_error_failed_get_cleaned_file">تعذر تجهيز الملف المنظف للمشاركة.</string>
@@ -323,4 +322,9 @@
     <string name="strip_progress_transcoding_target">جارٍ إعادة الترميز إلى الصيغة المطلوبة…</string>
     <string name="strip_progress_transmuxing">جارٍ إعادة تعبئة الفيديو…</string>
     <string name="strip_progress_verifying">جارٍ التحقق من إزالة البيانات الوصفية…</string>
+    <string name="scan_open_coordinates_in_maps">فتح في الخرائط</string>
+    <string name="scan_maps_consent_title">فتح الموقع في الخرائط؟</string>
+    <string name="scan_maps_consent_message">سيؤدي هذا إلى فتح الإحداثيات في تطبيق الخرائط الافتراضي على جهازك. على عكس كل إجراء آخر في هذه الشاشة، فإنه يسلّم موقع GPS الدقيق إلى تطبيق منفصل قد يرسله خارج هذا الجهاز، مثلًا لتحميل مربعات الخريطة أو البحث عن العنوان. أما Redact نفسه فلا يرسل هذه البيانات إلى أي مكان.\n\nسترى هذه الرسالة مرة واحدة فقط. سيتم تذكّر اختيارك المتابعة، لذا لن يُطلب منك ذلك مجددًا.</string>
+    <string name="scan_maps_consent_continue">فتح الخرائط</string>
+    <string name="scan_maps_not_available">لا يتوفر تطبيق خرائط لفتح هذا الموقع.</string>
 </resources>

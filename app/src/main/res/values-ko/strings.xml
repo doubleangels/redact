@@ -269,7 +269,6 @@
     <string name="scan_copied_to_clipboard">클립보드에 복사됨</string>
     <string name="scan_copy_all_metadata">모든 메타데이터 복사</string>
     <string name="scan_copy_camera">카메라 정보 복사</string>
-    <string name="scan_copy_coordinates">좌표 복사</string>
 <string name="settings_permissions_location">사진 위치</string>
 <string name="settings_storage_clear_busy">처리 중에는 지울 수 없습니다.</string>
     <string name="share_error_failed_get_cleaned_file">정리된 파일을 공유할 준비하지 못했습니다.</string>
@@ -323,4 +322,9 @@
     <string name="strip_progress_transcoding_target">대상 형식으로 트랜스코딩 중…</string>
     <string name="strip_progress_transmuxing">컨테이너 재구성 중…</string>
     <string name="strip_progress_verifying">메타데이터 삭제 확인 중…</string>
+    <string name="scan_open_coordinates_in_maps">지도에서 열기</string>
+    <string name="scan_maps_consent_title">지도에서 위치를 열까요?</string>
+    <string name="scan_maps_consent_message">좌표를 기기의 기본 지도 앱에서 엽니다. 이 화면의 다른 모든 작업과 달리, 정확한 GPS 위치를 별도의 앱에 전달하며 해당 앱은 지도 타일을 불러오거나 주소를 조회하기 위해 이 기기 밖으로 전송할 수 있습니다. Redact 자체는 이 데이터를 어디에도 전송하지 않습니다.\n\n이 메시지는 한 번만 표시됩니다. 계속하기를 선택하면 기억되므로 다시 묻지 않습니다.</string>
+    <string name="scan_maps_consent_continue">지도 열기</string>
+    <string name="scan_maps_not_available">이 위치를 열 수 있는 지도 앱이 없습니다.</string>
 </resources>

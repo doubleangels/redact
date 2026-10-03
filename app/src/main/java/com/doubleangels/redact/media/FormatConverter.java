@@ -537,28 +537,6 @@ public final class FormatConverter {
                 });
     }
 
-    private static String stripExtension(String name) {
-        if (name == null || name.isEmpty()) {
-            return "converted";
-        }
-        int dot = name.lastIndexOf('.');
-        if (dot > 0) {
-            return name.substring(0, dot);
-        }
-        return name;
-    }
-
-    private static String sanitizeFileName(String name) {
-        String n = name.replaceAll("[^a-zA-Z0-9._-]", "_");
-        if (n.isEmpty()) {
-            return "converted";
-        }
-        if (n.length() > 80) {
-            return n.substring(0, 80);
-        }
-        return n;
-    }
-
     private static String extensionForFormat(Bitmap.CompressFormat format) {
         if (format == Bitmap.CompressFormat.PNG) {
             return ".png";

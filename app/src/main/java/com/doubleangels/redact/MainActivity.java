@@ -33,17 +33,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG_SETTINGS = "settings";
     private static final String KEY_SELECTED_TAB = "selected_tab";
 
-    @Nullable
-    private java.util.concurrent.ExecutorService cacheClearExecutor;
-
     @Override
     protected void onDestroy() {
         com.doubleangels.redact.permission.PermissionManager.setInitialFlowCompletedCallback(null);
         com.doubleangels.redact.permission.PermissionManager.clearRuntimePermissionRequestOnDestroy();
-        if (cacheClearExecutor != null) {
-            cacheClearExecutor.shutdown();
-            cacheClearExecutor = null;
-        }
         super.onDestroy();
     }
 
@@ -67,14 +60,12 @@ public class MainActivity extends AppCompatActivity {
 
             SentryManager.logEvent("lifecycle", "MainActivity created");
 
-            if (AppPreferences.isAutoClearTempFiles(this)
-                    && !ShareHandlerActivity.isShareProcessingActive()
-                    && !com.doubleangels.redact.ui.MainViewModel.isAnyProcessing(this)) {
-                cacheClearExecutor = java.util.concurrent.Executors.newSingleThreadExecutor();
-                cacheClearExecutor.execute(
-                        () -> com.doubleangels.redact.CacheCleanup.clearStaleTempFiles(
-                                getApplicationContext(),
-                                com.doubleangels.redact.CacheCleanup.DEFAULT_STALE_TEMP_MAX_AGE_MS));
+            // RedactApplication.onCreate already runs this sweep once per process; this call
+            // only matters when MainActivity is recreated without a fresh process (e.g. after a
+            // configuration change) and isAnyProcessing requires a live Activity to check, so it
+            // can't move into the Application-level call.
+            if (!com.doubleangels.redact.ui.MainViewModel.isAnyProcessing(this)) {
+                com.doubleangels.redact.CacheCleanup.scheduleAutoCleanupIfEnabled(this);
             }
 
             if (savedInstanceState == null) {
