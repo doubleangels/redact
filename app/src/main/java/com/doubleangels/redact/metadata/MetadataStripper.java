@@ -1479,17 +1479,31 @@ public class MetadataStripper {
         }
     }
 
+    /**
+     * MediaMetadataRetriever reports this exact string for METADATA_KEY_DATE when the source
+     * container's creation_time atom is zero (the QuickTime/MP4 epoch, 1904-01-01) -- i.e. no
+     * real recording date was ever set. Our own muxer/encoder output surfaces this identical
+     * placeholder whenever it writes no explicit date, so comparing it as if it were a real date
+     * makes every date-less source file fail verification against its own, equally date-less,
+     * output.
+     */
+    private static final String VIDEO_DATE_UNSET_PLACEHOLDER = "19040101T000000.000Z";
+
     @NonNull
     private VideoPrivacySnapshot extractVideoPrivacyMetadata(@NonNull Uri sourceUri) {
         try (android.media.MediaMetadataRetriever retriever = new android.media.MediaMetadataRetriever()) {
             retriever.setDataSource(context, sourceUri);
+            String date = normalizeMetadataValue(
+                    retriever.extractMetadata(
+                            android.media.MediaMetadataRetriever.METADATA_KEY_DATE));
+            if (VIDEO_DATE_UNSET_PLACEHOLDER.equals(date)) {
+                date = null;
+            }
             return new VideoPrivacySnapshot(
                     normalizeMetadataValue(
                             retriever.extractMetadata(
                                     android.media.MediaMetadataRetriever.METADATA_KEY_LOCATION)),
-                    normalizeMetadataValue(
-                            retriever.extractMetadata(
-                                    android.media.MediaMetadataRetriever.METADATA_KEY_DATE)));
+                    date);
         } catch (Exception e) {
             SentryManager.log("Could not read source video privacy metadata: " + e.getMessage());
             return VideoPrivacySnapshot.empty();
