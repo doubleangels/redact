@@ -1,8 +1,10 @@
 package com.doubleangels.redact;
 
+import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Pair;
@@ -34,6 +36,7 @@ import com.doubleangels.redact.ui.ScanMetadataAdapter;
 import com.doubleangels.redact.ui.ScanViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.divider.MaterialDividerItemDecoration;
 import com.doubleangels.redact.sentry.SentryManager;
 
@@ -506,9 +509,10 @@ public class ScanFragment extends Fragment {
         boolean hasCoords = !Double.isNaN(lastMapLatitude) && !Double.isNaN(lastMapLongitude)
                 && MetadataDisplayer.isUsableMapCoordinate(lastMapLatitude, lastMapLongitude);
         if (hasCoords) {
-            String coordsLabel = String.format(Locale.US, "%.7f, %.7f", lastMapLatitude, lastMapLongitude);
-            addScanActionCard(R.drawable.ic_map_24, getString(R.string.scan_copy_coordinates),
-                    v -> copyPlainTextToClipboard(coordsLabel));
+            double latForMaps = lastMapLatitude;
+            double lonForMaps = lastMapLongitude;
+            addScanActionCard(R.drawable.ic_map_24, getString(R.string.scan_open_coordinates_in_maps),
+                    v -> onOpenCoordinatesInMaps(latForMaps, lonForMaps));
             added = true;
         }
 
@@ -592,6 +596,38 @@ public class ScanFragment extends Fragment {
         }
         clipboard.setPrimaryClip(ClipData.newPlainText("metadata", text));
         Toast.makeText(requireContext(), R.string.scan_copied_to_clipboard, Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Opening a coordinate in the maps app hands the GPS location to a separate, third-party
+     * app, unlike every other Scan action, which stays entirely on-device, so the first use
+     * requires explicit consent. Once given, it's remembered and this goes straight to Maps.
+     */
+    private void onOpenCoordinatesInMaps(double latitude, double longitude) {
+        if (AppPreferences.hasConsentedToOpenLocationInMaps(requireContext())) {
+            openCoordinatesInMaps(latitude, longitude);
+            return;
+        }
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.scan_maps_consent_title)
+                .setMessage(R.string.scan_maps_consent_message)
+                .setPositiveButton(R.string.scan_maps_consent_continue, (dialog, which) -> {
+                    AppPreferences.setConsentedToOpenLocationInMaps(requireContext(), true);
+                    openCoordinatesInMaps(latitude, longitude);
+                })
+                .setNegativeButton(R.string.button_cancel, null)
+                .show();
+    }
+
+    private void openCoordinatesInMaps(double latitude, double longitude) {
+        String coords = String.format(Locale.US, "%.7f,%.7f", latitude, longitude);
+        Uri geoUri = Uri.parse("geo:" + coords + "?q=" + coords);
+        Intent intent = new Intent(Intent.ACTION_VIEW, geoUri);
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(requireContext(), R.string.scan_maps_not_available, Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void openInCleanTab(@NonNull MediaItem item) {

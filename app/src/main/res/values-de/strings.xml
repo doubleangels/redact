@@ -268,7 +268,6 @@ Ihre Fotos und Videos werden nie hochgeladen. URIs, Dateinamen und GPS-Koordinat
     <string name="scan_copied_to_clipboard">In Zwischenablage kopiert</string>
     <string name="scan_copy_all_metadata">Alle Metadaten Kopieren</string>
     <string name="scan_copy_camera">Kamerainfo Kopieren</string>
-    <string name="scan_copy_coordinates">Koordinaten Kopieren</string>
 <string name="settings_permissions_location">Foto-Standort</string>
 <string name="settings_storage_clear_busy">Löschen während der Verarbeitung nicht möglich.</string>
     <string name="share_error_failed_get_cleaned_file">Bereinigte Datei konnte nicht für die Freigabe vorbereitet werden.</string>

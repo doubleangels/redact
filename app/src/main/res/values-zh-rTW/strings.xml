@@ -269,7 +269,6 @@
     <string name="scan_copied_to_clipboard">已複製到剪貼簿</string>
     <string name="scan_copy_all_metadata">複製全部中繼資料</string>
     <string name="scan_copy_camera">複製相機資訊</string>
-    <string name="scan_copy_coordinates">複製座標</string>
 <string name="settings_permissions_location">照片位置</string>
 <string name="settings_storage_clear_busy">處理進行中時無法清除。</string>
     <string name="share_error_failed_get_cleaned_file">無法準備已清理的檔案以供分享。</string>

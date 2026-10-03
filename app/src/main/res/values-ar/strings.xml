@@ -269,7 +269,6 @@
     <string name="scan_copied_to_clipboard">تم النسخ إلى الحافظة</string>
     <string name="scan_copy_all_metadata">نسخ كل البيانات الوصفية</string>
     <string name="scan_copy_camera">نسخ معلومات الكاميرا</string>
-    <string name="scan_copy_coordinates">نسخ الإحداثيات</string>
 <string name="settings_permissions_location">موقع الصورة</string>
 <string name="settings_storage_clear_busy">لا يمكن المسح أثناء المعالجة.</string>
     <string name="share_error_failed_get_cleaned_file">تعذر تجهيز الملف المنظف للمشاركة.</string>
