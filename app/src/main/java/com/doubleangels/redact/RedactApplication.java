@@ -41,19 +41,4 @@ public class RedactApplication extends Application {
         }
         return processingScope;
     }
-
-    @Override
-    public void onTrimMemory(int level) {
-        super.onTrimMemory(level);
-        // Glide's memory cache and bitmap pool only shrink proactively if asked; without this,
-        // thumbnails loaded across Clean/Scan/Convert stay cached until the system kills the
-        // process outright instead of this app giving memory back when it's under pressure.
-        com.bumptech.glide.Glide.get(this).onTrimMemory(level);
-    }
-
-    @Override
-    public void onLowMemory() {
-        super.onLowMemory();
-        com.bumptech.glide.Glide.get(this).onLowMemory();
-    }
 }
