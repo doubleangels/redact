@@ -269,7 +269,6 @@
     <string name="scan_copied_to_clipboard">클립보드에 복사됨</string>
     <string name="scan_copy_all_metadata">모든 메타데이터 복사</string>
     <string name="scan_copy_camera">카메라 정보 복사</string>
-    <string name="scan_copy_coordinates">좌표 복사</string>
 <string name="settings_permissions_location">사진 위치</string>
 <string name="settings_storage_clear_busy">처리 중에는 지울 수 없습니다.</string>
     <string name="share_error_failed_get_cleaned_file">정리된 파일을 공유할 준비하지 못했습니다.</string>

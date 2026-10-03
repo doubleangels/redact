@@ -269,7 +269,6 @@
     <string name="scan_copied_to_clipboard">Скопировано в буфер обмена</string>
     <string name="scan_copy_all_metadata">Копировать все метаданные</string>
     <string name="scan_copy_camera">Копировать данные камеры</string>
-    <string name="scan_copy_coordinates">Копировать координаты</string>
 <string name="settings_permissions_location">Местоположение Фото</string>
 <string name="settings_storage_clear_busy">Нельзя очистить во время обработки.</string>
     <string name="share_error_failed_get_cleaned_file">Не удалось подготовить очищенный файл для отправки.</string>

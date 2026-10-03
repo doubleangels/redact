@@ -269,7 +269,6 @@ Vos photos et vidéos ne sont jamais téléversées. Les URI, noms de fichier et
     <string name="scan_copied_to_clipboard">Copié dans le presse-papiers</string>
     <string name="scan_copy_all_metadata">Copier Toutes les Métadonnées</string>
     <string name="scan_copy_camera">Copier les Infos Appareil Photo</string>
-    <string name="scan_copy_coordinates">Copier les Coordonnées</string>
 <string name="settings_permissions_location">Emplacement de la Photo</string>
 <string name="settings_storage_clear_busy">Impossible de vider pendant un traitement en cours.</string>
     <string name="share_error_failed_get_cleaned_file">Impossible de préparer le fichier nettoyé pour le partage.</string>

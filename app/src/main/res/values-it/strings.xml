@@ -269,7 +269,6 @@ Le tue foto e video non vengono mai caricati. URI, nomi file e coordinate GPS ve
     <string name="scan_copied_to_clipboard">Copiato negli appunti</string>
     <string name="scan_copy_all_metadata">Copia Tutti I Metadati</string>
     <string name="scan_copy_camera">Copia Info Fotocamera</string>
-    <string name="scan_copy_coordinates">Copia Coordinate</string>
 <string name="settings_permissions_location">Posizione Foto</string>
 <string name="settings_storage_clear_busy">Impossibile svuotare durante l\'elaborazione.</string>
     <string name="share_error_failed_get_cleaned_file">Impossibile preparare il file pulito per la condivisione.</string>

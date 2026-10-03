@@ -270,7 +270,6 @@
     <string name="scan_copied_to_clipboard">クリップボードにコピーしました</string>
     <string name="scan_copy_all_metadata">すべてのメタデータをコピー</string>
     <string name="scan_copy_camera">カメラ情報をコピー</string>
-    <string name="scan_copy_coordinates">座標をコピー</string>
 <string name="settings_permissions_location">写真の位置情報</string>
 <string name="settings_storage_clear_busy">処理中はクリアできません。</string>
     <string name="share_error_failed_get_cleaned_file">クリーンしたファイルを共有用に準備できませんでした。</string>

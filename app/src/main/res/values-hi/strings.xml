@@ -269,7 +269,6 @@
     <string name="scan_copied_to_clipboard">क्लिपबोर्ड पर कॉपी किया गया</string>
     <string name="scan_copy_all_metadata">सभी मेटाडेटा कॉपी करें</string>
     <string name="scan_copy_camera">कैमरा जानकारी कॉपी करें</string>
-    <string name="scan_copy_coordinates">निर्देशांक कॉपी करें</string>
 <string name="settings_permissions_location">फ़ोटो स्थान</string>
 <string name="settings_storage_clear_busy">प्रसंस्करण चल रहा होने पर साफ़ नहीं किया जा सकता।</string>
     <string name="share_error_failed_get_cleaned_file">साफ़ की गई फ़ाइल साझा करने के लिए तैयार नहीं की जा सकी।</string>

@@ -153,4 +153,13 @@ public class AppPreferencesTest {
         AppPreferences.setInitialPermissionsPromptCompleted(context);
         assertTrue(AppPreferences.hasCompletedInitialPermissionsPrompt(context));
     }
+
+    @Test
+    public void mapsLocationConsent_defaultsFalseAndIsSettable() {
+        assertFalse(AppPreferences.hasConsentedToOpenLocationInMaps(context));
+        AppPreferences.setConsentedToOpenLocationInMaps(context, true);
+        assertTrue(AppPreferences.hasConsentedToOpenLocationInMaps(context));
+        AppPreferences.setConsentedToOpenLocationInMaps(context, false);
+        assertFalse(AppPreferences.hasConsentedToOpenLocationInMaps(context));
+    }
 }
