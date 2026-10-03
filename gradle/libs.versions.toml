@@ -24,6 +24,7 @@ exifinterface = { module = "androidx.exifinterface:exifinterface", version.ref =
 sentry-android = { module = "io.sentry:sentry-android", version.ref = "sentry" }
 fragment = { module = "androidx.fragment:fragment", version.ref = "fragment" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
+glide-compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 media3-common = { module = "androidx.media3:media3-common", version.ref = "media3" }
