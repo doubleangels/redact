@@ -7,6 +7,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -26,11 +27,42 @@ public final class ConvertFileAdapter extends RecyclerView.Adapter<ConvertFileAd
     public ConvertFileAdapter() {
     }
 
-    @android.annotation.SuppressLint("NotifyDataSetChanged")
+    /**
+     * Updates the adapter's data set with a new list of media items.
+     *
+     * <p>Uses DiffUtil (matching {@link MediaAdapter#updateItems}) instead of
+     * {@code notifyDataSetChanged()} so unaffected rows keep their already-loaded Glide
+     * thumbnail instead of reloading/flickering on every edit to the selection.
+     */
     public void setItems(@NonNull List<MediaItem> newItems) {
+        final List<MediaItem> oldItems = new ArrayList<>(items);
+
+        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
+            @Override
+            public int getOldListSize() {
+                return oldItems.size();
+            }
+
+            @Override
+            public int getNewListSize() {
+                return newItems.size();
+            }
+
+            @Override
+            public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+                return oldItems.get(oldItemPosition).uri().equals(
+                        newItems.get(newItemPosition).uri());
+            }
+
+            @Override
+            public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+                return oldItems.get(oldItemPosition).equals(newItems.get(newItemPosition));
+            }
+        });
+
         items.clear();
         items.addAll(newItems);
-        notifyDataSetChanged();
+        diffResult.dispatchUpdatesTo(this);
     }
 
     @NonNull

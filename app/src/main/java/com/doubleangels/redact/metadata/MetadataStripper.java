@@ -9,8 +9,6 @@ import android.net.Uri;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
-import android.provider.OpenableColumns;
-import android.database.Cursor;
 import android.util.Log;
 
 import java.util.Locale;
@@ -43,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.imaging.bytesource.ByteSource;
 import org.apache.commons.imaging.formats.jpeg.xmp.JpegXmpRewriter;
@@ -165,12 +162,6 @@ public class MetadataStripper {
      * identifying information.
      */
     private final Map<String, String> preservedExifValues = new HashMap<>();
-
-    /**
-     * Cache for file sizes to avoid redundant I/O operations.
-     * Key: URI string, Value: File size in bytes
-     */
-    private final Map<String, Long> fileSizeCache = new ConcurrentHashMap<>();
 
     private final java.util.concurrent.atomic.AtomicBoolean operationCancelled =
             new java.util.concurrent.atomic.AtomicBoolean(false);
@@ -1140,72 +1131,6 @@ public class MetadataStripper {
     }
 
     /**
-     * Determines the size of a file from its URI.
-     *
-     * This method tries multiple approaches to get the file size:
-     * 1. OpenableColumns.SIZE (content URIs)
-     * 2. File length for {@code file://} URIs
-     * 3. AssetFileDescriptor length
-     * 4. Reading the stream (last resort)
-     *
-     * @param uri URI of the file to check, must not be null
-     * @return Size of the file in bytes, or 0 if size couldn't be determined
-     */
-    private long getFileSizeFromUri(@NonNull Uri uri) {
-        try {
-            if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
-                try (Cursor cursor = contentResolver.query(uri,
-                        new String[]{OpenableColumns.SIZE}, null, null, null)) {
-                    if (cursor != null && cursor.moveToFirst()) {
-                        int idx = cursor.getColumnIndex(OpenableColumns.SIZE);
-                        if (idx >= 0 && !cursor.isNull(idx)) {
-                            long sz = cursor.getLong(idx);
-                            if (sz > 0) {
-                                return sz;
-                            }
-                        }
-                    }
-                }
-            } else if (ContentResolver.SCHEME_FILE.equals(uri.getScheme())) {
-                String path = uri.getPath();
-                if (path != null) {
-                    File f = new File(path);
-                    if (f.isFile()) {
-                        return f.length();
-                    }
-                }
-            }
-
-            try (android.content.res.AssetFileDescriptor afd = contentResolver.openAssetFileDescriptor(uri, "r")) {
-                if (afd != null) {
-                    long size = afd.getLength();
-                    if (size > 0) {
-                        return size;
-                    }
-                }
-            } catch (Exception ignored) {
-                // Fall through to stream-based approach
-            }
-
-            try (InputStream stream = contentResolver.openInputStream(uri)) {
-                if (stream == null) {
-                    return 0;
-                }
-                long size = 0;
-                byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-                int bytesRead;
-                while ((bytesRead = stream.read(buffer)) != -1) {
-                    size += bytesRead;
-                }
-                return size;
-            }
-        } catch (Exception e) {
-            SentryManager.log("Error determining file size: " + e.getMessage() + ".");
-            return 0;
-        }
-    }
-
-    /**
      * Reads and stores essential EXIF data from an image file that should be
      * preserved.
      *
@@ -1863,34 +1788,6 @@ public class MetadataStripper {
     }
 
     /**
-     * Gets file size from URI with caching to avoid redundant I/O operations.
-     *
-     * @param uri URI of the file
-     * @return File size in bytes, or 0 if size couldn't be determined
-     */
-    private long getFileSizeFromUriCached(@NonNull Uri uri) {
-        String uriString = uri.toString();
-
-        // Check cache first
-        Long cachedSize = fileSizeCache.get(uriString);
-        if (cachedSize != null) {
-            return cachedSize;
-        }
-
-        // Get size and cache it
-        long size = getFileSizeFromUri(uri);
-        if (size > 0) {
-            fileSizeCache.put(uriString, size);
-        }
-
-        return size;
-    }
-
-    /**
-     * Clears the file size cache.
-     */
-
-    /**
      * Attempts to strip EXIF, XMP, and IPTC losslessly using apache commons-imaging.
      * @return true if successful, false if it failed or was not a JPEG.
      */
@@ -1979,7 +1876,4 @@ public class MetadataStripper {
         }
     }
 
-    public void clearFileSizeCache() {
-        fileSizeCache.clear();
-    }
 }

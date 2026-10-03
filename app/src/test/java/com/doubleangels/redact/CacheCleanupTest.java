@@ -31,11 +31,14 @@ public class CacheCleanupTest {
         originalLocale = Locale.getDefault();
         Locale.setDefault(Locale.US);
         clearCacheTree();
+        CacheCleanup.resetAutoCleanupStateForTests();
+        AppPreferences.setAutoClearTempFiles(context, true);
     }
 
     @After
     public void tearDown() {
         Locale.setDefault(originalLocale);
+        CacheCleanup.resetAutoCleanupStateForTests();
     }
 
     private void clearCacheTree() {
@@ -135,6 +138,42 @@ public class CacheCleanupTest {
         assertEquals(1, deleted);
         assertFalse(oldTemp.exists());
         assertTrue(justCreated.exists());
+    }
+
+    @Test
+    public void shouldRunAutoCleanup_trueOnFirstCallThenFalseForRestOfProcess() {
+        assertTrue(CacheCleanup.shouldRunAutoCleanup(context));
+        assertFalse(CacheCleanup.shouldRunAutoCleanup(context));
+        assertFalse(CacheCleanup.shouldRunAutoCleanup(context));
+    }
+
+    @Test
+    public void shouldRunAutoCleanup_falseWhenPreferenceDisabled() {
+        AppPreferences.setAutoClearTempFiles(context, false);
+        assertFalse(CacheCleanup.shouldRunAutoCleanup(context));
+    }
+
+    @Test
+    public void performAutoCleanup_removesStaleFilesLikeClearStaleTempFiles() throws IOException {
+        File cacheDir = context.getCacheDir();
+        long oldTimestamp =
+                System.currentTimeMillis() - CacheCleanup.DEFAULT_STALE_TEMP_MAX_AGE_MS * 2;
+        File oldTemp = writeFile(new File(cacheDir, "temp_old.bin"), 100);
+        oldTemp.setLastModified(oldTimestamp);
+
+        CacheCleanup.performAutoCleanup(context);
+
+        assertFalse(oldTemp.exists());
+    }
+
+    @Test
+    public void scheduleAutoCleanupIfEnabled_doesNotThrowWhenDisabled() {
+        // Kept off for this test so it never hands work to the real background executor --
+        // the actual sweep behavior is covered deterministically by performAutoCleanup and
+        // shouldRunAutoCleanup above, without a background thread that could outlive the test.
+        AppPreferences.setAutoClearTempFiles(context, false);
+        CacheCleanup.scheduleAutoCleanupIfEnabled(context);
+        CacheCleanup.scheduleAutoCleanupIfEnabled(context);
     }
 
     private static File writeFile(File file, int size) throws IOException {
