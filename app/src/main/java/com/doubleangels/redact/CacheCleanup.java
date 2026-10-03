@@ -9,8 +9,6 @@ import com.doubleangels.redact.media.SecureDelete;
 
 import java.io.File;
 import java.util.Locale;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -27,7 +25,7 @@ public final class CacheCleanup {
      */
     private static final AtomicBoolean autoCleanupScheduledThisProcess = new AtomicBoolean(false);
 
-    private static final ExecutorService autoCleanupExecutor = Executors.newSingleThreadExecutor();
+    private static volatile Thread autoCleanupThread;
 
     private static final String PROCESSED_SUBDIR = "processed";
     private static final String[] TEMP_PREFIXES = {
@@ -95,7 +93,10 @@ public final class CacheCleanup {
             return;
         }
         Context appContext = context.getApplicationContext();
-        autoCleanupExecutor.execute(() -> performAutoCleanup(appContext));
+        // Guarded to once per process, so a one-shot thread beats a never-released executor.
+        Thread thread = new Thread(() -> performAutoCleanup(appContext), "redact-auto-cleanup");
+        autoCleanupThread = thread;
+        thread.start();
     }
 
     @VisibleForTesting
@@ -114,6 +115,15 @@ public final class CacheCleanup {
 
     @VisibleForTesting
     public static void resetAutoCleanupStateForTests() {
+        // Let any sweep started by Application.onCreate finish so it can't race the test's files.
+        Thread thread = autoCleanupThread;
+        if (thread != null) {
+            try {
+                thread.join(5000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
         autoCleanupScheduledThisProcess.set(false);
     }
 

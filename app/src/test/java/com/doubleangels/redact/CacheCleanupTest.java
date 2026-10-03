@@ -30,8 +30,8 @@ public class CacheCleanupTest {
         context = RuntimeEnvironment.getApplication();
         originalLocale = Locale.getDefault();
         Locale.setDefault(Locale.US);
-        clearCacheTree();
         CacheCleanup.resetAutoCleanupStateForTests();
+        clearCacheTree();
         AppPreferences.setAutoClearTempFiles(context, true);
     }
 

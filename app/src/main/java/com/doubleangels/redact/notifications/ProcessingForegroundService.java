@@ -168,9 +168,12 @@ public class ProcessingForegroundService extends Service {
     public void onTimeout(int startId, int fgsType) {
         com.doubleangels.redact.sentry.SentryManager.log(
                 "ProcessingForegroundService hit the Android background execution time limit");
-        com.doubleangels.redact.media.AppProcessingScope.get(getApplicationContext())
-                .mediaProcessor()
-                .cancel();
+        com.doubleangels.redact.media.AppProcessingScope scope =
+                com.doubleangels.redact.media.AppProcessingScope.get(getApplicationContext());
+        scope.mediaProcessor().cancel();
+        // Same signal MainViewModel's cancel uses: the Convert loop bails when its generation moves.
+        scope.convertGeneration().incrementAndGet();
+        scope.convertInProgress().set(false);
         com.doubleangels.redact.media.VideoMedia3Converter.cancelActiveTranscode();
         stopForeground(STOP_FOREGROUND_REMOVE);
         stopSelf();
