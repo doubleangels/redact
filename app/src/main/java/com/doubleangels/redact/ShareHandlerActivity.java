@@ -310,9 +310,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
         }
     }
 
+    /** Items dropped by {@link #snapshotInboundUris}; counted as failures in the final toast. */
+    private volatile int snapshotFailCount;
+
     @NonNull
     private List<Uri> snapshotInboundUris(@NonNull List<Uri> uris) {
         List<Uri> stable = new ArrayList<>();
+        snapshotFailCount = 0;
         for (Uri uri : uris) {
             String scheme = uri.getScheme();
             if ("content".equalsIgnoreCase(scheme) || "file".equalsIgnoreCase(scheme)) {
@@ -326,7 +330,9 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     // The source is already unreadable here, so forwarding the original URI
                     // would only fail identically at every later processing stage (extractor,
                     // transcoder, verifier), each logging its own duplicate exception for what
-                    // is really a single failure. Drop this item instead.
+                    // is really a single failure. Drop this item instead, but count it so the
+                    // user still sees the partial-success message.
+                    snapshotFailCount++;
                     SentryManager.recordException(e);
                 }
             } else {
@@ -425,7 +431,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         Thread worker = new Thread(() -> {
             ITransaction transaction = SentryManager.startTransaction("share_cleanup", "task");
             ArrayList<Uri> processedUris = new ArrayList<>();
-            int failCount = 0;
+            int failCount = snapshotFailCount;
             boolean hasVideo = false;
             boolean hasImage = false;
 

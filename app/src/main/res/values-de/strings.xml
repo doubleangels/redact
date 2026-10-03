@@ -321,4 +321,9 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="strip_progress_transcoding_target">Wird in Zielformat transkodiert…</string>
     <string name="strip_progress_transmuxing">Container wird neu gemuxt…</string>
     <string name="strip_progress_verifying">Überprüfung der Metadatenentfernung…</string>
+    <string name="scan_open_coordinates_in_maps">In Karten öffnen</string>
+    <string name="scan_maps_consent_title">Standort in Karten öffnen?</string>
+    <string name="scan_maps_consent_message">Dadurch werden die Koordinaten in der Standard-Karten-App Ihres Geräts geöffnet. Anders als jede andere Aktion auf diesem Bildschirm übergibt dies Ihren genauen GPS-Standort an eine separate App, die ihn von diesem Gerät senden kann, zum Beispiel um Kartenkacheln zu laden oder die Adresse nachzuschlagen. Redact selbst sendet diese Daten nirgendwohin.\n\nSie sehen diese Meldung nur einmal. Ihre Entscheidung, fortzufahren, wird gespeichert, daher wird nicht erneut gefragt.</string>
+    <string name="scan_maps_consent_continue">Karten öffnen</string>
+    <string name="scan_maps_not_available">Es ist keine Karten-App zum Öffnen dieses Standorts verfügbar.</string>
 </resources>
