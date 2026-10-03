@@ -60,6 +60,9 @@ public class MainActivity extends AppCompatActivity {
 
             SentryManager.logEvent("lifecycle", "MainActivity created");
 
+            // Tells Play vitals / Macrobenchmark when the first screen is usable.
+            getWindow().getDecorView().post(this::reportFullyDrawn);
+
             // RedactApplication.onCreate already runs this sweep once per process; this call
             // only matters when MainActivity is recreated without a fresh process (e.g. after a
             // configuration change) and isAnyProcessing requires a live Activity to check, so it

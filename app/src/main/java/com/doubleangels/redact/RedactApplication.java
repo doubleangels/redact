@@ -1,6 +1,7 @@
 package com.doubleangels.redact;
 
 import android.app.Application;
+import android.os.StrictMode;
 
 import androidx.annotation.NonNull;
 
@@ -22,6 +23,12 @@ public class RedactApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        if (BuildConfig.DEBUG) {
+            // Log-only: surfaces main-thread disk/network I/O in logcat (tag StrictMode) while profiling startup.
+            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                    .detectAll().penaltyLog().build());
+        }
 
         SentryManager.init(this);
         SentryInitializer.initializeIfNeeded(this);
