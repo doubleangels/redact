@@ -107,6 +107,7 @@ dependencies {
     implementation libs.exifinterface
     implementation libs.fragment
     implementation libs.glide
+    annotationProcessor libs.glide.compiler
     implementation libs.material
     implementation libs.media3.common
     implementation libs.media3.effect
