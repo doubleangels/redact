@@ -266,7 +266,8 @@ public class ShareHandlerActivityTest {
     }
 
     @Test
-    public void confirmDialogCancel_finishesAndDeletesSnapshots() throws IOException {
+    public void confirmDialogCancel_finishesAndDeletesSnapshots()
+            throws IOException, InterruptedException {
         AppPreferences.setShareConfirmBeforeStrip(app, true);
         ShareHandlerActivity activity = launch(sendIntent("image/jpeg", createJpeg()));
         assertEquals(1, inboundSnapshots().length);
@@ -278,6 +279,11 @@ public class ShareHandlerActivityTest {
         assertTrue(activity.isFinishing());
         controller.pause().stop().destroy();
         controller = null;
+        // Snapshot deletion runs on ShareHandlerActivity's background cleanup executor.
+        long deadline = System.currentTimeMillis() + 5000;
+        while (inboundSnapshots().length > 0 && System.currentTimeMillis() < deadline) {
+            Thread.sleep(25);
+        }
         assertEquals(0, inboundSnapshots().length);
     }
 

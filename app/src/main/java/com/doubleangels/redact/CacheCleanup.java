@@ -25,6 +25,8 @@ public final class CacheCleanup {
      */
     private static final AtomicBoolean autoCleanupScheduledThisProcess = new AtomicBoolean(false);
 
+    private static volatile Thread autoCleanupThread;
+
     private static final String PROCESSED_SUBDIR = "processed";
     private static final String[] TEMP_PREFIXES = {
             "temp_", "verify_", "vid_transform_", "vid_transmux_", "inbound_"
@@ -92,7 +94,9 @@ public final class CacheCleanup {
         }
         Context appContext = context.getApplicationContext();
         // Guarded to once per process, so a one-shot thread beats a never-released executor.
-        new Thread(() -> performAutoCleanup(appContext), "redact-auto-cleanup").start();
+        Thread thread = new Thread(() -> performAutoCleanup(appContext), "redact-auto-cleanup");
+        autoCleanupThread = thread;
+        thread.start();
     }
 
     @VisibleForTesting
@@ -111,6 +115,15 @@ public final class CacheCleanup {
 
     @VisibleForTesting
     public static void resetAutoCleanupStateForTests() {
+        // Let any sweep started by Application.onCreate finish so it can't race the test's files.
+        Thread thread = autoCleanupThread;
+        if (thread != null) {
+            try {
+                thread.join(5000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
         autoCleanupScheduledThisProcess.set(false);
     }
 
