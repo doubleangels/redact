@@ -1,1 +1,1 @@
-Elimina metadatos ocultos, escanea EXIF y convierte medios en tu dispositivo.
+Elimina metadatos ocultos, escanea EXIF y convierte medios — en el dispositivo.

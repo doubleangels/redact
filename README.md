@@ -21,9 +21,9 @@
 
 # Redact: Privacy & Metadata Remover
 
-Redact helps you protect your privacy by removing the hidden information that cameras and phones quietly attach to your photos and videos. This hidden information is called metadata, and it can include things like your exact GPS location, the date and time a photo was taken, and even the model of camera or phone that captured it. Redact strips all of that out, lets you look at exactly what is embedded in a file before you decide to share it, and can also convert files between formats, all directly on your device.
+Protect your privacy with Redact — remove hidden EXIF and container metadata from photos and videos, inspect what is embedded before you share, and convert formats locally on your device.
 
-**Take control of your digital footprint and share your photos and videos on your own terms.**
+**Take control of your digital footprint and share content on your terms.**
 
 ---
 
@@ -39,27 +39,27 @@ Redact helps you protect your privacy by removing the hidden information that ca
 
 ---
 
-## Features
+## Key Features
 
-- **Thorough metadata cleaning.** Redact removes GPS coordinates, device information, timestamps, and other hidden EXIF and container metadata from your images and videos. A mode called Strict Clean re-encodes your videos for the most thorough removal possible, and a faster alternative is available on compatible files when you would rather save time.
+- **Complete metadata cleaning:** Remove GPS, device info, timestamps, and hidden EXIF/XMP from images and videos. Strict Clean re-encodes video for maximum removal; a faster remux path is available when compatible.
 
-- **A metadata scanner you can actually read.** Redact lets you view a file's metadata, laid out in an organized, easy-to-follow list, before you decide what to do with it. You can copy camera details or the full metadata list to your clipboard, send the file straight to Clean or Convert, or, if the file has a location attached, open that location in your phone's default maps app. Opening a location in your maps app shares those coordinates with that separate app, so the first time you use this feature, Redact explains exactly what is happening and asks for your permission.
+- **Metadata scanner:** View organized metadata before cleaning. Copy fields, open a file in Clean, or send it to Convert.
 
-- **Local format conversion.** Redact converts images between JPEG, PNG, WebP, and HEIC (on supported devices), and transcodes video between H.264, H.265, VP9, and AV1, all without uploading anything to the cloud. Keep in mind that Convert only changes a file's format, so run it through Clean afterward if you also want its metadata removed.
+- **Format conversion (local):** Convert images (JPEG, PNG, WebP, HEIC on supported devices) and transcode video (H.264, H.265, VP9, AV1) without cloud upload. **Convert changes format only** — run Clean afterward if you also want metadata stripped from converted files.
 
-- **Batch processing.** Clean or convert as many as twenty files in a single batch, and Redact will tell you if some files succeeded while others failed, rather than giving up on the whole batch.
+- **Batch processing:** Clean or convert up to **20 files** per batch. Partial success is reported when some items fail.
 
-- **Support for large files.** Redact does not enforce a hard size limit when cleaning, converting, or sharing files in. If your device is running low on storage or memory, Redact warns you before it starts, so you have a chance to free up space first.
+- **Large file support:** No hard file-size cap on clean, convert, or share-in. Redact warns you before processing when storage or memory looks tight, so you can clear cache or free space first.
 
-- **Share sheet integration.** You can share a photo or video into Redact from any other app on your phone. An optional confirmation dialog, a progress indicator you can cancel at any time, reporting on partial batch success, and automatic cleanup of temporary files are all built in.
+- **Share sheet integration:** Share photos or videos into Redact from any app. Optional confirmation dialog, cancelable progress, partial batch success, and automatic cleanup of temporary share files.
 
-- **Permissions that respect your privacy.** Redact uses Android's built-in document picker on Android 13 and newer, so it can reach your Downloads, Files app, and gallery folders without needing broad access to all your media. Granting the optional location permission lets Scan reveal GPS fields when they exist. Notifications stay off until you turn them on yourself.
+- **Privacy-first permissions:** Pick files with Android’s **document picker** (Downloads, Files, gallery folders) without broad `READ_MEDIA_*` access on **Android 13+**. Optional `ACCESS_MEDIA_LOCATION` reveals GPS fields in Scan. Notifications are **off by default**.
 
-- **Processing that stays on your device.** Your photos and videos are never uploaded anywhere for Redact's core features. The one exception is opening a scanned location in your maps app, since that necessarily shares the coordinates with that other app, and it only ever happens after you agree to it. Optional crash reporting, also off by default, sends anonymized diagnostic information only, which is covered in more detail below.
+- **100% on-device processing:** Your media is never uploaded for core features. Optional crash reporting sends anonymized diagnostics only (see below).
 
-- **Thirteen languages.** Redact is available in English, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean, Chinese (both Simplified and Traditional), Hindi, and Arabic.
+- **13 languages:** English, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean, Chinese (Simplified & Traditional), Hindi, and Arabic.
 
-- **Open source and free of ads.** Redact has no ads and no behavioral tracking, and its source code is on GitHub for anyone to review.
+- **Open source & ad-free:** No ads or behavioral analytics. Code is on GitHub for community review.
 
 ---
 
@@ -67,40 +67,40 @@ Redact helps you protect your privacy by removing the hidden information that ca
 
 ### Google Play Store
 
-Download Redact from the [Google Play Store](https://play.google.com/store/apps/details?id=com.doubleangels.redact).
+Install Redact through the [Google Play Store](https://play.google.com/store/apps/details?id=com.doubleangels.redact).
 
 ### Requirements
 
-- **Minimum Android version:** Android 12 (API 31).
-- **Target Android version:** API 37.
-- **Permissions Redact uses:**
-  - Starting with Android 13, file selection relies on the system document picker, so you can browse Downloads, Files, or any folder without granting broad `READ_MEDIA_*` access. The optional `READ_MEDIA_IMAGES` and `READ_MEDIA_VIDEO` permissions, or the partial-access option on Android 14 and newer, can still help Redact in certain situations.
-  - The optional `FOREGROUND_SERVICE` permission shows a progress notification during long clean or convert jobs, as long as notifications are turned on.
-  - Android 12 and earlier relies on `READ_EXTERNAL_STORAGE` to reach your gallery instead.
-  - The optional `ACCESS_MEDIA_LOCATION` permission lets Redact read the GPS coordinates embedded in your media while using Scan.
-  - The optional `POST_NOTIFICATIONS` permission lets Redact alert you when a task finishes or show progress along the way. This stays off until you switch it on in Settings.
+- **Minimum Android:** Android 12 (API 31)
+- **Target Android:** API 37
+- **Permissions:**
+  - **Android 13+:** File selection uses the **system document picker** — browse Downloads, Files, or any folder without broad `READ_MEDIA_*` access. Optional `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO` (or partial access on Android 14+) can still help in some cases.
+  - **Optional:** `FOREGROUND_SERVICE` (data sync / media processing) — shows progress during long clean or convert jobs when notifications are enabled.
+  - **Android 12 and below:** `READ_EXTERNAL_STORAGE` for gallery access.
+  - **Optional:** `ACCESS_MEDIA_LOCATION` — needed to read GPS coordinates embedded in media during Scan.
+  - **Optional:** `POST_NOTIFICATIONS` — for task-finished and progress alerts (master toggle off by default).
 
 ---
 
 ## How It Works
 
-### Using the in-app file picker
+### 1. In-app file picker
 
-1. Open the **Clean**, **Scan**, or **Convert** tab.
-2. Tap **Select Files** and browse Downloads, Documents, your gallery folders, or any other storage provider on your device.
-3. Choose up to twenty images or videos for Clean or Convert, or a single file for Scan.
-4. **Clean** strips the metadata and saves the result to `Pictures/Redact` or `Movies/Redact`.
-5. **Scan** shows you the file's metadata and gives you action buttons to copy fields, open the file in Clean, send it to Convert, or open an attached location in your maps app. Grant the photo-location permission if you want Scan to show GPS coordinates at all.
-6. **Convert** changes the file's format or codec. Run the result through **Clean** afterward if you also want its metadata stripped.
+1. Open **Clean**, **Scan**, or **Convert**.
+2. Tap **Select Files** and browse **Downloads**, **Documents**, gallery folders, or any storage provider.
+3. Choose up to **20** images or videos on Clean/Convert, or **one file** on Scan.
+4. **Clean** — strip metadata and save to `Pictures/Redact` or `Movies/Redact`.
+5. **Scan** — view metadata; use action buttons to copy fields, open in Clean, or send to Convert. Grant photo-location permission to see GPS.
+6. **Convert** — change format/codec; use **Clean** afterward if you need metadata removed too.
 
-### Using share integration
+### 2. Share integration
 
-1. Share a photo or video into Redact from any other app.
-2. Confirm that you want Redact to strip the file's metadata, if you have that confirmation step turned on in Settings.
-3. Redact removes the metadata locally and then reopens the share sheet with the cleaned file or files ready to send.
-4. Cancel a long-running job at any point from the progress dialog, if you change your mind partway through.
+1. Share a photo or video from any app to Redact.
+2. Confirm stripping (if enabled in Settings).
+3. Redact removes metadata locally, then opens the share chooser with clean file(s).
+4. Cancel a long job from the progress dialog if needed.
 
-Every core processing step happens locally on your device. Optional crash reporting, which stays off unless you turn it on, may use the network to send anonymized diagnostic information, and opening a scanned location in your maps app, which only happens after you agree to it, hands that location to whichever maps app you have set as your default.
+All core processing runs locally. Optional crash reporting (off by default) may use the network for anonymized diagnostics only.
 
 ---
 
@@ -108,62 +108,61 @@ Every core processing step happens locally on your device. Optional crash report
 
 ### What exactly is EXIF data?
 
-EXIF, short for Exchangeable Image File Format, along with the related metadata that video containers carry, can describe quite a lot about how and where a photo or video was made. Common examples include:
+EXIF (Exchangeable Image File Format) and related container metadata can include:
 
-- Your GPS location at the time the photo or video was captured
-- The date, time, and timezone it was recorded in
-- The manufacturer and model of the device that created it
-- Camera settings such as aperture, shutter speed, and ISO
-- XMP and IPTC tags, along with other video container tags
+- GPS location coordinates
+- Date, time, and timezone
+- Device manufacturer and model
+- Camera settings (aperture, shutter speed, ISO, etc.)
+- XMP/IPTC and video container tags
 
-### Does Redact change the quality of my photos or videos?
+### Does Redact alter the quality of my photos or videos?
 
-Cleaning is designed to keep your photo or video looking the way it did before, while still removing its hidden metadata. Strict Clean and a full video transcode do re-encode your video, which can change some of its encoding details, though image cleaning preserves orientation whenever that is possible.
+Cleaning aims to preserve visual quality while removing metadata. Strict Clean and full video transcode re-encode video and may change encoding parameters. Image cleaning preserves orientation when possible.
 
-### Does Convert remove metadata too?
+### Does Convert remove metadata?
 
-No, Convert does not touch a file's metadata at all, since it only changes the format or codec. Use the Clean tab, or the share-in flow, whenever you want metadata removed from a file.
+**No.** Convert changes format/codec only. Use the **Clean** tab (or share-in) to strip metadata.
 
-### Does Redact need an internet connection?
+### Does Redact need internet access?
 
-No, you do not need an internet connection to clean, scan, or convert your files. Two optional features do use the network: turning on **Send Crash Reports** in Settings sends anonymized crash diagnostics to [Sentry](https://sentry.io) over a secure connection, and opening a scanned location in your maps app hands those coordinates to that separate app, which may itself use the network to display the map. Both of these stay off until you explicitly choose to use them, and Redact asks for your permission the very first time you open a location in maps.
+**No**, for cleaning, scanning, and converting. If you enable **Send Crash Reports** in Settings (off by default), anonymized crash diagnostics may be sent to [Sentry](https://sentry.io) over HTTPS.
 
-### Where does Redact store my processed files?
+### Where are processed files stored?
 
-Cleaned and converted files land in `Pictures/Redact` or `Movies/Redact`, managed through Android's MediaStore. Files you share in are kept in the app's temporary cache and deleted once sharing is done, with a short delay built in so the app you shared to has time to finish reading them.
+Cleaned and converted files are saved under `Pictures/Redact` and `Movies/Redact` in the MediaStore. Share-in uses app cache; temporary files are deleted after sharing (with a short delay so the target app can read them).
 
-### How does secure delete and cache cleanup work?
+### What about secure delete and cache cleanup?
 
-Settings let you ask Redact to overwrite temporary files with random data before deleting them, though this offers limited benefit on modern flash storage. Redact automatically clears out processing cache files older than twenty-four hours every time the app starts, whether you opened it directly or arrived through the share sheet, and you can also clear temporary files manually from Settings whenever you like.
+Settings let you overwrite temporary files before deletion (limited benefit on modern flash storage). **Clear Cache on Startup** removes processing cache files **older than 24 hours** when the app opens. You can also clear temporary files manually from Settings.
 
-### Are there any file size limits?
+### Are there file size limits?
 
-No, Redact does not enforce a hard size cap. Very large files can still run into trouble on a device that is low on free storage or memory, so Redact shows a warning beforehand whenever that looks likely. Lowering the **Max Processing Resolution** setting can reduce how much memory Redact needs while decoding large images.
+**No hard cap.** Redact no longer rejects photos or videos based on a fixed megabyte limit. Very large files may still fail on devices with low free storage or memory — Redact shows warnings before processing when that looks likely. You can lower **Max Processing Resolution** in Settings to reduce RAM use when decoding large images.
 
-### Does Redact use analytics or trackers?
+### Are there any analytics or trackers?
 
-Optional crash reporting through [Sentry](https://sentry.io) is the only thing of this kind in Redact, and it stays disabled until you turn it on yourself in Settings.
+Optional crash reporting uses [Sentry](https://sentry.io). It is **disabled by default** and must be turned on in Settings.
 
-Once enabled, the anonymized data it sends may include your device model, Android version, the app's version, stack traces, and a handful of scrubbed diagnostic tags. File paths, filenames, and GPS coordinates are all removed before anything is sent. Your actual photos and videos are never uploaded, under any circumstance.
+When enabled, anonymized data may include device model, Android version, app version, stack traces, and scrubbed diagnostic tags. URIs, filenames, and GPS are redacted before upload. Your photos and videos are **never** uploaded.
 
 ---
 
 ## Reporting Issues & Feedback
 
-1. Take a look through the existing [GitHub Issues](https://github.com/doubleangels/redact/issues) first, in case someone has already reported what you are seeing.
-2. Open a new issue with the steps to reproduce the problem, if you cannot find one that already matches.
+1. Check [GitHub Issues](https://github.com/doubleangels/redact/issues)
+2. Open a new issue with steps to reproduce if needed
 
 ---
 
 ## Privacy & Security
 
-- Your files stay on your device for every core feature.
-- Cleaning, scanning, and converting never require a network connection.
-- Opening a scanned location in your maps app is the one feature that shares data with another app, and Redact only does this after you give explicit, one-time consent.
-- The source code is public, so anyone can review exactly what Redact does.
-- Temporary files can be securely deleted, within the limits of what modern flash storage allows.
-- Share-in always strips location data. Clean can preserve it only if you explicitly turn on **Keep Location** (with a confirmation prompt) and Strict Clean is switched off.
-- Settings include options for clearing temporary and stale cache files whenever you want.
+- Files stay on your device for core features
+- No network required for clean / scan / convert
+- Open-source code for transparency
+- Configurable secure deletion of temp files (flash-storage limitations apply)
+- Share-in always strips location; Clean can preserve location only if you explicitly enable **Keep Location** (with confirmation) and Strict Clean is off
+- Temporary and stale cache cleanup options in Settings
 
 **[Privacy Policy](https://doubleangels.github.io/privacypolicy/redact.html)**
 
@@ -175,4 +174,4 @@ Redact is released under the [GNU General Public License v3.0](LICENSE).
 
 ---
 
-Thank you for trusting Redact to help protect your privacy. I hope it serves you well!
+I hope you enjoy using Redact to protect your privacy online!

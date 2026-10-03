@@ -1,1 +1,1 @@
-Metadaten entfernen, EXIF scannen und Medien konvertieren, alles auf dem Gerät.
+Metadaten entfernen, EXIF scannen und Medien konvertieren — alles auf dem Gerät.
