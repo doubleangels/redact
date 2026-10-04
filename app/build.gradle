@@ -25,6 +25,7 @@ android {
 
     buildTypes {
         debug {
+            enableUnitTestCoverage = true
             buildConfigField "String", "SENTRY_DSN", "\"${resolveSentryDsnForDebug()}\""
         }
         release {
@@ -47,6 +48,8 @@ android {
         unitTests {
             includeAndroidResources = true
             all {
+                // Robolectric-loaded classes need this for JaCoCo to see them.
+                jacoco { includeNoLocationClasses = true; excludes = ['jdk.internal.*'] }
                 testLogging {
                     events "failed"
                     exceptionFormat "full"
