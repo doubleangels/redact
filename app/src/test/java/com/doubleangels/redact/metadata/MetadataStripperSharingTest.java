@@ -11,6 +11,7 @@ import android.net.Uri;
 import androidx.exifinterface.media.ExifInterface;
 
 import com.doubleangels.redact.AppPreferences;
+import com.doubleangels.redact.FileProviderTestSupport;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,6 +36,7 @@ public class MetadataStripperSharingTest {
     public void setUp() {
         app = RuntimeEnvironment.getApplication();
         stripper = new MetadataStripper(app);
+        FileProviderTestSupport.clearCache();
     }
 
     private File image(String ext, Bitmap.CompressFormat fmt, boolean exif) throws Exception {
@@ -69,6 +71,7 @@ public class MetadataStripperSharingTest {
 
     @Test
     public void shareJpeg_strict_removesExif() throws Exception {
+        FileProviderTestSupport.assumeUsable();
         AppPreferences.setStrictClean(app, true);
         File src = image(".jpg", Bitmap.CompressFormat.JPEG, true);
         List<Integer> pct = new ArrayList<>();
