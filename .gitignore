@@ -42,3 +42,6 @@ sentry.properties
 __pycache__/
 *.py[cod]
 vendor/bundle/
+
+# CodeGraph index
+.codegraph/
