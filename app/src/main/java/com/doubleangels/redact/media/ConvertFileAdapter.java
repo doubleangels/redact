@@ -7,6 +7,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -22,9 +23,27 @@ import java.util.List;
  */
 public final class ConvertFileAdapter extends RecyclerView.Adapter<ConvertFileAdapter.Holder> {
 
+    public interface OnItemRemoveListener {
+        void onItemRemove(int position, @NonNull MediaItem item);
+    }
+
     private final List<MediaItem> items = new ArrayList<>();
+    @Nullable
+    private OnItemRemoveListener onItemRemoveListener;
+    private boolean isRemovable = true;
 
     public ConvertFileAdapter() {
+    }
+
+    public void setOnItemRemoveListener(@Nullable OnItemRemoveListener listener) {
+        this.onItemRemoveListener = listener;
+    }
+
+    public void setRemovable(boolean removable) {
+        if (this.isRemovable != removable) {
+            this.isRemovable = removable;
+            notifyDataSetChanged();
+        }
     }
 
     /**
@@ -78,6 +97,27 @@ public final class ConvertFileAdapter extends RecyclerView.Adapter<ConvertFileAd
         MediaItem item = items.get(position);
         holder.text.setText(item.fileName());
 
+        if (holder.subtitle != null) {
+            holder.subtitle.setText(item.isVideo()
+                    ? R.string.convert_item_type_video
+                    : R.string.convert_item_type_image);
+        }
+
+        if (holder.removeButton != null) {
+            holder.removeButton.setVisibility(isRemovable ? View.VISIBLE : View.GONE);
+            holder.removeButton.setOnClickListener(v -> {
+                int adapterPos = holder.getBindingAdapterPosition();
+                int targetPos = adapterPos != RecyclerView.NO_POSITION ? adapterPos : position;
+                if (onItemRemoveListener != null) {
+                    onItemRemoveListener.onItemRemove(targetPos, item);
+                }
+            });
+        }
+
+        if (holder.divider != null) {
+            holder.divider.setVisibility(position == items.size() - 1 ? View.GONE : View.VISIBLE);
+        }
+
         int thumbPx = thumbnailSizePx(holder.thumbnail);
         Glide.with(holder.thumbnail)
                 .load(item.uri())
@@ -94,6 +134,9 @@ public final class ConvertFileAdapter extends RecyclerView.Adapter<ConvertFileAd
     public void onViewRecycled(@NonNull Holder holder) {
         super.onViewRecycled(holder);
         Glide.with(holder.thumbnail).clear(holder.thumbnail);
+        if (holder.removeButton != null) {
+            holder.removeButton.setOnClickListener(null);
+        }
     }
 
     @Override
@@ -111,14 +154,23 @@ public final class ConvertFileAdapter extends RecyclerView.Adapter<ConvertFileAd
 
     static final class Holder extends RecyclerView.ViewHolder {
         final TextView text;
+        @Nullable
+        final TextView subtitle;
         final ImageView thumbnail;
         final ImageView videoIndicator;
+        @Nullable
+        final View removeButton;
+        @Nullable
+        final View divider;
 
         Holder(@NonNull View itemView) {
             super(itemView);
             text = itemView.findViewById(R.id.convertItemName);
+            subtitle = itemView.findViewById(R.id.convertItemSubtitle);
             thumbnail = itemView.findViewById(R.id.convertItemThumbnail);
             videoIndicator = itemView.findViewById(R.id.convertVideoIndicator);
+            removeButton = itemView.findViewById(R.id.convertItemRemove);
+            divider = itemView.findViewById(R.id.convertItemDivider);
         }
     }
 }

@@ -62,6 +62,7 @@ public class ConvertFragment extends Fragment {
     private ConvertFileAdapter convertFileAdapter;
     private View formatSection;
     private TextView formatLabel;
+    private TextView formatBadge;
     private ChipGroup formatChipGroup;
     private Chip chipFormatJpeg;
     private Chip chipFormatPng;
@@ -69,6 +70,7 @@ public class ConvertFragment extends Fragment {
     private Chip chipFormatHeif;
     private int lastFormatNumImages = -1;
     private int lastFormatNumVideos = -1;
+    private TextView filesCountBadge;
 
     private View emptyStateContainer;
     private MaterialButton emptyStateSelectButton;
@@ -131,6 +133,7 @@ public class ConvertFragment extends Fragment {
         selectButton = view.findViewById(R.id.selectButton);
         formatSection = view.findViewById(R.id.formatSection);
         formatLabel = view.findViewById(R.id.formatLabel);
+        formatBadge = view.findViewById(R.id.formatBadge);
         formatChipGroup = view.findViewById(R.id.formatChipGroup);
         chipFormatJpeg = view.findViewById(R.id.chipFormatJpeg);
         chipFormatPng = view.findViewById(R.id.chipFormatPng);
@@ -142,6 +145,7 @@ public class ConvertFragment extends Fragment {
         convertContentContainer = view.findViewById(R.id.convertContentContainer);
         convertSelectedCountText = view.findViewById(R.id.convertSelectedCountText);
         convertClearButton = view.findViewById(R.id.convertClearButton);
+        filesCountBadge = view.findViewById(R.id.filesCountBadge);
 
         if (emptyStateSelectButton != null) {
             emptyStateSelectButton.setOnClickListener(v -> onSelectFilesClicked());
@@ -155,9 +159,24 @@ public class ConvertFragment extends Fragment {
             });
         }
 
+        if (formatChipGroup != null) {
+            formatChipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> updateFormatBadge());
+        }
+
         RecyclerView recyclerView = view.findViewById(R.id.convertFileList);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         convertFileAdapter = new ConvertFileAdapter();
+        convertFileAdapter.setOnItemRemoveListener((position, item) -> {
+            if (viewModel.getConvertProcessingState().getValue()
+                    != MainViewModel.ProcessingState.PROCESSING) {
+                List<MediaItem> current = currentSelectedItems();
+                if (position >= 0 && position < current.size()) {
+                    List<MediaItem> updated = new java.util.ArrayList<>(current);
+                    updated.remove(position);
+                    viewModel.setConvertSelectedItems(updated);
+                }
+            }
+        });
         recyclerView.setAdapter(convertFileAdapter);
 
         permissionManager = new PermissionManager(
@@ -212,8 +231,17 @@ public class ConvertFragment extends Fragment {
             convertButton.setEnabled(true);
             statusText.setText(getString(R.string.convert_selected_count, restored.size()));
             refreshFormatSectionForSelection(restored);
+            if (filesCountBadge != null) {
+                filesCountBadge.setText(restored.size() == 1
+                        ? getString(R.string.convert_hero_file_count_single, 1)
+                        : getString(R.string.convert_hero_files_count, restored.size()));
+                filesCountBadge.setVisibility(View.VISIBLE);
+            }
         } else {
             refreshFormatSectionForSelection(List.of());
+            if (filesCountBadge != null) {
+                filesCountBadge.setVisibility(View.GONE);
+            }
         }
         if (!isHidden()) {
             syncSelectButtonForPickerAccess();
@@ -322,6 +350,21 @@ public class ConvertFragment extends Fragment {
         }
         lastFormatNumImages = numImages;
         lastFormatNumVideos = numVideos;
+        updateFormatBadge();
+    }
+
+    private void updateFormatBadge() {
+        if (formatBadge == null || formatChipGroup == null) {
+            return;
+        }
+        int checkedId = formatChipGroup.getCheckedChipId();
+        Chip chip = formatChipGroup.findViewById(checkedId);
+        if (chip != null && chip.getVisibility() == View.VISIBLE) {
+            formatBadge.setText(chip.getText());
+            formatBadge.setVisibility(View.VISIBLE);
+        } else {
+            formatBadge.setVisibility(View.GONE);
+        }
     }
 
     private void openMediaPicker() {
@@ -358,6 +401,16 @@ public class ConvertFragment extends Fragment {
             if (convertSelectedCountText != null && hasItems) {
                 convertSelectedCountText.setText(getString(R.string.convert_selected_count, list.size()));
             }
+            if (filesCountBadge != null) {
+                if (hasItems) {
+                    filesCountBadge.setText(list.size() == 1
+                            ? getString(R.string.convert_hero_file_count_single, 1)
+                            : getString(R.string.convert_hero_files_count, list.size()));
+                    filesCountBadge.setVisibility(View.VISIBLE);
+                } else {
+                    filesCountBadge.setVisibility(View.GONE);
+                }
+            }
 
             convertFileAdapter.setItems(list);
             if (viewModel.getConvertProcessingState().getValue()
@@ -382,6 +435,14 @@ public class ConvertFragment extends Fragment {
         });
 
         viewModel.getConvertProcessingState().observe(getViewLifecycleOwner(), state -> {
+            boolean isProcessing = state == MainViewModel.ProcessingState.PROCESSING;
+            if (chipFormatJpeg != null) chipFormatJpeg.setEnabled(!isProcessing);
+            if (chipFormatPng != null) chipFormatPng.setEnabled(!isProcessing);
+            if (chipFormatWebp != null) chipFormatWebp.setEnabled(!isProcessing);
+            if (chipFormatHeif != null) chipFormatHeif.setEnabled(!isProcessing);
+            if (convertClearButton != null) convertClearButton.setEnabled(!isProcessing);
+            if (convertFileAdapter != null) convertFileAdapter.setRemovable(!isProcessing);
+
             if (state == MainViewModel.ProcessingState.PROCESSING) {
                 convertButton.setText(R.string.button_cancel);
                 convertButton.setIconResource(R.drawable.ic_close);

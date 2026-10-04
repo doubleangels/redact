@@ -3,12 +3,14 @@
 # emulator, using the media in icons/sample. Output: build/screenshots/1.png .. 6.png, grouped by
 # screen, light then dark: 1/2 Clean, 3/4 Scan, 5/6 Convert.
 #
-# Requires: adb, python (python3, python or py -3), the debug app installed (./gradlew installDebug), emulator unlocked.
+# Requires: adb, python (python3, python or py -3), emulator unlocked. It builds and installs the current
+# debug app on the emulator first (./gradlew installDebug); set SKIP_INSTALL=1 to reuse what is installed.
 # Windows: run it from Git Bash (adb, emulator and python are found via PATH or the SDK in local.properties).
-# Emulator only: physical devices are never used or touched (an inherited ANDROID_SERIAL is ignored).
-# Uses a running emulator if there is one (and leaves it running); otherwise boots the AVD named by
-# $AVD (default redact_shots) in a visible window and shuts it down on exit.
-# Emulator setup: sdkmanager "system-images;android-36-ext19;google_apis;x86_64", then avdmanager create avd
+# Android 17 (API 37) emulator only: physical devices and emulators on any other API level are never used
+# or touched (an inherited ANDROID_SERIAL is ignored). Uses a running API 37 emulator if there is one (and
+# leaves it running); otherwise boots the AVD named by $AVD (default redact_shots, must be API 37) in a
+# visible window and shuts it down on exit.
+# Emulator setup: sdkmanager "system-images;android-37;google_apis;x86_64", then avdmanager create avd
 # -n redact_shots -d pixel_7_pro -k <that image>.
 # Changes it makes on the emulator are undone on exit: system dark mode, demo-mode status
 # bar, and the pushed files in /sdcard/Pictures/redact-samples.
@@ -21,6 +23,7 @@ OUT="$ROOT/build/screenshots"
 PICKER_SEARCH="redact-sample"   # every pushed file is prefixed with this; the picker search finds them
 
 AVD="${AVD:-redact_shots}"
+REQUIRED_API=37
 EMU_PORT=5570
 EMU_PID=""
 unset ANDROID_SERIAL   # never inherit a physical device from the environment
@@ -67,17 +70,28 @@ for c in python3 python "py -3"; do
 done
 [[ -n "$PY" ]] || { echo "python not found" >&2; exit 1; }
 
+emulator_api() { adb -s "$1" shell getprop ro.build.version.sdk 2>/dev/null | tr -d '\r'; }
+
 # Boots the AVD in a visible window on a fixed port and waits until Android has finished booting.
 start_emulator() {
   local emu i
   emu=$(find_emulator) || { echo "No emulator running and no emulator binary found (set ANDROID_HOME)" >&2; exit 1; }
-  echo "No emulator running; starting $AVD"
+  "$emu" -list-avds | tr -d '\r' | grep -qx "$AVD" || {
+    echo "No API $REQUIRED_API emulator running and no AVD named $AVD." >&2
+    echo "Create one: sdkmanager \"system-images;android-$REQUIRED_API;google_apis;x86_64\", then" >&2
+    echo "avdmanager create avd -n $AVD -d pixel_7_pro -k \"system-images;android-$REQUIRED_API;google_apis;x86_64\"" >&2
+    exit 1
+  }
+  echo "No API $REQUIRED_API emulator running; starting $AVD"
   "$emu" -avd "$AVD" -port "$EMU_PORT" -no-snapshot-save -no-boot-anim >/dev/null 2>&1 &
   EMU_PID=$!
   ANDROID_SERIAL="emulator-$EMU_PORT"
   adb -s "$ANDROID_SERIAL" wait-for-device
   for ((i = 0; i < 150; i++)); do
-    [[ $(adb -s "$ANDROID_SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r') == 1 ]] && return 0
+    if [[ $(adb -s "$ANDROID_SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r') == 1 ]]; then
+      [[ $(emulator_api "$ANDROID_SERIAL") == "$REQUIRED_API" ]] || { echo "AVD $AVD is API $(emulator_api "$ANDROID_SERIAL"), need API $REQUIRED_API" >&2; exit 1; }
+      return 0
+    fi
     kill -0 "$EMU_PID" 2>/dev/null || { echo "Emulator exited during boot" >&2; exit 1; }
     sleep 2
   done
@@ -102,11 +116,19 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 130' INT TERM
 
-ANDROID_SERIAL=$(adb devices | tr -d '\r' | awk 'NR>1 && $2=="device" && $1~/^emulator-/ {print $1; exit}')
+ANDROID_SERIAL=""
+for serial in $(adb devices | tr -d '\r' | awk 'NR>1 && $2=="device" && $1~/^emulator-/ {print $1}'); do
+  if [[ $(emulator_api "$serial") == "$REQUIRED_API" ]]; then ANDROID_SERIAL=$serial; break; fi
+done
 [[ -n "$ANDROID_SERIAL" ]] || start_emulator
 export ANDROID_SERIAL
 for _ in {1..60}; do adb shell ls /sdcard/Android >/dev/null 2>&1 && break; sleep 2; done   # storage mounts late after emulator boot
-adb shell pm path "$PKG" >/dev/null || { echo "$PKG not installed; run ./gradlew installDebug" >&2; exit 1; }
+# Always screenshot the current code: ANDROID_SERIAL is the emulator, so Gradle installs only there.
+if [[ -z "${SKIP_INSTALL:-}" ]]; then
+  echo "Installing the debug app on $ANDROID_SERIAL"
+  (cd "$ROOT" && ./gradlew -q installDebug) || { echo "installDebug failed" >&2; exit 1; }
+fi
+adb shell pm path "$PKG" >/dev/null || { echo "$PKG not installed" >&2; exit 1; }
 
 ORIGINAL_NIGHT=$(adb shell cmd uimode night | awk '{print $NF}' | tr -d '\r')
 
@@ -148,6 +170,8 @@ wait_for() {  # wait_for <attr> <value> [tries]
 }
 
 tap_node() { read -r x y < <(find_node "$1" "$2") && adb shell input tap "$x" "$y"; }
+# The picker's confirm button: text "Select" on newer pickers, "SELECT" (action_menu_select) on older ones.
+tap_select() { tap_node resource-id ':id/action_menu_select' || tap_node text 'Select'; }
 
 # Opens the picker from the current tab and selects the first N sample files.
 pick_files() {
@@ -170,8 +194,8 @@ pick_files() {
   sleep 1
   if ((count > 1)); then
     for ((i = 1; i < count; i++)); do read -r x y <<<"${items[i]}"; adb shell input tap "$x" "$y"; done
-    tap_node text 'Select'
-  elif ! tap_node text 'Select'; then
+    tap_select
+  elif ! tap_select; then
     adb shell input tap "$x" "$y"
   fi
 }
