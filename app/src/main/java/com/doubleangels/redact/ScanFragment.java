@@ -12,11 +12,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -25,20 +23,23 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.doubleangels.redact.media.MediaItem;
 import com.doubleangels.redact.media.MediaPickerContracts;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.metadata.MetadataDisplayer;
 import com.doubleangels.redact.permission.PermissionManager;
+import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.ui.ScanMetadataAdapter;
 import com.doubleangels.redact.ui.ScanViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.divider.MaterialDividerItemDecoration;
-import com.doubleangels.redact.sentry.SentryManager;
+import com.google.android.material.imageview.ShapeableImageView;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -77,7 +78,24 @@ public class ScanFragment extends Fragment {
     private TextView statusText;
     private TextView progressText;
     private View progressBar;
+    private View progressContainer;
     private MaterialButton selectMediaButton;
+
+    private View emptyStateContainer;
+    private MaterialButton emptyStateSelectButton;
+    private View metadataContentContainer;
+
+    private MaterialCardView heroCard;
+    private ShapeableImageView heroThumbnail;
+    private ImageView heroVideoIndicator;
+    private TextView heroFileName;
+    private TextView heroFormatBadge;
+    private TextView heroFieldsCountBadge;
+    private TextView heroSizeBadge;
+    private TextView heroRiskBadge;
+
+    private MaterialCardView locationPermissionBanner;
+    private MaterialButton locationPermissionButton;
 
     private RecyclerView metadataItemsRecycler;
     private ScanMetadataAdapter scanMetadataAdapter;
@@ -142,26 +160,46 @@ public class ScanFragment extends Fragment {
         statusText = view.findViewById(R.id.statusText);
         progressText = view.findViewById(R.id.progressText);
         progressBar = view.findViewById(R.id.progressBar);
+        progressContainer = view.findViewById(R.id.progressContainer);
         selectMediaButton = view.findViewById(R.id.selectButton);
+
+        emptyStateContainer = view.findViewById(R.id.emptyStateContainer);
+        emptyStateSelectButton = view.findViewById(R.id.emptyStateSelectButton);
+        metadataContentContainer = view.findViewById(R.id.metadataContentContainer);
+
+        heroCard = view.findViewById(R.id.heroCard);
+        heroThumbnail = view.findViewById(R.id.heroThumbnail);
+        heroVideoIndicator = view.findViewById(R.id.heroVideoIndicator);
+        heroFileName = view.findViewById(R.id.heroFileName);
+        heroFormatBadge = view.findViewById(R.id.heroFormatBadge);
+        heroFieldsCountBadge = view.findViewById(R.id.heroFieldsCountBadge);
+        heroSizeBadge = view.findViewById(R.id.heroSizeBadge);
+        heroRiskBadge = view.findViewById(R.id.heroRiskBadge);
+
+        locationPermissionBanner = view.findViewById(R.id.locationPermissionBanner);
+        locationPermissionButton = view.findViewById(R.id.locationPermissionButton);
 
         metadataItemsRecycler = view.findViewById(R.id.metadataItemsRecycler);
         scanMetadataAdapter = new ScanMetadataAdapter();
         metadataItemsRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         metadataItemsRecycler.setAdapter(scanMetadataAdapter);
-        MaterialDividerItemDecoration metadataDivider = new MaterialDividerItemDecoration(
-                requireContext(), LinearLayoutManager.VERTICAL);
-        int dividerInset = getResources().getDimensionPixelSize(R.dimen.scan_metadata_row_horizontal_padding);
-        metadataDivider.setDividerInsetStart(dividerInset);
-        metadataDivider.setDividerInsetEnd(dividerInset);
-        metadataDivider.setLastItemDecorated(false);
-        metadataItemsRecycler.addItemDecoration(metadataDivider);
         metadataItemsRecycler.setNestedScrollingEnabled(false);
+
         metadataFooter = view.findViewById(R.id.metadataFooter);
         metadataCard = view.findViewById(R.id.metadataCard);
         scanActionCardsScroll = view.findViewById(R.id.scanActionCardsScroll);
         scanActionCardsContainer = view.findViewById(R.id.scanActionCardsContainer);
 
+        showEmptyState(true);
         metadataCard.setVisibility(View.GONE);
+
+        emptyStateSelectButton.setOnClickListener(v -> onSelectMediaClicked());
+
+        locationPermissionButton.setOnClickListener(v -> {
+            if (permissionManager != null) {
+                permissionManager.requestLocationPermission();
+            }
+        });
 
         mediaSelector = new com.doubleangels.redact.media.MediaSelector(requireActivity());
 
@@ -195,18 +233,32 @@ public class ScanFragment extends Fragment {
                 com.doubleangels.redact.permission.PermissionManager.STORAGE_PERMISSION_REQUEST_CODE,
                 com.doubleangels.redact.permission.PermissionManager.LOCATION_PERMISSION_REQUEST_CODE);
 
-        selectMediaButton.setOnClickListener(v -> {
-            SentryManager.log("Select button clicked in ScanFragment");
-            if (permissionManager.shouldRequestStorageBeforePicker()) {
-                permissionManager.requestStoragePermission();
-            } else {
-                openMediaPicker();
-            }
-        });
+        selectMediaButton.setOnClickListener(v -> onSelectMediaClicked());
         if (!isHidden()) {
             permissionManager.checkPermissions();
         }
         restoreScanUiIfNeeded();
+    }
+
+    private void onSelectMediaClicked() {
+        SentryManager.log("Select button clicked in ScanFragment");
+        if (permissionManager != null && permissionManager.shouldRequestStorageBeforePicker()) {
+            permissionManager.requestStoragePermission();
+        } else {
+            openMediaPicker();
+        }
+    }
+
+    private void showEmptyState(boolean show) {
+        if (emptyStateContainer != null) {
+            emptyStateContainer.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
+        if (metadataContentContainer != null) {
+            metadataContentContainer.setVisibility(show ? View.GONE : View.VISIBLE);
+        }
+        if (selectMediaButton != null) {
+            selectMediaButton.setVisibility(show ? View.GONE : View.VISIBLE);
+        }
     }
 
     private void restoreScanUiIfNeeded() {
@@ -293,6 +345,12 @@ public class ScanFragment extends Fragment {
     @Override
     public void onDestroyView() {
         MetadataDisplayer.cancelActiveScan();
+        if (heroThumbnail != null) {
+            try {
+                Glide.with(heroThumbnail).clear(heroThumbnail);
+            } catch (Exception ignored) {
+            }
+        }
         super.onDestroyView();
     }
 
@@ -395,39 +453,39 @@ public class ScanFragment extends Fragment {
                         activity.runOnUiThread(() -> {
                             if (!isAdded() || generation != scanGeneration.get()) return;
                             try {
-                            lastMetadataSections = new HashMap<>(metadataSections);
-                            showProgress(false);
-                            showStatus(getString(R.string.status_extraction_complete));
+                                lastMetadataSections = new HashMap<>(metadataSections);
+                                showProgress(false);
+                                showStatus(getString(R.string.status_extraction_complete));
 
-                            double[] coords = MetadataDisplayer.resolveMapCoordinates(metadataSections);
-                            if (coords != null
-                                    && MetadataDisplayer.isUsableMapCoordinate(coords[0], coords[1])) {
-                                lastMapLatitude = coords[0];
-                                lastMapLongitude = coords[1];
-                            } else {
-                                clearMapPreviewCoordinatesOnly();
-                            }
-                            displayCombinedMetadata(metadataSections);
-                            syncScanStateToViewModel();
+                                double[] coords = MetadataDisplayer.resolveMapCoordinates(metadataSections);
+                                if (coords != null
+                                        && MetadataDisplayer.isUsableMapCoordinate(coords[0], coords[1])) {
+                                    lastMapLatitude = coords[0];
+                                    lastMapLongitude = coords[1];
+                                } else {
+                                    clearMapPreviewCoordinatesOnly();
+                                }
+                                displayCombinedMetadata(metadataSections);
+                                syncScanStateToViewModel();
 
-                            String locationSection = metadataSections.get(MetadataDisplayer.SECTION_LOCATION);
-                            boolean hasLocationRows = locationSection != null && !locationSection.trim().isEmpty();
-                            if (permissionManager.needsLocationPermission() && !hasLocationRows) {
-                                metadataFooter.setVisibility(View.VISIBLE);
-                                metadataFooter.setText(getString(R.string.scan_location_permission_missing));
-                                metadataCard.setVisibility(View.VISIBLE);
-                            } else if (permissionManager.needsLocationPermission()
-                                    && locationSection != null
-                                    && locationSection.contains(
-                                            getString(R.string.metadata_location_permission_needed))) {
-                                permissionManager.requestLocationPermission();
+                                String locationSection = metadataSections.get(MetadataDisplayer.SECTION_LOCATION);
+                                boolean hasLocationRows = locationSection != null && !locationSection.trim().isEmpty();
+                                if (permissionManager.needsLocationPermission() && !hasLocationRows) {
+                                    if (locationPermissionBanner != null) {
+                                        locationPermissionBanner.setVisibility(View.VISIBLE);
+                                    }
+                                } else if (permissionManager.needsLocationPermission()
+                                        && locationSection != null
+                                        && locationSection.contains(
+                                                getString(R.string.metadata_location_permission_needed))) {
+                                    permissionManager.requestLocationPermission();
+                                }
+                            } catch (Exception e) {
+                                SentryManager.recordException(e);
                             }
-                        } catch (Exception e) {
-                            SentryManager.recordException(e);
-                        }
-                    });
+                        });
+                    }
                 }
-            }
 
                 @Override
                 public void onExtractionFailed(String error) {
@@ -449,6 +507,7 @@ public class ScanFragment extends Fragment {
                         List<ScanMetadataAdapter.Entry> errorRow = new ArrayList<>();
                         errorRow.add(ScanMetadataAdapter.Entry.row(null, getString(R.string.scan_extraction_fail)));
                         scanMetadataAdapter.setEntries(errorRow);
+                        showEmptyState(false);
                         metadataCard.setVisibility(View.VISIBLE);
                         clearCoordinateState();
                         SentryManager.logEvent("scan", "Metadata extraction failed");
@@ -473,24 +532,232 @@ public class ScanFragment extends Fragment {
             }
         }
         Collections.sort(allRows, METADATA_ROW_KEY_ORDER);
-
-        List<ScanMetadataAdapter.Entry> adapterEntries = new ArrayList<>();
-        for (Pair<String, String> row : allRows) {
-            adapterEntries.add(ScanMetadataAdapter.Entry.row(row.first, row.second));
-        }
-        scanMetadataAdapter.setEntries(adapterEntries);
         lastMetadataRows = allRows;
         lastMetadataPlainText = metadataPlainTextFromRows(allRows);
 
-        if (!adapterEntries.isEmpty()) {
-            metadataCard.setVisibility(View.VISIBLE);
-        } else {
+        if (allRows.isEmpty()) {
+            showEmptyState(true);
             metadataCard.setVisibility(View.GONE);
             clearCoordinateState();
+            syncScanStateToViewModel();
+            return;
         }
+
+        showEmptyState(false);
+        updateHeroCard(currentMediaItem, allRows, sections);
+
+        List<ScanMetadataAdapter.Entry> adapterEntries = new ArrayList<>();
+        String[] orderedSectionIds = {
+                MetadataDisplayer.SECTION_BASIC_INFO,
+                MetadataDisplayer.SECTION_CAMERA_DETAILS,
+                MetadataDisplayer.SECTION_LOCATION,
+                MetadataDisplayer.SECTION_TECHNICAL
+        };
+        boolean isVideo = currentMediaItem != null && currentMediaItem.isVideo();
+        Map<String, Integer> availableSections = new HashMap<>();
+
+        for (String sectionId : orderedSectionIds) {
+            String content = sections.get(sectionId);
+            if (content != null && !content.trim().isEmpty()) {
+                List<Pair<String, String>> rows = parseMetadataBlockToRows(content);
+                Collections.sort(rows, METADATA_ROW_KEY_ORDER);
+                if (!rows.isEmpty()) {
+                    availableSections.put(sectionId, rows.size());
+                    String title = getSectionTitle(sectionId, isVideo);
+                    int iconRes = getSectionIcon(sectionId);
+                    adapterEntries.add(ScanMetadataAdapter.Entry.header(sectionId, title, iconRes, rows.size()));
+                    for (Pair<String, String> row : rows) {
+                        adapterEntries.add(ScanMetadataAdapter.Entry.row(sectionId, row.first, row.second));
+                    }
+                }
+            }
+        }
+
+        for (Map.Entry<String, String> entry : sections.entrySet()) {
+            String sectionId = entry.getKey();
+            boolean handled = false;
+            for (String id : orderedSectionIds) {
+                if (id.equals(sectionId)) {
+                    handled = true;
+                    break;
+                }
+            }
+            if (!handled && entry.getValue() != null && !entry.getValue().trim().isEmpty()) {
+                List<Pair<String, String>> rows = parseMetadataBlockToRows(entry.getValue());
+                Collections.sort(rows, METADATA_ROW_KEY_ORDER);
+                if (!rows.isEmpty()) {
+                    availableSections.put(sectionId, rows.size());
+                    adapterEntries.add(ScanMetadataAdapter.Entry.header(sectionId, formatCustomSectionTitle(sectionId), R.drawable.ic_scan, rows.size()));
+                    for (Pair<String, String> row : rows) {
+                        adapterEntries.add(ScanMetadataAdapter.Entry.row(sectionId, row.first, row.second));
+                    }
+                }
+            }
+        }
+
+        scanMetadataAdapter.setEntries(adapterEntries);
+        metadataCard.setVisibility(View.VISIBLE);
 
         updateScanActionCards(allRows);
         syncScanStateToViewModel();
+    }
+
+    private void updateHeroCard(@Nullable MediaItem mediaItem,
+                               @NonNull List<Pair<String, String>> allRows,
+                               @NonNull Map<String, String> sections) {
+        if (heroCard == null) {
+            return;
+        }
+        heroCard.setVisibility(View.VISIBLE);
+
+        if (mediaItem != null) {
+            Glide.with(heroThumbnail)
+                    .load(mediaItem.uri())
+                    .override(180, 180)
+                    .placeholder(R.drawable.placeholder_image)
+                    .error(R.drawable.error_image)
+                    .centerCrop()
+                    .into(heroThumbnail);
+
+            heroVideoIndicator.setVisibility(mediaItem.isVideo() ? View.VISIBLE : View.GONE);
+            String name = mediaItem.fileName();
+            if (name == null || name.isEmpty()) {
+                name = mediaSelector != null ? mediaSelector.getFileName(mediaItem.uri()) : "Media";
+            }
+            heroFileName.setText(name);
+
+            String format = resolveMediaFormat(mediaItem);
+            heroFormatBadge.setText(format);
+            heroFormatBadge.setVisibility(View.VISIBLE);
+        } else {
+            heroVideoIndicator.setVisibility(View.GONE);
+            heroFileName.setText(R.string.scan_metadata);
+            heroFormatBadge.setVisibility(View.GONE);
+        }
+
+        heroFieldsCountBadge.setText(getString(R.string.scan_hero_fields_count, allRows.size()));
+        heroFieldsCountBadge.setVisibility(allRows.isEmpty() ? View.GONE : View.VISIBLE);
+
+        String sizeText = resolveFileSizeFromRows(allRows);
+        if (sizeText != null && !sizeText.isEmpty()) {
+            heroSizeBadge.setText(sizeText);
+            heroSizeBadge.setVisibility(View.VISIBLE);
+        } else {
+            heroSizeBadge.setVisibility(View.GONE);
+        }
+
+        String locationSection = sections.get(MetadataDisplayer.SECTION_LOCATION);
+        boolean hasLocationRows = locationSection != null && !locationSection.trim().isEmpty();
+        List<String> risks = new ArrayList<>();
+        if (hasLocationRows) {
+            risks.add(getString(R.string.scan_risk_location));
+        }
+        for (Pair<String, String> row : allRows) {
+            if (row.first != null && row.first.toLowerCase(Locale.ROOT).contains("serial")) {
+                risks.add(getString(R.string.scan_risk_serial));
+                break;
+            }
+        }
+        heroRiskBadge.setText(android.text.TextUtils.join(" · ", risks));
+        heroRiskBadge.setVisibility(risks.isEmpty() ? View.GONE : View.VISIBLE);
+
+        if (permissionManager != null && permissionManager.needsLocationPermission() && !hasLocationRows) {
+            if (locationPermissionBanner != null) {
+                locationPermissionBanner.setVisibility(View.VISIBLE);
+            }
+        } else if (locationPermissionBanner != null) {
+            locationPermissionBanner.setVisibility(View.GONE);
+        }
+    }
+
+    private String resolveMediaFormat(@NonNull MediaItem item) {
+        try {
+            String mime = requireContext().getContentResolver().getType(item.uri());
+            if (mime != null) {
+                int slash = mime.indexOf('/');
+                if (slash >= 0 && slash < mime.length() - 1) {
+                    return mime.substring(slash + 1).toUpperCase(Locale.ROOT);
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        String name = item.fileName();
+        if (name != null) {
+            int dot = name.lastIndexOf('.');
+            if (dot >= 0 && dot < name.length() - 1) {
+                return name.substring(dot + 1).toUpperCase(Locale.ROOT);
+            }
+        }
+        return item.isVideo() ? "VIDEO" : "IMAGE";
+    }
+
+    @Nullable
+    private static String resolveFileSizeFromRows(List<Pair<String, String>> rows) {
+        for (Pair<String, String> row : rows) {
+            if (row.first != null) {
+                String k = row.first.toUpperCase(Locale.ROOT);
+                if ("FILE_SIZE".equals(k) || "FILE SIZE".equals(k) || "SIZE".equals(k)) {
+                    return row.second;
+                }
+            }
+        }
+        return null;
+    }
+
+    private String getSectionTitle(String sectionId, boolean isVideo) {
+        if (MetadataDisplayer.SECTION_BASIC_INFO.equals(sectionId)) {
+            String raw = getString(isVideo ? R.string.metadata_video_properties_header : R.string.metadata_image_properties_header);
+            return cleanHeaderString(raw);
+        } else if (MetadataDisplayer.SECTION_CAMERA_DETAILS.equals(sectionId)) {
+            return cleanHeaderString(getString(R.string.metadata_camera_information_header));
+        } else if (MetadataDisplayer.SECTION_LOCATION.equals(sectionId)) {
+            return cleanHeaderString(getString(R.string.metadata_location_information_header));
+        } else if (MetadataDisplayer.SECTION_TECHNICAL.equals(sectionId)) {
+            return cleanHeaderString(getString(R.string.metadata_technical_details_header));
+        }
+        return formatCustomSectionTitle(sectionId);
+    }
+
+    private static String cleanHeaderString(String raw) {
+        if (raw == null) {
+            return "";
+        }
+        String s = raw.trim();
+        if (s.endsWith(":")) {
+            s = s.substring(0, s.length() - 1).trim();
+        }
+        return s;
+    }
+
+    private int getSectionIcon(String sectionId) {
+        if (MetadataDisplayer.SECTION_BASIC_INFO.equals(sectionId)) {
+            return R.drawable.ic_info_outline_20;
+        } else if (MetadataDisplayer.SECTION_CAMERA_DETAILS.equals(sectionId)) {
+            return R.drawable.ic_camera_24;
+        } else if (MetadataDisplayer.SECTION_LOCATION.equals(sectionId)) {
+            return R.drawable.ic_map_24;
+        } else if (MetadataDisplayer.SECTION_TECHNICAL.equals(sectionId)) {
+            return R.drawable.ic_scan;
+        }
+        return R.drawable.ic_scan;
+    }
+
+    private static String formatCustomSectionTitle(String sectionId) {
+        if (sectionId == null || sectionId.isEmpty()) {
+            return "Details";
+        }
+        String[] words = sectionId.replace('_', ' ').split("\\s+");
+        StringBuilder sb = new StringBuilder();
+        for (String w : words) {
+            if (!w.isEmpty()) {
+                sb.append(Character.toUpperCase(w.charAt(0)));
+                if (w.length() > 1) {
+                    sb.append(w.substring(1).toLowerCase(Locale.ROOT));
+                }
+                sb.append(' ');
+            }
+        }
+        return sb.toString().trim();
     }
 
     private void clearMetadataUi() {
@@ -499,12 +766,23 @@ public class ScanFragment extends Fragment {
         lastMetadataPlainText = "";
         metadataFooter.setVisibility(View.GONE);
         metadataFooter.setText("");
+        if (heroCard != null) {
+            heroCard.setVisibility(View.GONE);
+        }
+        if (locationPermissionBanner != null) {
+            locationPermissionBanner.setVisibility(View.GONE);
+        }
         clearScanActionCards();
+        showEmptyState(true);
     }
 
     private void updateScanActionCards(List<Pair<String, String>> allRows) {
         clearScanActionCards();
         boolean added = false;
+
+        addScanActionCard(R.drawable.ic_add_photo, getString(R.string.button_select_media),
+                v -> onSelectMediaClicked());
+        added = true;
 
         boolean hasCoords = !Double.isNaN(lastMapLatitude) && !Double.isNaN(lastMapLongitude)
                 && MetadataDisplayer.isUsableMapCoordinate(lastMapLatitude, lastMapLongitude);
@@ -546,6 +824,7 @@ public class ScanFragment extends Fragment {
         MaterialButton button = (MaterialButton) LayoutInflater.from(requireContext())
                 .inflate(R.layout.item_scan_action_card, scanActionCardsContainer, false);
         button.setIconResource(iconRes);
+        button.setText(contentDescription);
         button.setContentDescription(contentDescription);
         button.setOnClickListener(listener);
         scanActionCardsContainer.addView(button);
@@ -724,11 +1003,22 @@ public class ScanFragment extends Fragment {
     }
 
     private void showProgress(boolean show) {
-        progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
-        progressText.setVisibility(show ? View.VISIBLE : View.GONE);
+        if (progressBar != null) {
+            progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
+        if (progressText != null) {
+            progressText.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
+        if (progressContainer != null) {
+            progressContainer.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
     }
 
     private void showStatus(String message) {
         statusText.setText(message);
+        boolean isRoutineMessage = message == null || message.isEmpty()
+                || message.equals(getString(R.string.scan_status_ready))
+                || message.equals(getString(R.string.status_extraction_complete));
+        statusText.setVisibility(isRoutineMessage ? View.GONE : View.VISIBLE);
     }
 }

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/scan_metadata_row_horizontal_padding"
+    android:paddingTop="18dp"
+    android:paddingEnd="@dimen/scan_metadata_row_horizontal_padding"
+    android:paddingBottom="8dp">
+
+    <ImageView
+        android:id="@+id/sectionHeaderIcon"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginEnd="10dp"
+        android:contentDescription="@null"
+        app:tint="?attr/colorPrimary"
+        tools:src="@drawable/ic_camera_24" />
+
+    <TextView
+        android:id="@+id/sectionHeaderTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textAppearance="?attr/textAppearanceTitleSmall"
+        android:textColor="?attr/colorPrimary"
+        android:textStyle="bold"
+        tools:text="Camera &amp; Optics" />
+
+    <TextView
+        android:id="@+id/sectionHeaderCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_rounded_surface"
+        android:backgroundTint="?attr/colorSurfaceContainerHigh"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="2dp"
+        android:textAppearance="?attr/textAppearanceLabelSmall"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        tools:text="8" />
+</LinearLayout>

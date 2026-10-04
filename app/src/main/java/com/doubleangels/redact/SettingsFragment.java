@@ -65,6 +65,7 @@ public class SettingsFragment extends Fragment {
     private MaterialAutoCompleteTextView dropdownImageQuality;
 
     private MaterialSwitch switchStrictClean;
+    private MaterialSwitch switchDeleteOriginals;
     private MaterialSwitch switchPreserveCamera;
     private MaterialSwitch switchPreserveLocation;
     private MaterialSwitch switchAutoClearTemp;
@@ -150,6 +151,7 @@ public class SettingsFragment extends Fragment {
         dropdownImageQuality = view.findViewById(R.id.dropdownImageQuality);
         
         switchStrictClean = view.findViewById(R.id.switchStrictClean);
+        switchDeleteOriginals = view.findViewById(R.id.switchDeleteOriginals);
         switchPreserveCamera = view.findViewById(R.id.switchPreserveCamera);
         switchPreserveLocation = view.findViewById(R.id.switchPreserveLocation);
         switchAutoClearTemp = view.findViewById(R.id.switchAutoClearTemp);
@@ -249,6 +251,9 @@ public class SettingsFragment extends Fragment {
 
     private void bindAdvancedSettings() {
         switchStrictClean.setChecked(AppPreferences.isStrictClean(requireContext()));
+        switchDeleteOriginals.setChecked(AppPreferences.isDeleteOriginalsAfterClean(requireContext()));
+        switchDeleteOriginals.setOnCheckedChangeListener((btn, isChecked) ->
+                AppPreferences.setDeleteOriginalsAfterClean(requireContext(), isChecked));
         switchPreserveCamera.setChecked(AppPreferences.isPreserveCameraSettings(requireContext()));
         switchPreserveLocation.setChecked(AppPreferences.isPreserveLocation(requireContext()));
         switchAutoClearTemp.setChecked(AppPreferences.isAutoClearTempFiles(requireContext()));

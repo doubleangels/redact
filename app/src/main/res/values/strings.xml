@@ -166,6 +166,9 @@
     
     <string name="button_select_media">Select Files</string>
     <string name="button_strip_exif_data">Clean Metadata</string>
+    <string name="button_share_cleaned">Share</string>
+    <string name="settings_delete_originals">Delete Originals After Cleaning</string>
+    <string name="settings_delete_originals_subtitle">After a successful clean, ask Android to move the original files to trash. You confirm each time.</string>
     <string name="button_cancel">Cancel</string>
 
     
@@ -233,6 +236,21 @@
     <string name="scan_maps_consent_message">This opens the coordinates in your device\'s default maps app. Unlike every other action on this screen, that hands your exact GPS location to a separate app, which may send it off this device, for example to load map tiles or look up the address. Redact itself never sends this data anywhere.\n\nYou\'ll only see this message once. Choosing to continue is remembered, so this won\'t ask again.</string>
     <string name="scan_maps_consent_continue">Open Maps</string>
     <string name="scan_maps_not_available">No maps app is available to open this location.</string>
+    <string name="scan_risk_location">Has location</string>
+    <string name="scan_risk_serial">Device serial</string>
+    <string name="scan_hero_fields_count" translatable="false">%1$d fields</string>
+    <string name="scan_empty_state_title" translatable="false">Inspect Media Metadata</string>
+    <string name="scan_empty_state_description" translatable="false">Select a photo or video to view EXIF details, camera specs, GPS coordinates, and technical properties.</string>
+    <string name="scan_grant_location_button" translatable="false">Grant Permission</string>
+
+    <string name="clean_empty_state_title" translatable="false">Clean &amp; Strip Metadata</string>
+    <string name="clean_empty_state_description" translatable="false">Select photos or videos to remove EXIF tags, GPS location, camera details, and device identifiers.</string>
+    <string name="clean_selected_hint" translatable="false">Ready to strip EXIF and location data.</string>
+    <string name="clean_clear_selection" translatable="false">Clear</string>
+
+    <string name="convert_empty_state_title" translatable="false">Convert Media Formats</string>
+    <string name="convert_empty_state_description" translatable="false">Select photos or videos to convert them into JPEG, PNG, WebP, HEIC, or MP4 formats.</string>
+    <string name="convert_clear_selection" translatable="false">Clear</string>
 
     
     

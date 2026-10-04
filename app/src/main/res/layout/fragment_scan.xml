@@ -11,108 +11,332 @@
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
         android:clipToPadding="false"
         android:contentDescription="@string/content_description_scroll_view"
         android:fillViewport="true"
         android:paddingHorizontal="@dimen/scan_screen_horizontal_padding"
+        android:paddingBottom="88dp"
         android:scrollbars="none"
-        app:layout_constraintBottom_toTopOf="@+id/scanActionCardsScroll"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/metadataCard"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:visibility="gone"
-            app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
-            app:cardCornerRadius="@dimen/scan_metadata_card_corner"
-            app:cardElevation="2dp"
-            app:strokeWidth="0dp">
+            android:orientation="vertical">
 
+            <!-- Empty State View: Welcomes user when no file is selected -->
             <LinearLayout
+                android:id="@+id/emptyStateContainer"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
                 android:orientation="vertical"
-                android:padding="18dp">
+                android:paddingHorizontal="24dp"
+                android:paddingVertical="56dp"
+                android:visibility="visible">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+                    app:cardCornerRadius="36dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
+
+                    <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_scan"
+                        app:tint="?attr/colorPrimary" />
+                </com.google.android.material.card.MaterialCardView>
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/scan_metadata"
-                    android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
-                    android:textColor="?attr/colorOnSurface" />
+                    android:layout_marginTop="20dp"
+                    android:text="@string/scan_empty_state_title"
+                    android:textAlignment="center"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/metadataSubtitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/scan_metadata_subtitle"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/scan_empty_state_description"
+                    android:textAlignment="center"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/emptyStateSelectButton"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="24dp"
+                    android:paddingHorizontal="24dp"
+                    android:text="@string/button_select_media"
+                    app:cornerRadius="@dimen/component_corner_medium"
+                    app:icon="@drawable/ic_add_photo"
+                    app:iconPadding="8dp" />
+            </LinearLayout>
+
+            <!-- Metadata Content Container: Shown when file is inspected -->
+            <LinearLayout
+                android:id="@+id/metadataContentContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <!-- Media Overview Hero Card -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/heroCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="12dp"
+                    app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
+                    app:cardCornerRadius="@dimen/component_corner_large"
+                    app:cardElevation="1dp"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="60dp"
+                            android:layout_height="60dp">
+
+                            <com.google.android.material.imageview.ShapeableImageView
+                                android:id="@+id/heroThumbnail"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="?attr/colorSurfaceContainerHigh"
+                                android:contentDescription="@string/content_description_image_view"
+                                android:scaleType="centerCrop"
+                                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium" />
+
+                            <ImageView
+                                android:id="@+id/heroVideoIndicator"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_margin="4dp"
+                                android:contentDescription="@string/content_description_image_view"
+                                android:src="@drawable/ic_video"
+                                android:visibility="gone"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintEnd_toEndOf="parent" />
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/heroFileName"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="middle"
+                                android:singleLine="true"
+                                android:textAppearance="?attr/textAppearanceTitleMedium"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textStyle="bold"
+                                tools:text="IMG_20261003_142010.jpg" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/heroFormatBadge"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:background="@drawable/bg_rounded_surface"
+                                    android:backgroundTint="?attr/colorPrimaryContainer"
+                                    android:paddingHorizontal="8dp"
+                                    android:paddingVertical="2dp"
+                                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                                    android:textColor="?attr/colorOnPrimaryContainer"
+                                    android:textStyle="bold"
+                                    tools:text="JPEG" />
+
+                                <TextView
+                                    android:id="@+id/heroFieldsCountBadge"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="6dp"
+                                    android:background="@drawable/bg_rounded_surface"
+                                    android:backgroundTint="?attr/colorSurfaceContainerHigh"
+                                    android:paddingHorizontal="8dp"
+                                    android:paddingVertical="2dp"
+                                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    tools:text="34 fields" />
+
+                                <TextView
+                                    android:id="@+id/heroSizeBadge"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="6dp"
+                                    android:background="@drawable/bg_rounded_surface"
+                                    android:backgroundTint="?attr/colorSurfaceContainerHigh"
+                                    android:paddingHorizontal="8dp"
+                                    android:paddingVertical="2dp"
+                                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:visibility="gone"
+                                    tools:text="3.2 MB" />
+
+                                <TextView
+                                    android:id="@+id/heroRiskBadge"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="6dp"
+                                    android:background="@drawable/bg_rounded_surface"
+                                    android:backgroundTint="?attr/colorErrorContainer"
+                                    android:paddingHorizontal="8dp"
+                                    android:paddingVertical="2dp"
+                                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                                    android:textColor="?attr/colorOnErrorContainer"
+                                    android:textStyle="bold"
+                                    android:visibility="gone"
+                                    tools:text="Has location" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Action Cards Horizontal Row -->
+                <HorizontalScrollView
+                    android:id="@+id/scanActionCardsScroll"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:clipToPadding="false"
+                    android:fillViewport="false"
+                    android:scrollbars="none"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:id="@+id/scanActionCardsContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
+
+                <!-- Location Permission Banner -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/locationPermissionBanner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:visibility="gone"
                     app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
                     app:cardCornerRadius="@dimen/component_corner_medium"
                     app:cardElevation="0dp"
                     app:strokeWidth="0dp">
 
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/metadataItemsRecycler"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:nestedScrollingEnabled="false"
-                        android:overScrollMode="never"
-                        android:paddingVertical="4dp"
-                        android:clipToPadding="false" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="14dp">
+
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_marginEnd="12dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_map_24"
+                            app:tint="?attr/colorPrimary" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/scan_location_permission_missing"
+                            android:textAppearance="?attr/textAppearanceBodySmall"
+                            android:textColor="?attr/colorOnSurface" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/locationPermissionButton"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:layout_marginStart="8dp"
+                            android:paddingHorizontal="12dp"
+                            android:text="@string/scan_grant_location_button"
+                            android:textAppearance="?attr/textAppearanceLabelSmall"
+                            app:cornerRadius="@dimen/component_corner_small" />
+                    </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/metadataFooter"
+
+                <!-- Modern Metadata Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/metadataCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:drawablePadding="10dp"
-                    android:gravity="center_vertical"
-                    android:textAppearance="?attr/textAppearanceBodySmall"
-                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:layout_marginBottom="16dp"
                     android:visibility="gone"
-                    app:drawableStartCompat="@drawable/ic_info_outline_20"
-                    app:drawableTint="?attr/colorPrimary" />
+                    app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
+                    app:cardCornerRadius="@dimen/scan_metadata_card_corner"
+                    app:cardElevation="1dp"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingVertical="4dp">
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/metadataItemsRecycler"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:nestedScrollingEnabled="false"
+                            android:overScrollMode="never" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/metadataFooter"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginHorizontal="16dp"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="8dp"
+                            android:drawablePadding="10dp"
+                            android:gravity="center_vertical"
+                            android:textAppearance="?attr/textAppearanceBodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:visibility="gone"
+                            app:drawableStartCompat="@drawable/ic_info_outline_20"
+                            app:drawableTint="?attr/colorPrimary" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
-    <HorizontalScrollView
-        android:id="@+id/scanActionCardsScroll"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:clipToPadding="false"
-        android:fillViewport="true"
-        android:paddingHorizontal="@dimen/scan_screen_horizontal_padding"
-        android:scrollbars="none"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/statusText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/scrollView">
-
-        <LinearLayout
-            android:id="@+id/scanActionCardsContainer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal" />
-    </HorizontalScrollView>
 
     <TextView
         android:id="@+id/statusText"
@@ -120,19 +344,19 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="12dp"
+        android:layout_marginBottom="8dp"
         android:background="@drawable/bg_rounded_surface"
         android:backgroundTint="?attr/colorSurfaceContainerHigh"
         android:paddingHorizontal="14dp"
-        android:paddingVertical="12dp"
+        android:paddingVertical="10dp"
         android:text="@string/scan_status_ready"
         android:textAlignment="center"
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textColor="?attr/colorOnSurface"
+        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@+id/progressContainer"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/scanActionCardsScroll" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <LinearLayout
         android:id="@+id/progressContainer"
@@ -140,14 +364,14 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="12dp"
+        android:layout_marginBottom="16dp"
         android:background="@drawable/bg_rounded_surface"
         android:backgroundTint="?attr/colorSurfaceContainerHigh"
         android:orientation="vertical"
         android:paddingHorizontal="14dp"
         android:paddingVertical="12dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/buttonLayout"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
@@ -165,37 +389,27 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:indeterminate="false"
+            android:indeterminate="true"
             app:indicatorColor="?attr/colorPrimary"
             app:trackCornerRadius="4dp"
             app:trackThickness="6dp"
             tools:ignore="VisualLintBounds" />
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/buttonLayout"
-        android:layout_width="0dp"
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/selectButton"
+        style="@style/Widget.Material3.ExtendedFloatingActionButton.Primary"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="12dp"
-        android:orientation="horizontal"
+        android:layout_marginBottom="16dp"
+        android:text="@string/button_select_media"
+        android:textColor="?attr/colorOnPrimary"
+        android:visibility="gone"
+        app:backgroundTint="?attr/colorPrimary"
+        app:icon="@drawable/ic_add_photo"
+        app:iconTint="?attr/colorOnPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/selectButton"
-            android:layout_width="0dp"
-            android:layout_height="56dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="@string/button_select_media"
-            app:cornerRadius="@dimen/component_corner_medium"
-            app:icon="@drawable/ic_add_photo"
-            app:iconGravity="textStart"
-            app:iconPadding="8dp"
-            tools:ignore="TextContrastCheck,VisualLintButtonSize" />
-    </LinearLayout>
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

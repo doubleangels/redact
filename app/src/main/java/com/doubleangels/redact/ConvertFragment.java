@@ -70,6 +70,12 @@ public class ConvertFragment extends Fragment {
     private int lastFormatNumImages = -1;
     private int lastFormatNumVideos = -1;
 
+    private View emptyStateContainer;
+    private MaterialButton emptyStateSelectButton;
+    private View convertContentContainer;
+    private TextView convertSelectedCountText;
+    private MaterialButton convertClearButton;
+
     private ActivityResultLauncher<String[]> mediaPickerLauncher;
 
     @Override
@@ -131,6 +137,24 @@ public class ConvertFragment extends Fragment {
         chipFormatWebp = view.findViewById(R.id.chipFormatWebp);
         chipFormatHeif = view.findViewById(R.id.chipFormatHeif);
 
+        emptyStateContainer = view.findViewById(R.id.emptyStateContainer);
+        emptyStateSelectButton = view.findViewById(R.id.emptyStateSelectButton);
+        convertContentContainer = view.findViewById(R.id.convertContentContainer);
+        convertSelectedCountText = view.findViewById(R.id.convertSelectedCountText);
+        convertClearButton = view.findViewById(R.id.convertClearButton);
+
+        if (emptyStateSelectButton != null) {
+            emptyStateSelectButton.setOnClickListener(v -> onSelectFilesClicked());
+        }
+        if (convertClearButton != null) {
+            convertClearButton.setOnClickListener(v -> {
+                if (viewModel.getConvertProcessingState().getValue()
+                        != MainViewModel.ProcessingState.PROCESSING) {
+                    viewModel.setConvertSelectedItems(List.of());
+                }
+            });
+        }
+
         RecyclerView recyclerView = view.findViewById(R.id.convertFileList);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         convertFileAdapter = new ConvertFileAdapter();
@@ -168,16 +192,7 @@ public class ConvertFragment extends Fragment {
             mediaSelector = new MediaSelector(requireActivity());
         }
 
-        selectButton.setOnClickListener(v -> {
-            SentryManager.log("Select button clicked in ConvertFragment");
-            if (permissionManager.shouldRequestStorageBeforePicker()) {
-                SentryManager.log("Requesting storage permissions in ConvertFragment");
-                permissionManager.requestStoragePermission();
-            } else {
-                SentryManager.log("Launching media picker in ConvertFragment");
-                openMediaPicker();
-            }
-        });
+        selectButton.setOnClickListener(v -> onSelectFilesClicked());
 
         convertButton.setOnClickListener(v -> {
             if (viewModel.getConvertProcessingState().getValue()
@@ -330,10 +345,24 @@ public class ConvertFragment extends Fragment {
     private void setupObservers() {
         viewModel.getConvertSelectedItems().observe(getViewLifecycleOwner(), items -> {
             List<MediaItem> list = items != null ? items : List.of();
+            boolean hasItems = !list.isEmpty();
+            if (emptyStateContainer != null) {
+                emptyStateContainer.setVisibility(hasItems ? View.GONE : View.VISIBLE);
+            }
+            if (convertContentContainer != null) {
+                convertContentContainer.setVisibility(hasItems ? View.VISIBLE : View.GONE);
+            }
+            if (convertButton != null) {
+                convertButton.setVisibility(hasItems ? View.VISIBLE : View.GONE);
+            }
+            if (convertSelectedCountText != null && hasItems) {
+                convertSelectedCountText.setText(getString(R.string.convert_selected_count, list.size()));
+            }
+
             convertFileAdapter.setItems(list);
             if (viewModel.getConvertProcessingState().getValue()
                     != MainViewModel.ProcessingState.PROCESSING) {
-                convertButton.setEnabled(!list.isEmpty());
+                convertButton.setEnabled(hasItems);
             }
             List<MediaItem> previous = lastObservedConvertItems;
             boolean selectionChanged = previous != null && !java.util.Objects.equals(previous, list);
@@ -355,11 +384,13 @@ public class ConvertFragment extends Fragment {
         viewModel.getConvertProcessingState().observe(getViewLifecycleOwner(), state -> {
             if (state == MainViewModel.ProcessingState.PROCESSING) {
                 convertButton.setText(R.string.button_cancel);
+                convertButton.setIconResource(R.drawable.ic_close);
                 convertButton.setEnabled(true);
                 selectButton.setEnabled(false);
                 showProgress(true);
             } else if (state == MainViewModel.ProcessingState.CANCELLED) {
                 convertButton.setText(R.string.convert_run);
+                convertButton.setIconResource(R.drawable.ic_convert);
                 List<MediaItem> selected = currentSelectedItems();
                 convertButton.setEnabled(!selected.isEmpty());
                 selectButton.setEnabled(true);
@@ -368,6 +399,7 @@ public class ConvertFragment extends Fragment {
                 viewModel.setConvertProcessingState(MainViewModel.ProcessingState.IDLE);
             } else if (state == MainViewModel.ProcessingState.COMPLETED) {
                 convertButton.setText(R.string.convert_run);
+                convertButton.setIconResource(R.drawable.ic_convert);
                 List<MediaItem> selected = currentSelectedItems();
                 convertButton.setEnabled(!selected.isEmpty());
                 selectButton.setEnabled(true);
@@ -522,6 +554,17 @@ public class ConvertFragment extends Fragment {
 
     void onHostPermissionFlowCompleted() {
         syncSelectButtonForPickerAccess();
+    }
+
+    private void onSelectFilesClicked() {
+        SentryManager.log("Select files clicked in ConvertFragment");
+        if (permissionManager != null && permissionManager.shouldRequestStorageBeforePicker()) {
+            SentryManager.log("Requesting storage permissions in ConvertFragment");
+            permissionManager.requestStoragePermission();
+        } else {
+            SentryManager.log("Launching media picker in ConvertFragment");
+            openMediaPicker();
+        }
     }
 
     void handlePermissionResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

@@ -1,7 +1,11 @@
 package com.doubleangels.redact;
 
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.os.Bundle;
 import android.widget.Toast;
 import android.view.LayoutInflater;
@@ -11,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -58,7 +63,15 @@ public class CleanFragment extends Fragment {
     private LinearProgressIndicator progressBar;
     private MediaAdapter mediaAdapter;
 
+    private View emptyStateContainer;
+    private MaterialButton emptyStateSelectButton;
+    private View mediaContentContainer;
+    private TextView cleanSelectedCountText;
+    private MaterialButton cleanClearButton;
+
     private ActivityResultLauncher<String[]> mediaPickerLauncher;
+    private ActivityResultLauncher<IntentSenderRequest> trashRequestLauncher;
+    private MaterialButton shareButton;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -67,6 +80,8 @@ public class CleanFragment extends Fragment {
         if (getActivity() != null) {
             mediaSelector = new MediaSelector(requireActivity());
         }
+        trashRequestLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartIntentSenderForResult(), result -> { });
         mediaPickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.OpenMultipleDocuments(),
                 uris -> {
@@ -129,10 +144,30 @@ public class CleanFragment extends Fragment {
             MaterialButton selectButton = view.findViewById(R.id.selectButton);
             this.selectButton = selectButton;
             stripButton = view.findViewById(R.id.stripButton);
+            shareButton = view.findViewById(R.id.shareButton);
+            shareButton.setOnClickListener(v -> shareCleaned());
             statusText = view.findViewById(R.id.statusText);
             progressContainer = view.findViewById(R.id.progressContainer);
             progressText = view.findViewById(R.id.progressText);
             progressBar = view.findViewById(R.id.progressBar);
+
+            emptyStateContainer = view.findViewById(R.id.emptyStateContainer);
+            emptyStateSelectButton = view.findViewById(R.id.emptyStateSelectButton);
+            mediaContentContainer = view.findViewById(R.id.mediaContentContainer);
+            cleanSelectedCountText = view.findViewById(R.id.cleanSelectedCountText);
+            cleanClearButton = view.findViewById(R.id.cleanClearButton);
+
+            if (emptyStateSelectButton != null) {
+                emptyStateSelectButton.setOnClickListener(v -> onSelectMediaClicked());
+            }
+            if (cleanClearButton != null) {
+                cleanClearButton.setOnClickListener(v -> {
+                    if (viewModel.getCleanProcessingState().getValue()
+                            != MainViewModel.ProcessingState.PROCESSING) {
+                        viewModel.setSelectedItems(List.of());
+                    }
+                });
+            }
 
             stripButton.setEnabled(false);
 
@@ -140,28 +175,7 @@ public class CleanFragment extends Fragment {
             selectedItemsGrid.setAdapter(mediaAdapter);
             selectedItemsGrid.setLayoutManager(new GridLayoutManager(requireContext(), 3));
 
-            selectButton.setOnClickListener(v -> {
-                try {
-                    SentryManager.log("Select button clicked");
-                    if (viewModel.getCleanProcessingState().getValue()
-                            == MainViewModel.ProcessingState.PROCESSING) {
-                        return;
-                    }
-                    if (viewModel.getCleanProcessingState().getValue()
-                            == MainViewModel.ProcessingState.COMPLETED) {
-                        viewModel.setCleanProcessingState(MainViewModel.ProcessingState.IDLE);
-                    }
-                    if (permissionManager.shouldRequestStorageBeforePicker()) {
-                        SentryManager.log("Requesting permissions");
-                        permissionManager.requestStoragePermission();
-                    } else {
-                        SentryManager.log("Launching media selector");
-                        mediaPickerLauncher.launch(MediaPickerContracts.IMAGE_AND_VIDEO_MIME_TYPES);
-                    }
-                } catch (Exception e) {
-                    SentryManager.recordException(e);
-                }
-            });
+            selectButton.setOnClickListener(v -> onSelectMediaClicked());
 
             stripButton.setOnClickListener(v -> {
                 try {
@@ -283,6 +297,60 @@ public class CleanFragment extends Fragment {
         }
     }
 
+    private void shareCleaned() {
+        try {
+            ArrayList<Uri> uris = new ArrayList<>(viewModel.getCleanSucceededOutputs());
+            if (uris.isEmpty()) return;
+            String type = requireContext().getContentResolver().getType(uris.get(0));
+            String major = type != null && type.contains("/") ? type.substring(0, type.indexOf('/')) : "*";
+            for (Uri u : uris) {
+                String t = requireContext().getContentResolver().getType(u);
+                if (t == null || !t.startsWith(major + "/")) {
+                    major = "*";
+                    break;
+                }
+            }
+            String mime = major + "/*";
+            Intent send = new Intent(uris.size() == 1 ? Intent.ACTION_SEND : Intent.ACTION_SEND_MULTIPLE);
+            send.setType(mime);
+            if (uris.size() == 1) {
+                send.putExtra(Intent.EXTRA_STREAM, uris.get(0));
+            } else {
+                send.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+            }
+            ClipData clip = ClipData.newRawUri(getString(R.string.share_chooser_title), uris.get(0));
+            for (int i = 1; i < uris.size(); i++) {
+                clip.addItem(new ClipData.Item(uris.get(i)));
+            }
+            send.setClipData(clip);
+            send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(send, getString(R.string.share_chooser_title)));
+        } catch (Exception e) {
+            SentryManager.recordException(e);
+        }
+    }
+
+    /** Asks the system (with its own confirmation dialog) to trash the originals of cleaned items. */
+    private void requestTrashOriginals(List<Uri> sources) {
+        try {
+            List<Uri> mediaUris = new ArrayList<>();
+            for (Uri u : sources) {
+                try {
+                    Uri m = MediaStore.getMediaUri(requireContext(), u);
+                    if (m != null) mediaUris.add(m);
+                } catch (Exception ignored) {
+                    // Non-media provider: leave the original alone.
+                }
+            }
+            if (mediaUris.isEmpty()) return;
+            trashRequestLauncher.launch(new IntentSenderRequest.Builder(
+                    MediaStore.createTrashRequest(requireContext().getContentResolver(), mediaUris, true)
+                            .getIntentSender()).build());
+        } catch (Exception e) {
+            SentryManager.recordException(e);
+        }
+    }
+
     void onHostPermissionFlowCompleted() {
         syncPermissionUi();
     }
@@ -308,10 +376,24 @@ public class CleanFragment extends Fragment {
         try {
             viewModel.getSelectedItems().observe(getViewLifecycleOwner(), items -> {
                 try {
+                    boolean hasItems = items != null && !items.isEmpty();
+                    if (emptyStateContainer != null) {
+                        emptyStateContainer.setVisibility(hasItems ? View.GONE : View.VISIBLE);
+                    }
+                    if (mediaContentContainer != null) {
+                        mediaContentContainer.setVisibility(hasItems ? View.VISIBLE : View.GONE);
+                    }
+                    if (stripButton != null) {
+                        stripButton.setVisibility(hasItems ? View.VISIBLE : View.GONE);
+                    }
+                    if (cleanSelectedCountText != null && hasItems) {
+                        cleanSelectedCountText.setText(getString(R.string.clean_selected_count, items.size()));
+                    }
+
                     mediaAdapter.updateItems(items);
                     if (viewModel.getCleanProcessingState().getValue()
                             != MainViewModel.ProcessingState.PROCESSING) {
-                        uiStateManager.enableStripButton(!items.isEmpty());
+                        uiStateManager.enableStripButton(hasItems);
                     }
                     List<MediaItem> previous = lastObservedSelectedItems;
                     boolean selectionChanged = previous != null
@@ -336,12 +418,14 @@ public class CleanFragment extends Fragment {
                     switch (state) {
                         case PROCESSING:
                             SentryManager.log("Processing state: PROCESSING");
+                            shareButton.setVisibility(View.GONE);
                             uiStateManager.showProgress(true);
                             uiStateManager.setProcessingStatus();
                             if (selectButton != null) {
                                 selectButton.setEnabled(false);
                             }
                             stripButton.setText(R.string.button_cancel);
+                            stripButton.setIconResource(R.drawable.ic_close);
                             stripButton.setEnabled(true);
                             break;
 
@@ -350,6 +434,7 @@ public class CleanFragment extends Fragment {
                             uiStateManager.showProgress(false);
                             uiStateManager.setStatus(getString(R.string.status_processing_cancelled));
                             stripButton.setText(R.string.button_strip_exif_data);
+                            stripButton.setIconResource(R.drawable.ic_clean);
                             if (selectButton != null) {
                                 selectButton.setEnabled(true);
                             }
@@ -369,11 +454,17 @@ public class CleanFragment extends Fragment {
                                 uiStateManager.setProcessedItemsStatus(count, batchTotal);
                             }
                             stripButton.setText(R.string.button_strip_exif_data);
+                            stripButton.setIconResource(R.drawable.ic_clean);
                             if (selectButton != null) {
                                 selectButton.setEnabled(true);
                             }
                             List<MediaItem> items = viewModel.getSelectedItems().getValue();
                             uiStateManager.enableStripButton(items != null && !items.isEmpty());
+                            shareButton.setVisibility(
+                                    viewModel.getCleanSucceededOutputs().isEmpty() ? View.GONE : View.VISIBLE);
+                            if (AppPreferences.isDeleteOriginalsAfterClean(requireContext())) {
+                                requestTrashOriginals(viewModel.getCleanSucceededSources());
+                            }
                             break;
 
                         case IDLE:
@@ -381,6 +472,7 @@ public class CleanFragment extends Fragment {
                             SentryManager.log("Processing state: IDLE");
                             uiStateManager.showProgress(false);
                             stripButton.setText(R.string.button_strip_exif_data);
+                            stripButton.setIconResource(R.drawable.ic_clean);
                             if (selectButton != null) {
                                 selectButton.setEnabled(true);
                             }
@@ -468,6 +560,29 @@ public class CleanFragment extends Fragment {
             }
         }
         return false;
+    }
+
+    private void onSelectMediaClicked() {
+        try {
+            SentryManager.log("Select media clicked");
+            if (viewModel.getCleanProcessingState().getValue()
+                    == MainViewModel.ProcessingState.PROCESSING) {
+                return;
+            }
+            if (viewModel.getCleanProcessingState().getValue()
+                    == MainViewModel.ProcessingState.COMPLETED) {
+                viewModel.setCleanProcessingState(MainViewModel.ProcessingState.IDLE);
+            }
+            if (permissionManager.shouldRequestStorageBeforePicker()) {
+                SentryManager.log("Requesting permissions");
+                permissionManager.requestStoragePermission();
+            } else {
+                SentryManager.log("Launching media selector");
+                mediaPickerLauncher.launch(MediaPickerContracts.IMAGE_AND_VIDEO_MIME_TYPES);
+            }
+        } catch (Exception e) {
+            SentryManager.recordException(e);
+        }
     }
 
     private void runOnUiThreadIfAdded(Runnable action) {
