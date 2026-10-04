@@ -113,6 +113,19 @@ public class ScanMetadataAdapterTest {
 
         ScanMetadataAdapter.Entry owner = ScanMetadataAdapter.Entry.row("camera", "Owner Name", "John Doe");
         assertEquals(true, owner.isIdentifying);
+
+        for (String key : new String[]{
+                "MAKER_NOTE", "XMP", "THUMBNAIL_IMAGE_LENGTH", "IMAGE_DESCRIPTION", "DOCUMENT_NAME",
+                "BODY_SERIAL_NUMBER", "LENS_SERIAL_NUMBER", "IMAGE_UNIQUE_ID", "USER_COMMENT", "CAMERA_OWNER_NAME",
+                "MAKE", "MODEL", "LENS_MODEL", "SOFTWARE", "HOST_COMPUTER", "DATE_TIME_ORIGINAL", "DATE_TIME",
+                "OFFSET_TIME", "SUB_SEC_TIME", "GPS_DATE_STAMP", "ARTIST", "ALBUM", "TITLE", "File Name"}) {
+            assertEquals(key, true, ScanMetadataAdapter.Entry.row("technical", key, "x").isIdentifying);
+        }
+        for (String key : new String[]{
+                "Y_CB_CR_POSITIONING", "APERTURE_VALUE", "EXPOSURE_TIME", "F_NUMBER", "ISO_SPEED_RATINGS",
+                "ORIENTATION", "FLASH", "WHITE_BALANCE", "COLOR_SPACE", "IMAGE_WIDTH", "DURATION", "BITRATE"}) {
+            assertEquals(key, false, ScanMetadataAdapter.Entry.row("technical", key, "1").isIdentifying);
+        }
     }
 
     @Test

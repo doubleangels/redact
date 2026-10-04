@@ -76,6 +76,24 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
             return new Entry(VIEW_TYPE_ROW, sectionId, null, 0, 0, key, value, isIdentifying);
         }
 
+        /** Lowercase, space-separated substrings of metadata keys that can identify the user, their device or their activity. */
+        private static final String[] IDENTIFYING_KEY_TERMS = {
+                // Where
+                "gps", "latitude", "longitude", "altitude", "coordinate", "location",
+                // Who
+                "owner", "artist", "author", "creator", "copyright", "by line", "credit", "writer", "composer",
+                "album", "title", "comment", "description", "name", "phone", "email", "contact",
+                // Which device
+                "serial", "unique id", "uniqueid", "make", "model", "lens", "software", "host computer",
+                "firmware", "device",
+                // When
+                "date", "year", "offset time", "sub sec time",
+                // Embedded blobs and leftovers of the original
+                "maker note", "makernote", "xmp", "thumbnail", "preview",
+                // Where the file lives
+                "path", "folder", "uri"
+        };
+
         public static boolean isIdentifyingMetadata(@Nullable String sectionId, @Nullable String key) {
             if (sectionId != null && MetadataDisplayer.SECTION_LOCATION.equalsIgnoreCase(sectionId)) {
                 return true;
@@ -83,28 +101,15 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
             if (key == null) {
                 return false;
             }
-            String lower = key.toLowerCase(Locale.ROOT);
-            return lower.contains("gps")
-                    || lower.contains("latitude")
-                    || lower.contains("longitude")
-                    || lower.contains("altitude")
-                    || lower.contains("coordinate")
-                    || lower.contains("position")
-                    || lower.contains("location")
-                    || lower.contains("serial")
-                    || lower.contains("owner")
-                    || lower.contains("unique id")
-                    || lower.contains("uniqueid")
-                    || lower.contains("artist")
-                    || lower.contains("author")
-                    || lower.contains("creator")
-                    || lower.contains("copyright")
-                    || lower.contains("by-line")
-                    || lower.contains("credit")
-                    || lower.contains("user comment")
-                    || lower.contains("phone")
-                    || lower.contains("email")
-                    || lower.contains("contact");
+            // Keys arrive as UPPER_SNAKE_CASE (e.g. IMAGE_UNIQUE_ID) or as display text, so compare on a
+            // normalized "words separated by single spaces" form.
+            String lower = key.toLowerCase(Locale.ROOT).replaceAll("[_\\-\\s]+", " ");
+            for (String term : IDENTIFYING_KEY_TERMS) {
+                if (lower.contains(term)) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
