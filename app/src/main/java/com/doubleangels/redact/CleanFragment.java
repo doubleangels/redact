@@ -1,9 +1,7 @@
 package com.doubleangels.redact;
 
 import android.app.Activity;
-import android.content.ClipData;
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.os.Bundle;
@@ -71,7 +69,6 @@ public class CleanFragment extends Fragment {
 
     private ActivityResultLauncher<String[]> mediaPickerLauncher;
     private ActivityResultLauncher<IntentSenderRequest> trashRequestLauncher;
-    private MaterialButton shareButton;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -144,8 +141,6 @@ public class CleanFragment extends Fragment {
             MaterialButton selectButton = view.findViewById(R.id.selectButton);
             this.selectButton = selectButton;
             stripButton = view.findViewById(R.id.stripButton);
-            shareButton = view.findViewById(R.id.shareButton);
-            shareButton.setOnClickListener(v -> shareCleaned());
             statusText = view.findViewById(R.id.statusText);
             progressContainer = view.findViewById(R.id.progressContainer);
             progressText = view.findViewById(R.id.progressText);
@@ -297,39 +292,6 @@ public class CleanFragment extends Fragment {
         }
     }
 
-    private void shareCleaned() {
-        try {
-            ArrayList<Uri> uris = new ArrayList<>(viewModel.getCleanSucceededOutputs());
-            if (uris.isEmpty()) return;
-            String type = requireContext().getContentResolver().getType(uris.get(0));
-            String major = type != null && type.contains("/") ? type.substring(0, type.indexOf('/')) : "*";
-            for (Uri u : uris) {
-                String t = requireContext().getContentResolver().getType(u);
-                if (t == null || !t.startsWith(major + "/")) {
-                    major = "*";
-                    break;
-                }
-            }
-            String mime = major + "/*";
-            Intent send = new Intent(uris.size() == 1 ? Intent.ACTION_SEND : Intent.ACTION_SEND_MULTIPLE);
-            send.setType(mime);
-            if (uris.size() == 1) {
-                send.putExtra(Intent.EXTRA_STREAM, uris.get(0));
-            } else {
-                send.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-            }
-            ClipData clip = ClipData.newRawUri(getString(R.string.share_chooser_title), uris.get(0));
-            for (int i = 1; i < uris.size(); i++) {
-                clip.addItem(new ClipData.Item(uris.get(i)));
-            }
-            send.setClipData(clip);
-            send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            startActivity(Intent.createChooser(send, getString(R.string.share_chooser_title)));
-        } catch (Exception e) {
-            SentryManager.recordException(e);
-        }
-    }
-
     /** Asks the system (with its own confirmation dialog) to trash the originals of cleaned items. */
     private void requestTrashOriginals(List<Uri> sources) {
         try {
@@ -418,7 +380,6 @@ public class CleanFragment extends Fragment {
                     switch (state) {
                         case PROCESSING:
                             SentryManager.log("Processing state: PROCESSING");
-                            shareButton.setVisibility(View.GONE);
                             uiStateManager.showProgress(true);
                             uiStateManager.setProcessingStatus();
                             if (selectButton != null) {
@@ -460,8 +421,6 @@ public class CleanFragment extends Fragment {
                             }
                             List<MediaItem> items = viewModel.getSelectedItems().getValue();
                             uiStateManager.enableStripButton(items != null && !items.isEmpty());
-                            shareButton.setVisibility(
-                                    viewModel.getCleanSucceededOutputs().isEmpty() ? View.GONE : View.VISIBLE);
                             if (AppPreferences.isDeleteOriginalsAfterClean(requireContext())) {
                                 requestTrashOriginals(viewModel.getCleanSucceededSources());
                             }

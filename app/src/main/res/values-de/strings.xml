@@ -328,7 +328,6 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="scan_maps_not_available">Es ist keine Karten-App zum Öffnen dieses Standorts verfügbar.</string>
     <string name="settings_delete_originals">Originale nach dem Bereinigen löschen</string>
     <string name="settings_delete_originals_subtitle">Nach erfolgreicher Bereinigung bittet Android darum, die Originaldateien in den Papierkorb zu verschieben. Du bestätigst jedes Mal.</string>
-    <string name="button_share_cleaned">Teilen</string>
     <string name="scan_risk_location">Enthält Standort</string>
     <string name="scan_risk_serial">Gerätseriennummer</string>
 </resources>

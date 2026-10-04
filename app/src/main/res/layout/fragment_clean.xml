@@ -253,20 +253,4 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/shareButton"
-        style="@style/Widget.Material3.ExtendedFloatingActionButton.Primary"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp"
-        android:text="@string/button_share_cleaned"
-        android:textColor="?attr/colorOnSecondaryContainer"
-        android:visibility="gone"
-        app:backgroundTint="?attr/colorSecondaryContainer"
-        app:icon="@android:drawable/ic_menu_share"
-        app:iconTint="?attr/colorOnSecondaryContainer"
-        app:layout_constraintBottom_toTopOf="@id/stripButton"
-        app:layout_constraintEnd_toEndOf="parent" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

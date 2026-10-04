@@ -329,7 +329,6 @@
     <string name="scan_maps_not_available">इस स्थान को खोलने के लिए कोई मैप ऐप उपलब्ध नहीं है।</string>
     <string name="settings_delete_originals">साफ़ करने के बाद मूल फ़ाइलें हटाएँ</string>
     <string name="settings_delete_originals_subtitle">सफलतापूर्वक साफ़ करने के बाद Android से मूल फ़ाइलों को ट्रैश में भेजने के लिए कहता है। हर बार आपको पुष्टि करनी होगी।</string>
-    <string name="button_share_cleaned">साझा करें</string>
     <string name="scan_risk_location">स्थान डेटा मौजूद है</string>
     <string name="scan_risk_serial">डिवाइस सीरियल नंबर</string>
 </resources>

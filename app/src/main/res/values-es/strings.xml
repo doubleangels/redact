@@ -329,7 +329,6 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="scan_maps_not_available">No hay ninguna aplicación de mapas disponible para abrir esta ubicación.</string>
     <string name="settings_delete_originals">Eliminar originales tras limpiar</string>
     <string name="settings_delete_originals_subtitle">Tras una limpieza correcta, pide a Android que envíe los archivos originales a la papelera. Confirmas cada vez.</string>
-    <string name="button_share_cleaned">Compartir</string>
     <string name="scan_risk_location">Tiene ubicación</string>
     <string name="scan_risk_serial">Número de serie del dispositivo</string>
 </resources>

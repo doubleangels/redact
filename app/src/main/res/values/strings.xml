@@ -166,7 +166,6 @@
     
     <string name="button_select_media">Select Files</string>
     <string name="button_strip_exif_data">Clean Metadata</string>
-    <string name="button_share_cleaned">Share</string>
     <string name="settings_delete_originals">Delete Originals After Cleaning</string>
     <string name="settings_delete_originals_subtitle">After a successful clean, ask Android to move the original files to trash. You confirm each time.</string>
     <string name="button_cancel">Cancel</string>

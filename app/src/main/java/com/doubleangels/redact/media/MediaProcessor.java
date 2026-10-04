@@ -39,9 +39,8 @@ public class MediaProcessor {
     /** Stores the URI of the most recently processed file */
     private volatile Uri lastProcessedFileUri;
 
-    /** Source and output URIs of items cleaned successfully in the current/last batch. */
+    /** Source URIs of items cleaned successfully in the current/last batch. */
     private final List<Uri> succeededSources = new CopyOnWriteArrayList<>();
-    private final List<Uri> succeededOutputs = new CopyOnWriteArrayList<>();
 
     /** Prevents overlapping batch processing from multiple strip invocations */
     private final AtomicBoolean processing = new AtomicBoolean(false);
@@ -131,10 +130,6 @@ public class MediaProcessor {
         return new java.util.ArrayList<>(succeededSources);
     }
 
-    public List<Uri> getSucceededOutputs() {
-        return new java.util.ArrayList<>(succeededOutputs);
-    }
-
     /** Whether a clean batch is currently running on the shared worker. */
     public boolean isBusy() {
         return processing.get();
@@ -162,7 +157,6 @@ public class MediaProcessor {
         }
         cancelled.set(false);
         succeededSources.clear();
-        succeededOutputs.clear();
         metadataStripper.resetCancellation();
         mainHandler.post(callback::onBatchStarted);
         processingExecutor.execute(() -> {
@@ -223,7 +217,6 @@ public class MediaProcessor {
                         if (processedUri != null) {
                             lastProcessedFileUri = processedUri;
                             succeededSources.add(item.uri());
-                            succeededOutputs.add(processedUri);
                             successCount++;
                             SentryManager.count(
                                     "processing.clean.success", 1, "is_video", String.valueOf(item.isVideo()));

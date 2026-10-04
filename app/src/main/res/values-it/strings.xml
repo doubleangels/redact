@@ -329,7 +329,6 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="scan_maps_not_available">Nessuna app di mappe disponibile per aprire questa posizione.</string>
     <string name="settings_delete_originals">Elimina gli originali dopo la pulizia</string>
     <string name="settings_delete_originals_subtitle">Dopo una pulizia riuscita, chiede ad Android di spostare i file originali nel cestino. Confermi ogni volta.</string>
-    <string name="button_share_cleaned">Condividi</string>
     <string name="scan_risk_location">Contiene la posizione</string>
     <string name="scan_risk_serial">Numero di serie del dispositivo</string>
 </resources>
