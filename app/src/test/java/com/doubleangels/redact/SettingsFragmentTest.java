@@ -40,8 +40,25 @@ public class SettingsFragmentTest {
     private MainActivity activity;
     private View settings;
 
+    /**
+     * The debug build carries the project's real Sentry DSN. Tests must never initialise the SDK
+     * against it (consent flows would otherwise send a telemetry metric and log to production), so
+     * an empty DSN keeps SentryInitializer from configuring anything.
+     */
+    private static void overrideSentryDsn(String dsn) {
+        try {
+            java.lang.reflect.Field f = Class.forName("com.doubleangels.redact.sentry.SentryInitializer")
+                    .getDeclaredField("testDsnOverride");
+            f.setAccessible(true);
+            f.set(null, dsn);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError(e);
+        }
+    }
+
     @Before
     public void setUp() {
+        overrideSentryDsn("");
         AppProcessingScope.resetForTests();
         controller = Robolectric.buildActivity(MainActivity.class).setup();
         activity = controller.get();
@@ -52,6 +69,8 @@ public class SettingsFragmentTest {
 
     @After
     public void tearDown() {
+        com.doubleangels.redact.sentry.SentryInitializer.shutdown();
+        overrideSentryDsn(null);
         controller.pause().stop().destroy();
         AppProcessingScope.resetForTests();
     }

@@ -161,4 +161,82 @@ public class LocalNotificationsTest {
     public void mainContentIntent_isNotNull() {
         assertNotNull(LocalNotifications.mainContentIntent(app));
     }
+
+    // ---- progress notifications (routed through the foreground service) -------------------------
+
+    @Test
+    public void updateConversionProgress_sendsAClampedUpdateToTheForegroundService() {
+        AppPreferences.setProgressNotificationsEnabled(app, true);
+
+        LocalNotifications.updateConversionProgress(app, 250, "converting");
+
+        android.content.Intent started = Shadows.shadowOf(app).getNextStartedService();
+        assertNotNull(started);
+        assertEquals(ProcessingForegroundService.ACTION_UPDATE, started.getAction());
+        assertEquals(100, started.getIntExtra(ProcessingForegroundService.EXTRA_PERCENT, -1));
+        assertEquals(app.getString(R.string.notification_convert_progress_title),
+                started.getStringExtra(ProcessingForegroundService.EXTRA_TITLE));
+    }
+
+    @Test
+    public void updateCleanProgress_sendsANegativeAsZero() {
+        AppPreferences.setProgressNotificationsEnabled(app, true);
+
+        LocalNotifications.updateCleanProgress(app, -5, "cleaning");
+
+        android.content.Intent started = Shadows.shadowOf(app).getNextStartedService();
+        assertNotNull(started);
+        assertEquals(0, started.getIntExtra(ProcessingForegroundService.EXTRA_PERCENT, -1));
+        assertEquals(app.getString(R.string.notification_clean_progress_title),
+                started.getStringExtra(ProcessingForegroundService.EXTRA_TITLE));
+    }
+
+    @Test
+    public void progressUpdates_areThrottledAndCanBeReset() {
+        AppPreferences.setProgressNotificationsEnabled(app, true);
+        LocalNotifications.cancelConvertProgress(app);
+        LocalNotifications.cancelCleanProgress(app);
+
+        LocalNotifications.updateConversionProgress(app, 10, "a");
+        LocalNotifications.updateConversionProgress(app, 20, "b");
+        assertNotNull(Shadows.shadowOf(app).getNextStartedService());
+        assertNull("the second update falls inside the throttle window",
+                Shadows.shadowOf(app).getNextStartedService());
+
+        LocalNotifications.cancelConvertProgress(app);
+        LocalNotifications.updateConversionProgress(app, 30, "c");
+        assertNotNull(Shadows.shadowOf(app).getNextStartedService());
+
+        LocalNotifications.updateCleanProgress(app, 10, "a");
+        LocalNotifications.updateCleanProgress(app, 20, "b");
+        assertNotNull(Shadows.shadowOf(app).getNextStartedService());
+        assertNull(Shadows.shadowOf(app).getNextStartedService());
+    }
+
+    @Test
+    public void progressUpdates_respectTheirToggles() {
+        AppPreferences.setProgressNotificationsEnabled(app, false);
+        LocalNotifications.cancelConvertProgress(app);
+        LocalNotifications.updateConversionProgress(app, 10, "a");
+        LocalNotifications.updateCleanProgress(app, 10, "a");
+        assertNull(Shadows.shadowOf(app).getNextStartedService());
+
+        AppPreferences.setProgressNotificationsEnabled(app, true);
+        AppPreferences.setConvertNotificationsEnabled(app, false);
+        AppPreferences.setCleanNotificationsEnabled(app, false);
+        LocalNotifications.updateConversionProgress(app, 10, "a");
+        LocalNotifications.updateCleanProgress(app, 10, "a");
+        assertNull(Shadows.shadowOf(app).getNextStartedService());
+    }
+
+    @Test
+    public void foregroundHelpers_delegateToTheService() {
+        LocalNotifications.startProcessingForeground(app, "Working");
+        android.content.Intent start = Shadows.shadowOf(app).getNextStartedService();
+        assertEquals(ProcessingForegroundService.ACTION_START, start.getAction());
+
+        LocalNotifications.stopProcessingForeground(app);
+        android.content.Intent stop = Shadows.shadowOf(app).getNextStartedService();
+        assertEquals(ProcessingForegroundService.ACTION_STOP, stop.getAction());
+    }
 }
