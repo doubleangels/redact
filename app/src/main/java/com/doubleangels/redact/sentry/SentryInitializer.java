@@ -1,5 +1,6 @@
 package com.doubleangels.redact.sentry;
 
+import android.app.Application;
 import android.content.Context;
 import android.util.Log;
 
@@ -15,6 +16,7 @@ import io.sentry.ProfileLifecycle;
 import io.sentry.Sentry;
 import io.sentry.SentryLogLevel;
 import io.sentry.android.core.SentryAndroid;
+import io.sentry.android.fragment.FragmentLifecycleIntegration;
 
 /**
  * Initializes Sentry on a background thread with options aligned to production diagnostics:
@@ -131,8 +133,14 @@ public final class SentryInitializer {
             // Keep ANR detection and frame tracking (crash diagnostics only, no PII).
             options.setAnrEnabled(true);
             options.setEnableAnrFingerprinting(true); // Groups noisy system-frame ANRs.
-            options.setEnableFramesTracking(false);
+            options.setEnableFramesTracking(true); // Slow/frozen frame counts on screen transactions.
             options.setEnableRootCheck(false);
+
+            // Activity (cold/warm start, TTID) and fragment (the four tab screens) lifecycle spans.
+            options.setEnableAutoActivityLifecycleTracing(true);
+            options.setEnableActivityLifecycleTracingAutoFinish(true);
+            options.addIntegration(new FragmentLifecycleIntegration(
+                    (Application) context.getApplicationContext(), false, true));
 
             // Sample 25% of traces in release to balance diagnostics vs. data sent externally.
             options.setTracesSampleRate(BuildConfig.DEBUG ? 1.0 : RELEASE_TELEMETRY_SAMPLE_RATE);
