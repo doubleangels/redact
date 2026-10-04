@@ -327,4 +327,9 @@
     <string name="scan_maps_consent_message">سيؤدي هذا إلى فتح الإحداثيات في تطبيق الخرائط الافتراضي على جهازك. على عكس كل إجراء آخر في هذه الشاشة، فإنه يسلّم موقع GPS الدقيق إلى تطبيق منفصل قد يرسله خارج هذا الجهاز، مثلًا لتحميل مربعات الخريطة أو البحث عن العنوان. أما Redact نفسه فلا يرسل هذه البيانات إلى أي مكان.\n\nسترى هذه الرسالة مرة واحدة فقط. سيتم تذكّر اختيارك المتابعة، لذا لن يُطلب منك ذلك مجددًا.</string>
     <string name="scan_maps_consent_continue">فتح الخرائط</string>
     <string name="scan_maps_not_available">لا يتوفر تطبيق خرائط لفتح هذا الموقع.</string>
+    <string name="settings_delete_originals">حذف الملفات الأصلية بعد التنظيف</string>
+    <string name="settings_delete_originals_subtitle">بعد نجاح التنظيف، يطلب من Android نقل الملفات الأصلية إلى سلة المحذوفات. ستؤكد ذلك في كل مرة.</string>
+    <string name="button_share_cleaned">مشاركة</string>
+    <string name="scan_risk_location">يحتوي على الموقع</string>
+    <string name="scan_risk_serial">الرقم التسلسلي للجهاز</string>
 </resources>

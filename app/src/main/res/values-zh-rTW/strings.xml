@@ -327,4 +327,9 @@
     <string name="scan_maps_consent_message">這會在您裝置的預設地圖應用程式中開啟座標。與此畫面上的其他所有操作不同，這會將您的精確 GPS 位置交給另一個應用程式，該應用程式可能會將其傳送到此裝置之外，例如載入地圖圖磚或查詢地址。Redact 本身絕不會將這些資料傳送到任何地方。\n\n此訊息只會顯示一次。您選擇繼續後會被記住，因此不會再次詢問。</string>
     <string name="scan_maps_consent_continue">開啟地圖</string>
     <string name="scan_maps_not_available">沒有可用於開啟此位置的地圖應用程式。</string>
+    <string name="settings_delete_originals">清理後刪除原始檔案</string>
+    <string name="settings_delete_originals_subtitle">清理成功後，要求 Android 將原始檔案移至垃圾桶。每次都需要您確認。</string>
+    <string name="button_share_cleaned">分享</string>
+    <string name="scan_risk_location">含位置資訊</string>
+    <string name="scan_risk_serial">裝置序號</string>
 </resources>

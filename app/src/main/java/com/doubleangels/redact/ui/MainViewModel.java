@@ -573,6 +573,14 @@ public class MainViewModel extends AndroidViewModel {
 
      */
 
+    public List<android.net.Uri> getCleanSucceededSources() {
+        return mediaProcessor.getSucceededSources();
+    }
+
+    public List<android.net.Uri> getCleanSucceededOutputs() {
+        return mediaProcessor.getSucceededOutputs();
+    }
+
     public void startCleaning(List<MediaItem> items) {
 
         if (items == null || items.isEmpty()) return;

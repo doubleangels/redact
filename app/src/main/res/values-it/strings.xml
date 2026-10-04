@@ -327,4 +327,9 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="scan_maps_consent_message">Questo apre le coordinate nell\'app di mappe predefinita del dispositivo. A differenza di ogni altra azione di questa schermata, consegna la tua posizione GPS esatta a un\'app separata, che potrebbe inviarla fuori da questo dispositivo, ad esempio per caricare i riquadri della mappa o cercare l\'indirizzo. Redact non invia mai questi dati da nessuna parte.\n\nVedrai questo messaggio solo una volta. La scelta di continuare viene ricordata, quindi non verrà chiesto di nuovo.</string>
     <string name="scan_maps_consent_continue">Apri Mappe</string>
     <string name="scan_maps_not_available">Nessuna app di mappe disponibile per aprire questa posizione.</string>
+    <string name="settings_delete_originals">Elimina gli originali dopo la pulizia</string>
+    <string name="settings_delete_originals_subtitle">Dopo una pulizia riuscita, chiede ad Android di spostare i file originali nel cestino. Confermi ogni volta.</string>
+    <string name="button_share_cleaned">Condividi</string>
+    <string name="scan_risk_location">Contiene la posizione</string>
+    <string name="scan_risk_serial">Numero di serie del dispositivo</string>
 </resources>

@@ -327,4 +327,9 @@
     <string name="scan_maps_consent_message">Координаты откроются в приложении карт по умолчанию на вашем устройстве. В отличие от всех остальных действий на этом экране, ваше точное GPS-местоположение передаётся отдельному приложению, которое может отправить его за пределы устройства, например для загрузки фрагментов карты или поиска адреса. Сам Redact никогда никуда не отправляет эти данные.\n\nЭто сообщение появится только один раз. Ваш выбор продолжить запоминается, поэтому повторно запрашиваться не будет.</string>
     <string name="scan_maps_consent_continue">Открыть Карты</string>
     <string name="scan_maps_not_available">Нет приложения карт для открытия этого местоположения.</string>
+    <string name="settings_delete_originals">Удалять оригиналы после очистки</string>
+    <string name="settings_delete_originals_subtitle">После успешной очистки Android предложит переместить исходные файлы в корзину. Каждый раз нужно подтверждение.</string>
+    <string name="button_share_cleaned">Поделиться</string>
+    <string name="scan_risk_location">Есть геолокация</string>
+    <string name="scan_risk_serial">Серийный номер устройства</string>
 </resources>
