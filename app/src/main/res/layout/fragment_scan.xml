@@ -11,11 +11,11 @@
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
         android:clipToPadding="false"
         android:contentDescription="@string/content_description_scroll_view"
         android:fillViewport="true"
         android:paddingHorizontal="@dimen/scan_screen_horizontal_padding"
+        android:paddingTop="8dp"
         android:paddingBottom="88dp"
         android:scrollbars="none"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -189,6 +189,7 @@
                                     android:paddingVertical="2dp"
                                     android:textAppearance="?attr/textAppearanceLabelSmall"
                                     android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:textStyle="bold"
                                     tools:text="34 fields" />
 
                                 <TextView
@@ -202,6 +203,7 @@
                                     android:paddingVertical="2dp"
                                     android:textAppearance="?attr/textAppearanceLabelSmall"
                                     android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:textStyle="bold"
                                     android:visibility="gone"
                                     tools:text="3.2 MB" />
 
@@ -218,7 +220,7 @@
                                     android:textColor="?attr/colorOnErrorContainer"
                                     android:textStyle="bold"
                                     android:visibility="gone"
-                                    tools:text="Has location" />
+                                    tools:text="Location" />
                             </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>

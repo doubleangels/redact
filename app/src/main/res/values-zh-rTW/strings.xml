@@ -329,6 +329,6 @@
     <string name="scan_maps_not_available">沒有可用於開啟此位置的地圖應用程式。</string>
     <string name="settings_delete_originals">清理後刪除原始檔案</string>
     <string name="settings_delete_originals_subtitle">清理成功後，要求 Android 將原始檔案移至垃圾桶。每次都需要您確認。</string>
-    <string name="scan_risk_location">含位置資訊</string>
+    <string name="scan_risk_location">位置資訊</string>
     <string name="scan_risk_serial">裝置序號</string>
 </resources>

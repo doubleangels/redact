@@ -243,9 +243,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupVersionNumber() {
         try {
-            android.widget.TextView versionText = findViewById(R.id.versionText);
             PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-            versionText.setText(packageInfo.versionName);
             assert packageInfo.versionName != null;
             SentryManager.setCustomKey("app_version", packageInfo.versionName);
         } catch (Exception e) {

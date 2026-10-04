@@ -329,6 +329,6 @@
     <string name="scan_maps_not_available">لا يتوفر تطبيق خرائط لفتح هذا الموقع.</string>
     <string name="settings_delete_originals">حذف الملفات الأصلية بعد التنظيف</string>
     <string name="settings_delete_originals_subtitle">بعد نجاح التنظيف، يطلب من Android نقل الملفات الأصلية إلى سلة المحذوفات. ستؤكد ذلك في كل مرة.</string>
-    <string name="scan_risk_location">يحتوي على الموقع</string>
+    <string name="scan_risk_location">الموقع</string>
     <string name="scan_risk_serial">الرقم التسلسلي للجهاز</string>
 </resources>

@@ -99,4 +99,33 @@ public class ScanMetadataAdapterTest {
         assertEquals("Model", ((ScanMetadataAdapter.RowHolder) rowHolder).keyView.getText().toString());
         assertEquals("Pixel", ((ScanMetadataAdapter.RowHolder) rowHolder).valueView.getText().toString());
     }
+
+    @Test
+    public void identifyingMetadata_isFlaggedCorrectly() {
+        ScanMetadataAdapter.Entry normal = ScanMetadataAdapter.Entry.row("camera", "Aperture", "f/1.8");
+        assertEquals(false, normal.isIdentifying);
+
+        ScanMetadataAdapter.Entry location = ScanMetadataAdapter.Entry.row("location", "Latitude", "37.7749");
+        assertEquals(true, location.isIdentifying);
+
+        ScanMetadataAdapter.Entry serial = ScanMetadataAdapter.Entry.row("camera", "Camera Serial Number", "12345");
+        assertEquals(true, serial.isIdentifying);
+
+        ScanMetadataAdapter.Entry owner = ScanMetadataAdapter.Entry.row("camera", "Owner Name", "John Doe");
+        assertEquals(true, owner.isIdentifying);
+    }
+
+    @Test
+    public void onBindViewHolder_identifyingRowShowsHighlight() {
+        List<ScanMetadataAdapter.Entry> entries = new ArrayList<>();
+        entries.add(ScanMetadataAdapter.Entry.row("location", "GPS Latitude", "37.7749"));
+        adapter.setEntries(entries);
+
+        RecyclerView.ViewHolder rowHolder = adapter.onCreateViewHolder(parent, adapter.getItemViewType(0));
+        adapter.onBindViewHolder(rowHolder, 0);
+
+        ScanMetadataAdapter.RowHolder holder = (ScanMetadataAdapter.RowHolder) rowHolder;
+        assertEquals(android.view.View.VISIBLE, holder.tintOverlay.getVisibility());
+        assertEquals(android.view.View.VISIBLE, holder.riskIndicator.getVisibility());
+    }
 }

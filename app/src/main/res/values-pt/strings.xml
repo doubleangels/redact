@@ -329,6 +329,6 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="scan_maps_not_available">Nenhum app de mapas disponível para abrir esta localização.</string>
     <string name="settings_delete_originals">Excluir originais após a limpeza</string>
     <string name="settings_delete_originals_subtitle">Após uma limpeza bem-sucedida, pede ao Android para mover os arquivos originais para a lixeira. Você confirma a cada vez.</string>
-    <string name="scan_risk_location">Tem localização</string>
+    <string name="scan_risk_location">Localização</string>
     <string name="scan_risk_serial">Número de série do dispositivo</string>
 </resources>

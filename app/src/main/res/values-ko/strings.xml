@@ -329,6 +329,6 @@
     <string name="scan_maps_not_available">이 위치를 열 수 있는 지도 앱이 없습니다.</string>
     <string name="settings_delete_originals">정리 후 원본 삭제</string>
     <string name="settings_delete_originals_subtitle">정리가 성공하면 Android에 원본 파일을 휴지통으로 옮기도록 요청합니다. 매번 확인합니다.</string>
-    <string name="scan_risk_location">위치 정보 있음</string>
+    <string name="scan_risk_location">위치</string>
     <string name="scan_risk_serial">기기 일련번호</string>
 </resources>

@@ -329,6 +329,6 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="scan_maps_not_available">Aucune application de cartes n\'est disponible pour ouvrir cette position.</string>
     <string name="settings_delete_originals">Supprimer les originaux après le nettoyage</string>
     <string name="settings_delete_originals_subtitle">Après un nettoyage réussi, demande à Android de placer les fichiers originaux dans la corbeille. Vous confirmez à chaque fois.</string>
-    <string name="scan_risk_location">Contient la position</string>
+    <string name="scan_risk_location">Position</string>
     <string name="scan_risk_serial">Numéro de série de l’appareil</string>
 </resources>

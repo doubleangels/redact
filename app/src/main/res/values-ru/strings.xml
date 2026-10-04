@@ -329,6 +329,6 @@
     <string name="scan_maps_not_available">Нет приложения карт для открытия этого местоположения.</string>
     <string name="settings_delete_originals">Удалять оригиналы после очистки</string>
     <string name="settings_delete_originals_subtitle">После успешной очистки Android предложит переместить исходные файлы в корзину. Каждый раз нужно подтверждение.</string>
-    <string name="scan_risk_location">Есть геолокация</string>
+    <string name="scan_risk_location">Геолокация</string>
     <string name="scan_risk_serial">Серийный номер устройства</string>
 </resources>

@@ -330,6 +330,6 @@
     <string name="scan_maps_not_available">この位置情報を開けるマップアプリがありません。</string>
     <string name="settings_delete_originals">クリーン後に元ファイルを削除</string>
     <string name="settings_delete_originals_subtitle">クリーン成功後、元のファイルをゴミ箱に移動するようAndroidに依頼します。毎回確認が表示されます。</string>
-    <string name="scan_risk_location">位置情報あり</string>
+    <string name="scan_risk_location">位置情報</string>
     <string name="scan_risk_serial">デバイスのシリアル番号</string>
 </resources>

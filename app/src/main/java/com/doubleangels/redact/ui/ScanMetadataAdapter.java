@@ -3,6 +3,7 @@ package com.doubleangels.redact.ui;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,15 +13,20 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.metadata.MetadataDisplayer;
+import com.google.android.material.color.MaterialColors;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
- * Virtualized list for Scan tab metadata displaying categorized section headers and interactive rows.
+ * Virtualized list for Scan tab metadata displaying categorized section headers and interactive rows
+ * with visual red tint highlights for identifying metadata.
  */
 public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -39,9 +45,11 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
         public final String key;
         @Nullable
         public final String value;
+        public final boolean isIdentifying;
 
         private Entry(int viewType, @Nullable String sectionId, @Nullable String headerTitle,
-                      int headerIconRes, int itemCount, @Nullable String key, @Nullable String value) {
+                      int headerIconRes, int itemCount, @Nullable String key, @Nullable String value,
+                      boolean isIdentifying) {
             this.viewType = viewType;
             this.sectionId = sectionId;
             this.headerTitle = headerTitle;
@@ -49,18 +57,54 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
             this.itemCount = itemCount;
             this.key = key;
             this.value = value;
+            this.isIdentifying = isIdentifying;
         }
 
         public static Entry header(@Nullable String sectionId, @NonNull String title, int iconRes, int itemCount) {
-            return new Entry(VIEW_TYPE_HEADER, sectionId, title, iconRes, itemCount, null, null);
+            return new Entry(VIEW_TYPE_HEADER, sectionId, title, iconRes, itemCount, null, null, false);
         }
 
         public static Entry row(@Nullable String key, @Nullable String value) {
-            return new Entry(VIEW_TYPE_ROW, null, null, 0, 0, key, value);
+            return new Entry(VIEW_TYPE_ROW, null, null, 0, 0, key, value, isIdentifyingMetadata(null, key));
         }
 
         public static Entry row(@Nullable String sectionId, @Nullable String key, @Nullable String value) {
-            return new Entry(VIEW_TYPE_ROW, sectionId, null, 0, 0, key, value);
+            return new Entry(VIEW_TYPE_ROW, sectionId, null, 0, 0, key, value, isIdentifyingMetadata(sectionId, key));
+        }
+
+        public static Entry row(@Nullable String sectionId, @Nullable String key, @Nullable String value, boolean isIdentifying) {
+            return new Entry(VIEW_TYPE_ROW, sectionId, null, 0, 0, key, value, isIdentifying);
+        }
+
+        public static boolean isIdentifyingMetadata(@Nullable String sectionId, @Nullable String key) {
+            if (sectionId != null && MetadataDisplayer.SECTION_LOCATION.equalsIgnoreCase(sectionId)) {
+                return true;
+            }
+            if (key == null) {
+                return false;
+            }
+            String lower = key.toLowerCase(Locale.ROOT);
+            return lower.contains("gps")
+                    || lower.contains("latitude")
+                    || lower.contains("longitude")
+                    || lower.contains("altitude")
+                    || lower.contains("coordinate")
+                    || lower.contains("position")
+                    || lower.contains("location")
+                    || lower.contains("serial")
+                    || lower.contains("owner")
+                    || lower.contains("unique id")
+                    || lower.contains("uniqueid")
+                    || lower.contains("artist")
+                    || lower.contains("author")
+                    || lower.contains("creator")
+                    || lower.contains("copyright")
+                    || lower.contains("by-line")
+                    || lower.contains("credit")
+                    || lower.contains("user comment")
+                    || lower.contains("phone")
+                    || lower.contains("email")
+                    || lower.contains("contact");
         }
     }
 
@@ -130,24 +174,61 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
         Entry entry = displayedEntries.get(position);
         if (holder instanceof HeaderHolder headerHolder) {
             headerHolder.titleView.setText(entry.headerTitle != null ? entry.headerTitle : "");
+            boolean isLocationHeader = MetadataDisplayer.SECTION_LOCATION.equalsIgnoreCase(entry.sectionId);
+            int headerColor = isLocationHeader
+                    ? MaterialColors.getColor(headerHolder.itemView, androidx.appcompat.R.attr.colorError,
+                            ContextCompat.getColor(headerHolder.itemView.getContext(), R.color.permission_status_denied))
+                    : MaterialColors.getColor(headerHolder.itemView, androidx.appcompat.R.attr.colorPrimary,
+                            ContextCompat.getColor(headerHolder.itemView.getContext(), R.color.primary));
+
+            headerHolder.titleView.setTextColor(headerColor);
             if (entry.headerIconRes != 0) {
                 headerHolder.iconView.setImageResource(entry.headerIconRes);
+                headerHolder.iconView.setImageTintList(ColorStateList.valueOf(headerColor));
                 headerHolder.iconView.setVisibility(View.VISIBLE);
             } else {
                 headerHolder.iconView.setVisibility(View.GONE);
             }
             if (entry.itemCount > 0) {
                 headerHolder.countView.setText(String.valueOf(entry.itemCount));
+                if (isLocationHeader) {
+                    headerHolder.countView.setBackgroundTintList(ColorStateList.valueOf(
+                            MaterialColors.getColor(headerHolder.itemView, com.google.android.material.R.attr.colorErrorContainer,
+                                    ContextCompat.getColor(headerHolder.itemView.getContext(), R.color.permission_status_denied))));
+                    headerHolder.countView.setTextColor(
+                            MaterialColors.getColor(headerHolder.itemView, com.google.android.material.R.attr.colorOnErrorContainer,
+                                    ContextCompat.getColor(headerHolder.itemView.getContext(), R.color.black)));
+                } else {
+                    headerHolder.countView.setBackgroundTintList(ColorStateList.valueOf(
+                            MaterialColors.getColor(headerHolder.itemView, com.google.android.material.R.attr.colorSurfaceContainerHigh,
+                                    ContextCompat.getColor(headerHolder.itemView.getContext(), R.color.primary))));
+                    headerHolder.countView.setTextColor(
+                            MaterialColors.getColor(headerHolder.itemView, com.google.android.material.R.attr.colorOnSurfaceVariant,
+                                    ContextCompat.getColor(headerHolder.itemView.getContext(), R.color.black)));
+                }
                 headerHolder.countView.setVisibility(View.VISIBLE);
             } else {
                 headerHolder.countView.setVisibility(View.GONE);
             }
         } else if (holder instanceof RowHolder rowHolder) {
+            int primaryColor = MaterialColors.getColor(rowHolder.itemView, androidx.appcompat.R.attr.colorPrimary,
+                    ContextCompat.getColor(rowHolder.itemView.getContext(), R.color.primary));
+            int errorColor = MaterialColors.getColor(rowHolder.itemView, androidx.appcompat.R.attr.colorError,
+                    ContextCompat.getColor(rowHolder.itemView.getContext(), R.color.permission_status_denied));
+
+            if (rowHolder.tintOverlay != null) {
+                rowHolder.tintOverlay.setVisibility(entry.isIdentifying ? View.VISIBLE : View.GONE);
+            }
+            if (rowHolder.riskIndicator != null) {
+                rowHolder.riskIndicator.setVisibility(entry.isIdentifying ? View.VISIBLE : View.GONE);
+            }
+
             if (entry.key == null || entry.key.isEmpty()) {
                 rowHolder.keyView.setVisibility(View.GONE);
             } else {
                 rowHolder.keyView.setVisibility(View.VISIBLE);
                 rowHolder.keyView.setText(entry.key);
+                rowHolder.keyView.setTextColor(entry.isIdentifying ? errorColor : primaryColor);
             }
             rowHolder.valueView.setText(entry.value != null ? entry.value : "");
 
@@ -180,9 +261,9 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
     }
 
     public static final class HeaderHolder extends RecyclerView.ViewHolder {
-        final ImageView iconView;
-        final TextView titleView;
-        final TextView countView;
+        public final ImageView iconView;
+        public final TextView titleView;
+        public final TextView countView;
 
         HeaderHolder(@NonNull View itemView) {
             super(itemView);
@@ -193,8 +274,12 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
     }
 
     public static final class RowHolder extends RecyclerView.ViewHolder {
+        @Nullable
+        public final View tintOverlay;
         public final TextView keyView;
         public final TextView valueView;
+        @Nullable
+        public final TextView riskIndicator;
         @Nullable
         public final View copyButton;
         @Nullable
@@ -202,8 +287,10 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
 
         RowHolder(@NonNull View itemView) {
             super(itemView);
+            tintOverlay = itemView.findViewById(R.id.rowTintOverlay);
             keyView = itemView.findViewById(R.id.metadataFieldKey);
             valueView = itemView.findViewById(R.id.metadataFieldValue);
+            riskIndicator = itemView.findViewById(R.id.metadataRiskIndicator);
             copyButton = itemView.findViewById(R.id.metadataCopyButton);
             divider = itemView.findViewById(R.id.rowDivider);
         }
