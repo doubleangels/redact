@@ -83,6 +83,7 @@
     <string name="scan_metadata">메타데이터</string>
     <string name="scan_location_permission_missing">위치 권한을 부여하면 위치 데이터를 사용할 수 있을 수 있습니다.</string>
     <string name="scan_extraction_fail">메타데이터 추출 실패.</string>
+    <string name="scan_warning_badge">경고</string>
 
     
     

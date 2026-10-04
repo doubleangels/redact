@@ -83,6 +83,7 @@
     <string name="scan_metadata">Метаданные</string>
     <string name="scan_location_permission_missing">Данные о местоположении могут быть доступны, если вы предоставите разрешение на местоположение.</string>
     <string name="scan_extraction_fail">Ошибка при извлечении метаданных.</string>
+    <string name="scan_warning_badge">Предупреждение</string>
 
     
     

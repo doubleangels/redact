@@ -118,13 +118,24 @@ public class ScanMetadataAdapterTest {
                 "MAKER_NOTE", "XMP", "THUMBNAIL_IMAGE_LENGTH", "IMAGE_DESCRIPTION", "DOCUMENT_NAME",
                 "BODY_SERIAL_NUMBER", "LENS_SERIAL_NUMBER", "IMAGE_UNIQUE_ID", "USER_COMMENT", "CAMERA_OWNER_NAME",
                 "MAKE", "MODEL", "LENS_MODEL", "SOFTWARE", "HOST_COMPUTER", "DATE_TIME_ORIGINAL", "DATE_TIME",
-                "OFFSET_TIME", "SUB_SEC_TIME", "GPS_DATE_STAMP", "ARTIST", "ALBUM", "TITLE", "File Name"}) {
+                "OFFSET_TIME", "SUB_SEC_TIME", "GPS_DATE_STAMP", "ARTIST", "ALBUM", "TITLE"}) {
             assertEquals(key, true, ScanMetadataAdapter.Entry.row("technical", key, "x").isIdentifying);
         }
         for (String key : new String[]{
                 "Y_CB_CR_POSITIONING", "APERTURE_VALUE", "EXPOSURE_TIME", "F_NUMBER", "ISO_SPEED_RATINGS",
                 "ORIENTATION", "FLASH", "WHITE_BALANCE", "COLOR_SPACE", "IMAGE_WIDTH", "DURATION", "BITRATE"}) {
             assertEquals(key, false, ScanMetadataAdapter.Entry.row("technical", key, "1").isIdentifying);
+        }
+    }
+
+    @Test
+    public void displayName_isFlaggedUnlessItIsARandomizedRedactName() {
+        for (String key : new String[]{"DISPLAY_NAME", "File Name"}) {
+            assertEquals(true, ScanMetadataAdapter.Entry.row("basic_info", key, "IMG_20240101_vacation.jpg").isIdentifying);
+            assertEquals(true, ScanMetadataAdapter.Entry.row("basic_info", key, "redact-sample-beach.png").isIdentifying);
+            assertEquals(true, ScanMetadataAdapter.Entry.row("basic_info", key, null).isIdentifying);
+            assertEquals(false, ScanMetadataAdapter.Entry.row("basic_info", key, "aB3dE5fG7hJ9.jpg").isIdentifying);
+            assertEquals(false, ScanMetadataAdapter.Entry.row("basic_info", key, "aB3dE5fG7hJ9.mp4").isIdentifying);
         }
     }
 

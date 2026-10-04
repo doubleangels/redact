@@ -83,6 +83,7 @@
     <string name="scan_metadata">中繼資料</string>
     <string name="scan_location_permission_missing">如果您授予位置權限，位置資料可能會可用。</string>
     <string name="scan_extraction_fail">擷取中繼資料失敗！</string>
+    <string name="scan_warning_badge">警告</string>
 
     
     

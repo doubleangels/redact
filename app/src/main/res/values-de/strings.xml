@@ -83,6 +83,7 @@
     <string name="scan_metadata">Metadaten</string>
     <string name="scan_location_permission_missing">Standortdaten könnten verfügbar sein, wenn Sie die Standortberechtigung erteilen.</string>
     <string name="scan_extraction_fail">Fehler beim Extrahieren der Metadaten.</string>
+    <string name="scan_warning_badge">Warnung</string>
 
     
     

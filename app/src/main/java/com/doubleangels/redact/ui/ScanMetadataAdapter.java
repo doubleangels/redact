@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.media.MediaFileNames;
 import com.doubleangels.redact.metadata.MetadataDisplayer;
 import com.google.android.material.color.MaterialColors;
 
@@ -65,11 +66,11 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
         }
 
         public static Entry row(@Nullable String key, @Nullable String value) {
-            return new Entry(VIEW_TYPE_ROW, null, null, 0, 0, key, value, isIdentifyingMetadata(null, key));
+            return new Entry(VIEW_TYPE_ROW, null, null, 0, 0, key, value, isIdentifyingMetadata(null, key, value));
         }
 
         public static Entry row(@Nullable String sectionId, @Nullable String key, @Nullable String value) {
-            return new Entry(VIEW_TYPE_ROW, sectionId, null, 0, 0, key, value, isIdentifyingMetadata(sectionId, key));
+            return new Entry(VIEW_TYPE_ROW, sectionId, null, 0, 0, key, value, isIdentifyingMetadata(sectionId, key, value));
         }
 
         public static Entry row(@Nullable String sectionId, @Nullable String key, @Nullable String value, boolean isIdentifying) {
@@ -82,7 +83,8 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
                 "gps", "latitude", "longitude", "altitude", "coordinate", "location",
                 // Who
                 "owner", "artist", "author", "creator", "copyright", "by line", "credit", "writer", "composer",
-                "album", "title", "comment", "description", "name", "phone", "email", "contact",
+                "album", "title", "comment", "description", "document name", "raw file name", "user name",
+                "username", "phone", "email", "contact",
                 // Which device
                 "serial", "unique id", "uniqueid", "make", "model", "lens", "software", "host computer",
                 "firmware", "device",
@@ -94,7 +96,8 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
                 "path", "folder", "uri"
         };
 
-        public static boolean isIdentifyingMetadata(@Nullable String sectionId, @Nullable String key) {
+        public static boolean isIdentifyingMetadata(
+                @Nullable String sectionId, @Nullable String key, @Nullable String value) {
             if (sectionId != null && MetadataDisplayer.SECTION_LOCATION.equalsIgnoreCase(sectionId)) {
                 return true;
             }
@@ -104,6 +107,10 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
             // Keys arrive as UPPER_SNAKE_CASE (e.g. IMAGE_UNIQUE_ID) or as display text, so compare on a
             // normalized "words separated by single spaces" form.
             String lower = key.toLowerCase(Locale.ROOT).replaceAll("[_\\-\\s]+", " ");
+            // The file's own name is only a risk when it is not one of Redact's randomized names.
+            if (lower.equals("display name") || lower.equals("file name") || lower.equals("filename")) {
+                return !MediaFileNames.isRandomName(value);
+            }
             for (String term : IDENTIFYING_KEY_TERMS) {
                 if (lower.contains(term)) {
                     return true;
