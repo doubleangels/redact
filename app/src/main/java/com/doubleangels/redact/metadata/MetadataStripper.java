@@ -942,6 +942,32 @@ public class MetadataStripper {
         }
     }
 
+    /**
+     * Transmuxes {@code sourceUri} into a cache file without container-level metadata, for use as
+     * the input of a format-conversion transcode. Returns null when transmuxing isn't possible;
+     * callers must delete a non-null result.
+     */
+    @Nullable
+    public File transmuxVideoWithoutMetadata(@NonNull Uri sourceUri) {
+        return fastStripVideoMetadata(sourceUri);
+    }
+
+    /**
+     * Verifies a converted video carries no location, original date, or author/title-style
+     * metadata from {@code sourceUri}.
+     *
+     * @throws IOException if identifying metadata survived
+     */
+    public void requireConvertedVideoClean(@NonNull File convertedFile, @NonNull Uri sourceUri)
+            throws IOException {
+        requireVideoMetadataClean(convertedFile, extractVideoPrivacyMetadata(sourceUri));
+    }
+
+    /** Securely deletes a temp file created for conversion. */
+    public void deleteTempFile(@NonNull File file) {
+        secureDeleteFile(file);
+    }
+
     private File fastStripVideoMetadata(Uri sourceUri) {
         if (testFastStripVideoMetadataOverride != null) {
             return testFastStripVideoMetadataOverride;

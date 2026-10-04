@@ -54,7 +54,6 @@
     <string name="convert_done_partial">संपन्न: %1$d सफल, %2$d विफल।</string>
     <string name="convert_done_failed">रूपांतरण विफल।</string>
     <string name="convert_saved_to_gallery">गैलरी में सहेजा गया (Redact फ़ोल्डर)</string>
-    <string name="convert_clean_tab_hint">रूपांतरण केवल प्रारूप बदलता है। मेटाडेटा हटाने के लिए, साफ़ करें टैब पर जाएं।</string>
 
     
     <string name="button_select_media">फ़ाइलें चुनें</string>

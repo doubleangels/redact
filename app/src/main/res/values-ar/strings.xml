@@ -54,7 +54,6 @@
     <string name="convert_done_partial">تمت: %1$d ناجح، %2$d فاشل.</string>
     <string name="convert_done_failed">فشل التحويل.</string>
     <string name="convert_saved_to_gallery">تم الحفظ في المعرض (مجلد Redact)</string>
-    <string name="convert_clean_tab_hint">التحويل يغير التنسيق فقط. لإزالة البيانات الوصفية، انتقل إلى علامة التبويب تنظيف.</string>
 
     
     <string name="button_select_media">تحديد الملفات</string>

@@ -96,9 +96,9 @@
                 android:orientation="vertical"
                 android:visibility="gone">
 
-                <!-- Format Selection Card -->
+                <!-- Batch Summary Card (Mirrors Clean tab for visual consistency) -->
                 <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/formatSection"
+                    android:id="@+id/convertSummaryCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
@@ -111,108 +111,17 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:layout_marginEnd="10dp"
-                                android:contentDescription="@null"
-                                android:src="@drawable/ic_convert"
-                                app:tint="?attr/colorPrimary" />
-
-                            <TextView
-                                android:id="@+id/formatLabel"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/convert_output_format_images"
-                                android:textAppearance="?attr/textAppearanceTitleSmall"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <com.google.android.material.chip.ChipGroup
-                            android:id="@+id/formatChipGroup"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            app:selectionRequired="true"
-                            app:singleSelection="true">
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipFormatJpeg"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:checked="true"
-                                android:text="@string/convert_format_jpeg"
-                                app:chipIconVisible="false"
-                                app:closeIconVisible="false" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipFormatPng"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/convert_format_png"
-                                app:chipIconVisible="false"
-                                app:closeIconVisible="false" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipFormatWebp"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/convert_format_webp"
-                                app:chipIconVisible="false"
-                                app:closeIconVisible="false" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipFormatHeif"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/convert_format_heif"
-                                app:chipIconVisible="false"
-                                app:closeIconVisible="false" />
-                        </com.google.android.material.chip.ChipGroup>
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:text="@string/convert_clean_tab_hint"
-                            android:textAppearance="?attr/textAppearanceBodySmall"
-                            android:textColor="?attr/colorOnSurfaceVariant" />
-
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Batch Overview Header -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/convertSummaryCard"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
-                    app:cardCornerRadius="@dimen/component_corner_large"
-                    app:cardElevation="1dp"
-                    app:strokeWidth="0dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginEnd="14dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_convert"
+                            app:tint="?attr/colorPrimary" />
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -227,7 +136,7 @@
                                 android:textAppearance="?attr/textAppearanceTitleMedium"
                                 android:textColor="?attr/colorOnSurface"
                                 android:textStyle="bold"
-                                tools:text="3 files to convert" />
+                                tools:text="3 files selected" />
 
                             <TextView
                                 android:layout_width="match_parent"
@@ -263,6 +172,117 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- Format Selection Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/formatSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
+                    app:cardCornerRadius="@dimen/component_corner_large"
+                    app:cardElevation="1dp"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
+                                android:layout_marginEnd="10dp"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_settings"
+                                app:tint="?attr/colorPrimary" />
+
+                            <TextView
+                                android:id="@+id/formatLabel"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/convert_output_format_images"
+                                android:textAppearance="?attr/textAppearanceTitleMedium"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/formatBadge"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_rounded_surface"
+                                android:backgroundTint="?attr/colorPrimaryContainer"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="2dp"
+                                android:textAppearance="?attr/textAppearanceLabelSmall"
+                                android:textColor="?attr/colorOnPrimaryContainer"
+                                android:textStyle="bold"
+                                android:visibility="gone"
+                                tools:text="JPEG"
+                                tools:visibility="visible" />
+                        </LinearLayout>
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/formatChipGroup"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            app:chipSpacingHorizontal="8dp"
+                            app:chipSpacingVertical="4dp"
+                            app:selectionRequired="true"
+                            app:singleSelection="true">
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipFormatJpeg"
+                                style="@style/Widget.Material3.Chip.Filter"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:checked="true"
+                                android:text="@string/convert_format_jpeg"
+                                app:checkedIconVisible="true"
+                                app:chipIconVisible="false"
+                                app:closeIconVisible="false" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipFormatPng"
+                                style="@style/Widget.Material3.Chip.Filter"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/convert_format_png"
+                                app:checkedIconVisible="true"
+                                app:chipIconVisible="false"
+                                app:closeIconVisible="false" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipFormatWebp"
+                                style="@style/Widget.Material3.Chip.Filter"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/convert_format_webp"
+                                app:checkedIconVisible="true"
+                                app:chipIconVisible="false"
+                                app:closeIconVisible="false" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipFormatHeif"
+                                style="@style/Widget.Material3.Chip.Filter"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/convert_format_heif"
+                                app:checkedIconVisible="true"
+                                app:chipIconVisible="false"
+                                app:closeIconVisible="false" />
+                        </com.google.android.material.chip.ChipGroup>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
                 <!-- Status Text: Shown during/after processing -->
                 <TextView
                     android:id="@+id/statusText"
@@ -273,11 +293,11 @@
                     android:backgroundTint="?attr/colorSurfaceContainerHigh"
                     android:paddingHorizontal="14dp"
                     android:paddingVertical="10dp"
-                    android:text="@string/convert_clean_tab_hint"
                     android:textAlignment="center"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="?attr/colorOnSurface"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    tools:text="@string/convert_status_ready" />
 
                 <!-- Progress Container -->
                 <LinearLayout
@@ -312,8 +332,9 @@
                         app:trackThickness="6dp" />
                 </LinearLayout>
 
-                <!-- Files List Card -->
+                <!-- Files List Card with Header & Item Rows -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/filesSection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
@@ -322,14 +343,68 @@
                     app:cardElevation="1dp"
                     app:strokeWidth="0dp">
 
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/convertFileList"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:nestedScrollingEnabled="false"
-                        android:overScrollMode="never"
-                        android:paddingVertical="4dp"
-                        tools:listitem="@layout/item_convert_file_row" />
+                        android:orientation="vertical"
+                        android:paddingTop="16dp"
+                        android:paddingBottom="4dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="16dp"
+                            android:paddingBottom="10dp">
+
+                            <ImageView
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
+                                android:layout_marginEnd="10dp"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_add_photo"
+                                app:tint="?attr/colorPrimary" />
+
+                            <TextView
+                                android:id="@+id/filesCardLabel"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/convert_files_card_title"
+                                android:textAppearance="?attr/textAppearanceTitleMedium"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/filesCountBadge"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_rounded_surface"
+                                android:backgroundTint="?attr/colorSurfaceContainerHigh"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="2dp"
+                                android:textAppearance="?attr/textAppearanceLabelSmall"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:textStyle="bold"
+                                android:visibility="gone"
+                                tools:text="3 files"
+                                tools:visibility="visible" />
+                        </LinearLayout>
+
+                        <com.google.android.material.divider.MaterialDivider
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:dividerColor="?attr/colorSurfaceContainerHighest" />
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/convertFileList"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:nestedScrollingEnabled="false"
+                            android:overScrollMode="never"
+                            tools:listitem="@layout/item_convert_file_row" />
+                    </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
             </LinearLayout>

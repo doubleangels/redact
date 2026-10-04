@@ -150,7 +150,6 @@
     <string name="convert_done_partial" tools:ignore="PluralsCandidate">Done: %1$d succeeded, %2$d failed.</string>
     <string name="convert_done_failed">Conversion failed.</string>
     <string name="convert_saved_to_gallery">Saved to Gallery (Redact folder)</string>
-    <string name="convert_clean_tab_hint">Conversion changes format only. To remove metadata from the new files, go to the Clean tab and run them through cleaning.</string>
     <string name="scan_status_ready">Select a file to scan its metadata.</string>
     <string name="animated_image_warning">Animated images are saved as a single still frame.</string>
 
@@ -251,6 +250,11 @@
     <string name="convert_empty_state_title" translatable="false">Convert Media Formats</string>
     <string name="convert_empty_state_description" translatable="false">Select photos or videos to convert them into JPEG, PNG, WebP, HEIC, or MP4 formats.</string>
     <string name="convert_clear_selection" translatable="false">Clear</string>
+    <string name="convert_files_card_title" translatable="false">Files to Convert</string>
+    <string name="convert_item_type_image" translatable="false">Image</string>
+    <string name="convert_item_type_video" translatable="false">Video</string>
+    <string name="convert_hero_files_count" translatable="false">%1$d files</string>
+    <string name="convert_hero_file_count_single" translatable="false">%1$d file</string>
 
     
     

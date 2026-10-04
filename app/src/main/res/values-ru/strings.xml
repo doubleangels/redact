@@ -54,7 +54,6 @@
     <string name="convert_done_partial">Завершено: %1$d успешно, %2$d с ошибкой.</string>
     <string name="convert_done_failed">Ошибка конвертации.</string>
     <string name="convert_saved_to_gallery">Сохранено в Галерею (папка Redact)</string>
-    <string name="convert_clean_tab_hint">Конвертация изменяет только формат. Чтобы удалить метаданные, перейдите на вкладку Очистка.</string>
 
     
     <string name="button_select_media">Выбрать файлы</string>

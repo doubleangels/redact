@@ -54,7 +54,6 @@
     <string name="convert_done_partial">Finito: %1$d completati, %2$d non riusciti.</string>
     <string name="convert_done_failed">Conversione fallita.</string>
     <string name="convert_saved_to_gallery">Salvato in Galleria (cartella Redact)</string>
-    <string name="convert_clean_tab_hint">La conversione cambia solo il formato. Per rimuovere i metadati, vai alla scheda Pulisci.</string>
 
     
     <string name="button_select_media">Seleziona File</string>

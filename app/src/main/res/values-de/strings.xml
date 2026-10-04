@@ -54,7 +54,6 @@
     <string name="convert_done_partial">Fertig: %1$d erfolgreich, %2$d fehlgeschlagen.</string>
     <string name="convert_done_failed">Konvertierung fehlgeschlagen.</string>
     <string name="convert_saved_to_gallery">In Galerie gespeichert (Redact Ordner)</string>
-    <string name="convert_clean_tab_hint">Durch die Konvertierung wird nur das Format geändert. Gehen Sie auf den Tab Bereinigen, um Metadaten zu entfernen.</string>
 
     
     <string name="button_select_media">Dateien Auswählen</string>

@@ -54,7 +54,6 @@
     <string name="convert_done_partial">完成：%1$d 个成功，%2$d 个失败。</string>
     <string name="convert_done_failed">转换失败。</string>
     <string name="convert_saved_to_gallery">已保存到相册（Redact 文件夹）</string>
-    <string name="convert_clean_tab_hint">转换仅改变格式。要删除元数据，请前往“清理”标签页。</string>
 
     
     <string name="button_select_media">选择文件</string>

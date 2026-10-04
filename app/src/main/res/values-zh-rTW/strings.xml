@@ -54,7 +54,6 @@
     <string name="convert_done_partial">完成：%1$d 個成功，%2$d 個失敗。</string>
     <string name="convert_done_failed">轉換失敗。</string>
     <string name="convert_saved_to_gallery">已儲存至相簿（Redact 資料夾）</string>
-    <string name="convert_clean_tab_hint">轉換僅改變格式。若要刪除中繼資料，請前往「清理」標籤頁。</string>
 
     
     <string name="button_select_media">選擇檔案</string>

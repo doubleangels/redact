@@ -54,7 +54,6 @@
     <string name="convert_done_partial">완료: %1$d개 성공, %2$d개 실패.</string>
     <string name="convert_done_failed">변환 실패.</string>
     <string name="convert_saved_to_gallery">갤러리(Redact 폴더)에 저장되었습니다.</string>
-    <string name="convert_clean_tab_hint">변환은 형식만 변경합니다. 메타데이터를 제거하려면 정리 탭으로 이동하세요.</string>
 
     
     <string name="button_select_media">파일 선택</string>

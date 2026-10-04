@@ -17,6 +17,7 @@ import androidx.annotation.RequiresApi;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.metadata.MetadataStripper;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,139 +43,60 @@ public final class FormatConverter {
     @Nullable
     static Bitmap.CompressFormat testTreatFormatAsHeic;
 
-    private static void copyExifData(Context context, Uri sourceUri, Uri destUri) {
-        try {
-            androidx.exifinterface.media.ExifInterface oldExif = null;
-            if ("file".equals(sourceUri.getScheme())) {
-                String path = sourceUri.getPath();
-                if (path != null) {
-                    oldExif = new androidx.exifinterface.media.ExifInterface(path);
-                }
-            }
-            if (oldExif == null) {
-                try (InputStream in = context.getContentResolver().openInputStream(sourceUri)) {
-                    if (in != null) {
-                        oldExif = new androidx.exifinterface.media.ExifInterface(in);
-                    }
-                }
-            }
-            
-            if (oldExif == null) {
-                return;
-            }
-            if ("file".equals(destUri.getScheme())) {
-                copyExifAttributes(context, oldExif, openExifForWrite(context, destUri));
-            } else {
-                try (android.os.ParcelFileDescriptor pfd =
-                        context.getContentResolver().openFileDescriptor(destUri, "rw")) {
-                    if (pfd != null) {
-                        androidx.exifinterface.media.ExifInterface newExif =
-                                new androidx.exifinterface.media.ExifInterface(pfd.getFileDescriptor());
-                        copyExifAttributes(context, oldExif, newExif);
-                    }
-                }
+    /**
+     * Rotates/flips {@code bitmap} according to the EXIF orientation of {@code sourceUri}.
+     * {@link BitmapFactory} ignores orientation, and the converted file carries no EXIF.
+     */
+    @NonNull
+    private static Bitmap applyExifOrientation(
+            @NonNull Context context, @NonNull Uri sourceUri, @NonNull Bitmap bitmap) {
+        int orientation = androidx.exifinterface.media.ExifInterface.ORIENTATION_NORMAL;
+        try (InputStream in = context.getContentResolver().openInputStream(sourceUri)) {
+            if (in != null) {
+                orientation = new androidx.exifinterface.media.ExifInterface(in).getAttributeInt(
+                        androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION,
+                        androidx.exifinterface.media.ExifInterface.ORIENTATION_NORMAL);
             }
         } catch (Exception e) {
-            // Ignore exif copy errors
+            return bitmap;
         }
-    }
-
-    private static void copyExifAttributes(Context context,
-            @NonNull androidx.exifinterface.media.ExifInterface oldExif,
-            @Nullable androidx.exifinterface.media.ExifInterface newExif) {
-        if (newExif == null) {
-            return;
-        }
-        boolean strictClean = AppPreferences.isStrictClean(context);
-        String[] orientationTag = {
-                androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION,
-        };
-        if (strictClean) {
-            // Orientation isn't personally-identifying, and BitmapFactory never rotates the
-            // decoded pixels itself, so dropping this tag leaves the converted image displayed
-            // sideways or upside down. Copy it even in strict-clean mode.
-            try {
-                copyTags(oldExif, newExif, orientationTag);
-                newExif.saveAttributes();
-            } catch (IOException e) {
-                // Ignore exif write errors
-            }
-            return;
-        }
-        String[] alwaysTags = {
-                androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION,
-                androidx.exifinterface.media.ExifInterface.TAG_IMAGE_WIDTH,
-                androidx.exifinterface.media.ExifInterface.TAG_IMAGE_LENGTH,
-        };
-        String[] cameraTags = {
-                androidx.exifinterface.media.ExifInterface.TAG_DATETIME,
-                androidx.exifinterface.media.ExifInterface.TAG_DATETIME_DIGITIZED,
-                androidx.exifinterface.media.ExifInterface.TAG_DATETIME_ORIGINAL,
-                androidx.exifinterface.media.ExifInterface.TAG_MAKE,
-                androidx.exifinterface.media.ExifInterface.TAG_MODEL,
-                androidx.exifinterface.media.ExifInterface.TAG_FOCAL_LENGTH,
-                androidx.exifinterface.media.ExifInterface.TAG_F_NUMBER,
-                androidx.exifinterface.media.ExifInterface.TAG_EXPOSURE_TIME,
-                androidx.exifinterface.media.ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY,
-                androidx.exifinterface.media.ExifInterface.TAG_FLASH,
-                androidx.exifinterface.media.ExifInterface.TAG_WHITE_BALANCE,
-        };
-
-        try {
-            copyTags(oldExif, newExif, alwaysTags);
-            if (AppPreferences.isPreserveCameraSettings(context)) {
-                copyTags(oldExif, newExif, cameraTags);
-            }
-            if (AppPreferences.isPreserveLocation(context)) {
-                String[] locTags = {
-                    androidx.exifinterface.media.ExifInterface.TAG_GPS_LATITUDE,
-                    androidx.exifinterface.media.ExifInterface.TAG_GPS_LATITUDE_REF,
-                    androidx.exifinterface.media.ExifInterface.TAG_GPS_LONGITUDE,
-                    androidx.exifinterface.media.ExifInterface.TAG_GPS_LONGITUDE_REF,
-                    androidx.exifinterface.media.ExifInterface.TAG_GPS_ALTITUDE,
-                    androidx.exifinterface.media.ExifInterface.TAG_GPS_ALTITUDE_REF,
-                    androidx.exifinterface.media.ExifInterface.TAG_GPS_TIMESTAMP,
-                    androidx.exifinterface.media.ExifInterface.TAG_GPS_DATESTAMP
-                };
-                for (String tag : locTags) {
-                    String value = oldExif.getAttribute(tag);
-                    if (value != null) {
-                        newExif.setAttribute(tag, value);
-                    }
-                }
-            }
-            newExif.saveAttributes();
-        } catch (IOException e) {
-            // Ignore exif write errors
-        }
-    }
-
-    private static void copyTags(
-            @NonNull androidx.exifinterface.media.ExifInterface oldExif,
-            @NonNull androidx.exifinterface.media.ExifInterface newExif,
-            @NonNull String[] tags) throws IOException {
-        for (String tag : tags) {
-            String value = oldExif.getAttribute(tag);
-            if (value != null) {
-                newExif.setAttribute(tag, value);
-            }
-        }
-    }
-
-    @Nullable
-    private static androidx.exifinterface.media.ExifInterface openExifForWrite(
-            @NonNull Context context, @NonNull Uri destUri) {
-        if (!"file".equals(destUri.getScheme())) {
-            return null;
-        }
-        String path = destUri.getPath();
-        if (path == null) {
-            return null;
+        android.graphics.Matrix m = new android.graphics.Matrix();
+        switch (orientation) {
+            case androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_90:
+                m.postRotate(90);
+                break;
+            case androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_180:
+                m.postRotate(180);
+                break;
+            case androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_270:
+                m.postRotate(270);
+                break;
+            case androidx.exifinterface.media.ExifInterface.ORIENTATION_FLIP_HORIZONTAL:
+                m.postScale(-1, 1);
+                break;
+            case androidx.exifinterface.media.ExifInterface.ORIENTATION_FLIP_VERTICAL:
+                m.postScale(1, -1);
+                break;
+            case androidx.exifinterface.media.ExifInterface.ORIENTATION_TRANSPOSE:
+                m.postRotate(90);
+                m.postScale(-1, 1);
+                break;
+            case androidx.exifinterface.media.ExifInterface.ORIENTATION_TRANSVERSE:
+                m.postRotate(270);
+                m.postScale(-1, 1);
+                break;
+            default:
+                return bitmap;
         }
         try {
-            return new androidx.exifinterface.media.ExifInterface(path);
-        } catch (IOException e) {
-            return null;
+            Bitmap out = Bitmap.createBitmap(
+                    bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, true);
+            if (out != bitmap) {
+                bitmap.recycle();
+            }
+            return out;
+        } catch (OutOfMemoryError e) {
+            return bitmap;
         }
     }
 
@@ -446,6 +368,7 @@ public final class FormatConverter {
         }
 
         Bitmap bitmap;
+        boolean needsOrientationFix = false;
         if (bounds.outWidth > 0 && bounds.outHeight > 0) {
             int sampleSize = calculateInSampleSize(context, bounds);
             BitmapFactory.Options opts = new BitmapFactory.Options();
@@ -456,15 +379,21 @@ public final class FormatConverter {
                 }
                 bitmap = BitmapFactory.decodeStream(in, null, opts);
             }
+            needsOrientationFix = bitmap != null;
         } else {
             bitmap = null;
         }
 
         if (bitmap == null) {
+            // ImageDecoder already applies EXIF orientation to the pixels.
             bitmap = decodeBitmapFromUri(context, sourceUri);
         }
         if (bitmap == null) {
             throw new IOException("Decode failed");
+        }
+        if (needsOrientationFix) {
+            // The output carries no EXIF at all, so bake the rotation into the pixels.
+            bitmap = applyExifOrientation(context, sourceUri, bitmap);
         }
 
         String outName = MediaFileNames.generateShortRandomName() + ext;
@@ -504,7 +433,8 @@ public final class FormatConverter {
         } finally {
             bitmap.recycle();
         }
-        copyExifData(context, sourceUri, outUri);
+        // Re-encoding from decoded pixels drops all source metadata (EXIF, XMP, IPTC, ICC
+        // thumbnails); intentionally nothing is copied back.
         MediaStoreWrites.markPublished(resolver, outUri);
         return outUri;
     }
@@ -629,14 +559,21 @@ public final class FormatConverter {
             @Nullable int[] outActualFormatIndex,
             long transcodeOwnerId)
             throws IOException {
+        MetadataStripper stripper = new MetadataStripper(context);
+        File cleanSource = null;
+        File outFile = null;
         try {
-            File outFile = File.createTempFile(
+            // Transmux first so container metadata (location, dates, tags) never reaches the
+            // transcoder, then verify the result the same way the Clean tab does.
+            cleanSource = stripper.transmuxVideoWithoutMetadata(sourceUri);
+            Uri transcodeInput = cleanSource != null ? Uri.fromFile(cleanSource) : sourceUri;
+            outFile = File.createTempFile(
                     "vid_transform_",
                     VideoMedia3Converter.extensionForFormatIndex(formatIndex),
                     context.getApplicationContext().getCacheDir());
             int actualFormat = VideoMedia3Converter.transcodeToPath(
                     context.getApplicationContext(),
-                    sourceUri,
+                    transcodeInput,
                     outFile.getAbsolutePath(),
                     formatIndex,
                     progressListener,
@@ -644,17 +581,19 @@ public final class FormatConverter {
             if (outActualFormatIndex != null && outActualFormatIndex.length > 0) {
                 outActualFormatIndex[0] = actualFormat;
             }
-            try {
-                return VideoMedia3Converter.copyToMoviesRedact(
-                        context, outFile, baseDisplayName, actualFormat);
-            } finally {
-                if (outFile.exists() && !outFile.delete()) {
-                    outFile.deleteOnExit();
-                }
-            }
+            stripper.requireConvertedVideoClean(outFile, sourceUri);
+            return VideoMedia3Converter.copyToMoviesRedact(
+                    context, outFile, baseDisplayName, actualFormat);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IOException("Video conversion interrupted", e);
+        } finally {
+            if (cleanSource != null) {
+                stripper.deleteTempFile(cleanSource);
+            }
+            if (outFile != null && outFile.exists()) {
+                stripper.deleteTempFile(outFile);
+            }
         }
     }
 

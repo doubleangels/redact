@@ -54,7 +54,6 @@
     <string name="convert_done_partial">完了: %1$d個成功、%2$d個失敗。</string>
     <string name="convert_done_failed">変換に失敗しました。</string>
     <string name="convert_saved_to_gallery">ギャラリー(Redactフォルダ)に保存しました</string>
-    <string name="convert_clean_tab_hint">変換はフォーマットのみを変更します。メタデータを削除するには「クリーン」タブを使用してください。</string>
 
     
     <string name="button_select_media">ファイルを選択</string>
