@@ -16,10 +16,10 @@
     </style>
 
     <!-- SplashScreen API theme: shown while MainActivity cold-starts, then swapped for
-         Theme.Redact. Uses the brand color instead of the system's default icon-background
-         derived from the adaptive icon, so the splash and the rest of the app match. -->
+         Theme.Redact. Uses a neutral gray that blends with the launcher icon's backdrop, so the icon
+         doesn't sit on a mismatched color. -->
     <style name="Theme.Redact.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/primary</item>
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
         <item name="postSplashScreenTheme">@style/Theme.Redact</item>
     </style>
