@@ -34,6 +34,8 @@
 
 ## Table of Contents
 
+**Using Redact**
+
 - [What is Redact?](#what-is-redact)
 - [Features](#features)
 - [Getting started](#getting-started)
@@ -41,9 +43,13 @@
 - [Settings](#settings)
 - [Privacy and security](#privacy-and-security)
 - [FAQ](#faq)
+- [Support and feedback](#support-and-feedback)
+
+**Building and contributing**
+
 - [For developers](#for-developers)
 - [Contributing](#contributing)
-- [Reporting issues and security problems](#reporting-issues-and-security-problems)
+- [Security](#security)
 - [Built with](#built-with)
 - [License](#license)
 
@@ -239,6 +245,15 @@ No, Android 12 (API 31) is the minimum.
 
 ---
 
+## Support and feedback
+
+- **Something not working?** Check the [FAQ](#faq) first, then look through the [existing issues](https://github.com/doubleangels/redact/issues) in case it has already been reported.
+- **Found a bug or have an idea?** [Open an issue](https://github.com/doubleangels/redact/issues/new). Include your Android version, device model, app version and the steps to reproduce.
+- **Please do not attach photos or files that contain private information** to a public issue. Describe them instead, or use a sample file.
+- **Want to help translate?** See [Translations](#translations).
+
+---
+
 ## For developers
 
 ### Requirements
@@ -333,10 +348,9 @@ Privacy is the product: changes that add network access, tracking, new permissio
 
 ---
 
-## Reporting issues and security problems
+## Security
 
-- **Bugs and ideas:** open a [GitHub issue](https://github.com/doubleangels/redact/issues). Include your Android version, device model, app version and steps to reproduce. Please **do not attach photos or files that contain private information**.
-- **Security vulnerabilities:** please do not post details publicly. Use GitHub's **Report a vulnerability** option under the repository's **Security** tab if it is available, or open an issue asking for a private contact without including exploit details.
+If you find a security vulnerability, please do not post the details publicly. Use GitHub's **Report a vulnerability** option under the repository's **Security** tab if it is available, or open an issue asking for a private contact without including exploit details.
 
 ---
 
