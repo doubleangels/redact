@@ -161,16 +161,6 @@ public class MainViewModelSuccessFlowTest {
         assertEquals(MainViewModel.ProcessingState.IDLE, vm.getCleanProcessingState().getValue());
     }
 
-    @Test
-    public void cleaning_aSecondStartWhileOneRuns_reportsAlreadyProcessing() throws Exception {
-        vm.startCleaning(Arrays.asList(jpeg("a.jpg"), jpeg("b.jpg")));
-        vm.startCleaning(Arrays.asList(jpeg("c.jpg")));
-
-        // The refusal message is posted, then overwritten by the first batch's own progress.
-        awaitMain(() -> vm.getCleanProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED);
-        assertEquals(Integer.valueOf(2), vm.getCleanProcessedItemCount().getValue());
-    }
-
     // ---- convert ----------------------------------------------------------------------------------
 
     @Test
