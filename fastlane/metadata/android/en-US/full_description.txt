@@ -12,7 +12,7 @@ Redact removes GPS location, device details, timestamps, camera settings, and ot
 Scan any photo or video to see its EXIF and container metadata laid out clearly before you decide what to do with it. Copy values, send the file to Clean or Convert, or open an attached location in your phone's default maps app. Opening a location shares those coordinates with that separate app, so Redact asks for your permission the first time you try it.</li>
 
 <li><b>Clean, Scan, Convert &amp; Share:</b><br>
-Clean metadata in batches of up to 20 files. Convert image and video formats without uploading anything to a server, then run Clean afterward if you also want metadata removed from the converted files. Share into Redact from any app, cancel long jobs whenever you like, and keep going with partial success if one file fails. Redact has no hard file-size cap, and it shows storage and memory warnings before any large job starts.</li>
+Clean metadata in batches of up to 20 files. Convert image and video formats without uploading anything to a server; converted files are stripped of metadata and checked too. Share into Redact from any app, cancel long jobs whenever you like, and keep going with partial success if one file fails. Redact has no hard file-size cap, and it shows storage and memory warnings before any large job starts.</li>
 
 <li><b>Privacy-First Permissions:</b><br>
 Redact uses the system document picker on Android 13 and newer, so you can browse and pick files from Downloads, Files, or your gallery folders without granting broad library access. An optional photo-location permission unlocks GPS fields in Scan. Crash reporting and notifications both stay off until you turn them on yourself.</li>

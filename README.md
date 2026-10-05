@@ -45,7 +45,9 @@ Redact helps you protect your privacy by removing the hidden information that ca
 
 - **A metadata scanner you can actually read.** Redact lets you view a file's metadata, laid out in an organized, easy-to-follow list, before you decide what to do with it. You can copy camera details or the full metadata list to your clipboard, send the file straight to Clean or Convert, or, if the file has a location attached, open that location in your phone's default maps app. Opening a location in your maps app shares those coordinates with that separate app, so the first time you use this feature, Redact explains exactly what is happening and asks for your permission.
 
-- **Local format conversion.** Redact converts images between JPEG, PNG, WebP, and HEIC (on supported devices), and transcodes video between H.264, H.265, VP9, and AV1, all without uploading anything to the cloud. Keep in mind that Convert only changes a file's format, so run it through Clean afterward if you also want its metadata removed.
+- **Local format conversion.** Redact converts images between JPEG, PNG, WebP, and HEIC (on supported devices), and transcodes video between H.264, H.265, VP9, and AV1, all without uploading anything to the cloud. Convert also strips metadata from what it produces and verifies the result, just as Clean does, so a converted file does not carry the original's location or device details.
+
+- **Optional trash for originals.** Turn on **Delete Originals After Cleaning** in Settings and Redact asks Android to move the original files to trash after a successful clean. Android shows its own confirmation each time, so nothing is removed without your say-so.
 
 - **Batch processing.** Clean or convert as many as twenty files in a single batch, and Redact will tell you if some files succeeded while others failed, rather than giving up on the whole batch.
 
@@ -90,8 +92,8 @@ Download Redact from the [Google Play Store](https://play.google.com/store/apps/
 2. Tap **Select Files** and browse Downloads, Documents, your gallery folders, or any other storage provider on your device.
 3. Choose up to twenty images or videos for Clean or Convert, or a single file for Scan.
 4. **Clean** strips the metadata and saves the result to `Pictures/Redact` or `Movies/Redact`.
-5. **Scan** shows you the file's metadata and gives you action buttons to copy fields, open the file in Clean, send it to Convert, or open an attached location in your maps app. Grant the photo-location permission if you want Scan to show GPS coordinates at all.
-6. **Convert** changes the file's format or codec. Run the result through **Clean** afterward if you also want its metadata stripped.
+5. **Scan** shows you the file's metadata and gives you action buttons to copy fields, open the file in Clean, send it to Convert, or open an attached location in your maps app. Rows that reveal where a file was taken, such as GPS coordinates, carry a **Location** badge. Grant the photo-location permission if you want Scan to show GPS coordinates at all.
+6. **Convert** changes the file's format or codec and strips and verifies the metadata of the result, the same way Clean does.
 
 ### Using share integration
 
@@ -122,7 +124,7 @@ Cleaning is designed to keep your photo or video looking the way it did before, 
 
 ### Does Convert remove metadata too?
 
-No, Convert does not touch a file's metadata at all, since it only changes the format or codec. Use the Clean tab, or the share-in flow, whenever you want metadata removed from a file.
+Yes. Images are re-encoded without their EXIF data, and videos have their metadata removed before they are transcoded and are checked afterward, so the converted copy is clean. The original file is never modified.
 
 ### Does Redact need an internet connection?
 
