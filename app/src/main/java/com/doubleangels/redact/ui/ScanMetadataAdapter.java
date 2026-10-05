@@ -1,8 +1,5 @@
 package com.doubleangels.redact.ui;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Context;
 import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -211,10 +208,8 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
 
             View.OnClickListener copyListener = v -> {
                 if (entry.value != null && !entry.value.isEmpty()) {
-                    ClipboardManager cm = (ClipboardManager) v.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-                    if (cm != null) {
-                        String label = entry.key != null && !entry.key.isEmpty() ? entry.key : "Metadata";
-                        cm.setPrimaryClip(ClipData.newPlainText(label, entry.value));
+                    String label = entry.key != null && !entry.key.isEmpty() ? entry.key : "Metadata";
+                    if (SensitiveClipboard.copy(v.getContext(), label, entry.value)) {
                         Toast.makeText(v.getContext(), R.string.scan_copied_to_clipboard, Toast.LENGTH_SHORT).show();
                     }
                 }

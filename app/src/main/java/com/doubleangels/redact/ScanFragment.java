@@ -1,9 +1,6 @@
 package com.doubleangels.redact;
 
 import android.content.ActivityNotFoundException;
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -36,6 +33,7 @@ import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.ui.ScanMetadataAdapter;
 import com.doubleangels.redact.ui.ScanViewModel;
+import com.doubleangels.redact.ui.SensitiveClipboard;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -869,12 +867,9 @@ public class ScanFragment extends Fragment {
     }
 
     private void copyPlainTextToClipboard(@NonNull String text) {
-        ClipboardManager clipboard = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
-        if (clipboard == null) {
-            return;
+        if (SensitiveClipboard.copy(requireContext(), "metadata", text)) {
+            Toast.makeText(requireContext(), R.string.scan_copied_to_clipboard, Toast.LENGTH_SHORT).show();
         }
-        clipboard.setPrimaryClip(ClipData.newPlainText("metadata", text));
-        Toast.makeText(requireContext(), R.string.scan_copied_to_clipboard, Toast.LENGTH_SHORT).show();
     }
 
     /**
