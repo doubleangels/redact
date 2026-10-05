@@ -24,6 +24,15 @@ public class LocalizedCountsTest {
         return context().getResources().getQuantityString(R.plurals.convert_hero_files_count, n, n);
     }
 
+    /** Maps Arabic-Indic digits to ASCII: which digits %d prints for "ar" depends on the JDK's CLDR data. */
+    private static String asciiDigits(String s) {
+        StringBuilder out = new StringBuilder();
+        for (char c : s.toCharArray()) {
+            out.append(c >= '٠' && c <= '٩' ? (char) ('0' + (c - '٠')) : c);
+        }
+        return out.toString();
+    }
+
     private static String fields(int n) {
         return context().getResources().getQuantityString(R.plurals.scan_hero_fields_count, n, n);
     }
@@ -53,12 +62,12 @@ public class LocalizedCountsTest {
     @Test
     @Config(qualifiers = "ar")
     public void arabic_followsItsSixPluralForms() {
-        assertEquals("ملف واحد", files(1));
-        assertEquals("ملفان", files(2));
-        assertEquals("3 ملفات", files(3));
-        assertEquals("11 ملفًا", files(11));
-        assertEquals("100 ملف", files(100));
-        assertEquals("0 ملف", files(0));
+        assertEquals("ملف واحد", asciiDigits(files(1)));
+        assertEquals("ملفان", asciiDigits(files(2)));
+        assertEquals("3 ملفات", asciiDigits(files(3)));
+        assertEquals("11 ملفًا", asciiDigits(files(11)));
+        assertEquals("100 ملف", asciiDigits(files(100)));
+        assertEquals("0 ملف", asciiDigits(files(0)));
     }
 
     @Test
