@@ -287,7 +287,7 @@ Vos photos et vidéos ne sont jamais téléversées. Les URI, noms de fichier et
     <string name="processing_warning_critical_storage_message">Redact peut nécessiter environ %1$s d\'espace temporaire, mais seulement %2$s sont libres. Le traitement pourrait échouer.</string>
     <string name="processing_warning_low_memory">Votre appareil manque de mémoire. Les gros fichiers peuvent échouer ou être lents.</string>
     <string name="processing_warning_large_video">Vidéo(s) volumineuse(s) sélectionnée(s). Le traitement nécessite de l\'espace temporaire supplémentaire et peut prendre du temps.</string>
-    <string name="processing_warning_continue">Continuer quand même</string>
+    <string name="processing_warning_continue">Continuer Quand Même</string>
     <string name="clean_item_failed">Échec : %1$s</string>
     <string name="settings_preserve_location_confirm_title">Conserver le GPS sur les Photos Nettoyées ?</string>
     <string name="settings_preserve_location_confirm_message">Les fichiers nettoyés dans Nettoyer peuvent encore contenir des coordonnées GPS. Le partage depuis d\'autres apps supprime toujours la position.
@@ -320,31 +320,31 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="strip_progress_transcoding_target">Transcodage vers le format cible en cours…</string>
     <string name="strip_progress_transmuxing">Remultiplexage en cours…</string>
     <string name="strip_progress_verifying">Vérification de la suppression des métadonnées en cours…</string>
-    <string name="scan_open_coordinates_in_maps">Ouvrir dans l’appli de cartes</string>
+    <string name="scan_open_coordinates_in_maps">Ouvrir dans l’Appli de Cartes</string>
     <string name="scan_maps_consent_title">Ouvrir la position dans l’appli de cartes ?</string>
     <string name="scan_maps_consent_message">Cela ouvre les coordonnées dans l\'application de cartes par défaut de votre appareil. Contrairement à toutes les autres actions de cet écran, cela transmet votre position GPS exacte à une application distincte, qui peut l\'envoyer hors de cet appareil, par exemple pour charger les tuiles de la carte ou rechercher l\'adresse. Redact n\'envoie jamais ces données nulle part.\n\nVous ne verrez ce message qu\'une seule fois. Votre choix de continuer est mémorisé, il ne sera donc plus demandé.</string>
-    <string name="scan_maps_consent_continue">Ouvrir l’appli de cartes</string>
+    <string name="scan_maps_consent_continue">Ouvrir l’Appli de Cartes</string>
     <string name="scan_maps_not_available">Aucune application de cartes n\'est disponible pour ouvrir cette position.</string>
-    <string name="settings_delete_originals">Supprimer les originaux après le nettoyage</string>
+    <string name="settings_delete_originals">Supprimer les Originaux Après le Nettoyage</string>
     <string name="settings_delete_originals_subtitle">Après un nettoyage réussi, demande à Android de placer les fichiers originaux dans la corbeille. Vous confirmez à chaque fois.</string>
     <string name="scan_risk_location">Position</string>
     <string name="scan_risk_serial">Numéro de série de l’appareil</string>
 
     <string name="clean_clear_selection">Effacer</string>
     <string name="convert_clear_selection">Effacer</string>
-    <string name="clean_empty_state_title">Nettoyer et supprimer les métadonnées</string>
+    <string name="clean_empty_state_title">Nettoyer et Supprimer les Métadonnées</string>
     <string name="clean_empty_state_description">Sélectionnez des photos ou des vidéos pour supprimer les balises EXIF, la position GPS, les détails de l’appareil photo et les identifiants de l’appareil. Vous pouvez aussi les partager directement vers Redact depuis n’importe quelle appli.</string>
     <string name="clean_selected_hint">Prêt à supprimer les données EXIF et de localisation.</string>
-    <string name="convert_empty_state_title">Convertir les formats multimédias</string>
+    <string name="convert_empty_state_title">Convertir les Formats Multimédias</string>
     <string name="convert_empty_state_description">Sélectionnez des photos ou des vidéos pour les convertir aux formats JPEG, PNG, WebP, HEIC ou MP4.</string>
-    <string name="convert_files_card_title">Fichiers à convertir</string>
+    <string name="convert_files_card_title">Fichiers à Convertir</string>
     <string name="convert_heic_fallback_jpeg">La sortie HEIC nécessite Android 14 ou version ultérieure. Les images seront enregistrées en JPEG à la place.</string>
     <string name="convert_item_type_image">Image</string>
     <string name="convert_item_type_video">Vidéo</string>
     <string name="notification_clean_failed">Aucun fichier n’a pu être nettoyé cette fois.</string>
-    <string name="scan_empty_state_title">Inspecter les métadonnées multimédias</string>
+    <string name="scan_empty_state_title">Inspecter les Métadonnées Multimédias</string>
     <string name="scan_empty_state_description">Sélectionnez une photo ou une vidéo pour afficher les détails EXIF, les caractéristiques de l’appareil photo, les coordonnées GPS et les propriétés techniques.</string>
-    <string name="scan_grant_location_button">Accorder l’autorisation</string>
+    <string name="scan_grant_location_button">Accorder l’Autorisation</string>
     <string name="settings_notifications_permission_denied">L’autorisation de notification est nécessaire pour afficher des alertes.</string>
     <string name="settings_notifications_permission_granted">Notifications activées.</string>
 
@@ -363,9 +363,9 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="scan_default_file_name">Fichier multimédia</string>
     <string name="convert_remove_item">Retirer %1$s</string>
 
-    <string name="settings_warn_already_clean">Avertir pour les fichiers déjà propres</string>
+    <string name="settings_warn_already_clean">Avertir pour les Fichiers Déjà Propres</string>
     <string name="settings_warn_already_clean_subtitle">Avant le nettoyage, prévient quand des fichiers sélectionnés n\'ont aucune métadonnée à supprimer ou sont des copies déjà créées par Redact.</string>
-    <string name="already_clean_dialog_title">Les fichiers semblent déjà propres</string>
+    <string name="already_clean_dialog_title">Les Fichiers Semblent Déjà Propres</string>
     <plurals name="already_clean_dialog_message_some">
         <item quantity="one">%1$d fichier sur les %2$d sélectionnés n\'a plus de métadonnées à supprimer ou est une copie déjà créée par Redact. Le nettoyer à nouveau ne ferait que créer une autre copie. L\'ignorer ou nettoyer les %2$d quand même ?</item>
         <item quantity="many">%1$d fichiers sur les %2$d sélectionnés n\'ont plus de métadonnées à supprimer ou sont des copies déjà créées par Redact. Les nettoyer à nouveau ne ferait que créer d\'autres copies. Les ignorer ou nettoyer les %2$d quand même ?</item>
@@ -376,14 +376,14 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
         <item quantity="many">Ces %1$d fichiers n\'ont plus de métadonnées à supprimer ou sont des copies déjà créées par Redact. Les nettoyer à nouveau ne ferait que créer d\'autres copies.</item>
         <item quantity="other">Ces %1$d fichiers n\'ont plus de métadonnées à supprimer ou sont des copies déjà créées par Redact. Les nettoyer à nouveau ne ferait que créer d\'autres copies.</item>
     </plurals>
-    <string name="already_clean_skip">Les ignorer</string>
-    <string name="already_clean_clean_all">Tout nettoyer</string>
-    <string name="already_clean_clean_anyway">Nettoyer quand même</string>
+    <string name="already_clean_skip">Les Ignorer</string>
+    <string name="already_clean_clean_all">Tout Nettoyer</string>
+    <string name="already_clean_clean_anyway">Nettoyer Quand Même</string>
 
-    <string name="settings_secure_window">Masquer le contenu dans les captures et les récents</string>
+    <string name="settings_secure_window">Masquer le Contenu dans les Captures et les Récents</string>
     <string name="settings_secure_window_subtitle">Bloque les captures et enregistrements d\'écran dans Redact et masque son aperçu dans les applications récentes. Effet immédiat.</string>
 
-    <string name="settings_clipboard_clear">Effacer les métadonnées copiées</string>
+    <string name="settings_clipboard_clear">Effacer les Métadonnées Copiées</string>
     <string name="settings_clipboard_clear_subtitle">Efface du presse-papiers les métadonnées copiées depuis Analyser après ce délai, sauf si vous avez copié autre chose entre-temps.</string>
     <string name="settings_clipboard_clear_off">Désactivé</string>
     <string name="settings_clipboard_clear_15s">Après 15 secondes</string>
@@ -391,7 +391,7 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="settings_clipboard_clear_1m">Après 1 minute</string>
     <string name="settings_clipboard_clear_5m">Après 5 minutes</string>
 
-    <string name="settings_section_cleaning_workflow">Avant et après le nettoyage</string>
+    <string name="settings_section_cleaning_workflow">Avant et Après le Nettoyage</string>
     <string name="settings_cleaning_workflow_subtitle">Ce que Redact vérifie avant un nettoyage et ce qu\'il advient de vos originaux ensuite.</string>
     <string name="settings_section_privacy">Confidentialité</string>
     <string name="settings_privacy_subtitle">Garde ce que vous voyez et copiez dans Redact hors des captures d\'écran, des applications récentes et du presse-papiers.</string>

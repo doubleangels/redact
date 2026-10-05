@@ -287,7 +287,7 @@ Tus fotos y videos nunca se suben. Se eliminan URIs, nombres de archivo y coorde
     <string name="processing_warning_critical_storage_message">Redact puede necesitar alrededor de %1$s de espacio temporal, pero solo hay %2$s libres. El procesamiento podría fallar.</string>
     <string name="processing_warning_low_memory">Tu dispositivo tiene poca memoria. Los archivos grandes pueden fallar o ir lentos.</string>
     <string name="processing_warning_large_video">Video(s) grande(s) seleccionado(s). El procesamiento necesita espacio temporal extra y puede tardar.</string>
-    <string name="processing_warning_continue">Continuar de todos modos</string>
+    <string name="processing_warning_continue">Continuar de Todos Modos</string>
     <string name="clean_item_failed">Error: %1$s</string>
     <string name="settings_preserve_location_confirm_title">¿Conservar GPS en Fotos Limpiadas?</string>
     <string name="settings_preserve_location_confirm_message">Los archivos limpiados en Limpiar pueden seguir conteniendo coordenadas GPS. Compartir desde otras apps siempre elimina la ubicación.
@@ -320,31 +320,31 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="strip_progress_transcoding_target">Transcodificando al formato de destino…</string>
     <string name="strip_progress_transmuxing">Remultiplexando video…</string>
     <string name="strip_progress_verifying">Verificando la eliminación de metadatos…</string>
-    <string name="scan_open_coordinates_in_maps">Abrir en app de mapas</string>
+    <string name="scan_open_coordinates_in_maps">Abrir en App de Mapas</string>
     <string name="scan_maps_consent_title">¿Abrir la ubicación en la app de mapas?</string>
     <string name="scan_maps_consent_message">Esto abre las coordenadas en la aplicación de mapas predeterminada de tu dispositivo. A diferencia de cualquier otra acción de esta pantalla, entrega tu ubicación GPS exacta a una aplicación independiente, que podría enviarla fuera de este dispositivo, por ejemplo para cargar teselas del mapa o buscar la dirección. Redact nunca envía estos datos a ningún lugar.\n\nSolo verás este mensaje una vez. Tu decisión de continuar se recuerda, así que no volverá a preguntar.</string>
-    <string name="scan_maps_consent_continue">Abrir app de mapas</string>
+    <string name="scan_maps_consent_continue">Abrir App de Mapas</string>
     <string name="scan_maps_not_available">No hay ninguna aplicación de mapas disponible para abrir esta ubicación.</string>
-    <string name="settings_delete_originals">Eliminar originales tras limpiar</string>
+    <string name="settings_delete_originals">Eliminar Originales tras Limpiar</string>
     <string name="settings_delete_originals_subtitle">Tras una limpieza correcta, pide a Android que envíe los archivos originales a la papelera. Confirmas cada vez.</string>
     <string name="scan_risk_location">Ubicación</string>
     <string name="scan_risk_serial">Número de serie del dispositivo</string>
 
     <string name="clean_clear_selection">Borrar</string>
     <string name="convert_clear_selection">Borrar</string>
-    <string name="clean_empty_state_title">Limpiar y eliminar metadatos</string>
+    <string name="clean_empty_state_title">Limpiar y Eliminar Metadatos</string>
     <string name="clean_empty_state_description">Selecciona fotos o videos para eliminar las etiquetas EXIF, la ubicación GPS, los datos de la cámara y los identificadores del dispositivo. También puedes compartirlos directamente con Redact desde cualquier app.</string>
     <string name="clean_selected_hint">Listo para eliminar los datos EXIF y de ubicación.</string>
-    <string name="convert_empty_state_title">Convertir formatos multimedia</string>
+    <string name="convert_empty_state_title">Convertir Formatos Multimedia</string>
     <string name="convert_empty_state_description">Selecciona fotos o videos para convertirlos a los formatos JPEG, PNG, WebP, HEIC o MP4.</string>
-    <string name="convert_files_card_title">Archivos para convertir</string>
+    <string name="convert_files_card_title">Archivos para Convertir</string>
     <string name="convert_heic_fallback_jpeg">La salida HEIC requiere Android 14 o superior. En su lugar, las imágenes se guardarán como JPEG.</string>
     <string name="convert_item_type_image">Imagen</string>
     <string name="convert_item_type_video">Video</string>
     <string name="notification_clean_failed">Esta vez no se pudo limpiar ningún archivo.</string>
-    <string name="scan_empty_state_title">Inspeccionar metadatos multimedia</string>
+    <string name="scan_empty_state_title">Inspeccionar Metadatos Multimedia</string>
     <string name="scan_empty_state_description">Selecciona una foto o un video para ver los detalles EXIF, las especificaciones de la cámara, las coordenadas GPS y las propiedades técnicas.</string>
-    <string name="scan_grant_location_button">Conceder permiso</string>
+    <string name="scan_grant_location_button">Conceder Permiso</string>
     <string name="settings_notifications_permission_denied">Se necesita el permiso de notificaciones para mostrar alertas.</string>
     <string name="settings_notifications_permission_granted">Notificaciones activadas.</string>
 
@@ -363,9 +363,9 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="scan_default_file_name">Archivo multimedia</string>
     <string name="convert_remove_item">Quitar %1$s</string>
 
-    <string name="settings_warn_already_clean">Avisar de archivos ya limpios</string>
+    <string name="settings_warn_already_clean">Avisar de Archivos Ya Limpios</string>
     <string name="settings_warn_already_clean_subtitle">Antes de limpiar, avisa cuando los archivos seleccionados no tengan metadatos que eliminar o sean copias que Redact ya hizo.</string>
-    <string name="already_clean_dialog_title">Los archivos ya parecen limpios</string>
+    <string name="already_clean_dialog_title">Los Archivos Ya Parecen Limpios</string>
     <plurals name="already_clean_dialog_message_some">
         <item quantity="one">%1$d de los %2$d archivos seleccionados ya no tiene metadatos que eliminar o es una copia que Redact ya hizo. Volver a limpiarlo solo crearía otra copia. ¿Omitirlo o limpiar los %2$d de todos modos?</item>
         <item quantity="many">%1$d de los %2$d archivos seleccionados ya no tienen metadatos que eliminar o son copias que Redact ya hizo. Volver a limpiarlos solo crearía más copias. ¿Omitirlos o limpiar los %2$d de todos modos?</item>
@@ -377,13 +377,13 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
         <item quantity="other">Estos %1$d archivos ya no tienen metadatos que eliminar o son copias que Redact ya hizo. Volver a limpiarlos solo crearía más copias.</item>
     </plurals>
     <string name="already_clean_skip">Omitirlos</string>
-    <string name="already_clean_clean_all">Limpiar todo</string>
-    <string name="already_clean_clean_anyway">Limpiar de todos modos</string>
+    <string name="already_clean_clean_all">Limpiar Todo</string>
+    <string name="already_clean_clean_anyway">Limpiar de Todos Modos</string>
 
-    <string name="settings_secure_window">Ocultar contenido en capturas y recientes</string>
+    <string name="settings_secure_window">Ocultar Contenido en Capturas y Recientes</string>
     <string name="settings_secure_window_subtitle">Bloquea las capturas y grabaciones de pantalla en Redact y deja en blanco su vista previa en aplicaciones recientes. Se aplica al instante.</string>
 
-    <string name="settings_clipboard_clear">Borrar metadatos copiados</string>
+    <string name="settings_clipboard_clear">Borrar Metadatos Copiados</string>
     <string name="settings_clipboard_clear_subtitle">Borra del portapapeles los metadatos copiados desde Escanear tras este tiempo, salvo que hayas copiado otra cosa.</string>
     <string name="settings_clipboard_clear_off">Desactivado</string>
     <string name="settings_clipboard_clear_15s">A los 15 segundos</string>
@@ -391,7 +391,7 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="settings_clipboard_clear_1m">A los 1 minuto</string>
     <string name="settings_clipboard_clear_5m">A los 5 minutos</string>
 
-    <string name="settings_section_cleaning_workflow">Antes y después de limpiar</string>
+    <string name="settings_section_cleaning_workflow">Antes y Después de Limpiar</string>
     <string name="settings_cleaning_workflow_subtitle">Qué comprueba Redact antes de limpiar y qué ocurre con tus originales después.</string>
     <string name="settings_section_privacy">Privacidad</string>
     <string name="settings_privacy_subtitle">Mantiene lo que ves y copias en Redact fuera de las capturas, de aplicaciones recientes y del portapapeles.</string>

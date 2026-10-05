@@ -34,43 +34,43 @@ public class LocalizedWordingTest {
     @Test
     @Config(qualifiers = "fr")
     public void french_refersToTheMapApp() {
-        assertEquals("Ouvrir dans l’appli de cartes", context().getString(R.string.scan_open_coordinates_in_maps));
+        assertEquals("Ouvrir dans l’Appli de Cartes", context().getString(R.string.scan_open_coordinates_in_maps));
         assertEquals("Ouvrir la position dans l’appli de cartes ?", context().getString(R.string.scan_maps_consent_title));
-        assertEquals("Ouvrir l’appli de cartes", context().getString(R.string.scan_maps_consent_continue));
+        assertEquals("Ouvrir l’Appli de Cartes", context().getString(R.string.scan_maps_consent_continue));
     }
 
     @Test
     @Config(qualifiers = "de")
     public void german_refersToTheMapApp() {
-        assertEquals("In Karten-App öffnen", context().getString(R.string.scan_open_coordinates_in_maps));
-        assertEquals("Karten-App öffnen", context().getString(R.string.scan_maps_consent_continue));
+        assertEquals("In Karten-App Öffnen", context().getString(R.string.scan_open_coordinates_in_maps));
+        assertEquals("Karten-App Öffnen", context().getString(R.string.scan_maps_consent_continue));
     }
 
     @Test
     @Config(qualifiers = "pt")
     public void portuguese_isGrammaticalAndRefersToTheMapApp() {
-        assertEquals("Abrir no app de mapas", context().getString(R.string.scan_open_coordinates_in_maps));
+        assertEquals("Abrir no App de Mapas", context().getString(R.string.scan_open_coordinates_in_maps));
         assertFalse(context().getString(R.string.scan_open_coordinates_in_maps).contains("no Mapas"));
     }
 
     @Test
     @Config(qualifiers = "it")
     public void italian_refersToTheMapApp() {
-        assertEquals("Apri nell’app di mappe", context().getString(R.string.scan_open_coordinates_in_maps));
+        assertEquals("Apri nell’App di Mappe", context().getString(R.string.scan_open_coordinates_in_maps));
         assertEquals("Aprire la posizione nell’app di mappe?", context().getString(R.string.scan_maps_consent_title));
     }
 
     @Test
     @Config(qualifiers = "ru")
     public void russian_refersToTheMapApp() {
-        assertEquals("Открыть в приложении карт", context().getString(R.string.scan_open_coordinates_in_maps));
-        assertEquals("Открыть приложение карт", context().getString(R.string.scan_maps_consent_continue));
+        assertEquals("Открыть в Приложении Карт", context().getString(R.string.scan_open_coordinates_in_maps));
+        assertEquals("Открыть Приложение Карт", context().getString(R.string.scan_maps_consent_continue));
     }
 
     @Test
     @Config(qualifiers = "es")
     public void spanish_refersToTheMapApp() {
-        assertEquals("Abrir en app de mapas", context().getString(R.string.scan_open_coordinates_in_maps));
+        assertEquals("Abrir en App de Mapas", context().getString(R.string.scan_open_coordinates_in_maps));
         assertEquals("¿Abrir la ubicación en la app de mapas?", context().getString(R.string.scan_maps_consent_title));
     }
 }

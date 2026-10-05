@@ -136,8 +136,8 @@
     <string name="metadata_orientation_rotate_90">90° drehen</string>
     <string name="metadata_orientation_rotate_180">180° drehen</string>
     <string name="metadata_orientation_rotate_270">270° drehen</string>
-    <string name="metadata_orientation_flip_horizontal">Horizontal spiegeln</string>
-    <string name="metadata_orientation_flip_vertical">Vertikal spiegeln</string>
+    <string name="metadata_orientation_flip_horizontal">Horizontal Spiegeln</string>
+    <string name="metadata_orientation_flip_vertical">Vertikal Spiegeln</string>
     <string name="metadata_orientation_transpose">Transponieren</string>
     <string name="metadata_orientation_transverse">Transversal</string>
     <string name="metadata_orientation_unknown">Unbekannt (%d)</string>
@@ -148,11 +148,11 @@
     <string name="settings_advanced_privacy_subtitle">Wie Redact versteckte Infos — wie Standort und Kameradetails (EXIF) — auf dem Tab Bereinigen entfernt. Aus anderen Apps geteilte Dateien werden vor dem Weiterleiten immer davon befreit.</string>
     <string name="settings_secure_delete">Sichere Löschdurchläufe</string>
     <string name="settings_secure_delete_subtitle">Wie oft temporäre Dateien — einschließlich der originalen, ungeschwärzten Fotos und Videos vor der Bereinigung — vor dem Löschen überschrieben werden, damit ihre Daten nicht von der Festplatte wiederhergestellt werden können. Mehr Durchläufe sind langsamer; auf Flash-Speicher ist Wiederherstellung ggf. trotzdem möglich.</string>
-    <string name="settings_auto_clear_temp">Cache beim Start leeren</string>
+    <string name="settings_auto_clear_temp">Cache beim Start Leeren</string>
     <string name="settings_auto_clear_temp_subtitle">Entfernt Verarbeitungs-Cache-Dateien älter als 24 Stunden beim App-Start.</string>
-    <string name="settings_preserve_camera">Kameraeinstellungen behalten</string>
+    <string name="settings_preserve_camera">Kameraeinstellungen Behalten</string>
     <string name="settings_preserve_camera_subtitle">Blende, Verschlusszeit, ISO und Kameramarke/-modell auf Bereinigen behalten. Ignoriert bei Strikter Bereinigung oder beim Teilen aus anderen Apps.</string>
-    <string name="settings_preserve_location">Standort behalten</string>
+    <string name="settings_preserve_location">Standort Behalten</string>
     <string name="settings_preserve_location_subtitle">GPS-Koordinaten auf Bereinigen behalten. Ignoriert bei Strikter Bereinigung oder beim Teilen aus anderen Apps.</string>
         <string name="settings_sentry_consent_allow">Aktivieren</string>
     <string name="settings_sentry_consent_cancel">Nicht Jetzt</string>
@@ -186,9 +186,9 @@
     <string name="settings_section_notifications_subtitle">Benachrichtigungen bei abgeschlossenen Aufgaben und optional Live-Fortschritt beim Bereinigen oder Konvertieren.</string>
     <string name="settings_notifications_label">Benachrichtigungen Erlauben</string>
     <string name="settings_notifications_subtitle">Hauptschalter für alle Redact-Hinweise. Standard aus; Android kann beim Einschalten um Erlaubnis bitten.</string>
-    <string name="settings_notifications_clean_label">Bereinigung abgeschlossen</string>
+    <string name="settings_notifications_clean_label">Bereinigung Abgeschlossen</string>
     <string name="settings_notifications_clean_subtitle">Hinweis, wenn die Metadatenentfernung auf Bereinigen fertig ist.</string>
-    <string name="settings_notifications_convert_label">Konvertierung abgeschlossen</string>
+    <string name="settings_notifications_convert_label">Konvertierung Abgeschlossen</string>
     <string name="settings_notifications_convert_subtitle">Hinweis, wenn die Formatkonvertierung auf Konvertieren fertig ist.</string>
     <string name="settings_section_diagnostics">Diagnose &amp; Feedback</string>
     <string name="settings_section_diagnostics_subtitle">Optionale Absturzberichte helfen bei Fehlerbehebung. Ihre Medien verlassen nie das Gerät.</string>
@@ -205,11 +205,11 @@
     <string name="settings_quality_subtitle">Gilt für JPEG-, WebP- und HEIC-Ausgabe. PNG-Export bleibt verlustfrei.</string>
     <string name="settings_section_share_subtitle">Wenn eine andere App Fotos oder Videos an Redact sendet.</string>
     <string name="settings_section_share">Teilen in Redact</string>
-    <string name="settings_share_confirm_label">Vor dem Entfernen von Metadaten bestätigen</string>
+    <string name="settings_share_confirm_label">Vor dem Entfernen von Metadaten Bestätigen</string>
     <string name="settings_share_confirm_subtitle">Bestätigung anzeigen, bevor EXIF und andere Metadaten aus geteilten Dateien entfernt werden.</string>
     <string name="settings_share_confirm_dialog_title">Metadaten Entfernen?</string>
     <string name="settings_share_confirm_dialog_message">Redact entfernt EXIF und andere Metadaten aus den geteilten Dateien, bevor Sie sie weitergeben.</string>
-    <string name="settings_share_confirm_dialog_confirm">Entfernen Und Fortfahren</string>
+    <string name="settings_share_confirm_dialog_confirm">Entfernen und Fortfahren</string>
     <string name="settings_share_confirm_dialog_cancel">Abbrechen</string>
     <string name="settings_section_permissions">Berechtigungen</string>
     <string name="settings_permissions_subtitle">Ab Android 13+ nutzt Redact die System-Dateiauswahl — Downloads, Dateien oder Galerieordner ohne breiten Medienzugriff. Vollständiger Foto-/Videozugriff ist optional. Benachrichtigungen sind optional.</string>
@@ -230,7 +230,7 @@
     <string name="settings_section_about">Über</string>
     <string name="settings_about_version">Version %1$s</string>
     <string name="settings_about_subtitle">Alle Bereinigung, Analyse und Konvertierung läuft auf Ihrem Gerät. Fotos und Videos werden nie hochgeladen.</string>
-    <string name="settings_about_github">Quellcode Auf GitHub Ansehen</string>
+    <string name="settings_about_github">Quellcode auf GitHub Ansehen</string>
     <string name="settings_about_privacy">Datenschutzrichtlinie</string>
     <string name="settings_about_report_issue">Problem Melden</string>
     <string name="settings_about_donate">Spenden</string>
@@ -238,7 +238,7 @@
     <string name="settings_progress_notifications_label">Laufender Aufgabenfortschritt</string>
     <string name="settings_progress_notifications_subtitle">Dauerhafte Fortschrittsbenachrichtigung bei langen Aufträgen. Standard aus, bis Sie Benachrichtigungen erlauben aktivieren.</string>
     <string name="settings_crash_reporting_learn_more">Was Wird Geteilt?</string>
-    <string name="settings_crash_reporting_detail_title">Details Zu Absturzberichten</string>
+    <string name="settings_crash_reporting_detail_title">Details zu Absturzberichten</string>
     <string name="settings_crash_reporting_detail_message">Wenn Absturzberichte senden aktiv ist, können anonymisierte Diagnosedaten über Sentry gesendet werden:
 
 • Gerätemodell und Android-Version
@@ -292,8 +292,8 @@ Ihre Fotos und Videos werden nie hochgeladen. URIs, Dateinamen und GPS-Koordinat
     <string name="settings_preserve_location_confirm_message">Bereinigte Dateien auf Bereinigen können weiterhin GPS-Koordinaten enthalten. Teilen aus anderen Apps entfernt den Standort immer.
 
 Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
-    <string name="settings_permission_needs_media">Fotos erforderlich</string>
-    <string name="settings_location_permission_grant">Foto-Standort gewähren</string>
+    <string name="settings_permission_needs_media">Fotos Erforderlich</string>
+    <string name="settings_location_permission_grant">Foto-Standort Gewähren</string>
     <string name="settings_location_needs_media_title">Zuerst Fotos &amp; Videos erlauben?</string>
     <string name="settings_location_needs_media_message">Foto-Standort ermöglicht Redact, in Ihren Medien eingebettete GPS-Koordinaten zu lesen. Zuerst ist Bibliothekszugriff auf Fotos und Videos erforderlich — einzelne Dateien auswählen reicht nicht aus.\n\nTippen Sie auf dem nächsten Bildschirm auf Alle Fotos und Videos erlauben. Ihr Gerät gewährt Foto-Standort in der Regel gleichzeitig.</string>
     <string name="settings_location_grant_media_first">Weiter</string>
@@ -319,31 +319,31 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="strip_progress_transcoding_target">Wird in Zielformat transkodiert…</string>
     <string name="strip_progress_transmuxing">Container wird neu gemuxt…</string>
     <string name="strip_progress_verifying">Überprüfung der Metadatenentfernung…</string>
-    <string name="scan_open_coordinates_in_maps">In Karten-App öffnen</string>
+    <string name="scan_open_coordinates_in_maps">In Karten-App Öffnen</string>
     <string name="scan_maps_consent_title">Standort in der Karten-App öffnen?</string>
     <string name="scan_maps_consent_message">Dadurch werden die Koordinaten in der Standard-Karten-App Ihres Geräts geöffnet. Anders als jede andere Aktion auf diesem Bildschirm übergibt dies Ihren genauen GPS-Standort an eine separate App, die ihn von diesem Gerät senden kann, zum Beispiel um Kartenkacheln zu laden oder die Adresse nachzuschlagen. Redact selbst sendet diese Daten nirgendwohin.\n\nSie sehen diese Meldung nur einmal. Ihre Entscheidung, fortzufahren, wird gespeichert, daher wird nicht erneut gefragt.</string>
-    <string name="scan_maps_consent_continue">Karten-App öffnen</string>
+    <string name="scan_maps_consent_continue">Karten-App Öffnen</string>
     <string name="scan_maps_not_available">Es ist keine Karten-App zum Öffnen dieses Standorts verfügbar.</string>
-    <string name="settings_delete_originals">Originale nach dem Bereinigen löschen</string>
+    <string name="settings_delete_originals">Originale nach dem Bereinigen Löschen</string>
     <string name="settings_delete_originals_subtitle">Nach erfolgreicher Bereinigung bittet Android darum, die Originaldateien in den Papierkorb zu verschieben. Du bestätigst jedes Mal.</string>
     <string name="scan_risk_location">Standort</string>
     <string name="scan_risk_serial">Geräteseriennummer</string>
 
     <string name="clean_clear_selection">Leeren</string>
     <string name="convert_clear_selection">Leeren</string>
-    <string name="clean_empty_state_title">Metadaten bereinigen und entfernen</string>
+    <string name="clean_empty_state_title">Metadaten Bereinigen und Entfernen</string>
     <string name="clean_empty_state_description">Fotos oder Videos auswählen, um EXIF-Tags, GPS-Standort, Kameradetails und Gerätekennungen zu entfernen. Du kannst sie auch direkt aus jeder App mit Redact teilen.</string>
     <string name="clean_selected_hint">Bereit, EXIF- und Standortdaten zu entfernen.</string>
-    <string name="convert_empty_state_title">Medienformate konvertieren</string>
+    <string name="convert_empty_state_title">Medienformate Konvertieren</string>
     <string name="convert_empty_state_description">Fotos oder Videos auswählen, um sie in die Formate JPEG, PNG, WebP, HEIC oder MP4 zu konvertieren.</string>
-    <string name="convert_files_card_title">Zu konvertierende Dateien</string>
+    <string name="convert_files_card_title">Zu Konvertierende Dateien</string>
     <string name="convert_heic_fallback_jpeg">Die HEIC-Ausgabe erfordert Android 14 oder neuer. Bilder werden stattdessen als JPEG gespeichert.</string>
     <string name="convert_item_type_image">Bild</string>
     <string name="convert_item_type_video">Video</string>
     <string name="notification_clean_failed">Diesmal konnten keine Dateien bereinigt werden.</string>
-    <string name="scan_empty_state_title">Medien-Metadaten prüfen</string>
+    <string name="scan_empty_state_title">Medien-Metadaten Prüfen</string>
     <string name="scan_empty_state_description">Foto oder Video auswählen, um EXIF-Details, Kameradaten, GPS-Koordinaten und technische Eigenschaften anzuzeigen.</string>
-    <string name="scan_grant_location_button">Berechtigung erteilen</string>
+    <string name="scan_grant_location_button">Berechtigung Erteilen</string>
     <string name="settings_notifications_permission_denied">Zum Anzeigen von Benachrichtigungen ist die Benachrichtigungsberechtigung erforderlich.</string>
     <string name="settings_notifications_permission_granted">Benachrichtigungen aktiviert.</string>
 
@@ -360,9 +360,9 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="scan_default_file_name">Mediendatei</string>
     <string name="convert_remove_item">%1$s entfernen</string>
 
-    <string name="settings_warn_already_clean">Vor bereits bereinigten Dateien warnen</string>
+    <string name="settings_warn_already_clean">Vor Bereits Bereinigten Dateien Warnen</string>
     <string name="settings_warn_already_clean_subtitle">Vor dem Bereinigen Bescheid geben, wenn ausgewählte Dateien keine Metadaten enthalten oder von Redact bereits erstellte Kopien sind.</string>
-    <string name="already_clean_dialog_title">Dateien wirken schon sauber</string>
+    <string name="already_clean_dialog_title">Dateien Wirken Schon Sauber</string>
     <plurals name="already_clean_dialog_message_some">
         <item quantity="one">%1$d der %2$d ausgewählten Dateien enthält keine Metadaten mehr zum Entfernen oder ist eine Kopie, die Redact bereits erstellt hat. Erneutes Bereinigen würde nur eine weitere Kopie erzeugen. Überspringen oder trotzdem alle %2$d bereinigen?</item>
         <item quantity="other">%1$d der %2$d ausgewählten Dateien enthalten keine Metadaten mehr zum Entfernen oder sind Kopien, die Redact bereits erstellt hat. Erneutes Bereinigen würde nur weitere Kopien erzeugen. Überspringen oder trotzdem alle %2$d bereinigen?</item>
@@ -371,14 +371,14 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
         <item quantity="one">Diese Datei enthält keine Metadaten mehr zum Entfernen oder ist eine Kopie, die Redact bereits erstellt hat. Erneutes Bereinigen würde nur eine weitere Kopie erzeugen.</item>
         <item quantity="other">Diese %1$d Dateien enthalten keine Metadaten mehr zum Entfernen oder sind Kopien, die Redact bereits erstellt hat. Erneutes Bereinigen würde nur weitere Kopien erzeugen.</item>
     </plurals>
-    <string name="already_clean_skip">Diese überspringen</string>
-    <string name="already_clean_clean_all">Alle bereinigen</string>
-    <string name="already_clean_clean_anyway">Trotzdem bereinigen</string>
+    <string name="already_clean_skip">Diese Überspringen</string>
+    <string name="already_clean_clean_all">Alle Bereinigen</string>
+    <string name="already_clean_clean_anyway">Trotzdem Bereinigen</string>
 
-    <string name="settings_secure_window">Inhalte in Screenshots und Übersicht ausblenden</string>
+    <string name="settings_secure_window">Inhalte in Screenshots und Übersicht Ausblenden</string>
     <string name="settings_secure_window_subtitle">Blockiert Screenshots und Bildschirmaufnahmen in Redact und blendet die Vorschau in der App-Übersicht aus. Wirkt sofort.</string>
 
-    <string name="settings_clipboard_clear">Kopierte Metadaten löschen</string>
+    <string name="settings_clipboard_clear">Kopierte Metadaten Löschen</string>
     <string name="settings_clipboard_clear_subtitle">Löscht aus Scan kopierte Metadaten nach dieser Zeit aus der Zwischenablage, sofern du dazwischen nichts anderes kopiert hast.</string>
     <string name="settings_clipboard_clear_off">Aus</string>
     <string name="settings_clipboard_clear_15s">Nach 15 Sekunden</string>

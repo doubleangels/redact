@@ -89,9 +89,9 @@ public class LocalizedCountsTest {
     @Test
     @Config(qualifiers = "de")
     public void emptyStateAndNotificationText_areNoLongerEnglishOnly() {
-        assertEquals("Metadaten bereinigen und entfernen", context().getString(R.string.clean_empty_state_title));
-        assertEquals("Medienformate konvertieren", context().getString(R.string.convert_empty_state_title));
-        assertEquals("Berechtigung erteilen", context().getString(R.string.scan_grant_location_button));
+        assertEquals("Metadaten Bereinigen und Entfernen", context().getString(R.string.clean_empty_state_title));
+        assertEquals("Medienformate Konvertieren", context().getString(R.string.convert_empty_state_title));
+        assertEquals("Berechtigung Erteilen", context().getString(R.string.scan_grant_location_button));
         assertEquals("Diesmal konnten keine Dateien bereinigt werden.", context().getString(R.string.notification_clean_failed));
         assertNotEquals("Image", context().getString(R.string.convert_item_type_image));
     }

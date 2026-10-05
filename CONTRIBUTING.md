@@ -54,6 +54,7 @@ User-facing strings live in `app/src/main/res/values*/strings.xml`. When you add
 - Add it to **every** locale folder: `ar`, `de`, `es`, `fr`, `hi`, `it`, `ja`, `ko`, `pt`, `ru`, `zh-rCN` and `zh-rTW`.
 - Use `<plurals>` for anything that shows a count, since plural rules differ between languages.
 - Never hard-code user-visible text in Java; use string resources.
+- Keep the casing style of the English text: where an English string is in Title Case (labels, buttons, headings), capitalize the translation the same way in German, Spanish, French, Italian, Portuguese and Russian, leaving small words such as articles, prepositions and conjunctions lowercase. Scripts without letter case need nothing.
 
 If you are not confident in a language, a machine translation is acceptable, as long as you say so in the pull request so a native speaker can review it.
 
