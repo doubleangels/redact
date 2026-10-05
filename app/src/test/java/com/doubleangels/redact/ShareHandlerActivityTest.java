@@ -109,8 +109,15 @@ public class ShareHandlerActivityTest {
         return intent;
     }
 
+    /** Source files live outside the app's private data dir, as real inbound files would. */
+    private File sourceDir() {
+        File dir = app.getExternalCacheDir();
+        dir.mkdirs();
+        return dir;
+    }
+
     private Uri createJpeg() throws IOException {
-        File jpeg = File.createTempFile("share_src_", ".jpg", app.getFilesDir());
+        File jpeg = File.createTempFile("share_src_", ".jpg", sourceDir());
         sourceFiles.add(jpeg);
         Bitmap bitmap = Bitmap.createBitmap(16, 16, Bitmap.Config.ARGB_8888);
         bitmap.eraseColor(Color.BLUE);
@@ -334,7 +341,7 @@ public class ShareHandlerActivityTest {
 
     @Test
     public void send_undecodableImage_finishesWithProcessingError() throws Exception {
-        File garbage = File.createTempFile("share_bad_", ".jpg", app.getFilesDir());
+        File garbage = File.createTempFile("share_bad_", ".jpg", sourceDir());
         sourceFiles.add(garbage);
         try (FileOutputStream fos = new FileOutputStream(garbage)) {
             fos.write("definitely not a jpeg".getBytes(java.nio.charset.StandardCharsets.US_ASCII));

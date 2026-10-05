@@ -788,7 +788,32 @@ public class ShareHandlerActivity extends AppCompatActivity {
         if ("content".equalsIgnoreCase(scheme)) {
             return true;
         }
-        return "file".equalsIgnoreCase(scheme);
+        return "file".equalsIgnoreCase(scheme) && !pointsIntoOwnPrivateStorage(uri);
+    }
+
+    /**
+     * Whether a file:// URI resolves inside this app's private data directory. Another app can send
+     * an intent naming one of Redact's own files (for example shared_prefs), which Redact can read but
+     * the sender cannot; copying and re-sharing it would hand that data to whatever app the user picks.
+     */
+    private boolean pointsIntoOwnPrivateStorage(@NonNull Uri uri) {
+        String path = uri.getPath();
+        if (path == null || path.isEmpty()) {
+            return true;
+        }
+        try {
+            String target = new File(path).getCanonicalPath();
+            File[] privateRoots = {getDataDir(), createDeviceProtectedStorageContext().getDataDir()};
+            for (File root : privateRoots) {
+                String prefix = root.getCanonicalPath() + File.separator;
+                if (target.startsWith(prefix)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (IOException e) {
+            return true;
+        }
     }
 
     @NonNull

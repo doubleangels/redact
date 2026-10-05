@@ -144,8 +144,15 @@ public class ShareHandlerActivityFlowsTest {
         return intent;
     }
 
+    /** Source files live outside the app's private data dir, as real inbound files would. */
+    private File sourceDir() {
+        File dir = app.getExternalCacheDir();
+        dir.mkdirs();
+        return dir;
+    }
+
     private File jpeg() throws IOException {
-        File f = File.createTempFile("flow_", ".jpg", app.getFilesDir());
+        File f = File.createTempFile("flow_", ".jpg", sourceDir());
         files.add(f);
         Bitmap bitmap = Bitmap.createBitmap(8, 8, Bitmap.Config.ARGB_8888);
         try (FileOutputStream out = new FileOutputStream(f)) {
@@ -205,6 +212,18 @@ public class ShareHandlerActivityFlowsTest {
         assertNotNull(ShadowDialog.getLatestDialog());
         awaitTrue(() -> inboundSnapshots().length == 1);
         assertFalse(ShareHandlerActivity.isShareProcessingActive());
+    }
+
+    @Test
+    public void inboundFileUri_insideTheAppsPrivateStorage_isRejected() throws IOException {
+        File secret = File.createTempFile("secret_", ".jpg", app.getFilesDir());
+        files.add(secret);
+
+        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(secret)));
+        idle();
+
+        assertTrue(activity.isFinishing());
+        assertEquals(0, inboundSnapshots().length);
     }
 
     @Test
@@ -471,9 +490,9 @@ public class ShareHandlerActivityFlowsTest {
 
     @Test
     public void fileUris_mapTheirExtensionToASnapshotSuffix() throws Exception {
-        File mp4 = File.createTempFile("clip_", ".MOV", app.getFilesDir());
+        File mp4 = File.createTempFile("clip_", ".MOV", sourceDir());
         files.add(mp4);
-        File bin = File.createTempFile("blob_", ".dat", app.getFilesDir());
+        File bin = File.createTempFile("blob_", ".dat", sourceDir());
         files.add(bin);
         ArrayList<Uri> uris = new ArrayList<>();
         uris.add(Uri.fromFile(mp4));
