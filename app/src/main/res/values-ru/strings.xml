@@ -387,4 +387,12 @@
 
     <string name="settings_secure_window">Скрывать содержимое на снимках экрана и в недавних</string>
     <string name="settings_secure_window_subtitle">Запрещает снимки и запись экрана в Redact и скрывает превью приложения в списке недавних. Действует сразу.</string>
+
+    <string name="settings_clipboard_clear">Очищать скопированные метаданные</string>
+    <string name="settings_clipboard_clear_subtitle">Удаляет из буфера обмена метаданные, скопированные из «Сканирования», через это время, если вы не скопировали что-то ещё. Без гарантии: не сработает, если Android раньше завершит Redact.</string>
+    <string name="settings_clipboard_clear_off">Выкл.</string>
+    <string name="settings_clipboard_clear_15s">Через 15 секунд</string>
+    <string name="settings_clipboard_clear_30s">Через 30 секунд</string>
+    <string name="settings_clipboard_clear_1m">Через 1 минуту</string>
+    <string name="settings_clipboard_clear_5m">Через 5 минут</string>
 </resources>

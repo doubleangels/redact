@@ -262,6 +262,18 @@ public class SettingsFragmentTest {
     }
 
     @Test
+    public void clipboardClearDropdown_showsTheThirtySecondDefault_andMapsIndexesToSeconds() {
+        MaterialAutoCompleteTextView clear = settings.findViewById(R.id.dropdownClipboardClear);
+        assertEquals(activity.getString(R.string.settings_clipboard_clear_30s), clear.getText().toString());
+
+        int[] expected = {0, 15, 30, 60, 300};
+        for (int i = 0; i < expected.length; i++) {
+            pickDropdownItem(clear, i);
+            assertEquals(expected[i], AppPreferences.getClipboardClearSeconds(activity));
+        }
+    }
+
+    @Test
     public void secureDeleteAndBitmapSizeDropdowns_mapIndexesToValues() {
         MaterialAutoCompleteTextView secure = settings.findViewById(R.id.dropdownSecureDelete);
         MaterialAutoCompleteTextView bitmap = settings.findViewById(R.id.dropdownMaxBitmapSize);

@@ -376,4 +376,12 @@
 
     <string name="settings_secure_window">スクリーンショットと最近使ったアプリで内容を隠す</string>
     <string name="settings_secure_window_subtitle">Redact 内でのスクリーンショットと画面録画を禁止し、最近使ったアプリ画面のプレビューを空白にします。すぐに有効になります。</string>
+
+    <string name="settings_clipboard_clear">コピーしたメタデータを消去</string>
+    <string name="settings_clipboard_clear_subtitle">スキャンからコピーしたメタデータを、この時間が経つとクリップボードから消去します（その間に別のものをコピーした場合は消去しません）。確実ではありません。Android が先に Redact を終了すると実行されません。</string>
+    <string name="settings_clipboard_clear_off">オフ</string>
+    <string name="settings_clipboard_clear_15s">15 秒後</string>
+    <string name="settings_clipboard_clear_30s">30 秒後</string>
+    <string name="settings_clipboard_clear_1m">1 分後</string>
+    <string name="settings_clipboard_clear_5m">5 分後</string>
 </resources>

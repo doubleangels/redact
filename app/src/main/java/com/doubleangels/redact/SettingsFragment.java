@@ -74,12 +74,14 @@ public class SettingsFragment extends Fragment {
     private MaterialSwitch switchVideoFallback;
     private MaterialAutoCompleteTextView dropdownSecureDelete;
     private MaterialAutoCompleteTextView dropdownMaxBitmapSize;
+    private MaterialAutoCompleteTextView dropdownClipboardClear;
 
     private String[] imageFormatLabels;
     private String[] videoFormatLabels;
     private String[] qualityLabels;
     private String[] secureDeleteLabels;
     private String[] maxBitmapSizeLabels;
+    private String[] clipboardClearLabels;
 
     @Nullable
     private ExecutorService backgroundExecutor;
@@ -101,6 +103,7 @@ public class SettingsFragment extends Fragment {
             videoFormatLabels = getResources().getStringArray(R.array.settings_video_format_labels);
             qualityLabels = getResources().getStringArray(R.array.settings_quality_labels);
             secureDeleteLabels = getResources().getStringArray(R.array.settings_secure_delete_labels);
+            clipboardClearLabels = getResources().getStringArray(R.array.settings_clipboard_clear_labels);
             maxBitmapSizeLabels = getResources().getStringArray(R.array.settings_max_bitmap_size_labels);
 
             bindPermissions(view);
@@ -162,6 +165,7 @@ public class SettingsFragment extends Fragment {
         switchVideoFallback = view.findViewById(R.id.switchVideoFallback);
         dropdownSecureDelete = view.findViewById(R.id.dropdownSecureDelete);
         dropdownMaxBitmapSize = view.findViewById(R.id.dropdownMaxBitmapSize);
+        dropdownClipboardClear = view.findViewById(R.id.dropdownClipboardClear);
     }
 
     private void bindNotifications() {
@@ -266,6 +270,16 @@ public class SettingsFragment extends Fragment {
             AppPreferences.setSecureWindow(requireContext(), isChecked);
             com.doubleangels.redact.ui.SecureWindow.apply(requireActivity());
         });
+
+        int[] clearOptions = AppPreferences.CLIPBOARD_CLEAR_SECONDS_OPTIONS;
+        int clearIndex = 0;
+        for (int i = 0; i < clearOptions.length; i++) {
+            if (clearOptions[i] == AppPreferences.getClipboardClearSeconds(requireContext())) {
+                clearIndex = i;
+            }
+        }
+        setupDropdown(dropdownClipboardClear, clipboardClearLabels, clearIndex,
+                index -> AppPreferences.setClipboardClearSeconds(requireContext(), clearOptions[index]));
         switchPreserveCamera.setChecked(AppPreferences.isPreserveCameraSettings(requireContext()));
         switchPreserveLocation.setChecked(AppPreferences.isPreserveLocation(requireContext()));
         switchAutoClearTemp.setChecked(AppPreferences.isAutoClearTempFiles(requireContext()));

@@ -379,4 +379,12 @@
 
     <string name="settings_secure_window">स्क्रीनशॉट और हाल के ऐप्स में सामग्री छिपाएँ</string>
     <string name="settings_secure_window_subtitle">Redact में स्क्रीनशॉट और स्क्रीन रिकॉर्डिंग रोकता है और हाल के ऐप्स की स्क्रीन में इसका प्रीव्यू खाली कर देता है। तुरंत लागू होता है।</string>
+
+    <string name="settings_clipboard_clear">कॉपी किया गया मेटाडेटा हटाएँ</string>
+    <string name="settings_clipboard_clear_subtitle">इस अवधि के बाद स्कैन से कॉपी किया गया मेटाडेटा क्लिपबोर्ड से हटा देता है, बशर्ते आपने इस बीच कुछ और कॉपी न किया हो। यह भरसक प्रयास है: अगर Android पहले Redact को बंद कर दे तो यह नहीं चलेगा।</string>
+    <string name="settings_clipboard_clear_off">बंद</string>
+    <string name="settings_clipboard_clear_15s">15 सेकंड बाद</string>
+    <string name="settings_clipboard_clear_30s">30 सेकंड बाद</string>
+    <string name="settings_clipboard_clear_1m">1 मिनट बाद</string>
+    <string name="settings_clipboard_clear_5m">5 मिनट बाद</string>
 </resources>

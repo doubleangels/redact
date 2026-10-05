@@ -383,4 +383,12 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
 
     <string name="settings_secure_window">Ocultar contenido en capturas y recientes</string>
     <string name="settings_secure_window_subtitle">Bloquea las capturas y grabaciones de pantalla en Redact y deja en blanco su vista previa en aplicaciones recientes. Se aplica al instante.</string>
+
+    <string name="settings_clipboard_clear">Borrar metadatos copiados</string>
+    <string name="settings_clipboard_clear_subtitle">Borra del portapapeles los metadatos copiados desde Escanear tras este tiempo, salvo que hayas copiado otra cosa. Se hace lo posible: no puede ejecutarse si Android cierra Redact antes.</string>
+    <string name="settings_clipboard_clear_off">Desactivado</string>
+    <string name="settings_clipboard_clear_15s">A los 15 segundos</string>
+    <string name="settings_clipboard_clear_30s">A los 30 segundos</string>
+    <string name="settings_clipboard_clear_1m">A los 1 minuto</string>
+    <string name="settings_clipboard_clear_5m">A los 5 minutos</string>
 </resources>

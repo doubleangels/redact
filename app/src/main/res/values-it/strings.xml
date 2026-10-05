@@ -383,4 +383,12 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
 
     <string name="settings_secure_window">Nascondi i contenuti negli screenshot e nei recenti</string>
     <string name="settings_secure_window_subtitle">Blocca screenshot e registrazioni dello schermo in Redact e oscura l\'anteprima nella schermata delle app recenti. Ha effetto subito.</string>
+
+    <string name="settings_clipboard_clear">Cancella i metadati copiati</string>
+    <string name="settings_clipboard_clear_subtitle">Cancella dagli appunti i metadati copiati da Scansione dopo questo intervallo, a meno che nel frattempo tu non abbia copiato altro. Al meglio delle possibilità: non funziona se Android chiude prima Redact.</string>
+    <string name="settings_clipboard_clear_off">Disattivato</string>
+    <string name="settings_clipboard_clear_15s">Dopo 15 secondi</string>
+    <string name="settings_clipboard_clear_30s">Dopo 30 secondi</string>
+    <string name="settings_clipboard_clear_1m">Dopo 1 minuto</string>
+    <string name="settings_clipboard_clear_5m">Dopo 5 minuti</string>
 </resources>

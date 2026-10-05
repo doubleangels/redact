@@ -29,6 +29,7 @@ public final class AppPreferences {
     private static final String KEY_STRICT_CLEAN = "strict_clean";
     private static final String KEY_WARN_ALREADY_CLEAN = "warn_already_clean";
     private static final String KEY_SECURE_WINDOW = "secure_window";
+    private static final String KEY_CLIPBOARD_CLEAR_SECONDS = "clipboard_clear_seconds";
     private static final String KEY_DELETE_ORIGINALS = "delete_originals_after_clean";
     private static final String KEY_VIDEO_FALLBACK_COPY = "video_fallback_copy";
     private static final String KEY_INITIAL_PERMISSIONS_PROMPTED = "initial_permissions_prompted";
@@ -254,6 +255,25 @@ public final class AppPreferences {
 
     public static void setSecureWindow(@NonNull Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_SECURE_WINDOW, enabled).apply();
+    }
+
+    /** Delay choices, in seconds, for clearing copied metadata from the clipboard; 0 is off. */
+    public static final int[] CLIPBOARD_CLEAR_SECONDS_OPTIONS = {0, 15, 30, 60, 300};
+    public static final int DEFAULT_CLIPBOARD_CLEAR_SECONDS = 30;
+
+    /** Seconds until copied metadata is cleared from the clipboard, 0 when turned off. */
+    public static int getClipboardClearSeconds(@NonNull Context context) {
+        int seconds = prefs(context).getInt(KEY_CLIPBOARD_CLEAR_SECONDS, DEFAULT_CLIPBOARD_CLEAR_SECONDS);
+        for (int option : CLIPBOARD_CLEAR_SECONDS_OPTIONS) {
+            if (option == seconds) {
+                return seconds;
+            }
+        }
+        return DEFAULT_CLIPBOARD_CLEAR_SECONDS;
+    }
+
+    public static void setClipboardClearSeconds(@NonNull Context context, int seconds) {
+        prefs(context).edit().putInt(KEY_CLIPBOARD_CLEAR_SECONDS, seconds).apply();
     }
 
     public static boolean isDeleteOriginalsAfterClean(@NonNull Context context) {

@@ -375,4 +375,12 @@
 
     <string name="settings_secure_window">스크린샷 및 최근 앱에서 내용 숨기기</string>
     <string name="settings_secure_window_subtitle">Redact에서 스크린샷과 화면 녹화를 막고 최근 앱 화면의 미리보기를 비웁니다. 즉시 적용됩니다.</string>
+
+    <string name="settings_clipboard_clear">복사한 메타데이터 지우기</string>
+    <string name="settings_clipboard_clear_subtitle">스캔에서 복사한 메타데이터를 이 시간이 지나면 클립보드에서 지웁니다(그사이 다른 것을 복사했다면 지우지 않음). 최선의 노력으로 동작하며, Android가 먼저 Redact를 종료하면 실행되지 않습니다.</string>
+    <string name="settings_clipboard_clear_off">끔</string>
+    <string name="settings_clipboard_clear_15s">15초 후</string>
+    <string name="settings_clipboard_clear_30s">30초 후</string>
+    <string name="settings_clipboard_clear_1m">1분 후</string>
+    <string name="settings_clipboard_clear_5m">5분 후</string>
 </resources>

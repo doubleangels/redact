@@ -375,4 +375,12 @@
 
     <string name="settings_secure_window">在截图和最近任务中隐藏内容</string>
     <string name="settings_secure_window_subtitle">禁止在 Redact 中截图和录屏，并在最近任务界面中隐藏其预览。立即生效。</string>
+
+    <string name="settings_clipboard_clear">清除已复制的元数据</string>
+    <string name="settings_clipboard_clear_subtitle">在此时间后，从剪贴板中清除你从“扫描”复制的元数据（如果其间你复制了其他内容则不会清除）。尽力而为：若 Android 先结束 Redact，则无法执行。</string>
+    <string name="settings_clipboard_clear_off">关闭</string>
+    <string name="settings_clipboard_clear_15s">15 秒后</string>
+    <string name="settings_clipboard_clear_30s">30 秒后</string>
+    <string name="settings_clipboard_clear_1m">1 分钟后</string>
+    <string name="settings_clipboard_clear_5m">5 分钟后</string>
 </resources>

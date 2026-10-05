@@ -381,6 +381,22 @@
                         android:layout_marginStart="12dp" />
                 </LinearLayout>
 
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layoutClipboardClear"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    app:helperText="@string/settings_clipboard_clear_subtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:hint="@string/settings_clipboard_clear">
+
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                        android:id="@+id/dropdownClipboardClear"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none" />
+                </com.google.android.material.textfield.TextInputLayout>
+
                 <!-- Preserve Camera Settings Toggle -->
                 <LinearLayout
                     android:id="@+id/rowPreserveCamera"

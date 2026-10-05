@@ -387,4 +387,12 @@
 
     <string name="settings_secure_window">Hide Content in Screenshots and Recents</string>
     <string name="settings_secure_window_subtitle">Blocks screenshots and screen recording inside Redact and blanks its preview on the recent apps screen. Takes effect immediately.</string>
+
+    <string name="settings_clipboard_clear">Clear Copied Metadata</string>
+    <string name="settings_clipboard_clear_subtitle">Clears metadata you copied from Scan from the clipboard after this delay, unless you copied something else since. Best effort: it cannot run if Android stops Redact first.</string>
+    <string name="settings_clipboard_clear_off">Off</string>
+    <string name="settings_clipboard_clear_15s">After 15 seconds</string>
+    <string name="settings_clipboard_clear_30s">After 30 seconds</string>
+    <string name="settings_clipboard_clear_1m">After 1 minute</string>
+    <string name="settings_clipboard_clear_5m">After 5 minutes</string>
 </resources>
