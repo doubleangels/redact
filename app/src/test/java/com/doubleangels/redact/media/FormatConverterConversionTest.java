@@ -313,6 +313,29 @@ public class FormatConverterConversionTest {
 
     @Test(timeout = 60_000)
     @Config(sdk = 31)
+    public void convertVideo_cancelledBeforeTheTranscode_stopsWithoutStartingIt() throws Exception {
+        File clip = File.createTempFile("cancel_", ".mp4", context.getFilesDir());
+        files.add(clip);
+        int[] polls = {0};
+
+        try {
+            FormatConverter.convertVideoToMovies(
+                    context, Uri.fromFile(clip), "clip", 0, null, null, -1L,
+                    () -> {
+                        polls[0]++;
+                        return true;
+                    });
+            fail("a cancelled conversion must not produce a file");
+        } catch (IOException e) {
+            assertTrue(e.getMessage(), com.doubleangels.redact.sentry.SentryManager.isUserCancellation(e));
+        }
+
+        assertTrue("the cancel signal must be consulted", polls[0] > 0);
+        assertTrue(FakeMediaStoreProvider.entries().isEmpty());
+    }
+
+    @Test(timeout = 60_000)
+    @Config(sdk = 31)
     public void convertVideo_overloads_delegateToTheFullSignature() {
         Uri missing = Uri.fromFile(new File("/nonexistent/clip.mp4"));
         int[] actual = new int[1];

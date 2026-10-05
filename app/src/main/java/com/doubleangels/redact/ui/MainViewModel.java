@@ -807,7 +807,10 @@ public class MainViewModel extends AndroidViewModel {
 
                                     },
                                     actualFormatIndex,
-                                    runGeneration);
+                                    runGeneration,
+                                    () -> Thread.currentThread().isInterrupted()
+                                            || convertTimedOut.get()
+                                            || runGeneration != convertGeneration.get());
                             if (actualFormatIndex[0] != formatIndex) {
                                 String requested = FormatConverter.videoFormatLabel(
                                         getApplication(), formatIndex);

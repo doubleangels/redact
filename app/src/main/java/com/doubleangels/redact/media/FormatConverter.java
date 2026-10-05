@@ -559,13 +559,37 @@ public final class FormatConverter {
             @Nullable int[] outActualFormatIndex,
             long transcodeOwnerId)
             throws IOException {
+        return convertVideoToMovies(
+                context, sourceUri, baseDisplayName, formatIndex, progressListener, outActualFormatIndex,
+                transcodeOwnerId, null);
+    }
+
+    /**
+     * @param cancelled polled during the metadata-stripping remux and before the transcode starts, so
+     *     cancelling a conversion takes effect immediately rather than after the (long) remux
+     */
+    @NonNull
+    public static Uri convertVideoToMovies(
+            @NonNull Context context,
+            @NonNull Uri sourceUri,
+            @NonNull String baseDisplayName,
+            int formatIndex,
+            @Nullable VideoMedia3Converter.TranscodeProgressListener progressListener,
+            @Nullable int[] outActualFormatIndex,
+            long transcodeOwnerId,
+            @Nullable java.util.function.BooleanSupplier cancelled)
+            throws IOException {
         MetadataStripper stripper = new MetadataStripper(context);
+        stripper.setCancellationCheck(cancelled);
         File cleanSource = null;
         File outFile = null;
         try {
             // Transmux first so container metadata (location, dates, tags) never reaches the
             // transcoder, then verify the result the same way the Clean tab does.
             cleanSource = stripper.transmuxVideoWithoutMetadata(sourceUri);
+            if (cancelled != null && cancelled.getAsBoolean()) {
+                throw new IOException("Video conversion cancelled");
+            }
             Uri transcodeInput = cleanSource != null ? Uri.fromFile(cleanSource) : sourceUri;
             outFile = File.createTempFile(
                     "vid_transform_",
@@ -580,6 +604,12 @@ public final class FormatConverter {
                     transcodeOwnerId);
             if (outActualFormatIndex != null && outActualFormatIndex.length > 0) {
                 outActualFormatIndex[0] = actualFormat;
+            }
+            // The remuxed copy was only the transcoder's input; free that space before the
+            // verify-and-copy step instead of holding it until the end.
+            if (cleanSource != null) {
+                stripper.deleteTempFile(cleanSource);
+                cleanSource = null;
             }
             stripper.requireConvertedVideoClean(outFile, sourceUri);
             return VideoMedia3Converter.copyToMoviesRedact(

@@ -168,6 +168,9 @@ public class MetadataStripper {
 
     private volatile long transcodeOwnerId = -1L;
 
+    @Nullable
+    private volatile java.util.function.BooleanSupplier externalCancellationCheck;
+
     public void resetCancellation() {
         operationCancelled.set(false);
     }
@@ -185,8 +188,18 @@ public class MetadataStripper {
         VideoMedia3Converter.cancelActiveTranscode(transcodeOwnerId);
     }
 
+    /**
+     * Lets a caller that owns the cancellation state (e.g. the Convert loop) stop an operation in
+     * progress without holding a reference to this stripper.
+     */
+    public void setCancellationCheck(@Nullable java.util.function.BooleanSupplier check) {
+        externalCancellationCheck = check;
+    }
+
     private void throwIfCancelled() throws IOException {
-        if (operationCancelled.get() || Thread.currentThread().isInterrupted()) {
+        java.util.function.BooleanSupplier external = externalCancellationCheck;
+        if (operationCancelled.get() || Thread.currentThread().isInterrupted()
+                || (external != null && external.getAsBoolean())) {
             throw new IOException("Processing cancelled");
         }
     }

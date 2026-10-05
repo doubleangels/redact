@@ -213,6 +213,25 @@ public class MetadataStripperVideoTest {
     }
 
     @Test
+    public void transmux_stopsWhenTheExternalCancellationCheckFires() throws Exception {
+        Uri uri = withTracks(videoFile(".mp4"), videoFormat(MediaFormat.MIMETYPE_VIDEO_AVC));
+        int[] polls = {0};
+        stripper.setCancellationCheck(() -> {
+            polls[0]++;
+            return true;
+        });
+
+        assertNull(stripper.transmuxVideoWithoutMetadata(uri));
+        assertTrue("the remux loop must poll the check", polls[0] > 0);
+
+        // Without a firing check the same source transmuxes normally.
+        stripper.setCancellationCheck(() -> false);
+        File out = stripper.transmuxVideoWithoutMetadata(uri);
+        assertNotNull(out);
+        stripper.deleteTempFile(out);
+    }
+
+    @Test
     public void transmux_unreadableSource_returnsNull() {
         assertNull(stripper.transmuxVideoWithoutMetadata(Uri.fromFile(new File("/nonexistent/x.mp4"))));
     }
