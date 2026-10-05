@@ -376,6 +376,51 @@ public class CleanConvertFragmentsTest {
     }
 
     @Test
+    public void convert_aFormatTheUserPicked_survivesChangesToTheSelection() {
+        View v = convert();
+        ChipGroup group = v.findViewById(R.id.formatChipGroup);
+        vm.setConvertSelectedItems(Arrays.asList(image("a.jpg")));
+        idle();
+
+        v.findViewById(R.id.chipFormatWebp).performClick();
+        idle();
+        assertEquals(R.id.chipFormatWebp, group.getCheckedChipId());
+
+        // Adding a video, then removing the image, changes the mix twice; the choice must stay.
+        vm.setConvertSelectedItems(Arrays.asList(image("a.jpg"), video("b.mp4")));
+        idle();
+        assertEquals(R.id.chipFormatWebp, group.getCheckedChipId());
+        vm.setConvertSelectedItems(Arrays.asList(video("b.mp4")));
+        idle();
+        assertEquals(R.id.chipFormatWebp, group.getCheckedChipId());
+    }
+
+    @Test
+    public void convert_withoutAUserChoice_theDefaultFollowsTheSelectionAndAClearedSelectionStartsOver() {
+        View v = convert();
+        ChipGroup group = v.findViewById(R.id.formatChipGroup);
+        AppPreferences.setDefaultImageFormatIndex(activity, 0);
+        AppPreferences.setDefaultVideoFormatIndex(activity, 1);
+
+        vm.setConvertSelectedItems(Arrays.asList(video("b.mp4")));
+        idle();
+        assertEquals(R.id.chipFormatPng, group.getCheckedChipId());   // the video default (index 1)
+
+        vm.setConvertSelectedItems(Arrays.asList(image("a.jpg")));
+        idle();
+        assertEquals(R.id.chipFormatJpeg, group.getCheckedChipId());  // the image default (index 0)
+
+        // After a manual pick and a cleared selection, the next selection starts from defaults again.
+        v.findViewById(R.id.chipFormatWebp).performClick();
+        idle();
+        vm.setConvertSelectedItems(new ArrayList<>());
+        idle();
+        vm.setConvertSelectedItems(Arrays.asList(image("a.jpg")));
+        idle();
+        assertEquals(R.id.chipFormatJpeg, group.getCheckedChipId());
+    }
+
+    @Test
     public void convert_clearButton_emptiesSelection_unlessProcessing() {
         View v = convert();
         vm.setConvertSelectedItems(Arrays.asList(image("a.jpg")));

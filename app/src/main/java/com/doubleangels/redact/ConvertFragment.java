@@ -69,6 +69,8 @@ public class ConvertFragment extends Fragment {
     private Chip chipFormatWebp;
     private Chip chipFormatHeif;
     private int lastFormatNumImages = -1;
+    /** True once the user taps a format chip; the default then stops overriding it as the selection changes. */
+    private boolean userPickedFormat;
     private int lastFormatNumVideos = -1;
     private TextView filesCountBadge;
 
@@ -161,6 +163,12 @@ public class ConvertFragment extends Fragment {
 
         if (formatChipGroup != null) {
             formatChipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> updateFormatBadge());
+            View.OnClickListener markUserPick = chip -> userPickedFormat = true;
+            for (Chip chip : new Chip[] {chipFormatJpeg, chipFormatPng, chipFormatWebp, chipFormatHeif}) {
+                if (chip != null) {
+                    chip.setOnClickListener(markUserPick);
+                }
+            }
         }
 
         RecyclerView recyclerView = view.findViewById(R.id.convertFileList);
@@ -277,6 +285,10 @@ public class ConvertFragment extends Fragment {
         int n = selectedItems.size();
         if (n == 0) {
             formatSection.setVisibility(View.GONE);
+            // An empty selection ends the session: the next one starts from the saved defaults.
+            lastFormatNumImages = -1;
+            lastFormatNumVideos = -1;
+            userPickedFormat = false;
             return;
         }
         int numImages = 0;
@@ -338,7 +350,7 @@ public class ConvertFragment extends Fragment {
         boolean compositionChanged = numImages != lastFormatNumImages || numVideos != lastFormatNumVideos;
         int checkedId = formatChipGroup.getCheckedChipId();
         boolean noChipChecked = checkedId == View.NO_ID;
-        if (compositionChanged || noChipChecked) {
+        if (noChipChecked || (compositionChanged && !userPickedFormat)) {
             int defaultIndex = SettingsFragment.defaultFormatIndexForSelection(
                     requireContext(), numImages, numVideos);
             if (chipFormatHeif == null || chipFormatHeif.getVisibility() != View.VISIBLE) {
