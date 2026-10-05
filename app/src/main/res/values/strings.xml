@@ -134,7 +134,7 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">Select Files</string>
     <string name="convert_run">Convert</string>
-    <string name="convert_status_hint">Select files to convert.</string>
+    <string name="convert_status_hint">Choose an output format below, then tap Convert.</string>
     <string name="convert_status_ready">Ready to select files to convert.</string>
     <string name="clean_status_ready">Ready to select files to clean.</string>
     <string name="convert_selected_count" tools:ignore="PluralsCandidate">Selected: %1$d file(s)</string>

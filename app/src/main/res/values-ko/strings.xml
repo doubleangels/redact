@@ -40,7 +40,7 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">파일 선택</string>
     <string name="convert_run">변환</string>
-    <string name="convert_status_hint">변환할 파일을 선택하세요.</string>
+    <string name="convert_status_hint">아래에서 출력 형식을 선택한 다음 변환을 누르세요.</string>
     <string name="convert_status_ready">변환할 파일을 선택할 준비가 되었습니다.</string>
     <string name="convert_selected_count">선택됨: %1$d개 파일</string>
     <string name="convert_nothing_selected">먼저 이미지를 하나 이상 선택하세요.</string>

@@ -340,6 +340,19 @@ public class CleanConvertFragmentsTest {
     }
 
     @Test
+    public void convert_headerAfterSelectingFiles_tellsYouWhatToDoNext() {
+        View v = convert();
+        vm.setConvertSelectedItems(Arrays.asList(image("a.jpg"), image("b.jpg")));
+        idle();
+
+        // The count is the title; the subtitle must no longer ask you to select files.
+        assertEquals(activity.getString(R.string.convert_selected_count, 2), text(v, R.id.convertSelectedCountText));
+        String hint = text(v, R.id.convertSelectedHint);
+        assertEquals("Choose an output format below, then tap Convert.", hint);
+        assertFalse(hint.toLowerCase(java.util.Locale.ROOT).startsWith("select files"));
+    }
+
+    @Test
     public void convert_videoOnlyAndMixedSelections_relabelTheFormatChips() {
         View v = convert();
 

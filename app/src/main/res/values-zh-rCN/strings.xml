@@ -40,7 +40,7 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">选择文件</string>
     <string name="convert_run">转换</string>
-    <string name="convert_status_hint">选择要转换的文件。</string>
+    <string name="convert_status_hint">在下方选择输出格式，然后点按“转换”。</string>
     <string name="convert_status_ready">准备选择要转换的文件。</string>
     <string name="convert_selected_count">已选择：%1$d 个文件</string>
     <string name="convert_nothing_selected">请先至少选择一张图片。</string>
