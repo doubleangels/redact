@@ -1,12 +1,7 @@
 name: Publish Privacy Policy
 
-# The privacy policy lives here, under legal/, so it's versioned with the app
-# it describes. This workflow publishes it to doubleangels/privacypolicy,
-# which keeps serving it at the same URL
-# (https://doubleangels.github.io/privacypolicy/redact.html) that's hardcoded
-# into every build of the app (strings.xml, all locales) and into the Play
-# Console's Privacy Policy URL field. Never rename or move the published
-# path without updating both of those first.
+# Publishes legal/redact.html to doubleangels/privacypolicy on every change,
+# keeping it live at the URL baked into strings.xml and the Play Console.
 
 on:
   push:
@@ -19,25 +14,30 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: publish-privacy
+  cancel-in-progress: true
+
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout redact (source)
-        uses: actions/checkout@v5
+      - name: Checkout redact
+        uses: actions/checkout@v7.0.1
         with:
           sparse-checkout: |
             legal
           sparse-checkout-cone-mode: true
+          persist-credentials: false
 
-      - name: Checkout privacypolicy (destination)
-        uses: actions/checkout@v5
+      - name: Checkout privacypolicy
+        uses: actions/checkout@v7.0.1
         with:
           repository: doubleangels/privacypolicy
           token: ${{ secrets.PRIVACYPOLICY_DEPLOY_TOKEN }}
           path: privacypolicy
 
-      - name: Sync published files
+      - name: Copy published files
         run: |
           cp legal/redact.html privacypolicy/redact.html
           mkdir -p privacypolicy/assets
