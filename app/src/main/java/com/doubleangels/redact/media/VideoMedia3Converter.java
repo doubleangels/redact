@@ -57,7 +57,6 @@ public final class VideoMedia3Converter {
         void onProgress(int percent);
     }
 
-    private static final int TARGET_FPS = 30;
     private static final long AWAIT_TIMEOUT_MINUTES = 60;
 
     private static final AtomicReference<Transformer> activeTransformer = new AtomicReference<>();
@@ -238,7 +237,6 @@ public final class VideoMedia3Converter {
         EditedMediaItem editedMediaItem =
                 new EditedMediaItem.Builder(mediaItem)
                         .setRemoveAudio(false)
-                        .setFrameRate(TARGET_FPS)
                         .build();
 
         EditedMediaItemSequence sequence =

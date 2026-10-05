@@ -1397,12 +1397,13 @@ public class MetadataStripper {
         if (forSharing) {
             return List.of(ExifInterface.TAG_ORIENTATION);
         }
-        if (AppPreferences.isStrictClean(context)) {
-            return java.util.Collections.emptyList();
-        }
 
         List<String> tags = new java.util.ArrayList<>();
         tags.add(ExifInterface.TAG_ORIENTATION);
+
+        if (AppPreferences.isStrictClean(context)) {
+            return tags;
+        }
 
         if (AppPreferences.isPreserveCameraSettings(context)) {
             tags.addAll(List.of(
