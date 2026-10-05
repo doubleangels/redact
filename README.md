@@ -335,14 +335,7 @@ User-facing strings live in `app/src/main/res/values*/strings.xml`. When you add
 
 ## Contributing
 
-Contributions are welcome, from typo fixes to new features.
-
-1. **Check first.** Look through [existing issues](https://github.com/doubleangels/redact/issues) and open one to discuss larger changes before you start.
-2. **Fork and branch** from `dev`.
-3. **Keep changes focused.** One concern per pull request, matching the surrounding code style.
-4. **Test.** Add or update unit tests, and make sure `./gradlew testDebugUnitTest` and `./gradlew lintRelease` pass.
-5. **Localize.** New user-visible text must be in every locale (see [Translations](#translations)).
-6. **Open a pull request against `dev`** and describe what changed and why. Screenshots help for UI changes.
+Contributions are welcome, from typo fixes and translations to new features. Read **[CONTRIBUTING.md](CONTRIBUTING.md)** for the workflow, the checks to run and the localization rules. In short: fork, branch from `dev`, add tests, run `./gradlew testDebugUnitTest` and `./gradlew lintRelease`, and open a pull request against `dev`.
 
 Privacy is the product: changes that add network access, tracking, new permissions or new data collection need a clear justification and will get extra scrutiny.
 
@@ -350,7 +343,7 @@ Privacy is the product: changes that add network access, tracking, new permissio
 
 ## Security
 
-If you find a security vulnerability, please do not post the details publicly. Use GitHub's **Report a vulnerability** option under the repository's **Security** tab if it is available, or open an issue asking for a private contact without including exploit details.
+Please do not report vulnerabilities in a public issue. See **[SECURITY.md](SECURITY.md)** for how to report one privately.
 
 ---
 
@@ -362,7 +355,7 @@ Java, Android Jetpack and Material 3, [Media3 Transformer](https://developer.and
 
 ## License
 
-Redact is released under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.html).
+Redact is released under the [GNU General Public License v3.0](LICENSE).
 
 ---
 
