@@ -15,7 +15,7 @@ class BaselineProfileGenerator {
     val rule = BaselineProfileRule()
 
     @Test
-    fun generate() = rule.collect(PACKAGE) {
+    fun generate() = rule.collect(PACKAGE, includeInStartupProfile = true) {
         pressHome()
         startActivityAndWait()
         // Fresh installs show the permission flow first; leave it alone and just exercise the UI.
