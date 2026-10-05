@@ -329,4 +329,31 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_delete_originals_subtitle">Nach erfolgreicher Bereinigung bittet Android darum, die Originaldateien in den Papierkorb zu verschieben. Du bestätigst jedes Mal.</string>
     <string name="scan_risk_location">Standort</string>
     <string name="scan_risk_serial">Gerätseriennummer</string>
+
+    <string name="clean_clear_selection">Leeren</string>
+    <string name="convert_clear_selection">Leeren</string>
+    <string name="clean_empty_state_title">Metadaten bereinigen und entfernen</string>
+    <string name="clean_empty_state_description">Fotos oder Videos auswählen, um EXIF-Tags, GPS-Standort, Kameradetails und Gerätekennungen zu entfernen.</string>
+    <string name="clean_selected_hint">Bereit, EXIF- und Standortdaten zu entfernen.</string>
+    <string name="convert_empty_state_title">Medienformate konvertieren</string>
+    <string name="convert_empty_state_description">Fotos oder Videos auswählen, um sie in die Formate JPEG, PNG, WebP, HEIC oder MP4 zu konvertieren.</string>
+    <string name="convert_files_card_title">Zu konvertierende Dateien</string>
+    <string name="convert_heic_fallback_jpeg">Die HEIC-Ausgabe erfordert Android 14 oder neuer. Bilder werden stattdessen als JPEG gespeichert.</string>
+    <string name="convert_item_type_image">Bild</string>
+    <string name="convert_item_type_video">Video</string>
+    <string name="notification_clean_failed">Diesmal konnten keine Dateien bereinigt werden.</string>
+    <string name="scan_empty_state_title">Medien-Metadaten prüfen</string>
+    <string name="scan_empty_state_description">Foto oder Video auswählen, um EXIF-Details, Kameradaten, GPS-Koordinaten und technische Eigenschaften anzuzeigen.</string>
+    <string name="scan_grant_location_button">Berechtigung erteilen</string>
+    <string name="settings_notifications_permission_denied">Zum Anzeigen von Benachrichtigungen ist die Benachrichtigungsberechtigung erforderlich.</string>
+    <string name="settings_notifications_permission_granted">Benachrichtigungen aktiviert.</string>
+
+    <plurals name="convert_hero_files_count">
+        <item quantity="one">%1$d Datei</item>
+        <item quantity="other">%1$d Dateien</item>
+    </plurals>
+    <plurals name="scan_hero_fields_count">
+        <item quantity="one">%1$d Feld</item>
+        <item quantity="other">%1$d Felder</item>
+    </plurals>
 </resources>

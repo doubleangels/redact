@@ -330,4 +330,33 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="settings_delete_originals_subtitle">Après un nettoyage réussi, demande à Android de placer les fichiers originaux dans la corbeille. Vous confirmez à chaque fois.</string>
     <string name="scan_risk_location">Position</string>
     <string name="scan_risk_serial">Numéro de série de l’appareil</string>
+
+    <string name="clean_clear_selection">Effacer</string>
+    <string name="convert_clear_selection">Effacer</string>
+    <string name="clean_empty_state_title">Nettoyer et supprimer les métadonnées</string>
+    <string name="clean_empty_state_description">Sélectionnez des photos ou des vidéos pour supprimer les balises EXIF, la position GPS, les détails de l’appareil photo et les identifiants de l’appareil.</string>
+    <string name="clean_selected_hint">Prêt à supprimer les données EXIF et de localisation.</string>
+    <string name="convert_empty_state_title">Convertir les formats multimédias</string>
+    <string name="convert_empty_state_description">Sélectionnez des photos ou des vidéos pour les convertir aux formats JPEG, PNG, WebP, HEIC ou MP4.</string>
+    <string name="convert_files_card_title">Fichiers à convertir</string>
+    <string name="convert_heic_fallback_jpeg">La sortie HEIC nécessite Android 14 ou version ultérieure. Les images seront enregistrées en JPEG à la place.</string>
+    <string name="convert_item_type_image">Image</string>
+    <string name="convert_item_type_video">Vidéo</string>
+    <string name="notification_clean_failed">Aucun fichier n’a pu être nettoyé cette fois.</string>
+    <string name="scan_empty_state_title">Inspecter les métadonnées multimédias</string>
+    <string name="scan_empty_state_description">Sélectionnez une photo ou une vidéo pour afficher les détails EXIF, les caractéristiques de l’appareil photo, les coordonnées GPS et les propriétés techniques.</string>
+    <string name="scan_grant_location_button">Accorder l’autorisation</string>
+    <string name="settings_notifications_permission_denied">L’autorisation de notification est nécessaire pour afficher des alertes.</string>
+    <string name="settings_notifications_permission_granted">Notifications activées.</string>
+
+    <plurals name="convert_hero_files_count">
+        <item quantity="one">%1$d fichier</item>
+        <item quantity="many">%1$d de fichiers</item>
+        <item quantity="other">%1$d fichiers</item>
+    </plurals>
+    <plurals name="scan_hero_fields_count">
+        <item quantity="one">%1$d champ</item>
+        <item quantity="many">%1$d de champs</item>
+        <item quantity="other">%1$d champs</item>
+    </plurals>
 </resources>

@@ -330,4 +330,39 @@
     <string name="settings_delete_originals_subtitle">بعد نجاح التنظيف، يطلب من Android نقل الملفات الأصلية إلى سلة المحذوفات. ستؤكد ذلك في كل مرة.</string>
     <string name="scan_risk_location">الموقع</string>
     <string name="scan_risk_serial">الرقم التسلسلي للجهاز</string>
+
+    <string name="clean_clear_selection">مسح</string>
+    <string name="convert_clear_selection">مسح</string>
+    <string name="clean_empty_state_title">تنظيف البيانات الوصفية وإزالتها</string>
+    <string name="clean_empty_state_description">حدّد صورًا أو مقاطع فيديو لإزالة وسوم EXIF وموقع GPS وتفاصيل الكاميرا ومعرّفات الجهاز.</string>
+    <string name="clean_selected_hint">جاهز لإزالة بيانات EXIF والموقع.</string>
+    <string name="convert_empty_state_title">تحويل صيغ الوسائط</string>
+    <string name="convert_empty_state_description">حدّد صورًا أو مقاطع فيديو لتحويلها إلى صيغ JPEG وPNG وWebP وHEIC أو MP4.</string>
+    <string name="convert_files_card_title">الملفات المراد تحويلها</string>
+    <string name="convert_heic_fallback_jpeg">يتطلب إخراج HEIC نظام Android 14 أو أحدث. ستُحفظ الصور بصيغة JPEG بدلًا من ذلك.</string>
+    <string name="convert_item_type_image">صورة</string>
+    <string name="convert_item_type_video">فيديو</string>
+    <string name="notification_clean_failed">تعذّر تنظيف أي ملفات هذه المرة.</string>
+    <string name="scan_empty_state_title">فحص البيانات الوصفية للوسائط</string>
+    <string name="scan_empty_state_description">حدّد صورة أو مقطع فيديو لعرض تفاصيل EXIF ومواصفات الكاميرا وإحداثيات GPS والخصائص التقنية.</string>
+    <string name="scan_grant_location_button">منح الإذن</string>
+    <string name="settings_notifications_permission_denied">إذن الإشعارات مطلوب لعرض التنبيهات.</string>
+    <string name="settings_notifications_permission_granted">تم تفعيل الإشعارات.</string>
+
+    <plurals name="convert_hero_files_count">
+        <item quantity="zero">%1$d ملف</item>
+        <item quantity="one">ملف واحد</item>
+        <item quantity="two">ملفان</item>
+        <item quantity="few">%1$d ملفات</item>
+        <item quantity="many">%1$d ملفًا</item>
+        <item quantity="other">%1$d ملف</item>
+    </plurals>
+    <plurals name="scan_hero_fields_count">
+        <item quantity="zero">%1$d حقل</item>
+        <item quantity="one">حقل واحد</item>
+        <item quantity="two">حقلان</item>
+        <item quantity="few">%1$d حقول</item>
+        <item quantity="many">%1$d حقلًا</item>
+        <item quantity="other">%1$d حقل</item>
+    </plurals>
 </resources>

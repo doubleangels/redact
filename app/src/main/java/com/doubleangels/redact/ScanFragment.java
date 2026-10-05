@@ -633,7 +633,8 @@ public class ScanFragment extends Fragment {
             heroFormatBadge.setVisibility(View.GONE);
         }
 
-        heroFieldsCountBadge.setText(getString(R.string.scan_hero_fields_count, allRows.size()));
+        heroFieldsCountBadge.setText(getResources().getQuantityString(
+                R.plurals.scan_hero_fields_count, allRows.size(), allRows.size()));
         heroFieldsCountBadge.setVisibility(allRows.isEmpty() ? View.GONE : View.VISIBLE);
 
         String sizeText = resolveFileSizeFromRows(allRows);

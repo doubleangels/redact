@@ -330,4 +330,31 @@
     <string name="settings_delete_originals_subtitle">सफलतापूर्वक साफ़ करने के बाद Android से मूल फ़ाइलों को ट्रैश में भेजने के लिए कहता है। हर बार आपको पुष्टि करनी होगी।</string>
     <string name="scan_risk_location">स्थान</string>
     <string name="scan_risk_serial">डिवाइस सीरियल नंबर</string>
+
+    <string name="clean_clear_selection">साफ़ करें</string>
+    <string name="convert_clear_selection">साफ़ करें</string>
+    <string name="clean_empty_state_title">मेटाडेटा साफ़ करें और हटाएँ</string>
+    <string name="clean_empty_state_description">EXIF टैग, GPS स्थान, कैमरा विवरण और डिवाइस पहचानकर्ता हटाने के लिए फ़ोटो या वीडियो चुनें।</string>
+    <string name="clean_selected_hint">EXIF और स्थान डेटा हटाने के लिए तैयार।</string>
+    <string name="convert_empty_state_title">मीडिया फ़ॉर्मैट बदलें</string>
+    <string name="convert_empty_state_description">फ़ोटो या वीडियो को JPEG, PNG, WebP, HEIC या MP4 फ़ॉर्मैट में बदलने के लिए चुनें।</string>
+    <string name="convert_files_card_title">बदलने के लिए फ़ाइलें</string>
+    <string name="convert_heic_fallback_jpeg">HEIC आउटपुट के लिए Android 14 या उसके बाद का संस्करण ज़रूरी है। इसके बजाय चित्र JPEG के रूप में सहेजे जाएँगे।</string>
+    <string name="convert_item_type_image">चित्र</string>
+    <string name="convert_item_type_video">वीडियो</string>
+    <string name="notification_clean_failed">इस बार कोई फ़ाइल साफ़ नहीं की जा सकी।</string>
+    <string name="scan_empty_state_title">मीडिया मेटाडेटा जाँचें</string>
+    <string name="scan_empty_state_description">EXIF विवरण, कैमरा विनिर्देश, GPS निर्देशांक और तकनीकी गुण देखने के लिए कोई फ़ोटो या वीडियो चुनें।</string>
+    <string name="scan_grant_location_button">अनुमति दें</string>
+    <string name="settings_notifications_permission_denied">अलर्ट दिखाने के लिए सूचना की अनुमति ज़रूरी है।</string>
+    <string name="settings_notifications_permission_granted">सूचनाएँ चालू हो गईं।</string>
+
+    <plurals name="convert_hero_files_count">
+        <item quantity="one">%1$d फ़ाइल</item>
+        <item quantity="other">%1$d फ़ाइलें</item>
+    </plurals>
+    <plurals name="scan_hero_fields_count">
+        <item quantity="one">%1$d फ़ील्ड</item>
+        <item quantity="other">%1$d फ़ील्ड</item>
+    </plurals>
 </resources>

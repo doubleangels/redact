@@ -330,4 +330,29 @@
     <string name="settings_delete_originals_subtitle">清理成功后，请求 Android 将原文件移至回收站。每次都需要您确认。</string>
     <string name="scan_risk_location">位置信息</string>
     <string name="scan_risk_serial">设备序列号</string>
+
+    <string name="clean_clear_selection">清除</string>
+    <string name="convert_clear_selection">清除</string>
+    <string name="clean_empty_state_title">清理并移除元数据</string>
+    <string name="clean_empty_state_description">选择照片或视频，以移除 EXIF 标签、GPS 位置、相机详情和设备标识符。</string>
+    <string name="clean_selected_hint">已准备好移除 EXIF 和位置数据。</string>
+    <string name="convert_empty_state_title">转换媒体格式</string>
+    <string name="convert_empty_state_description">选择照片或视频，将其转换为 JPEG、PNG、WebP、HEIC 或 MP4 格式。</string>
+    <string name="convert_files_card_title">待转换的文件</string>
+    <string name="convert_heic_fallback_jpeg">HEIC 输出需要 Android 14 或更高版本。图片将改为保存为 JPEG。</string>
+    <string name="convert_item_type_image">图片</string>
+    <string name="convert_item_type_video">视频</string>
+    <string name="notification_clean_failed">这次没有成功清理任何文件。</string>
+    <string name="scan_empty_state_title">检查媒体元数据</string>
+    <string name="scan_empty_state_description">选择照片或视频，以查看 EXIF 详情、相机规格、GPS 坐标和技术属性。</string>
+    <string name="scan_grant_location_button">授予权限</string>
+    <string name="settings_notifications_permission_denied">显示提醒需要通知权限。</string>
+    <string name="settings_notifications_permission_granted">通知已启用。</string>
+
+    <plurals name="convert_hero_files_count">
+        <item quantity="other">%1$d 个文件</item>
+    </plurals>
+    <plurals name="scan_hero_fields_count">
+        <item quantity="other">%1$d 个字段</item>
+    </plurals>
 </resources>

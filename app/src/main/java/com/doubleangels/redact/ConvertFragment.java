@@ -240,9 +240,8 @@ public class ConvertFragment extends Fragment {
             statusText.setText(getString(R.string.convert_selected_count, restored.size()));
             refreshFormatSectionForSelection(restored);
             if (filesCountBadge != null) {
-                filesCountBadge.setText(restored.size() == 1
-                        ? getString(R.string.convert_hero_file_count_single, 1)
-                        : getString(R.string.convert_hero_files_count, restored.size()));
+                filesCountBadge.setText(getResources().getQuantityString(
+                        R.plurals.convert_hero_files_count, restored.size(), restored.size()));
                 filesCountBadge.setVisibility(View.VISIBLE);
             }
         } else {
@@ -415,9 +414,8 @@ public class ConvertFragment extends Fragment {
             }
             if (filesCountBadge != null) {
                 if (hasItems) {
-                    filesCountBadge.setText(list.size() == 1
-                            ? getString(R.string.convert_hero_file_count_single, 1)
-                            : getString(R.string.convert_hero_files_count, list.size()));
+                    filesCountBadge.setText(getResources().getQuantityString(
+                            R.plurals.convert_hero_files_count, list.size(), list.size()));
                     filesCountBadge.setVisibility(View.VISIBLE);
                 } else {
                     filesCountBadge.setVisibility(View.GONE);

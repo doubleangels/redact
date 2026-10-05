@@ -17,7 +17,7 @@
     <string name="notification_clean_title">Cleaning Finished</string>
     <string name="notification_clean_body" tools:ignore="PluralsCandidate">Successfully cleaned %1$d file(s).</string>
     <string name="notification_clean_partial" tools:ignore="PluralsCandidate">%1$d cleaned, %2$d failed.</string>
-    <string name="notification_clean_failed" translatable="false">We couldn\'t clean any files this time.</string>
+    <string name="notification_clean_failed">We couldn\'t clean any files this time.</string>
     <string name="notification_convert_progress_title">Converting Media…</string>
     <string name="notification_clean_progress_title">Cleaning Metadata…</string>
     <string name="notification_progress_percent">%1$d%% complete</string>
@@ -33,8 +33,8 @@
     <string name="settings_section_notifications_subtitle">Alerts when tasks finish and optional live progress while cleaning or converting.</string>
     <string name="settings_notifications_label">Allow Notifications</string>
     <string name="settings_notifications_subtitle">Master switch for all Redact alerts. Off by default; Android may ask for permission when you turn this on.</string>
-    <string name="settings_notifications_permission_granted" translatable="false">Notifications enabled.</string>
-    <string name="settings_notifications_permission_denied" translatable="false">Notification permission is required to show alerts.</string>
+    <string name="settings_notifications_permission_granted">Notifications enabled.</string>
+    <string name="settings_notifications_permission_denied">Notification permission is required to show alerts.</string>
     <string name="settings_notifications_clean_label">Cleaning Finished</string>
     <string name="settings_notifications_clean_subtitle">Alert when metadata removal on the Clean tab completes.</string>
     <string name="settings_notifications_convert_label">Conversion Finished</string>
@@ -118,7 +118,7 @@
     <string name="url_donate" translatable="false">https://donate.stripe.com/4gw8yhbvH0mg6SQ7ss</string>
 
     
-    <string name="convert_heic_fallback_jpeg" translatable="false">HEIC output requires Android 14+. Images will be saved as JPEG instead.</string>
+    <string name="convert_heic_fallback_jpeg">HEIC output requires Android 14+. Images will be saved as JPEG instead.</string>
     <string name="convert_codec_fallback">%1$s unavailable; saved as %2$s instead.</string>
     <string name="convert_output_format_images">Image Format</string>
     <string name="convert_output_format_videos">Video Codec</string>
@@ -236,24 +236,21 @@
     <string name="scan_maps_not_available">No maps app is available to open this location.</string>
     <string name="scan_risk_location">Location</string>
     <string name="scan_risk_serial">Device serial</string>
-    <string name="scan_hero_fields_count" translatable="false">%1$d fields</string>
-    <string name="scan_empty_state_title" translatable="false">Inspect Media Metadata</string>
-    <string name="scan_empty_state_description" translatable="false">Select a photo or video to view EXIF details, camera specs, GPS coordinates, and technical properties.</string>
-    <string name="scan_grant_location_button" translatable="false">Grant Permission</string>
+    <string name="scan_empty_state_title">Inspect Media Metadata</string>
+    <string name="scan_empty_state_description">Select a photo or video to view EXIF details, camera specs, GPS coordinates, and technical properties.</string>
+    <string name="scan_grant_location_button">Grant Permission</string>
 
-    <string name="clean_empty_state_title" translatable="false">Clean &amp; Strip Metadata</string>
-    <string name="clean_empty_state_description" translatable="false">Select photos or videos to remove EXIF tags, GPS location, camera details, and device identifiers.</string>
-    <string name="clean_selected_hint" translatable="false">Ready to strip EXIF and location data.</string>
-    <string name="clean_clear_selection" translatable="false">Clear</string>
+    <string name="clean_empty_state_title">Clean &amp; Strip Metadata</string>
+    <string name="clean_empty_state_description">Select photos or videos to remove EXIF tags, GPS location, camera details, and device identifiers.</string>
+    <string name="clean_selected_hint">Ready to strip EXIF and location data.</string>
+    <string name="clean_clear_selection">Clear</string>
 
-    <string name="convert_empty_state_title" translatable="false">Convert Media Formats</string>
-    <string name="convert_empty_state_description" translatable="false">Select photos or videos to convert them into JPEG, PNG, WebP, HEIC, or MP4 formats.</string>
-    <string name="convert_clear_selection" translatable="false">Clear</string>
-    <string name="convert_files_card_title" translatable="false">Files to Convert</string>
-    <string name="convert_item_type_image" translatable="false">Image</string>
-    <string name="convert_item_type_video" translatable="false">Video</string>
-    <string name="convert_hero_files_count" translatable="false">%1$d files</string>
-    <string name="convert_hero_file_count_single" translatable="false">%1$d file</string>
+    <string name="convert_empty_state_title">Convert Media Formats</string>
+    <string name="convert_empty_state_description">Select photos or videos to convert them into JPEG, PNG, WebP, HEIC, or MP4 formats.</string>
+    <string name="convert_clear_selection">Clear</string>
+    <string name="convert_files_card_title">Files to Convert</string>
+    <string name="convert_item_type_image">Image</string>
+    <string name="convert_item_type_video">Video</string>
 
     
     
@@ -360,4 +357,12 @@
         <item>8192px (High Perf)</item>
     </string-array>
 
+    <plurals name="convert_hero_files_count">
+        <item quantity="one">%1$d file</item>
+        <item quantity="other">%1$d files</item>
+    </plurals>
+    <plurals name="scan_hero_fields_count">
+        <item quantity="one">%1$d field</item>
+        <item quantity="other">%1$d fields</item>
+    </plurals>
 </resources>

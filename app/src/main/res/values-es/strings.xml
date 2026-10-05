@@ -330,4 +330,33 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="settings_delete_originals_subtitle">Tras una limpieza correcta, pide a Android que envíe los archivos originales a la papelera. Confirmas cada vez.</string>
     <string name="scan_risk_location">Ubicación</string>
     <string name="scan_risk_serial">Número de serie del dispositivo</string>
+
+    <string name="clean_clear_selection">Borrar</string>
+    <string name="convert_clear_selection">Borrar</string>
+    <string name="clean_empty_state_title">Limpiar y eliminar metadatos</string>
+    <string name="clean_empty_state_description">Selecciona fotos o videos para eliminar las etiquetas EXIF, la ubicación GPS, los datos de la cámara y los identificadores del dispositivo.</string>
+    <string name="clean_selected_hint">Listo para eliminar los datos EXIF y de ubicación.</string>
+    <string name="convert_empty_state_title">Convertir formatos multimedia</string>
+    <string name="convert_empty_state_description">Selecciona fotos o videos para convertirlos a los formatos JPEG, PNG, WebP, HEIC o MP4.</string>
+    <string name="convert_files_card_title">Archivos para convertir</string>
+    <string name="convert_heic_fallback_jpeg">La salida HEIC requiere Android 14 o superior. En su lugar, las imágenes se guardarán como JPEG.</string>
+    <string name="convert_item_type_image">Imagen</string>
+    <string name="convert_item_type_video">Video</string>
+    <string name="notification_clean_failed">Esta vez no se pudo limpiar ningún archivo.</string>
+    <string name="scan_empty_state_title">Inspeccionar metadatos multimedia</string>
+    <string name="scan_empty_state_description">Selecciona una foto o un video para ver los detalles EXIF, las especificaciones de la cámara, las coordenadas GPS y las propiedades técnicas.</string>
+    <string name="scan_grant_location_button">Conceder permiso</string>
+    <string name="settings_notifications_permission_denied">Se necesita el permiso de notificaciones para mostrar alertas.</string>
+    <string name="settings_notifications_permission_granted">Notificaciones activadas.</string>
+
+    <plurals name="convert_hero_files_count">
+        <item quantity="one">%1$d archivo</item>
+        <item quantity="many">%1$d de archivos</item>
+        <item quantity="other">%1$d archivos</item>
+    </plurals>
+    <plurals name="scan_hero_fields_count">
+        <item quantity="one">%1$d campo</item>
+        <item quantity="many">%1$d de campos</item>
+        <item quantity="other">%1$d campos</item>
+    </plurals>
 </resources>

@@ -330,4 +330,35 @@
     <string name="settings_delete_originals_subtitle">После успешной очистки Android предложит переместить исходные файлы в корзину. Каждый раз нужно подтверждение.</string>
     <string name="scan_risk_location">Геолокация</string>
     <string name="scan_risk_serial">Серийный номер устройства</string>
+
+    <string name="clean_clear_selection">Сбросить</string>
+    <string name="convert_clear_selection">Сбросить</string>
+    <string name="clean_empty_state_title">Очистка и удаление метаданных</string>
+    <string name="clean_empty_state_description">Выберите фото или видео, чтобы удалить теги EXIF, геопозицию GPS, сведения о камере и идентификаторы устройства.</string>
+    <string name="clean_selected_hint">Готово к удалению данных EXIF и местоположения.</string>
+    <string name="convert_empty_state_title">Конвертация форматов мультимедиа</string>
+    <string name="convert_empty_state_description">Выберите фото или видео, чтобы конвертировать их в форматы JPEG, PNG, WebP, HEIC или MP4.</string>
+    <string name="convert_files_card_title">Файлы для конвертации</string>
+    <string name="convert_heic_fallback_jpeg">Для вывода в HEIC нужен Android 14 или новее. Вместо этого изображения будут сохранены в JPEG.</string>
+    <string name="convert_item_type_image">Изображение</string>
+    <string name="convert_item_type_video">Видео</string>
+    <string name="notification_clean_failed">На этот раз не удалось очистить ни одного файла.</string>
+    <string name="scan_empty_state_title">Просмотр метаданных мультимедиа</string>
+    <string name="scan_empty_state_description">Выберите фото или видео, чтобы увидеть сведения EXIF, характеристики камеры, координаты GPS и технические свойства.</string>
+    <string name="scan_grant_location_button">Предоставить разрешение</string>
+    <string name="settings_notifications_permission_denied">Для показа уведомлений требуется разрешение на уведомления.</string>
+    <string name="settings_notifications_permission_granted">Уведомления включены.</string>
+
+    <plurals name="convert_hero_files_count">
+        <item quantity="one">%1$d файл</item>
+        <item quantity="few">%1$d файла</item>
+        <item quantity="many">%1$d файлов</item>
+        <item quantity="other">%1$d файла</item>
+    </plurals>
+    <plurals name="scan_hero_fields_count">
+        <item quantity="one">%1$d поле</item>
+        <item quantity="few">%1$d поля</item>
+        <item quantity="many">%1$d полей</item>
+        <item quantity="other">%1$d поля</item>
+    </plurals>
 </resources>

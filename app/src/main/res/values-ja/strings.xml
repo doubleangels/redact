@@ -331,4 +331,29 @@
     <string name="settings_delete_originals_subtitle">クリーン成功後、元のファイルをゴミ箱に移動するようAndroidに依頼します。毎回確認が表示されます。</string>
     <string name="scan_risk_location">位置情報</string>
     <string name="scan_risk_serial">デバイスのシリアル番号</string>
+
+    <string name="clean_clear_selection">クリア</string>
+    <string name="convert_clear_selection">クリア</string>
+    <string name="clean_empty_state_title">メタデータのクリーンと削除</string>
+    <string name="clean_empty_state_description">写真や動画を選択して、EXIFタグ、GPS位置情報、カメラの詳細、デバイス識別子を削除します。</string>
+    <string name="clean_selected_hint">EXIFと位置情報を削除する準備ができました。</string>
+    <string name="convert_empty_state_title">メディア形式の変換</string>
+    <string name="convert_empty_state_description">写真や動画を選択して、JPEG、PNG、WebP、HEIC、MP4形式に変換します。</string>
+    <string name="convert_files_card_title">変換するファイル</string>
+    <string name="convert_heic_fallback_jpeg">HEIC出力にはAndroid 14以降が必要です。代わりに画像はJPEGで保存されます。</string>
+    <string name="convert_item_type_image">画像</string>
+    <string name="convert_item_type_video">動画</string>
+    <string name="notification_clean_failed">今回はクリーンできるファイルがありませんでした。</string>
+    <string name="scan_empty_state_title">メディアのメタデータを確認</string>
+    <string name="scan_empty_state_description">写真または動画を選択して、EXIFの詳細、カメラ仕様、GPS座標、技術的なプロパティを表示します。</string>
+    <string name="scan_grant_location_button">権限を許可</string>
+    <string name="settings_notifications_permission_denied">通知を表示するには通知の権限が必要です。</string>
+    <string name="settings_notifications_permission_granted">通知を有効にしました。</string>
+
+    <plurals name="convert_hero_files_count">
+        <item quantity="other">%1$d 個のファイル</item>
+    </plurals>
+    <plurals name="scan_hero_fields_count">
+        <item quantity="other">%1$d 項目</item>
+    </plurals>
 </resources>

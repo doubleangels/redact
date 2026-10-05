@@ -330,4 +330,29 @@
     <string name="settings_delete_originals_subtitle">정리가 성공하면 Android에 원본 파일을 휴지통으로 옮기도록 요청합니다. 매번 확인합니다.</string>
     <string name="scan_risk_location">위치</string>
     <string name="scan_risk_serial">기기 일련번호</string>
+
+    <string name="clean_clear_selection">지우기</string>
+    <string name="convert_clear_selection">지우기</string>
+    <string name="clean_empty_state_title">메타데이터 정리 및 제거</string>
+    <string name="clean_empty_state_description">사진이나 동영상을 선택해 EXIF 태그, GPS 위치, 카메라 정보, 기기 식별자를 제거하세요.</string>
+    <string name="clean_selected_hint">EXIF 및 위치 데이터를 제거할 준비가 되었습니다.</string>
+    <string name="convert_empty_state_title">미디어 형식 변환</string>
+    <string name="convert_empty_state_description">사진이나 동영상을 선택해 JPEG, PNG, WebP, HEIC 또는 MP4 형식으로 변환하세요.</string>
+    <string name="convert_files_card_title">변환할 파일</string>
+    <string name="convert_heic_fallback_jpeg">HEIC 출력은 Android 14 이상이 필요합니다. 대신 이미지가 JPEG로 저장됩니다.</string>
+    <string name="convert_item_type_image">이미지</string>
+    <string name="convert_item_type_video">동영상</string>
+    <string name="notification_clean_failed">이번에는 정리할 수 있는 파일이 없습니다.</string>
+    <string name="scan_empty_state_title">미디어 메타데이터 검사</string>
+    <string name="scan_empty_state_description">사진이나 동영상을 선택해 EXIF 세부 정보, 카메라 사양, GPS 좌표, 기술 속성을 확인하세요.</string>
+    <string name="scan_grant_location_button">권한 허용</string>
+    <string name="settings_notifications_permission_denied">알림을 표시하려면 알림 권한이 필요합니다.</string>
+    <string name="settings_notifications_permission_granted">알림이 켜졌습니다.</string>
+
+    <plurals name="convert_hero_files_count">
+        <item quantity="other">파일 %1$d개</item>
+    </plurals>
+    <plurals name="scan_hero_fields_count">
+        <item quantity="other">%1$d개 필드</item>
+    </plurals>
 </resources>
