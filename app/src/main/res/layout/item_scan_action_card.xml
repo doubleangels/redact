@@ -5,7 +5,7 @@
     android:id="@+id/actionCardButton"
     style="@style/Widget.Material3.Button.TonalButton"
     android:layout_width="wrap_content"
-    android:layout_height="40dp"
+    android:layout_height="48dp"
     android:layout_marginEnd="8dp"
     android:insetLeft="0dp"
     android:insetTop="0dp"
@@ -19,5 +19,4 @@
     app:iconPadding="8dp"
     app:iconSize="18dp"
     tools:icon="@drawable/ic_content_copy_24"
-    tools:text="Copy All Metadata"
-    tools:ignore="VisualLintButtonSize" />
+    tools:text="Copy All Metadata" />
