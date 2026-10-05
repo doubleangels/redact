@@ -4,7 +4,6 @@ import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -19,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.IntentCompat;
 
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.MediaSelector;
@@ -737,24 +737,15 @@ public class ShareHandlerActivity extends AppCompatActivity {
             return uris;
         }
         if (Intent.ACTION_SEND_MULTIPLE.equals(intent.getAction())) {
-            ArrayList<Uri> extraUris;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                extraUris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri.class);
-            } else {
-                extraUris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
-            }
+            ArrayList<Uri> extraUris =
+                    IntentCompat.getParcelableArrayListExtra(intent, Intent.EXTRA_STREAM, Uri.class);
             if (extraUris != null) {
                 for (Uri uri : extraUris) {
                     addInboundUri(uris, uri);
                 }
             }
         } else {
-            Uri streamUri;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                streamUri = intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri.class);
-            } else {
-                streamUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-            }
+            Uri streamUri = IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri.class);
             addInboundUri(uris, streamUri);
             if (uris.isEmpty()) {
                 addInboundUri(uris, intent.getData());

@@ -179,7 +179,6 @@
         <item>4096px(표준)</item>
         <item>8192px(고성능)</item>
     </string-array>
-    <string name="scan_metadata_subtitle">이 파일에서 감지된 필드입니다. 값을 복사하려면 길게 누르세요.</string>
 
     
     <string name="navigation_settings">설정</string>

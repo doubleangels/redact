@@ -180,7 +180,6 @@
         <item>4096px（標準）</item>
         <item>8192px（高性能）</item>
     </string-array>
-    <string name="scan_metadata_subtitle">このファイルから検出されたフィールドです。長押しで値をコピーできます。</string>
 
     
     <string name="navigation_settings">設定</string>

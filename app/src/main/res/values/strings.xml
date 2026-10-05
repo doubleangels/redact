@@ -45,9 +45,6 @@
     <string name="settings_crash_reporting_label">Send Crash Reports</string>
     <string name="settings_crash_reporting_subtitle">Shares only anonymized technical details (app version, device model, what the app was doing when it crashed) — never your photos or videos. Sent over the internet to our crash-reporting service, Sentry, when enabled.</string>
 
-    <string name="settings_section_developer" translatable="false">Developer</string>
-    <string name="settings_wormaceptor_button" translatable="false">Open WormaCeptor</string>
-    <string name="settings_wormaceptor_subtitle" translatable="false">On-device debug tools (debug builds only).</string>
 
     <string name="settings_section_conversion">Convert Tab Defaults</string>
     <string name="settings_conversion_subtitle">Pre-selected formats when you pick files on Convert. You can still change them for each batch.</string>
@@ -187,7 +184,7 @@
     <string name="status_extracting_media">Extracting video metadata…</string>
     <string name="status_extracting_image">Extracting image metadata…</string>
     <string name="status_media_picker_fail">We couldn\'t open the media picker.</string>
-    <string name="media_picker_selection_capped">Only %1$d files can be selected at a time.</string>
+    <string name="media_picker_selection_capped" tools:ignore="PluralsCandidate">Only %1$d files can be selected at a time.</string>
     <string name="status_storage_permissions_required">Storage permission is needed to access your files.</string>
 
     
@@ -214,14 +211,13 @@
     <string name="share_error_generic">Something went wrong. Please try again.</string>
     <string name="share_error_failed_receive_media">Couldn\'t receive the shared media.</string>
     <string name="share_error_processing_failed">Couldn\'t remove metadata from the shared file(s).</string>
-    <string name="share_error_partial_success">%1$d file(s) cleaned; %2$d failed.</string>
+    <string name="share_error_partial_success" tools:ignore="PluralsCandidate">%1$d file(s) cleaned; %2$d failed.</string>
     <string name="share_error_failed_get_cleaned_file">Couldn\'t prepare the cleaned file for sharing.</string>
     <string name="share_error_failed_get_cleaned_files">Couldn\'t prepare the cleaned files for sharing.</string>
     <string name="share_error_interrupted">Sharing was interrupted. Please try again.</string>
 
     
     <string name="scan_metadata">Metadata</string>
-    <string name="scan_metadata_subtitle">Detected fields from this file. Tap and hold values to copy.</string>
     <string name="scan_location_permission_missing">GPS coordinates might be available if you grant the location permission.</string>
     <string name="scan_extraction_fail">We couldn\'t retrieve the metadata.</string>
     <string name="scan_open_coordinates_in_maps">Open in Maps</string>

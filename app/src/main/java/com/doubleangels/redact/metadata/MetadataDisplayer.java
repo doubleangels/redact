@@ -1361,9 +1361,6 @@ public class MetadataDisplayer {
 
     @Nullable
     private static ExifInterface openExifFromOriginalUri(ContentResolver resolver, Uri accessUri) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            return null;
-        }
         try {
             Uri originalUri = MediaStore.setRequireOriginal(accessUri);
             try (ParcelFileDescriptor pfd = resolver.openFileDescriptor(originalUri, "r")) {
@@ -1414,8 +1411,7 @@ public class MetadataDisplayer {
     }
 
     private static boolean hasMediaLocationPermission(Context context) {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-                && ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_MEDIA_LOCATION)
+        return ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_MEDIA_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
     }
 

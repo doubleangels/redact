@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
+import android.annotation.SuppressLint;
 import android.os.Build;
 import android.os.IBinder;
 
@@ -87,6 +88,9 @@ public class ProcessingForegroundService extends Service {
     }
 
     @Override
+    // FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING is an API 35 constant that is compiled in as an int; it is
+    // only passed on API 34+, where the manifest declares the same type.
+    @SuppressLint("InlinedApi")
     public int onStartCommand(Intent intent, int flags, int startId) {
         // Android requires startForeground() to be called within 5 seconds of
         // startForegroundService(), regardless of what we decide to do afterward.

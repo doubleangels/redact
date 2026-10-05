@@ -117,8 +117,10 @@ public class MainViewModel extends AndroidViewModel {
 
     private final SavedStateHandle savedStateHandle;
 
+    // A fresh handle for callers without saved state; the constructor is only flagged because lint treats it as test-only.
+    @android.annotation.SuppressLint("VisibleForTests")
     public MainViewModel(Application application) {
-        this(application, new SavedStateHandle());
+        this(application, new SavedStateHandle(new java.util.HashMap<>()));
     }
 
     public MainViewModel(Application application, SavedStateHandle savedStateHandle) {
@@ -262,7 +264,6 @@ public class MainViewModel extends AndroidViewModel {
 
     @Override
     protected void onCleared() {
-        super.onCleared();
         // Clean/convert work continues in AppProcessingScope; do not cancel or shut down workers here.
     }
 

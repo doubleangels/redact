@@ -485,7 +485,8 @@ public class PermissionManager {
                         activity, Manifest.permission.READ_MEDIA_IMAGES);
                 boolean canAskVideoAgain = ActivityCompat.shouldShowRequestPermissionRationale(
                         activity, Manifest.permission.READ_MEDIA_VIDEO);
-                boolean hasPartialAccess = ContextCompat.checkSelfPermission(activity,
+                boolean hasPartialAccess = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+                        && ContextCompat.checkSelfPermission(activity,
                         Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
                         == PackageManager.PERMISSION_GRANTED;
 

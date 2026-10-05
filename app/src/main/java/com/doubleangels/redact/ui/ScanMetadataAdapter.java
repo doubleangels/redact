@@ -100,6 +100,7 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
         applyFilter();
     }
 
+    @android.annotation.SuppressLint("NotifyDataSetChanged")
     private void applyFilter() {
         displayedEntries.clear();
         if (currentFilterSection == null || currentFilterSection.isEmpty()) {

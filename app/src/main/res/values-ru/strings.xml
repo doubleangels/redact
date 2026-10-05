@@ -179,7 +179,6 @@
         <item>4096px (стандарт)</item>
         <item>8192px (высокая производительность)</item>
     </string-array>
-    <string name="scan_metadata_subtitle">Обнаруженные поля из этого файла. Нажмите и удерживайте значения для копирования.</string>
 
     
     <string name="navigation_settings">Настройки</string>

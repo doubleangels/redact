@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- ShareHandlerActivity is exported on purpose, to receive shares. It reads only Uri extras from the
+         incoming intent (never an Intent to launch), and every Uri is checked for its scheme and for pointing
+         into the app's private storage before use. Lint's data-flow check cannot see that, and does not honor
+         @SuppressLint or tools:ignore for this finding. -->
+    <issue id="UnsafeIntentLaunch">
+        <ignore path="**/ShareHandlerActivity.java" />
+    </issue>
+</lint>

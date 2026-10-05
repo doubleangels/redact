@@ -179,7 +179,6 @@
         <item>4096px (Standard)</item>
         <item>8192px (Hautes Perfs)</item>
     </string-array>
-    <string name="scan_metadata_subtitle">Champs détectés à partir de ce fichier. Appuyez et maintenez sur les valeurs pour copier.</string>
 
     
     <string name="navigation_settings">Paramètres</string>

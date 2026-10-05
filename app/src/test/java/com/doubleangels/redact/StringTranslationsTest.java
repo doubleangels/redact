@@ -58,10 +58,7 @@ public class StringTranslationsTest {
     public void userVisibleStringsAreNeverMarkedUntranslatable() throws Exception {
         Set<String> notShownToUsers = new HashSet<>(java.util.Arrays.asList(
                 "url_donate",                       // a link, identical in every language
-                "scan_metadata_truncated_key",      // an internal row key, not display text
-                "settings_section_developer",       // debug builds only
-                "settings_wormaceptor_button",
-                "settings_wormaceptor_subtitle"));
+                "scan_metadata_truncated_key"));    // an internal row key, not display text
         NodeList nl = strings(new File(RES, "values/strings.xml"));
         List<String> problems = new ArrayList<>();
         for (int i = 0; i < nl.getLength(); i++) {

@@ -179,7 +179,6 @@
         <item>4096px (मानक)</item>
         <item>8192px (उच्च प्रदर्शन)</item>
     </string-array>
-    <string name="scan_metadata_subtitle">इस फ़ाइल से पता लगाए गए फ़ील्ड। कॉपी करने के लिए मानों को दबाकर रखें।</string>
 
     
     <string name="navigation_settings">सेटिंग्स</string>

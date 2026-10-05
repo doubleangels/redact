@@ -179,7 +179,6 @@
         <item>4096 بكسل (قياسي)</item>
         <item>8192 بكسل (أداء عالٍ)</item>
     </string-array>
-    <string name="scan_metadata_subtitle">الحقول المكتشفة من هذا الملف. اضغط مع الاستمرار على القيم لنسخها.</string>
 
     
     <string name="navigation_settings">الإعدادات</string>

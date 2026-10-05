@@ -4,7 +4,6 @@ import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 
@@ -62,7 +61,7 @@ public final class MediaUriResolver {
         if (!"content".equals(uri.getScheme())) {
             return uri;
         }
-        if (!isPhotoPickerUri(uri) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if (!isPhotoPickerUri(uri)) {
             try {
                 Uri mediaUri = MediaStore.getMediaUri(context, uri);
                 if (mediaUri != null && canQueryMediaUri(context, mediaUri)) {

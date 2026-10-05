@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     
     <string name="app_name">Redact</string>
 
@@ -37,7 +37,7 @@
     <string name="convert_format_h265">MP4 (H.265)</string>
     <string name="convert_format_vp9">WebM (VP9)</string>
     <string name="convert_format_heif">HEIC</string>
-    <string name="convert_format_av1">MKV (AV1)</string>
+    <string name="convert_format_av1" tools:ignore="Typos">MKV (AV1)</string>
     <string name="convert_select_files">Seleziona File</string>
     <string name="convert_run">Converti</string>
     <string name="convert_status_hint">Scegli un formato di output qui sotto, poi tocca Converti.</string>
@@ -179,7 +179,6 @@
         <item>4096px (Standard)</item>
         <item>8192px (Alte Prestazioni)</item>
     </string-array>
-    <string name="scan_metadata_subtitle">Campi rilevati da questo file. Tieni premuto sui valori per copiarli.</string>
 
     
     <string name="navigation_settings">Impostazioni</string>

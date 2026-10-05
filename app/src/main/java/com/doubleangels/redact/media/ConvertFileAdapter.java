@@ -42,7 +42,7 @@ public final class ConvertFileAdapter extends RecyclerView.Adapter<ConvertFileAd
     public void setRemovable(boolean removable) {
         if (this.isRemovable != removable) {
             this.isRemovable = removable;
-            notifyDataSetChanged();
+            notifyItemRangeChanged(0, getItemCount());
         }
     }
 
