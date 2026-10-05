@@ -385,7 +385,7 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="settings_secure_window_subtitle">Bloque les captures et enregistrements d\'écran dans Redact et masque son aperçu dans les applications récentes. Effet immédiat.</string>
 
     <string name="settings_clipboard_clear">Effacer les métadonnées copiées</string>
-    <string name="settings_clipboard_clear_subtitle">Efface du presse-papiers les métadonnées copiées depuis Analyser après ce délai, sauf si vous avez copié autre chose entre-temps. Au mieux : impossible si Android arrête Redact avant.</string>
+    <string name="settings_clipboard_clear_subtitle">Efface du presse-papiers les métadonnées copiées depuis Analyser après ce délai, sauf si vous avez copié autre chose entre-temps.</string>
     <string name="settings_clipboard_clear_off">Désactivé</string>
     <string name="settings_clipboard_clear_15s">Après 15 secondes</string>
     <string name="settings_clipboard_clear_30s">Après 30 secondes</string>

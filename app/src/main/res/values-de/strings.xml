@@ -380,7 +380,7 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_secure_window_subtitle">Blockiert Screenshots und Bildschirmaufnahmen in Redact und blendet die Vorschau in der App-Übersicht aus. Wirkt sofort.</string>
 
     <string name="settings_clipboard_clear">Kopierte Metadaten löschen</string>
-    <string name="settings_clipboard_clear_subtitle">Löscht aus Scan kopierte Metadaten nach dieser Zeit aus der Zwischenablage, sofern du dazwischen nichts anderes kopiert hast. Nach bestem Bemühen: Es klappt nicht, wenn Android Redact vorher beendet.</string>
+    <string name="settings_clipboard_clear_subtitle">Löscht aus Scan kopierte Metadaten nach dieser Zeit aus der Zwischenablage, sofern du dazwischen nichts anderes kopiert hast.</string>
     <string name="settings_clipboard_clear_off">Aus</string>
     <string name="settings_clipboard_clear_15s">Nach 15 Sekunden</string>
     <string name="settings_clipboard_clear_30s">Nach 30 Sekunden</string>

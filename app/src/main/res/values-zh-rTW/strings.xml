@@ -377,7 +377,7 @@
     <string name="settings_secure_window_subtitle">禁止在 Redact 中截圖和錄製螢幕，並在最近使用的應用程式畫面中隱藏其預覽。立即生效。</string>
 
     <string name="settings_clipboard_clear">清除已複製的中繼資料</string>
-    <string name="settings_clipboard_clear_subtitle">在此時間後，從剪貼簿中清除你從「掃描」複製的中繼資料（若期間你複製了其他內容則不會清除）。盡力而為：若 Android 先結束 Redact，則無法執行。</string>
+    <string name="settings_clipboard_clear_subtitle">在此時間後，從剪貼簿中清除你從「掃描」複製的中繼資料（若期間你複製了其他內容則不會清除）。</string>
     <string name="settings_clipboard_clear_off">關閉</string>
     <string name="settings_clipboard_clear_15s">15 秒後</string>
     <string name="settings_clipboard_clear_30s">30 秒後</string>

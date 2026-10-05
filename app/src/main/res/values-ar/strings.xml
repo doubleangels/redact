@@ -397,7 +397,7 @@
     <string name="settings_secure_window_subtitle">يمنع لقطات الشاشة وتسجيل الشاشة داخل Redact ويُفرغ معاينته في شاشة التطبيقات الأخيرة. يسري فورًا.</string>
 
     <string name="settings_clipboard_clear">مسح البيانات الوصفية المنسوخة</string>
-    <string name="settings_clipboard_clear_subtitle">يمسح البيانات الوصفية التي نسختها من الفحص من الحافظة بعد هذه المدة، ما لم تنسخ شيئًا آخر في الأثناء. بذل أقصى جهد: لا يعمل إذا أوقف أندرويد Redact قبل ذلك.</string>
+    <string name="settings_clipboard_clear_subtitle">يمسح البيانات الوصفية التي نسختها من الفحص من الحافظة بعد هذه المدة، ما لم تنسخ شيئًا آخر في الأثناء.</string>
     <string name="settings_clipboard_clear_off">إيقاف</string>
     <string name="settings_clipboard_clear_15s">بعد 15 ثانية</string>
     <string name="settings_clipboard_clear_30s">بعد 30 ثانية</string>
