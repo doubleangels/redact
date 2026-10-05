@@ -42,6 +42,7 @@ MONO_THEME_BODY='"android.theme.customization.theme_style":"MONOCHROMATIC","andr
 ANIM_KEYS=(window_animation_scale transition_animation_scale animator_duration_scale)
 ANIM_ORIG=()
 THEME_CAPTURED=0
+MONO_OVERLAY_ENABLED=0
 ORIGINAL_THEME=""
 ORIGINAL_NIGHT=""
 
@@ -124,6 +125,7 @@ cleanup() {
     adb shell am broadcast -a com.android.systemui.demo -e command exit >/dev/null 2>&1 || true
     [[ -z "$ORIGINAL_NIGHT" ]] || adb shell cmd uimode night "$ORIGINAL_NIGHT" >/dev/null 2>&1 || true
     ((THEME_CAPTURED)) && restore_setting secure "$THEME_KEY" "$ORIGINAL_THEME"
+    ((MONO_OVERLAY_ENABLED)) && adb shell cmd overlay disable --user 0 android:dynamic_0 >/dev/null 2>&1 || true
     for i in "${!ANIM_ORIG[@]}"; do restore_setting global "${ANIM_KEYS[i]}" "${ANIM_ORIG[i]}"; done
     adb shell rm -rf "$SAMPLE_DIR" >/dev/null 2>&1 || true
     adb shell am force-stop "$PKG" >/dev/null 2>&1 || true
@@ -373,6 +375,13 @@ THEME_CAPTURED=1
 # are still the old ones, and SystemUI only re-applies the overlays when the setting actually changes.
 adb shell "settings put secure $THEME_KEY '{\"_applied_timestamp\":$(date +%s%3N),$MONO_THEME_BODY'"
 sleep 4   # SystemUI re-applies the colour overlays asynchronously
+# SystemUI registers the generated palette as the fabricated overlay android:dynamic_0, but on some emulator
+# images it leaves it disabled, so the app keeps the old colours. Enable it explicitly.
+if adb shell cmd overlay list --user 0 | grep -q 'android:dynamic_0'; then
+  adb shell cmd overlay enable --user 0 android:dynamic_0 >/dev/null
+  MONO_OVERLAY_ENABLED=1
+  sleep 2
+fi
 
 ORIGINAL_NIGHT=$(adb shell cmd uimode night | awk '{print $NF}' | tr -d '\r')
 adb shell input keyevent KEYCODE_WAKEUP
