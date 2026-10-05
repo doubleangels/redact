@@ -592,11 +592,11 @@
         </header>
 
         <div class="meta-row">
-            <span class="chip">Last updated: October 5, 2026</span>
+            <span class="chip">Last Updated: October 5, 2026</span>
         </div>
 
         <div class="card glance">
-            <h2>At a glance</h2>
+            <h2>At a Glance</h2>
             <ul>
                 <li><span class="tick">✓</span><span>We don't collect, transmit, or sell any of your personal information, full stop. There's no account to create, no sign-in, and no server of ours holding onto your data.</span></li>
                 <li><span class="tick">✓</span><span>Every photo and video you clean, scan, or convert stays right there on your phone, processed <strong>entirely on your device</strong>. Nothing is ever uploaded, anywhere.</span></li>
@@ -668,7 +668,7 @@
                 </ul>
                 <p>The only thing that can ever leave your device is the optional, anonymous crash report covered in Section 6, and that only happens if you turn it on yourself.</p>
 
-                <h3>Categories of data we never collect</h3>
+                <h3>Categories of Data We Never Collect</h3>
                 <p>Just to be thorough, here's a checklist of common data types and whether Redact collects them. The answer is the same for every one.</p>
                 <div class="table-wrap">
                     <table>
@@ -740,44 +740,44 @@
                         <thead>
                             <tr>
                                 <th>Permission</th>
-                                <th>What it's used for</th>
+                                <th>What It's Used For</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td>READ_EXTERNAL_STORAGE</td>
-                                <td data-label="Used for">Lets the system gallery picker show your photos/videos on Android 12 and earlier, where the modern document picker isn't available.</td>
+                                <td data-label="Used For">Lets the system gallery picker show your photos/videos on Android 12 and earlier, where the modern document picker isn't available.</td>
                                 <td data-label="Status"><span class="badge badge-cond">Android 12 and below only</span></td>
                             </tr>
                             <tr>
                                 <td>READ_MEDIA_IMAGES / READ_MEDIA_VIDEO</td>
-                                <td data-label="Used for">Optional alternative to Android's system document picker, which Redact uses by default on Android 13+ and which needs no media permission at all.</td>
+                                <td data-label="Used For">Optional alternative to Android's system document picker, which Redact uses by default on Android 13+ and which needs no media permission at all.</td>
                                 <td data-label="Status"><span class="badge badge-off">Optional</span></td>
                             </tr>
                             <tr>
                                 <td>READ_MEDIA_VISUAL_USER_SELECTED</td>
-                                <td data-label="Used for">Lets you (on Android 14+) grant Redact access to only specific photos/videos you choose, instead of your entire library.</td>
+                                <td data-label="Used For">Lets you (on Android 14+) grant Redact access to only specific photos/videos you choose, instead of your entire library.</td>
                                 <td data-label="Status"><span class="badge badge-off">Optional</span></td>
                             </tr>
                             <tr>
                                 <td>ACCESS_MEDIA_LOCATION</td>
-                                <td data-label="Used for">Lets the Scan screen display the exact GPS coordinates embedded in a file, so you can see what's there. Not required to remove that same GPS data in Clean.</td>
+                                <td data-label="Used For">Lets the Scan screen display the exact GPS coordinates embedded in a file, so you can see what's there. Not required to remove that same GPS data in Clean.</td>
                                 <td data-label="Status"><span class="badge badge-off">Optional</span></td>
                             </tr>
                             <tr>
                                 <td>POST_NOTIFICATIONS</td>
-                                <td data-label="Used for">Shows progress and completion notifications for Clean/Convert jobs.</td>
+                                <td data-label="Used For">Shows progress and completion notifications for Clean/Convert jobs.</td>
                                 <td data-label="Status"><span class="badge badge-off">Optional, off by default</span></td>
                             </tr>
                             <tr>
                                 <td>FOREGROUND_SERVICE / FOREGROUND_SERVICE_MEDIA_PROCESSING</td>
-                                <td data-label="Used for">Keeps a long-running Clean or Convert batch job alive and shows its progress notification when notifications are enabled.</td>
+                                <td data-label="Used For">Keeps a long-running Clean or Convert batch job alive and shows its progress notification when notifications are enabled.</td>
                                 <td data-label="Status"><span class="badge badge-cond">Used only if notifications are on</span></td>
                             </tr>
                             <tr>
                                 <td>INTERNET</td>
-                                <td data-label="Used for">The only permission that allows network access at all. Used exclusively to send scrubbed crash/error diagnostics to Sentry, and only when you turn on Send Crash Reports in Settings.</td>
+                                <td data-label="Used For">The only permission that allows network access at all. Used exclusively to send scrubbed crash/error diagnostics to Sentry, and only when you turn on Send Crash Reports in Settings.</td>
                                 <td data-label="Status"><span class="badge badge-cond">Used only for opt-in crash reporting</span></td>
                             </tr>
                         </tbody>
@@ -831,58 +831,58 @@
                             <tr>
                                 <th>Component</th>
                                 <th>Publisher</th>
-                                <th>What it does in Redact</th>
-                                <th>Data it can send off-device</th>
+                                <th>What It Does in Redact</th>
+                                <th>Data It Can Send Off-Device</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td><a href="https://sentry.io" target="_blank" rel="noopener noreferrer">Sentry Android SDK</a></td>
                                 <td data-label="Publisher"><a href="https://sentry.io/privacy/" target="_blank" rel="noopener noreferrer">Functional Software, Inc. (Sentry)</a></td>
-                                <td data-label="What it does">Optional, opt-in crash and performance diagnostics (see Section 6).</td>
-                                <td data-label="Data sent off-device">Scrubbed device/app info and stack traces, only if you enable Send Crash Reports.</td>
+                                <td data-label="What It Does">Optional, opt-in crash and performance diagnostics (see Section 6).</td>
+                                <td data-label="Data Sent Off-Device">Scrubbed device/app info and stack traces, only if you enable Send Crash Reports.</td>
                             </tr>
                             <tr>
                                 <td>AndroidX (Activity, AppCompat, ConstraintLayout, ExifInterface, Fragment, Lifecycle&nbsp;ViewModel)</td>
                                 <td data-label="Publisher"><a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google / Android Open Source Project</a></td>
-                                <td data-label="What it does">Core UI framework and on-device EXIF read/write support.</td>
-                                <td data-label="Data sent off-device">None. These are bundled code libraries, not services, and they do not independently transmit data.</td>
+                                <td data-label="What It Does">Core UI framework and on-device EXIF read/write support.</td>
+                                <td data-label="Data Sent Off-Device">None. These are bundled code libraries, not services, and they do not independently transmit data.</td>
                             </tr>
                             <tr>
                                 <td>Material Components for Android</td>
                                 <td data-label="Publisher"><a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google</a></td>
-                                <td data-label="What it does">The visual design system (buttons, navigation, theming) rendered on-device.</td>
-                                <td data-label="Data sent off-device">None.</td>
+                                <td data-label="What It Does">The visual design system (buttons, navigation, theming) rendered on-device.</td>
+                                <td data-label="Data Sent Off-Device">None.</td>
                             </tr>
                             <tr>
                                 <td>Media3 (Common, Effect, Transformer)</td>
                                 <td data-label="Publisher"><a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google (AndroidX / ExoPlayer project)</a></td>
-                                <td data-label="What it does">Local video transcoding, remuxing, and metadata-safe format conversion for Clean and Convert.</td>
-                                <td data-label="Data sent off-device">None. All processing happens on-device.</td>
+                                <td data-label="What It Does">Local video transcoding, remuxing, and metadata-safe format conversion for Clean and Convert.</td>
+                                <td data-label="Data Sent Off-Device">None. All processing happens on-device.</td>
                             </tr>
                             <tr>
                                 <td><a href="https://github.com/bumptech/glide" target="_blank" rel="noopener noreferrer">Glide</a></td>
                                 <td data-label="Publisher">BumpTech (open source)</td>
-                                <td data-label="What it does">Loads and renders thumbnails of your locally selected photos inside the app.</td>
-                                <td data-label="Data sent off-device">None. It reads only local files you've already selected, with no network calls of its own.</td>
+                                <td data-label="What It Does">Loads and renders thumbnails of your locally selected photos inside the app.</td>
+                                <td data-label="Data Sent Off-Device">None. It reads only local files you've already selected, with no network calls of its own.</td>
                             </tr>
                             <tr>
                                 <td><a href="https://commons.apache.org/proper/commons-imaging/" target="_blank" rel="noopener noreferrer">Apache Commons Imaging</a></td>
                                 <td data-label="Publisher"><a href="https://www.apache.org/foundation/policies/privacy.html" target="_blank" rel="noopener noreferrer">Apache Software Foundation</a></td>
-                                <td data-label="What it does">Lossless JPEG EXIF stripping used by the Clean feature.</td>
-                                <td data-label="Data sent off-device">None. A local parsing library with no network access.</td>
+                                <td data-label="What It Does">Lossless JPEG EXIF stripping used by the Clean feature.</td>
+                                <td data-label="Data Sent Off-Device">None. A local parsing library with no network access.</td>
                             </tr>
                             <tr>
                                 <td><a href="https://square.github.io/leakcanary/" target="_blank" rel="noopener noreferrer">LeakCanary</a></td>
                                 <td data-label="Publisher">Block, Inc. (Square, open source)</td>
-                                <td data-label="What it does">Memory-leak detection during development only.</td>
-                                <td data-label="Data sent off-device">None. Included only in debug builds and <strong>not shipped in the Google Play release APK.</strong></td>
+                                <td data-label="What It Does">Memory-leak detection during development only.</td>
+                                <td data-label="Data Sent Off-Device">None. Included only in debug builds and <strong>not shipped in the Google Play release APK.</strong></td>
                             </tr>
                             <tr>
                                 <td>Google Play Store (distribution)</td>
                                 <td data-label="Publisher"><a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google</a></td>
-                                <td data-label="What it does">Installs, updates, and verifies the app if you downloaded it from Google Play.</td>
-                                <td data-label="Data sent off-device">Handled entirely by the Play Store platform under Google's own Privacy Policy, not by code inside Redact.</td>
+                                <td data-label="What It Does">Installs, updates, and verifies the app if you downloaded it from Google Play.</td>
+                                <td data-label="Data Sent Off-Device">Handled entirely by the Play Store platform under Google's own Privacy Policy, not by code inside Redact.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -911,7 +911,7 @@
                 <p>Cleaned and converted files land in <code>Pictures/Redact</code> or <code>Movies/Redact</code>, right in your phone's regular photo library. They're ordinary files you can back up, move, or delete exactly like any other photo or video, and Redact never moves them anywhere else.</p>
                 <p>When you share a file into Redact from another app, it quietly makes a cleaned temporary copy, hands it off to wherever you're sharing to, and then deletes it shortly after. If you want extra peace of mind, Settings lets you overwrite temporary files (1, 3, or 7 passes) before they're deleted, though modern phone storage limits how much that really adds, as the app itself is upfront about. <strong>Clear Cache on Startup</strong> automatically clears out anything older than 24 hours, and you can always clear it by hand from Settings too.</p>
 
-                <h3>When you uninstall Redact</h3>
+                <h3>When You Uninstall Redact</h3>
                 <p>Android keeps every app's private data in its own sandbox, so uninstalling Redact wipes all of it instantly, your settings, including whether crash reporting was on, and anything left in the temporary cache. None of it gets backed up to the cloud first, since we've turned that off. The exception is your actual photos and videos: anything already saved to <code>Pictures/Redact</code> or <code>Movies/Redact</code> is yours, just like photos from your camera, and uninstalling the app won't touch them.</p>
                 <p>If you'd turned crash reporting on at some point, any reports already sent may still be sitting in Sentry's systems for as long as their own retention policy keeps them. You're welcome to reach out to Sentry directly, or just email us using the details in Section 16, and we'll help however we can.</p>
             </div>
@@ -965,13 +965,13 @@
                 <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </summary>
             <div class="section-body">
-                <h3>Legal basis for processing (GDPR)</h3>
+                <h3>Legal Basis for Processing (GDPR)</h3>
                 <p>Wherever the GDPR applies, the only processing Redact ever does, sending that optional diagnostic data to Sentry, is based entirely on your consent, given the moment you switch on <strong>Send Crash Reports</strong>. You can withdraw that consent at any time by switching it off again, which stops any further processing immediately. It doesn't retroactively affect the lawfulness of anything already sent before you withdrew it.</p>
 
                 <h3>European Economic Area, UK, and Switzerland (GDPR)</h3>
                 <p>If you're in the EEA, UK, or Switzerland, data protection law gives you the right to access, correct, delete, restrict, or move your personal data, and to object to how it's used. Since Redact doesn't collect or process your personal data in the first place, most of these rights simply won't have anything to act on, there's nothing sitting around to request. If you think some data about you has reached us anyway, say, through an email you sent, just get in touch and we'll sort it out quickly.</p>
 
-                <h3>International data transfers</h3>
+                <h3>International Data Transfers</h3>
                 <p>If you turn on crash reporting, that limited diagnostic data from Section 6 might be processed by Sentry (Functional Software, Inc.) on servers outside your own country, including in the United States. This only ever happens if you've opted in, and it only ever covers that same scrubbed technical data, never your photos, videos, or identity. Sentry's own privacy policy explains the safeguards they use for transfers like this.</p>
 
                 <h3>California (CCPA/CPRA)</h3>
@@ -982,65 +982,65 @@
                             <tr>
                                 <th>Category (Cal. Civ. Code &sect;1798.140)</th>
                                 <th>Collected</th>
-                                <th>Sold or shared</th>
+                                <th>Sold or Shared</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td>Identifiers</td>
                                 <td data-label="Collected"><span class="badge badge-off">No</span></td>
-                                <td data-label="Sold or shared"><span class="badge badge-off">No</span></td>
+                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
                                 <td>Customer records (name, address, and similar)</td>
                                 <td data-label="Collected"><span class="badge badge-off">No</span></td>
-                                <td data-label="Sold or shared"><span class="badge badge-off">No</span></td>
+                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
                                 <td>Protected classification characteristics</td>
                                 <td data-label="Collected"><span class="badge badge-off">No</span></td>
-                                <td data-label="Sold or shared"><span class="badge badge-off">No</span></td>
+                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
                                 <td>Commercial information</td>
                                 <td data-label="Collected"><span class="badge badge-off">No</span></td>
-                                <td data-label="Sold or shared"><span class="badge badge-off">No</span></td>
+                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
                                 <td>Biometric information</td>
                                 <td data-label="Collected"><span class="badge badge-off">No</span></td>
-                                <td data-label="Sold or shared"><span class="badge badge-off">No</span></td>
+                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
                                 <td>Internet or network activity</td>
                                 <td data-label="Collected"><span class="badge badge-off">No</span></td>
-                                <td data-label="Sold or shared"><span class="badge badge-off">No</span></td>
+                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
                                 <td>Geolocation data</td>
                                 <td data-label="Collected"><span class="badge badge-off">No</span></td>
-                                <td data-label="Sold or shared"><span class="badge badge-off">No</span></td>
+                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
                                 <td>Audio, electronic, or visual information</td>
                                 <td data-label="Collected"><span class="badge badge-cond">Only files you choose, kept on-device</span></td>
-                                <td data-label="Sold or shared"><span class="badge badge-off">No</span></td>
+                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
                                 <td>Professional or employment information</td>
                                 <td data-label="Collected"><span class="badge badge-off">No</span></td>
-                                <td data-label="Sold or shared"><span class="badge badge-off">No</span></td>
+                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
                                 <td>Inferences about preferences or characteristics</td>
                                 <td data-label="Collected"><span class="badge badge-off">No</span></td>
-                                <td data-label="Sold or shared"><span class="badge badge-off">No</span></td>
+                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <h3>Other U.S. state privacy laws</h3>
+                <h3>Other U.S. State Privacy Laws</h3>
                 <p>States like Virginia, Colorado, Connecticut, and Utah have their own privacy laws giving residents similar rights, to access, delete, correct, or move their data, and to opt out of having it sold, used for targeted ads, or profiled. Since Redact doesn't do any of those things, these rights won't have much to act on while you're just using the app normally. If you're in one of these states and still have questions, reach out using the details below, we're happy to help.</p>
 
                 <div class="callout">
