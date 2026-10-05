@@ -361,4 +361,19 @@
     <string name="scan_section_details">विवरण</string>
     <string name="scan_default_file_name">मीडिया फ़ाइल</string>
     <string name="convert_remove_item">%1$s हटाएँ</string>
+
+    <string name="settings_warn_already_clean">पहले से साफ़ फ़ाइलों के बारे में चेतावनी दें</string>
+    <string name="settings_warn_already_clean_subtitle">सफ़ाई से पहले बताएँ कि चुनी गई फ़ाइलों में हटाने लायक मेटाडेटा नहीं है या वे Redact की बनाई हुई प्रतियाँ हैं।</string>
+    <string name="already_clean_dialog_title">क्या पहले से साफ़ है?</string>
+    <plurals name="already_clean_dialog_message_some">
+        <item quantity="one">चुनी गई %2$d फ़ाइलों में से %1$d पहले से साफ़ दिखती है: इसमें हटाने लायक मेटाडेटा नहीं है या यह Redact की पहले बनाई गई प्रति है। इसे छोड़ें या फिर भी सब साफ़ करें?</item>
+        <item quantity="other">चुनी गई %2$d फ़ाइलों में से %1$d पहले से साफ़ दिखती हैं: इनमें हटाने लायक मेटाडेटा नहीं है या ये Redact की पहले बनाई गई प्रतियाँ हैं। इन्हें छोड़ें या फिर भी सब साफ़ करें?</item>
+    </plurals>
+    <plurals name="already_clean_dialog_message_all">
+        <item quantity="one">यह फ़ाइल (%1$d) पहले से साफ़ दिखती है: इसमें हटाने लायक मेटाडेटा नहीं है या यह Redact की पहले बनाई गई प्रति है।</item>
+        <item quantity="other">ये %1$d फ़ाइलें पहले से साफ़ दिखती हैं: इनमें हटाने लायक मेटाडेटा नहीं है या ये Redact की पहले बनाई गई प्रतियाँ हैं।</item>
+    </plurals>
+    <string name="already_clean_skip">इन्हें छोड़ें</string>
+    <string name="already_clean_clean_all">सब साफ़ करें</string>
+    <string name="already_clean_clean_anyway">फिर भी साफ़ करें</string>
 </resources>

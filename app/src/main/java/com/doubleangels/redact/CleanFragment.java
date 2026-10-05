@@ -35,8 +35,12 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.doubleangels.redact.sentry.SentryManager;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.doubleangels.redact.metadata.AlreadyCleanCheck;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Hosts the Clean (strip metadata) UI and logic; shown in {@link MainActivity}'s fragment container.
@@ -44,6 +48,8 @@ import java.util.List;
 public class CleanFragment extends Fragment {
 
     private static final int MAX_PICK_ITEMS = 20;
+    /** Total time the already-clean check may spend reading files before it gives up. */
+    private static final long ALREADY_CLEAN_BUDGET_MS = 8_000L;
 
     @Nullable
     private List<MediaItem> lastObservedSelectedItems;
@@ -194,6 +200,12 @@ public class CleanFragment extends Fragment {
                                 boolean hasAnimatedImage = containsAnimatedImage(items);
                                 List<ProcessingResourceWarnings.Warning> warnings =
                                         ProcessingResourceWarnings.assess(appContext, items);
+                                // Reads each file's metadata, so it also runs off the main thread.
+                                List<AlreadyCleanCheck.Status> cleanStatuses =
+                                        AppPreferences.isWarnAlreadyClean(appContext)
+                                                ? AlreadyCleanCheck.assess(
+                                                        appContext, items, ALREADY_CLEAN_BUDGET_MS)
+                                                : null;
                                 runOnUiThreadIfAdded(() -> {
                                     if (hasAnimatedImage) {
                                         Toast.makeText(
@@ -202,10 +214,11 @@ public class CleanFragment extends Fragment {
                                                         Toast.LENGTH_LONG)
                                                 .show();
                                     }
-                                    ProcessingResourceWarnings.runWithWarnings(
-                                            requireActivity(),
-                                            warnings,
-                                            () -> viewModel.startCleaning(items));
+                                    confirmAlreadyClean(items, cleanStatuses, chosen ->
+                                            ProcessingResourceWarnings.runWithWarnings(
+                                                    requireActivity(),
+                                                    warnings,
+                                                    () -> viewModel.startCleaning(chosen)));
                                 });
                             } catch (Exception e) {
                                 SentryManager.recordException(e);
@@ -542,6 +555,48 @@ public class CleanFragment extends Fragment {
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
+    }
+
+    /**
+     * Warns when some or all of the selected files look clean already (no metadata to remove, or a
+     * copy Redact made earlier) and lets the user skip them, clean everything anyway, or cancel.
+     * Calls {@code proceed} with the items to clean; never calls it on cancel. With no warning
+     * needed (setting off, nothing flagged) it proceeds with every item right away.
+     */
+    private void confirmAlreadyClean(
+            @NonNull List<MediaItem> items,
+            @Nullable List<AlreadyCleanCheck.Status> statuses,
+            @NonNull Consumer<List<MediaItem>> proceed) {
+        List<MediaItem> needCleaning = new ArrayList<>();
+        int alreadyClean = 0;
+        for (int i = 0; i < items.size(); i++) {
+            boolean clean = statuses != null && i < statuses.size()
+                    && statuses.get(i) == AlreadyCleanCheck.Status.ALREADY_CLEAN;
+            if (clean) {
+                alreadyClean++;
+            } else {
+                needCleaning.add(items.get(i));
+            }
+        }
+        if (alreadyClean == 0) {
+            proceed.accept(items);
+            return;
+        }
+        int total = items.size();
+        MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.already_clean_dialog_title)
+                .setNegativeButton(R.string.button_cancel, null);
+        if (alreadyClean == total) {
+            dialog.setMessage(getResources().getQuantityString(
+                            R.plurals.already_clean_dialog_message_all, total, total))
+                    .setPositiveButton(R.string.already_clean_clean_anyway, (d, w) -> proceed.accept(items));
+        } else {
+            dialog.setMessage(getResources().getQuantityString(
+                            R.plurals.already_clean_dialog_message_some, alreadyClean, alreadyClean, total))
+                    .setPositiveButton(R.string.already_clean_skip, (d, w) -> proceed.accept(needCleaning))
+                    .setNeutralButton(R.string.already_clean_clean_all, (d, w) -> proceed.accept(items));
+        }
+        dialog.show();
     }
 
     private void runOnUiThreadIfAdded(Runnable action) {

@@ -216,6 +216,18 @@ public class SettingsFragmentTest {
         assertFalse(AppPreferences.isShareConfirmBeforeStrip(activity));
     }
 
+    @Test
+    public void warnAlreadyClean_isOnByDefault_andPersists() {
+        assertTrue(sw(R.id.switchWarnAlreadyClean).isChecked());
+        assertTrue(AppPreferences.isWarnAlreadyClean(activity));
+
+        sw(R.id.switchWarnAlreadyClean).setChecked(false);
+        assertFalse(AppPreferences.isWarnAlreadyClean(activity));
+
+        sw(R.id.switchWarnAlreadyClean).setChecked(true);
+        assertTrue(AppPreferences.isWarnAlreadyClean(activity));
+    }
+
     // ---- dropdowns ---------------------------------------------------------------------------
 
     @Test

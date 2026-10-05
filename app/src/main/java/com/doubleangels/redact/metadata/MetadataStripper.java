@@ -1389,6 +1389,11 @@ public class MetadataStripper {
     }
 
     private List<String> getTagsToPreserve(boolean forSharing) {
+        return tagsToPreserve(context, forSharing);
+    }
+
+    /** EXIF tags a clean keeps for the current settings; shared with {@link AlreadyCleanCheck}. */
+    static List<String> tagsToPreserve(@NonNull Context context, boolean forSharing) {
         if (forSharing) {
             return List.of(ExifInterface.TAG_ORIENTATION);
         }
@@ -1484,7 +1489,7 @@ public class MetadataStripper {
     }
 
     @Nullable
-    private static String normalizeMetadataValue(@Nullable String value) {
+    static String normalizeMetadataValue(@Nullable String value) {
         if (value == null) {
             return null;
         }
@@ -1496,7 +1501,7 @@ public class MetadataStripper {
      * Textual video metadata keys beyond location/date that our own encoder never sets, so any
      * non-empty value found in an output file must have survived from the source container.
      */
-    private static final int[] ADDITIONAL_VIDEO_PRIVACY_KEYS = {
+    static final int[] ADDITIONAL_VIDEO_PRIVACY_KEYS = {
             android.media.MediaMetadataRetriever.METADATA_KEY_AUTHOR,
             android.media.MediaMetadataRetriever.METADATA_KEY_WRITER,
             android.media.MediaMetadataRetriever.METADATA_KEY_ALBUM,
@@ -1622,7 +1627,7 @@ public class MetadataStripper {
      * strict-clean mode (the app's default) it's intentionally excluded from that allowlist too,
      * so it hits the same can't-actually-clear-it behavior as the others.
      */
-    private static final Set<String> NON_IDENTIFYING_UNCLEARABLE_TAGS = Set.of(
+    static final Set<String> NON_IDENTIFYING_UNCLEARABLE_TAGS = Set.of(
             ExifInterface.TAG_IMAGE_WIDTH,
             ExifInterface.TAG_IMAGE_LENGTH,
             ExifInterface.TAG_LIGHT_SOURCE,

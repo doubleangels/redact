@@ -360,4 +360,17 @@
     <string name="scan_section_details">詳細</string>
     <string name="scan_default_file_name">メディアファイル</string>
     <string name="convert_remove_item">%1$s を削除</string>
+
+    <string name="settings_warn_already_clean">クリーン済みファイルを警告</string>
+    <string name="settings_warn_already_clean_subtitle">クリーンの前に、選択したファイルに削除できるメタデータがない場合や、Redact が作成済みのコピーである場合にお知らせします。</string>
+    <string name="already_clean_dialog_title">すでにクリーンですか？</string>
+    <plurals name="already_clean_dialog_message_some">
+        <item quantity="other">選択した %2$d 件中 %1$d 件は、すでにクリーンなようです。削除できるメタデータがないか、Redact が以前に作成したコピーです。それらをスキップしますか？それともすべてクリーンしますか？</item>
+    </plurals>
+    <plurals name="already_clean_dialog_message_all">
+        <item quantity="other">この %1$d 件のファイルは、すでにクリーンなようです。削除できるメタデータがないか、Redact が以前に作成したコピーです。</item>
+    </plurals>
+    <string name="already_clean_skip">スキップ</string>
+    <string name="already_clean_clean_all">すべてクリーン</string>
+    <string name="already_clean_clean_anyway">それでもクリーン</string>
 </resources>

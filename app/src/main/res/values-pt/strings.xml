@@ -363,4 +363,21 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="scan_section_details">Detalhes</string>
     <string name="scan_default_file_name">Arquivo de mídia</string>
     <string name="convert_remove_item">Remover %1$s</string>
+
+    <string name="settings_warn_already_clean">Avisar sobre arquivos já limpos</string>
+    <string name="settings_warn_already_clean_subtitle">Antes de limpar, avisa quando os arquivos selecionados não têm metadados para remover ou são cópias que o Redact já fez.</string>
+    <string name="already_clean_dialog_title">Já está limpo?</string>
+    <plurals name="already_clean_dialog_message_some">
+        <item quantity="one">%1$d de %2$d arquivos selecionados parece já estar limpo: não tem metadados para remover ou é uma cópia que o Redact fez antes. Ignorá-lo ou limpar tudo mesmo assim?</item>
+        <item quantity="many">%1$d de %2$d arquivos selecionados parecem já estar limpos: não têm metadados para remover ou são cópias que o Redact fez antes. Ignorá-los ou limpar tudo mesmo assim?</item>
+        <item quantity="other">%1$d de %2$d arquivos selecionados parecem já estar limpos: não têm metadados para remover ou são cópias que o Redact fez antes. Ignorá-los ou limpar tudo mesmo assim?</item>
+    </plurals>
+    <plurals name="already_clean_dialog_message_all">
+        <item quantity="one">Este arquivo (%1$d) parece já estar limpo: não tem metadados para remover ou é uma cópia que o Redact fez antes.</item>
+        <item quantity="many">Estes %1$d arquivos parecem já estar limpos: não têm metadados para remover ou são cópias que o Redact fez antes.</item>
+        <item quantity="other">Estes %1$d arquivos parecem já estar limpos: não têm metadados para remover ou são cópias que o Redact fez antes.</item>
+    </plurals>
+    <string name="already_clean_skip">Ignorá-los</string>
+    <string name="already_clean_clean_all">Limpar tudo</string>
+    <string name="already_clean_clean_anyway">Limpar mesmo assim</string>
 </resources>

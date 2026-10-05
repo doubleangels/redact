@@ -363,4 +363,21 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="scan_section_details">Dettagli</string>
     <string name="scan_default_file_name">File multimediale</string>
     <string name="convert_remove_item">Rimuovi %1$s</string>
+
+    <string name="settings_warn_already_clean">Avvisa per i file già puliti</string>
+    <string name="settings_warn_already_clean_subtitle">Prima della pulizia, avvisa quando i file selezionati non hanno metadati da rimuovere o sono copie già create da Redact.</string>
+    <string name="already_clean_dialog_title">Già pulito?</string>
+    <plurals name="already_clean_dialog_message_some">
+        <item quantity="one">%1$d file selezionato su %2$d sembra già pulito: non ha metadati da rimuovere o è una copia creata in precedenza da Redact. Ignorarlo o pulire tutto comunque?</item>
+        <item quantity="many">%1$d file selezionati su %2$d sembrano già puliti: non hanno metadati da rimuovere o sono copie create in precedenza da Redact. Ignorarli o pulire tutto comunque?</item>
+        <item quantity="other">%1$d file selezionati su %2$d sembrano già puliti: non hanno metadati da rimuovere o sono copie create in precedenza da Redact. Ignorarli o pulire tutto comunque?</item>
+    </plurals>
+    <plurals name="already_clean_dialog_message_all">
+        <item quantity="one">Questo file sembra già pulito: non ha metadati da rimuovere o è una copia creata in precedenza da Redact.</item>
+        <item quantity="many">Questi %1$d file sembrano già puliti: non hanno metadati da rimuovere o sono copie create in precedenza da Redact.</item>
+        <item quantity="other">Questi %1$d file sembrano già puliti: non hanno metadati da rimuovere o sono copie create in precedenza da Redact.</item>
+    </plurals>
+    <string name="already_clean_skip">Ignorali</string>
+    <string name="already_clean_clean_all">Pulisci tutto</string>
+    <string name="already_clean_clean_anyway">Pulisci comunque</string>
 </resources>

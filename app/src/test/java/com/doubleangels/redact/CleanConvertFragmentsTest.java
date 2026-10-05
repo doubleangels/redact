@@ -14,6 +14,7 @@ import android.os.Looper;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -32,6 +33,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowActivity;
+import org.robolectric.shadows.ShadowDialog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -555,6 +557,104 @@ public class CleanConvertFragmentsTest {
                 new int[] {android.content.pm.PackageManager.PERMISSION_GRANTED});
         idle();
         assertNotNull(fragment("convert"));
+    }
+
+    // ---- Clean: already-clean warning -----------------------------------------------------
+
+    /** A content URI for a JPEG with no metadata, which the already-clean check recognizes. */
+    private Uri cleanJpegUri() throws Exception {
+        FakeMediaStoreProvider.install(activity);
+        java.io.File f = java.io.File.createTempFile("already_", ".jpg", activity.getCacheDir());
+        f.deleteOnExit();
+        try (java.io.FileOutputStream out = new java.io.FileOutputStream(f)) {
+            android.graphics.Bitmap.createBitmap(12, 12, android.graphics.Bitmap.Config.ARGB_8888)
+                    .compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out);
+        }
+        return FakeMediaStoreProvider.add(
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, f, "image/jpeg");
+    }
+
+    private AlertDialog awaitDialog() throws InterruptedException {
+        awaitMain(() -> ShadowDialog.getLatestDialog() != null);
+        return (AlertDialog) ShadowDialog.getLatestDialog();
+    }
+
+    @Test
+    public void clean_withSomeAlreadyCleanFiles_offersToSkipThem() throws Exception {
+        View v = clean();
+        vm.setSelectedItems(Arrays.asList(
+                new MediaItem(cleanJpegUri(), false, "clean.jpg"), image("other.jpg")));
+        idle();
+
+        v.findViewById(R.id.stripButton).performClick();
+        AlertDialog dialog = awaitDialog();
+
+        assertEquals(View.VISIBLE, dialog.getButton(AlertDialog.BUTTON_NEUTRAL).getVisibility());
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick(); // Skip Those
+        awaitMain(() -> vm.getCleanProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED);
+
+        assertEquals(Integer.valueOf(1), vm.getCleanBatchTotalCount().getValue());
+        FakeMediaStoreProvider.reset();
+    }
+
+    @Test
+    public void clean_withSomeAlreadyCleanFiles_cleanAllKeepsEveryFile() throws Exception {
+        View v = clean();
+        vm.setSelectedItems(Arrays.asList(
+                new MediaItem(cleanJpegUri(), false, "clean.jpg"), image("other.jpg")));
+        idle();
+
+        v.findViewById(R.id.stripButton).performClick();
+        awaitDialog().getButton(AlertDialog.BUTTON_NEUTRAL).performClick(); // Clean All
+        awaitMain(() -> vm.getCleanProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED);
+
+        assertEquals(Integer.valueOf(2), vm.getCleanBatchTotalCount().getValue());
+        FakeMediaStoreProvider.reset();
+    }
+
+    @Test
+    public void clean_withOnlyAlreadyCleanFiles_offersCleanAnywayAndNoSkip() throws Exception {
+        View v = clean();
+        vm.setSelectedItems(Arrays.asList(new MediaItem(cleanJpegUri(), false, "clean.jpg")));
+        idle();
+
+        v.findViewById(R.id.stripButton).performClick();
+        AlertDialog dialog = awaitDialog();
+
+        assertEquals(View.GONE, dialog.getButton(AlertDialog.BUTTON_NEUTRAL).getVisibility());
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick(); // Clean Anyway
+        awaitMain(() -> vm.getCleanProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED);
+
+        assertEquals(Integer.valueOf(1), vm.getCleanBatchTotalCount().getValue());
+        FakeMediaStoreProvider.reset();
+    }
+
+    @Test
+    public void clean_cancellingTheAlreadyCleanWarning_startsNothing() throws Exception {
+        View v = clean();
+        vm.setSelectedItems(Arrays.asList(new MediaItem(cleanJpegUri(), false, "clean.jpg")));
+        idle();
+
+        v.findViewById(R.id.stripButton).performClick();
+        awaitDialog().getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+        idle();
+
+        assertEquals(MainViewModel.ProcessingState.IDLE, vm.getCleanProcessingState().getValue());
+        FakeMediaStoreProvider.reset();
+    }
+
+    @Test
+    public void clean_withTheWarningTurnedOff_cleansWithoutAsking() throws Exception {
+        AppPreferences.setWarnAlreadyClean(activity, false);
+        View v = clean();
+        vm.setSelectedItems(Arrays.asList(new MediaItem(cleanJpegUri(), false, "clean.jpg")));
+        idle();
+
+        v.findViewById(R.id.stripButton).performClick();
+        awaitMain(() -> vm.getCleanProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED);
+
+        assertEquals(null, ShadowDialog.getLatestDialog());
+        FakeMediaStoreProvider.reset();
     }
 
     @SuppressWarnings("unused")

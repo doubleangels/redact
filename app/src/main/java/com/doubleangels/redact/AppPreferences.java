@@ -27,6 +27,7 @@ public final class AppPreferences {
     private static final String KEY_PRESERVE_CAMERA_SETTINGS = "preserve_camera_settings";
     private static final String KEY_PRESERVE_LOCATION = "preserve_location";
     private static final String KEY_STRICT_CLEAN = "strict_clean";
+    private static final String KEY_WARN_ALREADY_CLEAN = "warn_already_clean";
     private static final String KEY_DELETE_ORIGINALS = "delete_originals_after_clean";
     private static final String KEY_VIDEO_FALLBACK_COPY = "video_fallback_copy";
     private static final String KEY_INITIAL_PERMISSIONS_PROMPTED = "initial_permissions_prompted";
@@ -234,6 +235,15 @@ public final class AppPreferences {
 
     public static void setStrictClean(@NonNull Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_STRICT_CLEAN, enabled).apply();
+    }
+
+    /** Whether Clean should warn before processing files that look clean already (on by default). */
+    public static boolean isWarnAlreadyClean(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_WARN_ALREADY_CLEAN, true);
+    }
+
+    public static void setWarnAlreadyClean(@NonNull Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_WARN_ALREADY_CLEAN, enabled).apply();
     }
 
     public static boolean isDeleteOriginalsAfterClean(@NonNull Context context) {

@@ -359,4 +359,17 @@
     <string name="scan_section_details">详细信息</string>
     <string name="scan_default_file_name">媒体文件</string>
     <string name="convert_remove_item">移除 %1$s</string>
+
+    <string name="settings_warn_already_clean">提醒已干净的文件</string>
+    <string name="settings_warn_already_clean_subtitle">清理前，若所选文件没有可移除的元数据，或是 Redact 之前生成的副本，会提醒你。</string>
+    <string name="already_clean_dialog_title">已经是干净的了？</string>
+    <plurals name="already_clean_dialog_message_some">
+        <item quantity="other">所选 %2$d 个文件中有 %1$d 个看起来已经干净：没有可移除的元数据，或是 Redact 之前生成的副本。要跳过它们，还是仍然全部清理？</item>
+    </plurals>
+    <plurals name="already_clean_dialog_message_all">
+        <item quantity="other">这 %1$d 个文件看起来已经干净：没有可移除的元数据，或是 Redact 之前生成的副本。</item>
+    </plurals>
+    <string name="already_clean_skip">跳过这些</string>
+    <string name="already_clean_clean_all">全部清理</string>
+    <string name="already_clean_clean_anyway">仍然清理</string>
 </resources>

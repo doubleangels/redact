@@ -365,4 +365,23 @@
     <string name="scan_section_details">Подробности</string>
     <string name="scan_default_file_name">Медиафайл</string>
     <string name="convert_remove_item">Удалить %1$s</string>
+
+    <string name="settings_warn_already_clean">Предупреждать об уже чистых файлах</string>
+    <string name="settings_warn_already_clean_subtitle">Перед очисткой сообщать, если у выбранных файлов нет метаданных для удаления или они уже были созданы Redact.</string>
+    <string name="already_clean_dialog_title">Уже очищено?</string>
+    <plurals name="already_clean_dialog_message_some">
+        <item quantity="one">%1$d из %2$d выбранных файлов уже выглядит чистым: в нём нет метаданных для удаления, или это копия, созданная Redact ранее. Пропустить его или всё равно очистить всё?</item>
+        <item quantity="few">%1$d из %2$d выбранных файлов уже выглядят чистыми: в них нет метаданных для удаления, или это копии, созданные Redact ранее. Пропустить их или всё равно очистить всё?</item>
+        <item quantity="many">%1$d из %2$d выбранных файлов уже выглядят чистыми: в них нет метаданных для удаления, или это копии, созданные Redact ранее. Пропустить их или всё равно очистить всё?</item>
+        <item quantity="other">%1$d из %2$d выбранных файлов уже выглядят чистыми: в них нет метаданных для удаления, или это копии, созданные Redact ранее. Пропустить их или всё равно очистить всё?</item>
+    </plurals>
+    <plurals name="already_clean_dialog_message_all">
+        <item quantity="one">Этот файл (%1$d) уже выглядит чистым: в нём нет метаданных для удаления, или это копия, созданная Redact ранее.</item>
+        <item quantity="few">Эти файлы (%1$d) уже выглядят чистыми: в них нет метаданных для удаления, или это копии, созданные Redact ранее.</item>
+        <item quantity="many">Эти файлы (%1$d) уже выглядят чистыми: в них нет метаданных для удаления, или это копии, созданные Redact ранее.</item>
+        <item quantity="other">Эти файлы (%1$d) уже выглядят чистыми: в них нет метаданных для удаления, или это копии, созданные Redact ранее.</item>
+    </plurals>
+    <string name="already_clean_skip">Пропустить</string>
+    <string name="already_clean_clean_all">Очистить всё</string>
+    <string name="already_clean_clean_anyway">Всё равно очистить</string>
 </resources>

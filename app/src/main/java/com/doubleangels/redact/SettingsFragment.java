@@ -66,6 +66,7 @@ public class SettingsFragment extends Fragment {
 
     private MaterialSwitch switchStrictClean;
     private MaterialSwitch switchDeleteOriginals;
+    private MaterialSwitch switchWarnAlreadyClean;
     private MaterialSwitch switchPreserveCamera;
     private MaterialSwitch switchPreserveLocation;
     private MaterialSwitch switchAutoClearTemp;
@@ -152,6 +153,7 @@ public class SettingsFragment extends Fragment {
         
         switchStrictClean = view.findViewById(R.id.switchStrictClean);
         switchDeleteOriginals = view.findViewById(R.id.switchDeleteOriginals);
+        switchWarnAlreadyClean = view.findViewById(R.id.switchWarnAlreadyClean);
         switchPreserveCamera = view.findViewById(R.id.switchPreserveCamera);
         switchPreserveLocation = view.findViewById(R.id.switchPreserveLocation);
         switchAutoClearTemp = view.findViewById(R.id.switchAutoClearTemp);
@@ -254,6 +256,9 @@ public class SettingsFragment extends Fragment {
         switchDeleteOriginals.setChecked(AppPreferences.isDeleteOriginalsAfterClean(requireContext()));
         switchDeleteOriginals.setOnCheckedChangeListener((btn, isChecked) ->
                 AppPreferences.setDeleteOriginalsAfterClean(requireContext(), isChecked));
+        switchWarnAlreadyClean.setChecked(AppPreferences.isWarnAlreadyClean(requireContext()));
+        switchWarnAlreadyClean.setOnCheckedChangeListener((btn, isChecked) ->
+                AppPreferences.setWarnAlreadyClean(requireContext(), isChecked));
         switchPreserveCamera.setChecked(AppPreferences.isPreserveCameraSettings(requireContext()));
         switchPreserveLocation.setChecked(AppPreferences.isPreserveLocation(requireContext()));
         switchAutoClearTemp.setChecked(AppPreferences.isAutoClearTempFiles(requireContext()));

@@ -363,4 +363,21 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="scan_section_details">Detalles</string>
     <string name="scan_default_file_name">Archivo multimedia</string>
     <string name="convert_remove_item">Quitar %1$s</string>
+
+    <string name="settings_warn_already_clean">Avisar de archivos ya limpios</string>
+    <string name="settings_warn_already_clean_subtitle">Antes de limpiar, avisa cuando los archivos seleccionados no tengan metadatos que eliminar o sean copias que Redact ya hizo.</string>
+    <string name="already_clean_dialog_title">¿Ya está limpio?</string>
+    <plurals name="already_clean_dialog_message_some">
+        <item quantity="one">%1$d de %2$d archivos seleccionados parece limpio: no tiene metadatos que eliminar o es una copia que Redact hizo antes. ¿Omitirlo o limpiar todo de todos modos?</item>
+        <item quantity="many">%1$d de %2$d archivos seleccionados parecen limpios: no tienen metadatos que eliminar o son copias que Redact hizo antes. ¿Omitirlos o limpiar todo de todos modos?</item>
+        <item quantity="other">%1$d de %2$d archivos seleccionados parecen limpios: no tienen metadatos que eliminar o son copias que Redact hizo antes. ¿Omitirlos o limpiar todo de todos modos?</item>
+    </plurals>
+    <plurals name="already_clean_dialog_message_all">
+        <item quantity="one">Este archivo ya parece limpio: no tiene metadatos que eliminar o es una copia que Redact hizo antes.</item>
+        <item quantity="many">Estos %1$d archivos ya parecen limpios: no tienen metadatos que eliminar o son copias que Redact hizo antes.</item>
+        <item quantity="other">Estos %1$d archivos ya parecen limpios: no tienen metadatos que eliminar o son copias que Redact hizo antes.</item>
+    </plurals>
+    <string name="already_clean_skip">Omitirlos</string>
+    <string name="already_clean_clean_all">Limpiar todo</string>
+    <string name="already_clean_clean_anyway">Limpiar de todos modos</string>
 </resources>
