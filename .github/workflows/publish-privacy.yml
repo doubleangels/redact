@@ -5,10 +5,11 @@ name: Publish Privacy Policy
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
     paths:
-      - "legal/redact.html"
-      - "legal/assets/**"
+      - legal/redact.html
+      - legal/assets/**
   workflow_dispatch:
 
 permissions:
