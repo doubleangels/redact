@@ -3,7 +3,7 @@ description: Regenerate the baseline and startup profiles, then the store screen
 allowed-tools: Bash, PowerShell, Read, Grep, Glob
 ---
 
-Regenerate the baseline profile and the store screenshots, both on the **Pixel_10_Pro emulator and never on a physical device**, then review the results. Do not commit or push anything unless I ask. Do not copy screenshots into `fastlane/` unless I ask.
+Regenerate the baseline profile and the store screenshots, both on the **Pixel_10_Pro emulator and never on a physical device**, then review the results. This does both tasks in order; use `/generateprofile` or `/generatescreenshots` to do just one. Do not commit or push anything unless I ask. Do not copy screenshots into `fastlane/` unless I ask.
 
 ## 1. Find or start the emulator
 
