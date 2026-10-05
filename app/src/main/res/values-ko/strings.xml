@@ -361,7 +361,7 @@
 
     <string name="settings_warn_already_clean">이미 깨끗한 파일 경고</string>
     <string name="settings_warn_already_clean_subtitle">정리하기 전에, 선택한 파일에 제거할 메타데이터가 없거나 Redact가 이미 만든 사본일 때 알려 줍니다.</string>
-    <string name="already_clean_dialog_title">이미 깨끗해 보이는 파일</string>
+    <string name="already_clean_dialog_title">파일이 이미 깨끗해 보입니다</string>
     <plurals name="already_clean_dialog_message_some">
         <item quantity="other">선택한 파일 %2$d개 중 %1$d개는 제거할 메타데이터가 더 이상 없거나 Redact가 이미 만든 사본입니다. 다시 정리해도 사본만 하나 더 생깁니다. 건너뛰시겠어요, 아니면 %2$d개 모두 정리할까요?</item>
     </plurals>

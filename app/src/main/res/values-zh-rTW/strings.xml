@@ -361,7 +361,7 @@
 
     <string name="settings_warn_already_clean">提醒已乾淨的檔案</string>
     <string name="settings_warn_already_clean_subtitle">清理前，若所選檔案沒有可移除的中繼資料，或是 Redact 先前產生的副本，會提醒你。</string>
-    <string name="already_clean_dialog_title">看起來已經乾淨的檔案</string>
+    <string name="already_clean_dialog_title">檔案看起來已經乾淨</string>
     <plurals name="already_clean_dialog_message_some">
         <item quantity="other">所選 %2$d 個檔案中有 %1$d 個已沒有可移除的中繼資料，或是 Redact 已產生的副本。再次清理只會多產生一份副本。要略過它們，還是仍然清理全部 %2$d 個？</item>
     </plurals>

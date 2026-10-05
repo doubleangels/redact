@@ -363,7 +363,7 @@
 
     <string name="settings_warn_already_clean">पहले से साफ़ फ़ाइलों के बारे में चेतावनी दें</string>
     <string name="settings_warn_already_clean_subtitle">सफ़ाई से पहले बताएँ कि चुनी गई फ़ाइलों में हटाने लायक मेटाडेटा नहीं है या वे Redact की बनाई हुई प्रतियाँ हैं।</string>
-    <string name="already_clean_dialog_title">जो फ़ाइलें पहले से साफ़ दिखती हैं</string>
+    <string name="already_clean_dialog_title">फ़ाइलें पहले से साफ़ दिखती हैं</string>
     <plurals name="already_clean_dialog_message_some">
         <item quantity="one">चुनी गई %2$d फ़ाइलों में से %1$d में हटाने लायक मेटाडेटा नहीं बचा है या यह Redact की पहले बनाई गई प्रति है। इसे फिर साफ़ करने से बस एक और प्रति बनेगी। इसे छोड़ें या सभी %2$d फिर भी साफ़ करें?</item>
         <item quantity="other">चुनी गई %2$d फ़ाइलों में से %1$d में हटाने लायक मेटाडेटा नहीं बचा है या ये Redact की पहले बनाई गई प्रतियाँ हैं। इन्हें फिर साफ़ करने से बस और प्रतियाँ बनेंगी। इन्हें छोड़ें या सभी %2$d फिर भी साफ़ करें?</item>

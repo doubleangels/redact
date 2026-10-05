@@ -367,7 +367,7 @@
 
     <string name="settings_warn_already_clean">Предупреждать об уже чистых файлах</string>
     <string name="settings_warn_already_clean_subtitle">Перед очисткой сообщать, если у выбранных файлов нет метаданных для удаления или они уже были созданы Redact.</string>
-    <string name="already_clean_dialog_title">Файлы, которые уже выглядят чистыми</string>
+    <string name="already_clean_dialog_title">Файлы уже выглядят чистыми</string>
     <plurals name="already_clean_dialog_message_some">
         <item quantity="one">%1$d из %2$d выбранных файлов не содержит метаданных для удаления или является копией, уже созданной Redact. Повторная очистка лишь создаст ещё одну копию. Пропустить его или всё равно очистить все %2$d?</item>
         <item quantity="few">%1$d из %2$d выбранных файлов не содержат метаданных для удаления или являются копиями, уже созданными Redact. Повторная очистка лишь создаст ещё копии. Пропустить их или всё равно очистить все %2$d?</item>

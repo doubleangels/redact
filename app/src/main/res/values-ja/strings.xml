@@ -362,7 +362,7 @@
 
     <string name="settings_warn_already_clean">クリーン済みファイルを警告</string>
     <string name="settings_warn_already_clean_subtitle">クリーンの前に、選択したファイルに削除できるメタデータがない場合や、Redact が作成済みのコピーである場合にお知らせします。</string>
-    <string name="already_clean_dialog_title">すでにクリーンに見えるファイル</string>
+    <string name="already_clean_dialog_title">ファイルはすでにクリーンに見えます</string>
     <plurals name="already_clean_dialog_message_some">
         <item quantity="other">選択した %2$d 件のうち %1$d 件は、削除できるメタデータが残っていないか、Redact がすでに作成したコピーです。もう一度クリーンしても、別のコピーが増えるだけです。それらをスキップしますか？それとも %2$d 件すべてをクリーンしますか？</item>
     </plurals>

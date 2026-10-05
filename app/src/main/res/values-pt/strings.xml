@@ -365,7 +365,7 @@ Ative apenas se quiser manter a localização de propósito.</string>
 
     <string name="settings_warn_already_clean">Avisar sobre arquivos já limpos</string>
     <string name="settings_warn_already_clean_subtitle">Antes de limpar, avisa quando os arquivos selecionados não têm metadados para remover ou são cópias que o Redact já fez.</string>
-    <string name="already_clean_dialog_title">Arquivos que já parecem limpos</string>
+    <string name="already_clean_dialog_title">Os arquivos já parecem limpos</string>
     <plurals name="already_clean_dialog_message_some">
         <item quantity="one">%1$d dos %2$d arquivos selecionados não tem mais metadados a remover ou é uma cópia que o Redact já fez. Limpá-lo de novo só criaria outra cópia. Ignorá-lo ou limpar todos os %2$d mesmo assim?</item>
         <item quantity="many">%1$d dos %2$d arquivos selecionados não têm mais metadados a remover ou são cópias que o Redact já fez. Limpá-los de novo só criaria mais cópias. Ignorá-los ou limpar todos os %2$d mesmo assim?</item>

@@ -365,7 +365,7 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
 
     <string name="settings_warn_already_clean">Avvisa per i file già puliti</string>
     <string name="settings_warn_already_clean_subtitle">Prima della pulizia, avvisa quando i file selezionati non hanno metadati da rimuovere o sono copie già create da Redact.</string>
-    <string name="already_clean_dialog_title">File che sembrano già puliti</string>
+    <string name="already_clean_dialog_title">I file sembrano già puliti</string>
     <plurals name="already_clean_dialog_message_some">
         <item quantity="one">%1$d dei %2$d file selezionati non ha più metadati da rimuovere oppure è una copia già creata da Redact. Pulirlo di nuovo creerebbe solo un\'altra copia. Ignorarlo o pulire comunque tutti e %2$d?</item>
         <item quantity="many">%1$d dei %2$d file selezionati non hanno più metadati da rimuovere oppure sono copie già create da Redact. Pulirli di nuovo creerebbe solo altre copie. Ignorarli o pulire comunque tutti e %2$d?</item>

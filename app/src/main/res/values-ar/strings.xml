@@ -371,7 +371,7 @@
 
     <string name="settings_warn_already_clean">التحذير من الملفات النظيفة بالفعل</string>
     <string name="settings_warn_already_clean_subtitle">قبل التنظيف، يتم إعلامك عندما لا تحتوي الملفات المحددة على بيانات وصفية لإزالتها أو تكون نسخًا أنشأها Redact سابقًا.</string>
-    <string name="already_clean_dialog_title">ملفات تبدو نظيفة بالفعل</string>
+    <string name="already_clean_dialog_title">الملفات تبدو نظيفة بالفعل</string>
     <plurals name="already_clean_dialog_message_some">
         <item quantity="zero">%1$d من أصل %2$d ملفات محددة لم يعد فيها بيانات وصفية لإزالتها أو هي نسخ أنشأها Redact بالفعل. إعادة تنظيفها ستنتج نسخًا أخرى فقط. هل تتخطاها أم تنظّف جميع الملفات الـ %2$d على أي حال؟</item>
         <item quantity="one">ملف واحد من أصل %2$d ملفات محددة لم يعد فيه بيانات وصفية لإزالتها أو هو نسخة أنشأها Redact بالفعل. إعادة تنظيفه ستنتج نسخة أخرى فقط. هل تتخطاه أم تنظّف جميع الملفات الـ %2$d على أي حال؟</item>

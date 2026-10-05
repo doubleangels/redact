@@ -368,7 +368,7 @@
 
     <string name="settings_warn_already_clean">Warn About Already-Clean Files</string>
     <string name="settings_warn_already_clean_subtitle">Before cleaning, tell me when selected files have no metadata to remove or are copies Redact already made.</string>
-    <string name="already_clean_dialog_title">Files That Look Clean Already</string>
+    <string name="already_clean_dialog_title">Files Look Clean Already</string>
     <plurals name="already_clean_dialog_message_some">
         <item quantity="one">%1$d of the %2$d selected files has no metadata left to remove, or is a copy Redact already made. Cleaning it again would only make another copy. Skip it, or clean all %2$d anyway?</item>
         <item quantity="other">%1$d of the %2$d selected files have no metadata left to remove, or are copies Redact already made. Cleaning them again would only make more copies. Skip them, or clean all %2$d anyway?</item>
