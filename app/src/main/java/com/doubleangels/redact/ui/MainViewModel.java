@@ -94,6 +94,8 @@ public class MainViewModel extends AndroidViewModel {
 
     private final AtomicInteger convertGeneration;
 
+    private final AtomicBoolean convertTimedOut;
+
     private final AtomicInteger cleanGeneration;
 
     private final ProgressUpdateThrottler convertProgressThrottler = new ProgressUpdateThrottler();
@@ -129,6 +131,7 @@ public class MainViewModel extends AndroidViewModel {
         convertExecutor = processingScope.convertExecutor();
         convertInProgress = processingScope.convertInProgress();
         convertGeneration = processingScope.convertGeneration();
+        convertTimedOut = processingScope.convertTimedOut();
         cleanGeneration = processingScope.cleanGeneration();
 
         restorePersistedProcessingState();
@@ -703,6 +706,8 @@ public class MainViewModel extends AndroidViewModel {
 
         }
 
+        convertTimedOut.set(false);
+
         final int total = items.size();
 
         convertBatchTotalCount.setValue(total);
@@ -731,6 +736,7 @@ public class MainViewModel extends AndroidViewModel {
                 for (int i = 0; i < total; i++) {
 
                     if (Thread.currentThread().isInterrupted()
+                            || convertTimedOut.get()
                             || runGeneration != convertGeneration.get()) {
                         break;
                     }
@@ -847,6 +853,7 @@ public class MainViewModel extends AndroidViewModel {
                     } catch (Exception e) {
 
                         boolean cancelled = Thread.currentThread().isInterrupted()
+                                || convertTimedOut.get()
                                 || runGeneration != convertGeneration.get()
                                 || SentryManager.isUserCancellation(e);
                         if (cancelled) {
@@ -886,6 +893,7 @@ public class MainViewModel extends AndroidViewModel {
                 final int capturedGeneration = runGeneration;
                 final boolean interrupted =
                         Thread.currentThread().isInterrupted()
+                                || convertTimedOut.get()
                                 || capturedGeneration != convertGeneration.get();
                 convertInProgress.set(false);
                 mainHandler.post(() -> {

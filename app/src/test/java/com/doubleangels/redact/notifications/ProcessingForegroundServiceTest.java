@@ -149,8 +149,11 @@ public class ProcessingForegroundServiceTest {
 
         controller.get().onTimeout(1, 0);
 
-        assertFalse(scope.convertInProgress().get());
-        assertEquals(generation + 1, scope.convertGeneration().get());
+        // The convert loop reacts to the flag and clears convertInProgress itself; the generation is
+        // left alone so that loop can still report CANCELLED (see MainViewModelSuccessFlowTest).
+        assertTrue(scope.convertTimedOut().get());
+        assertTrue(scope.convertInProgress().get());
+        assertEquals(generation, scope.convertGeneration().get());
         assertTrue(shadowOf(controller.get()).isStoppedBySelf());
     }
 

@@ -171,9 +171,10 @@ public class ProcessingForegroundService extends Service {
         com.doubleangels.redact.media.AppProcessingScope scope =
                 com.doubleangels.redact.media.AppProcessingScope.get(getApplicationContext());
         scope.mediaProcessor().cancel();
-        // Same signal MainViewModel's cancel uses: the Convert loop bails when its generation moves.
-        scope.convertGeneration().incrementAndGet();
-        scope.convertInProgress().set(false);
+        // The Convert loop notices this, stops, and reports CANCELLED itself (it clears
+        // convertInProgress when it ends). Moving the generation here would make it skip that
+        // final update and leave the UI stuck on "Cancel".
+        scope.convertTimedOut().set(true);
         com.doubleangels.redact.media.VideoMedia3Converter.cancelActiveTranscode();
         stopForeground(STOP_FOREGROUND_REMOVE);
         stopSelf();

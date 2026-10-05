@@ -19,13 +19,16 @@ import com.doubleangels.redact.R;
 import com.doubleangels.redact.ShareHandlerActivity;
 import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.MediaItem;
+import com.doubleangels.redact.notifications.ProcessingForegroundService;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.android.controller.ServiceController;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
@@ -36,6 +39,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 
@@ -193,6 +197,38 @@ public class MainViewModelSuccessFlowTest {
         vm.startConversion(Arrays.asList(missing("a.jpg")), 0, 0, Bitmap.CompressFormat.JPEG);
         assertEquals(app.getString(R.string.status_already_processing), vm.getConvertProgressMessage().getValue());
         assertEquals(MainViewModel.ProcessingState.IDLE, vm.getConvertProcessingState().getValue());
+    }
+
+    @Test
+    public void converting_whenTheForegroundServiceTimesOut_endsCancelledInsteadOfStayingBusy() throws Exception {
+        // Hold the single convert worker so the timeout lands before the loop starts.
+        CountDownLatch release = new CountDownLatch(1);
+        AppProcessingScope.get(app).convertExecutor().execute(() -> {
+            try {
+                release.await();
+            } catch (InterruptedException ignored) {
+                Thread.currentThread().interrupt();
+            }
+        });
+        vm.startConversion(Arrays.asList(jpeg("a.jpg"), jpeg("b.jpg"), jpeg("c.jpg")), 1, 1, Bitmap.CompressFormat.PNG);
+        assertEquals(MainViewModel.ProcessingState.PROCESSING, vm.getConvertProcessingState().getValue());
+
+        ServiceController<ProcessingForegroundService> service =
+                Robolectric.buildService(ProcessingForegroundService.class).create();
+        service.get().onTimeout(1, 0);
+        release.countDown();
+
+        awaitMain(() -> vm.getConvertProcessingState().getValue() != MainViewModel.ProcessingState.PROCESSING);
+        assertEquals(MainViewModel.ProcessingState.CANCELLED, vm.getConvertProcessingState().getValue());
+        assertEquals(app.getString(R.string.status_processing_cancelled), vm.getConvertProgressMessage().getValue());
+        assertFalse(AppProcessingScope.get(app).convertInProgress().get());
+        assertFalse("the batch must not run after the timeout", vm.isProcessingActive());
+        assertTrue(FakeMediaStoreProvider.entries().isEmpty());
+
+        // A later batch is not affected by the earlier timeout.
+        vm.startConversion(Arrays.asList(jpeg("d.jpg")), 1, 1, Bitmap.CompressFormat.PNG);
+        awaitMain(() -> vm.getConvertProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED);
+        assertEquals(Integer.valueOf(1), vm.getConvertProcessedItemCount().getValue());
     }
 
     @Test
