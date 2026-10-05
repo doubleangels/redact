@@ -362,14 +362,14 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
 
     <string name="settings_warn_already_clean">Vor bereits bereinigten Dateien warnen</string>
     <string name="settings_warn_already_clean_subtitle">Vor dem Bereinigen Bescheid geben, wenn ausgewählte Dateien keine Metadaten enthalten oder von Redact bereits erstellte Kopien sind.</string>
-    <string name="already_clean_dialog_title">Schon bereinigt?</string>
+    <string name="already_clean_dialog_title">Dateien, die schon sauber wirken</string>
     <plurals name="already_clean_dialog_message_some">
-        <item quantity="one">%1$d von %2$d ausgewählten Dateien wirkt bereits sauber: Sie enthält keine Metadaten oder ist eine frühere Kopie von Redact. Überspringen oder trotzdem alles bereinigen?</item>
-        <item quantity="other">%1$d von %2$d ausgewählten Dateien wirken bereits sauber: Sie enthalten keine Metadaten oder sind frühere Kopien von Redact. Überspringen oder trotzdem alles bereinigen?</item>
+        <item quantity="one">%1$d der %2$d ausgewählten Dateien enthält keine Metadaten mehr zum Entfernen oder ist eine Kopie, die Redact bereits erstellt hat. Erneutes Bereinigen würde nur eine weitere Kopie erzeugen. Überspringen oder trotzdem alle %2$d bereinigen?</item>
+        <item quantity="other">%1$d der %2$d ausgewählten Dateien enthalten keine Metadaten mehr zum Entfernen oder sind Kopien, die Redact bereits erstellt hat. Erneutes Bereinigen würde nur weitere Kopien erzeugen. Überspringen oder trotzdem alle %2$d bereinigen?</item>
     </plurals>
     <plurals name="already_clean_dialog_message_all">
-        <item quantity="one">Diese Datei wirkt bereits sauber: Sie enthält keine Metadaten oder ist eine frühere Kopie von Redact.</item>
-        <item quantity="other">Diese %1$d Dateien wirken bereits sauber: Sie enthalten keine Metadaten oder sind frühere Kopien von Redact.</item>
+        <item quantity="one">Diese Datei enthält keine Metadaten mehr zum Entfernen oder ist eine Kopie, die Redact bereits erstellt hat. Erneutes Bereinigen würde nur eine weitere Kopie erzeugen.</item>
+        <item quantity="other">Diese %1$d Dateien enthalten keine Metadaten mehr zum Entfernen oder sind Kopien, die Redact bereits erstellt hat. Erneutes Bereinigen würde nur weitere Kopien erzeugen.</item>
     </plurals>
     <string name="already_clean_skip">Diese überspringen</string>
     <string name="already_clean_clean_all">Alle bereinigen</string>

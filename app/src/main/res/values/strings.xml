@@ -368,14 +368,14 @@
 
     <string name="settings_warn_already_clean">Warn About Already-Clean Files</string>
     <string name="settings_warn_already_clean_subtitle">Before cleaning, tell me when selected files have no metadata to remove or are copies Redact already made.</string>
-    <string name="already_clean_dialog_title">Already clean?</string>
+    <string name="already_clean_dialog_title">Files that look clean already</string>
     <plurals name="already_clean_dialog_message_some">
-        <item quantity="one">%1$d of %2$d selected files looks clean already: it has no metadata to remove, or it is a copy Redact made earlier. Skip it, or clean everything anyway?</item>
-        <item quantity="other">%1$d of %2$d selected files look clean already: they have no metadata to remove, or they are copies Redact made earlier. Skip them, or clean everything anyway?</item>
+        <item quantity="one">%1$d of the %2$d selected files has no metadata left to remove, or is a copy Redact already made. Cleaning it again would only make another copy. Skip it, or clean all %2$d anyway?</item>
+        <item quantity="other">%1$d of the %2$d selected files have no metadata left to remove, or are copies Redact already made. Cleaning them again would only make more copies. Skip them, or clean all %2$d anyway?</item>
     </plurals>
     <plurals name="already_clean_dialog_message_all">
-        <item quantity="one">This file looks clean already: it has no metadata to remove, or it is a copy Redact made earlier.</item>
-        <item quantity="other">These %1$d files look clean already: they have no metadata to remove, or they are copies Redact made earlier.</item>
+        <item quantity="one">This file has no metadata left to remove, or is a copy Redact already made. Cleaning it again would only make another copy.</item>
+        <item quantity="other">These %1$d files have no metadata left to remove, or are copies Redact already made. Cleaning them again would only make more copies.</item>
     </plurals>
     <string name="already_clean_skip">Skip Those</string>
     <string name="already_clean_clean_all">Clean All</string>

@@ -365,16 +365,16 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
 
     <string name="settings_warn_already_clean">Avvisa per i file già puliti</string>
     <string name="settings_warn_already_clean_subtitle">Prima della pulizia, avvisa quando i file selezionati non hanno metadati da rimuovere o sono copie già create da Redact.</string>
-    <string name="already_clean_dialog_title">Già pulito?</string>
+    <string name="already_clean_dialog_title">File che sembrano già puliti</string>
     <plurals name="already_clean_dialog_message_some">
-        <item quantity="one">%1$d file selezionato su %2$d sembra già pulito: non ha metadati da rimuovere o è una copia creata in precedenza da Redact. Ignorarlo o pulire tutto comunque?</item>
-        <item quantity="many">%1$d file selezionati su %2$d sembrano già puliti: non hanno metadati da rimuovere o sono copie create in precedenza da Redact. Ignorarli o pulire tutto comunque?</item>
-        <item quantity="other">%1$d file selezionati su %2$d sembrano già puliti: non hanno metadati da rimuovere o sono copie create in precedenza da Redact. Ignorarli o pulire tutto comunque?</item>
+        <item quantity="one">%1$d dei %2$d file selezionati non ha più metadati da rimuovere oppure è una copia già creata da Redact. Pulirlo di nuovo creerebbe solo un\'altra copia. Ignorarlo o pulire comunque tutti e %2$d?</item>
+        <item quantity="many">%1$d dei %2$d file selezionati non hanno più metadati da rimuovere oppure sono copie già create da Redact. Pulirli di nuovo creerebbe solo altre copie. Ignorarli o pulire comunque tutti e %2$d?</item>
+        <item quantity="other">%1$d dei %2$d file selezionati non hanno più metadati da rimuovere oppure sono copie già create da Redact. Pulirli di nuovo creerebbe solo altre copie. Ignorarli o pulire comunque tutti e %2$d?</item>
     </plurals>
     <plurals name="already_clean_dialog_message_all">
-        <item quantity="one">Questo file sembra già pulito: non ha metadati da rimuovere o è una copia creata in precedenza da Redact.</item>
-        <item quantity="many">Questi %1$d file sembrano già puliti: non hanno metadati da rimuovere o sono copie create in precedenza da Redact.</item>
-        <item quantity="other">Questi %1$d file sembrano già puliti: non hanno metadati da rimuovere o sono copie create in precedenza da Redact.</item>
+        <item quantity="one">Questo file non ha più metadati da rimuovere oppure è una copia già creata da Redact. Pulirlo di nuovo creerebbe solo un\'altra copia.</item>
+        <item quantity="many">Questi %1$d file non hanno più metadati da rimuovere oppure sono copie già create da Redact. Pulirli di nuovo creerebbe solo altre copie.</item>
+        <item quantity="other">Questi %1$d file non hanno più metadati da rimuovere oppure sono copie già create da Redact. Pulirli di nuovo creerebbe solo altre copie.</item>
     </plurals>
     <string name="already_clean_skip">Ignorali</string>
     <string name="already_clean_clean_all">Pulisci tutto</string>

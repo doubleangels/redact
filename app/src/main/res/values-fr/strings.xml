@@ -365,16 +365,16 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
 
     <string name="settings_warn_already_clean">Avertir pour les fichiers déjà propres</string>
     <string name="settings_warn_already_clean_subtitle">Avant le nettoyage, prévient quand des fichiers sélectionnés n\'ont aucune métadonnée à supprimer ou sont des copies déjà créées par Redact.</string>
-    <string name="already_clean_dialog_title">Déjà propre ?</string>
+    <string name="already_clean_dialog_title">Fichiers qui semblent déjà propres</string>
     <plurals name="already_clean_dialog_message_some">
-        <item quantity="one">%1$d fichier sélectionné sur %2$d semble déjà propre : il n\'a aucune métadonnée à supprimer ou c\'est une copie créée plus tôt par Redact. L\'ignorer ou tout nettoyer quand même ?</item>
-        <item quantity="many">%1$d fichiers sélectionnés sur %2$d semblent déjà propres : ils n\'ont aucune métadonnée à supprimer ou ce sont des copies créées plus tôt par Redact. Les ignorer ou tout nettoyer quand même ?</item>
-        <item quantity="other">%1$d fichiers sélectionnés sur %2$d semblent déjà propres : ils n\'ont aucune métadonnée à supprimer ou ce sont des copies créées plus tôt par Redact. Les ignorer ou tout nettoyer quand même ?</item>
+        <item quantity="one">%1$d fichier sur les %2$d sélectionnés n\'a plus de métadonnées à supprimer ou est une copie déjà créée par Redact. Le nettoyer à nouveau ne ferait que créer une autre copie. L\'ignorer ou nettoyer les %2$d quand même ?</item>
+        <item quantity="many">%1$d fichiers sur les %2$d sélectionnés n\'ont plus de métadonnées à supprimer ou sont des copies déjà créées par Redact. Les nettoyer à nouveau ne ferait que créer d\'autres copies. Les ignorer ou nettoyer les %2$d quand même ?</item>
+        <item quantity="other">%1$d fichiers sur les %2$d sélectionnés n\'ont plus de métadonnées à supprimer ou sont des copies déjà créées par Redact. Les nettoyer à nouveau ne ferait que créer d\'autres copies. Les ignorer ou nettoyer les %2$d quand même ?</item>
     </plurals>
     <plurals name="already_clean_dialog_message_all">
-        <item quantity="one">Ce fichier (%1$d) semble déjà propre : il n\'a aucune métadonnée à supprimer ou c\'est une copie créée plus tôt par Redact.</item>
-        <item quantity="many">Ces %1$d fichiers semblent déjà propres : ils n\'ont aucune métadonnée à supprimer ou ce sont des copies créées plus tôt par Redact.</item>
-        <item quantity="other">Ces %1$d fichiers semblent déjà propres : ils n\'ont aucune métadonnée à supprimer ou ce sont des copies créées plus tôt par Redact.</item>
+        <item quantity="one">Ce fichier (%1$d) n\'a plus de métadonnées à supprimer ou est une copie déjà créée par Redact. Le nettoyer à nouveau ne ferait que créer une autre copie.</item>
+        <item quantity="many">Ces %1$d fichiers n\'ont plus de métadonnées à supprimer ou sont des copies déjà créées par Redact. Les nettoyer à nouveau ne ferait que créer d\'autres copies.</item>
+        <item quantity="other">Ces %1$d fichiers n\'ont plus de métadonnées à supprimer ou sont des copies déjà créées par Redact. Les nettoyer à nouveau ne ferait que créer d\'autres copies.</item>
     </plurals>
     <string name="already_clean_skip">Les ignorer</string>
     <string name="already_clean_clean_all">Tout nettoyer</string>
