@@ -121,6 +121,7 @@ dependencies {
     implementation libs.commons.imaging
     implementation libs.lifecycle.viewmodel.ktx
     implementation libs.profileinstaller
+    implementation libs.core.splashscreen
     baselineProfile project(':baselineprofile')
 
     testImplementation libs.junit
