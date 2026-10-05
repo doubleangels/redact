@@ -334,7 +334,7 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="clean_clear_selection">Borrar</string>
     <string name="convert_clear_selection">Borrar</string>
     <string name="clean_empty_state_title">Limpiar y eliminar metadatos</string>
-    <string name="clean_empty_state_description">Selecciona fotos o videos para eliminar las etiquetas EXIF, la ubicación GPS, los datos de la cámara y los identificadores del dispositivo.</string>
+    <string name="clean_empty_state_description">Selecciona fotos o videos para eliminar las etiquetas EXIF, la ubicación GPS, los datos de la cámara y los identificadores del dispositivo. También puedes compartirlos directamente con Redact desde cualquier app.</string>
     <string name="clean_selected_hint">Listo para eliminar los datos EXIF y de ubicación.</string>
     <string name="convert_empty_state_title">Convertir formatos multimedia</string>
     <string name="convert_empty_state_description">Selecciona fotos o videos para convertirlos a los formatos JPEG, PNG, WebP, HEIC o MP4.</string>

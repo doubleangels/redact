@@ -334,7 +334,7 @@
     <string name="clean_clear_selection">Сбросить</string>
     <string name="convert_clear_selection">Сбросить</string>
     <string name="clean_empty_state_title">Очистка и удаление метаданных</string>
-    <string name="clean_empty_state_description">Выберите фото или видео, чтобы удалить теги EXIF, геопозицию GPS, сведения о камере и идентификаторы устройства.</string>
+    <string name="clean_empty_state_description">Выберите фото или видео, чтобы удалить теги EXIF, геопозицию GPS, сведения о камере и идентификаторы устройства. Также можно поделиться ими с Redact прямо из любого приложения.</string>
     <string name="clean_selected_hint">Готово к удалению данных EXIF и местоположения.</string>
     <string name="convert_empty_state_title">Конвертация форматов мультимедиа</string>
     <string name="convert_empty_state_description">Выберите фото или видео, чтобы конвертировать их в форматы JPEG, PNG, WebP, HEIC или MP4.</string>

@@ -334,7 +334,7 @@
     <string name="clean_clear_selection">지우기</string>
     <string name="convert_clear_selection">지우기</string>
     <string name="clean_empty_state_title">메타데이터 정리 및 제거</string>
-    <string name="clean_empty_state_description">사진이나 동영상을 선택해 EXIF 태그, GPS 위치, 카메라 정보, 기기 식별자를 제거하세요.</string>
+    <string name="clean_empty_state_description">사진이나 동영상을 선택해 EXIF 태그, GPS 위치, 카메라 정보, 기기 식별자를 제거하세요. 어떤 앱에서든 Redact로 바로 공유할 수도 있습니다.</string>
     <string name="clean_selected_hint">EXIF 및 위치 데이터를 제거할 준비가 되었습니다.</string>
     <string name="convert_empty_state_title">미디어 형식 변환</string>
     <string name="convert_empty_state_description">사진이나 동영상을 선택해 JPEG, PNG, WebP, HEIC 또는 MP4 형식으로 변환하세요.</string>

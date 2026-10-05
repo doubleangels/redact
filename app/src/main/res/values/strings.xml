@@ -241,7 +241,7 @@
     <string name="scan_grant_location_button">Grant Permission</string>
 
     <string name="clean_empty_state_title">Clean &amp; Strip Metadata</string>
-    <string name="clean_empty_state_description">Select photos or videos to remove EXIF tags, GPS location, camera details, and device identifiers.</string>
+    <string name="clean_empty_state_description">Select photos or videos to remove EXIF tags, GPS location, camera details, and device identifiers. You can also share them straight to Redact from any app.</string>
     <string name="clean_selected_hint">Ready to strip EXIF and location data.</string>
     <string name="clean_clear_selection">Clear</string>
 

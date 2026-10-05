@@ -334,7 +334,7 @@
     <string name="clean_clear_selection">مسح</string>
     <string name="convert_clear_selection">مسح</string>
     <string name="clean_empty_state_title">تنظيف البيانات الوصفية وإزالتها</string>
-    <string name="clean_empty_state_description">حدّد صورًا أو مقاطع فيديو لإزالة وسوم EXIF وموقع GPS وتفاصيل الكاميرا ومعرّفات الجهاز.</string>
+    <string name="clean_empty_state_description">حدّد صورًا أو مقاطع فيديو لإزالة وسوم EXIF وموقع GPS وتفاصيل الكاميرا ومعرّفات الجهاز. يمكنك أيضًا مشاركتها مباشرةً إلى Redact من أي تطبيق.</string>
     <string name="clean_selected_hint">جاهز لإزالة بيانات EXIF والموقع.</string>
     <string name="convert_empty_state_title">تحويل صيغ الوسائط</string>
     <string name="convert_empty_state_description">حدّد صورًا أو مقاطع فيديو لتحويلها إلى صيغ JPEG وPNG وWebP وHEIC أو MP4.</string>

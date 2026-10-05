@@ -334,7 +334,7 @@
     <string name="clean_clear_selection">साफ़ करें</string>
     <string name="convert_clear_selection">साफ़ करें</string>
     <string name="clean_empty_state_title">मेटाडेटा साफ़ करें और हटाएँ</string>
-    <string name="clean_empty_state_description">EXIF टैग, GPS स्थान, कैमरा विवरण और डिवाइस पहचानकर्ता हटाने के लिए फ़ोटो या वीडियो चुनें।</string>
+    <string name="clean_empty_state_description">EXIF टैग, GPS स्थान, कैमरा विवरण और डिवाइस पहचानकर्ता हटाने के लिए फ़ोटो या वीडियो चुनें। आप किसी भी ऐप से उन्हें सीधे Redact पर शेयर भी कर सकते हैं।</string>
     <string name="clean_selected_hint">EXIF और स्थान डेटा हटाने के लिए तैयार।</string>
     <string name="convert_empty_state_title">मीडिया फ़ॉर्मैट बदलें</string>
     <string name="convert_empty_state_description">फ़ोटो या वीडियो को JPEG, PNG, WebP, HEIC या MP4 फ़ॉर्मैट में बदलने के लिए चुनें।</string>

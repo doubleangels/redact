@@ -333,7 +333,7 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="clean_clear_selection">Leeren</string>
     <string name="convert_clear_selection">Leeren</string>
     <string name="clean_empty_state_title">Metadaten bereinigen und entfernen</string>
-    <string name="clean_empty_state_description">Fotos oder Videos auswählen, um EXIF-Tags, GPS-Standort, Kameradetails und Gerätekennungen zu entfernen.</string>
+    <string name="clean_empty_state_description">Fotos oder Videos auswählen, um EXIF-Tags, GPS-Standort, Kameradetails und Gerätekennungen zu entfernen. Du kannst sie auch direkt aus jeder App mit Redact teilen.</string>
     <string name="clean_selected_hint">Bereit, EXIF- und Standortdaten zu entfernen.</string>
     <string name="convert_empty_state_title">Medienformate konvertieren</string>
     <string name="convert_empty_state_description">Fotos oder Videos auswählen, um sie in die Formate JPEG, PNG, WebP, HEIC oder MP4 zu konvertieren.</string>

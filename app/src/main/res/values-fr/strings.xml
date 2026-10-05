@@ -334,7 +334,7 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="clean_clear_selection">Effacer</string>
     <string name="convert_clear_selection">Effacer</string>
     <string name="clean_empty_state_title">Nettoyer et supprimer les métadonnées</string>
-    <string name="clean_empty_state_description">Sélectionnez des photos ou des vidéos pour supprimer les balises EXIF, la position GPS, les détails de l’appareil photo et les identifiants de l’appareil.</string>
+    <string name="clean_empty_state_description">Sélectionnez des photos ou des vidéos pour supprimer les balises EXIF, la position GPS, les détails de l’appareil photo et les identifiants de l’appareil. Vous pouvez aussi les partager directement vers Redact depuis n’importe quelle appli.</string>
     <string name="clean_selected_hint">Prêt à supprimer les données EXIF et de localisation.</string>
     <string name="convert_empty_state_title">Convertir les formats multimédias</string>
     <string name="convert_empty_state_description">Sélectionnez des photos ou des vidéos pour les convertir aux formats JPEG, PNG, WebP, HEIC ou MP4.</string>

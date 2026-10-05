@@ -335,7 +335,7 @@
     <string name="clean_clear_selection">クリア</string>
     <string name="convert_clear_selection">クリア</string>
     <string name="clean_empty_state_title">メタデータのクリーンと削除</string>
-    <string name="clean_empty_state_description">写真や動画を選択して、EXIFタグ、GPS位置情報、カメラの詳細、デバイス識別子を削除します。</string>
+    <string name="clean_empty_state_description">写真や動画を選択して、EXIFタグ、GPS位置情報、カメラの詳細、デバイス識別子を削除します。どのアプリからでも、Redact に直接共有することもできます。</string>
     <string name="clean_selected_hint">EXIFと位置情報を削除する準備ができました。</string>
     <string name="convert_empty_state_title">メディア形式の変換</string>
     <string name="convert_empty_state_description">写真や動画を選択して、JPEG、PNG、WebP、HEIC、MP4形式に変換します。</string>
