@@ -1,0 +1,58 @@
+name: Publish Privacy Policy
+
+# Publishes legal/redact.html to doubleangels/privacypolicy on every change,
+# keeping it live at the URL baked into strings.xml and the Play Console.
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - legal/redact.html
+      - legal/assets/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-privacy
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout redact
+        uses: actions/checkout@v7.0.1
+        with:
+          sparse-checkout: |
+            legal
+          sparse-checkout-cone-mode: true
+          persist-credentials: false
+
+      - name: Checkout privacypolicy
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: doubleangels/privacypolicy
+          token: ${{ secrets.PRIVACYPOLICY_DEPLOY_TOKEN }}
+          path: privacypolicy
+
+      - name: Copy published files
+        run: |
+          cp legal/redact.html privacypolicy/redact.html
+          mkdir -p privacypolicy/assets
+          cp legal/assets/redact-icon.png privacypolicy/assets/redact-icon.png
+
+      - name: Commit and push if changed
+        working-directory: privacypolicy
+        run: |
+          git config user.name "redact-privacy-sync[bot]"
+          git config user.email "actions@users.noreply.github.com"
+          git add redact.html assets/redact-icon.png
+          if git diff --cached --quiet; then
+            echo "No changes to publish."
+            exit 0
+          fi
+          git commit -m "Sync redact.html from doubleangels/redact@${GITHUB_SHA}"
+          git push origin main
