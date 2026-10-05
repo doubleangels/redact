@@ -167,7 +167,7 @@ public class ProcessingForegroundService extends Service {
     @Override
     public void onTimeout(int startId, int fgsType) {
         com.doubleangels.redact.sentry.SentryManager.log(
-                "ProcessingForegroundService hit the Android background execution time limit");
+                "The ProcessingForegroundService hit the Android background execution time limit.");
         com.doubleangels.redact.media.AppProcessingScope scope =
                 com.doubleangels.redact.media.AppProcessingScope.get(getApplicationContext());
         scope.mediaProcessor().cancel();

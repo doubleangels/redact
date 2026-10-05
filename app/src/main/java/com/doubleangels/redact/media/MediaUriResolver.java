@@ -69,7 +69,7 @@ public final class MediaUriResolver {
                     return mediaUri;
                 }
             } catch (Exception e) {
-                SentryManager.log("MediaStore.getMediaUri failed: " + e.getMessage());
+                SentryManager.log("The MediaStore.getMediaUri call failed: " + e.getMessage() + ".");
             }
         }
         if (!isPhotoPickerUri(uri)) {
@@ -79,7 +79,7 @@ public final class MediaUriResolver {
         try {
             mimeType = context.getContentResolver().getType(uri);
         } catch (Exception e) {
-            SentryManager.log("Failed to resolve picker MIME type: " + e.getMessage());
+            SentryManager.log("The picker MIME type failed to resolve: " + e.getMessage() + ".");
         }
         boolean isVideo = MediaSelector.isVideoFromMimeAndName(mimeType, uri.getLastPathSegment());
 
@@ -126,7 +126,7 @@ public final class MediaUriResolver {
                 null, null, null)) {
             return cursor != null && cursor.moveToFirst();
         } catch (Exception e) {
-            SentryManager.log("MediaStore URI probe failed: " + e.getMessage());
+            SentryManager.log("The MediaStore URI probe failed: " + e.getMessage() + ".");
             return false;
         }
     }

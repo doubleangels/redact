@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
             setupStatusBarColors();
             setupVersionNumber();
 
-            SentryManager.logEvent("lifecycle", "MainActivity created");
+            SentryManager.logEvent("lifecycle", "The MainActivity was created.");
 
             // Tells Play vitals / Macrobenchmark when the first screen is usable.
             getWindow().getDecorView().post(this::reportFullyDrawn);
@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
             bottomNavigationView.setOnItemSelectedListener(item -> {
                 try {
                     int itemId = item.getItemId();
-                    SentryManager.logEvent("navigation", "Tab selected");
+                    SentryManager.logEvent("navigation", "The user selected a tab.");
                     Fragment target = ensureFragmentForTab(itemId);
                     if (target == null) {
                         return false;
@@ -236,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
                     SentryManager.setCustomKey("theme_mode", "light");
                 }
             } else {
-                SentryManager.logEvent("ui", "Insets controller is null");
+                SentryManager.logEvent("ui", "The insets controller is null.");
             }
         } catch (Exception e) {
             SentryManager.recordException(e);
@@ -324,7 +324,7 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         try {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-            SentryManager.logEvent("permission", "Permission result received");
+            SentryManager.logEvent("permission", "The app received a permission result.");
             SentryManager.setCustomKey("permission_request_code", requestCode);
 
             com.doubleangels.redact.permission.PermissionManager.storeActivityPermissionResult(
@@ -352,7 +352,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         try {
             super.onResume();
-            SentryManager.logEvent("lifecycle", "MainActivity resumed");
+            SentryManager.logEvent("lifecycle", "The MainActivity resumed.");
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
@@ -362,7 +362,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         try {
             super.onPause();
-            SentryManager.logEvent("lifecycle", "MainActivity paused");
+            SentryManager.logEvent("lifecycle", "The MainActivity paused.");
         } catch (Exception e) {
             SentryManager.recordException(e);
         }

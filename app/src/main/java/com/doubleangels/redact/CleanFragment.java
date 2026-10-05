@@ -92,7 +92,7 @@ public class CleanFragment extends Fragment {
                                         .show();
                                 uris = MediaPickerContracts.trimToMax(uris, MAX_PICK_ITEMS);
                             }
-                            SentryManager.log("Media selected successfully");
+                            SentryManager.log("Media was selected successfully.");
                             List<MediaItem> items = new ArrayList<>();
                             for (android.net.Uri uri : uris) {
                                 if (mediaSelector != null) {
@@ -102,7 +102,7 @@ public class CleanFragment extends Fragment {
                             SentryManager.setCustomKey("selected_media_count", items.size());
                             viewModel.setSelectedItems(items);
                         } else {
-                            SentryManager.log("Media selection canceled or failed");
+                            SentryManager.log("Media selection was canceled or failed.");
                         }
                     } catch (Exception e) {
                         SentryManager.recordException(e);
@@ -122,7 +122,7 @@ public class CleanFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
-            SentryManager.log("CleanFragment view created");
+            SentryManager.log("The CleanFragment view was created.");
             viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
             setupViews(view);
             initUtilityClasses();
@@ -176,11 +176,11 @@ public class CleanFragment extends Fragment {
                 try {
                     if (viewModel.getCleanProcessingState().getValue()
                             == MainViewModel.ProcessingState.PROCESSING) {
-                        SentryManager.log("Cancel clean requested");
+                        SentryManager.log("The user requested that the clean be cancelled.");
                         viewModel.cancelCleaning();
                         return;
                     }
-                    SentryManager.log("Strip button clicked");
+                    SentryManager.log("The user clicked the Strip button.");
                     List<MediaItem> items = viewModel.getSelectedItems().getValue();
                     if (items != null && !items.isEmpty()) {
                         SentryManager.setCustomKey("processing_items_count", items.size());
@@ -212,7 +212,7 @@ public class CleanFragment extends Fragment {
                             }
                         }).start();
                     } else {
-                        SentryManager.log("No items selected for processing");
+                        SentryManager.log("No items were selected for processing.");
                         uiStateManager.setFirstSelectMediaFilesStatus();
                     }
                 } catch (Exception e) {
@@ -241,7 +241,7 @@ public class CleanFragment extends Fragment {
                         @Override
                         public void onPermissionsGranted() {
                             try {
-                                SentryManager.log("Permissions granted");
+                                SentryManager.log("Permissions were granted.");
                                 SentryManager.setCustomKey("permissions_granted", true);
                                 uiStateManager.setReadyStatus();
                             } catch (Exception e) {
@@ -252,7 +252,7 @@ public class CleanFragment extends Fragment {
                         @Override
                         public void onPermissionsDenied() {
                             try {
-                                SentryManager.log("Permissions denied");
+                                SentryManager.log("Permissions were denied.");
                                 SentryManager.setCustomKey("permissions_granted", false);
                                 if (permissionManager.isMediaPickerAvailable()) {
                                     uiStateManager.setReadyStatus();
@@ -273,7 +273,7 @@ public class CleanFragment extends Fragment {
                         @Override
                         public void onPermissionsRequestStarted() {
                             try {
-                                SentryManager.log("Permission request started");
+                                SentryManager.log("The permission request started.");
                                 uiStateManager.setPermissionRequestingStatus();
                             } catch (Exception e) {
                                 SentryManager.recordException(e);
@@ -379,7 +379,7 @@ public class CleanFragment extends Fragment {
                     SentryManager.setCustomKey("processing_state", state.toString());
                     switch (state) {
                         case PROCESSING:
-                            SentryManager.log("Processing state: PROCESSING");
+                            SentryManager.log("The processing state changed to PROCESSING.");
                             uiStateManager.showProgress(true);
                             uiStateManager.setProcessingStatus();
                             if (selectButton != null) {
@@ -391,7 +391,7 @@ public class CleanFragment extends Fragment {
                             break;
 
                         case CANCELLED:
-                            SentryManager.log("Processing state: CANCELLED");
+                            SentryManager.log("The processing state changed to CANCELLED.");
                             uiStateManager.showProgress(false);
                             uiStateManager.setStatus(getString(R.string.status_processing_cancelled));
                             stripButton.setText(R.string.button_strip_exif_data);
@@ -405,7 +405,7 @@ public class CleanFragment extends Fragment {
                             break;
 
                         case COMPLETED:
-                            SentryManager.log("Processing state: COMPLETED");
+                            SentryManager.log("The processing state changed to COMPLETED.");
                             uiStateManager.showProgress(false);
                             Integer count = viewModel.getCleanProcessedItemCount().getValue();
                             Integer total = viewModel.getCleanBatchTotalCount().getValue();
@@ -428,7 +428,7 @@ public class CleanFragment extends Fragment {
 
                         case IDLE:
                         default:
-                            SentryManager.log("Processing state: IDLE");
+                            SentryManager.log("The processing state changed to IDLE.");
                             uiStateManager.showProgress(false);
                             stripButton.setText(R.string.button_strip_exif_data);
                             stripButton.setIconResource(R.drawable.ic_clean);
@@ -523,7 +523,7 @@ public class CleanFragment extends Fragment {
 
     private void onSelectMediaClicked() {
         try {
-            SentryManager.log("Select media clicked");
+            SentryManager.log("The user clicked Select media.");
             if (viewModel.getCleanProcessingState().getValue()
                     == MainViewModel.ProcessingState.PROCESSING) {
                 return;
@@ -533,10 +533,10 @@ public class CleanFragment extends Fragment {
                 viewModel.setCleanProcessingState(MainViewModel.ProcessingState.IDLE);
             }
             if (permissionManager.shouldRequestStorageBeforePicker()) {
-                SentryManager.log("Requesting permissions");
+                SentryManager.log("The app is requesting permissions.");
                 permissionManager.requestStoragePermission();
             } else {
-                SentryManager.log("Launching media selector");
+                SentryManager.log("The app is launching the media selector.");
                 mediaPickerLauncher.launch(MediaPickerContracts.IMAGE_AND_VIDEO_MIME_TYPES);
             }
         } catch (Exception e) {

@@ -136,7 +136,7 @@ public class MetadataDisplayer {
      * @param callback Callback to receive the extraction result
      */
     public static void extractMetadata(Context context, Uri mediaUri, MetadataCallback callback) {
-        SentryManager.log("Starting metadata extraction");
+        SentryManager.log("The app is starting metadata extraction.");
         SentryManager.setCustomKey("operation_type", "extract_metadata");
 
         cancelActiveScan();
@@ -154,14 +154,14 @@ public class MetadataDisplayer {
                 extractBasicFileInfo(context, mediaUri, metadata);
 
                 if (isVideo) {
-                    SentryManager.log("Extracting video metadata");
+                    SentryManager.log("The app is extracting video metadata.");
                     extractVideoMetadata(context, mediaUri, metadata);
                 } else {
-                    SentryManager.log("Extracting image metadata");
+                    SentryManager.log("The app is extracting image metadata.");
                     extractImageMetadata(context, mediaUri, metadata);
                 }
 
-                SentryManager.log("Metadata extraction completed successfully");
+                SentryManager.log("Metadata extraction completed successfully.");
                 if (isActiveScan(taskRef[0])) {
                     String metadataResult = metadata.toString();
                     deliverOnMain(() -> callback.onMetadataExtracted(metadataResult, isVideo));
@@ -211,7 +211,7 @@ public class MetadataDisplayer {
      * @param callback Callback to receive the sectioned extraction result
      */
     public static void extractSectionedMetadata(Context context, Uri mediaUri, SectionedMetadataCallback callback) {
-        SentryManager.log("Starting sectioned metadata extraction");
+        SentryManager.log("The app is starting sectioned metadata extraction.");
         SentryManager.setCustomKey("operation_type", "extract_sectioned_metadata");
 
         cancelActiveScan();
@@ -236,10 +236,10 @@ public class MetadataDisplayer {
 
                 // Extract either video or image specific metadata
                 if (isVideo) {
-                    SentryManager.log("Extracting video metadata");
+                    SentryManager.log("The app is extracting video metadata.");
                     extractVideoMetadataToMap(context, mediaUri, allMetadata);
                 } else {
-                    SentryManager.log("Extracting image metadata");
+                    SentryManager.log("The app is extracting image metadata.");
                     extractImageMetadataToMap(context, mediaUri, allMetadata);
                 }
 
@@ -288,7 +288,7 @@ public class MetadataDisplayer {
 
                 // Log the number of sections extracted
                 SentryManager.setCustomKey("sections_count", sections.size());
-                SentryManager.log("Sectioned metadata extraction completed successfully");
+                SentryManager.log("Sectioned metadata extraction completed successfully.");
 
                 if (isActiveScan(taskRef[0])) {
                     Map<String, String> sectionsResult = sections;
@@ -379,7 +379,7 @@ public class MetadataDisplayer {
      * @param metadataMap Map to add the extracted information to
      */
     private static void extractBasicFileInfoToMap(Context context, Uri mediaUri, Map<String, String> metadataMap) {
-        SentryManager.log("Extracting basic file info");
+        SentryManager.log("The app is extracting basic file info.");
 
         try {
             ContentResolver contentResolver = context.getContentResolver();
@@ -444,7 +444,7 @@ public class MetadataDisplayer {
      * @param metadata StringBuilder to append the extracted information to
      */
     private static void extractBasicFileInfo(Context context, Uri mediaUri, StringBuilder metadata) {
-        SentryManager.log("Extracting basic file info");
+        SentryManager.log("The app is extracting basic file info.");
 
         try {
             ContentResolver contentResolver = context.getContentResolver();
@@ -499,11 +499,11 @@ public class MetadataDisplayer {
                 metadata.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
             }
 
-            SentryManager.log("Basic file info extracted successfully");
+            SentryManager.log("Basic file info was extracted successfully.");
         } catch (Exception e) {
             // Append error message if extraction fails
             metadata.append(context.getString(R.string.metadata_error_basic_info_generic)).append("\n");
-            SentryManager.log("Error extracting basic file info: " + e.getMessage());
+            SentryManager.log("An error occurred while extracting basic file info: " + e.getMessage() + ".");
             SentryManager.recordException(e);
         }
     }
@@ -517,16 +517,16 @@ public class MetadataDisplayer {
      * @param metadata StringBuilder to append the extracted information to
      */
     private static void extractImageMetadata(Context context, Uri imageUri, StringBuilder metadata) {
-        SentryManager.log("Extracting image metadata");
+        SentryManager.log("The app is extracting image metadata.");
 
         try {
             ExifInterface exifInterface = createImageExifInterface(context, imageUri);
             if (exifInterface == null) {
                 metadata.append(context.getString(R.string.metadata_error_file_open));
-                SentryManager.log("Failed to open input stream for image");
+                SentryManager.log("The input stream for the image failed to open.");
                 return;
             }
-            SentryManager.log("ExifInterface created successfully");
+            SentryManager.log("The ExifInterface was created successfully.");
 
             // Extract and append image properties
             metadata.append("\n").append(context.getString(R.string.metadata_image_properties_header)).append("\n");
@@ -576,7 +576,7 @@ public class MetadataDisplayer {
                         metadata.append(context.getString(R.string.metadata_exposure_time_seconds, exposureValue)).append("\n");
                     }
                 } catch (NumberFormatException e) {
-                    SentryManager.log("Invalid exposure time format: " + exposureTime);
+                    SentryManager.log("The exposure time format is invalid: " + exposureTime + ".");
                     SentryManager.recordException(e);
                 }
             }
@@ -595,7 +595,7 @@ public class MetadataDisplayer {
                     latLong = exifInterface.getLatLong();
                 } catch (SecurityException e) {
                     SentryManager.recordException(e);
-                    SentryManager.log("SecurityException reading lat/long: " + e.getMessage());
+                    SentryManager.log("A SecurityException occurred while reading latitude and longitude: " + e.getMessage() + ".");
                 }
 
                 if (latLong == null || !isUsableMapCoordinate(latLong[0], latLong[1])) {
@@ -621,7 +621,7 @@ public class MetadataDisplayer {
                 try {
                     metadata.append(context.getString(R.string.metadata_orientation, getOrientationString(context, Integer.parseInt(orientation)))).append("\n");
                 } catch (NumberFormatException e) {
-                    SentryManager.log("Invalid orientation format: " + orientation);
+                    SentryManager.log("The orientation format is invalid: " + orientation + ".");
                     SentryManager.recordException(e);
                 }
             }
@@ -633,7 +633,7 @@ public class MetadataDisplayer {
                     metadata.append(context.getString(R.string.metadata_flash,
                             flashFired ? context.getString(R.string.metadata_flash_fired) : context.getString(R.string.metadata_flash_not_fired))).append("\n");
                 } catch (NumberFormatException e) {
-                    SentryManager.log("Invalid flash format: " + flash);
+                    SentryManager.log("The flash format is invalid: " + flash + ".");
                     SentryManager.recordException(e);
                 }
             }
@@ -645,7 +645,7 @@ public class MetadataDisplayer {
                                 context.getString(R.string.metadata_white_balance_manual))).append("\n");
             }
 
-            SentryManager.log("Image metadata extraction completed");
+            SentryManager.log("Image metadata extraction completed.");
 
         } catch (IOException e) {
             // Append error message if extraction fails
@@ -663,13 +663,13 @@ public class MetadataDisplayer {
      * @param metadataMap Map to add all metadata to (will be sorted alphabetically)
      */
     private static void extractImageMetadataToMap(Context context, Uri imageUri, Map<String, String> metadataMap) {
-        SentryManager.log("Extracting image metadata to single map");
+        SentryManager.log("The app is extracting image metadata to a single map.");
         boolean hasLocationPermission = hasMediaLocationPermission(context);
 
         try {
             ExifInterface exifInterface = createImageExifInterface(context, imageUri);
             if (exifInterface == null) {
-                SentryManager.log("Failed to open input stream for image metadata");
+                SentryManager.log("The input stream for image metadata failed to open.");
                 return;
             }
 
@@ -764,7 +764,7 @@ public class MetadataDisplayer {
                     if (!isRedactedGpsRational(gpsLatitude)) {
                         metadataMap.put("GPS_LATITUDE", gpsLatitude);
                     }
-                    SentryManager.log("Failed to convert GPS latitude to decimal: " + e.getMessage());
+                    SentryManager.log("The GPS latitude failed to convert to decimal: " + e.getMessage() + ".");
                 }
             }
 
@@ -779,7 +779,7 @@ public class MetadataDisplayer {
                     if (!isRedactedGpsRational(gpsLongitude)) {
                         metadataMap.put("GPS_LONGITUDE", gpsLongitude);
                     }
-                    SentryManager.log("Failed to convert GPS longitude to decimal: " + e.getMessage());
+                    SentryManager.log("The GPS longitude failed to convert to decimal: " + e.getMessage() + ".");
                 }
             }
             if (hasLocationPermission
@@ -805,7 +805,7 @@ public class MetadataDisplayer {
                 SentryManager.setCustomKey("image_height", height);
             }
 
-            SentryManager.log("Has location permission: " + hasLocationPermission);
+            SentryManager.log("The app has location permission: " + hasLocationPermission + ".");
             SentryManager.setCustomKey("has_location_permission", hasLocationPermission);
 
             if (hasLocationPermission) {
@@ -814,7 +814,7 @@ public class MetadataDisplayer {
                     latLong = exifInterface.getLatLong();
                 } catch (SecurityException e) {
                     SentryManager.recordException(e);
-                    SentryManager.log("SecurityException reading lat/long map: " + e.getMessage());
+                    SentryManager.log("A SecurityException occurred while reading the latitude and longitude map: " + e.getMessage() + ".");
                 }
                 if (latLong == null || latLong.length < 2
                         || !isUsableMapCoordinate(latLong[0], latLong[1])) {
@@ -835,7 +835,7 @@ public class MetadataDisplayer {
                         context.getString(R.string.scan_metadata_truncated));
             }
 
-            SentryManager.log("Image metadata extraction completed");
+            SentryManager.log("Image metadata extraction completed.");
 
         } catch (IOException e) {
             Log.e(TAG, "Error extracting image metadata", e);
@@ -898,14 +898,14 @@ public class MetadataDisplayer {
      * @param metadata StringBuilder to append the extracted information to
      */
     private static void extractVideoMetadata(Context context, Uri videoUri, StringBuilder metadata) {
-        SentryManager.log("Extracting video metadata");
+        SentryManager.log("The app is extracting video metadata.");
 
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
 
         try {
             // Set the data source to the video URI
             retriever.setDataSource(context, videoUri);
-            SentryManager.log("MediaMetadataRetriever data source set successfully");
+            SentryManager.log("The MediaMetadataRetriever data source was set successfully.");
 
             // Extract and append video properties
             metadata.append("\n").append(context.getString(R.string.metadata_video_properties_header)).append("\n");
@@ -929,7 +929,7 @@ public class MetadataDisplayer {
                     }
                     SentryManager.setCustomKey("video_duration_ms", durationMs);
                 } catch (NumberFormatException e) {
-                    SentryManager.log("Invalid duration format: " + duration);
+                    SentryManager.log("The duration format is invalid: " + duration + ".");
                     SentryManager.recordException(e);
                 }
             }
@@ -955,7 +955,7 @@ public class MetadataDisplayer {
                     metadata.append(context.getString(R.string.metadata_bitrate, bitrateValue / 1000)).append("\n");
                     SentryManager.setCustomKey("video_bitrate_kbps", bitrateValue / 1000);
                 } catch (NumberFormatException e) {
-                    SentryManager.log("Invalid bitrate format: " + bitrate);
+                    SentryManager.log("The bitrate format is invalid: " + bitrate + ".");
                     SentryManager.recordException(e);
                 }
             }
@@ -984,7 +984,7 @@ public class MetadataDisplayer {
                     metadata.append(context.getString(R.string.metadata_longitude, lon)).append("\n");
                     SentryManager.setCustomKey("has_location_data", true);
                 } else if (locationRaw != null && !locationRaw.isEmpty()) {
-                    SentryManager.log("Invalid video location format");
+                    SentryManager.log("The video location format is invalid.");
                 } else {
                     metadata.append(context.getString(R.string.metadata_no_location_data)).append("\n");
                     SentryManager.setCustomKey("has_location_data", false);
@@ -1008,7 +1008,7 @@ public class MetadataDisplayer {
                 SentryManager.setCustomKey("audio_sample_rate", audioSampleRate);
             }
 
-            SentryManager.log("Video metadata extraction completed");
+            SentryManager.log("Video metadata extraction completed.");
 
         } catch (Exception e) {
             // Append error message if extraction fails
@@ -1019,10 +1019,10 @@ public class MetadataDisplayer {
             try {
                 // Always release the MediaMetadataRetriever to free resources
                 retriever.release();
-                SentryManager.log("MediaMetadataRetriever released");
+                SentryManager.log("The MediaMetadataRetriever was released.");
             } catch (Exception ignored) {
                 // Ignore exceptions during release
-                SentryManager.log("Exception while releasing MediaMetadataRetriever (ignored)");
+                SentryManager.log("An exception occurred while releasing the MediaMetadataRetriever, and it was ignored.");
             }
         }
     }
@@ -1035,7 +1035,7 @@ public class MetadataDisplayer {
      * @param metadataMap Map to add all metadata to (will be sorted alphabetically)
      */
     private static void extractVideoMetadataToMap(Context context, Uri videoUri, Map<String, String> metadataMap) {
-        SentryManager.log("Extracting video metadata to single map");
+        SentryManager.log("The app is extracting video metadata to a single map.");
         boolean hasLocationPermission = hasMediaLocationPermission(context);
 
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
@@ -1092,7 +1092,7 @@ public class MetadataDisplayer {
                                     try {
                                         SentryManager.setCustomKey("video_duration_ms", Long.parseLong(value));
                                     } catch (NumberFormatException e) {
-                                        SentryManager.log("Invalid duration format for analytics: " + value);
+                                        SentryManager.log("The duration format for analytics is invalid: " + value + ".");
                                         SentryManager.recordException(e);
                                     }
                                 }
@@ -1118,10 +1118,10 @@ public class MetadataDisplayer {
                         metadataMap.put("GPS_LATITUDE", formatGpsCoordinate(coords[0]));
                         metadataMap.put("GPS_LONGITUDE", formatGpsCoordinate(coords[1]));
                     } else if (coords != null) {
-                        SentryManager.log("Video location parsed to unusable coordinates");
+                        SentryManager.log("The video location parsed to unusable coordinates.");
                         metadataMap.put("LOCATION", locationValue);
                     } else {
-                        SentryManager.log("Could not parse video location format");
+                        SentryManager.log("The video location format could not be parsed.");
                         metadataMap.put("LOCATION", locationValue);
                     }
                 } catch (Exception e) {
@@ -1130,7 +1130,7 @@ public class MetadataDisplayer {
                 }
             }
 
-            SentryManager.log("Has location permission: " + hasLocationPermission);
+            SentryManager.log("The app has location permission: " + hasLocationPermission + ".");
             SentryManager.setCustomKey("has_location_permission", hasLocationPermission);
 
             if (hasLocationPermission) {
@@ -1167,7 +1167,7 @@ public class MetadataDisplayer {
                 }
             }
 
-            SentryManager.log("Video metadata extraction completed");
+            SentryManager.log("Video metadata extraction completed.");
 
         } catch (Exception e) {
             Log.e(TAG, "Error extracting video metadata", e);
@@ -1176,10 +1176,10 @@ public class MetadataDisplayer {
             try {
                 // Always release the MediaMetadataRetriever to free resources
                 retriever.release();
-                SentryManager.log("MediaMetadataRetriever released");
+                SentryManager.log("The MediaMetadataRetriever was released.");
             } catch (Exception ignored) {
                 // Ignore exceptions during release
-                SentryManager.log("Exception while releasing MediaMetadataRetriever (ignored)");
+                SentryManager.log("An exception occurred while releasing the MediaMetadataRetriever, and it was ignored.");
             }
         }
     }
@@ -1354,7 +1354,7 @@ public class MetadataDisplayer {
             if (stream == null) {
                 return null;
             }
-            SentryManager.log("Reading EXIF from fallback input stream");
+            SentryManager.log("The app is reading EXIF from the fallback input stream.");
             return new ExifInterface(stream);
         }
     }
@@ -1368,23 +1368,23 @@ public class MetadataDisplayer {
             Uri originalUri = MediaStore.setRequireOriginal(accessUri);
             try (ParcelFileDescriptor pfd = resolver.openFileDescriptor(originalUri, "r")) {
                 if (pfd != null) {
-                    SentryManager.log("Reading EXIF from original file descriptor");
+                    SentryManager.log("The app is reading EXIF from the original file descriptor.");
                     return new ExifInterface(pfd.getFileDescriptor());
                 }
             }
         } catch (Exception e) {
-            SentryManager.log("Original file descriptor EXIF read failed: " + e.getMessage());
+            SentryManager.log("The original file descriptor EXIF read failed: " + e.getMessage() + ".");
         }
         try {
             Uri originalUri = MediaStore.setRequireOriginal(accessUri);
             try (InputStream originalStream = resolver.openInputStream(originalUri)) {
                 if (originalStream != null) {
-                    SentryManager.log("Reading EXIF from original input stream");
+                    SentryManager.log("The app is reading EXIF from the original input stream.");
                     return new ExifInterface(originalStream);
                 }
             }
         } catch (Exception e) {
-            SentryManager.log("Original input stream EXIF read failed: " + e.getMessage());
+            SentryManager.log("The original input stream EXIF read failed: " + e.getMessage() + ".");
         }
         return null;
     }
@@ -1436,14 +1436,14 @@ public class MetadataDisplayer {
                     double lat = cursor.getDouble(latIdx);
                     double lon = cursor.getDouble(lonIdx);
                     if (isUsableMapCoordinate(lat, lon)) {
-                        SentryManager.log("Resolved GPS coordinates from MediaStore columns");
+                        SentryManager.log("The app resolved GPS coordinates from MediaStore columns.");
                         return new double[]{lat, lon};
                     }
-                    SentryManager.log("MediaStore GPS columns present but unusable");
+                    SentryManager.log("The MediaStore GPS columns are present but unusable.");
                 }
             }
         } catch (Exception e) {
-            SentryManager.log("MediaStore GPS query failed: " + e.getMessage());
+            SentryManager.log("The MediaStore GPS query failed: " + e.getMessage() + ".");
         }
         return null;
     }
@@ -1620,7 +1620,7 @@ public class MetadataDisplayer {
         try {
             SentryManager.setCustomKey("video_bitrate_kbps", Long.parseLong(bitrate) / 1000);
         } catch (NumberFormatException e) {
-            SentryManager.log("Invalid bitrate format for analytics: " + bitrate);
+            SentryManager.log("The bitrate format for analytics is invalid: " + bitrate + ".");
             SentryManager.recordException(e);
         }
     }

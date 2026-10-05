@@ -54,7 +54,7 @@ public final class SecureDelete {
 
             return file.delete();
         } catch (Exception e) {
-            SentryManager.log("Error during secure file deletion: " + e.getMessage() + ".");
+            SentryManager.log("An error occurred during secure file deletion: " + e.getMessage() + ".");
             return file.delete();
         }
     }

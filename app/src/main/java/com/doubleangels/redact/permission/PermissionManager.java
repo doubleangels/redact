@@ -137,13 +137,13 @@ public class PermissionManager {
             SentryManager.setCustomKey("needs_permissions", !missing.isEmpty());
 
             if (missing.isEmpty()) {
-                SentryManager.log("All permissions already granted");
+                SentryManager.log("All permissions were already granted.");
                 notifyAllGranted();
             } else if (runtimePermissionRequestInFlight) {
-                SentryManager.log("Runtime permission request already in flight");
+                SentryManager.log("A runtime permission request is already in flight.");
                 callback.onPermissionsRequestStarted();
             } else {
-                SentryManager.log("Starting permission request flow");
+                SentryManager.log("The permission request flow is starting.");
                 callback.onPermissionsRequestStarted();
                 requestMissingRuntimePermissions(activity);
             }
@@ -260,7 +260,7 @@ public class PermissionManager {
         try {
             hasShownRationale = true;
             SentryManager.setCustomKey("has_shown_rationale", true);
-            SentryManager.log("Requesting media/storage permissions");
+            SentryManager.log("The app is requesting media and storage permissions.");
             requestMissingRuntimePermissions(activity);
         } catch (Exception e) {
             SentryManager.recordException(new Exception("Error requesting permissions: " + e.getMessage(), e));
@@ -280,13 +280,13 @@ public class PermissionManager {
             }
             if (!PermissionStatusHelper.hasMediaReadPrerequisiteForLocation(activity)) {
                 pendingLocationAfterMedia = true;
-                SentryManager.log("Requesting media access before photo location permission");
+                SentryManager.log("The app is requesting media access before the photo location permission.");
                 requestMissingRuntimePermissions(activity);
                 return;
             }
             hasShownLocationRationale = true;
             SentryManager.setCustomKey("has_shown_location_rationale", true);
-            SentryManager.log("Requesting ACCESS_MEDIA_LOCATION permission");
+            SentryManager.log("The app is requesting the ACCESS_MEDIA_LOCATION permission.");
             requestMediaLocationPermission();
         } catch (Exception e) {
             SentryManager.recordException(new Exception("Error requesting location permission: " + e.getMessage(), e));
@@ -299,7 +299,7 @@ public class PermissionManager {
             return;
         }
         runtimePermissionRequestInFlight = true;
-        SentryManager.log("Requesting ACCESS_MEDIA_LOCATION permission");
+        SentryManager.log("The app is requesting the ACCESS_MEDIA_LOCATION permission.");
         ActivityCompat.requestPermissions(activity,
                 new String[]{Manifest.permission.ACCESS_MEDIA_LOCATION},
                 LOCATION_PERMISSION_REQUEST_CODE);
@@ -400,7 +400,7 @@ public class PermissionManager {
         SentryManager.setCustomKey("all_permissions_granted", !stillNeedsPermissions);
 
         if (!stillNeedsPermissions) {
-            SentryManager.log("All media permissions granted");
+            SentryManager.log("All media permissions were granted.");
             callback.onPermissionsGranted();
             if (pendingLocationAfterMedia && needsLocationPermission()) {
                 pendingLocationAfterMedia = false;
@@ -410,7 +410,7 @@ public class PermissionManager {
             }
         } else {
             pendingLocationAfterMedia = false;
-            SentryManager.log("Some media permissions denied");
+            SentryManager.log("Some media permissions were denied.");
             callback.onPermissionsDenied();
             handlePermissionDenial();
         }
@@ -427,10 +427,10 @@ public class PermissionManager {
             }
         }
         if (!needsLocationPermission()) {
-            SentryManager.log("Location permission granted");
+            SentryManager.log("The location permission was granted.");
             callback.onLocationPermissionGranted();
         } else if (locationRequested) {
-            SentryManager.log("Location permission denied");
+            SentryManager.log("The location permission was denied.");
             callback.onLocationPermissionDenied();
             handleLocationPermissionDenial();
         }
@@ -461,11 +461,11 @@ public class PermissionManager {
 
         if (locationPermissionGranted) {
             // Location permission was granted
-            SentryManager.log("Location permission granted");
+            SentryManager.log("The location permission was granted.");
             callback.onLocationPermissionGranted();
         } else {
             // Location permission was denied
-            SentryManager.log("Location permission denied");
+            SentryManager.log("The location permission was denied.");
             callback.onLocationPermissionDenied();
             handleLocationPermissionDenial();
         }
@@ -502,7 +502,7 @@ public class PermissionManager {
                 SentryManager.setCustomKey("can_ask_storage_again", canAskAgain);
                 SentryManager.setCustomKey("should_show_settings", hasShownRationale && !canAskAgain);
             }
-            SentryManager.log("Media/storage permissions denied");
+            SentryManager.log("Media and storage permissions were denied.");
         } catch (Exception e) {
             SentryManager.recordException(new Exception("Error handling permission denial: " + e.getMessage(), e));
         }
@@ -516,7 +516,7 @@ public class PermissionManager {
             SentryManager.setCustomKey("can_ask_location_again", canAskAgain);
             SentryManager.setCustomKey("should_show_location_settings",
                     hasShownLocationRationale && !canAskAgain);
-            SentryManager.log("Location permission denied");
+            SentryManager.log("The location permission was denied.");
         } catch (Exception e) {
             SentryManager.recordException(new Exception("Error handling location permission denial: "
                     + e.getMessage(), e));
@@ -599,7 +599,7 @@ public class PermissionManager {
         }
 
         runtimePermissionRequestInFlight = false;
-        SentryManager.log("Initial permission flow step completed: " + initialFlowStep);
+        SentryManager.log("The initial permission flow step completed: " + initialFlowStep + ".");
         for (int i = 0; i < permissions.length; i++) {
             String permission = permissions[i];
             boolean granted = i < grantResults.length
@@ -662,7 +662,7 @@ public class PermissionManager {
             return;
         }
         runtimePermissionRequestInFlight = true;
-        SentryManager.log("Initial flow: requesting ACCESS_MEDIA_LOCATION");
+        SentryManager.log("The initial flow is requesting ACCESS_MEDIA_LOCATION.");
         ActivityCompat.requestPermissions(
                 activity,
                 new String[]{Manifest.permission.ACCESS_MEDIA_LOCATION},
@@ -680,7 +680,7 @@ public class PermissionManager {
             return;
         }
         runtimePermissionRequestInFlight = true;
-        SentryManager.log("Initial flow: requesting POST_NOTIFICATIONS");
+        SentryManager.log("The initial flow is requesting POST_NOTIFICATIONS.");
         ActivityCompat.requestPermissions(
                 activity,
                 new String[]{Manifest.permission.POST_NOTIFICATIONS},
@@ -691,7 +691,7 @@ public class PermissionManager {
         initialPermissionFlowInProgress = false;
         initialFlowStep = InitialFlowStep.DONE;
         AppPreferences.setInitialPermissionsPromptCompleted(activity);
-        SentryManager.log("Initial permission flow completed");
+        SentryManager.log("The initial permission flow completed.");
         Runnable callback = initialFlowCompletedCallback;
         if (callback != null) {
             activity.getWindow().getDecorView().post(callback);
@@ -720,7 +720,7 @@ public class PermissionManager {
                 return;
             }
             runtimePermissionRequestInFlight = true;
-            SentryManager.log("Requesting runtime permissions count: " + permissions.size());
+            SentryManager.log("The app is requesting " + permissions.size() + " runtime permissions.");
             ActivityCompat.requestPermissions(
                     activity, permissions.toArray(new String[0]), STORAGE_PERMISSION_REQUEST_CODE);
         } catch (Exception e) {
