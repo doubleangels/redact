@@ -126,7 +126,7 @@ public class ScanFragment extends Fragment {
                 new ActivityResultContracts.OpenDocument(),
                 uri -> {
                     if (uri != null) {
-                        SentryManager.log("Media selected successfully in ScanFragment");
+                        SentryManager.log("Media was selected successfully in ScanFragment.");
                         if (mediaSelector != null) {
                             MediaItem item = mediaSelector.processMediaUri(uri);
                             currentMediaItem = item;
@@ -136,7 +136,7 @@ public class ScanFragment extends Fragment {
                             checkLocationPermissionAndDisplayMetadata(uri);
                         }
                     } else {
-                        SentryManager.log("Media selection canceled or failed in ScanFragment");
+                        SentryManager.log("Media selection was canceled or failed in ScanFragment.");
                     }
                 });
     }
@@ -151,7 +151,7 @@ public class ScanFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        SentryManager.log("ScanFragment view created");
+        SentryManager.log("The ScanFragment view was created.");
 
         scanViewModel = new ViewModelProvider(requireActivity()).get(ScanViewModel.class);
 
@@ -239,7 +239,7 @@ public class ScanFragment extends Fragment {
     }
 
     private void onSelectMediaClicked() {
-        SentryManager.log("Select button clicked in ScanFragment");
+        SentryManager.log("The user clicked the Select button in ScanFragment.");
         if (permissionManager != null && permissionManager.shouldRequestStorageBeforePicker()) {
             permissionManager.requestStoragePermission();
         } else {
@@ -354,7 +354,7 @@ public class ScanFragment extends Fragment {
 
     private void openMediaPicker() {
         try {
-            SentryManager.log("Launching media picker in ScanFragment");
+            SentryManager.log("The app is launching the media picker in ScanFragment.");
             mediaPickerLauncher.launch(MediaPickerContracts.IMAGE_AND_VIDEO_MIME_TYPES);
         } catch (Exception e) {
             SentryManager.recordException(e);
@@ -407,7 +407,7 @@ public class ScanFragment extends Fragment {
                         if (generation != scanGeneration.get() || !isAdded()) {
                             return;
                         }
-                        SentryManager.logEvent("scan", "Location metadata refresh failed");
+                        SentryManager.logEvent("scan", "The location metadata refresh failed.");
                     }
                 });
     }
@@ -427,7 +427,7 @@ public class ScanFragment extends Fragment {
             String fileName = mediaSelector != null ? mediaSelector.getFileName(mediaUri) : null;
             boolean isVideo = MediaSelector.isVideoFromMimeAndName(mimeType, fileName);
 
-            SentryManager.logEvent("scan", "Starting metadata extraction");
+            SentryManager.logEvent("scan", "The app is starting metadata extraction.");
             SentryManager.setCustomKey("media_type", mimeType != null ? mimeType : "unknown");
             SentryManager.setCustomKey("is_video", isVideo);
 
@@ -508,7 +508,7 @@ public class ScanFragment extends Fragment {
                         showEmptyState(false);
                         metadataCard.setVisibility(View.VISIBLE);
                         clearCoordinateState();
-                        SentryManager.logEvent("scan", "Metadata extraction failed");
+                        SentryManager.logEvent("scan", "Metadata extraction failed.");
                     });
                 }
             });

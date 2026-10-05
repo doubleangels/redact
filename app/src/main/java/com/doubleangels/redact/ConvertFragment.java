@@ -93,7 +93,7 @@ public class ConvertFragment extends Fragment {
                 new ActivityResultContracts.OpenMultipleDocuments(),
                 uris -> {
                     if (uris == null || uris.isEmpty()) {
-                        SentryManager.log("Media selection cancelled or failed in ConvertFragment");
+                        SentryManager.log("Media selection was cancelled or failed in ConvertFragment.");
                         return;
                     }
                     if (uris.size() > MAX_PICK_ITEMS) {
@@ -104,7 +104,7 @@ public class ConvertFragment extends Fragment {
                                 .show();
                         uris = MediaPickerContracts.trimToMax(uris, MAX_PICK_ITEMS);
                     }
-                    SentryManager.log("Media selected successfully in ConvertFragment");
+                    SentryManager.log("Media was selected successfully in ConvertFragment.");
                     List<MediaItem> items = new ArrayList<>();
                     for (android.net.Uri uri : uris) {
                         if (mediaSelector != null) {
@@ -125,7 +125,7 @@ public class ConvertFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        SentryManager.log("ConvertFragment view created");
+        SentryManager.log("The ConvertFragment view was created.");
 
         statusText = view.findViewById(R.id.statusText);
         progressContainer = view.findViewById(R.id.progressContainer);
@@ -224,11 +224,11 @@ public class ConvertFragment extends Fragment {
         convertButton.setOnClickListener(v -> {
             if (viewModel.getConvertProcessingState().getValue()
                     == MainViewModel.ProcessingState.PROCESSING) {
-                SentryManager.log("Cancel convert requested");
+                SentryManager.log("The user requested that the conversion be cancelled.");
                 viewModel.cancelConversion();
                 return;
             }
-            SentryManager.log("Convert button clicked in ConvertFragment");
+            SentryManager.log("The user clicked the Convert button in ConvertFragment.");
             runConversion();
         });
 
@@ -500,10 +500,10 @@ public class ConvertFragment extends Fragment {
     }
 
     private void runConversion() {
-        SentryManager.log("runConversion started");
+        SentryManager.log("The runConversion method started.");
         List<MediaItem> selectedItems = currentSelectedItems();
         if (selectedItems.isEmpty()) {
-            SentryManager.log("runConversion aborted: nothing selected");
+            SentryManager.log("The runConversion method was aborted because nothing was selected.");
             statusText.setText(R.string.convert_nothing_selected);
             return;
         }
@@ -628,12 +628,12 @@ public class ConvertFragment extends Fragment {
     }
 
     private void onSelectFilesClicked() {
-        SentryManager.log("Select files clicked in ConvertFragment");
+        SentryManager.log("The user clicked Select files in ConvertFragment.");
         if (permissionManager != null && permissionManager.shouldRequestStorageBeforePicker()) {
-            SentryManager.log("Requesting storage permissions in ConvertFragment");
+            SentryManager.log("The app is requesting storage permissions in ConvertFragment.");
             permissionManager.requestStoragePermission();
         } else {
-            SentryManager.log("Launching media picker in ConvertFragment");
+            SentryManager.log("The app is launching the media picker in ConvertFragment.");
             openMediaPicker();
         }
     }
