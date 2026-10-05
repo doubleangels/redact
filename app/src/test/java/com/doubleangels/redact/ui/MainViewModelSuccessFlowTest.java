@@ -130,6 +130,18 @@ public class MainViewModelSuccessFlowTest {
     }
 
     @Test
+    public void succeededSources_areHandedOutOnlyOnce() throws Exception {
+        MediaItem a = jpeg("a.jpg");
+        vm.startCleaning(Arrays.asList(a));
+        awaitMain(() -> vm.getCleanProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED);
+
+        assertEquals(Arrays.asList(a.uri()), vm.takeCleanSucceededSources());
+        assertTrue("a second request (e.g. a re-delivered COMPLETED) must find nothing",
+                vm.takeCleanSucceededSources().isEmpty());
+        assertTrue(vm.getCleanSucceededSources().isEmpty());
+    }
+
+    @Test
     public void cleaning_aMixedBatch_reportsPartialSuccess() throws Exception {
         vm.startCleaning(Arrays.asList(jpeg("a.jpg"), missing("b.jpg")));
         awaitMain(() -> vm.getCleanProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED);

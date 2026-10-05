@@ -422,7 +422,7 @@ public class CleanFragment extends Fragment {
                             List<MediaItem> items = viewModel.getSelectedItems().getValue();
                             uiStateManager.enableStripButton(items != null && !items.isEmpty());
                             if (AppPreferences.isDeleteOriginalsAfterClean(requireContext())) {
-                                requestTrashOriginals(viewModel.getCleanSucceededSources());
+                                requestTrashOriginals(viewModel.takeCleanSucceededSources());
                             }
                             break;
 

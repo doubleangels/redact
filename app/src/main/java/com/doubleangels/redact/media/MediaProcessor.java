@@ -130,6 +130,17 @@ public class MediaProcessor {
         return new java.util.ArrayList<>(succeededSources);
     }
 
+    /**
+     * Returns the sources of the last batch's successful items and forgets them, so each batch's
+     * originals can be offered for trashing exactly once (the completion state is re-delivered
+     * to every newly created view, e.g. after a rotation).
+     */
+    public synchronized List<Uri> takeSucceededSources() {
+        List<Uri> taken = new java.util.ArrayList<>(succeededSources);
+        succeededSources.clear();
+        return taken;
+    }
+
     /** Whether a clean batch is currently running on the shared worker. */
     public boolean isBusy() {
         return processing.get();

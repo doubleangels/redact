@@ -580,6 +580,11 @@ public class MainViewModel extends AndroidViewModel {
         return mediaProcessor.getSucceededSources();
     }
 
+    /** Like {@link #getCleanSucceededSources()} but consumes the list, so it is returned only once. */
+    public List<android.net.Uri> takeCleanSucceededSources() {
+        return mediaProcessor.takeSucceededSources();
+    }
+
     public void startCleaning(List<MediaItem> items) {
 
         if (items == null || items.isEmpty()) return;

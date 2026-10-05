@@ -197,6 +197,34 @@ public class CleanConvertFragmentsTest {
     }
 
     @Test
+    public void clean_originalsAreOfferedForTrashOnlyOnce_evenAfterTheViewIsRecreated() throws Exception {
+        FakeMediaStoreProvider.install(activity);
+        AppPreferences.setDeleteOriginalsAfterClean(activity, true);
+        java.io.File jpeg = java.io.File.createTempFile("trash_", ".jpg", activity.getFilesDir());
+        try (java.io.FileOutputStream out = new java.io.FileOutputStream(jpeg)) {
+            android.graphics.Bitmap.createBitmap(12, 12, android.graphics.Bitmap.Config.ARGB_8888)
+                    .compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out);
+        }
+        clean();
+        vm.startCleaning(Arrays.asList(new MediaItem(Uri.fromFile(jpeg), false, "photo.jpg")));
+        awaitMain(() -> vm.getCleanProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED);
+        idle();
+
+        // The Clean tab consumed the sources when it saw COMPLETED...
+        assertTrue(vm.getCleanSucceededSources().isEmpty());
+
+        // ...so a recreated view, which is handed COMPLETED again, finds nothing to ask about.
+        controller.recreate();
+        activity = controller.get();
+        idle();
+        assertEquals(MainViewModel.ProcessingState.COMPLETED,
+                new ViewModelProvider(activity).get(MainViewModel.class).getCleanProcessingState().getValue());
+        assertTrue(new ViewModelProvider(activity).get(MainViewModel.class).getCleanSucceededSources().isEmpty());
+        jpeg.delete();
+        FakeMediaStoreProvider.reset();
+    }
+
+    @Test
     public void clean_changingSelectionAfterCompletion_resetsToIdle() {
         clean();
         vm.setSelectedItems(Arrays.asList(image("a.jpg")));
