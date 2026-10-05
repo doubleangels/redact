@@ -357,4 +357,8 @@
         <item quantity="one">%1$d फ़ील्ड</item>
         <item quantity="other">%1$d फ़ील्ड</item>
     </plurals>
+
+    <string name="scan_section_details">विवरण</string>
+    <string name="scan_default_file_name">मीडिया फ़ाइल</string>
+    <string name="convert_remove_item">%1$s हटाएँ</string>
 </resources>

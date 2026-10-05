@@ -355,4 +355,8 @@
     <plurals name="scan_hero_fields_count">
         <item quantity="other">%1$d개 필드</item>
     </plurals>
+
+    <string name="scan_section_details">세부 정보</string>
+    <string name="scan_default_file_name">미디어 파일</string>
+    <string name="convert_remove_item">%1$s 제거</string>
 </resources>

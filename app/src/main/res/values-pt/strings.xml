@@ -359,4 +359,8 @@ Ative apenas se quiser manter a localização de propósito.</string>
         <item quantity="many">%1$d de campos</item>
         <item quantity="other">%1$d campos</item>
     </plurals>
+
+    <string name="scan_section_details">Detalhes</string>
+    <string name="scan_default_file_name">Arquivo de mídia</string>
+    <string name="convert_remove_item">Remover %1$s</string>
 </resources>

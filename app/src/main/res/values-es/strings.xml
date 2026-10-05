@@ -359,4 +359,8 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
         <item quantity="many">%1$d de campos</item>
         <item quantity="other">%1$d campos</item>
     </plurals>
+
+    <string name="scan_section_details">Detalles</string>
+    <string name="scan_default_file_name">Archivo multimedia</string>
+    <string name="convert_remove_item">Quitar %1$s</string>
 </resources>

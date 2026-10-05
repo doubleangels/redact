@@ -356,4 +356,8 @@
     <plurals name="scan_hero_fields_count">
         <item quantity="other">%1$d 項目</item>
     </plurals>
+
+    <string name="scan_section_details">詳細</string>
+    <string name="scan_default_file_name">メディアファイル</string>
+    <string name="convert_remove_item">%1$s を削除</string>
 </resources>

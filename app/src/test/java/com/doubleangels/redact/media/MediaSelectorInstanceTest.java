@@ -148,7 +148,8 @@ public class MediaSelectorInstanceTest {
     public void getFileName_fallsBackToAGenericName() throws Exception {
         File f = file(".jpg", new byte[1]);
         assertTrue(selector.getFileName(Uri.fromFile(f)).endsWith(f.getName()));
-        assertEquals("media", selector.getFileName(Uri.parse("content://nothing")));
+        assertEquals(activity.getString(com.doubleangels.redact.R.string.scan_default_file_name),
+                selector.getFileName(Uri.parse("content://nothing")));
     }
 
     @Test

@@ -356,4 +356,8 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
         <item quantity="one">%1$d Feld</item>
         <item quantity="other">%1$d Felder</item>
     </plurals>
+
+    <string name="scan_section_details">Details</string>
+    <string name="scan_default_file_name">Mediendatei</string>
+    <string name="convert_remove_item">%1$s entfernen</string>
 </resources>

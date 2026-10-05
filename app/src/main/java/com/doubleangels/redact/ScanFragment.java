@@ -620,7 +620,8 @@ public class ScanFragment extends Fragment {
             heroVideoIndicator.setVisibility(mediaItem.isVideo() ? View.VISIBLE : View.GONE);
             String name = mediaItem.fileName();
             if (name == null || name.isEmpty()) {
-                name = mediaSelector != null ? mediaSelector.getFileName(mediaItem.uri()) : "Media";
+                name = mediaSelector != null ? mediaSelector.getFileName(mediaItem.uri())
+                        : getString(R.string.scan_default_file_name);
             }
             heroFileName.setText(name);
 
@@ -687,7 +688,8 @@ public class ScanFragment extends Fragment {
                 return name.substring(dot + 1).toUpperCase(Locale.ROOT);
             }
         }
-        return item.isVideo() ? "VIDEO" : "IMAGE";
+        return getString(item.isVideo() ? R.string.convert_item_type_video : R.string.convert_item_type_image)
+                .toUpperCase(Locale.getDefault());
     }
 
     @Nullable
@@ -741,9 +743,9 @@ public class ScanFragment extends Fragment {
         return R.drawable.ic_scan;
     }
 
-    private static String formatCustomSectionTitle(String sectionId) {
+    private String formatCustomSectionTitle(String sectionId) {
         if (sectionId == null || sectionId.isEmpty()) {
-            return "Details";
+            return getString(R.string.scan_section_details);
         }
         String[] words = sectionId.replace('_', ' ').split("\\s+");
         StringBuilder sb = new StringBuilder();
@@ -868,7 +870,7 @@ public class ScanFragment extends Fragment {
     }
 
     private void copyPlainTextToClipboard(@NonNull String text) {
-        if (SensitiveClipboard.copy(requireContext(), "metadata", text)) {
+        if (SensitiveClipboard.copy(requireContext(), getString(R.string.scan_metadata), text)) {
             Toast.makeText(requireContext(), R.string.scan_copied_to_clipboard, Toast.LENGTH_SHORT).show();
         }
     }

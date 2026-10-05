@@ -365,4 +365,8 @@
         <item quantity="one">%1$d field</item>
         <item quantity="other">%1$d fields</item>
     </plurals>
+
+    <string name="scan_section_details">Details</string>
+    <string name="scan_default_file_name">Media file</string>
+    <string name="convert_remove_item">Remove %1$s</string>
 </resources>

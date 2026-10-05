@@ -359,4 +359,8 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
         <item quantity="many">%1$d di campi</item>
         <item quantity="other">%1$d campi</item>
     </plurals>
+
+    <string name="scan_section_details">Dettagli</string>
+    <string name="scan_default_file_name">File multimediale</string>
+    <string name="convert_remove_item">Rimuovi %1$s</string>
 </resources>

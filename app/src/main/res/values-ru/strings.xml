@@ -361,4 +361,8 @@
         <item quantity="many">%1$d полей</item>
         <item quantity="other">%1$d поля</item>
     </plurals>
+
+    <string name="scan_section_details">Подробности</string>
+    <string name="scan_default_file_name">Медиафайл</string>
+    <string name="convert_remove_item">Удалить %1$s</string>
 </resources>

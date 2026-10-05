@@ -365,4 +365,8 @@
         <item quantity="many">%1$d حقلًا</item>
         <item quantity="other">%1$d حقل</item>
     </plurals>
+
+    <string name="scan_section_details">التفاصيل</string>
+    <string name="scan_default_file_name">ملف وسائط</string>
+    <string name="convert_remove_item">إزالة %1$s</string>
 </resources>

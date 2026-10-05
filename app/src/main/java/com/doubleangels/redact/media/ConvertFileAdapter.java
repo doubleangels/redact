@@ -105,6 +105,8 @@ public final class ConvertFileAdapter extends RecyclerView.Adapter<ConvertFileAd
 
         if (holder.removeButton != null) {
             holder.removeButton.setVisibility(isRemovable ? View.VISIBLE : View.GONE);
+            holder.removeButton.setContentDescription(holder.itemView.getContext().getString(
+                    R.string.convert_remove_item, item.fileName()));
             holder.removeButton.setOnClickListener(v -> {
                 int adapterPos = holder.getBindingAdapterPosition();
                 int targetPos = adapterPos != RecyclerView.NO_POSITION ? adapterPos : position;

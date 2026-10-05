@@ -359,4 +359,8 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
         <item quantity="many">%1$d de champs</item>
         <item quantity="other">%1$d champs</item>
     </plurals>
+
+    <string name="scan_section_details">Détails</string>
+    <string name="scan_default_file_name">Fichier multimédia</string>
+    <string name="convert_remove_item">Retirer %1$s</string>
 </resources>
