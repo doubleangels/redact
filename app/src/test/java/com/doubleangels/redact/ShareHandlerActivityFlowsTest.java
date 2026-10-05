@@ -3,7 +3,6 @@ package com.doubleangels.redact;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
@@ -520,6 +519,6 @@ public class ShareHandlerActivityFlowsTest {
         intent.setType("image/jpeg");
         ShareHandlerActivity activity = launch(intent);
         assertTrue(activity.isFinishing());
-        assertNull(null);
+        assertEquals(0, inboundSnapshots().length);
     }
 }

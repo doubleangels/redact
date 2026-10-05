@@ -3,7 +3,6 @@ package com.doubleangels.redact.media;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -308,7 +307,6 @@ public class FormatConverterConversionTest {
             // Any failure is fine; what matters is that no partial gallery entry remains.
         }
         assertTrue(FakeMediaStoreProvider.entries().isEmpty());
-        assertNull(null);
     }
 
     @Test(timeout = 60_000)
