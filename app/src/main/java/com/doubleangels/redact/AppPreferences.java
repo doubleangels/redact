@@ -259,7 +259,7 @@ public final class AppPreferences {
 
     /** Delay choices, in seconds, for clearing copied metadata from the clipboard; 0 is off. */
     public static final int[] CLIPBOARD_CLEAR_SECONDS_OPTIONS = {0, 15, 30, 60, 300};
-    public static final int DEFAULT_CLIPBOARD_CLEAR_SECONDS = 30;
+    public static final int DEFAULT_CLIPBOARD_CLEAR_SECONDS = 0;
 
     /** Seconds until copied metadata is cleared from the clipboard, 0 when turned off. */
     public static int getClipboardClearSeconds(@NonNull Context context) {

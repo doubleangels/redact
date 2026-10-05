@@ -51,14 +51,23 @@ public class SensitiveClipboardTest {
     }
 
     @Test
-    public void defaultIsThirtySeconds() {
-        assertEquals(30, AppPreferences.getClipboardClearSeconds(app));
+    public void defaultIsOff() {
+        assertEquals(0, AppPreferences.getClipboardClearSeconds(app));
     }
 
     @Test
-    public void unknownStoredValue_fallsBackToTheDefault() {
+    public void unknownStoredValue_fallsBackToOff() {
         AppPreferences.setClipboardClearSeconds(app, 7);
-        assertEquals(30, AppPreferences.getClipboardClearSeconds(app));
+        assertEquals(0, AppPreferences.getClipboardClearSeconds(app));
+    }
+
+    @Test
+    public void withTheDefault_copiedTextIsNeverCleared() {
+        SensitiveClipboard.copy(app, "label", "secret");
+
+        passTime(600);
+
+        assertEquals("secret", clipText());
     }
 
     @Test
