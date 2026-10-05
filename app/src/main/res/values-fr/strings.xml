@@ -391,4 +391,9 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="settings_clipboard_clear_30s">Après 30 secondes</string>
     <string name="settings_clipboard_clear_1m">Après 1 minute</string>
     <string name="settings_clipboard_clear_5m">Après 5 minutes</string>
+
+    <string name="settings_section_cleaning_workflow">Avant et après le nettoyage</string>
+    <string name="settings_cleaning_workflow_subtitle">Ce que Redact vérifie avant un nettoyage et ce qu\'il advient de vos originaux ensuite.</string>
+    <string name="settings_section_privacy">Confidentialité</string>
+    <string name="settings_privacy_subtitle">Garde ce que vous voyez et copiez dans Redact hors des captures d\'écran, des applications récentes et du presse-papiers.</string>
 </resources>

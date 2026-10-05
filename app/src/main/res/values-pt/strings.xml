@@ -391,4 +391,9 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="settings_clipboard_clear_30s">Após 30 segundos</string>
     <string name="settings_clipboard_clear_1m">Após 1 minuto</string>
     <string name="settings_clipboard_clear_5m">Após 5 minutos</string>
+
+    <string name="settings_section_cleaning_workflow">Antes e depois de limpar</string>
+    <string name="settings_cleaning_workflow_subtitle">O que o Redact verifica antes de uma limpeza e o que acontece com seus originais depois.</string>
+    <string name="settings_section_privacy">Privacidade</string>
+    <string name="settings_privacy_subtitle">Mantém o que você vê e copia no Redact fora de capturas de tela, apps recentes e da área de transferência.</string>
 </resources>

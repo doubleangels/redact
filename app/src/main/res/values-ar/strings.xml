@@ -403,4 +403,9 @@
     <string name="settings_clipboard_clear_30s">بعد 30 ثانية</string>
     <string name="settings_clipboard_clear_1m">بعد دقيقة واحدة</string>
     <string name="settings_clipboard_clear_5m">بعد 5 دقائق</string>
+
+    <string name="settings_section_cleaning_workflow">قبل التنظيف وبعده</string>
+    <string name="settings_cleaning_workflow_subtitle">ما يتحقق منه Redact قبل بدء التنظيف، وما يحدث لملفاتك الأصلية بعده.</string>
+    <string name="settings_section_privacy">الخصوصية</string>
+    <string name="settings_privacy_subtitle">يُبقي ما تراه وتنسخه في Redact خارج لقطات الشاشة وشاشة التطبيقات الأخيرة والحافظة.</string>
 </resources>

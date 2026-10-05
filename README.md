@@ -146,22 +146,47 @@ Cleaned and converted files are saved through Android's MediaStore into `Picture
 
 ## Settings
 
+The Settings tab is grouped the same way as the tables below, from the things you touch most to the housekeeping.
+
+**Metadata Cleaning**: what the Clean tab removes.
+
 | Setting | What it does |
 |---|---|
 | **Strict Clean** | Removes every trace of metadata, even the orientation tag (a rotated photo may look sideways afterward), turns off the keep options, and always fully re-encodes video for the most thorough clean. |
-| **Faster Video Cleaning** | When a video is already in a compatible format, strips its metadata with a quick pass instead of re-encoding. Faster and lighter on battery; a full re-encode removes a touch more. Turned off automatically with Strict Clean and for shared-in files. |
 | **Keep Camera Settings** | Keeps aperture, shutter speed, ISO and camera make/model on the Clean tab. Ignored with Strict Clean and for shared-in files. |
 | **Keep Location** | Keeps GPS coordinates on the Clean tab (confirmation required; off by default). Ignored with Strict Clean and for shared-in files, which always lose location. |
-| **Delete Originals After Cleaning** | Asks Android to move the originals to trash after a successful clean. Android confirms each time. |
+| **Faster Video Cleaning** | When a video is already in a compatible format, strips its metadata with a quick pass instead of re-encoding. Faster and lighter on battery; a full re-encode removes a touch more. Turned off automatically with Strict Clean and for shared-in files. |
+
+**Before & After Cleaning**
+
+| Setting | What it does |
+|---|---|
 | **Warn About Already-Clean Files** | Before cleaning, tells you when selected files have no metadata to remove or are copies Redact already made, and lets you skip them, clean everything anyway or cancel. On by default; nothing about your files is stored to do this. |
+| **Delete Originals After Cleaning** | Asks Android to move the originals to trash after a successful clean. Android confirms each time. |
+
+**Sharing Into Redact, Convert Tab Defaults, and Large Files & Memory**
+
+| Setting | What it does |
+|---|---|
+| **Confirm Before Removing Metadata** | Asks before cleaning files shared into Redact. |
+| **Default formats and image quality** | The formats and quality pre-selected on the Convert tab. You can still change them for each batch. |
+| **Max Processing Resolution** | Largest image edge, in pixels, used when decoding. Lower values use less memory. |
+
+**Privacy** and **Diagnostics & Feedback**
+
+| Setting | What it does |
+|---|---|
 | **Hide Content in Screenshots and Recents** | Blocks screenshots and screen recording inside Redact and blanks its preview on the recent apps screen, so metadata and thumbnails of private photos are not captured. Off by default; takes effect immediately. |
 | **Clear Copied Metadata** | Clears metadata you copied from Scan off the clipboard after 15 seconds, 30 seconds, 1 minute or 5 minutes, unless you have copied something else since. Off by default. |
-| **Confirm Before Removing Metadata** | Asks before cleaning files shared into Redact. |
-| **Max Processing Resolution** | Largest image edge, in pixels, used when decoding. Lower values use less memory. |
-| **Secure Deletion Passes** | How many times temporary files are overwritten before deletion. More passes are slower, and recovery may still be possible on flash storage. |
-| **Clear Cache on Startup** / **Clear Temporary Files** | Removes processing cache older than 24 hours when the app opens, or on demand. |
-| **Allow Notifications** / **Ongoing Task Progress** | Alerts when jobs finish and optional live progress. Off until you turn them on. |
 | **Send Crash Reports** | Optional anonymized crash diagnostics through Sentry, off by default, with a consent prompt. |
+
+**Notifications** and **Storage & Cache**
+
+| Setting | What it does |
+|---|---|
+| **Allow Notifications** / **Ongoing Task Progress** | Alerts when jobs finish and optional live progress. Off until you turn them on. |
+| **Clear Cache on Startup** / **Clear Temporary Files** | Removes processing cache older than 24 hours when the app opens, or on demand. |
+| **Secure Deletion Passes** | How many times temporary files are overwritten before deletion. More passes are slower, and recovery may still be possible on flash storage. |
 
 Open the Settings tab in the app for the full list.
 

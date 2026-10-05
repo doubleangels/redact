@@ -386,4 +386,9 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_clipboard_clear_30s">Nach 30 Sekunden</string>
     <string name="settings_clipboard_clear_1m">Nach 1 Minute</string>
     <string name="settings_clipboard_clear_5m">Nach 5 Minuten</string>
+
+    <string name="settings_section_cleaning_workflow">Vor &amp; nach dem Bereinigen</string>
+    <string name="settings_cleaning_workflow_subtitle">Was Redact vor dem Bereinigen prüft und was danach mit deinen Originalen passiert.</string>
+    <string name="settings_section_privacy">Datenschutz</string>
+    <string name="settings_privacy_subtitle">Hält, was du in Redact siehst und kopierst, aus Screenshots, der App-Übersicht und der Zwischenablage heraus.</string>
 </resources>

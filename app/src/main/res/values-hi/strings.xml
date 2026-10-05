@@ -387,4 +387,9 @@
     <string name="settings_clipboard_clear_30s">30 सेकंड बाद</string>
     <string name="settings_clipboard_clear_1m">1 मिनट बाद</string>
     <string name="settings_clipboard_clear_5m">5 मिनट बाद</string>
+
+    <string name="settings_section_cleaning_workflow">सफ़ाई से पहले और बाद में</string>
+    <string name="settings_cleaning_workflow_subtitle">सफ़ाई शुरू होने से पहले Redact क्या जाँचता है और उसके बाद आपकी मूल फ़ाइलों का क्या होता है।</string>
+    <string name="settings_section_privacy">गोपनीयता</string>
+    <string name="settings_privacy_subtitle">Redact में आप जो देखते और कॉपी करते हैं उसे स्क्रीनशॉट, हाल के ऐप्स की स्क्रीन और क्लिपबोर्ड से दूर रखता है।</string>
 </resources>
