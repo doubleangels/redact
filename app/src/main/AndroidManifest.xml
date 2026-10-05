@@ -14,6 +14,8 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROCESSING" />
+    <!-- Android 14 (API 34) has no mediaProcessing type, so the service runs as dataSync there. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <!-- INTERNET is only used when Send Crash Reports is enabled (Sentry). -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -89,7 +91,7 @@
         <service
             android:name=".notifications.ProcessingForegroundService"
             android:exported="false"
-            android:foregroundServiceType="mediaProcessing" />
+            android:foregroundServiceType="dataSync|mediaProcessing" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

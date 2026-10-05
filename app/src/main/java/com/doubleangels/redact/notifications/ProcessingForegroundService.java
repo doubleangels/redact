@@ -4,7 +4,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
-import android.annotation.SuppressLint;
 import android.os.Build;
 import android.os.IBinder;
 
@@ -88,9 +87,6 @@ public class ProcessingForegroundService extends Service {
     }
 
     @Override
-    // FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING is an API 35 constant that is compiled in as an int; it is
-    // only passed on API 34+, where the manifest declares the same type.
-    @SuppressLint("InlinedApi")
     public int onStartCommand(Intent intent, int flags, int startId) {
         // Android requires startForeground() to be called within 5 seconds of
         // startForegroundService(), regardless of what we decide to do afterward.
@@ -123,14 +119,21 @@ public class ProcessingForegroundService extends Service {
                 .setContentIntent(LocalNotifications.mainContentIntent(this));
 
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                // Call Service.startForeground directly: ServiceCompat masks out
-                // FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING on API 34+, which becomes type
-                // none and crashes on targetSdk 34+.
+            // Call Service.startForeground directly: ServiceCompat masks out
+            // FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING, which becomes type none and is rejected on
+            // targetSdk 34+. The mediaProcessing type only exists from API 35; on API 34 passing it throws
+            // InvalidForegroundServiceTypeException ("type unknown"), so Android 14 uses dataSync, which
+            // the manifest also declares. Before API 34 no type is required.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
                 startForeground(
                         NOTIFICATION_ID,
                         builder.build(),
                         ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING);
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startForeground(
+                        NOTIFICATION_ID,
+                        builder.build(),
+                        ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
             } else {
                 startForeground(NOTIFICATION_ID, builder.build());
             }
@@ -140,7 +143,9 @@ public class ProcessingForegroundService extends Service {
             stopSelf();
             return START_NOT_STICKY;
         } catch (RuntimeException e) {
-            // InvalidForegroundServiceTypeException and similar FGS failures on newer Android.
+            // InvalidForegroundServiceTypeException and similar FGS failures on newer Android. Record it:
+            // swallowing it silently is how the API 34 failure went unnoticed.
+            com.doubleangels.redact.sentry.SentryManager.recordException(e);
             stopSelf();
             return START_NOT_STICKY;
         }
