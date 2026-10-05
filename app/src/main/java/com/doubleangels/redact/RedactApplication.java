@@ -39,6 +39,9 @@ public class RedactApplication extends Application {
         // of source media (unredacted EXIF/GPS included) don't linger past the cutoff just
         // because the user never opens the main app.
         CacheCleanup.scheduleAutoCleanupIfEnabled(this);
+
+        // Working files from a previous process are orphans whatever their age (see the method).
+        CacheCleanup.scheduleOrphanedWorkFileSweep(this);
     }
 
     @NonNull

@@ -183,4 +183,57 @@ public class CacheCleanupTest {
         }
         return file;
     }
+
+    // ---- orphaned working files from a previous process ----------------------------------------
+
+    private File cacheFile(String name) throws IOException {
+        File f = new File(context.getCacheDir(), name);
+        try (java.io.FileOutputStream out = new java.io.FileOutputStream(f)) {
+            out.write(new byte[512]);
+        }
+        return f;
+    }
+
+    @Test
+    public void orphanSweep_securelyDeletesFreshWorkFilesRegardlessOfAge() throws IOException {
+        // Brand new files (no age threshold applies): a previous process left these behind.
+        File inbound = cacheFile("inbound_12345.jpg");
+        File source = cacheFile("temp_999.jpg");
+        File verify = cacheFile("verify_999.jpg");
+        File transmux = cacheFile("vid_transmux_999.mp4");
+        File transform = cacheFile("vid_transform_999.mp4");
+        File unrelated = cacheFile("keep_me.txt");
+        File processed = new File(new File(context.getCacheDir(), "processed"), "shared_out.jpg");
+        try (java.io.FileOutputStream out = new java.io.FileOutputStream(processed)) {
+            out.write(new byte[64]);
+        }
+
+        CacheCleanup.scheduleOrphanedWorkFileSweep(context);
+        CacheCleanup.awaitOrphanSweepForTests();
+
+        for (File f : new File[] {inbound, source, verify, transmux, transform}) {
+            assertFalse(f.getName() + " should be gone", f.exists());
+        }
+        assertTrue("unrelated files stay", unrelated.exists());
+        assertTrue("a cleaned file that may still be shared stays", processed.exists());
+    }
+
+    @Test
+    public void orphanSweep_neverTouchesFilesCreatedAfterItWasScheduled() throws IOException {
+        File orphan = cacheFile("inbound_old.jpg");
+
+        CacheCleanup.scheduleOrphanedWorkFileSweep(context);
+        // A share-in that started this very process creates its snapshot right after startup.
+        File current = cacheFile("inbound_current.jpg");
+        CacheCleanup.awaitOrphanSweepForTests();
+
+        assertFalse(orphan.exists());
+        assertTrue("this process's own snapshot must survive", current.exists());
+    }
+
+    @Test
+    public void orphanSweep_isANoOpWhenThereIsNothingToDelete() {
+        CacheCleanup.scheduleOrphanedWorkFileSweep(context);
+        CacheCleanup.awaitOrphanSweepForTests();
+    }
 }

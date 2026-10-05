@@ -26,6 +26,7 @@ public final class CacheCleanup {
     private static final AtomicBoolean autoCleanupScheduledThisProcess = new AtomicBoolean(false);
 
     private static volatile Thread autoCleanupThread;
+    private static volatile Thread orphanSweepThread;
 
     private static final String PROCESSED_SUBDIR = "processed";
     private static final String[] TEMP_PREFIXES = {
@@ -97,6 +98,74 @@ public final class CacheCleanup {
         Thread thread = new Thread(() -> performAutoCleanup(appContext), "redact-auto-cleanup");
         autoCleanupThread = thread;
         thread.start();
+    }
+
+    /**
+     * Securely deletes working files (source snapshots, remux/transcode intermediates, verify
+     * copies) left behind by a previous process, at any age. Call once from
+     * {@code Application.onCreate}: at that point no operation of this process has started, so every
+     * file that already exists is an orphan. It matters most for share-ins, whose unredacted source
+     * snapshots are removed asynchronously and can outlive a process that is killed right after the
+     * share sheet closes; waiting for the 24-hour sweep would leave them readable for a day.
+     *
+     * <p>The list is taken synchronously, so files created afterwards (including by a share that
+     * started this very process) are never touched; only the slow secure delete runs in the
+     * background. The {@code processed/} folder is left alone, since another app may still be
+     * reading a cleaned file that was just shared.
+     */
+    public static void scheduleOrphanedWorkFileSweep(@NonNull Context context) {
+        Context appContext = context.getApplicationContext();
+        java.util.List<File> orphans = new java.util.ArrayList<>();
+        collectTempPrefixFiles(appContext.getCacheDir(), orphans);
+        collectTempPrefixFiles(appContext.getExternalCacheDir(), orphans);
+        if (orphans.isEmpty()) {
+            return;
+        }
+        Thread thread = new Thread(() -> {
+            for (File orphan : orphans) {
+                if (orphan.exists() && !SecureDelete.secureDelete(appContext, orphan)) {
+                    //noinspection ResultOfMethodCallIgnored
+                    orphan.delete();
+                }
+            }
+        }, "redact-orphan-sweep");
+        orphanSweepThread = thread;
+        thread.start();
+    }
+
+    private static void collectTempPrefixFiles(File directory, java.util.List<File> out) {
+        if (directory == null || !directory.isDirectory()) {
+            return;
+        }
+        File[] files = directory.listFiles();
+        if (files == null) {
+            return;
+        }
+        for (File file : files) {
+            if (!file.isFile()) {
+                continue;
+            }
+            String name = file.getName();
+            for (String prefix : TEMP_PREFIXES) {
+                if (name.startsWith(prefix)) {
+                    out.add(file);
+                    break;
+                }
+            }
+        }
+    }
+
+    /** Waits for a sweep started by {@link #scheduleOrphanedWorkFileSweep} (tests only). */
+    @VisibleForTesting
+    public static void awaitOrphanSweepForTests() {
+        Thread thread = orphanSweepThread;
+        if (thread != null) {
+            try {
+                thread.join(10_000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
     @VisibleForTesting
