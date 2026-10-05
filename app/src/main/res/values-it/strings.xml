@@ -380,4 +380,7 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="already_clean_skip">Ignorali</string>
     <string name="already_clean_clean_all">Pulisci tutto</string>
     <string name="already_clean_clean_anyway">Pulisci comunque</string>
+
+    <string name="settings_secure_window">Nascondi i contenuti negli screenshot e nei recenti</string>
+    <string name="settings_secure_window_subtitle">Blocca screenshot e registrazioni dello schermo in Redact e oscura l\'anteprima nella schermata delle app recenti. Ha effetto subito.</string>
 </resources>

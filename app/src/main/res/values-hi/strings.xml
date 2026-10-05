@@ -376,4 +376,7 @@
     <string name="already_clean_skip">इन्हें छोड़ें</string>
     <string name="already_clean_clean_all">सब साफ़ करें</string>
     <string name="already_clean_clean_anyway">फिर भी साफ़ करें</string>
+
+    <string name="settings_secure_window">स्क्रीनशॉट और हाल के ऐप्स में सामग्री छिपाएँ</string>
+    <string name="settings_secure_window_subtitle">Redact में स्क्रीनशॉट और स्क्रीन रिकॉर्डिंग रोकता है और हाल के ऐप्स की स्क्रीन में इसका प्रीव्यू खाली कर देता है। तुरंत लागू होता है।</string>
 </resources>

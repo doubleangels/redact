@@ -228,6 +228,21 @@ public class SettingsFragmentTest {
         assertTrue(AppPreferences.isWarnAlreadyClean(activity));
     }
 
+    @Test
+    public void secureWindow_isOffByDefault_andTheSwitchTogglesTheLiveWindow() {
+        int secure = android.view.WindowManager.LayoutParams.FLAG_SECURE;
+        assertFalse(sw(R.id.switchSecureWindow).isChecked());
+        assertEquals(0, activity.getWindow().getAttributes().flags & secure);
+
+        sw(R.id.switchSecureWindow).setChecked(true);
+        assertTrue(AppPreferences.isSecureWindow(activity));
+        assertEquals(secure, activity.getWindow().getAttributes().flags & secure);
+
+        sw(R.id.switchSecureWindow).setChecked(false);
+        assertFalse(AppPreferences.isSecureWindow(activity));
+        assertEquals(0, activity.getWindow().getAttributes().flags & secure);
+    }
+
     // ---- dropdowns ---------------------------------------------------------------------------
 
     @Test

@@ -372,4 +372,7 @@
     <string name="already_clean_skip">건너뛰기</string>
     <string name="already_clean_clean_all">모두 정리</string>
     <string name="already_clean_clean_anyway">그래도 정리</string>
+
+    <string name="settings_secure_window">스크린샷 및 최근 앱에서 내용 숨기기</string>
+    <string name="settings_secure_window_subtitle">Redact에서 스크린샷과 화면 녹화를 막고 최근 앱 화면의 미리보기를 비웁니다. 즉시 적용됩니다.</string>
 </resources>

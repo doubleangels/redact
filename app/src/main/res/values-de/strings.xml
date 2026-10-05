@@ -375,4 +375,7 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="already_clean_skip">Diese überspringen</string>
     <string name="already_clean_clean_all">Alle bereinigen</string>
     <string name="already_clean_clean_anyway">Trotzdem bereinigen</string>
+
+    <string name="settings_secure_window">Inhalte in Screenshots und Übersicht ausblenden</string>
+    <string name="settings_secure_window_subtitle">Blockiert Screenshots und Bildschirmaufnahmen in Redact und blendet die Vorschau in der App-Übersicht aus. Wirkt sofort.</string>
 </resources>

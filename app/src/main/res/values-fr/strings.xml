@@ -380,4 +380,7 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="already_clean_skip">Les ignorer</string>
     <string name="already_clean_clean_all">Tout nettoyer</string>
     <string name="already_clean_clean_anyway">Nettoyer quand même</string>
+
+    <string name="settings_secure_window">Masquer le contenu dans les captures et les récents</string>
+    <string name="settings_secure_window_subtitle">Bloque les captures et enregistrements d\'écran dans Redact et masque son aperçu dans les applications récentes. Effet immédiat.</string>
 </resources>

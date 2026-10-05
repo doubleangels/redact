@@ -109,6 +109,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         DynamicColors.applyToActivityIfAvailable(this);
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
+        com.doubleangels.redact.ui.SecureWindow.apply(this);
 
         try {
             mediaSelector = new MediaSelector(this);

@@ -392,4 +392,7 @@
     <string name="already_clean_skip">تخطَّ هذه</string>
     <string name="already_clean_clean_all">نظّف الكل</string>
     <string name="already_clean_clean_anyway">نظّف على أي حال</string>
+
+    <string name="settings_secure_window">إخفاء المحتوى في لقطات الشاشة والتطبيقات الأخيرة</string>
+    <string name="settings_secure_window_subtitle">يمنع لقطات الشاشة وتسجيل الشاشة داخل Redact ويُفرغ معاينته في شاشة التطبيقات الأخيرة. يسري فورًا.</string>
 </resources>

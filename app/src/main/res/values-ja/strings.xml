@@ -373,4 +373,7 @@
     <string name="already_clean_skip">スキップ</string>
     <string name="already_clean_clean_all">すべてクリーン</string>
     <string name="already_clean_clean_anyway">それでもクリーン</string>
+
+    <string name="settings_secure_window">スクリーンショットと最近使ったアプリで内容を隠す</string>
+    <string name="settings_secure_window_subtitle">Redact 内でのスクリーンショットと画面録画を禁止し、最近使ったアプリ画面のプレビューを空白にします。すぐに有効になります。</string>
 </resources>

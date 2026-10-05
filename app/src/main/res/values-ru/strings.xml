@@ -384,4 +384,7 @@
     <string name="already_clean_skip">Пропустить</string>
     <string name="already_clean_clean_all">Очистить всё</string>
     <string name="already_clean_clean_anyway">Всё равно очистить</string>
+
+    <string name="settings_secure_window">Скрывать содержимое на снимках экрана и в недавних</string>
+    <string name="settings_secure_window_subtitle">Запрещает снимки и запись экрана в Redact и скрывает превью приложения в списке недавних. Действует сразу.</string>
 </resources>

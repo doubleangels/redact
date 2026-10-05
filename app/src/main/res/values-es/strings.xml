@@ -380,4 +380,7 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="already_clean_skip">Omitirlos</string>
     <string name="already_clean_clean_all">Limpiar todo</string>
     <string name="already_clean_clean_anyway">Limpiar de todos modos</string>
+
+    <string name="settings_secure_window">Ocultar contenido en capturas y recientes</string>
+    <string name="settings_secure_window_subtitle">Bloquea las capturas y grabaciones de pantalla en Redact y deja en blanco su vista previa en aplicaciones recientes. Se aplica al instante.</string>
 </resources>

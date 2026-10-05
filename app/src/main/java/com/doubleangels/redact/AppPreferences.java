@@ -28,6 +28,7 @@ public final class AppPreferences {
     private static final String KEY_PRESERVE_LOCATION = "preserve_location";
     private static final String KEY_STRICT_CLEAN = "strict_clean";
     private static final String KEY_WARN_ALREADY_CLEAN = "warn_already_clean";
+    private static final String KEY_SECURE_WINDOW = "secure_window";
     private static final String KEY_DELETE_ORIGINALS = "delete_originals_after_clean";
     private static final String KEY_VIDEO_FALLBACK_COPY = "video_fallback_copy";
     private static final String KEY_INITIAL_PERMISSIONS_PROMPTED = "initial_permissions_prompted";
@@ -244,6 +245,15 @@ public final class AppPreferences {
 
     public static void setWarnAlreadyClean(@NonNull Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_WARN_ALREADY_CLEAN, enabled).apply();
+    }
+
+    /** Whether the app's windows are hidden from screenshots, screen recording and recents (off by default). */
+    public static boolean isSecureWindow(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_SECURE_WINDOW, false);
+    }
+
+    public static void setSecureWindow(@NonNull Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_SECURE_WINDOW, enabled).apply();
     }
 
     public static boolean isDeleteOriginalsAfterClean(@NonNull Context context) {

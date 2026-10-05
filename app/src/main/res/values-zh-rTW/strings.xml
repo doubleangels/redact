@@ -372,4 +372,7 @@
     <string name="already_clean_skip">略過這些</string>
     <string name="already_clean_clean_all">全部清理</string>
     <string name="already_clean_clean_anyway">仍然清理</string>
+
+    <string name="settings_secure_window">在螢幕截圖和最近使用中隱藏內容</string>
+    <string name="settings_secure_window_subtitle">禁止在 Redact 中截圖和錄製螢幕，並在最近使用的應用程式畫面中隱藏其預覽。立即生效。</string>
 </resources>

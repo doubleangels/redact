@@ -67,6 +67,7 @@ public class SettingsFragment extends Fragment {
     private MaterialSwitch switchStrictClean;
     private MaterialSwitch switchDeleteOriginals;
     private MaterialSwitch switchWarnAlreadyClean;
+    private MaterialSwitch switchSecureWindow;
     private MaterialSwitch switchPreserveCamera;
     private MaterialSwitch switchPreserveLocation;
     private MaterialSwitch switchAutoClearTemp;
@@ -154,6 +155,7 @@ public class SettingsFragment extends Fragment {
         switchStrictClean = view.findViewById(R.id.switchStrictClean);
         switchDeleteOriginals = view.findViewById(R.id.switchDeleteOriginals);
         switchWarnAlreadyClean = view.findViewById(R.id.switchWarnAlreadyClean);
+        switchSecureWindow = view.findViewById(R.id.switchSecureWindow);
         switchPreserveCamera = view.findViewById(R.id.switchPreserveCamera);
         switchPreserveLocation = view.findViewById(R.id.switchPreserveLocation);
         switchAutoClearTemp = view.findViewById(R.id.switchAutoClearTemp);
@@ -259,6 +261,11 @@ public class SettingsFragment extends Fragment {
         switchWarnAlreadyClean.setChecked(AppPreferences.isWarnAlreadyClean(requireContext()));
         switchWarnAlreadyClean.setOnCheckedChangeListener((btn, isChecked) ->
                 AppPreferences.setWarnAlreadyClean(requireContext(), isChecked));
+        switchSecureWindow.setChecked(AppPreferences.isSecureWindow(requireContext()));
+        switchSecureWindow.setOnCheckedChangeListener((btn, isChecked) -> {
+            AppPreferences.setSecureWindow(requireContext(), isChecked);
+            com.doubleangels.redact.ui.SecureWindow.apply(requireActivity());
+        });
         switchPreserveCamera.setChecked(AppPreferences.isPreserveCameraSettings(requireContext()));
         switchPreserveLocation.setChecked(AppPreferences.isPreserveLocation(requireContext()));
         switchAutoClearTemp.setChecked(AppPreferences.isAutoClearTempFiles(requireContext()));

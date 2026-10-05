@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
             EdgeToEdge.enable(this);
 
             super.onCreate(savedInstanceState);
+            com.doubleangels.redact.ui.SecureWindow.apply(this);
             setContentView(R.layout.activity_main);
 
             setupEdgeToEdgeInsets();

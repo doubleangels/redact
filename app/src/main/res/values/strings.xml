@@ -384,4 +384,7 @@
     <string name="already_clean_skip">Skip Those</string>
     <string name="already_clean_clean_all">Clean All</string>
     <string name="already_clean_clean_anyway">Clean Anyway</string>
+
+    <string name="settings_secure_window">Hide Content in Screenshots and Recents</string>
+    <string name="settings_secure_window_subtitle">Blocks screenshots and screen recording inside Redact and blanks its preview on the recent apps screen. Takes effect immediately.</string>
 </resources>
