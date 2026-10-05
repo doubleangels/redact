@@ -1,6 +1,8 @@
 package com.doubleangels.redact.ui;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
 import android.view.ContextThemeWrapper;
@@ -101,46 +103,33 @@ public class ScanMetadataAdapterTest {
     }
 
     @Test
-    public void identifyingMetadata_isFlaggedCorrectly() {
-        ScanMetadataAdapter.Entry normal = ScanMetadataAdapter.Entry.row("camera", "Aperture", "f/1.8");
-        assertEquals(false, normal.isIdentifying);
-
-        ScanMetadataAdapter.Entry location = ScanMetadataAdapter.Entry.row("location", "Latitude", "37.7749");
-        assertEquals(true, location.isIdentifying);
-
-        ScanMetadataAdapter.Entry serial = ScanMetadataAdapter.Entry.row("camera", "Camera Serial Number", "12345");
-        assertEquals(true, serial.isIdentifying);
-
-        ScanMetadataAdapter.Entry owner = ScanMetadataAdapter.Entry.row("camera", "Owner Name", "John Doe");
-        assertEquals(true, owner.isIdentifying);
-
-        for (String key : new String[]{
-                "MAKER_NOTE", "XMP", "THUMBNAIL_IMAGE_LENGTH", "IMAGE_DESCRIPTION", "DOCUMENT_NAME",
-                "BODY_SERIAL_NUMBER", "LENS_SERIAL_NUMBER", "IMAGE_UNIQUE_ID", "USER_COMMENT", "CAMERA_OWNER_NAME",
-                "MAKE", "MODEL", "LENS_MODEL", "SOFTWARE", "HOST_COMPUTER", "DATE_TIME_ORIGINAL", "DATE_TIME",
-                "OFFSET_TIME", "SUB_SEC_TIME", "GPS_DATE_STAMP", "ARTIST", "ALBUM", "TITLE"}) {
-            assertEquals(key, true, ScanMetadataAdapter.Entry.row("technical", key, "x").isIdentifying);
-        }
-        for (String key : new String[]{
-                "Y_CB_CR_POSITIONING", "APERTURE_VALUE", "EXPOSURE_TIME", "F_NUMBER", "ISO_SPEED_RATINGS",
-                "ORIENTATION", "FLASH", "WHITE_BALANCE", "COLOR_SPACE", "IMAGE_WIDTH", "DURATION", "BITRATE"}) {
-            assertEquals(key, false, ScanMetadataAdapter.Entry.row("technical", key, "1").isIdentifying);
-        }
+    public void onlyLocationMetadata_isFlagged() {
+        // Everything in the Location section is location data.
+        assertTrue(ScanMetadataAdapter.Entry.row("location", "Latitude", "37.7749").isLocation);
+        assertTrue(ScanMetadataAdapter.Entry.row("LOCATION", "anything", "x").isLocation);
+        // GPS and location keys are flagged even when they land in another section.
+        assertTrue(ScanMetadataAdapter.Entry.row("technical", "GPS_LATITUDE", "40.5").isLocation);
+        assertTrue(ScanMetadataAdapter.Entry.row("technical", "gps_altitude", "10").isLocation);
+        assertTrue(ScanMetadataAdapter.Entry.row("basic_info", "LOCATION", "+40.5-73.9/").isLocation);
+        assertTrue(ScanMetadataAdapter.Entry.row("GPS_DATE_STAMP", "1").isLocation);
     }
 
     @Test
-    public void displayName_isFlaggedUnlessItIsARandomizedRedactName() {
-        for (String key : new String[]{"DISPLAY_NAME", "File Name"}) {
-            assertEquals(true, ScanMetadataAdapter.Entry.row("basic_info", key, "IMG_20240101_vacation.jpg").isIdentifying);
-            assertEquals(true, ScanMetadataAdapter.Entry.row("basic_info", key, "redact-sample-beach.png").isIdentifying);
-            assertEquals(true, ScanMetadataAdapter.Entry.row("basic_info", key, null).isIdentifying);
-            assertEquals(false, ScanMetadataAdapter.Entry.row("basic_info", key, "aB3dE5fG7hJ9.jpg").isIdentifying);
-            assertEquals(false, ScanMetadataAdapter.Entry.row("basic_info", key, "aB3dE5fG7hJ9.mp4").isIdentifying);
+    public void everythingElse_isNotFlagged() {
+        // The earlier "identifying" heuristics (serials, owner, dates, camera, names...) no longer flag.
+        for (String key : new String[]{
+                "BODY_SERIAL_NUMBER", "CAMERA_OWNER_NAME", "MAKE", "MODEL", "LENS_MODEL", "SOFTWARE",
+                "DATE_TIME_ORIGINAL", "ARTIST", "TITLE", "IMAGE_DESCRIPTION", "MAKER_NOTE", "XMP",
+                "THUMBNAIL_IMAGE_LENGTH", "DISPLAY_NAME", "File Name", "APERTURE_VALUE", "EXPOSURE_TIME",
+                "ORIENTATION", "IMAGE_WIDTH", "DURATION", "BITRATE", "Y_CB_CR_POSITIONING"}) {
+            assertFalse(key, ScanMetadataAdapter.Entry.row("technical", key, "IMG_20240101_vacation.jpg").isLocation);
         }
+        assertFalse(ScanMetadataAdapter.Entry.row(null, "Aperture", "f/1.8").isLocation);
+        assertFalse(ScanMetadataAdapter.Entry.row("camera", null, "x").isLocation);
     }
 
     @Test
-    public void onBindViewHolder_identifyingRowShowsHighlight() {
+    public void onBindViewHolder_locationRowShowsTheLocationBadge() {
         List<ScanMetadataAdapter.Entry> entries = new ArrayList<>();
         entries.add(ScanMetadataAdapter.Entry.row("location", "GPS Latitude", "37.7749"));
         adapter.setEntries(entries);
@@ -151,5 +140,20 @@ public class ScanMetadataAdapterTest {
         ScanMetadataAdapter.RowHolder holder = (ScanMetadataAdapter.RowHolder) rowHolder;
         assertEquals(android.view.View.VISIBLE, holder.tintOverlay.getVisibility());
         assertEquals(android.view.View.VISIBLE, holder.riskIndicator.getVisibility());
+        assertEquals("Location", holder.riskIndicator.getText().toString());
+    }
+
+    @Test
+    public void onBindViewHolder_otherRowsHaveNoBadge() {
+        List<ScanMetadataAdapter.Entry> entries = new ArrayList<>();
+        entries.add(ScanMetadataAdapter.Entry.row("camera", "BODY_SERIAL_NUMBER", "SN123"));
+        adapter.setEntries(entries);
+
+        RecyclerView.ViewHolder rowHolder = adapter.onCreateViewHolder(parent, adapter.getItemViewType(0));
+        adapter.onBindViewHolder(rowHolder, 0);
+
+        ScanMetadataAdapter.RowHolder holder = (ScanMetadataAdapter.RowHolder) rowHolder;
+        assertEquals(android.view.View.GONE, holder.tintOverlay.getVisibility());
+        assertEquals(android.view.View.GONE, holder.riskIndicator.getVisibility());
     }
 }

@@ -83,7 +83,6 @@
     <string name="scan_metadata">元数据</string>
     <string name="scan_location_permission_missing">如果您授予位置权限，位置数据可能会可用。</string>
     <string name="scan_extraction_fail">提取元数据失败！</string>
-    <string name="scan_warning_badge">警告</string>
 
     
     

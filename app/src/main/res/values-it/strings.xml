@@ -83,7 +83,6 @@
     <string name="scan_metadata">Metadati</string>
     <string name="scan_location_permission_missing">I dati di posizione potrebbero essere disponibili se concedi l\'autorizzazione alla posizione.</string>
     <string name="scan_extraction_fail">Errore durante l\'estrazione dei metadati.</string>
-    <string name="scan_warning_badge">Avviso</string>
 
     
     

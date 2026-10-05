@@ -83,7 +83,6 @@
     <string name="scan_metadata">البيانات الوصفية</string>
     <string name="scan_location_permission_missing">قد تكون بيانات الموقع متاحة إذا منحت إذن الموقع.</string>
     <string name="scan_extraction_fail">فشل استخراج البيانات الوصفية.</string>
-    <string name="scan_warning_badge">تحذير</string>
 
     
     

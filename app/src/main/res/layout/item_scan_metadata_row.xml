@@ -8,7 +8,7 @@
     android:clickable="true"
     android:focusable="true">
 
-    <!-- Red tint highlight background for identifying metadata -->
+    <!-- Red tint highlight background for location metadata -->
     <View
         android:id="@+id/rowTintOverlay"
         android:layout_width="match_parent"
@@ -72,7 +72,7 @@
                         android:backgroundTint="?attr/colorErrorContainer"
                         android:paddingHorizontal="6dp"
                         android:paddingVertical="1dp"
-                        android:text="@string/scan_warning_badge"
+                        android:text="@string/scan_risk_location"
                         android:textAppearance="?attr/textAppearanceLabelSmall"
                         android:textColor="?attr/colorOnErrorContainer"
                         android:textSize="10sp"

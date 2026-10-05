@@ -14,7 +14,6 @@ import androidx.exifinterface.media.ExifInterface;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.FakeMediaStoreProvider;
-import com.doubleangels.redact.media.MediaFileNames;
 
 import org.junit.After;
 import org.junit.Before;
@@ -96,7 +95,7 @@ public class MetadataStripperGalleryTest {
 
         assertNotNull(out);
         FakeMediaStoreProvider.Entry entry = FakeMediaStoreProvider.only();
-        assertTrue(MediaFileNames.isRandomName(entry.displayName()));
+        assertTrue(entry.displayName().matches("[A-Za-z0-9]{12}\\.[a-z0-9]+"));
         assertFalse(entry.displayName().contains("trip"));
         assertEquals("image/jpeg", entry.mimeType());
         assertFalse(entry.isPending());

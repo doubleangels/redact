@@ -17,17 +17,15 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.doubleangels.redact.R;
-import com.doubleangels.redact.media.MediaFileNames;
 import com.doubleangels.redact.metadata.MetadataDisplayer;
 import com.google.android.material.color.MaterialColors;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
- * Virtualized list for Scan tab metadata displaying categorized section headers and interactive rows
- * with visual red tint highlights for identifying metadata.
+ * List for Scan tab metadata displaying categorized section headers and interactive rows, with a red
+ * tint and "Location" badge on location metadata.
  */
 public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -46,11 +44,12 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
         public final String key;
         @Nullable
         public final String value;
-        public final boolean isIdentifying;
+        /** True for location metadata (GPS coordinates and the like); shown with a red "Location" badge. */
+        public final boolean isLocation;
 
         private Entry(int viewType, @Nullable String sectionId, @Nullable String headerTitle,
                       int headerIconRes, int itemCount, @Nullable String key, @Nullable String value,
-                      boolean isIdentifying) {
+                      boolean isLocation) {
             this.viewType = viewType;
             this.sectionId = sectionId;
             this.headerTitle = headerTitle;
@@ -58,7 +57,7 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
             this.itemCount = itemCount;
             this.key = key;
             this.value = value;
-            this.isIdentifying = isIdentifying;
+            this.isLocation = isLocation;
         }
 
         public static Entry header(@Nullable String sectionId, @NonNull String title, int iconRes, int itemCount) {
@@ -66,57 +65,23 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
         }
 
         public static Entry row(@Nullable String key, @Nullable String value) {
-            return new Entry(VIEW_TYPE_ROW, null, null, 0, 0, key, value, isIdentifyingMetadata(null, key, value));
+            return new Entry(VIEW_TYPE_ROW, null, null, 0, 0, key, value, isLocationMetadata(null, key));
         }
 
         public static Entry row(@Nullable String sectionId, @Nullable String key, @Nullable String value) {
-            return new Entry(VIEW_TYPE_ROW, sectionId, null, 0, 0, key, value, isIdentifyingMetadata(sectionId, key, value));
+            return new Entry(VIEW_TYPE_ROW, sectionId, null, 0, 0, key, value, isLocationMetadata(sectionId, key));
         }
 
-        public static Entry row(@Nullable String sectionId, @Nullable String key, @Nullable String value, boolean isIdentifying) {
-            return new Entry(VIEW_TYPE_ROW, sectionId, null, 0, 0, key, value, isIdentifying);
+        public static Entry row(@Nullable String sectionId, @Nullable String key, @Nullable String value, boolean isLocation) {
+            return new Entry(VIEW_TYPE_ROW, sectionId, null, 0, 0, key, value, isLocation);
         }
 
-        /** Lowercase, space-separated substrings of metadata keys that can identify the user, their device or their activity. */
-        private static final String[] IDENTIFYING_KEY_TERMS = {
-                // Where
-                "gps", "latitude", "longitude", "altitude", "coordinate", "location",
-                // Who
-                "owner", "artist", "author", "creator", "copyright", "by line", "credit", "writer", "composer",
-                "album", "title", "comment", "description", "document name", "raw file name", "user name",
-                "username", "phone", "email", "contact",
-                // Which device
-                "serial", "unique id", "uniqueid", "make", "model", "lens", "software", "host computer",
-                "firmware", "device",
-                // When
-                "date", "year", "offset time", "sub sec time",
-                // Embedded blobs and leftovers of the original
-                "maker note", "makernote", "xmp", "thumbnail", "preview",
-                // Where the file lives
-                "path", "folder", "uri"
-        };
-
-        public static boolean isIdentifyingMetadata(
-                @Nullable String sectionId, @Nullable String key, @Nullable String value) {
+        /** Location metadata: everything in the Location section, plus any GPS/location key outside it. */
+        public static boolean isLocationMetadata(@Nullable String sectionId, @Nullable String key) {
             if (sectionId != null && MetadataDisplayer.SECTION_LOCATION.equalsIgnoreCase(sectionId)) {
                 return true;
             }
-            if (key == null) {
-                return false;
-            }
-            // Keys arrive as UPPER_SNAKE_CASE (e.g. IMAGE_UNIQUE_ID) or as display text, so compare on a
-            // normalized "words separated by single spaces" form.
-            String lower = key.toLowerCase(Locale.ROOT).replaceAll("[_\\-\\s]+", " ");
-            // The file's own name is only a risk when it is not one of Redact's randomized names.
-            if (lower.equals("display name") || lower.equals("file name") || lower.equals("filename")) {
-                return !MediaFileNames.isRandomName(value);
-            }
-            for (String term : IDENTIFYING_KEY_TERMS) {
-                if (lower.contains(term)) {
-                    return true;
-                }
-            }
-            return false;
+            return MetadataDisplayer.isLocationMetadataKey(key);
         }
     }
 
@@ -229,10 +194,10 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
                     ContextCompat.getColor(rowHolder.itemView.getContext(), R.color.permission_status_denied));
 
             if (rowHolder.tintOverlay != null) {
-                rowHolder.tintOverlay.setVisibility(entry.isIdentifying ? View.VISIBLE : View.GONE);
+                rowHolder.tintOverlay.setVisibility(entry.isLocation ? View.VISIBLE : View.GONE);
             }
             if (rowHolder.riskIndicator != null) {
-                rowHolder.riskIndicator.setVisibility(entry.isIdentifying ? View.VISIBLE : View.GONE);
+                rowHolder.riskIndicator.setVisibility(entry.isLocation ? View.VISIBLE : View.GONE);
             }
 
             if (entry.key == null || entry.key.isEmpty()) {
@@ -240,7 +205,7 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
             } else {
                 rowHolder.keyView.setVisibility(View.VISIBLE);
                 rowHolder.keyView.setText(entry.key);
-                rowHolder.keyView.setTextColor(entry.isIdentifying ? errorColor : primaryColor);
+                rowHolder.keyView.setTextColor(entry.isLocation ? errorColor : primaryColor);
             }
             rowHolder.valueView.setText(entry.value != null ? entry.value : "");
 

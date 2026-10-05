@@ -87,7 +87,7 @@ public class FormatConverterConversionTest {
         assertNotNull(out);
         FakeMediaStoreProvider.Entry entry = FakeMediaStoreProvider.only();
         assertTrue(entry.displayName().endsWith(".png"));
-        assertTrue(MediaFileNames.isRandomName(entry.displayName()));
+        assertTrue(entry.displayName().matches("[A-Za-z0-9]{12}\\.[a-z0-9]+"));
         assertFalse(entry.displayName().contains("holiday"));
         assertEquals("image/png", entry.mimeType());
         assertFalse("the entry is published once the write finishes", entry.isPending());

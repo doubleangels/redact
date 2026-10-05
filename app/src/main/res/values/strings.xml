@@ -236,7 +236,6 @@
     <string name="scan_maps_not_available">No maps app is available to open this location.</string>
     <string name="scan_risk_location">Location</string>
     <string name="scan_risk_serial">Device serial</string>
-    <string name="scan_warning_badge">Warning</string>
     <string name="scan_hero_fields_count" translatable="false">%1$d fields</string>
     <string name="scan_empty_state_title" translatable="false">Inspect Media Metadata</string>
     <string name="scan_empty_state_description" translatable="false">Select a photo or video to view EXIF details, camera specs, GPS coordinates, and technical properties.</string>

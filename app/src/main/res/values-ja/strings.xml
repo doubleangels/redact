@@ -83,7 +83,6 @@
     <string name="scan_metadata">メタデータ</string>
     <string name="scan_location_permission_missing">位置情報の権限を付与すると、位置データが利用可能になる場合があります。</string>
     <string name="scan_extraction_fail">メタデータの抽出に失敗しました。</string>
-    <string name="scan_warning_badge">警告</string>
 
     
     
