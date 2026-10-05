@@ -28,6 +28,9 @@ public class RedactApplication extends Application {
             // Log-only: surfaces main-thread disk/network I/O in logcat (tag StrictMode) while profiling startup.
             StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
                     .detectAll().penaltyLog().build());
+            // Log-only: flags leaked Closeables/cursors, Activity instances, and unreleased receivers.
+            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+                    .detectAll().penaltyLog().build());
         }
 
         SentryManager.init(this);
