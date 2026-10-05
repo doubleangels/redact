@@ -322,10 +322,10 @@
     <string name="strip_progress_transcoding_target">目的の形式にトランスコード中…</string>
     <string name="strip_progress_transmuxing">コンテナを再構成中…</string>
     <string name="strip_progress_verifying">メタデータの削除を確認中…</string>
-    <string name="scan_open_coordinates_in_maps">マップで開く</string>
-    <string name="scan_maps_consent_title">位置情報をマップで開きますか？</string>
+    <string name="scan_open_coordinates_in_maps">マップアプリで開く</string>
+    <string name="scan_maps_consent_title">位置情報をマップアプリで開きますか？</string>
     <string name="scan_maps_consent_message">座標をデバイスの既定のマップアプリで開きます。この画面の他の操作とは異なり、正確なGPS位置情報が別のアプリに渡され、そのアプリが地図タイルの読み込みや住所の検索などのためにこのデバイス外へ送信する可能性があります。Redact自体がこのデータをどこにも送信することはありません。\n\nこのメッセージは一度だけ表示されます。続行を選択すると記憶され、再度確認されません。</string>
-    <string name="scan_maps_consent_continue">マップを開く</string>
+    <string name="scan_maps_consent_continue">マップアプリを開く</string>
     <string name="scan_maps_not_available">この位置情報を開けるマップアプリがありません。</string>
     <string name="settings_delete_originals">クリーン後に元ファイルを削除</string>
     <string name="settings_delete_originals_subtitle">クリーン成功後、元のファイルをゴミ箱に移動するようAndroidに依頼します。毎回確認が表示されます。</string>
