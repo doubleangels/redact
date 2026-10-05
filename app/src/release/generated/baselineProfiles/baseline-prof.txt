@@ -109,7 +109,7 @@ Landroidx/activity/FullyDrawnReporter;
 SPLandroidx/activity/FullyDrawnReporter;-><init>(Ljava/util/concurrent/Executor;Lkotlin/jvm/functions/Function0;)V
 SPLandroidx/activity/FullyDrawnReporter;->fullyDrawnReported()V
 Landroidx/activity/FullyDrawnReporter$$ExternalSyntheticLambda0;
-SPLandroidx/activity/FullyDrawnReporter$$ExternalSyntheticLambda0;-><init>(Landroidx/activity/FullyDrawnReporter;)V
+PLandroidx/activity/FullyDrawnReporter$$ExternalSyntheticLambda0;-><init>(Landroidx/activity/FullyDrawnReporter;)V
 Landroidx/activity/FullyDrawnReporterOwner;
 Landroidx/activity/OnBackPressedCallback;
 SPLandroidx/activity/OnBackPressedCallback;-><init>(Z)V
@@ -4816,7 +4816,7 @@ SPLcom/google/android/material/navigation/NavigationBarItemView$$ExternalSynthet
 SPLcom/google/android/material/navigation/NavigationBarItemView$$ExternalSyntheticLambda0;->onLayoutChange(Landroid/view/View;IIIIIIII)V
 Lcom/google/android/material/navigation/NavigationBarItemView$1;
 SPLcom/google/android/material/navigation/NavigationBarItemView$1;-><init>(Lcom/google/android/material/navigation/NavigationBarItemView;I)V
-SPLcom/google/android/material/navigation/NavigationBarItemView$1;->run()V
+PLcom/google/android/material/navigation/NavigationBarItemView$1;->run()V
 PLcom/google/android/material/navigation/NavigationBarItemView$2;-><init>(Lcom/google/android/material/navigation/NavigationBarItemView;F)V
 PLcom/google/android/material/navigation/NavigationBarItemView$2;->onAnimationUpdate(Landroid/animation/ValueAnimator;)V
 Lcom/google/android/material/navigation/NavigationBarItemView$ActiveIndicatorTransform;
