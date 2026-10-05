@@ -56,11 +56,14 @@ public class FakeMediaStoreProvider extends ContentProvider {
     private static volatile File directory;
     /** When true, {@code insert} returns null, like a MediaStore that refuses the row. */
     public static volatile boolean failInsert;
+    /** When true, opening a row's file fails, like a MediaStore row whose backing file is gone. */
+    public static volatile boolean failOpen;
 
     /** Registers the provider for the {@code media} authority and clears earlier rows. */
     public static void install(Context context) {
         ENTRIES.clear();
         failInsert = false;
+        failOpen = false;
         directory = new File(context.getCacheDir(), "fake_media_store");
         //noinspection ResultOfMethodCallIgnored
         directory.mkdirs();
@@ -70,6 +73,7 @@ public class FakeMediaStoreProvider extends ContentProvider {
     public static void reset() {
         ENTRIES.clear();
         failInsert = false;
+        failOpen = false;
     }
 
     public static Map<Long, Entry> entries() {
@@ -126,7 +130,7 @@ public class FakeMediaStoreProvider extends ContentProvider {
     @Override
     public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
         Entry entry = entryFor(uri);
-        if (entry == null) {
+        if (entry == null || failOpen) {
             throw new FileNotFoundException(String.valueOf(uri));
         }
         return ParcelFileDescriptor.open(entry.file, ParcelFileDescriptor.parseMode(mode));
