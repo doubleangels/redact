@@ -37,7 +37,7 @@
                 android:gravity="center"
                 android:orientation="vertical"
                 android:paddingHorizontal="24dp"
-                android:paddingVertical="56dp"
+                android:paddingVertical="@dimen/empty_state_vertical_padding"
                 android:visibility="visible">
 
                 <com.google.android.material.card.MaterialCardView
