@@ -493,6 +493,8 @@ public final class FormatConverter {
         return "image/jpeg";
     }
 
+    private static final int MAX_ENCODER_DIMENSION = 16383;
+
     public static int calculateInSampleSize(Context context, BitmapFactory.Options options) {
         int height = options.outHeight;
         int width = options.outWidth;
@@ -505,6 +507,11 @@ public final class FormatConverter {
                     && (halfWidth / inSampleSize) >= maxDimension) {
                 inSampleSize *= 2;
             }
+        }
+        // Encoders reject extreme aspect ratios (WebP caps each side at 16383 px), so long
+        // screenshots must be downsampled even when the shorter side is small.
+        while (Math.max(height, width) / inSampleSize > MAX_ENCODER_DIMENSION) {
+            inSampleSize *= 2;
         }
         return inSampleSize;
     }
