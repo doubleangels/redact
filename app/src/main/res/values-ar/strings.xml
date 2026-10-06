@@ -321,7 +321,7 @@
     <string name="strip_progress_transmuxing">جارٍ إعادة تعبئة الفيديو…</string>
     <string name="strip_progress_verifying">جارٍ التحقق من إزالة البيانات الوصفية…</string>
     <string name="scan_open_coordinates_in_maps">فتح في تطبيق الخرائط</string>
-    <string name="scan_maps_consent_title">فتح الموقع في تطبيق الخرائط؟</string>
+    <string name="scan_maps_consent_title">فتح في تطبيق الخرائط</string>
     <string name="scan_maps_consent_message">سيؤدي هذا إلى فتح الإحداثيات في تطبيق الخرائط الافتراضي على جهازك. على عكس كل إجراء آخر في هذه الشاشة، فإنه يسلّم موقع GPS الدقيق إلى تطبيق منفصل قد يرسله خارج هذا الجهاز، مثلًا لتحميل مربعات الخريطة أو البحث عن العنوان. أما Redact نفسه فلا يرسل هذه البيانات إلى أي مكان.\n\nسترى هذه الرسالة مرة واحدة فقط. سيتم تذكّر اختيارك المتابعة، لذا لن يُطلب منك ذلك مجددًا.</string>
     <string name="scan_maps_consent_continue">فتح تطبيق الخرائط</string>
     <string name="scan_maps_not_available">لا يتوفر تطبيق خرائط لفتح هذا الموقع.</string>

@@ -321,7 +321,7 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="strip_progress_transmuxing">Remux del contenitore in corso…</string>
     <string name="strip_progress_verifying">Verifica della rimozione dei metadati in corso…</string>
     <string name="scan_open_coordinates_in_maps">Apri nell’App di Mappe</string>
-    <string name="scan_maps_consent_title">Aprire la posizione nell’app di mappe?</string>
+    <string name="scan_maps_consent_title">Apri nell’App di Mappe</string>
     <string name="scan_maps_consent_message">Questo apre le coordinate nell\'app di mappe predefinita del dispositivo. A differenza di ogni altra azione di questa schermata, consegna la tua posizione GPS esatta a un\'app separata, che potrebbe inviarla fuori da questo dispositivo, ad esempio per caricare i riquadri della mappa o cercare l\'indirizzo. Redact non invia mai questi dati da nessuna parte.\n\nVedrai questo messaggio solo una volta. La scelta di continuare viene ricordata, quindi non verrà chiesto di nuovo.</string>
     <string name="scan_maps_consent_continue">Apri App di Mappe</string>
     <string name="scan_maps_not_available">Nessuna app di mappe disponibile per aprire questa posizione.</string>

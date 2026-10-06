@@ -11,7 +11,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  check-version:
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Verify versionCode increased since the last published release
+        run: |
+          set -euo pipefail
+          CURRENT_VERSION_CODE=$(grep 'versionCode' app/build.gradle | head -1 | sed -E 's/.*versionCode[[:space:]]+([0-9]+).*/\1/')
+          if git rev-parse --verify --quiet refs/tags/last-published-version >/dev/null; then
+            LAST_VERSION_CODE=$(git show refs/tags/last-published-version:app/build.gradle | grep 'versionCode' | head -1 | sed -E 's/.*versionCode[[:space:]]+([0-9]+).*/\1/')
+            echo "Current versionCode: ${CURRENT_VERSION_CODE}, last published versionCode: ${LAST_VERSION_CODE}"
+            if [ "${CURRENT_VERSION_CODE}" -le "${LAST_VERSION_CODE}" ]; then
+              echo "::error::versionCode (${CURRENT_VERSION_CODE}) must be greater than the last published versionCode (${LAST_VERSION_CODE}). Bump versionCode in app/build.gradle before releasing."
+              exit 1
+            fi
+          else
+            echo "No last-published-version tag found yet, skipping comparison for this first tracked release."
+          fi
+
+  unit-tests:
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
@@ -26,14 +52,39 @@ jobs:
       - name: Run unit tests
         run: ./gradlew test --no-daemon
 
+  lint:
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Android build
+        uses: ./.github/actions/setup-android-build
+
       - name: Run Android Lint
         run: ./gradlew lintRelease --no-daemon
+
+  bundle-release:
+    needs: ["unit-tests", "lint", "check-version"]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Android build
+        uses: ./.github/actions/setup-android-build
 
       - name: Build release bundle and upload ProGuard mapping to Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        run: ./gradlew bundleRelease --no-daemon --parallel --build-cache
+        run: ./gradlew bundleRelease --no-daemon
 
       - name: Sign bundle for Google Play release
         uses: r0adkll/sign-android-release@349ebdef58775b1e0d8099458af0816dc79b6407 # v1
@@ -44,6 +95,29 @@ jobs:
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
 
+      - name: Verify signed bundle's certificate fingerprint
+        env:
+          PRODUCTION_SIGNING_CERT_SHA256: ${{ secrets.PRODUCTION_SIGNING_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          AAB_PATH="app/build/outputs/bundle/release/app-release.aab"
+          if [ -z "${PRODUCTION_SIGNING_CERT_SHA256}" ]; then
+            echo "::warning::PRODUCTION_SIGNING_CERT_SHA256 secret is not set, skipping signing certificate verification."
+          else
+            ACTUAL_SHA256=$(keytool -printcert -jarfile "${AAB_PATH}" 2>/dev/null \
+              | grep -oP 'SHA256:\s*\K[0-9A-Fa-f:]+' | tr -d ':' | tr '[:lower:]' '[:upper:]')
+            EXPECTED_SHA256=$(echo -n "${PRODUCTION_SIGNING_CERT_SHA256}" | tr -d ':' | tr '[:lower:]' '[:upper:]')
+            if [ -z "${ACTUAL_SHA256}" ]; then
+              echo "::error::Could not read a certificate fingerprint from the signed bundle."
+              exit 1
+            fi
+            if [ "${ACTUAL_SHA256}" != "${EXPECTED_SHA256}" ]; then
+              echo "::error::Signed bundle certificate fingerprint (${ACTUAL_SHA256}) does not match the expected production signing certificate (${EXPECTED_SHA256}). Refusing to publish."
+              exit 1
+            fi
+            echo "Verified signed bundle matches the expected production signing certificate."
+          fi
+
       - name: Upload bundle to artifacts
         uses: actions/upload-artifact@v7.0.1
         with:
@@ -51,7 +125,7 @@ jobs:
           path: app/build/outputs/bundle/release/app-release.aab
 
   publish:
-    needs: ["build"]
+    needs: ["bundle-release"]
     # Requires a "production" environment in repo Settings → Environments with required reviewers.
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     environment: production
@@ -85,6 +159,11 @@ jobs:
           releaseFiles: app-release.aab
           tracks: production
           whatsNewDirectory: whatsnew
+
+      - name: Record published version point
+        run: |
+          git tag -f last-published-version
+          git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" last-published-version --force
 
       - name: Check whether the store listing changed
         id: metadata_diff
@@ -147,10 +226,63 @@ jobs:
           environment: production
           release: ${{ steps.version.outputs.release }}
 
+      - name: Remove service account credentials
+        if: always()
+        run: rm -f service_account.json
+
+  github-release:
+    needs: ["publish"]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Create GitHub Release with commit changelog
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          VERSION_NAME=$(grep 'versionName' app/build.gradle | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
+          TAG="v${VERSION_NAME}"
+
+          if git rev-parse --verify --quiet "refs/tags/${TAG}" >/dev/null; then
+            echo "Tag ${TAG} already exists, skipping release creation."
+            exit 0
+          fi
+
+          PREV_TAG=$(git tag -l 'v*' --sort=-v:refname | head -1)
+
+          {
+            echo "## Changelog"
+            echo ""
+            if [ -n "${PREV_TAG}" ]; then
+              git log "${PREV_TAG}..HEAD" --pretty=format:'- %s (%h)'
+            else
+              git log --pretty=format:'- %s (%h)'
+            fi
+          } > changelog.md
+
+          gh release create "${TAG}" --title "${TAG}" --notes-file changelog.md --target "$(git rev-parse HEAD)"
+
   delete-workflow-runs:
     permissions:
       actions: write
-    needs: ["build", "publish"]
+    needs:
+      [
+        "check-version",
+        "unit-tests",
+        "lint",
+        "bundle-release",
+        "publish",
+        "github-release",
+      ]
     runs-on: ubuntu-latest
     if: always()
     steps:

@@ -19,11 +19,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  unit-tests:
     if: |
-      github.event_name == 'push' ||
-      github.event_name == 'pull_request' ||
-      github.event_name == 'workflow_dispatch'
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.ref != 'dev'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -37,8 +36,36 @@ jobs:
       - name: Run unit tests
         run: ./gradlew test --no-daemon
 
+  lint:
+    if: |
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.ref != 'dev'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Android build
+        uses: ./.github/actions/setup-android-build
+
       - name: Run Android Lint
         run: ./gradlew lintRelease --no-daemon
+
+  build:
+    if: |
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.ref != 'dev'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Android build
+        uses: ./.github/actions/setup-android-build
 
       - name: Build release bundle
         run: ./gradlew bundleRelease --no-daemon

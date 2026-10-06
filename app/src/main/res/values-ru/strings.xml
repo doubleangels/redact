@@ -321,7 +321,7 @@
     <string name="strip_progress_transmuxing">Ремультиплексирование видео…</string>
     <string name="strip_progress_verifying">Проверка удаления метаданных…</string>
     <string name="scan_open_coordinates_in_maps">Открыть в Приложении Карт</string>
-    <string name="scan_maps_consent_title">Открыть местоположение в приложении карт?</string>
+    <string name="scan_maps_consent_title">Открыть в Приложении Карт</string>
     <string name="scan_maps_consent_message">Координаты откроются в приложении карт по умолчанию на вашем устройстве. В отличие от всех остальных действий на этом экране, ваше точное GPS-местоположение передаётся отдельному приложению, которое может отправить его за пределы устройства, например для загрузки фрагментов карты или поиска адреса. Сам Redact никогда никуда не отправляет эти данные.\n\nЭто сообщение появится только один раз. Ваш выбор продолжить запоминается, поэтому повторно запрашиваться не будет.</string>
     <string name="scan_maps_consent_continue">Открыть Приложение Карт</string>
     <string name="scan_maps_not_available">Нет приложения карт для открытия этого местоположения.</string>

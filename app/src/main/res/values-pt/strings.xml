@@ -321,7 +321,7 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="strip_progress_transmuxing">Remultiplexando o vídeo…</string>
     <string name="strip_progress_verifying">Verificando remoção de metadados…</string>
     <string name="scan_open_coordinates_in_maps">Abrir no App de Mapas</string>
-    <string name="scan_maps_consent_title">Abrir a localização no app de mapas?</string>
+    <string name="scan_maps_consent_title">Abrir no App de Mapas</string>
     <string name="scan_maps_consent_message">Isso abre as coordenadas no app de mapas padrão do seu dispositivo. Ao contrário de todas as outras ações desta tela, isso entrega sua localização GPS exata a um app separado, que pode enviá-la para fora deste dispositivo, por exemplo para carregar blocos do mapa ou buscar o endereço. O próprio Redact nunca envia esses dados a lugar nenhum.\n\nVocê verá esta mensagem apenas uma vez. Sua escolha de continuar é lembrada, então não será perguntado novamente.</string>
     <string name="scan_maps_consent_continue">Abrir App de Mapas</string>
     <string name="scan_maps_not_available">Nenhum app de mapas disponível para abrir esta localização.</string>
