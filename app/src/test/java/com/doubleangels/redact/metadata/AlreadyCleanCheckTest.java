@@ -126,14 +126,18 @@ public class AlreadyCleanCheckTest {
     }
 
     @Test
-    public void fileInCustomOutputFolder_isAlreadyClean_andDefaultFolderStillCounts() throws IOException {
-        com.doubleangels.redact.AppPreferences.setOutputFolder(app, "Private");
-        File f = jpegWith(ExifInterface.TAG_MAKE, "Acme");
-        MediaItem item = item(f, "image/jpeg");
-        FakeMediaStoreProvider.only().values.put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/Private/");
-        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item));
-        FakeMediaStoreProvider.only().values.put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/Redact/");
-        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item));
+    public void fileInChosenOutputFolder_isAlreadyClean() {
+        android.net.Uri tree = android.net.Uri.parse(
+                "content://com.android.externalstorage.documents/tree/primary%3APictures%2FPrivate");
+        com.doubleangels.redact.AppPreferences.setOutputTree(app, false, tree);
+        android.net.Uri inside = android.net.Uri.parse(
+                "content://com.android.externalstorage.documents/tree/primary%3APictures%2FPrivate"
+                        + "/document/primary%3APictures%2FPrivate%2Fabc.jpg");
+        android.net.Uri outside = android.net.Uri.parse(
+                "content://com.android.externalstorage.documents/tree/primary%3APictures%2FPrivateOther"
+                        + "/document/primary%3APictures%2FPrivateOther%2Fabc.jpg");
+        assertEquals(true, com.doubleangels.redact.media.OutputDestination.isInChosenFolder(app, inside));
+        assertEquals(false, com.doubleangels.redact.media.OutputDestination.isInChosenFolder(app, outside));
     }
 
     @Test

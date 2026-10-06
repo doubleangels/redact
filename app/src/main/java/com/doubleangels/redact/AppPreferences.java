@@ -2,8 +2,10 @@ package com.doubleangels.redact;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * Central access to app-wide user preferences stored in the default SharedPreferences file.
@@ -34,11 +36,8 @@ public final class AppPreferences {
     private static final String KEY_VIDEO_FALLBACK_COPY = "video_fallback_copy";
     private static final String KEY_INITIAL_PERMISSIONS_PROMPTED = "initial_permissions_prompted";
     private static final String KEY_MAPS_LOCATION_CONSENT_GIVEN = "maps_location_consent_given";
-    private static final String KEY_OUTPUT_FOLDER = "output_folder";
-
-    /** Subfolder of Pictures/Movies that cleaned and converted files are saved to by default. */
-    public static final String DEFAULT_OUTPUT_FOLDER = "Redact";
-    private static final int MAX_OUTPUT_FOLDER_LENGTH = 40;
+    private static final String KEY_OUTPUT_TREE_IMAGES = "output_tree_images";
+    private static final String KEY_OUTPUT_TREE_VIDEOS = "output_tree_videos";
 
     /** High quality — matches legacy defaults. */
     public static final int QUALITY_PRESET_HIGH = 0;
@@ -221,41 +220,25 @@ public final class AppPreferences {
     }
 
     /**
-     * Normalizes a user-typed folder name to a single safe path segment, or returns null when
-     * nothing usable remains. Slashes, dots-only names and characters MediaStore rejects are
-     * not allowed.
+     * The folder (a Storage Access Framework tree URI) the user picked for cleaned and converted
+     * images or videos, or null to use the default {@code Pictures/Redact} / {@code Movies/Redact}.
      */
-    @androidx.annotation.Nullable
-    public static String sanitizeOutputFolder(@androidx.annotation.Nullable String raw) {
-        if (raw == null) {
-            return null;
-        }
-        String name = raw.trim();
-        if (name.isEmpty() || name.length() > MAX_OUTPUT_FOLDER_LENGTH
-                || name.matches("\\.+") || name.matches(".*[\\\\/:*?\"<>|\\p{Cntrl}].*")) {
-            return null;
-        }
-        return name;
+    @Nullable
+    public static Uri getOutputTree(@NonNull Context context, boolean video) {
+        String stored = prefs(context).getString(outputTreeKey(video), null);
+        return stored == null ? null : Uri.parse(stored);
     }
 
-    @NonNull
-    public static String getOutputFolder(@NonNull Context context) {
-        String stored = sanitizeOutputFolder(prefs(context).getString(KEY_OUTPUT_FOLDER, null));
-        return stored != null ? stored : DEFAULT_OUTPUT_FOLDER;
+    public static void setOutputTree(@NonNull Context context, boolean video, @NonNull Uri tree) {
+        prefs(context).edit().putString(outputTreeKey(video), tree.toString()).apply();
     }
 
-    /** @return false (and stores nothing) when the name is not a valid folder name. */
-    public static boolean setOutputFolder(@NonNull Context context, @androidx.annotation.Nullable String name) {
-        String clean = sanitizeOutputFolder(name);
-        if (clean == null) {
-            return false;
-        }
-        prefs(context).edit().putString(KEY_OUTPUT_FOLDER, clean).apply();
-        return true;
+    public static void resetOutputTree(@NonNull Context context, boolean video) {
+        prefs(context).edit().remove(outputTreeKey(video)).apply();
     }
 
-    public static void resetOutputFolder(@NonNull Context context) {
-        prefs(context).edit().remove(KEY_OUTPUT_FOLDER).apply();
+    private static String outputTreeKey(boolean video) {
+        return video ? KEY_OUTPUT_TREE_VIDEOS : KEY_OUTPUT_TREE_IMAGES;
     }
 
     public static boolean isPreserveCameraSettings(@NonNull Context context) {

@@ -21,7 +21,8 @@ public final class MediaStoreWrites {
     }
 
     public static void markPublished(@NonNull ContentResolver resolver, @Nullable Uri uri) {
-        if (uri != null) {
+        // Documents created in a user-chosen folder have no pending state.
+        if (uri != null && MediaStore.AUTHORITY.equals(uri.getAuthority())) {
             ContentValues values = new ContentValues();
             values.put(MediaStore.MediaColumns.IS_PENDING, 0);
             resolver.update(uri, values, null, null);

@@ -395,8 +395,12 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="settings_cleaning_workflow_subtitle">Ce que Redact vérifie avant un nettoyage et ce qu\'il advient de vos originaux ensuite.</string>
     <string name="settings_section_privacy">Confidentialité</string>
     <string name="settings_privacy_subtitle">Garde ce que vous voyez et copiez dans Redact hors des captures d\'écran, des applications récentes et du presse-papiers.</string>
-    <string name="settings_output_folder">Dossier de Sortie</string>
     <string name="settings_output_folder_reset">Rétablir par Défaut</string>
-    <string name="settings_output_folder_helper">Enregistré dans Pictures/%1$s et Movies/%1$s.</string>
-    <string name="settings_output_folder_invalid">Saisissez un nom de dossier sans barres obliques ni caractères spéciaux.</string>
+    <string name="settings_output_folders">Dossiers de Sortie</string>
+    <string name="settings_output_folders_subtitle">Choisissez où enregistrer les fichiers nettoyés et convertis. Ouvrez l’explorateur de fichiers pour choisir ou créer un dossier pour chaque type.</string>
+    <string name="settings_output_images">Images</string>
+    <string name="settings_output_videos">Vidéos</string>
+    <string name="settings_output_choose">Choisir le Dossier</string>
+    <string name="settings_output_default">%1$s (par défaut)</string>
+    <string name="settings_output_error">Impossible d’utiliser ce dossier. Choisissez-en un autre.</string>
 </resources>

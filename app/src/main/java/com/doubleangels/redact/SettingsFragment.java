@@ -1,6 +1,7 @@
 package com.doubleangels.redact;
 
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -9,7 +10,6 @@ import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.Filter;
 import android.widget.TextView;
@@ -23,6 +23,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.doubleangels.redact.ShareHandlerActivity;
+import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.permission.PermissionStatusHelper;
 import com.doubleangels.redact.ui.MainViewModel;
@@ -33,8 +34,6 @@ import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
-import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -435,42 +434,79 @@ public class SettingsFragment extends Fragment {
         bindOutputFolder(view);
     }
 
-    private void bindOutputFolder(@NonNull View view) {
-        TextInputLayout layout = view.findViewById(R.id.layoutOutputFolder);
-        TextInputEditText edit = view.findViewById(R.id.editOutputFolder);
-        view.findViewById(R.id.buttonResetOutputFolder).setOnClickListener(v -> {
-            AppPreferences.resetOutputFolder(requireContext());
-            showOutputFolder(layout, edit);
-            edit.clearFocus();
-        });
-        Runnable commit = () -> {
-            String typed = edit.getText() == null ? "" : edit.getText().toString();
-            if (AppPreferences.setOutputFolder(requireContext(), typed)) {
-                showOutputFolder(layout, edit);
-            } else {
-                layout.setError(getString(R.string.settings_output_folder_invalid));
+    private final ActivityResultLauncher<Uri> imageFolderPicker = registerOutputFolderPicker(false);
+    private final ActivityResultLauncher<Uri> videoFolderPicker = registerOutputFolderPicker(true);
+    private TextView textOutputImages;
+    private TextView textOutputVideos;
+
+    private ActivityResultLauncher<Uri> registerOutputFolderPicker(boolean video) {
+        return registerForActivityResult(new ActivityResultContracts.OpenDocumentTree(), tree -> {
+            if (tree == null) {
+                return;
             }
-        };
-        edit.setOnEditorActionListener((tv, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                commit.run();
-                edit.clearFocus();
+            Context context = requireContext();
+            try {
+                context.getContentResolver().takePersistableUriPermission(tree,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            } catch (SecurityException e) {
+                Toast.makeText(context, R.string.settings_output_error, Toast.LENGTH_LONG).show();
+                return;
             }
-            return false;
+            Uri old = AppPreferences.getOutputTree(context, video);
+            AppPreferences.setOutputTree(context, video, tree);
+            releaseOutputTree(context, old);
+            refreshOutputFolders();
         });
-        edit.setOnFocusChangeListener((v, hasFocus) -> {
-            if (!hasFocus) {
-                commit.run();
-            }
-        });
-        showOutputFolder(layout, edit);
     }
 
-    private void showOutputFolder(@NonNull TextInputLayout layout, @NonNull TextInputEditText edit) {
-        String folder = AppPreferences.getOutputFolder(requireContext());
-        layout.setError(null);
-        edit.setText(folder);
-        layout.setHelperText(getString(R.string.settings_output_folder_helper, folder));
+    /** Drops the persisted grant for a replaced folder unless the other media type still uses it. */
+    private static void releaseOutputTree(@NonNull Context context, @Nullable Uri old) {
+        if (old == null
+                || old.equals(AppPreferences.getOutputTree(context, false))
+                || old.equals(AppPreferences.getOutputTree(context, true))) {
+            return;
+        }
+        try {
+            context.getContentResolver().releasePersistableUriPermission(old,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        } catch (SecurityException ignored) {
+            // The grant was already gone.
+        }
+    }
+
+    private void bindOutputFolder(@NonNull View view) {
+        textOutputImages = view.findViewById(R.id.textOutputImages);
+        textOutputVideos = view.findViewById(R.id.textOutputVideos);
+        view.findViewById(R.id.buttonChooseOutputImages).setOnClickListener(v ->
+                imageFolderPicker.launch(null));
+        view.findViewById(R.id.buttonChooseOutputVideos).setOnClickListener(v ->
+                videoFolderPicker.launch(null));
+        view.findViewById(R.id.buttonResetOutputImages).setOnClickListener(v -> resetOutputFolder(false));
+        view.findViewById(R.id.buttonResetOutputVideos).setOnClickListener(v -> resetOutputFolder(true));
+        refreshOutputFolders();
+    }
+
+    private void resetOutputFolder(boolean video) {
+        Context context = requireContext();
+        Uri old = AppPreferences.getOutputTree(context, video);
+        AppPreferences.resetOutputTree(context, video);
+        releaseOutputTree(context, old);
+        refreshOutputFolders();
+    }
+
+    private void refreshOutputFolders() {
+        if (textOutputImages == null || textOutputVideos == null) {
+            return;
+        }
+        showOutputFolder(textOutputImages, false);
+        showOutputFolder(textOutputVideos, true);
+    }
+
+    private void showOutputFolder(@NonNull TextView label, boolean video) {
+        Uri tree = AppPreferences.getOutputTree(requireContext(), video);
+        label.setText(tree != null
+                ? OutputDestination.describe(tree)
+                : getString(R.string.settings_output_default, OutputDestination.defaultPath(video)));
     }
 
     private void bindAbout(@NonNull View view) {

@@ -395,8 +395,12 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="settings_cleaning_workflow_subtitle">Qué comprueba Redact antes de limpiar y qué ocurre con tus originales después.</string>
     <string name="settings_section_privacy">Privacidad</string>
     <string name="settings_privacy_subtitle">Mantiene lo que ves y copias en Redact fuera de las capturas, de aplicaciones recientes y del portapapeles.</string>
-    <string name="settings_output_folder">Carpeta de Salida</string>
     <string name="settings_output_folder_reset">Restablecer Predeterminado</string>
-    <string name="settings_output_folder_helper">Se guarda en Pictures/%1$s y Movies/%1$s.</string>
-    <string name="settings_output_folder_invalid">Introduce un nombre de carpeta sin barras ni caracteres especiales.</string>
+    <string name="settings_output_folders">Carpetas de Salida</string>
+    <string name="settings_output_folders_subtitle">Elige dónde se guardan los archivos limpiados y convertidos. Abre el explorador de archivos para elegir o crear una carpeta para cada tipo.</string>
+    <string name="settings_output_images">Imágenes</string>
+    <string name="settings_output_videos">Vídeos</string>
+    <string name="settings_output_choose">Elegir Carpeta</string>
+    <string name="settings_output_default">%1$s (predeterminada)</string>
+    <string name="settings_output_error">No se pudo usar esa carpeta. Elige otra.</string>
 </resources>

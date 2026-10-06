@@ -387,8 +387,12 @@
     <string name="settings_cleaning_workflow_subtitle">清理开始前 Redact 会检查什么，以及清理后如何处理原始文件。</string>
     <string name="settings_section_privacy">隐私</string>
     <string name="settings_privacy_subtitle">避免你在 Redact 中看到和复制的内容出现在截图、最近任务界面和剪贴板中。</string>
-    <string name="settings_output_folder">输出文件夹</string>
     <string name="settings_output_folder_reset">恢复默认</string>
-    <string name="settings_output_folder_helper">保存到 Pictures/%1$s 和 Movies/%1$s。</string>
-    <string name="settings_output_folder_invalid">请输入不含斜杠或特殊字符的文件夹名称。</string>
+    <string name="settings_output_folders">输出文件夹</string>
+    <string name="settings_output_folders_subtitle">选择清理和转换后文件的保存位置。打开文件浏览器，为每种类型选择或新建文件夹。</string>
+    <string name="settings_output_images">图片</string>
+    <string name="settings_output_videos">视频</string>
+    <string name="settings_output_choose">选择文件夹</string>
+    <string name="settings_output_default">%1$s（默认）</string>
+    <string name="settings_output_error">无法使用该文件夹，请选择其他文件夹。</string>
 </resources>

@@ -1,7 +1,6 @@
 package com.doubleangels.redact.media;
 
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
@@ -513,22 +512,12 @@ public final class VideoMedia3Converter {
         String mime = containerMimeForFormatIndex(formatIndex);
         String outName = MediaFileNames.generateShortRandomName() + ext;
 
-        ContentValues values = new ContentValues();
-        values.put(MediaStore.Video.Media.DISPLAY_NAME, outName);
-        values.put(MediaStore.Video.Media.MIME_TYPE, mime);
-        values.put(MediaStore.Video.Media.RELATIVE_PATH, MediaFileNames.moviesOutputPath(context));
-        MediaStoreWrites.markPending(values);
-
-        Uri collection = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-        Uri outUri = resolver.insert(collection, values);
-        if (outUri == null) {
-            throw new IOException("MediaStore insert failed");
-        }
+        Uri outUri = OutputDestination.create(context, true, outName, mime);
 
         try (InputStream in = new FileInputStream(file);
                 OutputStream out = resolver.openOutputStream(outUri)) {
             if (out == null) {
-                resolver.delete(outUri, null, null);
+                OutputDestination.discard(resolver, outUri);
                 throw new IOException("Cannot open output stream");
             }
             byte[] buffer = new byte[65536];
@@ -539,13 +528,13 @@ public final class VideoMedia3Converter {
             out.flush();
         } catch (IOException e) {
             try {
-                resolver.delete(outUri, null, null);
+                OutputDestination.discard(resolver, outUri);
             } catch (Exception ignored) {
                 com.doubleangels.redact.sentry.SentryManager.recordException(ignored);
             }
             throw e;
         }
-        MediaStoreWrites.markPublished(resolver, outUri);
+        OutputDestination.publish(resolver, outUri);
         return outUri;
     }
 }

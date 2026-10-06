@@ -105,7 +105,7 @@ You can also build it yourself, see [For developers](#for-developers).
 1. Open Redact and tap the **Clean** tab.
 2. Tap **Select Files** and choose photos or videos.
 3. Tap **Clean Metadata**.
-4. Find the results in **Pictures/Redact** or **Movies/Redact** (or your chosen output folder), or use the share button to send them straight away.
+4. Find the results in **Pictures/Redact** or **Movies/Redact** (or the folders you chose in Settings), or use the share button to send them straight away.
 
 Your originals are never modified.
 
@@ -140,7 +140,7 @@ Choose a target format (images: JPEG, PNG, WebP, HEIC where supported; video: H.
 
 ### Where files go
 
-Cleaned and converted files are saved through Android's MediaStore into `Pictures/Redact` or `Movies/Redact` by default. You can pick a different folder name in Settings under **Output Folder**, and reset it to `Redact` at any time. Files you share in are held in the app's temporary cache and deleted once sharing finishes, with a short delay so the receiving app can finish reading them.
+Cleaned and converted files are saved through Android's MediaStore into `Pictures/Redact` or `Movies/Redact` by default. In Settings under **Output Folders** you can open the file browser to pick or create a different folder for images and for videos, and reset either one to the default at any time. Files you share in are held in the app's temporary cache and deleted once sharing finishes, with a short delay so the receiving app can finish reading them.
 
 ---
 
@@ -186,7 +186,7 @@ The Settings tab is grouped the same way as the tables below, from the things yo
 |---|---|
 | **Allow Notifications** / **Ongoing Task Progress** | Alerts when jobs finish and optional live progress. Off until you turn them on. |
 | **Clear Cache on Startup** / **Clear Temporary Files** | Removes processing cache older than 24 hours when the app opens, or on demand. |
-| **Output Folder** | The folder name used under `Pictures` and `Movies` for cleaned and converted files (default `Redact`). **Reset to Default** restores it. Existing files are not moved. |
+| **Output Folders** | Opens the file browser so you can pick or create a folder for cleaned and converted images and another for videos. Defaults are `Pictures/Redact` and `Movies/Redact`; **Reset to Default** restores either. Existing files are not moved. |
 | **Secure Deletion Passes** | How many times temporary files are overwritten before deletion. More passes are slower, and recovery may still be possible on flash storage. |
 
 Open the Settings tab in the app for the full list.

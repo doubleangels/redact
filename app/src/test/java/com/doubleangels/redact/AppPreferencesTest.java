@@ -28,21 +28,22 @@ public class AppPreferencesTest {
     }
 
     @Test
-    public void outputFolder_defaultsToRedact_acceptsCustomName_andResets() {
-        assertEquals("Redact", AppPreferences.getOutputFolder(context));
-        assertTrue(AppPreferences.setOutputFolder(context, "  Private "));
-        assertEquals("Private", AppPreferences.getOutputFolder(context));
-        AppPreferences.resetOutputFolder(context);
-        assertEquals("Redact", AppPreferences.getOutputFolder(context));
-    }
+    public void outputTree_isUnsetByDefault_perMediaType_andResets() {
+        android.net.Uri images = android.net.Uri.parse(
+                "content://com.android.externalstorage.documents/tree/primary%3APictures%2FPrivate");
+        android.net.Uri videos = android.net.Uri.parse(
+                "content://com.android.externalstorage.documents/tree/primary%3AMovies%2FPrivate");
+        assertEquals(null, AppPreferences.getOutputTree(context, false));
+        assertEquals(null, AppPreferences.getOutputTree(context, true));
 
-    @Test
-    public void outputFolder_rejectsUnsafeNames() {
-        for (String bad : new String[] {null, "", "   ", ".", "..", "a/b", "a\\b", "x:y", "a*b"}) {
-            assertFalse(bad, AppPreferences.setOutputFolder(context, bad));
-        }
-        assertFalse(AppPreferences.setOutputFolder(context, "x".repeat(41)));
-        assertEquals("Redact", AppPreferences.getOutputFolder(context));
+        AppPreferences.setOutputTree(context, false, images);
+        AppPreferences.setOutputTree(context, true, videos);
+        assertEquals(images, AppPreferences.getOutputTree(context, false));
+        assertEquals(videos, AppPreferences.getOutputTree(context, true));
+
+        AppPreferences.resetOutputTree(context, false);
+        assertEquals(null, AppPreferences.getOutputTree(context, false));
+        assertEquals(videos, AppPreferences.getOutputTree(context, true));
     }
 
     @Test

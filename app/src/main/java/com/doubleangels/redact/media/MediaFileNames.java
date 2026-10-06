@@ -1,11 +1,8 @@
 package com.doubleangels.redact.media;
 
-import android.content.Context;
-import android.os.Environment;
 
 import androidx.annotation.NonNull;
 
-import com.doubleangels.redact.AppPreferences;
 
 import java.security.SecureRandom;
 
@@ -18,18 +15,6 @@ public final class MediaFileNames {
     private static final int RANDOM_NAME_LENGTH = 12;
 
     private MediaFileNames() {
-    }
-
-    /** MediaStore RELATIVE_PATH for cleaned/converted images, e.g. {@code Pictures/Redact}. */
-    @NonNull
-    public static String picturesOutputPath(@NonNull Context context) {
-        return Environment.DIRECTORY_PICTURES + "/" + AppPreferences.getOutputFolder(context);
-    }
-
-    /** MediaStore RELATIVE_PATH for cleaned/converted videos, e.g. {@code Movies/Redact}. */
-    @NonNull
-    public static String moviesOutputPath(@NonNull Context context) {
-        return Environment.DIRECTORY_MOVIES + "/" + AppPreferences.getOutputFolder(context);
     }
 
     @NonNull

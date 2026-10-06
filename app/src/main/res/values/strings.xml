@@ -396,8 +396,12 @@
     <string name="settings_cleaning_workflow_subtitle">What Redact checks before a clean starts, and what happens to your originals afterward.</string>
     <string name="settings_section_privacy">Privacy</string>
     <string name="settings_privacy_subtitle">Keeps what you see and copy in Redact out of screenshots, the recent apps screen and the clipboard.</string>
-    <string name="settings_output_folder">Output Folder</string>
     <string name="settings_output_folder_reset">Reset to Default</string>
-    <string name="settings_output_folder_helper">Saved to Pictures/%1$s and Movies/%1$s.</string>
-    <string name="settings_output_folder_invalid">Enter a folder name without slashes or special characters.</string>
+    <string name="settings_output_folders">Output Folders</string>
+    <string name="settings_output_folders_subtitle">Choose where cleaned and converted files are saved. Open the file browser to pick or create a folder for each type.</string>
+    <string name="settings_output_images">Images</string>
+    <string name="settings_output_videos">Videos</string>
+    <string name="settings_output_choose">Choose Folder</string>
+    <string name="settings_output_default">%1$s (default)</string>
+    <string name="settings_output_error">Could not use that folder. Pick a different one.</string>
 </resources>

@@ -395,8 +395,12 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="settings_cleaning_workflow_subtitle">Cosa controlla Redact prima di una pulizia e cosa succede poi ai tuoi originali.</string>
     <string name="settings_section_privacy">Privacy</string>
     <string name="settings_privacy_subtitle">Tiene ciò che vedi e copi in Redact fuori da screenshot, app recenti e appunti.</string>
-    <string name="settings_output_folder">Cartella di Output</string>
     <string name="settings_output_folder_reset">Ripristina Predefinito</string>
-    <string name="settings_output_folder_helper">Salvato in Pictures/%1$s e Movies/%1$s.</string>
-    <string name="settings_output_folder_invalid">Inserisci un nome di cartella senza barre o caratteri speciali.</string>
+    <string name="settings_output_folders">Cartelle di Output</string>
+    <string name="settings_output_folders_subtitle">Scegli dove salvare i file puliti e convertiti. Apri il gestore file per scegliere o creare una cartella per ogni tipo.</string>
+    <string name="settings_output_images">Immagini</string>
+    <string name="settings_output_videos">Video</string>
+    <string name="settings_output_choose">Scegli Cartella</string>
+    <string name="settings_output_default">%1$s (predefinita)</string>
+    <string name="settings_output_error">Impossibile usare questa cartella. Scegline un’altra.</string>
 </resources>

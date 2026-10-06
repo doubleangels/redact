@@ -48,7 +48,7 @@ public final class AlreadyCleanCheck {
         UNKNOWN
     }
 
-    private static final String DEFAULT_OUTPUT_FOLDER = com.doubleangels.redact.AppPreferences.DEFAULT_OUTPUT_FOLDER;
+    private static final String[] REDACT_OUTPUT_DIRS = {"Pictures/Redact", "Movies/Redact"};
     private static final int XMP_SCAN_LIMIT = 256 * 1024;
 
     private AlreadyCleanCheck() {
@@ -89,6 +89,9 @@ public final class AlreadyCleanCheck {
     }
 
     static boolean isRedactOutput(@NonNull Context context, @NonNull Uri uri) {
+        if (com.doubleangels.redact.media.OutputDestination.isInChosenFolder(context, uri)) {
+            return true;
+        }
         String relativePath = queryRelativePath(context, uri);
         if (relativePath == null) {
             try {
@@ -104,14 +107,7 @@ public final class AlreadyCleanCheck {
             return false;
         }
         String normalized = relativePath.replace('\\', '/');
-        // Default folder plus the current custom one, so switching folders does not make earlier
-        // outputs look like fresh files.
-        String custom = com.doubleangels.redact.AppPreferences.getOutputFolder(context);
-        String[] dirs = {
-            "Pictures/" + DEFAULT_OUTPUT_FOLDER, "Movies/" + DEFAULT_OUTPUT_FOLDER,
-            "Pictures/" + custom, "Movies/" + custom
-        };
-        for (String dir : dirs) {
+        for (String dir : REDACT_OUTPUT_DIRS) {
             if (normalized.equals(dir) || normalized.startsWith(dir + "/")) {
                 return true;
             }

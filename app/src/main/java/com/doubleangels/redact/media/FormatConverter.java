@@ -1,7 +1,6 @@
 package com.doubleangels.redact.media;
 
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -397,22 +396,17 @@ public final class FormatConverter {
 
         String outName = MediaFileNames.generateShortRandomName() + ext;
 
-        ContentValues values = new ContentValues();
-        values.put(MediaStore.Images.Media.DISPLAY_NAME, outName);
-        values.put(MediaStore.Images.Media.MIME_TYPE, mime);
-        values.put(MediaStore.Images.Media.RELATIVE_PATH, MediaFileNames.picturesOutputPath(context));
-        MediaStoreWrites.markPending(values);
-
-        Uri collection = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        Uri outUri = resolver.insert(collection, values);
-        if (outUri == null) {
+        Uri outUri;
+        try {
+            outUri = OutputDestination.create(context, false, outName, mime);
+        } catch (IOException e) {
             bitmap.recycle();
-            throw new IOException("MediaStore insert failed");
+            throw e;
         }
 
         try (OutputStream os = resolver.openOutputStream(outUri)) {
             if (os == null) {
-                resolver.delete(outUri, null, null);
+                OutputDestination.discard(resolver, outUri);
                 throw new IOException("Cannot open output stream");
             }
             int q = qualityForFormat(format, context);
@@ -425,7 +419,7 @@ public final class FormatConverter {
                 ok = bitmap.compress(format, q, os);
             }
             if (!ok) {
-                resolver.delete(outUri, null, null);
+                OutputDestination.discard(resolver, outUri);
                 throw new IOException("Compress failed");
             }
             os.flush();
@@ -434,7 +428,7 @@ public final class FormatConverter {
         }
         // Re-encoding from decoded pixels drops all source metadata (EXIF, XMP, IPTC, ICC
         // thumbnails); intentionally nothing is copied back.
-        MediaStoreWrites.markPublished(resolver, outUri);
+        OutputDestination.publish(resolver, outUri);
         return outUri;
     }
 

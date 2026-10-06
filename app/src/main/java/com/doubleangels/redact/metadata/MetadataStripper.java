@@ -1,7 +1,6 @@
 package com.doubleangels.redact.metadata;
 
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -22,9 +21,8 @@ import com.doubleangels.redact.CacheCleanup;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaSizeLimits;
-import com.doubleangels.redact.media.MediaStoreWrites;
 import com.doubleangels.redact.media.VideoMedia3Converter;
-import com.doubleangels.redact.media.MediaFileNames;
+import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.Closeable;
@@ -396,11 +394,7 @@ public class MetadataStripper {
             SentryManager.setCustomKey("error_type", e.getClass().getName());
 
             if (newUri != null) {
-                try {
-                    contentResolver.delete(newUri, null, null);
-                } catch (Exception cleanupEx) {
-                    SentryManager.log("The partial file failed to clean up: " + cleanupEx.getMessage() + ".");
-                }
+                OutputDestination.discard(contentResolver, newUri);
             }
         } catch (Exception e) {
             if (shouldPropagateCancellation(e)) {
@@ -413,11 +407,7 @@ public class MetadataStripper {
             SentryManager.setCustomKey("error_type", e.getClass().getName());
 
             if (newUri != null) {
-                try {
-                    contentResolver.delete(newUri, null, null);
-                } catch (Exception cleanupEx) {
-                    SentryManager.log("The partial file failed to clean up: " + cleanupEx.getMessage() + ".");
-                }
+                OutputDestination.discard(contentResolver, newUri);
             }
         }
 
@@ -474,20 +464,8 @@ public class MetadataStripper {
                 SentryManager.log("The thumbnails could not be removed from the temp file: " + e.getMessage() + ".");
             }
 
-            // Prepare MediaStore entry for the new image
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.Images.Media.DISPLAY_NAME, newFilename);
-            values.put(MediaStore.Images.Media.MIME_TYPE, outputFormat.mimeType);
-            values.put(MediaStore.Images.Media.RELATIVE_PATH, MediaFileNames.picturesOutputPath(context));
-            MediaStoreWrites.markPending(values);
-
-            // Create the new entry in MediaStore
-            newUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-
-            if (newUri == null) {
-                SentryManager.log("The MediaStore entry failed to create.");
-                throw new IOException("Failed to create new image in MediaStore");
-            }
+            // Create the output (a pending MediaStore entry, or a file in the chosen folder)
+            newUri = OutputDestination.create(context, false, newFilename, outputFormat.mimeType);
 
             // Save bitmap without metadata
                         updateProgress(3, 5, context.getString(R.string.strip_progress_removing_metadata));
@@ -553,7 +531,7 @@ public class MetadataStripper {
             // The owning app can read/write its own pending entry; only other apps are blocked.
             updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
             verifyCleanedImageAtUri(newUri, extension);
-            MediaStoreWrites.markPublished(contentResolver, newUri);
+            OutputDestination.publish(contentResolver, newUri);
 
             lastProcessedFileUri = newUri;
             SentryManager.log("The image was processed successfully.");
@@ -569,11 +547,7 @@ public class MetadataStripper {
             SentryManager.setCustomKey("error_type", e.getClass().getName());
 
             if (newUri != null) {
-                try {
-                    contentResolver.delete(newUri, null, null);
-                } catch (Exception cleanupEx) {
-                    SentryManager.log("The partial file failed to clean up: " + cleanupEx.getMessage() + ".");
-                }
+                OutputDestination.discard(contentResolver, newUri);
                 newUri = null;
             }
         } catch (Exception e) {
@@ -587,11 +561,7 @@ public class MetadataStripper {
             SentryManager.setCustomKey("error_type", e.getClass().getName());
 
             if (newUri != null) {
-                try {
-                    contentResolver.delete(newUri, null, null);
-                } catch (Exception cleanupEx) {
-                    SentryManager.log("The partial file failed to clean up: " + cleanupEx.getMessage() + ".");
-                }
+                OutputDestination.discard(contentResolver, newUri);
                 newUri = null;
             }
         } finally {
