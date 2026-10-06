@@ -21,9 +21,8 @@ concurrency:
 jobs:
   test:
     if: |
-      github.event_name == 'push' ||
-      github.event_name == 'pull_request' ||
-      github.event_name == 'workflow_dispatch'
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.ref != 'dev'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
