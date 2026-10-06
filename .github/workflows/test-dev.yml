@@ -33,11 +33,5 @@ jobs:
       - name: Setup Android build
         uses: ./.github/actions/setup-android-build
 
-      - name: Run unit tests
-        run: ./gradlew test --no-daemon
-
-      - name: Run Android Lint
-        run: ./gradlew lintRelease --no-daemon
-
-      - name: Build release bundle
-        run: ./gradlew bundleRelease --no-daemon
+      - name: Run unit tests, lint, and build release bundle
+        run: ./gradlew test lintRelease bundleRelease --no-daemon
