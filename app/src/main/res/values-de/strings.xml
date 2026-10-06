@@ -390,4 +390,8 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_cleaning_workflow_subtitle">Was Redact vor dem Bereinigen prüft und was danach mit deinen Originalen passiert.</string>
     <string name="settings_section_privacy">Datenschutz</string>
     <string name="settings_privacy_subtitle">Hält, was du in Redact siehst und kopierst, aus Screenshots, der App-Übersicht und der Zwischenablage heraus.</string>
+    <string name="settings_output_folder">Ausgabeordner</string>
+    <string name="settings_output_folder_reset">Auf Standard zurücksetzen</string>
+    <string name="settings_output_folder_helper">Gespeichert in Pictures/%1$s und Movies/%1$s.</string>
+    <string name="settings_output_folder_invalid">Gib einen Ordnernamen ohne Schrägstriche oder Sonderzeichen ein.</string>
 </resources>

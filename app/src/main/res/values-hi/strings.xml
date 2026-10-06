@@ -391,4 +391,8 @@
     <string name="settings_cleaning_workflow_subtitle">सफ़ाई शुरू होने से पहले Redact क्या जाँचता है और उसके बाद आपकी मूल फ़ाइलों का क्या होता है।</string>
     <string name="settings_section_privacy">गोपनीयता</string>
     <string name="settings_privacy_subtitle">Redact में आप जो देखते और कॉपी करते हैं उसे स्क्रीनशॉट, हाल के ऐप्स की स्क्रीन और क्लिपबोर्ड से दूर रखता है।</string>
+    <string name="settings_output_folder">आउटपुट फ़ोल्डर</string>
+    <string name="settings_output_folder_reset">डिफ़ॉल्ट पर रीसेट करें</string>
+    <string name="settings_output_folder_helper">Pictures/%1$s और Movies/%1$s में सहेजा जाता है।</string>
+    <string name="settings_output_folder_invalid">स्लैश या विशेष वर्णों के बिना फ़ोल्डर नाम दर्ज करें।</string>
 </resources>

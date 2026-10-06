@@ -8,7 +8,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.ImageDecoder;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 import android.provider.MediaStore;
 
 import androidx.annotation.NonNull;
@@ -401,7 +400,7 @@ public final class FormatConverter {
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.DISPLAY_NAME, outName);
         values.put(MediaStore.Images.Media.MIME_TYPE, mime);
-        values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Redact");
+        values.put(MediaStore.Images.Media.RELATIVE_PATH, MediaFileNames.picturesOutputPath(context));
         MediaStoreWrites.markPending(values);
 
         Uri collection = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;

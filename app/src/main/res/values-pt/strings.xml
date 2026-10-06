@@ -395,4 +395,8 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="settings_cleaning_workflow_subtitle">O que o Redact verifica antes de uma limpeza e o que acontece com seus originais depois.</string>
     <string name="settings_section_privacy">Privacidade</string>
     <string name="settings_privacy_subtitle">Mantém o que você vê e copia no Redact fora de capturas de tela, apps recentes e da área de transferência.</string>
+    <string name="settings_output_folder">Pasta de Saída</string>
+    <string name="settings_output_folder_reset">Restaurar Padrão</string>
+    <string name="settings_output_folder_helper">Salvo em Pictures/%1$s e Movies/%1$s.</string>
+    <string name="settings_output_folder_invalid">Digite um nome de pasta sem barras ou caracteres especiais.</string>
 </resources>

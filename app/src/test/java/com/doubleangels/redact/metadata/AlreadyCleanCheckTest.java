@@ -126,6 +126,17 @@ public class AlreadyCleanCheckTest {
     }
 
     @Test
+    public void fileInCustomOutputFolder_isAlreadyClean_andDefaultFolderStillCounts() throws IOException {
+        com.doubleangels.redact.AppPreferences.setOutputFolder(app, "Private");
+        File f = jpegWith(ExifInterface.TAG_MAKE, "Acme");
+        MediaItem item = item(f, "image/jpeg");
+        FakeMediaStoreProvider.only().values.put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/Private/");
+        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item));
+        FakeMediaStoreProvider.only().values.put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/Redact/");
+        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item));
+    }
+
+    @Test
     public void similarlyNamedFolder_isNotARedactOutput() throws IOException {
         File f = jpegWith(ExifInterface.TAG_MAKE, "Acme");
         MediaItem item = item(f, "image/jpeg");

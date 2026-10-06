@@ -34,6 +34,11 @@ public final class AppPreferences {
     private static final String KEY_VIDEO_FALLBACK_COPY = "video_fallback_copy";
     private static final String KEY_INITIAL_PERMISSIONS_PROMPTED = "initial_permissions_prompted";
     private static final String KEY_MAPS_LOCATION_CONSENT_GIVEN = "maps_location_consent_given";
+    private static final String KEY_OUTPUT_FOLDER = "output_folder";
+
+    /** Subfolder of Pictures/Movies that cleaned and converted files are saved to by default. */
+    public static final String DEFAULT_OUTPUT_FOLDER = "Redact";
+    private static final int MAX_OUTPUT_FOLDER_LENGTH = 40;
 
     /** High quality — matches legacy defaults. */
     public static final int QUALITY_PRESET_HIGH = 0;
@@ -213,6 +218,44 @@ public final class AppPreferences {
             default -> 4096;
         };
         prefs(context).edit().putInt(KEY_MAX_BITMAP_SIZE, clamped).apply();
+    }
+
+    /**
+     * Normalizes a user-typed folder name to a single safe path segment, or returns null when
+     * nothing usable remains. Slashes, dots-only names and characters MediaStore rejects are
+     * not allowed.
+     */
+    @androidx.annotation.Nullable
+    public static String sanitizeOutputFolder(@androidx.annotation.Nullable String raw) {
+        if (raw == null) {
+            return null;
+        }
+        String name = raw.trim();
+        if (name.isEmpty() || name.length() > MAX_OUTPUT_FOLDER_LENGTH
+                || name.matches("\\.+") || name.matches(".*[\\\\/:*?\"<>|\\p{Cntrl}].*")) {
+            return null;
+        }
+        return name;
+    }
+
+    @NonNull
+    public static String getOutputFolder(@NonNull Context context) {
+        String stored = sanitizeOutputFolder(prefs(context).getString(KEY_OUTPUT_FOLDER, null));
+        return stored != null ? stored : DEFAULT_OUTPUT_FOLDER;
+    }
+
+    /** @return false (and stores nothing) when the name is not a valid folder name. */
+    public static boolean setOutputFolder(@NonNull Context context, @androidx.annotation.Nullable String name) {
+        String clean = sanitizeOutputFolder(name);
+        if (clean == null) {
+            return false;
+        }
+        prefs(context).edit().putString(KEY_OUTPUT_FOLDER, clean).apply();
+        return true;
+    }
+
+    public static void resetOutputFolder(@NonNull Context context) {
+        prefs(context).edit().remove(KEY_OUTPUT_FOLDER).apply();
     }
 
     public static boolean isPreserveCameraSettings(@NonNull Context context) {

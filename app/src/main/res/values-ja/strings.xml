@@ -388,4 +388,8 @@
     <string name="settings_cleaning_workflow_subtitle">クリーンの開始前に Redact が確認する内容と、その後の元ファイルの扱いです。</string>
     <string name="settings_section_privacy">プライバシー</string>
     <string name="settings_privacy_subtitle">Redact で見たりコピーしたりした内容を、スクリーンショット、最近使ったアプリ画面、クリップボードに残さないようにします。</string>
+    <string name="settings_output_folder">出力フォルダ</string>
+    <string name="settings_output_folder_reset">デフォルトに戻す</string>
+    <string name="settings_output_folder_helper">Pictures/%1$s と Movies/%1$s に保存されます。</string>
+    <string name="settings_output_folder_invalid">スラッシュや特殊文字を含まないフォルダ名を入力してください。</string>
 </resources>

@@ -5,7 +5,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
@@ -517,7 +516,7 @@ public final class VideoMedia3Converter {
         ContentValues values = new ContentValues();
         values.put(MediaStore.Video.Media.DISPLAY_NAME, outName);
         values.put(MediaStore.Video.Media.MIME_TYPE, mime);
-        values.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/Redact");
+        values.put(MediaStore.Video.Media.RELATIVE_PATH, MediaFileNames.moviesOutputPath(context));
         MediaStoreWrites.markPending(values);
 
         Uri collection = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;

@@ -28,6 +28,24 @@ public class AppPreferencesTest {
     }
 
     @Test
+    public void outputFolder_defaultsToRedact_acceptsCustomName_andResets() {
+        assertEquals("Redact", AppPreferences.getOutputFolder(context));
+        assertTrue(AppPreferences.setOutputFolder(context, "  Private "));
+        assertEquals("Private", AppPreferences.getOutputFolder(context));
+        AppPreferences.resetOutputFolder(context);
+        assertEquals("Redact", AppPreferences.getOutputFolder(context));
+    }
+
+    @Test
+    public void outputFolder_rejectsUnsafeNames() {
+        for (String bad : new String[] {null, "", "   ", ".", "..", "a/b", "a\\b", "x:y", "a*b"}) {
+            assertFalse(bad, AppPreferences.setOutputFolder(context, bad));
+        }
+        assertFalse(AppPreferences.setOutputFolder(context, "x".repeat(41)));
+        assertEquals("Redact", AppPreferences.getOutputFolder(context));
+    }
+
+    @Test
     public void qualityForLossyFormat_returnsPresetAndFormatSpecificQuality() {
         assertEquals(92, AppPreferences.qualityForLossyFormat(
                 AppPreferences.QUALITY_PRESET_HIGH, false));

@@ -6,7 +6,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -25,6 +24,7 @@ import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaSizeLimits;
 import com.doubleangels.redact.media.MediaStoreWrites;
 import com.doubleangels.redact.media.VideoMedia3Converter;
+import com.doubleangels.redact.media.MediaFileNames;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.Closeable;
@@ -478,7 +478,7 @@ public class MetadataStripper {
             ContentValues values = new ContentValues();
             values.put(MediaStore.Images.Media.DISPLAY_NAME, newFilename);
             values.put(MediaStore.Images.Media.MIME_TYPE, outputFormat.mimeType);
-            values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Redact");
+            values.put(MediaStore.Images.Media.RELATIVE_PATH, MediaFileNames.picturesOutputPath(context));
             MediaStoreWrites.markPending(values);
 
             // Create the new entry in MediaStore

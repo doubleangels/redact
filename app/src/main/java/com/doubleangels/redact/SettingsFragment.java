@@ -9,6 +9,7 @@ import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.Filter;
 import android.widget.TextView;
@@ -32,6 +33,8 @@ import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -429,6 +432,45 @@ public class SettingsFragment extends Fragment {
                 .setNegativeButton(android.R.string.cancel, null)
                 .show());
         refreshStorageSize();
+        bindOutputFolder(view);
+    }
+
+    private void bindOutputFolder(@NonNull View view) {
+        TextInputLayout layout = view.findViewById(R.id.layoutOutputFolder);
+        TextInputEditText edit = view.findViewById(R.id.editOutputFolder);
+        view.findViewById(R.id.buttonResetOutputFolder).setOnClickListener(v -> {
+            AppPreferences.resetOutputFolder(requireContext());
+            showOutputFolder(layout, edit);
+            edit.clearFocus();
+        });
+        Runnable commit = () -> {
+            String typed = edit.getText() == null ? "" : edit.getText().toString();
+            if (AppPreferences.setOutputFolder(requireContext(), typed)) {
+                showOutputFolder(layout, edit);
+            } else {
+                layout.setError(getString(R.string.settings_output_folder_invalid));
+            }
+        };
+        edit.setOnEditorActionListener((tv, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                commit.run();
+                edit.clearFocus();
+            }
+            return false;
+        });
+        edit.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus) {
+                commit.run();
+            }
+        });
+        showOutputFolder(layout, edit);
+    }
+
+    private void showOutputFolder(@NonNull TextInputLayout layout, @NonNull TextInputEditText edit) {
+        String folder = AppPreferences.getOutputFolder(requireContext());
+        layout.setError(null);
+        edit.setText(folder);
+        layout.setHelperText(getString(R.string.settings_output_folder_helper, folder));
     }
 
     private void bindAbout(@NonNull View view) {

@@ -407,4 +407,8 @@
     <string name="settings_cleaning_workflow_subtitle">ما يتحقق منه Redact قبل بدء التنظيف، وما يحدث لملفاتك الأصلية بعده.</string>
     <string name="settings_section_privacy">الخصوصية</string>
     <string name="settings_privacy_subtitle">يُبقي ما تراه وتنسخه في Redact خارج لقطات الشاشة وشاشة التطبيقات الأخيرة والحافظة.</string>
+    <string name="settings_output_folder">مجلد الإخراج</string>
+    <string name="settings_output_folder_reset">إعادة التعيين إلى الافتراضي</string>
+    <string name="settings_output_folder_helper">يُحفظ في Pictures/%1$s وMovies/%1$s.</string>
+    <string name="settings_output_folder_invalid">أدخل اسم مجلد بدون شرطات مائلة أو أحرف خاصة.</string>
 </resources>

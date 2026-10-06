@@ -387,4 +387,8 @@
     <string name="settings_cleaning_workflow_subtitle">清理開始前 Redact 會檢查什麼，以及清理後如何處理原始檔案。</string>
     <string name="settings_section_privacy">隱私</string>
     <string name="settings_privacy_subtitle">避免你在 Redact 中看到和複製的內容出現在螢幕截圖、最近使用畫面和剪貼簿中。</string>
+    <string name="settings_output_folder">輸出資料夾</string>
+    <string name="settings_output_folder_reset">還原預設</string>
+    <string name="settings_output_folder_helper">儲存至 Pictures/%1$s 和 Movies/%1$s。</string>
+    <string name="settings_output_folder_invalid">請輸入不含斜線或特殊字元的資料夾名稱。</string>
 </resources>
