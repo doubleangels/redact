@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  unit-tests:
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
@@ -23,11 +23,42 @@ jobs:
       - name: Setup Android build
         uses: ./.github/actions/setup-android-build
 
-      - name: Run tests, lint, and build release bundle (uploads ProGuard mapping to Sentry)
+      - name: Run unit tests
+        run: ./gradlew test --no-daemon
+
+  lint:
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Android build
+        uses: ./.github/actions/setup-android-build
+
+      - name: Run Android Lint
+        run: ./gradlew lintRelease --no-daemon
+
+  bundle-release:
+    needs: ["unit-tests", "lint"]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Android build
+        uses: ./.github/actions/setup-android-build
+
+      - name: Build release bundle and upload ProGuard mapping to Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        run: ./gradlew test lintRelease bundleRelease --no-daemon
+        run: ./gradlew bundleRelease --no-daemon
 
       - name: Sign bundle for Google Play release
         uses: r0adkll/sign-android-release@349ebdef58775b1e0d8099458af0816dc79b6407 # v1
@@ -45,7 +76,7 @@ jobs:
           path: app/build/outputs/bundle/release/app-release.aab
 
   publish:
-    needs: ["build"]
+    needs: ["bundle-release"]
     # Requires a "production" environment in repo Settings → Environments with required reviewers.
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     environment: production
@@ -144,7 +175,7 @@ jobs:
   delete-workflow-runs:
     permissions:
       actions: write
-    needs: ["build", "publish"]
+    needs: ["unit-tests", "lint", "bundle-release", "publish"]
     runs-on: ubuntu-latest
     if: always()
     steps:
