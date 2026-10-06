@@ -19,6 +19,14 @@ runs:
         restore-keys: |
           gradle-build-cache-${{ runner.os }}-${{ github.job }}-
 
+    - name: Cache Gradle configuration cache
+      uses: actions/cache@v4
+      with:
+        path: .gradle/configuration-cache
+        key: gradle-config-cache-${{ runner.os }}-${{ github.job }}-${{ github.run_id }}
+        restore-keys: |
+          gradle-config-cache-${{ runner.os }}-${{ github.job }}-
+
     - name: Cache Android SDK platform 37.0
       uses: actions/cache@v4
       with:
