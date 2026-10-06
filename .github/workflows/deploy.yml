@@ -36,7 +36,7 @@ jobs:
         run: ./gradlew bundleRelease --no-daemon --parallel --build-cache
 
       - name: Sign bundle for Google Play release
-        uses: r0adkll/sign-android-release@v1
+        uses: r0adkll/sign-android-release@349ebdef58775b1e0d8099458af0816dc79b6407 # v1
         with:
           releaseDirectory: app/build/outputs/bundle/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
@@ -56,11 +56,14 @@ jobs:
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     environment: production
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed only to move the last-metadata-publish tag below.
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
+          fetch-tags: true
           persist-credentials: false
 
       - name: Download bundle from artifacts
@@ -75,7 +78,7 @@ jobs:
         run: printf '%s' "$SERVICE_ACCOUNT_JSON" > service_account.json
 
       - name: Publish bundle to Google Play
-        uses: r0adkll/upload-google-play@v1.1.5
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1.1.5
         with:
           serviceAccountJson: service_account.json
           packageName: com.doubleangels.redact
@@ -83,20 +86,49 @@ jobs:
           tracks: production
           whatsNewDirectory: whatsnew
 
+      - name: Check whether the store listing changed
+        id: metadata_diff
+        run: |
+          # fastlane supply re-uploads title/descriptions/screenshots on every run
+          # regardless of whether they changed, and Google Play can treat that as a
+          # store-listing change needing its own review, slowing down approval of
+          # releases that didn't touch the listing at all. Skip the push entirely
+          # when nothing under fastlane/metadata (besides the unused changelogs/
+          # folder, which supply is told to skip anyway) has changed since the last
+          # commit we actually pushed from.
+          if git rev-parse --verify --quiet refs/tags/last-metadata-publish >/dev/null; then
+            if git diff --quiet refs/tags/last-metadata-publish HEAD -- fastlane/metadata ':(exclude)fastlane/metadata/android/*/changelogs'; then
+              echo "changed=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Set up Ruby for Fastlane
-        uses: ruby/setup-ruby@v1.327.0
+        if: steps.metadata_diff.outputs.changed == 'true'
+        uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1.327.0
         with:
           ruby-version: "3.3"
           bundler-cache: false
 
       - name: Lock Ruby gems for reproducible Fastlane
+        if: steps.metadata_diff.outputs.changed == 'true'
         run: bundle lock
 
       - name: Install Ruby gems
+        if: steps.metadata_diff.outputs.changed == 'true'
         run: bundle install --deployment
 
       - name: Push Fastlane metadata to Play Store
+        if: steps.metadata_diff.outputs.changed == 'true'
         run: bundle exec fastlane supply --skip_upload_apk true --skip_upload_aab true --skip_upload_changelogs true --json_key service_account.json --package_name com.doubleangels.redact --track production
+
+      - name: Record metadata publish point
+        run: |
+          git tag -f last-metadata-publish
+          git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" last-metadata-publish --force
 
       - name: Read app version for Sentry release
         id: version
@@ -106,7 +138,7 @@ jobs:
           echo "release=com.doubleangels.redact@${VERSION_NAME}+${VERSION_CODE}" >> "$GITHUB_OUTPUT"
 
       - name: Finalize Sentry release
-        uses: getsentry/action-release@v3.7.0
+        uses: getsentry/action-release@ff07929a6537bac57790c3451cf4d364aca38528 # v3.7.0
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: doubleangels
@@ -123,7 +155,7 @@ jobs:
     if: always()
     steps:
       - name: Delete workflow runs
-        uses: Mattraks/delete-workflow-runs@v2
+        uses: Mattraks/delete-workflow-runs@0cf693bc9909e5e867ee8f27b813224ba862939c # v2
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}

@@ -2,6 +2,8 @@ package com.doubleangels.redact;
 
 import android.app.Activity;
 import android.content.Context;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.os.Bundle;
 import android.widget.Toast;
 import android.view.LayoutInflater;
@@ -11,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -32,8 +35,12 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.doubleangels.redact.sentry.SentryManager;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.doubleangels.redact.metadata.AlreadyCleanCheck;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Hosts the Clean (strip metadata) UI and logic; shown in {@link MainActivity}'s fragment container.
@@ -41,6 +48,8 @@ import java.util.List;
 public class CleanFragment extends Fragment {
 
     private static final int MAX_PICK_ITEMS = 20;
+    /** Total time the already-clean check may spend reading files before it gives up. */
+    private static final long ALREADY_CLEAN_BUDGET_MS = 8_000L;
 
     @Nullable
     private List<MediaItem> lastObservedSelectedItems;
@@ -58,7 +67,14 @@ public class CleanFragment extends Fragment {
     private LinearProgressIndicator progressBar;
     private MediaAdapter mediaAdapter;
 
+    private View emptyStateContainer;
+    private MaterialButton emptyStateSelectButton;
+    private View mediaContentContainer;
+    private TextView cleanSelectedCountText;
+    private MaterialButton cleanClearButton;
+
     private ActivityResultLauncher<String[]> mediaPickerLauncher;
+    private ActivityResultLauncher<IntentSenderRequest> trashRequestLauncher;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -67,6 +83,8 @@ public class CleanFragment extends Fragment {
         if (getActivity() != null) {
             mediaSelector = new MediaSelector(requireActivity());
         }
+        trashRequestLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartIntentSenderForResult(), result -> { });
         mediaPickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.OpenMultipleDocuments(),
                 uris -> {
@@ -80,7 +98,7 @@ public class CleanFragment extends Fragment {
                                         .show();
                                 uris = MediaPickerContracts.trimToMax(uris, MAX_PICK_ITEMS);
                             }
-                            SentryManager.log("Media selected successfully");
+                            SentryManager.log("Media was selected successfully.");
                             List<MediaItem> items = new ArrayList<>();
                             for (android.net.Uri uri : uris) {
                                 if (mediaSelector != null) {
@@ -90,7 +108,7 @@ public class CleanFragment extends Fragment {
                             SentryManager.setCustomKey("selected_media_count", items.size());
                             viewModel.setSelectedItems(items);
                         } else {
-                            SentryManager.log("Media selection canceled or failed");
+                            SentryManager.log("Media selection was canceled or failed.");
                         }
                     } catch (Exception e) {
                         SentryManager.recordException(e);
@@ -110,7 +128,7 @@ public class CleanFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
-            SentryManager.log("CleanFragment view created");
+            SentryManager.log("The CleanFragment view was created.");
             viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
             setupViews(view);
             initUtilityClasses();
@@ -134,44 +152,41 @@ public class CleanFragment extends Fragment {
             progressText = view.findViewById(R.id.progressText);
             progressBar = view.findViewById(R.id.progressBar);
 
+            emptyStateContainer = view.findViewById(R.id.emptyStateContainer);
+            emptyStateSelectButton = view.findViewById(R.id.emptyStateSelectButton);
+            mediaContentContainer = view.findViewById(R.id.mediaContentContainer);
+            cleanSelectedCountText = view.findViewById(R.id.cleanSelectedCountText);
+            cleanClearButton = view.findViewById(R.id.cleanClearButton);
+
+            if (emptyStateSelectButton != null) {
+                emptyStateSelectButton.setOnClickListener(v -> onSelectMediaClicked());
+            }
+            if (cleanClearButton != null) {
+                cleanClearButton.setOnClickListener(v -> {
+                    if (viewModel.getCleanProcessingState().getValue()
+                            != MainViewModel.ProcessingState.PROCESSING) {
+                        viewModel.setSelectedItems(List.of());
+                    }
+                });
+            }
+
             stripButton.setEnabled(false);
 
             mediaAdapter = new MediaAdapter(new ArrayList<>());
             selectedItemsGrid.setAdapter(mediaAdapter);
             selectedItemsGrid.setLayoutManager(new GridLayoutManager(requireContext(), 3));
 
-            selectButton.setOnClickListener(v -> {
-                try {
-                    SentryManager.log("Select button clicked");
-                    if (viewModel.getCleanProcessingState().getValue()
-                            == MainViewModel.ProcessingState.PROCESSING) {
-                        return;
-                    }
-                    if (viewModel.getCleanProcessingState().getValue()
-                            == MainViewModel.ProcessingState.COMPLETED) {
-                        viewModel.setCleanProcessingState(MainViewModel.ProcessingState.IDLE);
-                    }
-                    if (permissionManager.shouldRequestStorageBeforePicker()) {
-                        SentryManager.log("Requesting permissions");
-                        permissionManager.requestStoragePermission();
-                    } else {
-                        SentryManager.log("Launching media selector");
-                        mediaPickerLauncher.launch(MediaPickerContracts.IMAGE_AND_VIDEO_MIME_TYPES);
-                    }
-                } catch (Exception e) {
-                    SentryManager.recordException(e);
-                }
-            });
+            selectButton.setOnClickListener(v -> onSelectMediaClicked());
 
             stripButton.setOnClickListener(v -> {
                 try {
                     if (viewModel.getCleanProcessingState().getValue()
                             == MainViewModel.ProcessingState.PROCESSING) {
-                        SentryManager.log("Cancel clean requested");
+                        SentryManager.log("The user requested that the clean be cancelled.");
                         viewModel.cancelCleaning();
                         return;
                     }
-                    SentryManager.log("Strip button clicked");
+                    SentryManager.log("The user clicked the Strip button.");
                     List<MediaItem> items = viewModel.getSelectedItems().getValue();
                     if (items != null && !items.isEmpty()) {
                         SentryManager.setCustomKey("processing_items_count", items.size());
@@ -185,6 +200,12 @@ public class CleanFragment extends Fragment {
                                 boolean hasAnimatedImage = containsAnimatedImage(items);
                                 List<ProcessingResourceWarnings.Warning> warnings =
                                         ProcessingResourceWarnings.assess(appContext, items);
+                                // Reads each file's metadata, so it also runs off the main thread.
+                                List<AlreadyCleanCheck.Status> cleanStatuses =
+                                        AppPreferences.isWarnAlreadyClean(appContext)
+                                                ? AlreadyCleanCheck.assess(
+                                                        appContext, items, ALREADY_CLEAN_BUDGET_MS)
+                                                : null;
                                 runOnUiThreadIfAdded(() -> {
                                     if (hasAnimatedImage) {
                                         Toast.makeText(
@@ -193,17 +214,18 @@ public class CleanFragment extends Fragment {
                                                         Toast.LENGTH_LONG)
                                                 .show();
                                     }
-                                    ProcessingResourceWarnings.runWithWarnings(
-                                            requireActivity(),
-                                            warnings,
-                                            () -> viewModel.startCleaning(items));
+                                    confirmAlreadyClean(items, cleanStatuses, chosen ->
+                                            ProcessingResourceWarnings.runWithWarnings(
+                                                    requireActivity(),
+                                                    warnings,
+                                                    () -> viewModel.startCleaning(chosen)));
                                 });
                             } catch (Exception e) {
                                 SentryManager.recordException(e);
                             }
                         }).start();
                     } else {
-                        SentryManager.log("No items selected for processing");
+                        SentryManager.log("No items were selected for processing.");
                         uiStateManager.setFirstSelectMediaFilesStatus();
                     }
                 } catch (Exception e) {
@@ -232,7 +254,7 @@ public class CleanFragment extends Fragment {
                         @Override
                         public void onPermissionsGranted() {
                             try {
-                                SentryManager.log("Permissions granted");
+                                SentryManager.log("Permissions were granted.");
                                 SentryManager.setCustomKey("permissions_granted", true);
                                 uiStateManager.setReadyStatus();
                             } catch (Exception e) {
@@ -243,7 +265,7 @@ public class CleanFragment extends Fragment {
                         @Override
                         public void onPermissionsDenied() {
                             try {
-                                SentryManager.log("Permissions denied");
+                                SentryManager.log("Permissions were denied.");
                                 SentryManager.setCustomKey("permissions_granted", false);
                                 if (permissionManager.isMediaPickerAvailable()) {
                                     uiStateManager.setReadyStatus();
@@ -264,7 +286,7 @@ public class CleanFragment extends Fragment {
                         @Override
                         public void onPermissionsRequestStarted() {
                             try {
-                                SentryManager.log("Permission request started");
+                                SentryManager.log("The permission request started.");
                                 uiStateManager.setPermissionRequestingStatus();
                             } catch (Exception e) {
                                 SentryManager.recordException(e);
@@ -278,6 +300,27 @@ public class CleanFragment extends Fragment {
             }
             permissionManager.applyPendingPermissionResultIfAny(
                     com.doubleangels.redact.permission.PermissionManager.STORAGE_PERMISSION_REQUEST_CODE);
+        } catch (Exception e) {
+            SentryManager.recordException(e);
+        }
+    }
+
+    /** Asks the system (with its own confirmation dialog) to trash the originals of cleaned items. */
+    private void requestTrashOriginals(List<Uri> sources) {
+        try {
+            List<Uri> mediaUris = new ArrayList<>();
+            for (Uri u : sources) {
+                try {
+                    Uri m = MediaStore.getMediaUri(requireContext(), u);
+                    if (m != null) mediaUris.add(m);
+                } catch (Exception ignored) {
+                    // Non-media provider: leave the original alone.
+                }
+            }
+            if (mediaUris.isEmpty()) return;
+            trashRequestLauncher.launch(new IntentSenderRequest.Builder(
+                    MediaStore.createTrashRequest(requireContext().getContentResolver(), mediaUris, true)
+                            .getIntentSender()).build());
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
@@ -308,10 +351,24 @@ public class CleanFragment extends Fragment {
         try {
             viewModel.getSelectedItems().observe(getViewLifecycleOwner(), items -> {
                 try {
+                    boolean hasItems = items != null && !items.isEmpty();
+                    if (emptyStateContainer != null) {
+                        emptyStateContainer.setVisibility(hasItems ? View.GONE : View.VISIBLE);
+                    }
+                    if (mediaContentContainer != null) {
+                        mediaContentContainer.setVisibility(hasItems ? View.VISIBLE : View.GONE);
+                    }
+                    if (stripButton != null) {
+                        stripButton.setVisibility(hasItems ? View.VISIBLE : View.GONE);
+                    }
+                    if (cleanSelectedCountText != null && hasItems) {
+                        cleanSelectedCountText.setText(getString(R.string.clean_selected_count, items.size()));
+                    }
+
                     mediaAdapter.updateItems(items);
                     if (viewModel.getCleanProcessingState().getValue()
                             != MainViewModel.ProcessingState.PROCESSING) {
-                        uiStateManager.enableStripButton(!items.isEmpty());
+                        uiStateManager.enableStripButton(hasItems);
                     }
                     List<MediaItem> previous = lastObservedSelectedItems;
                     boolean selectionChanged = previous != null
@@ -335,21 +392,23 @@ public class CleanFragment extends Fragment {
                     SentryManager.setCustomKey("processing_state", state.toString());
                     switch (state) {
                         case PROCESSING:
-                            SentryManager.log("Processing state: PROCESSING");
+                            SentryManager.log("The processing state changed to PROCESSING.");
                             uiStateManager.showProgress(true);
                             uiStateManager.setProcessingStatus();
                             if (selectButton != null) {
                                 selectButton.setEnabled(false);
                             }
                             stripButton.setText(R.string.button_cancel);
+                            stripButton.setIconResource(R.drawable.ic_close);
                             stripButton.setEnabled(true);
                             break;
 
                         case CANCELLED:
-                            SentryManager.log("Processing state: CANCELLED");
+                            SentryManager.log("The processing state changed to CANCELLED.");
                             uiStateManager.showProgress(false);
                             uiStateManager.setStatus(getString(R.string.status_processing_cancelled));
                             stripButton.setText(R.string.button_strip_exif_data);
+                            stripButton.setIconResource(R.drawable.ic_clean);
                             if (selectButton != null) {
                                 selectButton.setEnabled(true);
                             }
@@ -359,7 +418,7 @@ public class CleanFragment extends Fragment {
                             break;
 
                         case COMPLETED:
-                            SentryManager.log("Processing state: COMPLETED");
+                            SentryManager.log("The processing state changed to COMPLETED.");
                             uiStateManager.showProgress(false);
                             Integer count = viewModel.getCleanProcessedItemCount().getValue();
                             Integer total = viewModel.getCleanBatchTotalCount().getValue();
@@ -369,18 +428,23 @@ public class CleanFragment extends Fragment {
                                 uiStateManager.setProcessedItemsStatus(count, batchTotal);
                             }
                             stripButton.setText(R.string.button_strip_exif_data);
+                            stripButton.setIconResource(R.drawable.ic_clean);
                             if (selectButton != null) {
                                 selectButton.setEnabled(true);
                             }
                             List<MediaItem> items = viewModel.getSelectedItems().getValue();
                             uiStateManager.enableStripButton(items != null && !items.isEmpty());
+                            if (AppPreferences.isDeleteOriginalsAfterClean(requireContext())) {
+                                requestTrashOriginals(viewModel.takeCleanSucceededSources());
+                            }
                             break;
 
                         case IDLE:
                         default:
-                            SentryManager.log("Processing state: IDLE");
+                            SentryManager.log("The processing state changed to IDLE.");
                             uiStateManager.showProgress(false);
                             stripButton.setText(R.string.button_strip_exif_data);
+                            stripButton.setIconResource(R.drawable.ic_clean);
                             if (selectButton != null) {
                                 selectButton.setEnabled(true);
                             }
@@ -468,6 +532,71 @@ public class CleanFragment extends Fragment {
             }
         }
         return false;
+    }
+
+    private void onSelectMediaClicked() {
+        try {
+            SentryManager.log("The user clicked Select media.");
+            if (viewModel.getCleanProcessingState().getValue()
+                    == MainViewModel.ProcessingState.PROCESSING) {
+                return;
+            }
+            if (viewModel.getCleanProcessingState().getValue()
+                    == MainViewModel.ProcessingState.COMPLETED) {
+                viewModel.setCleanProcessingState(MainViewModel.ProcessingState.IDLE);
+            }
+            if (permissionManager.shouldRequestStorageBeforePicker()) {
+                SentryManager.log("The app is requesting permissions.");
+                permissionManager.requestStoragePermission();
+            } else {
+                SentryManager.log("The app is launching the media selector.");
+                mediaPickerLauncher.launch(MediaPickerContracts.IMAGE_AND_VIDEO_MIME_TYPES);
+            }
+        } catch (Exception e) {
+            SentryManager.recordException(e);
+        }
+    }
+
+    /**
+     * Warns when some or all of the selected files look clean already (no metadata to remove, or a
+     * copy Redact made earlier) and lets the user skip them, clean everything anyway, or cancel.
+     * Calls {@code proceed} with the items to clean; never calls it on cancel. With no warning
+     * needed (setting off, nothing flagged) it proceeds with every item right away.
+     */
+    private void confirmAlreadyClean(
+            @NonNull List<MediaItem> items,
+            @Nullable List<AlreadyCleanCheck.Status> statuses,
+            @NonNull Consumer<List<MediaItem>> proceed) {
+        List<MediaItem> needCleaning = new ArrayList<>();
+        int alreadyClean = 0;
+        for (int i = 0; i < items.size(); i++) {
+            boolean clean = statuses != null && i < statuses.size()
+                    && statuses.get(i) == AlreadyCleanCheck.Status.ALREADY_CLEAN;
+            if (clean) {
+                alreadyClean++;
+            } else {
+                needCleaning.add(items.get(i));
+            }
+        }
+        if (alreadyClean == 0) {
+            proceed.accept(items);
+            return;
+        }
+        int total = items.size();
+        MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.already_clean_dialog_title)
+                .setNegativeButton(R.string.button_cancel, null);
+        if (alreadyClean == total) {
+            dialog.setMessage(getResources().getQuantityString(
+                            R.plurals.already_clean_dialog_message_all, total, total))
+                    .setPositiveButton(R.string.already_clean_clean_anyway, (d, w) -> proceed.accept(items));
+        } else {
+            dialog.setMessage(getResources().getQuantityString(
+                            R.plurals.already_clean_dialog_message_some, alreadyClean, alreadyClean, total))
+                    .setPositiveButton(R.string.already_clean_skip, (d, w) -> proceed.accept(needCleaning))
+                    .setNeutralButton(R.string.already_clean_clean_all, (d, w) -> proceed.accept(items));
+        }
+        dialog.show();
     }
 
     private void runOnUiThreadIfAdded(Runnable action) {

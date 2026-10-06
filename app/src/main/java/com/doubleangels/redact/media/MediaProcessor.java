@@ -11,6 +11,7 @@ import com.doubleangels.redact.metadata.MetadataStripper;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -37,6 +38,9 @@ public class MediaProcessor {
 
     /** Stores the URI of the most recently processed file */
     private volatile Uri lastProcessedFileUri;
+
+    /** Source URIs of items cleaned successfully in the current/last batch. */
+    private final List<Uri> succeededSources = new CopyOnWriteArrayList<>();
 
     /** Prevents overlapping batch processing from multiple strip invocations */
     private final AtomicBoolean processing = new AtomicBoolean(false);
@@ -122,6 +126,21 @@ public class MediaProcessor {
         return lastProcessedFileUri;
     }
 
+    public List<Uri> getSucceededSources() {
+        return new java.util.ArrayList<>(succeededSources);
+    }
+
+    /**
+     * Returns the sources of the last batch's successful items and forgets them, so each batch's
+     * originals can be offered for trashing exactly once (the completion state is re-delivered
+     * to every newly created view, e.g. after a rotation).
+     */
+    public synchronized List<Uri> takeSucceededSources() {
+        List<Uri> taken = new java.util.ArrayList<>(succeededSources);
+        succeededSources.clear();
+        return taken;
+    }
+
     /** Whether a clean batch is currently running on the shared worker. */
     public boolean isBusy() {
         return processing.get();
@@ -148,6 +167,7 @@ public class MediaProcessor {
             return;
         }
         cancelled.set(false);
+        succeededSources.clear();
         metadataStripper.resetCancellation();
         mainHandler.post(callback::onBatchStarted);
         processingExecutor.execute(() -> {
@@ -207,6 +227,7 @@ public class MediaProcessor {
 
                         if (processedUri != null) {
                             lastProcessedFileUri = processedUri;
+                            succeededSources.add(item.uri());
                             successCount++;
                             SentryManager.count(
                                     "processing.clean.success", 1, "is_video", String.valueOf(item.isVideo()));

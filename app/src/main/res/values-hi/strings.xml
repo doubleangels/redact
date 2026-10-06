@@ -40,7 +40,7 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">फ़ाइलें चुनें</string>
     <string name="convert_run">बदलें</string>
-    <string name="convert_status_hint">कन्वर्ट करने के लिए फ़ाइलें चुनें।</string>
+    <string name="convert_status_hint">नीचे आउटपुट फ़ॉर्मैट चुनें, फिर बदलें पर टैप करें।</string>
     <string name="convert_status_ready">कन्वर्ट करने के लिए फ़ाइलें चुनने के लिए तैयार।</string>
     <string name="convert_selected_count">चयनित: %1$d फ़ाइल(फ़ाइलें)</string>
     <string name="convert_nothing_selected">कृपया पहले कम से कम एक चित्र चुनें।</string>
@@ -54,7 +54,6 @@
     <string name="convert_done_partial">संपन्न: %1$d सफल, %2$d विफल।</string>
     <string name="convert_done_failed">रूपांतरण विफल।</string>
     <string name="convert_saved_to_gallery">गैलरी में सहेजा गया (Redact फ़ोल्डर)</string>
-    <string name="convert_clean_tab_hint">रूपांतरण केवल प्रारूप बदलता है। मेटाडेटा हटाने के लिए, साफ़ करें टैब पर जाएं।</string>
 
     
     <string name="button_select_media">फ़ाइलें चुनें</string>
@@ -180,7 +179,6 @@
         <item>4096px (मानक)</item>
         <item>8192px (उच्च प्रदर्शन)</item>
     </string-array>
-    <string name="scan_metadata_subtitle">इस फ़ाइल से पता लगाए गए फ़ील्ड। कॉपी करने के लिए मानों को दबाकर रखें।</string>
 
     
     <string name="navigation_settings">सेटिंग्स</string>
@@ -269,7 +267,6 @@
     <string name="scan_copied_to_clipboard">क्लिपबोर्ड पर कॉपी किया गया</string>
     <string name="scan_copy_all_metadata">सभी मेटाडेटा कॉपी करें</string>
     <string name="scan_copy_camera">कैमरा जानकारी कॉपी करें</string>
-    <string name="scan_copy_coordinates">निर्देशांक कॉपी करें</string>
 <string name="settings_permissions_location">फ़ोटो स्थान</string>
 <string name="settings_storage_clear_busy">प्रसंस्करण चल रहा होने पर साफ़ नहीं किया जा सकता।</string>
     <string name="share_error_failed_get_cleaned_file">साफ़ की गई फ़ाइल साझा करने के लिए तैयार नहीं की जा सकी।</string>
@@ -323,4 +320,75 @@
     <string name="strip_progress_transcoding_target">लक्ष्य प्रारूप में ट्रांसकोड किया जा रहा है…</string>
     <string name="strip_progress_transmuxing">ट्रांसमक्स किया जा रहा है…</string>
     <string name="strip_progress_verifying">मेटाडेटा निष्कासन सत्यापित किया जा रहा है…</string>
+    <string name="scan_open_coordinates_in_maps">मैप ऐप में खोलें</string>
+    <string name="scan_maps_consent_title">स्थान को मैप ऐप में खोलें?</string>
+    <string name="scan_maps_consent_message">यह निर्देशांक को आपके डिवाइस के डिफ़ॉल्ट मैप ऐप में खोलता है। इस स्क्रीन की हर दूसरी कार्रवाई के विपरीत, यह आपका सटीक GPS स्थान एक अलग ऐप को सौंप देता है, जो इसे इस डिवाइस से बाहर भेज सकता है, जैसे मैप टाइल लोड करने या पता खोजने के लिए। Redact स्वयं यह डेटा कहीं नहीं भेजता।\n\nआपको यह संदेश केवल एक बार दिखेगा। जारी रखने का आपका चुनाव याद रखा जाता है, इसलिए यह दोबारा नहीं पूछेगा।</string>
+    <string name="scan_maps_consent_continue">मैप ऐप खोलें</string>
+    <string name="scan_maps_not_available">इस स्थान को खोलने के लिए कोई मैप ऐप उपलब्ध नहीं है।</string>
+    <string name="settings_delete_originals">साफ़ करने के बाद मूल फ़ाइलें हटाएँ</string>
+    <string name="settings_delete_originals_subtitle">सफलतापूर्वक साफ़ करने के बाद Android से मूल फ़ाइलों को ट्रैश में भेजने के लिए कहता है। हर बार आपको पुष्टि करनी होगी।</string>
+    <string name="scan_risk_location">स्थान</string>
+    <string name="scan_risk_serial">डिवाइस सीरियल नंबर</string>
+
+    <string name="clean_clear_selection">साफ़ करें</string>
+    <string name="convert_clear_selection">साफ़ करें</string>
+    <string name="clean_empty_state_title">मेटाडेटा साफ़ करें और हटाएँ</string>
+    <string name="clean_empty_state_description">EXIF टैग, GPS स्थान, कैमरा विवरण और डिवाइस पहचानकर्ता हटाने के लिए फ़ोटो या वीडियो चुनें। आप किसी भी ऐप से उन्हें सीधे Redact पर शेयर भी कर सकते हैं।</string>
+    <string name="clean_selected_hint">EXIF और स्थान डेटा हटाने के लिए तैयार।</string>
+    <string name="convert_empty_state_title">मीडिया फ़ॉर्मैट बदलें</string>
+    <string name="convert_empty_state_description">फ़ोटो या वीडियो को JPEG, PNG, WebP, HEIC या MP4 फ़ॉर्मैट में बदलने के लिए चुनें।</string>
+    <string name="convert_files_card_title">बदलने के लिए फ़ाइलें</string>
+    <string name="convert_heic_fallback_jpeg">HEIC आउटपुट के लिए Android 14 या उसके बाद का संस्करण ज़रूरी है। इसके बजाय चित्र JPEG के रूप में सहेजे जाएँगे।</string>
+    <string name="convert_item_type_image">चित्र</string>
+    <string name="convert_item_type_video">वीडियो</string>
+    <string name="notification_clean_failed">इस बार कोई फ़ाइल साफ़ नहीं की जा सकी।</string>
+    <string name="scan_empty_state_title">मीडिया मेटाडेटा जाँचें</string>
+    <string name="scan_empty_state_description">EXIF विवरण, कैमरा विनिर्देश, GPS निर्देशांक और तकनीकी गुण देखने के लिए कोई फ़ोटो या वीडियो चुनें।</string>
+    <string name="scan_grant_location_button">अनुमति दें</string>
+    <string name="settings_notifications_permission_denied">अलर्ट दिखाने के लिए सूचना की अनुमति ज़रूरी है।</string>
+    <string name="settings_notifications_permission_granted">सूचनाएँ चालू हो गईं।</string>
+
+    <plurals name="convert_hero_files_count">
+        <item quantity="one">%1$d फ़ाइल</item>
+        <item quantity="other">%1$d फ़ाइलें</item>
+    </plurals>
+    <plurals name="scan_hero_fields_count">
+        <item quantity="one">%1$d फ़ील्ड</item>
+        <item quantity="other">%1$d फ़ील्ड</item>
+    </plurals>
+
+    <string name="scan_section_details">विवरण</string>
+    <string name="scan_default_file_name">मीडिया फ़ाइल</string>
+    <string name="convert_remove_item">%1$s हटाएँ</string>
+
+    <string name="settings_warn_already_clean">पहले से साफ़ फ़ाइलों के बारे में चेतावनी दें</string>
+    <string name="settings_warn_already_clean_subtitle">सफ़ाई से पहले बताएँ कि चुनी गई फ़ाइलों में हटाने लायक मेटाडेटा नहीं है या वे Redact की बनाई हुई प्रतियाँ हैं।</string>
+    <string name="already_clean_dialog_title">फ़ाइलें पहले से साफ़ दिखती हैं</string>
+    <plurals name="already_clean_dialog_message_some">
+        <item quantity="one">चुनी गई %2$d फ़ाइलों में से %1$d में हटाने लायक मेटाडेटा नहीं बचा है या यह Redact की पहले बनाई गई प्रति है। इसे फिर साफ़ करने से बस एक और प्रति बनेगी। इसे छोड़ें या सभी %2$d फिर भी साफ़ करें?</item>
+        <item quantity="other">चुनी गई %2$d फ़ाइलों में से %1$d में हटाने लायक मेटाडेटा नहीं बचा है या ये Redact की पहले बनाई गई प्रतियाँ हैं। इन्हें फिर साफ़ करने से बस और प्रतियाँ बनेंगी। इन्हें छोड़ें या सभी %2$d फिर भी साफ़ करें?</item>
+    </plurals>
+    <plurals name="already_clean_dialog_message_all">
+        <item quantity="one">इस फ़ाइल (%1$d) में हटाने लायक मेटाडेटा नहीं बचा है या यह Redact की पहले बनाई गई प्रति है। इसे फिर साफ़ करने से बस एक और प्रति बनेगी।</item>
+        <item quantity="other">इन %1$d फ़ाइलों में हटाने लायक मेटाडेटा नहीं बचा है या ये Redact की पहले बनाई गई प्रतियाँ हैं। इन्हें फिर साफ़ करने से बस और प्रतियाँ बनेंगी।</item>
+    </plurals>
+    <string name="already_clean_skip">इन्हें छोड़ें</string>
+    <string name="already_clean_clean_all">सब साफ़ करें</string>
+    <string name="already_clean_clean_anyway">फिर भी साफ़ करें</string>
+
+    <string name="settings_secure_window">स्क्रीनशॉट और हाल के ऐप्स में सामग्री छिपाएँ</string>
+    <string name="settings_secure_window_subtitle">Redact में स्क्रीनशॉट और स्क्रीन रिकॉर्डिंग रोकता है और हाल के ऐप्स की स्क्रीन में इसका प्रीव्यू खाली कर देता है। तुरंत लागू होता है।</string>
+
+    <string name="settings_clipboard_clear">कॉपी किया गया मेटाडेटा हटाएँ</string>
+    <string name="settings_clipboard_clear_subtitle">इस अवधि के बाद स्कैन से कॉपी किया गया मेटाडेटा क्लिपबोर्ड से हटा देता है, बशर्ते आपने इस बीच कुछ और कॉपी न किया हो।</string>
+    <string name="settings_clipboard_clear_off">बंद</string>
+    <string name="settings_clipboard_clear_15s">15 सेकंड बाद</string>
+    <string name="settings_clipboard_clear_30s">30 सेकंड बाद</string>
+    <string name="settings_clipboard_clear_1m">1 मिनट बाद</string>
+    <string name="settings_clipboard_clear_5m">5 मिनट बाद</string>
+
+    <string name="settings_section_cleaning_workflow">सफ़ाई से पहले और बाद में</string>
+    <string name="settings_cleaning_workflow_subtitle">सफ़ाई शुरू होने से पहले Redact क्या जाँचता है और उसके बाद आपकी मूल फ़ाइलों का क्या होता है।</string>
+    <string name="settings_section_privacy">गोपनीयता</string>
+    <string name="settings_privacy_subtitle">Redact में आप जो देखते और कॉपी करते हैं उसे स्क्रीनशॉट, हाल के ऐप्स की स्क्रीन और क्लिपबोर्ड से दूर रखता है।</string>
 </resources>

@@ -94,6 +94,8 @@ public class MainViewModel extends AndroidViewModel {
 
     private final AtomicInteger convertGeneration;
 
+    private final AtomicBoolean convertTimedOut;
+
     private final AtomicInteger cleanGeneration;
 
     private final ProgressUpdateThrottler convertProgressThrottler = new ProgressUpdateThrottler();
@@ -115,8 +117,10 @@ public class MainViewModel extends AndroidViewModel {
 
     private final SavedStateHandle savedStateHandle;
 
+    // A fresh handle for callers without saved state; the constructor is only flagged because lint treats it as test-only.
+    @android.annotation.SuppressLint("VisibleForTests")
     public MainViewModel(Application application) {
-        this(application, new SavedStateHandle());
+        this(application, new SavedStateHandle(new java.util.HashMap<>()));
     }
 
     public MainViewModel(Application application, SavedStateHandle savedStateHandle) {
@@ -129,6 +133,7 @@ public class MainViewModel extends AndroidViewModel {
         convertExecutor = processingScope.convertExecutor();
         convertInProgress = processingScope.convertInProgress();
         convertGeneration = processingScope.convertGeneration();
+        convertTimedOut = processingScope.convertTimedOut();
         cleanGeneration = processingScope.cleanGeneration();
 
         restorePersistedProcessingState();
@@ -259,7 +264,6 @@ public class MainViewModel extends AndroidViewModel {
 
     @Override
     protected void onCleared() {
-        super.onCleared();
         // Clean/convert work continues in AppProcessingScope; do not cancel or shut down workers here.
     }
 
@@ -573,6 +577,15 @@ public class MainViewModel extends AndroidViewModel {
 
      */
 
+    public List<android.net.Uri> getCleanSucceededSources() {
+        return mediaProcessor.getSucceededSources();
+    }
+
+    /** Like {@link #getCleanSucceededSources()} but consumes the list, so it is returned only once. */
+    public List<android.net.Uri> takeCleanSucceededSources() {
+        return mediaProcessor.takeSucceededSources();
+    }
+
     public void startCleaning(List<MediaItem> items) {
 
         if (items == null || items.isEmpty()) return;
@@ -699,6 +712,8 @@ public class MainViewModel extends AndroidViewModel {
 
         }
 
+        convertTimedOut.set(false);
+
         final int total = items.size();
 
         convertBatchTotalCount.setValue(total);
@@ -727,6 +742,7 @@ public class MainViewModel extends AndroidViewModel {
                 for (int i = 0; i < total; i++) {
 
                     if (Thread.currentThread().isInterrupted()
+                            || convertTimedOut.get()
                             || runGeneration != convertGeneration.get()) {
                         break;
                     }
@@ -792,7 +808,10 @@ public class MainViewModel extends AndroidViewModel {
 
                                     },
                                     actualFormatIndex,
-                                    runGeneration);
+                                    runGeneration,
+                                    () -> Thread.currentThread().isInterrupted()
+                                            || convertTimedOut.get()
+                                            || runGeneration != convertGeneration.get());
                             if (actualFormatIndex[0] != formatIndex) {
                                 String requested = FormatConverter.videoFormatLabel(
                                         getApplication(), formatIndex);
@@ -843,6 +862,7 @@ public class MainViewModel extends AndroidViewModel {
                     } catch (Exception e) {
 
                         boolean cancelled = Thread.currentThread().isInterrupted()
+                                || convertTimedOut.get()
                                 || runGeneration != convertGeneration.get()
                                 || SentryManager.isUserCancellation(e);
                         if (cancelled) {
@@ -882,6 +902,7 @@ public class MainViewModel extends AndroidViewModel {
                 final int capturedGeneration = runGeneration;
                 final boolean interrupted =
                         Thread.currentThread().isInterrupted()
+                                || convertTimedOut.get()
                                 || capturedGeneration != convertGeneration.get();
                 convertInProgress.set(false);
                 mainHandler.post(() -> {

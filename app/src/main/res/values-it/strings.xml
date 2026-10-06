@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     
     <string name="app_name">Redact</string>
 
@@ -37,10 +37,10 @@
     <string name="convert_format_h265">MP4 (H.265)</string>
     <string name="convert_format_vp9">WebM (VP9)</string>
     <string name="convert_format_heif">HEIC</string>
-    <string name="convert_format_av1">MKV (AV1)</string>
+    <string name="convert_format_av1" tools:ignore="Typos">MKV (AV1)</string>
     <string name="convert_select_files">Seleziona File</string>
     <string name="convert_run">Converti</string>
-    <string name="convert_status_hint">Seleziona file da convertire.</string>
+    <string name="convert_status_hint">Scegli un formato di output qui sotto, poi tocca Converti.</string>
     <string name="convert_status_ready">Pronto per selezionare file da convertire.</string>
     <string name="convert_selected_count">Selezionati: %1$d file(s)</string>
     <string name="convert_nothing_selected">Seleziona prima un\'immagine.</string>
@@ -54,7 +54,6 @@
     <string name="convert_done_partial">Finito: %1$d completati, %2$d non riusciti.</string>
     <string name="convert_done_failed">Conversione fallita.</string>
     <string name="convert_saved_to_gallery">Salvato in Galleria (cartella Redact)</string>
-    <string name="convert_clean_tab_hint">La conversione cambia solo il formato. Per rimuovere i metadati, vai alla scheda Pulisci.</string>
 
     
     <string name="button_select_media">Seleziona File</string>
@@ -180,7 +179,6 @@
         <item>4096px (Standard)</item>
         <item>8192px (Alte Prestazioni)</item>
     </string-array>
-    <string name="scan_metadata_subtitle">Campi rilevati da questo file. Tieni premuto sui valori per copiarli.</string>
 
     
     <string name="navigation_settings">Impostazioni</string>
@@ -207,8 +205,8 @@
     <string name="settings_quality_subtitle">Si applica a JPEG, WebP e HEIC. L\'export PNG resta lossless.</string>
     <string name="settings_section_share_subtitle">Quando un\'altra app invia foto o video a Redact.</string>
 
-    <string name="settings_section_share">Condivisione In Redact</string>
-    <string name="settings_share_confirm_label">Conferma Prima di Rimuovere I Metadati</string>
+    <string name="settings_section_share">Condivisione in Redact</string>
+    <string name="settings_share_confirm_label">Conferma Prima di Rimuovere i Metadati</string>
     <string name="settings_share_confirm_subtitle">Mostra un prompt prima di rimuovere EXIF e altri metadati dai file condivisi.</string>
     <string name="settings_share_confirm_dialog_title">Rimuovere I Metadati?</string>
     <string name="settings_share_confirm_dialog_message">Redact rimuoverà EXIF e altri metadati dai file condivisi prima di inoltrarli.</string>
@@ -233,12 +231,12 @@
     <string name="settings_section_about">Informazioni</string>
     <string name="settings_about_version">Versione %1$s</string>
     <string name="settings_about_subtitle">Tutta la pulizia, la scansione e la conversione avviene sul dispositivo. Foto e video non vengono mai caricati.</string>
-    <string name="settings_about_github">Visualizza Il Codice su GitHub</string>
+    <string name="settings_about_github">Visualizza il Codice su GitHub</string>
     <string name="settings_about_privacy">Informativa sulla Privacy</string>
     <string name="settings_about_report_issue">Segnala un Problema</string>
     <string name="settings_about_donate">Fai una Donazione</string>
     <string name="settings_link_unavailable">Nessuna app trovata per aprire questo link.</string>
-    <string name="settings_progress_notifications_label">Progresso Attività In Corso</string>
+    <string name="settings_progress_notifications_label">Progresso Attività in Corso</string>
     <string name="settings_progress_notifications_subtitle">Notifica persistente con avanzamento per lavori lunghi. Disattivata di default finché non abiliti le notifiche.</string>
     <string name="settings_crash_reporting_learn_more">Cosa Viene Condiviso?</string>
     <string name="settings_crash_reporting_detail_title">Dettagli Segnalazione Crash</string>
@@ -267,9 +265,8 @@ Le tue foto e video non vengono mai caricati. URI, nomi file e coordinate GPS ve
     <string name="scan_clean_this_file">Pulisci Questo File</string>
     <string name="scan_convert_this_file">Converti Questo File</string>
     <string name="scan_copied_to_clipboard">Copiato negli appunti</string>
-    <string name="scan_copy_all_metadata">Copia Tutti I Metadati</string>
+    <string name="scan_copy_all_metadata">Copia Tutti i Metadati</string>
     <string name="scan_copy_camera">Copia Info Fotocamera</string>
-    <string name="scan_copy_coordinates">Copia Coordinate</string>
 <string name="settings_permissions_location">Posizione Foto</string>
 <string name="settings_storage_clear_busy">Impossibile svuotare durante l\'elaborazione.</string>
     <string name="share_error_failed_get_cleaned_file">Impossibile preparare il file pulito per la condivisione.</string>
@@ -290,7 +287,7 @@ Le tue foto e video non vengono mai caricati. URI, nomi file e coordinate GPS ve
     <string name="processing_warning_critical_storage_message">Redact potrebbe richiedere circa %1$s di spazio temporaneo, ma sono disponibili solo %2$s. L\'elaborazione potrebbe fallire.</string>
     <string name="processing_warning_low_memory">Il dispositivo ha poca memoria. I file grandi potrebbero fallire o essere lenti.</string>
     <string name="processing_warning_large_video">Video di grandi dimensioni selezionati. L\'elaborazione richiede spazio temporaneo extra e può richiedere tempo.</string>
-    <string name="processing_warning_continue">Continua comunque</string>
+    <string name="processing_warning_continue">Continua Comunque</string>
     <string name="clean_item_failed">Non riuscito: %1$s</string>
     <string name="settings_preserve_location_confirm_title">Mantenere Il GPS sulle Foto Pulite?</string>
     <string name="settings_preserve_location_confirm_message">I file puliti in Pulisci possono ancora contenere coordinate GPS. La condivisione da altre app rimuove sempre la posizione.
@@ -323,4 +320,79 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="strip_progress_transcoding_target">Transcodifica nel formato di destinazione in corso…</string>
     <string name="strip_progress_transmuxing">Remux del contenitore in corso…</string>
     <string name="strip_progress_verifying">Verifica della rimozione dei metadati in corso…</string>
+    <string name="scan_open_coordinates_in_maps">Apri nell’App di Mappe</string>
+    <string name="scan_maps_consent_title">Aprire la posizione nell’app di mappe?</string>
+    <string name="scan_maps_consent_message">Questo apre le coordinate nell\'app di mappe predefinita del dispositivo. A differenza di ogni altra azione di questa schermata, consegna la tua posizione GPS esatta a un\'app separata, che potrebbe inviarla fuori da questo dispositivo, ad esempio per caricare i riquadri della mappa o cercare l\'indirizzo. Redact non invia mai questi dati da nessuna parte.\n\nVedrai questo messaggio solo una volta. La scelta di continuare viene ricordata, quindi non verrà chiesto di nuovo.</string>
+    <string name="scan_maps_consent_continue">Apri App di Mappe</string>
+    <string name="scan_maps_not_available">Nessuna app di mappe disponibile per aprire questa posizione.</string>
+    <string name="settings_delete_originals">Elimina gli Originali Dopo la Pulizia</string>
+    <string name="settings_delete_originals_subtitle">Dopo una pulizia riuscita, chiede ad Android di spostare i file originali nel cestino. Confermi ogni volta.</string>
+    <string name="scan_risk_location">Posizione</string>
+    <string name="scan_risk_serial">Numero di serie del dispositivo</string>
+
+    <string name="clean_clear_selection">Cancella</string>
+    <string name="convert_clear_selection">Cancella</string>
+    <string name="clean_empty_state_title">Pulisci e Rimuovi i Metadati</string>
+    <string name="clean_empty_state_description">Seleziona foto o video per rimuovere i tag EXIF, la posizione GPS, i dettagli della fotocamera e gli identificatori del dispositivo. Puoi anche condividerli direttamente con Redact da qualsiasi app.</string>
+    <string name="clean_selected_hint">Pronto a rimuovere i dati EXIF e di posizione.</string>
+    <string name="convert_empty_state_title">Converti i Formati Multimediali</string>
+    <string name="convert_empty_state_description">Seleziona foto o video per convertirli nei formati JPEG, PNG, WebP, HEIC o MP4.</string>
+    <string name="convert_files_card_title">File da Convertire</string>
+    <string name="convert_heic_fallback_jpeg">L’output HEIC richiede Android 14 o versioni successive. Le immagini verranno invece salvate come JPEG.</string>
+    <string name="convert_item_type_image">Immagine</string>
+    <string name="convert_item_type_video">Video</string>
+    <string name="notification_clean_failed">Questa volta non è stato possibile pulire alcun file.</string>
+    <string name="scan_empty_state_title">Ispeziona i Metadati Multimediali</string>
+    <string name="scan_empty_state_description">Seleziona una foto o un video per vedere i dettagli EXIF, le specifiche della fotocamera, le coordinate GPS e le proprietà tecniche.</string>
+    <string name="scan_grant_location_button">Concedi Autorizzazione</string>
+    <string name="settings_notifications_permission_denied">L’autorizzazione per le notifiche è necessaria per mostrare gli avvisi.</string>
+    <string name="settings_notifications_permission_granted">Notifiche attivate.</string>
+
+    <plurals name="convert_hero_files_count">
+        <item quantity="one">%1$d file</item>
+        <item quantity="many">%1$d di file</item>
+        <item quantity="other">%1$d file</item>
+    </plurals>
+    <plurals name="scan_hero_fields_count">
+        <item quantity="one">%1$d campo</item>
+        <item quantity="many">%1$d di campi</item>
+        <item quantity="other">%1$d campi</item>
+    </plurals>
+
+    <string name="scan_section_details">Dettagli</string>
+    <string name="scan_default_file_name">File multimediale</string>
+    <string name="convert_remove_item">Rimuovi %1$s</string>
+
+    <string name="settings_warn_already_clean">Avvisa per i File Già Puliti</string>
+    <string name="settings_warn_already_clean_subtitle">Prima della pulizia, avvisa quando i file selezionati non hanno metadati da rimuovere o sono copie già create da Redact.</string>
+    <string name="already_clean_dialog_title">I File Sembrano Già Puliti</string>
+    <plurals name="already_clean_dialog_message_some">
+        <item quantity="one">%1$d dei %2$d file selezionati non ha più metadati da rimuovere oppure è una copia già creata da Redact. Pulirlo di nuovo creerebbe solo un\'altra copia. Ignorarlo o pulire comunque tutti e %2$d?</item>
+        <item quantity="many">%1$d dei %2$d file selezionati non hanno più metadati da rimuovere oppure sono copie già create da Redact. Pulirli di nuovo creerebbe solo altre copie. Ignorarli o pulire comunque tutti e %2$d?</item>
+        <item quantity="other">%1$d dei %2$d file selezionati non hanno più metadati da rimuovere oppure sono copie già create da Redact. Pulirli di nuovo creerebbe solo altre copie. Ignorarli o pulire comunque tutti e %2$d?</item>
+    </plurals>
+    <plurals name="already_clean_dialog_message_all">
+        <item quantity="one">Questo file non ha più metadati da rimuovere oppure è una copia già creata da Redact. Pulirlo di nuovo creerebbe solo un\'altra copia.</item>
+        <item quantity="many">Questi %1$d file non hanno più metadati da rimuovere oppure sono copie già create da Redact. Pulirli di nuovo creerebbe solo altre copie.</item>
+        <item quantity="other">Questi %1$d file non hanno più metadati da rimuovere oppure sono copie già create da Redact. Pulirli di nuovo creerebbe solo altre copie.</item>
+    </plurals>
+    <string name="already_clean_skip">Ignorali</string>
+    <string name="already_clean_clean_all">Pulisci Tutto</string>
+    <string name="already_clean_clean_anyway">Pulisci Comunque</string>
+
+    <string name="settings_secure_window">Nascondi i Contenuti negli Screenshot e nei Recenti</string>
+    <string name="settings_secure_window_subtitle">Blocca screenshot e registrazioni dello schermo in Redact e oscura l\'anteprima nella schermata delle app recenti. Ha effetto subito.</string>
+
+    <string name="settings_clipboard_clear">Cancella i Metadati Copiati</string>
+    <string name="settings_clipboard_clear_subtitle">Cancella dagli appunti i metadati copiati da Scansione dopo questo intervallo, a meno che nel frattempo tu non abbia copiato altro.</string>
+    <string name="settings_clipboard_clear_off">Disattivato</string>
+    <string name="settings_clipboard_clear_15s">Dopo 15 secondi</string>
+    <string name="settings_clipboard_clear_30s">Dopo 30 secondi</string>
+    <string name="settings_clipboard_clear_1m">Dopo 1 minuto</string>
+    <string name="settings_clipboard_clear_5m">Dopo 5 minuti</string>
+
+    <string name="settings_section_cleaning_workflow">Prima e Dopo la Pulizia</string>
+    <string name="settings_cleaning_workflow_subtitle">Cosa controlla Redact prima di una pulizia e cosa succede poi ai tuoi originali.</string>
+    <string name="settings_section_privacy">Privacy</string>
+    <string name="settings_privacy_subtitle">Tiene ciò che vedi e copi in Redact fuori da screenshot, app recenti e appunti.</string>
 </resources>

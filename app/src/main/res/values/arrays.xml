@@ -17,4 +17,11 @@
         <item>@string/settings_quality_balanced</item>
         <item>@string/settings_quality_smaller</item>
     </string-array>
+    <string-array name="settings_clipboard_clear_labels">
+        <item>@string/settings_clipboard_clear_off</item>
+        <item>@string/settings_clipboard_clear_15s</item>
+        <item>@string/settings_clipboard_clear_30s</item>
+        <item>@string/settings_clipboard_clear_1m</item>
+        <item>@string/settings_clipboard_clear_5m</item>
+    </string-array>
 </resources>

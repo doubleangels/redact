@@ -1,0 +1,36 @@
+plugins {
+    alias(libs.plugins.android.test)
+    alias(libs.plugins.baselineprofile)
+}
+
+android {
+    namespace 'com.doubleangels.redact.baselineprofile'
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 0
+        }
+    }
+
+    defaultConfig {
+        minSdk 31
+        targetSdk 37
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+
+    targetProjectPath = ':app'
+}
+
+// Generate on a connected device: ./gradlew :app:generateBaselineProfile
+baselineProfile {
+    useConnectedDevices = true
+}
+
+dependencies {
+    implementation libs.benchmark.macro.junit4
+    implementation libs.uiautomator
+}

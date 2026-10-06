@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.sentry.android.gradle)
+    alias(libs.plugins.baselineprofile)
 }
 
 android {
@@ -15,8 +16,8 @@ android {
         applicationId "com.doubleangels.redact"
         minSdk 31
         targetSdk 37
-        versionCode 20
-        versionName "1.3.10"
+        versionCode 21
+        versionName "1.4.0"
 
         def sentryRelease = "${applicationId}@${versionName}+${versionCode}"
         buildConfigField "String", "SENTRY_RELEASE", "\"${sentryRelease}\""
@@ -24,6 +25,7 @@ android {
 
     buildTypes {
         debug {
+            enableUnitTestCoverage = true
             buildConfigField "String", "SENTRY_DSN", "\"${resolveSentryDsnForDebug()}\""
         }
         release {
@@ -45,6 +47,14 @@ android {
     testOptions {
         unitTests {
             includeAndroidResources = true
+            all {
+                // Robolectric-loaded classes need this for JaCoCo to see them.
+                jacoco { includeNoLocationClasses = true; excludes = ['jdk.internal.*'] }
+                testLogging {
+                    events "failed"
+                    exceptionFormat "full"
+                }
+            }
         }
     }
 
@@ -95,12 +105,14 @@ def readSentryDsnLocalFile() {
 
 dependencies {
     implementation(libs.sentry.android)
+    implementation(libs.sentry.android.fragment)
     implementation libs.activity
     implementation libs.appcompat
     implementation libs.constraintlayout
     implementation libs.exifinterface
     implementation libs.fragment
     implementation libs.glide
+    annotationProcessor libs.glide.compiler
     implementation libs.material
     implementation libs.media3.common
     implementation libs.media3.effect
@@ -108,6 +120,9 @@ dependencies {
   // Latest published release (still alpha); used for lossless JPEG EXIF strip only.
     implementation libs.commons.imaging
     implementation libs.lifecycle.viewmodel.ktx
+    implementation libs.profileinstaller
+    implementation libs.core.splashscreen
+    baselineProfile project(':baselineprofile')
 
     testImplementation libs.junit
     testImplementation libs.robolectric
@@ -123,6 +138,14 @@ sentry {
     includeProguardMapping = true
     autoUploadProguardMapping = System.getenv("SENTRY_AUTH_TOKEN") != null
     telemetry = false
+    // No DB/OkHttp/Compose in the app and per-file I/O spans are too fine-grained; Log->breadcrumb
+    // rewriting is unused (auto breadcrumbs are off).
+    tracingInstrumentation {
+        enabled = false
+        logcat {
+            enabled = false
+        }
+    }
     autoInstallation {
         enabled = false
     }

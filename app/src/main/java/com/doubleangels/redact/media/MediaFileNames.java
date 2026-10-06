@@ -10,6 +10,7 @@ import java.security.SecureRandom;
 public final class MediaFileNames {
 
     private static final SecureRandom RANDOM = new SecureRandom();
+    private static final int RANDOM_NAME_LENGTH = 12;
 
     private MediaFileNames() {
     }
@@ -17,8 +18,8 @@ public final class MediaFileNames {
     @NonNull
     public static String generateShortRandomName() {
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        StringBuilder sb = new StringBuilder(12);
-        for (int i = 0; i < 12; i++) {
+        StringBuilder sb = new StringBuilder(RANDOM_NAME_LENGTH);
+        for (int i = 0; i < RANDOM_NAME_LENGTH; i++) {
             sb.append(chars.charAt(RANDOM.nextInt(chars.length())));
         }
         return sb.toString();

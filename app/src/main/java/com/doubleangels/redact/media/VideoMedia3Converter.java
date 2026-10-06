@@ -57,7 +57,6 @@ public final class VideoMedia3Converter {
         void onProgress(int percent);
     }
 
-    private static final int TARGET_FPS = 30;
     private static final long AWAIT_TIMEOUT_MINUTES = 60;
 
     private static final AtomicReference<Transformer> activeTransformer = new AtomicReference<>();
@@ -238,7 +237,6 @@ public final class VideoMedia3Converter {
         EditedMediaItem editedMediaItem =
                 new EditedMediaItem.Builder(mediaItem)
                         .setRemoveAudio(false)
-                        .setFrameRate(TARGET_FPS)
                         .build();
 
         EditedMediaItemSequence sequence =
@@ -550,27 +548,5 @@ public final class VideoMedia3Converter {
         }
         MediaStoreWrites.markPublished(resolver, outUri);
         return outUri;
-    }
-
-    private static String stripExtension(String name) {
-        if (name == null || name.isEmpty()) {
-            return "converted";
-        }
-        int dot = name.lastIndexOf('.');
-        if (dot > 0) {
-            return name.substring(0, dot);
-        }
-        return name;
-    }
-
-    private static String sanitizeFileName(String name) {
-        String n = name.replaceAll("[^a-zA-Z0-9._-]", "_");
-        if (n.isEmpty()) {
-            return "converted";
-        }
-        if (n.length() > 80) {
-            return n.substring(0, 80);
-        }
-        return n;
     }
 }

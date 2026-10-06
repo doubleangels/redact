@@ -1,57 +1,47 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
+# Gradle / build output
+.gradle/
+.kotlin/
+build/
 /captures
 .externalNativeBuild
 .cxx
-local.properties
-
-# Local Sentry DSN for debug builds (see sentry.dsn.local.example)
-sentry.dsn.local
-
-# Built application files
 *.apk
-*.ap_
 *.aab
 *.aar
-
-# Files for the ART/Dalvik VM
+*.ap_
 *.dex
-
-# Java class files
 *.class
 
-# Generated files
-build/
-
-# Local configuration files
+# Local config and secrets
 local.properties
+sentry.dsn.local
+sentry.properties
+*.jks
+*.keystore
 
-# IDE-specific files
-.idea/
+# IDE (shared project files under .idea are tracked; per-user state is not)
+*.iml
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/appInsightsSettings.xml
+.idea/AndroidProjectSystem.xml
+.idea/markdown.xml
+.idea/.name
 
-# Miscellaneous files
+# OS / editor / misc
+.DS_Store
 *.log
 *.swp
-sentry.properties
+*.hprof
 
-# macOS
-.DS_Store
-
-# Intermediate files
-/app/src/build/*
-
-# Python (if scripts are re-run locally)
+# Scripts and fastlane
 __pycache__/
 *.py[cod]
-
-# Ruby local output
 vendor/bundle/
+
+# CodeGraph index
+.codegraph/

@@ -40,7 +40,7 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">ファイルを選択</string>
     <string name="convert_run">変換</string>
-    <string name="convert_status_hint">変換するファイルを選択してください。</string>
+    <string name="convert_status_hint">下の出力形式を選んで、「変換」をタップしてください。</string>
     <string name="convert_status_ready">変換するファイルを選択する準備ができました。</string>
     <string name="convert_selected_count">選択済み: %1$d個のファイル</string>
     <string name="convert_nothing_selected">まず画像を1つ以上選択してください。</string>
@@ -54,7 +54,6 @@
     <string name="convert_done_partial">完了: %1$d個成功、%2$d個失敗。</string>
     <string name="convert_done_failed">変換に失敗しました。</string>
     <string name="convert_saved_to_gallery">ギャラリー(Redactフォルダ)に保存しました</string>
-    <string name="convert_clean_tab_hint">変換はフォーマットのみを変更します。メタデータを削除するには「クリーン」タブを使用してください。</string>
 
     
     <string name="button_select_media">ファイルを選択</string>
@@ -181,7 +180,6 @@
         <item>4096px（標準）</item>
         <item>8192px（高性能）</item>
     </string-array>
-    <string name="scan_metadata_subtitle">このファイルから検出されたフィールドです。長押しで値をコピーできます。</string>
 
     
     <string name="navigation_settings">設定</string>
@@ -270,7 +268,6 @@
     <string name="scan_copied_to_clipboard">クリップボードにコピーしました</string>
     <string name="scan_copy_all_metadata">すべてのメタデータをコピー</string>
     <string name="scan_copy_camera">カメラ情報をコピー</string>
-    <string name="scan_copy_coordinates">座標をコピー</string>
 <string name="settings_permissions_location">写真の位置情報</string>
 <string name="settings_storage_clear_busy">処理中はクリアできません。</string>
     <string name="share_error_failed_get_cleaned_file">クリーンしたファイルを共有用に準備できませんでした。</string>
@@ -324,4 +321,71 @@
     <string name="strip_progress_transcoding_target">目的の形式にトランスコード中…</string>
     <string name="strip_progress_transmuxing">コンテナを再構成中…</string>
     <string name="strip_progress_verifying">メタデータの削除を確認中…</string>
+    <string name="scan_open_coordinates_in_maps">マップアプリで開く</string>
+    <string name="scan_maps_consent_title">位置情報をマップアプリで開きますか？</string>
+    <string name="scan_maps_consent_message">座標をデバイスの既定のマップアプリで開きます。この画面の他の操作とは異なり、正確なGPS位置情報が別のアプリに渡され、そのアプリが地図タイルの読み込みや住所の検索などのためにこのデバイス外へ送信する可能性があります。Redact自体がこのデータをどこにも送信することはありません。\n\nこのメッセージは一度だけ表示されます。続行を選択すると記憶され、再度確認されません。</string>
+    <string name="scan_maps_consent_continue">マップアプリを開く</string>
+    <string name="scan_maps_not_available">この位置情報を開けるマップアプリがありません。</string>
+    <string name="settings_delete_originals">クリーン後に元ファイルを削除</string>
+    <string name="settings_delete_originals_subtitle">クリーン成功後、元のファイルをゴミ箱に移動するようAndroidに依頼します。毎回確認が表示されます。</string>
+    <string name="scan_risk_location">位置情報</string>
+    <string name="scan_risk_serial">デバイスのシリアル番号</string>
+
+    <string name="clean_clear_selection">クリア</string>
+    <string name="convert_clear_selection">クリア</string>
+    <string name="clean_empty_state_title">メタデータのクリーンと削除</string>
+    <string name="clean_empty_state_description">写真や動画を選択して、EXIFタグ、GPS位置情報、カメラの詳細、デバイス識別子を削除します。どのアプリからでも、Redact に直接共有することもできます。</string>
+    <string name="clean_selected_hint">EXIFと位置情報を削除する準備ができました。</string>
+    <string name="convert_empty_state_title">メディア形式の変換</string>
+    <string name="convert_empty_state_description">写真や動画を選択して、JPEG、PNG、WebP、HEIC、MP4形式に変換します。</string>
+    <string name="convert_files_card_title">変換するファイル</string>
+    <string name="convert_heic_fallback_jpeg">HEIC出力にはAndroid 14以降が必要です。代わりに画像はJPEGで保存されます。</string>
+    <string name="convert_item_type_image">画像</string>
+    <string name="convert_item_type_video">動画</string>
+    <string name="notification_clean_failed">今回はクリーンできるファイルがありませんでした。</string>
+    <string name="scan_empty_state_title">メディアのメタデータを確認</string>
+    <string name="scan_empty_state_description">写真または動画を選択して、EXIFの詳細、カメラ仕様、GPS座標、技術的なプロパティを表示します。</string>
+    <string name="scan_grant_location_button">権限を許可</string>
+    <string name="settings_notifications_permission_denied">通知を表示するには通知の権限が必要です。</string>
+    <string name="settings_notifications_permission_granted">通知を有効にしました。</string>
+
+    <plurals name="convert_hero_files_count">
+        <item quantity="other">%1$d 個のファイル</item>
+    </plurals>
+    <plurals name="scan_hero_fields_count">
+        <item quantity="other">%1$d 項目</item>
+    </plurals>
+
+    <string name="scan_section_details">詳細</string>
+    <string name="scan_default_file_name">メディアファイル</string>
+    <string name="convert_remove_item">%1$s を削除</string>
+
+    <string name="settings_warn_already_clean">クリーン済みファイルを警告</string>
+    <string name="settings_warn_already_clean_subtitle">クリーンの前に、選択したファイルに削除できるメタデータがない場合や、Redact が作成済みのコピーである場合にお知らせします。</string>
+    <string name="already_clean_dialog_title">ファイルはすでにクリーンに見えます</string>
+    <plurals name="already_clean_dialog_message_some">
+        <item quantity="other">選択した %2$d 件のうち %1$d 件は、削除できるメタデータが残っていないか、Redact がすでに作成したコピーです。もう一度クリーンしても、別のコピーが増えるだけです。それらをスキップしますか？それとも %2$d 件すべてをクリーンしますか？</item>
+    </plurals>
+    <plurals name="already_clean_dialog_message_all">
+        <item quantity="other">この %1$d 件のファイルは、削除できるメタデータが残っていないか、Redact がすでに作成したコピーです。もう一度クリーンしても、別のコピーが増えるだけです。</item>
+    </plurals>
+    <string name="already_clean_skip">スキップ</string>
+    <string name="already_clean_clean_all">すべてクリーン</string>
+    <string name="already_clean_clean_anyway">それでもクリーン</string>
+
+    <string name="settings_secure_window">スクリーンショットと最近使ったアプリで内容を隠す</string>
+    <string name="settings_secure_window_subtitle">Redact 内でのスクリーンショットと画面録画を禁止し、最近使ったアプリ画面のプレビューを空白にします。すぐに有効になります。</string>
+
+    <string name="settings_clipboard_clear">コピーしたメタデータを消去</string>
+    <string name="settings_clipboard_clear_subtitle">スキャンからコピーしたメタデータを、この時間が経つとクリップボードから消去します（その間に別のものをコピーした場合は消去しません）。</string>
+    <string name="settings_clipboard_clear_off">オフ</string>
+    <string name="settings_clipboard_clear_15s">15 秒後</string>
+    <string name="settings_clipboard_clear_30s">30 秒後</string>
+    <string name="settings_clipboard_clear_1m">1 分後</string>
+    <string name="settings_clipboard_clear_5m">5 分後</string>
+
+    <string name="settings_section_cleaning_workflow">クリーンの前後</string>
+    <string name="settings_cleaning_workflow_subtitle">クリーンの開始前に Redact が確認する内容と、その後の元ファイルの扱いです。</string>
+    <string name="settings_section_privacy">プライバシー</string>
+    <string name="settings_privacy_subtitle">Redact で見たりコピーしたりした内容を、スクリーンショット、最近使ったアプリ画面、クリップボードに残さないようにします。</string>
 </resources>

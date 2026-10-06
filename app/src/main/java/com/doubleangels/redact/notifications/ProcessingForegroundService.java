@@ -119,14 +119,21 @@ public class ProcessingForegroundService extends Service {
                 .setContentIntent(LocalNotifications.mainContentIntent(this));
 
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                // Call Service.startForeground directly: ServiceCompat masks out
-                // FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING on API 34+, which becomes type
-                // none and crashes on targetSdk 34+.
+            // Call Service.startForeground directly: ServiceCompat masks out
+            // FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING, which becomes type none and is rejected on
+            // targetSdk 34+. The mediaProcessing type only exists from API 35; on API 34 passing it throws
+            // InvalidForegroundServiceTypeException ("type unknown"), so Android 14 uses dataSync, which
+            // the manifest also declares. Before API 34 no type is required.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
                 startForeground(
                         NOTIFICATION_ID,
                         builder.build(),
                         ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING);
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startForeground(
+                        NOTIFICATION_ID,
+                        builder.build(),
+                        ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
             } else {
                 startForeground(NOTIFICATION_ID, builder.build());
             }
@@ -136,7 +143,9 @@ public class ProcessingForegroundService extends Service {
             stopSelf();
             return START_NOT_STICKY;
         } catch (RuntimeException e) {
-            // InvalidForegroundServiceTypeException and similar FGS failures on newer Android.
+            // InvalidForegroundServiceTypeException and similar FGS failures on newer Android. Record it:
+            // swallowing it silently is how the API 34 failure went unnoticed.
+            com.doubleangels.redact.sentry.SentryManager.recordException(e);
             stopSelf();
             return START_NOT_STICKY;
         }
@@ -155,6 +164,29 @@ public class ProcessingForegroundService extends Service {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
+    }
+
+    /**
+     * Android 15+ (API 35): {@code dataSync}/{@code mediaProcessing} foreground services get a
+     * background execution time limit; the OS calls this shortly before stopping the service so
+     * it can wind down instead of being killed outright. Declared unconditionally -- overriding
+     * a callback newer than minSdk is safe (older platforms simply never invoke it) -- so there
+     * is no {@code @RequiresApi} guard to add here.
+     */
+    @Override
+    public void onTimeout(int startId, int fgsType) {
+        com.doubleangels.redact.sentry.SentryManager.log(
+                "The ProcessingForegroundService hit the Android background execution time limit.");
+        com.doubleangels.redact.media.AppProcessingScope scope =
+                com.doubleangels.redact.media.AppProcessingScope.get(getApplicationContext());
+        scope.mediaProcessor().cancel();
+        // The Convert loop notices this, stops, and reports CANCELLED itself (it clears
+        // convertInProgress when it ends). Moving the generation here would make it skip that
+        // final update and leave the UI stuck on "Cancel".
+        scope.convertTimedOut().set(true);
+        com.doubleangels.redact.media.VideoMedia3Converter.cancelActiveTranscode();
+        stopForeground(STOP_FOREGROUND_REMOVE);
+        stopSelf();
     }
 
     @Nullable

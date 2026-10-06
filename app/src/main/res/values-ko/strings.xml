@@ -40,7 +40,7 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">파일 선택</string>
     <string name="convert_run">변환</string>
-    <string name="convert_status_hint">변환할 파일을 선택하세요.</string>
+    <string name="convert_status_hint">아래에서 출력 형식을 선택한 다음 변환을 누르세요.</string>
     <string name="convert_status_ready">변환할 파일을 선택할 준비가 되었습니다.</string>
     <string name="convert_selected_count">선택됨: %1$d개 파일</string>
     <string name="convert_nothing_selected">먼저 이미지를 하나 이상 선택하세요.</string>
@@ -54,7 +54,6 @@
     <string name="convert_done_partial">완료: %1$d개 성공, %2$d개 실패.</string>
     <string name="convert_done_failed">변환 실패.</string>
     <string name="convert_saved_to_gallery">갤러리(Redact 폴더)에 저장되었습니다.</string>
-    <string name="convert_clean_tab_hint">변환은 형식만 변경합니다. 메타데이터를 제거하려면 정리 탭으로 이동하세요.</string>
 
     
     <string name="button_select_media">파일 선택</string>
@@ -180,7 +179,6 @@
         <item>4096px(표준)</item>
         <item>8192px(고성능)</item>
     </string-array>
-    <string name="scan_metadata_subtitle">이 파일에서 감지된 필드입니다. 값을 복사하려면 길게 누르세요.</string>
 
     
     <string name="navigation_settings">설정</string>
@@ -269,7 +267,6 @@
     <string name="scan_copied_to_clipboard">클립보드에 복사됨</string>
     <string name="scan_copy_all_metadata">모든 메타데이터 복사</string>
     <string name="scan_copy_camera">카메라 정보 복사</string>
-    <string name="scan_copy_coordinates">좌표 복사</string>
 <string name="settings_permissions_location">사진 위치</string>
 <string name="settings_storage_clear_busy">처리 중에는 지울 수 없습니다.</string>
     <string name="share_error_failed_get_cleaned_file">정리된 파일을 공유할 준비하지 못했습니다.</string>
@@ -323,4 +320,71 @@
     <string name="strip_progress_transcoding_target">대상 형식으로 트랜스코딩 중…</string>
     <string name="strip_progress_transmuxing">컨테이너 재구성 중…</string>
     <string name="strip_progress_verifying">메타데이터 삭제 확인 중…</string>
+    <string name="scan_open_coordinates_in_maps">지도 앱에서 열기</string>
+    <string name="scan_maps_consent_title">지도 앱에서 위치를 열까요?</string>
+    <string name="scan_maps_consent_message">좌표를 기기의 기본 지도 앱에서 엽니다. 이 화면의 다른 모든 작업과 달리, 정확한 GPS 위치를 별도의 앱에 전달하며 해당 앱은 지도 타일을 불러오거나 주소를 조회하기 위해 이 기기 밖으로 전송할 수 있습니다. Redact 자체는 이 데이터를 어디에도 전송하지 않습니다.\n\n이 메시지는 한 번만 표시됩니다. 계속하기를 선택하면 기억되므로 다시 묻지 않습니다.</string>
+    <string name="scan_maps_consent_continue">지도 앱 열기</string>
+    <string name="scan_maps_not_available">이 위치를 열 수 있는 지도 앱이 없습니다.</string>
+    <string name="settings_delete_originals">정리 후 원본 삭제</string>
+    <string name="settings_delete_originals_subtitle">정리가 성공하면 Android에 원본 파일을 휴지통으로 옮기도록 요청합니다. 매번 확인합니다.</string>
+    <string name="scan_risk_location">위치</string>
+    <string name="scan_risk_serial">기기 일련번호</string>
+
+    <string name="clean_clear_selection">지우기</string>
+    <string name="convert_clear_selection">지우기</string>
+    <string name="clean_empty_state_title">메타데이터 정리 및 제거</string>
+    <string name="clean_empty_state_description">사진이나 동영상을 선택해 EXIF 태그, GPS 위치, 카메라 정보, 기기 식별자를 제거하세요. 어떤 앱에서든 Redact로 바로 공유할 수도 있습니다.</string>
+    <string name="clean_selected_hint">EXIF 및 위치 데이터를 제거할 준비가 되었습니다.</string>
+    <string name="convert_empty_state_title">미디어 형식 변환</string>
+    <string name="convert_empty_state_description">사진이나 동영상을 선택해 JPEG, PNG, WebP, HEIC 또는 MP4 형식으로 변환하세요.</string>
+    <string name="convert_files_card_title">변환할 파일</string>
+    <string name="convert_heic_fallback_jpeg">HEIC 출력은 Android 14 이상이 필요합니다. 대신 이미지가 JPEG로 저장됩니다.</string>
+    <string name="convert_item_type_image">이미지</string>
+    <string name="convert_item_type_video">동영상</string>
+    <string name="notification_clean_failed">이번에는 정리할 수 있는 파일이 없습니다.</string>
+    <string name="scan_empty_state_title">미디어 메타데이터 검사</string>
+    <string name="scan_empty_state_description">사진이나 동영상을 선택해 EXIF 세부 정보, 카메라 사양, GPS 좌표, 기술 속성을 확인하세요.</string>
+    <string name="scan_grant_location_button">권한 허용</string>
+    <string name="settings_notifications_permission_denied">알림을 표시하려면 알림 권한이 필요합니다.</string>
+    <string name="settings_notifications_permission_granted">알림이 켜졌습니다.</string>
+
+    <plurals name="convert_hero_files_count">
+        <item quantity="other">파일 %1$d개</item>
+    </plurals>
+    <plurals name="scan_hero_fields_count">
+        <item quantity="other">%1$d개 필드</item>
+    </plurals>
+
+    <string name="scan_section_details">세부 정보</string>
+    <string name="scan_default_file_name">미디어 파일</string>
+    <string name="convert_remove_item">%1$s 제거</string>
+
+    <string name="settings_warn_already_clean">이미 깨끗한 파일 경고</string>
+    <string name="settings_warn_already_clean_subtitle">정리하기 전에, 선택한 파일에 제거할 메타데이터가 없거나 Redact가 이미 만든 사본일 때 알려 줍니다.</string>
+    <string name="already_clean_dialog_title">파일이 이미 깨끗해 보입니다</string>
+    <plurals name="already_clean_dialog_message_some">
+        <item quantity="other">선택한 파일 %2$d개 중 %1$d개는 제거할 메타데이터가 더 이상 없거나 Redact가 이미 만든 사본입니다. 다시 정리해도 사본만 하나 더 생깁니다. 건너뛰시겠어요, 아니면 %2$d개 모두 정리할까요?</item>
+    </plurals>
+    <plurals name="already_clean_dialog_message_all">
+        <item quantity="other">이 파일 %1$d개는 제거할 메타데이터가 더 이상 없거나 Redact가 이미 만든 사본입니다. 다시 정리해도 사본만 하나 더 생깁니다.</item>
+    </plurals>
+    <string name="already_clean_skip">건너뛰기</string>
+    <string name="already_clean_clean_all">모두 정리</string>
+    <string name="already_clean_clean_anyway">그래도 정리</string>
+
+    <string name="settings_secure_window">스크린샷 및 최근 앱에서 내용 숨기기</string>
+    <string name="settings_secure_window_subtitle">Redact에서 스크린샷과 화면 녹화를 막고 최근 앱 화면의 미리보기를 비웁니다. 즉시 적용됩니다.</string>
+
+    <string name="settings_clipboard_clear">복사한 메타데이터 지우기</string>
+    <string name="settings_clipboard_clear_subtitle">스캔에서 복사한 메타데이터를 이 시간이 지나면 클립보드에서 지웁니다(그사이 다른 것을 복사했다면 지우지 않음).</string>
+    <string name="settings_clipboard_clear_off">끔</string>
+    <string name="settings_clipboard_clear_15s">15초 후</string>
+    <string name="settings_clipboard_clear_30s">30초 후</string>
+    <string name="settings_clipboard_clear_1m">1분 후</string>
+    <string name="settings_clipboard_clear_5m">5분 후</string>
+
+    <string name="settings_section_cleaning_workflow">정리 전후</string>
+    <string name="settings_cleaning_workflow_subtitle">정리를 시작하기 전에 Redact가 확인하는 내용과, 정리 후 원본 파일의 처리 방식입니다.</string>
+    <string name="settings_section_privacy">개인정보 보호</string>
+    <string name="settings_privacy_subtitle">Redact에서 보거나 복사한 내용이 스크린샷, 최근 앱 화면, 클립보드에 남지 않도록 합니다.</string>
 </resources>

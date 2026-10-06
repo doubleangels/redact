@@ -23,6 +23,12 @@ public final class AppProcessingScope {
     private final AtomicInteger cleanGeneration = new AtomicInteger(0);
     private final AtomicInteger convertGeneration = new AtomicInteger(0);
     private final AtomicBoolean convertInProgress = new AtomicBoolean(false);
+    /**
+     * Set by the foreground service when Android stops it (time limit). The convert loop treats it
+     * as a cancellation and reports {@code CANCELLED} through the ViewModel, rather than the
+     * service moving the generation counter, which would make the loop drop its own final update.
+     */
+    private final AtomicBoolean convertTimedOut = new AtomicBoolean(false);
 
     private AppProcessingScope(@NonNull Context context) {
         Context app = context.getApplicationContext();
@@ -71,6 +77,11 @@ public final class AppProcessingScope {
     @NonNull
     public AtomicBoolean convertInProgress() {
         return convertInProgress;
+    }
+
+    @NonNull
+    public AtomicBoolean convertTimedOut() {
+        return convertTimedOut;
     }
 
     public boolean isCleanBusy() {

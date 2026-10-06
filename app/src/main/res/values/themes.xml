@@ -15,6 +15,15 @@
         <item name="bottomNavigationStyle">@style/Widget.Redact.BottomNavigationView</item>
     </style>
 
+    <!-- SplashScreen API theme: shown while MainActivity cold-starts, then swapped for
+         Theme.Redact. Uses a neutral gray that blends with the launcher icon's backdrop, so the icon
+         doesn't sit on a mismatched color. -->
+    <style name="Theme.Redact.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.Redact</item>
+    </style>
+
     <!-- Transparent theme for ShareHandlerActivity.
          Inherits from Theme.Redact so dialogs pick up app colors and shapes, but overrides
          window properties to remain transparent. -->

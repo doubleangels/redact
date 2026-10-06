@@ -3,6 +3,7 @@ package com.doubleangels.redact.permission;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.annotation.SuppressLint;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
@@ -64,6 +65,8 @@ public final class PermissionStatusHelper {
      * {@link Manifest.permission#READ_MEDIA_IMAGES} or {@link Manifest.permission#READ_MEDIA_VIDEO}
      * (or legacy storage read on older API levels).
      */
+    // The API 33 guard goes through a local so tests can override the SDK level, which lint cannot follow.
+    @SuppressLint("InlinedApi")
     public static boolean hasMediaReadPrerequisiteForLocation(@NonNull Context context) {
         Context app = context.getApplicationContext();
         int sdk = testSdkIntOverride != null ? testSdkIntOverride : Build.VERSION.SDK_INT;

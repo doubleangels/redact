@@ -27,8 +27,13 @@ public final class AppPreferences {
     private static final String KEY_PRESERVE_CAMERA_SETTINGS = "preserve_camera_settings";
     private static final String KEY_PRESERVE_LOCATION = "preserve_location";
     private static final String KEY_STRICT_CLEAN = "strict_clean";
+    private static final String KEY_WARN_ALREADY_CLEAN = "warn_already_clean";
+    private static final String KEY_SECURE_WINDOW = "secure_window";
+    private static final String KEY_CLIPBOARD_CLEAR_SECONDS = "clipboard_clear_seconds";
+    private static final String KEY_DELETE_ORIGINALS = "delete_originals_after_clean";
     private static final String KEY_VIDEO_FALLBACK_COPY = "video_fallback_copy";
     private static final String KEY_INITIAL_PERMISSIONS_PROMPTED = "initial_permissions_prompted";
+    private static final String KEY_MAPS_LOCATION_CONSENT_GIVEN = "maps_location_consent_given";
 
     /** High quality — matches legacy defaults. */
     public static final int QUALITY_PRESET_HIGH = 0;
@@ -234,6 +239,51 @@ public final class AppPreferences {
         prefs(context).edit().putBoolean(KEY_STRICT_CLEAN, enabled).apply();
     }
 
+    /** Whether Clean should warn before processing files that look clean already (on by default). */
+    public static boolean isWarnAlreadyClean(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_WARN_ALREADY_CLEAN, true);
+    }
+
+    public static void setWarnAlreadyClean(@NonNull Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_WARN_ALREADY_CLEAN, enabled).apply();
+    }
+
+    /** Whether the app's windows are hidden from screenshots, screen recording and recents (off by default). */
+    public static boolean isSecureWindow(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_SECURE_WINDOW, false);
+    }
+
+    public static void setSecureWindow(@NonNull Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_SECURE_WINDOW, enabled).apply();
+    }
+
+    /** Delay choices, in seconds, for clearing copied metadata from the clipboard; 0 is off. */
+    public static final int[] CLIPBOARD_CLEAR_SECONDS_OPTIONS = {0, 15, 30, 60, 300};
+    public static final int DEFAULT_CLIPBOARD_CLEAR_SECONDS = 0;
+
+    /** Seconds until copied metadata is cleared from the clipboard, 0 when turned off. */
+    public static int getClipboardClearSeconds(@NonNull Context context) {
+        int seconds = prefs(context).getInt(KEY_CLIPBOARD_CLEAR_SECONDS, DEFAULT_CLIPBOARD_CLEAR_SECONDS);
+        for (int option : CLIPBOARD_CLEAR_SECONDS_OPTIONS) {
+            if (option == seconds) {
+                return seconds;
+            }
+        }
+        return DEFAULT_CLIPBOARD_CLEAR_SECONDS;
+    }
+
+    public static void setClipboardClearSeconds(@NonNull Context context, int seconds) {
+        prefs(context).edit().putInt(KEY_CLIPBOARD_CLEAR_SECONDS, seconds).apply();
+    }
+
+    public static boolean isDeleteOriginalsAfterClean(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_DELETE_ORIGINALS, false);
+    }
+
+    public static void setDeleteOriginalsAfterClean(@NonNull Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_DELETE_ORIGINALS, enabled).apply();
+    }
+
     public static boolean isVideoFallbackCopy(@NonNull Context context) {
         return prefs(context).getBoolean(KEY_VIDEO_FALLBACK_COPY, false);
     }
@@ -249,5 +299,19 @@ public final class AppPreferences {
 
     public static void setInitialPermissionsPromptCompleted(@NonNull Context context) {
         prefs(context).edit().putBoolean(KEY_INITIAL_PERMISSIONS_PROMPTED, true).apply();
+    }
+
+    /**
+     * Whether the user has already agreed, once, that opening a Scan coordinate in the device's
+     * maps app is okay. That action hands the GPS coordinates to a third-party app, which may
+     * in turn send them off-device (tile/geocoding requests), unlike every other Scan action,
+     * which stays entirely on-device. False until the user explicitly consents.
+     */
+    public static boolean hasConsentedToOpenLocationInMaps(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_MAPS_LOCATION_CONSENT_GIVEN, false);
+    }
+
+    public static void setConsentedToOpenLocationInMaps(@NonNull Context context, boolean consented) {
+        prefs(context).edit().putBoolean(KEY_MAPS_LOCATION_CONSENT_GIVEN, consented).apply();
     }
 }

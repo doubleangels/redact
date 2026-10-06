@@ -12,6 +12,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
@@ -33,22 +34,16 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG_SETTINGS = "settings";
     private static final String KEY_SELECTED_TAB = "selected_tab";
 
-    @Nullable
-    private java.util.concurrent.ExecutorService cacheClearExecutor;
-
     @Override
     protected void onDestroy() {
         com.doubleangels.redact.permission.PermissionManager.setInitialFlowCompletedCallback(null);
         com.doubleangels.redact.permission.PermissionManager.clearRuntimePermissionRequestOnDestroy();
-        if (cacheClearExecutor != null) {
-            cacheClearExecutor.shutdown();
-            cacheClearExecutor = null;
-        }
         super.onDestroy();
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SplashScreen.installSplashScreen(this);
         try {
             if (savedInstanceState == null
                     && com.doubleangels.redact.permission.PermissionManager.shouldPromptInitialPermissions(this)) {
@@ -59,22 +54,24 @@ public class MainActivity extends AppCompatActivity {
             EdgeToEdge.enable(this);
 
             super.onCreate(savedInstanceState);
+            com.doubleangels.redact.ui.SecureWindow.apply(this);
             setContentView(R.layout.activity_main);
 
             setupEdgeToEdgeInsets();
             setupStatusBarColors();
             setupVersionNumber();
 
-            SentryManager.logEvent("lifecycle", "MainActivity created");
+            SentryManager.logEvent("lifecycle", "The MainActivity was created.");
 
-            if (AppPreferences.isAutoClearTempFiles(this)
-                    && !ShareHandlerActivity.isShareProcessingActive()
-                    && !com.doubleangels.redact.ui.MainViewModel.isAnyProcessing(this)) {
-                cacheClearExecutor = java.util.concurrent.Executors.newSingleThreadExecutor();
-                cacheClearExecutor.execute(
-                        () -> com.doubleangels.redact.CacheCleanup.clearStaleTempFiles(
-                                getApplicationContext(),
-                                com.doubleangels.redact.CacheCleanup.DEFAULT_STALE_TEMP_MAX_AGE_MS));
+            // Tells Play vitals / Macrobenchmark when the first screen is usable.
+            getWindow().getDecorView().post(this::reportFullyDrawn);
+
+            // RedactApplication.onCreate already runs this sweep once per process; this call
+            // only matters when MainActivity is recreated without a fresh process (e.g. after a
+            // configuration change) and isAnyProcessing requires a live Activity to check, so it
+            // can't move into the Application-level call.
+            if (!com.doubleangels.redact.ui.MainViewModel.isAnyProcessing(this)) {
+                com.doubleangels.redact.CacheCleanup.scheduleAutoCleanupIfEnabled(this);
             }
 
             if (savedInstanceState == null) {
@@ -87,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
             bottomNavigationView.setOnItemSelectedListener(item -> {
                 try {
                     int itemId = item.getItemId();
-                    SentryManager.logEvent("navigation", "Tab selected");
+                    SentryManager.logEvent("navigation", "The user selected a tab.");
                     Fragment target = ensureFragmentForTab(itemId);
                     if (target == null) {
                         return false;
@@ -240,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
                     SentryManager.setCustomKey("theme_mode", "light");
                 }
             } else {
-                SentryManager.logEvent("ui", "Insets controller is null");
+                SentryManager.logEvent("ui", "The insets controller is null.");
             }
         } catch (Exception e) {
             SentryManager.recordException(e);
@@ -249,9 +246,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupVersionNumber() {
         try {
-            android.widget.TextView versionText = findViewById(R.id.versionText);
             PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-            versionText.setText(packageInfo.versionName);
             assert packageInfo.versionName != null;
             SentryManager.setCustomKey("app_version", packageInfo.versionName);
         } catch (Exception e) {
@@ -330,7 +325,7 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         try {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-            SentryManager.logEvent("permission", "Permission result received");
+            SentryManager.logEvent("permission", "The app received a permission result.");
             SentryManager.setCustomKey("permission_request_code", requestCode);
 
             com.doubleangels.redact.permission.PermissionManager.storeActivityPermissionResult(
@@ -358,7 +353,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         try {
             super.onResume();
-            SentryManager.logEvent("lifecycle", "MainActivity resumed");
+            SentryManager.logEvent("lifecycle", "The MainActivity resumed.");
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
@@ -368,7 +363,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         try {
             super.onPause();
-            SentryManager.logEvent("lifecycle", "MainActivity paused");
+            SentryManager.logEvent("lifecycle", "The MainActivity paused.");
         } catch (Exception e) {
             SentryManager.recordException(e);
         }

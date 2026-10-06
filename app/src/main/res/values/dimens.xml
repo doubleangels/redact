@@ -4,9 +4,14 @@
     <dimen name="component_corner_small">10dp</dimen>
     <dimen name="component_corner_medium">14dp</dimen>
     <dimen name="component_corner_large">20dp</dimen>
+    <!-- Side padding of every tab; larger-width qualifiers keep content a readable width on foldables and tablets. -->
     <dimen name="screen_edge_padding">20dp</dimen>
+    <!-- Vertical padding of the empty states; small by default so they fit short windows (phone landscape,
+         split screen), larger from 600dp of available height (see values-h600dp). -->
+    <dimen name="empty_state_vertical_padding">8dp</dimen>
 
     <dimen name="scan_screen_horizontal_padding">@dimen/screen_edge_padding</dimen>
     <dimen name="scan_metadata_card_corner">@dimen/component_corner_large</dimen>
+    <dimen name="scan_metadata_row_horizontal_padding">16dp</dimen>
     <dimen name="media_thumbnail_px">96dp</dimen>
 </resources>

@@ -10,6 +10,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.doubleangels.redact.R;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.util.Locale;
@@ -136,7 +137,7 @@ public final class MediaSelector {
             }
             return containsAnimatedImagePayload(buffer, read);
         } catch (Exception e) {
-            SentryManager.log("Animated image probe failed: " + e.getMessage());
+            SentryManager.log("The animated image probe failed: " + e.getMessage() + ".");
             return false;
         }
     }
@@ -202,6 +203,6 @@ public final class MediaSelector {
 
     public String getFileName(Uri uri) {
         String result = MediaUriResolver.readDisplayName(activity, uri);
-        return result != null ? result : "media";
+        return result != null ? result : activity.getString(R.string.scan_default_file_name);
     }
 }

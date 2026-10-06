@@ -17,7 +17,7 @@
     <string name="notification_clean_title">Cleaning Finished</string>
     <string name="notification_clean_body" tools:ignore="PluralsCandidate">Successfully cleaned %1$d file(s).</string>
     <string name="notification_clean_partial" tools:ignore="PluralsCandidate">%1$d cleaned, %2$d failed.</string>
-    <string name="notification_clean_failed" translatable="false">We couldn\'t clean any files this time.</string>
+    <string name="notification_clean_failed">We couldn\'t clean any files this time.</string>
     <string name="notification_convert_progress_title">Converting Media…</string>
     <string name="notification_clean_progress_title">Cleaning Metadata…</string>
     <string name="notification_progress_percent">%1$d%% complete</string>
@@ -33,8 +33,8 @@
     <string name="settings_section_notifications_subtitle">Alerts when tasks finish and optional live progress while cleaning or converting.</string>
     <string name="settings_notifications_label">Allow Notifications</string>
     <string name="settings_notifications_subtitle">Master switch for all Redact alerts. Off by default; Android may ask for permission when you turn this on.</string>
-    <string name="settings_notifications_permission_granted" translatable="false">Notifications enabled.</string>
-    <string name="settings_notifications_permission_denied" translatable="false">Notification permission is required to show alerts.</string>
+    <string name="settings_notifications_permission_granted">Notifications enabled.</string>
+    <string name="settings_notifications_permission_denied">Notification permission is required to show alerts.</string>
     <string name="settings_notifications_clean_label">Cleaning Finished</string>
     <string name="settings_notifications_clean_subtitle">Alert when metadata removal on the Clean tab completes.</string>
     <string name="settings_notifications_convert_label">Conversion Finished</string>
@@ -45,9 +45,6 @@
     <string name="settings_crash_reporting_label">Send Crash Reports</string>
     <string name="settings_crash_reporting_subtitle">Shares only anonymized technical details (app version, device model, what the app was doing when it crashed) — never your photos or videos. Sent over the internet to our crash-reporting service, Sentry, when enabled.</string>
 
-    <string name="settings_section_developer" translatable="false">Developer</string>
-    <string name="settings_wormaceptor_button" translatable="false">Open WormaCeptor</string>
-    <string name="settings_wormaceptor_subtitle" translatable="false">On-device debug tools (debug builds only).</string>
 
     <string name="settings_section_conversion">Convert Tab Defaults</string>
     <string name="settings_conversion_subtitle">Pre-selected formats when you pick files on Convert. You can still change them for each batch.</string>
@@ -118,7 +115,7 @@
     <string name="url_donate" translatable="false">https://donate.stripe.com/4gw8yhbvH0mg6SQ7ss</string>
 
     
-    <string name="convert_heic_fallback_jpeg" translatable="false">HEIC output requires Android 14+. Images will be saved as JPEG instead.</string>
+    <string name="convert_heic_fallback_jpeg">HEIC output requires Android 14+. Images will be saved as JPEG instead.</string>
     <string name="convert_codec_fallback">%1$s unavailable; saved as %2$s instead.</string>
     <string name="convert_output_format_images">Image Format</string>
     <string name="convert_output_format_videos">Video Codec</string>
@@ -134,7 +131,7 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">Select Files</string>
     <string name="convert_run">Convert</string>
-    <string name="convert_status_hint">Select files to convert.</string>
+    <string name="convert_status_hint">Choose an output format below, then tap Convert.</string>
     <string name="convert_status_ready">Ready to select files to convert.</string>
     <string name="clean_status_ready">Ready to select files to clean.</string>
     <string name="convert_selected_count" tools:ignore="PluralsCandidate">Selected: %1$d file(s)</string>
@@ -150,7 +147,6 @@
     <string name="convert_done_partial" tools:ignore="PluralsCandidate">Done: %1$d succeeded, %2$d failed.</string>
     <string name="convert_done_failed">Conversion failed.</string>
     <string name="convert_saved_to_gallery">Saved to Gallery (Redact folder)</string>
-    <string name="convert_clean_tab_hint">Conversion changes format only. To remove metadata from the new files, go to the Clean tab and run them through cleaning.</string>
     <string name="scan_status_ready">Select a file to scan its metadata.</string>
     <string name="animated_image_warning">Animated images are saved as a single still frame.</string>
 
@@ -166,6 +162,8 @@
     
     <string name="button_select_media">Select Files</string>
     <string name="button_strip_exif_data">Clean Metadata</string>
+    <string name="settings_delete_originals">Delete Originals After Cleaning</string>
+    <string name="settings_delete_originals_subtitle">After a successful clean, ask Android to move the original files to trash. You confirm each time.</string>
     <string name="button_cancel">Cancel</string>
 
     
@@ -186,7 +184,7 @@
     <string name="status_extracting_media">Extracting video metadata…</string>
     <string name="status_extracting_image">Extracting image metadata…</string>
     <string name="status_media_picker_fail">We couldn\'t open the media picker.</string>
-    <string name="media_picker_selection_capped">Only %1$d files can be selected at a time.</string>
+    <string name="media_picker_selection_capped" tools:ignore="PluralsCandidate">Only %1$d files can be selected at a time.</string>
     <string name="status_storage_permissions_required">Storage permission is needed to access your files.</string>
 
     
@@ -213,22 +211,42 @@
     <string name="share_error_generic">Something went wrong. Please try again.</string>
     <string name="share_error_failed_receive_media">Couldn\'t receive the shared media.</string>
     <string name="share_error_processing_failed">Couldn\'t remove metadata from the shared file(s).</string>
-    <string name="share_error_partial_success">%1$d file(s) cleaned; %2$d failed.</string>
+    <string name="share_error_partial_success" tools:ignore="PluralsCandidate">%1$d file(s) cleaned; %2$d failed.</string>
     <string name="share_error_failed_get_cleaned_file">Couldn\'t prepare the cleaned file for sharing.</string>
     <string name="share_error_failed_get_cleaned_files">Couldn\'t prepare the cleaned files for sharing.</string>
     <string name="share_error_interrupted">Sharing was interrupted. Please try again.</string>
 
     
     <string name="scan_metadata">Metadata</string>
-    <string name="scan_metadata_subtitle">Detected fields from this file. Tap and hold values to copy.</string>
     <string name="scan_location_permission_missing">GPS coordinates might be available if you grant the location permission.</string>
     <string name="scan_extraction_fail">We couldn\'t retrieve the metadata.</string>
-    <string name="scan_copy_coordinates">Copy Coordinates</string>
+    <string name="scan_open_coordinates_in_maps">Open in Maps</string>
     <string name="scan_copy_camera">Copy Camera Info</string>
     <string name="scan_copy_all_metadata">Copy All Metadata</string>
     <string name="scan_clean_this_file">Clean This File</string>
     <string name="scan_convert_this_file">Convert This File</string>
     <string name="scan_copied_to_clipboard">Copied to clipboard</string>
+    <string name="scan_maps_consent_title">Open location in Maps?</string>
+    <string name="scan_maps_consent_message">This opens the coordinates in your device\'s default maps app. Unlike every other action on this screen, that hands your exact GPS location to a separate app, which may send it off this device, for example to load map tiles or look up the address. Redact itself never sends this data anywhere.\n\nYou\'ll only see this message once. Choosing to continue is remembered, so this won\'t ask again.</string>
+    <string name="scan_maps_consent_continue">Open Maps</string>
+    <string name="scan_maps_not_available">No maps app is available to open this location.</string>
+    <string name="scan_risk_location">Location</string>
+    <string name="scan_risk_serial">Device serial</string>
+    <string name="scan_empty_state_title">Inspect Media Metadata</string>
+    <string name="scan_empty_state_description">Select a photo or video to view EXIF details, camera specs, GPS coordinates, and technical properties.</string>
+    <string name="scan_grant_location_button">Grant Permission</string>
+
+    <string name="clean_empty_state_title">Clean &amp; Strip Metadata</string>
+    <string name="clean_empty_state_description">Select photos or videos to remove EXIF tags, GPS location, camera details, and device identifiers. You can also share them straight to Redact from any app.</string>
+    <string name="clean_selected_hint">Ready to strip EXIF and location data.</string>
+    <string name="clean_clear_selection">Clear</string>
+
+    <string name="convert_empty_state_title">Convert Media Formats</string>
+    <string name="convert_empty_state_description">Select photos or videos to convert them into JPEG, PNG, WebP, HEIC, or MP4 formats.</string>
+    <string name="convert_clear_selection">Clear</string>
+    <string name="convert_files_card_title">Files to Convert</string>
+    <string name="convert_item_type_image">Image</string>
+    <string name="convert_item_type_video">Video</string>
 
     
     
@@ -335,4 +353,47 @@
         <item>8192px (High Perf)</item>
     </string-array>
 
+    <plurals name="convert_hero_files_count">
+        <item quantity="one">%1$d file</item>
+        <item quantity="other">%1$d files</item>
+    </plurals>
+    <plurals name="scan_hero_fields_count">
+        <item quantity="one">%1$d field</item>
+        <item quantity="other">%1$d fields</item>
+    </plurals>
+
+    <string name="scan_section_details">Details</string>
+    <string name="scan_default_file_name">Media file</string>
+    <string name="convert_remove_item">Remove %1$s</string>
+
+    <string name="settings_warn_already_clean">Warn About Already-Clean Files</string>
+    <string name="settings_warn_already_clean_subtitle">Before cleaning, tell me when selected files have no metadata to remove or are copies Redact already made.</string>
+    <string name="already_clean_dialog_title">Files Look Clean Already</string>
+    <plurals name="already_clean_dialog_message_some">
+        <item quantity="one">%1$d of the %2$d selected files has no metadata left to remove, or is a copy Redact already made. Cleaning it again would only make another copy. Skip it, or clean all %2$d anyway?</item>
+        <item quantity="other">%1$d of the %2$d selected files have no metadata left to remove, or are copies Redact already made. Cleaning them again would only make more copies. Skip them, or clean all %2$d anyway?</item>
+    </plurals>
+    <plurals name="already_clean_dialog_message_all">
+        <item quantity="one">This file has no metadata left to remove, or is a copy Redact already made. Cleaning it again would only make another copy.</item>
+        <item quantity="other">These %1$d files have no metadata left to remove, or are copies Redact already made. Cleaning them again would only make more copies.</item>
+    </plurals>
+    <string name="already_clean_skip">Skip Those</string>
+    <string name="already_clean_clean_all">Clean All</string>
+    <string name="already_clean_clean_anyway">Clean Anyway</string>
+
+    <string name="settings_secure_window">Hide Content in Screenshots and Recents</string>
+    <string name="settings_secure_window_subtitle">Blocks screenshots and screen recording inside Redact and blanks its preview on the recent apps screen. Takes effect immediately.</string>
+
+    <string name="settings_clipboard_clear">Clear Copied Metadata</string>
+    <string name="settings_clipboard_clear_subtitle">Clears metadata you copied from Scan from the clipboard after this delay, unless you copied something else since.</string>
+    <string name="settings_clipboard_clear_off">Off</string>
+    <string name="settings_clipboard_clear_15s">After 15 seconds</string>
+    <string name="settings_clipboard_clear_30s">After 30 seconds</string>
+    <string name="settings_clipboard_clear_1m">After 1 minute</string>
+    <string name="settings_clipboard_clear_5m">After 5 minutes</string>
+
+    <string name="settings_section_cleaning_workflow">Before &amp; After Cleaning</string>
+    <string name="settings_cleaning_workflow_subtitle">What Redact checks before a clean starts, and what happens to your originals afterward.</string>
+    <string name="settings_section_privacy">Privacy</string>
+    <string name="settings_privacy_subtitle">Keeps what you see and copy in Redact out of screenshots, the recent apps screen and the clipboard.</string>
 </resources>

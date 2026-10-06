@@ -40,7 +40,7 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">選擇檔案</string>
     <string name="convert_run">轉換</string>
-    <string name="convert_status_hint">選擇要轉換的檔案。</string>
+    <string name="convert_status_hint">在下方選擇輸出格式，然後點一下「轉換」。</string>
     <string name="convert_status_ready">準備選擇要轉換的檔案。</string>
     <string name="convert_selected_count">已選擇：%1$d 個檔案</string>
     <string name="convert_nothing_selected">請先至少選擇一張圖片。</string>
@@ -54,7 +54,6 @@
     <string name="convert_done_partial">完成：%1$d 個成功，%2$d 個失敗。</string>
     <string name="convert_done_failed">轉換失敗。</string>
     <string name="convert_saved_to_gallery">已儲存至相簿（Redact 資料夾）</string>
-    <string name="convert_clean_tab_hint">轉換僅改變格式。若要刪除中繼資料，請前往「清理」標籤頁。</string>
 
     
     <string name="button_select_media">選擇檔案</string>
@@ -180,7 +179,6 @@
         <item>4096px（標準）</item>
         <item>8192px（高效能）</item>
     </string-array>
-    <string name="scan_metadata_subtitle">從此檔案中偵測到的欄位。長按值可複製。</string>
 
     
     <string name="navigation_settings">設定</string>
@@ -269,7 +267,6 @@
     <string name="scan_copied_to_clipboard">已複製到剪貼簿</string>
     <string name="scan_copy_all_metadata">複製全部中繼資料</string>
     <string name="scan_copy_camera">複製相機資訊</string>
-    <string name="scan_copy_coordinates">複製座標</string>
 <string name="settings_permissions_location">照片位置</string>
 <string name="settings_storage_clear_busy">處理進行中時無法清除。</string>
     <string name="share_error_failed_get_cleaned_file">無法準備已清理的檔案以供分享。</string>
@@ -323,4 +320,71 @@
     <string name="strip_progress_transcoding_target">正在轉碼為目標格式…</string>
     <string name="strip_progress_transmuxing">正在重新封裝…</string>
     <string name="strip_progress_verifying">正在驗證中繼資料是否已移除…</string>
+    <string name="scan_open_coordinates_in_maps">在地圖應用程式中開啟</string>
+    <string name="scan_maps_consent_title">要在地圖應用程式中開啟位置嗎？</string>
+    <string name="scan_maps_consent_message">這會在您裝置的預設地圖應用程式中開啟座標。與此畫面上的其他所有操作不同，這會將您的精確 GPS 位置交給另一個應用程式，該應用程式可能會將其傳送到此裝置之外，例如載入地圖圖磚或查詢地址。Redact 本身絕不會將這些資料傳送到任何地方。\n\n此訊息只會顯示一次。您選擇繼續後會被記住，因此不會再次詢問。</string>
+    <string name="scan_maps_consent_continue">開啟地圖應用程式</string>
+    <string name="scan_maps_not_available">沒有可用於開啟此位置的地圖應用程式。</string>
+    <string name="settings_delete_originals">清理後刪除原始檔案</string>
+    <string name="settings_delete_originals_subtitle">清理成功後，要求 Android 將原始檔案移至垃圾桶。每次都需要您確認。</string>
+    <string name="scan_risk_location">位置資訊</string>
+    <string name="scan_risk_serial">裝置序號</string>
+
+    <string name="clean_clear_selection">清除</string>
+    <string name="convert_clear_selection">清除</string>
+    <string name="clean_empty_state_title">清理並移除中繼資料</string>
+    <string name="clean_empty_state_description">選擇照片或影片，以移除 EXIF 標籤、GPS 位置、相機詳細資料和裝置識別碼。你也可以在任何應用程式中直接分享到 Redact。</string>
+    <string name="clean_selected_hint">已準備好移除 EXIF 和位置資料。</string>
+    <string name="convert_empty_state_title">轉換媒體格式</string>
+    <string name="convert_empty_state_description">選擇照片或影片，將其轉換為 JPEG、PNG、WebP、HEIC 或 MP4 格式。</string>
+    <string name="convert_files_card_title">要轉換的檔案</string>
+    <string name="convert_heic_fallback_jpeg">HEIC 輸出需要 Android 14 或更新版本。圖片將改為儲存為 JPEG。</string>
+    <string name="convert_item_type_image">圖片</string>
+    <string name="convert_item_type_video">影片</string>
+    <string name="notification_clean_failed">這次沒有成功清理任何檔案。</string>
+    <string name="scan_empty_state_title">檢查媒體中繼資料</string>
+    <string name="scan_empty_state_description">選擇照片或影片，以檢視 EXIF 詳細資料、相機規格、GPS 座標和技術屬性。</string>
+    <string name="scan_grant_location_button">授予權限</string>
+    <string name="settings_notifications_permission_denied">顯示提醒需要通知權限。</string>
+    <string name="settings_notifications_permission_granted">通知已啟用。</string>
+
+    <plurals name="convert_hero_files_count">
+        <item quantity="other">%1$d 個檔案</item>
+    </plurals>
+    <plurals name="scan_hero_fields_count">
+        <item quantity="other">%1$d 個欄位</item>
+    </plurals>
+
+    <string name="scan_section_details">詳細資料</string>
+    <string name="scan_default_file_name">媒體檔案</string>
+    <string name="convert_remove_item">移除 %1$s</string>
+
+    <string name="settings_warn_already_clean">提醒已乾淨的檔案</string>
+    <string name="settings_warn_already_clean_subtitle">清理前，若所選檔案沒有可移除的中繼資料，或是 Redact 先前產生的副本，會提醒你。</string>
+    <string name="already_clean_dialog_title">檔案看起來已經乾淨</string>
+    <plurals name="already_clean_dialog_message_some">
+        <item quantity="other">所選 %2$d 個檔案中有 %1$d 個已沒有可移除的中繼資料，或是 Redact 已產生的副本。再次清理只會多產生一份副本。要略過它們，還是仍然清理全部 %2$d 個？</item>
+    </plurals>
+    <plurals name="already_clean_dialog_message_all">
+        <item quantity="other">這 %1$d 個檔案已沒有可移除的中繼資料，或是 Redact 已產生的副本。再次清理只會多產生一份副本。</item>
+    </plurals>
+    <string name="already_clean_skip">略過這些</string>
+    <string name="already_clean_clean_all">全部清理</string>
+    <string name="already_clean_clean_anyway">仍然清理</string>
+
+    <string name="settings_secure_window">在螢幕截圖和最近使用中隱藏內容</string>
+    <string name="settings_secure_window_subtitle">禁止在 Redact 中截圖和錄製螢幕，並在最近使用的應用程式畫面中隱藏其預覽。立即生效。</string>
+
+    <string name="settings_clipboard_clear">清除已複製的中繼資料</string>
+    <string name="settings_clipboard_clear_subtitle">在此時間後，從剪貼簿中清除你從「掃描」複製的中繼資料（若期間你複製了其他內容則不會清除）。</string>
+    <string name="settings_clipboard_clear_off">關閉</string>
+    <string name="settings_clipboard_clear_15s">15 秒後</string>
+    <string name="settings_clipboard_clear_30s">30 秒後</string>
+    <string name="settings_clipboard_clear_1m">1 分鐘後</string>
+    <string name="settings_clipboard_clear_5m">5 分鐘後</string>
+
+    <string name="settings_section_cleaning_workflow">清理前後</string>
+    <string name="settings_cleaning_workflow_subtitle">清理開始前 Redact 會檢查什麼，以及清理後如何處理原始檔案。</string>
+    <string name="settings_section_privacy">隱私</string>
+    <string name="settings_privacy_subtitle">避免你在 Redact 中看到和複製的內容出現在螢幕截圖、最近使用畫面和剪貼簿中。</string>
 </resources>

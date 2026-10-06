@@ -40,7 +40,7 @@
     <string name="convert_format_av1">MKV (AV1)</string>
     <string name="convert_select_files">تحديد الملفات</string>
     <string name="convert_run">إجراء التحويل</string>
-    <string name="convert_status_hint">حدد الملفات للتحويل.</string>
+    <string name="convert_status_hint">اختر صيغة الإخراج أدناه، ثم اضغط على «إجراء التحويل».</string>
     <string name="convert_status_ready">جاهز لتحديد الملفات للتحويل.</string>
     <string name="convert_selected_count">المحدد: %1$d ملف(ملفات)</string>
     <string name="convert_nothing_selected">حدد صورة واحدة على الأقل أولاً.</string>
@@ -54,7 +54,6 @@
     <string name="convert_done_partial">تمت: %1$d ناجح، %2$d فاشل.</string>
     <string name="convert_done_failed">فشل التحويل.</string>
     <string name="convert_saved_to_gallery">تم الحفظ في المعرض (مجلد Redact)</string>
-    <string name="convert_clean_tab_hint">التحويل يغير التنسيق فقط. لإزالة البيانات الوصفية، انتقل إلى علامة التبويب تنظيف.</string>
 
     
     <string name="button_select_media">تحديد الملفات</string>
@@ -180,7 +179,6 @@
         <item>4096 بكسل (قياسي)</item>
         <item>8192 بكسل (أداء عالٍ)</item>
     </string-array>
-    <string name="scan_metadata_subtitle">الحقول المكتشفة من هذا الملف. اضغط مع الاستمرار على القيم لنسخها.</string>
 
     
     <string name="navigation_settings">الإعدادات</string>
@@ -269,7 +267,6 @@
     <string name="scan_copied_to_clipboard">تم النسخ إلى الحافظة</string>
     <string name="scan_copy_all_metadata">نسخ كل البيانات الوصفية</string>
     <string name="scan_copy_camera">نسخ معلومات الكاميرا</string>
-    <string name="scan_copy_coordinates">نسخ الإحداثيات</string>
 <string name="settings_permissions_location">موقع الصورة</string>
 <string name="settings_storage_clear_busy">لا يمكن المسح أثناء المعالجة.</string>
     <string name="share_error_failed_get_cleaned_file">تعذر تجهيز الملف المنظف للمشاركة.</string>
@@ -323,4 +320,91 @@
     <string name="strip_progress_transcoding_target">جارٍ إعادة الترميز إلى الصيغة المطلوبة…</string>
     <string name="strip_progress_transmuxing">جارٍ إعادة تعبئة الفيديو…</string>
     <string name="strip_progress_verifying">جارٍ التحقق من إزالة البيانات الوصفية…</string>
+    <string name="scan_open_coordinates_in_maps">فتح في تطبيق الخرائط</string>
+    <string name="scan_maps_consent_title">فتح الموقع في تطبيق الخرائط؟</string>
+    <string name="scan_maps_consent_message">سيؤدي هذا إلى فتح الإحداثيات في تطبيق الخرائط الافتراضي على جهازك. على عكس كل إجراء آخر في هذه الشاشة، فإنه يسلّم موقع GPS الدقيق إلى تطبيق منفصل قد يرسله خارج هذا الجهاز، مثلًا لتحميل مربعات الخريطة أو البحث عن العنوان. أما Redact نفسه فلا يرسل هذه البيانات إلى أي مكان.\n\nسترى هذه الرسالة مرة واحدة فقط. سيتم تذكّر اختيارك المتابعة، لذا لن يُطلب منك ذلك مجددًا.</string>
+    <string name="scan_maps_consent_continue">فتح تطبيق الخرائط</string>
+    <string name="scan_maps_not_available">لا يتوفر تطبيق خرائط لفتح هذا الموقع.</string>
+    <string name="settings_delete_originals">حذف الملفات الأصلية بعد التنظيف</string>
+    <string name="settings_delete_originals_subtitle">بعد نجاح التنظيف، يطلب من Android نقل الملفات الأصلية إلى سلة المحذوفات. ستؤكد ذلك في كل مرة.</string>
+    <string name="scan_risk_location">الموقع</string>
+    <string name="scan_risk_serial">الرقم التسلسلي للجهاز</string>
+
+    <string name="clean_clear_selection">مسح</string>
+    <string name="convert_clear_selection">مسح</string>
+    <string name="clean_empty_state_title">تنظيف البيانات الوصفية وإزالتها</string>
+    <string name="clean_empty_state_description">حدّد صورًا أو مقاطع فيديو لإزالة وسوم EXIF وموقع GPS وتفاصيل الكاميرا ومعرّفات الجهاز. يمكنك أيضًا مشاركتها مباشرةً إلى Redact من أي تطبيق.</string>
+    <string name="clean_selected_hint">جاهز لإزالة بيانات EXIF والموقع.</string>
+    <string name="convert_empty_state_title">تحويل صيغ الوسائط</string>
+    <string name="convert_empty_state_description">حدّد صورًا أو مقاطع فيديو لتحويلها إلى صيغ JPEG وPNG وWebP وHEIC أو MP4.</string>
+    <string name="convert_files_card_title">الملفات المراد تحويلها</string>
+    <string name="convert_heic_fallback_jpeg">يتطلب إخراج HEIC نظام Android 14 أو أحدث. ستُحفظ الصور بصيغة JPEG بدلًا من ذلك.</string>
+    <string name="convert_item_type_image">صورة</string>
+    <string name="convert_item_type_video">فيديو</string>
+    <string name="notification_clean_failed">تعذّر تنظيف أي ملفات هذه المرة.</string>
+    <string name="scan_empty_state_title">فحص البيانات الوصفية للوسائط</string>
+    <string name="scan_empty_state_description">حدّد صورة أو مقطع فيديو لعرض تفاصيل EXIF ومواصفات الكاميرا وإحداثيات GPS والخصائص التقنية.</string>
+    <string name="scan_grant_location_button">منح الإذن</string>
+    <string name="settings_notifications_permission_denied">إذن الإشعارات مطلوب لعرض التنبيهات.</string>
+    <string name="settings_notifications_permission_granted">تم تفعيل الإشعارات.</string>
+
+    <plurals name="convert_hero_files_count">
+        <item quantity="zero">%1$d ملف</item>
+        <item quantity="one">ملف واحد</item>
+        <item quantity="two">ملفان</item>
+        <item quantity="few">%1$d ملفات</item>
+        <item quantity="many">%1$d ملفًا</item>
+        <item quantity="other">%1$d ملف</item>
+    </plurals>
+    <plurals name="scan_hero_fields_count">
+        <item quantity="zero">%1$d حقل</item>
+        <item quantity="one">حقل واحد</item>
+        <item quantity="two">حقلان</item>
+        <item quantity="few">%1$d حقول</item>
+        <item quantity="many">%1$d حقلًا</item>
+        <item quantity="other">%1$d حقل</item>
+    </plurals>
+
+    <string name="scan_section_details">التفاصيل</string>
+    <string name="scan_default_file_name">ملف وسائط</string>
+    <string name="convert_remove_item">إزالة %1$s</string>
+
+    <string name="settings_warn_already_clean">التحذير من الملفات النظيفة بالفعل</string>
+    <string name="settings_warn_already_clean_subtitle">قبل التنظيف، يتم إعلامك عندما لا تحتوي الملفات المحددة على بيانات وصفية لإزالتها أو تكون نسخًا أنشأها Redact سابقًا.</string>
+    <string name="already_clean_dialog_title">الملفات تبدو نظيفة بالفعل</string>
+    <plurals name="already_clean_dialog_message_some">
+        <item quantity="zero">%1$d من أصل %2$d ملفات محددة لم يعد فيها بيانات وصفية لإزالتها أو هي نسخ أنشأها Redact بالفعل. إعادة تنظيفها ستنتج نسخًا أخرى فقط. هل تتخطاها أم تنظّف جميع الملفات الـ %2$d على أي حال؟</item>
+        <item quantity="one">ملف واحد من أصل %2$d ملفات محددة لم يعد فيه بيانات وصفية لإزالتها أو هو نسخة أنشأها Redact بالفعل. إعادة تنظيفه ستنتج نسخة أخرى فقط. هل تتخطاه أم تنظّف جميع الملفات الـ %2$d على أي حال؟</item>
+        <item quantity="two">%1$d من أصل %2$d ملفات محددة لم يعد فيها بيانات وصفية لإزالتها أو هي نسخ أنشأها Redact بالفعل. إعادة تنظيفها ستنتج نسخًا أخرى فقط. هل تتخطاها أم تنظّف جميع الملفات الـ %2$d على أي حال؟</item>
+        <item quantity="few">%1$d من أصل %2$d ملفات محددة لم يعد فيها بيانات وصفية لإزالتها أو هي نسخ أنشأها Redact بالفعل. إعادة تنظيفها ستنتج نسخًا أخرى فقط. هل تتخطاها أم تنظّف جميع الملفات الـ %2$d على أي حال؟</item>
+        <item quantity="many">%1$d من أصل %2$d ملفات محددة لم يعد فيها بيانات وصفية لإزالتها أو هي نسخ أنشأها Redact بالفعل. إعادة تنظيفها ستنتج نسخًا أخرى فقط. هل تتخطاها أم تنظّف جميع الملفات الـ %2$d على أي حال؟</item>
+        <item quantity="other">%1$d من أصل %2$d ملفات محددة لم يعد فيها بيانات وصفية لإزالتها أو هي نسخ أنشأها Redact بالفعل. إعادة تنظيفها ستنتج نسخًا أخرى فقط. هل تتخطاها أم تنظّف جميع الملفات الـ %2$d على أي حال؟</item>
+    </plurals>
+    <plurals name="already_clean_dialog_message_all">
+        <item quantity="zero">هذه الملفات (%1$d) لم يعد فيها بيانات وصفية لإزالتها أو هي نسخ أنشأها Redact بالفعل. إعادة تنظيفها ستنتج نسخًا أخرى فقط.</item>
+        <item quantity="one">هذا الملف لم يعد فيه بيانات وصفية لإزالتها أو هو نسخة أنشأها Redact بالفعل. إعادة تنظيفه ستنتج نسخة أخرى فقط.</item>
+        <item quantity="two">هذه الملفات (%1$d) لم يعد فيها بيانات وصفية لإزالتها أو هي نسخ أنشأها Redact بالفعل. إعادة تنظيفها ستنتج نسخًا أخرى فقط.</item>
+        <item quantity="few">هذه الملفات (%1$d) لم يعد فيها بيانات وصفية لإزالتها أو هي نسخ أنشأها Redact بالفعل. إعادة تنظيفها ستنتج نسخًا أخرى فقط.</item>
+        <item quantity="many">هذه الملفات (%1$d) لم يعد فيها بيانات وصفية لإزالتها أو هي نسخ أنشأها Redact بالفعل. إعادة تنظيفها ستنتج نسخًا أخرى فقط.</item>
+        <item quantity="other">هذه الملفات (%1$d) لم يعد فيها بيانات وصفية لإزالتها أو هي نسخ أنشأها Redact بالفعل. إعادة تنظيفها ستنتج نسخًا أخرى فقط.</item>
+    </plurals>
+    <string name="already_clean_skip">تخطَّ هذه</string>
+    <string name="already_clean_clean_all">نظّف الكل</string>
+    <string name="already_clean_clean_anyway">نظّف على أي حال</string>
+
+    <string name="settings_secure_window">إخفاء المحتوى في لقطات الشاشة والتطبيقات الأخيرة</string>
+    <string name="settings_secure_window_subtitle">يمنع لقطات الشاشة وتسجيل الشاشة داخل Redact ويُفرغ معاينته في شاشة التطبيقات الأخيرة. يسري فورًا.</string>
+
+    <string name="settings_clipboard_clear">مسح البيانات الوصفية المنسوخة</string>
+    <string name="settings_clipboard_clear_subtitle">يمسح البيانات الوصفية التي نسختها من الفحص من الحافظة بعد هذه المدة، ما لم تنسخ شيئًا آخر في الأثناء.</string>
+    <string name="settings_clipboard_clear_off">إيقاف</string>
+    <string name="settings_clipboard_clear_15s">بعد 15 ثانية</string>
+    <string name="settings_clipboard_clear_30s">بعد 30 ثانية</string>
+    <string name="settings_clipboard_clear_1m">بعد دقيقة واحدة</string>
+    <string name="settings_clipboard_clear_5m">بعد 5 دقائق</string>
+
+    <string name="settings_section_cleaning_workflow">قبل التنظيف وبعده</string>
+    <string name="settings_cleaning_workflow_subtitle">ما يتحقق منه Redact قبل بدء التنظيف، وما يحدث لملفاتك الأصلية بعده.</string>
+    <string name="settings_section_privacy">الخصوصية</string>
+    <string name="settings_privacy_subtitle">يُبقي ما تراه وتنسخه في Redact خارج لقطات الشاشة وشاشة التطبيقات الأخيرة والحافظة.</string>
 </resources>

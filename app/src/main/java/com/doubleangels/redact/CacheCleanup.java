@@ -3,11 +3,13 @@ package com.doubleangels.redact;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 
 import com.doubleangels.redact.media.SecureDelete;
 
 import java.io.File;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Utilities for measuring and clearing temporary processing files in app cache.
@@ -16,6 +18,15 @@ public final class CacheCleanup {
 
     /** Default age for startup stale-temp cleanup (24 hours). */
     public static final long DEFAULT_STALE_TEMP_MAX_AGE_MS = 24L * 60L * 60L * 1000L;
+
+    /**
+     * Ensures {@link #scheduleAutoCleanupIfEnabled} runs at most once per process, however many
+     * entry points call it (the Application on cold start, MainActivity on open).
+     */
+    private static final AtomicBoolean autoCleanupScheduledThisProcess = new AtomicBoolean(false);
+
+    private static volatile Thread autoCleanupThread;
+    private static volatile Thread orphanSweepThread;
 
     private static final String PROCESSED_SUBDIR = "processed";
     private static final String[] TEMP_PREFIXES = {
@@ -66,6 +77,123 @@ public final class CacheCleanup {
 
     public static int clearAllTempFiles(@NonNull Context context) {
         return clearStaleTempFiles(context, MIN_DELETE_AGE_MS);
+    }
+
+    /**
+     * Runs the stale-temp sweep in the background, at most once per process, as soon as any
+     * entry point reaches this call -- {@code RedactApplication.onCreate} on cold start, or
+     * {@code MainActivity.onCreate} on open, whichever comes first.
+     *
+     * <p>Previously this sweep only ran from {@code MainActivity}, so a user who only ever used
+     * the share-sheet entry point ({@code ShareHandlerActivity}) without opening the main app
+     * could leave unredacted source snapshots sitting in cache well past the 24-hour cutoff --
+     * bounded only by the next time they happened to launch the app, or uninstalled it.
+     */
+    public static void scheduleAutoCleanupIfEnabled(@NonNull Context context) {
+        if (!shouldRunAutoCleanup(context)) {
+            return;
+        }
+        Context appContext = context.getApplicationContext();
+        // Guarded to once per process, so a one-shot thread beats a never-released executor.
+        Thread thread = new Thread(() -> performAutoCleanup(appContext), "redact-auto-cleanup");
+        autoCleanupThread = thread;
+        thread.start();
+    }
+
+    /**
+     * Securely deletes working files (source snapshots, remux/transcode intermediates, verify
+     * copies) left behind by a previous process, at any age. Call once from
+     * {@code Application.onCreate}: at that point no operation of this process has started, so every
+     * file that already exists is an orphan. It matters most for share-ins, whose unredacted source
+     * snapshots are removed asynchronously and can outlive a process that is killed right after the
+     * share sheet closes; waiting for the 24-hour sweep would leave them readable for a day.
+     *
+     * <p>The list is taken synchronously, so files created afterwards (including by a share that
+     * started this very process) are never touched; only the slow secure delete runs in the
+     * background. The {@code processed/} folder is left alone, since another app may still be
+     * reading a cleaned file that was just shared.
+     */
+    public static void scheduleOrphanedWorkFileSweep(@NonNull Context context) {
+        Context appContext = context.getApplicationContext();
+        java.util.List<File> orphans = new java.util.ArrayList<>();
+        collectTempPrefixFiles(appContext.getCacheDir(), orphans);
+        collectTempPrefixFiles(appContext.getExternalCacheDir(), orphans);
+        if (orphans.isEmpty()) {
+            return;
+        }
+        Thread thread = new Thread(() -> {
+            for (File orphan : orphans) {
+                if (orphan.exists() && !SecureDelete.secureDelete(appContext, orphan)) {
+                    //noinspection ResultOfMethodCallIgnored
+                    orphan.delete();
+                }
+            }
+        }, "redact-orphan-sweep");
+        orphanSweepThread = thread;
+        thread.start();
+    }
+
+    private static void collectTempPrefixFiles(File directory, java.util.List<File> out) {
+        if (directory == null || !directory.isDirectory()) {
+            return;
+        }
+        File[] files = directory.listFiles();
+        if (files == null) {
+            return;
+        }
+        for (File file : files) {
+            if (!file.isFile()) {
+                continue;
+            }
+            String name = file.getName();
+            for (String prefix : TEMP_PREFIXES) {
+                if (name.startsWith(prefix)) {
+                    out.add(file);
+                    break;
+                }
+            }
+        }
+    }
+
+    /** Waits for a sweep started by {@link #scheduleOrphanedWorkFileSweep} (tests only). */
+    @VisibleForTesting
+    public static void awaitOrphanSweepForTests() {
+        Thread thread = orphanSweepThread;
+        if (thread != null) {
+            try {
+                thread.join(10_000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    @VisibleForTesting
+    static boolean shouldRunAutoCleanup(@NonNull Context context) {
+        if (!AppPreferences.isAutoClearTempFiles(context)
+                || ShareHandlerActivity.isShareProcessingActive()) {
+            return false;
+        }
+        return autoCleanupScheduledThisProcess.compareAndSet(false, true);
+    }
+
+    @VisibleForTesting
+    static void performAutoCleanup(@NonNull Context appContext) {
+        clearStaleTempFiles(appContext, DEFAULT_STALE_TEMP_MAX_AGE_MS);
+    }
+
+    @VisibleForTesting
+    public static void resetAutoCleanupStateForTests() {
+        // Let any sweep started by Application.onCreate finish so it can't race the test's files.
+        Thread thread = autoCleanupThread;
+        if (thread != null) {
+            try {
+                thread.join(5000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        autoCleanupScheduledThisProcess.set(false);
     }
 
     @NonNull

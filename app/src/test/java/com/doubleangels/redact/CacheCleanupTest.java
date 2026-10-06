@@ -30,12 +30,15 @@ public class CacheCleanupTest {
         context = RuntimeEnvironment.getApplication();
         originalLocale = Locale.getDefault();
         Locale.setDefault(Locale.US);
+        CacheCleanup.resetAutoCleanupStateForTests();
         clearCacheTree();
+        AppPreferences.setAutoClearTempFiles(context, true);
     }
 
     @After
     public void tearDown() {
         Locale.setDefault(originalLocale);
+        CacheCleanup.resetAutoCleanupStateForTests();
     }
 
     private void clearCacheTree() {
@@ -137,11 +140,100 @@ public class CacheCleanupTest {
         assertTrue(justCreated.exists());
     }
 
+    @Test
+    public void shouldRunAutoCleanup_trueOnFirstCallThenFalseForRestOfProcess() {
+        assertTrue(CacheCleanup.shouldRunAutoCleanup(context));
+        assertFalse(CacheCleanup.shouldRunAutoCleanup(context));
+        assertFalse(CacheCleanup.shouldRunAutoCleanup(context));
+    }
+
+    @Test
+    public void shouldRunAutoCleanup_falseWhenPreferenceDisabled() {
+        AppPreferences.setAutoClearTempFiles(context, false);
+        assertFalse(CacheCleanup.shouldRunAutoCleanup(context));
+    }
+
+    @Test
+    public void performAutoCleanup_removesStaleFilesLikeClearStaleTempFiles() throws IOException {
+        File cacheDir = context.getCacheDir();
+        long oldTimestamp =
+                System.currentTimeMillis() - CacheCleanup.DEFAULT_STALE_TEMP_MAX_AGE_MS * 2;
+        File oldTemp = writeFile(new File(cacheDir, "temp_old.bin"), 100);
+        oldTemp.setLastModified(oldTimestamp);
+
+        CacheCleanup.performAutoCleanup(context);
+
+        assertFalse(oldTemp.exists());
+    }
+
+    @Test
+    public void scheduleAutoCleanupIfEnabled_doesNotThrowWhenDisabled() {
+        // Kept off for this test so it never hands work to the real background executor --
+        // the actual sweep behavior is covered deterministically by performAutoCleanup and
+        // shouldRunAutoCleanup above, without a background thread that could outlive the test.
+        AppPreferences.setAutoClearTempFiles(context, false);
+        CacheCleanup.scheduleAutoCleanupIfEnabled(context);
+        CacheCleanup.scheduleAutoCleanupIfEnabled(context);
+    }
+
     private static File writeFile(File file, int size) throws IOException {
         file.getParentFile().mkdirs();
         try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) {
             fos.write(new byte[size]);
         }
         return file;
+    }
+
+    // ---- orphaned working files from a previous process ----------------------------------------
+
+    private File cacheFile(String name) throws IOException {
+        File f = new File(context.getCacheDir(), name);
+        try (java.io.FileOutputStream out = new java.io.FileOutputStream(f)) {
+            out.write(new byte[512]);
+        }
+        return f;
+    }
+
+    @Test
+    public void orphanSweep_securelyDeletesFreshWorkFilesRegardlessOfAge() throws IOException {
+        // Brand new files (no age threshold applies): a previous process left these behind.
+        File inbound = cacheFile("inbound_12345.jpg");
+        File source = cacheFile("temp_999.jpg");
+        File verify = cacheFile("verify_999.jpg");
+        File transmux = cacheFile("vid_transmux_999.mp4");
+        File transform = cacheFile("vid_transform_999.mp4");
+        File unrelated = cacheFile("keep_me.txt");
+        File processed = new File(new File(context.getCacheDir(), "processed"), "shared_out.jpg");
+        try (java.io.FileOutputStream out = new java.io.FileOutputStream(processed)) {
+            out.write(new byte[64]);
+        }
+
+        CacheCleanup.scheduleOrphanedWorkFileSweep(context);
+        CacheCleanup.awaitOrphanSweepForTests();
+
+        for (File f : new File[] {inbound, source, verify, transmux, transform}) {
+            assertFalse(f.getName() + " should be gone", f.exists());
+        }
+        assertTrue("unrelated files stay", unrelated.exists());
+        assertTrue("a cleaned file that may still be shared stays", processed.exists());
+    }
+
+    @Test
+    public void orphanSweep_neverTouchesFilesCreatedAfterItWasScheduled() throws IOException {
+        File orphan = cacheFile("inbound_old.jpg");
+
+        CacheCleanup.scheduleOrphanedWorkFileSweep(context);
+        // A share-in that started this very process creates its snapshot right after startup.
+        File current = cacheFile("inbound_current.jpg");
+        CacheCleanup.awaitOrphanSweepForTests();
+
+        assertFalse(orphan.exists());
+        assertTrue("this process's own snapshot must survive", current.exists());
+    }
+
+    @Test
+    public void orphanSweep_isANoOpWhenThereIsNothingToDelete() {
+        CacheCleanup.scheduleOrphanedWorkFileSweep(context);
+        CacheCleanup.awaitOrphanSweepForTests();
     }
 }

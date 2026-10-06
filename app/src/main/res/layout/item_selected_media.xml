@@ -5,9 +5,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="4dp"
+    android:clickable="true"
+    android:focusable="true"
     app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
     app:cardCornerRadius="@dimen/component_corner_medium"
-    app:cardElevation="2dp"
+    app:cardElevation="1dp"
     app:strokeWidth="0dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -18,7 +20,7 @@
             android:id="@+id/mediaItemThumbnail"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:background="?attr/colorSurfaceVariant"
+            android:background="?attr/colorSurfaceContainerHigh"
             android:contentDescription="@string/content_description_image_view"
             android:scaleType="centerCrop"
             app:layout_constraintDimensionRatio="1:1"
@@ -31,11 +33,15 @@
             android:id="@+id/videoIndicator"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_margin="8dp"
+            android:layout_margin="6dp"
+            android:background="@drawable/bg_rounded_surface"
+            android:backgroundTint="#80000000"
             android:contentDescription="@string/content_description_image_view"
+            android:padding="3dp"
             android:src="@drawable/ic_video"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="@id/mediaItemThumbnail"
-            app:layout_constraintEnd_toEndOf="@id/mediaItemThumbnail" />
+            app:layout_constraintEnd_toEndOf="@id/mediaItemThumbnail"
+            app:tint="@android:color/white" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>
