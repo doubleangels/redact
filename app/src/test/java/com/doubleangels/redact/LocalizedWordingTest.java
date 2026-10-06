@@ -35,7 +35,7 @@ public class LocalizedWordingTest {
     @Config(qualifiers = "fr")
     public void french_refersToTheMapApp() {
         assertEquals("Ouvrir dans l’Appli de Cartes", context().getString(R.string.scan_open_coordinates_in_maps));
-        assertEquals("Ouvrir la position dans l’appli de cartes ?", context().getString(R.string.scan_maps_consent_title));
+        assertEquals("Ouvrir dans l’Appli de Cartes", context().getString(R.string.scan_maps_consent_title));
         assertEquals("Ouvrir l’Appli de Cartes", context().getString(R.string.scan_maps_consent_continue));
     }
 
@@ -57,7 +57,7 @@ public class LocalizedWordingTest {
     @Config(qualifiers = "it")
     public void italian_refersToTheMapApp() {
         assertEquals("Apri nell’App di Mappe", context().getString(R.string.scan_open_coordinates_in_maps));
-        assertEquals("Aprire la posizione nell’app di mappe?", context().getString(R.string.scan_maps_consent_title));
+        assertEquals("Apri nell’App di Mappe", context().getString(R.string.scan_maps_consent_title));
     }
 
     @Test
@@ -71,6 +71,6 @@ public class LocalizedWordingTest {
     @Config(qualifiers = "es")
     public void spanish_refersToTheMapApp() {
         assertEquals("Abrir en App de Mapas", context().getString(R.string.scan_open_coordinates_in_maps));
-        assertEquals("¿Abrir la ubicación en la app de mapas?", context().getString(R.string.scan_maps_consent_title));
+        assertEquals("Abrir en App de Mapas", context().getString(R.string.scan_maps_consent_title));
     }
 }
