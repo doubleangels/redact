@@ -388,4 +388,5 @@
     <string name="settings_cleaning_workflow_subtitle">クリーンの開始前に Redact が確認する内容と、その後の元ファイルの扱いです。</string>
     <string name="settings_section_privacy">プライバシー</string>
     <string name="settings_privacy_subtitle">Redact で見たりコピーしたりした内容を、スクリーンショット、最近使ったアプリ画面、クリップボードに残さないようにします。</string>
+    <string name="button_share_results">共有</string>
 </resources>

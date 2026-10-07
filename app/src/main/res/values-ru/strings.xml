@@ -399,4 +399,5 @@
     <string name="settings_cleaning_workflow_subtitle">Что Redact проверяет перед очисткой и что происходит с оригиналами после неё.</string>
     <string name="settings_section_privacy">Конфиденциальность</string>
     <string name="settings_privacy_subtitle">Не даёт тому, что вы видите и копируете в Redact, попасть на снимки экрана, в список недавних и буфер обмена.</string>
+    <string name="button_share_results">Поделиться</string>
 </resources>

@@ -387,4 +387,5 @@
     <string name="settings_cleaning_workflow_subtitle">清理开始前 Redact 会检查什么，以及清理后如何处理原始文件。</string>
     <string name="settings_section_privacy">隐私</string>
     <string name="settings_privacy_subtitle">避免你在 Redact 中看到和复制的内容出现在截图、最近任务界面和剪贴板中。</string>
+    <string name="button_share_results">分享</string>
 </resources>
