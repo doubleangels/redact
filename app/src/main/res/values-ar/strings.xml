@@ -407,4 +407,5 @@
     <string name="settings_cleaning_workflow_subtitle">ما يتحقق منه Redact قبل بدء التنظيف، وما يحدث لملفاتك الأصلية بعده.</string>
     <string name="settings_section_privacy">الخصوصية</string>
     <string name="settings_privacy_subtitle">يُبقي ما تراه وتنسخه في Redact خارج لقطات الشاشة وشاشة التطبيقات الأخيرة والحافظة.</string>
+    <string name="button_share_results">مشاركة</string>
 </resources>

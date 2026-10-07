@@ -56,6 +56,7 @@ public class ConvertFragment extends Fragment {
 
     private MaterialButton convertButton;
     private TextView statusText;
+    private MaterialButton shareResultsButton;
     private LinearLayout progressContainer;
     private TextView progressText;
     private LinearProgressIndicator progressBar;
@@ -128,6 +129,10 @@ public class ConvertFragment extends Fragment {
         SentryManager.log("The ConvertFragment view was created.");
 
         statusText = view.findViewById(R.id.statusText);
+        shareResultsButton = view.findViewById(R.id.shareResultsButton);
+        shareResultsButton.setOnClickListener(v ->
+                com.doubleangels.redact.ui.ShareResults.share(
+                        requireContext(), viewModel.getConvertOutputs()));
         progressContainer = view.findViewById(R.id.progressContainer);
         progressText = view.findViewById(R.id.progressText);
         progressBar = view.findViewById(R.id.progressBar);
@@ -486,6 +491,10 @@ public class ConvertFragment extends Fragment {
                     }
                 }
             }
+            shareResultsButton.setVisibility(
+                    state == MainViewModel.ProcessingState.COMPLETED
+                            && !viewModel.getConvertOutputs().isEmpty()
+                            ? View.VISIBLE : View.GONE);
         });
         viewModel.getConvertProgressPercent().observe(getViewLifecycleOwner(), percent -> {
             if (progressBar.getVisibility() == View.VISIBLE) {

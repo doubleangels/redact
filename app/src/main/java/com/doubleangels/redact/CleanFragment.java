@@ -62,6 +62,7 @@ public class CleanFragment extends Fragment {
     private MaterialButton stripButton;
     private MaterialButton selectButton;
     private TextView statusText;
+    private MaterialButton shareResultsButton;
     private LinearLayout progressContainer;
     private TextView progressText;
     private LinearProgressIndicator progressBar;
@@ -148,6 +149,10 @@ public class CleanFragment extends Fragment {
             this.selectButton = selectButton;
             stripButton = view.findViewById(R.id.stripButton);
             statusText = view.findViewById(R.id.statusText);
+            shareResultsButton = view.findViewById(R.id.shareResultsButton);
+            shareResultsButton.setOnClickListener(v ->
+                    com.doubleangels.redact.ui.ShareResults.share(
+                            requireContext(), viewModel.getCleanOutputs()));
             progressContainer = view.findViewById(R.id.progressContainer);
             progressText = view.findViewById(R.id.progressText);
             progressBar = view.findViewById(R.id.progressBar);
@@ -450,6 +455,10 @@ public class CleanFragment extends Fragment {
                             }
                             break;
                     }
+                    shareResultsButton.setVisibility(
+                            state == MainViewModel.ProcessingState.COMPLETED
+                                    && !viewModel.getCleanOutputs().isEmpty()
+                                    ? View.VISIBLE : View.GONE);
                 } catch (Exception e) {
                     SentryManager.recordException(e);
                 }

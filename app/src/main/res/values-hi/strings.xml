@@ -391,4 +391,5 @@
     <string name="settings_cleaning_workflow_subtitle">सफ़ाई शुरू होने से पहले Redact क्या जाँचता है और उसके बाद आपकी मूल फ़ाइलों का क्या होता है।</string>
     <string name="settings_section_privacy">गोपनीयता</string>
     <string name="settings_privacy_subtitle">Redact में आप जो देखते और कॉपी करते हैं उसे स्क्रीनशॉट, हाल के ऐप्स की स्क्रीन और क्लिपबोर्ड से दूर रखता है।</string>
+    <string name="button_share_results">साझा करें</string>
 </resources>

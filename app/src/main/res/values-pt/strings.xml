@@ -395,4 +395,5 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="settings_cleaning_workflow_subtitle">O que o Redact verifica antes de uma limpeza e o que acontece com seus originais depois.</string>
     <string name="settings_section_privacy">Privacidade</string>
     <string name="settings_privacy_subtitle">Mantém o que você vê e copia no Redact fora de capturas de tela, apps recentes e da área de transferência.</string>
+    <string name="button_share_results">Compartilhar</string>
 </resources>

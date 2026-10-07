@@ -387,4 +387,5 @@
     <string name="settings_cleaning_workflow_subtitle">정리를 시작하기 전에 Redact가 확인하는 내용과, 정리 후 원본 파일의 처리 방식입니다.</string>
     <string name="settings_section_privacy">개인정보 보호</string>
     <string name="settings_privacy_subtitle">Redact에서 보거나 복사한 내용이 스크린샷, 최근 앱 화면, 클립보드에 남지 않도록 합니다.</string>
+    <string name="button_share_results">공유</string>
 </resources>
