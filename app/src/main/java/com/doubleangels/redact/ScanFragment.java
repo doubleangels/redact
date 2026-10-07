@@ -127,18 +127,22 @@ public class ScanFragment extends Fragment {
                 uri -> {
                     if (uri != null) {
                         SentryManager.log("Media was selected successfully in ScanFragment.");
-                        if (mediaSelector != null) {
-                            MediaItem item = mediaSelector.processMediaUri(uri);
-                            currentMediaItem = item;
-                            checkLocationPermissionAndDisplayMetadata(item.uri());
-                        } else {
-                            currentMediaItem = null;
-                            checkLocationPermissionAndDisplayMetadata(uri);
-                        }
+                        scanUri(uri);
                     } else {
                         SentryManager.log("Media selection was canceled or failed in ScanFragment.");
                     }
                 });
+    }
+
+    private void scanUri(@NonNull Uri uri) {
+        if (mediaSelector != null) {
+            MediaItem item = mediaSelector.processMediaUri(uri);
+            currentMediaItem = item;
+            checkLocationPermissionAndDisplayMetadata(item.uri());
+        } else {
+            currentMediaItem = null;
+            checkLocationPermissionAndDisplayMetadata(uri);
+        }
     }
 
     @Nullable
@@ -236,6 +240,14 @@ public class ScanFragment extends Fragment {
             permissionManager.checkPermissions();
         }
         restoreScanUiIfNeeded();
+
+        // Files opened from another app (ACTION_VIEW); delivered via MainActivity.
+        scanViewModel.getPendingUri().observe(getViewLifecycleOwner(), pending -> {
+            if (pending != null) {
+                SentryManager.log("Media was opened from another app in ScanFragment.");
+                scanUri(scanViewModel.consumePendingUri());
+            }
+        });
     }
 
     private void onSelectMediaClicked() {

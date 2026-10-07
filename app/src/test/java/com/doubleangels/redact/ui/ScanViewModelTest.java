@@ -30,6 +30,19 @@ public class ScanViewModelTest {
     }
 
     @Test
+    public void consumePendingUri_returnsOnceThenClears() {
+        ScanViewModel viewModel = newViewModel();
+        assertNull(viewModel.consumePendingUri());
+
+        Uri uri = Uri.parse("content://media/external/images/1");
+        viewModel.setPendingUri(uri);
+        assertEquals(uri, viewModel.getPendingUri().getValue());
+        assertEquals(uri, viewModel.consumePendingUri());
+        assertNull(viewModel.getPendingUri().getValue());
+        assertNull(viewModel.consumePendingUri());
+    }
+
+    @Test
     public void hasMetadataToRestore_onlyWhenSectionsNonEmpty() {
         ScanViewModel viewModel = newViewModel();
         assertFalse(viewModel.hasMetadataToRestore());

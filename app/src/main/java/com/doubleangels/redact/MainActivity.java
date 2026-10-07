@@ -115,7 +115,10 @@ public class MainActivity extends AppCompatActivity {
                 bottomNavigationView.setSelectedItemId(restoredTab);
                 restoreTabVisibility(restoredTab);
             } else {
-                bottomNavigationView.setSelectedItemId(tabFromIntent(getIntent()));
+                bottomNavigationView.setSelectedItemId(
+                        queueViewIntent(getIntent())
+                                ? R.id.navigation_scan
+                                : tabFromIntent(getIntent()));
             }
 
             SentryManager.setCustomKey("app_started", true);
@@ -133,9 +136,30 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onNewIntent(@NonNull android.content.Intent intent) {
         super.onNewIntent(intent);
-        if (intent.hasExtra(EXTRA_TAB)) {
+        setIntent(intent);
+        if (queueViewIntent(intent)) {
+            selectTab(R.id.navigation_scan);
+        } else if (intent.hasExtra(EXTRA_TAB)) {
             selectTab(tabFromIntent(intent));
         }
+    }
+
+    /** Queues an externally opened image/video for Scan. Returns whether one was queued. */
+    private boolean queueViewIntent(@Nullable android.content.Intent intent) {
+        if (intent == null || !android.content.Intent.ACTION_VIEW.equals(intent.getAction())) {
+            return false;
+        }
+        android.net.Uri data = intent.getData();
+        if (data == null) {
+            return false;
+        }
+        String type = getContentResolver().getType(data);
+        if (type == null || !(type.startsWith("image/") || type.startsWith("video/"))) {
+            return false;
+        }
+        new androidx.lifecycle.ViewModelProvider(this)
+                .get(com.doubleangels.redact.ui.ScanViewModel.class).setPendingUri(data);
+        return true;
     }
 
     private static int tabFromIntent(@Nullable android.content.Intent intent) {
