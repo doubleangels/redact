@@ -45,12 +45,16 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.Redact.Starting" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
         <!-- Exported to receive shares; see app/lint.xml for why UnsafeIntentLaunch is ignored for it. -->
         <activity
