@@ -9,7 +9,8 @@
     <color name="accent">#00C853</color>
     <color name="permission_status_denied">#B3261E</color>
 
-    <!-- Launcher shortcut icons; the launcher cannot resolve theme attributes. -->
+    <!-- Launcher shortcut icons; the launcher cannot resolve theme attributes, and draws them
+         on a white circle in both light and dark mode, so one darker tone serves both. -->
     <color name="shortcut_icon">@android:color/system_accent1_600</color>
 
     <!-- Utility colors -->
