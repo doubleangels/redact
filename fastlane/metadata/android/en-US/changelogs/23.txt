@@ -1,1 +1,1 @@
-New: launcher shortcuts for Clean, Scan and Convert; open photos and videos from other apps directly in Scan; share your cleaned or converted files with one tap.
+Bug fixes and performance improvements.
