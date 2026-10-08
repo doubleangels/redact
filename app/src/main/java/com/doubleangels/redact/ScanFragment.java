@@ -807,6 +807,14 @@ public class ScanFragment extends Fragment {
             added = true;
         }
 
+        if (currentMediaItem != null) {
+            addScanActionCard(R.drawable.ic_clean, getString(R.string.scan_clean_this_file),
+                    v -> openInCleanTab(currentMediaItem));
+            addScanActionCard(R.drawable.ic_convert, getString(R.string.scan_convert_this_file),
+                    v -> openInConvertTab(currentMediaItem));
+            added = true;
+        }
+
         String cameraLabel = cameraLabelFromMetadataRows(allRows);
         if (cameraLabel != null && !cameraLabel.isEmpty()) {
             addScanActionCard(R.drawable.ic_camera_24, getString(R.string.scan_copy_camera),
@@ -817,14 +825,6 @@ public class ScanFragment extends Fragment {
         if (lastMetadataPlainText != null && !lastMetadataPlainText.isEmpty()) {
             addScanActionCard(R.drawable.ic_content_copy_24, getString(R.string.scan_copy_all_metadata),
                     v -> copyPlainTextToClipboard(lastMetadataPlainText));
-            added = true;
-        }
-
-        if (currentMediaItem != null) {
-            addScanActionCard(R.drawable.ic_clean, getString(R.string.scan_clean_this_file),
-                    v -> openInCleanTab(currentMediaItem));
-            addScanActionCard(R.drawable.ic_convert, getString(R.string.scan_convert_this_file),
-                    v -> openInConvertTab(currentMediaItem));
             added = true;
         }
 
