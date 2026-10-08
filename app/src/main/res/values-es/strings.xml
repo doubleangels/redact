@@ -403,4 +403,6 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="settings_output_choose">Elegir Carpeta</string>
     <string name="settings_output_default">%1$s (predeterminada)</string>
     <string name="settings_output_error">No se pudo usar esa carpeta. Elige otra.</string>
+    <string name="button_share_results">Compartir</string>
+    <string name="share_results_chooser_title">Compartir con…</string>
 </resources>

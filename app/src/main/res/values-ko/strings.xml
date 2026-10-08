@@ -395,4 +395,6 @@
     <string name="settings_output_choose">폴더 선택</string>
     <string name="settings_output_default">%1$s (기본값)</string>
     <string name="settings_output_error">이 폴더를 사용할 수 없습니다. 다른 폴더를 선택하세요.</string>
+    <string name="button_share_results">공유</string>
+    <string name="share_results_chooser_title">공유 방법…</string>
 </resources>

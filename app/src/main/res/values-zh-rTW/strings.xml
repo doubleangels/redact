@@ -395,4 +395,6 @@
     <string name="settings_output_choose">選擇資料夾</string>
     <string name="settings_output_default">%1$s（預設）</string>
     <string name="settings_output_error">無法使用該資料夾，請選擇其他資料夾。</string>
+    <string name="button_share_results">分享</string>
+    <string name="share_results_chooser_title">分享方式…</string>
 </resources>

@@ -399,4 +399,6 @@
     <string name="settings_output_choose">फ़ोल्डर चुनें</string>
     <string name="settings_output_default">%1$s (डिफ़ॉल्ट)</string>
     <string name="settings_output_error">यह फ़ोल्डर उपयोग नहीं किया जा सका। कोई दूसरा चुनें।</string>
+    <string name="button_share_results">साझा करें</string>
+    <string name="share_results_chooser_title">इसके ज़रिए साझा करें…</string>
 </resources>

@@ -407,4 +407,6 @@
     <string name="settings_output_choose">Выбрать Папку</string>
     <string name="settings_output_default">%1$s (по умолчанию)</string>
     <string name="settings_output_error">Не удалось использовать эту папку. Выберите другую.</string>
+    <string name="button_share_results">Поделиться</string>
+    <string name="share_results_chooser_title">Поделиться через…</string>
 </resources>

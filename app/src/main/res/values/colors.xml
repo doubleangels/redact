@@ -9,6 +9,9 @@
     <color name="accent">#00C853</color>
     <color name="permission_status_denied">#B3261E</color>
 
+    <!-- Launcher shortcut icons; the launcher cannot resolve theme attributes. -->
+    <color name="shortcut_icon">@android:color/system_accent1_600</color>
+
     <!-- Utility colors -->
     <color name="black">#FF000000</color>
 </resources>

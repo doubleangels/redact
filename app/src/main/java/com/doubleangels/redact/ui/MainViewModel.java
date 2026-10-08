@@ -88,6 +88,9 @@ public class MainViewModel extends AndroidViewModel {
 
     private final ExecutorService convertExecutor;
 
+    private final List<android.net.Uri> convertOutputs =
+            new java.util.concurrent.CopyOnWriteArrayList<>();
+
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     private final AtomicBoolean convertInProgress;
@@ -577,6 +580,16 @@ public class MainViewModel extends AndroidViewModel {
 
      */
 
+    /** Saved outputs of the last clean batch, kept until the next batch starts. */
+    public List<android.net.Uri> getCleanOutputs() {
+        return mediaProcessor.getSucceededOutputs();
+    }
+
+    /** Saved outputs of the last convert batch, kept until the next batch starts. */
+    public List<android.net.Uri> getConvertOutputs() {
+        return new ArrayList<>(convertOutputs);
+    }
+
     public List<android.net.Uri> getCleanSucceededSources() {
         return mediaProcessor.getSucceededSources();
     }
@@ -713,6 +726,7 @@ public class MainViewModel extends AndroidViewModel {
         }
 
         convertTimedOut.set(false);
+        convertOutputs.clear();
 
         final int total = items.size();
 
@@ -774,7 +788,7 @@ public class MainViewModel extends AndroidViewModel {
                         if (mediaItem.isVideo()) {
                             int[] actualFormatIndex = new int[1];
                             actualFormatIndex[0] = formatIndex;
-                            FormatConverter.convertVideoToMovies(
+                            android.net.Uri convertedVideo = FormatConverter.convertVideoToMovies(
 
                                     getApplication(),
 
@@ -812,6 +826,9 @@ public class MainViewModel extends AndroidViewModel {
                                     () -> Thread.currentThread().isInterrupted()
                                             || convertTimedOut.get()
                                             || runGeneration != convertGeneration.get());
+                            if (runGeneration == convertGeneration.get()) {
+                                convertOutputs.add(convertedVideo);
+                            }
                             if (actualFormatIndex[0] != formatIndex) {
                                 String requested = FormatConverter.videoFormatLabel(
                                         getApplication(), formatIndex);
@@ -846,10 +863,13 @@ public class MainViewModel extends AndroidViewModel {
 
 
 
-                            FormatConverter.convertImageToPictures(
+                            android.net.Uri convertedImage = FormatConverter.convertImageToPictures(
 
                                     getApplication(), uri,
                                     FormatConverter.formatAtIndex(imageFormatIndex), name);
+                            if (runGeneration == convertGeneration.get()) {
+                                convertOutputs.add(convertedImage);
+                            }
 
                         }
 

@@ -404,4 +404,6 @@
     <string name="settings_output_choose">Choose Folder</string>
     <string name="settings_output_default">%1$s (default)</string>
     <string name="settings_output_error">Could not use that folder. Pick a different one.</string>
+    <string name="button_share_results">Share</string>
+    <string name="share_results_chooser_title">Share via…</string>
 </resources>

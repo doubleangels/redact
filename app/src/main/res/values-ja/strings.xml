@@ -396,4 +396,6 @@
     <string name="settings_output_choose">フォルダを選択</string>
     <string name="settings_output_default">%1$s（デフォルト）</string>
     <string name="settings_output_error">このフォルダは使用できません。別のフォルダを選択してください。</string>
+    <string name="button_share_results">共有</string>
+    <string name="share_results_chooser_title">共有先…</string>
 </resources>

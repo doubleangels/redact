@@ -403,4 +403,6 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="settings_output_choose">Escolher Pasta</string>
     <string name="settings_output_default">%1$s (padrão)</string>
     <string name="settings_output_error">Não foi possível usar essa pasta. Escolha outra.</string>
+    <string name="button_share_results">Compartilhar</string>
+    <string name="share_results_chooser_title">Compartilhar via…</string>
 </resources>

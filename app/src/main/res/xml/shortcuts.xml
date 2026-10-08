@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="clean"
+        android:icon="@drawable/ic_shortcut_clean"
+        android:shortcutShortLabel="@string/navigation_clean">
+        <intent
+            android:action="android.intent.action.MAIN"
+            android:targetPackage="com.doubleangels.redact"
+            android:targetClass="com.doubleangels.redact.MainActivity">
+            <extra android:name="tab" android:value="clean" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="scan"
+        android:icon="@drawable/ic_shortcut_scan"
+        android:shortcutShortLabel="@string/navigation_scan">
+        <intent
+            android:action="android.intent.action.MAIN"
+            android:targetPackage="com.doubleangels.redact"
+            android:targetClass="com.doubleangels.redact.MainActivity">
+            <extra android:name="tab" android:value="scan" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="convert"
+        android:icon="@drawable/ic_shortcut_convert"
+        android:shortcutShortLabel="@string/navigation_convert">
+        <intent
+            android:action="android.intent.action.MAIN"
+            android:targetPackage="com.doubleangels.redact"
+            android:targetClass="com.doubleangels.redact.MainActivity">
+            <extra android:name="tab" android:value="convert" />
+        </intent>
+    </shortcut>
+</shortcuts>

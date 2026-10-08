@@ -403,4 +403,6 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="settings_output_choose">Scegli Cartella</string>
     <string name="settings_output_default">%1$s (predefinita)</string>
     <string name="settings_output_error">Impossibile usare questa cartella. Scegline un’altra.</string>
+    <string name="button_share_results">Condividi</string>
+    <string name="share_results_chooser_title">Condividi tramite…</string>
 </resources>

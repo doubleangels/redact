@@ -415,4 +415,6 @@
     <string name="settings_output_choose">اختيار المجلد</string>
     <string name="settings_output_default">%1$s (افتراضي)</string>
     <string name="settings_output_error">تعذّر استخدام هذا المجلد. اختر مجلدًا آخر.</string>
+    <string name="button_share_results">مشاركة</string>
+    <string name="share_results_chooser_title">مشاركة عبر…</string>
 </resources>
