@@ -400,4 +400,5 @@
     <string name="settings_section_privacy">Конфиденциальность</string>
     <string name="settings_privacy_subtitle">Не даёт тому, что вы видите и копируете в Redact, попасть на снимки экрана, в список недавних и буфер обмена.</string>
     <string name="button_share_results">Поделиться</string>
+    <string name="share_results_chooser_title">Поделиться через…</string>
 </resources>

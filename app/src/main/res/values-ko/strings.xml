@@ -388,4 +388,5 @@
     <string name="settings_section_privacy">개인정보 보호</string>
     <string name="settings_privacy_subtitle">Redact에서 보거나 복사한 내용이 스크린샷, 최근 앱 화면, 클립보드에 남지 않도록 합니다.</string>
     <string name="button_share_results">공유</string>
+    <string name="share_results_chooser_title">공유 방법…</string>
 </resources>

@@ -396,4 +396,5 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="settings_section_privacy">Privacidad</string>
     <string name="settings_privacy_subtitle">Mantiene lo que ves y copias en Redact fuera de las capturas, de aplicaciones recientes y del portapapeles.</string>
     <string name="button_share_results">Compartir</string>
+    <string name="share_results_chooser_title">Compartir con…</string>
 </resources>

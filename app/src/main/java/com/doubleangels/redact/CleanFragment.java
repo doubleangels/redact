@@ -455,10 +455,9 @@ public class CleanFragment extends Fragment {
                             }
                             break;
                     }
-                    shareResultsButton.setVisibility(
-                            state == MainViewModel.ProcessingState.COMPLETED
-                                    && !viewModel.getCleanOutputs().isEmpty()
-                                    ? View.VISIBLE : View.GONE);
+                    com.doubleangels.redact.ui.ShareResults.updateButton(
+                            shareResultsButton, state == MainViewModel.ProcessingState.COMPLETED,
+                            viewModel.getCleanOutputs());
                 } catch (Exception e) {
                     SentryManager.recordException(e);
                 }

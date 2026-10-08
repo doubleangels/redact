@@ -388,4 +388,5 @@
     <string name="settings_section_privacy">隱私</string>
     <string name="settings_privacy_subtitle">避免你在 Redact 中看到和複製的內容出現在螢幕截圖、最近使用畫面和剪貼簿中。</string>
     <string name="button_share_results">分享</string>
+    <string name="share_results_chooser_title">分享方式…</string>
 </resources>

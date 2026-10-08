@@ -826,7 +826,9 @@ public class MainViewModel extends AndroidViewModel {
                                     () -> Thread.currentThread().isInterrupted()
                                             || convertTimedOut.get()
                                             || runGeneration != convertGeneration.get());
-                            convertOutputs.add(convertedVideo);
+                            if (runGeneration == convertGeneration.get()) {
+                                convertOutputs.add(convertedVideo);
+                            }
                             if (actualFormatIndex[0] != formatIndex) {
                                 String requested = FormatConverter.videoFormatLabel(
                                         getApplication(), formatIndex);
@@ -861,10 +863,13 @@ public class MainViewModel extends AndroidViewModel {
 
 
 
-                            convertOutputs.add(FormatConverter.convertImageToPictures(
+                            android.net.Uri convertedImage = FormatConverter.convertImageToPictures(
 
                                     getApplication(), uri,
-                                    FormatConverter.formatAtIndex(imageFormatIndex), name));
+                                    FormatConverter.formatAtIndex(imageFormatIndex), name);
+                            if (runGeneration == convertGeneration.get()) {
+                                convertOutputs.add(convertedImage);
+                            }
 
                         }
 

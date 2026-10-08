@@ -18,6 +18,13 @@ public final class ShareResults {
 
     private ShareResults() {}
 
+    /** Shows the Share button only after a completed batch that saved something. */
+    public static void updateButton(@NonNull android.view.View button, boolean completed,
+                                    @NonNull List<Uri> outputs) {
+        button.setVisibility(completed && !outputs.isEmpty()
+                ? android.view.View.VISIBLE : android.view.View.GONE);
+    }
+
     public static void share(@NonNull Context context, @NonNull List<Uri> uris) {
         if (uris.isEmpty()) {
             return;
@@ -37,7 +44,7 @@ public final class ShareResults {
         send.setClipData(clip);
         send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         try {
-            context.startActivity(Intent.createChooser(send, context.getString(R.string.share_chooser_title)));
+            context.startActivity(Intent.createChooser(send, context.getString(R.string.share_results_chooser_title)));
         } catch (android.content.ActivityNotFoundException e) {
             Toast.makeText(context, R.string.share_error_generic, Toast.LENGTH_SHORT).show();
         }

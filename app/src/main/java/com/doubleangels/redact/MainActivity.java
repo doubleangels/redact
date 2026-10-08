@@ -153,13 +153,18 @@ public class MainActivity extends AppCompatActivity {
         if (data == null) {
             return false;
         }
-        String type = getContentResolver().getType(data);
-        if (type == null || !(type.startsWith("image/") || type.startsWith("video/"))) {
+        try {
+            String type = getContentResolver().getType(data);
+            if (type == null || !(type.startsWith("image/") || type.startsWith("video/"))) {
+                return false;
+            }
+            new androidx.lifecycle.ViewModelProvider(this)
+                    .get(com.doubleangels.redact.ui.ScanViewModel.class).setPendingUri(data);
+            return true;
+        } catch (Exception e) {
+            SentryManager.recordException(e);
             return false;
         }
-        new androidx.lifecycle.ViewModelProvider(this)
-                .get(com.doubleangels.redact.ui.ScanViewModel.class).setPendingUri(data);
-        return true;
     }
 
     private static int tabFromIntent(@Nullable android.content.Intent intent) {

@@ -396,4 +396,5 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="settings_section_privacy">Confidentialité</string>
     <string name="settings_privacy_subtitle">Garde ce que vous voyez et copiez dans Redact hors des captures d\'écran, des applications récentes et du presse-papiers.</string>
     <string name="button_share_results">Partager</string>
+    <string name="share_results_chooser_title">Partager via…</string>
 </resources>

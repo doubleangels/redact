@@ -491,10 +491,9 @@ public class ConvertFragment extends Fragment {
                     }
                 }
             }
-            shareResultsButton.setVisibility(
-                    state == MainViewModel.ProcessingState.COMPLETED
-                            && !viewModel.getConvertOutputs().isEmpty()
-                            ? View.VISIBLE : View.GONE);
+            com.doubleangels.redact.ui.ShareResults.updateButton(
+                    shareResultsButton, state == MainViewModel.ProcessingState.COMPLETED,
+                    viewModel.getConvertOutputs());
         });
         viewModel.getConvertProgressPercent().observe(getViewLifecycleOwner(), percent -> {
             if (progressBar.getVisibility() == View.VISIBLE) {

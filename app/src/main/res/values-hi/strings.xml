@@ -392,4 +392,5 @@
     <string name="settings_section_privacy">गोपनीयता</string>
     <string name="settings_privacy_subtitle">Redact में आप जो देखते और कॉपी करते हैं उसे स्क्रीनशॉट, हाल के ऐप्स की स्क्रीन और क्लिपबोर्ड से दूर रखता है।</string>
     <string name="button_share_results">साझा करें</string>
+    <string name="share_results_chooser_title">इसके ज़रिए साझा करें…</string>
 </resources>

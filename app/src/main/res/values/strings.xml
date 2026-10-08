@@ -397,4 +397,5 @@
     <string name="settings_section_privacy">Privacy</string>
     <string name="settings_privacy_subtitle">Keeps what you see and copy in Redact out of screenshots, the recent apps screen and the clipboard.</string>
     <string name="button_share_results">Share</string>
+    <string name="share_results_chooser_title">Share via…</string>
 </resources>

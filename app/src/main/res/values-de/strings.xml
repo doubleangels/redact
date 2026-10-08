@@ -391,4 +391,5 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_section_privacy">Datenschutz</string>
     <string name="settings_privacy_subtitle">Hält, was du in Redact siehst und kopierst, aus Screenshots, der App-Übersicht und der Zwischenablage heraus.</string>
     <string name="button_share_results">Teilen</string>
+    <string name="share_results_chooser_title">Teilen über…</string>
 </resources>
