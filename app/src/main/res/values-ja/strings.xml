@@ -367,6 +367,8 @@
     </plurals>
     <string name="clean_summary_nothing_found">個人を特定できるメタデータは見つかりませんでした。</string>
 
+    <string name="scan_search_hint">項目を検索</string>
+    <string name="scan_search_no_matches">一致する項目はありません。</string>
     <string name="scan_section_details">詳細</string>
     <string name="scan_default_file_name">メディアファイル</string>
     <string name="convert_remove_item">%1$s を削除</string>

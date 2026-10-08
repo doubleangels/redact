@@ -376,6 +376,8 @@
     </plurals>
     <string name="clean_summary_nothing_found">No identifying metadata was found.</string>
 
+    <string name="scan_search_hint">Search fields</string>
+    <string name="scan_search_no_matches">No matching fields.</string>
     <string name="scan_section_details">Details</string>
     <string name="scan_default_file_name">Media file</string>
     <string name="convert_remove_item">Remove %1$s</string>

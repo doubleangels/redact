@@ -156,4 +156,66 @@ public class ScanMetadataAdapterTest {
         assertEquals(android.view.View.GONE, holder.tintOverlay.getVisibility());
         assertEquals(android.view.View.GONE, holder.riskIndicator.getVisibility());
     }
+
+    private static List<ScanMetadataAdapter.Entry> cameraAndLocation() {
+        List<ScanMetadataAdapter.Entry> entries = new ArrayList<>();
+        entries.add(ScanMetadataAdapter.Entry.header("camera", "Camera", 0, 3));
+        entries.add(ScanMetadataAdapter.Entry.row("camera", "Make", "Google"));
+        entries.add(ScanMetadataAdapter.Entry.row("camera", "Model", "Pixel 8 Pro"));
+        entries.add(ScanMetadataAdapter.Entry.row("camera", "ISO", "100"));
+        entries.add(ScanMetadataAdapter.Entry.header("location", "Location", 0, 1));
+        entries.add(ScanMetadataAdapter.Entry.row("location", "GPS", "40.5, -73.9"));
+        return entries;
+    }
+
+    @Test
+    public void setQuery_keepsMatchingRowsUnderTheirHeaderWithANarrowedCount() {
+        adapter.setEntries(cameraAndLocation());
+
+        adapter.setQuery("  PIXEL ");
+
+        assertTrue(adapter.hasQuery());
+        assertEquals(2, adapter.getItemCount());
+        assertEquals(ScanMetadataAdapter.Entry.VIEW_TYPE_HEADER, adapter.getItemViewType(0));
+        RecyclerView.ViewHolder header = adapter.onCreateViewHolder(parent, ScanMetadataAdapter.Entry.VIEW_TYPE_HEADER);
+        adapter.onBindViewHolder(header, 0);
+        assertEquals("1", ((ScanMetadataAdapter.HeaderHolder) header).countView.getText().toString());
+        RecyclerView.ViewHolder row = adapter.onCreateViewHolder(parent, ScanMetadataAdapter.Entry.VIEW_TYPE_ROW);
+        adapter.onBindViewHolder(row, 1);
+        assertEquals("Model", ((ScanMetadataAdapter.RowHolder) row).keyView.getText().toString());
+    }
+
+    @Test
+    public void setQuery_matchesNamesAndValuesAcrossSections() {
+        adapter.setEntries(cameraAndLocation());
+
+        // "Google" matches by value in Camera, "GPS" by name in Location.
+        adapter.setQuery("g");
+
+        assertEquals(4, adapter.getItemCount());
+        assertEquals(ScanMetadataAdapter.Entry.VIEW_TYPE_HEADER, adapter.getItemViewType(0));
+        assertEquals(ScanMetadataAdapter.Entry.VIEW_TYPE_ROW, adapter.getItemViewType(1));
+        assertEquals(ScanMetadataAdapter.Entry.VIEW_TYPE_HEADER, adapter.getItemViewType(2));
+        assertEquals(ScanMetadataAdapter.Entry.VIEW_TYPE_ROW, adapter.getItemViewType(3));
+    }
+
+    @Test
+    public void setQuery_withNoMatches_isEmpty_andClearingRestoresEverything() {
+        adapter.setEntries(cameraAndLocation());
+
+        adapter.setQuery("nothing like this");
+        assertEquals(0, adapter.getItemCount());
+
+        adapter.setQuery(null);
+        assertFalse(adapter.hasQuery());
+        assertEquals(6, adapter.getItemCount());
+    }
+
+    @Test
+    public void setQuery_survivesNewEntries() {
+        adapter.setQuery("gps");
+        adapter.setEntries(cameraAndLocation());
+
+        assertEquals(2, adapter.getItemCount());
+    }
 }

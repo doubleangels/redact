@@ -366,6 +366,8 @@
     </plurals>
     <string name="clean_summary_nothing_found">식별 가능한 메타데이터가 없습니다.</string>
 
+    <string name="scan_search_hint">필드 검색</string>
+    <string name="scan_search_no_matches">일치하는 필드가 없습니다.</string>
     <string name="scan_section_details">세부 정보</string>
     <string name="scan_default_file_name">미디어 파일</string>
     <string name="convert_remove_item">%1$s 제거</string>

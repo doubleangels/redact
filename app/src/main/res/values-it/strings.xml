@@ -376,6 +376,8 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     </plurals>
     <string name="clean_summary_nothing_found">Nessun metadato identificativo trovato.</string>
 
+    <string name="scan_search_hint">Cerca campi</string>
+    <string name="scan_search_no_matches">Nessun campo corrispondente.</string>
     <string name="scan_section_details">Dettagli</string>
     <string name="scan_default_file_name">File multimediale</string>
     <string name="convert_remove_item">Rimuovi %1$s</string>

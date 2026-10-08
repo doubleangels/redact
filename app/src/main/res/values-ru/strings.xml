@@ -381,6 +381,8 @@
     </plurals>
     <string name="clean_summary_nothing_found">Идентифицирующие метаданные не найдены.</string>
 
+    <string name="scan_search_hint">Поиск полей</string>
+    <string name="scan_search_no_matches">Нет подходящих полей.</string>
     <string name="scan_section_details">Подробности</string>
     <string name="scan_default_file_name">Медиафайл</string>
     <string name="convert_remove_item">Удалить %1$s</string>

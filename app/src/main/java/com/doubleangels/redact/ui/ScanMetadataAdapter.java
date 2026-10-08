@@ -19,6 +19,7 @@ import com.google.android.material.color.MaterialColors;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * List for Scan tab metadata displaying categorized section headers and interactive rows, with a red
@@ -86,6 +87,9 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
     private final List<Entry> displayedEntries = new ArrayList<>();
     @Nullable
     private String currentFilterSection = null;
+    /** Lower-cased search text; rows whose name or value contains it stay visible. Empty shows all. */
+    @NonNull
+    private String query = "";
 
     @android.annotation.SuppressLint("NotifyDataSetChanged")
     public void setEntries(@NonNull List<Entry> newEntries) {
@@ -100,19 +104,77 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
         applyFilter();
     }
 
+    /**
+     * Shows only the rows whose name or value contains {@code text}, ignoring case, under their
+     * section headers with the count of matches. Null or blank shows everything again.
+     */
+    public void setQuery(@Nullable String text) {
+        String normalized = text == null ? "" : text.trim().toLowerCase(Locale.ROOT);
+        if (normalized.equals(query)) {
+            return;
+        }
+        query = normalized;
+        applyFilter();
+    }
+
+    public boolean hasQuery() {
+        return !query.isEmpty();
+    }
+
     @android.annotation.SuppressLint("NotifyDataSetChanged")
     private void applyFilter() {
-        displayedEntries.clear();
+        List<Entry> inSection = new ArrayList<>();
         if (currentFilterSection == null || currentFilterSection.isEmpty()) {
-            displayedEntries.addAll(allEntries);
+            inSection.addAll(allEntries);
         } else {
             for (Entry entry : allEntries) {
                 if (currentFilterSection.equals(entry.sectionId)) {
-                    displayedEntries.add(entry);
+                    inSection.add(entry);
                 }
             }
         }
+        displayedEntries.clear();
+        if (query.isEmpty()) {
+            displayedEntries.addAll(inSection);
+        } else {
+            addMatches(inSection);
+        }
         notifyDataSetChanged();
+    }
+
+    /**
+     * Adds the rows that match {@link #query}. A row belongs to the header above it; a header is
+     * kept, with its count narrowed to the matches, only when at least one of its rows matches.
+     */
+    private void addMatches(@NonNull List<Entry> entries) {
+        Entry header = null;
+        List<Entry> matches = new ArrayList<>();
+        for (Entry entry : entries) {
+            if (entry.viewType == Entry.VIEW_TYPE_HEADER) {
+                flushGroup(header, matches);
+                header = entry;
+                matches = new ArrayList<>();
+            } else if (contains(entry.key) || contains(entry.value)) {
+                matches.add(entry);
+            }
+        }
+        flushGroup(header, matches);
+    }
+
+    private void flushGroup(@Nullable Entry header, @NonNull List<Entry> matches) {
+        if (matches.isEmpty()) {
+            return;
+        }
+        if (header != null) {
+            displayedEntries.add(Entry.header(header.sectionId,
+                    header.headerTitle != null ? header.headerTitle : "", header.headerIconRes,
+                    header.itemCount > 0 ? matches.size() : 0));
+        }
+        displayedEntries.addAll(matches);
+    }
+
+    private boolean contains(@Nullable String text) {
+        return text != null && text.toLowerCase(Locale.ROOT).contains(query);
     }
 
     @android.annotation.SuppressLint("NotifyDataSetChanged")

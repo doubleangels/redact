@@ -376,6 +376,8 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     </plurals>
     <string name="clean_summary_nothing_found">Aucune métadonnée identifiante n’a été trouvée.</string>
 
+    <string name="scan_search_hint">Rechercher des champs</string>
+    <string name="scan_search_no_matches">Aucun champ correspondant.</string>
     <string name="scan_section_details">Détails</string>
     <string name="scan_default_file_name">Fichier multimédia</string>
     <string name="convert_remove_item">Retirer %1$s</string>

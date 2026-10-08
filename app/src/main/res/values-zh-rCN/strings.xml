@@ -366,6 +366,8 @@
     </plurals>
     <string name="clean_summary_nothing_found">未发现可识别身份的元数据。</string>
 
+    <string name="scan_search_hint">搜索字段</string>
+    <string name="scan_search_no_matches">没有匹配的字段。</string>
     <string name="scan_section_details">详细信息</string>
     <string name="scan_default_file_name">媒体文件</string>
     <string name="convert_remove_item">移除 %1$s</string>

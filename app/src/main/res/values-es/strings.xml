@@ -376,6 +376,8 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     </plurals>
     <string name="clean_summary_nothing_found">No se encontraron metadatos identificativos.</string>
 
+    <string name="scan_search_hint">Buscar campos</string>
+    <string name="scan_search_no_matches">No hay campos que coincidan.</string>
     <string name="scan_section_details">Detalles</string>
     <string name="scan_default_file_name">Archivo multimedia</string>
     <string name="convert_remove_item">Quitar %1$s</string>

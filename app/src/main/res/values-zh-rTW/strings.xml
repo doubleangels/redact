@@ -366,6 +366,8 @@
     </plurals>
     <string name="clean_summary_nothing_found">未發現可識別身分的中繼資料。</string>
 
+    <string name="scan_search_hint">搜尋欄位</string>
+    <string name="scan_search_no_matches">沒有相符的欄位。</string>
     <string name="scan_section_details">詳細資料</string>
     <string name="scan_default_file_name">媒體檔案</string>
     <string name="convert_remove_item">移除 %1$s</string>

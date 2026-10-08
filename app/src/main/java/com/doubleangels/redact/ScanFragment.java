@@ -4,10 +4,14 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -39,6 +43,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -100,6 +105,9 @@ public class ScanFragment extends Fragment {
     private ScanMetadataAdapter scanMetadataAdapter;
     private TextView metadataFooter;
     private MaterialCardView metadataCard;
+    private View metadataSearchLayout;
+    private TextInputEditText metadataSearchInput;
+    private TextView metadataNoMatches;
     private HorizontalScrollView scanActionCardsScroll;
     private LinearLayout scanActionCardsContainer;
 
@@ -190,6 +198,7 @@ public class ScanFragment extends Fragment {
 
         metadataFooter = view.findViewById(R.id.metadataFooter);
         metadataCard = view.findViewById(R.id.metadataCard);
+        setUpMetadataSearch(view);
         scanActionCardsScroll = view.findViewById(R.id.scanActionCardsScroll);
         scanActionCardsContainer = view.findViewById(R.id.scanActionCardsContainer);
 
@@ -432,6 +441,7 @@ public class ScanFragment extends Fragment {
             showProgress(true);
 
             clearMetadataUi();
+            clearMetadataSearch();
             lastMetadataSections = null;
             metadataCard.setVisibility(View.GONE);
             clearCoordinateState();
@@ -518,6 +528,8 @@ public class ScanFragment extends Fragment {
                         List<ScanMetadataAdapter.Entry> errorRow = new ArrayList<>();
                         errorRow.add(ScanMetadataAdapter.Entry.row(null, getString(R.string.scan_extraction_fail)));
                         scanMetadataAdapter.setEntries(errorRow);
+                        metadataSearchLayout.setVisibility(View.GONE);
+                        updateNoMatches();
                         showEmptyState(false);
                         metadataCard.setVisibility(View.VISIBLE);
                         clearCoordinateState();
@@ -607,6 +619,8 @@ public class ScanFragment extends Fragment {
         }
 
         scanMetadataAdapter.setEntries(adapterEntries);
+        metadataSearchLayout.setVisibility(View.VISIBLE);
+        updateNoMatches();
         metadataCard.setVisibility(View.VISIBLE);
 
         updateScanActionCards(allRows);
@@ -772,6 +786,52 @@ public class ScanFragment extends Fragment {
             }
         }
         return sb.toString().trim();
+    }
+
+    /**
+     * Filters the metadata list as the user types. The field restores its own text after a
+     * rotation, which re-applies the filter; scanning a new file clears it.
+     */
+    private void setUpMetadataSearch(@NonNull View view) {
+        metadataSearchLayout = view.findViewById(R.id.metadataSearchLayout);
+        metadataSearchInput = view.findViewById(R.id.metadataSearchInput);
+        metadataNoMatches = view.findViewById(R.id.metadataNoMatches);
+        metadataSearchInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                scanMetadataAdapter.setQuery(s.toString());
+                updateNoMatches();
+            }
+        });
+        metadataSearchInput.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId != EditorInfo.IME_ACTION_SEARCH) {
+                return false;
+            }
+            InputMethodManager imm = v.getContext().getSystemService(InputMethodManager.class);
+            if (imm != null) {
+                imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+            }
+            v.clearFocus();
+            return true;
+        });
+    }
+
+    private void clearMetadataSearch() {
+        metadataSearchInput.setText(null);
+        metadataSearchInput.clearFocus();
+    }
+
+    private void updateNoMatches() {
+        metadataNoMatches.setVisibility(scanMetadataAdapter.hasQuery()
+                && scanMetadataAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
     }
 
     private void clearMetadataUi() {

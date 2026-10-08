@@ -314,12 +314,47 @@
                         android:orientation="vertical"
                         android:paddingVertical="4dp">
 
+                        <!-- Filters the fields below by name or value -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/metadataSearchLayout"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginHorizontal="16dp"
+                            android:layout_marginTop="12dp"
+                            android:layout_marginBottom="4dp"
+                            android:hint="@string/scan_search_hint"
+                            app:endIconMode="clear_text"
+                            app:startIconDrawable="@drawable/ic_search">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/metadataSearchInput"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:imeOptions="actionSearch"
+                                android:importantForAutofill="no"
+                                android:inputType="text|textNoSuggestions"
+                                android:maxLines="1" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/metadataItemsRecycler"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:nestedScrollingEnabled="false"
                             android:overScrollMode="never" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/metadataNoMatches"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:paddingHorizontal="16dp"
+                            android:paddingVertical="24dp"
+                            android:text="@string/scan_search_no_matches"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:visibility="gone" />
 
                         <com.google.android.material.textview.MaterialTextView
                             android:id="@+id/metadataFooter"

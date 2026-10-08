@@ -376,6 +376,8 @@ Ative apenas se quiser manter a localização de propósito.</string>
     </plurals>
     <string name="clean_summary_nothing_found">Nenhum metadado de identificação foi encontrado.</string>
 
+    <string name="scan_search_hint">Pesquisar campos</string>
+    <string name="scan_search_no_matches">Nenhum campo correspondente.</string>
     <string name="scan_section_details">Detalhes</string>
     <string name="scan_default_file_name">Arquivo de mídia</string>
     <string name="convert_remove_item">Remover %1$s</string>

@@ -370,6 +370,8 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     </plurals>
     <string name="clean_summary_nothing_found">Es wurden keine identifizierenden Metadaten gefunden.</string>
 
+    <string name="scan_search_hint">Felder durchsuchen</string>
+    <string name="scan_search_no_matches">Keine passenden Felder.</string>
     <string name="scan_section_details">Details</string>
     <string name="scan_default_file_name">Mediendatei</string>
     <string name="convert_remove_item">%1$s entfernen</string>

@@ -23,6 +23,7 @@ import android.widget.TextView;
 import androidx.exifinterface.media.ExifInterface;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.appcompat.app.AlertDialog;
 
 import com.doubleangels.redact.media.AppProcessingScope;
@@ -402,5 +403,31 @@ public class ScanFragmentTest {
         v.findViewById(R.id.emptyStateSelectButton).performClick();
         idle();
         assertNotNull(scanFragment());
+    }
+
+    @Test
+    public void searchBox_filtersFields_showsNoMatches_andClearsForANewFile() throws Exception {
+        View v = pick(Uri.fromFile(jpeg(true, false)));
+        awaitMain(() -> contentShown(v));
+        RecyclerView list = v.findViewById(R.id.metadataItemsRecycler);
+        TextView search = v.findViewById(R.id.metadataSearchInput);
+        assertEquals(View.VISIBLE, v.findViewById(R.id.metadataSearchLayout).getVisibility());
+        int everything = list.getAdapter().getItemCount();
+
+        search.setText("acme");
+        idle();
+        int matches = list.getAdapter().getItemCount();
+        assertTrue(matches > 0 && matches < everything);
+        assertEquals(View.GONE, v.findViewById(R.id.metadataNoMatches).getVisibility());
+
+        search.setText("no field is called this");
+        idle();
+        assertEquals(0, list.getAdapter().getItemCount());
+        assertEquals(View.VISIBLE, v.findViewById(R.id.metadataNoMatches).getVisibility());
+
+        pick(Uri.fromFile(jpeg(true, false)));
+        awaitMain(() -> contentShown(v) && list.getAdapter().getItemCount() > 0);
+        assertEquals("", search.getText().toString());
+        assertEquals(View.GONE, v.findViewById(R.id.metadataNoMatches).getVisibility());
     }
 }

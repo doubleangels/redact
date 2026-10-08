@@ -391,6 +391,8 @@
     </plurals>
     <string name="clean_summary_nothing_found">لم يتم العثور على بيانات وصفية تعريفية.</string>
 
+    <string name="scan_search_hint">البحث في الحقول</string>
+    <string name="scan_search_no_matches">لا توجد حقول مطابقة.</string>
     <string name="scan_section_details">التفاصيل</string>
     <string name="scan_default_file_name">ملف وسائط</string>
     <string name="convert_remove_item">إزالة %1$s</string>
