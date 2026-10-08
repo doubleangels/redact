@@ -355,6 +355,17 @@
         <item quantity="other">%1$d개 필드</item>
     </plurals>
 
+    <plurals name="clean_summary_fields">
+        <item quantity="other">메타데이터 필드 %1$d개를 삭제했습니다.</item>
+    </plurals>
+    <plurals name="clean_summary_fields_location">
+        <item quantity="other">위치를 포함해 메타데이터 필드 %1$d개를 삭제했습니다.</item>
+    </plurals>
+    <plurals name="clean_summary_location_files">
+        <item quantity="other">%1$d개 파일에 위치 정보가 있었습니다.</item>
+    </plurals>
+    <string name="clean_summary_nothing_found">식별 가능한 메타데이터가 없습니다.</string>
+
     <string name="scan_section_details">세부 정보</string>
     <string name="scan_default_file_name">미디어 파일</string>
     <string name="convert_remove_item">%1$s 제거</string>

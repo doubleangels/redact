@@ -362,6 +362,20 @@
         <item quantity="other">%1$d fields</item>
     </plurals>
 
+    <plurals name="clean_summary_fields">
+        <item quantity="one">Removed %1$d metadata field.</item>
+        <item quantity="other">Removed %1$d metadata fields.</item>
+    </plurals>
+    <plurals name="clean_summary_fields_location">
+        <item quantity="one">Removed %1$d metadata field, including location.</item>
+        <item quantity="other">Removed %1$d metadata fields, including location.</item>
+    </plurals>
+    <plurals name="clean_summary_location_files">
+        <item quantity="one">%1$d file had location.</item>
+        <item quantity="other">%1$d files had location.</item>
+    </plurals>
+    <string name="clean_summary_nothing_found">No identifying metadata was found.</string>
+
     <string name="scan_section_details">Details</string>
     <string name="scan_default_file_name">Media file</string>
     <string name="convert_remove_item">Remove %1$s</string>

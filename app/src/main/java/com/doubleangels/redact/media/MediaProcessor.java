@@ -7,8 +7,10 @@ import android.os.Looper;
 import android.util.Log;
 
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.metadata.CleanStats;
 import com.doubleangels.redact.metadata.MetadataStripper;
 import com.doubleangels.redact.sentry.SentryManager;
+import com.doubleangels.redact.ui.CleanSummary;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -44,6 +46,9 @@ public class MediaProcessor {
 
     /** Output URIs of items cleaned successfully in the current/last batch (kept until the next batch). */
     private final List<Uri> succeededOutputs = new CopyOnWriteArrayList<>();
+
+    /** What each successfully cleaned item had removed, in the current/last batch. */
+    private final List<CleanStats> succeededStats = new CopyOnWriteArrayList<>();
 
     /** Prevents overlapping batch processing from multiple strip invocations */
     private final AtomicBoolean processing = new AtomicBoolean(false);
@@ -133,6 +138,11 @@ public class MediaProcessor {
         return new java.util.ArrayList<>(succeededOutputs);
     }
 
+    /** What the last batch removed, over the items that were cleaned successfully. */
+    public CleanSummary getCleanSummary() {
+        return CleanSummary.of(new java.util.ArrayList<>(succeededStats));
+    }
+
     public List<Uri> getSucceededSources() {
         return new java.util.ArrayList<>(succeededSources);
     }
@@ -176,6 +186,7 @@ public class MediaProcessor {
         cancelled.set(false);
         succeededSources.clear();
         succeededOutputs.clear();
+        succeededStats.clear();
         metadataStripper.resetCancellation();
         mainHandler.post(callback::onBatchStarted);
         processingExecutor.execute(() -> {
@@ -237,6 +248,10 @@ public class MediaProcessor {
                             lastProcessedFileUri = processedUri;
                             succeededSources.add(item.uri());
                             succeededOutputs.add(processedUri);
+                            CleanStats stats = metadataStripper.getLastCleanStats();
+                            if (stats != null) {
+                                succeededStats.add(stats);
+                            }
                             successCount++;
                             SentryManager.count(
                                     "processing.clean.success", 1, "is_video", String.valueOf(item.isVideo()));

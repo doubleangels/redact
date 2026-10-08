@@ -357,6 +357,20 @@
         <item quantity="other">%1$d फ़ील्ड</item>
     </plurals>
 
+    <plurals name="clean_summary_fields">
+        <item quantity="one">%1$d मेटाडेटा फ़ील्ड हटाया गया।</item>
+        <item quantity="other">%1$d मेटाडेटा फ़ील्ड हटाए गए।</item>
+    </plurals>
+    <plurals name="clean_summary_fields_location">
+        <item quantity="one">स्थान सहित %1$d मेटाडेटा फ़ील्ड हटाया गया।</item>
+        <item quantity="other">स्थान सहित %1$d मेटाडेटा फ़ील्ड हटाए गए।</item>
+    </plurals>
+    <plurals name="clean_summary_location_files">
+        <item quantity="one">%1$d फ़ाइल में स्थान था।</item>
+        <item quantity="other">%1$d फ़ाइलों में स्थान था।</item>
+    </plurals>
+    <string name="clean_summary_nothing_found">कोई पहचान योग्य मेटाडेटा नहीं मिला।</string>
+
     <string name="scan_section_details">विवरण</string>
     <string name="scan_default_file_name">मीडिया फ़ाइल</string>
     <string name="convert_remove_item">%1$s हटाएँ</string>

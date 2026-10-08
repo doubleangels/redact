@@ -356,6 +356,17 @@
         <item quantity="other">%1$d 項目</item>
     </plurals>
 
+    <plurals name="clean_summary_fields">
+        <item quantity="other">%1$d 件のメタデータ項目を削除しました。</item>
+    </plurals>
+    <plurals name="clean_summary_fields_location">
+        <item quantity="other">位置情報を含む %1$d 件のメタデータ項目を削除しました。</item>
+    </plurals>
+    <plurals name="clean_summary_location_files">
+        <item quantity="other">%1$d 件のファイルに位置情報が含まれていました。</item>
+    </plurals>
+    <string name="clean_summary_nothing_found">個人を特定できるメタデータは見つかりませんでした。</string>
+
     <string name="scan_section_details">詳細</string>
     <string name="scan_default_file_name">メディアファイル</string>
     <string name="convert_remove_item">%1$s を削除</string>

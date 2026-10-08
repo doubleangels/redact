@@ -145,16 +145,26 @@ public final class UIStateManager {
      * @param totalCount   Items in the batch
      */
     public void setProcessedItemsStatus(int successCount, int totalCount) {
+        setProcessedItemsStatus(successCount, totalCount, null);
+    }
+
+    /**
+     * Same as {@link #setProcessedItemsStatus(int, int)}, followed by {@code summary} (what the
+     * batch removed, from {@link CleanSummary#describe}) when anything was cleaned.
+     */
+    public void setProcessedItemsStatus(int successCount, int totalCount, @androidx.annotation.Nullable String summary) {
         runOnUi(() -> {
             if (totalCount > 0 && successCount < totalCount) {
                 if (successCount > 0) {
-                    statusText.setText(activity.getString(R.string.status_clean_done_partial, successCount,
-                            totalCount - successCount));
+                    statusText.setText(CleanSummary.append(activity.getString(
+                            R.string.status_clean_done_partial, successCount,
+                            totalCount - successCount), summary));
                 } else {
                     statusText.setText(R.string.status_clean_done_failed);
                 }
             } else if (successCount > 0) {
-                statusText.setText(activity.getString(R.string.status_clean_done_all, successCount));
+                statusText.setText(CleanSummary.append(
+                        activity.getString(R.string.status_clean_done_all, successCount), summary));
             } else {
                 statusText.setText(R.string.status_clean_done_failed);
             }

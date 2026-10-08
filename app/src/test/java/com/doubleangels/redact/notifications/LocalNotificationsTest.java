@@ -112,6 +112,13 @@ public class LocalNotificationsTest {
     }
 
     @Test
+    public void showCleanComplete_appendsTheSummary() {
+        LocalNotifications.showCleanComplete(app, 1, 0, "Removed 3 metadata fields.");
+        assertEquals(app.getString(R.string.notification_clean_body, 1) + " Removed 3 metadata fields.",
+                onlyNotificationText());
+    }
+
+    @Test
     public void showCleanComplete_postsFailureText() {
         LocalNotifications.showCleanComplete(app, 0, 4);
         assertEquals(app.getString(R.string.notification_clean_failed), onlyNotificationText());

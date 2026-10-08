@@ -430,7 +430,8 @@ public class CleanFragment extends Fragment {
                             if (count != null) {
                                 SentryManager.setCustomKey("processed_items", count);
                                 int batchTotal = total != null ? total : count;
-                                uiStateManager.setProcessedItemsStatus(count, batchTotal);
+                                uiStateManager.setProcessedItemsStatus(
+                                        count, batchTotal, viewModel.getCleanSummaryText());
                             }
                             stripButton.setText(R.string.button_strip_exif_data);
                             stripButton.setIconResource(R.drawable.ic_clean);
@@ -458,6 +459,9 @@ public class CleanFragment extends Fragment {
                     com.doubleangels.redact.ui.ShareResults.updateButton(
                             shareResultsButton, state == MainViewModel.ProcessingState.COMPLETED,
                             viewModel.getCleanOutputs());
+                    // The result line (with what the batch removed) shows only once a clean has finished.
+                    statusText.setVisibility(state == MainViewModel.ProcessingState.COMPLETED
+                            ? View.VISIBLE : View.GONE);
                 } catch (Exception e) {
                     SentryManager.recordException(e);
                 }
@@ -499,7 +503,8 @@ public class CleanFragment extends Fragment {
                 Integer total = viewModel.getCleanBatchTotalCount().getValue();
                 if (count != null) {
                     int batchTotal = total != null ? total : count;
-                    uiStateManager.setProcessedItemsStatus(count, batchTotal);
+                    uiStateManager.setProcessedItemsStatus(
+                            count, batchTotal, viewModel.getCleanSummaryText());
                 }
                 stripButton.setText(R.string.button_strip_exif_data);
                 if (selectButton != null) {

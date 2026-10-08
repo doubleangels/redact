@@ -359,6 +359,23 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
         <item quantity="other">%1$d champs</item>
     </plurals>
 
+    <plurals name="clean_summary_fields">
+        <item quantity="one">%1$d champ de métadonnées supprimé.</item>
+        <item quantity="many">%1$d de champs de métadonnées supprimés.</item>
+        <item quantity="other">%1$d champs de métadonnées supprimés.</item>
+    </plurals>
+    <plurals name="clean_summary_fields_location">
+        <item quantity="one">%1$d champ de métadonnées supprimé, y compris la localisation.</item>
+        <item quantity="many">%1$d de champs de métadonnées supprimés, y compris la localisation.</item>
+        <item quantity="other">%1$d champs de métadonnées supprimés, y compris la localisation.</item>
+    </plurals>
+    <plurals name="clean_summary_location_files">
+        <item quantity="one">%1$d fichier contenait une localisation.</item>
+        <item quantity="many">%1$d de fichiers contenaient une localisation.</item>
+        <item quantity="other">%1$d fichiers contenaient une localisation.</item>
+    </plurals>
+    <string name="clean_summary_nothing_found">Aucune métadonnée identifiante n’a été trouvée.</string>
+
     <string name="scan_section_details">Détails</string>
     <string name="scan_default_file_name">Fichier multimédia</string>
     <string name="convert_remove_item">Retirer %1$s</string>

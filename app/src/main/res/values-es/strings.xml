@@ -359,6 +359,23 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
         <item quantity="other">%1$d campos</item>
     </plurals>
 
+    <plurals name="clean_summary_fields">
+        <item quantity="one">Se eliminó %1$d campo de metadatos.</item>
+        <item quantity="many">Se eliminaron %1$d de campos de metadatos.</item>
+        <item quantity="other">Se eliminaron %1$d campos de metadatos.</item>
+    </plurals>
+    <plurals name="clean_summary_fields_location">
+        <item quantity="one">Se eliminó %1$d campo de metadatos, incluida la ubicación.</item>
+        <item quantity="many">Se eliminaron %1$d de campos de metadatos, incluida la ubicación.</item>
+        <item quantity="other">Se eliminaron %1$d campos de metadatos, incluida la ubicación.</item>
+    </plurals>
+    <plurals name="clean_summary_location_files">
+        <item quantity="one">%1$d archivo tenía ubicación.</item>
+        <item quantity="many">%1$d de archivos tenían ubicación.</item>
+        <item quantity="other">%1$d archivos tenían ubicación.</item>
+    </plurals>
+    <string name="clean_summary_nothing_found">No se encontraron metadatos identificativos.</string>
+
     <string name="scan_section_details">Detalles</string>
     <string name="scan_default_file_name">Archivo multimedia</string>
     <string name="convert_remove_item">Quitar %1$s</string>

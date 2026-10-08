@@ -585,6 +585,15 @@ public class MainViewModel extends AndroidViewModel {
         return mediaProcessor.getSucceededOutputs();
     }
 
+    /**
+     * What the last clean batch removed, phrased to follow the completion status, or null when
+     * nothing was cleaned (or the process was recreated since and the batch is gone).
+     */
+    @androidx.annotation.Nullable
+    public String getCleanSummaryText() {
+        return mediaProcessor.getCleanSummary().describe(getApplication().getResources());
+    }
+
     /** Saved outputs of the last convert batch, kept until the next batch starts. */
     public List<android.net.Uri> getConvertOutputs() {
         return new ArrayList<>(convertOutputs);
@@ -660,7 +669,8 @@ public class MainViewModel extends AndroidViewModel {
                 setCleanProcessingState(ProcessingState.COMPLETED);
                 int failCount = Math.max(0, totalCount - successCount);
                 LocalNotifications.stopProcessingForeground(getApplication());
-                LocalNotifications.showCleanComplete(getApplication(), successCount, failCount);
+                LocalNotifications.showCleanComplete(
+                        getApplication(), successCount, failCount, getCleanSummaryText());
             }
 
             @Override

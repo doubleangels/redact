@@ -167,6 +167,9 @@ public class MetadataStripper {
     private volatile long transcodeOwnerId = -1L;
 
     @Nullable
+    private volatile CleanStats lastCleanStats;
+
+    @Nullable
     private volatile java.util.function.BooleanSupplier externalCancellationCheck;
 
     public void resetCancellation() {
@@ -192,6 +195,15 @@ public class MetadataStripper {
      */
     public void setCancellationCheck(@Nullable java.util.function.BooleanSupplier check) {
         externalCancellationCheck = check;
+    }
+
+    /**
+     * What the last {@link #stripExifData} or {@link #stripVideoMetadata} call found to remove, or
+     * null when that call failed before reading the source.
+     */
+    @Nullable
+    public CleanStats getLastCleanStats() {
+        return lastCleanStats;
     }
 
     private void throwIfCancelled() throws IOException {
@@ -307,6 +319,7 @@ public class MetadataStripper {
         SentryManager.log("The app is starting video metadata stripping for MediaStore.");
         SentryManager.setCustomKey("operation_type", "video_to_mediastore");
         Uri newUri = null;
+        lastCleanStats = null;
 
         try {
             throwIfCancelled();
@@ -314,6 +327,7 @@ public class MetadataStripper {
             updateProgress(1, 4, context.getString(R.string.strip_progress_reading_video));
 
             VideoPrivacySnapshot sourceSnapshot = extractVideoPrivacyMetadata(sourceUri);
+            lastCleanStats = countVideoPrivacyFields(sourceUri, sourceSnapshot);
 
             throwIfCancelled();
             int formatIndex = detectVideoFormatIndex(sourceUri, originalFilename);
@@ -435,6 +449,7 @@ public class MetadataStripper {
         SentryManager.log("The app is starting image EXIF stripping for MediaStore.");
         SentryManager.setCustomKey("operation_type", "image_to_mediastore");
         Uri newUri = null;
+        lastCleanStats = null;
         Bitmap originalBitmap = null;
         File tempFile = null;
 
@@ -455,6 +470,7 @@ public class MetadataStripper {
             // Extract essential EXIF data to preserve (like orientation)
             updateProgress(2, 5, context.getString(R.string.strip_progress_reading_essential_metadata));
             readEssentialExifData(tempFile, false);
+            lastCleanStats = readCleanStats(tempFile);
 
             // Remove thumbnails from original
             try {
@@ -1448,6 +1464,36 @@ public class MetadataStripper {
             SentryManager.log("The source video privacy metadata could not be read: " + e.getMessage() + ".");
             return VideoPrivacySnapshot.empty();
         }
+    }
+
+    /** Counts the identifying fields in an image before it is cleaned; unreadable EXIF counts as none. */
+    @NonNull
+    private CleanStats readCleanStats(@NonNull File imageFile) {
+        try {
+            return CleanStats.fromExif(
+                    new ExifInterface(imageFile.getAbsolutePath()),
+                    new java.util.HashSet<>(getTagsToPreserve(false)));
+        } catch (Exception e) {
+            return new CleanStats(0, false);
+        }
+    }
+
+    /** Counts the privacy fields the video verification checks: location, date and the additional keys. */
+    @NonNull
+    private CleanStats countVideoPrivacyFields(
+            @NonNull Uri sourceUri, @NonNull VideoPrivacySnapshot snapshot) {
+        int fields = (snapshot.location != null ? 1 : 0) + (snapshot.date != null ? 1 : 0);
+        try (android.media.MediaMetadataRetriever retriever = new android.media.MediaMetadataRetriever()) {
+            retriever.setDataSource(context, sourceUri);
+            for (int key : ADDITIONAL_VIDEO_PRIVACY_KEYS) {
+                if (normalizeMetadataValue(retriever.extractMetadata(key)) != null) {
+                    fields++;
+                }
+            }
+        } catch (Exception e) {
+            SentryManager.log("The video privacy fields could not be counted: " + e.getMessage() + ".");
+        }
+        return new CleanStats(fields, snapshot.location != null);
     }
 
     private void requireVideoMetadataClean(

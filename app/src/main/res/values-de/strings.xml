@@ -356,6 +356,20 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
         <item quantity="other">%1$d Felder</item>
     </plurals>
 
+    <plurals name="clean_summary_fields">
+        <item quantity="one">%1$d Metadatenfeld entfernt.</item>
+        <item quantity="other">%1$d Metadatenfelder entfernt.</item>
+    </plurals>
+    <plurals name="clean_summary_fields_location">
+        <item quantity="one">%1$d Metadatenfeld entfernt, einschließlich Standort.</item>
+        <item quantity="other">%1$d Metadatenfelder entfernt, einschließlich Standort.</item>
+    </plurals>
+    <plurals name="clean_summary_location_files">
+        <item quantity="one">%1$d Datei hatte Standortdaten.</item>
+        <item quantity="other">%1$d Dateien hatten Standortdaten.</item>
+    </plurals>
+    <string name="clean_summary_nothing_found">Es wurden keine identifizierenden Metadaten gefunden.</string>
+
     <string name="scan_section_details">Details</string>
     <string name="scan_default_file_name">Mediendatei</string>
     <string name="convert_remove_item">%1$s entfernen</string>

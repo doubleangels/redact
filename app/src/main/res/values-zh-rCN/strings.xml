@@ -355,6 +355,17 @@
         <item quantity="other">%1$d 个字段</item>
     </plurals>
 
+    <plurals name="clean_summary_fields">
+        <item quantity="other">已移除 %1$d 个元数据字段。</item>
+    </plurals>
+    <plurals name="clean_summary_fields_location">
+        <item quantity="other">已移除 %1$d 个元数据字段，包括位置信息。</item>
+    </plurals>
+    <plurals name="clean_summary_location_files">
+        <item quantity="other">%1$d 个文件包含位置信息。</item>
+    </plurals>
+    <string name="clean_summary_nothing_found">未发现可识别身份的元数据。</string>
+
     <string name="scan_section_details">详细信息</string>
     <string name="scan_default_file_name">媒体文件</string>
     <string name="convert_remove_item">移除 %1$s</string>

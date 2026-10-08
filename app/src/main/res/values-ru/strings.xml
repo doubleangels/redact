@@ -361,6 +361,26 @@
         <item quantity="other">%1$d поля</item>
     </plurals>
 
+    <plurals name="clean_summary_fields">
+        <item quantity="one">Удалено %1$d поле метаданных.</item>
+        <item quantity="few">Удалено %1$d поля метаданных.</item>
+        <item quantity="many">Удалено %1$d полей метаданных.</item>
+        <item quantity="other">Удалено %1$d поля метаданных.</item>
+    </plurals>
+    <plurals name="clean_summary_fields_location">
+        <item quantity="one">Удалено %1$d поле метаданных, включая местоположение.</item>
+        <item quantity="few">Удалено %1$d поля метаданных, включая местоположение.</item>
+        <item quantity="many">Удалено %1$d полей метаданных, включая местоположение.</item>
+        <item quantity="other">Удалено %1$d поля метаданных, включая местоположение.</item>
+    </plurals>
+    <plurals name="clean_summary_location_files">
+        <item quantity="one">%1$d файл содержал местоположение.</item>
+        <item quantity="few">%1$d файла содержали местоположение.</item>
+        <item quantity="many">%1$d файлов содержали местоположение.</item>
+        <item quantity="other">%1$d файла содержали местоположение.</item>
+    </plurals>
+    <string name="clean_summary_nothing_found">Идентифицирующие метаданные не найдены.</string>
+
     <string name="scan_section_details">Подробности</string>
     <string name="scan_default_file_name">Медиафайл</string>
     <string name="convert_remove_item">Удалить %1$s</string>
