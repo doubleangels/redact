@@ -17,7 +17,7 @@
         android:fillViewport="true"
         android:paddingHorizontal="@dimen/screen_edge_padding"
         android:paddingTop="8dp"
-        android:paddingBottom="88dp"
+        android:paddingBottom="160dp"
         android:scrollbars="none"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -189,17 +189,6 @@
                     android:textColor="?attr/colorOnSurface"
                     android:visibility="gone" />
 
-                <!-- Share the files just saved; shown after a successful batch -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/shareResultsButton"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:text="@string/button_share_results"
-                    android:visibility="gone"
-                    app:icon="@drawable/ic_share" />
-
                 <!-- Progress Container -->
                 <LinearLayout
                     android:id="@+id/progressContainer"
@@ -264,5 +253,20 @@
         app:iconTint="?attr/colorOnPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Share the files just saved; a fainter FAB above the main action, shown after a successful batch -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/shareResultsButton"
+        style="@style/Widget.Material3.ExtendedFloatingActionButton.Secondary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/button_share_results"
+        android:visibility="gone"
+        app:icon="@drawable/ic_share"
+        app:layout_constraintBottom_toTopOf="@id/stripButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_goneMarginBottom="88dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
