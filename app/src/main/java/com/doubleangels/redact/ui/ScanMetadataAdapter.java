@@ -213,6 +213,7 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
                             ? entry.key
                             : v.getContext().getString(R.string.scan_metadata);
                     if (SensitiveClipboard.copy(v.getContext(), label, entry.value)) {
+                        Haptics.confirm(v);
                         Toast.makeText(v.getContext(), R.string.scan_copied_to_clipboard, Toast.LENGTH_SHORT).show();
                     }
                 }

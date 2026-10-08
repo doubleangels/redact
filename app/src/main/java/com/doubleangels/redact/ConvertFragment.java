@@ -21,6 +21,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.media.ConvertFileAdapter;
 import com.doubleangels.redact.media.FormatConverter;
@@ -53,6 +54,8 @@ public class ConvertFragment extends Fragment {
     private MaterialButton selectButton;
     @Nullable
     private List<MediaItem> lastObservedConvertItems;
+    /** The convert state this view saw last, so finishing a run buzzes once and a replay does not. */
+    private MainViewModel.ProcessingState lastObservedConvertState;
 
     private MaterialButton convertButton;
     private TextView statusText;
@@ -130,9 +133,11 @@ public class ConvertFragment extends Fragment {
 
         statusText = view.findViewById(R.id.statusText);
         shareResultsButton = view.findViewById(R.id.shareResultsButton);
-        shareResultsButton.setOnClickListener(v ->
-                com.doubleangels.redact.ui.ShareResults.share(
-                        requireContext(), viewModel.getConvertOutputs()));
+        shareResultsButton.setOnClickListener(v -> {
+            Haptics.tick(v);
+            com.doubleangels.redact.ui.ShareResults.share(
+                    requireContext(), viewModel.getConvertOutputs());
+        });
         progressContainer = view.findViewById(R.id.progressContainer);
         progressText = view.findViewById(R.id.progressText);
         progressBar = view.findViewById(R.id.progressBar);
@@ -230,6 +235,7 @@ public class ConvertFragment extends Fragment {
             if (viewModel.getConvertProcessingState().getValue()
                     == MainViewModel.ProcessingState.PROCESSING) {
                 SentryManager.log("The user requested that the conversion be cancelled.");
+                Haptics.tick(v);
                 viewModel.cancelConversion();
                 return;
             }
@@ -449,7 +455,10 @@ public class ConvertFragment extends Fragment {
             refreshFormatSectionForSelection(list);
         });
 
+        lastObservedConvertState = null;
         viewModel.getConvertProcessingState().observe(getViewLifecycleOwner(), state -> {
+            boolean justCompleted = Haptics.justCompleted(lastObservedConvertState, state);
+            lastObservedConvertState = state;
             boolean isProcessing = state == MainViewModel.ProcessingState.PROCESSING;
             if (chipFormatJpeg != null) chipFormatJpeg.setEnabled(!isProcessing);
             if (chipFormatPng != null) chipFormatPng.setEnabled(!isProcessing);
@@ -481,6 +490,10 @@ public class ConvertFragment extends Fragment {
                 selectButton.setEnabled(true);
                 showProgress(false);
                 applyConvertCompletedStatus(selected);
+                if (justCompleted) {
+                    Integer finishedOk = viewModel.getConvertProcessedItemCount().getValue();
+                    Haptics.runFinished(convertButton, finishedOk != null ? finishedOk : 0);
+                }
                 if (!isHidden()) {
                     Integer okCount = viewModel.getConvertProcessedItemCount().getValue();
                     Integer batchTotal = viewModel.getConvertBatchTotalCount().getValue();

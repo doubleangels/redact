@@ -29,6 +29,7 @@ import com.doubleangels.redact.media.ProcessingResourceWarnings;
 import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.permission.PermissionManager;
+import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.ui.UIStateManager;
 import com.google.android.material.button.MaterialButton;
@@ -53,6 +54,8 @@ public class CleanFragment extends Fragment {
 
     @Nullable
     private List<MediaItem> lastObservedSelectedItems;
+    /** The clean state this view saw last, so finishing a run buzzes once and a replay does not. */
+    private MainViewModel.ProcessingState lastObservedCleanState;
 
     private MainViewModel viewModel;
     private PermissionManager permissionManager;
@@ -150,9 +153,11 @@ public class CleanFragment extends Fragment {
             stripButton = view.findViewById(R.id.stripButton);
             statusText = view.findViewById(R.id.statusText);
             shareResultsButton = view.findViewById(R.id.shareResultsButton);
-            shareResultsButton.setOnClickListener(v ->
-                    com.doubleangels.redact.ui.ShareResults.share(
-                            requireContext(), viewModel.getCleanOutputs()));
+            shareResultsButton.setOnClickListener(v -> {
+                Haptics.tick(v);
+                com.doubleangels.redact.ui.ShareResults.share(
+                        requireContext(), viewModel.getCleanOutputs());
+            });
             progressContainer = view.findViewById(R.id.progressContainer);
             progressText = view.findViewById(R.id.progressText);
             progressBar = view.findViewById(R.id.progressBar);
@@ -188,6 +193,7 @@ public class CleanFragment extends Fragment {
                     if (viewModel.getCleanProcessingState().getValue()
                             == MainViewModel.ProcessingState.PROCESSING) {
                         SentryManager.log("The user requested that the clean be cancelled.");
+                        Haptics.tick(v);
                         viewModel.cancelCleaning();
                         return;
                     }
@@ -392,8 +398,11 @@ public class CleanFragment extends Fragment {
                 }
             });
 
+            lastObservedCleanState = null;
             viewModel.getCleanProcessingState().observe(getViewLifecycleOwner(), state -> {
                 try {
+                    boolean justCompleted = Haptics.justCompleted(lastObservedCleanState, state);
+                    lastObservedCleanState = state;
                     SentryManager.setCustomKey("processing_state", state.toString());
                     switch (state) {
                         case PROCESSING:
@@ -432,6 +441,9 @@ public class CleanFragment extends Fragment {
                                 int batchTotal = total != null ? total : count;
                                 uiStateManager.setProcessedItemsStatus(
                                         count, batchTotal, viewModel.getCleanSummaryText());
+                            }
+                            if (justCompleted) {
+                                Haptics.runFinished(stripButton, count != null ? count : 0);
                             }
                             stripButton.setText(R.string.button_strip_exif_data);
                             stripButton.setIconResource(R.drawable.ic_clean);

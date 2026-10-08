@@ -188,6 +188,43 @@ public class CleanConvertFragmentsTest {
     }
 
     @Test
+    public void clean_finishingARun_buzzesOnce_andAReplayStaysQuiet() {
+        View v = clean();
+        vm.setSelectedItems(Arrays.asList(image("a.jpg")));
+        idle();
+        View strip = v.findViewById(R.id.stripButton);
+        int before = shadowOf(strip).lastHapticFeedbackPerformed();
+
+        // Arriving straight at COMPLETED is a replay (a new view after a rotation): no buzz.
+        vm.setCleanProcessingState(MainViewModel.ProcessingState.COMPLETED);
+        idle();
+        assertEquals(before, shadowOf(strip).lastHapticFeedbackPerformed());
+
+        vm.setCleanProcessingState(MainViewModel.ProcessingState.PROCESSING);
+        idle();
+        vm.setCleanProcessingState(MainViewModel.ProcessingState.COMPLETED);
+        idle();
+        // No item count was recorded, so the run reads as a total failure.
+        assertEquals(android.view.HapticFeedbackConstants.REJECT,
+                shadowOf(strip).lastHapticFeedbackPerformed());
+    }
+
+    @Test
+    public void convert_finishingARun_buzzes() {
+        View v = convert();
+        vm.setConvertSelectedItems(Arrays.asList(image("a.jpg")));
+        idle();
+        View button = v.findViewById(R.id.convertButton);
+
+        vm.setConvertProcessingState(MainViewModel.ProcessingState.PROCESSING);
+        idle();
+        vm.setConvertProcessingState(MainViewModel.ProcessingState.COMPLETED);
+        idle();
+        assertEquals(android.view.HapticFeedbackConstants.REJECT,
+                shadowOf(button).lastHapticFeedbackPerformed());
+    }
+
+    @Test
     public void clean_completedWithDeleteOriginals_requestsTrash() {
         AppPreferences.setDeleteOriginalsAfterClean(activity, true);
         clean();

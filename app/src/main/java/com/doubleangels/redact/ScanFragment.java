@@ -30,6 +30,7 @@ import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.metadata.MetadataDisplayer;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.sentry.SentryManager;
+import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.ui.ScanMetadataAdapter;
 import com.doubleangels.redact.ui.ScanViewModel;
@@ -883,6 +884,7 @@ public class ScanFragment extends Fragment {
 
     private void copyPlainTextToClipboard(@NonNull String text) {
         if (SensitiveClipboard.copy(requireContext(), getString(R.string.scan_metadata), text)) {
+            Haptics.confirm(getView());
             Toast.makeText(requireContext(), R.string.scan_copied_to_clipboard, Toast.LENGTH_SHORT).show();
         }
     }
