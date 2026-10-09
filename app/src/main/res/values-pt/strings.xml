@@ -416,7 +416,7 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="settings_privacy_subtitle">Mantém o que você vê e copia no Redact fora de capturas de tela, apps recentes e da área de transferência.</string>
     <string name="settings_output_folder_reset">Restaurar Padrão</string>
     <string name="settings_output_folders">Pastas de Saída</string>
-    <string name="settings_output_folders_subtitle">Escolha onde salvar os arquivos limpos e convertidos. Abra o gerenciador de arquivos para escolher ou criar uma pasta para cada tipo.</string>
+    <string name="settings_output_folders_subtitle">Escolha onde salvar os arquivos limpos e convertidos. Abra o gerenciador de arquivos para escolher ou criar uma pasta e toque em \"Usar esta pasta\".</string>
     <string name="settings_output_images">Imagens</string>
     <string name="settings_output_videos">Vídeos</string>
     <string name="settings_output_choose">Escolher Pasta</string>

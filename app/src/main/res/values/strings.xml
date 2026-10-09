@@ -414,7 +414,7 @@
     <string name="settings_privacy_subtitle">Keeps what you see and copy in Redact out of screenshots, the recent apps screen and the clipboard.</string>
     <string name="settings_output_folder_reset">Reset to Default</string>
     <string name="settings_output_folders">Output Folders</string>
-    <string name="settings_output_folders_subtitle">Choose where cleaned and converted files are saved. Open the file browser to pick or create a folder for each type.</string>
+    <string name="settings_output_folders_subtitle">Choose where cleaned and converted files are saved. Open the file browser to pick or create a folder, then tap \"Use this folder\".</string>
     <string name="settings_output_images">Images</string>
     <string name="settings_output_videos">Videos</string>
     <string name="settings_output_choose">Choose Folder</string>

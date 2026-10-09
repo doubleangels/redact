@@ -408,7 +408,7 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_privacy_subtitle">Hält, was du in Redact siehst und kopierst, aus Screenshots, der App-Übersicht und der Zwischenablage heraus.</string>
     <string name="settings_output_folder_reset">Auf Standard zurücksetzen</string>
     <string name="settings_output_folders">Ausgabeordner</string>
-    <string name="settings_output_folders_subtitle">Lege fest, wo bereinigte und konvertierte Dateien gespeichert werden. Öffne den Dateibrowser, um für jeden Typ einen Ordner auszuwählen oder zu erstellen.</string>
+    <string name="settings_output_folders_subtitle">Lege fest, wo bereinigte und konvertierte Dateien gespeichert werden. Öffne den Dateibrowser, wähle einen Ordner aus oder erstelle einen und tippe dann auf „Diesen Ordner verwenden“.</string>
     <string name="settings_output_images">Bilder</string>
     <string name="settings_output_videos">Videos</string>
     <string name="settings_output_choose">Ordner Wählen</string>

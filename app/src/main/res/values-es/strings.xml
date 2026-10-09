@@ -416,7 +416,7 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="settings_privacy_subtitle">Mantiene lo que ves y copias en Redact fuera de las capturas, de aplicaciones recientes y del portapapeles.</string>
     <string name="settings_output_folder_reset">Restablecer Predeterminado</string>
     <string name="settings_output_folders">Carpetas de Salida</string>
-    <string name="settings_output_folders_subtitle">Elige dónde se guardan los archivos limpiados y convertidos. Abre el explorador de archivos para elegir o crear una carpeta para cada tipo.</string>
+    <string name="settings_output_folders_subtitle">Elige dónde se guardan los archivos limpiados y convertidos. Abre el explorador de archivos para elegir o crear una carpeta y toca \"Usar esta carpeta\".</string>
     <string name="settings_output_images">Imágenes</string>
     <string name="settings_output_videos">Vídeos</string>
     <string name="settings_output_choose">Elegir Carpeta</string>

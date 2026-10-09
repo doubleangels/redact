@@ -416,7 +416,7 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="settings_privacy_subtitle">Garde ce que vous voyez et copiez dans Redact hors des captures d\'écran, des applications récentes et du presse-papiers.</string>
     <string name="settings_output_folder_reset">Rétablir par Défaut</string>
     <string name="settings_output_folders">Dossiers de Sortie</string>
-    <string name="settings_output_folders_subtitle">Choisissez où enregistrer les fichiers nettoyés et convertis. Ouvrez l’explorateur de fichiers pour choisir ou créer un dossier pour chaque type.</string>
+    <string name="settings_output_folders_subtitle">Choisissez où enregistrer les fichiers nettoyés et convertis. Ouvrez l’explorateur de fichiers pour choisir ou créer un dossier, puis appuyez sur « Utiliser ce dossier ».</string>
     <string name="settings_output_images">Images</string>
     <string name="settings_output_videos">Vidéos</string>
     <string name="settings_output_choose">Choisir le Dossier</string>

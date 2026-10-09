@@ -402,7 +402,7 @@
     <string name="settings_privacy_subtitle">避免你在 Redact 中看到和複製的內容出現在螢幕截圖、最近使用畫面和剪貼簿中。</string>
     <string name="settings_output_folder_reset">還原預設</string>
     <string name="settings_output_folders">輸出資料夾</string>
-    <string name="settings_output_folders_subtitle">選擇清理與轉換後檔案的儲存位置。開啟檔案瀏覽器，為每種類型選擇或建立資料夾。</string>
+    <string name="settings_output_folders_subtitle">選擇清理與轉換後檔案的儲存位置。開啟檔案瀏覽器，選擇或建立資料夾，然後輕觸「使用這個資料夾」。</string>
     <string name="settings_output_images">圖片</string>
     <string name="settings_output_videos">影片</string>
     <string name="settings_output_choose">選擇資料夾</string>

@@ -416,7 +416,7 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="settings_privacy_subtitle">Tiene ciò che vedi e copi in Redact fuori da screenshot, app recenti e appunti.</string>
     <string name="settings_output_folder_reset">Ripristina Predefinito</string>
     <string name="settings_output_folders">Cartelle di Output</string>
-    <string name="settings_output_folders_subtitle">Scegli dove salvare i file puliti e convertiti. Apri il gestore file per scegliere o creare una cartella per ogni tipo.</string>
+    <string name="settings_output_folders_subtitle">Scegli dove salvare i file puliti e convertiti. Apri il gestore file per scegliere o creare una cartella, poi tocca \"Usa questa cartella\".</string>
     <string name="settings_output_images">Immagini</string>
     <string name="settings_output_videos">Video</string>
     <string name="settings_output_choose">Scegli Cartella</string>

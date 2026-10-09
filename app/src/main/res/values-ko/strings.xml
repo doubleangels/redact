@@ -402,7 +402,7 @@
     <string name="settings_privacy_subtitle">Redact에서 보거나 복사한 내용이 스크린샷, 최근 앱 화면, 클립보드에 남지 않도록 합니다.</string>
     <string name="settings_output_folder_reset">기본값으로 재설정</string>
     <string name="settings_output_folders">출력 폴더</string>
-    <string name="settings_output_folders_subtitle">정리 및 변환된 파일을 저장할 위치를 선택합니다. 파일 브라우저를 열어 유형별로 폴더를 선택하거나 만들 수 있습니다.</string>
+    <string name="settings_output_folders_subtitle">정리 및 변환된 파일을 저장할 위치를 선택합니다. 파일 브라우저를 열어 폴더를 선택하거나 만든 다음 \"이 폴더 사용\"을 탭하세요.</string>
     <string name="settings_output_images">이미지</string>
     <string name="settings_output_videos">동영상</string>
     <string name="settings_output_choose">폴더 선택</string>

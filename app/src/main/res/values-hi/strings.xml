@@ -409,7 +409,7 @@
     <string name="settings_privacy_subtitle">Redact में आप जो देखते और कॉपी करते हैं उसे स्क्रीनशॉट, हाल के ऐप्स की स्क्रीन और क्लिपबोर्ड से दूर रखता है।</string>
     <string name="settings_output_folder_reset">डिफ़ॉल्ट पर रीसेट करें</string>
     <string name="settings_output_folders">आउटपुट फ़ोल्डर</string>
-    <string name="settings_output_folders_subtitle">चुनें कि साफ़ और परिवर्तित फ़ाइलें कहाँ सहेजी जाएँ। प्रत्येक प्रकार के लिए फ़ोल्डर चुनने या बनाने हेतु फ़ाइल ब्राउज़र खोलें।</string>
+    <string name="settings_output_folders_subtitle">चुनें कि साफ़ और परिवर्तित फ़ाइलें कहाँ सहेजी जाएँ। फ़ाइल ब्राउज़र खोलकर फ़ोल्डर चुनें या बनाएँ, फिर \"इस फ़ोल्डर का इस्तेमाल करें\" पर टैप करें।</string>
     <string name="settings_output_images">छवियाँ</string>
     <string name="settings_output_videos">वीडियो</string>
     <string name="settings_output_choose">फ़ोल्डर चुनें</string>

@@ -423,7 +423,7 @@
     <string name="settings_privacy_subtitle">Не даёт тому, что вы видите и копируете в Redact, попасть на снимки экрана, в список недавних и буфер обмена.</string>
     <string name="settings_output_folder_reset">Сбросить по Умолчанию</string>
     <string name="settings_output_folders">Папки Вывода</string>
-    <string name="settings_output_folders_subtitle">Выберите, куда сохранять очищенные и конвертированные файлы. Откройте файловый менеджер, чтобы выбрать или создать папку для каждого типа.</string>
+    <string name="settings_output_folders_subtitle">Выберите, куда сохранять очищенные и конвертированные файлы. Откройте файловый менеджер, выберите или создайте папку и нажмите «Использовать эту папку».</string>
     <string name="settings_output_images">Изображения</string>
     <string name="settings_output_videos">Видео</string>
     <string name="settings_output_choose">Выбрать Папку</string>

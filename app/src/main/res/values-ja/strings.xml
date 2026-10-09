@@ -403,7 +403,7 @@
     <string name="settings_privacy_subtitle">Redact で見たりコピーしたりした内容を、スクリーンショット、最近使ったアプリ画面、クリップボードに残さないようにします。</string>
     <string name="settings_output_folder_reset">デフォルトに戻す</string>
     <string name="settings_output_folders">出力フォルダ</string>
-    <string name="settings_output_folders_subtitle">クリーン済みおよび変換済みファイルの保存先を選びます。ファイルブラウザを開いて、種類ごとにフォルダを選択または作成できます。</string>
+    <string name="settings_output_folders_subtitle">クリーン済みおよび変換済みファイルの保存先を選びます。ファイルブラウザを開いてフォルダを選択または作成し、「このフォルダを使用」をタップします。</string>
     <string name="settings_output_images">画像</string>
     <string name="settings_output_videos">動画</string>
     <string name="settings_output_choose">フォルダを選択</string>
