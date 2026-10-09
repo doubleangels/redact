@@ -9,19 +9,19 @@
 Redact supprime la localisation GPS, les détails de l'appareil, les horodatages, les réglages de l'appareil photo et d'autres métadonnées cachées. Pour le nettoyage vidéo, vous pouvez choisir dans les réglages entre un remux rapide ou un transcodage complet, tout en conservant la qualité de lecture.</li>
 
 <li><b>Une visionneuse de métadonnées vraiment lisible :</b><br>
-Analysez n'importe quelle photo ou vidéo pour voir ses métadonnées EXIF et de conteneur présentées clairement, avant de décider quoi en faire. Copiez des valeurs, envoyez le fichier vers Nettoyer ou Convertir, ou ouvrez une localisation associée directement dans votre application de cartes par défaut. Ouvrir une localisation partage ces coordonnées avec cette application séparée, c'est pourquoi Redact vous demande votre permission la première fois que vous essayez.</li>
+Analysez n'importe quelle photo ou vidéo pour voir ses métadonnées EXIF et de conteneur présentées clairement, avant de décider quoi en faire. Copiez des valeurs, envoyez le fichier vers Nettoyer ou Convertir, ou ouvrez une localisation associée directement dans votre application de cartes par défaut. Comme cela partage ces coordonnées avec une autre application, Redact demande votre accord la première fois.</li>
 
 <li><b>Nettoyer, analyser, convertir et partager :</b><br>
-Nettoyez les métadonnées par lots allant jusqu'à 20 fichiers. Convertissez des formats d'image et de vidéo sans rien envoyer à un serveur ; les fichiers convertis sont aussi débarrassés de leurs métadonnées et vérifiés. Partagez vers Redact depuis n'importe quelle application, annulez les tâches longues à tout moment, et Redact continue avec un succès partiel si un fichier échoue. Redact n'impose aucune limite de taille de fichier, et il affiche des avertissements sur le stockage et la mémoire avant toute tâche importante.</li>
+Nettoyez les métadonnées par lots allant jusqu'à 20 fichiers. Convertissez des formats d'image et de vidéo sans rien envoyer à un serveur ; les fichiers convertis sont aussi débarrassés de leurs métadonnées et vérifiés. Partagez vers Redact depuis n'importe quelle application, annulez les tâches longues à tout moment, et Redact continue avec un succès partiel si un fichier échoue. Aucune limite de taille : Redact vous avertit avant une grosse tâche si le stockage ou la mémoire manque. Après un nettoyage, Redact indique ce qu'il a supprimé et propose de partager le résultat. Cherchez dans les métadonnées pendant l'analyse, ouvrez photos et vidéos depuis d'autres apps et rejoignez chaque onglet via les raccourcis de l'icône.</li>
 
 <li><b>Des autorisations pensées pour votre vie privée :</b><br>
-À partir d'Android 13, Redact utilise le sélecteur de documents du système, ce qui vous permet de choisir des fichiers dans Téléchargements, dans l'application Fichiers ou dans vos dossiers de galerie, sans accorder un accès large à votre bibliothèque. L'autorisation optionnelle de localisation des photos affiche les champs GPS dans Analyser. Les rapports de plantage et les notifications restent désactivés jusqu'à ce que vous les activiez vous-même.</li>
+À partir d'Android 13, Redact utilise le sélecteur de documents du système, pour choisir des fichiers dans Téléchargements, Fichiers ou vos dossiers de galerie sans accès large à votre bibliothèque. L'autorisation optionnelle de localisation des photos affiche les champs GPS dans Analyser. Les rapports de plantage et les notifications restent désactivés jusqu'à ce que vous les activiez vous-même.</li>
 
 <li><b>Un traitement qui reste sur votre appareil :</b><br>
-Le nettoyage, l'analyse et la conversion se déroulent entièrement en local. La seule exception est l'ouverture d'une localisation analysée dans votre application de cartes, ce qui n'arrive qu'après votre accord. Le diagnostic de plantage optionnel et anonymisé via Sentry n'inclut jamais vos médias, et les fichiers temporaires du cache sont supprimés automatiquement ou quand vous le décidez depuis les réglages.</li>
+Le nettoyage, l'analyse et la conversion se déroulent entièrement en local. La seule exception est l'ouverture d'une localisation analysée dans votre application de cartes, ce qui n'arrive qu'après votre accord. Le diagnostic de plantage optionnel et anonymisé via Sentry n'inclut jamais vos médias, et le cache temporaire est vidé automatiquement ou depuis les réglages.</li>
 
 <li><b>Open source et sans publicité :</b><br>
-Redact n'a ni publicité ni suivi comportemental, et son code source est disponible sur GitHub pour que chacun puisse le vérifier.</li>
+Redact n'a ni publicité ni suivi comportemental, et son code source est consultable par tous sur GitHub.</li>
 
 <li><b>13 langues :</b><br>
 Anglais, espagnol, français, allemand, italien, portugais, russe, japonais, coréen, chinois (simplifié et traditionnel), hindi et arabe.</li>
