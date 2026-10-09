@@ -1,12 +1,10 @@
 package com.doubleangels.redact.metadata;
 
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -23,8 +21,8 @@ import com.doubleangels.redact.CacheCleanup;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaSizeLimits;
-import com.doubleangels.redact.media.MediaStoreWrites;
 import com.doubleangels.redact.media.VideoMedia3Converter;
+import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.Closeable;
@@ -169,6 +167,9 @@ public class MetadataStripper {
     private volatile long transcodeOwnerId = -1L;
 
     @Nullable
+    private volatile CleanStats lastCleanStats;
+
+    @Nullable
     private volatile java.util.function.BooleanSupplier externalCancellationCheck;
 
     public void resetCancellation() {
@@ -194,6 +195,15 @@ public class MetadataStripper {
      */
     public void setCancellationCheck(@Nullable java.util.function.BooleanSupplier check) {
         externalCancellationCheck = check;
+    }
+
+    /**
+     * What the last {@link #stripExifData} or {@link #stripVideoMetadata} call found to remove, or
+     * null when that call failed before reading the source.
+     */
+    @Nullable
+    public CleanStats getLastCleanStats() {
+        return lastCleanStats;
     }
 
     private void throwIfCancelled() throws IOException {
@@ -309,6 +319,7 @@ public class MetadataStripper {
         SentryManager.log("The app is starting video metadata stripping for MediaStore.");
         SentryManager.setCustomKey("operation_type", "video_to_mediastore");
         Uri newUri = null;
+        lastCleanStats = null;
 
         try {
             throwIfCancelled();
@@ -316,6 +327,7 @@ public class MetadataStripper {
             updateProgress(1, 4, context.getString(R.string.strip_progress_reading_video));
 
             VideoPrivacySnapshot sourceSnapshot = extractVideoPrivacyMetadata(sourceUri);
+            lastCleanStats = countVideoPrivacyFields(sourceSnapshot);
 
             throwIfCancelled();
             int formatIndex = detectVideoFormatIndex(sourceUri, originalFilename);
@@ -396,11 +408,7 @@ public class MetadataStripper {
             SentryManager.setCustomKey("error_type", e.getClass().getName());
 
             if (newUri != null) {
-                try {
-                    contentResolver.delete(newUri, null, null);
-                } catch (Exception cleanupEx) {
-                    SentryManager.log("The partial file failed to clean up: " + cleanupEx.getMessage() + ".");
-                }
+                OutputDestination.discard(contentResolver, newUri);
             }
         } catch (Exception e) {
             if (shouldPropagateCancellation(e)) {
@@ -413,11 +421,7 @@ public class MetadataStripper {
             SentryManager.setCustomKey("error_type", e.getClass().getName());
 
             if (newUri != null) {
-                try {
-                    contentResolver.delete(newUri, null, null);
-                } catch (Exception cleanupEx) {
-                    SentryManager.log("The partial file failed to clean up: " + cleanupEx.getMessage() + ".");
-                }
+                OutputDestination.discard(contentResolver, newUri);
             }
         }
 
@@ -445,6 +449,7 @@ public class MetadataStripper {
         SentryManager.log("The app is starting image EXIF stripping for MediaStore.");
         SentryManager.setCustomKey("operation_type", "image_to_mediastore");
         Uri newUri = null;
+        lastCleanStats = null;
         Bitmap originalBitmap = null;
         File tempFile = null;
 
@@ -465,6 +470,7 @@ public class MetadataStripper {
             // Extract essential EXIF data to preserve (like orientation)
             updateProgress(2, 5, context.getString(R.string.strip_progress_reading_essential_metadata));
             readEssentialExifData(tempFile, false);
+            lastCleanStats = readCleanStats(tempFile);
 
             // Remove thumbnails from original
             try {
@@ -474,20 +480,8 @@ public class MetadataStripper {
                 SentryManager.log("The thumbnails could not be removed from the temp file: " + e.getMessage() + ".");
             }
 
-            // Prepare MediaStore entry for the new image
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.Images.Media.DISPLAY_NAME, newFilename);
-            values.put(MediaStore.Images.Media.MIME_TYPE, outputFormat.mimeType);
-            values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Redact");
-            MediaStoreWrites.markPending(values);
-
-            // Create the new entry in MediaStore
-            newUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-
-            if (newUri == null) {
-                SentryManager.log("The MediaStore entry failed to create.");
-                throw new IOException("Failed to create new image in MediaStore");
-            }
+            // Create the output (a pending MediaStore entry, or a file in the chosen folder)
+            newUri = OutputDestination.create(context, false, newFilename, outputFormat.mimeType);
 
             // Save bitmap without metadata
                         updateProgress(3, 5, context.getString(R.string.strip_progress_removing_metadata));
@@ -553,7 +547,7 @@ public class MetadataStripper {
             // The owning app can read/write its own pending entry; only other apps are blocked.
             updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
             verifyCleanedImageAtUri(newUri, extension);
-            MediaStoreWrites.markPublished(contentResolver, newUri);
+            OutputDestination.publish(contentResolver, newUri);
 
             lastProcessedFileUri = newUri;
             SentryManager.log("The image was processed successfully.");
@@ -569,11 +563,7 @@ public class MetadataStripper {
             SentryManager.setCustomKey("error_type", e.getClass().getName());
 
             if (newUri != null) {
-                try {
-                    contentResolver.delete(newUri, null, null);
-                } catch (Exception cleanupEx) {
-                    SentryManager.log("The partial file failed to clean up: " + cleanupEx.getMessage() + ".");
-                }
+                OutputDestination.discard(contentResolver, newUri);
                 newUri = null;
             }
         } catch (Exception e) {
@@ -587,11 +577,7 @@ public class MetadataStripper {
             SentryManager.setCustomKey("error_type", e.getClass().getName());
 
             if (newUri != null) {
-                try {
-                    contentResolver.delete(newUri, null, null);
-                } catch (Exception cleanupEx) {
-                    SentryManager.log("The partial file failed to clean up: " + cleanupEx.getMessage() + ".");
-                }
+                OutputDestination.discard(contentResolver, newUri);
                 newUri = null;
             }
         } finally {
@@ -1438,10 +1424,17 @@ public class MetadataStripper {
     static final class VideoPrivacySnapshot {
         @Nullable final String location;
         @Nullable final String date;
+        /** How many of {@link #ADDITIONAL_VIDEO_PRIVACY_KEYS} the video carries, for the clean summary. */
+        final int additionalFieldCount;
 
         VideoPrivacySnapshot(@Nullable String location, @Nullable String date) {
+            this(location, date, 0);
+        }
+
+        VideoPrivacySnapshot(@Nullable String location, @Nullable String date, int additionalFieldCount) {
             this.location = location;
             this.date = date;
+            this.additionalFieldCount = additionalFieldCount;
         }
 
         static VideoPrivacySnapshot empty() {
@@ -1469,15 +1462,43 @@ public class MetadataStripper {
             if (VIDEO_DATE_UNSET_PLACEHOLDER.equals(date)) {
                 date = null;
             }
+            // Counted while the file is open, so the clean summary needs no second read.
+            int additional = 0;
+            for (int key : ADDITIONAL_VIDEO_PRIVACY_KEYS) {
+                if (normalizeMetadataValue(retriever.extractMetadata(key)) != null) {
+                    additional++;
+                }
+            }
             return new VideoPrivacySnapshot(
                     normalizeMetadataValue(
                             retriever.extractMetadata(
                                     android.media.MediaMetadataRetriever.METADATA_KEY_LOCATION)),
-                    date);
+                    date,
+                    additional);
         } catch (Exception e) {
             SentryManager.log("The source video privacy metadata could not be read: " + e.getMessage() + ".");
             return VideoPrivacySnapshot.empty();
         }
+    }
+
+    /** Counts the identifying fields in an image before it is cleaned; unreadable EXIF counts as none. */
+    @NonNull
+    private CleanStats readCleanStats(@NonNull File imageFile) {
+        try {
+            return CleanStats.fromExif(
+                    new ExifInterface(imageFile.getAbsolutePath()),
+                    new java.util.HashSet<>(getTagsToPreserve(false)));
+        } catch (Exception e) {
+            return new CleanStats(0, false);
+        }
+    }
+
+    /** Counts the privacy fields the video verification checks: location, date and the additional keys. */
+    @NonNull
+    static CleanStats countVideoPrivacyFields(@NonNull VideoPrivacySnapshot snapshot) {
+        int fields = (snapshot.location != null ? 1 : 0) + (snapshot.date != null ? 1 : 0)
+                + snapshot.additionalFieldCount;
+        return new CleanStats(fields, snapshot.location != null);
     }
 
     private void requireVideoMetadataClean(

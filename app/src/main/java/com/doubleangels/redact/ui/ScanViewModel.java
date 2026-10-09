@@ -1,11 +1,14 @@
 package com.doubleangels.redact.ui;
 
 import android.app.Application;
+import android.net.Uri;
 import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import com.doubleangels.redact.media.MediaItem;
 
@@ -28,6 +31,7 @@ public class ScanViewModel extends AndroidViewModel {
     private MediaItem currentMediaItem;
     @Nullable
     private String statusMessage;
+    private final MutableLiveData<Uri> pendingUri = new MutableLiveData<>();
 
     public ScanViewModel(@NonNull Application application) {
         super(application);
@@ -98,6 +102,23 @@ public class ScanViewModel extends AndroidViewModel {
 
     public void setStatusMessage(@Nullable String message) {
         statusMessage = message;
+    }
+
+    /** A file opened from outside the app (ACTION_VIEW) that Scan should show next. */
+    public LiveData<Uri> getPendingUri() {
+        return pendingUri;
+    }
+
+    public void setPendingUri(@Nullable Uri uri) {
+        pendingUri.setValue(uri);
+    }
+
+    /** Returns the pending file and clears it so it is scanned exactly once. */
+    @Nullable
+    public Uri consumePendingUri() {
+        Uri uri = pendingUri.getValue();
+        pendingUri.setValue(null);
+        return uri;
     }
 
     public void clearScanState() {

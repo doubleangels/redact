@@ -19,6 +19,7 @@ import com.google.android.material.color.MaterialColors;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * List for Scan tab metadata displaying categorized section headers and interactive rows, with a red
@@ -86,6 +87,9 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
     private final List<Entry> displayedEntries = new ArrayList<>();
     @Nullable
     private String currentFilterSection = null;
+    /** Normalized search text (see {@link #normalize}); empty shows everything. */
+    @NonNull
+    private String query = "";
 
     @android.annotation.SuppressLint("NotifyDataSetChanged")
     public void setEntries(@NonNull List<Entry> newEntries) {
@@ -100,19 +104,91 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
         applyFilter();
     }
 
+    /**
+     * Shows only the rows whose name or value contains {@code text}, under their section headers
+     * with the count of matches; a section whose title matches shows in full. Case is ignored and
+     * spaces match underscores, so "gps altitude" finds GPS_ALTITUDE. Null or blank shows
+     * everything again.
+     */
+    public void setQuery(@Nullable String text) {
+        String normalized = normalize(text);
+        if (normalized.equals(query)) {
+            return;
+        }
+        query = normalized;
+        applyFilter();
+    }
+
+    public boolean hasQuery() {
+        return !query.isEmpty();
+    }
+
     @android.annotation.SuppressLint("NotifyDataSetChanged")
     private void applyFilter() {
-        displayedEntries.clear();
+        List<Entry> inSection = new ArrayList<>();
         if (currentFilterSection == null || currentFilterSection.isEmpty()) {
-            displayedEntries.addAll(allEntries);
+            inSection.addAll(allEntries);
         } else {
             for (Entry entry : allEntries) {
                 if (currentFilterSection.equals(entry.sectionId)) {
-                    displayedEntries.add(entry);
+                    inSection.add(entry);
                 }
             }
         }
+        displayedEntries.clear();
+        if (query.isEmpty()) {
+            displayedEntries.addAll(inSection);
+        } else {
+            addMatches(inSection);
+        }
         notifyDataSetChanged();
+    }
+
+    /**
+     * Adds the rows that match {@link #query}. A row belongs to the header above it. A header
+     * whose title matches keeps all of its rows and its full count; otherwise it is kept, with its
+     * count narrowed to the matches, only when at least one of its rows matches.
+     */
+    private void addMatches(@NonNull List<Entry> entries) {
+        Entry header = null;
+        boolean headerMatches = false;
+        List<Entry> matches = new ArrayList<>();
+        for (Entry entry : entries) {
+            if (entry.viewType == Entry.VIEW_TYPE_HEADER) {
+                flushGroup(header, headerMatches, matches);
+                header = entry;
+                headerMatches = contains(entry.headerTitle);
+                matches = new ArrayList<>();
+            } else if (headerMatches || contains(entry.key) || contains(entry.value)) {
+                matches.add(entry);
+            }
+        }
+        flushGroup(header, headerMatches, matches);
+    }
+
+    private void flushGroup(@Nullable Entry header, boolean headerMatches, @NonNull List<Entry> matches) {
+        if (matches.isEmpty()) {
+            return;
+        }
+        if (header != null) {
+            int count = headerMatches || header.itemCount == 0 ? header.itemCount : matches.size();
+            displayedEntries.add(Entry.header(header.sectionId,
+                    header.headerTitle != null ? header.headerTitle : "", header.headerIconRes, count));
+        }
+        displayedEntries.addAll(matches);
+    }
+
+    private boolean contains(@Nullable String text) {
+        return text != null && normalize(text).contains(query);
+    }
+
+    /** Lower-cases, treats underscores as spaces and collapses runs of spaces, for matching. */
+    @NonNull
+    static String normalize(@Nullable String text) {
+        if (text == null) {
+            return "";
+        }
+        return text.toLowerCase(Locale.ROOT).replace('_', ' ').replaceAll("\\s+", " ").trim();
     }
 
     @android.annotation.SuppressLint("NotifyDataSetChanged")
@@ -213,6 +289,7 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
                             ? entry.key
                             : v.getContext().getString(R.string.scan_metadata);
                     if (SensitiveClipboard.copy(v.getContext(), label, entry.value)) {
+                        Haptics.confirm(v);
                         Toast.makeText(v.getContext(), R.string.scan_copied_to_clipboard, Toast.LENGTH_SHORT).show();
                     }
                 }

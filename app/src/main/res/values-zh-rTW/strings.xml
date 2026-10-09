@@ -355,6 +355,19 @@
         <item quantity="other">%1$d 個欄位</item>
     </plurals>
 
+    <plurals name="clean_summary_fields">
+        <item quantity="other">已移除 %1$d 個中繼資料欄位。</item>
+    </plurals>
+    <plurals name="clean_summary_fields_location">
+        <item quantity="other">已移除 %1$d 個中繼資料欄位，包括位置資訊。</item>
+    </plurals>
+    <plurals name="clean_summary_location_files">
+        <item quantity="other">%1$d 個檔案含有位置資訊。</item>
+    </plurals>
+    <string name="clean_summary_nothing_found">未發現可識別身分的中繼資料。</string>
+
+    <string name="scan_search_hint">搜尋欄位</string>
+    <string name="scan_search_no_matches">沒有相符的欄位。</string>
     <string name="scan_section_details">詳細資料</string>
     <string name="scan_default_file_name">媒體檔案</string>
     <string name="convert_remove_item">移除 %1$s</string>
@@ -387,4 +400,15 @@
     <string name="settings_cleaning_workflow_subtitle">清理開始前 Redact 會檢查什麼，以及清理後如何處理原始檔案。</string>
     <string name="settings_section_privacy">隱私</string>
     <string name="settings_privacy_subtitle">避免你在 Redact 中看到和複製的內容出現在螢幕截圖、最近使用畫面和剪貼簿中。</string>
+    <string name="settings_output_folder_reset">還原預設</string>
+    <string name="settings_output_folders">輸出資料夾</string>
+    <string name="settings_output_folders_subtitle">選擇清理與轉換後檔案的儲存位置。開啟檔案瀏覽器，選擇或建立資料夾，然後輕觸「使用這個資料夾」。</string>
+    <string name="settings_output_images">圖片</string>
+    <string name="settings_output_videos">影片</string>
+    <string name="settings_output_choose">選擇資料夾</string>
+    <string name="settings_output_error">無法使用該資料夾，請選擇其他資料夾。</string>
+    <string name="button_share_results">分享</string>
+    <string name="share_results_chooser_title">分享方式…</string>
+    <string name="settings_output_unavailable">Redact 無法再儲存至這個資料夾，檔案將儲存至 %1$s。請重新選擇這個資料夾或改選其他資料夾。</string>
+    <string name="output_folder_fallback">%1$s 無法使用，改為儲存至 %2$s。</string>
 </resources>

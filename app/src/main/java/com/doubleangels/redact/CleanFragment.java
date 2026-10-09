@@ -29,6 +29,7 @@ import com.doubleangels.redact.media.ProcessingResourceWarnings;
 import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.permission.PermissionManager;
+import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.ui.UIStateManager;
 import com.google.android.material.button.MaterialButton;
@@ -53,6 +54,8 @@ public class CleanFragment extends Fragment {
 
     @Nullable
     private List<MediaItem> lastObservedSelectedItems;
+    /** The clean state this view saw last, so finishing a run buzzes once and a replay does not. */
+    private MainViewModel.ProcessingState lastObservedCleanState;
 
     private MainViewModel viewModel;
     private PermissionManager permissionManager;
@@ -62,6 +65,7 @@ public class CleanFragment extends Fragment {
     private MaterialButton stripButton;
     private MaterialButton selectButton;
     private TextView statusText;
+    private MaterialButton shareResultsButton;
     private LinearLayout progressContainer;
     private TextView progressText;
     private LinearProgressIndicator progressBar;
@@ -148,6 +152,12 @@ public class CleanFragment extends Fragment {
             this.selectButton = selectButton;
             stripButton = view.findViewById(R.id.stripButton);
             statusText = view.findViewById(R.id.statusText);
+            shareResultsButton = view.findViewById(R.id.shareResultsButton);
+            shareResultsButton.setOnClickListener(v -> {
+                Haptics.tick(v);
+                com.doubleangels.redact.ui.ShareResults.share(
+                        requireContext(), viewModel.getCleanOutputs());
+            });
             progressContainer = view.findViewById(R.id.progressContainer);
             progressText = view.findViewById(R.id.progressText);
             progressBar = view.findViewById(R.id.progressBar);
@@ -183,6 +193,7 @@ public class CleanFragment extends Fragment {
                     if (viewModel.getCleanProcessingState().getValue()
                             == MainViewModel.ProcessingState.PROCESSING) {
                         SentryManager.log("The user requested that the clean be cancelled.");
+                        Haptics.tick(v);
                         viewModel.cancelCleaning();
                         return;
                     }
@@ -387,8 +398,11 @@ public class CleanFragment extends Fragment {
                 }
             });
 
+            lastObservedCleanState = null;
             viewModel.getCleanProcessingState().observe(getViewLifecycleOwner(), state -> {
                 try {
+                    boolean justCompleted = Haptics.justCompleted(lastObservedCleanState, state);
+                    lastObservedCleanState = state;
                     SentryManager.setCustomKey("processing_state", state.toString());
                     switch (state) {
                         case PROCESSING:
@@ -425,7 +439,11 @@ public class CleanFragment extends Fragment {
                             if (count != null) {
                                 SentryManager.setCustomKey("processed_items", count);
                                 int batchTotal = total != null ? total : count;
-                                uiStateManager.setProcessedItemsStatus(count, batchTotal);
+                                uiStateManager.setProcessedItemsStatus(
+                                        count, batchTotal, viewModel.getCleanSummaryText());
+                            }
+                            if (justCompleted) {
+                                Haptics.runFinished(stripButton, count != null ? count : 0);
                             }
                             stripButton.setText(R.string.button_strip_exif_data);
                             stripButton.setIconResource(R.drawable.ic_clean);
@@ -450,6 +468,12 @@ public class CleanFragment extends Fragment {
                             }
                             break;
                     }
+                    com.doubleangels.redact.ui.ShareResults.updateButton(
+                            shareResultsButton, state == MainViewModel.ProcessingState.COMPLETED,
+                            viewModel.getCleanOutputs());
+                    // The result line (with what the batch removed) shows only once a clean has finished.
+                    statusText.setVisibility(state == MainViewModel.ProcessingState.COMPLETED
+                            ? View.VISIBLE : View.GONE);
                 } catch (Exception e) {
                     SentryManager.recordException(e);
                 }
@@ -491,7 +515,8 @@ public class CleanFragment extends Fragment {
                 Integer total = viewModel.getCleanBatchTotalCount().getValue();
                 if (count != null) {
                     int batchTotal = total != null ? total : count;
-                    uiStateManager.setProcessedItemsStatus(count, batchTotal);
+                    uiStateManager.setProcessedItemsStatus(
+                            count, batchTotal, viewModel.getCleanSummaryText());
                 }
                 stripButton.setText(R.string.button_strip_exif_data);
                 if (selectButton != null) {

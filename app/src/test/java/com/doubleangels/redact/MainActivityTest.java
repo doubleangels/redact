@@ -168,4 +168,50 @@ public class MainActivityTest {
         controller.pause().resume();
         assertTrue(controller.get().hasWindowFocus() || !controller.get().isFinishing());
     }
+
+    private int launchedTab(android.content.Intent intent) {
+        controller = Robolectric.buildActivity(MainActivity.class, intent).setup();
+        shadowOf(Looper.getMainLooper()).idle();
+        BottomNavigationView nav = controller.get().findViewById(R.id.bottomNavigation);
+        return nav.getSelectedItemId();
+    }
+
+    @Test
+    public void shortcuts_openTheirTab() {
+        android.content.Intent scan = new android.content.Intent(android.content.Intent.ACTION_MAIN)
+                .setClassName("com.doubleangels.redact", "com.doubleangels.redact.MainActivity")
+                .putExtra("tab", "scan");
+        assertEquals(R.id.navigation_scan, launchedTab(scan));
+    }
+
+    @Test
+    public void unknownShortcutTab_opensClean() {
+        android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_MAIN)
+                .putExtra("tab", "nonsense");
+        assertEquals(R.id.navigation_clean, launchedTab(intent));
+    }
+
+    @Test
+    public void shortcutWhileRunning_switchesTab() {
+        MainActivity activity = launch();
+        controller.newIntent(new android.content.Intent(android.content.Intent.ACTION_MAIN)
+                .putExtra("tab", "convert"));
+        shadowOf(Looper.getMainLooper()).idle();
+        BottomNavigationView nav = activity.findViewById(R.id.bottomNavigation);
+        assertEquals(R.id.navigation_convert, nav.getSelectedItemId());
+    }
+
+    @Test
+    public void openingAnImage_goesToScan_andANonMediaFileDoesNot() {
+        FakeDocumentsProvider.install(org.robolectric.RuntimeEnvironment.getApplication());
+        android.net.Uri image = android.net.Uri.parse(
+                "content://com.android.externalstorage.documents/document/primary%3APictures%2Fa.jpg");
+        android.content.Intent view = new android.content.Intent(android.content.Intent.ACTION_VIEW)
+                .setData(image);
+        assertEquals(R.id.navigation_scan, launchedTab(view));
+        controller.pause().stop().destroy();
+
+        android.content.Intent noData = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+        assertEquals(R.id.navigation_clean, launchedTab(noData));
+    }
 }

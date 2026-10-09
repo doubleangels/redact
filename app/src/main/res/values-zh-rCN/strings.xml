@@ -355,6 +355,19 @@
         <item quantity="other">%1$d 个字段</item>
     </plurals>
 
+    <plurals name="clean_summary_fields">
+        <item quantity="other">已移除 %1$d 个元数据字段。</item>
+    </plurals>
+    <plurals name="clean_summary_fields_location">
+        <item quantity="other">已移除 %1$d 个元数据字段，包括位置信息。</item>
+    </plurals>
+    <plurals name="clean_summary_location_files">
+        <item quantity="other">%1$d 个文件包含位置信息。</item>
+    </plurals>
+    <string name="clean_summary_nothing_found">未发现可识别身份的元数据。</string>
+
+    <string name="scan_search_hint">搜索字段</string>
+    <string name="scan_search_no_matches">没有匹配的字段。</string>
     <string name="scan_section_details">详细信息</string>
     <string name="scan_default_file_name">媒体文件</string>
     <string name="convert_remove_item">移除 %1$s</string>
@@ -387,4 +400,15 @@
     <string name="settings_cleaning_workflow_subtitle">清理开始前 Redact 会检查什么，以及清理后如何处理原始文件。</string>
     <string name="settings_section_privacy">隐私</string>
     <string name="settings_privacy_subtitle">避免你在 Redact 中看到和复制的内容出现在截图、最近任务界面和剪贴板中。</string>
+    <string name="settings_output_folder_reset">恢复默认</string>
+    <string name="settings_output_folders">输出文件夹</string>
+    <string name="settings_output_folders_subtitle">选择清理和转换后文件的保存位置。打开文件浏览器，选择或新建文件夹，然后点按“使用此文件夹”。</string>
+    <string name="settings_output_images">图片</string>
+    <string name="settings_output_videos">视频</string>
+    <string name="settings_output_choose">选择文件夹</string>
+    <string name="settings_output_error">无法使用该文件夹，请选择其他文件夹。</string>
+    <string name="button_share_results">分享</string>
+    <string name="share_results_chooser_title">分享方式…</string>
+    <string name="settings_output_unavailable">Redact 无法再保存到此文件夹，文件将保存到 %1$s。请重新选择此文件夹或选择其他文件夹。</string>
+    <string name="output_folder_fallback">%1$s 不可用，改为保存到 %2$s。</string>
 </resources>

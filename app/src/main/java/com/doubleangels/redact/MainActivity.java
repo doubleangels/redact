@@ -33,6 +33,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG_CONVERT = "convert";
     private static final String TAG_SETTINGS = "settings";
     private static final String KEY_SELECTED_TAB = "selected_tab";
+    /** Extra set by the launcher shortcuts in res/xml/shortcuts.xml. */
+    private static final String EXTRA_TAB = "tab";
 
     @Override
     protected void onDestroy() {
@@ -113,7 +115,10 @@ public class MainActivity extends AppCompatActivity {
                 bottomNavigationView.setSelectedItemId(restoredTab);
                 restoreTabVisibility(restoredTab);
             } else {
-                bottomNavigationView.setSelectedItemId(R.id.navigation_clean);
+                bottomNavigationView.setSelectedItemId(
+                        queueViewIntent(getIntent())
+                                ? R.id.navigation_scan
+                                : tabFromIntent(getIntent()));
             }
 
             SentryManager.setCustomKey("app_started", true);
@@ -126,6 +131,48 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
+    }
+
+    @Override
+    protected void onNewIntent(@NonNull android.content.Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (queueViewIntent(intent)) {
+            selectTab(R.id.navigation_scan);
+        } else if (intent.hasExtra(EXTRA_TAB)) {
+            selectTab(tabFromIntent(intent));
+        }
+    }
+
+    /** Queues an externally opened image/video for Scan. Returns whether one was queued. */
+    private boolean queueViewIntent(@Nullable android.content.Intent intent) {
+        if (intent == null || !android.content.Intent.ACTION_VIEW.equals(intent.getAction())) {
+            return false;
+        }
+        android.net.Uri data = intent.getData();
+        if (data == null) {
+            return false;
+        }
+        try {
+            String type = getContentResolver().getType(data);
+            if (type == null || !(type.startsWith("image/") || type.startsWith("video/"))) {
+                return false;
+            }
+            new androidx.lifecycle.ViewModelProvider(this)
+                    .get(com.doubleangels.redact.ui.ScanViewModel.class).setPendingUri(data);
+            return true;
+        } catch (Exception e) {
+            SentryManager.recordException(e);
+            return false;
+        }
+    }
+
+    private static int tabFromIntent(@Nullable android.content.Intent intent) {
+        String tab = intent == null ? null : intent.getStringExtra(EXTRA_TAB);
+        if (TAG_SCAN.equals(tab)) {
+            return R.id.navigation_scan;
+        }
+        return TAG_CONVERT.equals(tab) ? R.id.navigation_convert : R.id.navigation_clean;
     }
 
     /** Switches bottom navigation and shows the tab fragment. */

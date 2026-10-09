@@ -356,6 +356,19 @@
         <item quantity="other">%1$d 項目</item>
     </plurals>
 
+    <plurals name="clean_summary_fields">
+        <item quantity="other">%1$d 件のメタデータ項目を削除しました。</item>
+    </plurals>
+    <plurals name="clean_summary_fields_location">
+        <item quantity="other">位置情報を含む %1$d 件のメタデータ項目を削除しました。</item>
+    </plurals>
+    <plurals name="clean_summary_location_files">
+        <item quantity="other">%1$d 件のファイルに位置情報が含まれていました。</item>
+    </plurals>
+    <string name="clean_summary_nothing_found">個人を特定できるメタデータは見つかりませんでした。</string>
+
+    <string name="scan_search_hint">項目を検索</string>
+    <string name="scan_search_no_matches">一致する項目はありません。</string>
     <string name="scan_section_details">詳細</string>
     <string name="scan_default_file_name">メディアファイル</string>
     <string name="convert_remove_item">%1$s を削除</string>
@@ -388,4 +401,15 @@
     <string name="settings_cleaning_workflow_subtitle">クリーンの開始前に Redact が確認する内容と、その後の元ファイルの扱いです。</string>
     <string name="settings_section_privacy">プライバシー</string>
     <string name="settings_privacy_subtitle">Redact で見たりコピーしたりした内容を、スクリーンショット、最近使ったアプリ画面、クリップボードに残さないようにします。</string>
+    <string name="settings_output_folder_reset">デフォルトに戻す</string>
+    <string name="settings_output_folders">出力フォルダ</string>
+    <string name="settings_output_folders_subtitle">クリーン済みおよび変換済みファイルの保存先を選びます。ファイルブラウザを開いてフォルダを選択または作成し、「このフォルダを使用」をタップします。</string>
+    <string name="settings_output_images">画像</string>
+    <string name="settings_output_videos">動画</string>
+    <string name="settings_output_choose">フォルダを選択</string>
+    <string name="settings_output_error">このフォルダは使用できません。別のフォルダを選択してください。</string>
+    <string name="button_share_results">共有</string>
+    <string name="share_results_chooser_title">共有先…</string>
+    <string name="settings_output_unavailable">Redact はこのフォルダに保存できなくなったため、ファイルは %1$s に保存されます。もう一度選ぶか、別のフォルダを選んでください。</string>
+    <string name="output_folder_fallback">%1$s を使用できないため、%2$s に保存します。</string>
 </resources>

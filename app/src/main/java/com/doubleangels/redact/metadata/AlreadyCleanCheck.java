@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -89,6 +90,9 @@ public final class AlreadyCleanCheck {
     }
 
     static boolean isRedactOutput(@NonNull Context context, @NonNull Uri uri) {
+        if (com.doubleangels.redact.media.OutputDestination.isInChosenFolder(context, uri)) {
+            return true;
+        }
         String relativePath = queryRelativePath(context, uri);
         if (relativePath == null) {
             try {
@@ -104,12 +108,23 @@ public final class AlreadyCleanCheck {
             return false;
         }
         String normalized = relativePath.replace('\\', '/');
-        for (String dir : REDACT_OUTPUT_DIRS) {
-            if (normalized.equals(dir) || normalized.startsWith(dir + "/")) {
+        List<String> outputDirs = new ArrayList<>(Arrays.asList(REDACT_OUTPUT_DIRS));
+        // The picker's Images and Recent views hand out MediaStore URIs, so chosen folders are
+        // matched by path here as well as by document ID above.
+        outputDirs.addAll(com.doubleangels.redact.media.OutputDestination.chosenRelativePaths(context));
+        for (String dir : outputDirs) {
+            if (isInsideDir(normalized, dir)) {
                 return true;
             }
         }
         return false;
+    }
+
+    /** True when {@code relativePath} is {@code dir} or a folder inside it, ignoring case (shared storage does). */
+    private static boolean isInsideDir(@NonNull String relativePath, @NonNull String dir) {
+        String path = relativePath.toLowerCase(Locale.ROOT);
+        String folder = dir.toLowerCase(Locale.ROOT);
+        return path.equals(folder) || path.startsWith(folder + "/");
     }
 
     @Nullable

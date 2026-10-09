@@ -365,6 +365,34 @@
         <item quantity="other">%1$d حقل</item>
     </plurals>
 
+    <plurals name="clean_summary_fields">
+        <item quantity="zero">تمت إزالة %1$d حقل بيانات وصفية.</item>
+        <item quantity="one">تمت إزالة حقل بيانات وصفية واحد.</item>
+        <item quantity="two">تمت إزالة حقلَي بيانات وصفية.</item>
+        <item quantity="few">تمت إزالة %1$d حقول بيانات وصفية.</item>
+        <item quantity="many">تمت إزالة %1$d حقلًا من البيانات الوصفية.</item>
+        <item quantity="other">تمت إزالة %1$d حقل بيانات وصفية.</item>
+    </plurals>
+    <plurals name="clean_summary_fields_location">
+        <item quantity="zero">تمت إزالة %1$d حقل بيانات وصفية، بما في ذلك الموقع.</item>
+        <item quantity="one">تمت إزالة حقل بيانات وصفية واحد، بما في ذلك الموقع.</item>
+        <item quantity="two">تمت إزالة حقلَي بيانات وصفية، بما في ذلك الموقع.</item>
+        <item quantity="few">تمت إزالة %1$d حقول بيانات وصفية، بما في ذلك الموقع.</item>
+        <item quantity="many">تمت إزالة %1$d حقلًا من البيانات الوصفية، بما في ذلك الموقع.</item>
+        <item quantity="other">تمت إزالة %1$d حقل بيانات وصفية، بما في ذلك الموقع.</item>
+    </plurals>
+    <plurals name="clean_summary_location_files">
+        <item quantity="zero">%1$d ملف يحتوي على موقع.</item>
+        <item quantity="one">ملف واحد كان يحتوي على موقع.</item>
+        <item quantity="two">ملفان كانا يحتويان على موقع.</item>
+        <item quantity="few">%1$d ملفات كانت تحتوي على موقع.</item>
+        <item quantity="many">%1$d ملفًا كان يحتوي على موقع.</item>
+        <item quantity="other">%1$d ملف كان يحتوي على موقع.</item>
+    </plurals>
+    <string name="clean_summary_nothing_found">لم يتم العثور على بيانات وصفية تعريفية.</string>
+
+    <string name="scan_search_hint">البحث في الحقول</string>
+    <string name="scan_search_no_matches">لا توجد حقول مطابقة.</string>
     <string name="scan_section_details">التفاصيل</string>
     <string name="scan_default_file_name">ملف وسائط</string>
     <string name="convert_remove_item">إزالة %1$s</string>
@@ -407,4 +435,15 @@
     <string name="settings_cleaning_workflow_subtitle">ما يتحقق منه Redact قبل بدء التنظيف، وما يحدث لملفاتك الأصلية بعده.</string>
     <string name="settings_section_privacy">الخصوصية</string>
     <string name="settings_privacy_subtitle">يُبقي ما تراه وتنسخه في Redact خارج لقطات الشاشة وشاشة التطبيقات الأخيرة والحافظة.</string>
+    <string name="settings_output_folder_reset">إعادة التعيين إلى الافتراضي</string>
+    <string name="settings_output_folders">مجلدات الإخراج</string>
+    <string name="settings_output_folders_subtitle">اختر مكان حفظ الملفات المنظّفة والمحوّلة. افتح متصفح الملفات لاختيار مجلد أو إنشائه، ثم اضغط على \"استخدام هذا المجلد\".</string>
+    <string name="settings_output_images">الصور</string>
+    <string name="settings_output_videos">الفيديوهات</string>
+    <string name="settings_output_choose">اختيار المجلد</string>
+    <string name="settings_output_error">تعذّر استخدام هذا المجلد. اختر مجلدًا آخر.</string>
+    <string name="button_share_results">مشاركة</string>
+    <string name="share_results_chooser_title">مشاركة عبر…</string>
+    <string name="settings_output_unavailable">لم يعد بإمكان Redact الحفظ في هذا المجلد، لذلك تُحفظ الملفات في %1$s. اختره مرة أخرى أو اختر مجلدًا آخر.</string>
+    <string name="output_folder_fallback">يتم الحفظ في %2$s بدلًا من ذلك: %1$s غير متاح.</string>
 </resources>

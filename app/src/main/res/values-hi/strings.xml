@@ -357,6 +357,22 @@
         <item quantity="other">%1$d फ़ील्ड</item>
     </plurals>
 
+    <plurals name="clean_summary_fields">
+        <item quantity="one">%1$d मेटाडेटा फ़ील्ड हटाया गया।</item>
+        <item quantity="other">%1$d मेटाडेटा फ़ील्ड हटाए गए।</item>
+    </plurals>
+    <plurals name="clean_summary_fields_location">
+        <item quantity="one">स्थान सहित %1$d मेटाडेटा फ़ील्ड हटाया गया।</item>
+        <item quantity="other">स्थान सहित %1$d मेटाडेटा फ़ील्ड हटाए गए।</item>
+    </plurals>
+    <plurals name="clean_summary_location_files">
+        <item quantity="one">%1$d फ़ाइल में स्थान था।</item>
+        <item quantity="other">%1$d फ़ाइलों में स्थान था।</item>
+    </plurals>
+    <string name="clean_summary_nothing_found">कोई पहचान योग्य मेटाडेटा नहीं मिला।</string>
+
+    <string name="scan_search_hint">फ़ील्ड खोजें</string>
+    <string name="scan_search_no_matches">कोई मिलता-जुलता फ़ील्ड नहीं।</string>
     <string name="scan_section_details">विवरण</string>
     <string name="scan_default_file_name">मीडिया फ़ाइल</string>
     <string name="convert_remove_item">%1$s हटाएँ</string>
@@ -391,4 +407,15 @@
     <string name="settings_cleaning_workflow_subtitle">सफ़ाई शुरू होने से पहले Redact क्या जाँचता है और उसके बाद आपकी मूल फ़ाइलों का क्या होता है।</string>
     <string name="settings_section_privacy">गोपनीयता</string>
     <string name="settings_privacy_subtitle">Redact में आप जो देखते और कॉपी करते हैं उसे स्क्रीनशॉट, हाल के ऐप्स की स्क्रीन और क्लिपबोर्ड से दूर रखता है।</string>
+    <string name="settings_output_folder_reset">डिफ़ॉल्ट पर रीसेट करें</string>
+    <string name="settings_output_folders">आउटपुट फ़ोल्डर</string>
+    <string name="settings_output_folders_subtitle">चुनें कि साफ़ और परिवर्तित फ़ाइलें कहाँ सहेजी जाएँ। फ़ाइल ब्राउज़र खोलकर फ़ोल्डर चुनें या बनाएँ, फिर \"इस फ़ोल्डर का इस्तेमाल करें\" पर टैप करें।</string>
+    <string name="settings_output_images">छवियाँ</string>
+    <string name="settings_output_videos">वीडियो</string>
+    <string name="settings_output_choose">फ़ोल्डर चुनें</string>
+    <string name="settings_output_error">यह फ़ोल्डर उपयोग नहीं किया जा सका। कोई दूसरा चुनें।</string>
+    <string name="button_share_results">साझा करें</string>
+    <string name="share_results_chooser_title">इसके ज़रिए साझा करें…</string>
+    <string name="settings_output_unavailable">Redact अब इस फ़ोल्डर में सेव नहीं कर सकता, इसलिए फ़ाइलें %1$s में जाती हैं। इसे फिर से चुनें या कोई दूसरा फ़ोल्डर चुनें।</string>
+    <string name="output_folder_fallback">%1$s उपलब्ध नहीं है, इसलिए %2$s में सेव किया जा रहा है।</string>
 </resources>

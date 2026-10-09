@@ -28,6 +28,25 @@ public class AppPreferencesTest {
     }
 
     @Test
+    public void outputTree_isUnsetByDefault_perMediaType_andResets() {
+        android.net.Uri images = android.net.Uri.parse(
+                "content://com.android.externalstorage.documents/tree/primary%3APictures%2FPrivate");
+        android.net.Uri videos = android.net.Uri.parse(
+                "content://com.android.externalstorage.documents/tree/primary%3AMovies%2FPrivate");
+        assertEquals(null, AppPreferences.getOutputTree(context, false));
+        assertEquals(null, AppPreferences.getOutputTree(context, true));
+
+        AppPreferences.setOutputTree(context, false, images);
+        AppPreferences.setOutputTree(context, true, videos);
+        assertEquals(images, AppPreferences.getOutputTree(context, false));
+        assertEquals(videos, AppPreferences.getOutputTree(context, true));
+
+        AppPreferences.resetOutputTree(context, false);
+        assertEquals(null, AppPreferences.getOutputTree(context, false));
+        assertEquals(videos, AppPreferences.getOutputTree(context, true));
+    }
+
+    @Test
     public void qualityForLossyFormat_returnsPresetAndFormatSpecificQuality() {
         assertEquals(92, AppPreferences.qualityForLossyFormat(
                 AppPreferences.QUALITY_PRESET_HIGH, false));

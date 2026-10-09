@@ -2,8 +2,10 @@ package com.doubleangels.redact;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * Central access to app-wide user preferences stored in the default SharedPreferences file.
@@ -34,6 +36,8 @@ public final class AppPreferences {
     private static final String KEY_VIDEO_FALLBACK_COPY = "video_fallback_copy";
     private static final String KEY_INITIAL_PERMISSIONS_PROMPTED = "initial_permissions_prompted";
     private static final String KEY_MAPS_LOCATION_CONSENT_GIVEN = "maps_location_consent_given";
+    private static final String KEY_OUTPUT_TREE_IMAGES = "output_tree_images";
+    private static final String KEY_OUTPUT_TREE_VIDEOS = "output_tree_videos";
 
     /** High quality — matches legacy defaults. */
     public static final int QUALITY_PRESET_HIGH = 0;
@@ -213,6 +217,28 @@ public final class AppPreferences {
             default -> 4096;
         };
         prefs(context).edit().putInt(KEY_MAX_BITMAP_SIZE, clamped).apply();
+    }
+
+    /**
+     * The folder (a Storage Access Framework tree URI) the user picked for cleaned and converted
+     * images or videos, or null to use the default {@code Pictures/Redact} / {@code Movies/Redact}.
+     */
+    @Nullable
+    public static Uri getOutputTree(@NonNull Context context, boolean video) {
+        String stored = prefs(context).getString(outputTreeKey(video), null);
+        return stored == null ? null : Uri.parse(stored);
+    }
+
+    public static void setOutputTree(@NonNull Context context, boolean video, @NonNull Uri tree) {
+        prefs(context).edit().putString(outputTreeKey(video), tree.toString()).apply();
+    }
+
+    public static void resetOutputTree(@NonNull Context context, boolean video) {
+        prefs(context).edit().remove(outputTreeKey(video)).apply();
+    }
+
+    private static String outputTreeKey(boolean video) {
+        return video ? KEY_OUTPUT_TREE_VIDEOS : KEY_OUTPUT_TREE_IMAGES;
     }
 
     public static boolean isPreserveCameraSettings(@NonNull Context context) {

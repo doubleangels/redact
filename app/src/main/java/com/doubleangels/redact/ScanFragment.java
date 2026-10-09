@@ -4,10 +4,14 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -30,6 +34,7 @@ import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.metadata.MetadataDisplayer;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.sentry.SentryManager;
+import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.ui.ScanMetadataAdapter;
 import com.doubleangels.redact.ui.ScanViewModel;
@@ -38,6 +43,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,6 +61,9 @@ import io.sentry.SpanStatus;
  * Scan tab: metadata inspection UI; hosted in {@link MainActivity}'s fragment container.
  */
 public class ScanFragment extends Fragment {
+
+    /** How long the metadata search waits after the last keystroke before filtering. */
+    static final long SEARCH_DEBOUNCE_MS = 150;
 
     private static final Comparator<Pair<String, String>> METADATA_ROW_KEY_ORDER = (a, b) -> {
         String ka = a.first;
@@ -99,6 +108,11 @@ public class ScanFragment extends Fragment {
     private ScanMetadataAdapter scanMetadataAdapter;
     private TextView metadataFooter;
     private MaterialCardView metadataCard;
+    private View metadataSearchLayout;
+    private TextInputEditText metadataSearchInput;
+    private TextView metadataNoMatches;
+    /** Applies the search once typing pauses, so a fast typist does not re-filter on every key. */
+    private final Runnable applyMetadataSearch = this::applyMetadataSearch;
     private HorizontalScrollView scanActionCardsScroll;
     private LinearLayout scanActionCardsContainer;
 
@@ -127,18 +141,22 @@ public class ScanFragment extends Fragment {
                 uri -> {
                     if (uri != null) {
                         SentryManager.log("Media was selected successfully in ScanFragment.");
-                        if (mediaSelector != null) {
-                            MediaItem item = mediaSelector.processMediaUri(uri);
-                            currentMediaItem = item;
-                            checkLocationPermissionAndDisplayMetadata(item.uri());
-                        } else {
-                            currentMediaItem = null;
-                            checkLocationPermissionAndDisplayMetadata(uri);
-                        }
+                        scanUri(uri);
                     } else {
                         SentryManager.log("Media selection was canceled or failed in ScanFragment.");
                     }
                 });
+    }
+
+    private void scanUri(@NonNull Uri uri) {
+        if (mediaSelector != null) {
+            MediaItem item = mediaSelector.processMediaUri(uri);
+            currentMediaItem = item;
+            checkLocationPermissionAndDisplayMetadata(item.uri());
+        } else {
+            currentMediaItem = null;
+            checkLocationPermissionAndDisplayMetadata(uri);
+        }
     }
 
     @Nullable
@@ -185,6 +203,7 @@ public class ScanFragment extends Fragment {
 
         metadataFooter = view.findViewById(R.id.metadataFooter);
         metadataCard = view.findViewById(R.id.metadataCard);
+        setUpMetadataSearch(view);
         scanActionCardsScroll = view.findViewById(R.id.scanActionCardsScroll);
         scanActionCardsContainer = view.findViewById(R.id.scanActionCardsContainer);
 
@@ -236,6 +255,14 @@ public class ScanFragment extends Fragment {
             permissionManager.checkPermissions();
         }
         restoreScanUiIfNeeded();
+
+        // Files opened from another app (ACTION_VIEW); delivered via MainActivity.
+        scanViewModel.getPendingUri().observe(getViewLifecycleOwner(), pending -> {
+            if (pending != null) {
+                SentryManager.log("Media was opened from another app in ScanFragment.");
+                scanUri(scanViewModel.consumePendingUri());
+            }
+        });
     }
 
     private void onSelectMediaClicked() {
@@ -343,6 +370,9 @@ public class ScanFragment extends Fragment {
     @Override
     public void onDestroyView() {
         MetadataDisplayer.cancelActiveScan();
+        if (metadataSearchInput != null) {
+            metadataSearchInput.removeCallbacks(applyMetadataSearch);
+        }
         if (heroThumbnail != null) {
             try {
                 Glide.with(heroThumbnail).clear(heroThumbnail);
@@ -419,6 +449,7 @@ public class ScanFragment extends Fragment {
             showProgress(true);
 
             clearMetadataUi();
+            clearMetadataSearch();
             lastMetadataSections = null;
             metadataCard.setVisibility(View.GONE);
             clearCoordinateState();
@@ -505,6 +536,8 @@ public class ScanFragment extends Fragment {
                         List<ScanMetadataAdapter.Entry> errorRow = new ArrayList<>();
                         errorRow.add(ScanMetadataAdapter.Entry.row(null, getString(R.string.scan_extraction_fail)));
                         scanMetadataAdapter.setEntries(errorRow);
+                        metadataSearchLayout.setVisibility(View.GONE);
+                        updateNoMatches();
                         showEmptyState(false);
                         metadataCard.setVisibility(View.VISIBLE);
                         clearCoordinateState();
@@ -594,6 +627,8 @@ public class ScanFragment extends Fragment {
         }
 
         scanMetadataAdapter.setEntries(adapterEntries);
+        metadataSearchLayout.setVisibility(View.VISIBLE);
+        updateNoMatches();
         metadataCard.setVisibility(View.VISIBLE);
 
         updateScanActionCards(allRows);
@@ -761,6 +796,61 @@ public class ScanFragment extends Fragment {
         return sb.toString().trim();
     }
 
+    /**
+     * Filters the metadata list as the user types. The field restores its own text after a
+     * rotation, which re-applies the filter; scanning a new file clears it.
+     */
+    private void setUpMetadataSearch(@NonNull View view) {
+        metadataSearchLayout = view.findViewById(R.id.metadataSearchLayout);
+        metadataSearchInput = view.findViewById(R.id.metadataSearchInput);
+        metadataNoMatches = view.findViewById(R.id.metadataNoMatches);
+        metadataSearchInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                metadataSearchInput.removeCallbacks(applyMetadataSearch);
+                metadataSearchInput.postDelayed(applyMetadataSearch, SEARCH_DEBOUNCE_MS);
+            }
+        });
+        metadataSearchInput.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId != EditorInfo.IME_ACTION_SEARCH) {
+                return false;
+            }
+            InputMethodManager imm = v.getContext().getSystemService(InputMethodManager.class);
+            if (imm != null) {
+                imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+            }
+            v.clearFocus();
+            return true;
+        });
+    }
+
+    private void applyMetadataSearch() {
+        Editable text = metadataSearchInput.getText();
+        scanMetadataAdapter.setQuery(text != null ? text.toString() : null);
+        updateNoMatches();
+    }
+
+    private void clearMetadataSearch() {
+        metadataSearchInput.setText(null);
+        metadataSearchInput.clearFocus();
+        // Apply now rather than after the pause, so the next file never shows through the old query.
+        metadataSearchInput.removeCallbacks(applyMetadataSearch);
+        applyMetadataSearch();
+    }
+
+    private void updateNoMatches() {
+        metadataNoMatches.setVisibility(scanMetadataAdapter.hasQuery()
+                && scanMetadataAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
+    }
+
     private void clearMetadataUi() {
         scanMetadataAdapter.clear();
         lastMetadataRows = List.of();
@@ -795,6 +885,14 @@ public class ScanFragment extends Fragment {
             added = true;
         }
 
+        if (currentMediaItem != null) {
+            addScanActionCard(R.drawable.ic_clean, getString(R.string.scan_clean_this_file),
+                    v -> openInCleanTab(currentMediaItem));
+            addScanActionCard(R.drawable.ic_convert, getString(R.string.scan_convert_this_file),
+                    v -> openInConvertTab(currentMediaItem));
+            added = true;
+        }
+
         String cameraLabel = cameraLabelFromMetadataRows(allRows);
         if (cameraLabel != null && !cameraLabel.isEmpty()) {
             addScanActionCard(R.drawable.ic_camera_24, getString(R.string.scan_copy_camera),
@@ -805,14 +903,6 @@ public class ScanFragment extends Fragment {
         if (lastMetadataPlainText != null && !lastMetadataPlainText.isEmpty()) {
             addScanActionCard(R.drawable.ic_content_copy_24, getString(R.string.scan_copy_all_metadata),
                     v -> copyPlainTextToClipboard(lastMetadataPlainText));
-            added = true;
-        }
-
-        if (currentMediaItem != null) {
-            addScanActionCard(R.drawable.ic_clean, getString(R.string.scan_clean_this_file),
-                    v -> openInCleanTab(currentMediaItem));
-            addScanActionCard(R.drawable.ic_convert, getString(R.string.scan_convert_this_file),
-                    v -> openInConvertTab(currentMediaItem));
             added = true;
         }
 
@@ -871,6 +961,7 @@ public class ScanFragment extends Fragment {
 
     private void copyPlainTextToClipboard(@NonNull String text) {
         if (SensitiveClipboard.copy(requireContext(), getString(R.string.scan_metadata), text)) {
+            Haptics.confirm(getView());
             Toast.makeText(requireContext(), R.string.scan_copied_to_clipboard, Toast.LENGTH_SHORT).show();
         }
     }

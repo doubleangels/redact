@@ -233,6 +233,12 @@ public final class LocalNotifications {
      * Always cancels the ongoing progress notification first, then shows a result.
      */
     public static void showCleanComplete(@NonNull Context context, int okCount, int failCount) {
+        showCleanComplete(context, okCount, failCount, null);
+    }
+
+    /** Same as {@link #showCleanComplete(Context, int, int)}, followed by what the batch removed. */
+    public static void showCleanComplete(@NonNull Context context, int okCount, int failCount,
+                                         @androidx.annotation.Nullable String summary) {
         cancelCleanProgress(context);
 
         if (!canPostCleanNotifications(context)) {
@@ -248,11 +254,15 @@ public final class LocalNotifications {
         } else {
             text = app.getString(R.string.notification_clean_failed);
         }
+        if (okCount > 0) {
+            text = com.doubleangels.redact.ui.CleanSummary.append(text, summary);
+        }
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(app, CHANNEL_ID_TASKS)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(title)
                 .setContentText(text)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(text))
                 .setProgress(0, 0, false)
                 .setOngoing(false)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)

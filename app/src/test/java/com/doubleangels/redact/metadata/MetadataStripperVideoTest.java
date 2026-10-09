@@ -404,4 +404,17 @@ public class MetadataStripperVideoTest {
         stripper.resetCancellation();
         call(stripper, "checkCancelled", new Class<?>[0]);
     }
+
+    @Test
+    public void countVideoPrivacyFields_addsLocationDateAndTheOtherKeys() {
+        CleanStats all = MetadataStripper.countVideoPrivacyFields(
+                new MetadataStripper.VideoPrivacySnapshot("+40.7-074.0/", "20250101T000000.000Z", 2));
+        org.junit.Assert.assertEquals(4, all.removedFields);
+        org.junit.Assert.assertTrue(all.hadLocation);
+
+        CleanStats none = MetadataStripper.countVideoPrivacyFields(
+                new MetadataStripper.VideoPrivacySnapshot(null, null));
+        org.junit.Assert.assertEquals(0, none.removedFields);
+        org.junit.Assert.assertFalse(none.hadLocation);
+    }
 }

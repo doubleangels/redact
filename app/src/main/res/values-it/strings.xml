@@ -359,6 +359,25 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
         <item quantity="other">%1$d campi</item>
     </plurals>
 
+    <plurals name="clean_summary_fields">
+        <item quantity="one">Rimosso %1$d campo di metadati.</item>
+        <item quantity="many">Rimossi %1$d di campi di metadati.</item>
+        <item quantity="other">Rimossi %1$d campi di metadati.</item>
+    </plurals>
+    <plurals name="clean_summary_fields_location">
+        <item quantity="one">Rimosso %1$d campo di metadati, inclusa la posizione.</item>
+        <item quantity="many">Rimossi %1$d di campi di metadati, inclusa la posizione.</item>
+        <item quantity="other">Rimossi %1$d campi di metadati, inclusa la posizione.</item>
+    </plurals>
+    <plurals name="clean_summary_location_files">
+        <item quantity="one">%1$d file conteneva la posizione.</item>
+        <item quantity="many">%1$d di file contenevano la posizione.</item>
+        <item quantity="other">%1$d file contenevano la posizione.</item>
+    </plurals>
+    <string name="clean_summary_nothing_found">Nessun metadato identificativo trovato.</string>
+
+    <string name="scan_search_hint">Cerca campi</string>
+    <string name="scan_search_no_matches">Nessun campo corrispondente.</string>
     <string name="scan_section_details">Dettagli</string>
     <string name="scan_default_file_name">File multimediale</string>
     <string name="convert_remove_item">Rimuovi %1$s</string>
@@ -395,4 +414,15 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="settings_cleaning_workflow_subtitle">Cosa controlla Redact prima di una pulizia e cosa succede poi ai tuoi originali.</string>
     <string name="settings_section_privacy">Privacy</string>
     <string name="settings_privacy_subtitle">Tiene ciò che vedi e copi in Redact fuori da screenshot, app recenti e appunti.</string>
+    <string name="settings_output_folder_reset">Ripristina Predefinito</string>
+    <string name="settings_output_folders">Cartelle di Output</string>
+    <string name="settings_output_folders_subtitle">Scegli dove salvare i file puliti e convertiti. Apri il gestore file per scegliere o creare una cartella, poi tocca \"Usa questa cartella\".</string>
+    <string name="settings_output_images">Immagini</string>
+    <string name="settings_output_videos">Video</string>
+    <string name="settings_output_choose">Scegli Cartella</string>
+    <string name="settings_output_error">Impossibile usare questa cartella. Scegline un’altra.</string>
+    <string name="button_share_results">Condividi</string>
+    <string name="share_results_chooser_title">Condividi tramite…</string>
+    <string name="settings_output_unavailable">Redact non può più salvare in questa cartella, quindi i file vanno in %1$s. Sceglila di nuovo o scegline un’altra.</string>
+    <string name="output_folder_fallback">Salvataggio in %2$s: %1$s non è disponibile.</string>
 </resources>

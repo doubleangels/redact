@@ -359,6 +359,25 @@ Ative apenas se quiser manter a localização de propósito.</string>
         <item quantity="other">%1$d campos</item>
     </plurals>
 
+    <plurals name="clean_summary_fields">
+        <item quantity="one">%1$d campo de metadados removido.</item>
+        <item quantity="many">%1$d de campos de metadados removidos.</item>
+        <item quantity="other">%1$d campos de metadados removidos.</item>
+    </plurals>
+    <plurals name="clean_summary_fields_location">
+        <item quantity="one">%1$d campo de metadados removido, incluindo a localização.</item>
+        <item quantity="many">%1$d de campos de metadados removidos, incluindo a localização.</item>
+        <item quantity="other">%1$d campos de metadados removidos, incluindo a localização.</item>
+    </plurals>
+    <plurals name="clean_summary_location_files">
+        <item quantity="one">%1$d arquivo tinha localização.</item>
+        <item quantity="many">%1$d de arquivos tinham localização.</item>
+        <item quantity="other">%1$d arquivos tinham localização.</item>
+    </plurals>
+    <string name="clean_summary_nothing_found">Nenhum metadado de identificação foi encontrado.</string>
+
+    <string name="scan_search_hint">Pesquisar campos</string>
+    <string name="scan_search_no_matches">Nenhum campo correspondente.</string>
     <string name="scan_section_details">Detalhes</string>
     <string name="scan_default_file_name">Arquivo de mídia</string>
     <string name="convert_remove_item">Remover %1$s</string>
@@ -395,4 +414,15 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="settings_cleaning_workflow_subtitle">O que o Redact verifica antes de uma limpeza e o que acontece com seus originais depois.</string>
     <string name="settings_section_privacy">Privacidade</string>
     <string name="settings_privacy_subtitle">Mantém o que você vê e copia no Redact fora de capturas de tela, apps recentes e da área de transferência.</string>
+    <string name="settings_output_folder_reset">Restaurar Padrão</string>
+    <string name="settings_output_folders">Pastas de Saída</string>
+    <string name="settings_output_folders_subtitle">Escolha onde salvar os arquivos limpos e convertidos. Abra o gerenciador de arquivos para escolher ou criar uma pasta e toque em \"Usar esta pasta\".</string>
+    <string name="settings_output_images">Imagens</string>
+    <string name="settings_output_videos">Vídeos</string>
+    <string name="settings_output_choose">Escolher Pasta</string>
+    <string name="settings_output_error">Não foi possível usar essa pasta. Escolha outra.</string>
+    <string name="button_share_results">Compartilhar</string>
+    <string name="share_results_chooser_title">Compartilhar via…</string>
+    <string name="settings_output_unavailable">O Redact não consegue mais salvar nesta pasta, então os arquivos vão para %1$s. Escolha-a novamente ou escolha outra pasta.</string>
+    <string name="output_folder_fallback">Salvando em %2$s: %1$s não está disponível.</string>
 </resources>

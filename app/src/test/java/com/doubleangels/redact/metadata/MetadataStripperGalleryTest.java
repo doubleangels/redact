@@ -120,6 +120,56 @@ public class MetadataStripperGalleryTest {
     }
 
     @Test
+    public void jpeg_strict_reportsEveryIdentifyingFieldAndTheLocation() throws Exception {
+        AppPreferences.setStrictClean(app, true);
+
+        assertNotNull(stripper.stripExifData(
+                Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, true)), "trip.jpg"));
+
+        CleanStats stats = stripper.getLastCleanStats();
+        assertNotNull(stats);
+        // Make, model, serial, both dates (saving DateTimeOriginal also writes DateTime) and the four
+        // GPS tags; orientation is kept, so it is not counted.
+        assertEquals(9, stats.removedFields);
+        assertTrue(stats.hadLocation);
+    }
+
+    @Test
+    public void jpeg_nonStrict_doesNotCountTheTagsItKeeps() throws Exception {
+        AppPreferences.setStrictClean(app, false);
+        AppPreferences.setPreserveCameraSettings(app, true);
+        AppPreferences.setPreserveLocation(app, true);
+
+        assertNotNull(stripper.stripExifData(
+                Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, true)), "trip.jpg"));
+
+        CleanStats stats = stripper.getLastCleanStats();
+        assertNotNull(stats);
+        // Only the serial and the two dates go; camera settings and location are kept.
+        assertEquals(3, stats.removedFields);
+        assertFalse(stats.hadLocation);
+    }
+
+    @Test
+    public void jpeg_withoutMetadata_reportsNothingRemoved() throws Exception {
+        AppPreferences.setStrictClean(app, true);
+
+        assertNotNull(stripper.stripExifData(
+                Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, false)), "plain.jpg"));
+
+        CleanStats stats = stripper.getLastCleanStats();
+        assertNotNull(stats);
+        assertEquals(0, stats.removedFields);
+        assertFalse(stats.hadLocation);
+    }
+
+    @Test
+    public void failedImageClean_reportsNoStats() {
+        assertNull(stripper.stripExifData(Uri.fromFile(new File("/nonexistent/x.jpg")), "x.jpg"));
+        assertNull(stripper.getLastCleanStats());
+    }
+
+    @Test
     public void png_andWebp_areCleanedInTheirOwnFormat() throws Exception {
         AppPreferences.setStrictClean(app, true);
 

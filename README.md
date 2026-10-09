@@ -75,10 +75,12 @@ Most apps and websites do not show you this, but anyone who receives the origina
 
 | | |
 |---|---|
-| **Clean** | Removes GPS coordinates, device details, timestamps and other hidden EXIF and container metadata from images and videos. Strict Clean re-encodes video for the most thorough removal; Faster Video Cleaning is available on compatible files. |
-| **Scan** | Shows a file's metadata in an organized, readable list *before* you decide what to do. Rows that reveal where a file was taken carry a **Location** badge. Copy values, send the file to Clean or Convert, or open the location in your maps app. |
+| **Clean** | Removes GPS coordinates, device details, timestamps and other hidden EXIF and container metadata from images and videos. Strict Clean re-encodes video for the most thorough removal; Faster Video Cleaning is available on compatible files. When a clean finishes, Redact tells you what it removed and a **Share** button sends the clean copies on. |
+| **Scan** | Shows a file's metadata in an organized, readable list *before* you decide what to do. Rows that reveal where a file was taken carry a **Location** badge. Search the list, copy values, send the file to Clean or Convert, or open the location in your maps app. |
 | **Convert** | Converts images between JPEG, PNG, WebP and HEIC (on supported devices) and video between H.264, H.265, VP9 and AV1. Converted files are stripped of metadata and checked afterward, so they do not carry the original's location or device details. |
 | **Share into Redact** | Share a photo or video from any other app. Redact cleans it and reopens the share sheet with the clean copy, with an optional confirmation step and a progress dialog you can cancel. |
+| **Open with Redact** | Open a photo or video in Redact from your gallery or file manager and it goes straight to Scan. |
+| **Shortcuts** | Long-press the app icon to jump straight to Clean, Scan or Convert. |
 | **Batches** | Clean or convert up to 20 files at once. If some files fail, Redact keeps going and reports what succeeded. |
 | **Large files** | There is no hard size cap. Redact warns you first when storage or memory looks too low for the job. |
 | **Delete originals (optional)** | Turn on **Delete Originals After Cleaning** and Redact asks Android to move the originals to trash after a successful clean. Android shows its own confirmation, so nothing is removed without your say-so. |
@@ -105,7 +107,7 @@ You can also build it yourself, see [For developers](#for-developers).
 1. Open Redact and tap the **Clean** tab.
 2. Tap **Select Files** and choose photos or videos.
 3. Tap **Clean Metadata**.
-4. Find the results in **Pictures/Redact** or **Movies/Redact**, or use the share button to send them straight away.
+4. Read the summary of what was removed, then find the results in **Pictures/Redact** or **Movies/Redact** (or the folders you chose in Settings), or tap **Share** to send them straight away.
 
 Your originals are never modified.
 
@@ -117,15 +119,23 @@ Your originals are never modified.
 
 Removes metadata and saves a new copy to `Pictures/Redact` (images) or `Movies/Redact` (videos). Choose up to 20 files. Location data is removed unless you explicitly turn on **Keep Location** in Settings (this asks for confirmation and is ignored by Strict Clean).
 
+When the clean finishes, Redact sums up what it removed, for example *"Removed 24 metadata fields, including location"* for one file, or the total and how many files had a location for a batch. Fields you chose to keep in Settings are not counted. The same summary appears in the completion notification if notifications are on. A **Share** button then appears above **Clean Metadata** to send the clean copies to another app. Convert shows the same **Share** button when it finishes.
+
 ### Scan
 
 Pick **one** file to see everything embedded in it, grouped into sections such as image properties and technical details.
 
 - **Location** badge: marks rows that reveal where the file was taken, such as GPS coordinates.
+- **Search:** type in the box above the list to filter it. Matches field names and values, ignoring case, and treats spaces and underscores alike, so `gps altitude` finds `GPS_ALTITUDE`. Typing a section's name, such as `camera` or `location`, shows that whole section. The search clears when you scan another file.
 - **Copy:** copy a single value or the whole list. Copied values are flagged as sensitive on the clipboard on Android 13 and newer.
 - **Open in Clean / Convert:** send the file on without picking it again.
 - **Open location in maps:** hands the coordinates to your default maps app. Because that shares them with a separate app, Redact explains this and asks for permission the first time.
 - To see GPS fields at all, grant the optional photo-location permission when asked.
+
+### Opening files from other apps and shortcuts
+
+- **Open with Redact:** when you open a photo or video from your gallery or file manager and choose Redact, it opens in Scan so you can check it before doing anything else.
+- **App shortcuts:** long-press the Redact icon on your home screen to go straight to Clean, Scan or Convert.
 
 ### Convert
 
@@ -140,7 +150,7 @@ Choose a target format (images: JPEG, PNG, WebP, HEIC where supported; video: H.
 
 ### Where files go
 
-Cleaned and converted files are saved through Android's MediaStore into `Pictures/Redact` or `Movies/Redact`. Files you share in are held in the app's temporary cache and deleted once sharing finishes, with a short delay so the receiving app can finish reading them.
+Cleaned and converted files are saved through Android's MediaStore into `Pictures/Redact` or `Movies/Redact` by default. In Settings under **Output Folders** you can open the file browser to pick or create a different folder for images and for videos, on device storage or an SD card. The browser starts in `Pictures` or `Movies` (or in the folder you chose before), Settings shows the folder you picked, such as `Pictures/Private`, and **Reset to Default** (or picking the `Redact` folder itself) switches back. If a chosen folder is deleted or its SD card is removed, Redact saves to the default folder instead, says so once, and Settings shows a warning until you choose a folder again. Files you share in are held in the app's temporary cache and deleted once sharing finishes, with a short delay so the receiving app can finish reading them.
 
 ---
 
@@ -186,6 +196,7 @@ The Settings tab is grouped the same way as the tables below, from the things yo
 |---|---|
 | **Allow Notifications** / **Ongoing Task Progress** | Alerts when jobs finish and optional live progress. Off until you turn them on. |
 | **Clear Cache on Startup** / **Clear Temporary Files** | Removes processing cache older than 24 hours when the app opens, or on demand. |
+| **Output Folders** | Opens the file browser so you can pick or create a folder for cleaned and converted images and another for videos. Defaults are `Pictures/Redact` and `Movies/Redact`; **Reset to Default** restores either. Existing files are not moved. If a chosen folder becomes unavailable, Redact falls back to the default and warns you here. |
 | **Secure Deletion Passes** | How many times temporary files are overwritten before deletion. More passes are slower, and recovery may still be possible on flash storage. |
 
 Open the Settings tab in the app for the full list.

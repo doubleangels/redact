@@ -129,6 +129,23 @@ public class UIStateManagerTest {
     }
 
     @Test
+    public void setProcessedItemsStatus_appendsTheSummary() {
+        uiStateManager.setProcessedItemsStatus(4, 5, "Removed 9 metadata fields.");
+        idleMainLooper();
+        assertEquals(activity.getString(R.string.status_clean_done_partial, 4, 1)
+                        + " Removed 9 metadata fields.",
+                statusText.getText().toString());
+    }
+
+    @Test
+    public void setProcessedItemsStatus_totalFailure_ignoresTheSummary() {
+        uiStateManager.setProcessedItemsStatus(0, 5, "Removed 9 metadata fields.");
+        idleMainLooper();
+        assertEquals(activity.getString(R.string.status_clean_done_failed),
+                statusText.getText().toString());
+    }
+
+    @Test
     public void setProcessedItemsStatus_totalFailure() {
         uiStateManager.setProcessedItemsStatus(0, 5);
         idleMainLooper();

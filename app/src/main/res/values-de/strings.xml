@@ -356,6 +356,22 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
         <item quantity="other">%1$d Felder</item>
     </plurals>
 
+    <plurals name="clean_summary_fields">
+        <item quantity="one">%1$d Metadatenfeld entfernt.</item>
+        <item quantity="other">%1$d Metadatenfelder entfernt.</item>
+    </plurals>
+    <plurals name="clean_summary_fields_location">
+        <item quantity="one">%1$d Metadatenfeld entfernt, einschließlich Standort.</item>
+        <item quantity="other">%1$d Metadatenfelder entfernt, einschließlich Standort.</item>
+    </plurals>
+    <plurals name="clean_summary_location_files">
+        <item quantity="one">%1$d Datei hatte Standortdaten.</item>
+        <item quantity="other">%1$d Dateien hatten Standortdaten.</item>
+    </plurals>
+    <string name="clean_summary_nothing_found">Es wurden keine identifizierenden Metadaten gefunden.</string>
+
+    <string name="scan_search_hint">Felder durchsuchen</string>
+    <string name="scan_search_no_matches">Keine passenden Felder.</string>
     <string name="scan_section_details">Details</string>
     <string name="scan_default_file_name">Mediendatei</string>
     <string name="convert_remove_item">%1$s entfernen</string>
@@ -390,4 +406,15 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_cleaning_workflow_subtitle">Was Redact vor dem Bereinigen prüft und was danach mit deinen Originalen passiert.</string>
     <string name="settings_section_privacy">Datenschutz</string>
     <string name="settings_privacy_subtitle">Hält, was du in Redact siehst und kopierst, aus Screenshots, der App-Übersicht und der Zwischenablage heraus.</string>
+    <string name="settings_output_folder_reset">Auf Standard zurücksetzen</string>
+    <string name="settings_output_folders">Ausgabeordner</string>
+    <string name="settings_output_folders_subtitle">Lege fest, wo bereinigte und konvertierte Dateien gespeichert werden. Öffne den Dateibrowser, wähle einen Ordner aus oder erstelle einen und tippe dann auf „Diesen Ordner verwenden“.</string>
+    <string name="settings_output_images">Bilder</string>
+    <string name="settings_output_videos">Videos</string>
+    <string name="settings_output_choose">Ordner Wählen</string>
+    <string name="settings_output_error">Dieser Ordner kann nicht verwendet werden. Wähle einen anderen.</string>
+    <string name="button_share_results">Teilen</string>
+    <string name="share_results_chooser_title">Teilen über…</string>
+    <string name="settings_output_unavailable">Redact kann nicht mehr in diesem Ordner speichern, daher landen Dateien in %1$s. Wähle ihn erneut oder einen anderen Ordner aus.</string>
+    <string name="output_folder_fallback">Speichere stattdessen in %2$s: %1$s ist nicht verfügbar.</string>
 </resources>

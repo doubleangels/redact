@@ -1,14 +1,12 @@
 package com.doubleangels.redact.media;
 
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageDecoder;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 import android.provider.MediaStore;
 
 import androidx.annotation.NonNull;
@@ -398,22 +396,17 @@ public final class FormatConverter {
 
         String outName = MediaFileNames.generateShortRandomName() + ext;
 
-        ContentValues values = new ContentValues();
-        values.put(MediaStore.Images.Media.DISPLAY_NAME, outName);
-        values.put(MediaStore.Images.Media.MIME_TYPE, mime);
-        values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Redact");
-        MediaStoreWrites.markPending(values);
-
-        Uri collection = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        Uri outUri = resolver.insert(collection, values);
-        if (outUri == null) {
+        Uri outUri;
+        try {
+            outUri = OutputDestination.create(context, false, outName, mime);
+        } catch (IOException e) {
             bitmap.recycle();
-            throw new IOException("MediaStore insert failed");
+            throw e;
         }
 
         try (OutputStream os = resolver.openOutputStream(outUri)) {
             if (os == null) {
-                resolver.delete(outUri, null, null);
+                OutputDestination.discard(resolver, outUri);
                 throw new IOException("Cannot open output stream");
             }
             int q = qualityForFormat(format, context);
@@ -426,7 +419,7 @@ public final class FormatConverter {
                 ok = bitmap.compress(format, q, os);
             }
             if (!ok) {
-                resolver.delete(outUri, null, null);
+                OutputDestination.discard(resolver, outUri);
                 throw new IOException("Compress failed");
             }
             os.flush();
@@ -435,7 +428,7 @@ public final class FormatConverter {
         }
         // Re-encoding from decoded pixels drops all source metadata (EXIF, XMP, IPTC, ICC
         // thumbnails); intentionally nothing is copied back.
-        MediaStoreWrites.markPublished(resolver, outUri);
+        OutputDestination.publish(resolver, outUri);
         return outUri;
     }
 
@@ -493,6 +486,8 @@ public final class FormatConverter {
         return "image/jpeg";
     }
 
+    private static final int MAX_ENCODER_DIMENSION = 16383;
+
     public static int calculateInSampleSize(Context context, BitmapFactory.Options options) {
         int height = options.outHeight;
         int width = options.outWidth;
@@ -505,6 +500,13 @@ public final class FormatConverter {
                     && (halfWidth / inSampleSize) >= maxDimension) {
                 inSampleSize *= 2;
             }
+        }
+        // Encoders reject extreme aspect ratios (WebP caps each side at 16383 px), so long
+        // screenshots must be downsampled even when the shorter side is small. Decoders round a
+        // sampled side up (32767 px at 1/2 gives 16384), so compare the rounded-up size.
+        int longestSide = Math.max(height, width);
+        while ((longestSide + inSampleSize - 1) / inSampleSize > MAX_ENCODER_DIMENSION) {
+            inSampleSize *= 2;
         }
         return inSampleSize;
     }

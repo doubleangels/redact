@@ -4,7 +4,7 @@
 
     A GitHub Actions workflow (.github/workflows/publish-privacy.yml)
     automatically publishes this file, and legal/assets/redact-icon.png, to
-    doubleangels/privacypolicy on every push to main, so it keeps serving at
+    doubleangels/privacypolicy on every push to dev, so it keeps serving at
     the same long-lived URL this app's strings.xml and the Play Console
     Privacy Policy field both point to:
     https://doubleangels.github.io/privacypolicy/redact.html
@@ -600,7 +600,7 @@
         </header>
 
         <div class="meta-row">
-            <span class="chip">Last Updated: October 5, 2026</span>
+            <span class="chip">Last Updated: October 8, 2026</span>
         </div>
 
         <div class="card glance">
@@ -916,11 +916,12 @@
                 <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </summary>
             <div class="section-body">
-                <p>Cleaned and converted files land in <code>Pictures/Redact</code> or <code>Movies/Redact</code>, right in your phone's regular photo library. They're ordinary files you can back up, move, or delete exactly like any other photo or video, and Redact never moves them anywhere else.</p>
+                <p>By default, cleaned and converted files land in <code>Pictures/Redact</code> or <code>Movies/Redact</code>, right in your phone's regular photo library. They're ordinary files you can back up, move, or delete exactly like any other photo or video, and Redact never moves them anywhere else.</p>
+                <p>If you'd rather keep them somewhere else, <strong>Output Folders</strong> in Settings opens Android's own file browser so you can pick or create a folder for images and another for videos, on your phone's storage or an SD card. Android then lets Redact create files in that one folder, and only that folder: Redact uses this access to save your cleaned and converted copies there and nothing else, and it doesn't browse, change, or upload anything else in it. <strong>Reset to Default</strong> hands that access back to Android, and so does choosing a different folder. If the folder you picked is deleted or stops being available, Redact saves to the default folder instead and tells you so. Files already saved stay where they are either way.</p>
                 <p>When you share a file into Redact from another app, it quietly makes a cleaned temporary copy, hands it off to wherever you're sharing to, and then deletes it shortly after. If you want extra peace of mind, Settings lets you overwrite temporary files (1, 3, or 7 passes) before they're deleted, though modern phone storage limits how much that really adds, as the app itself is upfront about. <strong>Clear Cache on Startup</strong> automatically clears out anything older than 24 hours, and you can always clear it by hand from Settings too.</p>
 
                 <h3>When You Uninstall Redact</h3>
-                <p>Android keeps every app's private data in its own sandbox, so uninstalling Redact wipes all of it instantly, your settings, including whether crash reporting was on, and anything left in the temporary cache. None of it gets backed up to the cloud first, since we've turned that off. The exception is your actual photos and videos: anything already saved to <code>Pictures/Redact</code> or <code>Movies/Redact</code> is yours, just like photos from your camera, and uninstalling the app won't touch them.</p>
+                <p>Android keeps every app's private data in its own sandbox, so uninstalling Redact wipes all of it instantly, your settings, including whether crash reporting was on, and anything left in the temporary cache. None of it gets backed up to the cloud first, since we've turned that off. The exception is your actual photos and videos: anything already saved to <code>Pictures/Redact</code>, <code>Movies/Redact</code>, or a folder you chose in Settings is yours, just like photos from your camera, and uninstalling the app won't touch them. Android also withdraws Redact's access to any folder you chose.</p>
                 <p>If you'd turned crash reporting on at some point, any reports already sent may still be sitting in Sentry's systems for as long as their own retention policy keeps them. You're welcome to reach out to Sentry directly, or just email us using the details in Section 16, and we'll help however we can.</p>
             </div>
         </details>
@@ -1051,6 +1052,21 @@
                 <h3>Other U.S. State Privacy Laws</h3>
                 <p>States like Virginia, Colorado, Connecticut, and Utah have their own privacy laws giving residents similar rights, to access, delete, correct, or move their data, and to opt out of having it sold, used for targeted ads, or profiled. Since Redact doesn't do any of those things, these rights won't have much to act on while you're just using the app normally. If you're in one of these states and still have questions, reach out using the details below, we're happy to help.</p>
 
+                <h3>Right to Appeal</h3>
+                <p>If we deny a privacy request you've made, most state privacy laws also give you the right to appeal that decision. Email us and ask for a second look, we'll have someone review it fresh.</p>
+
+                <h3>Non-Discrimination</h3>
+                <p>Exercising any right described in this section never results in different treatment, a locked account, or reduced functionality. Redact works the same for everyone, rights requests included.</p>
+
+                <h3>Global Privacy Control</h3>
+                <p>Redact doesn't have a website with a cookie banner or ad-tech opt-out panel. If you ever reach a Redact-related webpage from a browser broadcasting the Global Privacy Control (GPC) signal, we'll honor it as a request to opt out of the sale or sharing of personal information, though since we don't sell or share personal information to begin with, there's nothing for that signal to actually change.</p>
+
+                <h3>California "Shine the Light"</h3>
+                <p>California's Shine the Light law (Cal. Civ. Code &sect;1798.83) lets residents ask what personal information a company has shared with third parties for those third parties' own direct marketing in the past year. Redact has nothing to disclose here either, we don't share your information with anyone for their marketing purposes.</p>
+
+                <h3>Verifying a Request</h3>
+                <p>Redact doesn't have user accounts, so we can't verify you against a login. Instead, we'll ask enough questions over email to reasonably confirm we're responding to the right person, and to confirm an authorized agent is actually acting on your behalf if one contacts us for you.</p>
+
                 <div class="callout">
                     Want to exercise a privacy right, pull back your consent for crash reporting, or just ask a question? Email <a href="mailto:jzgm2llm@addy.io">jzgm2llm@addy.io</a> and we'll get back to you in line with whatever privacy law applies to you.
                 </div>
@@ -1064,7 +1080,7 @@
             </summary>
             <div class="section-body">
                 <p>We'll update this policy now and then, say, when a dependency changes or a new optional feature shows up. Whenever that happens, you'll see a fresh "Last updated" date at the top of this page. It's worth a glance every so often, especially before turning on optional features like crash reporting.</p>
-                <p>This policy was last updated on <strong>October 5, 2026</strong>.</p>
+                <p>This policy was last updated on <strong>October 8, 2026</strong>.</p>
             </div>
         </details>
 

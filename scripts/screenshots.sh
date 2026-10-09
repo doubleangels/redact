@@ -15,7 +15,7 @@
 # -n Pixel_10_Pro -d pixel_7_pro -k <that image>.
 # Changes it makes on the emulator are undone on exit: system dark mode, the monochrome (black and white)
 # system theme, animation scales, the demo-mode status bar, and the pushed files in
-# /sdcard/Pictures/redact-samples.
+# /sdcard/Pictures/redact-samples. Notifications are snoozed for a few minutes and return by themselves.
 #
 # Speed: a uiautomator dump costs ~2s however fast the emulator is, so dumps are kept to a minimum. Button
 # positions are looked up once and cached, window focus (cheap) detects when the picker or the app is up,
@@ -27,7 +27,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PKG=com.doubleangels.redact
 SAMPLE_DIR=/sdcard/Pictures/redact-samples
 OUT="$ROOT/build/screenshots"
-PICKER_SEARCH="redact-sample"   # every pushed file is prefixed with this; the picker search finds them
+SAMPLE_PREFIX="redact-sample-"   # every pushed file is prefixed with this, so the picker shows which are ours
 SAMPLE_COUNT=$(ls "$ROOT/icons/sample" | wc -l | tr -d ' ')
 
 AVD="${AVD:-Pixel_10_Pro}"
@@ -154,6 +154,10 @@ if [[ -z "${SKIP_INSTALL:-}" ]]; then
   (cd "$ROOT" && ./gradlew -q installDebug) || { echo "installDebug failed" >&2; exit 1; }
 fi
 adb shell pm path "$PKG" >/dev/null || { echo "$PKG not installed" >&2; exit 1; }
+# The picker lists the device's shared storage under the device's name (e.g. sdk_gphone16k_x86_64).
+STORAGE_ROOT=$(adb shell content query --uri content://com.android.externalstorage.documents/root --projection root_id:title \
+  | tr -d '\r' | sed -n 's/.*root_id=primary, title=//p')
+[[ -n "$STORAGE_ROOT" ]] || { echo "Could not find the shared storage root in the picker" >&2; exit 1; }
 
 # --- UI helpers --------------------------------------------------------------------------
 # A uiautomator dump takes ~2s, so the screen is dumped into $UI only when something must be read from it.
@@ -192,6 +196,36 @@ picker_items() {
 picker_titles() {
   awk 'BEGIN { RS = "<node " }
     index($0, "resource-id=\"android:id/title\"") && match($0, / text="[^"]*"/) { print substr($0, RSTART + 7, RLENGTH - 8) }' <<<"$UI"
+}
+
+# title_center <text>: prints "cx cy" for the picker entry (drawer root, folder or file) titled exactly <text>.
+title_center() {
+  awk -v want="$1" 'BEGIN { RS = "<node " }
+    index($0, "resource-id=\"android:id/title\"") && index($0, " text=\"" want "\"") &&
+        match($0, /bounds="\[[0-9]+,[0-9]+\]\[[0-9]+,[0-9]+\]"/) {
+      b = substr($0, RSTART + 8, RLENGTH - 9)
+      gsub(/[][,]/, " ", b); split(b, p, " ")
+      print int((p[1] + p[3]) / 2), int((p[2] + p[4]) / 2); found = 1; exit
+    }
+    END { exit !found }' <<<"$UI"
+}
+
+# open_entry <text>: dumps until the picker entry titled <text> is on screen, then taps it.
+open_entry() {
+  local i p
+  for ((i = 0; i < 20; i++)); do
+    ui_dump
+    if p=$(title_center "$1"); then adb shell input tap $p; return 0; fi
+  done
+  echo "Timed out finding $1 in the picker" >&2; return 1
+}
+
+# True if the picker in $UI is inside the sample folder: its name is on screen (the breadcrumb) and every
+# file listed is a sample. Recent alone can pass the second test, since the samples are the newest files.
+showing_samples() {
+  local titles
+  titles=$(picker_titles)
+  [[ -n "$titles" ]] && ! grep -qv "^$SAMPLE_PREFIX" <<<"$titles" && node_center text "${SAMPLE_DIR##*/}" >/dev/null
 }
 
 # wait_for <attr> <value> [tries]: dumps until the node is on screen, leaving that dump in $UI.
@@ -249,48 +283,41 @@ settle() {
 }
 
 TAB=clean
-SLOW=0   # 1 = retry mode: re-discover positions and wait on the screen instead of on timers
 
 # One attempt at opening the picker from the current (empty) tab and selecting <count> sample files.
 # Returns 1 if the selection did not take.
 pick_once() {
-  local count=$1 x y titles i items=()
+  local count=$1 x y i items=()
   ensure_pos "$TAB:empty" resource-id ':id/emptyStateSelectButton' resource-id ':id/selectButton' || return 1
   tap_pos "$TAB:empty"
   wait_focus documentsui 60 || return 1
 
-  # Search for the sample files (the picker also lists everything else on the device).
-  ensure_pos picker:search resource-id 'documentsui:id/option_menu_search' resource-id 'documentsui:id/search_bar' || return 1
-  if ((SLOW)); then sleep 0.8; else sleep 0.6; fi
-  tap_pos picker:search
-  if ((SLOW)); then
-    wait_for resource-id 'documentsui:id/search_src_text' 10 || return 1
-    sleep 0.6
-  else
-    sleep 0.7
-  fi
-  adb shell input text "$PICKER_SEARCH"
-  adb shell input keyevent KEYCODE_ENTER
-
-  # Find the first result; until the list is filtered it shows other files, so wait for ours only.
-  if ((SLOW)) || [[ -z "${POS[picker:item1]:-}" ]]; then
+  # Browse to the sample folder. Not a search: the picker's search and Recent can leave out the video
+  # sample. The picker reopens in the folder it last showed, so this browsing normally happens once a run.
+  for ((i = 0; i < 6; i++)); do
+    ui_dump
+    [[ -z $(picker_titles) ]] || break   # wait for the picker to list something
+  done
+  if ! showing_samples; then
+    ensure_pos picker:roots content-desc 'Show roots' || return 1
+    tap_pos picker:roots
+    open_entry "$STORAGE_ROOT" || return 1
+    open_entry Pictures || return 1
+    open_entry "${SAMPLE_DIR##*/}" || return 1
     for ((i = 0; i < 20; i++)); do
       ui_dump
-      titles=$(picker_titles)
-      if [[ -n "$titles" ]] && ! grep -qv "^$PICKER_SEARCH" <<<"$titles"; then break; fi
+      ! showing_samples || break
     done
-    mapfile -t items < <(picker_items)
-    ((${#items[@]} > 0)) || return 1
-    POS[picker:item1]=${items[0]}
-  else
-    sleep 1.3
+    showing_samples || { echo "  picker did not open $SAMPLE_DIR" >&2; return 1; }
   fi
-  read -r x y <<<"${POS[picker:item1]}"
+  mapfile -t items < <(picker_items)
+  ((${#items[@]} > 0)) || return 1
+  read -r x y <<<"${items[0]}"
   adb shell input swipe "$x" "$y" "$x" "$y" 700   # long-press starts multi-select
   sleep 0.6
 
   if ((count > 1)); then
-    adb shell input keycombination KEYCODE_CTRL_LEFT KEYCODE_A   # select all search results
+    adb shell input keycombination KEYCODE_CTRL_LEFT KEYCODE_A   # select every file in the folder
     sleep 0.5
     ui_dump
     grep -q "text=\"$count selected\"" <<<"$UI" || { echo "  picker did not report $count selected" >&2; return 1; }
@@ -319,12 +346,18 @@ pick_files() {
   if pick_once "$count"; then return 0; fi
   echo "  selection did not take; retrying with full waits" >&2
   adb shell am force-stop com.google.android.documentsui
-  unset 'POS[picker:search]' 'POS[picker:item1]' 'POS[picker:confirm]'
+  unset 'POS[picker:roots]' 'POS[picker:confirm]'
   wait_focus "$PKG" 20 || true
-  SLOW=1
   pick_once "$count" || { echo "Could not select $count sample files" >&2; return 1; }
-  SLOW=0
   return 0
+}
+
+# Clears the status bar's notification icons (demo mode no longer hides them) by snoozing every notification,
+# including ones posted mid-run such as the keyboard tutorial the picker's Ctrl+A brings up. The shell can
+# snooze but not unsnooze, so the snooze is short and the notifications come back on their own after the run.
+hide_notifications() {
+  adb shell 'cmd notification list | while read -r k; do cmd notification snooze --for 180000 "$k" >/dev/null; done'
+  sleep 0.5   # let the status bar drop the icons
 }
 
 # shot <clean|scan|convert>: screens are numbered in pairs, light first.
@@ -332,6 +365,7 @@ shot() {
   local n
   case $1 in clean) n=1 ;; scan) n=3 ;; convert) n=5 ;; esac
   [[ "$MODE" != dark ]] || n=$((n + 1))
+  hide_notifications
   adb exec-out screencap -p >"$OUT/$n.png"
   echo "  $n.png ($1, $MODE)"
 }
@@ -348,12 +382,12 @@ go_tab() {
 mkdir -p "$OUT"
 rm -f "$OUT"/[1-6].png
 
-# Push every sample file (prefixed so the picker search finds them) in one adb call, then have the
+# Push every sample file (prefixed so the picker shows which are ours) in one adb call, then have the
 # media scanner index them in one shell.
 stage=$(mktemp -d)
-for f in "$ROOT"/icons/sample/*; do cp "$f" "$stage/redact-sample-$(basename "$f")"; done
+for f in "$ROOT"/icons/sample/*; do cp "$f" "$stage/$SAMPLE_PREFIX$(basename "$f")"; done
 adb shell mkdir -p "$SAMPLE_DIR"
-adb push "$(winpath "$stage")/." "$SAMPLE_DIR/" >/dev/null 2>&1
+adb push "$(winpath "$stage")/." "$SAMPLE_DIR/" >/dev/null
 rm -rf "$stage"
 adb shell 'for f in '"$SAMPLE_DIR"'/*; do am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file://$f >/dev/null; done'
 

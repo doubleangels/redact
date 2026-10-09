@@ -206,6 +206,27 @@ public class FormatConverterTest {
     }
 
     @Test
+    public void calculateInSampleSize_keepsLongScreenshotsWithinTheEncoderLimit() {
+        AppPreferences.setMaxBitmapSize(context, 2048);
+
+        BitmapFactory.Options fits = new BitmapFactory.Options();
+        fits.outWidth = 1080;
+        fits.outHeight = 16383;
+        assertEquals(1, FormatConverter.calculateInSampleSize(context, fits));
+
+        // Halving 32767 rounds up to 16384, one past the limit, so it must be quartered.
+        BitmapFactory.Options odd = new BitmapFactory.Options();
+        odd.outWidth = 1080;
+        odd.outHeight = 32767;
+        assertEquals(4, FormatConverter.calculateInSampleSize(context, odd));
+
+        BitmapFactory.Options even = new BitmapFactory.Options();
+        even.outWidth = 1080;
+        even.outHeight = 32766;
+        assertEquals(2, FormatConverter.calculateInSampleSize(context, even));
+    }
+
+    @Test
     public void formatOptionCount_MatchesSelectableChips() {
         assertEquals(4, FormatConverter.FORMAT_OPTION_COUNT);
     }

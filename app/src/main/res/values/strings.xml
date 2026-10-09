@@ -362,6 +362,22 @@
         <item quantity="other">%1$d fields</item>
     </plurals>
 
+    <plurals name="clean_summary_fields">
+        <item quantity="one">Removed %1$d metadata field.</item>
+        <item quantity="other">Removed %1$d metadata fields.</item>
+    </plurals>
+    <plurals name="clean_summary_fields_location">
+        <item quantity="one">Removed %1$d metadata field, including location.</item>
+        <item quantity="other">Removed %1$d metadata fields, including location.</item>
+    </plurals>
+    <plurals name="clean_summary_location_files">
+        <item quantity="one">%1$d file had location.</item>
+        <item quantity="other">%1$d files had location.</item>
+    </plurals>
+    <string name="clean_summary_nothing_found">No identifying metadata was found.</string>
+
+    <string name="scan_search_hint">Search fields</string>
+    <string name="scan_search_no_matches">No matching fields.</string>
     <string name="scan_section_details">Details</string>
     <string name="scan_default_file_name">Media file</string>
     <string name="convert_remove_item">Remove %1$s</string>
@@ -396,4 +412,15 @@
     <string name="settings_cleaning_workflow_subtitle">What Redact checks before a clean starts, and what happens to your originals afterward.</string>
     <string name="settings_section_privacy">Privacy</string>
     <string name="settings_privacy_subtitle">Keeps what you see and copy in Redact out of screenshots, the recent apps screen and the clipboard.</string>
+    <string name="settings_output_folder_reset">Reset to Default</string>
+    <string name="settings_output_folders">Output Folders</string>
+    <string name="settings_output_folders_subtitle">Choose where cleaned and converted files are saved. Open the file browser to pick or create a folder, then tap \"Use this folder\".</string>
+    <string name="settings_output_images">Images</string>
+    <string name="settings_output_videos">Videos</string>
+    <string name="settings_output_choose">Choose Folder</string>
+    <string name="settings_output_error">Could not use that folder. Pick a different one.</string>
+    <string name="button_share_results">Share</string>
+    <string name="share_results_chooser_title">Share via…</string>
+    <string name="settings_output_unavailable">Redact can no longer save to this folder, so files go to %1$s. Choose it again or pick another folder.</string>
+    <string name="output_folder_fallback">Saving to %2$s instead: %1$s is unavailable.</string>
 </resources>
