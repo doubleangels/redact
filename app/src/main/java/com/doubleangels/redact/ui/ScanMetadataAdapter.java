@@ -87,7 +87,7 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
     private final List<Entry> displayedEntries = new ArrayList<>();
     @Nullable
     private String currentFilterSection = null;
-    /** Lower-cased search text; rows whose name or value contains it stay visible. Empty shows all. */
+    /** Normalized search text (see {@link #normalize}); empty shows everything. */
     @NonNull
     private String query = "";
 
@@ -105,11 +105,13 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
     }
 
     /**
-     * Shows only the rows whose name or value contains {@code text}, ignoring case, under their
-     * section headers with the count of matches. Null or blank shows everything again.
+     * Shows only the rows whose name or value contains {@code text}, under their section headers
+     * with the count of matches; a section whose title matches shows in full. Case is ignored and
+     * spaces match underscores, so "gps altitude" finds GPS_ALTITUDE. Null or blank shows
+     * everything again.
      */
     public void setQuery(@Nullable String text) {
-        String normalized = text == null ? "" : text.trim().toLowerCase(Locale.ROOT);
+        String normalized = normalize(text);
         if (normalized.equals(query)) {
             return;
         }
@@ -143,38 +145,50 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
     }
 
     /**
-     * Adds the rows that match {@link #query}. A row belongs to the header above it; a header is
-     * kept, with its count narrowed to the matches, only when at least one of its rows matches.
+     * Adds the rows that match {@link #query}. A row belongs to the header above it. A header
+     * whose title matches keeps all of its rows and its full count; otherwise it is kept, with its
+     * count narrowed to the matches, only when at least one of its rows matches.
      */
     private void addMatches(@NonNull List<Entry> entries) {
         Entry header = null;
+        boolean headerMatches = false;
         List<Entry> matches = new ArrayList<>();
         for (Entry entry : entries) {
             if (entry.viewType == Entry.VIEW_TYPE_HEADER) {
-                flushGroup(header, matches);
+                flushGroup(header, headerMatches, matches);
                 header = entry;
+                headerMatches = contains(entry.headerTitle);
                 matches = new ArrayList<>();
-            } else if (contains(entry.key) || contains(entry.value)) {
+            } else if (headerMatches || contains(entry.key) || contains(entry.value)) {
                 matches.add(entry);
             }
         }
-        flushGroup(header, matches);
+        flushGroup(header, headerMatches, matches);
     }
 
-    private void flushGroup(@Nullable Entry header, @NonNull List<Entry> matches) {
+    private void flushGroup(@Nullable Entry header, boolean headerMatches, @NonNull List<Entry> matches) {
         if (matches.isEmpty()) {
             return;
         }
         if (header != null) {
+            int count = headerMatches || header.itemCount == 0 ? header.itemCount : matches.size();
             displayedEntries.add(Entry.header(header.sectionId,
-                    header.headerTitle != null ? header.headerTitle : "", header.headerIconRes,
-                    header.itemCount > 0 ? matches.size() : 0));
+                    header.headerTitle != null ? header.headerTitle : "", header.headerIconRes, count));
         }
         displayedEntries.addAll(matches);
     }
 
     private boolean contains(@Nullable String text) {
-        return text != null && text.toLowerCase(Locale.ROOT).contains(query);
+        return text != null && normalize(text).contains(query);
+    }
+
+    /** Lower-cases, treats underscores as spaces and collapses runs of spaces, for matching. */
+    @NonNull
+    static String normalize(@Nullable String text) {
+        if (text == null) {
+            return "";
+        }
+        return text.toLowerCase(Locale.ROOT).replace('_', ' ').replaceAll("\\s+", " ").trim();
     }
 
     @android.annotation.SuppressLint("NotifyDataSetChanged")

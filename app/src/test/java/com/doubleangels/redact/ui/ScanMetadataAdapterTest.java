@@ -218,4 +218,32 @@ public class ScanMetadataAdapterTest {
 
         assertEquals(2, adapter.getItemCount());
     }
+
+    @Test
+    public void setQuery_treatsSpacesAndUnderscoresAlike() {
+        List<ScanMetadataAdapter.Entry> entries = new ArrayList<>();
+        entries.add(ScanMetadataAdapter.Entry.header("location", "Location", 0, 2));
+        entries.add(ScanMetadataAdapter.Entry.row("location", "GPS_ALTITUDE", "120/1"));
+        entries.add(ScanMetadataAdapter.Entry.row("location", "GPS_LATITUDE", "40/1"));
+        adapter.setEntries(entries);
+
+        adapter.setQuery("gps  altitude");
+        assertEquals(2, adapter.getItemCount());
+
+        adapter.setQuery("GPS_ALTITUDE");
+        assertEquals(2, adapter.getItemCount());
+    }
+
+    @Test
+    public void setQuery_matchingASectionTitle_showsTheWholeSection() {
+        adapter.setEntries(cameraAndLocation());
+
+        adapter.setQuery("came");
+
+        // The Camera header and all three of its rows, with the full count.
+        assertEquals(4, adapter.getItemCount());
+        RecyclerView.ViewHolder header = adapter.onCreateViewHolder(parent, ScanMetadataAdapter.Entry.VIEW_TYPE_HEADER);
+        adapter.onBindViewHolder(header, 0);
+        assertEquals("3", ((ScanMetadataAdapter.HeaderHolder) header).countView.getText().toString());
+    }
 }
