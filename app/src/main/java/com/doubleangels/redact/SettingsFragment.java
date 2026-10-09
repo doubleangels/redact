@@ -478,9 +478,9 @@ public class SettingsFragment extends Fragment {
         textOutputImages = view.findViewById(R.id.textOutputImages);
         textOutputVideos = view.findViewById(R.id.textOutputVideos);
         view.findViewById(R.id.buttonChooseOutputImages).setOnClickListener(v ->
-                imageFolderPicker.launch(null));
+                imageFolderPicker.launch(AppPreferences.getOutputTree(requireContext(), false)));
         view.findViewById(R.id.buttonChooseOutputVideos).setOnClickListener(v ->
-                videoFolderPicker.launch(null));
+                videoFolderPicker.launch(AppPreferences.getOutputTree(requireContext(), true)));
         view.findViewById(R.id.buttonResetOutputImages).setOnClickListener(v -> resetOutputFolder(false));
         view.findViewById(R.id.buttonResetOutputVideos).setOnClickListener(v -> resetOutputFolder(true));
         refreshOutputFolders();
