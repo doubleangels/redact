@@ -420,8 +420,9 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="settings_output_images">Images</string>
     <string name="settings_output_videos">Vidéos</string>
     <string name="settings_output_choose">Choisir le Dossier</string>
-    <string name="settings_output_default">%1$s (par défaut)</string>
     <string name="settings_output_error">Impossible d’utiliser ce dossier. Choisissez-en un autre.</string>
     <string name="button_share_results">Partager</string>
     <string name="share_results_chooser_title">Partager via…</string>
+    <string name="settings_output_unavailable">Redact ne peut plus enregistrer dans ce dossier : les fichiers vont dans %1$s. Choisissez-le à nouveau ou un autre dossier.</string>
+    <string name="output_folder_fallback">Enregistrement dans %2$s : %1$s est indisponible.</string>
 </resources>

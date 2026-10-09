@@ -407,8 +407,9 @@
     <string name="settings_output_images">画像</string>
     <string name="settings_output_videos">動画</string>
     <string name="settings_output_choose">フォルダを選択</string>
-    <string name="settings_output_default">%1$s（デフォルト）</string>
     <string name="settings_output_error">このフォルダは使用できません。別のフォルダを選択してください。</string>
     <string name="button_share_results">共有</string>
     <string name="share_results_chooser_title">共有先…</string>
+    <string name="settings_output_unavailable">Redact はこのフォルダに保存できなくなったため、ファイルは %1$s に保存されます。もう一度選ぶか、別のフォルダを選んでください。</string>
+    <string name="output_folder_fallback">%1$s を使用できないため、%2$s に保存します。</string>
 </resources>

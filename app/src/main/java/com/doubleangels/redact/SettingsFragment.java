@@ -19,6 +19,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
@@ -126,7 +127,17 @@ public class SettingsFragment extends Fragment {
         super.onResume();
         refreshPermissionStatuses();
         refreshStorageSize();
+        refreshOutputFolders();
         maybeRequestLocationAfterMediaGrant();
+    }
+
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (!hidden) {
+            // A chosen folder can be deleted or its storage removed while another tab is open.
+            refreshOutputFolders();
+        }
     }
 
     @Override
@@ -438,25 +449,48 @@ public class SettingsFragment extends Fragment {
     private final ActivityResultLauncher<Uri> videoFolderPicker = registerOutputFolderPicker(true);
     private TextView textOutputImages;
     private TextView textOutputVideos;
+    private TextView textOutputImagesWarning;
+    private TextView textOutputVideosWarning;
+    private View buttonResetOutputImages;
+    private View buttonResetOutputVideos;
 
     private ActivityResultLauncher<Uri> registerOutputFolderPicker(boolean video) {
         return registerForActivityResult(new ActivityResultContracts.OpenDocumentTree(), tree -> {
             if (tree == null) {
                 return;
             }
-            Context context = requireContext();
-            try {
-                context.getContentResolver().takePersistableUriPermission(tree,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-            } catch (SecurityException e) {
-                Toast.makeText(context, R.string.settings_output_error, Toast.LENGTH_LONG).show();
-                return;
-            }
-            Uri old = AppPreferences.getOutputTree(context, video);
-            AppPreferences.setOutputTree(context, video, tree);
-            releaseOutputTree(context, old);
+            onOutputFolderPicked(requireContext(), video, tree);
             refreshOutputFolders();
         });
+    }
+
+    /**
+     * Saves a folder picked for {@code video} output. Picking the default folder itself resets to
+     * the default; a folder Redact cannot write to is refused with a message and nothing changes.
+     */
+    @VisibleForTesting
+    static void onOutputFolderPicked(@NonNull Context context, boolean video, @NonNull Uri tree) {
+        Uri old = AppPreferences.getOutputTree(context, video);
+        if (OutputDestination.isDefaultFolder(tree, video)) {
+            AppPreferences.resetOutputTree(context, video);
+            releaseOutputTree(context, old);
+            return;
+        }
+        try {
+            context.getContentResolver().takePersistableUriPermission(tree,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        } catch (SecurityException e) {
+            Toast.makeText(context, R.string.settings_output_error, Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (!OutputDestination.acceptsNewFiles(context, tree)) {
+            releaseOutputTree(context, tree);
+            Toast.makeText(context, R.string.settings_output_error, Toast.LENGTH_LONG).show();
+            return;
+        }
+        AppPreferences.setOutputTree(context, video, tree);
+        releaseOutputTree(context, old);
+        OutputDestination.clearFallbackWarnings();
     }
 
     /** Drops the persisted grant for a replaced folder unless the other media type still uses it. */
@@ -477,13 +511,25 @@ public class SettingsFragment extends Fragment {
     private void bindOutputFolder(@NonNull View view) {
         textOutputImages = view.findViewById(R.id.textOutputImages);
         textOutputVideos = view.findViewById(R.id.textOutputVideos);
+        textOutputImagesWarning = view.findViewById(R.id.textOutputImagesWarning);
+        textOutputVideosWarning = view.findViewById(R.id.textOutputVideosWarning);
+        buttonResetOutputImages = view.findViewById(R.id.buttonResetOutputImages);
+        buttonResetOutputVideos = view.findViewById(R.id.buttonResetOutputVideos);
         view.findViewById(R.id.buttonChooseOutputImages).setOnClickListener(v ->
-                imageFolderPicker.launch(AppPreferences.getOutputTree(requireContext(), false)));
+                launchOutputFolderPicker(imageFolderPicker, false));
         view.findViewById(R.id.buttonChooseOutputVideos).setOnClickListener(v ->
-                videoFolderPicker.launch(AppPreferences.getOutputTree(requireContext(), true)));
-        view.findViewById(R.id.buttonResetOutputImages).setOnClickListener(v -> resetOutputFolder(false));
-        view.findViewById(R.id.buttonResetOutputVideos).setOnClickListener(v -> resetOutputFolder(true));
+                launchOutputFolderPicker(videoFolderPicker, true));
+        buttonResetOutputImages.setOnClickListener(v -> resetOutputFolder(false));
+        buttonResetOutputVideos.setOnClickListener(v -> resetOutputFolder(true));
         refreshOutputFolders();
+    }
+
+    private void launchOutputFolderPicker(@NonNull ActivityResultLauncher<Uri> picker, boolean video) {
+        try {
+            picker.launch(OutputDestination.pickerStartLocation(requireContext(), video));
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(requireContext(), R.string.settings_output_error, Toast.LENGTH_LONG).show();
+        }
     }
 
     private void resetOutputFolder(boolean video) {
@@ -495,18 +541,36 @@ public class SettingsFragment extends Fragment {
     }
 
     private void refreshOutputFolders() {
-        if (textOutputImages == null || textOutputVideos == null) {
+        if (textOutputImages == null || textOutputVideos == null || getContext() == null) {
             return;
         }
-        showOutputFolder(textOutputImages, false);
-        showOutputFolder(textOutputVideos, true);
+        showOutputFolder(textOutputImages, textOutputImagesWarning, buttonResetOutputImages, false);
+        showOutputFolder(textOutputVideos, textOutputVideosWarning, buttonResetOutputVideos, true);
     }
 
-    private void showOutputFolder(@NonNull TextView label, boolean video) {
-        Uri tree = AppPreferences.getOutputTree(requireContext(), video);
-        label.setText(tree != null
-                ? OutputDestination.describe(tree)
-                : getString(R.string.settings_output_default, OutputDestination.defaultPath(video)));
+    /**
+     * Shows where {@code video} output goes. Reset is offered only for a chosen folder, and a
+     * chosen folder Redact can no longer write to says so, since files then go to the default.
+     */
+    private void showOutputFolder(@NonNull TextView label, @NonNull TextView warning,
+                                  @NonNull View reset, boolean video) {
+        Context context = requireContext();
+        Uri tree = AppPreferences.getOutputTree(context, video);
+        String defaultPath = OutputDestination.defaultPath(video);
+        if (tree == null) {
+            label.setText(defaultPath);
+            warning.setVisibility(View.GONE);
+            reset.setVisibility(View.GONE);
+            return;
+        }
+        label.setText(OutputDestination.describe(context, tree));
+        reset.setVisibility(View.VISIBLE);
+        if (OutputDestination.isUsable(context, tree)) {
+            warning.setVisibility(View.GONE);
+        } else {
+            warning.setText(getString(R.string.settings_output_unavailable, defaultPath));
+            warning.setVisibility(View.VISIBLE);
+        }
     }
 
     private void bindAbout(@NonNull View view) {

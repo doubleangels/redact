@@ -427,8 +427,9 @@
     <string name="settings_output_images">Изображения</string>
     <string name="settings_output_videos">Видео</string>
     <string name="settings_output_choose">Выбрать Папку</string>
-    <string name="settings_output_default">%1$s (по умолчанию)</string>
     <string name="settings_output_error">Не удалось использовать эту папку. Выберите другую.</string>
     <string name="button_share_results">Поделиться</string>
     <string name="share_results_chooser_title">Поделиться через…</string>
+    <string name="settings_output_unavailable">Redact больше не может сохранять в эту папку, поэтому файлы попадают в %1$s. Выберите её снова или другую папку.</string>
+    <string name="output_folder_fallback">Сохранение в %2$s: папка %1$s недоступна.</string>
 </resources>

@@ -3947,11 +3947,12 @@ PLcom/doubleangels/redact/ScanFragment;->showEmptyState(Z)V
 PLcom/doubleangels/redact/ScanFragment;->syncSelectButtonForPickerAccess()V
 PLcom/doubleangels/redact/ScanFragment$$ExternalSyntheticLambda0;-><init>(Lcom/doubleangels/redact/ScanFragment;)V
 PLcom/doubleangels/redact/ScanFragment$$ExternalSyntheticLambda1;-><init>(Lcom/doubleangels/redact/ScanFragment;)V
-PLcom/doubleangels/redact/ScanFragment$$ExternalSyntheticLambda12;-><init>()V
-PLcom/doubleangels/redact/ScanFragment$$ExternalSyntheticLambda13;-><init>(Lcom/doubleangels/redact/ScanFragment;)V
+PLcom/doubleangels/redact/ScanFragment$$ExternalSyntheticLambda13;-><init>()V
+PLcom/doubleangels/redact/ScanFragment$$ExternalSyntheticLambda14;-><init>(Lcom/doubleangels/redact/ScanFragment;)V
 PLcom/doubleangels/redact/ScanFragment$$ExternalSyntheticLambda2;-><init>(Lcom/doubleangels/redact/ScanFragment;)V
 PLcom/doubleangels/redact/ScanFragment$$ExternalSyntheticLambda3;-><init>(Lcom/doubleangels/redact/ScanFragment;)V
-PLcom/doubleangels/redact/ScanFragment$$ExternalSyntheticLambda4;-><init>()V
+PLcom/doubleangels/redact/ScanFragment$$ExternalSyntheticLambda4;-><init>(Lcom/doubleangels/redact/ScanFragment;)V
+PLcom/doubleangels/redact/ScanFragment$$ExternalSyntheticLambda5;-><init>()V
 PLcom/doubleangels/redact/ScanFragment$1;-><init>(Lcom/doubleangels/redact/ScanFragment;)V
 PLcom/doubleangels/redact/ScanFragment$1;->onLocationPermissionGranted()V
 PLcom/doubleangels/redact/ScanFragment$1;->onPermissionsGranted()V
@@ -3974,6 +3975,7 @@ PLcom/doubleangels/redact/SettingsFragment;->lambda$refreshStorageSize$0(Landroi
 PLcom/doubleangels/redact/SettingsFragment;->lambda$refreshStorageSize$1(J)V
 PLcom/doubleangels/redact/SettingsFragment;->maybeRequestLocationAfterMediaGrant()V
 PLcom/doubleangels/redact/SettingsFragment;->onCreateView(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;
+PLcom/doubleangels/redact/SettingsFragment;->onHiddenChanged(Z)V
 PLcom/doubleangels/redact/SettingsFragment;->onResume()V
 PLcom/doubleangels/redact/SettingsFragment;->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V
 PLcom/doubleangels/redact/SettingsFragment;->refreshOutputFolders()V
@@ -3982,7 +3984,7 @@ PLcom/doubleangels/redact/SettingsFragment;->refreshStorageSize()V
 PLcom/doubleangels/redact/SettingsFragment;->registerOutputFolderPicker(Z)Landroidx/activity/result/ActivityResultLauncher;
 PLcom/doubleangels/redact/SettingsFragment;->setNotificationSubRowsEnabled(Z)V
 PLcom/doubleangels/redact/SettingsFragment;->setupDropdown(Lcom/google/android/material/textfield/MaterialAutoCompleteTextView;[Ljava/lang/String;ILcom/doubleangels/redact/SettingsFragment$IndexConsumer;)V
-PLcom/doubleangels/redact/SettingsFragment;->showOutputFolder(Landroid/widget/TextView;Z)V
+PLcom/doubleangels/redact/SettingsFragment;->showOutputFolder(Landroid/widget/TextView;Landroid/widget/TextView;Landroid/view/View;Z)V
 PLcom/doubleangels/redact/SettingsFragment;->statusLabel(Lcom/doubleangels/redact/permission/PermissionStatusHelper$Status;)I
 PLcom/doubleangels/redact/SettingsFragment;->updatePreservationTogglesState(Z)V
 PLcom/doubleangels/redact/SettingsFragment$$ExternalSyntheticLambda1;-><init>(Lcom/doubleangels/redact/SettingsFragment;)V
@@ -4066,7 +4068,8 @@ SPLcom/doubleangels/redact/media/MediaProcessor;->getSucceededOutputs()Ljava/uti
 SPLcom/doubleangels/redact/media/MediaProcessor;->isBusy()Z
 Lcom/doubleangels/redact/media/MediaSelector;
 SPLcom/doubleangels/redact/media/MediaSelector;-><init>(Landroid/app/Activity;)V
-PLcom/doubleangels/redact/media/OutputDestination;->describe(Landroid/net/Uri;)Ljava/lang/String;
+PLcom/doubleangels/redact/media/OutputDestination;-><clinit>()V
+PLcom/doubleangels/redact/media/OutputDestination;->defaultPath(Z)Ljava/lang/String;
 Lcom/doubleangels/redact/media/ProgressUpdateThrottler;
 SPLcom/doubleangels/redact/media/ProgressUpdateThrottler;-><init>()V
 SPLcom/doubleangels/redact/media/ProgressUpdateThrottler;-><init>(J)V

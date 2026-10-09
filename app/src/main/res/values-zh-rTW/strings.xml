@@ -406,8 +406,9 @@
     <string name="settings_output_images">圖片</string>
     <string name="settings_output_videos">影片</string>
     <string name="settings_output_choose">選擇資料夾</string>
-    <string name="settings_output_default">%1$s（預設）</string>
     <string name="settings_output_error">無法使用該資料夾，請選擇其他資料夾。</string>
     <string name="button_share_results">分享</string>
     <string name="share_results_chooser_title">分享方式…</string>
+    <string name="settings_output_unavailable">Redact 無法再儲存至這個資料夾，檔案將儲存至 %1$s。請重新選擇這個資料夾或改選其他資料夾。</string>
+    <string name="output_folder_fallback">%1$s 無法使用，改為儲存至 %2$s。</string>
 </resources>

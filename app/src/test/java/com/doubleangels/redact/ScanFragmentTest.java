@@ -72,6 +72,11 @@ public class ScanFragmentTest {
         shadowOf(Looper.getMainLooper()).idle();
     }
 
+    private static void idleForSearch() {
+        shadowOf(Looper.getMainLooper()).idleFor(
+                java.time.Duration.ofMillis(ScanFragment.SEARCH_DEBOUNCE_MS));
+    }
+
     private static void awaitMain(BooleanSupplier condition) throws InterruptedException {
         long deadline = System.currentTimeMillis() + 20_000;
         while (!condition.getAsBoolean()) {
@@ -415,13 +420,13 @@ public class ScanFragmentTest {
         int everything = list.getAdapter().getItemCount();
 
         search.setText("acme");
-        idle();
+        idleForSearch();
         int matches = list.getAdapter().getItemCount();
         assertTrue(matches > 0 && matches < everything);
         assertEquals(View.GONE, v.findViewById(R.id.metadataNoMatches).getVisibility());
 
         search.setText("no field is called this");
-        idle();
+        idleForSearch();
         assertEquals(0, list.getAdapter().getItemCount());
         assertEquals(View.VISIBLE, v.findViewById(R.id.metadataNoMatches).getVisibility());
 

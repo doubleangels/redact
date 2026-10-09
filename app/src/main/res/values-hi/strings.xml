@@ -413,8 +413,9 @@
     <string name="settings_output_images">छवियाँ</string>
     <string name="settings_output_videos">वीडियो</string>
     <string name="settings_output_choose">फ़ोल्डर चुनें</string>
-    <string name="settings_output_default">%1$s (डिफ़ॉल्ट)</string>
     <string name="settings_output_error">यह फ़ोल्डर उपयोग नहीं किया जा सका। कोई दूसरा चुनें।</string>
     <string name="button_share_results">साझा करें</string>
     <string name="share_results_chooser_title">इसके ज़रिए साझा करें…</string>
+    <string name="settings_output_unavailable">Redact अब इस फ़ोल्डर में सेव नहीं कर सकता, इसलिए फ़ाइलें %1$s में जाती हैं। इसे फिर से चुनें या कोई दूसरा फ़ोल्डर चुनें।</string>
+    <string name="output_folder_fallback">%1$s उपलब्ध नहीं है, इसलिए %2$s में सेव किया जा रहा है।</string>
 </resources>

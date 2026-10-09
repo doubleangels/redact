@@ -412,8 +412,9 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_output_images">Bilder</string>
     <string name="settings_output_videos">Videos</string>
     <string name="settings_output_choose">Ordner Wählen</string>
-    <string name="settings_output_default">%1$s (Standard)</string>
     <string name="settings_output_error">Dieser Ordner kann nicht verwendet werden. Wähle einen anderen.</string>
     <string name="button_share_results">Teilen</string>
     <string name="share_results_chooser_title">Teilen über…</string>
+    <string name="settings_output_unavailable">Redact kann nicht mehr in diesem Ordner speichern, daher landen Dateien in %1$s. Wähle ihn erneut oder einen anderen Ordner aus.</string>
+    <string name="output_folder_fallback">Speichere stattdessen in %2$s: %1$s ist nicht verfügbar.</string>
 </resources>

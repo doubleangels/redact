@@ -150,7 +150,7 @@ Choose a target format (images: JPEG, PNG, WebP, HEIC where supported; video: H.
 
 ### Where files go
 
-Cleaned and converted files are saved through Android's MediaStore into `Pictures/Redact` or `Movies/Redact` by default. In Settings under **Output Folders** you can open the file browser to pick or create a different folder for images and for videos, and reset either one to the default at any time. Files you share in are held in the app's temporary cache and deleted once sharing finishes, with a short delay so the receiving app can finish reading them.
+Cleaned and converted files are saved through Android's MediaStore into `Pictures/Redact` or `Movies/Redact` by default. In Settings under **Output Folders** you can open the file browser to pick or create a different folder for images and for videos, on device storage or an SD card. The browser starts in `Pictures` or `Movies` (or in the folder you chose before), Settings shows the folder you picked, such as `Pictures/Private`, and **Reset to Default** (or picking the `Redact` folder itself) switches back. If a chosen folder is deleted or its SD card is removed, Redact saves to the default folder instead, says so once, and Settings shows a warning until you choose a folder again. Files you share in are held in the app's temporary cache and deleted once sharing finishes, with a short delay so the receiving app can finish reading them.
 
 ---
 
@@ -196,7 +196,7 @@ The Settings tab is grouped the same way as the tables below, from the things yo
 |---|---|
 | **Allow Notifications** / **Ongoing Task Progress** | Alerts when jobs finish and optional live progress. Off until you turn them on. |
 | **Clear Cache on Startup** / **Clear Temporary Files** | Removes processing cache older than 24 hours when the app opens, or on demand. |
-| **Output Folders** | Opens the file browser so you can pick or create a folder for cleaned and converted images and another for videos. Defaults are `Pictures/Redact` and `Movies/Redact`; **Reset to Default** restores either. Existing files are not moved. |
+| **Output Folders** | Opens the file browser so you can pick or create a folder for cleaned and converted images and another for videos. Defaults are `Pictures/Redact` and `Movies/Redact`; **Reset to Default** restores either. Existing files are not moved. If a chosen folder becomes unavailable, Redact falls back to the default and warns you here. |
 | **Secure Deletion Passes** | How many times temporary files are overwritten before deletion. More passes are slower, and recovery may still be possible on flash storage. |
 
 Open the Settings tab in the app for the full list.

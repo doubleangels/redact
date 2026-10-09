@@ -492,6 +492,49 @@ public class SettingsFragmentTest {
         assertEquals(R.id.chipFormatJpeg, SettingsFragment.chipIdForFormatIndex(99));
     }
 
+    /** Leaves Settings and comes back, which re-reads the output folders. */
+    private void reshowSettings() {
+        activity.selectTab(R.id.navigation_clean);
+        idle();
+        activity.selectTab(R.id.navigation_settings);
+        idle();
+    }
+
+    @Test
+    public void outputFolders_showTheDefault_aChosenFolder_andAWarningOnceItIsGone() {
+        TextView label = settings.findViewById(R.id.textOutputImages);
+        TextView warning = settings.findViewById(R.id.textOutputImagesWarning);
+        View reset = settings.findViewById(R.id.buttonResetOutputImages);
+        assertEquals("Pictures/Redact", label.getText().toString());
+        assertEquals("Movies/Redact",
+                ((TextView) settings.findViewById(R.id.textOutputVideos)).getText().toString());
+        assertEquals(View.GONE, reset.getVisibility());
+        assertEquals(View.GONE, warning.getVisibility());
+
+        FakeDocumentsProvider.install(activity);
+        SettingsFragment.onOutputFolderPicked(activity, false,
+                FakeDocumentsProvider.folder("primary:Pictures/Private"));
+        reshowSettings();
+        assertEquals("Pictures/Private", label.getText().toString());
+        assertEquals(View.VISIBLE, reset.getVisibility());
+        assertEquals(View.GONE, warning.getVisibility());
+
+        //noinspection ResultOfMethodCallIgnored
+        FakeDocumentsProvider.fileFor("primary:Pictures/Private").delete();
+        reshowSettings();
+        assertEquals("Pictures/Private", label.getText().toString());
+        assertEquals(View.VISIBLE, warning.getVisibility());
+        assertEquals(activity.getString(R.string.settings_output_unavailable, "Pictures/Redact"),
+                warning.getText().toString());
+
+        reset.performClick();
+        idle();
+        assertEquals("Pictures/Redact", label.getText().toString());
+        assertEquals(View.GONE, reset.getVisibility());
+        assertEquals(View.GONE, warning.getVisibility());
+        assertEquals(null, AppPreferences.getOutputTree(activity, false));
+    }
+
     @SuppressWarnings("unused")
     private static void unused(Activity a) {
     }

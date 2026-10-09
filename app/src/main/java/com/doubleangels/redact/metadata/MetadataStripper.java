@@ -327,7 +327,7 @@ public class MetadataStripper {
             updateProgress(1, 4, context.getString(R.string.strip_progress_reading_video));
 
             VideoPrivacySnapshot sourceSnapshot = extractVideoPrivacyMetadata(sourceUri);
-            lastCleanStats = countVideoPrivacyFields(sourceUri, sourceSnapshot);
+            lastCleanStats = countVideoPrivacyFields(sourceSnapshot);
 
             throwIfCancelled();
             int formatIndex = detectVideoFormatIndex(sourceUri, originalFilename);
@@ -1424,10 +1424,17 @@ public class MetadataStripper {
     static final class VideoPrivacySnapshot {
         @Nullable final String location;
         @Nullable final String date;
+        /** How many of {@link #ADDITIONAL_VIDEO_PRIVACY_KEYS} the video carries, for the clean summary. */
+        final int additionalFieldCount;
 
         VideoPrivacySnapshot(@Nullable String location, @Nullable String date) {
+            this(location, date, 0);
+        }
+
+        VideoPrivacySnapshot(@Nullable String location, @Nullable String date, int additionalFieldCount) {
             this.location = location;
             this.date = date;
+            this.additionalFieldCount = additionalFieldCount;
         }
 
         static VideoPrivacySnapshot empty() {
@@ -1455,11 +1462,19 @@ public class MetadataStripper {
             if (VIDEO_DATE_UNSET_PLACEHOLDER.equals(date)) {
                 date = null;
             }
+            // Counted while the file is open, so the clean summary needs no second read.
+            int additional = 0;
+            for (int key : ADDITIONAL_VIDEO_PRIVACY_KEYS) {
+                if (normalizeMetadataValue(retriever.extractMetadata(key)) != null) {
+                    additional++;
+                }
+            }
             return new VideoPrivacySnapshot(
                     normalizeMetadataValue(
                             retriever.extractMetadata(
                                     android.media.MediaMetadataRetriever.METADATA_KEY_LOCATION)),
-                    date);
+                    date,
+                    additional);
         } catch (Exception e) {
             SentryManager.log("The source video privacy metadata could not be read: " + e.getMessage() + ".");
             return VideoPrivacySnapshot.empty();
@@ -1480,19 +1495,9 @@ public class MetadataStripper {
 
     /** Counts the privacy fields the video verification checks: location, date and the additional keys. */
     @NonNull
-    private CleanStats countVideoPrivacyFields(
-            @NonNull Uri sourceUri, @NonNull VideoPrivacySnapshot snapshot) {
-        int fields = (snapshot.location != null ? 1 : 0) + (snapshot.date != null ? 1 : 0);
-        try (android.media.MediaMetadataRetriever retriever = new android.media.MediaMetadataRetriever()) {
-            retriever.setDataSource(context, sourceUri);
-            for (int key : ADDITIONAL_VIDEO_PRIVACY_KEYS) {
-                if (normalizeMetadataValue(retriever.extractMetadata(key)) != null) {
-                    fields++;
-                }
-            }
-        } catch (Exception e) {
-            SentryManager.log("The video privacy fields could not be counted: " + e.getMessage() + ".");
-        }
+    static CleanStats countVideoPrivacyFields(@NonNull VideoPrivacySnapshot snapshot) {
+        int fields = (snapshot.location != null ? 1 : 0) + (snapshot.date != null ? 1 : 0)
+                + snapshot.additionalFieldCount;
         return new CleanStats(fields, snapshot.location != null);
     }
 

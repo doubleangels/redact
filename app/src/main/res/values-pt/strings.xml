@@ -420,8 +420,9 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="settings_output_images">Imagens</string>
     <string name="settings_output_videos">Vídeos</string>
     <string name="settings_output_choose">Escolher Pasta</string>
-    <string name="settings_output_default">%1$s (padrão)</string>
     <string name="settings_output_error">Não foi possível usar essa pasta. Escolha outra.</string>
     <string name="button_share_results">Compartilhar</string>
     <string name="share_results_chooser_title">Compartilhar via…</string>
+    <string name="settings_output_unavailable">O Redact não consegue mais salvar nesta pasta, então os arquivos vão para %1$s. Escolha-a novamente ou escolha outra pasta.</string>
+    <string name="output_folder_fallback">Salvando em %2$s: %1$s não está disponível.</string>
 </resources>

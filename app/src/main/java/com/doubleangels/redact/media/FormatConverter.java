@@ -502,8 +502,10 @@ public final class FormatConverter {
             }
         }
         // Encoders reject extreme aspect ratios (WebP caps each side at 16383 px), so long
-        // screenshots must be downsampled even when the shorter side is small.
-        while (Math.max(height, width) / inSampleSize > MAX_ENCODER_DIMENSION) {
+        // screenshots must be downsampled even when the shorter side is small. Decoders round a
+        // sampled side up (32767 px at 1/2 gives 16384), so compare the rounded-up size.
+        int longestSide = Math.max(height, width);
+        while ((longestSide + inSampleSize - 1) / inSampleSize > MAX_ENCODER_DIMENSION) {
             inSampleSize *= 2;
         }
         return inSampleSize;

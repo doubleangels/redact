@@ -62,6 +62,9 @@ import io.sentry.SpanStatus;
  */
 public class ScanFragment extends Fragment {
 
+    /** How long the metadata search waits after the last keystroke before filtering. */
+    static final long SEARCH_DEBOUNCE_MS = 150;
+
     private static final Comparator<Pair<String, String>> METADATA_ROW_KEY_ORDER = (a, b) -> {
         String ka = a.first;
         String kb = b.first;
@@ -108,6 +111,8 @@ public class ScanFragment extends Fragment {
     private View metadataSearchLayout;
     private TextInputEditText metadataSearchInput;
     private TextView metadataNoMatches;
+    /** Applies the search once typing pauses, so a fast typist does not re-filter on every key. */
+    private final Runnable applyMetadataSearch = this::applyMetadataSearch;
     private HorizontalScrollView scanActionCardsScroll;
     private LinearLayout scanActionCardsContainer;
 
@@ -365,6 +370,9 @@ public class ScanFragment extends Fragment {
     @Override
     public void onDestroyView() {
         MetadataDisplayer.cancelActiveScan();
+        if (metadataSearchInput != null) {
+            metadataSearchInput.removeCallbacks(applyMetadataSearch);
+        }
         if (heroThumbnail != null) {
             try {
                 Glide.with(heroThumbnail).clear(heroThumbnail);
@@ -807,8 +815,8 @@ public class ScanFragment extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
-                scanMetadataAdapter.setQuery(s.toString());
-                updateNoMatches();
+                metadataSearchInput.removeCallbacks(applyMetadataSearch);
+                metadataSearchInput.postDelayed(applyMetadataSearch, SEARCH_DEBOUNCE_MS);
             }
         });
         metadataSearchInput.setOnEditorActionListener((v, actionId, event) -> {
@@ -824,9 +832,18 @@ public class ScanFragment extends Fragment {
         });
     }
 
+    private void applyMetadataSearch() {
+        Editable text = metadataSearchInput.getText();
+        scanMetadataAdapter.setQuery(text != null ? text.toString() : null);
+        updateNoMatches();
+    }
+
     private void clearMetadataSearch() {
         metadataSearchInput.setText(null);
         metadataSearchInput.clearFocus();
+        // Apply now rather than after the pause, so the next file never shows through the old query.
+        metadataSearchInput.removeCallbacks(applyMetadataSearch);
+        applyMetadataSearch();
     }
 
     private void updateNoMatches() {

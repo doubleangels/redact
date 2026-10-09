@@ -1,16 +1,22 @@
 package com.doubleangels.redact.ui;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.robolectric.Shadows.shadowOf;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
@@ -52,5 +58,49 @@ public class ShareResultsTest {
         assertEquals("image/jpeg", ShareResults.commonType(context, List.of(JPG)));
         assertEquals("image/*", ShareResults.commonType(context, List.of(JPG, PNG)));
         assertEquals("*/*", ShareResults.commonType(context, List.of(JPG, MP4)));
+    }
+
+    @Test
+    public void share_oneFile_sendsItWithReadAccess() {
+        Activity app = Robolectric.buildActivity(Activity.class).setup().get();
+        ShareResults.share(app, List.of(JPG));
+
+        Intent send = sentIntent(app);
+        assertEquals(Intent.ACTION_SEND, send.getAction());
+        assertEquals("image/jpeg", send.getType());
+        assertEquals(JPG, send.getParcelableExtra(Intent.EXTRA_STREAM));
+        assertTrue((send.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0);
+        assertEquals(1, send.getClipData().getItemCount());
+    }
+
+    @Test
+    public void share_severalFiles_sendsAllOfThem() {
+        Activity app = Robolectric.buildActivity(Activity.class).setup().get();
+        ShareResults.share(app, List.of(JPG, PNG, MP4));
+
+        Intent send = sentIntent(app);
+        assertEquals(Intent.ACTION_SEND_MULTIPLE, send.getAction());
+        assertEquals("*/*", send.getType());
+        assertEquals(List.of(JPG, PNG, MP4), send.getParcelableArrayListExtra(Intent.EXTRA_STREAM));
+        // Every file needs a clip item, or receivers only get read access to the first.
+        assertEquals(3, send.getClipData().getItemCount());
+        assertTrue((send.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0);
+    }
+
+    @Test
+    public void share_nothing_opensNothing() {
+        Activity app = Robolectric.buildActivity(Activity.class).setup().get();
+        ShareResults.share(app, List.of());
+        assertEquals(null, shadowOf(app).getNextStartedActivity());
+    }
+
+    /** The share intent inside the chooser that {@link ShareResults#share} started. */
+    private static Intent sentIntent(Activity app) {
+        Intent chooser = shadowOf(app).getNextStartedActivity();
+        assertNotNull(chooser);
+        assertEquals(Intent.ACTION_CHOOSER, chooser.getAction());
+        Intent send = chooser.getParcelableExtra(Intent.EXTRA_INTENT);
+        assertNotNull(send);
+        return send;
     }
 }

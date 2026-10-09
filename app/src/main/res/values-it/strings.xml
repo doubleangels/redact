@@ -420,8 +420,9 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="settings_output_images">Immagini</string>
     <string name="settings_output_videos">Video</string>
     <string name="settings_output_choose">Scegli Cartella</string>
-    <string name="settings_output_default">%1$s (predefinita)</string>
     <string name="settings_output_error">Impossibile usare questa cartella. Scegline un’altra.</string>
     <string name="button_share_results">Condividi</string>
     <string name="share_results_chooser_title">Condividi tramite…</string>
+    <string name="settings_output_unavailable">Redact non può più salvare in questa cartella, quindi i file vanno in %1$s. Sceglila di nuovo o scegline un’altra.</string>
+    <string name="output_folder_fallback">Salvataggio in %2$s: %1$s non è disponibile.</string>
 </resources>
