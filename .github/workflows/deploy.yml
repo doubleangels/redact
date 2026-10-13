@@ -119,7 +119,7 @@ jobs:
           fi
 
       - name: Upload bundle to artifacts
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: google-play-bundle
           path: app/build/outputs/bundle/release/app-release.aab
