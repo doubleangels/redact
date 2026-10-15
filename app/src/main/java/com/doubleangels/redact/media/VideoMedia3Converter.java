@@ -12,7 +12,11 @@ import androidx.annotation.NonNull;
 import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MimeTypes;
+import androidx.media3.common.util.Clock;
+import androidx.media3.transformer.AssetLoader;
 import androidx.media3.transformer.Composition;
+import androidx.media3.transformer.DefaultAssetLoaderFactory;
+import androidx.media3.transformer.DefaultDecoderFactory;
 import androidx.media3.transformer.DefaultMuxer;
 import androidx.media3.transformer.EditedMediaItem;
 import androidx.media3.transformer.EditedMediaItemSequence;
@@ -283,6 +287,7 @@ public final class VideoMedia3Converter {
                     try {
                         Transformer transformer =
                                 new Transformer.Builder(app)
+                                        .setAssetLoaderFactory(decoderFallbackAssetLoaderFactory(app))
                                         .setMuxerFactory(new DefaultMuxer.Factory())
                                         .setVideoMimeType(videoMimeType)
                                         .setAudioMimeType(audioMimeTypeForVideoMime(videoMimeType))
@@ -366,6 +371,20 @@ public final class VideoMedia3Converter {
             deleteQuietly(app, outFile);
             throw new IOException("Video conversion produced no output");
         }
+    }
+
+    /**
+     * Media3's default asset loader only tries the first decoder the device lists. Hardware decoders
+     * can refuse to start on streams at or past their limits (e.g. 4K60 high-bitrate AVC), and
+     * without fallback the whole export fails even though a lower-priority decoder could handle it.
+     */
+    @NonNull
+    private static AssetLoader.Factory decoderFallbackAssetLoaderFactory(@NonNull Context app) {
+        return new DefaultAssetLoaderFactory(
+                app,
+                new DefaultDecoderFactory.Builder(app).setEnableDecoderFallback(true).build(),
+                Clock.DEFAULT,
+                /* logSessionId= */ null);
     }
 
     private static void stopPolling(
