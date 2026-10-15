@@ -9,6 +9,7 @@ import android.os.IBinder;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import com.doubleangels.redact.R;
 
@@ -86,11 +87,29 @@ public class ProcessingForegroundService extends Service {
         }
     }
 
+    /** Whether this instance successfully called startForeground(). */
+    private boolean inForeground;
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        // Android requires startForeground() to be called within 5 seconds of
-        // startForegroundService(), regardless of what we decide to do afterward.
-        // Always build and post a minimal notification first, then stop if needed.
+        String action = intent != null ? intent.getAction() : null;
+        // Only ACTION_START arrives via startForegroundService(). Update and stop arrive via plain
+        // startService(), which can create a fresh instance when the previous one already stopped
+        // (self-stop, timeout, process restart). Calling startForeground() on such an instance
+        // while the app is in the background throws ForegroundServiceStartNotAllowedException,
+        // and there is nothing to update or stop anyway.
+        boolean isStart = action == null || ACTION_START.equals(action);
+        if (!isStart && !inForeground) {
+            stopSelf(startId);
+            return START_NOT_STICKY;
+        }
+        if (ACTION_STOP.equals(action)) {
+            stopForeground(STOP_FOREGROUND_REMOVE);
+            inForeground = false;
+            stopSelf(startId);
+            return START_NOT_STICKY;
+        }
+
         String title = intent != null && intent.hasExtra(EXTRA_TITLE)
                 ? intent.getStringExtra(EXTRA_TITLE)
                 : getString(R.string.status_processing);
@@ -118,6 +137,17 @@ public class ProcessingForegroundService extends Service {
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setContentIntent(LocalNotifications.mainContentIntent(this));
 
+        if (!isStart) {
+            // Already foreground: refresh the existing notification instead of re-entering
+            // startForeground(), which the background-start restrictions also apply to.
+            try {
+                NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, builder.build());
+            } catch (SecurityException ignored) {
+                // POST_NOTIFICATIONS revoked mid-run; the work itself continues.
+            }
+            return START_NOT_STICKY;
+        }
+
         try {
             // Call Service.startForeground directly: ServiceCompat masks out
             // FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING, which becomes type none and is rejected on
@@ -137,6 +167,7 @@ public class ProcessingForegroundService extends Service {
             } else {
                 startForeground(NOTIFICATION_ID, builder.build());
             }
+            inForeground = true;
         } catch (SecurityException e) {
             // POST_NOTIFICATIONS denied; we still satisfied the startForeground
             // contract via the try, so just stop cleanly.
@@ -149,15 +180,6 @@ public class ProcessingForegroundService extends Service {
             stopSelf();
             return START_NOT_STICKY;
         }
-
-        // Now that we've satisfied Android's startForeground requirement, handle
-        // stop/permission-denied cases by removing the foreground state immediately.
-        if (intent != null && ACTION_STOP.equals(intent.getAction())) {
-            stopForeground(STOP_FOREGROUND_REMOVE);
-            stopSelf();
-            return START_NOT_STICKY;
-        }
-
         return START_NOT_STICKY;
     }
 
@@ -186,6 +208,7 @@ public class ProcessingForegroundService extends Service {
         scope.convertTimedOut().set(true);
         com.doubleangels.redact.media.VideoMedia3Converter.cancelActiveTranscode();
         stopForeground(STOP_FOREGROUND_REMOVE);
+        inForeground = false;
         stopSelf();
     }
 
