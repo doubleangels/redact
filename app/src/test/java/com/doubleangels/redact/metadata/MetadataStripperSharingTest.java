@@ -19,6 +19,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -102,6 +103,23 @@ public class MetadataStripperSharingTest {
     @Test
     public void shareMissingSource_returnsNull() {
         assertEquals(null, stripper.stripExifDataForSharing(Uri.fromFile(new File("/nope/x.jpg")), "x.jpg"));
+    }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE) // legacy graphics fakes a bitmap for any input
+    public void shareSvg_isSkippedWithoutLeavingOutput() throws Exception {
+        // REDACT-1Z: SVGs (and other non-raster files) arrive as image/*; neither decoder reads them.
+        File svg = File.createTempFile("strip_", ".svg");
+        svg.deleteOnExit();
+        try (FileOutputStream out = new FileOutputStream(svg)) {
+            out.write("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"4\" height=\"4\"/>"
+                    .getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+
+        assertEquals(null, stripper.stripExifDataForSharing(Uri.fromFile(svg), "f.svg"));
+        assertEquals(null, stripper.getLastProcessedOutputFile());
+        File[] leftovers = new File(app.getCacheDir(), "processed").listFiles();
+        assertTrue(leftovers == null || leftovers.length == 0);
     }
 
     @Test

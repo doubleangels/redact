@@ -672,7 +672,14 @@ public class MetadataStripper {
                 originalBitmap = BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsLoad);
 
                 if (originalBitmap == null) {
-                    throw new IOException("Failed to decode bitmap");
+                    try {
+                        originalBitmap = FormatConverter.decodeBitmapFromUri(context, Uri.fromFile(tempFile));
+                    } catch (IOException decodeFailed) {
+                        throw new UnsupportedImageException(decodeFailed);
+                    }
+                }
+                if (originalBitmap == null) {
+                    throw new UnsupportedImageException(null);
                 }
 
                 try (FileOutputStream fos = new FileOutputStream(outputFile)) {
@@ -724,7 +731,11 @@ public class MetadataStripper {
         } catch (Exception e) {
             // Log error
             Log.e(TAG, "Error processing image for sharing", e);
-            SentryManager.recordException(e);
+            if (e instanceof UnsupportedImageException) {
+                SentryManager.logEvent("share", "A shared item is not a decodable raster image and was skipped.");
+            } else {
+                SentryManager.recordException(e);
+            }
             SentryManager.setCustomKey("success", false);
             SentryManager.setCustomKey("error_type", e.getClass().getName());
             if (outputFile != null && outputFile.exists()) {
@@ -1426,6 +1437,16 @@ public class MetadataStripper {
         }
 
         return tags;
+    }
+
+    /**
+     * Neither BitmapFactory nor ImageDecoder can read the input (e.g. an SVG or a non-image file
+     * shared as {@code image/*}). The item is skipped; this is a property of the input, not a bug.
+     */
+    static final class UnsupportedImageException extends IOException {
+        UnsupportedImageException(@Nullable Throwable cause) {
+            super("Failed to decode bitmap", cause);
+        }
     }
 
     /** Source location/date used to detect preserved privacy metadata after cleaning. */
