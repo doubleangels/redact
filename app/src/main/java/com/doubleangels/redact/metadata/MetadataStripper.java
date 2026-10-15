@@ -1059,7 +1059,16 @@ public class MetadataStripper {
             muxer.stop();
             return outputFile;
         } catch (Exception e) {
-            SentryManager.recordException(e);
+            if (e instanceof IllegalStateException) {
+                // MediaMuxer rejects some streams mid-write (its native writer stops and stop()
+                // then throws). This fast path is best-effort: every caller falls back to a full
+                // transcode from the source, which still produces a verified clean output.
+                SentryManager.logEvent("video",
+                        "The fast transmux failed, so the app is falling back to a full transcode: "
+                                + e.getMessage());
+            } else {
+                SentryManager.recordException(e);
+            }
             if (outputFile != null && outputFile.exists()) {
                 outputFile.delete();
             }
