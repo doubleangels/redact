@@ -29,6 +29,7 @@ import com.doubleangels.redact.metadata.MetadataStripper;
 import com.doubleangels.redact.notifications.LocalNotifications;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
@@ -334,7 +335,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     // is really a single failure. Drop this item instead, but count it so the
                     // user still sees the partial-success message.
                     snapshotFailCount++;
-                    SentryManager.recordException(e);
+                    if (e instanceof FileNotFoundException) {
+                        // The sharing app handed us a URI whose item no longer exists (deleted,
+                        // or a stale cloud/gallery entry). Nothing on our side to fix.
+                        SentryManager.logEvent("share", "An inbound item no longer exists and was skipped.");
+                    } else {
+                        SentryManager.recordException(e);
+                    }
                 }
             } else {
                 stable.add(uri);
