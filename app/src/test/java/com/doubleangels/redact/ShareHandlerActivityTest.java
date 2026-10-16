@@ -233,6 +233,52 @@ public class ShareHandlerActivityTest {
         assertEquals(0, inboundSnapshots().length);
     }
 
+    private Uri createSvg() throws IOException {
+        File svg = File.createTempFile("share_src_", ".svg", sourceDir());
+        sourceFiles.add(svg);
+        try (FileOutputStream fos = new FileOutputStream(svg)) {
+            fos.write("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"4\" height=\"4\"/>"
+                    .getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+        return Uri.fromFile(svg);
+    }
+
+    @Test
+    public void send_svg_finishesWithUnsupportedMediaError() throws Exception {
+        ShareHandlerActivity activity = launch(sendIntent("image/*", createSvg()));
+
+        assertNull(awaitStartedActivity(activity));
+        assertFinishedWithError(activity, R.string.share_error_unsupported_media);
+        assertFalse(ShareHandlerActivity.isShareProcessingActive());
+    }
+
+    @Test
+    public void sendMultiple_onlyUndecodableImages_finishesWithUnsupportedMediaError() throws Exception {
+        ArrayList<Uri> uris = new ArrayList<>();
+        uris.add(createSvg());
+        uris.add(createSvg());
+        ShareHandlerActivity activity = launch(sendMultipleIntent("image/*", uris));
+
+        assertNull(awaitStartedActivity(activity));
+        assertFinishedWithError(activity, R.string.share_error_unsupported_media);
+    }
+
+    @Test
+    public void isUnsupportedMediaType_rejectsNonMediaAndVectorTypes() {
+        assertTrue(ShareHandlerActivity.isUnsupportedMediaType("application/pdf"));
+        assertTrue(ShareHandlerActivity.isUnsupportedMediaType("text/plain"));
+        assertTrue(ShareHandlerActivity.isUnsupportedMediaType("audio/mpeg"));
+        assertTrue(ShareHandlerActivity.isUnsupportedMediaType("image/svg+xml"));
+        assertTrue(ShareHandlerActivity.isUnsupportedMediaType("IMAGE/SVG+XML"));
+
+        assertFalse(ShareHandlerActivity.isUnsupportedMediaType(null));
+        assertFalse(ShareHandlerActivity.isUnsupportedMediaType("*/*"));
+        assertFalse(ShareHandlerActivity.isUnsupportedMediaType("application/octet-stream"));
+        assertFalse(ShareHandlerActivity.isUnsupportedMediaType("image/jpeg"));
+        assertFalse(ShareHandlerActivity.isUnsupportedMediaType("image/heic"));
+        assertFalse(ShareHandlerActivity.isUnsupportedMediaType("video/webm"));
+    }
+
     @Test
     public void send_withConfirmEnabled_snapshotsInputAndShowsConfirmDialog() throws IOException {
         AppPreferences.setShareConfirmBeforeStrip(app, true);
@@ -340,7 +386,7 @@ public class ShareHandlerActivityTest {
     }
 
     @Test
-    public void send_undecodableImage_finishesWithProcessingError() throws Exception {
+    public void send_nonImageBytes_finishesWithUnsupportedMediaError() throws Exception {
         File garbage = File.createTempFile("share_bad_", ".jpg", sourceDir());
         sourceFiles.add(garbage);
         try (FileOutputStream fos = new FileOutputStream(garbage)) {
@@ -351,7 +397,7 @@ public class ShareHandlerActivityTest {
         Intent started = awaitStartedActivity(activity);
 
         assertNull("Unexpected share chooser" + loggedErrors(), started);
-        assertFinishedWithError(activity, R.string.share_error_processing_failed);
+        assertFinishedWithError(activity, R.string.share_error_unsupported_media);
         assertFalse(ShareHandlerActivity.isShareProcessingActive());
     }
 

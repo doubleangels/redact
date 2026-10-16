@@ -387,7 +387,7 @@ public final class FormatConverter {
             bitmap = decodeBitmapFromUri(context, sourceUri);
         }
         if (bitmap == null) {
-            throw new IOException("Decode failed");
+            throw new UnsupportedMediaException("Decode failed", null);
         }
         if (needsOrientationFix) {
             // The output carries no EXIF at all, so bake the rotation into the pixels.
@@ -438,7 +438,16 @@ public final class FormatConverter {
     @Nullable
     public static Bitmap decodeBitmapFromUri(@NonNull Context context, @NonNull Uri sourceUri)
             throws IOException {
-        return decodeWithImageDecoder(context, sourceUri);
+        try {
+            return decodeWithImageDecoder(context, sourceUri);
+        } catch (ImageDecoder.DecodeException e) {
+            // SOURCE_EXCEPTION means the bytes could not be read (a real I/O failure). Any other
+            // error means the bytes were read but are not an image this device can decode.
+            if (e.getError() == ImageDecoder.DecodeException.SOURCE_EXCEPTION) {
+                throw e;
+            }
+            throw new UnsupportedMediaException("Unsupported image format", e);
+        }
     }
 
     private static Bitmap decodeWithImageDecoder(Context context, Uri sourceUri)

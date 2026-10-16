@@ -23,6 +23,7 @@ import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaSizeLimits;
 import com.doubleangels.redact.media.VideoMedia3Converter;
 import com.doubleangels.redact.media.OutputDestination;
+import com.doubleangels.redact.media.UnsupportedMediaException;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.Closeable;
@@ -126,6 +127,7 @@ public class MetadataStripper {
     /** On-disk output from the most recent sharing operation (for cleanup and display names). */
     @Nullable
     private File lastProcessedOutputFile;
+    private volatile boolean lastFailureUnsupported;
 
     @androidx.annotation.VisibleForTesting
     @Nullable
@@ -520,7 +522,7 @@ public class MetadataStripper {
                     originalBitmap = FormatConverter.decodeBitmapFromUri(context, sourceUri);
                 }
                 if (originalBitmap == null) {
-                    throw new IOException("Failed to decode bitmap");
+                    throw new UnsupportedMediaException("Failed to decode bitmap", null);
                 }
 
                 try (OutputStream os = contentResolver.openOutputStream(newUri)) {
@@ -672,14 +674,10 @@ public class MetadataStripper {
                 originalBitmap = BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsLoad);
 
                 if (originalBitmap == null) {
-                    try {
-                        originalBitmap = FormatConverter.decodeBitmapFromUri(context, Uri.fromFile(tempFile));
-                    } catch (IOException decodeFailed) {
-                        throw new UnsupportedImageException(decodeFailed);
-                    }
+                    originalBitmap = FormatConverter.decodeBitmapFromUri(context, Uri.fromFile(tempFile));
                 }
                 if (originalBitmap == null) {
-                    throw new UnsupportedImageException(null);
+                    throw new UnsupportedMediaException("Failed to decode bitmap", null);
                 }
 
                 try (FileOutputStream fos = new FileOutputStream(outputFile)) {
@@ -731,11 +729,8 @@ public class MetadataStripper {
         } catch (Exception e) {
             // Log error
             Log.e(TAG, "Error processing image for sharing", e);
-            if (e instanceof UnsupportedImageException) {
-                SentryManager.logEvent("share", "A shared item is not a decodable raster image and was skipped.");
-            } else {
-                SentryManager.recordException(e);
-            }
+            lastFailureUnsupported = UnsupportedMediaException.isCauseOf(e);
+            SentryManager.recordException(e);
             SentryManager.setCustomKey("success", false);
             SentryManager.setCustomKey("error_type", e.getClass().getName());
             if (outputFile != null && outputFile.exists()) {
@@ -860,6 +855,7 @@ public class MetadataStripper {
         } catch (Exception e) {
             // Log error
             Log.e(TAG, "Error processing video for sharing", e);
+            lastFailureUnsupported = UnsupportedMediaException.isCauseOf(e);
             SentryManager.recordException(e);
             SentryManager.setCustomKey("success", false);
             SentryManager.setCustomKey("error_type", e.getClass().getName());
@@ -986,8 +982,16 @@ public class MetadataStripper {
         android.media.MediaMuxer muxer = null;
         File outputFile = null;
         try {
-            extractor.setDataSource(context, sourceUri, null);
-            
+            try {
+                extractor.setDataSource(context, sourceUri, null);
+            } catch (IOException unreadable) {
+                // No platform extractor for this container. The full transcode that follows
+                // decides whether the input is usable at all and reports it accordingly.
+                SentryManager.logEvent("video",
+                        "The fast transmux could not open the source, so the app is falling back to a full transcode.");
+                return null;
+            }
+
             boolean useWebm = false;
             for (int i = 0; i < extractor.getTrackCount(); i++) {
                 android.media.MediaFormat format = extractor.getTrackFormat(i);
@@ -1109,6 +1113,7 @@ public class MetadataStripper {
         // Log operation start for analytics and debugging
         SentryManager.log("The app is starting metadata stripping for sharing.");
         SentryManager.setCustomKey("is_video", isVideo);
+        lastFailureUnsupported = false;
 
         if (isVideo) {
             return stripVideoMetadataForSharing(sourceUri, originalFilename);
@@ -1130,6 +1135,14 @@ public class MetadataStripper {
     @Nullable
     public File getLastProcessedOutputFile() {
         return lastProcessedOutputFile;
+    }
+
+    /**
+     * Whether the last {@link #stripMetadataForSharing} call failed because the input is in a
+     * format this device cannot decode, rather than for some other reason.
+     */
+    public boolean wasLastFailureUnsupported() {
+        return lastFailureUnsupported;
     }
 
     /**
@@ -1437,16 +1450,6 @@ public class MetadataStripper {
         }
 
         return tags;
-    }
-
-    /**
-     * Neither BitmapFactory nor ImageDecoder can read the input (e.g. an SVG or a non-image file
-     * shared as {@code image/*}). The item is skipped; this is a property of the input, not a bug.
-     */
-    static final class UnsupportedImageException extends IOException {
-        UnsupportedImageException(@Nullable Throwable cause) {
-            super("Failed to decode bitmap", cause);
-        }
     }
 
     /** Source location/date used to detect preserved privacy metadata after cleaning. */
