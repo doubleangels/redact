@@ -29,6 +29,7 @@ import com.doubleangels.redact.metadata.MetadataStripper;
 import com.doubleangels.redact.notifications.LocalNotifications;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
@@ -266,7 +267,9 @@ public class ShareHandlerActivity extends AppCompatActivity {
             }
             List<Uri> accepted = filterSupportedUris(uris);
             if (accepted.isEmpty()) {
-                finishWithError(getString(R.string.share_error_failed_receive_media));
+                finishWithError(getString(unsupportedRejectCount > 0
+                        ? R.string.share_error_unsupported_media
+                        : R.string.share_error_failed_receive_media));
                 return;
             }
             List<Uri> snapshotted = snapshotInboundUris(accepted);
@@ -291,7 +294,9 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 }
                 List<Uri> accepted = filterSupportedUris(uris);
                 if (accepted.isEmpty()) {
-                    finishWithError(getString(R.string.share_error_failed_receive_media));
+                    finishWithError(getString(unsupportedRejectCount > 0
+                            ? R.string.share_error_unsupported_media
+                            : R.string.share_error_failed_receive_media));
                     return;
                 }
                 List<Uri> snapshotted = snapshotInboundUris(accepted);
@@ -314,6 +319,9 @@ public class ShareHandlerActivity extends AppCompatActivity {
     /** Items dropped by {@link #snapshotInboundUris}; counted as failures in the final toast. */
     private volatile int snapshotFailCount;
 
+    /** Items dropped by {@link #filterSupportedUris} for a non-media type; also counted as failures. */
+    private volatile int unsupportedRejectCount;
+
     @NonNull
     private List<Uri> snapshotInboundUris(@NonNull List<Uri> uris) {
         List<Uri> stable = new ArrayList<>();
@@ -334,7 +342,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     // is really a single failure. Drop this item instead, but count it so the
                     // user still sees the partial-success message.
                     snapshotFailCount++;
-                    SentryManager.recordException(e);
+                    if (e instanceof FileNotFoundException) {
+                        // The sharing app handed us a URI whose item no longer exists (deleted,
+                        // or a stale cloud/gallery entry). Nothing on our side to fix.
+                        SentryManager.logEvent("share", "An inbound item no longer exists and was skipped.");
+                    } else {
+                        SentryManager.recordException(e);
+                    }
                 }
             } else {
                 stable.add(uri);
@@ -365,6 +379,14 @@ public class ShareHandlerActivity extends AppCompatActivity {
             suffix = ".mp4";
         } else if (type != null && type.startsWith("image/")) {
             suffix = ".jpg";
+        } else {
+            // No usable type (e.g. shared as */*): the suffix decides later whether this is
+            // processed as video or image, so take it from the display name rather than letting
+            // every untyped video fall through to the image decoder.
+            String name = mediaSelector.getFileName(uri);
+            if (name != null) {
+                suffix = suffixForPath(name);
+            }
         }
         File dest = new File(getCacheDir(), "inbound_" + System.nanoTime() + suffix);
         try (InputStream in = getContentResolver().openInputStream(uri);
@@ -380,7 +402,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
     @NonNull
     private static String suffixForPath(@NonNull String path) {
         String lower = path.toLowerCase(java.util.Locale.US);
-        if (lower.endsWith(".mp4") || lower.endsWith(".m4v") || lower.endsWith(".mov")) {
+        if (MediaSelector.isVideoFromMimeAndName(null, lower)) {
             return ".mp4";
         }
         if (lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png")
@@ -432,7 +454,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
         Thread worker = new Thread(() -> {
             ITransaction transaction = SentryManager.startTransaction("share_cleanup", "task");
             ArrayList<Uri> processedUris = new ArrayList<>();
-            int failCount = snapshotFailCount;
+            int failCount = snapshotFailCount + unsupportedRejectCount;
+            int unsupportedFailCount = unsupportedRejectCount;
             boolean hasVideo = false;
             boolean hasImage = false;
 
@@ -472,6 +495,9 @@ public class ShareHandlerActivity extends AppCompatActivity {
                         }
                     } else {
                         failCount++;
+                        if (metadataStripper.wasLastFailureUnsupported()) {
+                            unsupportedFailCount++;
+                        }
                     }
                 }
 
@@ -487,6 +513,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 final boolean finalHasVideo = hasVideo;
                 final boolean finalHasImage = hasImage;
                 final int finalFailCount = failCount;
+                final boolean allFailuresUnsupported =
+                        failCount > 0 && unsupportedFailCount == failCount;
                 final boolean cancelled = shareSessionEnded.get()
                         || Thread.currentThread().isInterrupted();
 
@@ -524,7 +552,9 @@ public class ShareHandlerActivity extends AppCompatActivity {
                             }
                         } else {
                             SentryManager.log("Media processing failed.");
-                            finishWithError(getString(R.string.share_error_processing_failed));
+                            finishWithError(getString(allFailuresUnsupported
+                                    ? R.string.share_error_unsupported_media
+                                    : R.string.share_error_processing_failed));
                         }
                     } catch (Exception e) {
                         SentryManager.recordException(e);
@@ -811,12 +841,46 @@ public class ShareHandlerActivity extends AppCompatActivity {
     @NonNull
     private List<Uri> filterSupportedUris(List<Uri> uris) {
         List<Uri> accepted = new ArrayList<>();
+        unsupportedRejectCount = 0;
         for (Uri uri : uris) {
-            if (uri != null && isSupportedInboundUri(uri)) {
-                accepted.add(uri);
+            if (uri == null || !isSupportedInboundUri(uri)) {
+                continue;
             }
+            String type;
+            try {
+                type = getContentResolver().getType(uri);
+            } catch (RuntimeException e) {
+                type = null;
+            }
+            if (isUnsupportedMediaType(type)) {
+                // A multi-item share's intent type can be image/* or */* while individual items
+                // are PDFs, text or SVGs. Skip them up front instead of copying and failing later.
+                unsupportedRejectCount++;
+                SentryManager.logEvent("share", "An inbound item of a non-media type was skipped.");
+                continue;
+            }
+            accepted.add(uri);
         }
         return accepted;
+    }
+
+    /**
+     * Whether an item's own MIME type rules it out. Unknown or generic types are let through and
+     * left to the decoders; vector images (SVG) are rejected because they have no pixels to decode.
+     */
+    @androidx.annotation.VisibleForTesting
+    static boolean isUnsupportedMediaType(@Nullable String type) {
+        if (type == null) {
+            return false;
+        }
+        String lower = type.toLowerCase(java.util.Locale.US);
+        if (lower.equals("application/octet-stream") || lower.equals("*/*")) {
+            return false;
+        }
+        if (lower.startsWith("image/svg")) {
+            return true;
+        }
+        return !lower.startsWith("image/") && !lower.startsWith("video/");
     }
 
     @Nullable

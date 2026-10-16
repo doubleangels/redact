@@ -23,6 +23,7 @@ import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaSizeLimits;
 import com.doubleangels.redact.media.VideoMedia3Converter;
 import com.doubleangels.redact.media.OutputDestination;
+import com.doubleangels.redact.media.UnsupportedMediaException;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.Closeable;
@@ -126,6 +127,7 @@ public class MetadataStripper {
     /** On-disk output from the most recent sharing operation (for cleanup and display names). */
     @Nullable
     private File lastProcessedOutputFile;
+    private volatile boolean lastFailureUnsupported;
 
     @androidx.annotation.VisibleForTesting
     @Nullable
@@ -520,7 +522,7 @@ public class MetadataStripper {
                     originalBitmap = FormatConverter.decodeBitmapFromUri(context, sourceUri);
                 }
                 if (originalBitmap == null) {
-                    throw new IOException("Failed to decode bitmap");
+                    throw new UnsupportedMediaException("Failed to decode bitmap", null);
                 }
 
                 try (OutputStream os = contentResolver.openOutputStream(newUri)) {
@@ -672,7 +674,10 @@ public class MetadataStripper {
                 originalBitmap = BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsLoad);
 
                 if (originalBitmap == null) {
-                    throw new IOException("Failed to decode bitmap");
+                    originalBitmap = FormatConverter.decodeBitmapFromUri(context, Uri.fromFile(tempFile));
+                }
+                if (originalBitmap == null) {
+                    throw new UnsupportedMediaException("Failed to decode bitmap", null);
                 }
 
                 try (FileOutputStream fos = new FileOutputStream(outputFile)) {
@@ -724,6 +729,7 @@ public class MetadataStripper {
         } catch (Exception e) {
             // Log error
             Log.e(TAG, "Error processing image for sharing", e);
+            lastFailureUnsupported = UnsupportedMediaException.isCauseOf(e);
             SentryManager.recordException(e);
             SentryManager.setCustomKey("success", false);
             SentryManager.setCustomKey("error_type", e.getClass().getName());
@@ -849,6 +855,7 @@ public class MetadataStripper {
         } catch (Exception e) {
             // Log error
             Log.e(TAG, "Error processing video for sharing", e);
+            lastFailureUnsupported = UnsupportedMediaException.isCauseOf(e);
             SentryManager.recordException(e);
             SentryManager.setCustomKey("success", false);
             SentryManager.setCustomKey("error_type", e.getClass().getName());
@@ -975,8 +982,16 @@ public class MetadataStripper {
         android.media.MediaMuxer muxer = null;
         File outputFile = null;
         try {
-            extractor.setDataSource(context, sourceUri, null);
-            
+            try {
+                extractor.setDataSource(context, sourceUri, null);
+            } catch (IOException unreadable) {
+                // No platform extractor for this container. The full transcode that follows
+                // decides whether the input is usable at all and reports it accordingly.
+                SentryManager.logEvent("video",
+                        "The fast transmux could not open the source, so the app is falling back to a full transcode.");
+                return null;
+            }
+
             boolean useWebm = false;
             for (int i = 0; i < extractor.getTrackCount(); i++) {
                 android.media.MediaFormat format = extractor.getTrackFormat(i);
@@ -1059,7 +1074,16 @@ public class MetadataStripper {
             muxer.stop();
             return outputFile;
         } catch (Exception e) {
-            SentryManager.recordException(e);
+            if (e instanceof IllegalStateException) {
+                // MediaMuxer rejects some streams mid-write (its native writer stops and stop()
+                // then throws). This fast path is best-effort: every caller falls back to a full
+                // transcode from the source, which still produces a verified clean output.
+                SentryManager.logEvent("video",
+                        "The fast transmux failed, so the app is falling back to a full transcode: "
+                                + e.getMessage());
+            } else {
+                SentryManager.recordException(e);
+            }
             if (outputFile != null && outputFile.exists()) {
                 outputFile.delete();
             }
@@ -1089,6 +1113,7 @@ public class MetadataStripper {
         // Log operation start for analytics and debugging
         SentryManager.log("The app is starting metadata stripping for sharing.");
         SentryManager.setCustomKey("is_video", isVideo);
+        lastFailureUnsupported = false;
 
         if (isVideo) {
             return stripVideoMetadataForSharing(sourceUri, originalFilename);
@@ -1110,6 +1135,14 @@ public class MetadataStripper {
     @Nullable
     public File getLastProcessedOutputFile() {
         return lastProcessedOutputFile;
+    }
+
+    /**
+     * Whether the last {@link #stripMetadataForSharing} call failed because the input is in a
+     * format this device cannot decode, rather than for some other reason.
+     */
+    public boolean wasLastFailureUnsupported() {
+        return lastFailureUnsupported;
     }
 
     /**

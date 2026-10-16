@@ -10,6 +10,8 @@ import static org.robolectric.Shadows.shadowOf;
 import android.Manifest;
 import android.app.Application;
 import android.app.Notification;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 
 import com.doubleangels.redact.AppPreferences;
@@ -60,6 +62,19 @@ public class ProcessingForegroundServiceTest {
         return controller;
     }
 
+    /** Delivers {@code intent} to an instance that is already foreground from ACTION_START. */
+    private ServiceController<ProcessingForegroundService> runAfterStart(Intent intent) {
+        ServiceController<ProcessingForegroundService> controller =
+                run(action(ProcessingForegroundService.ACTION_START));
+        controller.get().onStartCommand(intent, 0, 2);
+        return controller;
+    }
+
+    private Notification postedProgressNotification() {
+        NotificationManager nm = (NotificationManager) app.getSystemService(Context.NOTIFICATION_SERVICE);
+        return shadowOf(nm).getNotification(ProcessingForegroundService.NOTIFICATION_ID);
+    }
+
     private static CharSequence extra(Notification n, String key) {
         return n.extras.getCharSequence(key);
     }
@@ -85,9 +100,9 @@ public class ProcessingForegroundServiceTest {
         Intent intent = action(ProcessingForegroundService.ACTION_UPDATE);
         intent.putExtra(ProcessingForegroundService.EXTRA_PERCENT, 250);
         intent.putExtra(ProcessingForegroundService.EXTRA_MESSAGE, "x".repeat(200));
-        ServiceController<ProcessingForegroundService> controller = run(intent);
+        runAfterStart(intent);
 
-        Notification n = shadowOf(controller.get()).getLastForegroundNotification();
+        Notification n = postedProgressNotification();
         String detail = String.valueOf(extra(n, Notification.EXTRA_TEXT));
         assertEquals(118, detail.length());
         assertTrue(detail.endsWith("…"));
@@ -96,7 +111,8 @@ public class ProcessingForegroundServiceTest {
         Intent negative = action(ProcessingForegroundService.ACTION_UPDATE);
         negative.putExtra(ProcessingForegroundService.EXTRA_PERCENT, -5);
         negative.putExtra(ProcessingForegroundService.EXTRA_MESSAGE, "short message");
-        Notification second = shadowOf(run(negative).get()).getLastForegroundNotification();
+        runAfterStart(negative);
+        Notification second = postedProgressNotification();
         assertEquals("short message", String.valueOf(extra(second, Notification.EXTRA_TEXT)));
         assertEquals(0, second.extras.getInt(Notification.EXTRA_PROGRESS));
     }
@@ -106,7 +122,8 @@ public class ProcessingForegroundServiceTest {
         Intent intent = action(ProcessingForegroundService.ACTION_UPDATE);
         intent.putExtra(ProcessingForegroundService.EXTRA_PERCENT, 42);
         intent.putExtra(ProcessingForegroundService.EXTRA_MESSAGE, "");
-        Notification n = shadowOf(run(intent).get()).getLastForegroundNotification();
+        runAfterStart(intent);
+        Notification n = postedProgressNotification();
         assertEquals(app.getString(R.string.notification_progress_percent, 42),
                 String.valueOf(extra(n, Notification.EXTRA_TEXT)));
     }
@@ -132,11 +149,23 @@ public class ProcessingForegroundServiceTest {
     @Test
     public void stop_removesTheForegroundStateAndStopsTheService() {
         ServiceController<ProcessingForegroundService> controller =
-                run(action(ProcessingForegroundService.ACTION_STOP));
+                runAfterStart(action(ProcessingForegroundService.ACTION_STOP));
 
         ShadowService shadow = shadowOf(controller.get());
         assertTrue(shadow.isStoppedBySelf());
         assertTrue(shadow.isForegroundStopped());
+    }
+
+    @Test
+    public void updateOrStop_onAnInstanceThatNeverWentForeground_stopsWithoutStartForeground() {
+        // REDACT-20: startService() can recreate the service after it already stopped; calling
+        // startForeground() there from the background throws ForegroundServiceStartNotAllowedException.
+        for (String a : new String[] {
+                ProcessingForegroundService.ACTION_UPDATE, ProcessingForegroundService.ACTION_STOP}) {
+            ShadowService shadow = shadowOf(run(action(a)).get());
+            assertNull(shadow.getLastForegroundNotification());
+            assertTrue(shadow.isStoppedBySelf());
+        }
     }
 
     @Test

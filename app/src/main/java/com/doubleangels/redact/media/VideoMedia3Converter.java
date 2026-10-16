@@ -12,7 +12,12 @@ import androidx.annotation.NonNull;
 import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MimeTypes;
+import androidx.media3.common.PlaybackException;
+import androidx.media3.common.util.Clock;
+import androidx.media3.transformer.AssetLoader;
 import androidx.media3.transformer.Composition;
+import androidx.media3.transformer.DefaultAssetLoaderFactory;
+import androidx.media3.transformer.DefaultDecoderFactory;
 import androidx.media3.transformer.DefaultMuxer;
 import androidx.media3.transformer.EditedMediaItem;
 import androidx.media3.transformer.EditedMediaItemSequence;
@@ -140,6 +145,10 @@ public final class VideoMedia3Converter {
                         progressListener,
                         ownerId);
                 return attemptIndex;
+            } catch (UnsupportedMediaException e) {
+                // The source itself can't be read; another output codec won't change that.
+                deleteQuietly(app, outFile);
+                throw e;
             } catch (IOException e) {
                 lastFailure = e;
             }
@@ -283,6 +292,7 @@ public final class VideoMedia3Converter {
                     try {
                         Transformer transformer =
                                 new Transformer.Builder(app)
+                                        .setAssetLoaderFactory(decoderFallbackAssetLoaderFactory(app))
                                         .setMuxerFactory(new DefaultMuxer.Factory())
                                         .setVideoMimeType(videoMimeType)
                                         .setAudioMimeType(audioMimeTypeForVideoMime(videoMimeType))
@@ -352,6 +362,10 @@ public final class VideoMedia3Converter {
         ExportException exportException = errorRef.get();
         if (exportException != null) {
             deleteQuietly(app, outFile);
+            if (isUnsupportedInput(exportException)) {
+                throw new UnsupportedMediaException(
+                        "Unsupported video format: " + exportException.getMessage(), exportException);
+            }
             throw new IOException(
                     "Video conversion failed: " + exportException.getMessage(), exportException);
         }
@@ -366,6 +380,44 @@ public final class VideoMedia3Converter {
             deleteQuietly(app, outFile);
             throw new IOException("Video conversion produced no output");
         }
+    }
+
+    /**
+     * Whether an export failed because of what the input is (an unrecognized container, or a
+     * codec no decoder on this device handles) rather than a processing fault. Container parse
+     * failures arrive as {@link ExportException#ERROR_CODE_UNSPECIFIED} wrapping the player's
+     * {@link PlaybackException}, so the cause chain is checked too.
+     */
+    @androidx.annotation.VisibleForTesting
+    static boolean isUnsupportedInput(@NonNull ExportException e) {
+        if (e.errorCode == ExportException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED) {
+            return true;
+        }
+        Throwable t = e.getCause();
+        for (int depth = 0; t != null && depth < 16; depth++, t = t.getCause()) {
+            if (t instanceof PlaybackException) {
+                int code = ((PlaybackException) t).errorCode;
+                if (code == PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED
+                        || code == PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Media3's default asset loader only tries the first decoder the device lists. Hardware decoders
+     * can refuse to start on streams at or past their limits (e.g. 4K60 high-bitrate AVC), and
+     * without fallback the whole export fails even though a lower-priority decoder could handle it.
+     */
+    @NonNull
+    private static AssetLoader.Factory decoderFallbackAssetLoaderFactory(@NonNull Context app) {
+        return new DefaultAssetLoaderFactory(
+                app,
+                new DefaultDecoderFactory.Builder(app).setEnableDecoderFallback(true).build(),
+                Clock.DEFAULT,
+                /* logSessionId= */ null);
     }
 
     private static void stopPolling(

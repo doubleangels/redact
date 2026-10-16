@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.doubleangels.redact.AppPreferences;
+import com.doubleangels.redact.media.UnsupportedMediaException;
 
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -243,6 +244,11 @@ public final class SentryManager {
     }
 
     public static void recordException(Throwable e) {
+        if (UnsupportedMediaException.isCauseOf(e)) {
+            Log.i(TAG, "Unsupported media — not sending:", e);
+            logEvent("media", "An item in an unsupported format was skipped.");
+            return;
+        }
         if (isIgnored(e)) {
             if (isUserCancellation(e)) {
                 Log.i(TAG, "User cancellation — not sending:", e);
