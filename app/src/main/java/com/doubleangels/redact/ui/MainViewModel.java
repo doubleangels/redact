@@ -496,7 +496,8 @@ public class MainViewModel extends AndroidViewModel {
         mediaProcessor.cancel();
         VideoMedia3Converter.cancelActiveTranscode(runGeneration);
         LocalNotifications.cancelCleanProgress(getApplication());
-        LocalNotifications.stopProcessingForeground(getApplication());
+        LocalNotifications.stopProcessingForeground(
+                getApplication(), LocalNotifications.ForegroundJob.CLEAN);
         setCleanProcessingState(ProcessingState.CANCELLED);
         cleanProgressMessage.postValue(getApplication().getString(R.string.status_processing_cancelled));
     }
@@ -507,7 +508,8 @@ public class MainViewModel extends AndroidViewModel {
         convertInProgress.set(false);
         VideoMedia3Converter.cancelActiveTranscode(runGeneration);
         LocalNotifications.cancelConvertProgress(getApplication());
-        LocalNotifications.stopProcessingForeground(getApplication());
+        LocalNotifications.stopProcessingForeground(
+                getApplication(), LocalNotifications.ForegroundJob.CONVERT);
         setConvertProcessingState(ProcessingState.CANCELLED);
     }
 
@@ -644,7 +646,7 @@ public class MainViewModel extends AndroidViewModel {
                 mediaProcessor.setTranscodeOwnerId(runGeneration);
                 setCleanProcessingState(ProcessingState.PROCESSING);
                 LocalNotifications.startProcessingForeground(
-                        getApplication(),
+                        getApplication(), LocalNotifications.ForegroundJob.CLEAN,
                         getApplication().getString(R.string.notification_clean_progress_title));
             }
 
@@ -673,7 +675,8 @@ public class MainViewModel extends AndroidViewModel {
                 persistBatchCounts(successCount, totalCount, KEY_CLEAN_PROCESSED, KEY_CLEAN_BATCH);
                 setCleanProcessingState(ProcessingState.COMPLETED);
                 int failCount = Math.max(0, totalCount - successCount);
-                LocalNotifications.stopProcessingForeground(getApplication());
+                LocalNotifications.stopProcessingForeground(
+                        getApplication(), LocalNotifications.ForegroundJob.CLEAN);
                 LocalNotifications.showCleanComplete(
                         getApplication(), successCount, failCount, getCleanSummaryText());
             }
@@ -688,7 +691,8 @@ public class MainViewModel extends AndroidViewModel {
                 persistBatchCounts(successCount, totalCount, KEY_CLEAN_PROCESSED, KEY_CLEAN_BATCH);
                 setCleanProcessingState(ProcessingState.CANCELLED);
                 LocalNotifications.cancelCleanProgress(getApplication());
-                LocalNotifications.stopProcessingForeground(getApplication());
+                LocalNotifications.stopProcessingForeground(
+                        getApplication(), LocalNotifications.ForegroundJob.CLEAN);
                 cleanProgressMessage.postValue(getApplication().getString(R.string.status_processing_cancelled));
             }
 
@@ -753,7 +757,9 @@ public class MainViewModel extends AndroidViewModel {
         setConvertProcessingState(ProcessingState.PROCESSING);
         updateConvertProgressPercent(0, "");
         LocalNotifications.startProcessingForeground(
-                getApplication(), getApplication().getString(R.string.notification_convert_progress_title));
+                getApplication(),
+                LocalNotifications.ForegroundJob.CONVERT,
+                getApplication().getString(R.string.notification_convert_progress_title));
 
         final int runGeneration = convertGeneration.incrementAndGet();
         convertExecutor.execute(() -> {
@@ -947,7 +953,8 @@ public class MainViewModel extends AndroidViewModel {
                     if (capturedGeneration != convertGeneration.get()) {
                         return;
                     }
-                    LocalNotifications.stopProcessingForeground(getApplication());
+                    LocalNotifications.stopProcessingForeground(
+                            getApplication(), LocalNotifications.ForegroundJob.CONVERT);
                     if (interrupted) {
                         LocalNotifications.cancelConvertProgress(getApplication());
                         convertProcessedItemCount.setValue(finalOk);

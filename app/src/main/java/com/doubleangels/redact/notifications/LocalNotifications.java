@@ -215,12 +215,40 @@ public final class LocalNotifications {
         lastConvertProgressNotifyMs.set(0);
     }
 
-    public static void startProcessingForeground(@NonNull Context context, @NonNull String title) {
+    /** The jobs that keep the processing foreground service running. */
+    public enum ForegroundJob { CLEAN, CONVERT, SHARE }
+
+    /** Jobs currently using the service; it stops when the last one ends. Guarded by itself. */
+    private static final java.util.Set<ForegroundJob> foregroundJobs =
+            java.util.EnumSet.noneOf(ForegroundJob.class);
+
+    /**
+     * Keeps the app running in the foreground for {@code job}. A share can run while a clean is
+     * still going, so the service is shared and only stops once every job using it has ended.
+     */
+    public static void startProcessingForeground(
+            @NonNull Context context, @NonNull ForegroundJob job, @NonNull String title) {
+        synchronized (foregroundJobs) {
+            foregroundJobs.add(job);
+        }
         ProcessingForegroundService.start(context, title);
     }
 
-    public static void stopProcessingForeground(@NonNull Context context) {
+    /** Ends {@code job}'s use of the service. Safe to call more than once, or for a job never started. */
+    public static void stopProcessingForeground(@NonNull Context context, @NonNull ForegroundJob job) {
+        synchronized (foregroundJobs) {
+            if (!foregroundJobs.remove(job) || !foregroundJobs.isEmpty()) {
+                return;
+            }
+        }
         ProcessingForegroundService.stop(context);
+    }
+
+    /** Forgets every job, for when the system has stopped the service itself. */
+    static void clearForegroundJobs() {
+        synchronized (foregroundJobs) {
+            foregroundJobs.clear();
+        }
     }
 
     @NonNull

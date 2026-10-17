@@ -238,12 +238,33 @@ public class LocalNotificationsTest {
 
     @Test
     public void foregroundHelpers_delegateToTheService() {
-        LocalNotifications.startProcessingForeground(app, "Working");
+        LocalNotifications.clearForegroundJobs();
+        LocalNotifications.startProcessingForeground(app, LocalNotifications.ForegroundJob.CLEAN, "Working");
         android.content.Intent start = Shadows.shadowOf(app).getNextStartedService();
         assertEquals(ProcessingForegroundService.ACTION_START, start.getAction());
 
-        LocalNotifications.stopProcessingForeground(app);
+        LocalNotifications.stopProcessingForeground(app, LocalNotifications.ForegroundJob.CLEAN);
         android.content.Intent stop = Shadows.shadowOf(app).getNextStartedService();
         assertEquals(ProcessingForegroundService.ACTION_STOP, stop.getAction());
+    }
+
+    @Test
+    public void theServiceKeepsRunningUntilEveryJobUsingItHasEnded() {
+        LocalNotifications.clearForegroundJobs();
+        LocalNotifications.startProcessingForeground(app, LocalNotifications.ForegroundJob.CLEAN, "Cleaning");
+        LocalNotifications.startProcessingForeground(app, LocalNotifications.ForegroundJob.SHARE, "Sharing");
+        while (Shadows.shadowOf(app).getNextStartedService() != null) {
+            // Drain the two starts.
+        }
+
+        // A share ending, or a share screen closing that never started one, leaves the clean running.
+        LocalNotifications.stopProcessingForeground(app, LocalNotifications.ForegroundJob.SHARE);
+        LocalNotifications.stopProcessingForeground(app, LocalNotifications.ForegroundJob.SHARE);
+        LocalNotifications.stopProcessingForeground(app, LocalNotifications.ForegroundJob.CONVERT);
+        assertNull(Shadows.shadowOf(app).getNextStartedService());
+
+        LocalNotifications.stopProcessingForeground(app, LocalNotifications.ForegroundJob.CLEAN);
+        assertEquals(ProcessingForegroundService.ACTION_STOP,
+                Shadows.shadowOf(app).getNextStartedService().getAction());
     }
 }

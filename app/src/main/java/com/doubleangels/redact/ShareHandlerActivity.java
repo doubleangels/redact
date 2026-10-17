@@ -157,7 +157,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             thread.interrupt();
         }
         VideoMedia3Converter.cancelActiveTranscode(previousSession);
-        LocalNotifications.stopProcessingForeground(this);
+        LocalNotifications.stopProcessingForeground(this, LocalNotifications.ForegroundJob.SHARE);
         processingActive = false;
         sharingInitiated = false;
         cleanupProcessedFiles();
@@ -526,7 +526,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
         final int session = shareSessionId.incrementAndGet();
         activeShareSessions.incrementAndGet();
         metadataStripper.setTranscodeOwnerId(session);
-        LocalNotifications.startProcessingForeground(this, getString(R.string.share_processing_title));
+        LocalNotifications.startProcessingForeground(
+                this, LocalNotifications.ForegroundJob.SHARE, getString(R.string.share_processing_title));
         Thread worker = new Thread(() -> {
             ITransaction transaction = SentryManager.startTransaction("share_cleanup", "task");
             ArrayList<Uri> processedUris = new ArrayList<>();
@@ -663,7 +664,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
         if (shareSessionEnded.compareAndSet(false, true)) {
             processingActive = false;
             activeShareSessions.updateAndGet(count -> Math.max(0, count - 1));
-            LocalNotifications.stopProcessingForeground(ShareHandlerActivity.this);
+            LocalNotifications.stopProcessingForeground(
+                    ShareHandlerActivity.this, LocalNotifications.ForegroundJob.SHARE);
         }
     }
 
@@ -993,7 +995,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
         if (!shareSessionEnded.get()) {
             endShareSession(shareSessionId.get());
         }
-        LocalNotifications.stopProcessingForeground(getApplicationContext());
+        LocalNotifications.stopProcessingForeground(
+                getApplicationContext(), LocalNotifications.ForegroundJob.SHARE);
         dismissProgressDialog();
         if (isFinishing()) {
             if (!sharingInitiated) {

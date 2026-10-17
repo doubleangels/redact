@@ -207,6 +207,7 @@ public class ProcessingForegroundService extends Service {
         // final update and leave the UI stuck on "Cancel".
         scope.convertTimedOut().set(true);
         com.doubleangels.redact.media.VideoMedia3Converter.cancelActiveTranscode();
+        LocalNotifications.clearForegroundJobs();
         stopForeground(STOP_FOREGROUND_REMOVE);
         inForeground = false;
         stopSelf();
