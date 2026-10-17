@@ -501,10 +501,19 @@ public class SettingsFragmentTest {
     }
 
     @Test
-    public void openFolder_showsTheOutputFolderInTheFileManager() {
+    public void openFolder_showsTheOutputFolderInTheFileManager() throws Exception {
         settings.findViewById(R.id.buttonOpenOutputVideos).performClick();
 
-        Intent intent = nextIntentWithAction(Intent.ACTION_VIEW);
+        // The folder is worked out in the background, then opened on the main thread.
+        Intent intent = null;
+        long end = System.currentTimeMillis() + 3000;
+        while (intent == null && System.currentTimeMillis() < end) {
+            idle();
+            intent = nextIntentWithAction(Intent.ACTION_VIEW);
+            if (intent == null) {
+                Thread.sleep(25);
+            }
+        }
         assertNotNull(intent);
         assertEquals(android.provider.DocumentsContract.Document.MIME_TYPE_DIR, intent.getType());
         assertEquals("primary:Movies/Redact",

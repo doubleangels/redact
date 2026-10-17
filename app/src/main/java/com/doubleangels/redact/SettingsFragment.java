@@ -90,6 +90,8 @@ public class SettingsFragment extends Fragment {
 
     @Nullable
     private ExecutorService backgroundExecutor;
+    /** Counts output folder checks, so only the latest one's answer is shown. Main thread only. */
+    private int outputFolderCheck;
 
     @Nullable
     @Override
@@ -554,25 +556,50 @@ public class SettingsFragment extends Fragment {
     }
 
     private void launchOutputFolderPicker(@NonNull ActivityResultLauncher<Uri> picker, boolean video) {
-        try {
-            picker.launch(OutputDestination.pickerStartLocation(requireContext(), video));
-        } catch (ActivityNotFoundException e) {
-            Toast.makeText(requireContext(), R.string.settings_output_error, Toast.LENGTH_LONG).show();
-        }
+        withFolderLocation(context -> OutputDestination.pickerStartLocation(context, video), start -> {
+            try {
+                picker.launch(start);
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(requireContext(), R.string.settings_output_error, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     /** Shows the folder {@code video} output currently goes to in the system file manager. */
     private void openOutputFolder(boolean video) {
-        Intent intent = new Intent(Intent.ACTION_VIEW)
-                .setDataAndType(OutputDestination.currentFolderDocument(requireContext(), video),
-                        android.provider.DocumentsContract.Document.MIME_TYPE_DIR)
-                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        try {
-            startActivity(intent);
-        } catch (ActivityNotFoundException | SecurityException e) {
-            Toast.makeText(requireContext(), R.string.settings_output_open_unavailable,
-                    Toast.LENGTH_SHORT).show();
+        withFolderLocation(context -> OutputDestination.currentFolderDocument(context, video), folder -> {
+            Intent intent = new Intent(Intent.ACTION_VIEW)
+                    .setDataAndType(folder, android.provider.DocumentsContract.Document.MIME_TYPE_DIR)
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            try {
+                startActivity(intent);
+            } catch (ActivityNotFoundException | SecurityException e) {
+                Toast.makeText(requireContext(), R.string.settings_output_open_unavailable,
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * Works out a folder location in the background, since checking a chosen folder asks its
+     * storage provider (slow for an SD card or a cloud folder), then hands it to {@code then} on
+     * the main thread while this screen is still showing.
+     */
+    private void withFolderLocation(@NonNull java.util.function.Function<Context, Uri> locate,
+                                    @NonNull java.util.function.Consumer<Uri> then) {
+        View root = getView();
+        if (root == null || backgroundExecutor == null) {
+            return;
         }
+        Context app = requireContext().getApplicationContext();
+        backgroundExecutor.execute(() -> {
+            Uri location = locate.apply(app);
+            root.post(() -> {
+                if (getView() == root && isAdded()) {
+                    then.accept(location);
+                }
+            });
+        });
     }
 
     private void resetOutputFolder(boolean video) {
@@ -583,41 +610,65 @@ public class SettingsFragment extends Fragment {
         refreshOutputFolders();
     }
 
+    /**
+     * Shows where each media type's output goes. Whether a chosen folder still works is checked in
+     * the background, since that asks its storage provider; until the answer arrives the badge
+     * and warning keep what they last showed.
+     */
     private void refreshOutputFolders() {
         View root = getView();
         if (textOutputImages == null || textOutputVideos == null || root == null) {
             return;
         }
-        showOutputFolder(textOutputImages, textOutputImagesWarning, buttonResetOutputImages,
-                root.findViewById(R.id.badgeOutputImages), root.findViewById(R.id.iconOutputImages), false);
-        showOutputFolder(textOutputVideos, textOutputVideosWarning, buttonResetOutputVideos,
-                root.findViewById(R.id.badgeOutputVideos), root.findViewById(R.id.iconOutputVideos), true);
+        Context context = requireContext();
+        Uri images = AppPreferences.getOutputTree(context, false);
+        Uri videos = AppPreferences.getOutputTree(context, true);
+        showOutputFolder(textOutputImages, buttonResetOutputImages, images, false);
+        showOutputFolder(textOutputVideos, buttonResetOutputVideos, videos, true);
+        if (backgroundExecutor == null) {
+            return;
+        }
+        int check = ++outputFolderCheck;
+        Context app = context.getApplicationContext();
+        backgroundExecutor.execute(() -> {
+            boolean imagesUsable = images == null || OutputDestination.isUsable(app, images);
+            boolean videosUsable = videos == null || OutputDestination.isUsable(app, videos);
+            root.post(() -> {
+                // A newer refresh (or a new view) has taken over; its answer is the one to show.
+                if (check != outputFolderCheck || getView() != root || !isAdded()) {
+                    return;
+                }
+                showOutputFolderUsable(textOutputImagesWarning, root.findViewById(R.id.badgeOutputImages),
+                        root.findViewById(R.id.iconOutputImages), false, imagesUsable);
+                showOutputFolderUsable(textOutputVideosWarning, root.findViewById(R.id.badgeOutputVideos),
+                        root.findViewById(R.id.iconOutputVideos), true, videosUsable);
+            });
+        });
     }
 
-    /**
-     * Shows where {@code video} output goes. Reset is offered only for a chosen folder, and a
-     * chosen folder Redact can no longer write to says so, since files then go to the default.
-     */
-    private void showOutputFolder(@NonNull TextView label, @NonNull TextView warning,
-                                  @NonNull View reset, @NonNull View badge, @NonNull ImageView icon,
+    /** Shows where {@code video} output goes. Reset is offered only for a chosen folder. */
+    private void showOutputFolder(@NonNull TextView label, @NonNull View reset, @Nullable Uri tree,
                                   boolean video) {
-        Context context = requireContext();
-        Uri tree = AppPreferences.getOutputTree(context, video);
-        String defaultPath = OutputDestination.defaultPath(video);
-        boolean usable = tree == null || OutputDestination.isUsable(context, tree);
-        tintOutputBadge(badge, icon, usable);
         if (tree == null) {
-            label.setText(defaultPath);
-            warning.setVisibility(View.GONE);
+            label.setText(OutputDestination.defaultPath(video));
             reset.setVisibility(View.GONE);
             return;
         }
-        label.setText(OutputDestination.describe(context, tree));
+        label.setText(OutputDestination.describe(requireContext(), tree));
         reset.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * A chosen folder Redact can no longer write to says so, since files then go to the default.
+     * The default folder is always usable.
+     */
+    private void showOutputFolderUsable(@NonNull TextView warning, @NonNull View badge,
+                                        @NonNull ImageView icon, boolean video, boolean usable) {
+        tintOutputBadge(badge, icon, usable);
         if (usable) {
             warning.setVisibility(View.GONE);
         } else {
-            warning.setText(getString(R.string.settings_output_unavailable, defaultPath));
+            warning.setText(getString(R.string.settings_output_unavailable, OutputDestination.defaultPath(video)));
             warning.setVisibility(View.VISIBLE);
         }
     }
