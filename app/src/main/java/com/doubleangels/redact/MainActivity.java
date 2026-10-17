@@ -28,13 +28,13 @@ import com.doubleangels.redact.sentry.SentryManager;
  */
 public class MainActivity extends AppCompatActivity {
 
-    private static final String TAG_CLEAN = "clean";
+    static final String TAG_CLEAN = "clean";
     private static final String TAG_SCAN = "scan";
     private static final String TAG_CONVERT = "convert";
     private static final String TAG_SETTINGS = "settings";
     private static final String KEY_SELECTED_TAB = "selected_tab";
-    /** Extra set by the launcher shortcuts in res/xml/shortcuts.xml. */
-    private static final String EXTRA_TAB = "tab";
+    /** Extra set by the launcher shortcuts in res/xml/shortcuts.xml and by {@link CleanTileService}. */
+    static final String EXTRA_TAB = "tab";
 
     @Override
     protected void onDestroy() {
