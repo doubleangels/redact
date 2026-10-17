@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Filter;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -543,11 +544,14 @@ public class SettingsFragment extends Fragment {
     }
 
     private void refreshOutputFolders() {
-        if (textOutputImages == null || textOutputVideos == null || getContext() == null) {
+        View root = getView();
+        if (textOutputImages == null || textOutputVideos == null || root == null) {
             return;
         }
-        showOutputFolder(textOutputImages, textOutputImagesWarning, buttonResetOutputImages, false);
-        showOutputFolder(textOutputVideos, textOutputVideosWarning, buttonResetOutputVideos, true);
+        showOutputFolder(textOutputImages, textOutputImagesWarning, buttonResetOutputImages,
+                root.findViewById(R.id.badgeOutputImages), root.findViewById(R.id.iconOutputImages), false);
+        showOutputFolder(textOutputVideos, textOutputVideosWarning, buttonResetOutputVideos,
+                root.findViewById(R.id.badgeOutputVideos), root.findViewById(R.id.iconOutputVideos), true);
     }
 
     /**
@@ -555,10 +559,13 @@ public class SettingsFragment extends Fragment {
      * chosen folder Redact can no longer write to says so, since files then go to the default.
      */
     private void showOutputFolder(@NonNull TextView label, @NonNull TextView warning,
-                                  @NonNull View reset, boolean video) {
+                                  @NonNull View reset, @NonNull View badge, @NonNull ImageView icon,
+                                  boolean video) {
         Context context = requireContext();
         Uri tree = AppPreferences.getOutputTree(context, video);
         String defaultPath = OutputDestination.defaultPath(video);
+        boolean usable = tree == null || OutputDestination.isUsable(context, tree);
+        tintOutputBadge(badge, icon, usable);
         if (tree == null) {
             label.setText(defaultPath);
             warning.setVisibility(View.GONE);
@@ -567,12 +574,25 @@ public class SettingsFragment extends Fragment {
         }
         label.setText(OutputDestination.describe(context, tree));
         reset.setVisibility(View.VISIBLE);
-        if (OutputDestination.isUsable(context, tree)) {
+        if (usable) {
             warning.setVisibility(View.GONE);
         } else {
             warning.setText(getString(R.string.settings_output_unavailable, defaultPath));
             warning.setVisibility(View.VISIBLE);
         }
+    }
+
+    /** Paints an unusable folder's badge in the error colours so it stands out from a working one. */
+    private void tintOutputBadge(@NonNull View badge, @NonNull ImageView icon, boolean usable) {
+        Context context = requireContext();
+        int background = MaterialColors.getColor(context, usable
+                ? com.google.android.material.R.attr.colorSecondaryContainer
+                : com.google.android.material.R.attr.colorErrorContainer, 0);
+        int foreground = MaterialColors.getColor(context, usable
+                ? com.google.android.material.R.attr.colorOnSecondaryContainer
+                : com.google.android.material.R.attr.colorOnErrorContainer, 0);
+        badge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(background));
+        icon.setImageTintList(android.content.res.ColorStateList.valueOf(foreground));
     }
 
     private void bindAbout(@NonNull View view) {
