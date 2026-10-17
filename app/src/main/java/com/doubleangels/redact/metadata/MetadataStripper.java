@@ -5,7 +5,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.util.Log;
 
@@ -454,6 +453,7 @@ public class MetadataStripper {
         lastCleanStats = null;
         Bitmap originalBitmap = null;
         File tempFile = null;
+        File cleanFile = null;
 
         try {
             FormatConverter.ImageFormatSpec outputFormat = resolveImageOutputFormat(sourceUri, originalFilename);
@@ -483,25 +483,21 @@ public class MetadataStripper {
                 SentryManager.log("The thumbnails could not be removed from the temp file: " + e.getMessage() + ".");
             }
 
-            // Create the output (a pending MediaStore entry, or a file in the chosen folder)
-            newUri = OutputDestination.create(context, false, newFilename, outputFormat.mimeType);
+            updateProgress(3, 5, context.getString(R.string.strip_progress_removing_metadata));
 
-            // Save bitmap without metadata
-                        updateProgress(3, 5, context.getString(R.string.strip_progress_removing_metadata));
-
-            boolean usedLossless = false;
-            try (OutputStream os = contentResolver.openOutputStream(newUri)) {
-                if (os == null) {
-                    throw new IOException("Failed to open output stream for new image");
-                }
+            // Every attempt writes to a private file, and only the finished result is copied to
+            // the output. Rewriting the output itself between attempts is unsafe: a provider that
+            // does not truncate on "w" would keep the tail of an earlier, longer attempt, which
+            // can be a full copy of the original with its metadata.
+            cleanFile = File.createTempFile("temp_clean_", extension, context.getCacheDir());
+            boolean usedLossless;
+            try (OutputStream os = new FileOutputStream(cleanFile)) {
                 usedLossless = stripMetadataLossless(tempFile, os, extension);
             }
 
             if (!usedLossless) {
-                try (OutputStream os = contentResolver.openOutputStream(newUri)) {
-                    if (os != null) {
-                        usedLossless = stripMetadataNativeExif(tempFile, os, extension);
-                    }
+                try (OutputStream os = new FileOutputStream(cleanFile)) {
+                    usedLossless = stripMetadataNativeExif(tempFile, os, extension);
                 }
             }
 
@@ -526,10 +522,7 @@ public class MetadataStripper {
                     throw new UnsupportedMediaException("Failed to decode bitmap", null);
                 }
 
-                try (OutputStream os = contentResolver.openOutputStream(newUri)) {
-                    if (os == null) {
-                        throw new IOException("Failed to open output stream for new image");
-                    }
+                try (OutputStream os = new FileOutputStream(cleanFile)) {
                     if (!FormatConverter.compressBitmapToStream(
                             context, originalBitmap, bitmapOutput.compressFormat, os)) {
                         throw new IOException("Failed to compress bitmap");
@@ -543,7 +536,18 @@ public class MetadataStripper {
 
             // Restore only essential EXIF data (like orientation)
             updateProgress(4, 5, context.getString(R.string.strip_progress_restoring_essential_metadata));
-            restoreEssentialExifData(newUri);
+            restoreEssentialExifData(cleanFile);
+
+            // Create the output (a pending MediaStore entry, or a file in the chosen folder) and
+            // write the finished file to it once.
+            newUri = OutputDestination.create(context, false, newFilename, outputFormat.mimeType);
+            try (InputStream in = new FileInputStream(cleanFile);
+                    OutputStream os = contentResolver.openOutputStream(newUri)) {
+                if (os == null) {
+                    throw new IOException("Failed to open output stream for new image");
+                }
+                MediaSizeLimits.copyStream(in, os);
+            }
 
             // Verify metadata removal while the entry is still IS_PENDING=1, so a file that
             // fails verification is never visible to other apps via MediaStore even briefly.
@@ -592,6 +596,9 @@ public class MetadataStripper {
             if (tempFile != null && tempFile.exists()) {
                 // Use secure deletion for temp files
                 secureDeleteFile(tempFile);
+            }
+            if (cleanFile != null && cleanFile.exists()) {
+                secureDeleteFile(cleanFile);
             }
 
             preservedExifValues.clear();
@@ -1226,19 +1233,16 @@ public class MetadataStripper {
      * This method writes back non-identifying metadata like orientation that was
      * preserved from the original image.
      *
-     * @param imageUri URI of the processed image in MediaStore, must not be null
+     * @param imageFile the processed image, before it is copied to the output
      */
-    private void restoreEssentialExifData(@NonNull Uri imageUri) {
+    private void restoreEssentialExifData(@NonNull File imageFile) {
         // Skip if no EXIF values were preserved
         if (preservedExifValues.isEmpty()) {
             return;
         }
 
-        try (ParcelFileDescriptor pfd = contentResolver.openFileDescriptor(imageUri, "rw")) {
-            if (pfd == null) {
-                return;
-            }
-            ExifInterface newExif = new ExifInterface(pfd.getFileDescriptor());
+        try {
+            ExifInterface newExif = new ExifInterface(imageFile.getAbsolutePath());
 
             removeAllExifMetadata(newExif);
             restoreEssentialExifValues(newExif);
