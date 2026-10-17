@@ -80,7 +80,7 @@ Most apps and websites do not show you this, but anyone who receives the origina
 | **Convert** | Converts images between JPEG, PNG, WebP and HEIC (on supported devices) and video between H.264, H.265, VP9 and AV1. Converted files are stripped of metadata and checked afterward, so they do not carry the original's location or device details. |
 | **Share into Redact** | Share a photo or video from any other app. Redact cleans it and reopens the share sheet with the clean copy, with an optional confirmation step and a progress dialog you can cancel. |
 | **Open with Redact** | Open a photo or video in Redact from your gallery or file manager and it goes straight to Scan. |
-| **Shortcuts** | Long-press the app icon to jump straight to Clean, Scan or Convert. |
+| **Shortcuts** | Long-press the app icon to jump straight to Clean, Scan or Convert, or add the **Clean** tile to Quick Settings. |
 | **Batches** | Clean or convert up to 20 files at once. If some files fail, Redact keeps going and reports what succeeded. |
 | **Large files** | There is no hard size cap. Redact warns you first when storage or memory looks too low for the job. |
 | **Delete originals (optional)** | Turn on **Delete Originals After Cleaning** and Redact asks Android to move the originals to trash after a successful clean. Android shows its own confirmation, so nothing is removed without your say-so. |
@@ -190,14 +190,23 @@ The Settings tab is grouped the same way as the tables below, from the things yo
 | **Clear Copied Metadata** | Clears metadata you copied from Scan off the clipboard after 15 seconds, 30 seconds, 1 minute or 5 minutes, unless you have copied something else since. Off by default. |
 | **Send Crash Reports** | Optional anonymized crash diagnostics through Sentry, off by default, with a consent prompt. |
 
+**Output Folders**
+
+| Setting | What it does |
+|---|---|
+| **Images** / **Videos** | Tap a folder to open the file browser and pick or create where cleaned and converted files go. After you pick one, Redact offers to use it for the other media type too. Defaults are `Pictures/Redact` and `Movies/Redact`; **Reset to Default** restores either. Existing files are not moved. |
+| **Open Folder** | Shows the folder in your file manager. |
+| Unavailable folder | If a chosen folder is deleted or its storage is removed, Redact saves to the default instead and marks the folder in red here. |
+
 **Notifications** and **Storage & Cache**
 
 | Setting | What it does |
 |---|---|
 | **Allow Notifications** / **Ongoing Task Progress** | Alerts when jobs finish and optional live progress. Off until you turn them on. |
 | **Clear Cache on Startup** / **Clear Temporary Files** | Removes processing cache older than 24 hours when the app opens, or on demand. |
-| **Output Folders** | Opens the file browser so you can pick or create a folder for cleaned and converted images and another for videos. Defaults are `Pictures/Redact` and `Movies/Redact`; **Reset to Default** restores either. Existing files are not moved. If a chosen folder becomes unavailable, Redact falls back to the default and warns you here. |
 | **Secure Deletion Passes** | How many times temporary files are overwritten before deletion. More passes are slower, and recovery may still be possible on flash storage. |
+
+**About**: version, links, and **Reset All Settings**, which puts every setting back to its default and forgets the chosen output folders. Your files are not touched.
 
 Open the Settings tab in the app for the full list.
 
