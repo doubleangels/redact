@@ -39,8 +39,11 @@ public final class SecureDelete {
 
             int passes = AppPreferences.getSecureDeletePasses(context);
             byte[] randomData = new byte[BUFFER_SIZE];
-            for (int pass = 0; pass < passes; pass++) {
-                try (RandomAccessFile raf = new RandomAccessFile(file, "rws")) {
+            // "rw" plus one sync per pass: "rws" synced every 64 KB write, which made deleting a
+            // large video take minutes. Each pass still reaches storage before the next starts.
+            try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+                for (int pass = 0; pass < passes; pass++) {
+                    raf.seek(0);
                     long position = 0;
                     while (position < fileSize) {
                         RANDOM.nextBytes(randomData);
