@@ -427,4 +427,8 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="output_folder_fallback">Salvataggio in %2$s: %1$s non è disponibile.</string>
     <string name="settings_output_open">Apri Cartella</string>
     <string name="settings_output_open_unavailable">Nessuna app trovata per aprire questa cartella.</string>
+    <string name="settings_output_also_videos">Salvare qui anche i video?</string>
+    <string name="settings_output_also_images">Salvare qui anche le immagini?</string>
+    <string name="settings_output_also_confirm">Usa per Entrambi</string>
+    <string name="settings_output_also_decline">No, Grazie</string>
 </resources>

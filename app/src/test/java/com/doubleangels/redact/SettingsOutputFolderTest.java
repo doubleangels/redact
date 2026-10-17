@@ -1,6 +1,7 @@
 package com.doubleangels.redact;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -46,7 +47,7 @@ public class SettingsOutputFolderTest {
     public void pickingAFolder_savesIt_andKeepsAccess() {
         Uri tree = FakeDocumentsProvider.folder("primary:Pictures/Private");
 
-        SettingsFragment.onOutputFolderPicked(app, false, tree);
+        assertTrue(SettingsFragment.onOutputFolderPicked(app, false, tree));
 
         assertEquals(tree, AppPreferences.getOutputTree(app, false));
         assertNull(AppPreferences.getOutputTree(app, true));
@@ -74,8 +75,8 @@ public class SettingsOutputFolderTest {
         Uri custom = FakeDocumentsProvider.folder("primary:Pictures/Private");
         SettingsFragment.onOutputFolderPicked(app, false, custom);
 
-        SettingsFragment.onOutputFolderPicked(app, false,
-                FakeDocumentsProvider.folder("primary:Pictures/Redact"));
+        assertFalse(SettingsFragment.onOutputFolderPicked(app, false,
+                FakeDocumentsProvider.folder("primary:Pictures/Redact")));
 
         assertNull(AppPreferences.getOutputTree(app, false));
         assertTrue(grants().isEmpty());
@@ -87,11 +88,23 @@ public class SettingsOutputFolderTest {
         SettingsFragment.onOutputFolderPicked(app, false, before);
         FakeDocumentsProvider.readOnly = true;
 
-        SettingsFragment.onOutputFolderPicked(app, false,
-                FakeDocumentsProvider.folder("primary:Pictures/ReadOnly"));
+        assertFalse(SettingsFragment.onOutputFolderPicked(app, false,
+                FakeDocumentsProvider.folder("primary:Pictures/ReadOnly")));
 
         assertEquals(before, AppPreferences.getOutputTree(app, false));
         assertEquals(Set.of(before), grants());
         assertEquals(app.getString(R.string.settings_output_error), ShadowToast.getTextOfLatestToast());
+    }
+
+    @Test
+    public void oneFolderCanServeBothMediaTypes_withASingleGrant() {
+        Uri shared = FakeDocumentsProvider.folder("primary:Download/Redacted");
+
+        assertTrue(SettingsFragment.onOutputFolderPicked(app, false, shared));
+        assertTrue(SettingsFragment.onOutputFolderPicked(app, true, shared));
+
+        assertEquals(shared, AppPreferences.getOutputTree(app, false));
+        assertEquals(shared, AppPreferences.getOutputTree(app, true));
+        assertEquals(Set.of(shared), grants());
     }
 }

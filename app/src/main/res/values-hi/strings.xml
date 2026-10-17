@@ -420,4 +420,8 @@
     <string name="output_folder_fallback">%1$s उपलब्ध नहीं है, इसलिए %2$s में सेव किया जा रहा है।</string>
     <string name="settings_output_open">फ़ोल्डर खोलें</string>
     <string name="settings_output_open_unavailable">इस फ़ोल्डर को खोलने के लिए कोई ऐप नहीं मिला।</string>
+    <string name="settings_output_also_videos">वीडियो भी यहीं सहेजें?</string>
+    <string name="settings_output_also_images">छवियाँ भी यहीं सहेजें?</string>
+    <string name="settings_output_also_confirm">दोनों के लिए उपयोग करें</string>
+    <string name="settings_output_also_decline">नहीं, धन्यवाद</string>
 </resources>

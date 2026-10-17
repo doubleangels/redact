@@ -427,4 +427,8 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="output_folder_fallback">Salvando em %2$s: %1$s não está disponível.</string>
     <string name="settings_output_open">Abrir Pasta</string>
     <string name="settings_output_open_unavailable">Nenhum app encontrado para abrir esta pasta.</string>
+    <string name="settings_output_also_videos">Salvar os vídeos aqui também?</string>
+    <string name="settings_output_also_images">Salvar as imagens aqui também?</string>
+    <string name="settings_output_also_confirm">Usar para Ambos</string>
+    <string name="settings_output_also_decline">Não, Obrigado</string>
 </resources>

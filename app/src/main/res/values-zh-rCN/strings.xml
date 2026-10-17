@@ -413,4 +413,8 @@
     <string name="output_folder_fallback">%1$s 不可用，改为保存到 %2$s。</string>
     <string name="settings_output_open">打开文件夹</string>
     <string name="settings_output_open_unavailable">找不到可打开此文件夹的应用。</string>
+    <string name="settings_output_also_videos">视频也保存到这里吗？</string>
+    <string name="settings_output_also_images">图片也保存到这里吗？</string>
+    <string name="settings_output_also_confirm">两者都用</string>
+    <string name="settings_output_also_decline">不用了</string>
 </resources>

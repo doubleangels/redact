@@ -425,4 +425,8 @@
     <string name="output_folder_fallback">Saving to %2$s instead: %1$s is unavailable.</string>
     <string name="settings_output_open">Open Folder</string>
     <string name="settings_output_open_unavailable">No app found to open this folder.</string>
+    <string name="settings_output_also_videos">Save videos here too?</string>
+    <string name="settings_output_also_images">Save images here too?</string>
+    <string name="settings_output_also_confirm">Use for Both</string>
+    <string name="settings_output_also_decline">No Thanks</string>
 </resources>

@@ -413,4 +413,8 @@
     <string name="output_folder_fallback">%1$s 無法使用，改為儲存至 %2$s。</string>
     <string name="settings_output_open">開啟資料夾</string>
     <string name="settings_output_open_unavailable">找不到可開啟此資料夾的應用程式。</string>
+    <string name="settings_output_also_videos">影片也儲存到這裡嗎？</string>
+    <string name="settings_output_also_images">圖片也儲存到這裡嗎？</string>
+    <string name="settings_output_also_confirm">兩者都用</string>
+    <string name="settings_output_also_decline">不用了</string>
 </resources>

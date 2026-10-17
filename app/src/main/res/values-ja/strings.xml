@@ -414,4 +414,8 @@
     <string name="output_folder_fallback">%1$s を使用できないため、%2$s に保存します。</string>
     <string name="settings_output_open">フォルダを開く</string>
     <string name="settings_output_open_unavailable">このフォルダを開けるアプリが見つかりません。</string>
+    <string name="settings_output_also_videos">動画もここに保存しますか？</string>
+    <string name="settings_output_also_images">画像もここに保存しますか？</string>
+    <string name="settings_output_also_confirm">両方に使用</string>
+    <string name="settings_output_also_decline">いいえ</string>
 </resources>

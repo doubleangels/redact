@@ -413,4 +413,8 @@
     <string name="output_folder_fallback">%1$s을(를) 사용할 수 없어 %2$s에 저장합니다.</string>
     <string name="settings_output_open">폴더 열기</string>
     <string name="settings_output_open_unavailable">이 폴더를 열 수 있는 앱이 없습니다.</string>
+    <string name="settings_output_also_videos">동영상도 여기에 저장할까요?</string>
+    <string name="settings_output_also_images">이미지도 여기에 저장할까요?</string>
+    <string name="settings_output_also_confirm">둘 다 사용</string>
+    <string name="settings_output_also_decline">아니요</string>
 </resources>

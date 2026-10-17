@@ -448,4 +448,8 @@
     <string name="output_folder_fallback">يتم الحفظ في %2$s بدلًا من ذلك: %1$s غير متاح.</string>
     <string name="settings_output_open">فتح المجلد</string>
     <string name="settings_output_open_unavailable">لم يتم العثور على تطبيق لفتح هذا المجلد.</string>
+    <string name="settings_output_also_videos">حفظ مقاطع الفيديو هنا أيضًا؟</string>
+    <string name="settings_output_also_images">حفظ الصور هنا أيضًا؟</string>
+    <string name="settings_output_also_confirm">استخدام للاثنين</string>
+    <string name="settings_output_also_decline">لا، شكرًا</string>
 </resources>

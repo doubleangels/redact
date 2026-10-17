@@ -427,4 +427,8 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="output_folder_fallback">Enregistrement dans %2$s : %1$s est indisponible.</string>
     <string name="settings_output_open">Ouvrir le Dossier</string>
     <string name="settings_output_open_unavailable">Aucune app trouvée pour ouvrir ce dossier.</string>
+    <string name="settings_output_also_videos">Enregistrer aussi les vidéos ici ?</string>
+    <string name="settings_output_also_images">Enregistrer aussi les images ici ?</string>
+    <string name="settings_output_also_confirm">Utiliser pour les Deux</string>
+    <string name="settings_output_also_decline">Non Merci</string>
 </resources>

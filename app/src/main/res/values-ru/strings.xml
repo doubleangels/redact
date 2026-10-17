@@ -434,4 +434,8 @@
     <string name="output_folder_fallback">Сохранение в %2$s: папка %1$s недоступна.</string>
     <string name="settings_output_open">Открыть Папку</string>
     <string name="settings_output_open_unavailable">Не найдено приложение, чтобы открыть эту папку.</string>
+    <string name="settings_output_also_videos">Сохранять сюда и видео?</string>
+    <string name="settings_output_also_images">Сохранять сюда и изображения?</string>
+    <string name="settings_output_also_confirm">Для Обоих</string>
+    <string name="settings_output_also_decline">Нет, Спасибо</string>
 </resources>

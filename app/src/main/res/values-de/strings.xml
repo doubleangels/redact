@@ -419,4 +419,8 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="output_folder_fallback">Speichere stattdessen in %2$s: %1$s ist nicht verfügbar.</string>
     <string name="settings_output_open">Ordner Öffnen</string>
     <string name="settings_output_open_unavailable">Keine App zum Öffnen dieses Ordners gefunden.</string>
+    <string name="settings_output_also_videos">Videos auch hier speichern?</string>
+    <string name="settings_output_also_images">Bilder auch hier speichern?</string>
+    <string name="settings_output_also_confirm">Für Beides Verwenden</string>
+    <string name="settings_output_also_decline">Nein, Danke</string>
 </resources>

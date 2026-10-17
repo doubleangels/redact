@@ -460,38 +460,57 @@ public class SettingsFragment extends Fragment {
             if (tree == null) {
                 return;
             }
-            onOutputFolderPicked(requireContext(), video, tree);
+            boolean saved = onOutputFolderPicked(requireContext(), video, tree);
             refreshOutputFolders();
+            if (saved && !tree.equals(AppPreferences.getOutputTree(requireContext(), !video))) {
+                offerFolderForOtherType(video, tree);
+            }
         });
+    }
+
+    /** Asks whether the folder just chosen for {@code video} output should take the other type too. */
+    private void offerFolderForOtherType(boolean video, @NonNull Uri tree) {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(video ? R.string.settings_output_also_images : R.string.settings_output_also_videos)
+                .setMessage(OutputDestination.describe(requireContext(), tree))
+                .setPositiveButton(R.string.settings_output_also_confirm, (d, w) -> {
+                    onOutputFolderPicked(requireContext(), !video, tree);
+                    refreshOutputFolders();
+                })
+                .setNegativeButton(R.string.settings_output_also_decline, null)
+                .show();
     }
 
     /**
      * Saves a folder picked for {@code video} output. Picking the default folder itself resets to
      * the default; a folder Redact cannot write to is refused with a message and nothing changes.
+     *
+     * @return true when {@code tree} is now the chosen folder for {@code video} output
      */
     @VisibleForTesting
-    static void onOutputFolderPicked(@NonNull Context context, boolean video, @NonNull Uri tree) {
+    static boolean onOutputFolderPicked(@NonNull Context context, boolean video, @NonNull Uri tree) {
         Uri old = AppPreferences.getOutputTree(context, video);
         if (OutputDestination.isDefaultFolder(tree, video)) {
             AppPreferences.resetOutputTree(context, video);
             releaseOutputTree(context, old);
-            return;
+            return false;
         }
         try {
             context.getContentResolver().takePersistableUriPermission(tree,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         } catch (SecurityException e) {
             Toast.makeText(context, R.string.settings_output_error, Toast.LENGTH_LONG).show();
-            return;
+            return false;
         }
         if (!OutputDestination.acceptsNewFiles(context, tree)) {
             releaseOutputTree(context, tree);
             Toast.makeText(context, R.string.settings_output_error, Toast.LENGTH_LONG).show();
-            return;
+            return false;
         }
         AppPreferences.setOutputTree(context, video, tree);
         releaseOutputTree(context, old);
         OutputDestination.clearFallbackWarnings();
+        return true;
     }
 
     /** Drops the persisted grant for a replaced folder unless the other media type still uses it. */
