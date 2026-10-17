@@ -1,5 +1,6 @@
 package com.doubleangels.redact.media;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -97,6 +98,37 @@ public class UnsupportedMediaTest {
             assertFalse(String.valueOf(code), VideoMedia3Converter.isUnsupportedInput(
                     ExportException.createForAssetLoader(new IllegalStateException(), code)));
         }
+    }
+
+    @Test
+    public void encoderRejectingTheFrameSize_isResolutionFailure() {
+        // REDACT-24: Media3's encoder size search lets VideoCapabilities throw "unsupported width".
+        IllegalArgumentException capabilities = new IllegalArgumentException("unsupported width");
+        ExportException export = ExportException.createForAssetLoader(
+                new RuntimeException(new IllegalStateException(capabilities)),
+                ExportException.ERROR_CODE_VIDEO_FRAME_PROCESSING_FAILED);
+        assertTrue(VideoMedia3Converter.isEncoderResolutionFailure(export));
+        assertFalse(VideoMedia3Converter.isUnsupportedInput(export));
+        assertTrue(VideoMedia3Converter.isEncoderResolutionFailure(ExportException.createForAssetLoader(
+                new IllegalArgumentException("unsupported height"),
+                ExportException.ERROR_CODE_VIDEO_FRAME_PROCESSING_FAILED)));
+    }
+
+    @Test
+    public void otherFaults_areNotResolutionFailures() {
+        assertFalse(VideoMedia3Converter.isEncoderResolutionFailure(ExportException.createForAssetLoader(
+                new IllegalArgumentException("bad argument"),
+                ExportException.ERROR_CODE_VIDEO_FRAME_PROCESSING_FAILED)));
+        assertFalse(VideoMedia3Converter.isEncoderResolutionFailure(ExportException.createForAssetLoader(
+                new IllegalStateException(), ExportException.ERROR_CODE_ENCODER_INIT_FAILED)));
+    }
+
+    @Test
+    public void fallbackShortSides_neverUpscale() {
+        assertArrayEquals(new int[] {1080, 720, 480}, VideoMedia3Converter.fallbackShortSides(2160));
+        assertArrayEquals(new int[] {720, 480}, VideoMedia3Converter.fallbackShortSides(1080));
+        assertArrayEquals(new int[] {}, VideoMedia3Converter.fallbackShortSides(480));
+        assertArrayEquals(new int[] {1080, 720, 480}, VideoMedia3Converter.fallbackShortSides(0));
     }
 
     // ---- images -----------------------------------------------------------------------------------

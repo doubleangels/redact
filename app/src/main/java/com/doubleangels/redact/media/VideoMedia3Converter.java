@@ -2,6 +2,7 @@ package com.doubleangels.redact.media;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -14,6 +15,7 @@ import androidx.media3.common.MediaItem;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.util.Clock;
+import androidx.media3.effect.Presentation;
 import androidx.media3.transformer.AssetLoader;
 import androidx.media3.transformer.Composition;
 import androidx.media3.transformer.DefaultAssetLoaderFactory;
@@ -21,11 +23,13 @@ import androidx.media3.transformer.DefaultDecoderFactory;
 import androidx.media3.transformer.DefaultMuxer;
 import androidx.media3.transformer.EditedMediaItem;
 import androidx.media3.transformer.EditedMediaItemSequence;
+import androidx.media3.transformer.Effects;
 import androidx.media3.transformer.ExportException;
 import androidx.media3.transformer.ExportResult;
 import androidx.media3.transformer.ProgressHolder;
 import androidx.media3.transformer.Transformer;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 import java.io.File;
@@ -33,6 +37,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -61,6 +66,9 @@ public final class VideoMedia3Converter {
     }
 
     private static final long AWAIT_TIMEOUT_MINUTES = 60;
+
+    /** Output short sides tried, largest first, when the encoder rejects the source resolution. */
+    private static final int[] FALLBACK_SHORT_SIDES = {1080, 720, 480};
 
     private static final AtomicReference<Transformer> activeTransformer = new AtomicReference<>();
     /** Owner id of the flow that started the active export; -1 when idle. */
@@ -136,7 +144,7 @@ public final class VideoMedia3Converter {
             deleteQuietly(app, outFile);
             try {
                 String videoMime = videoMimeTypeForFormatIndex(attemptIndex);
-                transcodeToPathOnce(
+                transcodeWithResolutionFallback(
                         app,
                         sourceUri,
                         outputPath,
@@ -157,6 +165,86 @@ public final class VideoMedia3Converter {
             lastFailure = new IOException("Video conversion failed");
         }
         throw lastFailure;
+    }
+
+    /**
+     * Runs one export at the source resolution and, if the encoder can't be configured for that
+     * size, retries at progressively smaller standard sizes. Media3 sizes the encoder itself, but
+     * for some uncommon resolutions its fallback search throws instead of picking a smaller size
+     * ("unsupported width" from {@code MediaCodecInfo.VideoCapabilities}).
+     */
+    private static void transcodeWithResolutionFallback(
+            @NonNull Context app,
+            @NonNull Uri sourceUri,
+            @NonNull String outputPath,
+            @NonNull String videoMimeType,
+            int hdrMode,
+            @Nullable TranscodeProgressListener progressListener,
+            long ownerId)
+            throws IOException, InterruptedException {
+        try {
+            transcodeToPathOnce(
+                    app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, ownerId, 0);
+        } catch (EncoderResolutionException e) {
+            IOException lastFailure = e;
+            for (int shortSide : fallbackShortSides(readSourceShortSide(app, sourceUri))) {
+                try {
+                    transcodeToPathOnce(
+                            app,
+                            sourceUri,
+                            outputPath,
+                            videoMimeType,
+                            hdrMode,
+                            progressListener,
+                            ownerId,
+                            shortSide);
+                    return;
+                } catch (EncoderResolutionException retryFailure) {
+                    lastFailure = retryFailure;
+                }
+            }
+            throw lastFailure;
+        }
+    }
+
+    /**
+     * Downscale targets strictly smaller than the source's short side, so a retry never upscales.
+     * When the source size is unknown ({@code <= 0}) every target is tried.
+     */
+    @androidx.annotation.VisibleForTesting
+    static int[] fallbackShortSides(int sourceShortSide) {
+        int count = 0;
+        int[] sides = new int[FALLBACK_SHORT_SIDES.length];
+        for (int side : FALLBACK_SHORT_SIDES) {
+            if (sourceShortSide <= 0 || side < sourceShortSide) {
+                sides[count++] = side;
+            }
+        }
+        return Arrays.copyOf(sides, count);
+    }
+
+    private static int readSourceShortSide(@NonNull Context app, @NonNull Uri sourceUri) {
+        try (MediaMetadataRetriever retriever = new MediaMetadataRetriever()) {
+            retriever.setDataSource(app, sourceUri);
+            int width = parseIntOrZero(
+                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
+            int height = parseIntOrZero(
+                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
+            return width > 0 && height > 0 ? Math.min(width, height) : 0;
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private static int parseIntOrZero(@Nullable String value) {
+        if (value == null) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     /**
@@ -203,7 +291,8 @@ public final class VideoMedia3Converter {
             @NonNull String videoMimeType,
             int hdrMode,
             @Nullable TranscodeProgressListener progressListener,
-            long ownerId)
+            long ownerId,
+            int outputShortSide)
             throws IOException, InterruptedException {
 
         File outFile = new File(outputPath);
@@ -211,7 +300,15 @@ public final class VideoMedia3Converter {
         TRANSCODE_LOCK.lock();
         try {
             transcodeToPathOnceLocked(
-                    app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, outFile, ownerId);
+                    app,
+                    sourceUri,
+                    outputPath,
+                    videoMimeType,
+                    hdrMode,
+                    progressListener,
+                    outFile,
+                    ownerId,
+                    outputShortSide);
         } finally {
             TRANSCODE_LOCK.unlock();
         }
@@ -225,7 +322,8 @@ public final class VideoMedia3Converter {
             int hdrMode,
             @Nullable TranscodeProgressListener progressListener)
             throws IOException, InterruptedException {
-        transcodeToPathOnce(app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, -1L);
+        transcodeToPathOnce(
+                app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, -1L, 0);
     }
 
     private static void transcodeToPathOnceLocked(
@@ -236,15 +334,20 @@ public final class VideoMedia3Converter {
             int hdrMode,
             @Nullable TranscodeProgressListener progressListener,
             @NonNull File outFile,
-            long ownerId)
+            long ownerId,
+            int outputShortSide)
             throws IOException, InterruptedException {
 
         activeTranscodeOwner.set(ownerId);
         MediaItem mediaItem = MediaItem.fromUri(sourceUri);
-        EditedMediaItem editedMediaItem =
-                new EditedMediaItem.Builder(mediaItem)
-                        .setRemoveAudio(false)
-                        .build();
+        EditedMediaItem.Builder editedMediaItemBuilder =
+                new EditedMediaItem.Builder(mediaItem).setRemoveAudio(false);
+        if (outputShortSide > 0) {
+            editedMediaItemBuilder.setEffects(new Effects(
+                    ImmutableList.of(),
+                    ImmutableList.of(Presentation.createForShortSide(outputShortSide))));
+        }
+        EditedMediaItem editedMediaItem = editedMediaItemBuilder.build();
 
         EditedMediaItemSequence sequence =
                 new EditedMediaItemSequence.Builder(
@@ -366,6 +469,10 @@ public final class VideoMedia3Converter {
                 throw new UnsupportedMediaException(
                         "Unsupported video format: " + exportException.getMessage(), exportException);
             }
+            if (isEncoderResolutionFailure(exportException)) {
+                throw new EncoderResolutionException(
+                        "Video conversion failed: " + exportException.getMessage(), exportException);
+            }
             throw new IOException(
                     "Video conversion failed: " + exportException.getMessage(), exportException);
         }
@@ -404,6 +511,35 @@ public final class VideoMedia3Converter {
             }
         }
         return false;
+    }
+
+    /**
+     * Whether an export failed because the encoder couldn't be configured for the frame size.
+     * {@code VideoCapabilities.getSupportedHeightsFor/getSupportedWidthsFor} throw
+     * {@link IllegalArgumentException} "unsupported width"/"unsupported height" from Media3's
+     * encoder resolution search; that surfaces wrapped as a frame processing error.
+     */
+    @androidx.annotation.VisibleForTesting
+    static boolean isEncoderResolutionFailure(@NonNull ExportException e) {
+        Throwable t = e;
+        for (int depth = 0; t != null && depth < 16; depth++, t = t.getCause()) {
+            if (t instanceof IllegalArgumentException) {
+                String message = t.getMessage();
+                if (message != null
+                        && (message.contains("unsupported width")
+                                || message.contains("unsupported height"))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** An export the encoder rejected for its frame size; a smaller size may still succeed. */
+    private static final class EncoderResolutionException extends IOException {
+        EncoderResolutionException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 
     /**
