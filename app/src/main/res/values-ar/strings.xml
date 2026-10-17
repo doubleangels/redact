@@ -452,4 +452,10 @@
     <string name="settings_output_also_images">حفظ الصور هنا أيضًا؟</string>
     <string name="settings_output_also_confirm">استخدام للاثنين</string>
     <string name="settings_output_also_decline">لا، شكرًا</string>
+    <string name="settings_reset_all">إعادة ضبط كل الإعدادات</string>
+    <string name="settings_reset_all_title">إعادة ضبط كل الإعدادات؟</string>
+    <string name="settings_reset_all_message">تعود كل الإعدادات إلى قيمها الافتراضية، وينسى Redact مجلدات الحفظ التي اخترتها. لن تتأثر صورك ومقاطع الفيديو والملفات المنظفة.</string>
+    <string name="settings_reset_all_confirm">إعادة ضبط</string>
+    <string name="settings_reset_all_done">تمت إعادة الإعدادات إلى قيمها الافتراضية.</string>
+    <string name="settings_reset_all_busy">لا يمكن إعادة ضبط الإعدادات أثناء المعالجة.</string>
 </resources>

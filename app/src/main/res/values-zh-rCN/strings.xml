@@ -417,4 +417,10 @@
     <string name="settings_output_also_images">图片也保存到这里吗？</string>
     <string name="settings_output_also_confirm">两者都用</string>
     <string name="settings_output_also_decline">不用了</string>
+    <string name="settings_reset_all">重置所有设置</string>
+    <string name="settings_reset_all_title">要重置所有设置吗？</string>
+    <string name="settings_reset_all_message">所有设置都会恢复为默认值，Redact 也会忘记你选择的输出文件夹。你的照片、视频和已清理的文件不受影响。</string>
+    <string name="settings_reset_all_confirm">重置</string>
+    <string name="settings_reset_all_done">设置已恢复为默认值。</string>
+    <string name="settings_reset_all_busy">处理过程中无法重置设置。</string>
 </resources>

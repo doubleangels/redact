@@ -431,4 +431,10 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="settings_output_also_images">¿Guardar también las imágenes aquí?</string>
     <string name="settings_output_also_confirm">Usar para Ambos</string>
     <string name="settings_output_also_decline">No, Gracias</string>
+    <string name="settings_reset_all">Restablecer Todos los Ajustes</string>
+    <string name="settings_reset_all_title">¿Restablecer todos los ajustes?</string>
+    <string name="settings_reset_all_message">Todos los ajustes vuelven a sus valores predeterminados y Redact olvida las carpetas de salida que elegiste. Tus fotos, videos y archivos limpios no se modifican.</string>
+    <string name="settings_reset_all_confirm">Restablecer</string>
+    <string name="settings_reset_all_done">Ajustes restablecidos a los valores predeterminados.</string>
+    <string name="settings_reset_all_busy">No se pueden restablecer los ajustes mientras hay un procesamiento en curso.</string>
 </resources>

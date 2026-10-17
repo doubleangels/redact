@@ -417,4 +417,10 @@
     <string name="settings_output_also_images">이미지도 여기에 저장할까요?</string>
     <string name="settings_output_also_confirm">둘 다 사용</string>
     <string name="settings_output_also_decline">아니요</string>
+    <string name="settings_reset_all">모든 설정 초기화</string>
+    <string name="settings_reset_all_title">모든 설정을 초기화할까요?</string>
+    <string name="settings_reset_all_message">모든 설정이 기본값으로 돌아가고 Redact가 선택한 저장 폴더를 잊습니다. 사진, 동영상, 정리된 파일은 그대로 유지됩니다.</string>
+    <string name="settings_reset_all_confirm">초기화</string>
+    <string name="settings_reset_all_done">설정을 기본값으로 초기화했습니다.</string>
+    <string name="settings_reset_all_busy">처리 중에는 설정을 초기화할 수 없습니다.</string>
 </resources>

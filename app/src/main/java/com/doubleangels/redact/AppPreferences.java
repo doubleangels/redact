@@ -340,4 +340,13 @@ public final class AppPreferences {
     public static void setConsentedToOpenLocationInMaps(@NonNull Context context, boolean consented) {
         prefs(context).edit().putBoolean(KEY_MAPS_LOCATION_CONSENT_GIVEN, consented).apply();
     }
+
+    /**
+     * Puts every setting back to its default. The first-launch permission prompt is not shown
+     * again, since resetting settings does not change what Android has already granted.
+     */
+    public static void resetAll(@NonNull Context context) {
+        boolean prompted = hasCompletedInitialPermissionsPrompt(context);
+        prefs(context).edit().clear().putBoolean(KEY_INITIAL_PERMISSIONS_PROMPTED, prompted).apply();
+    }
 }

@@ -642,6 +642,38 @@ public class SettingsFragment extends Fragment {
                 openUrl(getString(R.string.url_report_issue)));
         view.findViewById(R.id.rowAboutDonate).setOnClickListener(v ->
                 openUrl(getString(R.string.url_donate)));
+        view.findViewById(R.id.rowResetSettings).setOnClickListener(v ->
+                new MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(R.string.settings_reset_all_title)
+                        .setMessage(R.string.settings_reset_all_message)
+                        .setPositiveButton(R.string.settings_reset_all_confirm, (d, w) -> resetAllSettings())
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show());
+    }
+
+    /**
+     * Restores every default: releases the chosen folders' grants, stops crash reporting if it was
+     * on, and recreates the activity so every screen reads the reset values.
+     */
+    private void resetAllSettings() {
+        Context context = requireContext();
+        // A running job may be writing into a chosen folder whose grant this would release.
+        if (ShareHandlerActivity.isShareProcessingActive() || MainViewModel.isAnyProcessing(requireActivity())) {
+            Toast.makeText(context, R.string.settings_reset_all_busy, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Uri images = AppPreferences.getOutputTree(context, false);
+        Uri videos = AppPreferences.getOutputTree(context, true);
+        boolean crashReporting = AppPreferences.isCrashReportingEnabled(context);
+        AppPreferences.resetAll(context);
+        releaseOutputTree(context, images);
+        releaseOutputTree(context, videos);
+        OutputDestination.clearFallbackWarnings();
+        if (crashReporting) {
+            SentryInitializer.shutdown();
+        }
+        Toast.makeText(context, R.string.settings_reset_all_done, Toast.LENGTH_SHORT).show();
+        requireActivity().recreate();
     }
 
     private void setupDropdown(@NonNull MaterialAutoCompleteTextView dropdown,

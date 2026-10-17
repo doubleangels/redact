@@ -431,4 +431,10 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="settings_output_also_images">Enregistrer aussi les images ici ?</string>
     <string name="settings_output_also_confirm">Utiliser pour les Deux</string>
     <string name="settings_output_also_decline">Non Merci</string>
+    <string name="settings_reset_all">Réinitialiser Tous les Paramètres</string>
+    <string name="settings_reset_all_title">Réinitialiser tous les paramètres ?</string>
+    <string name="settings_reset_all_message">Tous les paramètres reprennent leur valeur par défaut et Redact oublie les dossiers d\'enregistrement choisis. Vos photos, vidéos et fichiers nettoyés ne sont pas touchés.</string>
+    <string name="settings_reset_all_confirm">Réinitialiser</string>
+    <string name="settings_reset_all_done">Paramètres réinitialisés.</string>
+    <string name="settings_reset_all_busy">Impossible de réinitialiser les paramètres pendant un traitement.</string>
 </resources>

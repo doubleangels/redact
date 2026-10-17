@@ -438,4 +438,10 @@
     <string name="settings_output_also_images">Сохранять сюда и изображения?</string>
     <string name="settings_output_also_confirm">Для Обоих</string>
     <string name="settings_output_also_decline">Нет, Спасибо</string>
+    <string name="settings_reset_all">Сбросить Все Настройки</string>
+    <string name="settings_reset_all_title">Сбросить все настройки?</string>
+    <string name="settings_reset_all_message">Все настройки вернутся к значениям по умолчанию, а Redact забудет выбранные папки для сохранения. Ваши фото, видео и очищенные файлы не изменятся.</string>
+    <string name="settings_reset_all_confirm">Сбросить</string>
+    <string name="settings_reset_all_done">Настройки сброшены.</string>
+    <string name="settings_reset_all_busy">Нельзя сбросить настройки во время обработки.</string>
 </resources>

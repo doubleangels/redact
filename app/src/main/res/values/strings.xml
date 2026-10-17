@@ -429,4 +429,10 @@
     <string name="settings_output_also_images">Save images here too?</string>
     <string name="settings_output_also_confirm">Use for Both</string>
     <string name="settings_output_also_decline">No Thanks</string>
+    <string name="settings_reset_all">Reset All Settings</string>
+    <string name="settings_reset_all_title">Reset all settings?</string>
+    <string name="settings_reset_all_message">Every setting goes back to its default, and Redact forgets your chosen output folders. Your photos, videos and cleaned files are not touched.</string>
+    <string name="settings_reset_all_confirm">Reset</string>
+    <string name="settings_reset_all_done">Settings reset to defaults.</string>
+    <string name="settings_reset_all_busy">Cannot reset settings while processing is in progress.</string>
 </resources>

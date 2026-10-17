@@ -423,4 +423,10 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_output_also_images">Bilder auch hier speichern?</string>
     <string name="settings_output_also_confirm">Für Beides Verwenden</string>
     <string name="settings_output_also_decline">Nein, Danke</string>
+    <string name="settings_reset_all">Alle Einstellungen Zurücksetzen</string>
+    <string name="settings_reset_all_title">Alle Einstellungen zurücksetzen?</string>
+    <string name="settings_reset_all_message">Alle Einstellungen werden auf ihre Standardwerte gesetzt und Redact vergisst deine gewählten Ausgabeordner. Deine Fotos, Videos und bereinigten Dateien bleiben unverändert.</string>
+    <string name="settings_reset_all_confirm">Zurücksetzen</string>
+    <string name="settings_reset_all_done">Einstellungen auf Standard zurückgesetzt.</string>
+    <string name="settings_reset_all_busy">Einstellungen können während der Verarbeitung nicht zurückgesetzt werden.</string>
 </resources>

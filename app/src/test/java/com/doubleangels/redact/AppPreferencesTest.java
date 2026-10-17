@@ -181,4 +181,24 @@ public class AppPreferencesTest {
         AppPreferences.setConsentedToOpenLocationInMaps(context, false);
         assertFalse(AppPreferences.hasConsentedToOpenLocationInMaps(context));
     }
+
+    @Test
+    public void resetAll_restoresDefaults_butRemembersThePermissionPrompt() {
+        AppPreferences.setStrictClean(context, false);
+        AppPreferences.setSecureWindow(context, true);
+        AppPreferences.setImageQualityPreset(context, AppPreferences.QUALITY_PRESET_SMALLER);
+        AppPreferences.setConsentedToOpenLocationInMaps(context, true);
+        AppPreferences.setOutputTree(context, false, android.net.Uri.parse(
+                "content://com.android.externalstorage.documents/tree/primary%3APictures%2FPrivate"));
+        AppPreferences.setInitialPermissionsPromptCompleted(context);
+
+        AppPreferences.resetAll(context);
+
+        assertTrue(AppPreferences.isStrictClean(context));
+        assertFalse(AppPreferences.isSecureWindow(context));
+        assertEquals(AppPreferences.QUALITY_PRESET_HIGH, AppPreferences.getImageQualityPreset(context));
+        assertFalse(AppPreferences.hasConsentedToOpenLocationInMaps(context));
+        assertEquals(null, AppPreferences.getOutputTree(context, false));
+        assertTrue(AppPreferences.hasCompletedInitialPermissionsPrompt(context));
+    }
 }

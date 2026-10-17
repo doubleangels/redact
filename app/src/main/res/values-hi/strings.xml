@@ -424,4 +424,10 @@
     <string name="settings_output_also_images">छवियाँ भी यहीं सहेजें?</string>
     <string name="settings_output_also_confirm">दोनों के लिए उपयोग करें</string>
     <string name="settings_output_also_decline">नहीं, धन्यवाद</string>
+    <string name="settings_reset_all">सभी सेटिंग रीसेट करें</string>
+    <string name="settings_reset_all_title">सभी सेटिंग रीसेट करें?</string>
+    <string name="settings_reset_all_message">हर सेटिंग अपने डिफ़ॉल्ट पर लौट आती है और Redact आपके चुने हुए आउटपुट फ़ोल्डर भूल जाता है। आपकी फ़ोटो, वीडियो और साफ़ की गई फ़ाइलें नहीं बदलतीं।</string>
+    <string name="settings_reset_all_confirm">रीसेट करें</string>
+    <string name="settings_reset_all_done">सेटिंग डिफ़ॉल्ट पर रीसेट हो गईं।</string>
+    <string name="settings_reset_all_busy">प्रोसेसिंग चलते समय सेटिंग रीसेट नहीं की जा सकतीं।</string>
 </resources>

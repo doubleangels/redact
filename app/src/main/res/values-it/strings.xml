@@ -431,4 +431,10 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="settings_output_also_images">Salvare qui anche le immagini?</string>
     <string name="settings_output_also_confirm">Usa per Entrambi</string>
     <string name="settings_output_also_decline">No, Grazie</string>
+    <string name="settings_reset_all">Ripristina Tutte le Impostazioni</string>
+    <string name="settings_reset_all_title">Ripristinare tutte le impostazioni?</string>
+    <string name="settings_reset_all_message">Ogni impostazione torna al valore predefinito e Redact dimentica le cartelle di output scelte. Foto, video e file puliti non vengono toccati.</string>
+    <string name="settings_reset_all_confirm">Ripristina</string>
+    <string name="settings_reset_all_done">Impostazioni ripristinate ai valori predefiniti.</string>
+    <string name="settings_reset_all_busy">Impossibile ripristinare le impostazioni durante l\'elaborazione.</string>
 </resources>

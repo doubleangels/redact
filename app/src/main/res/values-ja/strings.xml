@@ -418,4 +418,10 @@
     <string name="settings_output_also_images">画像もここに保存しますか？</string>
     <string name="settings_output_also_confirm">両方に使用</string>
     <string name="settings_output_also_decline">いいえ</string>
+    <string name="settings_reset_all">すべての設定をリセット</string>
+    <string name="settings_reset_all_title">すべての設定をリセットしますか？</string>
+    <string name="settings_reset_all_message">すべての設定が初期値に戻り、選択した保存先フォルダの設定も消去されます。写真、動画、クリーン済みのファイルはそのままです。</string>
+    <string name="settings_reset_all_confirm">リセット</string>
+    <string name="settings_reset_all_done">設定を初期値に戻しました。</string>
+    <string name="settings_reset_all_busy">処理中は設定をリセットできません。</string>
 </resources>

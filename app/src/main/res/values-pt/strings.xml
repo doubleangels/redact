@@ -431,4 +431,10 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="settings_output_also_images">Salvar as imagens aqui também?</string>
     <string name="settings_output_also_confirm">Usar para Ambos</string>
     <string name="settings_output_also_decline">Não, Obrigado</string>
+    <string name="settings_reset_all">Redefinir Todas as Configurações</string>
+    <string name="settings_reset_all_title">Redefinir todas as configurações?</string>
+    <string name="settings_reset_all_message">Todas as configurações voltam ao padrão e o Redact esquece as pastas de saída escolhidas. Suas fotos, vídeos e arquivos limpos não são alterados.</string>
+    <string name="settings_reset_all_confirm">Redefinir</string>
+    <string name="settings_reset_all_done">Configurações redefinidas para o padrão.</string>
+    <string name="settings_reset_all_busy">Não é possível redefinir as configurações durante o processamento.</string>
 </resources>
