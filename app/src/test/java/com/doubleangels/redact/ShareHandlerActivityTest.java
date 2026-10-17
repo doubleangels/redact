@@ -90,6 +90,7 @@ public class ShareHandlerActivityTest {
 
     private ShareHandlerActivity launch(Intent intent) {
         controller = Robolectric.buildActivity(ShareHandlerActivity.class, intent).setup();
+        ShareHandlerActivityFlowsTest.awaitPreparation(controller.get());
         return controller.get();
     }
 

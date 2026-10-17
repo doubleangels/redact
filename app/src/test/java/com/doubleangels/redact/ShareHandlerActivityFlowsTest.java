@@ -134,7 +134,29 @@ public class ShareHandlerActivityFlowsTest {
 
     private ShareHandlerActivity launch(Intent intent) {
         controller = Robolectric.buildActivity(ShareHandlerActivity.class, intent).setup();
+        awaitPreparation(controller.get());
         return controller.get();
+    }
+
+    /**
+     * Shared items are checked and copied on background threads, each handing over to the main
+     * thread; wait until the last of them has finished and its follow-up has run.
+     */
+    static void awaitPreparation(ShareHandlerActivity activity) {
+        try {
+            Thread last = null;
+            for (int i = 0; i < 5; i++) {
+                Thread thread = field(activity, "processingThread");
+                if (thread == null || (thread == last && !thread.isAlive())) {
+                    break;
+                }
+                thread.join(20_000);
+                idle();
+                last = thread;
+            }
+        } catch (Exception e) {
+            throw new AssertionError(e);
+        }
     }
 
     private static Intent send(String type, Uri stream) {
