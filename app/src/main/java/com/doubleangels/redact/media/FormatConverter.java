@@ -369,15 +369,14 @@ public final class FormatConverter {
         Bitmap bitmap;
         boolean needsOrientationFix = false;
         if (bounds.outWidth > 0 && bounds.outHeight > 0) {
-            int sampleSize = calculateInSampleSize(context, bounds);
-            BitmapFactory.Options opts = new BitmapFactory.Options();
-            opts.inSampleSize = sampleSize;
-            try (InputStream in = resolver.openInputStream(sourceUri)) {
-                if (in == null) {
-                    throw new IOException("Cannot open source");
+            bitmap = decodeSampled(calculateInSampleSize(context, bounds), opts -> {
+                try (InputStream in = resolver.openInputStream(sourceUri)) {
+                    if (in == null) {
+                        throw new IOException("Cannot open source");
+                    }
+                    return BitmapFactory.decodeStream(in, null, opts);
                 }
-                bitmap = BitmapFactory.decodeStream(in, null, opts);
-            }
+            });
             needsOrientationFix = bitmap != null;
         } else {
             bitmap = null;
@@ -441,6 +440,9 @@ public final class FormatConverter {
             throws IOException {
         try {
             return decodeWithImageDecoder(context, sourceUri);
+        } catch (OutOfMemoryError e) {
+            // Already scaled to the max bitmap size; fail this file rather than the app.
+            throw new IOException("Not enough memory to decode the image", e);
         } catch (ImageDecoder.DecodeException e) {
             // SOURCE_EXCEPTION means the bytes could not be read (a real I/O failure). Any other
             // error means the bytes were read but are not an image this device can decode.
@@ -494,6 +496,39 @@ public final class FormatConverter {
             return "image/heic";
         }
         return "image/jpeg";
+    }
+
+    /** How many times a decode that ran out of memory is retried at half the size. */
+    private static final int MAX_OUT_OF_MEMORY_RETRIES = 3;
+
+    /** One {@link BitmapFactory} decode with the given options. */
+    public interface SampledDecode {
+        @Nullable
+        Bitmap decode(@NonNull BitmapFactory.Options options) throws IOException;
+    }
+
+    /**
+     * Decodes at {@code inSampleSize}, halving the size again whenever the device runs out of
+     * memory, so a huge image (a panorama, say) is saved smaller instead of crashing the app.
+     * Returns null when the bytes cannot be decoded at all.
+     *
+     * @throws IOException when even the smallest retry runs out of memory
+     */
+    @Nullable
+    public static Bitmap decodeSampled(int inSampleSize, @NonNull SampledDecode decode) throws IOException {
+        int sampleSize = Math.max(1, inSampleSize);
+        for (int attempt = 0; ; attempt++) {
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inSampleSize = sampleSize;
+            try {
+                return decode.decode(options);
+            } catch (OutOfMemoryError e) {
+                if (attempt >= MAX_OUT_OF_MEMORY_RETRIES) {
+                    throw new IOException("Not enough memory to decode the image", e);
+                }
+                sampleSize *= 2;
+            }
+        }
     }
 
     private static final int MAX_ENCODER_DIMENSION = 16383;

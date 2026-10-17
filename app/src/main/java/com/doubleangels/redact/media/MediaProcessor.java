@@ -339,7 +339,8 @@ public class MediaProcessor {
                                                                     (itemIndex * 100) / totalItems,
                                                                     batchLine + "\n" + failLine)));
                         }
-                    } catch (Exception e) {
+                    } catch (Exception | OutOfMemoryError e) {
+                        // Out of memory fails this file, not the app: the next file may be smaller.
                         metadataStripper.setProgressCallback(null);
                         if (cancelled.get() || SentryManager.isUserCancellation(e)) {
                             VideoMedia3Converter.cancelActiveTranscode(metadataStripper.getTranscodeOwnerId());

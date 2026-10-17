@@ -896,7 +896,8 @@ public class MainViewModel extends AndroidViewModel {
 
                         span.setStatus(SpanStatus.OK);
 
-                    } catch (Exception e) {
+                    } catch (Exception | OutOfMemoryError e) {
+                        // Out of memory fails this file, not the app: the next file may be smaller.
 
                         boolean cancelled = Thread.currentThread().isInterrupted()
                                 || convertTimedOut.get()

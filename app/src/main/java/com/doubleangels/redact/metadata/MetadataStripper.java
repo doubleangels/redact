@@ -511,9 +511,9 @@ public class MetadataStripper {
                 BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsJustBounds);
                 int sampleSize = FormatConverter.calculateInSampleSize(context, optionsJustBounds);
 
-                BitmapFactory.Options optionsLoad = new BitmapFactory.Options();
-                optionsLoad.inSampleSize = sampleSize;
-                originalBitmap = BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsLoad);
+                String tempPath = tempFile.getAbsolutePath();
+                originalBitmap = FormatConverter.decodeSampled(
+                        sampleSize, options -> BitmapFactory.decodeFile(tempPath, options));
 
                 if (originalBitmap == null) {
                     originalBitmap = FormatConverter.decodeBitmapFromUri(context, sourceUri);
@@ -677,9 +677,9 @@ public class MetadataStripper {
                 SentryManager.setCustomKey("original_width", optionsJustBounds.outWidth);
                 SentryManager.setCustomKey("original_height", optionsJustBounds.outHeight);
 
-                BitmapFactory.Options optionsLoad = new BitmapFactory.Options();
-                optionsLoad.inSampleSize = sampleSize;
-                originalBitmap = BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsLoad);
+                String tempPath = tempFile.getAbsolutePath();
+                originalBitmap = FormatConverter.decodeSampled(
+                        sampleSize, options -> BitmapFactory.decodeFile(tempPath, options));
 
                 if (originalBitmap == null) {
                     originalBitmap = FormatConverter.decodeBitmapFromUri(context, Uri.fromFile(tempFile));
