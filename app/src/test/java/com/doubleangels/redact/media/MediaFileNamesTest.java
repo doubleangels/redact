@@ -37,4 +37,19 @@ public class MediaFileNamesTest {
         String name = MediaFileNames.generateShortRandomName();
         assertTrue(!name.contains("/") && !name.contains("\\") && !name.contains(" "));
     }
+
+    @Test
+    public void baseNameOf_dropsFolderAndExtension_andUnsafeCharacters() {
+        assertEquals("IMG_20260117_093012", MediaFileNames.baseNameOf("IMG_20260117_093012.jpg"));
+        assertEquals("holiday.final", MediaFileNames.baseNameOf("DCIM/holiday.final.heic"));
+        assertEquals("a_b_c", MediaFileNames.baseNameOf("a:b?c.png"));
+        assertEquals("hidden", MediaFileNames.baseNameOf("..hidden.jpg"));
+        assertEquals("", MediaFileNames.baseNameOf(".jpg"));
+        assertEquals("", MediaFileNames.baseNameOf(null));
+    }
+
+    @Test
+    public void baseNameOf_capsVeryLongNames() {
+        assertEquals(100, MediaFileNames.baseNameOf("x".repeat(300) + ".jpg").length());
+    }
 }

@@ -437,4 +437,8 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="settings_reset_all_confirm">Restablecer</string>
     <string name="settings_reset_all_done">Ajustes restablecidos a los valores predeterminados.</string>
     <string name="settings_reset_all_busy">No se pueden restablecer los ajustes mientras hay un procesamiento en curso.</string>
+    <string name="share_target_scan">Escanear con Redact</string>
+    <string name="button_scan_result">Escanear Resultado</string>
+    <string name="settings_keep_original_names">Conservar Nombres Originales</string>
+    <string name="settings_keep_original_names_subtitle">Los archivos limpiados y convertidos usan el nombre del original en lugar de uno aleatorio. Nombres como IMG_20260117 pueden revelar cuándo se tomó una foto.</string>
 </resources>

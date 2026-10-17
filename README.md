@@ -79,7 +79,7 @@ Most apps and websites do not show you this, but anyone who receives the origina
 | **Scan** | Shows a file's metadata in an organized, readable list *before* you decide what to do. Rows that reveal where a file was taken carry a **Location** badge. Search the list, copy values, send the file to Clean or Convert, or open the location in your maps app. |
 | **Convert** | Converts images between JPEG, PNG, WebP and HEIC (on supported devices) and video between H.264, H.265, VP9 and AV1. Converted files are stripped of metadata and checked afterward, so they do not carry the original's location or device details. |
 | **Share into Redact** | Share a photo or video from any other app. Redact cleans it and reopens the share sheet with the clean copy, with an optional confirmation step and a progress dialog you can cancel. |
-| **Open with Redact** | Open a photo or video in Redact from your gallery or file manager and it goes straight to Scan. |
+| **Open with Redact** | Open a photo or video in Redact from your gallery or file manager, or share it to **Scan with Redact**, and it goes straight to Scan. |
 | **Shortcuts** | Long-press the app icon to jump straight to Clean, Scan or Convert, or add the **Clean** tile to Quick Settings. |
 | **Batches** | Clean or convert up to 20 files at once. If some files fail, Redact keeps going and reports what succeeded. |
 | **Large files** | There is no hard size cap. Redact warns you first when storage or memory looks too low for the job. |
@@ -119,7 +119,7 @@ Your originals are never modified.
 
 Removes metadata and saves a new copy to `Pictures/Redact` (images) or `Movies/Redact` (videos). Choose up to 20 files. Location data is removed unless you explicitly turn on **Keep Location** in Settings (this asks for confirmation and is ignored by Strict Clean).
 
-When the clean finishes, Redact sums up what it removed, for example *"Removed 24 metadata fields, including location"* for one file, or the total and how many files had a location for a batch. Fields you chose to keep in Settings are not counted. The same summary appears in the completion notification if notifications are on. A **Share** button then appears above **Clean Metadata** to send the clean copies to another app. Convert shows the same **Share** button when it finishes.
+When the clean finishes, Redact sums up what it removed, for example *"Removed 24 metadata fields, including location"* for one file, or the total and how many files had a location for a batch. Fields you chose to keep in Settings are not counted. The same summary appears in the completion notification if notifications are on. A **Share** icon button then appears above **Clean Metadata** to send the clean copies to another app. Convert shows a **Share** button when it finishes. After cleaning a single file, a **Scan Result** icon button also appears beside Share and opens the clean copy in Scan, so you can see exactly what is left. Long-press either icon to see its name.
 
 ### Scan
 
@@ -135,6 +135,7 @@ Pick **one** file to see everything embedded in it, grouped into sections such a
 ### Opening files from other apps and shortcuts
 
 - **Open with Redact:** when you open a photo or video from your gallery or file manager and choose Redact, it opens in Scan so you can check it before doing anything else.
+- **Scan with Redact:** the share sheet also lists **Scan with Redact** next to Redact. It opens the shared photo or video in Scan instead of cleaning it.
 - **App shortcuts:** long-press the Redact icon on your home screen to go straight to Clean, Scan or Convert.
 
 ### Convert
@@ -196,6 +197,7 @@ The Settings tab is grouped the same way as the tables below, from the things yo
 |---|---|
 | **Images** / **Videos** | Tap a folder to open the file browser and pick or create where cleaned and converted files go. After you pick one, Redact offers to use it for the other media type too. Defaults are `Pictures/Redact` and `Movies/Redact`; **Reset to Default** restores either. Existing files are not moved. |
 | **Open Folder** | Shows the folder in your file manager. |
+| **Keep Original File Names** | Names cleaned and converted files after the originals (for example `IMG_20260117_093012.jpg`) instead of a random name. Off by default, because such names can reveal when a photo was taken. Files shared into Redact always get a random name. |
 | Unavailable folder | If a chosen folder is deleted or its storage is removed, Redact saves to the default instead and marks the folder in red here. |
 
 **Notifications** and **Storage & Cache**

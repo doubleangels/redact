@@ -334,7 +334,8 @@ public final class FormatConverter {
      * <p>Uses {@link ImageDecoder} when {@link BitmapFactory} cannot decode (e.g. some HEIF/AVIF
      * sources on newer Android versions).
      *
-     * @param baseDisplayName file name without path; extension is replaced with the output type
+     * @param baseDisplayName the source's file name; the output keeps it (with the output type's
+     *                        extension) only when Keep Original File Names is on
      */
     @NonNull
     public static Uri convertImageToPictures(
@@ -394,7 +395,7 @@ public final class FormatConverter {
             bitmap = applyExifOrientation(context, sourceUri, bitmap);
         }
 
-        String outName = MediaFileNames.generateShortRandomName() + ext;
+        String outName = MediaFileNames.outputBaseName(context, baseDisplayName) + ext;
 
         Uri outUri;
         try {

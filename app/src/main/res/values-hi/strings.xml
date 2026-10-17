@@ -430,4 +430,8 @@
     <string name="settings_reset_all_confirm">रीसेट करें</string>
     <string name="settings_reset_all_done">सेटिंग डिफ़ॉल्ट पर रीसेट हो गईं।</string>
     <string name="settings_reset_all_busy">प्रोसेसिंग चलते समय सेटिंग रीसेट नहीं की जा सकतीं।</string>
+    <string name="share_target_scan">Redact से स्कैन करें</string>
+    <string name="button_scan_result">परिणाम स्कैन करें</string>
+    <string name="settings_keep_original_names">मूल फ़ाइल नाम रखें</string>
+    <string name="settings_keep_original_names_subtitle">साफ़ और कन्वर्ट की गई फ़ाइलों को किसी यादृच्छिक नाम के बजाय मूल फ़ाइल का नाम दें। IMG_20260117 जैसे नाम बता सकते हैं कि फ़ोटो कब ली गई थी।</string>
 </resources>

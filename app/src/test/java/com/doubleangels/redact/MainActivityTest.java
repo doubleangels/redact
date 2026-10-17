@@ -214,4 +214,30 @@ public class MainActivityTest {
         android.content.Intent noData = new android.content.Intent(android.content.Intent.ACTION_VIEW);
         assertEquals(R.id.navigation_clean, launchedTab(noData));
     }
+
+    @Test
+    public void sharingAnImageToScanWithRedact_goesToScan() {
+        FakeDocumentsProvider.install(org.robolectric.RuntimeEnvironment.getApplication());
+        android.net.Uri image = android.net.Uri.parse(
+                "content://com.android.externalstorage.documents/document/primary%3APictures%2Fa.jpg");
+        android.content.Intent send = new android.content.Intent(android.content.Intent.ACTION_SEND)
+                .setType("image/jpeg")
+                .putExtra(android.content.Intent.EXTRA_STREAM, image);
+        assertEquals(R.id.navigation_scan, launchedTab(send));
+    }
+
+    @Test
+    public void filePathsAndRedactsOwnFiles_areNotOpenedInScan() {
+        android.content.Intent file = new android.content.Intent(android.content.Intent.ACTION_SEND)
+                .setType("image/jpeg")
+                .putExtra(android.content.Intent.EXTRA_STREAM,
+                        android.net.Uri.parse("file:///data/data/com.doubleangels.redact/cache/a.jpg"));
+        assertEquals(R.id.navigation_clean, launchedTab(file));
+        controller.pause().stop().destroy();
+
+        android.content.Intent own = new android.content.Intent(android.content.Intent.ACTION_VIEW)
+                .setDataAndType(android.net.Uri.parse(
+                        "content://com.doubleangels.redact.fileprovider/cache/processed/a.jpg"), "image/jpeg");
+        assertEquals(R.id.navigation_clean, launchedTab(own));
+    }
 }

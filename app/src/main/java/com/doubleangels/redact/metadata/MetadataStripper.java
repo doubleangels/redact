@@ -349,7 +349,7 @@ public class MetadataStripper {
                         updateProgress(4, 4, context.getString(R.string.strip_progress_saving_clean_copy));
                         checkCancelled();
                         newUri = VideoMedia3Converter.copyToMoviesRedact(
-                                context, tempCleanFile, generateShortRandomName(), formatIndex);
+                                context, tempCleanFile, originalFilename, formatIndex);
                         savedViaFastPath = true;
                     } catch (IOException fastPathFailed) {
                         SentryManager.log(
@@ -378,7 +378,7 @@ public class MetadataStripper {
                                 VideoMedia3Converter.copyToMoviesRedact(
                                         context,
                                         transcodeOutput,
-                                        generateShortRandomName(),
+                                        originalFilename,
                                         actualFormatIndex);
                     } finally {
                         secureDeleteFile(transcodeOutput);
@@ -459,8 +459,9 @@ public class MetadataStripper {
             FormatConverter.ImageFormatSpec outputFormat = resolveImageOutputFormat(sourceUri, originalFilename);
             String extension = outputFormat.extension;
 
-            // Generate unique filename for the processed file
-            String newFilename = generateShortRandomName() + extension;
+            String newFilename =
+                    com.doubleangels.redact.media.MediaFileNames.outputBaseName(context, originalFilename)
+                            + extension;
             updateProgress(1, 5, context.getString(R.string.strip_progress_reading_image));
 
             // Create temporary file to hold the image during processing

@@ -33,6 +33,7 @@ public final class AppPreferences {
     private static final String KEY_SECURE_WINDOW = "secure_window";
     private static final String KEY_CLIPBOARD_CLEAR_SECONDS = "clipboard_clear_seconds";
     private static final String KEY_DELETE_ORIGINALS = "delete_originals_after_clean";
+    private static final String KEY_KEEP_ORIGINAL_NAMES = "keep_original_file_names";
     private static final String KEY_VIDEO_FALLBACK_COPY = "video_fallback_copy";
     private static final String KEY_INITIAL_PERMISSIONS_PROMPTED = "initial_permissions_prompted";
     private static final String KEY_MAPS_LOCATION_CONSENT_GIVEN = "maps_location_consent_given";
@@ -308,6 +309,15 @@ public final class AppPreferences {
 
     public static void setDeleteOriginalsAfterClean(@NonNull Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_DELETE_ORIGINALS, enabled).apply();
+    }
+
+    /** Off by default: names such as IMG_20260117_093012 reveal when a photo was taken. */
+    public static boolean isKeepOriginalFileNames(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_KEEP_ORIGINAL_NAMES, false);
+    }
+
+    public static void setKeepOriginalFileNames(@NonNull Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_KEEP_ORIGINAL_NAMES, enabled).apply();
     }
 
     public static boolean isVideoFallbackCopy(@NonNull Context context) {

@@ -424,4 +424,8 @@
     <string name="settings_reset_all_confirm">リセット</string>
     <string name="settings_reset_all_done">設定を初期値に戻しました。</string>
     <string name="settings_reset_all_busy">処理中は設定をリセットできません。</string>
+    <string name="share_target_scan">Redact でスキャン</string>
+    <string name="button_scan_result">結果をスキャン</string>
+    <string name="settings_keep_original_names">元のファイル名を保持</string>
+    <string name="settings_keep_original_names_subtitle">クリーン・変換したファイルに、ランダムな名前ではなく元のファイル名を付けます。IMG_20260117 のような名前から撮影日時がわかる場合があります。</string>
 </resources>

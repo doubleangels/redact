@@ -693,12 +693,12 @@ public final class VideoMedia3Converter {
     }
 
     @NonNull
-    public static Uri copyToMoviesRedact(Context context, File file, String baseDisplayName, int formatIndex)
+    public static Uri copyToMoviesRedact(Context context, File file, String originalFileName, int formatIndex)
             throws IOException {
         ContentResolver resolver = context.getContentResolver();
         String ext = extensionForFormatIndex(formatIndex);
         String mime = containerMimeForFormatIndex(formatIndex);
-        String outName = MediaFileNames.generateShortRandomName() + ext;
+        String outName = MediaFileNames.outputBaseName(context, originalFileName) + ext;
 
         Uri outUri = OutputDestination.create(context, true, outName, mime);
 

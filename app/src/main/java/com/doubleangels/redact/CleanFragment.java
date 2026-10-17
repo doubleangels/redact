@@ -65,7 +65,8 @@ public class CleanFragment extends Fragment {
     private MaterialButton stripButton;
     private MaterialButton selectButton;
     private TextView statusText;
-    private MaterialButton shareResultsButton;
+    private View shareResultsButton;
+    private View scanResultButton;
     private LinearLayout progressContainer;
     private TextView progressText;
     private LinearProgressIndicator progressBar;
@@ -157,6 +158,11 @@ public class CleanFragment extends Fragment {
                 Haptics.tick(v);
                 com.doubleangels.redact.ui.ShareResults.share(
                         requireContext(), viewModel.getCleanOutputs());
+            });
+            scanResultButton = view.findViewById(R.id.scanResultButton);
+            scanResultButton.setOnClickListener(v -> {
+                Haptics.tick(v);
+                openResultInScan();
             });
             progressContainer = view.findViewById(R.id.progressContainer);
             progressText = view.findViewById(R.id.progressText);
@@ -337,6 +343,19 @@ public class CleanFragment extends Fragment {
         }
     }
 
+    /** Shows the single file a clean just saved in Scan, so the user can see what it still holds. */
+    private void openResultInScan() {
+        List<Uri> outputs = viewModel.getCleanOutputs();
+        if (outputs.size() != 1) {
+            return;
+        }
+        new ViewModelProvider(requireActivity()).get(com.doubleangels.redact.ui.ScanViewModel.class)
+                .setPendingUri(outputs.get(0));
+        if (requireActivity() instanceof MainActivity mainActivity) {
+            mainActivity.selectTab(R.id.navigation_scan);
+        }
+    }
+
     void onHostPermissionFlowCompleted() {
         syncPermissionUi();
     }
@@ -471,6 +490,8 @@ public class CleanFragment extends Fragment {
                     com.doubleangels.redact.ui.ShareResults.updateButton(
                             shareResultsButton, state == MainViewModel.ProcessingState.COMPLETED,
                             viewModel.getCleanOutputs());
+                    scanResultButton.setVisibility(state == MainViewModel.ProcessingState.COMPLETED
+                            && viewModel.getCleanOutputs().size() == 1 ? View.VISIBLE : View.GONE);
                     // The result line (with what the batch removed) shows only once a clean has finished.
                     statusText.setVisibility(state == MainViewModel.ProcessingState.COMPLETED
                             ? View.VISIBLE : View.GONE);

@@ -435,4 +435,8 @@
     <string name="settings_reset_all_confirm">Reset</string>
     <string name="settings_reset_all_done">Settings reset to defaults.</string>
     <string name="settings_reset_all_busy">Cannot reset settings while processing is in progress.</string>
+    <string name="share_target_scan">Scan with Redact</string>
+    <string name="button_scan_result">Scan Result</string>
+    <string name="settings_keep_original_names">Keep Original File Names</string>
+    <string name="settings_keep_original_names_subtitle">Name cleaned and converted files after the originals instead of a random name. Names such as IMG_20260117 can reveal when a photo was taken.</string>
 </resources>

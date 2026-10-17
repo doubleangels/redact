@@ -423,4 +423,8 @@
     <string name="settings_reset_all_confirm">초기화</string>
     <string name="settings_reset_all_done">설정을 기본값으로 초기화했습니다.</string>
     <string name="settings_reset_all_busy">처리 중에는 설정을 초기화할 수 없습니다.</string>
+    <string name="share_target_scan">Redact로 스캔</string>
+    <string name="button_scan_result">결과 스캔</string>
+    <string name="settings_keep_original_names">원본 파일 이름 유지</string>
+    <string name="settings_keep_original_names_subtitle">정리하거나 변환한 파일에 무작위 이름 대신 원본 파일 이름을 사용합니다. IMG_20260117 같은 이름은 사진을 찍은 시기를 드러낼 수 있습니다.</string>
 </resources>

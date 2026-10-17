@@ -70,6 +70,7 @@ public class SettingsFragment extends Fragment {
 
     private MaterialSwitch switchStrictClean;
     private MaterialSwitch switchDeleteOriginals;
+    private MaterialSwitch switchKeepOriginalNames;
     private MaterialSwitch switchWarnAlreadyClean;
     private MaterialSwitch switchSecureWindow;
     private MaterialSwitch switchPreserveCamera;
@@ -171,6 +172,7 @@ public class SettingsFragment extends Fragment {
         
         switchStrictClean = view.findViewById(R.id.switchStrictClean);
         switchDeleteOriginals = view.findViewById(R.id.switchDeleteOriginals);
+        switchKeepOriginalNames = view.findViewById(R.id.switchKeepOriginalNames);
         switchWarnAlreadyClean = view.findViewById(R.id.switchWarnAlreadyClean);
         switchSecureWindow = view.findViewById(R.id.switchSecureWindow);
         switchPreserveCamera = view.findViewById(R.id.switchPreserveCamera);
@@ -276,6 +278,9 @@ public class SettingsFragment extends Fragment {
         switchDeleteOriginals.setChecked(AppPreferences.isDeleteOriginalsAfterClean(requireContext()));
         switchDeleteOriginals.setOnCheckedChangeListener((btn, isChecked) ->
                 AppPreferences.setDeleteOriginalsAfterClean(requireContext(), isChecked));
+        switchKeepOriginalNames.setChecked(AppPreferences.isKeepOriginalFileNames(requireContext()));
+        switchKeepOriginalNames.setOnCheckedChangeListener((btn, isChecked) ->
+                AppPreferences.setKeepOriginalFileNames(requireContext(), isChecked));
         switchWarnAlreadyClean.setChecked(AppPreferences.isWarnAlreadyClean(requireContext()));
         switchWarnAlreadyClean.setOnCheckedChangeListener((btn, isChecked) ->
                 AppPreferences.setWarnAlreadyClean(requireContext(), isChecked));

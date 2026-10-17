@@ -144,17 +144,31 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /** Queues an externally opened image/video for Scan. Returns whether one was queued. */
+    /**
+     * Queues an image/video for Scan when it was opened from another app (ACTION_VIEW) or shared
+     * to "Scan with Redact" (ACTION_SEND). Returns whether one was queued.
+     */
     private boolean queueViewIntent(@Nullable android.content.Intent intent) {
-        if (intent == null || !android.content.Intent.ACTION_VIEW.equals(intent.getAction())) {
+        if (intent == null) {
             return false;
         }
-        android.net.Uri data = intent.getData();
-        if (data == null) {
+        android.net.Uri data;
+        if (android.content.Intent.ACTION_VIEW.equals(intent.getAction())) {
+            data = intent.getData();
+        } else if (android.content.Intent.ACTION_SEND.equals(intent.getAction())) {
+            data = androidx.core.content.IntentCompat.getParcelableExtra(
+                    intent, android.content.Intent.EXTRA_STREAM, android.net.Uri.class);
+        } else {
+            return false;
+        }
+        if (!isForeignContentUri(data)) {
             return false;
         }
         try {
             String type = getContentResolver().getType(data);
+            if (type == null) {
+                type = intent.getType();
+            }
             if (type == null || !(type.startsWith("image/") || type.startsWith("video/"))) {
                 return false;
             }
@@ -165,6 +179,18 @@ public class MainActivity extends AppCompatActivity {
             SentryManager.recordException(e);
             return false;
         }
+    }
+
+    /**
+     * Only content from another app's provider: a file:// path or one of Redact's own providers
+     * would let the sender point Scan at files that are private to Redact.
+     */
+    private boolean isForeignContentUri(@Nullable android.net.Uri uri) {
+        if (uri == null || !android.content.ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
+            return false;
+        }
+        String authority = uri.getAuthority();
+        return authority != null && !authority.startsWith(getPackageName());
     }
 
     private static int tabFromIntent(@Nullable android.content.Intent intent) {

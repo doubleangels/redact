@@ -28,6 +28,23 @@ public class AppPreferencesTest {
     }
 
     @Test
+    public void keepOriginalFileNames_isOffByDefault_andDecidesTheOutputName() {
+        assertFalse(AppPreferences.isKeepOriginalFileNames(context));
+        String random = com.doubleangels.redact.media.MediaFileNames.outputBaseName(context, "IMG_1234.jpg");
+        assertTrue(random.matches("[A-Za-z0-9]{12}"));
+
+        AppPreferences.setKeepOriginalFileNames(context, true);
+        assertEquals("IMG_1234",
+                com.doubleangels.redact.media.MediaFileNames.outputBaseName(context, "IMG_1234.jpg"));
+        // No usable name falls back to a random one.
+        assertTrue(com.doubleangels.redact.media.MediaFileNames.outputBaseName(context, ".jpg")
+                .matches("[A-Za-z0-9]{12}"));
+
+        AppPreferences.resetAll(context);
+        assertFalse(AppPreferences.isKeepOriginalFileNames(context));
+    }
+
+    @Test
     public void outputTree_isUnsetByDefault_perMediaType_andResets() {
         android.net.Uri images = android.net.Uri.parse(
                 "content://com.android.externalstorage.documents/tree/primary%3APictures%2FPrivate");

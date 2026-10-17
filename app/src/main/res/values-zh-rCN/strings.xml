@@ -423,4 +423,8 @@
     <string name="settings_reset_all_confirm">重置</string>
     <string name="settings_reset_all_done">设置已恢复为默认值。</string>
     <string name="settings_reset_all_busy">处理过程中无法重置设置。</string>
+    <string name="share_target_scan">使用 Redact 扫描</string>
+    <string name="button_scan_result">扫描结果</string>
+    <string name="settings_keep_original_names">保留原文件名</string>
+    <string name="settings_keep_original_names_subtitle">清理和转换后的文件沿用原文件名，而不是随机名称。IMG_20260117 这样的名称可能会暴露照片的拍摄时间。</string>
 </resources>
