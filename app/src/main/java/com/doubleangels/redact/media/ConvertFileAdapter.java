@@ -95,7 +95,7 @@ public final class ConvertFileAdapter extends RecyclerView.Adapter<ConvertFileAd
     @Override
     public void onBindViewHolder(@NonNull Holder holder, int position) {
         MediaItem item = items.get(position);
-        holder.text.setText(item.fileName());
+        holder.text.setText(item.displayName(holder.itemView.getContext()));
 
         if (holder.subtitle != null) {
             holder.subtitle.setText(item.isVideo()
@@ -106,7 +106,7 @@ public final class ConvertFileAdapter extends RecyclerView.Adapter<ConvertFileAd
         if (holder.removeButton != null) {
             holder.removeButton.setVisibility(isRemovable ? View.VISIBLE : View.GONE);
             holder.removeButton.setContentDescription(holder.itemView.getContext().getString(
-                    R.string.convert_remove_item, item.fileName()));
+                    R.string.convert_remove_item, item.displayName(holder.itemView.getContext())));
             holder.removeButton.setOnClickListener(v -> {
                 int adapterPos = holder.getBindingAdapterPosition();
                 int targetPos = adapterPos != RecyclerView.NO_POSITION ? adapterPos : position;

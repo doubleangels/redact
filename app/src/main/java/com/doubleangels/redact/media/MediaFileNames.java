@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import com.doubleangels.redact.AppPreferences;
 
 import java.security.SecureRandom;
+import java.util.regex.Pattern;
 
 /**
  * Privacy-safe output naming for gallery saves.
@@ -47,6 +48,25 @@ public final class MediaFileNames {
             }
         }
         return generateShortRandomName();
+    }
+
+    /**
+     * The name a copy saved under {@link #outputBaseName} was meant to have, when the system gave
+     * it a " (1)" suffix because {@code originalFileName} was taken; otherwise null.
+     */
+    @Nullable
+    static String nameBeforeClash(@NonNull String currentName, @Nullable String originalFileName) {
+        String base = baseNameOf(originalFileName);
+        if (base.isEmpty()) {
+            return null;
+        }
+        int dot = currentName.lastIndexOf('.');
+        String stem = dot >= 0 ? currentName.substring(0, dot) : currentName;
+        String extension = dot >= 0 ? currentName.substring(dot) : "";
+        if (!stem.matches(Pattern.quote(base) + " \\(\\d+\\)")) {
+            return null;
+        }
+        return base + extension;
     }
 
     /** The file name without its folder or extension, with characters a file name cannot hold replaced. */

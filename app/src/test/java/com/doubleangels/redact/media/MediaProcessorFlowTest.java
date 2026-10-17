@@ -192,6 +192,45 @@ public class MediaProcessorFlowTest {
     }
 
     @Test
+    public void onceTheOriginalIsTrashed_aCopyThatClashedWithItGetsTheOriginalName() throws Exception {
+        AppPreferences.setKeepOriginalFileNames(app, true);
+        Recorder cb = new Recorder();
+        MediaItem item = jpeg("holiday.jpg");
+        processor.processMediaItems(Arrays.asList(item), cb);
+        await(() -> cb.events.contains("complete"));
+        await(() -> !processor.isBusy());
+        // The original still held its name when the copy was saved, so the system added " (1)".
+        Uri output = processor.getSucceededOutputs().get(0);
+        android.content.ContentValues clash = new android.content.ContentValues();
+        clash.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "holiday (1).jpg");
+        app.getContentResolver().update(output, clash, null, null);
+
+        processor.restoreOriginalNames(processor.takeSucceededSources());
+
+        await(() -> "holiday.jpg".equals(FakeMediaStoreProvider.only().displayName()));
+        assertEquals(Arrays.asList(output), processor.getSucceededOutputs());
+    }
+
+    @Test
+    public void anOriginalThatWasNotTrashed_leavesItsCopyAlone() throws Exception {
+        AppPreferences.setKeepOriginalFileNames(app, true);
+        Recorder cb = new Recorder();
+        processor.processMediaItems(Arrays.asList(jpeg("holiday.jpg")), cb);
+        await(() -> cb.events.contains("complete"));
+        await(() -> !processor.isBusy());
+        Uri output = processor.getSucceededOutputs().get(0);
+        android.content.ContentValues clash = new android.content.ContentValues();
+        clash.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "holiday (1).jpg");
+        app.getContentResolver().update(output, clash, null, null);
+
+        processor.takeSucceededSources();
+        processor.restoreOriginalNames(new ArrayList<>());
+        Thread.sleep(200);
+
+        assertEquals("holiday (1).jpg", FakeMediaStoreProvider.only().displayName());
+    }
+
+    @Test
     public void transcodeOwnerAndLastUriDefaults() {
         processor.setTranscodeOwnerId(7L);
         assertNull(processor.getLastProcessedFileUri());

@@ -1,6 +1,7 @@
 package com.doubleangels.redact.media;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -46,6 +47,16 @@ public class MediaFileNamesTest {
         assertEquals("hidden", MediaFileNames.baseNameOf("..hidden.jpg"));
         assertEquals("", MediaFileNames.baseNameOf(".jpg"));
         assertEquals("", MediaFileNames.baseNameOf(null));
+    }
+
+    @Test
+    public void nameBeforeClash_dropsOnlyTheSuffixAClashAdded() {
+        assertEquals("IMG_1.jpg", MediaFileNames.nameBeforeClash("IMG_1 (1).jpg", "IMG_1.jpg"));
+        // A converted copy keeps its own extension.
+        assertEquals("IMG_1.png", MediaFileNames.nameBeforeClash("IMG_1 (12).png", "IMG_1.heic"));
+        assertNull(MediaFileNames.nameBeforeClash("IMG_1.jpg", "IMG_1.jpg"));
+        assertNull(MediaFileNames.nameBeforeClash("IMG_2 (1).jpg", "IMG_1.jpg"));
+        assertNull(MediaFileNames.nameBeforeClash("aB3dE5fG7hJ9 (1).jpg", ""));
     }
 
     @Test

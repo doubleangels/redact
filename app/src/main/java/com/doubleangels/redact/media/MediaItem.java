@@ -40,8 +40,17 @@ public final class MediaItem {
         return isVideo;
     }
 
+    /** The source's own file name, or null (or empty) when the provider gives none. */
     public String fileName() {
         return fileName;
+    }
+
+    /** The file name to show, with a generic label when the source has none. */
+    @NonNull
+    public String displayName(@NonNull android.content.Context context) {
+        return fileName != null && !fileName.isEmpty()
+                ? fileName
+                : context.getString(com.doubleangels.redact.R.string.scan_default_file_name);
     }
 
     @Override

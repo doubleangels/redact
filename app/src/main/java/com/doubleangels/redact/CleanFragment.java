@@ -67,6 +67,9 @@ public class CleanFragment extends Fragment {
     private TextView statusText;
     private View shareResultsButton;
     private View scanResultButton;
+    /** Originals in the trash request on screen, whose clean copies get their names back if it is accepted. */
+    @Nullable
+    private List<Uri> pendingTrashSources;
     private LinearLayout progressContainer;
     private TextView progressText;
     private LinearProgressIndicator progressBar;
@@ -89,7 +92,14 @@ public class CleanFragment extends Fragment {
             mediaSelector = new MediaSelector(requireActivity());
         }
         trashRequestLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartIntentSenderForResult(), result -> { });
+                new ActivityResultContracts.StartIntentSenderForResult(), result -> {
+                    List<Uri> trashed = pendingTrashSources;
+                    pendingTrashSources = null;
+                    if (result.getResultCode() == android.app.Activity.RESULT_OK && trashed != null
+                            && viewModel != null) {
+                        viewModel.restoreCleanOriginalNames(trashed);
+                    }
+                });
         mediaPickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.OpenMultipleDocuments(),
                 uris -> {
@@ -326,15 +336,20 @@ public class CleanFragment extends Fragment {
     private void requestTrashOriginals(List<Uri> sources) {
         try {
             List<Uri> mediaUris = new ArrayList<>();
+            List<Uri> trashable = new ArrayList<>();
             for (Uri u : sources) {
                 try {
                     Uri m = MediaStore.getMediaUri(requireContext(), u);
-                    if (m != null) mediaUris.add(m);
+                    if (m != null) {
+                        mediaUris.add(m);
+                        trashable.add(u);
+                    }
                 } catch (Exception ignored) {
                     // Non-media provider: leave the original alone.
                 }
             }
             if (mediaUris.isEmpty()) return;
+            pendingTrashSources = trashable;
             trashRequestLauncher.launch(new IntentSenderRequest.Builder(
                     MediaStore.createTrashRequest(requireContext().getContentResolver(), mediaUris, true)
                             .getIntentSender()).build());

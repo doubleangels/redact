@@ -33,7 +33,8 @@ public final class MediaSelector {
         if (!persistable && "content".equals(uri.getScheme())) {
             SentryManager.setCustomKey("persistable_uri_permission", false);
         }
-        String fileName = getFileName(uri);
+        // Null when the provider gives no name, so outputs are not named after the fallback label.
+        String fileName = MediaUriResolver.readDisplayName(activity, uri);
         boolean isVideo = isVideoContent(uri, fileName);
         return new MediaItem(uri, isVideo, fileName);
     }

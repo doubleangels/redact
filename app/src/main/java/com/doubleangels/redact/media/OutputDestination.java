@@ -144,6 +144,36 @@ public final class OutputDestination {
         }
     }
 
+    /** The file name of an output created by {@link #create}, or null when it cannot be read. */
+    @Nullable
+    public static String displayName(@NonNull ContentResolver resolver, @NonNull Uri uri) {
+        try (Cursor cursor = resolver.query(uri,
+                new String[] {MediaStore.MediaColumns.DISPLAY_NAME}, null, null, null)) {
+            return cursor != null && cursor.moveToFirst() ? cursor.getString(0) : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Renames an output created by {@link #create}. Returns its URI afterwards, which for a
+     * document in a chosen folder can change, or null when it could not be renamed.
+     */
+    @Nullable
+    public static Uri rename(@NonNull ContentResolver resolver, @NonNull Uri uri, @NonNull String displayName) {
+        try {
+            if (isDocumentAuthority(uri)) {
+                return DocumentsContract.renameDocument(resolver, uri, displayName);
+            }
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, displayName);
+            return resolver.update(uri, values, null, null) > 0 ? uri : null;
+        } catch (Exception e) {
+            SentryManager.log("A clean copy could not be renamed: " + e.getMessage() + ".");
+            return null;
+        }
+    }
+
     /** The document URI for the folder a tree URI grants, which is where new files are created. */
     @NonNull
     static Uri rootDocument(@NonNull Uri tree) {

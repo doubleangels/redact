@@ -608,6 +608,11 @@ public class MainViewModel extends AndroidViewModel {
         return mediaProcessor.takeSucceededSources();
     }
 
+    /** Call once the user has let {@code trashed} originals go to the trash; see MediaProcessor. */
+    public void restoreCleanOriginalNames(List<android.net.Uri> trashed) {
+        mediaProcessor.restoreOriginalNames(trashed);
+    }
+
     public void startCleaning(List<MediaItem> items) {
 
         if (items == null || items.isEmpty()) return;
@@ -777,7 +782,9 @@ public class MainViewModel extends AndroidViewModel {
 
                     final int index = i + 1;
 
-                    final String name = mediaItem.fileName() != null ? mediaItem.fileName() : "unknown";
+                    final String name = mediaItem.displayName(getApplication());
+                    // Empty, not the display label, so a nameless source still gets a random output name.
+                    final String outputName = mediaItem.fileName() != null ? mediaItem.fileName() : "";
 
                     ISpan span = transaction.startChild("convert_item", "media_item");
 
@@ -804,7 +811,7 @@ public class MainViewModel extends AndroidViewModel {
 
                                     uri,
 
-                                    name,
+                                    outputName,
 
                                     formatIndex,
 
@@ -876,7 +883,7 @@ public class MainViewModel extends AndroidViewModel {
                             android.net.Uri convertedImage = FormatConverter.convertImageToPictures(
 
                                     getApplication(), uri,
-                                    FormatConverter.formatAtIndex(imageFormatIndex), name);
+                                    FormatConverter.formatAtIndex(imageFormatIndex), outputName);
                             if (runGeneration == convertGeneration.get()) {
                                 convertOutputs.add(convertedImage);
                             }

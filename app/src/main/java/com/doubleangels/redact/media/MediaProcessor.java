@@ -6,6 +6,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.metadata.CleanStats;
 import com.doubleangels.redact.metadata.MetadataStripper;
@@ -13,6 +15,8 @@ import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.CleanSummary;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,6 +53,18 @@ public class MediaProcessor {
 
     /** What each successfully cleaned item had removed, in the current/last batch. */
     private final List<CleanStats> succeededStats = new CopyOnWriteArrayList<>();
+
+    /** File names of {@link #succeededSources}, in the same order ("" when unknown). */
+    private final List<String> succeededSourceNames = new CopyOnWriteArrayList<>();
+
+    /**
+     * The clean copy and original file name of each source handed out by
+     * {@link #takeSucceededSources}, for {@link #restoreOriginalNames} once those are trashed.
+     */
+    private final Map<Uri, TrashedOriginal> awaitingTrash = new ConcurrentHashMap<>();
+
+    private record TrashedOriginal(@NonNull Uri output, @NonNull String fileName) {
+    }
 
     /** Prevents overlapping batch processing from multiple strip invocations */
     private final AtomicBoolean processing = new AtomicBoolean(false);
@@ -154,8 +170,51 @@ public class MediaProcessor {
      */
     public synchronized List<Uri> takeSucceededSources() {
         List<Uri> taken = new java.util.ArrayList<>(succeededSources);
+        awaitingTrash.clear();
+        for (int i = 0; i < taken.size() && i < succeededOutputs.size() && i < succeededSourceNames.size(); i++) {
+            awaitingTrash.put(taken.get(i),
+                    new TrashedOriginal(succeededOutputs.get(i), succeededSourceNames.get(i)));
+        }
         succeededSources.clear();
+        succeededSourceNames.clear();
         return taken;
+    }
+
+    /**
+     * Once {@code trashed} originals are in the trash, gives their clean copies the original names
+     * that the originals still held when the copies were saved (the system then named them
+     * "IMG_1 (1).jpg"). Only matters with Keep Original File Names on and the copy saved in the
+     * original's folder. Runs in the background; renamed copies replace their old URIs in
+     * {@link #getSucceededOutputs()}.
+     */
+    public void restoreOriginalNames(@NonNull List<Uri> trashed) {
+        List<TrashedOriginal> renames = new java.util.ArrayList<>();
+        for (Uri source : trashed) {
+            TrashedOriginal original = awaitingTrash.remove(source);
+            if (original != null) {
+                renames.add(original);
+            }
+        }
+        if (renames.isEmpty() || !com.doubleangels.redact.AppPreferences.isKeepOriginalFileNames(context)) {
+            return;
+        }
+        if (processingExecutor.isShutdown()) {
+            return;
+        }
+        processingExecutor.execute(() -> {
+            for (TrashedOriginal original : renames) {
+                String current = OutputDestination.displayName(context.getContentResolver(), original.output());
+                String wanted = current == null ? null : MediaFileNames.nameBeforeClash(current, original.fileName());
+                if (wanted == null) {
+                    continue;
+                }
+                Uri renamed = OutputDestination.rename(context.getContentResolver(), original.output(), wanted);
+                int index = succeededOutputs.indexOf(original.output());
+                if (renamed != null && index >= 0) {
+                    succeededOutputs.set(index, renamed);
+                }
+            }
+        });
     }
 
     /** Whether a clean batch is currently running on the shared worker. */
@@ -185,8 +244,10 @@ public class MediaProcessor {
         }
         cancelled.set(false);
         succeededSources.clear();
+        succeededSourceNames.clear();
         succeededOutputs.clear();
         succeededStats.clear();
+        awaitingTrash.clear();
         metadataStripper.resetCancellation();
         mainHandler.post(callback::onBatchStarted);
         processingExecutor.execute(() -> {
@@ -210,7 +271,7 @@ public class MediaProcessor {
                                     R.string.clean_progress_batch,
                                     index + 1,
                                     totalItems,
-                                    item.fileName());
+                                    item.displayName(context));
                     ProgressUpdateThrottler progressThrottler = new ProgressUpdateThrottler();
 
                     try {
@@ -236,10 +297,12 @@ public class MediaProcessor {
                                                                 batchLine)));
 
                         Uri processedUri;
+                        // "" when the source has no name: the output then gets a random one.
+                        String sourceName = item.fileName() != null ? item.fileName() : "";
                         if (item.isVideo()) {
-                            processedUri = metadataStripper.stripVideoMetadata(item.uri(), item.fileName());
+                            processedUri = metadataStripper.stripVideoMetadata(item.uri(), sourceName);
                         } else {
-                            processedUri = metadataStripper.stripExifData(item.uri(), item.fileName());
+                            processedUri = metadataStripper.stripExifData(item.uri(), sourceName);
                         }
 
                         metadataStripper.setProgressCallback(null);
@@ -247,6 +310,7 @@ public class MediaProcessor {
                         if (processedUri != null) {
                             lastProcessedFileUri = processedUri;
                             succeededSources.add(item.uri());
+                            succeededSourceNames.add(sourceName);
                             succeededOutputs.add(processedUri);
                             CleanStats stats = metadataStripper.getLastCleanStats();
                             if (stats != null) {
@@ -266,7 +330,7 @@ public class MediaProcessor {
                                     "processing.clean.failure", 1, "is_video", String.valueOf(item.isVideo()));
                             span.setStatus(SpanStatus.INTERNAL_ERROR);
                             final String failLine =
-                                    context.getString(R.string.clean_item_failed, item.fileName());
+                                    context.getString(R.string.clean_item_failed, item.displayName(context));
                             progressThrottler.forceRun(
                                     () ->
                                             mainHandler.post(
