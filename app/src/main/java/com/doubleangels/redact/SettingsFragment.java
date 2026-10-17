@@ -515,10 +515,12 @@ public class SettingsFragment extends Fragment {
         textOutputVideosWarning = view.findViewById(R.id.textOutputVideosWarning);
         buttonResetOutputImages = view.findViewById(R.id.buttonResetOutputImages);
         buttonResetOutputVideos = view.findViewById(R.id.buttonResetOutputVideos);
-        view.findViewById(R.id.buttonChooseOutputImages).setOnClickListener(v ->
-                launchOutputFolderPicker(imageFolderPicker, false));
-        view.findViewById(R.id.buttonChooseOutputVideos).setOnClickListener(v ->
-                launchOutputFolderPicker(videoFolderPicker, true));
+        View.OnClickListener pickImages = v -> launchOutputFolderPicker(imageFolderPicker, false);
+        View.OnClickListener pickVideos = v -> launchOutputFolderPicker(videoFolderPicker, true);
+        view.findViewById(R.id.cardOutputImages).setOnClickListener(pickImages);
+        view.findViewById(R.id.buttonChooseOutputImages).setOnClickListener(pickImages);
+        view.findViewById(R.id.cardOutputVideos).setOnClickListener(pickVideos);
+        view.findViewById(R.id.buttonChooseOutputVideos).setOnClickListener(pickVideos);
         buttonResetOutputImages.setOnClickListener(v -> resetOutputFolder(false));
         buttonResetOutputVideos.setOnClickListener(v -> resetOutputFolder(true));
         refreshOutputFolders();
