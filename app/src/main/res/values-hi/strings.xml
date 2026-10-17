@@ -418,4 +418,6 @@
     <string name="share_results_chooser_title">इसके ज़रिए साझा करें…</string>
     <string name="settings_output_unavailable">Redact अब इस फ़ोल्डर में सेव नहीं कर सकता, इसलिए फ़ाइलें %1$s में जाती हैं। इसे फिर से चुनें या कोई दूसरा फ़ोल्डर चुनें।</string>
     <string name="output_folder_fallback">%1$s उपलब्ध नहीं है, इसलिए %2$s में सेव किया जा रहा है।</string>
+    <string name="settings_output_open">फ़ोल्डर खोलें</string>
+    <string name="settings_output_open_unavailable">इस फ़ोल्डर को खोलने के लिए कोई ऐप नहीं मिला।</string>
 </resources>

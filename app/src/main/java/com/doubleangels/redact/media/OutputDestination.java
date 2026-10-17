@@ -166,6 +166,20 @@ public final class OutputDestination {
                 + (video ? Environment.DIRECTORY_MOVIES : Environment.DIRECTORY_PICTURES));
     }
 
+    /**
+     * The folder {@code video} output is saved to right now, as a document a file manager can
+     * open: the chosen folder while it is usable, otherwise the default {@code Redact} folder.
+     */
+    @NonNull
+    public static Uri currentFolderDocument(@NonNull Context context, boolean video) {
+        Uri tree = AppPreferences.getOutputTree(context, video);
+        if (tree != null && isUsable(context, tree)) {
+            return rootDocument(tree);
+        }
+        return DocumentsContract.buildDocumentUri(EXTERNAL_STORAGE_AUTHORITY,
+                PRIMARY_VOLUME + ":" + defaultPath(video));
+    }
+
     /** True when {@code tree} is the default {@code Pictures/Redact} or {@code Movies/Redact} folder. */
     public static boolean isDefaultFolder(@NonNull Uri tree, boolean video) {
         if (!EXTERNAL_STORAGE_AUTHORITY.equals(tree.getAuthority())) {

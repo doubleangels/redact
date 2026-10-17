@@ -411,4 +411,6 @@
     <string name="share_results_chooser_title">分享方式…</string>
     <string name="settings_output_unavailable">Redact 无法再保存到此文件夹，文件将保存到 %1$s。请重新选择此文件夹或选择其他文件夹。</string>
     <string name="output_folder_fallback">%1$s 不可用，改为保存到 %2$s。</string>
+    <string name="settings_output_open">打开文件夹</string>
+    <string name="settings_output_open_unavailable">找不到可打开此文件夹的应用。</string>
 </resources>

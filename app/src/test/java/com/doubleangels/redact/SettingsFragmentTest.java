@@ -501,6 +501,17 @@ public class SettingsFragmentTest {
     }
 
     @Test
+    public void openFolder_showsTheOutputFolderInTheFileManager() {
+        settings.findViewById(R.id.buttonOpenOutputVideos).performClick();
+
+        Intent intent = nextIntentWithAction(Intent.ACTION_VIEW);
+        assertNotNull(intent);
+        assertEquals(android.provider.DocumentsContract.Document.MIME_TYPE_DIR, intent.getType());
+        assertEquals("primary:Movies/Redact",
+                android.provider.DocumentsContract.getDocumentId(intent.getData()));
+    }
+
+    @Test
     public void outputFolders_showTheDefault_aChosenFolder_andAWarningOnceItIsGone() {
         TextView label = settings.findViewById(R.id.textOutputImages);
         TextView warning = settings.findViewById(R.id.textOutputImagesWarning);

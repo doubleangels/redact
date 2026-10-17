@@ -411,4 +411,6 @@
     <string name="share_results_chooser_title">공유 방법…</string>
     <string name="settings_output_unavailable">Redact가 더 이상 이 폴더에 저장할 수 없어 파일이 %1$s에 저장됩니다. 다시 선택하거나 다른 폴더를 고르세요.</string>
     <string name="output_folder_fallback">%1$s을(를) 사용할 수 없어 %2$s에 저장합니다.</string>
+    <string name="settings_output_open">폴더 열기</string>
+    <string name="settings_output_open_unavailable">이 폴더를 열 수 있는 앱이 없습니다.</string>
 </resources>

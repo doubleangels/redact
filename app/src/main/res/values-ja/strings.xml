@@ -412,4 +412,6 @@
     <string name="share_results_chooser_title">共有先…</string>
     <string name="settings_output_unavailable">Redact はこのフォルダに保存できなくなったため、ファイルは %1$s に保存されます。もう一度選ぶか、別のフォルダを選んでください。</string>
     <string name="output_folder_fallback">%1$s を使用できないため、%2$s に保存します。</string>
+    <string name="settings_output_open">フォルダを開く</string>
+    <string name="settings_output_open_unavailable">このフォルダを開けるアプリが見つかりません。</string>
 </resources>

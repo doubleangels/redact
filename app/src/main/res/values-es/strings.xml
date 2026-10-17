@@ -425,4 +425,6 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="share_results_chooser_title">Compartir con…</string>
     <string name="settings_output_unavailable">Redact ya no puede guardar en esta carpeta, así que los archivos van a %1$s. Vuelve a elegirla o elige otra carpeta.</string>
     <string name="output_folder_fallback">Se guardará en %2$s: %1$s no está disponible.</string>
+    <string name="settings_output_open">Abrir Carpeta</string>
+    <string name="settings_output_open_unavailable">No se encontró ninguna app para abrir esta carpeta.</string>
 </resources>

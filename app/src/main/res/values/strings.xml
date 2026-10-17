@@ -423,4 +423,6 @@
     <string name="share_results_chooser_title">Share via…</string>
     <string name="settings_output_unavailable">Redact can no longer save to this folder, so files go to %1$s. Choose it again or pick another folder.</string>
     <string name="output_folder_fallback">Saving to %2$s instead: %1$s is unavailable.</string>
+    <string name="settings_output_open">Open Folder</string>
+    <string name="settings_output_open_unavailable">No app found to open this folder.</string>
 </resources>

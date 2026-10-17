@@ -1211,8 +1211,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingEnd="8dp">
+                            android:orientation="horizontal">
 
                             <FrameLayout
                                 android:id="@+id/badgeOutputImages"
@@ -1255,6 +1254,17 @@
                                     android:textColor="?attr/colorOnSurfaceVariant"
                                     tools:text="Pictures/Redact" />
                             </LinearLayout>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/buttonOpenOutputImages"
+                                style="@style/Widget.Material3.Button.IconButton"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:layout_marginStart="4dp"
+                                android:contentDescription="@string/settings_output_open"
+                                android:tooltipText="@string/settings_output_open"
+                                app:icon="@drawable/ic_folder_open"
+                                app:iconTint="?attr/colorOnSurfaceVariant" />
                         </LinearLayout>
 
                         <!-- Shown when Redact can no longer write to the chosen folder -->
@@ -1324,8 +1334,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingEnd="8dp">
+                            android:orientation="horizontal">
 
                             <FrameLayout
                                 android:id="@+id/badgeOutputVideos"
@@ -1368,6 +1377,17 @@
                                     android:textColor="?attr/colorOnSurfaceVariant"
                                     tools:text="Pictures/Redact" />
                             </LinearLayout>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/buttonOpenOutputVideos"
+                                style="@style/Widget.Material3.Button.IconButton"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:layout_marginStart="4dp"
+                                android:contentDescription="@string/settings_output_open"
+                                android:tooltipText="@string/settings_output_open"
+                                app:icon="@drawable/ic_folder_open"
+                                app:iconTint="?attr/colorOnSurfaceVariant" />
                         </LinearLayout>
 
                         <!-- Shown when Redact can no longer write to the chosen folder -->

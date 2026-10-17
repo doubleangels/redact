@@ -411,4 +411,6 @@
     <string name="share_results_chooser_title">分享方式…</string>
     <string name="settings_output_unavailable">Redact 無法再儲存至這個資料夾，檔案將儲存至 %1$s。請重新選擇這個資料夾或改選其他資料夾。</string>
     <string name="output_folder_fallback">%1$s 無法使用，改為儲存至 %2$s。</string>
+    <string name="settings_output_open">開啟資料夾</string>
+    <string name="settings_output_open_unavailable">找不到可開啟此資料夾的應用程式。</string>
 </resources>

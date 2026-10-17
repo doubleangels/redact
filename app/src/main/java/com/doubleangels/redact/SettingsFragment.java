@@ -522,6 +522,8 @@ public class SettingsFragment extends Fragment {
         view.findViewById(R.id.buttonChooseOutputImages).setOnClickListener(pickImages);
         view.findViewById(R.id.cardOutputVideos).setOnClickListener(pickVideos);
         view.findViewById(R.id.buttonChooseOutputVideos).setOnClickListener(pickVideos);
+        view.findViewById(R.id.buttonOpenOutputImages).setOnClickListener(v -> openOutputFolder(false));
+        view.findViewById(R.id.buttonOpenOutputVideos).setOnClickListener(v -> openOutputFolder(true));
         buttonResetOutputImages.setOnClickListener(v -> resetOutputFolder(false));
         buttonResetOutputVideos.setOnClickListener(v -> resetOutputFolder(true));
         refreshOutputFolders();
@@ -532,6 +534,20 @@ public class SettingsFragment extends Fragment {
             picker.launch(OutputDestination.pickerStartLocation(requireContext(), video));
         } catch (ActivityNotFoundException e) {
             Toast.makeText(requireContext(), R.string.settings_output_error, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /** Shows the folder {@code video} output currently goes to in the system file manager. */
+    private void openOutputFolder(boolean video) {
+        Intent intent = new Intent(Intent.ACTION_VIEW)
+                .setDataAndType(OutputDestination.currentFolderDocument(requireContext(), video),
+                        android.provider.DocumentsContract.Document.MIME_TYPE_DIR)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException | SecurityException e) {
+            Toast.makeText(requireContext(), R.string.settings_output_open_unavailable,
+                    Toast.LENGTH_SHORT).show();
         }
     }
 
