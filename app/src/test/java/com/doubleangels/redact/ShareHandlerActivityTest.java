@@ -363,6 +363,22 @@ public class ShareHandlerActivityTest {
     }
 
     @Test
+    public void aSuccessfulShare_deletesTheCopiesOfTheOriginals() throws Exception {
+        assumeFileProviderUsable();
+        ShareHandlerActivity activity = launch(sendIntent("image/jpeg", createJpeg()));
+
+        assertNotNull(awaitStartedActivity(activity));
+
+        // Only the cleaned file is shared; the snapshot still holds the original's metadata.
+        long deadline = System.currentTimeMillis() + 5000;
+        while (inboundSnapshots().length > 0 && System.currentTimeMillis() < deadline) {
+            Thread.sleep(25);
+        }
+        assertEquals(0, inboundSnapshots().length);
+        assertFalse(activity.isFinishing());
+    }
+
+    @Test
     public void sendMultiple_images_launchesMultipleShareChooser() throws Exception {
         assumeFileProviderUsable();
         ArrayList<Uri> uris = new ArrayList<>();

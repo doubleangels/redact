@@ -569,6 +569,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 SentryManager.recordException(e);
                 safeRunOnUiThread(() -> finishWithError(getString(R.string.share_error_generic)));
             } finally {
+                // The snapshots are copies of the originals, metadata included, and only the
+                // cleaned files are shared, so delete them now rather than when the share ends:
+                // on a successful share nothing else would until the next process start.
+                cleanupInboundSnapshots();
                 endShareSession(session);
             }
         });
