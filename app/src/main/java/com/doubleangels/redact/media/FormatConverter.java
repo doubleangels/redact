@@ -404,9 +404,9 @@ public final class FormatConverter {
             throw e;
         }
 
+        boolean written = false;
         try (OutputStream os = resolver.openOutputStream(outUri)) {
             if (os == null) {
-                OutputDestination.discard(resolver, outUri);
                 throw new IOException("Cannot open output stream");
             }
             int q = qualityForFormat(format, context);
@@ -419,12 +419,16 @@ public final class FormatConverter {
                 ok = bitmap.compress(format, q, os);
             }
             if (!ok) {
-                OutputDestination.discard(resolver, outUri);
                 throw new IOException("Compress failed");
             }
             os.flush();
+            written = true;
         } finally {
             bitmap.recycle();
+            if (!written) {
+                // Whatever went wrong (including the stream throwing), leave no partial file.
+                OutputDestination.discard(resolver, outUri);
+            }
         }
         // Re-encoding from decoded pixels drops all source metadata (EXIF, XMP, IPTC, ICC
         // thumbnails); intentionally nothing is copied back.
