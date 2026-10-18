@@ -12,6 +12,7 @@ import java.util.Locale;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
 
@@ -33,6 +34,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1753,7 +1756,7 @@ public class MetadataStripper {
     private boolean containsXMPMetadata(@NonNull File file) {
         String name = file.getName().toLowerCase(Locale.ROOT);
         if (name.endsWith(".jpg") || name.endsWith(".jpeg")) {
-            return JpegXmpSegmentInspector.hasXmpSegment(file);
+            return JpegXmpRemover.hasXmpSegment(file);
         }
         return containsXmpPacketMarkers(file);
     }
@@ -1795,7 +1798,7 @@ public class MetadataStripper {
             throws IOException {
         if (isJpegExtension(extension)) {
             try {
-                new JpegXmpRewriter().removeXmpXml(tempFile, finalOs);
+                new JpegXmpRemover().removeAllXmp(tempFile, finalOs);
                 return true;
             } catch (Exception e) {
                 SentryManager.log("The JPEG XMP removal before output failed: " + e.getMessage() + ".");
@@ -1811,27 +1814,55 @@ public class MetadataStripper {
         return !isJpegExtension(extension);
     }
 
-    private static final class JpegXmpSegmentInspector extends JpegXmpRewriter {
-        private JpegXmpSegmentInspector() {
-        }
+    /**
+     * Finds and removes a JPEG's XMP segments, including Extended XMP. {@link JpegXmpRewriter}
+     * only knows the main {@code http://ns.adobe.com/xap/1.0/} segment, so the Extended XMP
+     * segments that follow it (where Google Camera keeps its HDR+ makernote) were left behind.
+     */
+    @VisibleForTesting
+    static final class JpegXmpRemover extends JpegXmpRewriter {
+        private static final byte[] EXTENDED_XMP_ID =
+                "http://ns.adobe.com/xmp/extension/ ".getBytes(StandardCharsets.US_ASCII);
 
         static boolean hasXmpSegment(@NonNull File file) {
             try {
-                return new JpegXmpSegmentInspector().scanForXmpSegment(file);
+                JFIFPieces pieces = new JpegXmpRemover().analyzeJfif(ByteSource.file(file));
+                for (JFIFPiece piece : pieces.segmentPieces) {
+                    if (isXmp(piece)) {
+                        return true;
+                    }
+                }
+                return false;
             } catch (Exception e) {
                 SentryManager.log("The XMP segment scan failed: " + e.getMessage() + ".");
                 return false;
             }
         }
 
-        private boolean scanForXmpSegment(@NonNull File file) throws Exception {
-            JFIFPieces pieces = analyzeJfif(ByteSource.file(file));
-            for (JFIFPiece piece : pieces.segmentPieces) {
-                if (piece instanceof JFIFPieceSegment segment && segment.isXmpSegment()) {
-                    return true;
+        /** Writes {@code jpeg} to {@code out} without any of its XMP segments. */
+        void removeAllXmp(@NonNull File jpeg, @NonNull OutputStream out) throws Exception {
+            List<JFIFPiece> kept = new ArrayList<>();
+            for (JFIFPiece piece : analyzeJfif(ByteSource.file(jpeg)).pieces) {
+                if (!isXmp(piece)) {
+                    kept.add(piece);
                 }
             }
-            return false;
+            writeSegments(out, kept);
+        }
+
+        private static boolean isXmp(@NonNull JFIFPiece piece) {
+            if (!(piece instanceof JFIFPieceSegment segment)) {
+                return false;
+            }
+            if (segment.isXmpSegment()) {
+                return true;
+            }
+            if (!segment.isApp1Segment()) {
+                return false;
+            }
+            byte[] data = segment.getSegmentData();
+            return data.length >= EXTENDED_XMP_ID.length && Arrays.equals(
+                    Arrays.copyOf(data, EXTENDED_XMP_ID.length), EXTENDED_XMP_ID);
         }
     }
 
@@ -1919,7 +1950,7 @@ public class MetadataStripper {
                 new org.apache.commons.imaging.formats.jpeg.exif.ExifRewriter()
                         .removeExifMetadata(tempFile, exifOut);
             }
-            new org.apache.commons.imaging.formats.jpeg.xmp.JpegXmpRewriter().removeXmpXml(exifFree, finalOs);
+            new JpegXmpRemover().removeAllXmp(exifFree, finalOs);
             return true;
         } catch (Exception e) {
             SentryManager.log("Lossless stripping failed: " + e.getMessage() + ". The app is falling back to Bitmap.");
