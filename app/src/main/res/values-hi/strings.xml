@@ -156,7 +156,7 @@
     <string name="settings_preserve_location_subtitle">साफ़ करें टैब पर GPS निर्देशांक रखें। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर अनदेखा।</string>
         <string name="settings_sentry_consent_allow">सक्षम करें</string>
     <string name="settings_sentry_consent_cancel">अभी नहीं</string>
-    <string name="settings_sentry_consent_title">क्रैश रिपोर्टिंग सक्षम करें?</string>
+    <string name="settings_sentry_consent_title">क्रैश रिपोर्टिंग सक्षम करें</string>
     <string name="settings_sentry_consent_message">क्रैश रिपोर्ट भेजना इंटरनेट पर Sentry को अनाम निदान अपलोड करता है।\n\nफ़ोटो, वीडियो, फ़ाइल नाम या GPS निर्देशांक अपलोड नहीं होते।</string>
     <string name="settings_strict_clean">सख्त सफ़ाई</string>
     <string name="settings_strict_clean_subtitle">मेटाडेटा का हर निशान हटाता है, यहाँ तक कि ओरिएंटेशन टैग भी — इसलिए घुमाई गई फ़ोटो बाद में तिरछी दिख सकती है। ऊपर के रखने के विकल्प बंद करता है और सबसे गहन सफ़ाई के लिए वीडियो को हमेशा पूरी तरह पुनः-एन्कोड करता है।</string>
@@ -208,7 +208,7 @@
     <string name="settings_section_share">Redact में साझा करना</string>
     <string name="settings_share_confirm_label">मेटाडेटा हटाने से पहले पुष्टि करें</string>
     <string name="settings_share_confirm_subtitle">साझा फ़ाइलों से EXIF और अन्य मेटाडेटा हटाने से पहले संकेत दिखाएँ।</string>
-    <string name="settings_share_confirm_dialog_title">मेटाडेटा हटाएं?</string>
+    <string name="settings_share_confirm_dialog_title">मेटाडेटा हटाएं</string>
     <string name="settings_share_confirm_dialog_message">Redact शेयर की गई फ़ाइलों से EXIF और अन्य मेटाडेटा हटाकर आगे शेयर करेगा।</string>
     <string name="settings_share_confirm_dialog_confirm">हटाएँ और जारी रखें</string>
     <string name="settings_share_confirm_dialog_cancel">रद्द करें</string>
@@ -224,7 +224,7 @@
     <string name="settings_storage_size">उपयोग में कैश: %1$s</string>
     <string name="settings_storage_subtitle">प्रसंस्करण के दौरान बनाई गई कार्य प्रतियाँ। आपकी गैलरी मूल कभी संशोधित नहीं होते।</string>
     <string name="settings_storage_clear">अस्थायी फ़ाइलें साफ़ करें</string>
-    <string name="settings_storage_clear_confirm_title">अस्थायी फ़ाइलें साफ़ करें?</string>
+    <string name="settings_storage_clear_confirm_title">अस्थायी फ़ाइलें साफ़ करें</string>
     <string name="settings_storage_clear_confirm_message">हाल की प्रोसेसिंग की कैश प्रतियाँ हटाता है। आपकी गैलरी फ़ाइलें प्रभावित नहीं होतीं।</string>
     <string name="settings_storage_clear_success">अस्थायी फ़ाइलें साफ़ की गईं।</string>
     <string name="settings_storage_clear_empty">साफ़ करने के लिए कोई अस्थायी फ़ाइल नहीं।</string>
@@ -290,13 +290,13 @@
     <string name="processing_warning_large_video">बड़े वीडियो चुने गए। प्रसंस्करण को अतिरिक्त अस्थायी स्थान चाहिए और समय लग सकता है।</string>
     <string name="processing_warning_continue">फिर भी जारी रखें</string>
     <string name="clean_item_failed">विफल: %1$s</string>
-    <string name="settings_preserve_location_confirm_title">साफ़ की गई फ़ोटो में GPS रखें?</string>
+    <string name="settings_preserve_location_confirm_title">साफ़ की गई फ़ोटो में GPS रखें</string>
     <string name="settings_preserve_location_confirm_message">साफ़ करें टैब की फ़ाइलों में GPS रह सकता है। अन्य ऐप्स से शेयर करने पर स्थान हमेशा हटाया जाता है।
 
 केवल तभी चालू करें जब आप जानबूझकर स्थान रखना चाहते हों।</string>
     <string name="settings_permission_needs_media">फ़ोटो आवश्यक</string>
     <string name="settings_location_permission_grant">फ़ोटो स्थान अनुमति दें</string>
-    <string name="settings_location_needs_media_title">पहले फ़ोटो और वीडियो की अनुमति दें?</string>
+    <string name="settings_location_needs_media_title">फ़ोटो और वीडियो की अनुमति ज़रूरी</string>
     <string name="settings_location_needs_media_message">फ़ोटो स्थान Redact को आपके मीडिया में मौजूद GPS निर्देशांक पढ़ने देता है। पहले फ़ोटो और वीडियो लाइब्रेरी एक्सेस आवश्यक है — अलग-अलग फ़ाइलें चुनना पर्याप्त नहीं है।\n\nअगली स्क्रीन पर सभी फ़ोटो और वीडियो की अनुमति दें पर टैप करें। आपका डिवाइस आमतौर पर फ़ोटो स्थान भी उसी समय दे देता है।</string>
     <string name="settings_location_grant_media_first">जारी रखें</string>
     <string name="settings_location_permission_granted">फ़ोटो स्थान अनुमति दी गई।</string>
@@ -426,7 +426,7 @@
     <string name="settings_output_also_confirm">दोनों के लिए उपयोग करें</string>
     <string name="settings_output_also_decline">नहीं, धन्यवाद</string>
     <string name="settings_reset_all">सभी सेटिंग रीसेट करें</string>
-    <string name="settings_reset_all_title">सभी सेटिंग रीसेट करें?</string>
+    <string name="settings_reset_all_title">सभी सेटिंग रीसेट करें</string>
     <string name="settings_reset_all_message">हर सेटिंग अपने डिफ़ॉल्ट पर लौट आती है और Redact आपके चुने हुए आउटपुट फ़ोल्डर भूल जाता है। आपकी फ़ोटो, वीडियो और साफ़ की गई फ़ाइलें नहीं बदलतीं।</string>
     <string name="settings_reset_all_confirm">रीसेट करें</string>
     <string name="settings_reset_all_done">सेटिंग डिफ़ॉल्ट पर रीसेट हो गईं।</string>
@@ -435,9 +435,10 @@
     <string name="button_scan_result">परिणाम स्कैन करें</string>
     <string name="settings_keep_original_names">मूल फ़ाइल नाम रखें</string>
     <string name="settings_keep_original_names_subtitle">साफ़ और कन्वर्ट की गई फ़ाइलों को किसी यादृच्छिक नाम के बजाय मूल फ़ाइल का नाम दें। IMG_20260117 जैसे नाम बता सकते हैं कि फ़ोटो कब ली गई थी।</string>
-    <string name="review_prompt_title">क्या आपको Redact पसंद आ रहा है?</string>
+    <string name="review_prompt_title">Redact को रेट करें</string>
     <string name="review_prompt_message">अगर Redact ने आपकी फ़ोटो को निजी रखने में मदद की है, तो क्या आप इसे Google Play पर रेट करना चाहेंगे? इसमें बस एक पल लगता है, और इससे दूसरे लोगों को ऐप ढूँढने में मदद मिलती है।</string>
     <string name="review_prompt_yes">हाँ</string>
     <string name="review_prompt_no">नहीं</string>
     <string name="review_prompt_declined">ठीक है, Redact फिर से नहीं पूछेगा। अगर आप अपना मन बदलें, तो सेटिंग्स › के बारे में से इसे कभी भी रेट कर सकते हैं।</string>
+    <string name="crash_prompt_declined">ठीक है, Redact फिर से नहीं पूछेगा। आप क्रैश रिपोर्ट कभी भी सेटिंग्स › निदान और प्रतिक्रिया में चालू कर सकते हैं।</string>
 </resources>

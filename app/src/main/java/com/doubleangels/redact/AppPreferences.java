@@ -7,6 +7,7 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.doubleangels.redact.ui.CrashReportingPrompt;
 import com.doubleangels.redact.ui.ReviewPrompt;
 
 /**
@@ -356,15 +357,20 @@ public final class AppPreferences {
     /**
      * Puts every setting back to its default. The first-launch permission prompt is not shown
      * again, since resetting settings does not change what Android has already granted, and the
-     * rating prompt's progress is kept, so a user who declined it is never asked again.
+     * rating prompt's progress and whether the crash-report question was asked are kept, so
+     * neither question is ever asked again.
      */
     public static void resetAll(@NonNull Context context) {
         SharedPreferences p = prefs(context);
         boolean prompted = hasCompletedInitialPermissionsPrompt(context);
         int reviewCount = p.getInt(ReviewPrompt.KEY_SUCCESS_COUNT, 0);
         int reviewState = p.getInt(ReviewPrompt.KEY_STATE, 0);
+        boolean crashPromptAsked = p.getBoolean(CrashReportingPrompt.KEY_ASKED, false);
         SharedPreferences.Editor e = p.edit().clear()
                 .putBoolean(KEY_INITIAL_PERMISSIONS_PROMPTED, prompted);
+        if (crashPromptAsked) {
+            e.putBoolean(CrashReportingPrompt.KEY_ASKED, true);
+        }
         if (reviewCount > 0) {
             e.putInt(ReviewPrompt.KEY_SUCCESS_COUNT, reviewCount);
         }

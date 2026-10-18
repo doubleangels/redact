@@ -156,7 +156,7 @@
     <string name="settings_preserve_location_subtitle">在清理分頁保留 GPS 座標。嚴格清理開啟或從其他 App 分享時忽略。</string>
         <string name="settings_sentry_consent_allow">啟用</string>
     <string name="settings_sentry_consent_cancel">暫不</string>
-    <string name="settings_sentry_consent_title">啟用當機報告？</string>
+    <string name="settings_sentry_consent_title">啟用當機報告</string>
     <string name="settings_sentry_consent_message">傳送當機報告會透過網際網路向 Sentry 上傳匿名診斷資訊。\n\n不會上傳照片、影片、檔名或 GPS 座標。</string>
     <string name="settings_strict_clean">嚴格清理</string>
     <string name="settings_strict_clean_subtitle">移除所有中繼資料痕跡，甚至包括方向標籤——因此旋轉過的相片之後可能會顯示為歪斜。關閉上方的保留選項，並一律完整重新編碼影片，以達到最徹底的清理。</string>
@@ -208,7 +208,7 @@
     <string name="settings_section_share">分享到 Redact</string>
     <string name="settings_share_confirm_label">移除中繼資料前確認</string>
     <string name="settings_share_confirm_subtitle">在從共享檔案中移除 EXIF 和其他中繼資料之前顯示提示。</string>
-    <string name="settings_share_confirm_dialog_title">移除中繼資料？</string>
+    <string name="settings_share_confirm_dialog_title">移除中繼資料</string>
     <string name="settings_share_confirm_dialog_message">Redact 會在您繼續分享前，從共用檔案中移除 EXIF 及其他中繼資料。</string>
     <string name="settings_share_confirm_dialog_confirm">移除並繼續</string>
     <string name="settings_share_confirm_dialog_cancel">取消</string>
@@ -224,7 +224,7 @@
     <string name="settings_storage_size">快取使用中：%1$s</string>
     <string name="settings_storage_subtitle">處理期間建立的工作副本。相簿原檔絕不會被修改。</string>
     <string name="settings_storage_clear">清除暫存檔案</string>
-    <string name="settings_storage_clear_confirm_title">清除暫存檔案？</string>
+    <string name="settings_storage_clear_confirm_title">清除暫存檔案</string>
     <string name="settings_storage_clear_confirm_message">這會移除最近處理的快取副本。您的相簿檔案不受影響。</string>
     <string name="settings_storage_clear_success">已清除暫存檔案。</string>
     <string name="settings_storage_clear_empty">沒有可清除的暫存檔案。</string>
@@ -290,13 +290,13 @@
     <string name="processing_warning_large_video">已選取大型影片。處理需要額外暫存空間，可能需要較長時間。</string>
     <string name="processing_warning_continue">仍然繼續</string>
     <string name="clean_item_failed">失敗：%1$s</string>
-    <string name="settings_preserve_location_confirm_title">在清理後的照片中保留 GPS？</string>
+    <string name="settings_preserve_location_confirm_title">在清理後的照片中保留 GPS</string>
     <string name="settings_preserve_location_confirm_message">在清理分頁清理的檔案可能仍含 GPS 座標。從其他 App 分享時一律會移除位置資訊。
 
 僅在您有意保留位置時才開啟。</string>
     <string name="settings_permission_needs_media">需要照片權限</string>
     <string name="settings_location_permission_grant">授予照片位置權限</string>
-    <string name="settings_location_needs_media_title">是否先允許照片和影片？</string>
+    <string name="settings_location_needs_media_title">需要照片和影片存取權</string>
     <string name="settings_location_needs_media_message">照片位置權限可讓 Redact 讀取媒體中嵌入的 GPS 座標。必須先授予照片和影片資料庫存取權限——逐一選擇檔案不符合要求。\n\n在下一個畫面點按允許存取所有照片和影片。您的裝置通常會在同一步驟授予照片位置權限。</string>
     <string name="settings_location_grant_media_first">繼續</string>
     <string name="settings_location_permission_granted">已授予照片位置權限。</string>
@@ -419,7 +419,7 @@
     <string name="settings_output_also_confirm">兩者都用</string>
     <string name="settings_output_also_decline">不用了</string>
     <string name="settings_reset_all">重設所有設定</string>
-    <string name="settings_reset_all_title">要重設所有設定嗎？</string>
+    <string name="settings_reset_all_title">重設所有設定</string>
     <string name="settings_reset_all_message">所有設定都會恢復為預設值，Redact 也會忘記你選擇的輸出資料夾。你的相片、影片和已清理的檔案不受影響。</string>
     <string name="settings_reset_all_confirm">重設</string>
     <string name="settings_reset_all_done">設定已恢復為預設值。</string>
@@ -428,9 +428,10 @@
     <string name="button_scan_result">掃描結果</string>
     <string name="settings_keep_original_names">保留原始檔名</string>
     <string name="settings_keep_original_names_subtitle">清理與轉換後的檔案沿用原始檔名，而非隨機名稱。IMG_20260117 這類名稱可能透露照片的拍攝時間。</string>
-    <string name="review_prompt_title">喜歡 Redact 嗎？</string>
+    <string name="review_prompt_title">為 Redact 評分</string>
     <string name="review_prompt_message">如果 Redact 幫你保護了照片隱私，願意在 Google Play 上為它評分嗎？只需片刻，還能幫助更多人找到這個應用程式。</string>
     <string name="review_prompt_yes">願意</string>
     <string name="review_prompt_no">不用了</string>
     <string name="review_prompt_declined">好的，Redact 不會再詢問。如果你改變主意，隨時可以在「設定 › 關於」中評分。</string>
+    <string name="crash_prompt_declined">好的，Redact 不會再詢問。你可以隨時在 設定 › 診斷與意見回饋 中開啟當機報告。</string>
 </resources>

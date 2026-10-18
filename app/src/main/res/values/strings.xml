@@ -60,7 +60,7 @@
     <string name="settings_section_share_subtitle">When another app sends photos or videos to Redact.</string>
     <string name="settings_share_confirm_label">Confirm Before Removing Metadata</string>
     <string name="settings_share_confirm_subtitle">Show a prompt before stripping EXIF and other metadata from shared files.</string>
-    <string name="settings_share_confirm_dialog_title">Strip Metadata?</string>
+    <string name="settings_share_confirm_dialog_title">Strip Metadata</string>
     <string name="settings_share_confirm_dialog_message">Redact will remove EXIF and other metadata from the shared file(s) before you share them onward.</string>
     <string name="settings_share_confirm_dialog_confirm">Strip and Continue</string>
     <string name="settings_share_confirm_dialog_cancel">Cancel</string>
@@ -76,7 +76,7 @@
     <string name="settings_permission_needs_media">Photos Required</string>
     <string name="settings_permission_not_required">Not Required</string>
     <string name="settings_location_permission_grant">Grant Photo Location</string>
-    <string name="settings_location_needs_media_title">Allow Photos &amp; Videos First?</string>
+    <string name="settings_location_needs_media_title">Photos &amp; Videos Access Needed</string>
     <string name="settings_location_needs_media_message">Photo Location lets Redact read GPS coordinates embedded in your media. Library access to photos and videos is required first — picking files individually does not qualify.\n\nOn the next screen, tap Allow all photos and videos. Your device will usually grant Photo Location at the same time.</string>
     <string name="settings_location_grant_media_first">Continue</string>
     <string name="settings_open_system_settings">Open System Settings</string>
@@ -85,7 +85,7 @@
     <string name="settings_storage_size">Cache in use: %1$s</string>
     <string name="settings_storage_subtitle">Working copies created during processing. Your gallery originals are never modified.</string>
     <string name="settings_storage_clear">Clear Temporary Files</string>
-    <string name="settings_storage_clear_confirm_title">Clear Temporary Files?</string>
+    <string name="settings_storage_clear_confirm_title">Clear Temporary Files</string>
     <string name="settings_storage_clear_confirm_message">This removes cached copies from recent processing. Your gallery files are not affected.</string>
     <string name="settings_storage_clear_success">Temporary files cleared.</string>
     <string name="settings_storage_clear_empty">No temporary files to clear.</string>
@@ -322,7 +322,7 @@
     <string name="settings_preserve_camera_subtitle">Retain aperture, shutter speed, ISO, and camera make/model on the Clean tab. Ignored when Strict Clean is on or when sharing from other apps.</string>
     <string name="settings_preserve_location">Keep Location</string>
     <string name="settings_preserve_location_subtitle">Retain GPS coordinates on the Clean tab. Ignored when Strict Clean is on or when sharing from other apps.</string>
-    <string name="settings_preserve_location_confirm_title">Keep GPS on Cleaned Photos?</string>
+    <string name="settings_preserve_location_confirm_title">Keep GPS on Cleaned Photos</string>
     <string name="settings_preserve_location_confirm_message">Cleaned files on the Clean tab may still contain GPS coordinates. Sharing from other apps always strips location.\n\nTurn this on only if you intentionally want location kept.</string>
     <string name="settings_location_permission_granted">Photo location permission granted.</string>
     <string name="settings_location_permission_denied">Photo location permission denied.</string>
@@ -330,7 +330,7 @@
     <string name="settings_crash_reporting_init_failed">Crash reporting could not start. Try again later.</string>
     <string name="settings_sentry_consent_allow">Enable</string>
     <string name="settings_sentry_consent_cancel">Not Now</string>
-    <string name="settings_sentry_consent_title">Enable Crash Reporting?</string>
+    <string name="settings_sentry_consent_title">Enable Crash Reporting</string>
     <string name="settings_sentry_consent_message">Send Crash Reports uploads anonymized diagnostics to Sentry over the internet.\n\nNo photos, videos, filenames, or GPS coordinates are uploaded.</string>
     <string name="settings_strict_clean">Strict Clean</string>
     <string name="settings_strict_clean_subtitle">Removes every trace of metadata, even the orientation tag — so a rotated photo may look sideways afterward. Turns off the keep options above and always fully re-encodes video for the most thorough clean.</string>
@@ -431,7 +431,7 @@
     <string name="settings_output_also_confirm">Use for Both</string>
     <string name="settings_output_also_decline">No Thanks</string>
     <string name="settings_reset_all">Reset All Settings</string>
-    <string name="settings_reset_all_title">Reset all settings?</string>
+    <string name="settings_reset_all_title">Reset All Settings</string>
     <string name="settings_reset_all_message">Every setting goes back to its default, and Redact forgets your chosen output folders. Your photos, videos and cleaned files are not touched.</string>
     <string name="settings_reset_all_confirm">Reset</string>
     <string name="settings_reset_all_done">Settings reset to defaults.</string>
@@ -440,9 +440,10 @@
     <string name="button_scan_result">Scan Result</string>
     <string name="settings_keep_original_names">Keep Original File Names</string>
     <string name="settings_keep_original_names_subtitle">Name cleaned and converted files after the originals instead of a random name. Names such as IMG_20260117 can reveal when a photo was taken.</string>
-    <string name="review_prompt_title">Enjoying Redact?</string>
+    <string name="review_prompt_title">Rate Redact</string>
     <string name="review_prompt_message">If Redact has helped keep your photos private, would you like to rate it on Google Play? It only takes a moment, and it helps other people find the app.</string>
     <string name="review_prompt_yes">Yes</string>
     <string name="review_prompt_no">No</string>
     <string name="review_prompt_declined">Got it, Redact won\'t ask again. If you change your mind, you can rate it anytime from Settings › About.</string>
+    <string name="crash_prompt_declined">Got it, Redact won\'t ask again. You can turn on crash reports anytime in Settings › Diagnostics &amp; Feedback.</string>
 </resources>

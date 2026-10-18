@@ -156,7 +156,7 @@
     <string name="settings_preserve_location_subtitle">الاحتفاظ بإحداثيات GPS في تبويب التنظيف. يُتجاهل عند التنظيف الصارم أو عند المشاركة من تطبيقات أخرى.</string>
         <string name="settings_sentry_consent_allow">تفعيل</string>
     <string name="settings_sentry_consent_cancel">ليس الآن</string>
-    <string name="settings_sentry_consent_title">تفعيل تقارير الأعطال؟</string>
+    <string name="settings_sentry_consent_title">تفعيل تقارير الأعطال</string>
     <string name="settings_sentry_consent_message">إرسال تقارير الأعطال يرفع تشخيصات مجهولة إلى Sentry عبر الإنترنت.\n\nلا يتم تحميل الصور أو الفيديوهات أو أسماء الملفات أو إحداثيات GPS.</string>
     <string name="settings_strict_clean">التنظيف الصارم</string>
     <string name="settings_strict_clean_subtitle">يزيل كل أثر للبيانات الوصفية، حتى علامة الاتجاه — لذا قد تبدو الصورة المُدارة مائلة بعد ذلك. يعطّل خيارات الاحتفاظ أعلاه ويعيد ترميز الفيديو بالكامل دائماً لأشمل تنظيف ممكن.</string>
@@ -208,7 +208,7 @@
     <string name="settings_section_share">المشاركة إلى Redact</string>
     <string name="settings_share_confirm_label">التأكيد قبل إزالة البيانات الوصفية</string>
     <string name="settings_share_confirm_subtitle">عرض مطالبة قبل إزالة EXIF والبيانات الوصفية من الملفات المشتركة.</string>
-    <string name="settings_share_confirm_dialog_title">إزالة البيانات الوصفية؟</string>
+    <string name="settings_share_confirm_dialog_title">إزالة البيانات الوصفية</string>
     <string name="settings_share_confirm_dialog_message">سيزيل Redact بيانات EXIF وغيرها من الملفات المشتركة قبل إعادة مشاركتها.</string>
     <string name="settings_share_confirm_dialog_confirm">إزالة ومتابعة</string>
     <string name="settings_share_confirm_dialog_cancel">إلغاء</string>
@@ -224,7 +224,7 @@
     <string name="settings_storage_size">الذاكرة المؤقتة المستخدمة: %1$s</string>
     <string name="settings_storage_subtitle">نسخ عمل تُنشأ أثناء المعالجة. ملفات المعرض الأصلية لا تُعدّل أبداً.</string>
     <string name="settings_storage_clear">مسح الملفات المؤقتة</string>
-    <string name="settings_storage_clear_confirm_title">مسح الملفات المؤقتة؟</string>
+    <string name="settings_storage_clear_confirm_title">مسح الملفات المؤقتة</string>
     <string name="settings_storage_clear_confirm_message">يزيل النسخ المخزنة مؤقتًا من المعالجة الأخيرة. ملفات المعرض غير متأثرة.</string>
     <string name="settings_storage_clear_success">تم مسح الملفات المؤقتة.</string>
     <string name="settings_storage_clear_empty">لا توجد ملفات مؤقتة للمسح.</string>
@@ -290,13 +290,13 @@
     <string name="processing_warning_large_video">تم اختيار فيديو(هات) كبيرة. تحتاج المعالجة مساحة مؤقتة إضافية وقد تستغرق وقتاً.</string>
     <string name="processing_warning_continue">المتابعة على أي حال</string>
     <string name="clean_item_failed">فشل: %1$s</string>
-    <string name="settings_preserve_location_confirm_title">الإبقاء على GPS في الصور المنظفة؟</string>
+    <string name="settings_preserve_location_confirm_title">الإبقاء على GPS في الصور المنظفة</string>
     <string name="settings_preserve_location_confirm_message">قد تحتوي الملفات المنظفة في تبويب التنظيف على إحداثيات GPS. المشاركة من تطبيقات أخرى تزيل الموقع دائماً.
 
 فعّل هذا فقط إذا أردت الإبقاء على الموقع عمداً.</string>
     <string name="settings_permission_needs_media">الصور مطلوبة</string>
     <string name="settings_location_permission_grant">منح إذن موقع الصورة</string>
-    <string name="settings_location_needs_media_title">السماح بالصور والفيديو أولاً؟</string>
+    <string name="settings_location_needs_media_title">يلزم الوصول إلى الصور والفيديو</string>
     <string name="settings_location_needs_media_message">يتيح موقع الصورة لـ Redact قراءة إحداثيات GPS المضمنة في وسائطك. يلزم أولاً الوصول إلى مكتبة الصور والفيديو — اختيار الملفات بشكل فردي لا يكفي.\n\nفي الشاشة التالية، اضغط على السماح بجميع الصور والفيديو. عادةً يمنح جهازك إذن موقع الصورة في نفس الخطوة.</string>
     <string name="settings_location_grant_media_first">متابعة</string>
     <string name="settings_location_permission_granted">تم منح إذن موقع الصورة.</string>
@@ -454,7 +454,7 @@
     <string name="settings_output_also_confirm">استخدام للاثنين</string>
     <string name="settings_output_also_decline">لا، شكرًا</string>
     <string name="settings_reset_all">إعادة ضبط كل الإعدادات</string>
-    <string name="settings_reset_all_title">إعادة ضبط كل الإعدادات؟</string>
+    <string name="settings_reset_all_title">إعادة ضبط كل الإعدادات</string>
     <string name="settings_reset_all_message">تعود كل الإعدادات إلى قيمها الافتراضية، وينسى Redact مجلدات الحفظ التي اخترتها. لن تتأثر صورك ومقاطع الفيديو والملفات المنظفة.</string>
     <string name="settings_reset_all_confirm">إعادة ضبط</string>
     <string name="settings_reset_all_done">تمت إعادة الإعدادات إلى قيمها الافتراضية.</string>
@@ -463,9 +463,10 @@
     <string name="button_scan_result">مسح النتيجة</string>
     <string name="settings_keep_original_names">الاحتفاظ بأسماء الملفات الأصلية</string>
     <string name="settings_keep_original_names_subtitle">تسمية الملفات المنظفة والمحولة باسم الملفات الأصلية بدلًا من اسم عشوائي. قد تكشف أسماء مثل IMG_20260117 وقت التقاط الصورة.</string>
-    <string name="review_prompt_title">هل يعجبك Redact؟</string>
+    <string name="review_prompt_title">قيّم Redact</string>
     <string name="review_prompt_message">إذا ساعدك Redact في الحفاظ على خصوصية صورك، فهل تودّ تقييمه على Google Play؟ لن يستغرق ذلك سوى لحظة، ويساعد الآخرين على العثور على التطبيق.</string>
     <string name="review_prompt_yes">نعم</string>
     <string name="review_prompt_no">لا</string>
     <string name="review_prompt_declined">حسنًا، لن يسألك Redact مجددًا. إذا غيّرت رأيك، يمكنك تقييمه في أي وقت من الإعدادات › حول.</string>
+    <string name="crash_prompt_declined">حسنًا، لن يسألك Redact مجددًا. يمكنك تفعيل تقارير الأعطال في أي وقت من الإعدادات › التشخيص والملاحظات.</string>
 </resources>

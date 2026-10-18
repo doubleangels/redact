@@ -156,7 +156,7 @@
     <string name="settings_preserve_location_subtitle">Mantieni coordinate GPS in Pulisci. Ignorato con Pulizia Rigorosa o condivisione da altre app.</string>
         <string name="settings_sentry_consent_allow">Attiva</string>
     <string name="settings_sentry_consent_cancel">Non Ora</string>
-    <string name="settings_sentry_consent_title">Attivare Segnalazioni Crash?</string>
+    <string name="settings_sentry_consent_title">Attiva Segnalazioni Crash</string>
     <string name="settings_sentry_consent_message">Invia Segnalazioni Crash carica diagnostica anonima su Sentry via internet.\n\nFoto, video, nomi file e coordinate GPS non vengono caricati.</string>
     <string name="settings_strict_clean">Pulizia Rigorosa</string>
     <string name="settings_strict_clean_subtitle">Rimuove ogni traccia di metadati, persino il tag di orientamento — quindi una foto ruotata potrebbe apparire storta in seguito. Disattiva le opzioni di mantenimento sopra e ricodifica sempre completamente il video per la pulizia più approfondita.</string>
@@ -208,7 +208,7 @@
     <string name="settings_section_share">Condivisione in Redact</string>
     <string name="settings_share_confirm_label">Conferma Prima di Rimuovere i Metadati</string>
     <string name="settings_share_confirm_subtitle">Mostra un prompt prima di rimuovere EXIF e altri metadati dai file condivisi.</string>
-    <string name="settings_share_confirm_dialog_title">Rimuovere I Metadati?</string>
+    <string name="settings_share_confirm_dialog_title">Rimuovi I Metadati</string>
     <string name="settings_share_confirm_dialog_message">Redact rimuoverà EXIF e altri metadati dai file condivisi prima di inoltrarli.</string>
     <string name="settings_share_confirm_dialog_confirm">Rimuovi e Continua</string>
     <string name="settings_share_confirm_dialog_cancel">Annulla</string>
@@ -224,7 +224,7 @@
     <string name="settings_storage_size">Cache in uso: %1$s</string>
     <string name="settings_storage_subtitle">Copie di lavoro create durante l\'elaborazione. Gli originali della galleria non vengono mai modificati.</string>
     <string name="settings_storage_clear">Cancella File Temporanei</string>
-    <string name="settings_storage_clear_confirm_title">Cancellare I File Temporanei?</string>
+    <string name="settings_storage_clear_confirm_title">Cancella I File Temporanei</string>
     <string name="settings_storage_clear_confirm_message">Rimuove le copie in cache dell\'elaborazione recente. I file della galleria non sono interessati.</string>
     <string name="settings_storage_clear_success">File temporanei cancellati.</string>
     <string name="settings_storage_clear_empty">Nessun file temporaneo da cancellare.</string>
@@ -290,13 +290,13 @@ Le tue foto e video non vengono mai caricati. URI, nomi file e coordinate GPS ve
     <string name="processing_warning_large_video">Video di grandi dimensioni selezionati. L\'elaborazione richiede spazio temporaneo extra e può richiedere tempo.</string>
     <string name="processing_warning_continue">Continua Comunque</string>
     <string name="clean_item_failed">Non riuscito: %1$s</string>
-    <string name="settings_preserve_location_confirm_title">Mantenere Il GPS sulle Foto Pulite?</string>
+    <string name="settings_preserve_location_confirm_title">Mantieni Il GPS sulle Foto Pulite</string>
     <string name="settings_preserve_location_confirm_message">I file puliti in Pulisci possono ancora contenere coordinate GPS. La condivisione da altre app rimuove sempre la posizione.
 
 Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="settings_permission_needs_media">Foto Richieste</string>
     <string name="settings_location_permission_grant">Concedi Posizione Foto</string>
-    <string name="settings_location_needs_media_title">Consentire Prima Foto e Video?</string>
+    <string name="settings_location_needs_media_title">Accesso a Foto e Video Necessario</string>
     <string name="settings_location_needs_media_message">Posizione foto consente a Redact di leggere le coordinate GPS incorporate nei tuoi media. È richiesto prima l\'accesso alla libreria di foto e video — selezionare file singolarmente non è sufficiente.\n\nNella schermata successiva, tocca Consenti tutte le foto e i video. Il dispositivo di solito concede Posizione foto contemporaneamente.</string>
     <string name="settings_location_grant_media_first">Continua</string>
     <string name="settings_location_permission_granted">Autorizzazione posizione foto concessa.</string>
@@ -433,7 +433,7 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="settings_output_also_confirm">Usa per Entrambi</string>
     <string name="settings_output_also_decline">No, Grazie</string>
     <string name="settings_reset_all">Ripristina Tutte le Impostazioni</string>
-    <string name="settings_reset_all_title">Ripristinare tutte le impostazioni?</string>
+    <string name="settings_reset_all_title">Ripristina tutte le impostazioni</string>
     <string name="settings_reset_all_message">Ogni impostazione torna al valore predefinito e Redact dimentica le cartelle di output scelte. Foto, video e file puliti non vengono toccati.</string>
     <string name="settings_reset_all_confirm">Ripristina</string>
     <string name="settings_reset_all_done">Impostazioni ripristinate ai valori predefiniti.</string>
@@ -442,9 +442,10 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="button_scan_result">Scansiona Risultato</string>
     <string name="settings_keep_original_names">Mantieni i Nomi Originali</string>
     <string name="settings_keep_original_names_subtitle">I file puliti e convertiti mantengono il nome dell\'originale invece di un nome casuale. Nomi come IMG_20260117 possono rivelare quando è stata scattata una foto.</string>
-    <string name="review_prompt_title">Ti piace Redact?</string>
+    <string name="review_prompt_title">Valuta Redact</string>
     <string name="review_prompt_message">Se Redact ti ha aiutato a mantenere private le tue foto, ti andrebbe di valutarlo su Google Play? Basta un attimo e aiuta altre persone a trovare l\'app.</string>
     <string name="review_prompt_yes">Sì</string>
     <string name="review_prompt_no">No</string>
     <string name="review_prompt_declined">Va bene, Redact non lo chiederà più. Se cambi idea, puoi valutarlo quando vuoi da Impostazioni › Informazioni.</string>
+    <string name="crash_prompt_declined">Va bene, Redact non lo chiederà più. Puoi attivare i rapporti sugli arresti anomali quando vuoi da Impostazioni › Diagnostica e Feedback.</string>
 </resources>

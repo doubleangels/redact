@@ -156,7 +156,7 @@
     <string name="settings_preserve_location_subtitle">Conserver les coordonnées GPS dans Nettoyer. Ignoré avec Nettoyage Strict ou lors d\'un partage depuis d\'autres apps.</string>
         <string name="settings_sentry_consent_allow">Activer</string>
     <string name="settings_sentry_consent_cancel">Pas Maintenant</string>
-    <string name="settings_sentry_consent_title">Activer les Rapports de Plantage ?</string>
+    <string name="settings_sentry_consent_title">Activer les Rapports de Plantage</string>
     <string name="settings_sentry_consent_message">Envoyer les Rapports de Plantage envoie des diagnostics anonymisés à Sentry via Internet.\n\nAucune photo, vidéo, nom de fichier ni coordonnée GPS n\'est téléversé.</string>
     <string name="settings_strict_clean">Nettoyage Strict</string>
     <string name="settings_strict_clean_subtitle">Supprime toute trace de métadonnées, y compris la balise d\'orientation — une photo pivotée peut donc apparaître de travers ensuite. Désactive les options de conservation ci-dessus et réencode toujours entièrement la vidéo pour le nettoyage le plus complet.</string>
@@ -208,7 +208,7 @@
     <string name="settings_section_share">Partager Vers Redact</string>
     <string name="settings_share_confirm_label">Confirmer Avant de Supprimer les Métadonnées</string>
     <string name="settings_share_confirm_subtitle">Afficher une invite avant de supprimer l\'EXIF et les métadonnées des fichiers partagés.</string>
-    <string name="settings_share_confirm_dialog_title">Supprimer les Métadonnées ?</string>
+    <string name="settings_share_confirm_dialog_title">Supprimer les Métadonnées</string>
     <string name="settings_share_confirm_dialog_message">Redact supprimera l\'EXIF et d\'autres métadonnées des fichiers partagés avant de les transmettre.</string>
     <string name="settings_share_confirm_dialog_confirm">Supprimer et Continuer</string>
     <string name="settings_share_confirm_dialog_cancel">Annuler</string>
@@ -224,7 +224,7 @@
     <string name="settings_storage_size">Cache utilisé : %1$s</string>
     <string name="settings_storage_subtitle">Copies de travail créées pendant le traitement. Vos originaux de la galerie ne sont jamais modifiés.</string>
     <string name="settings_storage_clear">Supprimer les Fichiers Temporaires</string>
-    <string name="settings_storage_clear_confirm_title">Supprimer les Fichiers Temporaires ?</string>
+    <string name="settings_storage_clear_confirm_title">Supprimer les Fichiers Temporaires</string>
     <string name="settings_storage_clear_confirm_message">Ceci supprime les copies en cache du traitement récent. Vos fichiers de la galerie ne sont pas affectés.</string>
     <string name="settings_storage_clear_success">Fichiers temporaires supprimés.</string>
     <string name="settings_storage_clear_empty">Aucun fichier temporaire à supprimer.</string>
@@ -290,13 +290,13 @@ Vos photos et vidéos ne sont jamais téléversées. Les URI, noms de fichier et
     <string name="processing_warning_large_video">Vidéo(s) volumineuse(s) sélectionnée(s). Le traitement nécessite de l\'espace temporaire supplémentaire et peut prendre du temps.</string>
     <string name="processing_warning_continue">Continuer Quand Même</string>
     <string name="clean_item_failed">Échec : %1$s</string>
-    <string name="settings_preserve_location_confirm_title">Conserver le GPS sur les Photos Nettoyées ?</string>
+    <string name="settings_preserve_location_confirm_title">Conserver le GPS sur les Photos Nettoyées</string>
     <string name="settings_preserve_location_confirm_message">Les fichiers nettoyés dans Nettoyer peuvent encore contenir des coordonnées GPS. Le partage depuis d\'autres apps supprime toujours la position.
 
 Activez ceci uniquement si vous souhaitez conserver la position volontairement.</string>
     <string name="settings_permission_needs_media">Photos Requises</string>
     <string name="settings_location_permission_grant">Accorder l\'Emplacement Photo</string>
-    <string name="settings_location_needs_media_title">Autoriser d\'Abord Photos et Vidéos ?</string>
+    <string name="settings_location_needs_media_title">Accès aux Photos et Vidéos Requis</string>
     <string name="settings_location_needs_media_message">Emplacement de la photo permet à Redact de lire les coordonnées GPS intégrées à vos médias. L\'accès à la bibliothèque photos et vidéos est d\'abord requis — sélectionner des fichiers un par un ne suffit pas.\n\nÀ l\'écran suivant, appuyez sur Autoriser toutes les photos et vidéos. Votre appareil accorde généralement Emplacement de la photo en même temps.</string>
     <string name="settings_location_grant_media_first">Continuer</string>
     <string name="settings_location_permission_granted">Autorisation de localisation photo accordée.</string>
@@ -433,7 +433,7 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="settings_output_also_confirm">Utiliser pour les Deux</string>
     <string name="settings_output_also_decline">Non Merci</string>
     <string name="settings_reset_all">Réinitialiser Tous les Paramètres</string>
-    <string name="settings_reset_all_title">Réinitialiser tous les paramètres ?</string>
+    <string name="settings_reset_all_title">Réinitialiser tous les paramètres</string>
     <string name="settings_reset_all_message">Tous les paramètres reprennent leur valeur par défaut et Redact oublie les dossiers d\'enregistrement choisis. Vos photos, vidéos et fichiers nettoyés ne sont pas touchés.</string>
     <string name="settings_reset_all_confirm">Réinitialiser</string>
     <string name="settings_reset_all_done">Paramètres réinitialisés.</string>
@@ -442,9 +442,10 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="button_scan_result">Scanner le Résultat</string>
     <string name="settings_keep_original_names">Conserver les Noms de Fichiers</string>
     <string name="settings_keep_original_names_subtitle">Les fichiers nettoyés et convertis gardent le nom de l\'original au lieu d\'un nom aléatoire. Un nom comme IMG_20260117 peut révéler quand une photo a été prise.</string>
-    <string name="review_prompt_title">Vous aimez Redact ?</string>
+    <string name="review_prompt_title">Noter Redact</string>
     <string name="review_prompt_message">Si Redact vous aide à garder vos photos privées, voulez-vous le noter sur Google Play ? Cela ne prend qu\'un instant et aide d\'autres personnes à trouver l\'application.</string>
     <string name="review_prompt_yes">Oui</string>
     <string name="review_prompt_no">Non</string>
     <string name="review_prompt_declined">C\'est noté, Redact ne vous le redemandera pas. Si vous changez d\'avis, vous pouvez le noter à tout moment depuis Paramètres › À propos.</string>
+    <string name="crash_prompt_declined">C\'est noté, Redact ne vous le redemandera pas. Vous pouvez activer les rapports de plantage à tout moment dans Paramètres › Diagnostic et Commentaires.</string>
 </resources>

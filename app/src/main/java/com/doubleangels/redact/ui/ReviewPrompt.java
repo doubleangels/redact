@@ -94,7 +94,7 @@ public final class ReviewPrompt {
                 .setNegativeButton(R.string.review_prompt_no, (d, w) -> {
                     View view = host.getView();
                     if (view != null) {
-                        showDeclinedNote(view);
+                        showDeclinedNote(view, R.string.review_prompt_declined);
                     }
                 })
                 .show();
@@ -104,8 +104,9 @@ public final class ReviewPrompt {
         prefs(context).edit().putInt(KEY_STATE, STATE_DONE).apply();
     }
 
-    private static void showDeclinedNote(@NonNull View view) {
-        Snackbar bar = Snackbar.make(view, R.string.review_prompt_declined, Snackbar.LENGTH_LONG);
+    /** Says the question won't come back and where the setting lives, above the bottom bar. */
+    static void showDeclinedNote(@NonNull View view, int messageRes) {
+        Snackbar bar = Snackbar.make(view, messageRes, Snackbar.LENGTH_LONG);
         View nav = view.getRootView().findViewById(R.id.bottomNavigation);
         if (nav != null) {
             bar.setAnchorView(nav);

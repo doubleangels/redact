@@ -157,7 +157,7 @@
     <string name="settings_preserve_location_subtitle">クリーンタブで GPS 座標を保持。厳密クリーン時や他アプリからの共有時は無視されます。</string>
         <string name="settings_sentry_consent_allow">有効にする</string>
     <string name="settings_sentry_consent_cancel">後で</string>
-    <string name="settings_sentry_consent_title">クラッシュレポートを有効にしますか？</string>
+    <string name="settings_sentry_consent_title">クラッシュレポートを有効にする</string>
     <string name="settings_sentry_consent_message">クラッシュレポートの送信は、匿名化された診断情報をインターネット経由で Sentry にアップロードします。\n\n写真、動画、ファイル名、GPS 座標はアップロードされません。</string>
     <string name="settings_strict_clean">厳格クリーン</string>
     <string name="settings_strict_clean_subtitle">向きのタグを含む、メタデータのあらゆる痕跡を削除します。そのため、回転させた写真は後で横向きに表示されることがあります。上の保持オプションをオフにし、最も徹底したクリーンのために動画を常に完全に再エンコードします。</string>
@@ -209,7 +209,7 @@
     <string name="settings_section_share">Redactへの共有</string>
     <string name="settings_share_confirm_label">メタデータ削除前に確認</string>
     <string name="settings_share_confirm_subtitle">共有ファイルからEXIFなどのメタデータを削除する前に確認を表示。</string>
-    <string name="settings_share_confirm_dialog_title">メタデータを削除しますか？</string>
+    <string name="settings_share_confirm_dialog_title">メタデータの削除</string>
     <string name="settings_share_confirm_dialog_message">Redact は共有ファイルから EXIF などのメタデータを削除してから先に共有します。</string>
     <string name="settings_share_confirm_dialog_confirm">削除して続行</string>
     <string name="settings_share_confirm_dialog_cancel">キャンセル</string>
@@ -225,7 +225,7 @@
     <string name="settings_storage_size">使用中のキャッシュ: %1$s</string>
     <string name="settings_storage_subtitle">処理中に作成される作業コピー。ギャラリーの原本は変更されません。</string>
     <string name="settings_storage_clear">一時ファイルを削除</string>
-    <string name="settings_storage_clear_confirm_title">一時ファイルを削除しますか？</string>
+    <string name="settings_storage_clear_confirm_title">一時ファイルの削除</string>
     <string name="settings_storage_clear_confirm_message">最近の処理のキャッシュコピーを削除します。ギャラリーのファイルには影響しません。</string>
     <string name="settings_storage_clear_success">一時ファイルを削除しました。</string>
     <string name="settings_storage_clear_empty">削除する一時ファイルはありません。</string>
@@ -291,13 +291,13 @@
     <string name="processing_warning_large_video">大きな動画が選択されています。処理には追加の一時領域が必要で、時間がかかる場合があります。</string>
     <string name="processing_warning_continue">続行する</string>
     <string name="clean_item_failed">失敗: %1$s</string>
-    <string name="settings_preserve_location_confirm_title">クリーン後の写真にGPSを残しますか？</string>
+    <string name="settings_preserve_location_confirm_title">クリーン後の写真にGPSを残す</string>
     <string name="settings_preserve_location_confirm_message">クリーンタブの出力にGPS座標が残る場合があります。他アプリからの共有では常に位置情報を削除します。
 
 意図的に残す場合のみオンにしてください。</string>
     <string name="settings_permission_needs_media">写真へのアクセスが必要</string>
     <string name="settings_location_permission_grant">写真の位置情報を許可</string>
-    <string name="settings_location_needs_media_title">先に写真と動画を許可しますか？</string>
+    <string name="settings_location_needs_media_title">写真と動画へのアクセスが必要です</string>
     <string name="settings_location_needs_media_message">写真の位置情報により、Redactはメディアに埋め込まれたGPS座標を読み取れます。まず写真と動画のライブラリアクセスが必要です。個別にファイルを選ぶだけでは不十分です。\n\n次の画面で「すべての写真と動画を許可」をタップしてください。多くの端末では写真の位置情報も同時に付与されます。</string>
     <string name="settings_location_grant_media_first">続行</string>
     <string name="settings_location_permission_granted">写真の位置情報の権限が許可されました。</string>
@@ -420,7 +420,7 @@
     <string name="settings_output_also_confirm">両方に使用</string>
     <string name="settings_output_also_decline">いいえ</string>
     <string name="settings_reset_all">すべての設定をリセット</string>
-    <string name="settings_reset_all_title">すべての設定をリセットしますか？</string>
+    <string name="settings_reset_all_title">すべての設定をリセット</string>
     <string name="settings_reset_all_message">すべての設定が初期値に戻り、選択した保存先フォルダの設定も消去されます。写真、動画、クリーン済みのファイルはそのままです。</string>
     <string name="settings_reset_all_confirm">リセット</string>
     <string name="settings_reset_all_done">設定を初期値に戻しました。</string>
@@ -429,9 +429,10 @@
     <string name="button_scan_result">結果をスキャン</string>
     <string name="settings_keep_original_names">元のファイル名を保持</string>
     <string name="settings_keep_original_names_subtitle">クリーン・変換したファイルに、ランダムな名前ではなく元のファイル名を付けます。IMG_20260117 のような名前から撮影日時がわかる場合があります。</string>
-    <string name="review_prompt_title">Redact はお役に立っていますか？</string>
+    <string name="review_prompt_title">Redact を評価</string>
     <string name="review_prompt_message">Redact で写真のプライバシーを守れているなら、Google Play で評価していただけますか？すぐに終わり、ほかの人がこのアプリを見つける助けになります。</string>
     <string name="review_prompt_yes">はい</string>
     <string name="review_prompt_no">いいえ</string>
     <string name="review_prompt_declined">わかりました。今後はお尋ねしません。気が変わったら、設定 › このアプリについて からいつでも評価できます。</string>
+    <string name="crash_prompt_declined">わかりました。今後はお尋ねしません。クラッシュレポートは、設定 › 診断とフィードバック からいつでもオンにできます。</string>
 </resources>

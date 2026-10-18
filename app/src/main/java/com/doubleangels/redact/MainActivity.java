@@ -123,8 +123,10 @@ public class MainActivity extends AppCompatActivity {
 
             SentryManager.setCustomKey("app_started", true);
 
-            com.doubleangels.redact.permission.PermissionManager.setInitialFlowCompletedCallback(
-                    this::notifyVisibleFragmentPermissionFlowCompleted);
+            com.doubleangels.redact.permission.PermissionManager.setInitialFlowCompletedCallback(() -> {
+                notifyVisibleFragmentPermissionFlowCompleted();
+                com.doubleangels.redact.ui.CrashReportingPrompt.onFirstStartPermissionsDone(this);
+            });
             if (com.doubleangels.redact.permission.PermissionManager.isInitialPermissionFlowInProgress()) {
                 com.doubleangels.redact.permission.PermissionManager.startInitialPermissionFlow(this);
             }

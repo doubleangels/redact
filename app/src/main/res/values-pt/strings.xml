@@ -156,7 +156,7 @@
     <string name="settings_preserve_location_subtitle">Manter coordenadas GPS em Limpar. Ignorado com Limpeza Rigorosa ou ao compartilhar de outros apps.</string>
         <string name="settings_sentry_consent_allow">Ativar</string>
     <string name="settings_sentry_consent_cancel">Agora Não</string>
-    <string name="settings_sentry_consent_title">Ativar Relatórios de Falha?</string>
+    <string name="settings_sentry_consent_title">Ativar Relatórios de Falha</string>
     <string name="settings_sentry_consent_message">Enviar Relatórios de Falha envia diagnósticos anonimizados ao Sentry pela internet.\n\nFotos, vídeos, nomes de arquivo e coordenadas GPS não são enviados.</string>
     <string name="settings_strict_clean">Limpeza Rigorosa</string>
     <string name="settings_strict_clean_subtitle">Remove todo vestígio de metadados, até a tag de orientação — por isso uma foto girada pode parecer torta depois. Desativa as opções de manter acima e sempre recodifica o vídeo por completo para a limpeza mais completa.</string>
@@ -208,7 +208,7 @@
     <string name="settings_section_share">Compartilhar no Redact</string>
     <string name="settings_share_confirm_label">Confirmar Antes de Remover Metadados</string>
     <string name="settings_share_confirm_subtitle">Mostrar um aviso antes de remover EXIF e outros metadados de arquivos compartilhados.</string>
-    <string name="settings_share_confirm_dialog_title">Remover Metadados?</string>
+    <string name="settings_share_confirm_dialog_title">Remover Metadados</string>
     <string name="settings_share_confirm_dialog_message">O Redact removerá EXIF e outros metadados dos arquivos compartilhados antes de repassá-los.</string>
     <string name="settings_share_confirm_dialog_confirm">Remover e Continuar</string>
     <string name="settings_share_confirm_dialog_cancel">Cancelar</string>
@@ -224,7 +224,7 @@
     <string name="settings_storage_size">Cache em uso: %1$s</string>
     <string name="settings_storage_subtitle">Cópias de trabalho criadas durante o processamento. Seus originais da galeria nunca são modificados.</string>
     <string name="settings_storage_clear">Limpar Arquivos Temporários</string>
-    <string name="settings_storage_clear_confirm_title">Limpar Arquivos Temporários?</string>
+    <string name="settings_storage_clear_confirm_title">Limpar Arquivos Temporários</string>
     <string name="settings_storage_clear_confirm_message">Remove cópias em cache do processamento recente. Seus arquivos da galeria não são afetados.</string>
     <string name="settings_storage_clear_success">Arquivos temporários limpos.</string>
     <string name="settings_storage_clear_empty">Nenhum arquivo temporário para limpar.</string>
@@ -290,13 +290,13 @@ Suas fotos e vídeos nunca são enviados. URIs, nomes de arquivo e coordenadas G
     <string name="processing_warning_large_video">Vídeo(s) grande(s) selecionado(s). O processamento precisa de espaço temporário extra e pode demorar.</string>
     <string name="processing_warning_continue">Continuar Mesmo Assim</string>
     <string name="clean_item_failed">Falhou: %1$s</string>
-    <string name="settings_preserve_location_confirm_title">Manter GPS em Fotos Limpas?</string>
+    <string name="settings_preserve_location_confirm_title">Manter GPS em Fotos Limpas</string>
     <string name="settings_preserve_location_confirm_message">Arquivos limpos em Limpar podem ainda conter coordenadas GPS. Compartilhar de outros apps sempre remove a localização.
 
 Ative apenas se quiser manter a localização de propósito.</string>
     <string name="settings_permission_needs_media">Fotos Necessárias</string>
     <string name="settings_location_permission_grant">Conceder Localização de Fotos</string>
-    <string name="settings_location_needs_media_title">Permitir Fotos e Vídeos Primeiro?</string>
+    <string name="settings_location_needs_media_title">Acesso a Fotos e Vídeos Necessário</string>
     <string name="settings_location_needs_media_message">Localização da foto permite que o Redact leia coordenadas GPS incorporadas em sua mídia. O acesso à biblioteca de fotos e vídeos é necessário primeiro — escolher arquivos individualmente não basta.\n\nNa próxima tela, toque em Permitir todas as fotos e vídeos. Seu dispositivo geralmente concede Localização da foto ao mesmo tempo.</string>
     <string name="settings_location_grant_media_first">Continuar</string>
     <string name="settings_location_permission_granted">Permissão de localização de fotos concedida.</string>
@@ -433,7 +433,7 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="settings_output_also_confirm">Usar para Ambos</string>
     <string name="settings_output_also_decline">Não, Obrigado</string>
     <string name="settings_reset_all">Redefinir Todas as Configurações</string>
-    <string name="settings_reset_all_title">Redefinir todas as configurações?</string>
+    <string name="settings_reset_all_title">Redefinir todas as configurações</string>
     <string name="settings_reset_all_message">Todas as configurações voltam ao padrão e o Redact esquece as pastas de saída escolhidas. Suas fotos, vídeos e arquivos limpos não são alterados.</string>
     <string name="settings_reset_all_confirm">Redefinir</string>
     <string name="settings_reset_all_done">Configurações redefinidas para o padrão.</string>
@@ -442,9 +442,10 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="button_scan_result">Escanear Resultado</string>
     <string name="settings_keep_original_names">Manter Nomes Originais</string>
     <string name="settings_keep_original_names_subtitle">Os arquivos limpos e convertidos recebem o nome do original em vez de um nome aleatório. Nomes como IMG_20260117 podem revelar quando uma foto foi tirada.</string>
-    <string name="review_prompt_title">Está gostando do Redact?</string>
+    <string name="review_prompt_title">Avalie o Redact</string>
     <string name="review_prompt_message">Se o Redact ajudou a manter suas fotos privadas, você gostaria de avaliá-lo no Google Play? Leva só um instante e ajuda outras pessoas a encontrar o app.</string>
     <string name="review_prompt_yes">Sim</string>
     <string name="review_prompt_no">Não</string>
     <string name="review_prompt_declined">Tudo bem, o Redact não vai perguntar de novo. Se mudar de ideia, você pode avaliá-lo quando quiser em Configurações › Sobre.</string>
+    <string name="crash_prompt_declined">Tudo bem, o Redact não vai perguntar de novo. Você pode ativar os relatórios de falhas quando quiser em Configurações › Diagnóstico e Feedback.</string>
 </resources>

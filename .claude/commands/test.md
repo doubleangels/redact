@@ -33,7 +33,7 @@ Work from Git Bash. Use the scratchpad directory for everything you create (medi
 
 Test each item, note PASS or FAIL with a one-line reason, and keep the evidence (node lines, file names, checker output).
 
-**First launch.** Launch `com.doubleangels.redact/.MainActivity`. The media access prompt and then the notification prompt appear; allow both. The Clean tab shows its empty state.
+**First launch.** Launch `com.doubleangels.redact/.MainActivity`. The media access prompt and then the notification prompt appear; allow both. Then the "Enable Crash Reporting" dialog (the same one the Send Crash Reports switch shows) appears: check it offers only Enable and Not Now and cannot be dismissed by tapping outside it or pressing Back, then tap Not Now. A snackbar says Redact won't ask again and points to Settings › Diagnostics & Feedback, `redact_prefs.xml` has `crash_reporting_prompted` set to `true` and `crash_reporting_enabled` is not `true`, and the dialog must not appear again for the rest of the run, even after Reset All Settings. The Clean tab shows its empty state.
 
 **Settings defaults.** In Settings, Strict Clean, Warn About Already-Clean Files and Clear Cache on Startup are on; everything else is off; output folders show `Pictures/Redact` and `Movies/Redact`. Turn on Allow Notifications with all three sub-switches, and Keep Original File Names.
 
@@ -69,9 +69,9 @@ Test each item, note PASS or FAIL with a one-line reason, and keep the evidence 
 
 **Privacy settings.** Turn on Hide Content in Screenshots and Recents: `adb exec-out screencap -p` of Redact is now black. Turn it off again.
 
-**Reset All Settings.** In the About card, Reset All Settings, then Reset. `shared_prefs/redact_prefs.xml` holds only `initial_permissions_prompted` and any `review_*` keys (the rating prompt's progress survives a reset), every switch shows its default, and both folders are back to `Pictures/Redact` and `Movies/Redact`.
+**Reset All Settings.** In its own card just above About, Reset All Settings, then Reset. `shared_prefs/redact_prefs.xml` holds only `initial_permissions_prompted` and any `review_*` keys (the rating prompt's progress survives a reset), every switch shows its default, and both folders are back to `Pictures/Redact` and `Movies/Redact`.
 
-**Rating prompt.** The "Enjoying Redact?" dialog appears once, on Clean or Convert, when a job that saved every file brings the count of such jobs to three (shares into Redact count but never show it, and Clean skips it while Delete Originals After Cleaning is on). The first time it appears during the sections above, check it offers only Yes and No and cannot be dismissed by tapping outside it or pressing Back, then tap No: a snackbar says Redact won't ask again and points to Settings › About, and `redact_prefs.xml` has `review_state` set to `2`. It must not appear again for the rest of the run. Settings › About › Rate Redact on Google Play opens the Play Store listing (or a browser on an emulator without Play); press Back.
+**Rating prompt.** The "Rate Redact" dialog appears once, on Clean or Convert, when a job that saved every file brings the count of such jobs to three (shares into Redact count but never show it, and Clean skips it while Delete Originals After Cleaning is on). The first time it appears during the sections above, check it offers only Yes and No and cannot be dismissed by tapping outside it or pressing Back, then tap No: a snackbar says Redact won't ask again and points to Settings › About, and `redact_prefs.xml` has `review_state` set to `2`. It must not appear again for the rest of the run. Settings › About › Rate Redact on Google Play opens the Play Store listing (or a browser on an emulator without Play); press Back.
 
 **Quick Settings tile.** Leave the app on another tab and go home. `adb shell cmd statusbar add-tile com.doubleangels.redact/.CleanTileService`, then `cmd statusbar click-tile com.doubleangels.redact/.CleanTileService`: Redact opens on the Clean tab. Collapse the shade with `cmd statusbar collapse`.
 

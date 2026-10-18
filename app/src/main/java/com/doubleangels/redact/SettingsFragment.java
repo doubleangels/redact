@@ -1027,11 +1027,7 @@ public class SettingsFragment extends Fragment {
     private void showSentryConsentDialog(
             @NonNull Runnable onAllow,
             @Nullable Runnable onDeny) {
-        new MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.settings_sentry_consent_title)
-                .setMessage(R.string.settings_sentry_consent_message)
-                .setPositiveButton(R.string.settings_sentry_consent_allow, (d, w) -> onAllow.run())
-                .setNegativeButton(R.string.settings_sentry_consent_cancel, (d, w) -> {
+        com.doubleangels.redact.ui.CrashReportingPrompt.consentDialog(requireContext(), onAllow, () -> {
                     if (onDeny != null) {
                         onDeny.run();
                     }

@@ -458,8 +458,8 @@ clean_selected() {
 }
 
 # Starts Redact from a clean slate: default settings (so no output folder, Delete Originals or other
-# choice left over from testing shows up), every permission granted, and the rating prompt marked as
-# answered so it can never cover a screenshot.
+# choice left over from testing shows up), every permission granted, and the rating and crash-report
+# prompts marked as answered so they can never cover a screenshot.
 fresh_app() {
   local prefs
   adb shell am force-stop "$PKG"
@@ -471,6 +471,7 @@ fresh_app() {
 <map>
     <boolean name="initial_permissions_prompted" value="true" />
     <int name="review_state" value="2" />
+    <boolean name="crash_reporting_prompted" value="true" />
 </map>
 XML
   adb push "$(winpath "$prefs")" /data/local/tmp/redact_prefs.xml >/dev/null
