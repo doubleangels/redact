@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>What Is EXIF Data, and What Does It Reveal About You?</title>
+    <meta name="description" content="EXIF data is hidden information stored inside every photo: GPS location, date and time, phone model and camera settings. Here is what it contains, who can see it, and how to remove it.">
+    <link rel="canonical" href="https://doubleangels.github.io/redact/guides/what-is-exif-data.html">
+    <link rel="icon" href="../img/icon.png">
+    <link rel="stylesheet" href="../style.css">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="What Is EXIF Data, and What Does It Reveal About You?">
+    <meta property="og:image" content="https://doubleangels.github.io/redact/img/feature.png">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "What is EXIF data, and what does it reveal about you?",
+        "about": "EXIF photo metadata and privacy",
+        "publisher": {"@type": "Organization", "name": "Redact"}
+    }
+    </script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="top">
+    <a class="brand" href="../"><img src="../img/icon.png" alt="" width="32" height="32">Redact</a>
+    <nav aria-label="Guides">
+        <a href="remove-location-from-photos-android.html">Remove location</a>
+        <a href="check-photo-metadata-android.html">Check metadata</a>
+        <a href="sell-online-safely-photo-location.html">Selling online</a>
+    </nav>
+</div>
+
+<main id="main" class="narrow">
+<article>
+    <header>
+        <div class="crumbs"><a href="../">Redact</a> › Guides</div>
+        <h1>What is EXIF data, and what does it reveal about you?</h1>
+        <p class="lede">EXIF (Exchangeable Image File Format) is a block of hidden information that cameras and phones write into every photo. You never see it when you look at the picture, but anyone with the original file can read it in seconds.</p>
+    </header>
+
+    <h2>What a typical phone photo contains</h2>
+    <table>
+        <thead><tr><th>Field</th><th>Example</th><th>What it gives away</th></tr></thead>
+        <tbody>
+            <tr><td>GPS latitude and longitude</td><td>21.2766, -157.8269</td><td>Where the photo was taken, often to within a few metres. Taken at home, that is your address.</td></tr>
+            <tr><td>Date and time, time zone</td><td>2026:07:04 14:32:10, -10:00</td><td>When you were there, and roughly where in the world.</td></tr>
+            <tr><td>Make and model</td><td>Google Pixel 10 Pro</td><td>What phone you own. Combined with other photos, it can link pictures to the same person.</td></tr>
+            <tr><td>Lens and camera settings</td><td>f/1.68, 1/640 s, ISO 50</td><td>Mostly harmless, but adds to a fingerprint of your device.</td></tr>
+            <tr><td>Software</td><td>HDR+ 1.0</td><td>The app or firmware that processed the photo.</td></tr>
+            <tr><td>XMP and IPTC tags</td><td>Edits, captions, author</td><td>Added by editing apps; can include names, places and edit history.</td></tr>
+        </tbody>
+    </table>
+    <p>Videos carry similar information in their container, including a location and the time they were recorded.</p>
+
+    <h2>Who can see it?</h2>
+    <p>Anyone who receives the original file. Some social networks remove metadata when you upload, but many other routes keep it: email attachments, files sent as documents in messaging apps, cloud storage links, USB transfers and many websites that host the original image. You often can't tell which one you are using.</p>
+
+    <h2>How to see it yourself</h2>
+    <p>Most gallery apps show a little of it under an info or details button. To see all of it, use a metadata viewer. <a href="check-photo-metadata-android.html">Here is how to check a photo's metadata on Android.</a></p>
+
+    <h2>How to remove it</h2>
+    <p>Turn off location in your camera app for new photos, and clean existing photos before you share them. <a href="remove-location-from-photos-android.html">Step-by-step guide to removing location from photos on Android.</a></p>
+
+    <aside class="promo">
+        <img src="../img/icon.png" alt="" width="64" height="64">
+        <div>
+            <strong>Redact: Photo Metadata Remover</strong>
+            <p>Scan shows every EXIF field in a photo or video; Clean removes them. All on your phone.</p>
+            <p><a href="https://play.google.com/store/apps/details?id=com.doubleangels.redact">Get it on Google Play</a></p>
+        </div>
+    </aside>
+</article>
+</main>
+
+<footer>
+    <a href="../">Redact</a>
+    <a href="https://github.com/doubleangels/redact">Source code</a>
+    <a href="https://doubleangels.github.io/privacypolicy/redact.html">Privacy policy</a>
+</footer>
+</body>
+</html>

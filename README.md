@@ -157,7 +157,7 @@ Cleaned and converted files are saved through Android's MediaStore into `Picture
 
 ## Settings
 
-The Settings tab is grouped the same way as the tables below, from the things you touch most to the housekeeping.
+The Settings tab starts with what Clean removes, privacy and where files go, then Convert and the rest, with diagnostics and links at the bottom. It is grouped the same way as the tables below.
 
 **Metadata Cleaning**: what the Clean tab removes.
 
@@ -168,28 +168,12 @@ The Settings tab is grouped the same way as the tables below, from the things yo
 | **Keep Location** | Keeps GPS coordinates on the Clean tab (confirmation required; off by default). Ignored with Strict Clean and for shared-in files, which always lose location. |
 | **Faster Video Cleaning** | When a video is already in a compatible format, strips its metadata with a quick pass instead of re-encoding. Faster and lighter on battery; a full re-encode removes a touch more. Turned off automatically with Strict Clean and for shared-in files. |
 
-**Before & After Cleaning**
-
-| Setting | What it does |
-|---|---|
-| **Warn About Already-Clean Files** | Before cleaning, tells you when selected files have no metadata to remove or are copies Redact already made, and lets you skip them, clean everything anyway or cancel. On by default; nothing about your files is stored to do this. |
-| **Delete Originals After Cleaning** | Asks Android to move the originals to trash after a successful clean. Android confirms each time. |
-
-**Sharing Into Redact, Convert Tab Defaults, and Large Files & Memory**
-
-| Setting | What it does |
-|---|---|
-| **Confirm Before Removing Metadata** | Asks before cleaning files shared into Redact. |
-| **Default formats and image quality** | The formats and quality pre-selected on the Convert tab. You can still change them for each batch. |
-| **Max Processing Resolution** | Largest image edge, in pixels, used when decoding. Lower values use less memory. |
-
-**Privacy** and **Diagnostics & Feedback**
+**Privacy**
 
 | Setting | What it does |
 |---|---|
 | **Hide Content in Screenshots and Recents** | Blocks screenshots and screen recording inside Redact and blanks its preview on the recent apps screen, so metadata and thumbnails of private photos are not captured. Off by default; takes effect immediately. |
 | **Clear Copied Metadata** | Clears metadata you copied from Scan off the clipboard after 15 seconds, 30 seconds, 1 minute or 5 minutes, unless you have copied something else since. Off by default. |
-| **Send Crash Reports** | Optional anonymized crash diagnostics through Sentry, off by default, with a consent prompt. |
 
 **Output Folders**
 
@@ -200,6 +184,28 @@ The Settings tab is grouped the same way as the tables below, from the things yo
 | **Keep Original File Names** | Names cleaned and converted files after the originals (for example `IMG_20260117_093012.jpg`) instead of a random name. Off by default, because such names can reveal when a photo was taken. Files shared into Redact always get a random name. |
 | Unavailable folder | If a chosen folder is deleted or its storage is removed, Redact saves to the default instead and marks the folder in red here. |
 
+**Convert Tab Defaults**
+
+| Setting | What it does |
+|---|---|
+| **Default formats and image quality** | The formats and quality pre-selected on the Convert tab. You can still change them for each batch. |
+
+**Permissions** shows what Redact can access and lets you grant the optional photo-location permission.
+
+**Before & After Cleaning**
+
+| Setting | What it does |
+|---|---|
+| **Warn About Already-Clean Files** | Before cleaning, tells you when selected files have no metadata to remove or are copies Redact already made, and lets you skip them, clean everything anyway or cancel. On by default; nothing about your files is stored to do this. |
+| **Delete Originals After Cleaning** | Asks Android to move the originals to trash after a successful clean. Android confirms each time. |
+
+**Sharing Into Redact** and **Large Files & Memory**
+
+| Setting | What it does |
+|---|---|
+| **Confirm Before Removing Metadata** | Asks before cleaning files shared into Redact. |
+| **Max Processing Resolution** | Largest image edge, in pixels, used when decoding. Lower values use less memory. |
+
 **Notifications** and **Storage & Cache**
 
 | Setting | What it does |
@@ -208,7 +214,13 @@ The Settings tab is grouped the same way as the tables below, from the things yo
 | **Clear Cache on Startup** / **Clear Temporary Files** | Removes processing cache older than 24 hours when the app opens, or on demand. |
 | **Secure Deletion Passes** | How many times temporary files are overwritten before deletion. More passes are slower, and recovery may still be possible on flash storage. |
 
-**About**: version, links, and **Reset All Settings**, which puts every setting back to its default and forgets the chosen output folders. Your files are not touched.
+**Diagnostics & Feedback**
+
+| Setting | What it does |
+|---|---|
+| **Send Crash Reports** | Optional anonymized crash diagnostics through Sentry, off by default, with a consent prompt. |
+
+**About**: version, links, **Rate Redact on Google Play**, and **Reset All Settings**, which puts every setting back to its default and forgets the chosen output folders. Your files are not touched.
 
 Open the Settings tab in the app for the full list.
 
@@ -353,7 +365,8 @@ app/src/test/                  unit tests (Robolectric; fake MediaStore provider
 baselineprofile/               macrobenchmark module that generates the baseline profile
 fastlane/metadata/             Google Play listing text, screenshots and icon
 legal/                         source of the privacy policy page
-scripts/screenshots.sh         captures store screenshots on an emulator
+scripts/                       store screenshots, feature graphic and sample-media tagging
+site/                          the website: landing page and guides
 .github/workflows/             CI, release and privacy-policy publishing
 ```
 
@@ -367,9 +380,15 @@ Startup performance comes from a generated baseline and startup profile in `app/
 
 If more than one device is connected, set `ANDROID_SERIAL` (for example `emulator-5554`) first.
 
-### Store screenshots
+### Store screenshots and feature graphic
 
-`scripts/screenshots.sh` builds the debug app, boots (or reuses) an API 37 emulator, applies a black-and-white system theme, selects the sample media from `icons/sample`, and writes light and dark captures of Clean, Scan and Convert to `build/screenshots/`. Run it from Git Bash on Windows. See the header of the script for details.
+`scripts/screenshots.sh` builds the debug app, boots (or reuses) an API 37 emulator, clears Redact's app data there, applies a black-and-white system theme, and captures Clean (selected and finished), Scan (scrolled to the camera and location rows) and Convert, light and dark, from the sample media in `icons/sample`. It then runs `scripts/store_graphics.py`, which frames them with captions and draws the 1024×500 feature graphic using headless Chrome or Edge, into `build/store/<locale>/`. Set `LOCALES=all` (or a list such as `LOCALES="de-DE fr-FR"`) to capture each store language with the app switched to it; the default is `en-US`. Run it from Git Bash on Windows. See the header of each script for details.
+
+The samples carry real-looking GPS, camera and time metadata (public landmarks, never a real home) so the screenshots show what Redact finds; `python scripts/tag_samples.py` re-applies it after adding or replacing a sample.
+
+### Website
+
+`site/` holds the landing page and the how-to guides published at <https://doubleangels.github.io/redact/> by `.github/workflows/publish-site.yml` on every push to `dev` that touches it. It loads nothing from other sites: no fonts, scripts or trackers. When you add a page, add it to `site/sitemap.xml`.
 
 ### Releases
 

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>How to Check a Photo's Metadata (EXIF) on Android</title>
+    <meta name="description" content="Find out exactly what a photo or video reveals before you send it: GPS location, phone model, time and more. How to view full EXIF metadata on Android, offline.">
+    <link rel="canonical" href="https://doubleangels.github.io/redact/guides/check-photo-metadata-android.html">
+    <link rel="icon" href="../img/icon.png">
+    <link rel="stylesheet" href="../style.css">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="How to Check a Photo's Metadata on Android">
+    <meta property="og:image" content="https://doubleangels.github.io/redact/img/feature.png">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        "name": "How to check a photo's metadata on Android",
+        "step": [
+            {"@type": "HowToStep", "text": "Open Redact and go to the Scan tab, or open the photo from your gallery and choose Scan with Redact from the share sheet."},
+            {"@type": "HowToStep", "text": "Read the list. Rows marked Location reveal where the photo was taken; Make and Model show the phone."},
+            {"@type": "HowToStep", "text": "Search the list, copy a value, or tap Clean This File to remove the metadata."}
+        ]
+    }
+    </script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="top">
+    <a class="brand" href="../"><img src="../img/icon.png" alt="" width="32" height="32">Redact</a>
+    <nav aria-label="Guides">
+        <a href="remove-location-from-photos-android.html">Remove location</a>
+        <a href="what-is-exif-data.html">What is EXIF?</a>
+        <a href="sell-online-safely-photo-location.html">Selling online</a>
+    </nav>
+</div>
+
+<main id="main" class="narrow">
+<article>
+    <header>
+        <div class="crumbs"><a href="../">Redact</a> › Guides</div>
+        <h1>How to check a photo's metadata on Android</h1>
+        <p class="lede">Before you send a photo, it is worth knowing what it says about you. Here is how to see every hidden field, including the GPS location, without uploading the photo anywhere.</p>
+    </header>
+
+    <h2>The quick look: your gallery app</h2>
+    <p>Most gallery apps have an info or details button (often an <em>i</em> icon, or a swipe up on the photo) that shows the date, size and sometimes a map. It usually shows only a few fields, and may show a location your gallery estimated rather than what is actually stored in the file.</p>
+
+    <h2>The full picture: a metadata viewer</h2>
+    <p>To see everything stored in the file, use a viewer that reads the EXIF data directly. Avoid websites that ask you to upload the photo: that hands the very data you are worried about to a stranger's server.</p>
+    <p><a href="../">Redact</a> reads it on your phone:</p>
+    <ol>
+        <li>Open Redact and go to <strong>Scan</strong>, then pick the photo or video. Or, from your gallery, tap Share and choose <strong>Scan with Redact</strong>.</li>
+        <li>Read the list. Rows marked <strong>Location</strong> show where it was taken; <strong>Make</strong> and <strong>Model</strong> show your phone; the date fields show when.</li>
+        <li>Type in the search box to filter (for example <code>gps</code> or <code>camera</code>), copy a value, or tap <strong>Clean This File</strong> to remove the metadata.</li>
+    </ol>
+    <img src="../img/scan.webp" width="640" height="1428" loading="lazy" alt="Redact's Scan tab showing GPS latitude and longitude rows marked Location" style="width:100%;max-width:320px;border-radius:24px;display:block;margin:1.5rem auto">
+
+    <h2>Why don't I see a location?</h2>
+    <p>Either the photo has none (the camera's location setting was off, or an app already removed it), or Android is hiding it. Android only lets apps read the GPS fields in your photos if you grant them the photo-location permission; Redact asks for it, and it is optional.</p>
+
+    <p>Found something you don't want to share? <a href="remove-location-from-photos-android.html">Here is how to remove it.</a></p>
+
+    <aside class="promo">
+        <img src="../img/icon.png" alt="" width="64" height="64">
+        <div>
+            <strong>Redact: Photo Metadata Remover</strong>
+            <p>See and strip GPS, device and time details from photos and videos. Offline, no ads, open source.</p>
+            <p><a href="https://play.google.com/store/apps/details?id=com.doubleangels.redact">Get it on Google Play</a></p>
+        </div>
+    </aside>
+</article>
+</main>
+
+<footer>
+    <a href="../">Redact</a>
+    <a href="https://github.com/doubleangels/redact">Source code</a>
+    <a href="https://doubleangels.github.io/privacypolicy/redact.html">Privacy policy</a>
+</footer>
+</body>
+</html>
