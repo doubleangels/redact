@@ -35,9 +35,9 @@
     <string name="convert_format_webp">WebP</string>
     <string name="convert_format_h264">MP4 (H.264)</string>
     <string name="convert_format_h265">MP4 (H.265)</string>
-    <string name="convert_format_vp9">WebM (VP9)</string>
+    <string name="convert_format_vp9">MP4 (VP9)</string>
     <string name="convert_format_heif">HEIC</string>
-    <string name="convert_format_av1" tools:ignore="Typos">MKV (AV1)</string>
+    <string name="convert_format_av1" tools:ignore="Typos">MP4 (AV1)</string>
     <string name="convert_select_files">Seleziona File</string>
     <string name="convert_run">Converti</string>
     <string name="convert_status_hint">Scegli un formato di output qui sotto, poi tocca Converti.</string>
