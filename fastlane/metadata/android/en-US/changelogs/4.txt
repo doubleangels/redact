@@ -1,1 +1,1 @@
-Bug fixes and performance improvements.
+New: an early metadata scanner that shows what a photo or video contains before you clean it.

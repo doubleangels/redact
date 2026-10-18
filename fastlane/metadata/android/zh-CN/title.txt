@@ -1,2 +1,1 @@
-Redact
-
+Redact：照片元数据与位置清除

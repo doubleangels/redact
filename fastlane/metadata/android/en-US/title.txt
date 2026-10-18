@@ -1,1 +1,1 @@
-Redact
+Redact: Photo Metadata Remover

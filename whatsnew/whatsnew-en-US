@@ -1,1 +1,8 @@
-Thank you for using my app! I've just released an update that addresses various bugs, adds features, and boosts performance. Your feedback is highly appreciated, so please consider leaving a review.
+Share a photo or video to Scan with Redact to check it without cleaning it.
+After cleaning one file, Scan Result shows what is left.
+New Quick Settings tile, Keep Original File Names, Reset All Settings and Open Folder.
+Redact now removes Extended XMP from JPEGs.
+VP9 and AV1 conversions are saved as MP4.
+Rate Redact from Settings.
+Reorganized Settings, with privacy and output folders near the top.
+Many reliability fixes.

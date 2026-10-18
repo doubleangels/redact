@@ -1,1 +1,4 @@
-Bug fixes and performance improvements.
+More thorough cleaning: every EXIF tag is checked, more video fields are verified, and images are verified before they are saved.
+Cached media is now securely deleted.
+Fixed an XMP location that could survive, lost photo orientation, Clean failing on every image, and a crash when cancelling a video.
+Clearer Settings text and complete translations.

@@ -1,1 +1,2 @@
-Bug fixes and performance improvements.
+New app icon.
+Updated libraries.

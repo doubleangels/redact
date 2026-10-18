@@ -1,33 +1,42 @@
-<b>Redact : confidentialité et suppression de métadonnées</b>
+<b>Vos photos peuvent révéler où vous habitez.</b>
 
-<p>Protégez votre vie privée avec Redact. L'application supprime les métadonnées EXIF cachées de vos photos et vidéos, vous montre exactement ce qui est intégré dans un fichier avant que vous le partagiez, et convertit les formats directement sur votre appareil.</p>
+<p>Chaque photo prise par votre téléphone peut contenir des métadonnées cachées : la position GPS exacte de la prise de vue, la date et l'heure, ainsi que la marque et le modèle de votre téléphone. Toute personne qui reçoit le fichier original peut les lire. Redact vous montre ce qu'une photo ou une vidéo révèle et le supprime, entièrement sur votre appareil. Pas de compte, pas d'envoi en ligne, pas de publicité et aucune donnée collectée.</p>
 
-<b>Fonctionnalités clés :</b>
-
+<b>Pour qui ?</b>
 <ul>
-<li><b>Protection complète de la vie privée :</b><br>
-Redact supprime la localisation GPS, les détails de l'appareil, les horodatages, les réglages de l'appareil photo et d'autres métadonnées cachées. Pour le nettoyage vidéo, vous pouvez choisir dans les réglages entre un remux rapide ou un transcodage complet, tout en conservant la qualité de lecture.</li>
-
-<li><b>Une visionneuse de métadonnées vraiment lisible :</b><br>
-Analysez n'importe quelle photo ou vidéo pour voir ses métadonnées EXIF et de conteneur présentées clairement, avant de décider quoi en faire. Copiez des valeurs, envoyez le fichier vers Nettoyer ou Convertir, ou ouvrez une localisation associée directement dans votre application de cartes par défaut. Comme cela partage ces coordonnées avec une autre application, Redact demande votre accord la première fois.</li>
-
-<li><b>Nettoyer, analyser, convertir et partager :</b><br>
-Nettoyez les métadonnées par lots de 20 fichiers au plus. Convertissez des formats d'image et de vidéo sans rien envoyer à un serveur ; les fichiers convertis sont aussi débarrassés de leurs métadonnées et vérifiés. Partagez vers Redact depuis n'importe quelle application, annulez les tâches longues à tout moment, et Redact continue avec un succès partiel si un fichier échoue. Aucune limite de taille : Redact vous avertit avant une grosse tâche si le stockage ou la mémoire manque. Après un nettoyage, Redact indique ce qu'il a supprimé et propose de partager le résultat. Cherchez dans les métadonnées pendant l'analyse, ouvrez photos et vidéos depuis d'autres apps et rejoignez chaque onglet via les raccourcis de l'icône. Choisissez vos dossiers de sortie dans les Paramètres.</li>
-
-<li><b>Des autorisations pensées pour votre vie privée :</b><br>
-À partir d'Android 13, Redact utilise le sélecteur de documents du système, pour choisir des fichiers dans Téléchargements, Fichiers ou vos dossiers de galerie sans accès large à votre bibliothèque. L'autorisation optionnelle de localisation des photos affiche les champs GPS dans Analyser. Les rapports de plantage et les notifications restent désactivés jusqu'à ce que vous les activiez vous-même.</li>
-
-<li><b>Un traitement qui reste sur votre appareil :</b><br>
-Le nettoyage, l'analyse et la conversion se déroulent entièrement en local. La seule exception est l'ouverture d'une localisation analysée dans votre application de cartes, ce qui n'arrive qu'après votre accord. Le diagnostic de plantage optionnel et anonymisé via Sentry n'inclut jamais vos médias, et le cache temporaire est vidé automatiquement ou depuis les réglages.</li>
-
-<li><b>Open source et sans publicité :</b><br>
-Redact n'a ni publicité ni suivi comportemental, et son code source est consultable par tous sur GitHub.</li>
-
-<li><b>13 langues :</b><br>
-Anglais, espagnol, français, allemand, italien, portugais, russe, japonais, coréen, chinois (simplifié et traditionnel), hindi et arabe.</li>
+<li>Vendre sur Leboncoin, eBay ou Marketplace sans dévoiler votre adresse</li>
+<li>Envoyer des photos à un rendez-vous, un propriétaire ou une personne rencontrée récemment</li>
+<li>Partager des photos de vos enfants, de votre logement ou de votre voiture</li>
+<li>Journalistes, militants et toute personne qui protège une source</li>
+<li>Envoyer des photos par e-mail ou en tant que fichier, ce qui conserve tous les détails cachés</li>
 </ul>
 
-<p>Les métadonnées EXIF peuvent révéler les coordonnées GPS, le modèle de votre appareil et les réglages exacts utilisés pour prendre une photo. Redact vous aide à partager vos photos et vidéos selon vos propres conditions, en préservant la qualité et en gardant vos fichiers sur votre téléphone.</p>
+<b>Voir : Scanner</b>
+<p>Ouvrez n'importe quelle photo ou vidéo et voyez chaque champ caché dans une liste claire, avec recherche. Un badge Position signale tout ce qui indique où elle a été prise.</p>
 
-<p><b>Comment ça marche :</b></p>
-<p>Sélectionnez des fichiers dans Redact, ou partagez-les depuis une autre application, appuyez sur Nettoyer les métadonnées et enregistrez des copies sûres directement dans votre galerie. Le partage entrant supprime les métadonnées avant que vous ne transfériez les fichiers, et le Nettoyage strict comme le partage suppriment toujours la localisation.</p>
+<b>Supprimer : Nettoyer</b>
+<p>Nettoyez jusqu'à 20 photos et vidéos à la fois. Redact supprime le GPS, les informations sur l'appareil, les horodatages, les données XMP, IPTC et les balises vidéo, puis vous indique précisément ce qu'il a supprimé. Vos originaux restent intacts, sauf si vous demandez à Redact de les mettre à la corbeille.</p>
+
+<b>Partagez en toute sécurité depuis n'importe quelle app</b>
+<p>Partagez une photo ou une vidéo vers Redact depuis votre galerie ou une autre app. Le fichier est nettoyé puis renvoyé directement au menu de partage. Ou partagez-le vers « Scanner avec Redact » pour le vérifier d'abord.</p>
+
+<b>Convertir les formats</b>
+<p>Images JPEG, PNG, WebP et HEIC, et vidéos H.264, H.265, VP9 et AV1. Chaque fichier converti est nettoyé et vérifié.</p>
+
+<b>Privé par conception</b>
+<ul>
+<li>Tout se passe sur votre téléphone. Nettoyer, analyser et convertir ne demandent aucune connexion Internet.</li>
+<li>Pas de publicité, pas d'analyses, pas de pistage et pas de compte</li>
+<li>Sécurité des données Google Play : aucune donnée collectée, aucune donnée partagée</li>
+<li>Open source sous GPL-3.0 : tout le monde peut lire le code sur GitHub</li>
+<li>Fonctionne avec le sélecteur de fichiers du système : l'accès à toute votre galerie est donc facultatif</li>
+<li>Les rapports de plantage facultatifs restent désactivés tant que vous ne les activez pas</li>
+</ul>
+
+<b>Petits plus pratiques</b>
+<p>Une vignette Réglages rapides, des raccourcis sur l'écran d'accueil, vos propres dossiers de sortie, Conserver les Noms de Fichiers, le Nettoyage Strict, le masquage de Redact dans les captures et les apps récentes, et l'effacement automatique des métadonnées copiées.</p>
+
+<b>Payez une fois, gardez-la</b>
+<p>Pas d'abonnement, pas de publicité et pas d'achats intégrés. Votre achat soutient un développeur indépendant.</p>
+
+<p>Disponible en français, anglais, espagnol, allemand, italien, portugais, russe, japonais, coréen, chinois (simplifié et traditionnel), hindi et arabe.</p>

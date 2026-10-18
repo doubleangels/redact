@@ -1,6 +1,8 @@
-Added a Quick Settings tile that opens the Clean tab.
-Share a photo or video to "Scan with Redact" to check it without cleaning it.
-After cleaning one file, Scan Result shows what is left in the clean copy.
-New option to keep original file names.
-Output folders have their own settings card with an Open Folder button, and an unusable folder is flagged.
-Added Reset All Settings to the About card.
+Share a photo or video to Scan with Redact to check it without cleaning it.
+After cleaning one file, Scan Result shows what is left.
+New Quick Settings tile, Keep Original File Names, Reset All Settings and Open Folder.
+Redact now removes Extended XMP from JPEGs.
+VP9 and AV1 conversions are saved as MP4.
+Rate Redact from Settings.
+Reorganized Settings, with privacy and output folders near the top.
+Many reliability fixes.

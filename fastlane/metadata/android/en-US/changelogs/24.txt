@@ -1,1 +1,7 @@
-Bug fixes and performance improvements.
+New Share button after Clean and Convert.
+A summary of what each clean removed.
+Search in Scan.
+Shortcuts for Clean, Scan and Convert on the app icon.
+Open photos and videos from other apps straight into Scan.
+Pick output folders with the system file browser.
+Subtle haptics when a job finishes.

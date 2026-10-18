@@ -1,1 +1,2 @@
-Bug fixes and performance improvements.
+Clearer format chips on the Scan tab.
+Updated screenshots and text.
