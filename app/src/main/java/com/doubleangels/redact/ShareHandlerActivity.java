@@ -721,7 +721,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 shareIntent.setClipData(ClipData.newRawUri(displayName, cleanedFileUri));
                 shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-                Intent chooser = Intent.createChooser(shareIntent, getString(R.string.share_chooser_title));
+                Intent chooser = com.doubleangels.redact.ui.ShareResults.withoutOwnTargets(this,
+                        Intent.createChooser(shareIntent, getString(R.string.share_chooser_title)));
                 chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
                 sharingInitiated = true;
@@ -759,7 +760,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 shareIntent.setClipData(clipData);
                 shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-                Intent chooser = Intent.createChooser(shareIntent, getString(R.string.share_chooser_title));
+                Intent chooser = com.doubleangels.redact.ui.ShareResults.withoutOwnTargets(this,
+                        Intent.createChooser(shareIntent, getString(R.string.share_chooser_title)));
                 chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
                 sharingInitiated = true;

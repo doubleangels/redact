@@ -94,6 +94,20 @@ public class ShareResultsTest {
         assertEquals(null, shadowOf(app).getNextStartedActivity());
     }
 
+    @Test
+    public void share_leavesRedactsOwnTargetsOut() {
+        Activity app = Robolectric.buildActivity(Activity.class).setup().get();
+        ShareResults.share(app, List.of(JPG));
+
+        Intent chooser = shadowOf(app).getNextStartedActivity();
+        android.os.Parcelable[] excluded = chooser.getParcelableArrayExtra(Intent.EXTRA_EXCLUDE_COMPONENTS);
+        assertNotNull(excluded);
+        assertEquals(List.of(
+                        new android.content.ComponentName(app, "com.doubleangels.redact.ShareHandlerActivity"),
+                        new android.content.ComponentName(app, "com.doubleangels.redact.ScanShareTarget")),
+                List.of(excluded));
+    }
+
     /** The share intent inside the chooser that {@link ShareResults#share} started. */
     private static Intent sentIntent(Activity app) {
         Intent chooser = shadowOf(app).getNextStartedActivity();

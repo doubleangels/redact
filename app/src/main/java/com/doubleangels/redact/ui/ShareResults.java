@@ -1,6 +1,7 @@
 package com.doubleangels.redact.ui;
 
 import android.content.ClipData;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -25,6 +26,18 @@ public final class ShareResults {
                 ? android.view.View.VISIBLE : android.view.View.GONE);
     }
 
+    /**
+     * Leaves Redact's own share targets out of {@code chooser}: they ignore files Redact made, so
+     * picking one from a share of its own output would do nothing.
+     */
+    @NonNull
+    public static Intent withoutOwnTargets(@NonNull Context context, @NonNull Intent chooser) {
+        String pkg = context.getPackageName();
+        return chooser.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, new ComponentName[]{
+                new ComponentName(pkg, "com.doubleangels.redact.ShareHandlerActivity"),
+                new ComponentName(pkg, "com.doubleangels.redact.ScanShareTarget")});
+    }
+
     public static void share(@NonNull Context context, @NonNull List<Uri> uris) {
         if (uris.isEmpty()) {
             return;
@@ -44,7 +57,8 @@ public final class ShareResults {
         send.setClipData(clip);
         send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         try {
-            context.startActivity(Intent.createChooser(send, context.getString(R.string.share_results_chooser_title)));
+            context.startActivity(withoutOwnTargets(context,
+                    Intent.createChooser(send, context.getString(R.string.share_results_chooser_title))));
         } catch (android.content.ActivityNotFoundException e) {
             Toast.makeText(context, R.string.share_error_generic, Toast.LENGTH_SHORT).show();
         }
