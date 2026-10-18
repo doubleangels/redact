@@ -1822,7 +1822,7 @@ public class MetadataStripper {
     @VisibleForTesting
     static final class JpegXmpRemover extends JpegXmpRewriter {
         private static final byte[] EXTENDED_XMP_ID =
-                "http://ns.adobe.com/xmp/extension/ ".getBytes(StandardCharsets.US_ASCII);
+                "http://ns.adobe.com/xmp/extension/\0".getBytes(StandardCharsets.US_ASCII);
 
         static boolean hasXmpSegment(@NonNull File file) {
             try {
