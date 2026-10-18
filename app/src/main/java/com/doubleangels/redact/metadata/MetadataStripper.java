@@ -1906,18 +1906,24 @@ public class MetadataStripper {
             SentryManager.log("The app is skipping the lossless JPEG strip because the file is large.");
             return false;
         }
+        // The EXIF-free intermediate goes through a file: holding it and the XMP-free result as
+        // byte arrays kept about four copies of the image in memory at once.
+        File exifFree = null;
         try {
-            java.io.ByteArrayOutputStream exifOut = new java.io.ByteArrayOutputStream();
-            new org.apache.commons.imaging.formats.jpeg.exif.ExifRewriter().removeExifMetadata(tempFile, exifOut);
-            
-            java.io.ByteArrayOutputStream xmpOut = new java.io.ByteArrayOutputStream();
-            new org.apache.commons.imaging.formats.jpeg.xmp.JpegXmpRewriter().removeXmpXml(exifOut.toByteArray(), xmpOut);
-            
-            finalOs.write(xmpOut.toByteArray());
+            exifFree = File.createTempFile("temp_exiffree_", extension, context.getCacheDir());
+            try (OutputStream exifOut = new FileOutputStream(exifFree)) {
+                new org.apache.commons.imaging.formats.jpeg.exif.ExifRewriter()
+                        .removeExifMetadata(tempFile, exifOut);
+            }
+            new org.apache.commons.imaging.formats.jpeg.xmp.JpegXmpRewriter().removeXmpXml(exifFree, finalOs);
             return true;
         } catch (Exception e) {
             SentryManager.log("Lossless stripping failed: " + e.getMessage() + ". The app is falling back to Bitmap.");
             return false;
+        } finally {
+            if (exifFree != null) {
+                secureDeleteFile(exifFree);
+            }
         }
     }
 
