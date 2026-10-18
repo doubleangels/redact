@@ -11,6 +11,12 @@
     <dimen name="empty_state_vertical_padding">8dp</dimen>
 
     <dimen name="scan_screen_horizontal_padding">@dimen/screen_edge_padding</dimen>
+    <!-- On phones Scan's action row runs to the screen edges, so a card that does not fit is cut by
+         the screen edge (reads as "scroll for more") instead of by the side padding. Both must stay
+         equal to scan_screen_horizontal_padding, one negated; 0dp from 600dp, where the cards fit.
+         The negative one goes on layout_marginStart/End: layout_marginHorizontal ignores negatives. -->
+    <dimen name="scan_action_row_bleed">20dp</dimen>
+    <dimen name="scan_action_row_bleed_negative">-20dp</dimen>
     <dimen name="scan_metadata_card_corner">@dimen/component_corner_large</dimen>
     <dimen name="scan_metadata_row_horizontal_padding">16dp</dimen>
     <dimen name="media_thumbnail_px">96dp</dimen>
