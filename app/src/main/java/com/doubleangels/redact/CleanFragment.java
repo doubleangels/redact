@@ -281,7 +281,7 @@ public class CleanFragment extends Fragment {
                             try {
                                 SentryManager.log("Permissions were granted.");
                                 SentryManager.setCustomKey("permissions_granted", true);
-                                uiStateManager.setReadyStatus();
+                                showReadyStatus();
                             } catch (Exception e) {
                                 SentryManager.recordException(e);
                             }
@@ -293,12 +293,12 @@ public class CleanFragment extends Fragment {
                                 SentryManager.log("Permissions were denied.");
                                 SentryManager.setCustomKey("permissions_granted", false);
                                 if (permissionManager.isMediaPickerAvailable()) {
-                                    uiStateManager.setReadyStatus();
+                                    showReadyStatus();
                                     if (selectButton != null) {
                                         selectButton.setEnabled(true);
                                     }
                                 } else {
-                                    uiStateManager.setPermissionsRequiredStatus();
+                                    showPermissionsRequiredStatus();
                                     if (selectButton != null) {
                                         selectButton.setEnabled(false);
                                     }
@@ -387,17 +387,39 @@ public class CleanFragment extends Fragment {
         syncPermissionUi();
     }
 
+    /**
+     * The status line shows only after a finished clean, to say what it removed. The permission
+     * check runs again whenever the screen is recreated (rotation, dark mode) and must not replace
+     * that result with a ready or permission message.
+     */
+    private boolean showingCleanResult() {
+        return viewModel != null
+                && viewModel.getCleanProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED;
+    }
+
+    private void showReadyStatus() {
+        if (!showingCleanResult()) {
+            uiStateManager.setReadyStatus();
+        }
+    }
+
+    private void showPermissionsRequiredStatus() {
+        if (!showingCleanResult()) {
+            uiStateManager.setPermissionsRequiredStatus();
+        }
+    }
+
     private void syncPermissionUi() {
         if (permissionManager == null || uiStateManager == null) {
             return;
         }
         if (permissionManager.isMediaPickerAvailable()) {
-            uiStateManager.setReadyStatus();
+            showReadyStatus();
             if (selectButton != null) {
                 selectButton.setEnabled(true);
             }
         } else {
-            uiStateManager.setPermissionsRequiredStatus();
+            showPermissionsRequiredStatus();
             if (selectButton != null) {
                 selectButton.setEnabled(false);
             }
@@ -498,8 +520,19 @@ public class CleanFragment extends Fragment {
                             }
                             List<MediaItem> items = viewModel.getSelectedItems().getValue();
                             uiStateManager.enableStripButton(items != null && !items.isEmpty());
-                            if (AppPreferences.isDeleteOriginalsAfterClean(requireContext())) {
+                            boolean trashing = AppPreferences.isDeleteOriginalsAfterClean(requireContext());
+                            if (trashing) {
                                 requestTrashOriginals(viewModel.takeCleanSucceededSources());
+                            }
+                            // Android's trash confirmation takes priority over asking for a rating,
+                            // so a trashing clean is only counted.
+                            if (justCompleted && count != null && count > 0
+                                    && count.equals(total != null ? total : count)) {
+                                if (trashing) {
+                                    com.doubleangels.redact.ui.ReviewPrompt.recordSuccessfulJob(requireContext());
+                                } else {
+                                    com.doubleangels.redact.ui.ReviewPrompt.onJobSucceeded(this);
+                                }
                             }
                             break;
 

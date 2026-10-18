@@ -235,6 +235,7 @@
     <string name="settings_about_privacy">سياسة الخصوصية</string>
     <string name="settings_about_report_issue">الإبلاغ عن مشكلة</string>
     <string name="settings_about_donate">تبرع</string>
+    <string name="settings_about_rate">قيّم Redact على Google Play</string>
     <string name="settings_link_unavailable">لم يُعثر على تطبيق لفتح هذا الرابط.</string>
     <string name="settings_progress_notifications_label">تقدم المهمة الجارية</string>
     <string name="settings_progress_notifications_subtitle">إشعار دائم يعرض التقدم في المهام الطويلة. معطّل افتراضياً حتى تفعّل السماح بالإشعارات.</string>
@@ -462,4 +463,9 @@
     <string name="button_scan_result">مسح النتيجة</string>
     <string name="settings_keep_original_names">الاحتفاظ بأسماء الملفات الأصلية</string>
     <string name="settings_keep_original_names_subtitle">تسمية الملفات المنظفة والمحولة باسم الملفات الأصلية بدلًا من اسم عشوائي. قد تكشف أسماء مثل IMG_20260117 وقت التقاط الصورة.</string>
+    <string name="review_prompt_title">هل يعجبك Redact؟</string>
+    <string name="review_prompt_message">إذا ساعدك Redact في الحفاظ على خصوصية صورك، فهل تودّ تقييمه على Google Play؟ لن يستغرق ذلك سوى لحظة، ويساعد الآخرين على العثور على التطبيق.</string>
+    <string name="review_prompt_yes">نعم</string>
+    <string name="review_prompt_no">لا</string>
+    <string name="review_prompt_declined">حسنًا، لن يسألك Redact مجددًا. إذا غيّرت رأيك، يمكنك تقييمه في أي وقت من الإعدادات › حول.</string>
 </resources>

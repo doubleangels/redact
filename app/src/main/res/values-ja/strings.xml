@@ -236,6 +236,7 @@
     <string name="settings_about_privacy">プライバシーポリシー</string>
     <string name="settings_about_report_issue">問題を報告</string>
     <string name="settings_about_donate">寄付</string>
+    <string name="settings_about_rate">Google Play で Redact を評価</string>
     <string name="settings_link_unavailable">このリンクを開くアプリが見つかりません。</string>
     <string name="settings_progress_notifications_label">進行中のタスクの進捗</string>
     <string name="settings_progress_notifications_subtitle">長時間ジョブの進行を表示する常駐通知。通知を許可するまでデフォルトでオフです。</string>
@@ -428,4 +429,9 @@
     <string name="button_scan_result">結果をスキャン</string>
     <string name="settings_keep_original_names">元のファイル名を保持</string>
     <string name="settings_keep_original_names_subtitle">クリーン・変換したファイルに、ランダムな名前ではなく元のファイル名を付けます。IMG_20260117 のような名前から撮影日時がわかる場合があります。</string>
+    <string name="review_prompt_title">Redact はお役に立っていますか？</string>
+    <string name="review_prompt_message">Redact で写真のプライバシーを守れているなら、Google Play で評価していただけますか？すぐに終わり、ほかの人がこのアプリを見つける助けになります。</string>
+    <string name="review_prompt_yes">はい</string>
+    <string name="review_prompt_no">いいえ</string>
+    <string name="review_prompt_declined">わかりました。今後はお尋ねしません。気が変わったら、設定 › このアプリについて からいつでも評価できます。</string>
 </resources>

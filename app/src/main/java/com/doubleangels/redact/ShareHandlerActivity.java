@@ -622,6 +622,12 @@ public class ShareHandlerActivity extends AppCompatActivity {
                                         .show();
                             }
                             SentryManager.log("Media processing completed successfully.");
+                            if (finalFailCount == 0) {
+                                // Counted only: the share sheet is about to open, so this is no
+                                // time to ask for a rating.
+                                com.doubleangels.redact.ui.ReviewPrompt.recordSuccessfulJob(
+                                        ShareHandlerActivity.this);
+                            }
                             if (processedUris.size() == 1) {
                                 shareCleanFile(finalHasVideo, processedUris.get(0));
                             } else {

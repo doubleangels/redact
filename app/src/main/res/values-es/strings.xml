@@ -235,6 +235,7 @@
     <string name="settings_about_privacy">Política de Privacidad</string>
     <string name="settings_about_report_issue">Informar un Problema</string>
     <string name="settings_about_donate">Donar</string>
+    <string name="settings_about_rate">Valorar Redact en Google Play</string>
     <string name="settings_link_unavailable">No se encontró una app para abrir este enlace.</string>
     <string name="settings_progress_notifications_label">Progreso de Tarea en Curso</string>
     <string name="settings_progress_notifications_subtitle">Notificación persistente con progreso en tareas largas. Desactivada por defecto hasta que actives Permitir notificaciones.</string>
@@ -441,4 +442,9 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="button_scan_result">Escanear Resultado</string>
     <string name="settings_keep_original_names">Conservar Nombres Originales</string>
     <string name="settings_keep_original_names_subtitle">Los archivos limpiados y convertidos usan el nombre del original en lugar de uno aleatorio. Nombres como IMG_20260117 pueden revelar cuándo se tomó una foto.</string>
+    <string name="review_prompt_title">¿Te gusta Redact?</string>
+    <string name="review_prompt_message">Si Redact te ha ayudado a mantener tus fotos privadas, ¿te gustaría valorarlo en Google Play? Solo lleva un momento y ayuda a otras personas a encontrar la app.</string>
+    <string name="review_prompt_yes">Sí</string>
+    <string name="review_prompt_no">No</string>
+    <string name="review_prompt_declined">Entendido, Redact no volverá a preguntar. Si cambias de opinión, puedes valorarlo cuando quieras desde Configuración › Acerca de.</string>
 </resources>

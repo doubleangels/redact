@@ -235,6 +235,7 @@
     <string name="settings_about_privacy">개인정보 처리방침</string>
     <string name="settings_about_report_issue">문제 신고</string>
     <string name="settings_about_donate">기부</string>
+    <string name="settings_about_rate">Google Play에서 Redact 평가하기</string>
     <string name="settings_link_unavailable">이 링크를 열 앱을 찾을 수 없습니다.</string>
     <string name="settings_progress_notifications_label">진행 중 작업 진행률</string>
     <string name="settings_progress_notifications_subtitle">긴 작업 중 진행 상황을 보여주는 지속 알림. 알림 허용을 켤 때까지 기본적으로 꺼져 있습니다.</string>
@@ -427,4 +428,9 @@
     <string name="button_scan_result">결과 스캔</string>
     <string name="settings_keep_original_names">원본 파일 이름 유지</string>
     <string name="settings_keep_original_names_subtitle">정리하거나 변환한 파일에 무작위 이름 대신 원본 파일 이름을 사용합니다. IMG_20260117 같은 이름은 사진을 찍은 시기를 드러낼 수 있습니다.</string>
+    <string name="review_prompt_title">Redact가 마음에 드시나요?</string>
+    <string name="review_prompt_message">Redact가 사진을 비공개로 지키는 데 도움이 되었다면 Google Play에서 평가해 주시겠어요? 잠깐이면 되고, 다른 사람들이 앱을 찾는 데 도움이 됩니다.</string>
+    <string name="review_prompt_yes">예</string>
+    <string name="review_prompt_no">아니요</string>
+    <string name="review_prompt_declined">알겠습니다. 다시 묻지 않을게요. 마음이 바뀌면 설정 › 정보에서 언제든지 평가할 수 있습니다.</string>
 </resources>

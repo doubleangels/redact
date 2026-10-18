@@ -489,7 +489,8 @@ public class SettingsFragmentTest {
 
     @Test
     public void aboutRows_openTheirLinks() {
-        int[] rows = {R.id.rowAboutGithub, R.id.rowAboutPrivacy, R.id.rowAboutReportIssue, R.id.rowAboutDonate};
+        int[] rows = {R.id.rowAboutGithub, R.id.rowAboutPrivacy, R.id.rowAboutReportIssue,
+                R.id.rowAboutRate, R.id.rowAboutDonate};
         for (int row : rows) {
             settings.findViewById(row).performClick();
             assertNotNull(nextIntentWithAction(Intent.ACTION_VIEW));

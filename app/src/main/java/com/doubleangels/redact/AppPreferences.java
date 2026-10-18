@@ -7,6 +7,8 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.doubleangels.redact.ui.ReviewPrompt;
+
 /**
  * Central access to app-wide user preferences stored in the default SharedPreferences file.
  */
@@ -353,10 +355,22 @@ public final class AppPreferences {
 
     /**
      * Puts every setting back to its default. The first-launch permission prompt is not shown
-     * again, since resetting settings does not change what Android has already granted.
+     * again, since resetting settings does not change what Android has already granted, and the
+     * rating prompt's progress is kept, so a user who declined it is never asked again.
      */
     public static void resetAll(@NonNull Context context) {
+        SharedPreferences p = prefs(context);
         boolean prompted = hasCompletedInitialPermissionsPrompt(context);
-        prefs(context).edit().clear().putBoolean(KEY_INITIAL_PERMISSIONS_PROMPTED, prompted).apply();
+        int reviewCount = p.getInt(ReviewPrompt.KEY_SUCCESS_COUNT, 0);
+        int reviewState = p.getInt(ReviewPrompt.KEY_STATE, 0);
+        SharedPreferences.Editor e = p.edit().clear()
+                .putBoolean(KEY_INITIAL_PERMISSIONS_PROMPTED, prompted);
+        if (reviewCount > 0) {
+            e.putInt(ReviewPrompt.KEY_SUCCESS_COUNT, reviewCount);
+        }
+        if (reviewState != 0) {
+            e.putInt(ReviewPrompt.KEY_STATE, reviewState);
+        }
+        e.apply();
     }
 }

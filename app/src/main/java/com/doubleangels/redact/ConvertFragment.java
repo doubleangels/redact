@@ -490,13 +490,17 @@ public class ConvertFragment extends Fragment {
                     Integer finishedOk = viewModel.getConvertProcessedItemCount().getValue();
                     Haptics.runFinished(convertButton, finishedOk != null ? finishedOk : 0);
                 }
-                if (!isHidden()) {
-                    Integer okCount = viewModel.getConvertProcessedItemCount().getValue();
-                    Integer batchTotal = viewModel.getConvertBatchTotalCount().getValue();
-                    int total = batchTotal != null ? batchTotal : selected.size();
-                    if (okCount != null && okCount == total && okCount > 0) {
+                Integer okCount = viewModel.getConvertProcessedItemCount().getValue();
+                Integer batchTotal = viewModel.getConvertBatchTotalCount().getValue();
+                int total = batchTotal != null ? batchTotal : selected.size();
+                if (okCount != null && okCount == total && okCount > 0) {
+                    if (!isHidden()) {
                         Toast.makeText(requireContext(), R.string.convert_saved_to_gallery, Toast.LENGTH_SHORT)
                                 .show();
+                    }
+                    if (justCompleted) {
+                        // Counted even while another tab is showing; asks only when this one is.
+                        com.doubleangels.redact.ui.ReviewPrompt.onJobSucceeded(this);
                     }
                 }
             }

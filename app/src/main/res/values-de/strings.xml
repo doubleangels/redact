@@ -234,6 +234,7 @@
     <string name="settings_about_privacy">Datenschutzrichtlinie</string>
     <string name="settings_about_report_issue">Problem Melden</string>
     <string name="settings_about_donate">Spenden</string>
+    <string name="settings_about_rate">Redact bei Google Play bewerten</string>
     <string name="settings_link_unavailable">Keine App zum Öffnen dieses Links gefunden.</string>
     <string name="settings_progress_notifications_label">Laufender Aufgabenfortschritt</string>
     <string name="settings_progress_notifications_subtitle">Dauerhafte Fortschrittsbenachrichtigung bei langen Aufträgen. Standard aus, bis Sie Benachrichtigungen erlauben aktivieren.</string>
@@ -433,4 +434,9 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="button_scan_result">Ergebnis Scannen</string>
     <string name="settings_keep_original_names">Originale Dateinamen Behalten</string>
     <string name="settings_keep_original_names_subtitle">Bereinigte und konvertierte Dateien erhalten den Namen des Originals statt eines zufälligen Namens. Namen wie IMG_20260117 können verraten, wann ein Foto aufgenommen wurde.</string>
+    <string name="review_prompt_title">Gefällt dir Redact?</string>
+    <string name="review_prompt_message">Wenn Redact dir hilft, deine Fotos privat zu halten, möchtest du es bei Google Play bewerten? Das dauert nur einen Moment und hilft anderen, die App zu finden.</string>
+    <string name="review_prompt_yes">Ja</string>
+    <string name="review_prompt_no">Nein</string>
+    <string name="review_prompt_declined">Alles klar, Redact fragt nicht noch einmal. Falls du es dir anders überlegst, kannst du es jederzeit unter Einstellungen › Über bewerten.</string>
 </resources>

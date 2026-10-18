@@ -235,6 +235,7 @@
     <string name="settings_about_privacy">Politique de Confidentialité</string>
     <string name="settings_about_report_issue">Signaler un Problème</string>
     <string name="settings_about_donate">Faites un Don</string>
+    <string name="settings_about_rate">Noter Redact sur Google Play</string>
     <string name="settings_link_unavailable">Aucune application trouvée pour ouvrir ce lien.</string>
     <string name="settings_progress_notifications_label">Progression de la Tâche en Cours</string>
     <string name="settings_progress_notifications_subtitle">Notification persistante avec progression pour les longues tâches. Désactivée par défaut jusqu\'à activation des notifications.</string>
@@ -441,4 +442,9 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="button_scan_result">Scanner le Résultat</string>
     <string name="settings_keep_original_names">Conserver les Noms de Fichiers</string>
     <string name="settings_keep_original_names_subtitle">Les fichiers nettoyés et convertis gardent le nom de l\'original au lieu d\'un nom aléatoire. Un nom comme IMG_20260117 peut révéler quand une photo a été prise.</string>
+    <string name="review_prompt_title">Vous aimez Redact ?</string>
+    <string name="review_prompt_message">Si Redact vous aide à garder vos photos privées, voulez-vous le noter sur Google Play ? Cela ne prend qu\'un instant et aide d\'autres personnes à trouver l\'application.</string>
+    <string name="review_prompt_yes">Oui</string>
+    <string name="review_prompt_no">Non</string>
+    <string name="review_prompt_declined">C\'est noté, Redact ne vous le redemandera pas. Si vous changez d\'avis, vous pouvez le noter à tout moment depuis Paramètres › À propos.</string>
 </resources>

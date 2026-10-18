@@ -98,6 +98,7 @@
     <string name="settings_about_privacy">Privacy Policy</string>
     <string name="settings_about_report_issue">Report an Issue</string>
     <string name="settings_about_donate">Donate</string>
+    <string name="settings_about_rate">Rate Redact on Google Play</string>
     <string name="settings_link_unavailable">No app found to open this link.</string>
 
     <string name="settings_progress_notifications_label">Ongoing Task Progress</string>
@@ -439,4 +440,9 @@
     <string name="button_scan_result">Scan Result</string>
     <string name="settings_keep_original_names">Keep Original File Names</string>
     <string name="settings_keep_original_names_subtitle">Name cleaned and converted files after the originals instead of a random name. Names such as IMG_20260117 can reveal when a photo was taken.</string>
+    <string name="review_prompt_title">Enjoying Redact?</string>
+    <string name="review_prompt_message">If Redact has helped keep your photos private, would you like to rate it on Google Play? It only takes a moment, and it helps other people find the app.</string>
+    <string name="review_prompt_yes">Yes</string>
+    <string name="review_prompt_no">No</string>
+    <string name="review_prompt_declined">Got it, Redact won\'t ask again. If you change your mind, you can rate it anytime from Settings › About.</string>
 </resources>

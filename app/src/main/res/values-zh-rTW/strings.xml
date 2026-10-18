@@ -235,6 +235,7 @@
     <string name="settings_about_privacy">隱私權政策</string>
     <string name="settings_about_report_issue">回報問題</string>
     <string name="settings_about_donate">捐贈</string>
+    <string name="settings_about_rate">在 Google Play 上為 Redact 評分</string>
     <string name="settings_link_unavailable">找不到可開啟此連結的應用程式。</string>
     <string name="settings_progress_notifications_label">進行中工作進度</string>
     <string name="settings_progress_notifications_subtitle">長時間工作期間顯示進度的持續通知。預設關閉，需先開啟允許通知。</string>
@@ -427,4 +428,9 @@
     <string name="button_scan_result">掃描結果</string>
     <string name="settings_keep_original_names">保留原始檔名</string>
     <string name="settings_keep_original_names_subtitle">清理與轉換後的檔案沿用原始檔名，而非隨機名稱。IMG_20260117 這類名稱可能透露照片的拍攝時間。</string>
+    <string name="review_prompt_title">喜歡 Redact 嗎？</string>
+    <string name="review_prompt_message">如果 Redact 幫你保護了照片隱私，願意在 Google Play 上為它評分嗎？只需片刻，還能幫助更多人找到這個應用程式。</string>
+    <string name="review_prompt_yes">願意</string>
+    <string name="review_prompt_no">不用了</string>
+    <string name="review_prompt_declined">好的，Redact 不會再詢問。如果你改變主意，隨時可以在「設定 › 關於」中評分。</string>
 </resources>

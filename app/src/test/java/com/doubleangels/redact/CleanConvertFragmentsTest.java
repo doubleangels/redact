@@ -188,6 +188,25 @@ public class CleanConvertFragmentsTest {
     }
 
     @Test
+    public void clean_finishedResult_survivesThePermissionRecheckOfARecreatedScreen() {
+        View v = clean();
+        vm.setSelectedItems(Arrays.asList(image("a.jpg")));
+        idle();
+        vm.setCleanProcessingState(MainViewModel.ProcessingState.PROCESSING);
+        idle();
+        vm.setCleanProcessingState(MainViewModel.ProcessingState.COMPLETED);
+        idle();
+        String result = text(v, R.id.statusText);
+
+        // A rotation or dark-mode switch rebuilds the screen, and the permission check runs again.
+        ((CleanFragment) fragment("clean")).onHostPermissionFlowCompleted();
+        idle();
+
+        assertEquals(result, text(v, R.id.statusText));
+        assertFalse(activity.getString(R.string.clean_status_ready).equals(text(v, R.id.statusText)));
+    }
+
+    @Test
     public void clean_finishingARun_buzzesOnce_andAReplayStaysQuiet() {
         View v = clean();
         vm.setSelectedItems(Arrays.asList(image("a.jpg")));
@@ -260,6 +279,16 @@ public class CleanConvertFragmentsTest {
                 new ViewModelProvider(activity).get(MainViewModel.class).getCleanProcessingState().getValue());
         assertTrue(new ViewModelProvider(activity).get(MainViewModel.class).getCleanSucceededSources().isEmpty());
         jpeg.delete();
+        FakeMediaStoreProvider.reset();
+    }
+
+    @Test
+    public void clean_withDeleteOriginals_countsTowardTheRatingPrompt_withoutAsking() throws Exception {
+        AppPreferences.setDeleteOriginalsAfterClean(activity, true);
+        cleanOneFile();
+
+        assertEquals(1, activity.getSharedPreferences(AppPreferences.PREFS_NAME, android.content.Context.MODE_PRIVATE)
+                .getInt(com.doubleangels.redact.ui.ReviewPrompt.KEY_SUCCESS_COUNT, 0));
         FakeMediaStoreProvider.reset();
     }
 
