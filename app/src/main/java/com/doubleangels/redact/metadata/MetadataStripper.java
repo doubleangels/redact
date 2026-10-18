@@ -464,9 +464,9 @@ public class MetadataStripper {
                             + extension;
             updateProgress(1, 5, context.getString(R.string.strip_progress_reading_image));
 
-            // Create temporary file to hold the image during processing
-            tempFile = new File(
-                    context.getCacheDir(), "temp_" + System.currentTimeMillis() + extension);
+            // Create temporary file to hold the image during processing. createTempFile gives a
+            // unique name: a clean and a share starting in the same millisecond used to share one.
+            tempFile = File.createTempFile("temp_", extension, context.getCacheDir());
 
             copySourceToTempFile(sourceUri, tempFile);
 
@@ -638,7 +638,7 @@ public class MetadataStripper {
 
             updateProgress(1, 4, context.getString(R.string.strip_progress_reading_image));
 
-            tempFile = new File(context.getCacheDir(), "temp_" + System.currentTimeMillis() + extension);
+            tempFile = File.createTempFile("temp_", extension, context.getCacheDir());
 
             copySourceToTempFile(sourceUri, tempFile);
 
@@ -1010,7 +1010,8 @@ public class MetadataStripper {
                 }
             }
             
-            outputFile = new File(context.getCacheDir(), "vid_transmux_" + System.currentTimeMillis() + (useWebm ? ".webm" : ".mp4"));
+            outputFile = File.createTempFile(
+                    "vid_transmux_", useWebm ? ".webm" : ".mp4", context.getCacheDir());
             int outputFormat = useWebm ? android.media.MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM 
                                        : android.media.MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4;
             
@@ -1835,8 +1836,7 @@ public class MetadataStripper {
      */
     private void verifyCleanedImageAtUri(@NonNull Uri imageUri, @NonNull String extension)
             throws IOException {
-        File tempVerifyFile = new File(
-                context.getCacheDir(), "verify_" + System.currentTimeMillis() + extension);
+        File tempVerifyFile = File.createTempFile("verify_", extension, context.getCacheDir());
         try {
             try (InputStream is = contentResolver.openInputStream(imageUri);
                     FileOutputStream fos = new FileOutputStream(tempVerifyFile)) {
