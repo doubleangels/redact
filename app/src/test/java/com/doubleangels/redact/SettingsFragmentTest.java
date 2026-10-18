@@ -467,6 +467,27 @@ public class SettingsFragmentTest {
     }
 
     @Test
+    public void resetAllSettings_isNotUndoneByTheRecreatedScreen() {
+        sw(R.id.switchDeleteOriginals).setChecked(true);
+        sw(R.id.switchKeepOriginalNames).setChecked(true);
+        idle();
+        assertTrue(AppPreferences.isDeleteOriginalsAfterClean(activity));
+
+        settings.findViewById(R.id.rowResetSettings).performClick();
+        idle();
+        latestDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        idle();
+
+        // The recreated switches must not write their old checked state back.
+        assertFalse(AppPreferences.isDeleteOriginalsAfterClean(activity));
+        assertFalse(AppPreferences.isKeepOriginalFileNames(activity));
+        activity = controller.get();
+        settings = fragment().getView();
+        assertFalse(sw(R.id.switchDeleteOriginals).isChecked());
+        assertFalse(sw(R.id.switchKeepOriginalNames).isChecked());
+    }
+
+    @Test
     public void aboutRows_openTheirLinks() {
         int[] rows = {R.id.rowAboutGithub, R.id.rowAboutPrivacy, R.id.rowAboutReportIssue, R.id.rowAboutDonate};
         for (int row : rows) {

@@ -733,7 +733,22 @@ public class SettingsFragment extends Fragment {
             SentryInitializer.shutdown();
         }
         Toast.makeText(context, R.string.settings_reset_all_done, Toast.LENGTH_SHORT).show();
+        // Restored view state would put back each switch and dropdown as it was, and the switch
+        // listeners would then write the old values straight back into the reset preferences.
+        View root = getView();
+        if (root != null) {
+            disableStateSaving(root);
+        }
         requireActivity().recreate();
+    }
+
+    private static void disableStateSaving(@NonNull View view) {
+        view.setSaveEnabled(false);
+        if (view instanceof ViewGroup group) {
+            for (int i = 0; i < group.getChildCount(); i++) {
+                disableStateSaving(group.getChildAt(i));
+            }
+        }
     }
 
     private void setupDropdown(@NonNull MaterialAutoCompleteTextView dropdown,
