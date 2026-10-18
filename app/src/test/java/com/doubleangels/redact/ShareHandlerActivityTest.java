@@ -5,7 +5,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
 
 import android.app.Application;
 import android.content.ClipData;
@@ -139,13 +138,9 @@ public class ShareHandlerActivityTest {
         }
     }
 
-    /**
-     * FileProvider matches roots with a hard-coded '/' separator, so producing the cleaned
-     * content URI only works under Robolectric on POSIX hosts (CI runs on Linux).
-     */
-    private static void assumeFileProviderUsable() {
-        assumeFalse("FileProvider path matching fails on Windows hosts",
-                System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).startsWith("windows"));
+    /** Lets FileProvider produce the cleaned content URI on Windows hosts too. */
+    private static void makeFileProviderUsable() {
+        FileProviderTestSupport.makeUsable(RuntimeEnvironment.getApplication());
     }
 
     /** Error-level logcat captured during the test, to make CI failures diagnosable. */
@@ -343,7 +338,7 @@ public class ShareHandlerActivityTest {
 
     @Test
     public void send_image_stripsAndLaunchesShareChooser() throws Exception {
-        assumeFileProviderUsable();
+        makeFileProviderUsable();
         ShareHandlerActivity activity = launch(sendIntent("image/jpeg", createJpeg()));
 
         Intent chooser = awaitStartedActivity(activity);
@@ -365,7 +360,7 @@ public class ShareHandlerActivityTest {
 
     @Test
     public void aSuccessfulShare_deletesTheCopiesOfTheOriginals() throws Exception {
-        assumeFileProviderUsable();
+        makeFileProviderUsable();
         ShareHandlerActivity activity = launch(sendIntent("image/jpeg", createJpeg()));
 
         assertNotNull(awaitStartedActivity(activity));
@@ -381,7 +376,7 @@ public class ShareHandlerActivityTest {
 
     @Test
     public void sendMultiple_images_launchesMultipleShareChooser() throws Exception {
-        assumeFileProviderUsable();
+        makeFileProviderUsable();
         ArrayList<Uri> uris = new ArrayList<>();
         uris.add(createJpeg());
         uris.add(createJpeg());
