@@ -312,7 +312,7 @@ public class CleanConvertFragmentsTest {
     }
 
     @Test
-    public void clean_selectButton_launchesPickerAndResultSelectsItems() {
+    public void clean_selectButton_launchesPickerAndResultSelectsItems() throws Exception {
         grantStorageRead();
         View v = clean();
         v.findViewById(R.id.emptyStateSelectButton).performClick();
@@ -325,8 +325,8 @@ public class CleanConvertFragmentsTest {
         data.setClipData(ClipData.newRawUri("media", Uri.parse("file:///nonexistent/a.jpg")));
         data.getClipData().addItem(new ClipData.Item(Uri.parse("file:///nonexistent/b.mp4")));
         shadow.receiveResult(launched.intent, Activity.RESULT_OK, data);
-        idle();
-        assertEquals(2, vm.getSelectedItems().getValue().size());
+        // Picked items are read in the background, then selected on the main thread.
+        awaitMain(() -> vm.getSelectedItems().getValue().size() == 2);
     }
 
     @Test
@@ -557,7 +557,7 @@ public class CleanConvertFragmentsTest {
     }
 
     @Test
-    public void convert_selectButton_launchesPickerAndResultSelectsItems() {
+    public void convert_selectButton_launchesPickerAndResultSelectsItems() throws Exception {
         grantStorageRead();
         View v = convert();
         v.findViewById(R.id.emptyStateSelectButton).performClick();
@@ -569,8 +569,7 @@ public class CleanConvertFragmentsTest {
         Intent data = new Intent();
         data.setClipData(ClipData.newRawUri("media", Uri.parse("file:///nonexistent/a.jpg")));
         shadow.receiveResult(launched.intent, Activity.RESULT_OK, data);
-        idle();
-        assertEquals(1, vm.getConvertSelectedItems().getValue().size());
+        awaitMain(() -> vm.getConvertSelectedItems().getValue().size() == 1);
     }
 
     @Test

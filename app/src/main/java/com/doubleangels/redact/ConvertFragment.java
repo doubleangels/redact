@@ -109,13 +109,9 @@ public class ConvertFragment extends Fragment {
                         uris = MediaPickerContracts.trimToMax(uris, MAX_PICK_ITEMS);
                     }
                     SentryManager.log("Media was selected successfully in ConvertFragment.");
-                    List<MediaItem> items = new ArrayList<>();
-                    for (android.net.Uri uri : uris) {
-                        if (mediaSelector != null) {
-                            items.add(mediaSelector.processMediaUri(uri));
-                        }
+                    if (mediaSelector != null) {
+                        mediaSelector.processMediaUrisAsync(uris, viewModel::setConvertSelectedItems);
                     }
-                    viewModel.setConvertSelectedItems(items);
                 });
     }
 

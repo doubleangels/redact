@@ -114,14 +114,12 @@ public class CleanFragment extends Fragment {
                                 uris = MediaPickerContracts.trimToMax(uris, MAX_PICK_ITEMS);
                             }
                             SentryManager.log("Media was selected successfully.");
-                            List<MediaItem> items = new ArrayList<>();
-                            for (android.net.Uri uri : uris) {
-                                if (mediaSelector != null) {
-                                    items.add(mediaSelector.processMediaUri(uri));
-                                }
+                            if (mediaSelector != null) {
+                                mediaSelector.processMediaUrisAsync(uris, items -> {
+                                    SentryManager.setCustomKey("selected_media_count", items.size());
+                                    viewModel.setSelectedItems(items);
+                                });
                             }
-                            SentryManager.setCustomKey("selected_media_count", items.size());
-                            viewModel.setSelectedItems(items);
                         } else {
                             SentryManager.log("Media selection was canceled or failed.");
                         }

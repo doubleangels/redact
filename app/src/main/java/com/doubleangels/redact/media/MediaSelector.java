@@ -39,6 +39,27 @@ public final class MediaSelector {
         return new MediaItem(uri, isVideo, fileName);
     }
 
+    /**
+     * Runs {@link #processMediaUri} for every picked item in the background, since each takes a
+     * read grant and asks the provider for a name and a type (slow for a large or cloud-backed
+     * pick), then hands the items to {@code onDone} on the main thread.
+     */
+    public void processMediaUrisAsync(
+            @NonNull java.util.List<Uri> uris,
+            @NonNull java.util.function.Consumer<java.util.List<MediaItem>> onDone) {
+        new Thread(() -> {
+            java.util.List<MediaItem> items = new java.util.ArrayList<>();
+            for (Uri uri : uris) {
+                try {
+                    items.add(processMediaUri(uri));
+                } catch (Exception e) {
+                    SentryManager.recordException(e);
+                }
+            }
+            activity.runOnUiThread(() -> onDone.accept(items));
+        }, "redact-pick").start();
+    }
+
     public static void releasePersistableReadPermission(@NonNull Context context, @Nullable Uri uri) {
         if (uri == null || !"content".equals(uri.getScheme())) {
             return;
