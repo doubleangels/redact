@@ -989,6 +989,7 @@ public class MetadataStripper {
         android.media.MediaExtractor extractor = new android.media.MediaExtractor();
         android.media.MediaMuxer muxer = null;
         File outputFile = null;
+        boolean succeeded = false;
         try {
             try {
                 extractor.setDataSource(context, sourceUri, null);
@@ -1081,6 +1082,7 @@ public class MetadataStripper {
             }
 
             muxer.stop();
+            succeeded = true;
             return outputFile;
         } catch (Exception e) {
             if (e instanceof IllegalStateException) {
@@ -1093,14 +1095,16 @@ public class MetadataStripper {
             } else {
                 SentryManager.recordException(e);
             }
-            if (outputFile != null && outputFile.exists()) {
-                outputFile.delete();
-            }
             return null;
         } finally {
             try { extractor.release(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored + "."); }
             if (muxer != null) {
                 try { muxer.release(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored + "."); }
+            }
+            // Every way out but success, including the early returns once the muxer has created
+            // the file, leaves an unused (possibly partly written) copy of the video behind.
+            if (!succeeded && outputFile != null && outputFile.exists()) {
+                secureDeleteFile(outputFile);
             }
         }
     }
