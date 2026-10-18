@@ -569,8 +569,12 @@ public class SettingsFragment extends Fragment {
     private void openOutputFolder(boolean video) {
         withFolderLocation(context -> OutputDestination.currentFolderDocument(context, video), folder -> {
             Intent intent = new Intent(Intent.ACTION_VIEW)
-                    .setDataAndType(folder, android.provider.DocumentsContract.Document.MIME_TYPE_DIR)
-                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    .setDataAndType(folder, android.provider.DocumentsContract.Document.MIME_TYPE_DIR);
+            // Only a chosen folder is under a grant Redact can pass on; asking to grant the default
+            // folder, which Redact holds no grant for, makes startActivity throw.
+            if (android.provider.DocumentsContract.isTreeUri(folder)) {
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            }
             try {
                 startActivity(intent);
             } catch (ActivityNotFoundException | SecurityException e) {

@@ -502,6 +502,8 @@ public class SettingsFragmentTest {
 
     @Test
     public void openFolder_showsTheOutputFolderInTheFileManager() throws Exception {
+        assertTrue(new java.io.File(android.os.Environment.getExternalStorageDirectory(),
+                com.doubleangels.redact.media.OutputDestination.defaultPath(true)).mkdirs());
         settings.findViewById(R.id.buttonOpenOutputVideos).performClick();
 
         // The folder is worked out in the background, then opened on the main thread.
@@ -518,6 +520,8 @@ public class SettingsFragmentTest {
         assertEquals(android.provider.DocumentsContract.Document.MIME_TYPE_DIR, intent.getType());
         assertEquals("primary:Movies/Redact",
                 android.provider.DocumentsContract.getDocumentId(intent.getData()));
+        // Redact holds no grant on the default folder, so asking to pass one on would throw.
+        assertEquals(0, intent.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION);
     }
 
     @Test

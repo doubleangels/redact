@@ -164,6 +164,15 @@ public class OutputDestinationTest {
 
     @Test
     public void currentFolderDocument_isTheFolderFilesAreSavedTo() {
+        // Before anything is saved the default folder does not exist yet, so its parent opens.
+        assertEquals(DocumentsContract.buildDocumentUri(FakeDocumentsProvider.AUTHORITY, "primary:Pictures"),
+                OutputDestination.currentFolderDocument(app, false));
+        assertEquals(DocumentsContract.buildDocumentUri(FakeDocumentsProvider.AUTHORITY, "primary:Movies"),
+                OutputDestination.currentFolderDocument(app, true));
+
+        java.io.File storage = android.os.Environment.getExternalStorageDirectory();
+        assertTrue(new java.io.File(storage, OutputDestination.defaultPath(false)).mkdirs());
+        assertTrue(new java.io.File(storage, OutputDestination.defaultPath(true)).mkdirs());
         assertEquals(DocumentsContract.buildDocumentUri(FakeDocumentsProvider.AUTHORITY, "primary:Pictures/Redact"),
                 OutputDestination.currentFolderDocument(app, false));
         assertEquals(DocumentsContract.buildDocumentUri(FakeDocumentsProvider.AUTHORITY, "primary:Movies/Redact"),

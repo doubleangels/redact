@@ -206,8 +206,13 @@ public final class OutputDestination {
         if (tree != null && isUsable(context, tree)) {
             return rootDocument(tree);
         }
-        return DocumentsContract.buildDocumentUri(EXTERNAL_STORAGE_AUTHORITY,
-                PRIMARY_VOLUME + ":" + defaultPath(video));
+        // The default folder is only made with the first file saved to it, and a file manager
+        // asked to open a missing folder falls back to Downloads, so open Pictures or Movies.
+        String path = defaultPath(video);
+        if (!new java.io.File(Environment.getExternalStorageDirectory(), path).isDirectory()) {
+            path = video ? Environment.DIRECTORY_MOVIES : Environment.DIRECTORY_PICTURES;
+        }
+        return DocumentsContract.buildDocumentUri(EXTERNAL_STORAGE_AUTHORITY, PRIMARY_VOLUME + ":" + path);
     }
 
     /** True when {@code tree} is the default {@code Pictures/Redact} or {@code Movies/Redact} folder. */
