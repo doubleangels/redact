@@ -150,3 +150,49 @@ sentry {
         enabled = false
     }
 }
+
+// Unit test line coverage of the app's own code. Generated classes (view binding, Glide's
+// generated API, BuildConfig, R, Sentry's build-time options) are left out.
+def coverageExcludes = [
+        '**/R.class', '**/R$*.class', '**/BuildConfig.class', '**/Manifest*.class',
+        '**/databinding/**', '**/DataBinderMapperImpl*.class',
+        '**/media/GlideApp.class', '**/media/GlideOptions.class',
+        '**/media/GlideRequest.class', '**/media/GlideRequests.class',
+        '**/GeneratedAppGlideModule*.class', '**/GeneratedRequestManagerFactory.class',
+        'io/sentry/**',
+]
+def coverageClasses = fileTree(
+        dir: layout.buildDirectory.dir('intermediates/javac/debug/compileDebugJavaWithJavac/classes'),
+        excludes: coverageExcludes)
+def coverageData = layout.buildDirectory.file(
+        'outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec')
+
+tasks.register('jacocoTestReport', JacocoReport) {
+    group = 'verification'
+    description = 'Writes the unit test coverage report, without generated code, to build/reports/jacoco.'
+    dependsOn 'testDebugUnitTest'
+    classDirectories.setFrom(coverageClasses)
+    sourceDirectories.setFrom(files('src/main/java'))
+    executionData.setFrom(coverageData)
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+tasks.register('jacocoTestCoverageVerification', JacocoCoverageVerification) {
+    group = 'verification'
+    description = 'Fails when unit tests cover less than 87% of the app\'s lines.'
+    dependsOn 'testDebugUnitTest'
+    classDirectories.setFrom(coverageClasses)
+    sourceDirectories.setFrom(files('src/main/java'))
+    executionData.setFrom(coverageData)
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                minimum = 0.87
+            }
+        }
+    }
+}
