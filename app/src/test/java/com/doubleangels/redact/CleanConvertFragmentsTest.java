@@ -693,6 +693,17 @@ public class CleanConvertFragmentsTest {
         FakeMediaStoreProvider.reset();
     }
 
+    @Test
+    public void trashableMediaUri_mapsAFileItemToItsImageOrVideoItem() {
+        Uri file = Uri.parse("content://media/external_primary/file/202");
+        assertEquals(Uri.parse("content://media/external_primary/images/media/202"),
+                CleanFragment.trashableMediaUri(file, "image/jpeg"));
+        assertEquals(Uri.parse("content://media/external_primary/video/media/202"),
+                CleanFragment.trashableMediaUri(file, "video/mp4"));
+        Uri image = Uri.parse("content://media/external_primary/images/media/7");
+        assertEquals(image, CleanFragment.trashableMediaUri(image, null));
+    }
+
     @SuppressWarnings("unused")
     private static List<MediaItem> none() {
         return new ArrayList<>();

@@ -339,7 +339,8 @@ public class CleanFragment extends Fragment {
                 try {
                     Uri m = MediaStore.getMediaUri(requireContext(), u);
                     if (m != null) {
-                        mediaUris.add(m);
+                        mediaUris.add(trashableMediaUri(m,
+                                requireContext().getContentResolver().getType(m)));
                         trashable.add(u);
                     }
                 } catch (Exception ignored) {
@@ -354,6 +355,19 @@ public class CleanFragment extends Fragment {
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
+    }
+
+    /**
+     * The Images or Video item for {@code media}. A file picked in the Files app maps to a generic
+     * {@code .../file/<id>} item, which {@link MediaStore#createTrashRequest} rejects.
+     */
+    @NonNull
+    static Uri trashableMediaUri(@NonNull Uri media, @Nullable String mimeType) {
+        String volume = MediaStore.getVolumeName(media);
+        Uri collection = mimeType != null && mimeType.startsWith("video/")
+                ? MediaStore.Video.Media.getContentUri(volume)
+                : MediaStore.Images.Media.getContentUri(volume);
+        return android.content.ContentUris.withAppendedId(collection, android.content.ContentUris.parseId(media));
     }
 
     /** Shows the single file a clean just saved in Scan, so the user can see what it still holds. */
