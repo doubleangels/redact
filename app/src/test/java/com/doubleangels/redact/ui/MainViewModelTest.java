@@ -34,6 +34,32 @@ public class MainViewModelTest {
     }
 
     @Test
+    public void clearingOneTab_keepsTheReadGrantOfAFileTheOtherTabStillHas() {
+        Application app = RuntimeEnvironment.getApplication();
+        android.net.Uri shared = android.net.Uri.parse("content://com.example.media/photo/1");
+        android.net.Uri cleanOnly = android.net.Uri.parse("content://com.example.media/photo/2");
+        for (android.net.Uri uri : java.util.Arrays.asList(shared, cleanOnly)) {
+            app.getContentResolver().takePersistableUriPermission(
+                    uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        }
+        MainViewModel viewModel = new MainViewModel(app);
+        viewModel.setSelectedItems(java.util.Arrays.asList(
+                new com.doubleangels.redact.media.MediaItem(shared, false, "a.jpg"),
+                new com.doubleangels.redact.media.MediaItem(cleanOnly, false, "b.jpg")));
+        viewModel.setConvertSelectedItems(java.util.Collections.singletonList(
+                new com.doubleangels.redact.media.MediaItem(shared, false, "a.jpg")));
+
+        viewModel.clearSelectedItems();
+
+        java.util.Set<android.net.Uri> granted = new java.util.HashSet<>();
+        for (android.content.UriPermission p : app.getContentResolver().getPersistedUriPermissions()) {
+            granted.add(p.getUri());
+        }
+        assertTrue(granted.contains(shared));
+        assertTrue(!granted.contains(cleanOnly));
+    }
+
+    @Test
     public void cancelCleaning_immediatelySetsCancelledState() {
         Application app = RuntimeEnvironment.getApplication();
         MainViewModel viewModel = new MainViewModel(app);
