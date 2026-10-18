@@ -27,10 +27,7 @@ Show me the classified commit list (features / fixes / ignored), the level you c
 ## 3. Apply
 
 1. Update `versionCode` and `versionName` in `app/build.gradle`. Nothing else stores the version; `grep -rn "<old versionName>"` outside `build/` to make sure.
-2. Write `fastlane/metadata/android/en-US/changelogs/<new versionCode>.txt`:
-   - **patch**: `Bug fixes and performance improvements.`, the same as earlier patch releases.
-   - **minor / major**: one short line per user-facing change, in plain words with no commit hashes, like `changelogs/19.txt`, ending with `Bug fixes and performance improvements.` if the release also has fixes. Stay under 500 characters (the store limit).
-3. Leave `whatsnew/whatsnew-en-US` alone; it is the generic Play Store note and does not change per release.
+2. Write the release notes for the new `versionCode` by following step 5 ("Changelog and release notes") of `.claude/commands/prerelease.md`: the English `changelogs/<new versionCode>.txt` and `whatsnew/whatsnew-en-US`, and the translated `whatsnew/whatsnew-<locale>` files. A patch release gets specific lines too, never just `Bug fixes and performance improvements.`
 
 ## 4. Verify
 
@@ -39,6 +36,6 @@ Show me the classified commit list (features / fixes / ignored), the level you c
 
 ## 5. Report
 
-End with: the old and new `versionName`/`versionCode`, the level and the reason, the changelog text, test and translation results, and the reminder that the `v<new versionName>` tag and GitHub release are created by CI when this reaches `main`.
+End with: the old and new `versionName`/`versionCode`, the level and the reason, the changelog text (and that all 13 `whatsnew` files were written), test and translation results, and the reminder that the `v<new versionName>` tag and GitHub release are created by CI when this reaches `main`.
 
-Only if I asked to commit: stage `app/build.gradle` and the new changelog file only, and commit with the message `Bump version to <new versionName>`. Never push, and never create tags.
+Only if I asked to commit: stage `app/build.gradle`, the new changelog file and the `whatsnew/` files only, and commit with the message `Bump version to <new versionName>`. Never push, and never create tags.
