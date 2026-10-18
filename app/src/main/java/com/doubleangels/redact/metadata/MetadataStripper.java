@@ -348,7 +348,7 @@ public class MetadataStripper {
                         updateProgress(4, 4, context.getString(R.string.strip_progress_saving_clean_copy));
                         checkCancelled();
                         newUri = VideoMedia3Converter.copyToMoviesRedact(
-                                context, tempCleanFile, originalFilename, formatIndex);
+                                context, tempCleanFile, originalFilename);
                         savedViaFastPath = true;
                     } catch (IOException fastPathFailed) {
                         SentryManager.log(
@@ -358,12 +358,10 @@ public class MetadataStripper {
                 }
                 if (!savedViaFastPath) {
                     updateProgress(3, 4, context.getString(R.string.strip_progress_transcoding_target));
-                    String ext = VideoMedia3Converter.extensionForFormatIndex(formatIndex);
-                    File transcodeOutput =
-                            File.createTempFile("vid_transform_", ext, context.getCacheDir());
+                    File transcodeOutput = File.createTempFile(
+                            "vid_transform_", VideoMedia3Converter.TRANSCODE_EXTENSION, context.getCacheDir());
                     try {
-                        int actualFormatIndex =
-                                VideoMedia3Converter.transcodeToPath(
+                        VideoMedia3Converter.transcodeToPath(
                                         context.getApplicationContext(),
                                         cleanSourceUri,
                                         transcodeOutput.getAbsolutePath(),
@@ -377,8 +375,7 @@ public class MetadataStripper {
                                 VideoMedia3Converter.copyToMoviesRedact(
                                         context,
                                         transcodeOutput,
-                                        originalFilename,
-                                        actualFormatIndex);
+                                        originalFilename);
                     } finally {
                         secureDeleteFile(transcodeOutput);
                     }
@@ -799,16 +796,19 @@ public class MetadataStripper {
             }
 
             int formatIndex = detectVideoFormatIndex(sourceUri, originalFilename);
-            String extension = VideoMedia3Converter.extensionForFormatIndex(formatIndex);
-
-            String newFilename = generateShortRandomName() + extension;
-            outputFile = new File(outputDir, newFilename);
 
             updateProgress(2, 4, context.getString(R.string.strip_progress_transmuxing));
             File tempCleanFile = fastStripVideoMetadata(sourceUri);
             Uri cleanSourceUri = tempCleanFile != null ? Uri.fromFile(tempCleanFile) : sourceUri;
-            
+
             boolean needsTranscode = !shouldSkipVideoTranscode(formatIndex, tempCleanFile, true);
+
+            // A transcode is always MP4; a reused transmux keeps the container it was written in.
+            String extension = needsTranscode
+                    ? VideoMedia3Converter.TRANSCODE_EXTENSION
+                    : VideoMedia3Converter.extensionForFormatIndex(formatIndex);
+            String newFilename = generateShortRandomName() + extension;
+            outputFile = new File(outputDir, newFilename);
 
             try {
                 if (!needsTranscode && tempCleanFile != null) {

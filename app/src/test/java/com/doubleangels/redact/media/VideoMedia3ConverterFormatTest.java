@@ -43,11 +43,30 @@ public class VideoMedia3ConverterFormatTest {
     }
 
     @Test
-    public void containerMimeForFormatIndex_matchesExtension() {
-        assertEquals("video/mp4", VideoMedia3Converter.containerMimeForFormatIndex(0));
-        assertEquals("video/mp4", VideoMedia3Converter.containerMimeForFormatIndex(1));
-        assertEquals("video/webm", VideoMedia3Converter.containerMimeForFormatIndex(2));
-        assertEquals("video/x-matroska", VideoMedia3Converter.containerMimeForFormatIndex(3));
-        assertEquals("video/mp4", VideoMedia3Converter.containerMimeForFormatIndex(-5));
+    public void savedVideos_areNamedAfterTheContainerTheyAreReallyIn() throws Exception {
+        android.app.Application app = org.robolectric.RuntimeEnvironment.getApplication();
+        com.doubleangels.redact.FakeMediaStoreProvider.install(app);
+        try {
+            // A VP9 or AV1 transcode is MP4 (Transformer's muxer); only the fast transmux makes WebM.
+            java.io.File transcode = java.io.File.createTempFile(
+                    "vid_transform_", VideoMedia3Converter.TRANSCODE_EXTENSION, app.getCacheDir());
+            java.io.File transmux = java.io.File.createTempFile("vid_transmux_", ".webm", app.getCacheDir());
+
+            VideoMedia3Converter.copyToMoviesRedact(app, transcode, "clip.webm");
+            VideoMedia3Converter.copyToMoviesRedact(app, transmux, "clip.webm");
+
+            java.util.List<String> saved = new java.util.ArrayList<>();
+            for (com.doubleangels.redact.FakeMediaStoreProvider.Entry entry
+                    : com.doubleangels.redact.FakeMediaStoreProvider.entries().values()) {
+                String name = entry.displayName();
+                saved.add(name.substring(name.lastIndexOf('.')) + " " + entry.mimeType());
+            }
+            java.util.Collections.sort(saved);
+            assertEquals(java.util.Arrays.asList(".mp4 video/mp4", ".webm video/webm"), saved);
+            transcode.delete();
+            transmux.delete();
+        } finally {
+            com.doubleangels.redact.FakeMediaStoreProvider.reset();
+        }
     }
 }

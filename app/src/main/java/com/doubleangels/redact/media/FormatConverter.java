@@ -644,7 +644,7 @@ public final class FormatConverter {
             Uri transcodeInput = cleanSource != null ? Uri.fromFile(cleanSource) : sourceUri;
             outFile = File.createTempFile(
                     "vid_transform_",
-                    VideoMedia3Converter.extensionForFormatIndex(formatIndex),
+                    VideoMedia3Converter.TRANSCODE_EXTENSION,
                     context.getApplicationContext().getCacheDir());
             int actualFormat = VideoMedia3Converter.transcodeToPath(
                     context.getApplicationContext(),
@@ -664,7 +664,7 @@ public final class FormatConverter {
             }
             stripper.requireConvertedVideoClean(outFile, sourceUri);
             return VideoMedia3Converter.copyToMoviesRedact(
-                    context, outFile, baseDisplayName, actualFormat);
+                    context, outFile, baseDisplayName);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IOException("Video conversion interrupted", e);

@@ -629,13 +629,11 @@ public final class VideoMedia3Converter {
             throws IOException, InterruptedException {
 
         Context app = context.getApplicationContext();
-        String ext = extensionForFormatIndex(formatIndex);
-        File outFile = File.createTempFile("vid_transform_", ext, app.getCacheDir());
-        int actualFormatIndex =
-                transcodeToPath(app, sourceUri, outFile.getAbsolutePath(), formatIndex, progressListener);
+        File outFile = File.createTempFile("vid_transform_", TRANSCODE_EXTENSION, app.getCacheDir());
+        transcodeToPath(app, sourceUri, outFile.getAbsolutePath(), formatIndex, progressListener);
 
         try {
-            return copyToMoviesRedact(app, outFile, baseDisplayName, actualFormatIndex);
+            return copyToMoviesRedact(app, outFile, baseDisplayName);
         } finally {
             deleteQuietly(app, outFile);
         }
@@ -664,6 +662,16 @@ public final class VideoMedia3Converter {
         }
     }
 
+    /**
+     * The extension of everything {@link Transformer} writes: its default muxer is MP4 for every
+     * codec, VP9 and AV1 included.
+     */
+    public static final String TRANSCODE_EXTENSION = ".mp4";
+
+    /**
+     * The container a source in this format is usually in, which the fast transmux keeps (it
+     * writes WebM for VP8/VP9). A transcode is always {@link #TRANSCODE_EXTENSION}.
+     */
     @NonNull
     public static String extensionForFormatIndex(int formatIndex) {
         switch (formatIndex) {
@@ -678,26 +686,18 @@ public final class VideoMedia3Converter {
         }
     }
 
+    /**
+     * Saves a finished video to the output folder. Its extension and type follow the container
+     * {@code file} is really in (WebM only from the fast transmux, otherwise MP4), not the codec:
+     * a VP9 or AV1 transcode is MP4 too.
+     */
     @NonNull
-    public static String containerMimeForFormatIndex(int formatIndex) {
-        switch (formatIndex) {
-            case 2:
-                return "video/webm";
-            case 3:
-                return "video/x-matroska";
-            case 0:
-            case 1:
-            default:
-                return "video/mp4";
-        }
-    }
-
-    @NonNull
-    public static Uri copyToMoviesRedact(Context context, File file, String originalFileName, int formatIndex)
+    public static Uri copyToMoviesRedact(Context context, File file, String originalFileName)
             throws IOException {
         ContentResolver resolver = context.getContentResolver();
-        String ext = extensionForFormatIndex(formatIndex);
-        String mime = containerMimeForFormatIndex(formatIndex);
+        boolean webm = file.getName().toLowerCase(java.util.Locale.ROOT).endsWith(".webm");
+        String ext = webm ? ".webm" : ".mp4";
+        String mime = webm ? "video/webm" : "video/mp4";
         String outName = MediaFileNames.outputBaseName(context, originalFileName) + ext;
 
         Uri outUri = OutputDestination.create(context, true, outName, mime);
