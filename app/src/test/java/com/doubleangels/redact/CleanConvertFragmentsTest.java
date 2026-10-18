@@ -263,6 +263,90 @@ public class CleanConvertFragmentsTest {
         FakeMediaStoreProvider.reset();
     }
 
+    /** Cleans one real JPEG through the fake MediaStore and waits for the run to finish. */
+    private View cleanOneFile() throws Exception {
+        FakeMediaStoreProvider.install(activity);
+        java.io.File jpeg = java.io.File.createTempFile("result_", ".jpg", activity.getFilesDir());
+        jpeg.deleteOnExit();
+        try (java.io.FileOutputStream out = new java.io.FileOutputStream(jpeg)) {
+            android.graphics.Bitmap.createBitmap(12, 12, android.graphics.Bitmap.Config.ARGB_8888)
+                    .compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out);
+        }
+        View v = clean();
+        vm.startCleaning(Arrays.asList(new MediaItem(Uri.fromFile(jpeg), false, "photo.jpg")));
+        awaitMain(() -> vm.getCleanProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED);
+        idle();
+        assertEquals(1, vm.getCleanOutputs().size());
+        return v;
+    }
+
+    @Test
+    public void clean_scanResult_opensTheCleanCopyInScan() throws Exception {
+        View v = cleanOneFile();
+        assertEquals(View.VISIBLE, visibility(v, R.id.scanResultButton));
+
+        v.findViewById(R.id.scanResultButton).performClick();
+        idle();
+
+        assertNotNull(fragment("scan"));
+        assertTrue(fragment("scan").isVisible());
+        FakeMediaStoreProvider.reset();
+    }
+
+    @Test
+    public void clean_share_opensTheShareSheetForTheOutputs() throws Exception {
+        View v = cleanOneFile();
+        assertEquals(View.VISIBLE, visibility(v, R.id.shareResultsButton));
+
+        v.findViewById(R.id.shareResultsButton).performClick();
+        idle();
+
+        Intent chooser = shadowOf(activity).getNextStartedActivity();
+        while (chooser != null && !Intent.ACTION_CHOOSER.equals(chooser.getAction())) {
+            chooser = shadowOf(activity).getNextStartedActivity();
+        }
+        assertNotNull(chooser);
+        Intent send = chooser.getParcelableExtra(Intent.EXTRA_INTENT);
+        assertEquals(vm.getCleanOutputs().get(0), send.getParcelableExtra(Intent.EXTRA_STREAM));
+        FakeMediaStoreProvider.reset();
+    }
+
+    @Test
+    public void clean_pickingMoreThanTheLimit_keepsTheFirstTwenty() throws Exception {
+        grantStorageRead();
+        View v = clean();
+        v.findViewById(R.id.emptyStateSelectButton).performClick();
+        idle();
+
+        ShadowActivity shadow = shadowOf(activity);
+        ShadowActivity.IntentForResult launched = shadow.peekNextStartedActivityForResult();
+        assertNotNull(launched);
+        Intent data = new Intent();
+        data.setClipData(ClipData.newRawUri("media", Uri.parse("file:///nonexistent/0.jpg")));
+        for (int i = 1; i < 25; i++) {
+            data.getClipData().addItem(new ClipData.Item(Uri.parse("file:///nonexistent/" + i + ".jpg")));
+        }
+        shadow.receiveResult(launched.intent, Activity.RESULT_OK, data);
+        awaitMain(() -> vm.getSelectedItems().getValue().size() == 20);
+        assertEquals(activity.getString(R.string.media_picker_selection_capped, 20),
+                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+    }
+
+    @Test
+    public void clean_cancelledPicker_keepsTheSelection() {
+        grantStorageRead();
+        View v = clean();
+        v.findViewById(R.id.emptyStateSelectButton).performClick();
+        idle();
+
+        ShadowActivity shadow = shadowOf(activity);
+        ShadowActivity.IntentForResult launched = shadow.peekNextStartedActivityForResult();
+        assertNotNull(launched);
+        shadow.receiveResult(launched.intent, Activity.RESULT_CANCELED, null);
+        idle();
+        assertTrue(vm.getSelectedItems().getValue() == null || vm.getSelectedItems().getValue().isEmpty());
+    }
+
     @Test
     public void clean_changingSelectionAfterCompletion_resetsToIdle() {
         clean();

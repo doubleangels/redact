@@ -555,6 +555,36 @@ public class ShareHandlerActivityFlowsTest {
     }
 
     @Test
+    public void moreThanTwentyItems_areRefused() throws Exception {
+        ArrayList<Uri> uris = new ArrayList<>();
+        File photo = jpeg();
+        for (int i = 0; i < 21; i++) {
+            uris.add(Uri.fromFile(photo).buildUpon().appendQueryParameter("n", Integer.toString(i)).build());
+        }
+        Intent intent = new Intent(Intent.ACTION_SEND_MULTIPLE).setType("image/*")
+                .putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+
+        ShareHandlerActivity activity = launch(intent);
+
+        assertTrue(activity.isFinishing());
+        assertEquals(app.getString(R.string.share_error_too_many_items, 20), ShadowToast.getTextOfLatestToast());
+        assertEquals(0, inboundSnapshots().length);
+    }
+
+    @Test
+    public void nonMediaContent_isRefusedAsUnsupported() throws Exception {
+        Robolectric.setupContentProvider(TestMediaProvider.class, AUTHORITY);
+        TestMediaProvider.file = jpeg();
+        TestMediaProvider.type = "application/pdf";
+
+        ShareHandlerActivity activity = launch(send("application/pdf", Uri.parse("content://" + AUTHORITY + "/doc/1")));
+
+        assertTrue(activity.isFinishing());
+        assertEquals(app.getString(R.string.share_error_unsupported_media), ShadowToast.getTextOfLatestToast());
+        TestMediaProvider.type = "image/jpeg";
+    }
+
+    @Test
     public void nullStreamIntent_isRejected() {
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType("image/jpeg");

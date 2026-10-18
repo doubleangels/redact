@@ -521,6 +521,110 @@ public class SettingsFragmentTest {
         idle();
     }
 
+    /** Waits for an activity-for-result launched after background work, as the folder picker is. */
+    private org.robolectric.shadows.ShadowActivity.IntentForResult awaitStartedForResult() throws Exception {
+        long end = System.currentTimeMillis() + 3000;
+        org.robolectric.shadows.ShadowActivity.IntentForResult launched = null;
+        while (launched == null && System.currentTimeMillis() < end) {
+            idle();
+            launched = shadowOf(activity).getNextStartedActivityForResult();
+            // Skip the initial runtime-permission request.
+            if (launched != null && !Intent.ACTION_OPEN_DOCUMENT_TREE.equals(launched.intent.getAction())) {
+                launched = null;
+                continue;
+            }
+            if (launched == null) {
+                Thread.sleep(25);
+            }
+        }
+        assertNotNull(launched);
+        return launched;
+    }
+
+    private Intent awaitStarted(String action) throws Exception {
+        Intent intent = null;
+        long end = System.currentTimeMillis() + 3000;
+        while (intent == null && System.currentTimeMillis() < end) {
+            idle();
+            intent = nextIntentWithAction(action);
+            if (intent == null) {
+                Thread.sleep(25);
+            }
+        }
+        assertNotNull(intent);
+        return intent;
+    }
+
+    @Test
+    public void chooseFolder_offersTheSameFolderForTheOtherMediaType() throws Exception {
+        FakeDocumentsProvider.install(activity);
+        android.net.Uri tree = FakeDocumentsProvider.folder("primary:DCIM/Camera");
+        settings.findViewById(R.id.buttonChooseOutputImages).performClick();
+        org.robolectric.shadows.ShadowActivity.IntentForResult launched = awaitStartedForResult();
+        assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, launched.intent.getAction());
+
+        shadowOf(activity).receiveResult(launched.intent, Activity.RESULT_OK,
+                new Intent().setData(tree).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION));
+        idle();
+        assertEquals(tree, AppPreferences.getOutputTree(activity, false));
+
+        AlertDialog offer = latestDialog();
+        assertNotNull(offer);
+        offer.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        idle();
+        assertEquals(tree, AppPreferences.getOutputTree(activity, true));
+
+        // A chosen folder is opened with the read grant Redact holds for it.
+        settings.findViewById(R.id.buttonOpenOutputImages).performClick();
+        Intent view = awaitStarted(Intent.ACTION_VIEW);
+        assertTrue((view.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0);
+    }
+
+    @Test
+    public void chooseFolder_cancelled_changesNothing() throws Exception {
+        settings.findViewById(R.id.buttonChooseOutputVideos).performClick();
+        org.robolectric.shadows.ShadowActivity.IntentForResult launched = awaitStartedForResult();
+        shadowOf(activity).receiveResult(launched.intent, Activity.RESULT_CANCELED, null);
+        idle();
+        assertEquals(null, AppPreferences.getOutputTree(activity, true));
+    }
+
+    @Test
+    public void resetAllSettings_whileAJobRuns_isRefused() {
+        AppPreferences.setDeleteOriginalsAfterClean(activity, true);
+        new androidx.lifecycle.ViewModelProvider(activity).get(com.doubleangels.redact.ui.MainViewModel.class)
+                .setCleanProcessingState(com.doubleangels.redact.ui.MainViewModel.ProcessingState.PROCESSING);
+        settings.findViewById(R.id.rowResetSettings).performClick();
+        idle();
+        latestDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        idle();
+
+        assertEquals(activity.getString(R.string.settings_reset_all_busy),
+                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+        assertTrue(AppPreferences.isDeleteOriginalsAfterClean(activity));
+    }
+
+    @Test
+    public void dropdowns_showTheLeastAndMostThoroughChoices() {
+        AppPreferences.setSecureDeletePasses(activity, 1);
+        AppPreferences.setMaxBitmapSize(activity, 8192);
+        // Settings reads its values when its view is made, so start over with a new activity.
+        controller.pause().stop().destroy();
+        controller = Robolectric.buildActivity(MainActivity.class).setup();
+        activity = controller.get();
+        activity.selectTab(R.id.navigation_settings);
+        idle();
+        settings = fragment().getView();
+
+        String[] passes = activity.getResources().getStringArray(R.array.settings_secure_delete_labels);
+        assertEquals(passes[0],
+                ((MaterialAutoCompleteTextView) settings.findViewById(R.id.dropdownSecureDelete)).getText().toString());
+        String[] sizes = activity.getResources().getStringArray(R.array.settings_max_bitmap_size_labels);
+        assertEquals(sizes[2],
+                ((MaterialAutoCompleteTextView) settings.findViewById(R.id.dropdownMaxBitmapSize)).getText().toString());
+    }
+
     @Test
     public void openFolder_showsTheOutputFolderInTheFileManager() throws Exception {
         assertTrue(new java.io.File(android.os.Environment.getExternalStorageDirectory(),
@@ -567,6 +671,17 @@ public class SettingsFragmentTest {
         //noinspection ResultOfMethodCallIgnored
         FakeDocumentsProvider.fileFor("primary:Pictures/Private").delete();
         reshowSettings();
+        // The folder is checked in the background; wait for the answer to reach the screen.
+        long end = System.currentTimeMillis() + 3000;
+        while (warning.getVisibility() != View.VISIBLE && System.currentTimeMillis() < end) {
+            idle();
+            try {
+                Thread.sleep(25);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
         assertEquals("Pictures/Private", label.getText().toString());
         assertEquals(View.VISIBLE, warning.getVisibility());
         assertEquals(activity.getString(R.string.settings_output_unavailable, "Pictures/Redact"),

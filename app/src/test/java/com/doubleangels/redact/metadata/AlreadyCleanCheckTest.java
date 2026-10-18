@@ -185,6 +185,49 @@ public class AlreadyCleanCheckTest {
                 AlreadyCleanCheck.assess(app, items, 60_000L));
     }
 
+    private MediaItem video(int key, String value) throws IOException {
+        File f = File.createTempFile("check_", ".mp4", app.getCacheDir());
+        f.deleteOnExit();
+        Uri uri = FakeMediaStoreProvider.add(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, f, "video/mp4");
+        if (value != null) {
+            org.robolectric.shadows.ShadowMediaMetadataRetriever.addMetadata(
+                    org.robolectric.shadows.util.DataSource.toDataSource(app, uri), key, value);
+        }
+        return new MediaItem(uri, true, f.getName());
+    }
+
+    @Test
+    public void video_withLocationDateOrAuthor_needsCleaning() throws IOException {
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app,
+                video(android.media.MediaMetadataRetriever.METADATA_KEY_LOCATION, "+40.5-073.9/")));
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app,
+                video(android.media.MediaMetadataRetriever.METADATA_KEY_DATE, "20240102T030405.000Z")));
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app,
+                video(android.media.MediaMetadataRetriever.METADATA_KEY_AUTHOR, "Someone")));
+    }
+
+    @Test
+    public void video_withNothingIdentifying_isAlreadyClean() throws IOException {
+        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app,
+                video(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION, "1000")));
+    }
+
+    @Test
+    public void video_theRetrieverCannotRead_isUnknown() throws IOException {
+        MediaItem item = video(0, null);
+        org.robolectric.shadows.ShadowMediaMetadataRetriever.addException(
+                org.robolectric.shadows.util.DataSource.toDataSource(app, item.uri()),
+                new IllegalArgumentException("not a video"));
+        assertEquals(Status.UNKNOWN, AlreadyCleanCheck.assessItem(app, item));
+    }
+
+    @Test
+    public void unreadableImage_isUnknown() throws IOException {
+        MediaItem item = item(jpegWith(ExifInterface.TAG_MAKE, "Acme"), "image/jpeg");
+        FakeMediaStoreProvider.failOpen = true;
+        assertEquals(Status.UNKNOWN, AlreadyCleanCheck.assessItem(app, item));
+    }
+
     @Test
     public void assess_afterTheBudgetRunsOut_reportsUnknown() throws IOException {
         List<MediaItem> items = Arrays.asList(item(jpeg(), "image/jpeg"), item(jpeg(), "image/jpeg"));
