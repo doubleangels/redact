@@ -448,4 +448,36 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="review_prompt_no">No</string>
     <string name="review_prompt_declined">Va bene, Redact non lo chiederà più. Se cambi idea, puoi valutarlo quando vuoi da Impostazioni › Informazioni.</string>
     <string name="crash_prompt_declined">Va bene, Redact non lo chiederà più. Puoi attivare i rapporti sugli arresti anomali quando vuoi da Impostazioni › Diagnostica e Feedback.</string>
+    <string name="stats_title">Statistiche</string>
+    <string name="stats_navigate_up">Indietro</string>
+    <string name="stats_settings_title">Le Tue Statistiche sulla Privacy</string>
+    <string name="stats_settings_empty">Pulisci la tua prima foto o il tuo primo video per vedere cosa Redact rimuove per te.</string>
+    <string name="stats_settings_since">Conteggiato su questo dispositivo dal %1$s.</string>
+    <string name="stats_fields_removed">Campi Rimossi</string>
+    <string name="stats_locations_removed">Posizioni Rimosse</string>
+    <string name="stats_files_cleaned">File Puliti</string>
+    <string name="stats_photos">Foto Pulite</string>
+    <string name="stats_videos">Video Puliti</string>
+    <string name="stats_shared_in">Condivisi in Redact</string>
+    <string name="stats_times_shared">Condivisioni</string>
+    <string name="stats_files_converted">File Convertiti</string>
+    <string name="stats_hero_since">Campi di metadati rimossi dal %1$s</string>
+    <string name="stats_hero_empty">Campi di metadati rimossi. Pulisci una foto o un video per iniziare il conteggio.</string>
+    <string name="stats_on_device_note">Conteggiato solo su questo dispositivo. Niente di tutto questo viene mai inviato.</string>
+    <string name="stats_section_cleaning">Pulizia</string>
+    <string name="stats_section_sharing">Condivisione e Conversione</string>
+    <string name="stats_section_activity">Ultimi 30 Giorni</string>
+    <string name="stats_chart_empty">Nulla è stato pulito negli ultimi 30 giorni.</string>
+    <string name="stats_chart_today">Oggi</string>
+    <string name="stats_clear">Cancella Statistiche</string>
+    <string name="stats_clear_subtitle">Azzera tutti i conteggi. Le tue impostazioni e i tuoi file restano invariati.</string>
+    <string name="stats_clear_title">Cancella statistiche</string>
+    <string name="stats_clear_message">Tutti i conteggi tornano a zero e ripartono da adesso. Impostazioni, foto, video e file puliti non vengono toccati.</string>
+    <string name="stats_clear_confirm">Cancella</string>
+    <string name="stats_cleared">Statistiche cancellate.</string>
+    <plurals name="stats_chart_summary">
+        <item quantity="one">%1$s file pulito negli ultimi 30 giorni.</item>
+        <item quantity="many">%1$s di file puliti negli ultimi 30 giorni.</item>
+        <item quantity="other">%1$s file puliti negli ultimi 30 giorni.</item>
+    </plurals>
 </resources>

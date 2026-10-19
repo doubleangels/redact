@@ -286,6 +286,24 @@ public class ShareHandlerActivityFlowsTest {
     }
 
     @Test
+    public void confirming_andFinishing_countsTheFileAndTheShare() throws Exception {
+        FileProviderTestSupport.makeUsable(app);
+        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        ((AlertDialog) ShadowDialog.getLatestDialog()).getButton(DialogInterface.BUTTON_POSITIVE).performClick();
+        idle();
+
+        awaitMain(() -> {
+            idle();
+            return shadowOf(activity).peekNextStartedActivityForResult() != null;
+        });
+
+        com.doubleangels.redact.stats.StatsSnapshot stats = com.doubleangels.redact.stats.StatsStore.snapshot(app);
+        assertEquals(1, stats.imagesCleaned);
+        assertEquals(1, stats.sharedIn);
+        assertEquals(1, stats.shares);
+    }
+
+    @Test
     public void cancelShareProcessing_cleansUpAndFinishes() throws Exception {
         ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
 

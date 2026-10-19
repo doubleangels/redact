@@ -446,4 +446,35 @@
     <string name="review_prompt_no">No</string>
     <string name="review_prompt_declined">Got it, Redact won\'t ask again. If you change your mind, you can rate it anytime from Settings › About.</string>
     <string name="crash_prompt_declined">Got it, Redact won\'t ask again. You can turn on crash reports anytime in Settings › Diagnostics &amp; Feedback.</string>
+    <string name="stats_title">Statistics</string>
+    <string name="stats_navigate_up">Back</string>
+    <string name="stats_settings_title">Your Privacy Stats</string>
+    <string name="stats_settings_empty">Clean your first photo or video to see what Redact removes for you.</string>
+    <string name="stats_settings_since">Counted on this device since %1$s.</string>
+    <string name="stats_fields_removed">Fields Removed</string>
+    <string name="stats_locations_removed">Locations Removed</string>
+    <string name="stats_files_cleaned">Files Cleaned</string>
+    <string name="stats_photos">Photos Cleaned</string>
+    <string name="stats_videos">Videos Cleaned</string>
+    <string name="stats_shared_in">Shared Into Redact</string>
+    <string name="stats_times_shared">Times Shared</string>
+    <string name="stats_files_converted">Files Converted</string>
+    <string name="stats_hero_since">Metadata fields removed since %1$s</string>
+    <string name="stats_hero_empty">Metadata fields removed. Clean a photo or video to start counting.</string>
+    <string name="stats_on_device_note">Counted only on this device. Nothing here is ever sent anywhere.</string>
+    <string name="stats_section_cleaning">Cleaning</string>
+    <string name="stats_section_sharing">Sharing &amp; Converting</string>
+    <string name="stats_section_activity">Last 30 Days</string>
+    <string name="stats_chart_empty">Nothing cleaned in the last 30 days.</string>
+    <string name="stats_chart_today">Today</string>
+    <string name="stats_clear">Clear Statistics</string>
+    <string name="stats_clear_subtitle">Sets every count back to zero. Your settings and files stay as they are.</string>
+    <string name="stats_clear_title">Clear Statistics</string>
+    <string name="stats_clear_message">Every count goes back to zero and starts again from now. Your settings, photos, videos and cleaned files are not touched.</string>
+    <string name="stats_clear_confirm">Clear</string>
+    <string name="stats_cleared">Statistics cleared.</string>
+    <plurals name="stats_chart_summary">
+        <item quantity="one">%1$s file cleaned in the last 30 days.</item>
+        <item quantity="other">%1$s files cleaned in the last 30 days.</item>
+    </plurals>
 </resources>

@@ -434,4 +434,34 @@
     <string name="review_prompt_no">아니요</string>
     <string name="review_prompt_declined">알겠습니다. 다시 묻지 않을게요. 마음이 바뀌면 설정 › 정보에서 언제든지 평가할 수 있습니다.</string>
     <string name="crash_prompt_declined">알겠습니다. 다시 묻지 않을게요. 비정상 종료 보고서는 설정 › 진단 및 피드백에서 언제든지 켤 수 있습니다.</string>
+    <string name="stats_title">통계</string>
+    <string name="stats_navigate_up">뒤로</string>
+    <string name="stats_settings_title">개인정보 보호 통계</string>
+    <string name="stats_settings_empty">첫 사진이나 동영상을 정리하면 Redact가 제거한 내용을 볼 수 있습니다.</string>
+    <string name="stats_settings_since">%1$s부터 이 기기에서 집계했습니다.</string>
+    <string name="stats_fields_removed">제거한 필드</string>
+    <string name="stats_locations_removed">제거한 위치</string>
+    <string name="stats_files_cleaned">정리한 파일</string>
+    <string name="stats_photos">정리한 사진</string>
+    <string name="stats_videos">정리한 동영상</string>
+    <string name="stats_shared_in">Redact로 공유</string>
+    <string name="stats_times_shared">공유 횟수</string>
+    <string name="stats_files_converted">변환한 파일</string>
+    <string name="stats_hero_since">%1$s 이후 제거한 메타데이터 필드</string>
+    <string name="stats_hero_empty">제거한 메타데이터 필드. 사진이나 동영상을 정리하면 집계가 시작됩니다.</string>
+    <string name="stats_on_device_note">이 기기에서만 집계됩니다. 어디로도 전송되지 않습니다.</string>
+    <string name="stats_section_cleaning">정리</string>
+    <string name="stats_section_sharing">공유 및 변환</string>
+    <string name="stats_section_activity">최근 30일</string>
+    <string name="stats_chart_empty">최근 30일 동안 정리한 파일이 없습니다.</string>
+    <string name="stats_chart_today">오늘</string>
+    <string name="stats_clear">통계 지우기</string>
+    <string name="stats_clear_subtitle">모든 수치를 0으로 되돌립니다. 설정과 파일은 그대로 유지됩니다.</string>
+    <string name="stats_clear_title">통계 지우기</string>
+    <string name="stats_clear_message">모든 수치가 0으로 돌아가고 지금부터 다시 집계됩니다. 설정, 사진, 동영상, 정리된 파일은 영향을 받지 않습니다.</string>
+    <string name="stats_clear_confirm">지우기</string>
+    <string name="stats_cleared">통계를 지웠습니다.</string>
+    <plurals name="stats_chart_summary">
+        <item quantity="other">최근 30일 동안 파일 %1$s개를 정리했습니다.</item>
+    </plurals>
 </resources>

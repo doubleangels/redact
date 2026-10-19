@@ -202,8 +202,9 @@ public class MetadataStripper {
     }
 
     /**
-     * What the last {@link #stripExifData} or {@link #stripVideoMetadata} call found to remove, or
-     * null when that call failed before reading the source.
+     * What the last {@link #stripExifData}, {@link #stripVideoMetadata} or
+     * {@link #stripMetadataForSharing} call found to remove, or null when that call failed before
+     * reading the source.
      */
     @Nullable
     public CleanStats getLastCleanStats() {
@@ -473,7 +474,7 @@ public class MetadataStripper {
             // Extract essential EXIF data to preserve (like orientation)
             updateProgress(2, 5, context.getString(R.string.strip_progress_reading_essential_metadata));
             readEssentialExifData(tempFile, false);
-            lastCleanStats = readCleanStats(tempFile);
+            lastCleanStats = readCleanStats(tempFile, false);
 
             // Remove thumbnails from original
             try {
@@ -627,6 +628,7 @@ public class MetadataStripper {
         SentryManager.log("The app is starting image EXIF stripping for sharing.");
 
         SentryManager.setCustomKey("operation_type", "image_for_sharing");
+        lastCleanStats = null;
 
         Bitmap originalBitmap = null;
         File tempFile = null;
@@ -644,6 +646,7 @@ public class MetadataStripper {
 
             updateProgress(2, 4, context.getString(R.string.strip_progress_reading_essential_metadata));
             readEssentialExifData(tempFile, true);
+            lastCleanStats = readCleanStats(tempFile, true);
 
             File outputDir = new File(context.getCacheDir(), "processed");
             if (!outputDir.exists()) {
@@ -782,6 +785,7 @@ public class MetadataStripper {
         SentryManager.log("The app is starting video metadata stripping for sharing.");
 
         SentryManager.setCustomKey("operation_type", "video_for_sharing");
+        lastCleanStats = null;
 
         File outputFile = null;
 
@@ -789,6 +793,7 @@ public class MetadataStripper {
             updateProgress(1, 4, context.getString(R.string.strip_progress_reading_video));
 
             VideoPrivacySnapshot sourceSnapshot = extractVideoPrivacyMetadata(sourceUri);
+            lastCleanStats = countVideoPrivacyFields(sourceSnapshot);
 
             // Create directory for processed files if it doesn't exist
             File outputDir = new File(context.getCacheDir(), "processed");
@@ -1529,11 +1534,11 @@ public class MetadataStripper {
 
     /** Counts the identifying fields in an image before it is cleaned; unreadable EXIF counts as none. */
     @NonNull
-    private CleanStats readCleanStats(@NonNull File imageFile) {
+    private CleanStats readCleanStats(@NonNull File imageFile, boolean forSharing) {
         try {
             return CleanStats.fromExif(
                     new ExifInterface(imageFile.getAbsolutePath()),
-                    new java.util.HashSet<>(getTagsToPreserve(false)));
+                    new java.util.HashSet<>(getTagsToPreserve(forSharing)));
         } catch (Exception e) {
             return new CleanStats(0, false);
         }

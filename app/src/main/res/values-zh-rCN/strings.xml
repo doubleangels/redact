@@ -434,4 +434,34 @@
     <string name="review_prompt_no">不用了</string>
     <string name="review_prompt_declined">好的，Redact 不会再询问。如果你改变主意，可以随时在“设置 › 关于”中评分。</string>
     <string name="crash_prompt_declined">好的，Redact 不会再询问。你可以随时在 设置 › 诊断与反馈 中开启崩溃报告。</string>
+    <string name="stats_title">统计</string>
+    <string name="stats_navigate_up">返回</string>
+    <string name="stats_settings_title">你的隐私统计</string>
+    <string name="stats_settings_empty">清理第一张照片或第一个视频，即可查看 Redact 为你移除了哪些内容。</string>
+    <string name="stats_settings_since">自 %1$s 起在此设备上统计。</string>
+    <string name="stats_fields_removed">已移除字段</string>
+    <string name="stats_locations_removed">已移除位置</string>
+    <string name="stats_files_cleaned">已清理文件</string>
+    <string name="stats_photos">已清理照片</string>
+    <string name="stats_videos">已清理视频</string>
+    <string name="stats_shared_in">分享到 Redact</string>
+    <string name="stats_times_shared">分享次数</string>
+    <string name="stats_files_converted">已转换文件</string>
+    <string name="stats_hero_since">自 %1$s 起已移除的元数据字段</string>
+    <string name="stats_hero_empty">已移除的元数据字段。清理一张照片或一个视频即可开始统计。</string>
+    <string name="stats_on_device_note">仅在此设备上统计，这些数据绝不会发送到任何地方。</string>
+    <string name="stats_section_cleaning">清理</string>
+    <string name="stats_section_sharing">分享和转换</string>
+    <string name="stats_section_activity">最近 30 天</string>
+    <string name="stats_chart_empty">最近 30 天内没有清理任何文件。</string>
+    <string name="stats_chart_today">今天</string>
+    <string name="stats_clear">清除统计</string>
+    <string name="stats_clear_subtitle">将所有计数归零。你的设置和文件保持不变。</string>
+    <string name="stats_clear_title">清除统计</string>
+    <string name="stats_clear_message">所有计数将归零，并从现在起重新统计。你的设置、照片、视频和已清理的文件不受影响。</string>
+    <string name="stats_clear_confirm">清除</string>
+    <string name="stats_cleared">统计已清除。</string>
+    <plurals name="stats_chart_summary">
+        <item quantity="other">最近 30 天内清理了 %1$s 个文件。</item>
+    </plurals>
 </resources>

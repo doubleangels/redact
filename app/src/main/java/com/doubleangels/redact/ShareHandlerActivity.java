@@ -559,6 +559,11 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     Uri processedUri = metadataStripper.stripMetadataForSharing(uri, fileName, isVideo);
                     if (processedUri != null) {
                         processedUris.add(processedUri);
+                        com.doubleangels.redact.metadata.CleanStats stats =
+                                metadataStripper.getLastCleanStats();
+                        com.doubleangels.redact.stats.StatsStore.recordClean(this,
+                                stats != null ? stats : new com.doubleangels.redact.metadata.CleanStats(0, false),
+                                isVideo, true);
                         try {
                             File outputFile = metadataStripper.getLastProcessedOutputFile();
                             if (outputFile != null && outputFile.exists() && outputFile.isFile()) {
@@ -704,6 +709,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private void launchShareChooser(Intent chooser) {
         sharingInitiated = true;
         shareResultLauncher.launch(chooser);
+        com.doubleangels.redact.stats.StatsStore.recordShare(this);
     }
 
     private void shareCleanFile(boolean isVideo, Uri cleanedFileUri) {

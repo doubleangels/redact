@@ -59,6 +59,7 @@ public final class ShareResults {
         try {
             context.startActivity(withoutOwnTargets(context,
                     Intent.createChooser(send, context.getString(R.string.share_results_chooser_title))));
+            com.doubleangels.redact.stats.StatsStore.recordShare(context);
         } catch (android.content.ActivityNotFoundException e) {
             Toast.makeText(context, R.string.share_error_generic, Toast.LENGTH_SHORT).show();
         }

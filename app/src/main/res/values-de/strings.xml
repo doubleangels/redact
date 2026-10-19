@@ -440,4 +440,35 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="review_prompt_no">Nein</string>
     <string name="review_prompt_declined">Alles klar, Redact fragt nicht noch einmal. Falls du es dir anders überlegst, kannst du es jederzeit unter Einstellungen › Über bewerten.</string>
     <string name="crash_prompt_declined">Alles klar, Redact fragt nicht noch einmal. Du kannst Absturzberichte jederzeit unter Einstellungen › Diagnose &amp; Feedback einschalten.</string>
+    <string name="stats_title">Statistik</string>
+    <string name="stats_navigate_up">Zurück</string>
+    <string name="stats_settings_title">Deine Datenschutz-Statistik</string>
+    <string name="stats_settings_empty">Bereinige dein erstes Foto oder Video, um zu sehen, was Redact für dich entfernt.</string>
+    <string name="stats_settings_since">Auf diesem Gerät gezählt seit %1$s.</string>
+    <string name="stats_fields_removed">Entfernte Felder</string>
+    <string name="stats_locations_removed">Entfernte Standorte</string>
+    <string name="stats_files_cleaned">Bereinigte Dateien</string>
+    <string name="stats_photos">Bereinigte Fotos</string>
+    <string name="stats_videos">Bereinigte Videos</string>
+    <string name="stats_shared_in">In Redact Geteilt</string>
+    <string name="stats_times_shared">Mal Geteilt</string>
+    <string name="stats_files_converted">Konvertierte Dateien</string>
+    <string name="stats_hero_since">Metadatenfelder entfernt seit %1$s</string>
+    <string name="stats_hero_empty">Metadatenfelder entfernt. Bereinige ein Foto oder Video, um mit dem Zählen zu beginnen.</string>
+    <string name="stats_on_device_note">Nur auf diesem Gerät gezählt. Nichts davon wird jemals irgendwohin gesendet.</string>
+    <string name="stats_section_cleaning">Bereinigung</string>
+    <string name="stats_section_sharing">Teilen &amp; Konvertieren</string>
+    <string name="stats_section_activity">Letzte 30 Tage</string>
+    <string name="stats_chart_empty">In den letzten 30 Tagen wurde nichts bereinigt.</string>
+    <string name="stats_chart_today">Heute</string>
+    <string name="stats_clear">Statistik Löschen</string>
+    <string name="stats_clear_subtitle">Setzt alle Zähler auf null zurück. Deine Einstellungen und Dateien bleiben unverändert.</string>
+    <string name="stats_clear_title">Statistik löschen</string>
+    <string name="stats_clear_message">Alle Zähler gehen auf null zurück und beginnen ab jetzt neu. Deine Einstellungen, Fotos, Videos und bereinigten Dateien bleiben unberührt.</string>
+    <string name="stats_clear_confirm">Löschen</string>
+    <string name="stats_cleared">Statistik gelöscht.</string>
+    <plurals name="stats_chart_summary">
+        <item quantity="one">%1$s Datei in den letzten 30 Tagen bereinigt.</item>
+        <item quantity="other">%1$s Dateien in den letzten 30 Tagen bereinigt.</item>
+    </plurals>
 </resources>

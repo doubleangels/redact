@@ -74,6 +74,17 @@ public class ShareResultsTest {
     }
 
     @Test
+    public void share_countsOneShareForTheStatistics() {
+        Activity app = Robolectric.buildActivity(Activity.class).setup().get();
+        com.doubleangels.redact.stats.StatsStore.clear(app);
+
+        ShareResults.share(app, List.of(JPG, PNG));
+        ShareResults.share(app, List.of());
+
+        assertEquals(1, com.doubleangels.redact.stats.StatsStore.snapshot(app).shares);
+    }
+
+    @Test
     public void share_severalFiles_sendsAllOfThem() {
         Activity app = Robolectric.buildActivity(Activity.class).setup().get();
         ShareResults.share(app, List.of(JPG, PNG, MP4));

@@ -83,6 +83,25 @@ public class MetadataStripperSharingTest {
     }
 
     @Test
+    public void shareJpeg_reportsWhatItRemoved() throws Exception {
+        File src = image(".jpg", Bitmap.CompressFormat.JPEG, true);
+
+        assertClean(stripper.stripExifDataForSharing(Uri.fromFile(src), "s.jpg"));
+
+        CleanStats stats = stripper.getLastCleanStats();
+        assertNotNull(stats);
+        assertTrue(stats.removedFields > 0);
+        assertTrue(stats.hadLocation);
+    }
+
+    @Test
+    public void shareMissingSource_reportsNothing() {
+        stripper.stripExifDataForSharing(Uri.parse("file:///no/such/file.jpg"), "missing.jpg");
+
+        assertEquals(null, stripper.getLastCleanStats());
+    }
+
+    @Test
     public void shareJpeg_nonStrict_removesExif() throws Exception {
         AppPreferences.setStrictClean(app, false);
         File src = image(".jpg", Bitmap.CompressFormat.JPEG, true);

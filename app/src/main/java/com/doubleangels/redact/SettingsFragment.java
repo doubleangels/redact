@@ -31,6 +31,8 @@ import com.doubleangels.redact.permission.PermissionStatusHelper;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.sentry.SentryInitializer;
 import com.doubleangels.redact.sentry.SentryManager;
+import com.doubleangels.redact.stats.StatsSnapshot;
+import com.doubleangels.redact.stats.StatsStore;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -64,6 +66,11 @@ public class SettingsFragment extends Fragment {
     private MaterialButton buttonLocationPermission;
     private TextView textPermissionNotificationsStatus;
     private TextView textStorageSize;
+    private View rowStatsSummary;
+    private TextView textStatsSummarySubtitle;
+    private TextView textStatsSummaryFields;
+    private TextView textStatsSummaryLocations;
+    private TextView textStatsSummaryFiles;
     private MaterialAutoCompleteTextView dropdownDefaultImageFormat;
     private MaterialAutoCompleteTextView dropdownDefaultVideoFormat;
     private MaterialAutoCompleteTextView dropdownImageQuality;
@@ -113,6 +120,7 @@ public class SettingsFragment extends Fragment {
             clipboardClearLabels = getResources().getStringArray(R.array.settings_clipboard_clear_labels);
             maxBitmapSizeLabels = getResources().getStringArray(R.array.settings_max_bitmap_size_labels);
 
+            bindStatistics(view);
             bindPermissions(view);
             bindConversionDefaults();
             bindShareTarget();
@@ -132,6 +140,7 @@ public class SettingsFragment extends Fragment {
         refreshPermissionStatuses();
         refreshStorageSize();
         refreshOutputFolders();
+        refreshStatistics();
         maybeRequestLocationAfterMediaGrant();
     }
 
@@ -141,6 +150,8 @@ public class SettingsFragment extends Fragment {
         if (!hidden) {
             // A chosen folder can be deleted or its storage removed while another tab is open.
             refreshOutputFolders();
+            // A clean or convert on another tab adds to the counts.
+            refreshStatistics();
         }
     }
 
@@ -688,6 +699,48 @@ public class SettingsFragment extends Fragment {
                 : com.google.android.material.R.attr.colorOnErrorContainer, 0);
         badge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(background));
         icon.setImageTintList(android.content.res.ColorStateList.valueOf(foreground));
+    }
+
+    private void bindStatistics(@NonNull View view) {
+        rowStatsSummary = view.findViewById(R.id.rowStatsSummary);
+        textStatsSummarySubtitle = view.findViewById(R.id.textStatsSummarySubtitle);
+        textStatsSummaryFields = view.findViewById(R.id.textStatsSummaryFields);
+        textStatsSummaryLocations = view.findViewById(R.id.textStatsSummaryLocations);
+        textStatsSummaryFiles = view.findViewById(R.id.textStatsSummaryFiles);
+        view.findViewById(R.id.cardStatsSummary).setOnClickListener(v ->
+                startActivity(new Intent(requireContext(), StatisticsActivity.class)));
+        refreshStatistics();
+    }
+
+    /** Shows the headline counts, or an invitation to clean something while there are none. */
+    private void refreshStatistics() {
+        if (rowStatsSummary == null || getContext() == null) {
+            return;
+        }
+        StatsSnapshot stats = StatsStore.snapshot(requireContext());
+        if (stats.isEmpty()) {
+            rowStatsSummary.setVisibility(View.GONE);
+            textStatsSummarySubtitle.setText(R.string.stats_settings_empty);
+            return;
+        }
+        textStatsSummarySubtitle.setText(getString(R.string.stats_settings_since,
+                java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM)
+                        .format(new java.util.Date(stats.trackingSince))));
+        textStatsSummaryFields.setText(compactCount(stats.fieldsRemoved));
+        textStatsSummaryLocations.setText(compactCount(stats.locationsRemoved));
+        textStatsSummaryFiles.setText(compactCount(stats.filesCleaned()));
+        rowStatsSummary.setVisibility(View.VISIBLE);
+    }
+
+    /** A count short enough for a third of the card: 1,284 stays as it is, 1,284,000 becomes 1.3M. */
+    @NonNull
+    private static String compactCount(long count) {
+        if (count < 1_000_000) {
+            return java.text.NumberFormat.getIntegerInstance().format(count);
+        }
+        return android.icu.text.CompactDecimalFormat.getInstance(
+                java.util.Locale.getDefault(),
+                android.icu.text.CompactDecimalFormat.CompactStyle.SHORT).format(count);
     }
 
     private void bindAbout(@NonNull View view) {

@@ -112,6 +112,10 @@ public class MainViewModelSuccessFlowTest {
         assertEquals(Arrays.asList(a.uri(), b.uri()), vm.getCleanSucceededSources());
         assertEquals(2, FakeMediaStoreProvider.entries().size());
         assertTrue(vm.getCleanProgressMessage().getValue() != null);
+        com.doubleangels.redact.stats.StatsSnapshot stats =
+                com.doubleangels.redact.stats.StatsStore.snapshot(app);
+        assertEquals(2, stats.imagesCleaned);
+        assertEquals(0, stats.sharedIn);
     }
 
     @Test
@@ -133,6 +137,8 @@ public class MainViewModelSuccessFlowTest {
 
         assertEquals(Integer.valueOf(1), vm.getCleanProcessedItemCount().getValue());
         assertEquals(Integer.valueOf(2), vm.getCleanBatchTotalCount().getValue());
+        // Only the file that was cleaned counts towards the statistics.
+        assertEquals(1, com.doubleangels.redact.stats.StatsStore.snapshot(app).filesCleaned());
     }
 
     @Test
@@ -186,6 +192,7 @@ public class MainViewModelSuccessFlowTest {
 
         assertEquals(Integer.valueOf(1), vm.getConvertProcessedItemCount().getValue());
         assertEquals(app.getString(R.string.convert_done_partial, 1, 1), vm.getConvertProgressMessage().getValue());
+        assertEquals(1, com.doubleangels.redact.stats.StatsStore.snapshot(app).converted);
     }
 
     @Test

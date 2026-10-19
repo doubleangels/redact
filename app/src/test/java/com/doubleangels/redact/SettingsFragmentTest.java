@@ -648,6 +648,40 @@ public class SettingsFragmentTest {
         assertEquals(null, AppPreferences.getOutputTree(activity, false));
     }
 
+    @Test
+    public void statsCard_withNothingCounted_invitesAClean() {
+        assertEquals(View.GONE, settings.findViewById(R.id.rowStatsSummary).getVisibility());
+        assertEquals(activity.getString(R.string.stats_settings_empty),
+                ((TextView) settings.findViewById(R.id.textStatsSummarySubtitle)).getText().toString());
+    }
+
+    @Test
+    public void statsCard_showsTheTotalsWhenSettingsIsShownAgain() {
+        com.doubleangels.redact.stats.StatsStore.recordClean(activity,
+                new com.doubleangels.redact.metadata.CleanStats(1284, true), false, false);
+        com.doubleangels.redact.stats.StatsStore.recordClean(activity,
+                new com.doubleangels.redact.metadata.CleanStats(0, false), true, false);
+
+        reshowSettings();
+
+        assertEquals(View.VISIBLE, settings.findViewById(R.id.rowStatsSummary).getVisibility());
+        assertEquals("1,284", ((TextView) settings.findViewById(R.id.textStatsSummaryFields)).getText().toString());
+        assertEquals("1", ((TextView) settings.findViewById(R.id.textStatsSummaryLocations)).getText().toString());
+        assertEquals("2", ((TextView) settings.findViewById(R.id.textStatsSummaryFiles)).getText().toString());
+        assertTrue(((TextView) settings.findViewById(R.id.textStatsSummarySubtitle)).getText().toString()
+                .startsWith("Counted on this device since "));
+    }
+
+    @Test
+    public void statsCard_opensTheStatisticsScreen() {
+        settings.findViewById(R.id.cardStatsSummary).performClick();
+        idle();
+
+        Intent started = shadowOf(activity).getNextStartedActivity();
+        assertNotNull(started);
+        assertEquals(StatisticsActivity.class.getName(), started.getComponent().getClassName());
+    }
+
     @SuppressWarnings("unused")
     private static void unused(Activity a) {
     }

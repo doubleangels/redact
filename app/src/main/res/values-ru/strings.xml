@@ -455,4 +455,37 @@
     <string name="review_prompt_no">Нет</string>
     <string name="review_prompt_declined">Хорошо, Redact больше не будет спрашивать. Если передумаете, оценить приложение можно в любое время в разделе Настройки › О приложении.</string>
     <string name="crash_prompt_declined">Хорошо, Redact больше не будет спрашивать. Включить отчёты о сбоях можно в любое время в разделе Настройки › Диагностика и Отзывы.</string>
+    <string name="stats_title">Статистика</string>
+    <string name="stats_navigate_up">Назад</string>
+    <string name="stats_settings_title">Ваша Статистика Конфиденциальности</string>
+    <string name="stats_settings_empty">Очистите первое фото или видео, чтобы увидеть, что Redact удаляет для вас.</string>
+    <string name="stats_settings_since">Подсчитано на этом устройстве с %1$s.</string>
+    <string name="stats_fields_removed">Удалено Полей</string>
+    <string name="stats_locations_removed">Удалено Геоданных</string>
+    <string name="stats_files_cleaned">Очищено Файлов</string>
+    <string name="stats_photos">Очищено Фото</string>
+    <string name="stats_videos">Очищено Видео</string>
+    <string name="stats_shared_in">Отправлено в Redact</string>
+    <string name="stats_times_shared">Отправок</string>
+    <string name="stats_files_converted">Конвертировано Файлов</string>
+    <string name="stats_hero_since">Полей метаданных удалено с %1$s</string>
+    <string name="stats_hero_empty">Полей метаданных удалено. Очистите фото или видео, чтобы начать подсчёт.</string>
+    <string name="stats_on_device_note">Подсчитывается только на этом устройстве. Ничего из этого никуда не отправляется.</string>
+    <string name="stats_section_cleaning">Очистка</string>
+    <string name="stats_section_sharing">Отправка и Конвертация</string>
+    <string name="stats_section_activity">Последние 30 Дней</string>
+    <string name="stats_chart_empty">За последние 30 дней ничего не очищено.</string>
+    <string name="stats_chart_today">Сегодня</string>
+    <string name="stats_clear">Очистить Статистику</string>
+    <string name="stats_clear_subtitle">Сбрасывает все счётчики до нуля. Ваши настройки и файлы не меняются.</string>
+    <string name="stats_clear_title">Очистка статистики</string>
+    <string name="stats_clear_message">Все счётчики обнулятся и начнут отсчёт заново. Ваши настройки, фото, видео и очищенные файлы не затрагиваются.</string>
+    <string name="stats_clear_confirm">Очистить</string>
+    <string name="stats_cleared">Статистика очищена.</string>
+    <plurals name="stats_chart_summary">
+        <item quantity="one">%1$s файл очищен за последние 30 дней.</item>
+        <item quantity="few">%1$s файла очищено за последние 30 дней.</item>
+        <item quantity="many">%1$s файлов очищено за последние 30 дней.</item>
+        <item quantity="other">%1$s файла очищено за последние 30 дней.</item>
+    </plurals>
 </resources>

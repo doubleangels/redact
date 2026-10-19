@@ -12,6 +12,7 @@ import com.doubleangels.redact.R;
 import com.doubleangels.redact.metadata.CleanStats;
 import com.doubleangels.redact.metadata.MetadataStripper;
 import com.doubleangels.redact.sentry.SentryManager;
+import com.doubleangels.redact.stats.StatsStore;
 import com.doubleangels.redact.ui.CleanSummary;
 
 import java.util.List;
@@ -316,6 +317,9 @@ public class MediaProcessor {
                             if (stats != null) {
                                 succeededStats.add(stats);
                             }
+                            StatsStore.recordClean(context,
+                                    stats != null ? stats : new CleanStats(0, false),
+                                    item.isVideo(), false);
                             successCount++;
                             SentryManager.count(
                                     "processing.clean.success", 1, "is_video", String.valueOf(item.isVideo()));

@@ -448,4 +448,36 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="review_prompt_no">No</string>
     <string name="review_prompt_declined">Entendido, Redact no volverá a preguntar. Si cambias de opinión, puedes valorarlo cuando quieras desde Configuración › Acerca de.</string>
     <string name="crash_prompt_declined">Entendido, Redact no volverá a preguntar. Puedes activar los informes de errores cuando quieras en Configuración › Diagnóstico y Comentarios.</string>
+    <string name="stats_title">Estadísticas</string>
+    <string name="stats_navigate_up">Atrás</string>
+    <string name="stats_settings_title">Tus Estadísticas de Privacidad</string>
+    <string name="stats_settings_empty">Limpia tu primera foto o video para ver lo que Redact elimina por ti.</string>
+    <string name="stats_settings_since">Contado en este dispositivo desde el %1$s.</string>
+    <string name="stats_fields_removed">Campos Eliminados</string>
+    <string name="stats_locations_removed">Ubicaciones Eliminadas</string>
+    <string name="stats_files_cleaned">Archivos Limpiados</string>
+    <string name="stats_photos">Fotos Limpiadas</string>
+    <string name="stats_videos">Videos Limpiados</string>
+    <string name="stats_shared_in">Compartidos en Redact</string>
+    <string name="stats_times_shared">Veces Compartido</string>
+    <string name="stats_files_converted">Archivos Convertidos</string>
+    <string name="stats_hero_since">Campos de metadatos eliminados desde el %1$s</string>
+    <string name="stats_hero_empty">Campos de metadatos eliminados. Limpia una foto o un video para empezar a contar.</string>
+    <string name="stats_on_device_note">Contado solo en este dispositivo. Nada de esto se envía nunca a ningún sitio.</string>
+    <string name="stats_section_cleaning">Limpieza</string>
+    <string name="stats_section_sharing">Compartir y Convertir</string>
+    <string name="stats_section_activity">Últimos 30 Días</string>
+    <string name="stats_chart_empty">No se limpió nada en los últimos 30 días.</string>
+    <string name="stats_chart_today">Hoy</string>
+    <string name="stats_clear">Borrar Estadísticas</string>
+    <string name="stats_clear_subtitle">Pone todos los contadores a cero. Tus ajustes y archivos no cambian.</string>
+    <string name="stats_clear_title">Borrar estadísticas</string>
+    <string name="stats_clear_message">Todos los contadores vuelven a cero y empiezan de nuevo desde ahora. Tus ajustes, fotos, videos y archivos limpiados no se tocan.</string>
+    <string name="stats_clear_confirm">Borrar</string>
+    <string name="stats_cleared">Estadísticas borradas.</string>
+    <plurals name="stats_chart_summary">
+        <item quantity="one">%1$s archivo limpiado en los últimos 30 días.</item>
+        <item quantity="many">%1$s de archivos limpiados en los últimos 30 días.</item>
+        <item quantity="other">%1$s archivos limpiados en los últimos 30 días.</item>
+    </plurals>
 </resources>

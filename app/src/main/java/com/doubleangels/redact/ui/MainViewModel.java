@@ -901,6 +901,7 @@ public class MainViewModel extends AndroidViewModel {
                         }
 
                         ok++;
+                        com.doubleangels.redact.stats.StatsStore.recordConverted(getApplication());
                         SentryManager.count(
                                 "processing.convert.success", 1, "is_video", String.valueOf(mediaItem.isVideo()));
 

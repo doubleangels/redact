@@ -441,4 +441,35 @@
     <string name="review_prompt_no">नहीं</string>
     <string name="review_prompt_declined">ठीक है, Redact फिर से नहीं पूछेगा। अगर आप अपना मन बदलें, तो सेटिंग्स › के बारे में से इसे कभी भी रेट कर सकते हैं।</string>
     <string name="crash_prompt_declined">ठीक है, Redact फिर से नहीं पूछेगा। आप क्रैश रिपोर्ट कभी भी सेटिंग्स › निदान और प्रतिक्रिया में चालू कर सकते हैं।</string>
+    <string name="stats_title">आँकड़े</string>
+    <string name="stats_navigate_up">वापस</string>
+    <string name="stats_settings_title">आपके गोपनीयता आँकड़े</string>
+    <string name="stats_settings_empty">अपनी पहली फ़ोटो या वीडियो साफ़ करें और देखें कि Redact आपके लिए क्या हटाता है।</string>
+    <string name="stats_settings_since">%1$s से इस डिवाइस पर गिना गया।</string>
+    <string name="stats_fields_removed">हटाए गए फ़ील्ड</string>
+    <string name="stats_locations_removed">हटाए गए स्थान</string>
+    <string name="stats_files_cleaned">साफ़ की गई फ़ाइलें</string>
+    <string name="stats_photos">साफ़ की गई फ़ोटो</string>
+    <string name="stats_videos">साफ़ किए गए वीडियो</string>
+    <string name="stats_shared_in">Redact में साझा की गईं</string>
+    <string name="stats_times_shared">साझा करने की संख्या</string>
+    <string name="stats_files_converted">बदली गई फ़ाइलें</string>
+    <string name="stats_hero_since">%1$s से हटाए गए मेटाडेटा फ़ील्ड</string>
+    <string name="stats_hero_empty">हटाए गए मेटाडेटा फ़ील्ड। गिनती शुरू करने के लिए कोई फ़ोटो या वीडियो साफ़ करें।</string>
+    <string name="stats_on_device_note">सिर्फ़ इसी डिवाइस पर गिना जाता है। इसमें से कुछ भी कहीं नहीं भेजा जाता।</string>
+    <string name="stats_section_cleaning">सफ़ाई</string>
+    <string name="stats_section_sharing">साझा करना और बदलना</string>
+    <string name="stats_section_activity">पिछले 30 दिन</string>
+    <string name="stats_chart_empty">पिछले 30 दिनों में कुछ भी साफ़ नहीं किया गया।</string>
+    <string name="stats_chart_today">आज</string>
+    <string name="stats_clear">आँकड़े मिटाएँ</string>
+    <string name="stats_clear_subtitle">सभी गिनतियों को शून्य कर देता है। आपकी सेटिंग और फ़ाइलें जैसी हैं वैसी ही रहती हैं।</string>
+    <string name="stats_clear_title">आँकड़े मिटाएँ</string>
+    <string name="stats_clear_message">सभी गिनतियाँ शून्य हो जाएँगी और अभी से दोबारा शुरू होंगी। आपकी सेटिंग, फ़ोटो, वीडियो और साफ़ की गई फ़ाइलों पर कोई असर नहीं पड़ता।</string>
+    <string name="stats_clear_confirm">मिटाएँ</string>
+    <string name="stats_cleared">आँकड़े मिटा दिए गए।</string>
+    <plurals name="stats_chart_summary">
+        <item quantity="one">पिछले 30 दिनों में %1$s फ़ाइल साफ़ की गई।</item>
+        <item quantity="other">पिछले 30 दिनों में %1$s फ़ाइलें साफ़ की गईं।</item>
+    </plurals>
 </resources>

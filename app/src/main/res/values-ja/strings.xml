@@ -435,4 +435,34 @@
     <string name="review_prompt_no">いいえ</string>
     <string name="review_prompt_declined">わかりました。今後はお尋ねしません。気が変わったら、設定 › このアプリについて からいつでも評価できます。</string>
     <string name="crash_prompt_declined">わかりました。今後はお尋ねしません。クラッシュレポートは、設定 › 診断とフィードバック からいつでもオンにできます。</string>
+    <string name="stats_title">統計</string>
+    <string name="stats_navigate_up">戻る</string>
+    <string name="stats_settings_title">プライバシー統計</string>
+    <string name="stats_settings_empty">最初の写真や動画をクリーンすると、Redactが削除した内容がここに表示されます。</string>
+    <string name="stats_settings_since">%1$sからこのデバイスで集計しています。</string>
+    <string name="stats_fields_removed">削除したフィールド</string>
+    <string name="stats_locations_removed">削除した位置情報</string>
+    <string name="stats_files_cleaned">クリーンしたファイル</string>
+    <string name="stats_photos">クリーンした写真</string>
+    <string name="stats_videos">クリーンした動画</string>
+    <string name="stats_shared_in">Redactへの共有</string>
+    <string name="stats_times_shared">共有回数</string>
+    <string name="stats_files_converted">変換したファイル</string>
+    <string name="stats_hero_since">%1$s以降に削除したメタデータのフィールド</string>
+    <string name="stats_hero_empty">削除したメタデータのフィールド。写真や動画をクリーンすると集計が始まります。</string>
+    <string name="stats_on_device_note">このデバイス上でのみ集計されます。どこにも送信されることはありません。</string>
+    <string name="stats_section_cleaning">クリーン</string>
+    <string name="stats_section_sharing">共有と変換</string>
+    <string name="stats_section_activity">過去30日間</string>
+    <string name="stats_chart_empty">過去30日間にクリーンしたファイルはありません。</string>
+    <string name="stats_chart_today">今日</string>
+    <string name="stats_clear">統計を消去</string>
+    <string name="stats_clear_subtitle">すべての数値をゼロに戻します。設定とファイルはそのままです。</string>
+    <string name="stats_clear_title">統計を消去</string>
+    <string name="stats_clear_message">すべての数値がゼロに戻り、今から改めて集計されます。設定、写真、動画、クリーン済みのファイルには影響しません。</string>
+    <string name="stats_clear_confirm">消去</string>
+    <string name="stats_cleared">統計を消去しました。</string>
+    <plurals name="stats_chart_summary">
+        <item quantity="other">過去30日間に%1$s個のファイルをクリーンしました。</item>
+    </plurals>
 </resources>
