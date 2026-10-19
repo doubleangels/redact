@@ -283,15 +283,15 @@ public class LocalNotificationsTest {
         StatsStore.recordClean(app, new CleanStats(84, true, true, false, false), true, false);
 
         LocalNotifications.showCleanComplete(app, 2, 0, "Removed 1,284 metadata fields. 2 files had location.",
-                "In this batch — Date & Time Taken: 2 · Camera & Phone: 1");
+                "In this batch: Date & Time Taken (2) · Camera & Phone (1)");
 
         String first = app.getString(R.string.notification_clean_body, 2)
                 + " Removed 1,284 metadata fields. 2 files had location.";
         // Collapsed, it stays as short as before.
         assertEquals(first, onlyNotificationText());
         assertEquals(first
-                        + "\nIn this batch — Date & Time Taken: 2 · Camera & Phone: 1"
-                        + "\nOn this device so far — Fields Removed: 1,284 · Locations Removed: 2",
+                        + "\nIn this batch: Date & Time Taken (2) · Camera & Phone (1)"
+                        + "\nOn this device so far: Fields Removed (1,284) · Locations Removed (2)",
                 onlyNotificationBigText());
         StatsStore.clear(app);
     }
@@ -304,7 +304,7 @@ public class LocalNotificationsTest {
         LocalNotifications.showCleanComplete(app, 1, 0, "Removed 3 metadata fields.", null);
 
         assertEquals(app.getString(R.string.notification_clean_body, 1) + " Removed 3 metadata fields."
-                        + "\nOn this device so far — Fields Removed: 3 · Locations Removed: 0",
+                        + "\nOn this device so far: Fields Removed (3) · Locations Removed (0)",
                 onlyNotificationBigText());
         StatsStore.clear(app);
     }
@@ -314,7 +314,7 @@ public class LocalNotificationsTest {
         StatsStore.clear(app);
         StatsStore.recordClean(app, new CleanStats(3, true), false, false);
 
-        LocalNotifications.showCleanComplete(app, 0, 2, null, "In this batch — Camera & Phone: 1");
+        LocalNotifications.showCleanComplete(app, 0, 2, null, "In this batch: Camera & Phone (1)");
 
         assertEquals(app.getString(R.string.notification_clean_failed), onlyNotificationBigText());
         StatsStore.clear(app);

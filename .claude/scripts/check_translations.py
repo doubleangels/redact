@@ -35,7 +35,7 @@ QUANTITIES = {
 # format names, symbols. Add to this when a check flags something that really is correct.
 TOKEN = r"(Redact|OK|JPEG|JPG|PNG|WebP|HEIC|HEIF|AVIF|MP4|MKV|WebM|H\.264|H\.265|HEVC|AV1|VP9|EXIF|XMP|IPTC|GPS|B|KB|MB|GB|%(\d+\$)?[sdf])"
 SAME_AS_ENGLISH_OK = re.compile(
-    rf"^(https?://\S+|@string/\S+|[\s\d%$.,:×x/+()·\-–—…]*({TOKEN}[\s\d%$.,:×x/+()·\-–—…]*)*)$"
+    rf"^(https?://\S+|@string/\S+|[\s\d%$.,:×x/+()·\-–…]*({TOKEN}[\s\d%$.,:×x/+()·\-–…]*)*)$"
 )
 
 # Words that a reviewer confirmed are correct as-is in that language (e.g. German "Video").

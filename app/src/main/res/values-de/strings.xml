@@ -149,9 +149,9 @@
 
     
     <string name="settings_section_advanced_privacy">Metadaten-Bereinigung</string>
-    <string name="settings_advanced_privacy_subtitle">Wie Redact versteckte Infos — wie Standort und Kameradetails (EXIF) — auf dem Tab Bereinigen entfernt. Aus anderen Apps geteilte Dateien werden vor dem Weiterleiten immer davon befreit.</string>
+    <string name="settings_advanced_privacy_subtitle">Wie Redact versteckte Infos, wie Standort und Kameradetails (EXIF), auf dem Tab Bereinigen entfernt. Aus anderen Apps geteilte Dateien werden vor dem Weiterleiten immer davon befreit.</string>
     <string name="settings_secure_delete">Sichere Löschdurchläufe</string>
-    <string name="settings_secure_delete_subtitle">Wie oft temporäre Dateien — einschließlich der originalen, ungeschwärzten Fotos und Videos vor der Bereinigung — vor dem Löschen überschrieben werden, damit ihre Daten nicht von der Festplatte wiederhergestellt werden können. Mehr Durchläufe sind langsamer; auf Flash-Speicher ist Wiederherstellung ggf. trotzdem möglich.</string>
+    <string name="settings_secure_delete_subtitle">Wie oft temporäre Dateien (einschließlich der originalen, ungeschwärzten Fotos und Videos vor der Bereinigung) vor dem Löschen überschrieben werden, damit ihre Daten nicht von der Festplatte wiederhergestellt werden können. Mehr Durchläufe sind langsamer; auf Flash-Speicher ist Wiederherstellung ggf. trotzdem möglich.</string>
     <string name="settings_auto_clear_temp">Cache beim Start Leeren</string>
     <string name="settings_auto_clear_temp_subtitle">Entfernt Verarbeitungs-Cache-Dateien älter als 24 Stunden beim App-Start.</string>
     <string name="settings_preserve_camera">Kameraeinstellungen Behalten</string>
@@ -163,14 +163,14 @@
     <string name="settings_sentry_consent_title">Absturzberichte Aktivieren</string>
     <string name="settings_sentry_consent_message">Absturzberichte senden lädt anonymisierte Diagnosedaten über Sentry ins Internet hoch.\n\nKeine Fotos, Videos, Dateinamen oder GPS-Koordinaten werden hochgeladen.</string>
     <string name="settings_strict_clean">Strikte Bereinigung</string>
-    <string name="settings_strict_clean_subtitle">Entfernt jede Spur von Metadaten, sogar den Orientierungs-Tag — ein gedrehtes Foto kann danach also schräg aussehen. Schaltet die Behalten-Optionen oben aus und kodiert Videos für die gründlichste Bereinigung immer vollständig neu.</string>
+    <string name="settings_strict_clean_subtitle">Entfernt jede Spur von Metadaten, sogar den Orientierungs-Tag, ein gedrehtes Foto kann danach also schräg aussehen. Schaltet die Behalten-Optionen oben aus und kodiert Videos für die gründlichste Bereinigung immer vollständig neu.</string>
     
     <string name="settings_section_advanced_processing">Große Dateien &amp; Speicher</string>
     <string name="settings_advanced_processing_subtitle">Steuert den RAM-Verbrauch beim Dekodieren großer Bilder beim Bereinigen und Konvertieren.</string>
     <string name="settings_max_bitmap_size">Max. Verarbeitungsauflösung</string>
     <string name="settings_max_bitmap_size_subtitle">Längste Kante in Pixeln beim Dekodieren im Speicher. Niedrigere Werte nutzen weniger RAM.</string>
     <string name="settings_video_fallback">Schnellere Videobereinigung</string>
-    <string name="settings_video_fallback_subtitle">Wenn Ihr Video bereits in einem kompatiblen Format vorliegt, entfernt Redact dessen Metadaten mit einem schnellen Durchgang statt einer vollständigen Neukodierung — schneller und akkuschonender, auch wenn eine vollständige Neukodierung etwas gründlicher ist. Wird automatisch deaktiviert, wenn Strikte Bereinigung aktiv ist oder Dateien aus anderen Apps bereinigt werden.</string>
+    <string name="settings_video_fallback_subtitle">Wenn Ihr Video bereits in einem kompatiblen Format vorliegt, entfernt Redact dessen Metadaten mit einem schnellen Durchgang statt einer vollständigen Neukodierung, schneller und akkuschonender, auch wenn eine vollständige Neukodierung etwas gründlicher ist. Wird automatisch deaktiviert, wenn Strikte Bereinigung aktiv ist oder Dateien aus anderen Apps bereinigt werden.</string>
 
     <string-array name="settings_secure_delete_labels">
         <item>1 Durchlauf (Schnell)</item>
@@ -197,7 +197,7 @@
     <string name="settings_section_diagnostics">Diagnose &amp; Feedback</string>
     <string name="settings_section_diagnostics_subtitle">Optionale Absturzberichte helfen bei Fehlerbehebung. Ihre Medien verlassen nie das Gerät.</string>
     <string name="settings_crash_reporting_label">Absturzberichte Senden</string>
-    <string name="settings_crash_reporting_subtitle">Teilt nur anonymisierte technische Details (App-Version, Gerätemodell, was die App beim Absturz gerade tat) — niemals Ihre Fotos oder Videos. Wird bei Aktivierung über das Internet an unseren Absturzbericht-Dienst Sentry gesendet.</string>
+    <string name="settings_crash_reporting_subtitle">Teilt nur anonymisierte technische Details (App-Version, Gerätemodell, was die App beim Absturz gerade tat), niemals Ihre Fotos oder Videos. Wird bei Aktivierung über das Internet an unseren Absturzbericht-Dienst Sentry gesendet.</string>
     <string name="settings_section_conversion">Standardwerte Konvertieren</string>
     <string name="settings_conversion_subtitle">Vorausgewählte Formate beim Auswählen auf Konvertieren. Pro Stapel weiterhin änderbar.</string>
     <string name="settings_default_image_format">Standard-Bildformat</string>
@@ -216,7 +216,7 @@
     <string name="settings_share_confirm_dialog_confirm">Entfernen und Fortfahren</string>
     <string name="settings_share_confirm_dialog_cancel">Abbrechen</string>
     <string name="settings_section_permissions">Berechtigungen</string>
-    <string name="settings_permissions_subtitle">Ab Android 13+ nutzt Redact die System-Dateiauswahl — Downloads, Dateien oder Galerieordner ohne breiten Medienzugriff. Vollständiger Foto-/Videozugriff ist optional. Benachrichtigungen sind optional.</string>
+    <string name="settings_permissions_subtitle">Ab Android 13+ nutzt Redact die System-Dateiauswahl: Downloads, Dateien oder Galerieordner ohne breiten Medienzugriff. Vollständiger Foto-/Videozugriff ist optional. Benachrichtigungen sind optional.</string>
     <string name="settings_permissions_media">Fotos &amp; Videos</string>
     <string name="settings_permissions_notifications">Benachrichtigungen (optional)</string>
     <string name="settings_permission_granted">Erteilt</string>
@@ -286,7 +286,7 @@ Ihre Fotos und Videos werden nie hochgeladen. URIs, Dateinamen und GPS-Koordinat
     <string name="settings_permission_partial">Teilweise</string>
     <string name="scan_status_ready">Wählen Sie ein Foto oder Video, um dessen Metadaten zu scannen.</string>
     <string name="animated_image_warning">Animierte Bilder werden als einzelnes Standbild gespeichert.</string>
-    <string name="processing_warning_low_storage">Wenig Speicherplatz (%1$s frei). Verarbeitung kann fehlschlagen — temporäre Dateien in Einstellungen löschen.</string>
+    <string name="processing_warning_low_storage">Wenig Speicherplatz (%1$s frei). Verarbeitung kann fehlschlagen. Temporäre Dateien in Einstellungen löschen.</string>
     <string name="processing_warning_critical_storage_title">Nicht Genug Speicher</string>
     <string name="processing_warning_critical_storage_message">Redact benötigt etwa %1$s temporären Speicher, aber nur %2$s sind frei. Verarbeitung könnte fehlschlagen.</string>
     <string name="processing_warning_low_memory">Ihr Gerät hat wenig Arbeitsspeicher. Große Dateien können fehlschlagen oder langsam sein.</string>
@@ -300,7 +300,7 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_permission_needs_media">Fotos Erforderlich</string>
     <string name="settings_location_permission_grant">Foto-Standort Gewähren</string>
     <string name="settings_location_needs_media_title">Zugriff auf Fotos &amp; Videos nötig</string>
-    <string name="settings_location_needs_media_message">Foto-Standort ermöglicht Redact, in Ihren Medien eingebettete GPS-Koordinaten zu lesen. Zuerst ist Bibliothekszugriff auf Fotos und Videos erforderlich — einzelne Dateien auswählen reicht nicht aus.\n\nTippen Sie auf dem nächsten Bildschirm auf Alle Fotos und Videos erlauben. Ihr Gerät gewährt Foto-Standort in der Regel gleichzeitig.</string>
+    <string name="settings_location_needs_media_message">Foto-Standort ermöglicht Redact, in Ihren Medien eingebettete GPS-Koordinaten zu lesen. Zuerst ist Bibliothekszugriff auf Fotos und Videos erforderlich. Einzelne Dateien auswählen reicht nicht aus.\n\nTippen Sie auf dem nächsten Bildschirm auf Alle Fotos und Videos erlauben. Ihr Gerät gewährt Foto-Standort in der Regel gleichzeitig.</string>
     <string name="settings_location_grant_media_first">Weiter</string>
     <string name="settings_location_permission_granted">Foto-Standortberechtigung erteilt.</string>
     <string name="settings_location_permission_denied">Foto-Standortberechtigung verweigert.</string>
@@ -346,9 +346,9 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="convert_item_type_image">Bild</string>
     <string name="convert_item_type_video">Video</string>
     <string name="notification_clean_failed">Diesmal konnten keine Dateien bereinigt werden.</string>
-    <string name="notification_clean_batch_details">In diesem Durchgang — %1$s</string>
-    <string name="notification_clean_totals">Bisher auf diesem Gerät — %1$s</string>
-    <string name="notification_stat_item">%1$s: %2$s</string>
+    <string name="notification_clean_batch_details">In diesem Durchgang: %1$s</string>
+    <string name="notification_clean_totals">Bisher auf diesem Gerät: %1$s</string>
+    <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">Medien-Metadaten Prüfen</string>
     <string name="scan_empty_state_description">Foto oder Video auswählen, um EXIF-Details, Kameradaten, GPS-Koordinaten und technische Eigenschaften anzuzeigen.</string>
     <string name="scan_grant_location_button">Berechtigung Erteilen</string>

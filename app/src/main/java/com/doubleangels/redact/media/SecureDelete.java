@@ -16,7 +16,7 @@ import java.security.SecureRandom;
  * unlinking it, so a plain filesystem-level recovery cannot recover deleted media bytes.
  *
  * <p>Use this instead of {@link File#delete()} for anything that may still hold original,
- * unredacted media (source snapshots, transcode intermediates, processed outputs) — a bare
+ * unredacted media (source snapshots, transcode intermediates, processed outputs); a bare
  * {@code delete()} only removes the directory entry and leaves the data blocks recoverable.
  */
 public final class SecureDelete {

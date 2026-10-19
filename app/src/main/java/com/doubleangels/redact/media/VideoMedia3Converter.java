@@ -58,7 +58,7 @@ import androidx.media3.common.util.UnstableApi;
 @OptIn(markerClass = UnstableApi.class)
 public final class VideoMedia3Converter {
 
-    /** H.264 / AAC MP4 — used for Clean metadata stripping (broad device support, audio preserved). */
+    /** H.264 / AAC MP4, used for Clean metadata stripping (broad device support, audio preserved). */
     public static final int FORMAT_STRIP_METADATA = 0;
 
     /** 0–100 while Media3 reports export progress (main thread). */

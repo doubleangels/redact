@@ -197,7 +197,7 @@
     <string name="settings_section_diagnostics">진단 및 피드백</string>
     <string name="settings_section_diagnostics_subtitle">충돌 수정을 위한 선택적 보고서. 미디어는 기기를 벗어나지 않습니다.</string>
     <string name="settings_crash_reporting_label">충돌 보고서 보내기</string>
-    <string name="settings_crash_reporting_subtitle">익명화된 기술 정보만 공유합니다(앱 버전, 기기 모델, 충돌 당시 앱이 하던 작업) — 사진이나 동영상은 절대 공유하지 않습니다. 사용 설정 시 저희 충돌 보고 서비스인 Sentry로 인터넷을 통해 전송됩니다.</string>
+    <string name="settings_crash_reporting_subtitle">익명화된 기술 정보만 공유합니다(앱 버전, 기기 모델, 충돌 당시 앱이 하던 작업). 사진이나 동영상은 절대 공유하지 않습니다. 사용 설정 시 저희 충돌 보고 서비스인 Sentry로 인터넷을 통해 전송됩니다.</string>
     <string name="settings_section_conversion">변환 탭 기본값</string>
     <string name="settings_conversion_subtitle">변환에서 파일을 선택할 때 미리 선택된 형식. 배치마다 변경할 수 있습니다.</string>
     <string name="settings_default_image_format">기본 이미지 형식</string>
@@ -287,7 +287,7 @@
     <string name="settings_permission_partial">부분</string>
     <string name="scan_status_ready">메타데이터를 스캔할 파일을 선택하세요.</string>
     <string name="animated_image_warning">애니메이션 이미지는 단일 정지 프레임으로 저장됩니다.</string>
-    <string name="processing_warning_low_storage">저장 공간 부족 (%1$s 여유). 처리가 실패할 수 있습니다 — 설정에서 임시 파일을 삭제해 보세요.</string>
+    <string name="processing_warning_low_storage">저장 공간 부족 (%1$s 여유). 처리가 실패할 수 있습니다. 설정에서 임시 파일을 삭제해 보세요.</string>
     <string name="processing_warning_critical_storage_title">저장 공간 부족</string>
     <string name="processing_warning_critical_storage_message">Redact에 약 %1$s의 임시 공간이 필요하지만 %2$s만 사용 가능합니다. 처리가 실패할 수 있습니다.</string>
     <string name="processing_warning_low_memory">기기 메모리가 부족합니다. 큰 파일은 실패하거나 느려질 수 있습니다.</string>
@@ -347,9 +347,9 @@
     <string name="convert_item_type_image">이미지</string>
     <string name="convert_item_type_video">동영상</string>
     <string name="notification_clean_failed">이번에는 정리할 수 있는 파일이 없습니다.</string>
-    <string name="notification_clean_batch_details">이번 작업 — %1$s</string>
-    <string name="notification_clean_totals">이 기기에서 지금까지 — %1$s</string>
-    <string name="notification_stat_item">%1$s: %2$s</string>
+    <string name="notification_clean_batch_details">이번 작업: %1$s</string>
+    <string name="notification_clean_totals">이 기기에서 지금까지: %1$s</string>
+    <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">미디어 메타데이터 검사</string>
     <string name="scan_empty_state_description">사진이나 동영상을 선택해 EXIF 세부 정보, 카메라 사양, GPS 좌표, 기술 속성을 확인하세요.</string>
     <string name="scan_grant_location_button">권한 허용</string>

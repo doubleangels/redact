@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Shared MIME filters and helpers for SAF-based media selection.
  * Uses the system document picker so files are visible from Downloads, Files, and other
- * providers—not only Google Photos.
+ * providers, not only Google Photos.
  */
 public final class MediaPickerContracts {
 

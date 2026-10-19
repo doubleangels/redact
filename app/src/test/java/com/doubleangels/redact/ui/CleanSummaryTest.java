@@ -76,7 +76,7 @@ public class CleanSummaryTest {
                 new CleanStats(4, false, true, false, true),
                 new CleanStats(2, false, true, true, false)));
 
-        assertEquals("In this batch — Date & Time Taken: 3 · Camera & Phone: 2 · Names & Authors: 1",
+        assertEquals("In this batch: Date & Time Taken (3) · Camera & Phone (2) · Names & Authors (1)",
                 s.describeDetails(res));
     }
 
@@ -84,7 +84,7 @@ public class CleanSummaryTest {
     public void details_leaveOutKindsNoFileHad() {
         CleanSummary s = CleanSummary.of(List.of(new CleanStats(5, true, false, true, false)));
 
-        assertEquals("In this batch — Camera & Phone: 1", s.describeDetails(res));
+        assertEquals("In this batch: Camera & Phone (1)", s.describeDetails(res));
     }
 
     @Test

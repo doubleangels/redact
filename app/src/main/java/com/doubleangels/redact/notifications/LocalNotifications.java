@@ -325,7 +325,7 @@ public final class LocalNotifications {
     }
 
     /**
-     * "On this device so far — Fields Removed: 1,284 · Locations Removed: 312", from Statistics,
+     * "On this device so far: Fields Removed (1,284) · Locations Removed (312)", from Statistics,
      * or null when nothing has been counted.
      */
     @androidx.annotation.Nullable

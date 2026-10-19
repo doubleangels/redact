@@ -18,9 +18,9 @@
     <string name="notification_clean_body" tools:ignore="PluralsCandidate">Successfully cleaned %1$d file(s).</string>
     <string name="notification_clean_partial" tools:ignore="PluralsCandidate">%1$d cleaned, %2$d failed.</string>
     <string name="notification_clean_failed">We couldn\'t clean any files this time.</string>
-    <string name="notification_clean_batch_details">In this batch — %1$s</string>
-    <string name="notification_clean_totals">On this device so far — %1$s</string>
-    <string name="notification_stat_item">%1$s: %2$s</string>
+    <string name="notification_clean_batch_details">In this batch: %1$s</string>
+    <string name="notification_clean_totals">On this device so far: %1$s</string>
+    <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="notification_convert_progress_title">Converting Media…</string>
     <string name="notification_clean_progress_title">Cleaning Metadata…</string>
     <string name="notification_progress_percent">%1$d%% complete</string>
@@ -46,7 +46,7 @@
     <string name="settings_section_diagnostics">Diagnostics &amp; Feedback</string>
     <string name="settings_section_diagnostics_subtitle">Optional reports to help fix crashes. Your media never leaves the device.</string>
     <string name="settings_crash_reporting_label">Send Crash Reports</string>
-    <string name="settings_crash_reporting_subtitle">Shares only anonymized technical details (app version, device model, what the app was doing when it crashed) — never your photos or videos. Sent over the internet to our crash-reporting service, Sentry, when enabled.</string>
+    <string name="settings_crash_reporting_subtitle">Shares only anonymized technical details (app version, device model, what the app was doing when it crashed), never your photos or videos. Sent over the internet to our crash-reporting service, Sentry, when enabled.</string>
 
 
     <string name="settings_section_conversion">Convert Tab Defaults</string>
@@ -80,7 +80,7 @@
     <string name="settings_permission_not_required">Not Required</string>
     <string name="settings_location_permission_grant">Grant Photo Location</string>
     <string name="settings_location_needs_media_title">Photos &amp; Videos Access Needed</string>
-    <string name="settings_location_needs_media_message">Photo Location lets Redact read GPS coordinates embedded in your media. Library access to photos and videos is required first — picking files individually does not qualify.\n\nOn the next screen, tap Allow all photos and videos. Your device will usually grant Photo Location at the same time.</string>
+    <string name="settings_location_needs_media_message">Photo Location lets Redact read GPS coordinates embedded in your media. Library access to photos and videos is required first. Picking files individually does not qualify.\n\nOn the next screen, tap Allow all photos and videos. Your device will usually grant Photo Location at the same time.</string>
     <string name="settings_location_grant_media_first">Continue</string>
     <string name="settings_open_system_settings">Open System Settings</string>
 
@@ -154,7 +154,7 @@
     <string name="scan_status_ready">Select a file to scan its metadata.</string>
     <string name="animated_image_warning">Animated images are saved as a single still frame.</string>
 
-    <string name="processing_warning_low_storage">Low storage (%1$s free). Processing may fail — try clearing temporary files in Settings.</string>
+    <string name="processing_warning_low_storage">Low storage (%1$s free). Processing may fail. Try clearing temporary files in Settings.</string>
     <string name="processing_warning_critical_storage_title">Not Enough Storage</string>
     <string name="processing_warning_critical_storage_message">Redact may need about %1$s of temporary space, but only %2$s is free. Processing could fail.</string>
     <string name="processing_warning_low_memory">Your device is low on memory. Large files may fail or run slowly.</string>
@@ -320,9 +320,9 @@
 
     
     <string name="settings_section_advanced_privacy">Metadata Cleaning</string>
-    <string name="settings_advanced_privacy_subtitle">How Redact removes hidden info — like location and camera details (EXIF) — on the Clean tab. Files shared in from other apps always have this stripped before forwarding.</string>
+    <string name="settings_advanced_privacy_subtitle">How Redact removes hidden info, like location and camera details (EXIF), on the Clean tab. Files shared in from other apps always have this stripped before forwarding.</string>
     <string name="settings_secure_delete">Secure Deletion Passes</string>
-    <string name="settings_secure_delete_subtitle">How many times temporary files — including original, unredacted photos and videos before cleaning — are overwritten before deletion, so their data isn\'t recoverable from disk. More passes are slower; on flash storage, recovery may still be possible.</string>
+    <string name="settings_secure_delete_subtitle">How many times temporary files (including original, unredacted photos and videos before cleaning) are overwritten before deletion, so their data isn\'t recoverable from disk. More passes are slower; on flash storage, recovery may still be possible.</string>
     <string name="settings_auto_clear_temp">Clear Cache on Startup</string>
     <string name="settings_auto_clear_temp_subtitle">Remove processing cache files older than 24 hours when you open the app.</string>
     <string name="settings_preserve_camera">Keep Camera Settings</string>
@@ -340,9 +340,9 @@
     <string name="settings_sentry_consent_title">Enable Crash Reporting</string>
     <string name="settings_sentry_consent_message">Send Crash Reports uploads anonymized diagnostics to Sentry over the internet.\n\nNo photos, videos, filenames, or GPS coordinates are uploaded.</string>
     <string name="settings_strict_clean">Strict Clean</string>
-    <string name="settings_strict_clean_subtitle">Removes every trace of metadata, even the orientation tag — so a rotated photo may look sideways afterward. Turns off the keep options above and always fully re-encodes video for the most thorough clean.</string>
+    <string name="settings_strict_clean_subtitle">Removes every trace of metadata, even the orientation tag, so a rotated photo may look sideways afterward. Turns off the keep options above and always fully re-encodes video for the most thorough clean.</string>
     <string name="settings_video_fallback">Faster Video Cleaning</string>
-    <string name="settings_video_fallback_subtitle">When your video is already in a compatible format, Redact strips its metadata with a quick pass instead of fully re-encoding it — faster and lighter on battery, though a full re-encode removes a touch more. Automatically turned off when Strict Clean is on or when cleaning files shared in from other apps.</string>
+    <string name="settings_video_fallback_subtitle">When your video is already in a compatible format, Redact strips its metadata with a quick pass instead of fully re-encoding it. That\'s faster and lighter on battery, though a full re-encode removes a touch more. Automatically turned off when Strict Clean is on or when cleaning files shared in from other apps.</string>
     
     <string name="settings_section_advanced_processing">Large Files &amp; Memory</string>
     <string name="settings_advanced_processing_subtitle">Controls RAM use when decoding large images during clean and convert.</string>

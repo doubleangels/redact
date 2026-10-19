@@ -288,7 +288,7 @@
     <string name="settings_permission_partial">一部</string>
     <string name="scan_status_ready">メタデータをスキャンするファイルを選択してください。</string>
     <string name="animated_image_warning">アニメーション画像は静止画1枚として保存されます。</string>
-    <string name="processing_warning_low_storage">ストレージ不足（空き %1$s）。処理に失敗する可能性があります — 設定で一時ファイルを削除してください。</string>
+    <string name="processing_warning_low_storage">ストレージ不足（空き %1$s）。処理に失敗する可能性があります。設定で一時ファイルを削除してください。</string>
     <string name="processing_warning_critical_storage_title">ストレージ不足</string>
     <string name="processing_warning_critical_storage_message">Redact は約 %1$s の一時領域が必要ですが、空きは %2$s だけです。処理に失敗する可能性があります。</string>
     <string name="processing_warning_low_memory">デバイスのメモリが不足しています。大きなファイルは失敗したり遅くなったりする可能性があります。</string>
@@ -348,9 +348,9 @@
     <string name="convert_item_type_image">画像</string>
     <string name="convert_item_type_video">動画</string>
     <string name="notification_clean_failed">今回はクリーンできるファイルがありませんでした。</string>
-    <string name="notification_clean_batch_details">今回の処理 — %1$s</string>
-    <string name="notification_clean_totals">このデバイスでのこれまでの合計 — %1$s</string>
-    <string name="notification_stat_item">%1$s：%2$s</string>
+    <string name="notification_clean_batch_details">今回の処理：%1$s</string>
+    <string name="notification_clean_totals">このデバイスでのこれまでの合計：%1$s</string>
+    <string name="notification_stat_item">%1$s（%2$s）</string>
     <string name="scan_empty_state_title">メディアのメタデータを確認</string>
     <string name="scan_empty_state_description">写真または動画を選択して、EXIFの詳細、カメラ仕様、GPS座標、技術的なプロパティを表示します。</string>
     <string name="scan_grant_location_button">権限を許可</string>

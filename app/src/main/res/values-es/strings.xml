@@ -149,9 +149,9 @@
 
     
     <string name="settings_section_advanced_privacy">Limpieza de Metadatos</string>
-    <string name="settings_advanced_privacy_subtitle">Cómo Redact elimina la información oculta — como la ubicación y los datos de la cámara (EXIF) — en la pestaña Limpiar. Los archivos compartidos desde otras apps siempre se limpian de esto antes de reenviarlos.</string>
+    <string name="settings_advanced_privacy_subtitle">Cómo Redact elimina la información oculta, como la ubicación y los datos de la cámara (EXIF), en la pestaña Limpiar. Los archivos compartidos desde otras apps siempre se limpian de esto antes de reenviarlos.</string>
     <string name="settings_secure_delete">Pasadas de Borrado Seguro</string>
-    <string name="settings_secure_delete_subtitle">Cuántas veces se sobrescriben los archivos temporales — incluidas las copias originales sin editar de fotos y videos antes de la limpieza — antes de borrarlos, para que sus datos no puedan recuperarse del disco. Más pasadas son más lentas; en almacenamiento flash la recuperación puede seguir siendo posible.</string>
+    <string name="settings_secure_delete_subtitle">Cuántas veces se sobrescriben los archivos temporales (incluidas las copias originales sin editar de fotos y videos antes de la limpieza) antes de borrarlos, para que sus datos no puedan recuperarse del disco. Más pasadas son más lentas; en almacenamiento flash la recuperación puede seguir siendo posible.</string>
     <string name="settings_auto_clear_temp">Vaciar Caché al Iniciar</string>
     <string name="settings_auto_clear_temp_subtitle">Elimina archivos de caché de procesamiento de más de 24 horas al abrir la app.</string>
     <string name="settings_preserve_camera">Conservar Ajustes de Cámara</string>
@@ -163,14 +163,14 @@
     <string name="settings_sentry_consent_title">Activar Informes de Fallos</string>
     <string name="settings_sentry_consent_message">Enviar Informes de Fallos sube diagnósticos anonimizados a Sentry por internet.\n\nNo se suben fotos, videos, nombres de archivo ni coordenadas GPS.</string>
     <string name="settings_strict_clean">Limpieza Estricta</string>
-    <string name="settings_strict_clean_subtitle">Elimina todo rastro de metadatos, incluso la etiqueta de orientación — por lo que una foto girada puede verse torcida después. Desactiva las opciones de conservar de arriba y siempre recodifica el video por completo para la limpieza más profunda.</string>
+    <string name="settings_strict_clean_subtitle">Elimina todo rastro de metadatos, incluso la etiqueta de orientación, por lo que una foto girada puede verse torcida después. Desactiva las opciones de conservar de arriba y siempre recodifica el video por completo para la limpieza más profunda.</string>
     
     <string name="settings_section_advanced_processing">Archivos Grandes y Memoria</string>
     <string name="settings_advanced_processing_subtitle">Controla el uso de RAM al decodificar imágenes grandes durante la limpieza y conversión.</string>
     <string name="settings_max_bitmap_size">Resolución Máxima de Procesamiento</string>
     <string name="settings_max_bitmap_size_subtitle">Lado más largo en píxeles al decodificar en memoria. Valores más bajos usan menos RAM.</string>
     <string name="settings_video_fallback">Limpieza de Video Más Rápida</string>
-    <string name="settings_video_fallback_subtitle">Cuando tu video ya está en un formato compatible, Redact elimina sus metadatos con un paso rápido en lugar de recodificarlo por completo — más rápido y más suave con la batería, aunque una recodificación completa elimina un poco más. Se desactiva automáticamente con Limpieza Estricta o al limpiar archivos compartidos desde otras apps.</string>
+    <string name="settings_video_fallback_subtitle">Cuando tu video ya está en un formato compatible, Redact elimina sus metadatos con un paso rápido en lugar de recodificarlo por completo, más rápido y más suave con la batería, aunque una recodificación completa elimina un poco más. Se desactiva automáticamente con Limpieza Estricta o al limpiar archivos compartidos desde otras apps.</string>
 
     <string-array name="settings_secure_delete_labels">
         <item>1 Pasada (Rápida)</item>
@@ -197,7 +197,7 @@
     <string name="settings_section_diagnostics">Diagnóstico y Comentarios</string>
     <string name="settings_section_diagnostics_subtitle">Informes opcionales para corregir fallos. Tus archivos multimedia nunca salen del dispositivo.</string>
     <string name="settings_crash_reporting_label">Enviar Informes de Fallos</string>
-    <string name="settings_crash_reporting_subtitle">Solo comparte datos técnicos anonimizados (versión de la app, modelo del dispositivo, qué estaba haciendo la app cuando falló) — nunca tus fotos ni videos. Se envían por internet a nuestro servicio de informes de fallos, Sentry, cuando está activado.</string>
+    <string name="settings_crash_reporting_subtitle">Solo comparte datos técnicos anonimizados (versión de la app, modelo del dispositivo, qué estaba haciendo la app cuando falló), nunca tus fotos ni videos. Se envían por internet a nuestro servicio de informes de fallos, Sentry, cuando está activado.</string>
     <string name="settings_section_conversion">Valores Predeterminados de Convertir</string>
     <string name="settings_conversion_subtitle">Formatos preseleccionados al elegir archivos en Convertir. Puedes cambiarlos en cada lote.</string>
     <string name="settings_default_image_format">Formato de Imagen Predeterminado</string>
@@ -287,7 +287,7 @@ Tus fotos y videos nunca se suben. Se eliminan URIs, nombres de archivo y coorde
     <string name="settings_permission_partial">Parcial</string>
     <string name="scan_status_ready">Selecciona un archivo para escanear sus metadatos.</string>
     <string name="animated_image_warning">Las imágenes animadas se guardan como un solo fotograma.</string>
-    <string name="processing_warning_low_storage">Espacio de almacenamiento bajo (%1$s libres). El procesamiento puede fallar — intenta borrar archivos temporales en Ajustes.</string>
+    <string name="processing_warning_low_storage">Espacio de almacenamiento bajo (%1$s libres). El procesamiento puede fallar. Intenta borrar archivos temporales en Ajustes.</string>
     <string name="processing_warning_critical_storage_title">Almacenamiento Insuficiente</string>
     <string name="processing_warning_critical_storage_message">Redact puede necesitar alrededor de %1$s de espacio temporal, pero solo hay %2$s libres. El procesamiento podría fallar.</string>
     <string name="processing_warning_low_memory">Tu dispositivo tiene poca memoria. Los archivos grandes pueden fallar o ir lentos.</string>
@@ -347,9 +347,9 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="convert_item_type_image">Imagen</string>
     <string name="convert_item_type_video">Video</string>
     <string name="notification_clean_failed">Esta vez no se pudo limpiar ningún archivo.</string>
-    <string name="notification_clean_batch_details">En este lote — %1$s</string>
-    <string name="notification_clean_totals">En este dispositivo hasta ahora — %1$s</string>
-    <string name="notification_stat_item">%1$s: %2$s</string>
+    <string name="notification_clean_batch_details">En este lote: %1$s</string>
+    <string name="notification_clean_totals">En este dispositivo hasta ahora: %1$s</string>
+    <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">Inspeccionar Metadatos Multimedia</string>
     <string name="scan_empty_state_description">Selecciona una foto o un video para ver los detalles EXIF, las especificaciones de la cámara, las coordenadas GPS y las propiedades técnicas.</string>
     <string name="scan_grant_location_button">Conceder Permiso</string>

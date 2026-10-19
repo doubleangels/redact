@@ -114,7 +114,7 @@ public final class FormatConverter {
 
     /**
      * Maps format chip index to image output index. Index 3 (HEIC) is not allowed below API 34;
-     * JPEG (0) is used instead. Video index 3 (AV1) is unchanged — call only for image paths.
+     * JPEG (0) is used instead. Video index 3 (AV1) is unchanged, so call only for image paths.
      */
     public static int effectiveImageFormatIndex(int formatIndex) {
         if (formatIndex == 3 && !isHeicProcessingSupported()) {

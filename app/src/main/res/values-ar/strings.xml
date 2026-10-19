@@ -149,9 +149,9 @@
 
     
     <string name="settings_section_advanced_privacy">تنظيف البيانات الوصفية</string>
-    <string name="settings_advanced_privacy_subtitle">كيف يزيل Redact المعلومات المخفية — مثل الموقع وتفاصيل الكاميرا (EXIF) — في تبويب التنظيف. الملفات المشارَكة من تطبيقات أخرى تتم إزالة هذه المعلومات منها دائماً قبل إعادة إرسالها.</string>
+    <string name="settings_advanced_privacy_subtitle">كيف يزيل Redact المعلومات المخفية، مثل الموقع وتفاصيل الكاميرا (EXIF)، في تبويب التنظيف. الملفات المشارَكة من تطبيقات أخرى تتم إزالة هذه المعلومات منها دائماً قبل إعادة إرسالها.</string>
     <string name="settings_secure_delete">مرات الحذف الآمن</string>
-    <string name="settings_secure_delete_subtitle">عدد مرات الكتابة فوق الملفات المؤقتة — بما في ذلك النسخ الأصلية غير المنقّحة من الصور والفيديوهات قبل التنظيف — قبل الحذف، بحيث لا يمكن استرداد بياناتها من القرص. المزيد من المرات أبطأ؛ على التخزين الفلاشي قد يبقى الاسترداد ممكناً.</string>
+    <string name="settings_secure_delete_subtitle">عدد مرات الكتابة فوق الملفات المؤقتة (بما في ذلك النسخ الأصلية غير المنقّحة من الصور والفيديوهات قبل التنظيف) قبل الحذف، بحيث لا يمكن استرداد بياناتها من القرص. المزيد من المرات أبطأ؛ على التخزين الفلاشي قد يبقى الاسترداد ممكناً.</string>
     <string name="settings_auto_clear_temp">مسح الذاكرة عند البدء</string>
     <string name="settings_auto_clear_temp_subtitle">يزيل ملفات ذاكرة المعالجة الأقدم من 24 ساعة عند فتح التطبيق.</string>
     <string name="settings_preserve_camera">الاحتفاظ بإعدادات الكاميرا</string>
@@ -163,14 +163,14 @@
     <string name="settings_sentry_consent_title">تفعيل تقارير الأعطال</string>
     <string name="settings_sentry_consent_message">إرسال تقارير الأعطال يرفع تشخيصات مجهولة إلى Sentry عبر الإنترنت.\n\nلا يتم تحميل الصور أو الفيديوهات أو أسماء الملفات أو إحداثيات GPS.</string>
     <string name="settings_strict_clean">التنظيف الصارم</string>
-    <string name="settings_strict_clean_subtitle">يزيل كل أثر للبيانات الوصفية، حتى علامة الاتجاه — لذا قد تبدو الصورة المُدارة مائلة بعد ذلك. يعطّل خيارات الاحتفاظ أعلاه ويعيد ترميز الفيديو بالكامل دائماً لأشمل تنظيف ممكن.</string>
+    <string name="settings_strict_clean_subtitle">يزيل كل أثر للبيانات الوصفية، حتى علامة الاتجاه، لذا قد تبدو الصورة المُدارة مائلة بعد ذلك. يعطّل خيارات الاحتفاظ أعلاه ويعيد ترميز الفيديو بالكامل دائماً لأشمل تنظيف ممكن.</string>
     
     <string name="settings_section_advanced_processing">الملفات الكبيرة والذاكرة</string>
     <string name="settings_advanced_processing_subtitle">يتحكم في استخدام الذاكرة عند فك ترميز الصور الكبيرة أثناء التنظيف والتحويل.</string>
     <string name="settings_max_bitmap_size">أقصى دقة معالجة</string>
     <string name="settings_max_bitmap_size_subtitle">أطول حافة بالبكسل عند فك الصور في الذاكرة. القيم الأقل تستخدم ذاكرة أقل.</string>
     <string name="settings_video_fallback">تنظيف فيديو أسرع</string>
-    <string name="settings_video_fallback_subtitle">عندما يكون الفيديو بصيغة متوافقة بالفعل، يزيل Redact بياناته الوصفية بعملية سريعة بدلاً من إعادة الترميز الكاملة — أسرع وأخف على البطارية، رغم أن إعادة الترميز الكاملة تزيل القليل الإضافي. يُعطَّل تلقائياً عند تفعيل التنظيف الصارم أو عند تنظيف ملفات مُشارَكة من تطبيقات أخرى.</string>
+    <string name="settings_video_fallback_subtitle">عندما يكون الفيديو بصيغة متوافقة بالفعل، يزيل Redact بياناته الوصفية بعملية سريعة بدلاً من إعادة الترميز الكاملة، أسرع وأخف على البطارية، رغم أن إعادة الترميز الكاملة تزيل القليل الإضافي. يُعطَّل تلقائياً عند تفعيل التنظيف الصارم أو عند تنظيف ملفات مُشارَكة من تطبيقات أخرى.</string>
 
     <string-array name="settings_secure_delete_labels">
         <item>مرة واحدة (سريع)</item>
@@ -197,7 +197,7 @@
     <string name="settings_section_diagnostics">التشخيص والملاحظات</string>
     <string name="settings_section_diagnostics_subtitle">تقارير اختيارية للمساعدة في إصلاح الأعطال. وسائطك لا تغادر الجهاز أبداً.</string>
     <string name="settings_crash_reporting_label">إرسال تقارير الأعطال</string>
-    <string name="settings_crash_reporting_subtitle">يشارك فقط تفاصيل تقنية مجهولة الهوية (إصدار التطبيق، طراز الجهاز، ما كان يفعله التطبيق عند حدوث العطل) — ولا يشارك صورك أو مقاطع الفيديو أبداً. تُرسَل عبر الإنترنت إلى خدمة الإبلاغ عن الأعطال التي نستخدمها، Sentry، عند التفعيل.</string>
+    <string name="settings_crash_reporting_subtitle">يشارك فقط تفاصيل تقنية مجهولة الهوية (إصدار التطبيق، طراز الجهاز، ما كان يفعله التطبيق عند حدوث العطل)، ولا يشارك صورك أو مقاطع الفيديو أبداً. تُرسَل عبر الإنترنت إلى خدمة الإبلاغ عن الأعطال التي نستخدمها، Sentry، عند التفعيل.</string>
     <string name="settings_section_conversion">افتراضيات تبويب التحويل</string>
     <string name="settings_conversion_subtitle">التنسيقات المحددة مسبقاً عند اختيار الملفات في التحويل. يمكنك تغييرها لكل دفعة.</string>
     <string name="settings_default_image_format">تنسيق الصورة الافتراضي</string>
@@ -217,7 +217,7 @@
     <string name="settings_share_confirm_dialog_confirm">إزالة ومتابعة</string>
     <string name="settings_share_confirm_dialog_cancel">إلغاء</string>
     <string name="settings_section_permissions">الأذونات</string>
-    <string name="settings_permissions_subtitle">على Android 13+، يستخدم Redact منتقي ملفات النظام — التنزيلات أو الملفات أو مجلدات المعرض دون وصول واسع للمكتبة. الوصول الكامل للصور/الفيديو اختياري. الإشعارات اختيارية.</string>
+    <string name="settings_permissions_subtitle">على Android 13+، يستخدم Redact منتقي ملفات النظام: التنزيلات أو الملفات أو مجلدات المعرض دون وصول واسع للمكتبة. الوصول الكامل للصور/الفيديو اختياري. الإشعارات اختيارية.</string>
     <string name="settings_permissions_media">الصور والفيديو</string>
     <string name="settings_permissions_notifications">الإشعارات (اختياري)</string>
     <string name="settings_permission_granted">ممنوح</string>
@@ -287,7 +287,7 @@
     <string name="settings_permission_partial">جزئي</string>
     <string name="scan_status_ready">اختر ملفاً لفحص بياناته الوصفية.</string>
     <string name="animated_image_warning">تُحفظ الصور المتحركة كإطار ثابت واحد.</string>
-    <string name="processing_warning_low_storage">مساحة تخزين منخفضة (%1$s متاحة). قد تفشل المعالجة — جرّب مسح الملفات المؤقتة من الإعدادات.</string>
+    <string name="processing_warning_low_storage">مساحة تخزين منخفضة (%1$s متاحة). قد تفشل المعالجة. جرّب مسح الملفات المؤقتة من الإعدادات.</string>
     <string name="processing_warning_critical_storage_title">مساحة تخزين غير كافية</string>
     <string name="processing_warning_critical_storage_message">قد يحتاج Redact إلى نحو %1$s من المساحة المؤقتة، لكن المتاح فقط %2$s. قد تفشل المعالجة.</string>
     <string name="processing_warning_low_memory">جهازك منخفض الذاكرة. قد تفشل الملفات الكبيرة أو تعمل ببطء.</string>
@@ -301,7 +301,7 @@
     <string name="settings_permission_needs_media">الصور مطلوبة</string>
     <string name="settings_location_permission_grant">منح إذن موقع الصورة</string>
     <string name="settings_location_needs_media_title">يلزم الوصول إلى الصور والفيديو</string>
-    <string name="settings_location_needs_media_message">يتيح موقع الصورة لـ Redact قراءة إحداثيات GPS المضمنة في وسائطك. يلزم أولاً الوصول إلى مكتبة الصور والفيديو — اختيار الملفات بشكل فردي لا يكفي.\n\nفي الشاشة التالية، اضغط على السماح بجميع الصور والفيديو. عادةً يمنح جهازك إذن موقع الصورة في نفس الخطوة.</string>
+    <string name="settings_location_needs_media_message">يتيح موقع الصورة لـ Redact قراءة إحداثيات GPS المضمنة في وسائطك. يلزم أولاً الوصول إلى مكتبة الصور والفيديو. اختيار الملفات بشكل فردي لا يكفي.\n\nفي الشاشة التالية، اضغط على السماح بجميع الصور والفيديو. عادةً يمنح جهازك إذن موقع الصورة في نفس الخطوة.</string>
     <string name="settings_location_grant_media_first">متابعة</string>
     <string name="settings_location_permission_granted">تم منح إذن موقع الصورة.</string>
     <string name="settings_location_permission_denied">تم رفض إذن موقع الصورة.</string>
@@ -347,9 +347,9 @@
     <string name="convert_item_type_image">صورة</string>
     <string name="convert_item_type_video">فيديو</string>
     <string name="notification_clean_failed">تعذّر تنظيف أي ملفات هذه المرة.</string>
-    <string name="notification_clean_batch_details">في هذه الدفعة — %1$s</string>
-    <string name="notification_clean_totals">على هذا الجهاز حتى الآن — %1$s</string>
-    <string name="notification_stat_item">%1$s: %2$s</string>
+    <string name="notification_clean_batch_details">في هذه الدفعة: %1$s</string>
+    <string name="notification_clean_totals">على هذا الجهاز حتى الآن: %1$s</string>
+    <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">فحص البيانات الوصفية للوسائط</string>
     <string name="scan_empty_state_description">حدّد صورة أو مقطع فيديو لعرض تفاصيل EXIF ومواصفات الكاميرا وإحداثيات GPS والخصائص التقنية.</string>
     <string name="scan_grant_location_button">منح الإذن</string>

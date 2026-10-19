@@ -43,7 +43,7 @@ public final class AppPreferences {
     private static final String KEY_OUTPUT_TREE_IMAGES = "output_tree_images";
     private static final String KEY_OUTPUT_TREE_VIDEOS = "output_tree_videos";
 
-    /** High quality — matches legacy defaults. */
+    /** High quality, which matches the legacy defaults. */
     public static final int QUALITY_PRESET_HIGH = 0;
     public static final int QUALITY_PRESET_BALANCED = 1;
     public static final int QUALITY_PRESET_SMALLER = 2;

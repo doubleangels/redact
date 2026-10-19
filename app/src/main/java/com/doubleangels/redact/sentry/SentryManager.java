@@ -245,20 +245,20 @@ public final class SentryManager {
 
     public static void recordException(Throwable e) {
         if (UnsupportedMediaException.isCauseOf(e)) {
-            Log.i(TAG, "Unsupported media — not sending:", e);
+            Log.i(TAG, "Unsupported media, not sending:", e);
             logEvent("media", "An item in an unsupported format was skipped.");
             return;
         }
         if (isIgnored(e)) {
             if (isUserCancellation(e)) {
-                Log.i(TAG, "User cancellation — not sending:", e);
+                Log.i(TAG, "User cancellation, not sending:", e);
             } else {
                 Log.e(TAG, "Ignored error:", e);
             }
             return;
         }
         if (!isEnabled()) {
-            Log.e(TAG, "Crash reporting disabled — not sending:", e);
+            Log.e(TAG, "Crash reporting disabled, not sending:", e);
             return;
         }
         Sentry.captureException(scrubThrowable(e));

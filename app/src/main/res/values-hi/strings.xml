@@ -149,9 +149,9 @@
 
     
     <string name="settings_section_advanced_privacy">मेटाडेटा सफ़ाई</string>
-    <string name="settings_advanced_privacy_subtitle">Redact छिपी हुई जानकारी — जैसे स्थान और कैमरा विवरण (EXIF) — को साफ़ करें टैब पर कैसे हटाता है। अन्य ऐप्स से साझा की गई फ़ाइलों से यह जानकारी आगे भेजने से पहले हमेशा हटा दी जाती है।</string>
+    <string name="settings_advanced_privacy_subtitle">Redact छिपी हुई जानकारी, जैसे स्थान और कैमरा विवरण (EXIF), को साफ़ करें टैब पर कैसे हटाता है। अन्य ऐप्स से साझा की गई फ़ाइलों से यह जानकारी आगे भेजने से पहले हमेशा हटा दी जाती है।</string>
     <string name="settings_secure_delete">सुरक्षित हटाने के पास</string>
-    <string name="settings_secure_delete_subtitle">अस्थायी फ़ाइलें — जिनमें सफ़ाई से पहले फ़ोटो और वीडियो की मूल, असंपादित प्रतियां शामिल हैं — हटाने से पहले कितनी बार ओवरराइट हों, ताकि उनका डेटा डिस्क से पुनर्प्राप्त न किया जा सके। अधिक पास = धीमा; फ़्लैश स्टोरेज पर पुनर्प्राप्ति संभव हो सकती है।</string>
+    <string name="settings_secure_delete_subtitle">अस्थायी फ़ाइलें (जिनमें सफ़ाई से पहले फ़ोटो और वीडियो की मूल, असंपादित प्रतियां शामिल हैं) हटाने से पहले कितनी बार ओवरराइट हों, ताकि उनका डेटा डिस्क से पुनर्प्राप्त न किया जा सके। अधिक पास = धीमा; फ़्लैश स्टोरेज पर पुनर्प्राप्ति संभव हो सकती है।</string>
     <string name="settings_auto_clear_temp">शुरू पर कैश साफ़ करें</string>
     <string name="settings_auto_clear_temp_subtitle">ऐप खोलने पर 24 घंटे से पुरानी प्रोसेसिंग कैश फ़ाइलें हटाता है।</string>
     <string name="settings_preserve_camera">कैमरा सेटिंग्स रखें</string>
@@ -163,14 +163,14 @@
     <string name="settings_sentry_consent_title">क्रैश रिपोर्टिंग सक्षम करें</string>
     <string name="settings_sentry_consent_message">क्रैश रिपोर्ट भेजना इंटरनेट पर Sentry को अनाम निदान अपलोड करता है।\n\nफ़ोटो, वीडियो, फ़ाइल नाम या GPS निर्देशांक अपलोड नहीं होते।</string>
     <string name="settings_strict_clean">सख्त सफ़ाई</string>
-    <string name="settings_strict_clean_subtitle">मेटाडेटा का हर निशान हटाता है, यहाँ तक कि ओरिएंटेशन टैग भी — इसलिए घुमाई गई फ़ोटो बाद में तिरछी दिख सकती है। ऊपर के रखने के विकल्प बंद करता है और सबसे गहन सफ़ाई के लिए वीडियो को हमेशा पूरी तरह पुनः-एन्कोड करता है।</string>
+    <string name="settings_strict_clean_subtitle">मेटाडेटा का हर निशान हटाता है, यहाँ तक कि ओरिएंटेशन टैग भी, इसलिए घुमाई गई फ़ोटो बाद में तिरछी दिख सकती है। ऊपर के रखने के विकल्प बंद करता है और सबसे गहन सफ़ाई के लिए वीडियो को हमेशा पूरी तरह पुनः-एन्कोड करता है।</string>
     
     <string name="settings_section_advanced_processing">बड़ी फ़ाइलें और मेमोरी</string>
     <string name="settings_advanced_processing_subtitle">साफ़ और रूपांतरण के दौरान बड़ी छवियों को डिकोड करते समय RAM उपयोग को नियंत्रित करता है।</string>
     <string name="settings_max_bitmap_size">अधिकतम प्रसंस्करण रिज़ॉल्यूशन</string>
     <string name="settings_max_bitmap_size_subtitle">मेमोरी में छवियाँ डिकोड करते समय सबसे लंबी धार पिक्सेल में। कम मान कम RAM उपयोग करते हैं।</string>
     <string name="settings_video_fallback">तेज़ वीडियो सफ़ाई</string>
-    <string name="settings_video_fallback_subtitle">जब आपका वीडियो पहले से संगत प्रारूप में हो, तो Redact पूरी तरह पुनः-एन्कोड करने के बजाय एक त्वरित पास से उसका मेटाडेटा हटाता है — तेज़ और बैटरी पर हल्का, हालांकि पूर्ण पुनः-एन्कोड थोड़ा अधिक हटाता है। सख्त सफ़ाई चालू होने पर या अन्य ऐप्स से साझा फ़ाइलें साफ़ करते समय यह अपने आप बंद हो जाता है।</string>
+    <string name="settings_video_fallback_subtitle">जब आपका वीडियो पहले से संगत प्रारूप में हो, तो Redact पूरी तरह पुनः-एन्कोड करने के बजाय एक त्वरित पास से उसका मेटाडेटा हटाता है, तेज़ और बैटरी पर हल्का, हालांकि पूर्ण पुनः-एन्कोड थोड़ा अधिक हटाता है। सख्त सफ़ाई चालू होने पर या अन्य ऐप्स से साझा फ़ाइलें साफ़ करते समय यह अपने आप बंद हो जाता है।</string>
 
     <string-array name="settings_secure_delete_labels">
         <item>1 पास (तेज़)</item>
@@ -197,7 +197,7 @@
     <string name="settings_section_diagnostics">निदान और प्रतिक्रिया</string>
     <string name="settings_section_diagnostics_subtitle">क्रैश ठीक करने के लिए वैकल्पिक रिपोर्ट। आपका मीडिया कभी डिवाइस से बाहर नहीं जाता।</string>
     <string name="settings_crash_reporting_label">क्रैश रिपोर्ट भेजें</string>
-    <string name="settings_crash_reporting_subtitle">केवल अनाम तकनीकी विवरण साझा करता है (ऐप संस्करण, डिवाइस मॉडल, क्रैश होने पर ऐप क्या कर रहा था) — आपकी फ़ोटो या वीडियो कभी नहीं। सक्षम होने पर हमारी क्रैश-रिपोर्टिंग सेवा, Sentry, को इंटरनेट पर भेजा जाता है।</string>
+    <string name="settings_crash_reporting_subtitle">केवल अनाम तकनीकी विवरण साझा करता है (ऐप संस्करण, डिवाइस मॉडल, क्रैश होने पर ऐप क्या कर रहा था), आपकी फ़ोटो या वीडियो कभी नहीं। सक्षम होने पर हमारी क्रैश-रिपोर्टिंग सेवा, Sentry, को इंटरनेट पर भेजा जाता है।</string>
     <string name="settings_section_conversion">रूपांतरित टैब डिफ़ॉल्ट</string>
     <string name="settings_conversion_subtitle">रूपांतरित पर फ़ाइलें चुनते समय पूर्व-चयनित प्रारूप। प्रत्येक बैच के लिए बदल सकते हैं।</string>
     <string name="settings_default_image_format">डिफ़ॉल्ट छवि प्रारूप</string>
@@ -217,7 +217,7 @@
     <string name="settings_share_confirm_dialog_confirm">हटाएँ और जारी रखें</string>
     <string name="settings_share_confirm_dialog_cancel">रद्द करें</string>
     <string name="settings_section_permissions">अनुमतियाँ</string>
-    <string name="settings_permissions_subtitle">Android 13+ पर Redact सिस्टम फ़ाइल पिकर का उपयोग करता है — डाउनलोड, फ़ाइलें या गैलरी फ़ोल्डर व्यापक लाइब्रेरी एक्सेस के बिना। पूर्ण फ़ोटो/वीडियो एक्सेस वैकल्पिक है। नोटिफ़िकेशन वैकल्पिक हैं।</string>
+    <string name="settings_permissions_subtitle">Android 13+ पर Redact सिस्टम फ़ाइल पिकर का उपयोग करता है: डाउनलोड, फ़ाइलें या गैलरी फ़ोल्डर व्यापक लाइब्रेरी एक्सेस के बिना। पूर्ण फ़ोटो/वीडियो एक्सेस वैकल्पिक है। नोटिफ़िकेशन वैकल्पिक हैं।</string>
     <string name="settings_permissions_media">फ़ोटो और वीडियो</string>
     <string name="settings_permissions_notifications">सूचनाएँ (वैकल्पिक)</string>
     <string name="settings_permission_granted">दी गई</string>
@@ -287,7 +287,7 @@
     <string name="settings_permission_partial">आंशिक</string>
     <string name="scan_status_ready">मेटाडेटा स्कैन करने के लिए एक फ़ाइल चुनें।</string>
     <string name="animated_image_warning">एनिमेटेड छवियाँ एक स्थिर फ़्रेम के रूप में सहेजी जाती हैं।</string>
-    <string name="processing_warning_low_storage">कम संग्रहण (%1$s खाली)। प्रसंस्करण विफल हो सकता है — सेटिंग्स में अस्थायी फ़ाइलें साफ़ करें।</string>
+    <string name="processing_warning_low_storage">कम संग्रहण (%1$s खाली)। प्रसंस्करण विफल हो सकता है। सेटिंग्स में अस्थायी फ़ाइलें साफ़ करें।</string>
     <string name="processing_warning_critical_storage_title">पर्याप्त संग्रहण नहीं</string>
     <string name="processing_warning_critical_storage_message">Redact को लगभग %1$s अस्थायी स्थान चाहिए, लेकिन केवल %2$s उपलब्ध है। प्रसंस्करण विफल हो सकता है।</string>
     <string name="processing_warning_low_memory">आपके डिवाइस में कम मेमोरी है। बड़ी फ़ाइलें विफल या धीमी हो सकती हैं।</string>
@@ -301,7 +301,7 @@
     <string name="settings_permission_needs_media">फ़ोटो आवश्यक</string>
     <string name="settings_location_permission_grant">फ़ोटो स्थान अनुमति दें</string>
     <string name="settings_location_needs_media_title">फ़ोटो और वीडियो की अनुमति ज़रूरी</string>
-    <string name="settings_location_needs_media_message">फ़ोटो स्थान Redact को आपके मीडिया में मौजूद GPS निर्देशांक पढ़ने देता है। पहले फ़ोटो और वीडियो लाइब्रेरी एक्सेस आवश्यक है — अलग-अलग फ़ाइलें चुनना पर्याप्त नहीं है।\n\nअगली स्क्रीन पर सभी फ़ोटो और वीडियो की अनुमति दें पर टैप करें। आपका डिवाइस आमतौर पर फ़ोटो स्थान भी उसी समय दे देता है।</string>
+    <string name="settings_location_needs_media_message">फ़ोटो स्थान Redact को आपके मीडिया में मौजूद GPS निर्देशांक पढ़ने देता है। पहले फ़ोटो और वीडियो लाइब्रेरी एक्सेस आवश्यक है। अलग-अलग फ़ाइलें चुनना पर्याप्त नहीं है।\n\nअगली स्क्रीन पर सभी फ़ोटो और वीडियो की अनुमति दें पर टैप करें। आपका डिवाइस आमतौर पर फ़ोटो स्थान भी उसी समय दे देता है।</string>
     <string name="settings_location_grant_media_first">जारी रखें</string>
     <string name="settings_location_permission_granted">फ़ोटो स्थान अनुमति दी गई।</string>
     <string name="settings_location_permission_denied">फ़ोटो स्थान अनुमति अस्वीकृत।</string>
@@ -347,9 +347,9 @@
     <string name="convert_item_type_image">चित्र</string>
     <string name="convert_item_type_video">वीडियो</string>
     <string name="notification_clean_failed">इस बार कोई फ़ाइल साफ़ नहीं की जा सकी।</string>
-    <string name="notification_clean_batch_details">इस बैच में — %1$s</string>
-    <string name="notification_clean_totals">इस डिवाइस पर अब तक — %1$s</string>
-    <string name="notification_stat_item">%1$s: %2$s</string>
+    <string name="notification_clean_batch_details">इस बैच में: %1$s</string>
+    <string name="notification_clean_totals">इस डिवाइस पर अब तक: %1$s</string>
+    <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">मीडिया मेटाडेटा जाँचें</string>
     <string name="scan_empty_state_description">EXIF विवरण, कैमरा विनिर्देश, GPS निर्देशांक और तकनीकी गुण देखने के लिए कोई फ़ोटो या वीडियो चुनें।</string>
     <string name="scan_grant_location_button">अनुमति दें</string>

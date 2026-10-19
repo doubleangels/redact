@@ -85,8 +85,8 @@ public final class CleanSummary {
 
     /**
      * The kinds of personal detail the batch removed besides location, which {@link #describe}
-     * already mentions, with how many files carried each, e.g. "In this batch — Date &amp; Time
-     * Taken: 3 · Camera &amp; Phone: 3". Null when there were none.
+     * already mentions, with how many files carried each, e.g. "In this batch: Date &amp; Time
+     * Taken (3) · Camera &amp; Phone (3)". Null when there were none.
      */
     @Nullable
     public String describeDetails(@NonNull Resources res) {
@@ -104,7 +104,7 @@ public final class CleanSummary {
         }
     }
 
-    /** One "Label: 1,284" figure, numbered for the current locale. */
+    /** One "Label (1,284)" figure, numbered for the current locale. */
     @NonNull
     public static String item(@NonNull Resources res, @NonNull String label, long count) {
         return res.getString(R.string.notification_stat_item, label,
