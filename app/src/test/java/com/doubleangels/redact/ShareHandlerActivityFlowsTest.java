@@ -304,6 +304,32 @@ public class ShareHandlerActivityFlowsTest {
     }
 
     @Test
+    public void aSharedFileThatCannotBeCleaned_isNotCounted() throws Exception {
+        FileProviderTestSupport.makeUsable(app);
+        File broken = File.createTempFile("broken_", ".jpg", sourceDir());
+        files.add(broken);
+        try (FileOutputStream out = new FileOutputStream(broken)) {
+            out.write(new byte[]{(byte) 0xFF, (byte) 0xD8, 1, 2, 3, 4, 5, 6, 7, 8});
+        }
+
+        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(broken)));
+        android.app.Dialog dialog = ShadowDialog.getLatestDialog();
+        if (dialog instanceof AlertDialog && dialog.isShowing()
+                && ((AlertDialog) dialog).getButton(DialogInterface.BUTTON_POSITIVE) != null) {
+            ((AlertDialog) dialog).getButton(DialogInterface.BUTTON_POSITIVE).performClick();
+            idle();
+        }
+        awaitMain(() -> {
+            idle();
+            return !ShareHandlerActivity.isShareProcessingActive();
+        });
+        idle();
+
+        assertTrue(com.doubleangels.redact.stats.StatsStore.snapshot(app).isEmpty());
+        assertEquals(null, shadowOf(activity).peekNextStartedActivityForResult());
+    }
+
+    @Test
     public void cancelShareProcessing_cleansUpAndFinishes() throws Exception {
         ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
 

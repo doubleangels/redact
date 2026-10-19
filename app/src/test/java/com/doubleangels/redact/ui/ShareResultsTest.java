@@ -85,6 +85,18 @@ public class ShareResultsTest {
     }
 
     @Test
+    public void share_thatCannotOpen_isNotCounted() {
+        Activity app = Robolectric.buildActivity(Activity.class).setup().get();
+        com.doubleangels.redact.stats.StatsStore.clear(app);
+        shadowOf(RuntimeEnvironment.getApplication()).checkActivities(true);
+
+        ShareResults.share(app, List.of(JPG));
+
+        assertEquals(0, com.doubleangels.redact.stats.StatsStore.snapshot(app).shares);
+        assertTrue(com.doubleangels.redact.stats.StatsStore.snapshot(app).isEmpty());
+    }
+
+    @Test
     public void share_severalFiles_sendsAllOfThem() {
         Activity app = Robolectric.buildActivity(Activity.class).setup().get();
         ShareResults.share(app, List.of(JPG, PNG, MP4));

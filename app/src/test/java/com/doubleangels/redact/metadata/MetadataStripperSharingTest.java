@@ -95,6 +95,28 @@ public class MetadataStripperSharingTest {
     }
 
     @Test
+    public void aFailedShareAfterAGoodOne_doesNotReportTheGoodOneAgain() throws Exception {
+        File src = image(".jpg", Bitmap.CompressFormat.JPEG, true);
+        assertClean(stripper.stripExifDataForSharing(Uri.fromFile(src), "s.jpg"));
+        assertNotNull(stripper.getLastCleanStats());
+
+        stripper.stripExifDataForSharing(Uri.parse("file:///no/such/file.jpg"), "missing.jpg");
+
+        assertEquals(null, stripper.getLastCleanStats());
+    }
+
+    @Test
+    public void shareWithoutALocation_reportsNoLocation() throws Exception {
+        File src = image(".jpg", Bitmap.CompressFormat.JPEG, false);
+
+        assertClean(stripper.stripExifDataForSharing(Uri.fromFile(src), "s.jpg"));
+
+        CleanStats stats = stripper.getLastCleanStats();
+        assertNotNull(stats);
+        assertFalse(stats.hadLocation);
+    }
+
+    @Test
     public void shareMissingSource_reportsNothing() {
         stripper.stripExifDataForSharing(Uri.parse("file:///no/such/file.jpg"), "missing.jpg");
 

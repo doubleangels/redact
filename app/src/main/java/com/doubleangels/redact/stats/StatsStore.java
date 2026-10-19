@@ -30,6 +30,9 @@ public final class StatsStore {
     private static final String KEY_VIDEOS_CLEANED = "files_cleaned_videos";
     private static final String KEY_FIELDS_REMOVED = "fields_removed";
     private static final String KEY_LOCATIONS_REMOVED = "locations_removed";
+    private static final String KEY_DATES_REMOVED = "dates_removed";
+    private static final String KEY_DEVICES_REMOVED = "devices_removed";
+    private static final String KEY_NAMES_REMOVED = "names_removed";
     private static final String KEY_SHARED_IN = "files_shared_in";
     private static final String KEY_SHARES = "shares";
     private static final String KEY_CONVERTED = "files_converted";
@@ -57,6 +60,15 @@ public final class StatsStore {
         if (stats.hadLocation) {
             add(p, e, KEY_LOCATIONS_REMOVED, 1);
         }
+        if (stats.hadDate) {
+            add(p, e, KEY_DATES_REMOVED, 1);
+        }
+        if (stats.hadDevice) {
+            add(p, e, KEY_DEVICES_REMOVED, 1);
+        }
+        if (stats.hadName) {
+            add(p, e, KEY_NAMES_REMOVED, 1);
+        }
         if (viaShare) {
             add(p, e, KEY_SHARED_IN, 1);
         }
@@ -82,17 +94,21 @@ public final class StatsStore {
         long[] daily = new long[HISTORY_DAYS];
         long todayEpoch = today.get().toEpochDay();
         for (int i = 0; i < HISTORY_DAYS; i++) {
-            daily[i] = p.getLong(DAY_PREFIX + (todayEpoch - (HISTORY_DAYS - 1 - i)), 0);
+            daily[i] = read(p, DAY_PREFIX + (todayEpoch - (HISTORY_DAYS - 1 - i)));
         }
         return new StatsSnapshot(
-                p.getLong(KEY_IMAGES_CLEANED, 0),
-                p.getLong(KEY_VIDEOS_CLEANED, 0),
-                p.getLong(KEY_FIELDS_REMOVED, 0),
-                p.getLong(KEY_LOCATIONS_REMOVED, 0),
-                p.getLong(KEY_SHARED_IN, 0),
-                p.getLong(KEY_SHARES, 0),
-                p.getLong(KEY_CONVERTED, 0),
-                p.getLong(KEY_TRACKING_SINCE, 0),
+                read(p, KEY_IMAGES_CLEANED),
+                read(p, KEY_VIDEOS_CLEANED),
+                read(p, KEY_FIELDS_REMOVED),
+                read(p, KEY_LOCATIONS_REMOVED),
+                read(p, KEY_DATES_REMOVED),
+                read(p, KEY_DEVICES_REMOVED),
+                read(p, KEY_NAMES_REMOVED),
+                read(p, KEY_SHARED_IN),
+                read(p, KEY_SHARES),
+                read(p, KEY_CONVERTED),
+                read(p, KEY_TRACKING_SINCE),
+                todayEpoch - (HISTORY_DAYS - 1),
                 daily);
     }
 
@@ -111,16 +127,28 @@ public final class StatsStore {
 
     private static void startTrackingIfNeeded(@NonNull SharedPreferences p,
                                               @NonNull SharedPreferences.Editor e) {
-        if (!p.contains(KEY_TRACKING_SINCE)) {
+        if (read(p, KEY_TRACKING_SINCE) <= 0) {
             e.putLong(KEY_TRACKING_SINCE, now.get());
         }
     }
 
     private static void add(@NonNull SharedPreferences p, @NonNull SharedPreferences.Editor e,
                             @NonNull String key, long amount) {
-        long current = p.getLong(key, 0);
+        long current = Math.max(0, read(p, key));
         // Saturates rather than wrapping round to a negative count.
         e.putLong(key, current > Long.MAX_VALUE - amount ? Long.MAX_VALUE : current + amount);
+    }
+
+    /**
+     * A stored count, or 0 when there is none or it is not a number. A damaged value must never
+     * stop a clean or a share: the next count written replaces it.
+     */
+    private static long read(@NonNull SharedPreferences p, @NonNull String key) {
+        try {
+            return p.getLong(key, 0);
+        } catch (ClassCastException e) {
+            return 0;
+        }
     }
 
     /** Drops day counts that have fallen out of the chart, and any dated in the future. */

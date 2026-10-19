@@ -600,6 +600,12 @@ public class MainViewModel extends AndroidViewModel {
         return mediaProcessor.getCleanSummary().describe(getApplication().getResources());
     }
 
+    /** The other kinds of detail the last clean batch removed, for the completion notification. */
+    @androidx.annotation.Nullable
+    public String getCleanDetailsText() {
+        return mediaProcessor.getCleanSummary().describeDetails(getApplication().getResources());
+    }
+
     /** Saved outputs of the last convert batch, kept until the next batch starts. */
     public List<android.net.Uri> getConvertOutputs() {
         return new ArrayList<>(convertOutputs);
@@ -682,7 +688,8 @@ public class MainViewModel extends AndroidViewModel {
                 LocalNotifications.stopProcessingForeground(
                         getApplication(), LocalNotifications.ForegroundJob.CLEAN);
                 LocalNotifications.showCleanComplete(
-                        getApplication(), successCount, failCount, getCleanSummaryText());
+                        getApplication(), successCount, failCount, getCleanSummaryText(),
+                        getCleanDetailsText());
             }
 
             @Override

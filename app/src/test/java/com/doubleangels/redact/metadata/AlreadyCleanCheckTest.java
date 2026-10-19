@@ -186,8 +186,11 @@ public class AlreadyCleanCheckTest {
     }
 
     private MediaItem video(int key, String value) throws IOException {
-        File f = File.createTempFile("check_", ".mp4", app.getCacheDir());
-        f.deleteOnExit();
+        return video(TestVideos.cleanMp4(), key, value);
+    }
+
+    private MediaItem video(byte[] content, int key, String value) throws IOException {
+        File f = TestVideos.write(app.getCacheDir(), "check.mp4", content);
         Uri uri = FakeMediaStoreProvider.add(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, f, "video/mp4");
         if (value != null) {
             org.robolectric.shadows.ShadowMediaMetadataRetriever.addMetadata(
@@ -210,6 +213,38 @@ public class AlreadyCleanCheckTest {
     public void video_withNothingIdentifying_isAlreadyClean() throws IOException {
         assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app,
                 video(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION, "1000")));
+    }
+
+    @Test
+    public void video_withALocationOnlyTheContainerShows_needsCleaning() throws IOException {
+        // The platform retriever reports nothing for this file, as on a real device.
+        byte[] hidden = TestVideos.mp4(0, TestVideos.box("udta",
+                TestVideos.mdtaMeta("location", TestVideos.LOCATION), TestVideos.box("loci", new byte[20])));
+
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app,
+                video(hidden, android.media.MediaMetadataRetriever.METADATA_KEY_DURATION, "1000")));
+    }
+
+    @Test
+    public void video_withOnlyARecordingDateInItsHeaders_needsCleaning() throws IOException {
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app,
+                video(TestVideos.mp4(TestVideos.RECORDED_1904),
+                        android.media.MediaMetadataRetriever.METADATA_KEY_DURATION, "1000")));
+    }
+
+    @Test
+    public void aRealVideoWithQuickTimeLocationKeys_isNeverCalledClean() throws IOException {
+        File f = TestVideos.resource(app.getCacheDir(), "video/ffmpeg_location_keys.mp4");
+
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app,
+                video(java.nio.file.Files.readAllBytes(f.toPath()),
+                        android.media.MediaMetadataRetriever.METADATA_KEY_DURATION, "1000")));
+    }
+
+    @Test
+    public void aVideoWhoseContainerCannotBeRead_isNotCalledClean() throws IOException {
+        assertEquals(Status.UNKNOWN, AlreadyCleanCheck.assessItem(app,
+                video(new byte[64], android.media.MediaMetadataRetriever.METADATA_KEY_DURATION, "1000")));
     }
 
     @Test

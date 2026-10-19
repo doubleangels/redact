@@ -18,6 +18,9 @@
     <string name="notification_clean_body" tools:ignore="PluralsCandidate">Successfully cleaned %1$d file(s).</string>
     <string name="notification_clean_partial" tools:ignore="PluralsCandidate">%1$d cleaned, %2$d failed.</string>
     <string name="notification_clean_failed">We couldn\'t clean any files this time.</string>
+    <string name="notification_clean_batch_details">In this batch — %1$s</string>
+    <string name="notification_clean_totals">On this device so far — %1$s</string>
+    <string name="notification_stat_item">%1$s: %2$s</string>
     <string name="notification_convert_progress_title">Converting Media…</string>
     <string name="notification_clean_progress_title">Cleaning Metadata…</string>
     <string name="notification_progress_percent">%1$d%% complete</string>
@@ -275,6 +278,10 @@
     <string name="metadata_latitude">Latitude: %.15f</string>
     <string name="metadata_longitude">Longitude: %.15f</string>
     <string name="metadata_no_location_data">No location data available.</string>
+    <string name="metadata_location_unreadable">Location data is present, stored in a form that can\'t be shown here. Cleaning removes it.</string>
+    <string name="metadata_container_tags_header">Embedded Tags:</string>
+    <string name="metadata_container_tags">Found in the file: %1$s</string>
+    <string name="metadata_container_value">Present – removed when you clean</string>
     <string name="metadata_location_permission_needed">Location permission not granted. Grant permission to see location data.</string>
     <string name="metadata_orientation">Orientation: %s</string>
     <string name="metadata_flash">Flash: %s</string>
@@ -456,14 +463,15 @@
     <string name="stats_files_cleaned">Files Cleaned</string>
     <string name="stats_photos">Photos Cleaned</string>
     <string name="stats_videos">Videos Cleaned</string>
-    <string name="stats_shared_in">Shared Into Redact</string>
-    <string name="stats_times_shared">Times Shared</string>
     <string name="stats_files_converted">Files Converted</string>
-    <string name="stats_hero_since">Metadata fields removed since %1$s</string>
-    <string name="stats_hero_empty">Metadata fields removed. Clean a photo or video to start counting.</string>
     <string name="stats_on_device_note">Counted only on this device. Nothing here is ever sent anywhere.</string>
-    <string name="stats_section_cleaning">Cleaning</string>
-    <string name="stats_section_sharing">Sharing &amp; Converting</string>
+    <string name="stats_section_removed">What Was Removed</string>
+    <string name="stats_section_removed_subtitle">How many of your cleaned files carried each kind of personal detail.</string>
+    <string name="stats_removed_location">Location</string>
+    <string name="stats_removed_dates">Date &amp; Time Taken</string>
+    <string name="stats_removed_devices">Camera &amp; Phone</string>
+    <string name="stats_removed_names">Names &amp; Authors</string>
+    <string name="stats_section_files">Files</string>
     <string name="stats_section_activity">Last 30 Days</string>
     <string name="stats_chart_empty">Nothing cleaned in the last 30 days.</string>
     <string name="stats_chart_today">Today</string>

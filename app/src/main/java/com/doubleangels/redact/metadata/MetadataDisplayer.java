@@ -901,6 +901,8 @@ public class MetadataDisplayer {
         SentryManager.log("The app is extracting video metadata.");
 
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+        // The platform retriever misses many tags, so the container is read directly as well.
+        VideoContainerMetadata.Report container = VideoContainerMetadata.scan(context, videoUri);
 
         try {
             // Set the data source to the video URI
@@ -983,14 +985,24 @@ public class MetadataDisplayer {
                     metadata.append(context.getString(R.string.metadata_latitude, lat)).append("\n");
                     metadata.append(context.getString(R.string.metadata_longitude, lon)).append("\n");
                     SentryManager.setCustomKey("has_location_data", true);
-                } else if (locationRaw != null && !locationRaw.isEmpty()) {
-                    SentryManager.log("The video location format is invalid.");
+                } else if (container.hasLocation
+                        || (locationRaw != null && !locationRaw.isEmpty())) {
+                    // Present, but not as coordinates the retriever can hand over.
+                    metadata.append(context.getString(R.string.metadata_location_unreadable)).append("\n");
+                    SentryManager.setCustomKey("has_location_data", true);
                 } else {
                     metadata.append(context.getString(R.string.metadata_no_location_data)).append("\n");
                     SentryManager.setCustomKey("has_location_data", false);
                 }
             } else {
                 metadata.append(context.getString(R.string.metadata_location_permission_needed)).append("\n");
+            }
+
+            if (!container.fields.isEmpty()) {
+                // Names only: the values can be anything, including the location itself.
+                metadata.append("\n").append(context.getString(R.string.metadata_container_tags_header)).append("\n");
+                metadata.append(context.getString(R.string.metadata_container_tags,
+                        String.join(", ", new java.util.LinkedHashSet<>(container.fields)))).append("\n");
             }
 
             // Extract and append technical details
@@ -1130,6 +1142,9 @@ public class MetadataDisplayer {
                 }
             }
 
+            addContainerFields(context, VideoContainerMetadata.scan(context, videoUri),
+                    hasLocationPermission, metadataMap);
+
             SentryManager.log("The app has location permission: " + hasLocationPermission + ".");
             SentryManager.setCustomKey("has_location_permission", hasLocationPermission);
 
@@ -1182,6 +1197,54 @@ public class MetadataDisplayer {
                 SentryManager.log("An exception occurred while releasing the MediaMetadataRetriever, and it was ignored.");
             }
         }
+    }
+
+    /**
+     * Lists what reading the container found beyond the platform retriever, such as QuickTime
+     * keys, 3GPP loci and XMP. Only that each tag is there is shown, never its value.
+     */
+    private static void addContainerFields(Context context, VideoContainerMetadata.Report container,
+                                           boolean hasLocationPermission, Map<String, String> metadataMap) {
+        if (hasLocationPermission && container.hasLocation
+                && !metadataMap.containsKey("GPS_LATITUDE") && !metadataMap.containsKey("LOCATION")) {
+            metadataMap.put("LOCATION", context.getString(R.string.metadata_location_unreadable));
+        }
+        String present = context.getString(R.string.metadata_container_value);
+        for (String name : container.fields) {
+            if (name.equals("date") || VideoContainerMetadata.isLocationName(name)) {
+                continue;
+            }
+            String key = containerDisplayKey(name);
+            if (!key.isEmpty() && !metadataMap.containsKey(key)) {
+                metadataMap.put(key, present);
+            }
+        }
+    }
+
+    /** A display key for a container tag: ©mak becomes MAKE, com.apple.quicktime.model MODEL. */
+    @androidx.annotation.VisibleForTesting
+    static String containerDisplayKey(String name) {
+        switch (name) {
+            case "©mak": return "MAKE";
+            case "©mod": return "MODEL";
+            case "©nam": return "TITLE";
+            case "©cmt": return "COMMENT";
+            case "©ART": return "ARTIST";
+            case "©aut": return "AUTHOR";
+            case "©swr":
+            case "©too": return "SOFTWARE";
+            case "©des": return "DESCRIPTION";
+            case "©inf": return "INFORMATION";
+            default: break;
+        }
+        String key = name;
+        for (String prefix : new String[]{"com.apple.quicktime.", "com.android.", "com.samsung.android."}) {
+            if (key.startsWith(prefix)) {
+                key = key.substring(prefix.length());
+            }
+        }
+        key = key.replace("©", "").toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]+", "_");
+        return key.replaceAll("^_+|_+$", "");
     }
 
     private static String trimTrailingWhitespace(String s) {

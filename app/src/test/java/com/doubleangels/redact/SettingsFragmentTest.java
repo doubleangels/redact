@@ -682,6 +682,81 @@ public class SettingsFragmentTest {
         assertEquals(StatisticsActivity.class.getName(), started.getComponent().getClassName());
     }
 
+    @Test
+    public void statsCard_isTheFirstThingInSettings() {
+        View card = settings.findViewById(R.id.cardStatsSummary);
+        android.view.ViewGroup list = (android.view.ViewGroup) card.getParent();
+        int firstCard = -1;
+        for (int i = 0; i < list.getChildCount(); i++) {
+            if (list.getChildAt(i) instanceof com.google.android.material.card.MaterialCardView) {
+                firstCard = i;
+                break;
+            }
+        }
+        assertEquals(card, list.getChildAt(firstCard));
+        assertTrue(card.isClickable());
+    }
+
+    @Test
+    public void statsCard_shortensCountsTooLongForTheCard() {
+        activity.getSharedPreferences("redact_stats", android.content.Context.MODE_PRIVATE).edit()
+                .putLong("fields_removed", 1_284_000L)
+                .putLong("locations_removed", 999_999L)
+                .putLong("files_cleaned_images", 2_500_000_000L)
+                .putLong("tracking_since", System.currentTimeMillis())
+                .commit();
+
+        reshowSettings();
+
+        assertEquals("1.3M", ((TextView) settings.findViewById(R.id.textStatsSummaryFields)).getText().toString());
+        assertEquals("999,999", ((TextView) settings.findViewById(R.id.textStatsSummaryLocations)).getText().toString());
+        assertEquals("2.5B", ((TextView) settings.findViewById(R.id.textStatsSummaryFiles)).getText().toString());
+    }
+
+    @Test
+    public void statsCard_goesBackToTheInvitationAfterAClear() {
+        com.doubleangels.redact.stats.StatsStore.recordClean(activity,
+                new com.doubleangels.redact.metadata.CleanStats(12, true), false, false);
+        reshowSettings();
+        assertEquals(View.VISIBLE, settings.findViewById(R.id.rowStatsSummary).getVisibility());
+
+        // As when Statistics is opened from here, cleared, and closed again.
+        controller.pause();
+        com.doubleangels.redact.stats.StatsStore.clear(activity);
+        controller.resume();
+        idle();
+
+        assertEquals(View.GONE, settings.findViewById(R.id.rowStatsSummary).getVisibility());
+        assertEquals(activity.getString(R.string.stats_settings_empty),
+                ((TextView) settings.findViewById(R.id.textStatsSummarySubtitle)).getText().toString());
+    }
+
+    @Test
+    public void statsCard_updatesWhenTheAppComesBack() {
+        controller.pause();
+        com.doubleangels.redact.stats.StatsStore.recordClean(activity,
+                new com.doubleangels.redact.metadata.CleanStats(3, false), true, true);
+        controller.resume();
+        idle();
+
+        assertEquals(View.VISIBLE, settings.findViewById(R.id.rowStatsSummary).getVisibility());
+        assertEquals("3", ((TextView) settings.findViewById(R.id.textStatsSummaryFields)).getText().toString());
+        assertEquals("0", ((TextView) settings.findViewById(R.id.textStatsSummaryLocations)).getText().toString());
+    }
+
+    @Test
+    @org.robolectric.annotation.Config(qualifiers = "de")
+    public void statsCard_isTranslated() {
+        com.doubleangels.redact.stats.StatsStore.recordClean(activity,
+                new com.doubleangels.redact.metadata.CleanStats(1284, true), false, false);
+
+        reshowSettings();
+
+        assertEquals("1.284", ((TextView) settings.findViewById(R.id.textStatsSummaryFields)).getText().toString());
+        assertFalse(((TextView) settings.findViewById(R.id.textStatsSummarySubtitle)).getText().toString()
+                .startsWith("Counted"));
+    }
+
     @SuppressWarnings("unused")
     private static void unused(Activity a) {
     }

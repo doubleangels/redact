@@ -66,4 +66,30 @@ public class CleanSummaryTest {
                 CleanSummary.append("Done.", "Removed 1 metadata field."));
         assertEquals("Done.", CleanSummary.append("Done.", null));
     }
+
+    // ---- the other kinds of detail, for the notification -----------------------------------------
+
+    @Test
+    public void details_countEachKindAcrossTheBatch() {
+        CleanSummary s = CleanSummary.of(List.of(
+                new CleanStats(9, true, true, true, false),
+                new CleanStats(4, false, true, false, true),
+                new CleanStats(2, false, true, true, false)));
+
+        assertEquals("In this batch — Date & Time Taken: 3 · Camera & Phone: 2 · Names & Authors: 1",
+                s.describeDetails(res));
+    }
+
+    @Test
+    public void details_leaveOutKindsNoFileHad() {
+        CleanSummary s = CleanSummary.of(List.of(new CleanStats(5, true, false, true, false)));
+
+        assertEquals("In this batch — Camera & Phone: 1", s.describeDetails(res));
+    }
+
+    @Test
+    public void details_locationAlone_isLeftToTheSummary() {
+        assertNull(CleanSummary.of(List.of(new CleanStats(5, true))).describeDetails(res));
+        assertNull(CleanSummary.of(List.of()).describeDetails(res));
+    }
 }

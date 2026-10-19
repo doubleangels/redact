@@ -7,4 +7,8 @@
     <style name="Widget.Redact.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
         <item name="itemActiveIndicatorStyle">@style/Widget.Redact.BottomNavigationView.ActiveIndicator</item>
     </style>
+
+    <style name="TextAppearance.Redact.Toolbar.Title" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textStyle">bold</item>
+    </style>
 </resources>

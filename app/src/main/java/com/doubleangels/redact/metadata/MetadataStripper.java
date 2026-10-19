@@ -1477,15 +1477,49 @@ public class MetadataStripper {
         @Nullable final String date;
         /** How many of {@link #ADDITIONAL_VIDEO_PRIVACY_KEYS} the video carries, for the clean summary. */
         final int additionalFieldCount;
+        /**
+         * Identifying boxes found by reading the container itself ({@link VideoContainerMetadata}),
+         * which sees tags the platform retriever does not, such as QuickTime keys and 3GPP loci.
+         */
+        final int containerFieldCount;
+        final boolean containerHasLocation;
+        /** The names of those boxes, so the statistics can tell dates, devices and names apart. */
+        @NonNull final List<String> containerFields;
+        /** True when the retriever found an author, writer, artist or composer. */
+        final boolean hasName;
 
         VideoPrivacySnapshot(@Nullable String location, @Nullable String date) {
             this(location, date, 0);
         }
 
         VideoPrivacySnapshot(@Nullable String location, @Nullable String date, int additionalFieldCount) {
+            this(location, date, additionalFieldCount, 0, false);
+        }
+
+        VideoPrivacySnapshot(@Nullable String location, @Nullable String date, int additionalFieldCount,
+                             int containerFieldCount, boolean containerHasLocation) {
+            this(location, date, additionalFieldCount, containerFieldCount, containerHasLocation,
+                    java.util.Collections.emptyList(), false);
+        }
+
+        VideoPrivacySnapshot(@Nullable String location, @Nullable String date, int additionalFieldCount,
+                             @NonNull List<String> containerFields, boolean containerHasLocation,
+                             boolean hasName) {
+            this(location, date, additionalFieldCount, containerFields.size(), containerHasLocation,
+                    containerFields, hasName);
+        }
+
+        private VideoPrivacySnapshot(@Nullable String location, @Nullable String date,
+                                     int additionalFieldCount, int containerFieldCount,
+                                     boolean containerHasLocation, @NonNull List<String> containerFields,
+                                     boolean hasName) {
             this.location = location;
             this.date = date;
             this.additionalFieldCount = additionalFieldCount;
+            this.containerFieldCount = containerFieldCount;
+            this.containerHasLocation = containerHasLocation;
+            this.containerFields = containerFields;
+            this.hasName = hasName;
         }
 
         static VideoPrivacySnapshot empty() {
@@ -1515,20 +1549,27 @@ public class MetadataStripper {
             }
             // Counted while the file is open, so the clean summary needs no second read.
             int additional = 0;
+            boolean hasName = false;
             for (int key : ADDITIONAL_VIDEO_PRIVACY_KEYS) {
                 if (normalizeMetadataValue(retriever.extractMetadata(key)) != null) {
                     additional++;
+                    hasName |= NAME_VIDEO_KEYS.contains(key);
                 }
             }
+            VideoContainerMetadata.Report container = VideoContainerMetadata.scan(context, sourceUri);
             return new VideoPrivacySnapshot(
                     normalizeMetadataValue(
                             retriever.extractMetadata(
                                     android.media.MediaMetadataRetriever.METADATA_KEY_LOCATION)),
                     date,
-                    additional);
+                    additional,
+                    container.fields,
+                    container.hasLocation,
+                    hasName);
         } catch (Exception e) {
             SentryManager.log("The source video privacy metadata could not be read: " + e.getMessage() + ".");
-            return VideoPrivacySnapshot.empty();
+            VideoContainerMetadata.Report container = VideoContainerMetadata.scan(context, sourceUri);
+            return new VideoPrivacySnapshot(null, null, 0, container.fields, container.hasLocation, false);
         }
     }
 
@@ -1544,16 +1585,35 @@ public class MetadataStripper {
         }
     }
 
-    /** Counts the privacy fields the video verification checks: location, date and the additional keys. */
+    /**
+     * Counts the identifying fields in a video: whichever is larger of what the platform retriever
+     * reports (location, date and the additional keys) and what reading the container found, as
+     * both see the same location and date when the retriever sees them at all.
+     */
     @NonNull
     static CleanStats countVideoPrivacyFields(@NonNull VideoPrivacySnapshot snapshot) {
-        int fields = (snapshot.location != null ? 1 : 0) + (snapshot.date != null ? 1 : 0)
+        int retrieved = (snapshot.location != null ? 1 : 0) + (snapshot.date != null ? 1 : 0)
                 + snapshot.additionalFieldCount;
-        return new CleanStats(fields, snapshot.location != null);
+        return CleanStats.withVideoFields(Math.max(retrieved, snapshot.containerFieldCount),
+                snapshot.location != null || snapshot.containerHasLocation,
+                snapshot.date != null, snapshot.hasName, snapshot.containerFields);
     }
 
+    /**
+     * Removes whatever identifying boxes the muxer or encoder left in {@code videoFile} (such as
+     * the Android version key and the time of cleaning), then fails unless neither the platform
+     * retriever nor a read of the container itself finds anything identifying.
+     */
     private void requireVideoMetadataClean(
             @NonNull File videoFile, @NonNull VideoPrivacySnapshot sourceSnapshot) throws IOException {
+        VideoContainerMetadata.scrub(videoFile);
+        VideoContainerMetadata.Report remaining = VideoContainerMetadata.scan(videoFile);
+        if (!remaining.isClean()) {
+            SentryManager.setCustomKey("video_metadata_verification_passed", false);
+            SentryManager.setCustomKey("video_verify_failed_key",
+                    remaining.recognized ? "CONTAINER_BOX" : "CONTAINER_UNREADABLE");
+            throw new IOException("Video metadata verification failed");
+        }
         boolean videoClean = verifyVideoMetadataRemoval(videoFile, sourceSnapshot);
         SentryManager.setCustomKey("video_metadata_verification_passed", videoClean);
         if (!videoClean) {
@@ -1574,6 +1634,14 @@ public class MetadataStripper {
      * Textual video metadata keys beyond location/date that our own encoder never sets, so any
      * non-empty value found in an output file must have survived from the source container.
      */
+    /** The {@link #ADDITIONAL_VIDEO_PRIVACY_KEYS} that name a person. */
+    private static final Set<Integer> NAME_VIDEO_KEYS = Set.of(
+            android.media.MediaMetadataRetriever.METADATA_KEY_AUTHOR,
+            android.media.MediaMetadataRetriever.METADATA_KEY_WRITER,
+            android.media.MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST,
+            android.media.MediaMetadataRetriever.METADATA_KEY_ARTIST,
+            android.media.MediaMetadataRetriever.METADATA_KEY_COMPOSER);
+
     static final int[] ADDITIONAL_VIDEO_PRIVACY_KEYS = {
             android.media.MediaMetadataRetriever.METADATA_KEY_AUTHOR,
             android.media.MediaMetadataRetriever.METADATA_KEY_WRITER,

@@ -20,6 +20,7 @@ import com.doubleangels.redact.ui.StatsBarChart;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 import java.text.DateFormat;
 import java.text.NumberFormat;
@@ -30,22 +31,25 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Settings › Statistics: what Redact has removed and shared on this device, with a chart of the
- * last 30 days and a way to clear it all. Every figure comes from {@link StatsStore}.
+ * Settings › Statistics: the same three figures as the card in Settings, then what kinds of
+ * personal detail the cleaned files carried, the files by type, a chart of the last 30 days and a
+ * way to clear it all. Every figure comes from {@link StatsStore}.
  */
 public class StatisticsActivity extends AppCompatActivity {
 
-    private TextView heroValue;
+    private TextView fieldsValue;
+    private TextView locationsValue;
+    private TextView filesValue;
     private TextView heroLabel;
     private TextView chartSummary;
     private TextView chartStart;
     private StatsBarChart chart;
-    private View tileFilesCleaned;
-    private View tileLocations;
+    private View rowLocations;
+    private View rowDates;
+    private View rowDevices;
+    private View rowNames;
     private View tilePhotos;
     private View tileVideos;
-    private View tileSharedIn;
-    private View tileShares;
     private View tileConverted;
 
     @Override
@@ -59,17 +63,19 @@ public class StatisticsActivity extends AppCompatActivity {
         MaterialToolbar toolbar = findViewById(R.id.statsToolbar);
         toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
-        heroValue = findViewById(R.id.statsHeroValue);
+        fieldsValue = findViewById(R.id.statsFieldsValue);
+        locationsValue = findViewById(R.id.statsLocationsValue);
+        filesValue = findViewById(R.id.statsFilesValue);
         heroLabel = findViewById(R.id.statsHeroLabel);
         chartSummary = findViewById(R.id.statsChartSummary);
         chartStart = findViewById(R.id.statsChartStart);
         chart = findViewById(R.id.statsChart);
-        tileFilesCleaned = setUpTile(R.id.tileFilesCleaned, R.drawable.ic_clean, R.string.stats_files_cleaned);
-        tileLocations = setUpTile(R.id.tileLocations, R.drawable.ic_map_24, R.string.stats_locations_removed);
+        rowLocations = setUpTile(R.id.rowLocations, R.drawable.ic_map_24, R.string.stats_removed_location);
+        rowDates = setUpTile(R.id.rowDates, R.drawable.ic_event, R.string.stats_removed_dates);
+        rowDevices = setUpTile(R.id.rowDevices, R.drawable.ic_camera_24, R.string.stats_removed_devices);
+        rowNames = setUpTile(R.id.rowNames, R.drawable.ic_person, R.string.stats_removed_names);
         tilePhotos = setUpTile(R.id.tilePhotos, R.drawable.ic_image, R.string.stats_photos);
         tileVideos = setUpTile(R.id.tileVideos, R.drawable.ic_video, R.string.stats_videos);
-        tileSharedIn = setUpTile(R.id.tileSharedIn, R.drawable.ic_add_photo, R.string.stats_shared_in);
-        tileShares = setUpTile(R.id.tileShares, R.drawable.ic_share, R.string.stats_times_shared);
         tileConverted = setUpTile(R.id.tileConverted, R.drawable.ic_convert, R.string.stats_files_converted);
 
         findViewById(R.id.rowClearStats).setOnClickListener(v -> confirmClear());
@@ -95,18 +101,22 @@ public class StatisticsActivity extends AppCompatActivity {
         StatsSnapshot s = StatsStore.snapshot(this);
         NumberFormat numbers = NumberFormat.getIntegerInstance();
 
-        heroValue.setText(numbers.format(s.fieldsRemoved));
+        fieldsValue.setText(numbers.format(s.fieldsRemoved));
+        locationsValue.setText(numbers.format(s.locationsRemoved));
+        filesValue.setText(numbers.format(s.filesCleaned()));
         heroLabel.setText(s.isEmpty()
-                ? getString(R.string.stats_hero_empty)
-                : getString(R.string.stats_hero_since,
+                ? getString(R.string.stats_settings_empty)
+                : getString(R.string.stats_settings_since,
                         DateFormat.getDateInstance(DateFormat.MEDIUM).format(new Date(s.trackingSince))));
 
-        setTileValue(tileFilesCleaned, numbers.format(s.filesCleaned()));
-        setTileValue(tileLocations, numbers.format(s.locationsRemoved));
+        NumberFormat percent = NumberFormat.getPercentInstance();
+        setBreakdown(rowLocations, s, s.locationsRemoved, numbers, percent);
+        setBreakdown(rowDates, s, s.datesRemoved, numbers, percent);
+        setBreakdown(rowDevices, s, s.devicesRemoved, numbers, percent);
+        setBreakdown(rowNames, s, s.namesRemoved, numbers, percent);
+
         setTileValue(tilePhotos, numbers.format(s.imagesCleaned));
         setTileValue(tileVideos, numbers.format(s.videosCleaned));
-        setTileValue(tileSharedIn, numbers.format(s.sharedIn));
-        setTileValue(tileShares, numbers.format(s.shares));
         setTileValue(tileConverted, numbers.format(s.converted));
 
         long recent = s.cleanedInHistory();
@@ -118,7 +128,7 @@ public class StatisticsActivity extends AppCompatActivity {
         chart.setValues(s.dailyCleans());
         chart.setContentDescription(summary);
 
-        LocalDate first = LocalDate.now().minusDays(StatsStore.HISTORY_DAYS - 1);
+        LocalDate first = LocalDate.ofEpochDay(s.firstDay);
         String pattern = android.text.format.DateFormat.getBestDateTimePattern(Locale.getDefault(), "MMMd");
         chartStart.setText(new SimpleDateFormat(pattern, Locale.getDefault()).format(
                 Date.from(first.atStartOfDay(ZoneId.systemDefault()).toInstant())));
@@ -126,6 +136,16 @@ public class StatisticsActivity extends AppCompatActivity {
 
     private static void setTileValue(@NonNull View tile, @NonNull String value) {
         ((TextView) tile.findViewById(R.id.statValue)).setText(value);
+    }
+
+    /** Fills one What Was Removed row: how many files carried the detail, and their share of all. */
+    private static void setBreakdown(@NonNull View row, @NonNull StatsSnapshot s, long files,
+                                     @NonNull NumberFormat numbers, @NonNull NumberFormat percent) {
+        double share = s.shareOfFiles(files);
+        setTileValue(row, numbers.format(files));
+        ((TextView) row.findViewById(R.id.statPercent)).setText(percent.format(share));
+        ((LinearProgressIndicator) row.findViewById(R.id.statBar))
+                .setProgressCompat((int) Math.round(share * 100), false);
     }
 
     private void confirmClear() {

@@ -211,6 +211,15 @@ public final class AlreadyCleanCheck {
 
     @NonNull
     private static Status assessVideo(@NonNull Context context, @NonNull Uri uri) {
+        // The retriever misses many tags (QuickTime keys, 3GPP loci, XMP, Matroska tags), so a
+        // video only counts as clean once its container has been read and holds none of them.
+        VideoContainerMetadata.Report container = VideoContainerMetadata.scan(context, uri);
+        if (!container.recognized) {
+            return Status.UNKNOWN;
+        }
+        if (!container.fields.isEmpty()) {
+            return Status.NEEDS_CLEANING;
+        }
         try (MediaMetadataRetriever retriever = new MediaMetadataRetriever()) {
             retriever.setDataSource(context, uri);
             if (MetadataStripper.normalizeMetadataValue(

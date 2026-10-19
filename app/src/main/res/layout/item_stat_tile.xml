@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="0dp"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:layout_weight="1"
     app:cardBackgroundColor="?attr/colorSurfaceContainer"
     app:cardCornerRadius="@dimen/component_corner_medium"
@@ -13,7 +13,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:screenReaderFocusable="true"
         android:minHeight="112dp"
         android:orientation="vertical"
@@ -22,7 +22,7 @@
         <FrameLayout
             android:layout_width="36dp"
             android:layout_height="36dp"
-            android:background="@drawable/bg_folder_icon"
+            android:background="@drawable/bg_stat_icon_badge"
             android:importantForAccessibility="no">
 
             <ImageView
@@ -45,6 +45,10 @@
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"
             android:ellipsize="end"
+            app:autoSizeTextType="uniform"
+            app:autoSizeMinTextSize="16sp"
+            app:autoSizeMaxTextSize="24sp"
+            app:autoSizeStepGranularity="1sp"
             tools:text="1,284" />
 
         <TextView
