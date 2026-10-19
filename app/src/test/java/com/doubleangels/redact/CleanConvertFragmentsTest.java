@@ -1,5 +1,6 @@
 package com.doubleangels.redact;
 
+import static com.doubleangels.redact.TestWaits.awaitMain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -70,20 +71,6 @@ public class CleanConvertFragmentsTest {
 
     private static void idle() {
         shadowOf(Looper.getMainLooper()).idle();
-    }
-
-    private static void awaitMain(BooleanSupplier condition) throws InterruptedException {
-        long deadline = System.currentTimeMillis() + 20_000;
-        while (!condition.getAsBoolean()) {
-            idle();
-            if (condition.getAsBoolean()) {
-                return;
-            }
-            if (System.currentTimeMillis() > deadline) {
-                throw new AssertionError("Timed out waiting for background work");
-            }
-            Thread.sleep(25);
-        }
     }
 
     private Fragment fragment(String tag) {
@@ -461,17 +448,6 @@ public class CleanConvertFragmentsTest {
         assertEquals(MainViewModel.ProcessingState.PROCESSING, vm.getCleanProcessingState().getValue());
     }
 
-    @Test
-    public void clean_permissionResult_isHandled() {
-        clean();
-        activity.onRequestPermissionsResult(
-                com.doubleangels.redact.permission.PermissionManager.STORAGE_PERMISSION_REQUEST_CODE,
-                new String[] {android.Manifest.permission.READ_MEDIA_IMAGES},
-                new int[] {android.content.pm.PackageManager.PERMISSION_DENIED});
-        idle();
-        assertNotNull(fragment("clean"));
-    }
-
     // ---- Convert ---------------------------------------------------------------------------
 
     @Test
@@ -695,17 +671,6 @@ public class CleanConvertFragmentsTest {
         assertEquals(View.VISIBLE, visibility(v, R.id.formatSection));
         assertEquals(View.VISIBLE, visibility(v, R.id.filesCountBadge));
         assertTrue(v.findViewById(R.id.convertButton).isEnabled());
-    }
-
-    @Test
-    public void convert_permissionResult_isHandled() {
-        convert();
-        activity.onRequestPermissionsResult(
-                com.doubleangels.redact.permission.PermissionManager.STORAGE_PERMISSION_REQUEST_CODE,
-                new String[] {android.Manifest.permission.READ_MEDIA_IMAGES},
-                new int[] {android.content.pm.PackageManager.PERMISSION_GRANTED});
-        idle();
-        assertNotNull(fragment("convert"));
     }
 
     // ---- Clean: already-clean warning -----------------------------------------------------

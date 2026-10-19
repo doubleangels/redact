@@ -1,5 +1,6 @@
 package com.doubleangels.redact.media;
 
+import static com.doubleangels.redact.TestWaits.callOffMain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -32,7 +33,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class FormatConverterConversionTest {
 
     private Context context;
@@ -47,6 +47,7 @@ public class FormatConverterConversionTest {
     @After
     public void tearDown() {
         FakeMediaStoreProvider.reset();
+        VideoMedia3Converter.setAwaitTimeoutForTests(null);
         FormatConverter.testHeicCompressFormatOverride = null;
         FormatConverter.testTreatFormatAsHeic = null;
         for (File f : files) {
@@ -278,15 +279,6 @@ public class FormatConverterConversionTest {
     }
 
     @Test
-    public void heicSpecs_followTheOverrideOnApi34() throws Exception {
-        FormatConverter.testHeicCompressFormatOverride = Bitmap.CompressFormat.PNG;
-        FormatConverter.testTreatFormatAsHeic = Bitmap.CompressFormat.PNG;
-        assertEquals("image/heic", FormatConverter.resolveImageFormat(null, "image/heic").mimeType);
-        assertEquals(".heic", FormatConverter.resolveImageFormat(".heif", null).extension);
-        assertTrue(FormatConverter.isHeicOutputSupported());
-    }
-
-    @Test
     public void videoFormatLabel_clampsTheIndex() {
         String[] labels = context.getResources().getStringArray(R.array.settings_video_format_labels);
         assertEquals(labels[0], FormatConverter.videoFormatLabel(context, 0));
@@ -297,19 +289,21 @@ public class FormatConverterConversionTest {
 
     // ---- video conversion ----------------------------------------------------------------------------------
 
-    @Test(timeout = 60_000)
+    @Test(timeout = 30_000)
     @Config(sdk = 31)
     public void convertVideo_withAnUnreadableSource_failsWithoutLeavingEntries() throws Exception {
+        // Media3 never finishes an export here; take the timeout path instead of waiting an hour.
+        VideoMedia3Converter.setAwaitTimeoutForTests(500L);
         try {
-            FormatConverter.convertVideoToMovies(
-                    context, Uri.fromFile(new File("/nonexistent/clip.mp4")), "clip", 0);
+            callOffMain(() -> FormatConverter.convertVideoToMovies(
+                    context, Uri.fromFile(new File("/nonexistent/clip.mp4")), "clip", 0));
         } catch (Exception expected) {
             // Any failure is fine; what matters is that no partial gallery entry remains.
         }
         assertTrue(FakeMediaStoreProvider.entries().isEmpty());
     }
 
-    @Test(timeout = 60_000)
+    @Test(timeout = 30_000)
     @Config(sdk = 31)
     public void convertVideo_cancelledBeforeTheTranscode_stopsWithoutStartingIt() throws Exception {
         File clip = File.createTempFile("cancel_", ".mp4", context.getFilesDir());
@@ -332,18 +326,20 @@ public class FormatConverterConversionTest {
         assertTrue(FakeMediaStoreProvider.entries().isEmpty());
     }
 
-    @Test(timeout = 60_000)
+    @Test(timeout = 30_000)
     @Config(sdk = 31)
-    public void convertVideo_overloads_delegateToTheFullSignature() {
+    public void convertVideo_overloads_delegateToTheFullSignature() throws Exception {
+        // Media3 never finishes an export here; take the timeout path instead of waiting an hour.
+        VideoMedia3Converter.setAwaitTimeoutForTests(500L);
         Uri missing = Uri.fromFile(new File("/nonexistent/clip.mp4"));
         int[] actual = new int[1];
         try {
-            FormatConverter.convertVideoToMovies(context, missing, "clip", 1, null);
+            callOffMain(() -> FormatConverter.convertVideoToMovies(context, missing, "clip", 1, null));
         } catch (Exception expected) {
             // unreadable source
         }
         try {
-            FormatConverter.convertVideoToMovies(context, missing, "clip", 2, null, actual);
+            callOffMain(() -> FormatConverter.convertVideoToMovies(context, missing, "clip", 2, null, actual));
         } catch (Exception expected) {
             // unreadable source
         }

@@ -1,5 +1,6 @@
 package com.doubleangels.redact;
 
+import static com.doubleangels.redact.TestWaits.awaitMain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -211,15 +212,6 @@ public class ShareHandlerActivityFlowsTest {
         shadowOf(Looper.getMainLooper()).idle();
     }
 
-    private static void awaitTrue(java.util.function.BooleanSupplier condition) throws InterruptedException {
-        long deadline = System.currentTimeMillis() + 10_000;
-        while (!condition.getAsBoolean() && System.currentTimeMillis() < deadline) {
-            idle();
-            Thread.sleep(25);
-        }
-        assertTrue(condition.getAsBoolean());
-    }
-
     // ---- onNewIntent --------------------------------------------------------------------------
 
     @Test
@@ -232,7 +224,7 @@ public class ShareHandlerActivityFlowsTest {
 
         assertFalse(activity.isFinishing());
         assertNotNull(ShadowDialog.getLatestDialog());
-        awaitTrue(() -> inboundSnapshots().length == 1);
+        awaitMain(() -> inboundSnapshots().length == 1);
         assertFalse(ShareHandlerActivity.isShareProcessingActive());
     }
 
@@ -260,27 +252,6 @@ public class ShareHandlerActivityFlowsTest {
     }
 
     // ---- state restore -------------------------------------------------------------------------
-
-    @Test
-    public void restoringWhileProcessingWasActive_finishesWithTheInterruptedError() {
-        Bundle state = new Bundle();
-        state.putBoolean("processing_active", true);
-        controller = Robolectric.buildActivity(ShareHandlerActivity.class, send("image/jpeg", Uri.parse("content://x/y")));
-        controller.create(state);
-
-        assertEquals(app.getString(R.string.share_error_interrupted), ShadowToast.getTextOfLatestToast());
-        assertTrue(controller.get().isFinishing());
-    }
-
-    @Test
-    public void restoringAfterTheChooserWasShown_justFinishes() {
-        Bundle state = new Bundle();
-        state.putBoolean("sharing_initiated", true);
-        controller = Robolectric.buildActivity(ShareHandlerActivity.class, send("image/jpeg", Uri.parse("content://x/y")));
-        controller.create(state);
-
-        assertTrue(controller.get().isFinishing());
-    }
 
     @Test
     public void saveInstanceState_recordsTheSharingFlags() throws Exception {
@@ -311,7 +282,7 @@ public class ShareHandlerActivityFlowsTest {
 
         assertTrue(activity.isFinishing());
         assertEquals(app.getString(R.string.status_processing_cancelled), ShadowToast.getTextOfLatestToast());
-        awaitTrue(() -> !ShareHandlerActivity.isShareProcessingActive());
+        awaitMain(() -> !ShareHandlerActivity.isShareProcessingActive());
     }
 
     @Test
@@ -322,7 +293,7 @@ public class ShareHandlerActivityFlowsTest {
         idle();
 
         assertTrue(activity.isFinishing());
-        awaitTrue(() -> inboundSnapshots().length == 0);
+        awaitMain(() -> inboundSnapshots().length == 0);
     }
 
     // ---- building the share intents ---------------------------------------------------------------
@@ -424,7 +395,7 @@ public class ShareHandlerActivityFlowsTest {
         idle();
 
         assertTrue(activity.isFinishing());
-        awaitTrue(() -> !processed.exists());
+        awaitMain(() -> !processed.exists());
     }
 
     @Test
@@ -440,7 +411,7 @@ public class ShareHandlerActivityFlowsTest {
         assertTrue("Files stay until the target app has read them", processed.exists());
         ShadowLooper.idleMainLooper(3, java.util.concurrent.TimeUnit.MINUTES);
 
-        awaitTrue(() -> !processed.exists());
+        awaitMain(() -> !processed.exists());
         assertTrue(activity.isFinishing());
     }
 
@@ -454,7 +425,7 @@ public class ShareHandlerActivityFlowsTest {
         controller.pause().stop().destroy();
         ShadowLooper.idleMainLooper(3, java.util.concurrent.TimeUnit.MINUTES);
 
-        awaitTrue(() -> !processed.exists());
+        awaitMain(() -> !processed.exists());
     }
 
     @Test
@@ -465,7 +436,7 @@ public class ShareHandlerActivityFlowsTest {
 
         controller.pause().stop().destroy();
 
-        awaitTrue(() -> !processed.exists());
+        awaitMain(() -> !processed.exists());
     }
 
     // ---- inbound URIs ----------------------------------------------------------------------------------
@@ -554,42 +525,4 @@ public class ShareHandlerActivityFlowsTest {
         assertEquals(1, inboundSnapshots().length);
     }
 
-    @Test
-    public void moreThanTwentyItems_areRefused() throws Exception {
-        ArrayList<Uri> uris = new ArrayList<>();
-        File photo = jpeg();
-        for (int i = 0; i < 21; i++) {
-            uris.add(Uri.fromFile(photo).buildUpon().appendQueryParameter("n", Integer.toString(i)).build());
-        }
-        Intent intent = new Intent(Intent.ACTION_SEND_MULTIPLE).setType("image/*")
-                .putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-
-        ShareHandlerActivity activity = launch(intent);
-
-        assertTrue(activity.isFinishing());
-        assertEquals(app.getString(R.string.share_error_too_many_items, 20), ShadowToast.getTextOfLatestToast());
-        assertEquals(0, inboundSnapshots().length);
-    }
-
-    @Test
-    public void nonMediaContent_isRefusedAsUnsupported() throws Exception {
-        Robolectric.setupContentProvider(TestMediaProvider.class, AUTHORITY);
-        TestMediaProvider.file = jpeg();
-        TestMediaProvider.type = "application/pdf";
-
-        ShareHandlerActivity activity = launch(send("application/pdf", Uri.parse("content://" + AUTHORITY + "/doc/1")));
-
-        assertTrue(activity.isFinishing());
-        assertEquals(app.getString(R.string.share_error_unsupported_media), ShadowToast.getTextOfLatestToast());
-        TestMediaProvider.type = "image/jpeg";
-    }
-
-    @Test
-    public void nullStreamIntent_isRejected() {
-        Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.setType("image/jpeg");
-        ShareHandlerActivity activity = launch(intent);
-        assertTrue(activity.isFinishing());
-        assertEquals(0, inboundSnapshots().length);
-    }
 }

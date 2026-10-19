@@ -15,7 +15,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowMediaMetadataRetriever;
 import org.robolectric.shadows.util.DataSource;
 
@@ -26,7 +25,6 @@ import java.lang.reflect.Method;
 
 /** The converter's small decisions that run before Media3 does any work. */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class VideoMedia3ConverterHelpersTest {
 
     private static Object call(String name, Class<?>[] types, Object... args) throws Exception {

@@ -1,5 +1,6 @@
 package com.doubleangels.redact;
 
+import static com.doubleangels.redact.TestWaits.awaitMain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -75,20 +76,6 @@ public class ScanFragmentTest {
     private static void idleForSearch() {
         shadowOf(Looper.getMainLooper()).idleFor(
                 java.time.Duration.ofMillis(ScanFragment.SEARCH_DEBOUNCE_MS));
-    }
-
-    private static void awaitMain(BooleanSupplier condition) throws InterruptedException {
-        long deadline = System.currentTimeMillis() + 20_000;
-        while (!condition.getAsBoolean()) {
-            idle();
-            if (condition.getAsBoolean()) {
-                return;
-            }
-            if (System.currentTimeMillis() > deadline) {
-                throw new AssertionError("Timed out waiting for background work");
-            }
-            Thread.sleep(25);
-        }
     }
 
     private Fragment scanFragment() {
@@ -370,11 +357,9 @@ public class ScanFragmentTest {
                 PermissionManager.LOCATION_PERMISSION_REQUEST_CODE,
                 new String[] {Manifest.permission.ACCESS_MEDIA_LOCATION},
                 new int[] {PackageManager.PERMISSION_GRANTED});
-        long end = System.currentTimeMillis() + 3000;
-        while (System.currentTimeMillis() < end) {
-            idle();
-            Thread.sleep(25);
-        }
+        // The refreshed location section adds location to the hero card's risks.
+        TextView risk = v.findViewById(R.id.heroRiskBadge);
+        awaitMain(() -> risk.getText().toString().contains(activity.getString(R.string.scan_risk_location)));
 
         assertEquals(View.VISIBLE, v.findViewById(R.id.metadataCard).getVisibility());
     }

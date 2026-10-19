@@ -1,5 +1,6 @@
 package com.doubleangels.redact.metadata;
 
+import static com.doubleangels.redact.TestWaits.callOffMain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -14,6 +15,7 @@ import androidx.exifinterface.media.ExifInterface;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.FakeMediaStoreProvider;
+import com.doubleangels.redact.media.VideoMedia3Converter;
 
 import org.junit.After;
 import org.junit.Before;
@@ -31,7 +33,6 @@ import java.util.List;
 
 /** Cleaning into the gallery (MediaStore), backed by {@link FakeMediaStoreProvider}. */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class MetadataStripperGalleryTest {
 
     private Application app;
@@ -50,6 +51,7 @@ public class MetadataStripperGalleryTest {
     @After
     public void tearDown() {
         FakeMediaStoreProvider.reset();
+        VideoMedia3Converter.setAwaitTimeoutForTests(null);
         for (File f : files) {
             f.delete();
         }
@@ -236,13 +238,16 @@ public class MetadataStripperGalleryTest {
         return f;
     }
 
-    @Test(timeout = 90_000)
+    @Test(timeout = 30_000)
     @Config(sdk = 31)
     public void video_unreadableSource_failsWithoutLeavingEntries() throws Exception {
+        // Media3 never finishes an export here; take the timeout path instead of waiting an hour.
+        VideoMedia3Converter.setAwaitTimeoutForTests(500L);
         AppPreferences.setStrictClean(app, true);
         Uri out = null;
         try {
-            out = stripper.stripVideoMetadata(Uri.fromFile(junkVideo()), "clip.mp4");
+            Uri junk = Uri.fromFile(junkVideo());
+            out = callOffMain(() -> stripper.stripVideoMetadata(junk, "clip.mp4"));
         } catch (RuntimeException expected) {
             // transcoding is unavailable under Robolectric
         }
@@ -250,24 +255,30 @@ public class MetadataStripperGalleryTest {
         assertTrue(FakeMediaStoreProvider.entries().isEmpty());
     }
 
-    @Test(timeout = 90_000)
+    @Test(timeout = 30_000)
     @Config(sdk = 31)
-    public void video_missingSource_returnsNull() {
+    public void video_missingSource_returnsNull() throws Exception {
+        // Media3 never finishes an export here; take the timeout path instead of waiting an hour.
+        VideoMedia3Converter.setAwaitTimeoutForTests(500L);
         Uri out = null;
         try {
-            out = stripper.stripVideoMetadata(Uri.fromFile(new File("/nonexistent/clip.mp4")), "clip.mp4");
+            out = callOffMain(() -> stripper.stripVideoMetadata(
+                    Uri.fromFile(new File("/nonexistent/clip.mp4")), "clip.mp4"));
         } catch (RuntimeException expected) {
             // cancellation-style failures propagate
         }
         assertNull(out);
     }
 
-    @Test(timeout = 90_000)
+    @Test(timeout = 30_000)
     @Config(sdk = 31)
-    public void videoForSharing_missingSource_returnsNull() {
+    public void videoForSharing_missingSource_returnsNull() throws Exception {
+        // Media3 never finishes an export here; take the timeout path instead of waiting an hour.
+        VideoMedia3Converter.setAwaitTimeoutForTests(500L);
         Uri out = null;
         try {
-            out = stripper.stripVideoMetadataForSharing(Uri.fromFile(new File("/nonexistent/clip.mp4")), "clip.mp4");
+            out = callOffMain(() -> stripper.stripVideoMetadataForSharing(
+                    Uri.fromFile(new File("/nonexistent/clip.mp4")), "clip.mp4"));
         } catch (RuntimeException expected) {
             // cancellation-style failures propagate
         }

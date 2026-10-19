@@ -22,13 +22,11 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
-import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowNotificationManager;
 
 import java.util.List;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class LocalNotificationsTest {
 
     private Application app;

@@ -20,11 +20,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
 /** Output folder handling when providers are missing, URIs are not what they seem, or IDs are odd. */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class OutputDestinationEdgeCasesTest {
 
     private static final Uri NOBODY = Uri.parse("content://com.example.nobody/files/1");

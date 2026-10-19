@@ -1,5 +1,6 @@
 package com.doubleangels.redact.ui;
 
+import static com.doubleangels.redact.TestWaits.awaitMain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -30,7 +31,6 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.android.controller.ServiceController;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -45,7 +45,6 @@ import java.util.function.BooleanSupplier;
 
 /** Batches that really succeed (images are written through the fake MediaStore). */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class MainViewModelSuccessFlowTest {
 
     @Rule
@@ -71,20 +70,6 @@ public class MainViewModelSuccessFlowTest {
         AppProcessingScope.resetForTests();
         for (File f : files) {
             f.delete();
-        }
-    }
-
-    private static void awaitMain(BooleanSupplier condition) throws InterruptedException {
-        long deadline = System.currentTimeMillis() + 20_000;
-        while (!condition.getAsBoolean()) {
-            shadowOf(Looper.getMainLooper()).idle();
-            if (condition.getAsBoolean()) {
-                return;
-            }
-            if (System.currentTimeMillis() > deadline) {
-                throw new AssertionError("Timed out waiting for background work");
-            }
-            Thread.sleep(25);
         }
     }
 

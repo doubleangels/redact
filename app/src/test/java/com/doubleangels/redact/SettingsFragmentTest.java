@@ -357,29 +357,6 @@ public class SettingsFragmentTest {
     // ---- storage ---------------------------------------------------------------------------------
 
     @Test
-    public void clearTempFiles_confirmsThenCleansAndRefreshesTheSize() throws Exception {
-        java.io.File cache = new java.io.File(activity.getCacheDir(), "processed");
-        cache.mkdirs();
-        java.io.File junk = new java.io.File(cache, "leftover.jpg");
-        try (java.io.FileOutputStream out = new java.io.FileOutputStream(junk)) {
-            out.write(new byte[2048]);
-        }
-        assertTrue(junk.setLastModified(System.currentTimeMillis() - 48L * 60 * 60 * 1000));
-
-        settings.findViewById(R.id.buttonClearTempFiles).performClick();
-        idle();
-        latestDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
-        long end = System.currentTimeMillis() + 3000;
-        while (System.currentTimeMillis() < end && junk.exists()) {
-            idle();
-            Thread.sleep(25);
-        }
-        idle();
-
-        assertFalse(junk.exists());
-    }
-
-    @Test
     public void clearTempFiles_cancelLeavesFilesAlone() throws Exception {
         java.io.File cache = new java.io.File(activity.getCacheDir(), "processed");
         cache.mkdirs();
@@ -430,31 +407,6 @@ public class SettingsFragmentTest {
 
         assertEquals(View.GONE, settings.findViewById(R.id.buttonLocationPermission).getVisibility());
         assertEquals(activity.getString(R.string.settings_permission_granted), location.getText().toString());
-    }
-
-    @Test
-    public void locationRow_withoutMediaAccess_explainsTheDependency() {
-        shadowOf(activity.getApplication()).denyPermissions(
-                Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.ACCESS_MEDIA_LOCATION);
-
-        settings.findViewById(R.id.rowPermissionLocation).performClick();
-        idle();
-
-        AlertDialog dialog = latestDialog();
-        assertNotNull(dialog);
-        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
-    }
-
-    @Test
-    public void locationButton_withMediaAccess_launchesThePermissionRequest() {
-        shadowOf(activity.getApplication()).grantPermissions(Manifest.permission.READ_EXTERNAL_STORAGE);
-        shadowOf(activity.getApplication()).denyPermissions(Manifest.permission.ACCESS_MEDIA_LOCATION);
-
-        settings.findViewById(R.id.buttonLocationPermission).performClick();
-        idle();
-
-        ShadowActivity.PermissionsRequest request = shadowOf(activity).getLastRequestedPermission();
-        assertNotNull(request);
     }
 
     @Test

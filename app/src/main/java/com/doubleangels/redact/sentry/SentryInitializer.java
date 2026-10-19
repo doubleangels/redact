@@ -43,6 +43,10 @@ public final class SentryInitializer {
         return initialized;
     }
 
+    static boolean isInitializingForTests() {
+        return initializing;
+    }
+
     /** Whether a non-empty DSN is available for initialization. */
     public static boolean hasConfiguredDsn() {
         String dsn = testDsnOverride != null ? testDsnOverride : BuildConfig.SENTRY_DSN;

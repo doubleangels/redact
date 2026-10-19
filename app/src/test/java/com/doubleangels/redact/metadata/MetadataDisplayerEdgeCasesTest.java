@@ -1,5 +1,6 @@
 package com.doubleangels.redact.metadata;
 
+import static com.doubleangels.redact.TestWaits.awaitMain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -26,7 +27,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
-import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowMediaMetadataRetriever;
 import org.robolectric.shadows.util.DataSource;
 
@@ -42,7 +42,6 @@ import java.util.function.BooleanSupplier;
 
 /** Less common values and failures in what Scan shows: odd EXIF, long videos, unreadable files. */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class MetadataDisplayerEdgeCasesTest {
 
     private Application app;
@@ -63,15 +62,6 @@ public class MetadataDisplayerEdgeCasesTest {
             //noinspection ResultOfMethodCallIgnored
             f.delete();
         }
-    }
-
-    private static void await(BooleanSupplier done) throws Exception {
-        long end = System.currentTimeMillis() + 15_000;
-        while (!done.getAsBoolean() && System.currentTimeMillis() < end) {
-            Shadows.shadowOf(Looper.getMainLooper()).idle();
-            Thread.sleep(10);
-        }
-        assertTrue("timed out", done.getAsBoolean());
     }
 
     /** A JPEG with the given EXIF attributes (pairs of tag, value), padded by {@code padding} bytes. */
@@ -122,7 +112,7 @@ public class MetadataDisplayerEdgeCasesTest {
                 result.set("FAILED: " + error);
             }
         });
-        await(() -> result.get() != null);
+        awaitMain(() -> result.get() != null);
         return result.get();
     }
 
@@ -140,7 +130,7 @@ public class MetadataDisplayerEdgeCasesTest {
                 failed[0] = true;
             }
         });
-        await(() -> result.get() != null || failed[0]);
+        awaitMain(() -> result.get() != null || failed[0]);
         assertFalse("extraction failed", failed[0]);
         return result.get();
     }
@@ -305,7 +295,7 @@ public class MetadataDisplayerEdgeCasesTest {
                 sectioned.set(error);
             }
         });
-        await(() -> sectioned.get() != null);
+        awaitMain(() -> sectioned.get() != null);
         assertEquals(failed, sectioned.get());
 
         AtomicReference<String> location = new AtomicReference<>();
@@ -320,7 +310,7 @@ public class MetadataDisplayerEdgeCasesTest {
                 location.set(error);
             }
         });
-        await(() -> location.get() != null);
+        awaitMain(() -> location.get() != null);
         assertEquals(failed, location.get());
     }
 

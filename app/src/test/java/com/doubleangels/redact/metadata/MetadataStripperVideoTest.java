@@ -23,7 +23,6 @@ import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowMediaExtractor;
 import org.robolectric.shadows.ShadowMediaMetadataRetriever;
 import org.robolectric.shadows.util.DataSource;
@@ -37,7 +36,6 @@ import java.util.List;
 
 /** Video cleaning with Robolectric's emulated MediaExtractor / MediaMuxer / MediaMetadataRetriever. */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 31, shadows = {com.doubleangels.redact.LenientMediaExtractorShadow.class})
 public class MetadataStripperVideoTest {
 
     @Rule

@@ -51,7 +51,6 @@ public class PermissionManagerTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void collectMissing_sdk34_includesAllVisualMediaPermissions() {
         deny(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO,
                 Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED);
@@ -64,7 +63,6 @@ public class PermissionManagerTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void collectMissing_sdk34_omitsGrantedPermissions() {
         deny(Manifest.permission.READ_MEDIA_VIDEO);
         grant(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED);
@@ -74,8 +72,8 @@ public class PermissionManagerTest {
     }
 
     @Test
-    @Config(sdk = 33)
     public void collectMissing_sdk33_requestsImagesAndVideoOnly() {
+        PermissionManager.testSdkIntOverride = 33;
         deny(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO);
 
         assertEquals(Arrays.asList(
@@ -102,7 +100,6 @@ public class PermissionManagerTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void prepareInitialPermissionFlow_marksFlowInProgressAndDefersChecks() {
         AppPreferences.setInitialPermissionsPromptCompleted(activity);
         assertFalse(PermissionManager.isInitialPermissionFlowInProgress());
@@ -115,7 +112,6 @@ public class PermissionManagerTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void shouldDeferPermissionChecks_trueUntilInitialPromptCompleted() {
         assertTrue(PermissionManager.shouldDeferPermissionChecks(activity));
         assertTrue(PermissionManager.shouldPromptInitialPermissions(activity));
@@ -126,7 +122,6 @@ public class PermissionManagerTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void handleInitialPermissionFlowResult_ignoredWhenFlowNotRunning() {
         assertFalse(PermissionManager.handleInitialPermissionFlowResult(activity,
                 PermissionManager.STORAGE_PERMISSION_REQUEST_CODE,
@@ -135,7 +130,6 @@ public class PermissionManagerTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void handleInitialPermissionFlowResult_ignoresUnrelatedRequestCode() {
         PermissionManager.prepareInitialPermissionFlow();
         assertFalse(PermissionManager.handleInitialPermissionFlowResult(activity, 0xBEEF,
@@ -144,7 +138,6 @@ public class PermissionManagerTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void initialFlow_completesImmediatelyWhenEverythingGranted() {
         grant(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO,
                 Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED,
@@ -163,7 +156,6 @@ public class PermissionManagerTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void initialFlow_requestsMissingMediaPermissionsFirst() {
         deny(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO,
                 Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED);
@@ -178,7 +170,6 @@ public class PermissionManagerTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void requestMissingRuntimePermissions_includesMediaLocationWhenAsked() {
         grant(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO,
                 Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED);
@@ -191,7 +182,6 @@ public class PermissionManagerTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void requestMissingRuntimePermissions_noRequestWhenNothingMissing() {
         grant(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO,
                 Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED);

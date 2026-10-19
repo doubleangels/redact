@@ -1,5 +1,6 @@
 package com.doubleangels.redact.metadata;
 
+import static com.doubleangels.redact.TestWaits.awaitMain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -25,7 +26,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
-import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowMediaMetadataRetriever;
 import org.robolectric.shadows.util.DataSource;
 
@@ -40,7 +40,6 @@ import java.util.function.BooleanSupplier;
 
 /** Extraction from content:// URIs (the shape the system pickers hand the app). */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class MetadataDisplayerContentTest {
 
     private Application app;
@@ -59,15 +58,6 @@ public class MetadataDisplayerContentTest {
         for (File f : files) {
             f.delete();
         }
-    }
-
-    private static void await(BooleanSupplier done) throws Exception {
-        long end = System.currentTimeMillis() + 15_000;
-        while (!done.getAsBoolean() && System.currentTimeMillis() < end) {
-            Shadows.shadowOf(Looper.getMainLooper()).idle();
-            Thread.sleep(10);
-        }
-        assertTrue("timed out", done.getAsBoolean());
     }
 
     private void grantLocation(boolean granted) {
@@ -138,7 +128,7 @@ public class MetadataDisplayerContentTest {
                 failed[0] = true;
             }
         });
-        await(() -> result.get() != null || failed[0]);
+        awaitMain(() -> result.get() != null || failed[0]);
         assertFalse("extraction failed", failed[0]);
         return result.get();
     }
@@ -156,7 +146,7 @@ public class MetadataDisplayerContentTest {
                 result.set("FAILED: " + error);
             }
         });
-        await(() -> result.get() != null);
+        awaitMain(() -> result.get() != null);
         return result.get();
     }
 
@@ -251,7 +241,7 @@ public class MetadataDisplayerContentTest {
                 done[0] = true;
             }
         });
-        await(() -> done[0]);
+        awaitMain(() -> done[0]);
         assertNotNull(location.get());
         assertTrue(location.get().contains("GPS_LATITUDE"));
     }
@@ -276,7 +266,7 @@ public class MetadataDisplayerContentTest {
                 outcome.set(error);
             }
         });
-        await(() -> outcome.get() != null);
+        awaitMain(() -> outcome.get() != null);
     }
 
     // ---- video ---------------------------------------------------------------------------------------
@@ -365,7 +355,7 @@ public class MetadataDisplayerContentTest {
                 done[0] = true;
             }
         });
-        await(() -> done[0]);
+        awaitMain(() -> done[0]);
         assertNotNull(location.get());
     }
 

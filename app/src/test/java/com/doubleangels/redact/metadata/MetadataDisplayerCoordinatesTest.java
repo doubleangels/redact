@@ -9,13 +9,11 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class MetadataDisplayerCoordinatesTest {
 
     private static final char RECORD_SEP = '\u001e';

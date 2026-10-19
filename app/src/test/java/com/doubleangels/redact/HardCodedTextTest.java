@@ -27,7 +27,6 @@ import java.util.List;
 
 /** Text the user hears or sees must come from resources (so it is translated), not from Java literals. */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class HardCodedTextTest {
 
     private static Context themed() {

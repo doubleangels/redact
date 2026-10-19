@@ -13,7 +13,6 @@ import org.robolectric.annotation.Config;
 
 /** The count strings must use the right plural form, and formerly English-only text must be localized. */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class LocalizedCountsTest {
 
     private static Context context() {

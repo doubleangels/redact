@@ -48,8 +48,16 @@ android {
         unitTests {
             includeAndroidResources = true
             all {
-                // Robolectric-loaded classes need this for JaCoCo to see them.
-                jacoco { includeNoLocationClasses = true; excludes = ['jdk.internal.*'] }
+                // Each fork builds its own Robolectric sandboxes, which need more than the 512 MB default.
+                maxHeapSize = "2g"
+                maxParallelForks = Math.max(1, Runtime.runtime.availableProcessors().intdiv(2))
+                // Robolectric-loaded classes need includeNoLocationClasses for JaCoCo to see them; the
+                // include keeps it from instrumenting the whole Android framework as well.
+                jacoco {
+                    includeNoLocationClasses = true
+                    includes = ['com.doubleangels.redact.*']
+                    excludes = ['jdk.internal.*']
+                }
                 testLogging {
                     events "failed"
                     exceptionFormat "full"

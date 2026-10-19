@@ -1,5 +1,6 @@
 package com.doubleangels.redact.notifications;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -26,6 +27,8 @@ public class ProcessingForegroundService extends Service {
     public static final String EXTRA_MESSAGE = "extra_message";
 
     static final int NOTIFICATION_ID = 7103;
+
+    static Integer testSdkIntOverride;
 
     public static void start(@Nullable Context context, @Nullable String title) {
         if (context == null) {
@@ -90,6 +93,7 @@ public class ProcessingForegroundService extends Service {
     /** Whether this instance successfully called startForeground(). */
     private boolean inForeground;
 
+    @SuppressLint("InlinedApi") // guarded by the sdk check before startForeground
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String action = intent != null ? intent.getAction() : null;
@@ -154,12 +158,13 @@ public class ProcessingForegroundService extends Service {
             // targetSdk 34+. The mediaProcessing type only exists from API 35; on API 34 passing it throws
             // InvalidForegroundServiceTypeException ("type unknown"), so Android 14 uses dataSync, which
             // the manifest also declares. Before API 34 no type is required.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            int sdk = testSdkIntOverride != null ? testSdkIntOverride : Build.VERSION.SDK_INT;
+            if (sdk >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
                 startForeground(
                         NOTIFICATION_ID,
                         builder.build(),
                         ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING);
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            } else if (sdk >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                 startForeground(
                         NOTIFICATION_ID,
                         builder.build(),

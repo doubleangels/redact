@@ -1,5 +1,6 @@
 package com.doubleangels.redact.ui;
 
+import static com.doubleangels.redact.TestWaits.awaitMain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -64,21 +65,6 @@ public class MainViewModelFlowTest {
 
     private static MediaItem video(String name) {
         return new MediaItem(Uri.parse("file:///nonexistent/" + name), true, name);
-    }
-
-    /** Runs the main looper until the condition holds (background work posts back to it). */
-    private static void awaitMain(BooleanSupplier condition) throws InterruptedException {
-        long deadline = System.currentTimeMillis() + 20_000;
-        while (!condition.getAsBoolean()) {
-            shadowOf(Looper.getMainLooper()).idle();
-            if (condition.getAsBoolean()) {
-                return;
-            }
-            if (System.currentTimeMillis() > deadline) {
-                throw new AssertionError("Timed out waiting for background work");
-            }
-            Thread.sleep(25);
-        }
     }
 
     // ---- selection + persistence ------------------------------------------------------

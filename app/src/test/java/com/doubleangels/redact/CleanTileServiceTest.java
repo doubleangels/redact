@@ -17,7 +17,7 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowTileService;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 33)
+@Config(sdk = 31)
 public class CleanTileServiceTest {
 
     private static CleanTileService service() {

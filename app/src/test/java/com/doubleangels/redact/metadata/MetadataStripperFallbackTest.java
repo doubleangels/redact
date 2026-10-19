@@ -22,7 +22,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,7 +31,6 @@ import java.util.List;
 
 /** Fallback and failure branches of cleaning an image into the gallery. */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class MetadataStripperFallbackTest {
 
     private Application app;

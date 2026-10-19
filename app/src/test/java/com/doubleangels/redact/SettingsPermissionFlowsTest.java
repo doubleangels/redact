@@ -28,7 +28,6 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
-import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowDialog;
 import org.robolectric.shadows.ShadowToast;
@@ -38,7 +37,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /** Settings behaviour that depends on runtime permissions (API 34: partial media access, notifications). */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class SettingsPermissionFlowsTest {
 
     private Application app;
@@ -267,6 +265,7 @@ public class SettingsPermissionFlowsTest {
             Thread.sleep(25);
         }
         assertEquals(app.getString(R.string.settings_storage_clear_success), ShadowToast.getTextOfLatestToast());
+        assertFalse(leftover.exists());
     }
 
     // ---- dropdown filtering --------------------------------------------------------------------------------------------

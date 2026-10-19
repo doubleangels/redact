@@ -26,11 +26,9 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ServiceController;
-import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowService;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class ProcessingForegroundServiceTest {
 
     private Application app;

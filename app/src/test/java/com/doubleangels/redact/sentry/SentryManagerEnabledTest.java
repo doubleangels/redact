@@ -14,7 +14,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
 import java.io.IOException;
 import java.net.SocketException;
@@ -27,7 +26,6 @@ import io.sentry.ITransaction;
  * facade is a no-op), every reporting helper still runs its full validation and scrubbing logic.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class SentryManagerEnabledTest {
 
     private Application app;

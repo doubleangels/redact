@@ -16,7 +16,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
 import io.sentry.Breadcrumb;
 import io.sentry.Hint;
@@ -38,7 +37,6 @@ import io.sentry.protocol.TransactionInfo;
  * own startup telemetry cannot leave the machine.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class SentryInitializerTest {
 
     private static final String UNREACHABLE_DSN = "https://publickey@127.0.0.1:9/1";
@@ -187,9 +185,10 @@ public class SentryInitializerTest {
         SentryInitializer.initialize(app);
         SentryInitializer.initialize(app); // a concurrent duplicate request is ignored
         long end = System.currentTimeMillis() + 3000;
-        while (System.currentTimeMillis() < end) {
-            Thread.sleep(25);
+        while (SentryInitializer.isInitializingForTests() && System.currentTimeMillis() < end) {
+            Thread.sleep(10);
         }
+        assertFalse("the background attempt settles", SentryInitializer.isInitializingForTests());
 
         assertFalse("an empty DSN never configures the SDK", SentryInitializer.isInitialized());
     }

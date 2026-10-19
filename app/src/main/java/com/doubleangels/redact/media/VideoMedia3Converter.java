@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.provider.MediaStore;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MimeTypes;
@@ -66,6 +67,8 @@ public final class VideoMedia3Converter {
     }
 
     private static final long AWAIT_TIMEOUT_MINUTES = 60;
+    /** Replaces the wait above in tests: Media3 never finishes an export under Robolectric. */
+    private static volatile Long testAwaitTimeoutMs;
 
     /** Output short sides tried, largest first, when the encoder rejects the source resolution. */
     private static final int[] FALLBACK_SHORT_SIDES = {1080, 720, 480};
@@ -73,6 +76,11 @@ public final class VideoMedia3Converter {
     private static final AtomicReference<Transformer> activeTransformer = new AtomicReference<>();
     /** Owner id of the flow that started the active export; -1 when idle. */
     private static final AtomicLong activeTranscodeOwner = new AtomicLong(-1L);
+
+    @VisibleForTesting
+    public static void setAwaitTimeoutForTests(@Nullable Long timeoutMs) {
+        testAwaitTimeoutMs = timeoutMs;
+    }
     /** Serializes Media3 exports so Clean and Convert cannot cancel each other's transformer. */
     private static final ReentrantLock TRANSCODE_LOCK = new ReentrantLock();
 
@@ -441,7 +449,10 @@ public final class VideoMedia3Converter {
 
         boolean finished;
         try {
-            finished = latch.await(AWAIT_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+            Long testTimeout = testAwaitTimeoutMs;
+            finished = testTimeout != null
+                    ? latch.await(testTimeout, TimeUnit.MILLISECONDS)
+                    : latch.await(AWAIT_TIMEOUT_MINUTES, TimeUnit.MINUTES);
         } finally {
             activeTranscodeOwner.compareAndSet(ownerId, -1L);
             activeTransformer.compareAndSet(transformerRef.get(), null);

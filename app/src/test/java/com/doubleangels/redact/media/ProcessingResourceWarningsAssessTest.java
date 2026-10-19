@@ -27,7 +27,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowDialog;
 import org.robolectric.shadows.ShadowStatFs;
 import org.robolectric.shadows.ShadowToast;
@@ -38,7 +37,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class ProcessingResourceWarningsAssessTest {
 
     private static final long MB = 1024L * 1024L;

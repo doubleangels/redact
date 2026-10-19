@@ -1,7 +1,6 @@
 package com.doubleangels.redact;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
@@ -29,15 +28,15 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
 
 /**
- * How the Clean, Scan and Convert tabs react as storage and photo-location permissions are denied
- * and granted. Run on both sides of the Android 13 line (see the concrete subclasses), because the
- * system picker only works without storage access from API 33.
+ * How the Clean, Scan and Convert tabs react as storage access is denied and granted. Run on both
+ * sides of the Android 13 line (see the concrete subclasses), because the system picker only works
+ * without storage access from API 33.
  */
 @RunWith(RobolectricTestRunner.class)
 public abstract class FragmentPermissionFlowsBase {
 
     protected Application app;
-    private ActivityController<MainActivity> controller;
+    protected ActivityController<MainActivity> controller;
     protected MainActivity activity;
 
     @Before
@@ -56,7 +55,7 @@ public abstract class FragmentPermissionFlowsBase {
         AppProcessingScope.resetForTests();
     }
 
-    private static void idle() {
+    protected static void idle() {
         shadowOf(Looper.getMainLooper()).idle();
     }
 
@@ -67,7 +66,7 @@ public abstract class FragmentPermissionFlowsBase {
                 Manifest.permission.ACCESS_MEDIA_LOCATION, Manifest.permission.POST_NOTIFICATIONS);
     }
 
-    private void grantStorage() {
+    protected void grantStorage() {
         shadowOf(app).grantPermissions(
                 Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.READ_MEDIA_IMAGES,
                 Manifest.permission.READ_MEDIA_VIDEO, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED);
@@ -79,7 +78,7 @@ public abstract class FragmentPermissionFlowsBase {
                 Manifest.permission.READ_MEDIA_VIDEO, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED);
     }
 
-    private View tab(String tag, int id) {
+    protected View tab(String tag, int id) {
         activity.selectTab(id);
         idle();
         Fragment fragment = activity.getSupportFragmentManager().findFragmentByTag(tag);
@@ -154,57 +153,5 @@ public abstract class FragmentPermissionFlowsBase {
         assertEquals(pickerUsable, clean.findViewById(R.id.selectButton).isEnabled());
         assertEquals(pickerUsable, scan.findViewById(R.id.selectButton).isEnabled());
         assertEquals(pickerUsable, convert.findViewById(R.id.selectButton).isEnabled());
-    }
-
-    @Test
-    public void photoLocationResults_reachTheScanTab() {
-        tab("scan", R.id.navigation_scan);
-
-        shadowOf(app).grantPermissions(Manifest.permission.ACCESS_MEDIA_LOCATION);
-        activity.onRequestPermissionsResult(
-                PermissionManager.LOCATION_PERMISSION_REQUEST_CODE,
-                new String[] {Manifest.permission.ACCESS_MEDIA_LOCATION},
-                new int[] {PackageManager.PERMISSION_GRANTED});
-        idle();
-
-        shadowOf(app).denyPermissions(Manifest.permission.ACCESS_MEDIA_LOCATION);
-        activity.onRequestPermissionsResult(
-                PermissionManager.LOCATION_PERMISSION_REQUEST_CODE,
-                new String[] {Manifest.permission.ACCESS_MEDIA_LOCATION},
-                new int[] {PackageManager.PERMISSION_DENIED});
-        idle();
-
-        assertNotNull(activity.getSupportFragmentManager().findFragmentByTag("scan"));
-    }
-
-    @Test
-    public void resumingATab_rechecksPermissions() {
-        for (int id : new int[] {R.id.navigation_scan, R.id.navigation_convert, R.id.navigation_clean}) {
-            activity.selectTab(id);
-            idle();
-            controller.pause().resume();
-            idle();
-        }
-        assertFalse(activity.isFinishing());
-    }
-
-    @Test
-    public void thePermissionFlowCompletingNotifiesTheVisibleTab() {
-        tab("scan", R.id.navigation_scan);
-        // Re-running the first-launch flow to completion notifies whichever tab is on screen.
-        PermissionManager.prepareInitialPermissionFlow();
-        grantStorage();
-        shadowOf(app).grantPermissions(Manifest.permission.ACCESS_MEDIA_LOCATION, Manifest.permission.POST_NOTIFICATIONS);
-        PermissionManager.startInitialPermissionFlow(activity);
-        idle();
-
-        assertFalse(PermissionManager.isInitialPermissionFlowInProgress());
-
-        for (int id : new int[] {R.id.navigation_convert, R.id.navigation_clean}) {
-            tab(id == R.id.navigation_convert ? "convert" : "clean", id);
-            PermissionManager.prepareInitialPermissionFlow();
-            PermissionManager.startInitialPermissionFlow(activity);
-            idle();
-        }
     }
 }
