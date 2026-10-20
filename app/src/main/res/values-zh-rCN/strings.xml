@@ -269,8 +269,16 @@
     <string name="metadata_error_basic_info_generic">无法读取基本文件信息。</string>
     <string name="metadata_error_image_generic">无法读取图像元数据。</string>
     <string name="metadata_error_video_generic">无法读取视频元数据。</string>
-    <string name="notification_clean_cleaned">已清理</string>
-    <string name="notification_clean_failures">失败</string>
+    <string name="notification_clean_failed">这次没有成功清理任何文件。</string>
+    <plurals name="notification_clean_done">
+        <item quantity="other">已清理 %1$d 个文件。</item>
+    </plurals>
+    <plurals name="notification_clean_failures">
+        <item quantity="other">有 %1$d 个文件无法清理。</item>
+    </plurals>
+    <plurals name="notification_clean_locations">
+        <item quantity="other">已从 %1$d 个文件中移除位置信息。</item>
+    </plurals>
     <string name="notification_progress_percent">已完成 %1$d%%</string>
     <string name="scan_clean_this_file">清理此文件</string>
     <string name="scan_convert_this_file">转换此文件</string>
@@ -351,7 +359,6 @@
     <string name="convert_heic_fallback_jpeg">HEIC 输出需要 Android 14 或更高版本。图片将改为保存为 JPEG。</string>
     <string name="convert_item_type_image">图片</string>
     <string name="convert_item_type_video">视频</string>
-    <string name="notification_stat_item">%1$s（%2$s）</string>
     <string name="scan_empty_state_title">检查媒体元数据</string>
     <string name="scan_empty_state_description">选择照片或视频，以查看 EXIF 详情、相机规格、GPS 坐标和技术属性。</string>
     <string name="scan_grant_location_button">授予权限</string>

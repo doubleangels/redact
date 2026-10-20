@@ -269,8 +269,19 @@ Ihre Fotos und Videos werden nie hochgeladen. URIs, Dateinamen und GPS-Koordinat
     <string name="metadata_error_basic_info_generic">Grundlegende Dateiinformationen konnten nicht gelesen werden.</string>
     <string name="metadata_error_image_generic">Bild-Metadaten konnten nicht gelesen werden.</string>
     <string name="metadata_error_video_generic">Video-Metadaten konnten nicht gelesen werden.</string>
-    <string name="notification_clean_cleaned">Bereinigt</string>
-    <string name="notification_clean_failures">Fehlgeschlagen</string>
+    <string name="notification_clean_failed">Diesmal konnten keine Dateien bereinigt werden.</string>
+    <plurals name="notification_clean_done">
+        <item quantity="one">%1$d Datei bereinigt.</item>
+        <item quantity="other">%1$d Dateien bereinigt.</item>
+    </plurals>
+    <plurals name="notification_clean_failures">
+        <item quantity="one">%1$d Datei konnte nicht bereinigt werden.</item>
+        <item quantity="other">%1$d Dateien konnten nicht bereinigt werden.</item>
+    </plurals>
+    <plurals name="notification_clean_locations">
+        <item quantity="one">Standortdaten aus %1$d Datei entfernt.</item>
+        <item quantity="other">Standortdaten aus %1$d Dateien entfernt.</item>
+    </plurals>
     <string name="notification_progress_percent">%1$d%% abgeschlossen</string>
     <string name="scan_clean_this_file">Diese Datei Bereinigen</string>
     <string name="scan_convert_this_file">Diese Datei Konvertieren</string>
@@ -351,7 +362,6 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="convert_heic_fallback_jpeg">Die HEIC-Ausgabe erfordert Android 14 oder neuer. Bilder werden stattdessen als JPEG gespeichert.</string>
     <string name="convert_item_type_image">Bild</string>
     <string name="convert_item_type_video">Video</string>
-    <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">Medien-Metadaten Prüfen</string>
     <string name="scan_empty_state_description">Foto oder Video auswählen, um EXIF-Details, Kameradaten, GPS-Koordinaten und technische Eigenschaften anzuzeigen.</string>
     <string name="scan_grant_location_button">Berechtigung Erteilen</string>

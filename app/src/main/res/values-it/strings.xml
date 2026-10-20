@@ -271,8 +271,22 @@ Le tue foto e video non vengono mai caricati. URI, nomi file e coordinate GPS ve
     <string name="metadata_error_basic_info_generic">Impossibile leggere le informazioni di base del file.</string>
     <string name="metadata_error_image_generic">Impossibile leggere i metadati dell\'immagine.</string>
     <string name="metadata_error_video_generic">Impossibile leggere i metadati del video.</string>
-    <string name="notification_clean_cleaned">Puliti</string>
-    <string name="notification_clean_failures">Non riusciti</string>
+    <string name="notification_clean_failed">Questa volta non è stato possibile pulire alcun file.</string>
+    <plurals name="notification_clean_done">
+        <item quantity="one">%1$d file pulito.</item>
+        <item quantity="many">%1$d di file puliti.</item>
+        <item quantity="other">%1$d file puliti.</item>
+    </plurals>
+    <plurals name="notification_clean_failures">
+        <item quantity="one">Impossibile pulire %1$d file.</item>
+        <item quantity="many">Impossibile pulire %1$d di file.</item>
+        <item quantity="other">Impossibile pulire %1$d file.</item>
+    </plurals>
+    <plurals name="notification_clean_locations">
+        <item quantity="one">Posizione rimossa da %1$d file.</item>
+        <item quantity="many">Posizione rimossa da %1$d di file.</item>
+        <item quantity="other">Posizione rimossa da %1$d file.</item>
+    </plurals>
     <string name="notification_progress_percent">%1$d%% completato</string>
     <string name="scan_clean_this_file">Pulisci Questo File</string>
     <string name="scan_convert_this_file">Converti Questo File</string>
@@ -353,7 +367,6 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="convert_heic_fallback_jpeg">L’output HEIC richiede Android 14 o versioni successive. Le immagini verranno invece salvate come JPEG.</string>
     <string name="convert_item_type_image">Immagine</string>
     <string name="convert_item_type_video">Video</string>
-    <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">Ispeziona i Metadati Multimediali</string>
     <string name="scan_empty_state_description">Seleziona una foto o un video per vedere i dettagli EXIF, le specifiche della fotocamera, le coordinate GPS e le proprietà tecniche.</string>
     <string name="scan_grant_location_button">Concedi Autorizzazione</string>

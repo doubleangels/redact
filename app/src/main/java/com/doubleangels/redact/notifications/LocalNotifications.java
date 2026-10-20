@@ -258,8 +258,9 @@ public final class LocalNotifications {
 
     /**
      * Shown when metadata stripping on the Clean tab finishes. Always cancels the ongoing progress
-     * notification first. Collapsed it reads "Cleaned (5) · Failed (0) · Locations Removed (3)",
-     * and expanded it puts each figure on its own line.
+     * notification first. Says in plain sentences how many files were cleaned, how many could not
+     * be, and how many had their location removed. Collapsed they share a line, expanded each gets
+     * its own.
      */
     public static void showCleanComplete(
             @NonNull Context context, int okCount, int failCount, int locationsRemoved) {
@@ -270,19 +271,28 @@ public final class LocalNotifications {
         }
         Context app = context.getApplicationContext();
         android.content.res.Resources res = app.getResources();
-        java.util.List<String> figures = java.util.List.of(
-                com.doubleangels.redact.ui.CleanSummary.item(
-                        res, res.getString(R.string.notification_clean_cleaned), okCount),
-                com.doubleangels.redact.ui.CleanSummary.item(
-                        res, res.getString(R.string.notification_clean_failures), failCount),
-                com.doubleangels.redact.ui.CleanSummary.item(
-                        res, res.getString(R.string.stats_locations_removed), locationsRemoved));
+        java.util.List<String> sentences = new java.util.ArrayList<>();
+        if (okCount > 0) {
+            sentences.add(res.getQuantityString(R.plurals.notification_clean_done, okCount, okCount));
+        }
+        if (failCount > 0) {
+            sentences.add(okCount == 0
+                    ? res.getString(R.string.notification_clean_failed)
+                    : res.getQuantityString(R.plurals.notification_clean_failures, failCount, failCount));
+        }
+        if (okCount > 0 && locationsRemoved > 0) {
+            sentences.add(res.getQuantityString(
+                    R.plurals.notification_clean_locations, locationsRemoved, locationsRemoved));
+        }
+        if (sentences.isEmpty()) {
+            sentences.add(res.getString(R.string.notification_clean_failed));
+        }
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(app, CHANNEL_ID_TASKS)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(app.getString(R.string.notification_clean_title))
-                .setContentText(com.doubleangels.redact.ui.CleanSummary.joinItems(figures))
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(String.join("\n", figures)))
+                .setContentText(String.join(" ", sentences))
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(String.join("\n", sentences)))
                 .setProgress(0, 0, false)
                 .setOngoing(false)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)

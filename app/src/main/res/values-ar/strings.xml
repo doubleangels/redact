@@ -274,8 +274,31 @@
     <string name="metadata_error_basic_info_generic">تعذر قراءة معلومات الملف الأساسية.</string>
     <string name="metadata_error_image_generic">تعذر قراءة بيانات الصورة الوصفية.</string>
     <string name="metadata_error_video_generic">تعذر قراءة بيانات الفيديو الوصفية.</string>
-    <string name="notification_clean_cleaned">تم التنظيف</string>
-    <string name="notification_clean_failures">فشل</string>
+    <string name="notification_clean_failed">تعذّر تنظيف أي ملفات هذه المرة.</string>
+    <plurals name="notification_clean_done">
+        <item quantity="zero">تم تنظيف %1$d ملف.</item>
+        <item quantity="one">تم تنظيف ملف واحد.</item>
+        <item quantity="two">تم تنظيف ملفين.</item>
+        <item quantity="few">تم تنظيف %1$d ملفات.</item>
+        <item quantity="many">تم تنظيف %1$d ملفًا.</item>
+        <item quantity="other">تم تنظيف %1$d ملف.</item>
+    </plurals>
+    <plurals name="notification_clean_failures">
+        <item quantity="zero">تعذّر تنظيف %1$d ملف.</item>
+        <item quantity="one">تعذّر تنظيف ملف واحد.</item>
+        <item quantity="two">تعذّر تنظيف ملفين.</item>
+        <item quantity="few">تعذّر تنظيف %1$d ملفات.</item>
+        <item quantity="many">تعذّر تنظيف %1$d ملفًا.</item>
+        <item quantity="other">تعذّر تنظيف %1$d ملف.</item>
+    </plurals>
+    <plurals name="notification_clean_locations">
+        <item quantity="zero">تمت إزالة الموقع من %1$d ملف.</item>
+        <item quantity="one">تمت إزالة الموقع من ملف واحد.</item>
+        <item quantity="two">تمت إزالة الموقع من ملفين.</item>
+        <item quantity="few">تمت إزالة الموقع من %1$d ملفات.</item>
+        <item quantity="many">تمت إزالة الموقع من %1$d ملفًا.</item>
+        <item quantity="other">تمت إزالة الموقع من %1$d ملف.</item>
+    </plurals>
     <string name="notification_progress_percent">%1$d%% مكتمل</string>
     <string name="scan_clean_this_file">تنظيف هذا الملف</string>
     <string name="scan_convert_this_file">تحويل هذا الملف</string>
@@ -356,7 +379,6 @@
     <string name="convert_heic_fallback_jpeg">يتطلب إخراج HEIC نظام Android 14 أو أحدث. ستُحفظ الصور بصيغة JPEG بدلًا من ذلك.</string>
     <string name="convert_item_type_image">صورة</string>
     <string name="convert_item_type_video">فيديو</string>
-    <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">فحص البيانات الوصفية للوسائط</string>
     <string name="scan_empty_state_description">حدّد صورة أو مقطع فيديو لعرض تفاصيل EXIF ومواصفات الكاميرا وإحداثيات GPS والخصائص التقنية.</string>
     <string name="scan_grant_location_button">منح الإذن</string>

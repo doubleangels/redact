@@ -91,7 +91,7 @@ public class LocalizedCountsTest {
         assertEquals("Metadaten Bereinigen und Entfernen", context().getString(R.string.clean_empty_state_title));
         assertEquals("Medienformate Konvertieren", context().getString(R.string.convert_empty_state_title));
         assertEquals("Berechtigung Erteilen", context().getString(R.string.scan_grant_location_button));
-        assertEquals("Fehlgeschlagen", context().getString(R.string.notification_clean_failures));
+        assertEquals("Diesmal konnten keine Dateien bereinigt werden.", context().getString(R.string.notification_clean_failed));
         assertNotEquals("Image", context().getString(R.string.convert_item_type_image));
     }
 }

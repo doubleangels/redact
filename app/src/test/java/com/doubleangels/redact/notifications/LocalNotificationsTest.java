@@ -98,16 +98,24 @@ public class LocalNotificationsTest {
     }
 
     @Test
-    public void showCleanComplete_listsCleansFailuresAndLocations() {
+    public void showCleanComplete_saysItInSentences() {
         LocalNotifications.showCleanComplete(app, 3, 1, 2);
-        assertEquals("Cleaned (3) · Failed (1) · Locations Removed (2)", onlyNotificationText());
-        assertEquals("Cleaned (3)\nFailed (1)\nLocations Removed (2)", onlyNotificationBigText());
+        assertEquals("Cleaned 3 files. 1 file couldn't be cleaned. Removed location data from 2 files.",
+                onlyNotificationText());
+        assertEquals("Cleaned 3 files.\n1 file couldn't be cleaned.\nRemoved location data from 2 files.",
+                onlyNotificationBigText());
     }
 
     @Test
-    public void showCleanComplete_whenEveryFileFailed_stillShowsTheThreeFigures() {
+    public void showCleanComplete_leavesOutWhatDidNotHappen() {
+        LocalNotifications.showCleanComplete(app, 1, 0, 0);
+        assertEquals("Cleaned 1 file.", onlyNotificationText());
+    }
+
+    @Test
+    public void showCleanComplete_whenEveryFileFailed_saysSo() {
         LocalNotifications.showCleanComplete(app, 0, 4, 0);
-        assertEquals("Cleaned (0) · Failed (4) · Locations Removed (0)", onlyNotificationText());
+        assertEquals(app.getString(R.string.notification_clean_failed), onlyNotificationText());
     }
 
     @Test

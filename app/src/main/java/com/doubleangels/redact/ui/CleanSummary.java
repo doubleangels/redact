@@ -83,19 +83,6 @@ public final class CleanSummary {
                 R.plurals.clean_summary_location_files, filesWithLocation, filesWithLocation);
     }
 
-    /** One "Label (1,284)" figure, numbered for the current locale. */
-    @NonNull
-    public static String item(@NonNull Resources res, @NonNull String label, long count) {
-        return res.getString(R.string.notification_stat_item, label,
-                java.text.NumberFormat.getIntegerInstance().format(count));
-    }
-
-    /** Figures separated by middle dots, which read the same in every language the app ships. */
-    @NonNull
-    public static String joinItems(@NonNull List<String> items) {
-        return String.join(" · ", items);
-    }
-
     /** {@code status} followed by the summary, or {@code status} alone when there is none. */
     @NonNull
     public static String append(@NonNull String status, @Nullable String summary) {

@@ -15,9 +15,19 @@
     <string name="notification_convert_partial" tools:ignore="PluralsCandidate">%1$d succeeded, %2$d failed.</string>
     <string name="notification_convert_failed">We couldn\'t convert any files this time.</string>
     <string name="notification_clean_title">Cleaning Finished</string>
-    <string name="notification_clean_cleaned">Cleaned</string>
-    <string name="notification_clean_failures">Failed</string>
-    <string name="notification_stat_item">%1$s (%2$s)</string>
+    <string name="notification_clean_failed">We couldn\'t clean any files this time.</string>
+    <plurals name="notification_clean_done">
+        <item quantity="one">Cleaned %1$d file.</item>
+        <item quantity="other">Cleaned %1$d files.</item>
+    </plurals>
+    <plurals name="notification_clean_failures">
+        <item quantity="one">%1$d file couldn\'t be cleaned.</item>
+        <item quantity="other">%1$d files couldn\'t be cleaned.</item>
+    </plurals>
+    <plurals name="notification_clean_locations">
+        <item quantity="one">Removed location data from %1$d file.</item>
+        <item quantity="other">Removed location data from %1$d files.</item>
+    </plurals>
     <string name="notification_convert_progress_title">Converting Media…</string>
     <string name="notification_clean_progress_title">Cleaning Metadata…</string>
     <string name="notification_progress_percent">%1$d%% complete</string>
