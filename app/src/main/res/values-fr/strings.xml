@@ -15,11 +15,18 @@
     <string name="notification_channel_tasks_name">Tâches</string>
     <string name="notification_channel_tasks_description">Conversion et nettoyage des médias terminés</string>
     <string name="notification_convert_title">Conversion Terminée</string>
-    <string name="notification_convert_all_succeeded">Enregistré %1$d fichier(s) dans la galerie.</string>
-    <string name="notification_convert_partial">%1$d ont réussi, %2$d ont échoué.</string>
+    <plurals name="notification_convert_done">
+        <item quantity="one">%1$d fichier enregistré dans la galerie.</item>
+        <item quantity="many">%1$d de fichiers enregistrés dans la galerie.</item>
+        <item quantity="other">%1$d fichiers enregistrés dans la galerie.</item>
+    </plurals>
+    <plurals name="notification_convert_failures">
+        <item quantity="one">%1$d fichier n\'a pas pu être converti.</item>
+        <item quantity="many">%1$d de fichiers n\'ont pas pu être convertis.</item>
+        <item quantity="other">%1$d fichiers n\'ont pas pu être convertis.</item>
+    </plurals>
     <string name="notification_convert_failed">Aucun fichier n\'a pu être converti.</string>
     <string name="notification_clean_title">Nettoyage Terminé</string>
-    <string name="notification_clean_body">Traité %1$d fichier(s).</string>
     <string name="notification_convert_progress_title">Conversion des Médias…</string>
     <string name="notification_clean_progress_title">Nettoyage des Métadonnées…</string>
 
@@ -272,7 +279,22 @@ Vos photos et vidéos ne sont jamais téléversées. Les URI, noms de fichier et
     <string name="metadata_error_basic_info_generic">Impossible de lire les informations de base du fichier.</string>
     <string name="metadata_error_image_generic">Impossible de lire les métadonnées de l\'image.</string>
     <string name="metadata_error_video_generic">Impossible de lire les métadonnées de la vidéo.</string>
-    <string name="notification_clean_partial">%1$d nettoyé(s), %2$d échoué(s).</string>
+    <string name="notification_clean_failed">Aucun fichier n’a pu être nettoyé cette fois.</string>
+    <plurals name="notification_clean_done">
+        <item quantity="one">%1$d fichier nettoyé.</item>
+        <item quantity="many">%1$d de fichiers nettoyés.</item>
+        <item quantity="other">%1$d fichiers nettoyés.</item>
+    </plurals>
+    <plurals name="notification_clean_failures">
+        <item quantity="one">%1$d fichier n\'a pas pu être nettoyé.</item>
+        <item quantity="many">%1$d de fichiers n\'ont pas pu être nettoyés.</item>
+        <item quantity="other">%1$d fichiers n\'ont pas pu être nettoyés.</item>
+    </plurals>
+    <plurals name="notification_clean_locations">
+        <item quantity="one">Localisation supprimée de %1$d fichier.</item>
+        <item quantity="many">Localisation supprimée de %1$d de fichiers.</item>
+        <item quantity="other">Localisation supprimée de %1$d fichiers.</item>
+    </plurals>
     <string name="notification_progress_percent">%1$d%% terminé</string>
     <string name="scan_clean_this_file">Nettoyer Ce Fichier</string>
     <string name="scan_convert_this_file">Convertir Ce Fichier</string>
@@ -353,10 +375,6 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="convert_heic_fallback_jpeg">La sortie HEIC nécessite Android 14 ou version ultérieure. Les images seront enregistrées en JPEG à la place.</string>
     <string name="convert_item_type_image">Image</string>
     <string name="convert_item_type_video">Vidéo</string>
-    <string name="notification_clean_failed">Aucun fichier n’a pu être nettoyé cette fois.</string>
-    <string name="notification_clean_batch_details">Dans ce lot : %1$s</string>
-    <string name="notification_clean_totals">Sur cet appareil jusqu’ici : %1$s</string>
-    <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">Inspecter les Métadonnées Multimédias</string>
     <string name="scan_empty_state_description">Sélectionnez une photo ou une vidéo pour afficher les détails EXIF, les caractéristiques de l’appareil photo, les coordonnées GPS et les propriétés techniques.</string>
     <string name="scan_grant_location_button">Accorder l’Autorisation</string>

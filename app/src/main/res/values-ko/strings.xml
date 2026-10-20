@@ -15,11 +15,14 @@
     <string name="notification_channel_tasks_name">작업</string>
     <string name="notification_channel_tasks_description">미디어 변환 및 정리 완료</string>
     <string name="notification_convert_title">변환 완료</string>
-    <string name="notification_convert_all_succeeded">갤러리에 %1$d개의 파일을 저장했습니다.</string>
-    <string name="notification_convert_partial">%1$d개 성공, %2$d개 실패.</string>
+    <plurals name="notification_convert_done">
+        <item quantity="other">갤러리에 %1$d개의 파일을 저장했습니다.</item>
+    </plurals>
+    <plurals name="notification_convert_failures">
+        <item quantity="other">%1$d개 파일을 변환하지 못했습니다.</item>
+    </plurals>
     <string name="notification_convert_failed">변환할 수 있는 파일이 없습니다.</string>
     <string name="notification_clean_title">정리 완료</string>
-    <string name="notification_clean_body">%1$d개의 파일을 처리했습니다.</string>
     <string name="notification_convert_progress_title">미디어 변환 중…</string>
     <string name="notification_clean_progress_title">메타데이터 정리 중…</string>
 
@@ -270,7 +273,16 @@
     <string name="metadata_error_basic_info_generic">기본 파일 정보를 읽을 수 없습니다.</string>
     <string name="metadata_error_image_generic">이미지 메타데이터를 읽을 수 없습니다.</string>
     <string name="metadata_error_video_generic">동영상 메타데이터를 읽을 수 없습니다.</string>
-    <string name="notification_clean_partial">%1$d개 정리, %2$d개 실패.</string>
+    <string name="notification_clean_failed">이번에는 정리할 수 있는 파일이 없습니다.</string>
+    <plurals name="notification_clean_done">
+        <item quantity="other">%1$d개 파일을 정리했습니다.</item>
+    </plurals>
+    <plurals name="notification_clean_failures">
+        <item quantity="other">%1$d개 파일을 정리하지 못했습니다.</item>
+    </plurals>
+    <plurals name="notification_clean_locations">
+        <item quantity="other">%1$d개 파일에서 위치 정보를 제거했습니다.</item>
+    </plurals>
     <string name="notification_progress_percent">%1$d%% 완료</string>
     <string name="scan_clean_this_file">이 파일 정리</string>
     <string name="scan_convert_this_file">이 파일 변환</string>
@@ -351,10 +363,6 @@
     <string name="convert_heic_fallback_jpeg">HEIC 출력은 Android 14 이상이 필요합니다. 대신 이미지가 JPEG로 저장됩니다.</string>
     <string name="convert_item_type_image">이미지</string>
     <string name="convert_item_type_video">동영상</string>
-    <string name="notification_clean_failed">이번에는 정리할 수 있는 파일이 없습니다.</string>
-    <string name="notification_clean_batch_details">이번 작업: %1$s</string>
-    <string name="notification_clean_totals">이 기기에서 지금까지: %1$s</string>
-    <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">미디어 메타데이터 검사</string>
     <string name="scan_empty_state_description">사진이나 동영상을 선택해 EXIF 세부 정보, 카메라 사양, GPS 좌표, 기술 속성을 확인하세요.</string>
     <string name="scan_grant_location_button">권한 허용</string>

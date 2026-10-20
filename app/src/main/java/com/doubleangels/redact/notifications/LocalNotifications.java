@@ -175,19 +175,25 @@ public final class LocalNotifications {
         }
         Context app = context.getApplicationContext();
         String title = app.getString(R.string.notification_convert_title);
-        String text;
-        if (failCount == 0 && okCount > 0) {
-            text = app.getString(R.string.notification_convert_all_succeeded, okCount);
-        } else if (okCount > 0) {
-            text = app.getString(R.string.notification_convert_partial, okCount, failCount);
-        } else {
-            text = app.getString(R.string.notification_convert_failed);
+        android.content.res.Resources res = app.getResources();
+        java.util.List<String> sentences = new java.util.ArrayList<>();
+        if (okCount > 0) {
+            sentences.add(res.getQuantityString(R.plurals.notification_convert_done, okCount, okCount));
         }
+        if (failCount > 0 && okCount > 0) {
+            sentences.add(res.getQuantityString(
+                    R.plurals.notification_convert_failures, failCount, failCount));
+        }
+        if (sentences.isEmpty()) {
+            sentences.add(res.getString(R.string.notification_convert_failed));
+        }
+        String text = String.join(" ", sentences);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(app, CHANNEL_ID_TASKS)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(title)
                 .setContentText(text)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(String.join("\n", sentences)))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setAutoCancel(true)
                 .setContentIntent(contentIntent(app, MainActivity.class));
@@ -257,60 +263,42 @@ public final class LocalNotifications {
     }
 
     /**
-     * Shown when metadata stripping on the Clean tab finishes.
-     * Always cancels the ongoing progress notification first, then shows a result.
+     * Shown when metadata stripping on the Clean tab finishes. Always cancels the ongoing progress
+     * notification first. Says in plain sentences how many files were cleaned, how many could not
+     * be, and how many had their location removed. Collapsed they share a line, expanded each gets
+     * its own.
      */
-    public static void showCleanComplete(@NonNull Context context, int okCount, int failCount) {
-        showCleanComplete(context, okCount, failCount, null);
-    }
-
-    /** Same as {@link #showCleanComplete(Context, int, int)}, followed by what the batch removed. */
-    public static void showCleanComplete(@NonNull Context context, int okCount, int failCount,
-                                         @androidx.annotation.Nullable String summary) {
-        showCleanComplete(context, okCount, failCount, summary, null);
-    }
-
-    /**
-     * Same as {@link #showCleanComplete(Context, int, int, String)}. Expanded, the notification
-     * also lists the other kinds of detail the batch removed ({@code details}) and the running
-     * totals from Statistics.
-     */
-    public static void showCleanComplete(@NonNull Context context, int okCount, int failCount,
-                                         @androidx.annotation.Nullable String summary,
-                                         @androidx.annotation.Nullable String details) {
+    public static void showCleanComplete(
+            @NonNull Context context, int okCount, int failCount, int locationsRemoved) {
         cancelCleanProgress(context);
 
         if (!canPostCleanNotifications(context)) {
             return;
         }
         Context app = context.getApplicationContext();
-        String title = app.getString(R.string.notification_clean_title);
-        String text;
-        if (failCount == 0 && okCount > 0) {
-            text = app.getString(R.string.notification_clean_body, okCount);
-        } else if (okCount > 0) {
-            text = app.getString(R.string.notification_clean_partial, okCount, failCount);
-        } else {
-            text = app.getString(R.string.notification_clean_failed);
-        }
-        String expanded = text;
+        android.content.res.Resources res = app.getResources();
+        java.util.List<String> sentences = new java.util.ArrayList<>();
         if (okCount > 0) {
-            text = com.doubleangels.redact.ui.CleanSummary.append(text, summary);
-            expanded = text;
-            if (details != null && !details.isEmpty()) {
-                expanded += "\n" + details;
-            }
-            String totals = cleanTotals(app);
-            if (totals != null) {
-                expanded += "\n" + totals;
-            }
+            sentences.add(res.getQuantityString(R.plurals.notification_clean_done, okCount, okCount));
+        }
+        if (failCount > 0) {
+            sentences.add(okCount == 0
+                    ? res.getString(R.string.notification_clean_failed)
+                    : res.getQuantityString(R.plurals.notification_clean_failures, failCount, failCount));
+        }
+        if (okCount > 0 && locationsRemoved > 0) {
+            sentences.add(res.getQuantityString(
+                    R.plurals.notification_clean_locations, locationsRemoved, locationsRemoved));
+        }
+        if (sentences.isEmpty()) {
+            sentences.add(res.getString(R.string.notification_clean_failed));
         }
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(app, CHANNEL_ID_TASKS)
                 .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(title)
-                .setContentText(text)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(expanded))
+                .setContentTitle(app.getString(R.string.notification_clean_title))
+                .setContentText(String.join(" ", sentences))
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(String.join("\n", sentences)))
                 .setProgress(0, 0, false)
                 .setOngoing(false)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -322,26 +310,6 @@ public final class LocalNotifications {
         } catch (SecurityException e) {
             SentryManager.recordException(e);
         }
-    }
-
-    /**
-     * "On this device so far: Fields Removed (1,284) · Locations Removed (312)", from Statistics,
-     * or null when nothing has been counted.
-     */
-    @androidx.annotation.Nullable
-    static String cleanTotals(@NonNull Context app) {
-        com.doubleangels.redact.stats.StatsSnapshot s =
-                com.doubleangels.redact.stats.StatsStore.snapshot(app);
-        if (s.filesCleaned() == 0) {
-            return null;
-        }
-        android.content.res.Resources res = app.getResources();
-        return app.getString(R.string.notification_clean_totals,
-                com.doubleangels.redact.ui.CleanSummary.joinItems(java.util.List.of(
-                        com.doubleangels.redact.ui.CleanSummary.item(res,
-                                res.getString(R.string.stats_fields_removed), s.fieldsRemoved),
-                        com.doubleangels.redact.ui.CleanSummary.item(res,
-                                res.getString(R.string.stats_locations_removed), s.locationsRemoved))));
     }
 
     private static boolean shouldThrottleProgress(@NonNull AtomicLong lastNotifyMs) {

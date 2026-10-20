@@ -496,6 +496,7 @@ public class ScanFragment extends Fragment {
                                 }
                                 displayCombinedMetadata(metadataSections);
                                 syncScanStateToViewModel();
+                                com.doubleangels.redact.ui.ReviewPrompt.onJobSucceeded(ScanFragment.this);
 
                                 String locationSection = metadataSections.get(MetadataDisplayer.SECTION_LOCATION);
                                 boolean hasLocationRows = locationSection != null && !locationSection.trim().isEmpty();

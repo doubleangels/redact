@@ -15,11 +15,20 @@
     <string name="notification_channel_tasks_name">Задачи</string>
     <string name="notification_channel_tasks_description">Конвертация и очистка медиафайлов завершены</string>
     <string name="notification_convert_title">Конвертация Завершена</string>
-    <string name="notification_convert_all_succeeded">Сохранено: %1$d файл(ов) в галерее.</string>
-    <string name="notification_convert_partial">Успешно: %1$d, ошибка: %2$d.</string>
+    <plurals name="notification_convert_done">
+        <item quantity="one">Сохранён %1$d файл в галерее.</item>
+        <item quantity="few">Сохранено %1$d файла в галерее.</item>
+        <item quantity="many">Сохранено %1$d файлов в галерее.</item>
+        <item quantity="other">Сохранено %1$d файла в галерее.</item>
+    </plurals>
+    <plurals name="notification_convert_failures">
+        <item quantity="one">Не удалось конвертировать %1$d файл.</item>
+        <item quantity="few">Не удалось конвертировать %1$d файла.</item>
+        <item quantity="many">Не удалось конвертировать %1$d файлов.</item>
+        <item quantity="other">Не удалось конвертировать %1$d файла.</item>
+    </plurals>
     <string name="notification_convert_failed">Не удалось конвертировать файлы.</string>
     <string name="notification_clean_title">Очистка Завершена</string>
-    <string name="notification_clean_body">Обработано: %1$d файл(ов).</string>
     <string name="notification_convert_progress_title">Конвертация Медиа…</string>
     <string name="notification_clean_progress_title">Очистка Метаданных…</string>
 
@@ -273,7 +282,25 @@
     <string name="metadata_error_basic_info_generic">Не удалось прочитать основную информацию о файле.</string>
     <string name="metadata_error_image_generic">Не удалось прочитать метаданные изображения.</string>
     <string name="metadata_error_video_generic">Не удалось прочитать метаданные видео.</string>
-    <string name="notification_clean_partial">%1$d очищено, %2$d не удалось.</string>
+    <string name="notification_clean_failed">На этот раз не удалось очистить ни одного файла.</string>
+    <plurals name="notification_clean_done">
+        <item quantity="one">Очищен %1$d файл.</item>
+        <item quantity="few">Очищено %1$d файла.</item>
+        <item quantity="many">Очищено %1$d файлов.</item>
+        <item quantity="other">Очищено %1$d файла.</item>
+    </plurals>
+    <plurals name="notification_clean_failures">
+        <item quantity="one">Не удалось очистить %1$d файл.</item>
+        <item quantity="few">Не удалось очистить %1$d файла.</item>
+        <item quantity="many">Не удалось очистить %1$d файлов.</item>
+        <item quantity="other">Не удалось очистить %1$d файла.</item>
+    </plurals>
+    <plurals name="notification_clean_locations">
+        <item quantity="one">Местоположение удалено из %1$d файла.</item>
+        <item quantity="few">Местоположение удалено из %1$d файлов.</item>
+        <item quantity="many">Местоположение удалено из %1$d файлов.</item>
+        <item quantity="other">Местоположение удалено из %1$d файлов.</item>
+    </plurals>
     <string name="notification_progress_percent">%1$d%% завершено</string>
     <string name="scan_clean_this_file">Очистить Этот Файл</string>
     <string name="scan_convert_this_file">Конвертировать Этот Файл</string>
@@ -354,10 +381,6 @@
     <string name="convert_heic_fallback_jpeg">Для вывода в HEIC нужен Android 14 или новее. Вместо этого изображения будут сохранены в JPEG.</string>
     <string name="convert_item_type_image">Изображение</string>
     <string name="convert_item_type_video">Видео</string>
-    <string name="notification_clean_failed">На этот раз не удалось очистить ни одного файла.</string>
-    <string name="notification_clean_batch_details">В этой партии: %1$s</string>
-    <string name="notification_clean_totals">На этом устройстве всего: %1$s</string>
-    <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">Просмотр Метаданных Мультимедиа</string>
     <string name="scan_empty_state_description">Выберите фото или видео, чтобы увидеть сведения EXIF, характеристики камеры, координаты GPS и технические свойства.</string>
     <string name="scan_grant_location_button">Предоставить Разрешение</string>

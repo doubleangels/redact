@@ -14,8 +14,6 @@ import android.content.Context;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
-import com.doubleangels.redact.metadata.CleanStats;
-import com.doubleangels.redact.stats.StatsStore;
 
 import org.junit.After;
 import org.junit.Before;
@@ -100,47 +98,43 @@ public class LocalNotificationsTest {
     }
 
     @Test
-    public void showCleanComplete_postsSuccessText() {
-        LocalNotifications.showCleanComplete(app, 3, 0);
-        assertEquals(app.getString(R.string.notification_clean_body, 3), onlyNotificationText());
-    }
-
-    @Test
-    public void showCleanComplete_postsPartialText() {
-        LocalNotifications.showCleanComplete(app, 2, 1);
-        assertEquals(app.getString(R.string.notification_clean_partial, 2, 1), onlyNotificationText());
-    }
-
-    @Test
-    public void showCleanComplete_appendsTheSummary() {
-        LocalNotifications.showCleanComplete(app, 1, 0, "Removed 3 metadata fields.");
-        assertEquals(app.getString(R.string.notification_clean_body, 1) + " Removed 3 metadata fields.",
+    public void showCleanComplete_saysItInSentences() {
+        LocalNotifications.showCleanComplete(app, 3, 1, 2);
+        assertEquals("Cleaned 3 files. 1 file couldn't be cleaned. Removed location data from 2 files.",
                 onlyNotificationText());
+        assertEquals("Cleaned 3 files.\n1 file couldn't be cleaned.\nRemoved location data from 2 files.",
+                onlyNotificationBigText());
     }
 
     @Test
-    public void showCleanComplete_postsFailureText() {
-        LocalNotifications.showCleanComplete(app, 0, 4);
+    public void showCleanComplete_leavesOutWhatDidNotHappen() {
+        LocalNotifications.showCleanComplete(app, 1, 0, 0);
+        assertEquals("Cleaned 1 file.", onlyNotificationText());
+    }
+
+    @Test
+    public void showCleanComplete_whenEveryFileFailed_saysSo() {
+        LocalNotifications.showCleanComplete(app, 0, 4, 0);
         assertEquals(app.getString(R.string.notification_clean_failed), onlyNotificationText());
     }
 
     @Test
     public void showCleanComplete_suppressedWhenCleanNotificationsDisabled() {
         AppPreferences.setCleanNotificationsEnabled(app, false);
-        LocalNotifications.showCleanComplete(app, 1, 0);
+        LocalNotifications.showCleanComplete(app, 1, 0, 0);
         assertEquals(0, shadowNm.size());
     }
 
     @Test
     public void showConversionComplete_postsSuccessText() {
         LocalNotifications.showConversionComplete(app, 5, 0);
-        assertEquals(app.getString(R.string.notification_convert_all_succeeded, 5), onlyNotificationText());
+        assertEquals("Saved 5 files to the gallery.", onlyNotificationText());
     }
 
     @Test
     public void showConversionComplete_postsPartialText() {
         LocalNotifications.showConversionComplete(app, 1, 2);
-        assertEquals(app.getString(R.string.notification_convert_partial, 1, 2), onlyNotificationText());
+        assertEquals("Saved 1 file to the gallery. 2 files couldn't be converted.", onlyNotificationText());
     }
 
     @Test
@@ -268,64 +262,9 @@ public class LocalNotificationsTest {
                 Shadows.shadowOf(app).getNextStartedService().getAction());
     }
 
-    // ---- what the clean notification says when expanded -----------------------------------------
-
     private String onlyNotificationBigText() {
         List<Notification> posted = shadowNm.getAllNotifications();
         assertEquals(1, posted.size());
         return String.valueOf(posted.get(0).extras.getCharSequence(Notification.EXTRA_BIG_TEXT));
-    }
-
-    @Test
-    public void showCleanComplete_expanded_addsTheBatchDetailsAndTheTotals() {
-        StatsStore.clear(app);
-        StatsStore.recordClean(app, new CleanStats(1200, true, true, true, false), false, false);
-        StatsStore.recordClean(app, new CleanStats(84, true, true, false, false), true, false);
-
-        LocalNotifications.showCleanComplete(app, 2, 0, "Removed 1,284 metadata fields. 2 files had location.",
-                "In this batch: Date & Time Taken (2) · Camera & Phone (1)");
-
-        String first = app.getString(R.string.notification_clean_body, 2)
-                + " Removed 1,284 metadata fields. 2 files had location.";
-        // Collapsed, it stays as short as before.
-        assertEquals(first, onlyNotificationText());
-        assertEquals(first
-                        + "\nIn this batch: Date & Time Taken (2) · Camera & Phone (1)"
-                        + "\nOn this device so far: Fields Removed (1,284) · Locations Removed (2)",
-                onlyNotificationBigText());
-        StatsStore.clear(app);
-    }
-
-    @Test
-    public void showCleanComplete_withNothingElseRemoved_stillShowsTheTotals() {
-        StatsStore.clear(app);
-        StatsStore.recordClean(app, new CleanStats(3, false), false, false);
-
-        LocalNotifications.showCleanComplete(app, 1, 0, "Removed 3 metadata fields.", null);
-
-        assertEquals(app.getString(R.string.notification_clean_body, 1) + " Removed 3 metadata fields."
-                        + "\nOn this device so far: Fields Removed (3) · Locations Removed (0)",
-                onlyNotificationBigText());
-        StatsStore.clear(app);
-    }
-
-    @Test
-    public void showCleanComplete_whenEveryFileFailed_addsNoStatistics() {
-        StatsStore.clear(app);
-        StatsStore.recordClean(app, new CleanStats(3, true), false, false);
-
-        LocalNotifications.showCleanComplete(app, 0, 2, null, "In this batch: Camera & Phone (1)");
-
-        assertEquals(app.getString(R.string.notification_clean_failed), onlyNotificationBigText());
-        StatsStore.clear(app);
-    }
-
-    @Test
-    public void cleanTotals_withNothingCleaned_isNull() {
-        StatsStore.clear(app);
-        StatsStore.recordConverted(app);
-
-        assertNull(LocalNotifications.cleanTotals(app));
-        StatsStore.clear(app);
     }
 }

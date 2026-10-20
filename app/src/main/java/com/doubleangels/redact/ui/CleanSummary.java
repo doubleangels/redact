@@ -8,7 +8,6 @@ import androidx.annotation.Nullable;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.metadata.CleanStats;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -81,40 +80,6 @@ public final class CleanSummary {
         }
         return fields + " " + res.getQuantityString(
                 R.plurals.clean_summary_location_files, filesWithLocation, filesWithLocation);
-    }
-
-    /**
-     * The kinds of personal detail the batch removed besides location, which {@link #describe}
-     * already mentions, with how many files carried each, e.g. "In this batch: Date &amp; Time
-     * Taken (3) · Camera &amp; Phone (3)". Null when there were none.
-     */
-    @Nullable
-    public String describeDetails(@NonNull Resources res) {
-        List<String> items = new ArrayList<>();
-        addItem(res, items, R.string.stats_removed_dates, filesWithDate);
-        addItem(res, items, R.string.stats_removed_devices, filesWithDevice);
-        addItem(res, items, R.string.stats_removed_names, filesWithName);
-        return items.isEmpty() ? null
-                : res.getString(R.string.notification_clean_batch_details, joinItems(items));
-    }
-
-    private static void addItem(@NonNull Resources res, @NonNull List<String> items, int label, long count) {
-        if (count > 0) {
-            items.add(item(res, res.getString(label), count));
-        }
-    }
-
-    /** One "Label (1,284)" figure, numbered for the current locale. */
-    @NonNull
-    public static String item(@NonNull Resources res, @NonNull String label, long count) {
-        return res.getString(R.string.notification_stat_item, label,
-                java.text.NumberFormat.getIntegerInstance().format(count));
-    }
-
-    /** Figures separated by middle dots, which read the same in every language the app ships. */
-    @NonNull
-    public static String joinItems(@NonNull List<String> items) {
-        return String.join(" · ", items);
     }
 
     /** {@code status} followed by the summary, or {@code status} alone when there is none. */

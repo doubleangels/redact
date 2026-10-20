@@ -1,6 +1,2 @@
-Novo: Estatísticas mostra o que o Redact removeu, contado só no seu celular.
-Limpar também remove comentários, prévias extras e clipes de Motion Photo; essas fotos ficam estáticas.
-Escanear mostra Dados ocultos e incorporados; Escanear com Redact confere sem limpar.
-Novo: bloco nas Configurações rápidas, Escanear Resultado, Manter Nomes Originais, Redefinir Todas as Configurações e Abrir Pasta.
-Conversões VP9 e AV1 são salvas como MP4.
-Várias correções de confiabilidade.
+As notificações de limpeza e conversão agora explicam o que aconteceu em frases simples.
+A pergunta de avaliação agora aparece após algumas limpezas, conversões e análises bem-sucedidas, mesmo que tenham terminado em segundo plano.

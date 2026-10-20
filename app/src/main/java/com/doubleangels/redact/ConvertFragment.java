@@ -498,10 +498,8 @@ public class ConvertFragment extends Fragment {
                         Toast.makeText(requireContext(), R.string.convert_saved_to_gallery, Toast.LENGTH_SHORT)
                                 .show();
                     }
-                    if (justCompleted) {
-                        // Counted even while another tab is showing; asks only when this one is.
-                        com.doubleangels.redact.ui.ReviewPrompt.onJobSucceeded(this);
-                    }
+                    // Counted by the view model; asks only when this tab is showing.
+                    com.doubleangels.redact.ui.ReviewPrompt.askIfDue(this);
                 }
             }
             com.doubleangels.redact.ui.ShareResults.updateButton(

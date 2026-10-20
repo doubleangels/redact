@@ -15,11 +15,14 @@
     <string name="notification_channel_tasks_name">タスク</string>
     <string name="notification_channel_tasks_description">メディアの変換とクリーンアップが完了しました</string>
     <string name="notification_convert_title">変換完了</string>
-    <string name="notification_convert_all_succeeded">%1$d個のファイルをギャラリーに保存しました。</string>
-    <string name="notification_convert_partial">%1$d個成功、%2$d個失敗。</string>
+    <plurals name="notification_convert_done">
+        <item quantity="other">%1$d個のファイルをギャラリーに保存しました。</item>
+    </plurals>
+    <plurals name="notification_convert_failures">
+        <item quantity="other">%1$d個のファイルを変換できませんでした。</item>
+    </plurals>
     <string name="notification_convert_failed">変換できるファイルがありませんでした。</string>
     <string name="notification_clean_title">クリーンアップ完了</string>
-    <string name="notification_clean_body">%1$d個のファイルを処理しました。</string>
     <string name="notification_convert_progress_title">メディアを変換中…</string>
     <string name="notification_clean_progress_title">メタデータを削除中…</string>
 
@@ -271,7 +274,16 @@
     <string name="metadata_error_basic_info_generic">基本的なファイル情報を読み取れませんでした。</string>
     <string name="metadata_error_image_generic">画像メタデータを読み取れませんでした。</string>
     <string name="metadata_error_video_generic">動画メタデータを読み取れませんでした。</string>
-    <string name="notification_clean_partial">%1$d 件クリーン、%2$d 件失敗。</string>
+    <string name="notification_clean_failed">今回はクリーンできるファイルがありませんでした。</string>
+    <plurals name="notification_clean_done">
+        <item quantity="other">%1$d 件のファイルをクリーンしました。</item>
+    </plurals>
+    <plurals name="notification_clean_failures">
+        <item quantity="other">%1$d 件のファイルをクリーンできませんでした。</item>
+    </plurals>
+    <plurals name="notification_clean_locations">
+        <item quantity="other">%1$d 件のファイルから位置情報を削除しました。</item>
+    </plurals>
     <string name="notification_progress_percent">%1$d%% 完了</string>
     <string name="scan_clean_this_file">このファイルをクリーン</string>
     <string name="scan_convert_this_file">このファイルを変換</string>
@@ -352,10 +364,6 @@
     <string name="convert_heic_fallback_jpeg">HEIC出力にはAndroid 14以降が必要です。代わりに画像はJPEGで保存されます。</string>
     <string name="convert_item_type_image">画像</string>
     <string name="convert_item_type_video">動画</string>
-    <string name="notification_clean_failed">今回はクリーンできるファイルがありませんでした。</string>
-    <string name="notification_clean_batch_details">今回の処理：%1$s</string>
-    <string name="notification_clean_totals">このデバイスでのこれまでの合計：%1$s</string>
-    <string name="notification_stat_item">%1$s（%2$s）</string>
     <string name="scan_empty_state_title">メディアのメタデータを確認</string>
     <string name="scan_empty_state_description">写真または動画を選択して、EXIFの詳細、カメラ仕様、GPS座標、技術的なプロパティを表示します。</string>
     <string name="scan_grant_location_button">権限を許可</string>

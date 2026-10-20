@@ -11,16 +11,29 @@
     <string name="notification_channel_tasks_name">Tasks</string>
     <string name="notification_channel_tasks_description">Finished converting and cleaning media</string>
     <string name="notification_convert_title">Conversion Finished</string>
-    <string name="notification_convert_all_succeeded" tools:ignore="PluralsCandidate">Saved %1$d file(s) to the gallery.</string>
-    <string name="notification_convert_partial" tools:ignore="PluralsCandidate">%1$d succeeded, %2$d failed.</string>
+    <plurals name="notification_convert_done">
+        <item quantity="one">Saved %1$d file to the gallery.</item>
+        <item quantity="other">Saved %1$d files to the gallery.</item>
+    </plurals>
+    <plurals name="notification_convert_failures">
+        <item quantity="one">%1$d file couldn\'t be converted.</item>
+        <item quantity="other">%1$d files couldn\'t be converted.</item>
+    </plurals>
     <string name="notification_convert_failed">We couldn\'t convert any files this time.</string>
     <string name="notification_clean_title">Cleaning Finished</string>
-    <string name="notification_clean_body" tools:ignore="PluralsCandidate">Successfully cleaned %1$d file(s).</string>
-    <string name="notification_clean_partial" tools:ignore="PluralsCandidate">%1$d cleaned, %2$d failed.</string>
     <string name="notification_clean_failed">We couldn\'t clean any files this time.</string>
-    <string name="notification_clean_batch_details">In this batch: %1$s</string>
-    <string name="notification_clean_totals">On this device so far: %1$s</string>
-    <string name="notification_stat_item">%1$s (%2$s)</string>
+    <plurals name="notification_clean_done">
+        <item quantity="one">Cleaned %1$d file.</item>
+        <item quantity="other">Cleaned %1$d files.</item>
+    </plurals>
+    <plurals name="notification_clean_failures">
+        <item quantity="one">%1$d file couldn\'t be cleaned.</item>
+        <item quantity="other">%1$d files couldn\'t be cleaned.</item>
+    </plurals>
+    <plurals name="notification_clean_locations">
+        <item quantity="one">Removed location data from %1$d file.</item>
+        <item quantity="other">Removed location data from %1$d files.</item>
+    </plurals>
     <string name="notification_convert_progress_title">Converting Media…</string>
     <string name="notification_clean_progress_title">Cleaning Metadata…</string>
     <string name="notification_progress_percent">%1$d%% complete</string>

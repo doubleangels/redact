@@ -524,15 +524,13 @@ public class CleanFragment extends Fragment {
                             if (trashing) {
                                 requestTrashOriginals(viewModel.takeCleanSucceededSources());
                             }
-                            // Android's trash confirmation takes priority over asking for a rating,
-                            // so a trashing clean is only counted.
-                            if (justCompleted && count != null && count > 0
+                            // Android's trash confirmation takes priority over asking for a rating.
+                            // Asked on every COMPLETED delivery, not just a live one, so a clean that
+                            // finished while the app was away is still asked about; the prompt
+                            // itself is a one-time question.
+                            if (!trashing && count != null && count > 0
                                     && count.equals(total != null ? total : count)) {
-                                if (trashing) {
-                                    com.doubleangels.redact.ui.ReviewPrompt.recordSuccessfulJob(requireContext());
-                                } else {
-                                    com.doubleangels.redact.ui.ReviewPrompt.onJobSucceeded(this);
-                                }
+                                com.doubleangels.redact.ui.ReviewPrompt.askIfDue(this);
                             }
                             break;
 

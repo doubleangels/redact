@@ -15,11 +15,18 @@
     <string name="notification_channel_tasks_name">Tarefas</string>
     <string name="notification_channel_tasks_description">Conversão e limpeza de mídias concluídas</string>
     <string name="notification_convert_title">Conversão Concluída</string>
-    <string name="notification_convert_all_succeeded">Salvos %1$d arquivo(s) na galeria.</string>
-    <string name="notification_convert_partial">%1$d com sucesso, %2$d falharam.</string>
+    <plurals name="notification_convert_done">
+        <item quantity="one">%1$d arquivo salvo na galeria.</item>
+        <item quantity="many">%1$d de arquivos salvos na galeria.</item>
+        <item quantity="other">%1$d arquivos salvos na galeria.</item>
+    </plurals>
+    <plurals name="notification_convert_failures">
+        <item quantity="one">Não foi possível converter %1$d arquivo.</item>
+        <item quantity="many">Não foi possível converter %1$d de arquivos.</item>
+        <item quantity="other">Não foi possível converter %1$d arquivos.</item>
+    </plurals>
     <string name="notification_convert_failed">Não foi possível converter os arquivos.</string>
     <string name="notification_clean_title">Limpeza Concluída</string>
-    <string name="notification_clean_body">Processados %1$d arquivo(s).</string>
     <string name="notification_convert_progress_title">Convertendo Mídias…</string>
     <string name="notification_clean_progress_title">Limpando Metadados…</string>
 
@@ -272,7 +279,22 @@ Suas fotos e vídeos nunca são enviados. URIs, nomes de arquivo e coordenadas G
     <string name="metadata_error_basic_info_generic">Não foi possível ler as informações básicas do arquivo.</string>
     <string name="metadata_error_image_generic">Não foi possível ler os metadados da imagem.</string>
     <string name="metadata_error_video_generic">Não foi possível ler os metadados do vídeo.</string>
-    <string name="notification_clean_partial">%1$d limpos, %2$d falharam.</string>
+    <string name="notification_clean_failed">Não foi possível limpar nenhum arquivo desta vez.</string>
+    <plurals name="notification_clean_done">
+        <item quantity="one">%1$d arquivo limpo.</item>
+        <item quantity="many">%1$d de arquivos limpos.</item>
+        <item quantity="other">%1$d arquivos limpos.</item>
+    </plurals>
+    <plurals name="notification_clean_failures">
+        <item quantity="one">Não foi possível limpar %1$d arquivo.</item>
+        <item quantity="many">Não foi possível limpar %1$d de arquivos.</item>
+        <item quantity="other">Não foi possível limpar %1$d arquivos.</item>
+    </plurals>
+    <plurals name="notification_clean_locations">
+        <item quantity="one">Localização removida de %1$d arquivo.</item>
+        <item quantity="many">Localização removida de %1$d de arquivos.</item>
+        <item quantity="other">Localização removida de %1$d arquivos.</item>
+    </plurals>
     <string name="notification_progress_percent">%1$d%% concluído</string>
     <string name="scan_clean_this_file">Limpar Este Arquivo</string>
     <string name="scan_convert_this_file">Converter Este Arquivo</string>
@@ -353,10 +375,6 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="convert_heic_fallback_jpeg">A saída HEIC exige Android 14 ou superior. As imagens serão salvas como JPEG.</string>
     <string name="convert_item_type_image">Imagem</string>
     <string name="convert_item_type_video">Vídeo</string>
-    <string name="notification_clean_failed">Não foi possível limpar nenhum arquivo desta vez.</string>
-    <string name="notification_clean_batch_details">Neste lote: %1$s</string>
-    <string name="notification_clean_totals">Neste dispositivo até agora: %1$s</string>
-    <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">Inspecionar Metadados de Mídia</string>
     <string name="scan_empty_state_description">Selecione uma foto ou um vídeo para ver os detalhes EXIF, as especificações da câmera, as coordenadas GPS e as propriedades técnicas.</string>
     <string name="scan_grant_location_button">Conceder Permissão</string>

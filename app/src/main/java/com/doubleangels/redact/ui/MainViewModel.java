@@ -600,10 +600,9 @@ public class MainViewModel extends AndroidViewModel {
         return mediaProcessor.getCleanSummary().describe(getApplication().getResources());
     }
 
-    /** The other kinds of detail the last clean batch removed, for the completion notification. */
-    @androidx.annotation.Nullable
-    public String getCleanDetailsText() {
-        return mediaProcessor.getCleanSummary().describeDetails(getApplication().getResources());
+    /** How many files of the last clean batch carried a location, for the completion notification. */
+    public int getCleanLocationsRemoved() {
+        return mediaProcessor.getCleanSummary().filesWithLocation;
     }
 
     /** Saved outputs of the last convert batch, kept until the next batch starts. */
@@ -685,11 +684,15 @@ public class MainViewModel extends AndroidViewModel {
                 persistBatchCounts(successCount, totalCount, KEY_CLEAN_PROCESSED, KEY_CLEAN_BATCH);
                 setCleanProcessingState(ProcessingState.COMPLETED);
                 int failCount = Math.max(0, totalCount - successCount);
+                // Counted here rather than by the Clean tab, which sees only the runs it was
+                // watching when they finished.
+                if (successCount > 0 && failCount == 0) {
+                    ReviewPrompt.recordSuccessfulJob(getApplication());
+                }
                 LocalNotifications.stopProcessingForeground(
                         getApplication(), LocalNotifications.ForegroundJob.CLEAN);
                 LocalNotifications.showCleanComplete(
-                        getApplication(), successCount, failCount, getCleanSummaryText(),
-                        getCleanDetailsText());
+                        getApplication(), successCount, failCount, getCleanLocationsRemoved());
             }
 
             @Override
@@ -980,6 +983,9 @@ public class MainViewModel extends AndroidViewModel {
                         convertProcessedItemCount.setValue(finalOk);
                         persistBatchCounts(finalOk, total, KEY_CONVERT_PROCESSED, KEY_CONVERT_BATCH);
                         setConvertProcessingState(ProcessingState.COMPLETED);
+                        if (finalOk > 0 && finalFail == 0) {
+                            ReviewPrompt.recordSuccessfulJob(getApplication());
+                        }
                         LocalNotifications.showConversionComplete(getApplication(), finalOk, finalFail);
                     }
                 });
