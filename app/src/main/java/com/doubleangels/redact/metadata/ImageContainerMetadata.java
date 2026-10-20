@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -157,6 +158,38 @@ public final class ImageContainerMetadata {
             return Format.WEBP;
         }
         return Format.OTHER;
+    }
+
+    private static final byte[][] XMP_PACKET_MARKERS = {
+            ascii("<?xpacket begin"), ascii("<x:xmpmeta")};
+
+    /**
+     * Whether an XMP packet starts within the first {@code limit} bytes of {@code in}, for formats
+     * this class cannot walk (HEIC keeps its XMP near the start; others may keep it anywhere).
+     * Pass {@link Long#MAX_VALUE} to search the whole stream.
+     */
+    static boolean containsXmpPacket(@NonNull InputStream in, long limit) throws IOException {
+        int overlap = 16;
+        byte[] buffer = new byte[64 * 1024 + overlap];
+        int carried = 0;
+        long consumed = 0;
+        while (consumed < limit) {
+            int want = (int) Math.min(buffer.length - carried, limit - consumed);
+            int read = in.read(buffer, carried, want);
+            if (read <= 0) {
+                break;
+            }
+            consumed += read;
+            int filled = carried + read;
+            for (byte[] marker : XMP_PACKET_MARKERS) {
+                if (indexOf(buffer, filled, marker, 0) >= 0) {
+                    return true;
+                }
+            }
+            carried = Math.min(overlap, filled);
+            System.arraycopy(buffer, filled - carried, buffer, 0, carried);
+        }
+        return false;
     }
 
     /** Scans a file; never throws. */
@@ -1250,8 +1283,13 @@ public final class ImageContainerMetadata {
     }
 
     private static int indexOf(@NonNull byte[] data, @NonNull byte[] needle, int from) {
+        return indexOf(data, data.length, needle, from);
+    }
+
+    /** The first {@code needle} in {@code data[from, length)}. */
+    private static int indexOf(@NonNull byte[] data, int length, @NonNull byte[] needle, int from) {
         outer:
-        for (int i = Math.max(0, from); i <= data.length - needle.length; i++) {
+        for (int i = Math.max(0, from); i <= length - needle.length; i++) {
             for (int j = 0; j < needle.length; j++) {
                 if (data[i + j] != needle[j]) {
                     continue outer;

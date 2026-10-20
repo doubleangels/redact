@@ -27,6 +27,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -306,6 +307,22 @@ public class ImageContainerMetadataTest {
                 "<rdf:Description exif:GPSLatitude='40,30N'/>"));
         assertEquals(ImageContainerMetadata.Kind.DATE, ImageContainerMetadata.xmpKind(
                 "<rdf:Description xmp:CreateDate='2026-10-19T10:00:00'/>"));
+    }
+
+    @Test
+    public void xmpPacket_isFoundAcrossBufferEdges_andOnlyWithinTheLimit() throws Exception {
+        // The 64 KB read buffer would split a marker placed across its end.
+        byte[] data = new byte[200 * 1024];
+        byte[] marker = a("<x:xmpmeta");
+        int at = 64 * 1024 - 4;
+        System.arraycopy(marker, 0, data, at, marker.length);
+
+        assertTrue(ImageContainerMetadata.containsXmpPacket(new ByteArrayInputStream(data), Long.MAX_VALUE));
+        assertTrue(ImageContainerMetadata.containsXmpPacket(new ByteArrayInputStream(data), at + marker.length));
+        assertFalse(ImageContainerMetadata.containsXmpPacket(new ByteArrayInputStream(data), at + marker.length - 1));
+        assertFalse(ImageContainerMetadata.containsXmpPacket(new ByteArrayInputStream(new byte[200 * 1024]), Long.MAX_VALUE));
+        assertTrue(ImageContainerMetadata.containsXmpPacket(
+                new ByteArrayInputStream(a("..<?xpacket begin='x'?>")), Long.MAX_VALUE));
     }
 
     // ---- PNG ----------------------------------------------------------------------------------

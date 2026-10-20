@@ -33,7 +33,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1726,48 +1725,17 @@ public class MetadataStripper {
         }
     }
 
-    private static final byte[][] XMP_MARKERS = {
-            "<?xpacket begin".getBytes(StandardCharsets.US_ASCII),
-            "<x:xmpmeta".getBytes(StandardCharsets.US_ASCII)};
-
     /**
      * Whether an XMP packet is anywhere in the file. The whole file is searched, as some formats
      * keep XMP after the picture; a file that cannot be read counts as still holding one.
      */
     private boolean containsXmpPacket(@NonNull File file) {
-        int overlap = 16;
         try (InputStream in = new FileInputStream(file)) {
-            byte[] buffer = new byte[DEFAULT_BUFFER_SIZE + overlap];
-            int carried = 0;
-            int read;
-            while ((read = in.read(buffer, carried, buffer.length - carried)) > 0) {
-                int filled = carried + read;
-                for (byte[] marker : XMP_MARKERS) {
-                    if (indexOf(buffer, filled, marker) >= 0) {
-                        return true;
-                    }
-                }
-                carried = Math.min(overlap, filled);
-                System.arraycopy(buffer, filled - carried, buffer, 0, carried);
-            }
-            return false;
+            return ImageContainerMetadata.containsXmpPacket(in, Long.MAX_VALUE);
         } catch (IOException e) {
             SentryManager.log("XMP detection failed: " + e.getMessage() + ".");
             return true;
         }
-    }
-
-    private static int indexOf(@NonNull byte[] data, int length, @NonNull byte[] needle) {
-        outer:
-        for (int i = 0; i <= length - needle.length; i++) {
-            for (int j = 0; j < needle.length; j++) {
-                if (data[i + j] != needle[j]) {
-                    continue outer;
-                }
-            }
-            return i;
-        }
-        return -1;
     }
 
     /**
