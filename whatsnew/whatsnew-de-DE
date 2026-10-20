@@ -1,6 +1,2 @@
-Neu: Statistik zeigt, was Redact entfernt hat, nur auf deinem Handy gezählt.
-Bereinigen entfernt nun auch Kommentare, Vorschaubilder und Motion-Photo-Clips; Motion Photos werden Standbilder.
-Scannen zeigt „Versteckte & eingebettete Daten“; „Mit Redact Scannen“ prüft ohne Bereinigung.
-Neu: Schnelleinstellungen-Kachel, Ergebnis Scannen, Originale Dateinamen Behalten, Alle Einstellungen Zurücksetzen, Ordner Öffnen.
-VP9/AV1-Konvertierungen werden als MP4 gespeichert.
-Viele Fehlerkorrekturen.
+Benachrichtigungen zu Bereinigen und Konvertieren erklären jetzt in einfachen Sätzen, was passiert ist.
+Die Bewertungsfrage erscheint jetzt nach einigen erfolgreichen Bereinigungen, Konvertierungen und Scans, auch wenn sie im Hintergrund fertig wurden.
