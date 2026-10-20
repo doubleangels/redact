@@ -15,8 +15,12 @@
     <string name="notification_channel_tasks_name">タスク</string>
     <string name="notification_channel_tasks_description">メディアの変換とクリーンアップが完了しました</string>
     <string name="notification_convert_title">変換完了</string>
-    <string name="notification_convert_all_succeeded">%1$d個のファイルをギャラリーに保存しました。</string>
-    <string name="notification_convert_partial">%1$d個成功、%2$d個失敗。</string>
+    <plurals name="notification_convert_done">
+        <item quantity="other">%1$d個のファイルをギャラリーに保存しました。</item>
+    </plurals>
+    <plurals name="notification_convert_failures">
+        <item quantity="other">%1$d個のファイルを変換できませんでした。</item>
+    </plurals>
     <string name="notification_convert_failed">変換できるファイルがありませんでした。</string>
     <string name="notification_clean_title">クリーンアップ完了</string>
     <string name="notification_convert_progress_title">メディアを変換中…</string>

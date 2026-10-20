@@ -15,8 +15,16 @@
     <string name="notification_channel_tasks_name">Tâches</string>
     <string name="notification_channel_tasks_description">Conversion et nettoyage des médias terminés</string>
     <string name="notification_convert_title">Conversion Terminée</string>
-    <string name="notification_convert_all_succeeded">Enregistré %1$d fichier(s) dans la galerie.</string>
-    <string name="notification_convert_partial">%1$d ont réussi, %2$d ont échoué.</string>
+    <plurals name="notification_convert_done">
+        <item quantity="one">%1$d fichier enregistré dans la galerie.</item>
+        <item quantity="many">%1$d de fichiers enregistrés dans la galerie.</item>
+        <item quantity="other">%1$d fichiers enregistrés dans la galerie.</item>
+    </plurals>
+    <plurals name="notification_convert_failures">
+        <item quantity="one">%1$d fichier n\'a pas pu être converti.</item>
+        <item quantity="many">%1$d de fichiers n\'ont pas pu être convertis.</item>
+        <item quantity="other">%1$d fichiers n\'ont pas pu être convertis.</item>
+    </plurals>
     <string name="notification_convert_failed">Aucun fichier n\'a pu être converti.</string>
     <string name="notification_clean_title">Nettoyage Terminé</string>
     <string name="notification_convert_progress_title">Conversion des Médias…</string>

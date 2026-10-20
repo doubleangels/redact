@@ -175,19 +175,25 @@ public final class LocalNotifications {
         }
         Context app = context.getApplicationContext();
         String title = app.getString(R.string.notification_convert_title);
-        String text;
-        if (failCount == 0 && okCount > 0) {
-            text = app.getString(R.string.notification_convert_all_succeeded, okCount);
-        } else if (okCount > 0) {
-            text = app.getString(R.string.notification_convert_partial, okCount, failCount);
-        } else {
-            text = app.getString(R.string.notification_convert_failed);
+        android.content.res.Resources res = app.getResources();
+        java.util.List<String> sentences = new java.util.ArrayList<>();
+        if (okCount > 0) {
+            sentences.add(res.getQuantityString(R.plurals.notification_convert_done, okCount, okCount));
         }
+        if (failCount > 0 && okCount > 0) {
+            sentences.add(res.getQuantityString(
+                    R.plurals.notification_convert_failures, failCount, failCount));
+        }
+        if (sentences.isEmpty()) {
+            sentences.add(res.getString(R.string.notification_convert_failed));
+        }
+        String text = String.join(" ", sentences);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(app, CHANNEL_ID_TASKS)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(title)
                 .setContentText(text)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(String.join("\n", sentences)))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setAutoCancel(true)
                 .setContentIntent(contentIntent(app, MainActivity.class));

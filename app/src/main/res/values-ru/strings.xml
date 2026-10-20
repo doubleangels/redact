@@ -15,8 +15,18 @@
     <string name="notification_channel_tasks_name">Задачи</string>
     <string name="notification_channel_tasks_description">Конвертация и очистка медиафайлов завершены</string>
     <string name="notification_convert_title">Конвертация Завершена</string>
-    <string name="notification_convert_all_succeeded">Сохранено: %1$d файл(ов) в галерее.</string>
-    <string name="notification_convert_partial">Успешно: %1$d, ошибка: %2$d.</string>
+    <plurals name="notification_convert_done">
+        <item quantity="one">Сохранён %1$d файл в галерее.</item>
+        <item quantity="few">Сохранено %1$d файла в галерее.</item>
+        <item quantity="many">Сохранено %1$d файлов в галерее.</item>
+        <item quantity="other">Сохранено %1$d файла в галерее.</item>
+    </plurals>
+    <plurals name="notification_convert_failures">
+        <item quantity="one">Не удалось конвертировать %1$d файл.</item>
+        <item quantity="few">Не удалось конвертировать %1$d файла.</item>
+        <item quantity="many">Не удалось конвертировать %1$d файлов.</item>
+        <item quantity="other">Не удалось конвертировать %1$d файла.</item>
+    </plurals>
     <string name="notification_convert_failed">Не удалось конвертировать файлы.</string>
     <string name="notification_clean_title">Очистка Завершена</string>
     <string name="notification_convert_progress_title">Конвертация Медиа…</string>

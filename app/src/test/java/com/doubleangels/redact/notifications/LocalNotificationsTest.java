@@ -128,13 +128,13 @@ public class LocalNotificationsTest {
     @Test
     public void showConversionComplete_postsSuccessText() {
         LocalNotifications.showConversionComplete(app, 5, 0);
-        assertEquals(app.getString(R.string.notification_convert_all_succeeded, 5), onlyNotificationText());
+        assertEquals("Saved 5 files to the gallery.", onlyNotificationText());
     }
 
     @Test
     public void showConversionComplete_postsPartialText() {
         LocalNotifications.showConversionComplete(app, 1, 2);
-        assertEquals(app.getString(R.string.notification_convert_partial, 1, 2), onlyNotificationText());
+        assertEquals("Saved 1 file to the gallery. 2 files couldn't be converted.", onlyNotificationText());
     }
 
     @Test

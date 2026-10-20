@@ -11,8 +11,14 @@
     <string name="notification_channel_tasks_name">Tasks</string>
     <string name="notification_channel_tasks_description">Finished converting and cleaning media</string>
     <string name="notification_convert_title">Conversion Finished</string>
-    <string name="notification_convert_all_succeeded" tools:ignore="PluralsCandidate">Saved %1$d file(s) to the gallery.</string>
-    <string name="notification_convert_partial" tools:ignore="PluralsCandidate">%1$d succeeded, %2$d failed.</string>
+    <plurals name="notification_convert_done">
+        <item quantity="one">Saved %1$d file to the gallery.</item>
+        <item quantity="other">Saved %1$d files to the gallery.</item>
+    </plurals>
+    <plurals name="notification_convert_failures">
+        <item quantity="one">%1$d file couldn\'t be converted.</item>
+        <item quantity="other">%1$d files couldn\'t be converted.</item>
+    </plurals>
     <string name="notification_convert_failed">We couldn\'t convert any files this time.</string>
     <string name="notification_clean_title">Cleaning Finished</string>
     <string name="notification_clean_failed">We couldn\'t clean any files this time.</string>

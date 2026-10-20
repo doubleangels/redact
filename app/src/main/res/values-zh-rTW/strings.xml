@@ -15,8 +15,12 @@
     <string name="notification_channel_tasks_name">任務</string>
     <string name="notification_channel_tasks_description">媒體轉換與清理完成</string>
     <string name="notification_convert_title">轉換完成</string>
-    <string name="notification_convert_all_succeeded">已將 %1$d 個檔案儲存至相簿。</string>
-    <string name="notification_convert_partial">%1$d 個成功，%2$d 個失敗。</string>
+    <plurals name="notification_convert_done">
+        <item quantity="other">已將 %1$d 個檔案儲存至相簿。</item>
+    </plurals>
+    <plurals name="notification_convert_failures">
+        <item quantity="other">有 %1$d 個檔案無法轉換。</item>
+    </plurals>
     <string name="notification_convert_failed">無法轉換任何檔案。</string>
     <string name="notification_clean_title">清理完成</string>
     <string name="notification_convert_progress_title">正在轉換媒體…</string>

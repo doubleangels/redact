@@ -15,8 +15,22 @@
     <string name="notification_channel_tasks_name">المهام</string>
     <string name="notification_channel_tasks_description">اكتمل تحويل الوسائط وتنظيفها</string>
     <string name="notification_convert_title">اكتمل التحويل</string>
-    <string name="notification_convert_all_succeeded">تم حفظ %1$d ملف(ملفات) في المعرض.</string>
-    <string name="notification_convert_partial">نجح %1$d، وفشل %2$d.</string>
+    <plurals name="notification_convert_done">
+        <item quantity="zero">تم حفظ %1$d ملف في المعرض.</item>
+        <item quantity="one">تم حفظ ملف واحد في المعرض.</item>
+        <item quantity="two">تم حفظ ملفين في المعرض.</item>
+        <item quantity="few">تم حفظ %1$d ملفات في المعرض.</item>
+        <item quantity="many">تم حفظ %1$d ملفًا في المعرض.</item>
+        <item quantity="other">تم حفظ %1$d ملف في المعرض.</item>
+    </plurals>
+    <plurals name="notification_convert_failures">
+        <item quantity="zero">تعذّر تحويل %1$d ملف.</item>
+        <item quantity="one">تعذّر تحويل ملف واحد.</item>
+        <item quantity="two">تعذّر تحويل ملفين.</item>
+        <item quantity="few">تعذّر تحويل %1$d ملفات.</item>
+        <item quantity="many">تعذّر تحويل %1$d ملفًا.</item>
+        <item quantity="other">تعذّر تحويل %1$d ملف.</item>
+    </plurals>
     <string name="notification_convert_failed">تعذر تحويل أي ملفات.</string>
     <string name="notification_clean_title">اكتمل التنظيف</string>
     <string name="notification_convert_progress_title">جارٍ تحويل الوسائط…</string>
