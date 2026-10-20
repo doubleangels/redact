@@ -101,7 +101,7 @@ CAPTIONS = {
     "ja-JP": [
         ("写真から住所がわかってしまうかも。", "スキャンで、隠れた GPS 位置情報・機種・日時を表示します。"),
         ("ワンタップでまとめて削除。", "何を削除したかを正確に表示します。"),
-        ("写真と動画を 20 件まとめてクリーン。", "どのアプリからでも Redact に共有できます。"),
+        ("写真と動画を20件まとめてクリーン。", "どのアプリからでも Redact に共有できます。"),
         ("アップロードせずに変換。", "JPEG・PNG・WebP・HEIC・MP4 に対応。クリーンして確認済みです。"),
         ("送る前に、どんなファイルもチェック。", "隠れた項目を、見やすく検索できる一覧で表示します。"),
         ("データはスマホから出ません。", "広告・追跡・アカウントなし。オープンソースです。"),
@@ -172,6 +172,11 @@ def page(lang, body, width, height, css):
     return f"""<!doctype html><html lang="{lang}" dir="{direction}"><head><meta charset="utf-8"><style>
 html, body {{ margin: 0; width: {width}px; height: {height}px; overflow: hidden; }}
 body {{ font-family: {FONTS}; -webkit-font-smoothing: antialiased; }}
+h1 {{ text-wrap: balance; }}
+p {{ text-wrap: pretty; }}
+/* Korean breaks between words, Japanese between phrases, never mid-word. */
+:lang(ko) h1, :lang(ko) p {{ word-break: keep-all; }}
+:lang(ja) h1, :lang(ja) p {{ word-break: auto-phrase; }}
 {css}
 </style></head><body>{body}{FIT_SCRIPT}</body></html>"""
 

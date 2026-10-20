@@ -18,7 +18,6 @@ import com.doubleangels.redact.sentry.SentryManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -192,7 +191,9 @@ public final class AlreadyCleanCheck {
             if (in == null) {
                 return Status.UNKNOWN;
             }
-            return containsXmp(in) ? Status.NEEDS_CLEANING : Status.ALREADY_CLEAN;
+            // HEIC keeps its XMP near the start.
+            return ImageContainerMetadata.containsXmpPacket(in, XMP_SCAN_LIMIT)
+                    ? Status.NEEDS_CLEANING : Status.ALREADY_CLEAN;
         } catch (IOException | RuntimeException e) {
             return Status.UNKNOWN;
         }
@@ -205,18 +206,6 @@ public final class AlreadyCleanCheck {
         String lower = mime.toLowerCase(Locale.ROOT);
         return lower.equals("image/jpeg") || lower.equals("image/png") || lower.equals("image/webp")
                 || lower.equals("image/heic") || lower.equals("image/heif");
-    }
-
-    /** Looks for XMP packet markers in the leading bytes, where HEIC keeps its XMP. */
-    private static boolean containsXmp(@NonNull InputStream in) throws IOException {
-        byte[] buffer = new byte[XMP_SCAN_LIMIT];
-        int total = 0;
-        int read;
-        while (total < buffer.length && (read = in.read(buffer, total, buffer.length - total)) > 0) {
-            total += read;
-        }
-        String content = new String(buffer, 0, total, StandardCharsets.ISO_8859_1);
-        return content.contains("<?xpacket begin") || content.contains("<x:xmpmeta");
     }
 
     @NonNull
