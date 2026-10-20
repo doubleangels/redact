@@ -1,10 +1,10 @@
 ---
 description: Read the current version, choose a major, minor or patch bump from the changes since the last release, and update versionCode, versionName and the changelog
 allowed-tools: Bash, PowerShell, Read, Edit, Write, Grep, Glob
-argument-hint: "[major|minor|patch] [commit]"
+argument-hint: "[major|minor|patch|x.y.z] [commit]"
 ---
 
-Bump the app version for the next release. If I passed `major`, `minor` or `patch`, use that level; otherwise decide from the changes. Do not push. Only commit if I ask (or if I invoked this with the word "commit").
+Bump the app version for the next release. If I passed `major`, `minor` or `patch`, use that level. If I passed an exact version such as `1.6.1`, use it as the new `versionName` and skip the classification in step 2 (still show the commit list, and warn me if the version is not higher than the current one). Otherwise decide from the changes. Do not push. Only commit if I ask (or if I invoked this with the word "commit").
 
 ## 1. Read the current state
 

@@ -1,9 +1,10 @@
 ---
 description: Find outdated Gradle libraries and plugins, Bundler gems and GitHub Actions in every workflow, judge which upgrades are safe, apply them, and verify with lint and the tests
 allowed-tools: Bash, PowerShell, Read, Edit, Write, Grep, Glob, WebFetch
+argument-hint: "[report] [commit]"
 ---
 
-Check every dependency the project uses, list what is outdated, upgrade what is safe, then prove nothing broke. Do not push. Only commit if I ask (or if I invoked this with the word "commit"). Dependabot already opens PRs for these, so this is the one place where they are all judged together, and where the ones that touch metadata handling get extra care.
+Check every dependency the project uses, list what is outdated, upgrade what is safe, then prove nothing broke. If I passed `report`, stop after step 3 and change nothing. Do not push. Only commit if I ask (or if I invoked this with the word "commit"). Dependabot already opens PRs for these, so this is the one place where they are all judged together, and where the ones that touch metadata handling get extra care.
 
 ## 1. Collect what the project uses
 

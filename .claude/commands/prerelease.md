@@ -3,6 +3,8 @@ description: Before a release, run /test and /translate, regenerate the profiles
 allowed-tools: Bash, PowerShell, Read, Edit, Write, Grep, Glob
 ---
 
+> These commands drive the Pixel_10_Pro emulator and Gradle with Windows paths, so they only work on my own machine. If you are running in a cloud session without the Android SDK and the emulator, say so and stop instead of trying.
+
 Get the app ready for a release by running four checks in order, then writing the release notes, on the **Pixel_10_Pro emulator and never on a physical device**, then give one combined summary. Each step follows another command's file: read that file and do what it says, with the changes listed here. Do not commit or push anything, and do not copy screenshots into `fastlane/`, unless I ask (or I invoked this with the word "commit", which allows commits but never a push).
 
 If a step fails, record why and carry on with the next one, except that a missing `Pixel_10_Pro` AVD stops everything.
@@ -13,7 +15,11 @@ Follow `.claude/commands/test.md` in full: the unit tests, then every feature on
 
 ## 2. Translations
 
-Follow `.claude/commands/translate.md`: check every string in all 12 locales and translate anything missing or left in English. Translation fixes are the one kind of change this command makes to the source; leave them uncommitted unless commits are allowed. If strings changed, run `./gradlew testDebugUnitTest` again afterwards and note the result.
+Follow `.claude/commands/translate.md`: check every string in all 12 locales and translate anything missing or left in English. Translation fixes are the one kind of change this command makes to the source; leave them uncommitted unless commits are allowed. If strings changed, run only `./gradlew :app:testDebugUnitTest --tests com.doubleangels.redact.StringTranslationsTest -q` afterwards (the full suite already ran in step 1) and note the result.
+
+## 2b. Dependencies, report only
+
+Follow `.claude/commands/dependencies.md` through step 3 (collect, find the latest versions, decide) and **stop there: do not apply any upgrade** in a release run, since new versions would invalidate the test results above. Keep the table for the summary so I can decide what goes in the next release.
 
 ## 3. Profiles
 
@@ -61,6 +67,7 @@ Finish with one report:
 4. **Profiles:** rule counts before and after, and whether the change is meaningful or noise.
 5. **Screenshots:** regenerated or skipped, the reason (the files that count as a visual change, or the baseline commit), and the review of the new images.
 6. **Release notes:** the English text with its character count, and whether all 13 `whatsnew` files were written and fit the limit.
-7. **Left uncommitted:** every changed file (translations, profiles, changelog, whatsnew), plus the screenshots in `build/screenshots/` and `build/store/`.
+7. **Dependencies:** how many are outdated, and the ones in the "needs care" group.
+8. **Left uncommitted:** every changed file (translations, profiles, changelog, whatsnew), plus the screenshots in `build/screenshots/` and `build/store/`.
 
 Offer to commit the translations, profiles and release notes, to copy the store images into fastlane (as step 4 of `generatescreenshots.md` describes), and to fix any failures, but do none of these without being asked.

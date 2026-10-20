@@ -3,6 +3,8 @@ description: Regenerate only the baseline and startup profiles on the Pixel 10 P
 allowed-tools: Bash, PowerShell, Read, Grep, Glob
 ---
 
+> These commands drive the Pixel_10_Pro emulator and Gradle with Windows paths, so they only work on my own machine. If you are running in a cloud session without the Android SDK and the emulator, say so and stop instead of trying.
+
 Regenerate the baseline and startup profiles on the **Pixel_10_Pro emulator and never on a physical device**, then summarize what changed. This does only the profiles; use `/generatescreenshots` for screenshots or `/generateall` for both. Do not commit or push anything unless I ask.
 
 ## 1. Find or start the emulator

@@ -3,6 +3,8 @@ description: Run every unit test, then test every feature of the app on the Pixe
 allowed-tools: Bash, PowerShell, Read, Grep, Glob
 ---
 
+> These commands drive the Pixel_10_Pro emulator and Gradle with Windows paths, so they only work on my own machine. If you are running in a cloud session without the Android SDK and the emulator, say so and stop instead of trying.
+
 Run the full unit test suite, then drive the app on the **Pixel_10_Pro emulator and never on a physical device** through every feature below, checking real output files, and finish with a summary. Do not change source code, commit or push. If a feature is broken, record it with the evidence and keep going; at the end, offer to fix what failed.
 
 Work from Git Bash. Use the scratchpad directory for everything you create (media, pulled files, screenshots); call it `$S` below.
@@ -38,7 +40,7 @@ Test each item, note PASS or FAIL with a one-line reason, and keep the evidence 
 **Settings defaults.** In Settings, Strict Clean, Warn About Already-Clean Files and Clear Cache on Startup are on; everything else is off; output folders show `Pictures/Redact` and `Movies/Redact`. Turn on Allow Notifications with all three sub-switches, and Keep Original File Names.
 
 **Clean, several files.** On Clean, tap Select Files. The Files picker opens; browse to DCIM › Camera (use the list view), long-press the first file and tap the others to select `IMG_20260117_093012.jpg`, `IMG_beach.jpg`, `IMG_xmp.jpg`, `BIG_panorama.jpg` and `VID_20260117_100000.mp4`, then tap Select. Tap Clean Metadata.
-- The status text reports the count, fields removed and files with location; a "Cleaning Finished" notification is posted (`dumpsys notification --noredact`).
+- The status text reports the count, fields removed and files with location; a "Cleaning Finished" notification is posted (`dumpsys notification --noredact`) and reads as plain sentences: `Cleaned 5 files.`, then `N files couldn't be cleaned.` only if any failed, then `Removed location data from N files.` only if any carried a location. Check the wording and the singular and plural forms (one file reads `Cleaned 1 file.`). Later, a convert run posts `Saved N files to the gallery.`, plus `N files couldn't be converted.` only on failures.
 - The outputs in `Pictures/Redact` and `Movies/Redact` keep the original names; pull them and run `check_media.py`: all `ok`.
 - Share appears; Scan Result does not (several files).
 
@@ -71,7 +73,10 @@ Test each item, note PASS or FAIL with a one-line reason, and keep the evidence 
 
 **Reset All Settings.** In its own card just above About, Reset All Settings, then Reset. `shared_prefs/redact_prefs.xml` holds only `initial_permissions_prompted` and any `review_*` keys (the rating prompt's progress survives a reset), every switch shows its default, and both folders are back to `Pictures/Redact` and `Movies/Redact`.
 
-**Rating prompt.** The "Rate Redact" dialog appears once, on Clean or Convert, when a job that saved every file brings the count of such jobs to three (shares into Redact count but never show it, and Clean skips it while Delete Originals After Cleaning is on). The first time it appears during the sections above, check it offers only Yes and No and cannot be dismissed by tapping outside it or pressing Back, then tap No: a snackbar says Redact won't ask again and points to Settings › About, and `redact_prefs.xml` has `review_state` set to `2`. It must not appear again for the rest of the run. Settings › About › Rate Redact on Google Play opens the Play Store listing (or a browser on an emulator without Play); press Back.
+**Rating prompt.** The "Rate Redact" dialog appears once, when the count of successful jobs reaches three. A Clean, Convert or Scan that saved or read every file counts, and so does a share into Redact. The count is kept by the app, not by the screen, so a clean that finishes while Redact is in the background still counts. The dialog appears when the user is back on Clean, Convert or Scan, but never right after a share (the share sheet is open) and never after a Clean while Delete Originals After Cleaning is on (the trash prompt comes first; that clean is only counted).
+- Check the count: `review_success_count` in `redact_prefs.xml` goes up by one after each successful job, including a Scan and a clean that finished with the app in the background (start a clean, press Home, wait for it to finish, then reopen Redact).
+- The first time it appears during the sections above, check it offers only Yes and No and cannot be dismissed by tapping outside it or pressing Back, then tap No: a snackbar says Redact won't ask again and points to Settings › About, and `review_state` is `2`. It must not appear again for the rest of the run.
+- Settings › About › Rate Redact on Google Play opens the Play Store listing (or a browser on an emulator without Play); press Back.
 
 **Quick Settings tile.** Leave the app on another tab and go home. `adb shell cmd statusbar add-tile com.doubleangels.redact/.CleanTileService`, then `cmd statusbar click-tile com.doubleangels.redact/.CleanTileService`: Redact opens on the Clean tab. Collapse the shade with `cmd statusbar collapse`.
 

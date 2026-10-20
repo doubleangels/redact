@@ -4,6 +4,8 @@ allowed-tools: Bash, PowerShell, Read, Grep, Glob
 argument-hint: "[all | <store locales>]"
 ---
 
+> These commands drive the Pixel_10_Pro emulator and Gradle with Windows paths, so they only work on my own machine. If you are running in a cloud session without the Android SDK and the emulator, say so and stop instead of trying.
+
 Regenerate the baseline profile and the store screenshots, both on the **Pixel_10_Pro emulator and never on a physical device**, then review the results. This does both tasks in order; use `/generateprofile` or `/generatescreenshots` to do just one. Do not commit or push anything unless I ask. Do not copy screenshots into `fastlane/` unless I ask.
 
 ## 1. Find or start the emulator
