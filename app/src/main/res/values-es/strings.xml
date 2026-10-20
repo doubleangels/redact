@@ -19,7 +19,6 @@
     <string name="notification_convert_partial">%1$d con éxito, %2$d fallaron.</string>
     <string name="notification_convert_failed">No se pudo convertir ningún archivo.</string>
     <string name="notification_clean_title">Limpieza Finalizada</string>
-    <string name="notification_clean_body">Procesados %1$d archivo(s).</string>
     <string name="notification_convert_progress_title">Convirtiendo Medios…</string>
     <string name="notification_clean_progress_title">Limpiando Metadatos…</string>
 
@@ -272,7 +271,8 @@ Tus fotos y videos nunca se suben. Se eliminan URIs, nombres de archivo y coorde
     <string name="metadata_error_basic_info_generic">No se pudo leer la información básica del archivo.</string>
     <string name="metadata_error_image_generic">No se pudieron leer los metadatos de la imagen.</string>
     <string name="metadata_error_video_generic">No se pudieron leer los metadatos del video.</string>
-    <string name="notification_clean_partial">%1$d limpiados, %2$d fallidos.</string>
+    <string name="notification_clean_cleaned">Limpiados</string>
+    <string name="notification_clean_failures">Fallidos</string>
     <string name="notification_progress_percent">%1$d%% completado</string>
     <string name="scan_clean_this_file">Limpiar Este Archivo</string>
     <string name="scan_convert_this_file">Convertir Este Archivo</string>
@@ -353,9 +353,6 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="convert_heic_fallback_jpeg">La salida HEIC requiere Android 14 o superior. En su lugar, las imágenes se guardarán como JPEG.</string>
     <string name="convert_item_type_image">Imagen</string>
     <string name="convert_item_type_video">Video</string>
-    <string name="notification_clean_failed">Esta vez no se pudo limpiar ningún archivo.</string>
-    <string name="notification_clean_batch_details">En este lote: %1$s</string>
-    <string name="notification_clean_totals">En este dispositivo hasta ahora: %1$s</string>
     <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">Inspeccionar Metadatos Multimedia</string>
     <string name="scan_empty_state_description">Selecciona una foto o un video para ver los detalles EXIF, las especificaciones de la cámara, las coordenadas GPS y las propiedades técnicas.</string>

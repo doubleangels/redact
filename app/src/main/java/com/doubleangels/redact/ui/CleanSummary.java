@@ -83,27 +83,6 @@ public final class CleanSummary {
                 R.plurals.clean_summary_location_files, filesWithLocation, filesWithLocation);
     }
 
-    /**
-     * The kinds of personal detail the batch removed besides location, which {@link #describe}
-     * already mentions, with how many files carried each, e.g. "In this batch: Date &amp; Time
-     * Taken (3) · Camera &amp; Phone (3)". Null when there were none.
-     */
-    @Nullable
-    public String describeDetails(@NonNull Resources res) {
-        List<String> items = new ArrayList<>();
-        addItem(res, items, R.string.stats_removed_dates, filesWithDate);
-        addItem(res, items, R.string.stats_removed_devices, filesWithDevice);
-        addItem(res, items, R.string.stats_removed_names, filesWithName);
-        return items.isEmpty() ? null
-                : res.getString(R.string.notification_clean_batch_details, joinItems(items));
-    }
-
-    private static void addItem(@NonNull Resources res, @NonNull List<String> items, int label, long count) {
-        if (count > 0) {
-            items.add(item(res, res.getString(label), count));
-        }
-    }
-
     /** One "Label (1,284)" figure, numbered for the current locale. */
     @NonNull
     public static String item(@NonNull Resources res, @NonNull String label, long count) {

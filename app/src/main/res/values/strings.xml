@@ -15,11 +15,8 @@
     <string name="notification_convert_partial" tools:ignore="PluralsCandidate">%1$d succeeded, %2$d failed.</string>
     <string name="notification_convert_failed">We couldn\'t convert any files this time.</string>
     <string name="notification_clean_title">Cleaning Finished</string>
-    <string name="notification_clean_body" tools:ignore="PluralsCandidate">Successfully cleaned %1$d file(s).</string>
-    <string name="notification_clean_partial" tools:ignore="PluralsCandidate">%1$d cleaned, %2$d failed.</string>
-    <string name="notification_clean_failed">We couldn\'t clean any files this time.</string>
-    <string name="notification_clean_batch_details">In this batch: %1$s</string>
-    <string name="notification_clean_totals">On this device so far: %1$s</string>
+    <string name="notification_clean_cleaned">Cleaned</string>
+    <string name="notification_clean_failures">Failed</string>
     <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="notification_convert_progress_title">Converting Media…</string>
     <string name="notification_clean_progress_title">Cleaning Metadata…</string>

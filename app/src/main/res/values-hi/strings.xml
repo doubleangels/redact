@@ -19,7 +19,6 @@
     <string name="notification_convert_partial">%1$d सफल, %2$d विफल।</string>
     <string name="notification_convert_failed">कोई फ़ाइल नहीं बदली जा सकी।</string>
     <string name="notification_clean_title">सफाई पूरी हुई</string>
-    <string name="notification_clean_body">%1$d फ़ाइल(फ़ाइलें) संसाधित।</string>
     <string name="notification_convert_progress_title">मीडिया बदला जा रहा है…</string>
     <string name="notification_clean_progress_title">मेटाडेटा साफ़ किया जा रहा है…</string>
 
@@ -271,7 +270,8 @@
     <string name="metadata_error_basic_info_generic">मूल फ़ाइल जानकारी पढ़ नहीं सकी।</string>
     <string name="metadata_error_image_generic">छवि मेटाडेटा पढ़ नहीं सका।</string>
     <string name="metadata_error_video_generic">वीडियो मेटाडेटा पढ़ नहीं सका।</string>
-    <string name="notification_clean_partial">%1$d साफ़, %2$d विफल।</string>
+    <string name="notification_clean_cleaned">साफ़ किए गए</string>
+    <string name="notification_clean_failures">विफल</string>
     <string name="notification_progress_percent">%1$d%% पूर्ण</string>
     <string name="scan_clean_this_file">इस फ़ाइल को साफ़ करें</string>
     <string name="scan_convert_this_file">इस फ़ाइल को कनवर्ट करें</string>
@@ -352,9 +352,6 @@
     <string name="convert_heic_fallback_jpeg">HEIC आउटपुट के लिए Android 14 या उसके बाद का संस्करण ज़रूरी है। इसके बजाय चित्र JPEG के रूप में सहेजे जाएँगे।</string>
     <string name="convert_item_type_image">चित्र</string>
     <string name="convert_item_type_video">वीडियो</string>
-    <string name="notification_clean_failed">इस बार कोई फ़ाइल साफ़ नहीं की जा सकी।</string>
-    <string name="notification_clean_batch_details">इस बैच में: %1$s</string>
-    <string name="notification_clean_totals">इस डिवाइस पर अब तक: %1$s</string>
     <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">मीडिया मेटाडेटा जाँचें</string>
     <string name="scan_empty_state_description">EXIF विवरण, कैमरा विनिर्देश, GPS निर्देशांक और तकनीकी गुण देखने के लिए कोई फ़ोटो या वीडियो चुनें।</string>

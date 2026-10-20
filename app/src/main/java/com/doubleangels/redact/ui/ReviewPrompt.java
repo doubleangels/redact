@@ -76,7 +76,18 @@ public final class ReviewPrompt {
             return;
         }
         recordSuccessfulJob(context);
-        if (isDue(context) && host.isAdded() && !host.isHidden() && host.getView() != null) {
+        askIfDue(host);
+    }
+
+    /**
+     * Asks for a rating over {@code host} when enough jobs have succeeded and it is on screen. The
+     * jobs are counted by whoever ran them, so one that finished while the app was in the
+     * background or another tab was showing is still asked about once the user is back.
+     */
+    public static void askIfDue(@NonNull Fragment host) {
+        Context context = host.getContext();
+        if (context != null && isDue(context)
+                && host.isAdded() && !host.isHidden() && host.getView() != null) {
             show(host);
         }
     }

@@ -19,7 +19,6 @@
     <string name="notification_convert_partial">%1$d erfolgreich, %2$d fehlgeschlagen.</string>
     <string name="notification_convert_failed">Keine Dateien konnten konvertiert werden.</string>
     <string name="notification_clean_title">Bereinigung Abgeschlossen</string>
-    <string name="notification_clean_body">%1$d Datei(en) verarbeitet.</string>
     <string name="notification_convert_progress_title">Medien Konvertieren…</string>
     <string name="notification_clean_progress_title">Metadaten Bereinigen…</string>
 
@@ -270,7 +269,8 @@ Ihre Fotos und Videos werden nie hochgeladen. URIs, Dateinamen und GPS-Koordinat
     <string name="metadata_error_basic_info_generic">Grundlegende Dateiinformationen konnten nicht gelesen werden.</string>
     <string name="metadata_error_image_generic">Bild-Metadaten konnten nicht gelesen werden.</string>
     <string name="metadata_error_video_generic">Video-Metadaten konnten nicht gelesen werden.</string>
-    <string name="notification_clean_partial">%1$d bereinigt, %2$d fehlgeschlagen.</string>
+    <string name="notification_clean_cleaned">Bereinigt</string>
+    <string name="notification_clean_failures">Fehlgeschlagen</string>
     <string name="notification_progress_percent">%1$d%% abgeschlossen</string>
     <string name="scan_clean_this_file">Diese Datei Bereinigen</string>
     <string name="scan_convert_this_file">Diese Datei Konvertieren</string>
@@ -351,9 +351,6 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="convert_heic_fallback_jpeg">Die HEIC-Ausgabe erfordert Android 14 oder neuer. Bilder werden stattdessen als JPEG gespeichert.</string>
     <string name="convert_item_type_image">Bild</string>
     <string name="convert_item_type_video">Video</string>
-    <string name="notification_clean_failed">Diesmal konnten keine Dateien bereinigt werden.</string>
-    <string name="notification_clean_batch_details">In diesem Durchgang: %1$s</string>
-    <string name="notification_clean_totals">Bisher auf diesem Gerät: %1$s</string>
     <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">Medien-Metadaten Prüfen</string>
     <string name="scan_empty_state_description">Foto oder Video auswählen, um EXIF-Details, Kameradaten, GPS-Koordinaten und technische Eigenschaften anzuzeigen.</string>

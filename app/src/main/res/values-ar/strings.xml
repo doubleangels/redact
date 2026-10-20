@@ -19,7 +19,6 @@
     <string name="notification_convert_partial">نجح %1$d، وفشل %2$d.</string>
     <string name="notification_convert_failed">تعذر تحويل أي ملفات.</string>
     <string name="notification_clean_title">اكتمل التنظيف</string>
-    <string name="notification_clean_body">تمت معالجة %1$d ملف(ملفات).</string>
     <string name="notification_convert_progress_title">جارٍ تحويل الوسائط…</string>
     <string name="notification_clean_progress_title">جارٍ تنظيف البيانات الوصفية…</string>
 
@@ -275,7 +274,8 @@
     <string name="metadata_error_basic_info_generic">تعذر قراءة معلومات الملف الأساسية.</string>
     <string name="metadata_error_image_generic">تعذر قراءة بيانات الصورة الوصفية.</string>
     <string name="metadata_error_video_generic">تعذر قراءة بيانات الفيديو الوصفية.</string>
-    <string name="notification_clean_partial">%1$d تم تنظيفها، %2$d فشلت.</string>
+    <string name="notification_clean_cleaned">تم التنظيف</string>
+    <string name="notification_clean_failures">فشل</string>
     <string name="notification_progress_percent">%1$d%% مكتمل</string>
     <string name="scan_clean_this_file">تنظيف هذا الملف</string>
     <string name="scan_convert_this_file">تحويل هذا الملف</string>
@@ -356,9 +356,6 @@
     <string name="convert_heic_fallback_jpeg">يتطلب إخراج HEIC نظام Android 14 أو أحدث. ستُحفظ الصور بصيغة JPEG بدلًا من ذلك.</string>
     <string name="convert_item_type_image">صورة</string>
     <string name="convert_item_type_video">فيديو</string>
-    <string name="notification_clean_failed">تعذّر تنظيف أي ملفات هذه المرة.</string>
-    <string name="notification_clean_batch_details">في هذه الدفعة: %1$s</string>
-    <string name="notification_clean_totals">على هذا الجهاز حتى الآن: %1$s</string>
     <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">فحص البيانات الوصفية للوسائط</string>
     <string name="scan_empty_state_description">حدّد صورة أو مقطع فيديو لعرض تفاصيل EXIF ومواصفات الكاميرا وإحداثيات GPS والخصائص التقنية.</string>

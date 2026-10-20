@@ -19,7 +19,6 @@
     <string name="notification_convert_partial">%1$d 個成功，%2$d 個失敗。</string>
     <string name="notification_convert_failed">無法轉換任何檔案。</string>
     <string name="notification_clean_title">清理完成</string>
-    <string name="notification_clean_body">已處理 %1$d 個檔案。</string>
     <string name="notification_convert_progress_title">正在轉換媒體…</string>
     <string name="notification_clean_progress_title">正在清理中繼資料…</string>
 
@@ -270,7 +269,8 @@
     <string name="metadata_error_basic_info_generic">無法讀取基本檔案資訊。</string>
     <string name="metadata_error_image_generic">無法讀取影像中繼資料。</string>
     <string name="metadata_error_video_generic">無法讀取影片中繼資料。</string>
-    <string name="notification_clean_partial">%1$d 個已清理，%2$d 個失敗。</string>
+    <string name="notification_clean_cleaned">已清理</string>
+    <string name="notification_clean_failures">失敗</string>
     <string name="notification_progress_percent">已完成 %1$d%%</string>
     <string name="scan_clean_this_file">清理此檔案</string>
     <string name="scan_convert_this_file">轉換此檔案</string>
@@ -351,9 +351,6 @@
     <string name="convert_heic_fallback_jpeg">HEIC 輸出需要 Android 14 或更新版本。圖片將改為儲存為 JPEG。</string>
     <string name="convert_item_type_image">圖片</string>
     <string name="convert_item_type_video">影片</string>
-    <string name="notification_clean_failed">這次沒有成功清理任何檔案。</string>
-    <string name="notification_clean_batch_details">本批次：%1$s</string>
-    <string name="notification_clean_totals">此裝置迄今：%1$s</string>
     <string name="notification_stat_item">%1$s（%2$s）</string>
     <string name="scan_empty_state_title">檢查媒體中繼資料</string>
     <string name="scan_empty_state_description">選擇照片或影片，以檢視 EXIF 詳細資料、相機規格、GPS 座標和技術屬性。</string>

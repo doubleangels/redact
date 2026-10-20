@@ -19,7 +19,6 @@
     <string name="notification_convert_partial">Успешно: %1$d, ошибка: %2$d.</string>
     <string name="notification_convert_failed">Не удалось конвертировать файлы.</string>
     <string name="notification_clean_title">Очистка Завершена</string>
-    <string name="notification_clean_body">Обработано: %1$d файл(ов).</string>
     <string name="notification_convert_progress_title">Конвертация Медиа…</string>
     <string name="notification_clean_progress_title">Очистка Метаданных…</string>
 
@@ -273,7 +272,8 @@
     <string name="metadata_error_basic_info_generic">Не удалось прочитать основную информацию о файле.</string>
     <string name="metadata_error_image_generic">Не удалось прочитать метаданные изображения.</string>
     <string name="metadata_error_video_generic">Не удалось прочитать метаданные видео.</string>
-    <string name="notification_clean_partial">%1$d очищено, %2$d не удалось.</string>
+    <string name="notification_clean_cleaned">Очищено</string>
+    <string name="notification_clean_failures">Не удалось</string>
     <string name="notification_progress_percent">%1$d%% завершено</string>
     <string name="scan_clean_this_file">Очистить Этот Файл</string>
     <string name="scan_convert_this_file">Конвертировать Этот Файл</string>
@@ -354,9 +354,6 @@
     <string name="convert_heic_fallback_jpeg">Для вывода в HEIC нужен Android 14 или новее. Вместо этого изображения будут сохранены в JPEG.</string>
     <string name="convert_item_type_image">Изображение</string>
     <string name="convert_item_type_video">Видео</string>
-    <string name="notification_clean_failed">На этот раз не удалось очистить ни одного файла.</string>
-    <string name="notification_clean_batch_details">В этой партии: %1$s</string>
-    <string name="notification_clean_totals">На этом устройстве всего: %1$s</string>
     <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">Просмотр Метаданных Мультимедиа</string>
     <string name="scan_empty_state_description">Выберите фото или видео, чтобы увидеть сведения EXIF, характеристики камеры, координаты GPS и технические свойства.</string>
