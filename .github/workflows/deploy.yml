@@ -96,9 +96,35 @@ jobs:
             rm -f whatsnew/whatsnew-*
           fi
 
+      - name: Check the Claude token
+        if: steps.version.outputs.handwritten == 'false'
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          # Catches the usual mistakes early: a secret that was never saved, or one pasted with a
+          # line break or space (the token is one long line that terminals wrap). Prints only the
+          # length, never the value.
+          if [ -z "${CLAUDE_CODE_OAUTH_TOKEN}" ]; then
+            echo "::error::The CLAUDE_CODE_OAUTH_TOKEN repository secret is empty or missing. Create it under Settings > Secrets and variables > Actions > Repository secrets, with exactly that name."
+            exit 1
+          fi
+          echo "Token length: ${#CLAUDE_CODE_OAUTH_TOKEN} characters."
+          if [[ "${CLAUDE_CODE_OAUTH_TOKEN}" =~ [[:space:]] ]]; then
+            echo "::error::The token contains a space or line break. Copy it again as one single line."
+            exit 1
+          fi
+          if [[ "${CLAUDE_CODE_OAUTH_TOKEN}" != sk-ant-oat* ]]; then
+            echo "::error::The token does not start with sk-ant-oat, so it is not a token from 'claude setup-token'."
+            exit 1
+          fi
+          if [ "${#CLAUDE_CODE_OAUTH_TOKEN}" -lt 60 ]; then
+            echo "::error::The token is only ${#CLAUDE_CODE_OAUTH_TOKEN} characters, so it was probably cut off when copied."
+            exit 1
+          fi
+
       - name: Write the release notes from the commits since the last release
         if: steps.version.outputs.handwritten == 'false'
-        uses: anthropics/claude-code-action@12310e4417c3473095c957cb311b3cf59a38d659 # v1.0.99
+        uses: anthropics/claude-code-action@db77d4d3c98f3f6380e7cd45ffba2342a3dbde3c # v1.0.254
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}
