@@ -8,7 +8,6 @@ import androidx.annotation.Nullable;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.metadata.CleanStats;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
