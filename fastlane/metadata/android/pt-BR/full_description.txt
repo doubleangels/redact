@@ -15,7 +15,7 @@
 <p>Abra qualquer foto ou vídeo e veja cada campo oculto em uma lista clara e pesquisável. Um selo de Localização marca tudo o que mostra onde foi tirada.</p>
 
 <b>Remova: Limpar</b>
-<p>Limpe até 20 fotos e vídeos de uma vez. O Redact remove GPS, dados do aparelho, datas, XMP, IPTC e tags de vídeo, e mostra exatamente o que removeu. Seus originais não são alterados, a menos que você peça ao Redact para movê-los para a lixeira.</p>
+<p>Limpe até 20 fotos e vídeos de uma vez. O Redact remove GPS, dados do aparelho, datas, XMP, IPTC, comentários e tags de vídeo, além de dados escondidos depois da imagem, como prévias extras e clipes de Motion Photo, e mostra exatamente o que removeu. Seus originais não são alterados, a menos que você peça ao Redact para movê-los para a lixeira.</p>
 
 <b>Compartilhe com segurança de qualquer app</b>
 <p>Compartilhe uma foto ou um vídeo com o Redact pela galeria ou por qualquer outro app. Ele limpa o arquivo e o devolve direto para o menu de compartilhamento. Ou compartilhe com Escanear com Redact para conferir antes.</p>
@@ -34,7 +34,7 @@
 </ul>
 
 <b>Extras úteis</b>
-<p>Um bloco nas Configurações rápidas, atalhos na tela inicial, pastas de saída personalizadas, Manter Nomes Originais, Limpeza Rigorosa, ocultar o Redact em capturas de tela e recentes, e limpeza automática dos metadados copiados.</p>
+<p>Um bloco nas Configurações rápidas, atalhos na tela inicial, pastas de saída personalizadas, Manter Nomes Originais, Limpeza Rigorosa, ocultar o Redact em capturas de tela e recentes, e limpeza automática dos metadados copiados. Estatísticas mostra o que o Redact removeu, contado só no seu celular.</p>
 
 <b>Pague uma vez e é seu</b>
 <p>Sem assinatura, sem anúncios e sem compras no app. Sua compra apoia um desenvolvedor independente.</p>

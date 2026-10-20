@@ -1,7 +1,6 @@
-Teile ein Foto oder Video mit „Mit Redact Scannen“, um es ohne Bereinigung zu prüfen.
-Nach dem Bereinigen einer Datei zeigt „Ergebnis Scannen“, was übrig ist.
-Neu: Schnelleinstellungen-Kachel, Originale Dateinamen Behalten, Alle Einstellungen Zurücksetzen und Ordner Öffnen.
-Redact entfernt jetzt Extended XMP aus JPEGs.
-VP9- und AV1-Konvertierungen werden als MP4 gespeichert.
-Einstellungen neu geordnet, Häufiges zuerst, mit einem Link zum Bewerten.
-Viele Zuverlässigkeitskorrekturen.
+Neu: Statistik zeigt, was Redact entfernt hat, nur auf deinem Handy gezählt.
+Bereinigen entfernt nun auch Kommentare, Vorschaubilder und Motion-Photo-Clips; Motion Photos werden Standbilder.
+Scannen zeigt „Versteckte & eingebettete Daten“; „Mit Redact Scannen“ prüft ohne Bereinigung.
+Neu: Schnelleinstellungen-Kachel, Ergebnis Scannen, Originale Dateinamen Behalten, Alle Einstellungen Zurücksetzen, Ordner Öffnen.
+VP9/AV1-Konvertierungen werden als MP4 gespeichert.
+Viele Fehlerkorrekturen.

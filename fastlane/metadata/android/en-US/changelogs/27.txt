@@ -1,8 +1,6 @@
-Share a photo or video to Scan with Redact to check it without cleaning it.
-After cleaning one file, Scan Result shows what is left.
-New Quick Settings tile, Keep Original File Names, Reset All Settings and Open Folder.
-Redact now removes Extended XMP from JPEGs.
+New Statistics shows what Redact has removed, counted only on your phone.
+Clean now also removes comments, extra preview images and Motion Photo clips, so Motion Photos become still photos.
+Scan shows Hidden & embedded data. Share to Scan with Redact to check a file without cleaning it.
+New Quick Settings tile, Scan Result, Keep Original File Names, Reset All Settings and Open Folder.
 VP9 and AV1 conversions are saved as MP4.
-Rate Redact from Settings.
-Reorganized Settings: everyday settings first, links at the bottom.
 Many reliability fixes.

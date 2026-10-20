@@ -15,7 +15,7 @@
 <p>Öffne ein beliebiges Foto oder Video und sieh jedes versteckte Feld in einer übersichtlichen, durchsuchbaren Liste. Ein Standort-Badge markiert alles, was zeigt, wo es aufgenommen wurde.</p>
 
 <b>Entfernen: Bereinigen</b>
-<p>Bereinige bis zu 20 Fotos und Videos auf einmal. Redact entfernt GPS, Geräteangaben, Zeitstempel, XMP, IPTC und Video-Tags und zeigt dir genau, was entfernt wurde. Deine Originale bleiben unverändert, außer du lässt Redact sie in den Papierkorb verschieben.</p>
+<p>Bereinige bis zu 20 Fotos und Videos auf einmal. Redact entfernt GPS, Geräteangaben, Zeitstempel, XMP, IPTC, Kommentare und Video-Tags sowie Daten, die hinter dem Bild versteckt sind, etwa zusätzliche Vorschaubilder und Motion-Photo-Clips, und zeigt dir genau, was entfernt wurde. Deine Originale bleiben unverändert, außer du lässt Redact sie in den Papierkorb verschieben.</p>
 
 <b>Sicher teilen aus jeder App</b>
 <p>Teile ein Foto oder Video aus deiner Galerie oder einer anderen App mit Redact. Die Datei wird bereinigt und direkt wieder ans Teilen-Menü übergeben. Oder teile sie mit „Mit Redact Scannen“, um sie zuerst zu prüfen.</p>
@@ -34,7 +34,7 @@
 </ul>
 
 <b>Praktische Extras</b>
-<p>Eine Schnelleinstellungen-Kachel, Verknüpfungen auf dem Startbildschirm, eigene Ausgabeordner, Originale Dateinamen Behalten, Strikte Bereinigung, Ausblenden von Redact in Screenshots und der Übersicht sowie automatisches Löschen kopierter Metadaten.</p>
+<p>Eine Schnelleinstellungen-Kachel, Verknüpfungen auf dem Startbildschirm, eigene Ausgabeordner, Originale Dateinamen Behalten, Strikte Bereinigung, Ausblenden von Redact in Screenshots und der Übersicht sowie automatisches Löschen kopierter Metadaten. Die Statistik zeigt, was Redact entfernt hat, und wird nur auf deinem Handy gezählt.</p>
 
 <b>Einmal zahlen, für immer nutzen</b>
 <p>Kein Abo, keine Werbung und keine In-App-Käufe. Dein Kauf unterstützt einen unabhängigen Entwickler.</p>
