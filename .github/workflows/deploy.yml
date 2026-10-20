@@ -103,8 +103,8 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}
           claude_args: |
-            --allowedTools "Read,Write,Bash(git log:*),Bash(git tag:*),Bash(git rev-parse:*)"
-            --max-turns 15
+            --allowedTools "Read,Write,Glob,Grep,Bash(git log:*),Bash(git show:*),Bash(git diff:*),Bash(git tag:*),Bash(git rev-parse:*)"
+            --max-turns 40
           prompt: |
             You write the Google Play "What's new" text for Redact ${{ steps.version.outputs.name }}
             (versionCode ${{ steps.version.outputs.code }}), an Android app that removes hidden metadata
@@ -136,6 +136,10 @@ jobs:
                from app/src/main/res/values-<lang>/strings.xml (values-ar, -de, -es, -fr, -hi, -it, -ja,
                -ko, -pt for pt-BR, -ru, -zh-rCN for zh-CN, -zh-rTW for zh-TW), so the notes match the app.
             Do not change any other file.
+
+            Work efficiently: run each git command on its own (no pipes or `&&`), make independent tool
+            calls in the same turn (for example all twelve translation files at once), and find the app
+            labels with Grep in strings.xml instead of reading whole files.
 
       - name: Check the release notes
         run: |
