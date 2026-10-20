@@ -126,9 +126,7 @@
     <string name="metadata_location_unreadable">توجد بيانات موقع محفوظة بصيغة لا يمكن عرضها هنا. التنظيف يزيلها.</string>
     <string name="metadata_container_tags_header">الوسوم المضمّنة:</string>
     <string name="metadata_container_tags">موجود في الملف: %1$s</string>
-    <string name="metadata_container_value">موجود – يُزال عند التنظيف</string>
     <string name="metadata_embedded_data_header">بيانات مخفية ومضمّنة</string>
-    <string name="metadata_embedded_value">موجود (%1$s) – يُزال عند التنظيف</string>
     <plurals name="metadata_embedded_images">
         <item quantity="zero">%1$d صورة (%2$s) – تُزال عند التنظيف</item>
         <item quantity="one">صورة واحدة (%2$s) – تُزال عند التنظيف</item>

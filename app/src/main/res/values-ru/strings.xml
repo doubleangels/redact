@@ -122,9 +122,7 @@
     <string name="metadata_location_unreadable">Данные о местоположении есть, но сохранены в виде, который нельзя показать здесь. Очистка удаляет их.</string>
     <string name="metadata_container_tags_header">Встроенные Теги:</string>
     <string name="metadata_container_tags">Найдено в файле: %1$s</string>
-    <string name="metadata_container_value">Есть – удаляется при очистке</string>
     <string name="metadata_embedded_data_header">Скрытые и встроенные данные</string>
-    <string name="metadata_embedded_value">Есть (%1$s) – удаляется при очистке</string>
     <plurals name="metadata_embedded_images">
         <item quantity="one">%1$d изображение (%2$s) – удаляется при очистке</item>
         <item quantity="few">%1$d изображения (%2$s) – удаляются при очистке</item>

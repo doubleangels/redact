@@ -528,4 +528,62 @@ public class MetadataStripperVideoTest {
         org.junit.Assert.assertEquals(0, none.removedFields);
         org.junit.Assert.assertFalse(none.hadLocation);
     }
+
+    // ---- VideoStreamMetadata.scan -----------------------------------------------------------------
+
+    /** An Annex B H.264 SEI NAL unit holding one user_data_unregistered message. */
+    private static byte[] seiNal(String payload) {
+        byte[] text = payload.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1);
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        out.write(new byte[] {0, 0, 0, 1, 0x06, 0x05, (byte) (16 + text.length)}, 0, 7);
+        out.write(new byte[16], 0, 16);
+        out.write(text, 0, text.length);
+        out.write(0x80);
+        return out.toByteArray();
+    }
+
+    @Test
+    public void streamScan_readsTheCodecConfigAndSamplesOfTheVideoTrack() throws Exception {
+        Uri uri = Uri.fromFile(videoFile(".mp4"));
+        MediaFormat video = videoFormat(MediaFormat.MIMETYPE_VIDEO_AVC);
+        video.setByteBuffer("csd-0", java.nio.ByteBuffer.wrap(seiNal("x264 - core 164")));
+        ShadowMediaExtractor.addTrack(source(uri), audioFormat(MediaFormat.MIMETYPE_AUDIO_AAC), new byte[] {1, 2});
+        ShadowMediaExtractor.addTrack(source(uri), video, seiNal("camcorder MDPM"));
+
+        VideoStreamMetadata.Report r = VideoStreamMetadata.scan(app, uri);
+
+        assertNotNull(r);
+        assertTrue(r.userDataMessages >= 2);
+        assertEquals("x264 - core 164", r.text);
+    }
+
+    @Test
+    public void streamScan_ofAFileWithoutAnH264OrH265Track_findsNothing() throws Exception {
+        Uri uri = withTracks(videoFile(".webm"), videoFormat(MediaFormat.MIMETYPE_VIDEO_VP9),
+                audioFormat(MediaFormat.MIMETYPE_AUDIO_OPUS));
+
+        VideoStreamMetadata.Report r = VideoStreamMetadata.scan(app, uri);
+
+        assertNotNull(r);
+        assertEquals(0, r.userDataMessages);
+        assertNull(r.text);
+    }
+
+    @Test
+    public void streamScan_ofAnHevcTrackWithoutCodecConfig_readsItsSamples() throws Exception {
+        Uri uri = Uri.fromFile(videoFile(".mp4"));
+        byte[] sei = seiNal("hevc encoder");
+        sei[4] = (byte) (39 << 1); // HEVC prefix SEI header: two bytes
+        byte[] hevc = new byte[sei.length + 1];
+        System.arraycopy(sei, 0, hevc, 0, 5);
+        hevc[5] = 0x01;
+        System.arraycopy(sei, 5, hevc, 6, sei.length - 5);
+        ShadowMediaExtractor.addTrack(source(uri), videoFormat(MediaFormat.MIMETYPE_VIDEO_HEVC), hevc);
+
+        VideoStreamMetadata.Report r = VideoStreamMetadata.scan(app, uri);
+
+        assertNotNull(r);
+        assertTrue(r.userDataMessages >= 1);
+        assertEquals("hevc encoder", r.text);
+    }
 }

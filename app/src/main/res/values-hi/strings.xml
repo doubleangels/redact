@@ -118,9 +118,7 @@
     <string name="metadata_location_unreadable">स्थान डेटा मौजूद है, लेकिन ऐसे रूप में सहेजा गया है जिसे यहाँ नहीं दिखाया जा सकता। साफ़ करने पर यह हट जाता है।</string>
     <string name="metadata_container_tags_header">एम्बेड किए गए टैग:</string>
     <string name="metadata_container_tags">फ़ाइल में मिला: %1$s</string>
-    <string name="metadata_container_value">मौजूद – साफ़ करने पर हट जाता है</string>
     <string name="metadata_embedded_data_header">छिपा और एम्बेड किया गया डेटा</string>
-    <string name="metadata_embedded_value">मौजूद (%1$s) – साफ़ करने पर हट जाता है</string>
     <plurals name="metadata_embedded_images">
         <item quantity="one">%1$d इमेज (%2$s) – साफ़ करने पर हट जाती है</item>
         <item quantity="other">%1$d इमेज (%2$s) – साफ़ करने पर हट जाती हैं</item>

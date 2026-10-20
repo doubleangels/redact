@@ -345,44 +345,66 @@ public class MetadataDisplayerContentTest {
     }
 
     @Test
-    public void video_aLocationOnlyTheContainerShows_isReportedAsPresent() throws Exception {
+    public void video_hiddenTags_showWhatTheyHold_andTheirLocationOnTheMap() throws Exception {
         grantLocation(true);
 
         Map<String, String> s = sections(videoWithHiddenTags());
 
         String location = s.get(MetadataDisplayer.SECTION_LOCATION);
         assertNotNull(String.valueOf(s), location);
-        assertTrue(location, location.contains(app.getString(com.doubleangels.redact.R.string.metadata_location_unreadable)));
+        assertTrue(location, location.contains("40.6892"));
+        assertTrue(location, location.contains("-74.0445"));
+        assertFalse(location, location.contains(app.getString(com.doubleangels.redact.R.string.metadata_location_unreadable)));
         String all = String.join("\n", s.values());
-        assertTrue(all, all.contains("COMMENT"));
-        assertTrue(all, all.contains("MAKE"));
-        assertTrue(all, all.contains("MODEL"));
-        assertTrue(all, all.contains(app.getString(com.doubleangels.redact.R.string.metadata_container_value)));
-        assertFalse("the values themselves are never shown", all.contains("secret comment"));
-        assertFalse(all.contains(TestVideos.LOCATION));
-        assertFalse(all.contains("iPhone"));
+        assertTrue(all, all.contains("secret comment"));
+        assertTrue(all, all.contains("Apple"));
+        assertTrue(all, all.contains("iPhone"));
+        assertFalse(all, all.contains("removed when you clean"));
     }
 
     @Test
-    public void video_aLocationOnlyTheContainerShows_isWithheldWithoutLocationAccess() throws Exception {
+    public void video_hiddenTags_withholdTheLocationWithoutLocationAccess() throws Exception {
         grantLocation(false);
 
         Map<String, String> s = sections(videoWithHiddenTags());
 
         assertNull(s.get(MetadataDisplayer.SECTION_LOCATION));
-        assertTrue(String.join("\n", s.values()).contains("COMMENT"));
+        String all = String.join("\n", s.values());
+        assertTrue(all, all.contains("secret comment"));
+        assertFalse(all, all.contains("40.6892"));
+        assertFalse(all, all.contains(TestVideos.LOCATION));
     }
 
     @Test
-    public void video_legacyTextApi_saysAHiddenLocationIsThere() throws Exception {
+    public void video_aLocationThatCannotBeRead_isReportedAsPresent() throws Exception {
+        grantLocation(true);
+        File f = TestVideos.write(app.getFilesDir(), "loci.mp4",
+                TestVideos.mp4(0, TestVideos.box("udta", TestVideos.box("loci", new byte[20]))));
+        files.add(f);
+        Uri uri = FakeMediaStoreProvider.add(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, f, "video/mp4");
+        videoMetadata(uri, MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH, "1920");
+
+        String location = sections(uri).get(MetadataDisplayer.SECTION_LOCATION);
+
+        assertNotNull(location);
+        assertTrue(location, location.contains(app.getString(com.doubleangels.redact.R.string.metadata_location_unreadable)));
+    }
+
+    @Test
+    public void video_legacyTextApi_listsTheHiddenTagsWithTheirValues() throws Exception {
         grantLocation(true);
 
         String text = text(videoWithHiddenTags());
 
-        assertTrue(text, text.contains(app.getString(com.doubleangels.redact.R.string.metadata_location_unreadable)));
+        assertFalse(text, text.contains(app.getString(com.doubleangels.redact.R.string.metadata_location_unreadable)));
         assertFalse(text, text.contains(app.getString(com.doubleangels.redact.R.string.metadata_no_location_data)));
-        assertTrue(text, text.contains("comment"));
-        assertFalse(text, text.contains("secret comment"));
+        assertTrue(text, text.contains("comment: secret comment"));
+        assertTrue(text, text.contains("location: " + TestVideos.LOCATION));
+
+        grantLocation(false);
+        String withheld = text(videoWithHiddenTags());
+        assertTrue(withheld, withheld.contains("comment: secret comment"));
+        assertFalse(withheld, withheld.contains(TestVideos.LOCATION));
     }
 
     @Test

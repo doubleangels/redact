@@ -294,9 +294,7 @@
     <string name="metadata_location_unreadable">Location data is present, stored in a form that can\'t be shown here. Cleaning removes it.</string>
     <string name="metadata_container_tags_header">Embedded Tags:</string>
     <string name="metadata_container_tags">Found in the file: %1$s</string>
-    <string name="metadata_container_value">Present – removed when you clean</string>
     <string name="metadata_embedded_data_header">Hidden &amp; embedded data</string>
-    <string name="metadata_embedded_value">Present (%1$s) – removed when you clean</string>
     <plurals name="metadata_embedded_images">
         <item quantity="one">%1$d image (%2$s) – removed when you clean</item>
         <item quantity="other">%1$d images (%2$s) – removed when you clean</item>

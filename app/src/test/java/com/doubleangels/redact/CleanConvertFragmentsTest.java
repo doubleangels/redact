@@ -625,6 +625,34 @@ public class CleanConvertFragmentsTest {
     }
 
     @Test
+    public void convert_scanResult_opensTheSingleConvertedFileInScan() throws Exception {
+        FakeMediaStoreProvider.install(activity);
+        java.io.File jpeg = java.io.File.createTempFile("convert_", ".jpg", activity.getFilesDir());
+        jpeg.deleteOnExit();
+        try (java.io.FileOutputStream out = new java.io.FileOutputStream(jpeg)) {
+            android.graphics.Bitmap.createBitmap(12, 12, android.graphics.Bitmap.Config.ARGB_8888)
+                    .compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out);
+        }
+        View v = convert();
+        assertEquals(View.GONE, visibility(v, R.id.scanResultButton));
+        vm.setConvertSelectedItems(Arrays.asList(new MediaItem(Uri.fromFile(jpeg), false, "photo.jpg")));
+        idle();
+
+        v.findViewById(R.id.convertButton).performClick();
+        awaitMain(() -> vm.getConvertProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED);
+        idle();
+        assertEquals(1, vm.getConvertOutputs().size());
+        assertEquals(View.VISIBLE, visibility(v, R.id.scanResultButton));
+
+        v.findViewById(R.id.scanResultButton).performClick();
+        idle();
+
+        assertNotNull(fragment("scan"));
+        assertTrue(fragment("scan").isVisible());
+        FakeMediaStoreProvider.reset();
+    }
+
+    @Test
     public void convert_clickingConvertWithNothingSelected_isRefused() {
         View v = convert();
         v.findViewById(R.id.convertButton).performClick();

@@ -116,9 +116,7 @@
     <string name="metadata_location_unreadable">위치 데이터가 있지만 여기에서 표시할 수 없는 형식으로 저장되어 있습니다. 정리하면 삭제됩니다.</string>
     <string name="metadata_container_tags_header">포함된 태그:</string>
     <string name="metadata_container_tags">파일에서 발견됨: %1$s</string>
-    <string name="metadata_container_value">있음 – 정리하면 삭제됨</string>
     <string name="metadata_embedded_data_header">숨겨진 데이터 및 포함된 데이터</string>
-    <string name="metadata_embedded_value">있음(%1$s) – 정리하면 삭제됨</string>
     <plurals name="metadata_embedded_images">
         <item quantity="other">이미지 %1$d개(%2$s) – 정리하면 삭제됨</item>
     </plurals>

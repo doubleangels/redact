@@ -120,9 +120,7 @@
     <string name="metadata_location_unreadable">Sono presenti dati di posizione, salvati in un formato che non può essere mostrato qui. La pulizia li rimuove.</string>
     <string name="metadata_container_tags_header">Tag Incorporati:</string>
     <string name="metadata_container_tags">Trovato nel file: %1$s</string>
-    <string name="metadata_container_value">Presente – rimosso durante la pulizia</string>
     <string name="metadata_embedded_data_header">Dati nascosti e incorporati</string>
-    <string name="metadata_embedded_value">Presente (%1$s) – rimosso durante la pulizia</string>
     <plurals name="metadata_embedded_images">
         <item quantity="one">%1$d immagine (%2$s) – rimossa durante la pulizia</item>
         <item quantity="many">%1$d immagini (%2$s) – rimosse durante la pulizia</item>

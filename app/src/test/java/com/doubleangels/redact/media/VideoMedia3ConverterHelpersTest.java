@@ -148,4 +148,70 @@ public class VideoMedia3ConverterHelpersTest {
             assertEquals("Failed to create output directory", expected.getMessage());
         }
     }
+
+    @Test
+    public void transcodeToFile_withAListenerOrOwner_failsTheSameWayWhenItsFolderCannotBeMade() throws Exception {
+        Application app = RuntimeEnvironment.getApplication();
+        File blocker = File.createTempFile("blocker_", ".tmp", app.getCacheDir());
+        blocker.deleteOnExit();
+        File output = new File(new File(blocker, "sub"), "out.mp4");
+        try {
+            VideoMedia3Converter.transcodeToFile(app, Uri.fromFile(blocker), output, 0, null, 7L);
+            throw new AssertionError("expected a failure");
+        } catch (IOException expected) {
+            assertEquals("Failed to create output directory", expected.getMessage());
+        }
+    }
+
+    private static androidx.media3.transformer.ExportException exportFailure(Throwable cause) {
+        return androidx.media3.transformer.ExportException.createForAssetLoader(
+                cause, androidx.media3.transformer.ExportException.ERROR_CODE_UNSPECIFIED);
+    }
+
+    @Test
+    public void encoderResolutionFailures_areFoundAnywhereInTheCauseChain() {
+        assertTrue(VideoMedia3Converter.isEncoderResolutionFailure(
+                exportFailure(new IllegalArgumentException("unsupported width"))));
+        assertTrue(VideoMedia3Converter.isEncoderResolutionFailure(exportFailure(
+                new RuntimeException(new IllegalArgumentException("unsupported height 4320")))));
+
+        assertFalse(VideoMedia3Converter.isEncoderResolutionFailure(
+                exportFailure(new IllegalArgumentException("bad bitrate"))));
+        assertFalse(VideoMedia3Converter.isEncoderResolutionFailure(
+                exportFailure(new IllegalArgumentException())));
+        assertFalse(VideoMedia3Converter.isEncoderResolutionFailure(
+                exportFailure(new IllegalStateException("unsupported width"))));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void cancelActiveTranscode_onlyCancelsItsOwnersExport() throws Exception {
+        java.lang.reflect.Field active = VideoMedia3Converter.class.getDeclaredField("activeTransformer");
+        java.lang.reflect.Field owner = VideoMedia3Converter.class.getDeclaredField("activeTranscodeOwner");
+        active.setAccessible(true);
+        owner.setAccessible(true);
+        java.util.concurrent.atomic.AtomicReference<androidx.media3.transformer.Transformer> transformer =
+                (java.util.concurrent.atomic.AtomicReference<androidx.media3.transformer.Transformer>) active.get(null);
+        java.util.concurrent.atomic.AtomicLong ownerId = (java.util.concurrent.atomic.AtomicLong) owner.get(null);
+
+        // Nothing running: nothing to cancel, whoever asks.
+        VideoMedia3Converter.cancelActiveTranscode();
+        VideoMedia3Converter.cancelActiveTranscode(3L);
+
+        transformer.set(new androidx.media3.transformer.Transformer.Builder(RuntimeEnvironment.getApplication()).build());
+        ownerId.set(3L);
+        try {
+            android.os.Looper main = android.os.Looper.getMainLooper();
+            org.robolectric.Shadows.shadowOf(main).idle();
+            VideoMedia3Converter.cancelActiveTranscode(4L); // someone else's export
+            assertTrue(org.robolectric.Shadows.shadowOf(main).isIdle());
+
+            VideoMedia3Converter.cancelActiveTranscode(3L);
+            assertFalse(org.robolectric.Shadows.shadowOf(main).isIdle());
+            org.robolectric.Shadows.shadowOf(main).idle(); // a transformer never started cancels quietly
+        } finally {
+            transformer.set(null);
+            ownerId.set(-1L);
+        }
+    }
 }

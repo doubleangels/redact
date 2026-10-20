@@ -231,7 +231,10 @@ public final class VideoStreamMetadata {
         }
     }
 
-    /** The payload as text when it mostly is text, such as an encoder's settings line. */
+    /**
+     * The payload as text when it mostly is text, such as an encoder's settings line; otherwise
+     * the readable strings inside it, such as a camcorder's model name.
+     */
     @Nullable
     private static String readableText(@NonNull byte[] data, int offset, int length) {
         if (length < 4) {
@@ -246,7 +249,7 @@ public final class VideoStreamMetadata {
             }
         }
         if (printable < n * 9 / 10) {
-            return null;
+            return ReadableText.strings(data, offset, n);
         }
         String text = new String(data, offset, n, StandardCharsets.ISO_8859_1).replace('\0', ' ').trim();
         return text.isEmpty() ? null : text;

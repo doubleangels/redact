@@ -116,9 +116,7 @@
     <string name="metadata_location_unreadable">存在位置数据，但其存储形式无法在此显示。清理会将其删除。</string>
     <string name="metadata_container_tags_header">嵌入的标签：</string>
     <string name="metadata_container_tags">在文件中发现：%1$s</string>
-    <string name="metadata_container_value">存在 – 清理时会删除</string>
     <string name="metadata_embedded_data_header">隐藏和嵌入的数据</string>
-    <string name="metadata_embedded_value">存在（%1$s） – 清理时会删除</string>
     <plurals name="metadata_embedded_images">
         <item quantity="other">%1$d 张图片（%2$s） – 清理时会删除</item>
     </plurals>

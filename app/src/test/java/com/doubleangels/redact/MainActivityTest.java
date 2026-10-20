@@ -240,4 +240,93 @@ public class MainActivityTest {
                         "content://com.doubleangels.redact.fileprovider/cache/processed/a.jpg"), "image/jpeg");
         assertEquals(R.id.navigation_clean, launchedTab(own));
     }
+
+    // ---- "Convert with Redact" ----------------------------------------------------------------
+
+    private static android.net.Uri sharedImage(int n) {
+        return android.net.Uri.parse("content://com.android.externalstorage.documents/document/primary%3APictures%2F"
+                + n + ".jpg");
+    }
+
+    private static android.content.Intent convertShare(String action) {
+        return new android.content.Intent(action)
+                .setClassName("com.doubleangels.redact", "com.doubleangels.redact.ConvertShareTarget")
+                .setType("image/*");
+    }
+
+    private com.doubleangels.redact.ui.MainViewModel viewModel() {
+        return new androidx.lifecycle.ViewModelProvider(controller.get())
+                .get(com.doubleangels.redact.ui.MainViewModel.class);
+    }
+
+    private java.util.List<com.doubleangels.redact.media.MediaItem> awaitConvertItems() throws InterruptedException {
+        TestWaits.awaitMain(() -> viewModel().getConvertSelectedItems().getValue() != null
+                && !viewModel().getConvertSelectedItems().getValue().isEmpty());
+        return viewModel().getConvertSelectedItems().getValue();
+    }
+
+    @Test
+    public void sharingAnImageToConvert_opensConvertWithItSelected() throws Exception {
+        FakeDocumentsProvider.install(org.robolectric.RuntimeEnvironment.getApplication());
+        android.content.Intent send = convertShare(android.content.Intent.ACTION_SEND)
+                .putExtra(android.content.Intent.EXTRA_STREAM, sharedImage(1));
+
+        assertEquals(R.id.navigation_convert, launchedTab(send));
+        java.util.List<com.doubleangels.redact.media.MediaItem> items = awaitConvertItems();
+        assertEquals(1, items.size());
+        assertEquals(sharedImage(1), items.get(0).uri());
+    }
+
+    @Test
+    public void sharingMoreThanTheCapToConvert_keepsTheFirstTwenty() throws Exception {
+        FakeDocumentsProvider.install(org.robolectric.RuntimeEnvironment.getApplication());
+        java.util.ArrayList<android.net.Uri> uris = new java.util.ArrayList<>();
+        for (int i = 0; i < 25; i++) {
+            uris.add(sharedImage(i));
+        }
+        android.content.Intent send = convertShare(android.content.Intent.ACTION_SEND_MULTIPLE)
+                .putParcelableArrayListExtra(android.content.Intent.EXTRA_STREAM, uris);
+
+        assertEquals(R.id.navigation_convert, launchedTab(send));
+        assertEquals(20, awaitConvertItems().size());
+        assertTrue(org.robolectric.shadows.ShadowToast.getTextOfLatestToast().contains("20"));
+    }
+
+    @Test
+    public void sharingNothingUsableToConvert_saysSo() {
+        android.content.Intent fileUri = convertShare(android.content.Intent.ACTION_SEND)
+                .putExtra(android.content.Intent.EXTRA_STREAM, android.net.Uri.parse("file:///sdcard/a.jpg"));
+        assertEquals(R.id.navigation_convert, launchedTab(fileUri));
+        assertEquals(controller.get().getString(R.string.share_error_unsupported_media),
+                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+        controller.pause().stop().destroy();
+
+        android.content.Intent noStream = convertShare(android.content.Intent.ACTION_SEND_MULTIPLE);
+        assertEquals(R.id.navigation_convert, launchedTab(noStream));
+        assertTrue(viewModel().getConvertSelectedItems().getValue().isEmpty());
+    }
+
+    @Test
+    public void viewingThroughTheConvertTarget_isNotAConvertShare() {
+        FakeDocumentsProvider.install(org.robolectric.RuntimeEnvironment.getApplication());
+        android.content.Intent view = convertShare(android.content.Intent.ACTION_VIEW).setData(sharedImage(1));
+
+        assertEquals(R.id.navigation_scan, launchedTab(view));
+    }
+
+    @Test
+    public void sharingToConvertWhileItRuns_onlyShowsTheRunningConvert() {
+        FakeDocumentsProvider.install(org.robolectric.RuntimeEnvironment.getApplication());
+        MainActivity activity = launch();
+        viewModel().setConvertProcessingState(com.doubleangels.redact.ui.MainViewModel.ProcessingState.PROCESSING);
+
+        controller.newIntent(convertShare(android.content.Intent.ACTION_SEND)
+                .putExtra(android.content.Intent.EXTRA_STREAM, sharedImage(1)));
+        shadowOf(Looper.getMainLooper()).idle();
+
+        BottomNavigationView nav = activity.findViewById(R.id.bottomNavigation);
+        assertEquals(R.id.navigation_convert, nav.getSelectedItemId());
+        assertTrue(viewModel().getConvertSelectedItems().getValue().isEmpty());
+        viewModel().setConvertProcessingState(com.doubleangels.redact.ui.MainViewModel.ProcessingState.IDLE);
+    }
 }

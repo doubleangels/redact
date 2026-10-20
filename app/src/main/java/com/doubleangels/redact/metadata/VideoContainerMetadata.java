@@ -17,8 +17,10 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Finds and removes identifying metadata at the container level of MP4/MOV/3GP (ISO base media)
@@ -36,18 +38,36 @@ import java.util.Locale;
  */
 public final class VideoContainerMetadata {
 
-    /** What a scan found. Field names are box/key names only, never their values. */
+    /** What a scan found: the box/key names, and for Scan what each holds. */
     public static final class Report {
         /** False when the file is not a container this class can read. */
         public final boolean recognized;
         @NonNull
         public final List<String> fields;
         public final boolean hasLocation;
+        /** Field name to what it holds, as text, for the fields that hold something readable. */
+        @NonNull
+        public final Map<String, String> values;
+        /** Field name to how many bytes it takes up. */
+        @NonNull
+        public final Map<String, Long> sizes;
+        /** Latitude and longitude, when a location field holds coordinates. */
+        @Nullable
+        public final double[] coordinates;
 
         Report(boolean recognized, @NonNull List<String> fields, boolean hasLocation) {
+            this(recognized, fields, hasLocation, new LinkedHashMap<>(), new LinkedHashMap<>(), null);
+        }
+
+        Report(boolean recognized, @NonNull List<String> fields, boolean hasLocation,
+               @NonNull Map<String, String> values, @NonNull Map<String, Long> sizes,
+               @Nullable double[] coordinates) {
             this.recognized = recognized;
             this.fields = Collections.unmodifiableList(fields);
             this.hasLocation = hasLocation;
+            this.values = Collections.unmodifiableMap(values);
+            this.sizes = Collections.unmodifiableMap(sizes);
+            this.coordinates = coordinates;
         }
 
         /** True only when the file was read and nothing identifying was found. */
@@ -64,6 +84,12 @@ public final class VideoContainerMetadata {
     private static final int MAX_ELEMENTS = 500_000;
     /** How much of an XMP packet or uuid box is searched for GPS data. */
     private static final int CONTENT_PEEK = 1 << 20;
+    /** Longest value kept for Scan. */
+    private static final int MAX_VALUE = 16 * 1024;
+    /** Seconds from 1904, when QuickTime's clock starts, to 1970. */
+    private static final long SECONDS_1904_TO_1970 = 2_082_844_800L;
+    /** Milliseconds from 1970 to 2001, when Matroska's clock starts. */
+    private static final long MILLIS_1970_TO_2001 = 978_307_200_000L;
 
     private VideoContainerMetadata() {}
 
@@ -117,7 +143,7 @@ public final class VideoContainerMetadata {
         if (!walker.run()) {
             return Report.unrecognized();
         }
-        return new Report(true, walker.fields, walker.location);
+        return new Report(true, walker.fields, walker.location, walker.values, walker.sizes, walker.coordinates);
     }
 
     // ---- the walk -----------------------------------------------------------------------------
@@ -127,6 +153,9 @@ public final class VideoContainerMetadata {
         private final boolean scrub;
         private final long length;
         final List<String> fields = new ArrayList<>();
+        final Map<String, String> values = new LinkedHashMap<>();
+        final Map<String, Long> sizes = new LinkedHashMap<>();
+        @Nullable double[] coordinates;
         boolean location;
         int scrubbed;
         private int elements;
@@ -158,8 +187,44 @@ public final class VideoContainerMetadata {
         }
 
         private void field(@NonNull String name, boolean isLocation) {
+            field(name, isLocation, null, -1);
+        }
+
+        /** Records a field, with what it holds and its size for Scan; a scrub keeps neither. */
+        private void field(@NonNull String name, boolean isLocation, @Nullable String value, long size) {
             fields.add(name);
             location |= isLocation;
+            if (scrub) {
+                return;
+            }
+            String text = value == null ? null : value.replace('\0', ' ').trim();
+            if (text != null && !text.isEmpty() && !values.containsKey(name)) {
+                values.put(name, text.length() > MAX_VALUE ? text.substring(0, MAX_VALUE) + "…" : text);
+                if (isLocation && coordinates == null) {
+                    coordinates = ReadableText.iso6709(text);
+                }
+            }
+            if (size >= 0) {
+                sizes.merge(name, size, Long::sum);
+            }
+        }
+
+        /** The bytes in [start, end) as UTF-8 text; null when scrubbing. */
+        @Nullable
+        private String text(long start, long end) throws IOException {
+            if (scrub || end <= start) {
+                return null;
+            }
+            return new String(read(start, (int) Math.min(end - start, CONTENT_PEEK)), StandardCharsets.UTF_8);
+        }
+
+        /** [start, end) as text when it all is, else the readable strings in it; null when scrubbing. */
+        @Nullable
+        private String strings(long start, long end) throws IOException {
+            if (scrub || end <= start) {
+                return null;
+            }
+            return ReadableText.textOrStrings(read(start, (int) Math.min(end - start, 64 * 1024)));
         }
 
         private void count() throws IOException {
@@ -257,7 +322,7 @@ public final class VideoContainerMetadata {
                     return;
                 default:
                     if (level == Level.TOP && !BMFF_TOP_BENIGN.contains(type)) {
-                        field(type, false);
+                        field(type, false, strings(body, end), size - header);
                         blank(pos, size, header);
                     }
             }
@@ -269,7 +334,7 @@ public final class VideoContainerMetadata {
                 // A timed-metadata, subtitle or timecode track. It cannot be blanked without
                 // leaving its samples behind, so a file with one is never reported clean and
                 // verification fails, sending the clean down the full re-encode instead.
-                field("track:" + handler, false);
+                field("track:" + handler, false, null, end - body);
             }
             boxes(body, end, Level.TRAK, depth + 1);
         }
@@ -339,12 +404,189 @@ public final class VideoContainerMetadata {
             }
             if (!dateCounted) {
                 dateCounted = true;
-                field("date", false);
+                field("date", false, scrub ? null : quickTimeDate(times, width), -1);
             }
             if (scrub) {
                 write(body + 4, new byte[2 * width]);
                 scrubbed++;
             }
+        }
+
+        /** The creation time, or the modification time when that is unset, counted from 1904. */
+        @NonNull
+        private static String quickTimeDate(@NonNull byte[] times, int width) {
+            long created = 0;
+            long modified = 0;
+            for (int i = 0; i < width; i++) {
+                created = (created << 8) | (times[i] & 0xFF);
+                modified = (modified << 8) | (times[width + i] & 0xFF);
+            }
+            long seconds = created != 0 ? created : modified;
+            return ReadableText.utc((seconds - SECONDS_1904_TO_1970) * 1000);
+        }
+
+        /**
+         * What a user-data atom holds: an iTunes-style data box, a 3GPP location, a QuickTime
+         * text atom (length, language, text), or failing those its readable strings.
+         */
+        @Nullable
+        private String udtaValue(@NonNull String type, long body, long end) throws IOException {
+            if (scrub) {
+                return null;
+            }
+            if (body + 8 <= end && fourCc(read(body, 8), 4).equals("data")) {
+                return itemValue(body, end);
+            }
+            if (type.equals("loci")) {
+                String place = loci(body, end);
+                if (place != null) {
+                    return place;
+                }
+            } else if (type.startsWith("©") && body + 4 <= end) {
+                byte[] h = read(body, 4);
+                int length = ((h[0] & 0xFF) << 8) | (h[1] & 0xFF);
+                if (length > 0 && body + 4 + length <= end) {
+                    return text(body + 4, body + 4 + length);
+                }
+            }
+            return strings(body, end);
+        }
+
+        /** The value in an ilst item's data box, by its well-known type. */
+        @Nullable
+        private String itemValue(long body, long end) throws IOException {
+            long data = child(body, end, "data");
+            if (data < 0) {
+                return strings(body, end);
+            }
+            long dataEnd = data + boxSize(data);
+            if (data + 16 > dataEnd) {
+                return null;
+            }
+            int type = (int) (u32(read(data + 8, 4), 0) & 0xFFFFFF);
+            long payload = data + 16;
+            int n = (int) Math.min(dataEnd - payload, CONTENT_PEEK);
+            switch (type) {
+                case 1:
+                    return text(payload, dataEnd);
+                case 2:
+                    return new String(read(payload, n), StandardCharsets.UTF_16BE);
+                case 21:
+                case 22:
+                    if (n < 1 || n > 8) {
+                        return null;
+                    }
+                    byte[] b = read(payload, n);
+                    long value = type == 21 ? b[0] : b[0] & 0xFF;
+                    for (int i = 1; i < n; i++) {
+                        value = (value << 8) | (b[i] & 0xFF);
+                    }
+                    return String.valueOf(value);
+                case 13:
+                case 14:
+                case 27:
+                    return null; // cover art
+                default:
+                    return strings(payload, dataEnd);
+            }
+        }
+
+        /**
+         * A 3GPP {@code loci} box: version and flags, language, the place's name, its role, then
+         * longitude, latitude and altitude in 16.16 fixed point. Sets {@link #coordinates}.
+         *
+         * @return the place's name, or the coordinates when it has none; null when it is not one
+         */
+        @Nullable
+        private String loci(long body, long end) throws IOException {
+            byte[] b = read(body, (int) Math.min(end - body, 4096));
+            int nameStart = 6;
+            int nul = -1;
+            for (int i = nameStart; i < b.length; i++) {
+                if (b[i] == 0) {
+                    nul = i;
+                    break;
+                }
+            }
+            if (nul < 0 || nul + 1 + 1 + 8 > b.length) {
+                return null;
+            }
+            String name = new String(b, nameStart, nul - nameStart, StandardCharsets.UTF_8).trim();
+            int at = nul + 2; // past the NUL and the role
+            double lon = ByteBuffer.wrap(b, at, 4).getInt() / 65536.0;
+            double lat = ByteBuffer.wrap(b, at + 4, 4).getInt() / 65536.0;
+            String place = String.format(Locale.ROOT, "%+.6f%+.6f/", lat, lon);
+            double[] parsed = ReadableText.iso6709(place);
+            if (parsed != null && coordinates == null) {
+                coordinates = parsed;
+            }
+            if (name.isEmpty()) {
+                return parsed != null ? place : null;
+            }
+            return name;
+        }
+
+        private static final long ID_TAG_STRING = 0x4487L;
+        private static final long ID_TAG_BINARY = 0x4485L;
+        private static final long ID_FILE_NAME = 0x466EL;
+        private static final long ID_FILE_MIME_TYPE = 0x4660L;
+
+        /** A SimpleTag's TagString, or the readable strings in its TagBinary. */
+        @Nullable
+        private String tagValue(long start, long end) throws IOException {
+            long pos = start;
+            while (pos < end) {
+                Element e = element(pos, end);
+                if (e.dataSize < 0) {
+                    return null;
+                }
+                if (e.id == ID_TAG_STRING) {
+                    return text(e.dataStart, e.dataStart + e.dataSize);
+                }
+                if (e.id == ID_TAG_BINARY) {
+                    return strings(e.dataStart, e.dataStart + e.dataSize);
+                }
+                pos = e.dataStart + e.dataSize;
+            }
+            return null;
+        }
+
+        /** An attached file's name, with its type when that is given. */
+        @Nullable
+        private String attachmentValue(long start, long end) throws IOException {
+            String name = null;
+            String mime = null;
+            long pos = start;
+            while (pos < end) {
+                Element e = element(pos, end);
+                if (e.dataSize < 0) {
+                    break;
+                }
+                if (e.id == ID_FILE_NAME) {
+                    name = text(e.dataStart, e.dataStart + Math.min(e.dataSize, 512));
+                } else if (e.id == ID_FILE_MIME_TYPE) {
+                    mime = text(e.dataStart, e.dataStart + Math.min(e.dataSize, 256));
+                }
+                pos = e.dataStart + e.dataSize;
+            }
+            if (name == null) {
+                return mime;
+            }
+            return mime == null ? name : name + " (" + mime + ")";
+        }
+
+        /** A Matroska DateUTC: signed nanoseconds since 2001. */
+        @Nullable
+        private String matroskaDate(long start, long size) throws IOException {
+            if (scrub || size < 1 || size > 8) {
+                return null;
+            }
+            byte[] b = read(start, (int) size);
+            long nanos = b[0];
+            for (int i = 1; i < b.length; i++) {
+                nanos = (nanos << 8) | (b[i] & 0xFF);
+            }
+            return ReadableText.utc(MILLIS_1970_TO_2001 + nanos / 1_000_000);
         }
 
         private void udta(long body, long end, int depth) throws IOException {
@@ -365,7 +607,7 @@ public final class VideoContainerMetadata {
                 }
                 if (size < header || pos + size > end) {
                     // Unparseable contents still count as something to remove.
-                    field("udta", false);
+                    field("udta", false, null, end - pos);
                     return;
                 }
                 String type = fourCc(h, 4);
@@ -377,13 +619,15 @@ public final class VideoContainerMetadata {
                     case "skip":
                         break;
                     case "XMP_":
-                        field("XMP", containsGps(pos + header, pos + size));
+                        field("XMP", containsGps(pos + header, pos + size), text(pos + header, pos + size),
+                                size - header);
                         break;
                     case "uuid":
                         uuid(pos + header, pos + size);
                         break;
                     default:
-                        field(type, isLocationName(type));
+                        field(type, isLocationName(type), udtaValue(type, pos + header, pos + size),
+                                size - header);
                 }
                 pos += size;
             }
@@ -405,7 +649,7 @@ public final class VideoContainerMetadata {
                 count();
                 long size = boxSize(pos);
                 if (size < 8 || pos + size > end) {
-                    field("meta", false);
+                    field("meta", false, null, end - start);
                     return;
                 }
                 String type = fourCc(read(pos, 8), 4);
@@ -429,10 +673,10 @@ public final class VideoContainerMetadata {
                         break;
                     case "xml ":
                     case "XMP_":
-                        field("XMP", containsGps(pos + 8, pos + size));
+                        field("XMP", containsGps(pos + 8, pos + size), text(pos + 8, pos + size), size - 8);
                         break;
                     default:
-                        field(type, false);
+                        field(type, false, strings(pos + 8, pos + size), size - 8);
                 }
                 pos += size;
             }
@@ -467,7 +711,7 @@ public final class VideoContainerMetadata {
                 byte[] h = read(pos, 8);
                 long size = u32(h, 0);
                 if (size < 8 || pos + size > end) {
-                    field("ilst", false);
+                    field("ilst", false, null, end - pos);
                     return;
                 }
                 String name = fourCc(h, 4);
@@ -478,7 +722,7 @@ public final class VideoContainerMetadata {
                     }
                 }
                 if (!BENIGN_KEYS.contains(name)) {
-                    field(name, isLocationName(name));
+                    field(name, isLocationName(name), scrub ? null : itemValue(pos + 8, pos + size), size - 8);
                 }
                 pos += size;
             }
@@ -486,7 +730,7 @@ public final class VideoContainerMetadata {
 
         private void uuid(long body, long end) throws IOException {
             if (body + 16 > end) {
-                field("uuid", false);
+                field("uuid", false, null, end - body);
                 return;
             }
             StringBuilder id = new StringBuilder();
@@ -494,7 +738,8 @@ public final class VideoContainerMetadata {
                 id.append(String.format(Locale.ROOT, "%02x", b & 0xFF));
             }
             boolean gps = containsGps(body + 16, end);
-            field(XMP_UUID.contentEquals(id) ? "XMP" : "uuid", gps);
+            boolean xmp = XMP_UUID.contentEquals(id);
+            field(xmp ? "XMP" : "uuid", gps, xmp ? text(body + 16, end) : strings(body + 16, end), end - body);
         }
 
         private boolean containsGps(long start, long end) throws IOException {
@@ -612,14 +857,14 @@ public final class VideoContainerMetadata {
                     tags(e.dataStart, elementEnd, 0);
                     if (simpleTags == before) {
                         // Nothing readable inside: still something to remove.
-                        field("tags", false);
+                        field("tags", false, null, elementEnd - pos);
                     }
                     voidOut(pos, elementEnd);
                 } else if (e.id == ID_ATTACHMENTS) {
                     int before = fields.size();
                     attachments(e.dataStart, elementEnd);
                     if (fields.size() == before) {
-                        field("attachments", false);
+                        field("attachments", false, null, elementEnd - pos);
                     }
                     voidOut(pos, elementEnd);
                 }
@@ -651,12 +896,12 @@ public final class VideoContainerMetadata {
                 }
                 long elementEnd = e.dataStart + e.dataSize;
                 if (e.id == ID_TITLE) {
-                    field("title", false);
+                    field("title", false, text(e.dataStart, elementEnd), e.dataSize);
                     voidOut(pos, elementEnd);
                 } else if (e.id == ID_DATE_UTC) {
                     if (!dateCounted) {
                         dateCounted = true;
-                        field("date", false);
+                        field("date", false, matroskaDate(e.dataStart, e.dataSize), -1);
                     }
                     voidOut(pos, elementEnd);
                 }
@@ -682,7 +927,8 @@ public final class VideoContainerMetadata {
                     simpleTags++;
                     String name = tagName(e.dataStart, elementEnd);
                     if (!BENIGN_MATROSKA_TAGS.contains(name.toUpperCase(Locale.ROOT))) {
-                        field(name, isLocationName(name));
+                        field(name, isLocationName(name), scrub ? null : tagValue(e.dataStart, elementEnd),
+                                e.dataSize);
                     }
                     tags(e.dataStart, elementEnd, depth + 1);
                 }
@@ -715,7 +961,8 @@ public final class VideoContainerMetadata {
                     return;
                 }
                 if (e.id == ID_ATTACHED_FILE) {
-                    field("attachment", false);
+                    field("attachment", false, scrub ? null : attachmentValue(e.dataStart, e.dataStart + e.dataSize),
+                            e.dataSize);
                 }
                 pos = e.dataStart + e.dataSize;
             }
