@@ -1,13 +1,14 @@
 name: Publish Website
 
 # Publishes site/ (the landing page and guides) to GitHub Pages at
-# https://doubleangels.github.io/redact/ on every change pushed to dev.
-# Needs Settings > Pages > Source set to "GitHub Actions" once.
+# https://doubleangels.github.io/redact/ on every change that reaches main.
+# The github-pages environment only lets main deploy, so the site goes live
+# with each release. Needs Settings > Pages > Source set to "GitHub Actions".
 
 on:
   push:
     branches:
-      - dev
+      - main
     paths:
       - site/**
   workflow_dispatch:
