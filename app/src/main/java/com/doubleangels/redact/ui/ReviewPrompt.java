@@ -28,7 +28,7 @@ import com.google.android.material.snackbar.Snackbar;
  */
 public final class ReviewPrompt {
 
-    /** Successful cleans, converts and share-ins before asking. */
+    /** Successful cleans, converts, scans and share-ins before asking. */
     @VisibleForTesting
     static final int ASK_AFTER = 3;
 
