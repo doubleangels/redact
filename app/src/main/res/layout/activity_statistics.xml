@@ -284,12 +284,17 @@
                             android:layout_width="12dp"
                             android:layout_height="0dp" />
 
+                        <!-- The tiles and rows share their inner ids on purpose: each include
+                             has its own id and StatisticsActivity looks the inner views up only
+                             inside it (tile.findViewById), so they never collide. -->
                         <include
                             android:id="@+id/tileVideos"
-                            layout="@layout/item_stat_tile" />
+                            layout="@layout/item_stat_tile"
+                            tools:ignore="DuplicateIncludedIds" />
                     </LinearLayout>
 
                     <include
+                        tools:ignore="DuplicateIncludedIds"
                         android:id="@+id/tileConverted"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
