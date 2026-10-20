@@ -27,7 +27,7 @@ Show me the classified commit list (features / fixes / ignored), the level you c
 ## 3. Apply
 
 1. Update `versionCode` and `versionName` in `app/build.gradle`. Nothing else stores the version; `grep -rn "<old versionName>"` outside `build/` to make sure.
-2. Do not write release notes. CI writes the Play "What's new" text, its translations and `changelogs/<versionCode>.txt` from the commit history when the release is created (`scripts/generate_release_notes.py`, run by `deploy.yml`). Notes already saved as `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` are kept instead, so only add one by hand to override what CI would write.
+2. Do not write release notes. CI writes the Play "What's new" text, its translations and `changelogs/<versionCode>.txt` from the commit history when the release is created (the `release-notes` job in `deploy.yml`, using `anthropics/claude-code-action`). Notes already saved as `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` are kept instead, so only add one by hand to override what CI would write.
 
 ## 4. Verify
 

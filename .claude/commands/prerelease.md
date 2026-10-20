@@ -44,10 +44,10 @@ The store screenshots show the Clean, Scan and Convert tabs (light and dark). Re
 
 ## 5. Release notes, preview only
 
-CI writes the Play "What's new" text, the 12 translations and `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` when the release is created, from the commits since the last published release. Nothing is written by hand and nothing here is saved. Preview what CI will produce so I can catch a bad line before releasing.
+CI (the `release-notes` job in `deploy.yml`) writes the Play "What's new" text, the 12 translations and `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` when the release is created, from the commits since the last published release. Nothing is written by hand and nothing here is saved. Preview what CI will produce so I can catch a bad line before releasing.
 
 1. Read `versionCode` and `versionName` from `app/build.gradle`. If `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` exists, CI will keep that hand-written text instead; show it and skip the rest of this step.
-2. If `ANTHROPIC_API_KEY` is set, run `python scripts/generate_release_notes.py --dry-run` and show the English text with its character count (at most 500). It prints all 13 languages; read the English and skim the others for a missing or empty one. If the key is not set, draft the English yourself from `git log $(git tag -l 'last-published-version' 'v*' | head -1)..HEAD --no-merges`, following the same rules (one short plain line per user-facing change, features first, no jargon, labels as the app names them, never only "Bug fixes and performance improvements.").
+2. Draft the English text yourself from `git log $(git rev-parse --verify --quiet refs/tags/last-published-version >/dev/null && echo last-published-version || git tag -l 'v*' --sort=-v:refname | head -1)..HEAD --no-merges`, following the rules in the `release-notes` job's prompt in `.github/workflows/deploy.yml` (one short plain line per user-facing change, features first, no jargon, labels as the app names them, at most 500 characters). Show it with its character count. CI will word it independently with `anthropics/claude-code-action`, so treat this as a check on the commit history, not as the final text.
 3. Say if the preview mentions something that should not be public, or misses a user-visible change. The fix is a clearer commit message or a hand-written `changelogs/<versionCode>.txt`, never an edit to `whatsnew/`.
 
 ## 6. Summary
