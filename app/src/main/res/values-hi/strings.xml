@@ -468,6 +468,14 @@
     <string name="review_prompt_no">नहीं</string>
     <string name="review_prompt_declined">ठीक है, Redact फिर से नहीं पूछेगा। अगर आप अपना मन बदलें, तो सेटिंग्स › के बारे में से इसे कभी भी रेट कर सकते हैं।</string>
     <string name="crash_prompt_declined">ठीक है, Redact फिर से नहीं पूछेगा। आप क्रैश रिपोर्ट कभी भी सेटिंग्स › निदान और प्रतिक्रिया में चालू कर सकते हैं।</string>
+    <string name="error_feedback_offer">कुछ गलत हो गया। एक क्रैश रिपोर्ट भेजी गई।</string>
+    <string name="error_feedback_action">विवरण जोड़ें</string>
+    <string name="error_feedback_title">क्या हुआ?</string>
+    <string name="error_feedback_message">आपका नोट क्रैश रिपोर्ट के साथ जोड़ा जाता है। कोई निजी जानकारी शामिल न करें। भेजने से पहले फ़ाइल पथ और GPS निर्देशांक हटा दिए जाते हैं।</string>
+    <string name="error_feedback_hint">जब गड़बड़ी हुई तब आप क्या कर रहे थे?</string>
+    <string name="error_feedback_send">भेजें</string>
+    <string name="error_feedback_cancel">रद्द करें</string>
+    <string name="error_feedback_thanks">धन्यवाद, आपका नोट भेज दिया गया।</string>
     <string name="stats_title">आँकड़े</string>
     <string name="stats_navigate_up">वापस</string>
     <string name="stats_settings_title">आपके गोपनीयता आँकड़े</string>

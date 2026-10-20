@@ -473,6 +473,14 @@
     <string name="review_prompt_no">No</string>
     <string name="review_prompt_declined">Got it, Redact won\'t ask again. If you change your mind, you can rate it anytime from Settings › About.</string>
     <string name="crash_prompt_declined">Got it, Redact won\'t ask again. You can turn on crash reports anytime in Settings › Diagnostics &amp; Feedback.</string>
+    <string name="error_feedback_offer">Something went wrong. A crash report was sent.</string>
+    <string name="error_feedback_action">Add Details</string>
+    <string name="error_feedback_title">What Happened?</string>
+    <string name="error_feedback_message">Your note is attached to the crash report. Don\'t include personal information. File paths and GPS coordinates are removed before sending.</string>
+    <string name="error_feedback_hint">What were you doing when it went wrong?</string>
+    <string name="error_feedback_send">Send</string>
+    <string name="error_feedback_cancel">Cancel</string>
+    <string name="error_feedback_thanks">Thanks, your note was sent.</string>
     <string name="stats_title">Statistics</string>
     <string name="stats_navigate_up">Back</string>
     <string name="stats_settings_title">Your Privacy Stats</string>

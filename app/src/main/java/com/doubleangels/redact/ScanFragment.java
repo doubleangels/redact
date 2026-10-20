@@ -56,6 +56,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.sentry.ITransaction;
 import io.sentry.SpanStatus;
+import io.sentry.protocol.SentryId;
 
 /**
  * Scan tab: metadata inspection UI; hosted in {@link MainActivity}'s fragment container.
@@ -445,6 +446,7 @@ public class ScanFragment extends Fragment {
     private void displayMetadata(Uri mediaUri) {
         try {
             final int generation = scanGeneration.incrementAndGet();
+            final SentryId reportedBefore = SentryManager.lastReportedEventId();
             showStatus(getString(R.string.status_analyzing));
             showProgress(true);
 
@@ -543,6 +545,8 @@ public class ScanFragment extends Fragment {
                         metadataCard.setVisibility(View.VISIBLE);
                         clearCoordinateState();
                         SentryManager.logEvent("scan", "Metadata extraction failed.");
+                        com.doubleangels.redact.ui.ErrorFeedbackPrompt.offer(
+                                getView(), SentryManager.reportedSince(reportedBefore));
                     });
                 }
             });

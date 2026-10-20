@@ -481,6 +481,14 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="review_prompt_no">No</string>
     <string name="review_prompt_declined">Entendido, Redact no volverá a preguntar. Si cambias de opinión, puedes valorarlo cuando quieras desde Configuración › Acerca de.</string>
     <string name="crash_prompt_declined">Entendido, Redact no volverá a preguntar. Puedes activar los informes de errores cuando quieras en Configuración › Diagnóstico y Comentarios.</string>
+    <string name="error_feedback_offer">Algo salió mal. Se envió un informe de errores.</string>
+    <string name="error_feedback_action">Añadir Detalles</string>
+    <string name="error_feedback_title">¿Qué Pasó?</string>
+    <string name="error_feedback_message">Tu nota se adjunta al informe de errores. No incluyas información personal. Las rutas de archivos y las coordenadas GPS se eliminan antes de enviarla.</string>
+    <string name="error_feedback_hint">¿Qué estabas haciendo cuando falló?</string>
+    <string name="error_feedback_send">Enviar</string>
+    <string name="error_feedback_cancel">Cancelar</string>
+    <string name="error_feedback_thanks">Gracias, tu nota se envió.</string>
     <string name="stats_title">Estadísticas</string>
     <string name="stats_navigate_up">Atrás</string>
     <string name="stats_settings_title">Tus Estadísticas de Privacidad</string>

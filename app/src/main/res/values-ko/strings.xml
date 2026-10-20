@@ -455,6 +455,14 @@
     <string name="review_prompt_no">아니요</string>
     <string name="review_prompt_declined">알겠습니다. 다시 묻지 않을게요. 마음이 바뀌면 설정 › 정보에서 언제든지 평가할 수 있습니다.</string>
     <string name="crash_prompt_declined">알겠습니다. 다시 묻지 않을게요. 비정상 종료 보고서는 설정 › 진단 및 피드백에서 언제든지 켤 수 있습니다.</string>
+    <string name="error_feedback_offer">문제가 발생했습니다. 비정상 종료 보고서를 보냈습니다.</string>
+    <string name="error_feedback_action">세부정보 추가</string>
+    <string name="error_feedback_title">무슨 일이 있었나요?</string>
+    <string name="error_feedback_message">메모는 비정상 종료 보고서에 첨부됩니다. 개인 정보는 포함하지 마세요. 파일 경로와 GPS 좌표는 보내기 전에 삭제됩니다.</string>
+    <string name="error_feedback_hint">문제가 발생했을 때 무엇을 하고 있었나요?</string>
+    <string name="error_feedback_send">보내기</string>
+    <string name="error_feedback_cancel">취소</string>
+    <string name="error_feedback_thanks">감사합니다. 메모를 보냈습니다.</string>
     <string name="stats_title">통계</string>
     <string name="stats_navigate_up">뒤로</string>
     <string name="stats_settings_title">개인정보 보호 통계</string>

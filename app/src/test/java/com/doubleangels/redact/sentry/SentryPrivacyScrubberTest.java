@@ -2,16 +2,19 @@ package com.doubleangels.redact.sentry;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
 import org.junit.Test;
 
 import io.sentry.SentryAttributeType;
+import io.sentry.SentryEvent;
 import io.sentry.SentryLogEvent;
 import io.sentry.SentryLogEventAttributeValue;
 import io.sentry.SentryLogLevel;
 import io.sentry.SentryMetricsEvent;
+import io.sentry.protocol.Feedback;
 import io.sentry.protocol.SentryId;
 
 public class SentryPrivacyScrubberTest {
@@ -86,5 +89,30 @@ public class SentryPrivacyScrubberTest {
 
         assertFalse(metric.getAttributes().containsKey("user.email"));
         assertEquals("IOException", metric.getAttributes().get("error_type").getValue());
+    }
+
+    @Test
+    public void scrubFeedbackEventScrubsTheNoteAndDropsContactDetails() {
+        Feedback feedback = new Feedback("It failed on /storage/emulated/0/DCIM/IMG_1.jpg");
+        feedback.setName("Jane");
+        feedback.setContactEmail("jane@example.com");
+        feedback.setUrl("content://media/external/images/media/1");
+        SentryEvent event = new SentryEvent();
+        event.getContexts().setFeedback(feedback);
+
+        SentryPrivacyScrubber.scrubFeedbackEvent(event);
+
+        Feedback scrubbed = event.getContexts().getFeedback();
+        assertFalse(scrubbed.getMessage().contains("/storage/"));
+        assertTrue(scrubbed.getMessage().contains("[redacted]"));
+        assertNull(scrubbed.getName());
+        assertNull(scrubbed.getContactEmail());
+        assertNull(scrubbed.getUrl());
+    }
+
+    @Test
+    public void scrubFeedbackEventToleratesAnEventWithoutFeedback() {
+        SentryPrivacyScrubber.scrubFeedbackEvent(new SentryEvent());
+        SentryPrivacyScrubber.scrubFeedbackEvent(null);
     }
 }

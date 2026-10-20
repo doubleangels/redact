@@ -532,6 +532,10 @@ public class CleanFragment extends Fragment {
                                     && count.equals(total != null ? total : count)) {
                                 com.doubleangels.redact.ui.ReviewPrompt.askIfDue(this);
                             }
+                            if (!isHidden()) {
+                                com.doubleangels.redact.ui.ErrorFeedbackPrompt.offer(
+                                        getView(), viewModel.takeCleanFeedbackEventId());
+                            }
                             break;
 
                         case IDLE:

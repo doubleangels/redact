@@ -467,6 +467,14 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="review_prompt_no">Nein</string>
     <string name="review_prompt_declined">Alles klar, Redact fragt nicht noch einmal. Falls du es dir anders überlegst, kannst du es jederzeit unter Einstellungen › Über bewerten.</string>
     <string name="crash_prompt_declined">Alles klar, Redact fragt nicht noch einmal. Du kannst Absturzberichte jederzeit unter Einstellungen › Diagnose &amp; Feedback einschalten.</string>
+    <string name="error_feedback_offer">Etwas ist schiefgelaufen. Ein Absturzbericht wurde gesendet.</string>
+    <string name="error_feedback_action">Details Hinzufügen</string>
+    <string name="error_feedback_title">Was Ist Passiert?</string>
+    <string name="error_feedback_message">Deine Notiz wird an den Absturzbericht angehängt. Gib keine persönlichen Daten an. Dateipfade und GPS-Koordinaten werden vor dem Senden entfernt.</string>
+    <string name="error_feedback_hint">Was hast du gemacht, als es passiert ist?</string>
+    <string name="error_feedback_send">Senden</string>
+    <string name="error_feedback_cancel">Abbrechen</string>
+    <string name="error_feedback_thanks">Danke, deine Notiz wurde gesendet.</string>
     <string name="stats_title">Statistik</string>
     <string name="stats_navigate_up">Zurück</string>
     <string name="stats_settings_title">Deine Datenschutz-Statistik</string>

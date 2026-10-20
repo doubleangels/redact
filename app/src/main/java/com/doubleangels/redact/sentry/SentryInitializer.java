@@ -208,6 +208,15 @@ public final class SentryInitializer {
                 return event;
             });
 
+            // User feedback skips beforeSend, so it gets its own consent check and scrub.
+            options.setBeforeSendFeedback((event, hint) -> {
+                if (!SentryManager.isEnabled()) {
+                    return null;
+                }
+                SentryPrivacyScrubber.scrubFeedbackEvent(event);
+                return event;
+            });
+
             options.setBeforeSendTransaction((transaction, hint) -> {
                 if (!SentryManager.isEnabled()) {
                     return null;

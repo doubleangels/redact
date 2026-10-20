@@ -507,6 +507,10 @@ public class ConvertFragment extends Fragment {
                     // Counted by the view model; asks only when this tab is showing.
                     com.doubleangels.redact.ui.ReviewPrompt.askIfDue(this);
                 }
+                if (!isHidden()) {
+                    com.doubleangels.redact.ui.ErrorFeedbackPrompt.offer(
+                            getView(), viewModel.takeConvertFeedbackEventId());
+                }
             }
             com.doubleangels.redact.ui.ShareResults.updateButton(
                     shareResultsButton, state == MainViewModel.ProcessingState.COMPLETED,

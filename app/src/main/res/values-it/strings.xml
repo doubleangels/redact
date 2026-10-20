@@ -481,6 +481,14 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="review_prompt_no">No</string>
     <string name="review_prompt_declined">Va bene, Redact non lo chiederà più. Se cambi idea, puoi valutarlo quando vuoi da Impostazioni › Informazioni.</string>
     <string name="crash_prompt_declined">Va bene, Redact non lo chiederà più. Puoi attivare i rapporti sugli arresti anomali quando vuoi da Impostazioni › Diagnostica e Feedback.</string>
+    <string name="error_feedback_offer">Qualcosa è andato storto. È stato inviato un rapporto sull\'arresto anomalo.</string>
+    <string name="error_feedback_action">Aggiungi Dettagli</string>
+    <string name="error_feedback_title">Cosa È Successo?</string>
+    <string name="error_feedback_message">La tua nota viene allegata al rapporto sull\'arresto anomalo. Non includere informazioni personali. Percorsi dei file e coordinate GPS vengono rimossi prima dell\'invio.</string>
+    <string name="error_feedback_hint">Cosa stavi facendo quando si è verificato il problema?</string>
+    <string name="error_feedback_send">Invia</string>
+    <string name="error_feedback_cancel">Annulla</string>
+    <string name="error_feedback_thanks">Grazie, la tua nota è stata inviata.</string>
     <string name="stats_title">Statistiche</string>
     <string name="stats_navigate_up">Indietro</string>
     <string name="stats_settings_title">Le Tue Statistiche sulla Privacy</string>

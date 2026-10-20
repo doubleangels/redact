@@ -455,6 +455,14 @@
     <string name="review_prompt_no">不用了</string>
     <string name="review_prompt_declined">好的，Redact 不会再询问。如果你改变主意，可以随时在“设置 › 关于”中评分。</string>
     <string name="crash_prompt_declined">好的，Redact 不会再询问。你可以随时在 设置 › 诊断与反馈 中开启崩溃报告。</string>
+    <string name="error_feedback_offer">出了点问题。已发送崩溃报告。</string>
+    <string name="error_feedback_action">添加详情</string>
+    <string name="error_feedback_title">发生了什么？</string>
+    <string name="error_feedback_message">你的说明会附加到崩溃报告中。请勿包含个人信息。文件路径和 GPS 坐标会在发送前移除。</string>
+    <string name="error_feedback_hint">出错时你正在做什么？</string>
+    <string name="error_feedback_send">发送</string>
+    <string name="error_feedback_cancel">取消</string>
+    <string name="error_feedback_thanks">谢谢，你的说明已发送。</string>
     <string name="stats_title">统计</string>
     <string name="stats_navigate_up">返回</string>
     <string name="stats_settings_title">你的隐私统计</string>

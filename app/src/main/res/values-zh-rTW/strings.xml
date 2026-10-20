@@ -455,6 +455,14 @@
     <string name="review_prompt_no">不用了</string>
     <string name="review_prompt_declined">好的，Redact 不會再詢問。如果你改變主意，隨時可以在「設定 › 關於」中評分。</string>
     <string name="crash_prompt_declined">好的，Redact 不會再詢問。你可以隨時在 設定 › 診斷與意見回饋 中開啟當機報告。</string>
+    <string name="error_feedback_offer">發生問題。已傳送當機報告。</string>
+    <string name="error_feedback_action">新增詳細資訊</string>
+    <string name="error_feedback_title">發生了什麼事？</string>
+    <string name="error_feedback_message">你的說明會附加到當機報告中。請勿包含個人資訊。檔案路徑和 GPS 座標會在傳送前移除。</string>
+    <string name="error_feedback_hint">出錯時你正在做什麼？</string>
+    <string name="error_feedback_send">傳送</string>
+    <string name="error_feedback_cancel">取消</string>
+    <string name="error_feedback_thanks">謝謝，你的說明已傳送。</string>
     <string name="stats_title">統計</string>
     <string name="stats_navigate_up">返回</string>
     <string name="stats_settings_title">你的隱私統計</string>

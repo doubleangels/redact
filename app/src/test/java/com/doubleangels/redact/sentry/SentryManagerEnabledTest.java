@@ -25,6 +25,7 @@ import java.util.Map;
 
 import io.sentry.ITransaction;
 import io.sentry.SentryEvent;
+import io.sentry.protocol.SentryId;
 
 /**
  * With crash reporting enabled but the Sentry SDK not initialised (as in unit tests, where the
@@ -108,6 +109,33 @@ public class SentryManagerEnabledTest {
         SentryManager.recordException(new ProcessingCancelledException("Processing cancelled"));
         AppPreferences.setCrashReportingEnabled(app, false);
         SentryManager.recordException(new IllegalStateException("not sent"));
+    }
+
+    @Test
+    public void recordException_returnsNoIdWhenNothingIsSent() {
+        assertNull(SentryManager.recordException(new UnknownHostException("offline")));
+        assertNull(SentryManager.recordException(new ProcessingCancelledException("Processing cancelled")));
+        AppPreferences.setCrashReportingEnabled(app, false);
+        assertNull(SentryManager.recordException(new IllegalStateException("not sent")));
+    }
+
+    @Test
+    public void reportedSince_isNullWhenNoNewErrorWasSent() {
+        SentryId before = SentryManager.lastReportedEventId();
+        SentryManager.recordException(new UnknownHostException("offline"));
+        assertNull(SentryManager.reportedSince(before));
+    }
+
+    @Test
+    public void sendFeedback_skipsBlankNotesAndDisabledReporting() {
+        SentryId eventId = new SentryId();
+        assertFalse(SentryManager.sendFeedback(null, eventId));
+        assertFalse(SentryManager.sendFeedback("   ", eventId));
+        // The SDK isn't initialised here, so even a valid note returns false; it must not throw.
+        assertFalse(SentryManager.sendFeedback("It failed on content://media/1", eventId));
+        assertFalse(SentryManager.sendFeedback("x".repeat(SentryManager.MAX_FEEDBACK_LENGTH + 50), null));
+        AppPreferences.setCrashReportingEnabled(app, false);
+        assertFalse(SentryManager.sendFeedback("not sent", eventId));
     }
 
     @Test

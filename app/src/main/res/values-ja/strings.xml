@@ -456,6 +456,14 @@
     <string name="review_prompt_no">いいえ</string>
     <string name="review_prompt_declined">わかりました。今後はお尋ねしません。気が変わったら、設定 › このアプリについて からいつでも評価できます。</string>
     <string name="crash_prompt_declined">わかりました。今後はお尋ねしません。クラッシュレポートは、設定 › 診断とフィードバック からいつでもオンにできます。</string>
+    <string name="error_feedback_offer">問題が発生しました。クラッシュレポートを送信しました。</string>
+    <string name="error_feedback_action">詳細を追加</string>
+    <string name="error_feedback_title">何が起きましたか？</string>
+    <string name="error_feedback_message">メモはクラッシュレポートに添付されます。個人情報は含めないでください。ファイルパスと GPS 座標は送信前に削除されます。</string>
+    <string name="error_feedback_hint">問題が起きたとき、何をしていましたか？</string>
+    <string name="error_feedback_send">送信</string>
+    <string name="error_feedback_cancel">キャンセル</string>
+    <string name="error_feedback_thanks">ありがとうございます。メモを送信しました。</string>
     <string name="stats_title">統計</string>
     <string name="stats_navigate_up">戻る</string>
     <string name="stats_settings_title">プライバシー統計</string>

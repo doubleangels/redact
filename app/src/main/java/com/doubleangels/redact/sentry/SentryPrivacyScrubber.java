@@ -251,6 +251,25 @@ public final class SentryPrivacyScrubber {
         }
     }
 
+    /**
+     * Scrubs a user feedback event: the event itself, plus the feedback context, which is not a
+     * map and so is skipped by {@link #scrubEvent}. Name, email and URL are dropped outright.
+     */
+    public static void scrubFeedbackEvent(SentryEvent event) {
+        scrubEvent(event);
+        if (event == null || event.getContexts() == null) {
+            return;
+        }
+        io.sentry.protocol.Feedback feedback = event.getContexts().getFeedback();
+        if (feedback == null) {
+            return;
+        }
+        feedback.setMessage(scrub(feedback.getMessage() != null ? feedback.getMessage() : ""));
+        feedback.setName(null);
+        feedback.setContactEmail(null);
+        feedback.setUrl(null);
+    }
+
     private static void scrubStringObjectMap(@Nullable Map<String, Object> map) {
         if (map == null) {
             return;

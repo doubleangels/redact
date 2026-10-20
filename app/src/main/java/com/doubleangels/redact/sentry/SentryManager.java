@@ -35,6 +35,8 @@ import io.sentry.SentryAttributes;
 import io.sentry.SentryLevel;
 import io.sentry.metrics.MetricsUnit;
 import io.sentry.metrics.SentryMetricsParameters;
+import io.sentry.protocol.Feedback;
+import io.sentry.protocol.SentryId;
 
 /**
  * Crashlytics-style helpers: breadcrumbs, structured logs, metrics, scoped tags, and exception capture.
@@ -170,6 +172,13 @@ public final class SentryManager {
     private static final ThreadLocal<Map<String, String>> OPERATION_DATA =
             ThreadLocal.withInitial(LinkedHashMap::new);
 
+    /** Feedback longer than this is cut, so a pasted log can't make an oversized item. */
+    static final int MAX_FEEDBACK_LENGTH = 1000;
+
+    /** Event ID of the last error sent, so the user can attach feedback to it. */
+    @Nullable
+    private static volatile SentryId lastReportedEventId;
+
     private SentryManager() {
     }
 
@@ -300,11 +309,16 @@ public final class SentryManager {
         logEvent("custom", SentryPrivacyScrubber.scrub(message));
     }
 
-    public static void recordException(Throwable e) {
+    /**
+     * Sends {@code e} to Sentry. Returns the event ID, or null when nothing was sent (unsupported
+     * media, an ignored or cancelled error, or crash reporting off).
+     */
+    @Nullable
+    public static SentryId recordException(Throwable e) {
         if (UnsupportedMediaException.isCauseOf(e)) {
             Log.i(TAG, "Unsupported media, not sending:", e);
             logEvent("media", "An item in an unsupported format was skipped.");
-            return;
+            return null;
         }
         if (isIgnored(e)) {
             if (isUserCancellation(e)) {
@@ -312,15 +326,59 @@ public final class SentryManager {
             } else {
                 Log.e(TAG, "Ignored error:", e);
             }
-            return;
+            return null;
         }
         if (!isEnabled()) {
             Log.e(TAG, "Crash reporting disabled, not sending:", e);
-            return;
+            return null;
         }
         // Sent as-is so the issue keeps the real exception type and grouping; beforeSend scrubs the
         // message of every exception in the cause chain.
-        Sentry.captureException(e);
+        SentryId id = Sentry.captureException(e);
+        if (id == null || SentryId.EMPTY_ID.equals(id)) {
+            return null;
+        }
+        lastReportedEventId = id;
+        return id;
+    }
+
+    /** Event ID of the last error sent, or null when none has been sent since the app started. */
+    @Nullable
+    public static SentryId lastReportedEventId() {
+        return lastReportedEventId;
+    }
+
+    /**
+     * The last error sent if it is newer than {@code before} (a {@link #lastReportedEventId()}
+     * read when a job started), or null when the job sent nothing.
+     */
+    @Nullable
+    public static SentryId reportedSince(@Nullable SentryId before) {
+        SentryId last = lastReportedEventId;
+        return last != null && !last.equals(before) ? last : null;
+    }
+
+    /**
+     * Sends what the user wrote about the error {@code eventId}, scrubbed like every other text,
+     * so it shows on that issue in Sentry. Returns false when nothing was sent.
+     */
+    public static boolean sendFeedback(@Nullable String message, @Nullable SentryId eventId) {
+        if (!isEnabled() || message == null) {
+            return false;
+        }
+        String safe = SentryPrivacyScrubber.scrub(message.trim());
+        if (safe.isEmpty()) {
+            return false;
+        }
+        if (safe.length() > MAX_FEEDBACK_LENGTH) {
+            safe = safe.substring(0, MAX_FEEDBACK_LENGTH);
+        }
+        Feedback feedback = new Feedback(safe);
+        if (eventId != null) {
+            feedback.setAssociatedEventId(eventId);
+        }
+        SentryId sent = Sentry.captureFeedback(feedback);
+        return sent != null && !SentryId.EMPTY_ID.equals(sent);
     }
 
     /**

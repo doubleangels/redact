@@ -494,6 +494,14 @@
     <string name="review_prompt_no">Нет</string>
     <string name="review_prompt_declined">Хорошо, Redact больше не будет спрашивать. Если передумаете, оценить приложение можно в любое время в разделе Настройки › О приложении.</string>
     <string name="crash_prompt_declined">Хорошо, Redact больше не будет спрашивать. Включить отчёты о сбоях можно в любое время в разделе Настройки › Диагностика и Отзывы.</string>
+    <string name="error_feedback_offer">Что-то пошло не так. Отчёт о сбое отправлен.</string>
+    <string name="error_feedback_action">Добавить Подробности</string>
+    <string name="error_feedback_title">Что Случилось?</string>
+    <string name="error_feedback_message">Ваша заметка прикрепляется к отчёту о сбое. Не указывайте личные данные. Пути к файлам и GPS-координаты удаляются перед отправкой.</string>
+    <string name="error_feedback_hint">Что вы делали, когда возникла ошибка?</string>
+    <string name="error_feedback_send">Отправить</string>
+    <string name="error_feedback_cancel">Отмена</string>
+    <string name="error_feedback_thanks">Спасибо, ваша заметка отправлена.</string>
     <string name="stats_title">Статистика</string>
     <string name="stats_navigate_up">Назад</string>
     <string name="stats_settings_title">Ваша Статистика Конфиденциальности</string>

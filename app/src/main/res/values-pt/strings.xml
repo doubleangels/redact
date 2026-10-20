@@ -481,6 +481,14 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="review_prompt_no">Não</string>
     <string name="review_prompt_declined">Tudo bem, o Redact não vai perguntar de novo. Se mudar de ideia, você pode avaliá-lo quando quiser em Configurações › Sobre.</string>
     <string name="crash_prompt_declined">Tudo bem, o Redact não vai perguntar de novo. Você pode ativar os relatórios de falhas quando quiser em Configurações › Diagnóstico e Feedback.</string>
+    <string name="error_feedback_offer">Algo deu errado. Um relatório de falhas foi enviado.</string>
+    <string name="error_feedback_action">Adicionar Detalhes</string>
+    <string name="error_feedback_title">O Que Aconteceu?</string>
+    <string name="error_feedback_message">Sua nota é anexada ao relatório de falhas. Não inclua informações pessoais. Caminhos de arquivos e coordenadas GPS são removidos antes do envio.</string>
+    <string name="error_feedback_hint">O que você estava fazendo quando deu errado?</string>
+    <string name="error_feedback_send">Enviar</string>
+    <string name="error_feedback_cancel">Cancelar</string>
+    <string name="error_feedback_thanks">Obrigado, sua nota foi enviada.</string>
     <string name="stats_title">Estatísticas</string>
     <string name="stats_navigate_up">Voltar</string>
     <string name="stats_settings_title">Suas Estatísticas de Privacidade</string>

@@ -59,6 +59,7 @@ import io.sentry.ISpan;
 import io.sentry.ITransaction;
 
 import io.sentry.SpanStatus;
+import io.sentry.protocol.SentryId;
 
 
 
@@ -102,6 +103,14 @@ public class MainViewModel extends AndroidViewModel {
     private final AtomicInteger cleanGeneration;
 
     private final ProgressUpdateThrottler convertProgressThrottler = new ProgressUpdateThrottler();
+
+    /** Error report the last failed clean sent, until its tab offers feedback on it. */
+    @androidx.annotation.Nullable
+    private SentryId cleanFeedbackEventId;
+
+    /** Error report the last failed convert sent, until its tab offers feedback on it. */
+    @androidx.annotation.Nullable
+    private SentryId convertFeedbackEventId;
 
 
 
@@ -586,6 +595,25 @@ public class MainViewModel extends AndroidViewModel {
 
      */
 
+    /**
+     * The error report sent by the last clean that had failures, once: later calls return null
+     * so a rotation doesn't offer it again.
+     */
+    @androidx.annotation.Nullable
+    public SentryId takeCleanFeedbackEventId() {
+        SentryId id = cleanFeedbackEventId;
+        cleanFeedbackEventId = null;
+        return id;
+    }
+
+    /** Like {@link #takeCleanFeedbackEventId()}, for the last convert. */
+    @androidx.annotation.Nullable
+    public SentryId takeConvertFeedbackEventId() {
+        SentryId id = convertFeedbackEventId;
+        convertFeedbackEventId = null;
+        return id;
+    }
+
     /** Saved outputs of the last clean batch, kept until the next batch starts. */
     public List<android.net.Uri> getCleanOutputs() {
         return mediaProcessor.getSucceededOutputs();
@@ -645,6 +673,8 @@ public class MainViewModel extends AndroidViewModel {
         persistBatchCounts(0, items.size(), KEY_CLEAN_PROCESSED, KEY_CLEAN_BATCH);
 
         final int runGeneration = cleanGeneration.incrementAndGet();
+        cleanFeedbackEventId = null;
+        final SentryId reportedBefore = SentryManager.lastReportedEventId();
         mediaProcessor.processMediaItems(items, new MediaProcessor.ProcessingCallback() {
 
             @Override
@@ -682,8 +712,12 @@ public class MainViewModel extends AndroidViewModel {
                 cleanProcessedItemCount.setValue(successCount);
                 cleanBatchTotalCount.setValue(totalCount);
                 persistBatchCounts(successCount, totalCount, KEY_CLEAN_PROCESSED, KEY_CLEAN_BATCH);
-                setCleanProcessingState(ProcessingState.COMPLETED);
                 int failCount = Math.max(0, totalCount - successCount);
+                // Set before COMPLETED, whose observers run right away and read it.
+                if (failCount > 0) {
+                    cleanFeedbackEventId = SentryManager.reportedSince(reportedBefore);
+                }
+                setCleanProcessingState(ProcessingState.COMPLETED);
                 // Counted here rather than by the Clean tab, which sees only the runs it was
                 // watching when they finished.
                 if (successCount > 0 && failCount == 0) {
@@ -776,6 +810,8 @@ public class MainViewModel extends AndroidViewModel {
                 getApplication().getString(R.string.notification_convert_progress_title));
 
         final int runGeneration = convertGeneration.incrementAndGet();
+        convertFeedbackEventId = null;
+        final SentryId reportedBefore = SentryManager.lastReportedEventId();
         convertExecutor.execute(() -> {
 
             ITransaction transaction = SentryManager.startTransaction("convert_multiple", "task");
@@ -978,6 +1014,9 @@ public class MainViewModel extends AndroidViewModel {
                         convertProgressMessage.postValue(
                                 getApplication().getString(R.string.status_processing_cancelled));
                     } else {
+                        if (finalFail > 0) {
+                            convertFeedbackEventId = SentryManager.reportedSince(reportedBefore);
+                        }
                         updateConvertProgressPercentForce(
                                 100, convertCompletionMessage(finalOk, finalFail));
                         convertProcessedItemCount.setValue(finalOk);

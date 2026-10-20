@@ -481,6 +481,14 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="review_prompt_no">Non</string>
     <string name="review_prompt_declined">C\'est noté, Redact ne vous le redemandera pas. Si vous changez d\'avis, vous pouvez le noter à tout moment depuis Paramètres › À propos.</string>
     <string name="crash_prompt_declined">C\'est noté, Redact ne vous le redemandera pas. Vous pouvez activer les rapports de plantage à tout moment dans Paramètres › Diagnostic et Commentaires.</string>
+    <string name="error_feedback_offer">Un problème est survenu. Un rapport de plantage a été envoyé.</string>
+    <string name="error_feedback_action">Ajouter des Détails</string>
+    <string name="error_feedback_title">Que S\'est-il Passé ?</string>
+    <string name="error_feedback_message">Votre note est jointe au rapport de plantage. N\'incluez pas d\'informations personnelles. Les chemins de fichiers et les coordonnées GPS sont supprimés avant l\'envoi.</string>
+    <string name="error_feedback_hint">Que faisiez-vous lorsque le problème est survenu ?</string>
+    <string name="error_feedback_send">Envoyer</string>
+    <string name="error_feedback_cancel">Annuler</string>
+    <string name="error_feedback_thanks">Merci, votre note a été envoyée.</string>
     <string name="stats_title">Statistiques</string>
     <string name="stats_navigate_up">Retour</string>
     <string name="stats_settings_title">Vos Statistiques de Confidentialité</string>
