@@ -16,7 +16,7 @@ import java.security.SecureRandom;
  * unlinking it, so a plain filesystem-level recovery cannot recover deleted media bytes.
  *
  * <p>Use this instead of {@link File#delete()} for anything that may still hold original,
- * unredacted media (source snapshots, transcode intermediates, processed outputs) — a bare
+ * unredacted media (source snapshots, transcode intermediates, processed outputs); a bare
  * {@code delete()} only removes the directory entry and leaves the data blocks recoverable.
  */
 public final class SecureDelete {
@@ -39,8 +39,11 @@ public final class SecureDelete {
 
             int passes = AppPreferences.getSecureDeletePasses(context);
             byte[] randomData = new byte[BUFFER_SIZE];
-            for (int pass = 0; pass < passes; pass++) {
-                try (RandomAccessFile raf = new RandomAccessFile(file, "rws")) {
+            // "rw" plus one sync per pass: "rws" synced every 64 KB write, which made deleting a
+            // large video take minutes. Each pass still reaches storage before the next starts.
+            try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+                for (int pass = 0; pass < passes; pass++) {
+                    raf.seek(0);
                     long position = 0;
                     while (position < fileSize) {
                         RANDOM.nextBytes(randomData);

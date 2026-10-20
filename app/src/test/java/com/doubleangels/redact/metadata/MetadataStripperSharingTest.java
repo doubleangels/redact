@@ -19,7 +19,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
 
 import java.io.File;
@@ -28,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 31)
 public class MetadataStripperSharingTest {
 
     private Application app;
@@ -38,7 +36,7 @@ public class MetadataStripperSharingTest {
     public void setUp() {
         app = RuntimeEnvironment.getApplication();
         stripper = new MetadataStripper(app);
-        FileProviderTestSupport.clearCache();
+        FileProviderTestSupport.makeUsable(app);
     }
 
     private File image(String ext, Bitmap.CompressFormat fmt, boolean exif) throws Exception {
@@ -73,7 +71,6 @@ public class MetadataStripperSharingTest {
 
     @Test
     public void shareJpeg_strict_removesExif() throws Exception {
-        FileProviderTestSupport.assumeUsable();
         AppPreferences.setStrictClean(app, true);
         File src = image(".jpg", Bitmap.CompressFormat.JPEG, true);
         List<Integer> pct = new ArrayList<>();
@@ -83,6 +80,47 @@ public class MetadataStripperSharingTest {
         assertNotNull(stripper.getLastProcessedFileUri());
         assertNotNull(stripper.getLastProcessedOutputFile());
         assertTrue(!pct.isEmpty());
+    }
+
+    @Test
+    public void shareJpeg_reportsWhatItRemoved() throws Exception {
+        File src = image(".jpg", Bitmap.CompressFormat.JPEG, true);
+
+        assertClean(stripper.stripExifDataForSharing(Uri.fromFile(src), "s.jpg"));
+
+        CleanStats stats = stripper.getLastCleanStats();
+        assertNotNull(stats);
+        assertTrue(stats.removedFields > 0);
+        assertTrue(stats.hadLocation);
+    }
+
+    @Test
+    public void aFailedShareAfterAGoodOne_doesNotReportTheGoodOneAgain() throws Exception {
+        File src = image(".jpg", Bitmap.CompressFormat.JPEG, true);
+        assertClean(stripper.stripExifDataForSharing(Uri.fromFile(src), "s.jpg"));
+        assertNotNull(stripper.getLastCleanStats());
+
+        stripper.stripExifDataForSharing(Uri.parse("file:///no/such/file.jpg"), "missing.jpg");
+
+        assertEquals(null, stripper.getLastCleanStats());
+    }
+
+    @Test
+    public void shareWithoutALocation_reportsNoLocation() throws Exception {
+        File src = image(".jpg", Bitmap.CompressFormat.JPEG, false);
+
+        assertClean(stripper.stripExifDataForSharing(Uri.fromFile(src), "s.jpg"));
+
+        CleanStats stats = stripper.getLastCleanStats();
+        assertNotNull(stats);
+        assertFalse(stats.hadLocation);
+    }
+
+    @Test
+    public void shareMissingSource_reportsNothing() {
+        stripper.stripExifDataForSharing(Uri.parse("file:///no/such/file.jpg"), "missing.jpg");
+
+        assertEquals(null, stripper.getLastCleanStats());
     }
 
     @Test

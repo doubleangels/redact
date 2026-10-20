@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Filter;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,6 +31,8 @@ import com.doubleangels.redact.permission.PermissionStatusHelper;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.sentry.SentryInitializer;
 import com.doubleangels.redact.sentry.SentryManager;
+import com.doubleangels.redact.stats.StatsSnapshot;
+import com.doubleangels.redact.stats.StatsStore;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -63,12 +66,18 @@ public class SettingsFragment extends Fragment {
     private MaterialButton buttonLocationPermission;
     private TextView textPermissionNotificationsStatus;
     private TextView textStorageSize;
+    private View rowStatsSummary;
+    private TextView textStatsSummarySubtitle;
+    private TextView textStatsSummaryFields;
+    private TextView textStatsSummaryLocations;
+    private TextView textStatsSummaryFiles;
     private MaterialAutoCompleteTextView dropdownDefaultImageFormat;
     private MaterialAutoCompleteTextView dropdownDefaultVideoFormat;
     private MaterialAutoCompleteTextView dropdownImageQuality;
 
     private MaterialSwitch switchStrictClean;
     private MaterialSwitch switchDeleteOriginals;
+    private MaterialSwitch switchKeepOriginalNames;
     private MaterialSwitch switchWarnAlreadyClean;
     private MaterialSwitch switchSecureWindow;
     private MaterialSwitch switchPreserveCamera;
@@ -88,6 +97,8 @@ public class SettingsFragment extends Fragment {
 
     @Nullable
     private ExecutorService backgroundExecutor;
+    /** Counts output folder checks, so only the latest one's answer is shown. Main thread only. */
+    private int outputFolderCheck;
 
     @Nullable
     @Override
@@ -109,6 +120,7 @@ public class SettingsFragment extends Fragment {
             clipboardClearLabels = getResources().getStringArray(R.array.settings_clipboard_clear_labels);
             maxBitmapSizeLabels = getResources().getStringArray(R.array.settings_max_bitmap_size_labels);
 
+            bindStatistics(view);
             bindPermissions(view);
             bindConversionDefaults();
             bindShareTarget();
@@ -128,6 +140,7 @@ public class SettingsFragment extends Fragment {
         refreshPermissionStatuses();
         refreshStorageSize();
         refreshOutputFolders();
+        refreshStatistics();
         maybeRequestLocationAfterMediaGrant();
     }
 
@@ -137,6 +150,8 @@ public class SettingsFragment extends Fragment {
         if (!hidden) {
             // A chosen folder can be deleted or its storage removed while another tab is open.
             refreshOutputFolders();
+            // A clean or convert on another tab adds to the counts.
+            refreshStatistics();
         }
     }
 
@@ -170,6 +185,7 @@ public class SettingsFragment extends Fragment {
         
         switchStrictClean = view.findViewById(R.id.switchStrictClean);
         switchDeleteOriginals = view.findViewById(R.id.switchDeleteOriginals);
+        switchKeepOriginalNames = view.findViewById(R.id.switchKeepOriginalNames);
         switchWarnAlreadyClean = view.findViewById(R.id.switchWarnAlreadyClean);
         switchSecureWindow = view.findViewById(R.id.switchSecureWindow);
         switchPreserveCamera = view.findViewById(R.id.switchPreserveCamera);
@@ -275,6 +291,9 @@ public class SettingsFragment extends Fragment {
         switchDeleteOriginals.setChecked(AppPreferences.isDeleteOriginalsAfterClean(requireContext()));
         switchDeleteOriginals.setOnCheckedChangeListener((btn, isChecked) ->
                 AppPreferences.setDeleteOriginalsAfterClean(requireContext(), isChecked));
+        switchKeepOriginalNames.setChecked(AppPreferences.isKeepOriginalFileNames(requireContext()));
+        switchKeepOriginalNames.setOnCheckedChangeListener((btn, isChecked) ->
+                AppPreferences.setKeepOriginalFileNames(requireContext(), isChecked));
         switchWarnAlreadyClean.setChecked(AppPreferences.isWarnAlreadyClean(requireContext()));
         switchWarnAlreadyClean.setOnCheckedChangeListener((btn, isChecked) ->
                 AppPreferences.setWarnAlreadyClean(requireContext(), isChecked));
@@ -459,38 +478,57 @@ public class SettingsFragment extends Fragment {
             if (tree == null) {
                 return;
             }
-            onOutputFolderPicked(requireContext(), video, tree);
+            boolean saved = onOutputFolderPicked(requireContext(), video, tree);
             refreshOutputFolders();
+            if (saved && !tree.equals(AppPreferences.getOutputTree(requireContext(), !video))) {
+                offerFolderForOtherType(video, tree);
+            }
         });
+    }
+
+    /** Asks whether the folder just chosen for {@code video} output should take the other type too. */
+    private void offerFolderForOtherType(boolean video, @NonNull Uri tree) {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(video ? R.string.settings_output_also_images : R.string.settings_output_also_videos)
+                .setMessage(OutputDestination.describe(requireContext(), tree))
+                .setPositiveButton(R.string.settings_output_also_confirm, (d, w) -> {
+                    onOutputFolderPicked(requireContext(), !video, tree);
+                    refreshOutputFolders();
+                })
+                .setNegativeButton(R.string.settings_output_also_decline, null)
+                .show();
     }
 
     /**
      * Saves a folder picked for {@code video} output. Picking the default folder itself resets to
      * the default; a folder Redact cannot write to is refused with a message and nothing changes.
+     *
+     * @return true when {@code tree} is now the chosen folder for {@code video} output
      */
     @VisibleForTesting
-    static void onOutputFolderPicked(@NonNull Context context, boolean video, @NonNull Uri tree) {
+    static boolean onOutputFolderPicked(@NonNull Context context, boolean video, @NonNull Uri tree) {
         Uri old = AppPreferences.getOutputTree(context, video);
         if (OutputDestination.isDefaultFolder(tree, video)) {
             AppPreferences.resetOutputTree(context, video);
             releaseOutputTree(context, old);
-            return;
+            return false;
         }
         try {
             context.getContentResolver().takePersistableUriPermission(tree,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         } catch (SecurityException e) {
             Toast.makeText(context, R.string.settings_output_error, Toast.LENGTH_LONG).show();
-            return;
+            return false;
         }
         if (!OutputDestination.acceptsNewFiles(context, tree)) {
             releaseOutputTree(context, tree);
             Toast.makeText(context, R.string.settings_output_error, Toast.LENGTH_LONG).show();
-            return;
+            return false;
         }
         AppPreferences.setOutputTree(context, video, tree);
         releaseOutputTree(context, old);
         OutputDestination.clearFallbackWarnings();
+        return true;
     }
 
     /** Drops the persisted grant for a replaced folder unless the other media type still uses it. */
@@ -515,21 +553,68 @@ public class SettingsFragment extends Fragment {
         textOutputVideosWarning = view.findViewById(R.id.textOutputVideosWarning);
         buttonResetOutputImages = view.findViewById(R.id.buttonResetOutputImages);
         buttonResetOutputVideos = view.findViewById(R.id.buttonResetOutputVideos);
-        view.findViewById(R.id.buttonChooseOutputImages).setOnClickListener(v ->
-                launchOutputFolderPicker(imageFolderPicker, false));
-        view.findViewById(R.id.buttonChooseOutputVideos).setOnClickListener(v ->
-                launchOutputFolderPicker(videoFolderPicker, true));
+        View.OnClickListener pickImages = v -> launchOutputFolderPicker(imageFolderPicker, false);
+        View.OnClickListener pickVideos = v -> launchOutputFolderPicker(videoFolderPicker, true);
+        view.findViewById(R.id.cardOutputImages).setOnClickListener(pickImages);
+        view.findViewById(R.id.buttonChooseOutputImages).setOnClickListener(pickImages);
+        view.findViewById(R.id.cardOutputVideos).setOnClickListener(pickVideos);
+        view.findViewById(R.id.buttonChooseOutputVideos).setOnClickListener(pickVideos);
+        view.findViewById(R.id.buttonOpenOutputImages).setOnClickListener(v -> openOutputFolder(false));
+        view.findViewById(R.id.buttonOpenOutputVideos).setOnClickListener(v -> openOutputFolder(true));
         buttonResetOutputImages.setOnClickListener(v -> resetOutputFolder(false));
         buttonResetOutputVideos.setOnClickListener(v -> resetOutputFolder(true));
         refreshOutputFolders();
     }
 
     private void launchOutputFolderPicker(@NonNull ActivityResultLauncher<Uri> picker, boolean video) {
-        try {
-            picker.launch(OutputDestination.pickerStartLocation(requireContext(), video));
-        } catch (ActivityNotFoundException e) {
-            Toast.makeText(requireContext(), R.string.settings_output_error, Toast.LENGTH_LONG).show();
+        withFolderLocation(context -> OutputDestination.pickerStartLocation(context, video), start -> {
+            try {
+                picker.launch(start);
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(requireContext(), R.string.settings_output_error, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    /** Shows the folder {@code video} output currently goes to in the system file manager. */
+    private void openOutputFolder(boolean video) {
+        withFolderLocation(context -> OutputDestination.currentFolderDocument(context, video), folder -> {
+            Intent intent = new Intent(Intent.ACTION_VIEW)
+                    .setDataAndType(folder, android.provider.DocumentsContract.Document.MIME_TYPE_DIR);
+            // Only a chosen folder is under a grant Redact can pass on; asking to grant the default
+            // folder, which Redact holds no grant for, makes startActivity throw.
+            if (android.provider.DocumentsContract.isTreeUri(folder)) {
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            }
+            try {
+                startActivity(intent);
+            } catch (ActivityNotFoundException | SecurityException e) {
+                Toast.makeText(requireContext(), R.string.settings_output_open_unavailable,
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * Works out a folder location in the background, since checking a chosen folder asks its
+     * storage provider (slow for an SD card or a cloud folder), then hands it to {@code then} on
+     * the main thread while this screen is still showing.
+     */
+    private void withFolderLocation(@NonNull java.util.function.Function<Context, Uri> locate,
+                                    @NonNull java.util.function.Consumer<Uri> then) {
+        View root = getView();
+        if (root == null || backgroundExecutor == null) {
+            return;
         }
+        Context app = requireContext().getApplicationContext();
+        backgroundExecutor.execute(() -> {
+            Uri location = locate.apply(app);
+            root.post(() -> {
+                if (getView() == root && isAdded()) {
+                    then.accept(location);
+                }
+            });
+        });
     }
 
     private void resetOutputFolder(boolean video) {
@@ -540,37 +625,122 @@ public class SettingsFragment extends Fragment {
         refreshOutputFolders();
     }
 
+    /**
+     * Shows where each media type's output goes. Whether a chosen folder still works is checked in
+     * the background, since that asks its storage provider; until the answer arrives the badge
+     * and warning keep what they last showed.
+     */
     private void refreshOutputFolders() {
-        if (textOutputImages == null || textOutputVideos == null || getContext() == null) {
+        View root = getView();
+        if (textOutputImages == null || textOutputVideos == null || root == null) {
             return;
         }
-        showOutputFolder(textOutputImages, textOutputImagesWarning, buttonResetOutputImages, false);
-        showOutputFolder(textOutputVideos, textOutputVideosWarning, buttonResetOutputVideos, true);
+        Context context = requireContext();
+        Uri images = AppPreferences.getOutputTree(context, false);
+        Uri videos = AppPreferences.getOutputTree(context, true);
+        showOutputFolder(textOutputImages, buttonResetOutputImages, images, false);
+        showOutputFolder(textOutputVideos, buttonResetOutputVideos, videos, true);
+        if (backgroundExecutor == null) {
+            return;
+        }
+        int check = ++outputFolderCheck;
+        Context app = context.getApplicationContext();
+        backgroundExecutor.execute(() -> {
+            boolean imagesUsable = images == null || OutputDestination.isUsable(app, images);
+            boolean videosUsable = videos == null || OutputDestination.isUsable(app, videos);
+            root.post(() -> {
+                // A newer refresh (or a new view) has taken over; its answer is the one to show.
+                if (check != outputFolderCheck || getView() != root || !isAdded()) {
+                    return;
+                }
+                showOutputFolderUsable(textOutputImagesWarning, root.findViewById(R.id.badgeOutputImages),
+                        root.findViewById(R.id.iconOutputImages), false, imagesUsable);
+                showOutputFolderUsable(textOutputVideosWarning, root.findViewById(R.id.badgeOutputVideos),
+                        root.findViewById(R.id.iconOutputVideos), true, videosUsable);
+            });
+        });
     }
 
-    /**
-     * Shows where {@code video} output goes. Reset is offered only for a chosen folder, and a
-     * chosen folder Redact can no longer write to says so, since files then go to the default.
-     */
-    private void showOutputFolder(@NonNull TextView label, @NonNull TextView warning,
-                                  @NonNull View reset, boolean video) {
-        Context context = requireContext();
-        Uri tree = AppPreferences.getOutputTree(context, video);
-        String defaultPath = OutputDestination.defaultPath(video);
+    /** Shows where {@code video} output goes. Reset is offered only for a chosen folder. */
+    private void showOutputFolder(@NonNull TextView label, @NonNull View reset, @Nullable Uri tree,
+                                  boolean video) {
         if (tree == null) {
-            label.setText(defaultPath);
-            warning.setVisibility(View.GONE);
+            label.setText(OutputDestination.defaultPath(video));
             reset.setVisibility(View.GONE);
             return;
         }
-        label.setText(OutputDestination.describe(context, tree));
+        label.setText(OutputDestination.describe(requireContext(), tree));
         reset.setVisibility(View.VISIBLE);
-        if (OutputDestination.isUsable(context, tree)) {
+    }
+
+    /**
+     * A chosen folder Redact can no longer write to says so, since files then go to the default.
+     * The default folder is always usable.
+     */
+    private void showOutputFolderUsable(@NonNull TextView warning, @NonNull View badge,
+                                        @NonNull ImageView icon, boolean video, boolean usable) {
+        tintOutputBadge(badge, icon, usable);
+        if (usable) {
             warning.setVisibility(View.GONE);
         } else {
-            warning.setText(getString(R.string.settings_output_unavailable, defaultPath));
+            warning.setText(getString(R.string.settings_output_unavailable, OutputDestination.defaultPath(video)));
             warning.setVisibility(View.VISIBLE);
         }
+    }
+
+    /** Paints an unusable folder's badge in the error colours so it stands out from a working one. */
+    private void tintOutputBadge(@NonNull View badge, @NonNull ImageView icon, boolean usable) {
+        Context context = requireContext();
+        int background = MaterialColors.getColor(context, usable
+                ? com.google.android.material.R.attr.colorSecondaryContainer
+                : com.google.android.material.R.attr.colorErrorContainer, 0);
+        int foreground = MaterialColors.getColor(context, usable
+                ? com.google.android.material.R.attr.colorOnSecondaryContainer
+                : com.google.android.material.R.attr.colorOnErrorContainer, 0);
+        badge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(background));
+        icon.setImageTintList(android.content.res.ColorStateList.valueOf(foreground));
+    }
+
+    private void bindStatistics(@NonNull View view) {
+        rowStatsSummary = view.findViewById(R.id.rowStatsSummary);
+        textStatsSummarySubtitle = view.findViewById(R.id.textStatsSummarySubtitle);
+        textStatsSummaryFields = view.findViewById(R.id.textStatsSummaryFields);
+        textStatsSummaryLocations = view.findViewById(R.id.textStatsSummaryLocations);
+        textStatsSummaryFiles = view.findViewById(R.id.textStatsSummaryFiles);
+        view.findViewById(R.id.cardStatsSummary).setOnClickListener(v ->
+                startActivity(new Intent(requireContext(), StatisticsActivity.class)));
+        refreshStatistics();
+    }
+
+    /** Shows the headline counts, or an invitation to clean something while there are none. */
+    private void refreshStatistics() {
+        if (rowStatsSummary == null || getContext() == null) {
+            return;
+        }
+        StatsSnapshot stats = StatsStore.snapshot(requireContext());
+        if (stats.isEmpty()) {
+            rowStatsSummary.setVisibility(View.GONE);
+            textStatsSummarySubtitle.setText(R.string.stats_settings_empty);
+            return;
+        }
+        textStatsSummarySubtitle.setText(getString(R.string.stats_settings_since,
+                java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM)
+                        .format(new java.util.Date(stats.trackingSince))));
+        textStatsSummaryFields.setText(compactCount(stats.fieldsRemoved));
+        textStatsSummaryLocations.setText(compactCount(stats.locationsRemoved));
+        textStatsSummaryFiles.setText(compactCount(stats.filesCleaned()));
+        rowStatsSummary.setVisibility(View.VISIBLE);
+    }
+
+    /** A count short enough for a third of the card: 1,284 stays as it is, 1,284,000 becomes 1.3M. */
+    @NonNull
+    private static String compactCount(long count) {
+        if (count < 1_000_000) {
+            return java.text.NumberFormat.getIntegerInstance().format(count);
+        }
+        return android.icu.text.CompactDecimalFormat.getInstance(
+                java.util.Locale.getDefault(),
+                android.icu.text.CompactDecimalFormat.CompactStyle.SHORT).format(count);
     }
 
     private void bindAbout(@NonNull View view) {
@@ -583,8 +753,57 @@ public class SettingsFragment extends Fragment {
                 openUrl(getString(R.string.url_privacy_policy)));
         view.findViewById(R.id.rowAboutReportIssue).setOnClickListener(v ->
                 openUrl(getString(R.string.url_report_issue)));
+        view.findViewById(R.id.rowAboutRate).setOnClickListener(v ->
+                com.doubleangels.redact.ui.ReviewPrompt.openStoreListing(requireContext()));
         view.findViewById(R.id.rowAboutDonate).setOnClickListener(v ->
                 openUrl(getString(R.string.url_donate)));
+        view.findViewById(R.id.rowResetSettings).setOnClickListener(v ->
+                new MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(R.string.settings_reset_all_title)
+                        .setMessage(R.string.settings_reset_all_message)
+                        .setPositiveButton(R.string.settings_reset_all_confirm, (d, w) -> resetAllSettings())
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show());
+    }
+
+    /**
+     * Restores every default: releases the chosen folders' grants, stops crash reporting if it was
+     * on, and recreates the activity so every screen reads the reset values.
+     */
+    private void resetAllSettings() {
+        Context context = requireContext();
+        // A running job may be writing into a chosen folder whose grant this would release.
+        if (ShareHandlerActivity.isShareProcessingActive() || MainViewModel.isAnyProcessing(requireActivity())) {
+            Toast.makeText(context, R.string.settings_reset_all_busy, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Uri images = AppPreferences.getOutputTree(context, false);
+        Uri videos = AppPreferences.getOutputTree(context, true);
+        boolean crashReporting = AppPreferences.isCrashReportingEnabled(context);
+        AppPreferences.resetAll(context);
+        releaseOutputTree(context, images);
+        releaseOutputTree(context, videos);
+        OutputDestination.clearFallbackWarnings();
+        if (crashReporting) {
+            SentryInitializer.shutdown();
+        }
+        Toast.makeText(context, R.string.settings_reset_all_done, Toast.LENGTH_SHORT).show();
+        // Restored view state would put back each switch and dropdown as it was, and the switch
+        // listeners would then write the old values straight back into the reset preferences.
+        View root = getView();
+        if (root != null) {
+            disableStateSaving(root);
+        }
+        requireActivity().recreate();
+    }
+
+    private static void disableStateSaving(@NonNull View view) {
+        view.setSaveEnabled(false);
+        if (view instanceof ViewGroup group) {
+            for (int i = 0; i < group.getChildCount(); i++) {
+                disableStateSaving(group.getChildAt(i));
+            }
+        }
     }
 
     private void setupDropdown(@NonNull MaterialAutoCompleteTextView dropdown,
@@ -861,11 +1080,7 @@ public class SettingsFragment extends Fragment {
     private void showSentryConsentDialog(
             @NonNull Runnable onAllow,
             @Nullable Runnable onDeny) {
-        new MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.settings_sentry_consent_title)
-                .setMessage(R.string.settings_sentry_consent_message)
-                .setPositiveButton(R.string.settings_sentry_consent_allow, (d, w) -> onAllow.run())
-                .setNegativeButton(R.string.settings_sentry_consent_cancel, (d, w) -> {
+        com.doubleangels.redact.ui.CrashReportingPrompt.consentDialog(requireContext(), onAllow, () -> {
                     if (onDeny != null) {
                         onDeny.run();
                     }

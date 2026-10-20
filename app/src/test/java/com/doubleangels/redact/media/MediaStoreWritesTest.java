@@ -9,13 +9,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
 public class MediaStoreWritesTest {
 
     @Test
-    @Config(sdk = 34)
     public void markPending_setsIsPendingOnQAndAbove() {
         ContentValues values = new ContentValues();
         MediaStoreWrites.markPending(values);
@@ -23,7 +21,6 @@ public class MediaStoreWritesTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void markPublished_ignoresNullUri() {
         MediaStoreWrites.markPublished(RuntimeEnvironment.getApplication().getContentResolver(), null);
     }

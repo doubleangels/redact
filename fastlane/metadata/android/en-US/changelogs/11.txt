@@ -1,1 +1,6 @@
-Bug fixes and performance improvements.
+New Convert tab: change image and video formats on your device.
+New Settings tab.
+Redesigned metadata view.
+Cleaning keeps an image in its original format, and HEIC files are handled better.
+Fixes for the media picker, permissions and sharing into Redact.
+Faster, more secure processing.

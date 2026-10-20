@@ -35,9 +35,9 @@
     <string name="convert_format_webp">WebP</string>
     <string name="convert_format_h264">MP4 (H.264)</string>
     <string name="convert_format_h265">MP4 (H.265)</string>
-    <string name="convert_format_vp9">WebM (VP9)</string>
+    <string name="convert_format_vp9">MP4 (VP9)</string>
     <string name="convert_format_heif">HEIC</string>
-    <string name="convert_format_av1">MKV (AV1)</string>
+    <string name="convert_format_av1">MP4 (AV1)</string>
     <string name="convert_select_files">Выбрать Файлы</string>
     <string name="convert_run">Конвертировать</string>
     <string name="convert_status_hint">Выберите формат вывода ниже и нажмите «Конвертировать».</string>
@@ -110,6 +110,18 @@
     <string name="metadata_latitude">Широта: %.15f</string>
     <string name="metadata_longitude">Долгота: %.15f</string>
     <string name="metadata_no_location_data">Данные о местоположении недоступны.</string>
+    <string name="metadata_location_unreadable">Данные о местоположении есть, но сохранены в виде, который нельзя показать здесь. Очистка удаляет их.</string>
+    <string name="metadata_container_tags_header">Встроенные Теги:</string>
+    <string name="metadata_container_tags">Найдено в файле: %1$s</string>
+    <string name="metadata_container_value">Есть – удаляется при очистке</string>
+    <string name="metadata_embedded_data_header">Скрытые и встроенные данные</string>
+    <string name="metadata_embedded_value">Есть (%1$s) – удаляется при очистке</string>
+    <plurals name="metadata_embedded_images">
+        <item quantity="one">%1$d изображение (%2$s) – удаляется при очистке</item>
+        <item quantity="few">%1$d изображения (%2$s) – удаляются при очистке</item>
+        <item quantity="many">%1$d изображений (%2$s) – удаляются при очистке</item>
+        <item quantity="other">%1$d изображения (%2$s) – удаляются при очистке</item>
+    </plurals>
     <string name="metadata_location_permission_needed">Разрешение на местоположение не предоставлено. Предоставьте разрешение для просмотра данных о местоположении.</string>
     <string name="metadata_orientation">Ориентация: %s</string>
     <string name="metadata_flash">Вспышка: %s</string>
@@ -145,9 +157,9 @@
 
     
     <string name="settings_section_advanced_privacy">Очистка Метаданных</string>
-    <string name="settings_advanced_privacy_subtitle">Как Redact удаляет скрытые данные — например, местоположение и данные камеры (EXIF) — на вкладке Очистка. Файлы, отправленные из других приложений, всегда очищаются от этого перед пересылкой.</string>
+    <string name="settings_advanced_privacy_subtitle">Как Redact удаляет скрытые данные, например, местоположение и данные камеры (EXIF), на вкладке Очистка. Файлы, отправленные из других приложений, всегда очищаются от этого перед пересылкой.</string>
     <string name="settings_secure_delete">Проходы Безопасного Удаления</string>
-    <string name="settings_secure_delete_subtitle">Сколько раз временные файлы — включая исходные, неотредактированные копии фото и видео до очистки — перезаписываются перед удалением, чтобы их данные нельзя было восстановить с диска. Больше проходов — медленнее; на flash-памяти восстановление всё равно возможно.</string>
+    <string name="settings_secure_delete_subtitle">Сколько раз временные файлы (включая исходные, неотредактированные копии фото и видео до очистки) перезаписываются перед удалением, чтобы их данные нельзя было восстановить с диска. Чем больше проходов, тем медленнее; на flash-памяти восстановление всё равно возможно.</string>
     <string name="settings_auto_clear_temp">Очищать Кэш при Запуске</string>
     <string name="settings_auto_clear_temp_subtitle">Удаляет файлы кэша обработки старше 24 часов при запуске приложения.</string>
     <string name="settings_preserve_camera">Сохранять Настройки Камеры</string>
@@ -156,17 +168,17 @@
     <string name="settings_preserve_location_subtitle">Сохранять GPS-координаты на Очистке. Игнорируется при Строгой Очистке или при отправке из других приложений.</string>
         <string name="settings_sentry_consent_allow">Включить</string>
     <string name="settings_sentry_consent_cancel">Не Сейчас</string>
-    <string name="settings_sentry_consent_title">Включить Отчёты о Сбоях?</string>
+    <string name="settings_sentry_consent_title">Включить Отчёты о Сбоях</string>
     <string name="settings_sentry_consent_message">Отправка отчётов о сбоях загружает анонимную диагностику в Sentry через интернет.\n\nФото, видео, имена файлов и GPS-координаты не загружаются.</string>
     <string name="settings_strict_clean">Строгая Очистка</string>
-    <string name="settings_strict_clean_subtitle">Удаляет все следы метаданных, включая тег ориентации — поэтому повёрнутое фото может выглядеть боком после очистки. Отключает опции сохранения выше и всегда полностью перекодирует видео для максимально тщательной очистки.</string>
+    <string name="settings_strict_clean_subtitle">Удаляет все следы метаданных, включая тег ориентации, поэтому повёрнутое фото может выглядеть боком после очистки. Отключает опции сохранения выше и всегда полностью перекодирует видео для максимально тщательной очистки.</string>
     
     <string name="settings_section_advanced_processing">Большие Файлы и Память</string>
     <string name="settings_advanced_processing_subtitle">Управляет использованием ОЗУ при декодировании больших изображений при очистке и конвертации.</string>
     <string name="settings_max_bitmap_size">Макс. Разрешение Обработки</string>
     <string name="settings_max_bitmap_size_subtitle">Длинная сторона в пикселях при декодировании в памяти. Меньшие значения используют меньше ОЗУ.</string>
     <string name="settings_video_fallback">Более Быстрая Очистка Видео</string>
-    <string name="settings_video_fallback_subtitle">Если видео уже в совместимом формате, Redact удаляет его метаданные быстрым проходом вместо полного перекодирования — это быстрее и бережнее к батарее, хотя полное перекодирование удаляет чуть больше. Автоматически отключается при включённой Строгой Очистке или при очистке файлов, отправленных из других приложений.</string>
+    <string name="settings_video_fallback_subtitle">Если видео уже в совместимом формате, Redact удаляет его метаданные быстрым проходом вместо полного перекодирования. Это быстрее и бережнее к батарее, хотя полное перекодирование удаляет чуть больше. Автоматически отключается при включённой Строгой Очистке или при очистке файлов, отправленных из других приложений.</string>
 
     <string-array name="settings_secure_delete_labels">
         <item>1 проход (быстро)</item>
@@ -193,7 +205,7 @@
     <string name="settings_section_diagnostics">Диагностика и Отзывы</string>
     <string name="settings_section_diagnostics_subtitle">Необязательные отчёты о сбоях. Ваши медиафайлы никогда не покидают устройство.</string>
     <string name="settings_crash_reporting_label">Отправлять Отчёты о Сбоях</string>
-    <string name="settings_crash_reporting_subtitle">Передаёт только анонимные технические данные (версия приложения, модель устройства, что делало приложение в момент сбоя) — никогда не ваши фото или видео. Отправляется через интернет в наш сервис отчётов о сбоях, Sentry, при включении.</string>
+    <string name="settings_crash_reporting_subtitle">Передаёт только анонимные технические данные (версия приложения, модель устройства, что делало приложение в момент сбоя), никогда не ваши фото или видео. Отправляется через интернет в наш сервис отчётов о сбоях, Sentry, при включении.</string>
     <string name="settings_section_conversion">Параметры Вкладки «Конвертация» по Умолчанию</string>
     <string name="settings_conversion_subtitle">Предвыбранные форматы при выборе файлов в Конвертация. Можно менять для каждой партии.</string>
     <string name="settings_default_image_format">Формат Изображения по Умолчанию</string>
@@ -208,12 +220,12 @@
     <string name="settings_section_share">Отправка в Redact</string>
     <string name="settings_share_confirm_label">Подтверждать перед Удалением Метаданных</string>
     <string name="settings_share_confirm_subtitle">Показывать запрос перед удалением EXIF и других метаданных из общих файлов.</string>
-    <string name="settings_share_confirm_dialog_title">Удалить Метаданные?</string>
+    <string name="settings_share_confirm_dialog_title">Удаление Метаданных</string>
     <string name="settings_share_confirm_dialog_message">Redact удалит EXIF и другие метаданные из общих файлов перед их передачей.</string>
     <string name="settings_share_confirm_dialog_confirm">Удалить и Продолжить</string>
     <string name="settings_share_confirm_dialog_cancel">Отмена</string>
     <string name="settings_section_permissions">Разрешения</string>
-    <string name="settings_permissions_subtitle">На Android 13+ Redact использует системный выбор файлов — «Загрузки», «Файлы» или папки галереи без широкого доступа к медиатеке. Полный доступ к фото/видео необязателен. Уведомления необязательны.</string>
+    <string name="settings_permissions_subtitle">На Android 13+ Redact использует системный выбор файлов: «Загрузки», «Файлы» или папки галереи без широкого доступа к медиатеке. Полный доступ к фото/видео необязателен. Уведомления необязательны.</string>
     <string name="settings_permissions_media">Фото и Видео</string>
     <string name="settings_permissions_notifications">Уведомления (необязательно)</string>
     <string name="settings_permission_granted">Предоставлено</string>
@@ -224,7 +236,7 @@
     <string name="settings_storage_size">Используется кэша: %1$s</string>
     <string name="settings_storage_subtitle">Рабочие копии, создаваемые при обработке. Оригиналы в галерее не изменяются.</string>
     <string name="settings_storage_clear">Очистить Временные Файлы</string>
-    <string name="settings_storage_clear_confirm_title">Очистить Временные Файлы?</string>
+    <string name="settings_storage_clear_confirm_title">Очистка Временных Файлов</string>
     <string name="settings_storage_clear_confirm_message">Удаляет кэшированные копии недавней обработки. Файлы в галерее не затрагиваются.</string>
     <string name="settings_storage_clear_success">Временные файлы очищены.</string>
     <string name="settings_storage_clear_empty">Нет временных файлов для очистки.</string>
@@ -235,6 +247,7 @@
     <string name="settings_about_privacy">Политика Конфиденциальности</string>
     <string name="settings_about_report_issue">Сообщить о Проблеме</string>
     <string name="settings_about_donate">Пожертвовать</string>
+    <string name="settings_about_rate">Оценить Redact в Google Play</string>
     <string name="settings_link_unavailable">Не найдено приложение для открытия этой ссылки.</string>
     <string name="settings_progress_notifications_label">Прогресс Текущей Задачи</string>
     <string name="settings_progress_notifications_subtitle">Постоянное уведомление о прогрессе длительных задач. По умолчанию выкл., пока не включите уведомления.</string>
@@ -282,21 +295,21 @@
     <string name="settings_permission_partial">Частично</string>
     <string name="scan_status_ready">Выберите файл для просмотра метаданных.</string>
     <string name="animated_image_warning">Анимированные изображения сохраняются как один кадр.</string>
-    <string name="processing_warning_low_storage">Мало места (%1$s свободно). Обработка может не удаться — очистите временные файлы в Настройках.</string>
+    <string name="processing_warning_low_storage">Мало места (%1$s свободно). Обработка может не удаться. Очистите временные файлы в Настройках.</string>
     <string name="processing_warning_critical_storage_title">Недостаточно Места</string>
     <string name="processing_warning_critical_storage_message">Redact может потребовать около %1$s временного пространства, но свободно только %2$s. Обработка может не удаться.</string>
     <string name="processing_warning_low_memory">На устройстве мало памяти. Большие файлы могут не обработаться или работать медленно.</string>
     <string name="processing_warning_large_video">Выбраны большие видео. Обработке нужно дополнительное временное пространство и может потребоваться время.</string>
     <string name="processing_warning_continue">Всё Равно Продолжить</string>
     <string name="clean_item_failed">Ошибка: %1$s</string>
-    <string name="settings_preserve_location_confirm_title">Сохранять GPS на очищенных фото?</string>
+    <string name="settings_preserve_location_confirm_title">Сохранение GPS на очищенных фото</string>
     <string name="settings_preserve_location_confirm_message">Очищенные файлы могут содержать GPS-координаты. При отправке из других приложений местоположение всегда удаляется.
 
 Включайте только если намеренно хотите сохранить местоположение.</string>
     <string name="settings_permission_needs_media">Требуются Фото</string>
     <string name="settings_location_permission_grant">Предоставить Геоданные Фото</string>
-    <string name="settings_location_needs_media_title">Сначала разрешить фото и видео?</string>
-    <string name="settings_location_needs_media_message">Местоположение фото позволяет Redact читать GPS-координаты, встроенные в ваши медиафайлы. Сначала требуется доступ к библиотеке фото и видео — выбор отдельных файлов недостаточен.\n\nНа следующем экране нажмите «Разрешить доступ ко всем фото и видео». Обычно устройство одновременно предоставляет местоположение фото.</string>
+    <string name="settings_location_needs_media_title">Нужен доступ к фото и видео</string>
+    <string name="settings_location_needs_media_message">Местоположение фото позволяет Redact читать GPS-координаты, встроенные в ваши медиафайлы. Сначала требуется доступ к библиотеке фото и видео. Выбор отдельных файлов недостаточен.\n\nНа следующем экране нажмите «Разрешить доступ ко всем фото и видео». Обычно устройство одновременно предоставляет местоположение фото.</string>
     <string name="settings_location_grant_media_first">Продолжить</string>
     <string name="settings_location_permission_granted">Разрешение на геоданные фото предоставлено.</string>
     <string name="settings_location_permission_denied">Разрешение на геоданные фото отклонено.</string>
@@ -342,6 +355,9 @@
     <string name="convert_item_type_image">Изображение</string>
     <string name="convert_item_type_video">Видео</string>
     <string name="notification_clean_failed">На этот раз не удалось очистить ни одного файла.</string>
+    <string name="notification_clean_batch_details">В этой партии: %1$s</string>
+    <string name="notification_clean_totals">На этом устройстве всего: %1$s</string>
+    <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">Просмотр Метаданных Мультимедиа</string>
     <string name="scan_empty_state_description">Выберите фото или видео, чтобы увидеть сведения EXIF, характеристики камеры, координаты GPS и технические свойства.</string>
     <string name="scan_grant_location_button">Предоставить Разрешение</string>
@@ -432,4 +448,60 @@
     <string name="share_results_chooser_title">Поделиться через…</string>
     <string name="settings_output_unavailable">Redact больше не может сохранять в эту папку, поэтому файлы попадают в %1$s. Выберите её снова или другую папку.</string>
     <string name="output_folder_fallback">Сохранение в %2$s: папка %1$s недоступна.</string>
+    <string name="settings_output_open">Открыть Папку</string>
+    <string name="settings_output_open_unavailable">Не найдено приложение, чтобы открыть эту папку.</string>
+    <string name="settings_output_also_videos">Сохранять сюда и видео?</string>
+    <string name="settings_output_also_images">Сохранять сюда и изображения?</string>
+    <string name="settings_output_also_confirm">Для Обоих</string>
+    <string name="settings_output_also_decline">Нет, Спасибо</string>
+    <string name="settings_reset_all">Сбросить Все Настройки</string>
+    <string name="settings_reset_all_title">Сброс всех настроек</string>
+    <string name="settings_reset_all_message">Все настройки вернутся к значениям по умолчанию, а Redact забудет выбранные папки для сохранения. Ваши фото, видео и очищенные файлы не изменятся.</string>
+    <string name="settings_reset_all_confirm">Сбросить</string>
+    <string name="settings_reset_all_done">Настройки сброшены.</string>
+    <string name="settings_reset_all_busy">Нельзя сбросить настройки во время обработки.</string>
+    <string name="share_target_scan">Сканировать в Redact</string>
+    <string name="button_scan_result">Сканировать Результат</string>
+    <string name="settings_keep_original_names">Сохранять Исходные Имена</string>
+    <string name="settings_keep_original_names_subtitle">Очищенные и преобразованные файлы получают имя оригинала вместо случайного. Имена вроде IMG_20260117 могут показать, когда был сделан снимок.</string>
+    <string name="review_prompt_title">Оцените Redact</string>
+    <string name="review_prompt_message">Если Redact помогает сохранять ваши фото в тайне, не хотите оценить его в Google Play? Это займёт минуту и поможет другим людям найти приложение.</string>
+    <string name="review_prompt_yes">Да</string>
+    <string name="review_prompt_no">Нет</string>
+    <string name="review_prompt_declined">Хорошо, Redact больше не будет спрашивать. Если передумаете, оценить приложение можно в любое время в разделе Настройки › О приложении.</string>
+    <string name="crash_prompt_declined">Хорошо, Redact больше не будет спрашивать. Включить отчёты о сбоях можно в любое время в разделе Настройки › Диагностика и Отзывы.</string>
+    <string name="stats_title">Статистика</string>
+    <string name="stats_navigate_up">Назад</string>
+    <string name="stats_settings_title">Ваша Статистика Конфиденциальности</string>
+    <string name="stats_settings_empty">Очистите первое фото или видео, чтобы увидеть, что Redact удаляет для вас.</string>
+    <string name="stats_settings_since">Подсчитано на этом устройстве с %1$s.</string>
+    <string name="stats_fields_removed">Удалено Полей</string>
+    <string name="stats_locations_removed">Удалено Геоданных</string>
+    <string name="stats_files_cleaned">Очищено Файлов</string>
+    <string name="stats_photos">Очищено Фото</string>
+    <string name="stats_videos">Очищено Видео</string>
+    <string name="stats_files_converted">Конвертировано Файлов</string>
+    <string name="stats_on_device_note">Подсчитывается только на этом устройстве. Ничего из этого никуда не отправляется.</string>
+    <string name="stats_section_removed">Что Было Удалено</string>
+    <string name="stats_section_removed_subtitle">Сколько очищенных файлов содержали каждый вид личных данных.</string>
+    <string name="stats_removed_location">Местоположение</string>
+    <string name="stats_removed_dates">Дата и Время Съёмки</string>
+    <string name="stats_removed_devices">Камера и Телефон</string>
+    <string name="stats_removed_names">Имена и Авторы</string>
+    <string name="stats_section_files">Файлы</string>
+    <string name="stats_section_activity">Последние 30 Дней</string>
+    <string name="stats_chart_empty">За последние 30 дней ничего не очищено.</string>
+    <string name="stats_chart_today">Сегодня</string>
+    <string name="stats_clear">Очистить Статистику</string>
+    <string name="stats_clear_subtitle">Сбрасывает все счётчики до нуля. Ваши настройки и файлы не меняются.</string>
+    <string name="stats_clear_title">Очистка статистики</string>
+    <string name="stats_clear_message">Все счётчики обнулятся и начнут отсчёт заново. Ваши настройки, фото, видео и очищенные файлы не затрагиваются.</string>
+    <string name="stats_clear_confirm">Очистить</string>
+    <string name="stats_cleared">Статистика очищена.</string>
+    <plurals name="stats_chart_summary">
+        <item quantity="one">%1$s файл очищен за последние 30 дней.</item>
+        <item quantity="few">%1$s файла очищено за последние 30 дней.</item>
+        <item quantity="many">%1$s файлов очищено за последние 30 дней.</item>
+        <item quantity="other">%1$s файла очищено за последние 30 дней.</item>
+    </plurals>
 </resources>

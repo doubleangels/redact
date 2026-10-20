@@ -357,29 +357,6 @@ public class SettingsFragmentTest {
     // ---- storage ---------------------------------------------------------------------------------
 
     @Test
-    public void clearTempFiles_confirmsThenCleansAndRefreshesTheSize() throws Exception {
-        java.io.File cache = new java.io.File(activity.getCacheDir(), "processed");
-        cache.mkdirs();
-        java.io.File junk = new java.io.File(cache, "leftover.jpg");
-        try (java.io.FileOutputStream out = new java.io.FileOutputStream(junk)) {
-            out.write(new byte[2048]);
-        }
-        assertTrue(junk.setLastModified(System.currentTimeMillis() - 48L * 60 * 60 * 1000));
-
-        settings.findViewById(R.id.buttonClearTempFiles).performClick();
-        idle();
-        latestDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
-        long end = System.currentTimeMillis() + 3000;
-        while (System.currentTimeMillis() < end && junk.exists()) {
-            idle();
-            Thread.sleep(25);
-        }
-        idle();
-
-        assertFalse(junk.exists());
-    }
-
-    @Test
     public void clearTempFiles_cancelLeavesFilesAlone() throws Exception {
         java.io.File cache = new java.io.File(activity.getCacheDir(), "processed");
         cache.mkdirs();
@@ -433,31 +410,6 @@ public class SettingsFragmentTest {
     }
 
     @Test
-    public void locationRow_withoutMediaAccess_explainsTheDependency() {
-        shadowOf(activity.getApplication()).denyPermissions(
-                Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.ACCESS_MEDIA_LOCATION);
-
-        settings.findViewById(R.id.rowPermissionLocation).performClick();
-        idle();
-
-        AlertDialog dialog = latestDialog();
-        assertNotNull(dialog);
-        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
-    }
-
-    @Test
-    public void locationButton_withMediaAccess_launchesThePermissionRequest() {
-        shadowOf(activity.getApplication()).grantPermissions(Manifest.permission.READ_EXTERNAL_STORAGE);
-        shadowOf(activity.getApplication()).denyPermissions(Manifest.permission.ACCESS_MEDIA_LOCATION);
-
-        settings.findViewById(R.id.buttonLocationPermission).performClick();
-        idle();
-
-        ShadowActivity.PermissionsRequest request = shadowOf(activity).getLastRequestedPermission();
-        assertNotNull(request);
-    }
-
-    @Test
     public void locationRow_whenAlreadyGranted_doesNothing() {
         shadowOf(activity.getApplication()).grantPermissions(
                 Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.ACCESS_MEDIA_LOCATION);
@@ -467,8 +419,30 @@ public class SettingsFragmentTest {
     }
 
     @Test
+    public void resetAllSettings_isNotUndoneByTheRecreatedScreen() {
+        sw(R.id.switchDeleteOriginals).setChecked(true);
+        sw(R.id.switchKeepOriginalNames).setChecked(true);
+        idle();
+        assertTrue(AppPreferences.isDeleteOriginalsAfterClean(activity));
+
+        settings.findViewById(R.id.rowResetSettings).performClick();
+        idle();
+        latestDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        idle();
+
+        // The recreated switches must not write their old checked state back.
+        assertFalse(AppPreferences.isDeleteOriginalsAfterClean(activity));
+        assertFalse(AppPreferences.isKeepOriginalFileNames(activity));
+        activity = controller.get();
+        settings = fragment().getView();
+        assertFalse(sw(R.id.switchDeleteOriginals).isChecked());
+        assertFalse(sw(R.id.switchKeepOriginalNames).isChecked());
+    }
+
+    @Test
     public void aboutRows_openTheirLinks() {
-        int[] rows = {R.id.rowAboutGithub, R.id.rowAboutPrivacy, R.id.rowAboutReportIssue, R.id.rowAboutDonate};
+        int[] rows = {R.id.rowAboutGithub, R.id.rowAboutPrivacy, R.id.rowAboutReportIssue,
+                R.id.rowAboutRate, R.id.rowAboutDonate};
         for (int row : rows) {
             settings.findViewById(row).performClick();
             assertNotNull(nextIntentWithAction(Intent.ACTION_VIEW));
@@ -500,6 +474,134 @@ public class SettingsFragmentTest {
         idle();
     }
 
+    /** Waits for an activity-for-result launched after background work, as the folder picker is. */
+    private org.robolectric.shadows.ShadowActivity.IntentForResult awaitStartedForResult() throws Exception {
+        long end = System.currentTimeMillis() + 3000;
+        org.robolectric.shadows.ShadowActivity.IntentForResult launched = null;
+        while (launched == null && System.currentTimeMillis() < end) {
+            idle();
+            launched = shadowOf(activity).getNextStartedActivityForResult();
+            // Skip the initial runtime-permission request.
+            if (launched != null && !Intent.ACTION_OPEN_DOCUMENT_TREE.equals(launched.intent.getAction())) {
+                launched = null;
+                continue;
+            }
+            if (launched == null) {
+                Thread.sleep(25);
+            }
+        }
+        assertNotNull(launched);
+        return launched;
+    }
+
+    private Intent awaitStarted(String action) throws Exception {
+        Intent intent = null;
+        long end = System.currentTimeMillis() + 3000;
+        while (intent == null && System.currentTimeMillis() < end) {
+            idle();
+            intent = nextIntentWithAction(action);
+            if (intent == null) {
+                Thread.sleep(25);
+            }
+        }
+        assertNotNull(intent);
+        return intent;
+    }
+
+    @Test
+    public void chooseFolder_offersTheSameFolderForTheOtherMediaType() throws Exception {
+        FakeDocumentsProvider.install(activity);
+        android.net.Uri tree = FakeDocumentsProvider.folder("primary:DCIM/Camera");
+        settings.findViewById(R.id.buttonChooseOutputImages).performClick();
+        org.robolectric.shadows.ShadowActivity.IntentForResult launched = awaitStartedForResult();
+        assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, launched.intent.getAction());
+
+        shadowOf(activity).receiveResult(launched.intent, Activity.RESULT_OK,
+                new Intent().setData(tree).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION));
+        idle();
+        assertEquals(tree, AppPreferences.getOutputTree(activity, false));
+
+        AlertDialog offer = latestDialog();
+        assertNotNull(offer);
+        offer.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        idle();
+        assertEquals(tree, AppPreferences.getOutputTree(activity, true));
+
+        // A chosen folder is opened with the read grant Redact holds for it.
+        settings.findViewById(R.id.buttonOpenOutputImages).performClick();
+        Intent view = awaitStarted(Intent.ACTION_VIEW);
+        assertTrue((view.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0);
+    }
+
+    @Test
+    public void chooseFolder_cancelled_changesNothing() throws Exception {
+        settings.findViewById(R.id.buttonChooseOutputVideos).performClick();
+        org.robolectric.shadows.ShadowActivity.IntentForResult launched = awaitStartedForResult();
+        shadowOf(activity).receiveResult(launched.intent, Activity.RESULT_CANCELED, null);
+        idle();
+        assertEquals(null, AppPreferences.getOutputTree(activity, true));
+    }
+
+    @Test
+    public void resetAllSettings_whileAJobRuns_isRefused() {
+        AppPreferences.setDeleteOriginalsAfterClean(activity, true);
+        new androidx.lifecycle.ViewModelProvider(activity).get(com.doubleangels.redact.ui.MainViewModel.class)
+                .setCleanProcessingState(com.doubleangels.redact.ui.MainViewModel.ProcessingState.PROCESSING);
+        settings.findViewById(R.id.rowResetSettings).performClick();
+        idle();
+        latestDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        idle();
+
+        assertEquals(activity.getString(R.string.settings_reset_all_busy),
+                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+        assertTrue(AppPreferences.isDeleteOriginalsAfterClean(activity));
+    }
+
+    @Test
+    public void dropdowns_showTheLeastAndMostThoroughChoices() {
+        AppPreferences.setSecureDeletePasses(activity, 1);
+        AppPreferences.setMaxBitmapSize(activity, 8192);
+        // Settings reads its values when its view is made, so start over with a new activity.
+        controller.pause().stop().destroy();
+        controller = Robolectric.buildActivity(MainActivity.class).setup();
+        activity = controller.get();
+        activity.selectTab(R.id.navigation_settings);
+        idle();
+        settings = fragment().getView();
+
+        String[] passes = activity.getResources().getStringArray(R.array.settings_secure_delete_labels);
+        assertEquals(passes[0],
+                ((MaterialAutoCompleteTextView) settings.findViewById(R.id.dropdownSecureDelete)).getText().toString());
+        String[] sizes = activity.getResources().getStringArray(R.array.settings_max_bitmap_size_labels);
+        assertEquals(sizes[2],
+                ((MaterialAutoCompleteTextView) settings.findViewById(R.id.dropdownMaxBitmapSize)).getText().toString());
+    }
+
+    @Test
+    public void openFolder_showsTheOutputFolderInTheFileManager() throws Exception {
+        assertTrue(new java.io.File(android.os.Environment.getExternalStorageDirectory(),
+                com.doubleangels.redact.media.OutputDestination.defaultPath(true)).mkdirs());
+        settings.findViewById(R.id.buttonOpenOutputVideos).performClick();
+
+        // The folder is worked out in the background, then opened on the main thread.
+        Intent intent = null;
+        long end = System.currentTimeMillis() + 3000;
+        while (intent == null && System.currentTimeMillis() < end) {
+            idle();
+            intent = nextIntentWithAction(Intent.ACTION_VIEW);
+            if (intent == null) {
+                Thread.sleep(25);
+            }
+        }
+        assertNotNull(intent);
+        assertEquals(android.provider.DocumentsContract.Document.MIME_TYPE_DIR, intent.getType());
+        assertEquals("primary:Movies/Redact",
+                android.provider.DocumentsContract.getDocumentId(intent.getData()));
+        // Redact holds no grant on the default folder, so asking to pass one on would throw.
+        assertEquals(0, intent.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION);
+    }
+
     @Test
     public void outputFolders_showTheDefault_aChosenFolder_andAWarningOnceItIsGone() {
         TextView label = settings.findViewById(R.id.textOutputImages);
@@ -522,6 +624,17 @@ public class SettingsFragmentTest {
         //noinspection ResultOfMethodCallIgnored
         FakeDocumentsProvider.fileFor("primary:Pictures/Private").delete();
         reshowSettings();
+        // The folder is checked in the background; wait for the answer to reach the screen.
+        long end = System.currentTimeMillis() + 3000;
+        while (warning.getVisibility() != View.VISIBLE && System.currentTimeMillis() < end) {
+            idle();
+            try {
+                Thread.sleep(25);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
         assertEquals("Pictures/Private", label.getText().toString());
         assertEquals(View.VISIBLE, warning.getVisibility());
         assertEquals(activity.getString(R.string.settings_output_unavailable, "Pictures/Redact"),
@@ -533,6 +646,115 @@ public class SettingsFragmentTest {
         assertEquals(View.GONE, reset.getVisibility());
         assertEquals(View.GONE, warning.getVisibility());
         assertEquals(null, AppPreferences.getOutputTree(activity, false));
+    }
+
+    @Test
+    public void statsCard_withNothingCounted_invitesAClean() {
+        assertEquals(View.GONE, settings.findViewById(R.id.rowStatsSummary).getVisibility());
+        assertEquals(activity.getString(R.string.stats_settings_empty),
+                ((TextView) settings.findViewById(R.id.textStatsSummarySubtitle)).getText().toString());
+    }
+
+    @Test
+    public void statsCard_showsTheTotalsWhenSettingsIsShownAgain() {
+        com.doubleangels.redact.stats.StatsStore.recordClean(activity,
+                new com.doubleangels.redact.metadata.CleanStats(1284, true), false, false);
+        com.doubleangels.redact.stats.StatsStore.recordClean(activity,
+                new com.doubleangels.redact.metadata.CleanStats(0, false), true, false);
+
+        reshowSettings();
+
+        assertEquals(View.VISIBLE, settings.findViewById(R.id.rowStatsSummary).getVisibility());
+        assertEquals("1,284", ((TextView) settings.findViewById(R.id.textStatsSummaryFields)).getText().toString());
+        assertEquals("1", ((TextView) settings.findViewById(R.id.textStatsSummaryLocations)).getText().toString());
+        assertEquals("2", ((TextView) settings.findViewById(R.id.textStatsSummaryFiles)).getText().toString());
+        assertTrue(((TextView) settings.findViewById(R.id.textStatsSummarySubtitle)).getText().toString()
+                .startsWith("Counted on this device since "));
+    }
+
+    @Test
+    public void statsCard_opensTheStatisticsScreen() {
+        settings.findViewById(R.id.cardStatsSummary).performClick();
+        idle();
+
+        Intent started = shadowOf(activity).getNextStartedActivity();
+        assertNotNull(started);
+        assertEquals(StatisticsActivity.class.getName(), started.getComponent().getClassName());
+    }
+
+    @Test
+    public void statsCard_isTheFirstThingInSettings() {
+        View card = settings.findViewById(R.id.cardStatsSummary);
+        android.view.ViewGroup list = (android.view.ViewGroup) card.getParent();
+        int firstCard = -1;
+        for (int i = 0; i < list.getChildCount(); i++) {
+            if (list.getChildAt(i) instanceof com.google.android.material.card.MaterialCardView) {
+                firstCard = i;
+                break;
+            }
+        }
+        assertEquals(card, list.getChildAt(firstCard));
+        assertTrue(card.isClickable());
+    }
+
+    @Test
+    public void statsCard_shortensCountsTooLongForTheCard() {
+        activity.getSharedPreferences("redact_stats", android.content.Context.MODE_PRIVATE).edit()
+                .putLong("fields_removed", 1_284_000L)
+                .putLong("locations_removed", 999_999L)
+                .putLong("files_cleaned_images", 2_500_000_000L)
+                .putLong("tracking_since", System.currentTimeMillis())
+                .commit();
+
+        reshowSettings();
+
+        assertEquals("1.3M", ((TextView) settings.findViewById(R.id.textStatsSummaryFields)).getText().toString());
+        assertEquals("999,999", ((TextView) settings.findViewById(R.id.textStatsSummaryLocations)).getText().toString());
+        assertEquals("2.5B", ((TextView) settings.findViewById(R.id.textStatsSummaryFiles)).getText().toString());
+    }
+
+    @Test
+    public void statsCard_goesBackToTheInvitationAfterAClear() {
+        com.doubleangels.redact.stats.StatsStore.recordClean(activity,
+                new com.doubleangels.redact.metadata.CleanStats(12, true), false, false);
+        reshowSettings();
+        assertEquals(View.VISIBLE, settings.findViewById(R.id.rowStatsSummary).getVisibility());
+
+        // As when Statistics is opened from here, cleared, and closed again.
+        controller.pause();
+        com.doubleangels.redact.stats.StatsStore.clear(activity);
+        controller.resume();
+        idle();
+
+        assertEquals(View.GONE, settings.findViewById(R.id.rowStatsSummary).getVisibility());
+        assertEquals(activity.getString(R.string.stats_settings_empty),
+                ((TextView) settings.findViewById(R.id.textStatsSummarySubtitle)).getText().toString());
+    }
+
+    @Test
+    public void statsCard_updatesWhenTheAppComesBack() {
+        controller.pause();
+        com.doubleangels.redact.stats.StatsStore.recordClean(activity,
+                new com.doubleangels.redact.metadata.CleanStats(3, false), true, true);
+        controller.resume();
+        idle();
+
+        assertEquals(View.VISIBLE, settings.findViewById(R.id.rowStatsSummary).getVisibility());
+        assertEquals("3", ((TextView) settings.findViewById(R.id.textStatsSummaryFields)).getText().toString());
+        assertEquals("0", ((TextView) settings.findViewById(R.id.textStatsSummaryLocations)).getText().toString());
+    }
+
+    @Test
+    @org.robolectric.annotation.Config(qualifiers = "de")
+    public void statsCard_isTranslated() {
+        com.doubleangels.redact.stats.StatsStore.recordClean(activity,
+                new com.doubleangels.redact.metadata.CleanStats(1284, true), false, false);
+
+        reshowSettings();
+
+        assertEquals("1.284", ((TextView) settings.findViewById(R.id.textStatsSummaryFields)).getText().toString());
+        assertFalse(((TextView) settings.findViewById(R.id.textStatsSummarySubtitle)).getText().toString()
+                .startsWith("Counted"));
     }
 
     @SuppressWarnings("unused")

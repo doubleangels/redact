@@ -215,12 +215,40 @@ public final class LocalNotifications {
         lastConvertProgressNotifyMs.set(0);
     }
 
-    public static void startProcessingForeground(@NonNull Context context, @NonNull String title) {
+    /** The jobs that keep the processing foreground service running. */
+    public enum ForegroundJob { CLEAN, CONVERT, SHARE }
+
+    /** Jobs currently using the service; it stops when the last one ends. Guarded by itself. */
+    private static final java.util.Set<ForegroundJob> foregroundJobs =
+            java.util.EnumSet.noneOf(ForegroundJob.class);
+
+    /**
+     * Keeps the app running in the foreground for {@code job}. A share can run while a clean is
+     * still going, so the service is shared and only stops once every job using it has ended.
+     */
+    public static void startProcessingForeground(
+            @NonNull Context context, @NonNull ForegroundJob job, @NonNull String title) {
+        synchronized (foregroundJobs) {
+            foregroundJobs.add(job);
+        }
         ProcessingForegroundService.start(context, title);
     }
 
-    public static void stopProcessingForeground(@NonNull Context context) {
+    /** Ends {@code job}'s use of the service. Safe to call more than once, or for a job never started. */
+    public static void stopProcessingForeground(@NonNull Context context, @NonNull ForegroundJob job) {
+        synchronized (foregroundJobs) {
+            if (!foregroundJobs.remove(job) || !foregroundJobs.isEmpty()) {
+                return;
+            }
+        }
         ProcessingForegroundService.stop(context);
+    }
+
+    /** Forgets every job, for when the system has stopped the service itself. */
+    static void clearForegroundJobs() {
+        synchronized (foregroundJobs) {
+            foregroundJobs.clear();
+        }
     }
 
     @NonNull
@@ -239,6 +267,17 @@ public final class LocalNotifications {
     /** Same as {@link #showCleanComplete(Context, int, int)}, followed by what the batch removed. */
     public static void showCleanComplete(@NonNull Context context, int okCount, int failCount,
                                          @androidx.annotation.Nullable String summary) {
+        showCleanComplete(context, okCount, failCount, summary, null);
+    }
+
+    /**
+     * Same as {@link #showCleanComplete(Context, int, int, String)}. Expanded, the notification
+     * also lists the other kinds of detail the batch removed ({@code details}) and the running
+     * totals from Statistics.
+     */
+    public static void showCleanComplete(@NonNull Context context, int okCount, int failCount,
+                                         @androidx.annotation.Nullable String summary,
+                                         @androidx.annotation.Nullable String details) {
         cancelCleanProgress(context);
 
         if (!canPostCleanNotifications(context)) {
@@ -254,15 +293,24 @@ public final class LocalNotifications {
         } else {
             text = app.getString(R.string.notification_clean_failed);
         }
+        String expanded = text;
         if (okCount > 0) {
             text = com.doubleangels.redact.ui.CleanSummary.append(text, summary);
+            expanded = text;
+            if (details != null && !details.isEmpty()) {
+                expanded += "\n" + details;
+            }
+            String totals = cleanTotals(app);
+            if (totals != null) {
+                expanded += "\n" + totals;
+            }
         }
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(app, CHANNEL_ID_TASKS)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(title)
                 .setContentText(text)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(text))
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(expanded))
                 .setProgress(0, 0, false)
                 .setOngoing(false)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -274,6 +322,26 @@ public final class LocalNotifications {
         } catch (SecurityException e) {
             SentryManager.recordException(e);
         }
+    }
+
+    /**
+     * "On this device so far: Fields Removed (1,284) · Locations Removed (312)", from Statistics,
+     * or null when nothing has been counted.
+     */
+    @androidx.annotation.Nullable
+    static String cleanTotals(@NonNull Context app) {
+        com.doubleangels.redact.stats.StatsSnapshot s =
+                com.doubleangels.redact.stats.StatsStore.snapshot(app);
+        if (s.filesCleaned() == 0) {
+            return null;
+        }
+        android.content.res.Resources res = app.getResources();
+        return app.getString(R.string.notification_clean_totals,
+                com.doubleangels.redact.ui.CleanSummary.joinItems(java.util.List.of(
+                        com.doubleangels.redact.ui.CleanSummary.item(res,
+                                res.getString(R.string.stats_fields_removed), s.fieldsRemoved),
+                        com.doubleangels.redact.ui.CleanSummary.item(res,
+                                res.getString(R.string.stats_locations_removed), s.locationsRemoved))));
     }
 
     private static boolean shouldThrottleProgress(@NonNull AtomicLong lastNotifyMs) {

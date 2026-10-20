@@ -63,7 +63,8 @@ Every photo and video your phone takes carries a hidden label called **metadata*
 - the **date, time and time zone**,
 - the **make and model** of your phone or camera,
 - **camera settings** such as aperture, shutter speed and ISO,
-- extra tags added by editing apps (XMP, IPTC and video container tags).
+- extra tags added by editing apps (XMP, IPTC, comments and video container tags),
+- data hidden after the picture: extra preview images with their own location, Motion Photo clips and phone makers' own records.
 
 Most apps and websites do not show you this, but anyone who receives the original file can read it. Redact removes it, lets you inspect what a file contains before you send it, and converts between formats, **without your files ever leaving your device**.
 
@@ -75,12 +76,13 @@ Most apps and websites do not show you this, but anyone who receives the origina
 
 | | |
 |---|---|
-| **Clean** | Removes GPS coordinates, device details, timestamps and other hidden EXIF and container metadata from images and videos. Strict Clean re-encodes video for the most thorough removal; Faster Video Cleaning is available on compatible files. When a clean finishes, Redact tells you what it removed and a **Share** button sends the clean copies on. |
+| **Clean** | Removes GPS coordinates, device details, timestamps and other hidden EXIF and container metadata from images and videos, along with IPTC, comments, extra preview images and Motion Photo clips hidden inside photos. Strict Clean re-encodes video for the most thorough removal; Faster Video Cleaning is available on compatible files. When a clean finishes, Redact tells you what it removed and a **Share** button sends the clean copies on. |
 | **Scan** | Shows a file's metadata in an organized, readable list *before* you decide what to do. Rows that reveal where a file was taken carry a **Location** badge. Search the list, copy values, send the file to Clean or Convert, or open the location in your maps app. |
+| **Statistics** | **Your Privacy Stats** at the top of Settings, and the **Statistics** screen it opens, show how many metadata fields and locations Redact has removed, which kinds of personal details your files carried, and your activity over the last 30 days. Counted only on your device and never sent anywhere. |
 | **Convert** | Converts images between JPEG, PNG, WebP and HEIC (on supported devices) and video between H.264, H.265, VP9 and AV1. Converted files are stripped of metadata and checked afterward, so they do not carry the original's location or device details. |
 | **Share into Redact** | Share a photo or video from any other app. Redact cleans it and reopens the share sheet with the clean copy, with an optional confirmation step and a progress dialog you can cancel. |
-| **Open with Redact** | Open a photo or video in Redact from your gallery or file manager and it goes straight to Scan. |
-| **Shortcuts** | Long-press the app icon to jump straight to Clean, Scan or Convert. |
+| **Open with Redact** | Open a photo or video in Redact from your gallery or file manager, or share it to **Scan with Redact**, and it goes straight to Scan. |
+| **Shortcuts** | Long-press the app icon to jump straight to Clean, Scan or Convert, or add the **Clean** tile to Quick Settings. |
 | **Batches** | Clean or convert up to 20 files at once. If some files fail, Redact keeps going and reports what succeeded. |
 | **Large files** | There is no hard size cap. Redact warns you first when storage or memory looks too low for the job. |
 | **Delete originals (optional)** | Turn on **Delete Originals After Cleaning** and Redact asks Android to move the originals to trash after a successful clean. Android shows its own confirmation, so nothing is removed without your say-so. |
@@ -119,13 +121,14 @@ Your originals are never modified.
 
 Removes metadata and saves a new copy to `Pictures/Redact` (images) or `Movies/Redact` (videos). Choose up to 20 files. Location data is removed unless you explicitly turn on **Keep Location** in Settings (this asks for confirmation and is ignored by Strict Clean).
 
-When the clean finishes, Redact sums up what it removed, for example *"Removed 24 metadata fields, including location"* for one file, or the total and how many files had a location for a batch. Fields you chose to keep in Settings are not counted. The same summary appears in the completion notification if notifications are on. A **Share** button then appears above **Clean Metadata** to send the clean copies to another app. Convert shows the same **Share** button when it finishes.
+When the clean finishes, Redact sums up what it removed, for example *"Removed 24 metadata fields, including location"* for one file, or the total and how many files had a location for a batch. Fields you chose to keep in Settings are not counted. The same summary appears in the completion notification if notifications are on. A **Share** icon button then appears above **Clean Metadata** to send the clean copies to another app. Convert shows a **Share** button when it finishes. After cleaning a single file, a **Scan Result** icon button also appears beside Share and opens the clean copy in Scan, so you can see exactly what is left. Long-press either icon to see its name.
 
 ### Scan
 
 Pick **one** file to see everything embedded in it, grouped into sections such as image properties and technical details.
 
 - **Location** badge: marks rows that reveal where the file was taken, such as GPS coordinates.
+- **Hidden & embedded data:** a section for what lives outside the usual tags, such as IPTC captions and credits, comments, extra images or a Motion Photo clip stored after the picture, phone makers' own records, video container tags and data inside the video stream. Clean removes all of it.
 - **Search:** type in the box above the list to filter it. Matches field names and values, ignoring case, and treats spaces and underscores alike, so `gps altitude` finds `GPS_ALTITUDE`. Typing a section's name, such as `camera` or `location`, shows that whole section. The search clears when you scan another file.
 - **Copy:** copy a single value or the whole list. Copied values are flagged as sensitive on the clipboard on Android 13 and newer.
 - **Open in Clean / Convert:** send the file on without picking it again.
@@ -135,6 +138,7 @@ Pick **one** file to see everything embedded in it, grouped into sections such a
 ### Opening files from other apps and shortcuts
 
 - **Open with Redact:** when you open a photo or video from your gallery or file manager and choose Redact, it opens in Scan so you can check it before doing anything else.
+- **Scan with Redact:** the share sheet also lists **Scan with Redact** next to Redact. It opens the shared photo or video in Scan instead of cleaning it.
 - **App shortcuts:** long-press the Redact icon on your home screen to go straight to Clean, Scan or Convert.
 
 ### Convert
@@ -156,7 +160,9 @@ Cleaned and converted files are saved through Android's MediaStore into `Picture
 
 ## Settings
 
-The Settings tab is grouped the same way as the tables below, from the things you touch most to the housekeeping.
+**Your Privacy Stats** sits at the top of the Settings tab with your totals; tap it to open **Statistics**, where **Clear Statistics** sets every count back to zero. Reset All Settings leaves the statistics alone.
+
+The Settings tab puts the settings you use every day first: cleaning, sharing, Convert, output folders, privacy and notifications. Below them are the ones you rarely need (permissions, large files, storage, diagnostics and Reset All Settings), and About with its links comes last. It is grouped the same way as the tables below.
 
 **Metadata Cleaning**: what the Clean tab removes.
 
@@ -174,30 +180,64 @@ The Settings tab is grouped the same way as the tables below, from the things yo
 | **Warn About Already-Clean Files** | Before cleaning, tells you when selected files have no metadata to remove or are copies Redact already made, and lets you skip them, clean everything anyway or cancel. On by default; nothing about your files is stored to do this. |
 | **Delete Originals After Cleaning** | Asks Android to move the originals to trash after a successful clean. Android confirms each time. |
 
-**Sharing Into Redact, Convert Tab Defaults, and Large Files & Memory**
+**Sharing Into Redact**
 
 | Setting | What it does |
 |---|---|
 | **Confirm Before Removing Metadata** | Asks before cleaning files shared into Redact. |
-| **Default formats and image quality** | The formats and quality pre-selected on the Convert tab. You can still change them for each batch. |
-| **Max Processing Resolution** | Largest image edge, in pixels, used when decoding. Lower values use less memory. |
 
-**Privacy** and **Diagnostics & Feedback**
+**Convert Tab Defaults**
+
+| Setting | What it does |
+|---|---|
+| **Default formats and image quality** | The formats and quality pre-selected on the Convert tab. You can still change them for each batch. |
+
+**Output Folders**
+
+| Setting | What it does |
+|---|---|
+| **Images** / **Videos** | Tap a folder to open the file browser and pick or create where cleaned and converted files go. After you pick one, Redact offers to use it for the other media type too. Defaults are `Pictures/Redact` and `Movies/Redact`; **Reset to Default** restores either. Existing files are not moved. |
+| **Open Folder** | Shows the folder in your file manager. |
+| **Keep Original File Names** | Names cleaned and converted files after the originals (for example `IMG_20260117_093012.jpg`) instead of a random name. Off by default, because such names can reveal when a photo was taken. Files shared into Redact always get a random name. |
+| Unavailable folder | If a chosen folder is deleted or its storage is removed, Redact saves to the default instead and marks the folder in red here. |
+
+**Privacy**
 
 | Setting | What it does |
 |---|---|
 | **Hide Content in Screenshots and Recents** | Blocks screenshots and screen recording inside Redact and blanks its preview on the recent apps screen, so metadata and thumbnails of private photos are not captured. Off by default; takes effect immediately. |
 | **Clear Copied Metadata** | Clears metadata you copied from Scan off the clipboard after 15 seconds, 30 seconds, 1 minute or 5 minutes, unless you have copied something else since. Off by default. |
-| **Send Crash Reports** | Optional anonymized crash diagnostics through Sentry, off by default, with a consent prompt. |
 
-**Notifications** and **Storage & Cache**
+**Notifications**
 
 | Setting | What it does |
 |---|---|
 | **Allow Notifications** / **Ongoing Task Progress** | Alerts when jobs finish and optional live progress. Off until you turn them on. |
+
+**Permissions** shows what Redact can access and lets you grant the optional photo-location permission.
+
+**Large Files & Memory**
+
+| Setting | What it does |
+|---|---|
+| **Max Processing Resolution** | Largest image edge, in pixels, used when decoding. Lower values use less memory. |
+
+**Storage & Cache**
+
+| Setting | What it does |
+|---|---|
 | **Clear Cache on Startup** / **Clear Temporary Files** | Removes processing cache older than 24 hours when the app opens, or on demand. |
-| **Output Folders** | Opens the file browser so you can pick or create a folder for cleaned and converted images and another for videos. Defaults are `Pictures/Redact` and `Movies/Redact`; **Reset to Default** restores either. Existing files are not moved. If a chosen folder becomes unavailable, Redact falls back to the default and warns you here. |
 | **Secure Deletion Passes** | How many times temporary files are overwritten before deletion. More passes are slower, and recovery may still be possible on flash storage. |
+
+**Diagnostics & Feedback**
+
+| Setting | What it does |
+|---|---|
+| **Send Crash Reports** | Optional anonymized crash diagnostics through Sentry, off by default, with a consent prompt. On first start Redact asks once whether to turn it on; if you choose Not Now it says where this setting is and never asks again. |
+
+**Reset All Settings** puts every setting back to its default and forgets the chosen output folders. Your files are not touched.
+
+**About**: version, links and **Rate Redact on Google Play**.
 
 Open the Settings tab in the app for the full list.
 
@@ -210,6 +250,7 @@ Open the Settings tab in the app for the full list.
 - **Two optional things can touch the network or another app:**
   1. **Send Crash Reports** (off by default) sends anonymized diagnostics to [Sentry](https://sentry.io): device model, Android version, app version, stack traces and a few scrubbed tags. File paths, filenames and GPS coordinates are removed before anything is sent. Your photos and videos are **never** uploaded.
   2. **Open in maps** from Scan hands coordinates to your default maps app, only after your explicit one-time consent.
+- **Statistics stay on your phone.** The counts behind Your Privacy Stats are stored only in Redact's private storage, are left out of backups and device transfers, and are never included in crash reports.
 - **Permissions are minimal.** On Android 13 and newer Redact uses the system document picker, so it can reach Downloads, Files and gallery folders without broad media access.
 
 | Permission | Why | Required? |
@@ -237,7 +278,7 @@ EXIF (Exchangeable Image File Format) is the metadata block cameras and phones w
 <details>
 <summary><b>Does Redact change the quality of my photos or videos?</b></summary>
 
-Cleaning is designed to keep the picture looking the same while removing hidden metadata. Image cleaning preserves orientation whenever possible. Strict Clean and full video transcodes re-encode the video, which can change some encoding details.
+Cleaning keeps the picture looking the same while removing hidden metadata. JPEG, PNG and WebP photos are rebuilt from their own picture data without re-compressing, and orientation is kept whenever possible. Anything that is not the picture is removed, including the moving part of a Motion Photo and the HDR boost layer of an Ultra HDR photo, so those become ordinary still photos. Other formats, and videos (unless Faster Video Cleaning applies), are re-encoded, which can change some encoding details.
 </details>
 
 <details>
@@ -332,17 +373,20 @@ Crash reporting is off unless a Sentry DSN is supplied at build time. Debug buil
 app/src/main/java/com/doubleangels/redact/
   CleanFragment, ScanFragment, ConvertFragment, SettingsFragment   the four tabs
   MainActivity, ShareHandlerActivity                               entry points (share-in)
+  StatisticsActivity                                               the Statistics screen
   media/          selecting, processing, converting, MediaStore writes, secure delete
   metadata/       reading (Scan) and stripping metadata
   notifications/  progress notifications and the foreground service
   permission/     permission checks and status
   sentry/         opt-in crash reporting and the privacy scrubber
+  stats/          on-device counts behind Statistics
   ui/             view models, adapters, clipboard helper
 app/src/test/                  unit tests (Robolectric; fake MediaStore provider)
 baselineprofile/               macrobenchmark module that generates the baseline profile
 fastlane/metadata/             Google Play listing text, screenshots and icon
 legal/                         source of the privacy policy page
-scripts/screenshots.sh         captures store screenshots on an emulator
+scripts/                       store screenshots, feature graphic and sample-media tagging
+site/                          the website: landing page and guides
 .github/workflows/             CI, release and privacy-policy publishing
 ```
 
@@ -356,9 +400,15 @@ Startup performance comes from a generated baseline and startup profile in `app/
 
 If more than one device is connected, set `ANDROID_SERIAL` (for example `emulator-5554`) first.
 
-### Store screenshots
+### Store screenshots and feature graphic
 
-`scripts/screenshots.sh` builds the debug app, boots (or reuses) an API 37 emulator, applies a black-and-white system theme, selects the sample media from `icons/sample`, and writes light and dark captures of Clean, Scan and Convert to `build/screenshots/`. Run it from Git Bash on Windows. See the header of the script for details.
+`scripts/screenshots.sh` builds the debug app, boots (or reuses) an API 37 emulator, clears Redact's app data there, applies a black-and-white system theme, and captures Clean (selected and finished), Scan (scrolled to the camera and location rows) and Convert, light and dark, from the sample media in `icons/sample`. It then runs `scripts/store_graphics.py`, which frames them with captions and draws the 1024×500 feature graphic using headless Chrome or Edge, into `build/store/<locale>/`. Set `LOCALES=all` (or a list such as `LOCALES="de-DE fr-FR"`) to capture each store language with the app switched to it; the default is `en-US`. Run it from Git Bash on Windows. See the header of each script for details.
+
+The samples carry real-looking GPS, camera and time metadata (public landmarks, never a real home) so the screenshots show what Redact finds; `python scripts/tag_samples.py` re-applies it after adding or replacing a sample.
+
+### Website
+
+`site/` holds the landing page and the how-to guides published at <https://doubleangels.github.io/redact/> by `.github/workflows/publish-site.yml` whenever a change to it reaches `main`. It loads nothing from other sites: no fonts, scripts or trackers. When you add a page, add it to `site/sitemap.xml`.
 
 ### Releases
 
@@ -388,7 +438,7 @@ Please do not report vulnerabilities in a public issue. See **[SECURITY.md](SECU
 
 ## Built with
 
-Java, Android Jetpack and Material 3, [Media3 Transformer](https://developer.android.com/media/media3/transformer) for video, [AndroidX ExifInterface](https://developer.android.com/jetpack/androidx/releases/exifinterface) and [Apache Commons Imaging](https://commons.apache.org/proper/commons-imaging/) for metadata, [Glide](https://github.com/bumptech/glide) for thumbnails, [Sentry](https://sentry.io) for opt-in crash reporting, and [Robolectric](https://robolectric.org) and JUnit for tests. Releases are published with [Fastlane](https://fastlane.tools).
+Java, Android Jetpack and Material 3, [Media3 Transformer](https://developer.android.com/media/media3/transformer) for video and [AndroidX ExifInterface](https://developer.android.com/jetpack/androidx/releases/exifinterface) for metadata, [Glide](https://github.com/bumptech/glide) for thumbnails, [Sentry](https://sentry.io) for opt-in crash reporting, and [Robolectric](https://robolectric.org) and JUnit for tests. Releases are published with [Fastlane](https://fastlane.tools).
 
 ---
 

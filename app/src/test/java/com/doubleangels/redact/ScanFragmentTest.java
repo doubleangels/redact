@@ -1,5 +1,6 @@
 package com.doubleangels.redact;
 
+import static com.doubleangels.redact.TestWaits.awaitMain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -75,20 +76,6 @@ public class ScanFragmentTest {
     private static void idleForSearch() {
         shadowOf(Looper.getMainLooper()).idleFor(
                 java.time.Duration.ofMillis(ScanFragment.SEARCH_DEBOUNCE_MS));
-    }
-
-    private static void awaitMain(BooleanSupplier condition) throws InterruptedException {
-        long deadline = System.currentTimeMillis() + 20_000;
-        while (!condition.getAsBoolean()) {
-            idle();
-            if (condition.getAsBoolean()) {
-                return;
-            }
-            if (System.currentTimeMillis() > deadline) {
-                throw new AssertionError("Timed out waiting for background work");
-            }
-            Thread.sleep(25);
-        }
     }
 
     private Fragment scanFragment() {
@@ -370,11 +357,9 @@ public class ScanFragmentTest {
                 PermissionManager.LOCATION_PERMISSION_REQUEST_CODE,
                 new String[] {Manifest.permission.ACCESS_MEDIA_LOCATION},
                 new int[] {PackageManager.PERMISSION_GRANTED});
-        long end = System.currentTimeMillis() + 3000;
-        while (System.currentTimeMillis() < end) {
-            idle();
-            Thread.sleep(25);
-        }
+        // The refreshed location section adds location to the hero card's risks.
+        TextView risk = v.findViewById(R.id.heroRiskBadge);
+        awaitMain(() -> risk.getText().toString().contains(activity.getString(R.string.scan_risk_location)));
 
         assertEquals(View.VISIBLE, v.findViewById(R.id.metadataCard).getVisibility());
     }
@@ -408,6 +393,87 @@ public class ScanFragmentTest {
         v.findViewById(R.id.emptyStateSelectButton).performClick();
         idle();
         assertNotNull(scanFragment());
+    }
+
+    /** A provider that fails as soon as anything asks about its files. */
+    public static class BrokenProvider extends android.content.ContentProvider {
+        @Override
+        public boolean onCreate() {
+            return true;
+        }
+
+        @Override
+        public android.database.Cursor query(Uri uri, String[] p, String s, String[] a, String o) {
+            throw new IllegalStateException("provider is broken");
+        }
+
+        @Override
+        public String getType(Uri uri) {
+            throw new IllegalStateException("provider is broken");
+        }
+
+        @Override
+        public Uri insert(Uri uri, android.content.ContentValues values) {
+            return null;
+        }
+
+        @Override
+        public int delete(Uri uri, String s, String[] a) {
+            return 0;
+        }
+
+        @Override
+        public int update(Uri uri, android.content.ContentValues values, String s, String[] a) {
+            return 0;
+        }
+    }
+
+    @Test
+    public void aFileTheProviderCannotDescribe_isReported() throws Exception {
+        Robolectric.setupContentProvider(BrokenProvider.class, "com.doubleangels.redact.test.broken");
+        View v = pick(Uri.parse("content://com.doubleangels.redact.test.broken/photo/1"));
+        TextView status = v.findViewById(R.id.statusText);
+        awaitMain(() -> status.getVisibility() == View.VISIBLE);
+        assertEquals(activity.getString(R.string.status_extraction_media_fail), status.getText().toString());
+    }
+
+    /** Answers on the main thread but fails on the background thread that reads the metadata. */
+    public static class FailsInTheBackgroundProvider extends BrokenProvider {
+        @Override
+        public String getType(Uri uri) {
+            if (Looper.myLooper() == Looper.getMainLooper()) {
+                return "image/jpeg";
+            }
+            return super.getType(uri);
+        }
+    }
+
+    @Test
+    public void extractionFailingPartWay_showsAnErrorRow() throws Exception {
+        Robolectric.setupContentProvider(FailsInTheBackgroundProvider.class, "com.doubleangels.redact.test.flaky");
+        View v = pick(Uri.parse("content://com.doubleangels.redact.test.flaky/photo/1"));
+        TextView status = v.findViewById(R.id.statusText);
+        String failed = activity.getString(R.string.status_extraction_fail);
+        awaitMain(() -> failed.contentEquals(status.getText()));
+
+        assertEquals(View.VISIBLE, v.findViewById(R.id.metadataCard).getVisibility());
+        assertEquals(View.GONE, v.findViewById(R.id.metadataSearchLayout).getVisibility());
+        RecyclerView list = v.findViewById(R.id.metadataItemsRecycler);
+        assertEquals(1, list.getAdapter().getItemCount());
+    }
+
+    @Test
+    public void searchBox_searchKeyHidesTheKeyboard_otherKeysDoNothing() throws Exception {
+        View v = pick(Uri.fromFile(jpeg(true, false)));
+        awaitMain(() -> contentShown(v));
+        TextView search = v.findViewById(R.id.metadataSearchInput);
+
+        search.requestFocus();
+        search.onEditorAction(android.view.inputmethod.EditorInfo.IME_ACTION_DONE);
+        assertTrue(search.hasFocus());
+
+        search.onEditorAction(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);
+        assertFalse(search.hasFocus());
     }
 
     @Test

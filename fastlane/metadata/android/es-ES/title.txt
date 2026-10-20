@@ -1,2 +1,1 @@
-Redact
-
+Redact: Quitar metadatos fotos

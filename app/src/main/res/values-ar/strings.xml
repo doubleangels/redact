@@ -35,9 +35,9 @@
     <string name="convert_format_webp">WebP</string>
     <string name="convert_format_h264">MP4 (H.264)</string>
     <string name="convert_format_h265">MP4 (H.265)</string>
-    <string name="convert_format_vp9">WebM (VP9)</string>
+    <string name="convert_format_vp9">MP4 (VP9)</string>
     <string name="convert_format_heif">HEIC</string>
-    <string name="convert_format_av1">MKV (AV1)</string>
+    <string name="convert_format_av1">MP4 (AV1)</string>
     <string name="convert_select_files">تحديد الملفات</string>
     <string name="convert_run">إجراء التحويل</string>
     <string name="convert_status_hint">اختر صيغة الإخراج أدناه، ثم اضغط على «إجراء التحويل».</string>
@@ -110,6 +110,20 @@
     <string name="metadata_latitude">خط العرض: %.15f</string>
     <string name="metadata_longitude">خط الطول: %.15f</string>
     <string name="metadata_no_location_data">لا توجد بيانات موقع متاحة.</string>
+    <string name="metadata_location_unreadable">توجد بيانات موقع محفوظة بصيغة لا يمكن عرضها هنا. التنظيف يزيلها.</string>
+    <string name="metadata_container_tags_header">الوسوم المضمّنة:</string>
+    <string name="metadata_container_tags">موجود في الملف: %1$s</string>
+    <string name="metadata_container_value">موجود – يُزال عند التنظيف</string>
+    <string name="metadata_embedded_data_header">بيانات مخفية ومضمّنة</string>
+    <string name="metadata_embedded_value">موجود (%1$s) – يُزال عند التنظيف</string>
+    <plurals name="metadata_embedded_images">
+        <item quantity="zero">%1$d صورة (%2$s) – تُزال عند التنظيف</item>
+        <item quantity="one">صورة واحدة (%2$s) – تُزال عند التنظيف</item>
+        <item quantity="two">صورتان (%2$s) – تُزالان عند التنظيف</item>
+        <item quantity="few">%1$d صور (%2$s) – تُزال عند التنظيف</item>
+        <item quantity="many">%1$d صورة (%2$s) – تُزال عند التنظيف</item>
+        <item quantity="other">%1$d صورة (%2$s) – تُزال عند التنظيف</item>
+    </plurals>
     <string name="metadata_location_permission_needed">لم يتم منح إذن الموقع. امنح الإذن لعرض بيانات الموقع.</string>
     <string name="metadata_orientation">الاتجاه: %s</string>
     <string name="metadata_flash">الفلاش: %s</string>
@@ -145,9 +159,9 @@
 
     
     <string name="settings_section_advanced_privacy">تنظيف البيانات الوصفية</string>
-    <string name="settings_advanced_privacy_subtitle">كيف يزيل Redact المعلومات المخفية — مثل الموقع وتفاصيل الكاميرا (EXIF) — في تبويب التنظيف. الملفات المشارَكة من تطبيقات أخرى تتم إزالة هذه المعلومات منها دائماً قبل إعادة إرسالها.</string>
+    <string name="settings_advanced_privacy_subtitle">كيف يزيل Redact المعلومات المخفية، مثل الموقع وتفاصيل الكاميرا (EXIF)، في تبويب التنظيف. الملفات المشارَكة من تطبيقات أخرى تتم إزالة هذه المعلومات منها دائماً قبل إعادة إرسالها.</string>
     <string name="settings_secure_delete">مرات الحذف الآمن</string>
-    <string name="settings_secure_delete_subtitle">عدد مرات الكتابة فوق الملفات المؤقتة — بما في ذلك النسخ الأصلية غير المنقّحة من الصور والفيديوهات قبل التنظيف — قبل الحذف، بحيث لا يمكن استرداد بياناتها من القرص. المزيد من المرات أبطأ؛ على التخزين الفلاشي قد يبقى الاسترداد ممكناً.</string>
+    <string name="settings_secure_delete_subtitle">عدد مرات الكتابة فوق الملفات المؤقتة (بما في ذلك النسخ الأصلية غير المنقّحة من الصور والفيديوهات قبل التنظيف) قبل الحذف، بحيث لا يمكن استرداد بياناتها من القرص. المزيد من المرات أبطأ؛ على التخزين الفلاشي قد يبقى الاسترداد ممكناً.</string>
     <string name="settings_auto_clear_temp">مسح الذاكرة عند البدء</string>
     <string name="settings_auto_clear_temp_subtitle">يزيل ملفات ذاكرة المعالجة الأقدم من 24 ساعة عند فتح التطبيق.</string>
     <string name="settings_preserve_camera">الاحتفاظ بإعدادات الكاميرا</string>
@@ -156,17 +170,17 @@
     <string name="settings_preserve_location_subtitle">الاحتفاظ بإحداثيات GPS في تبويب التنظيف. يُتجاهل عند التنظيف الصارم أو عند المشاركة من تطبيقات أخرى.</string>
         <string name="settings_sentry_consent_allow">تفعيل</string>
     <string name="settings_sentry_consent_cancel">ليس الآن</string>
-    <string name="settings_sentry_consent_title">تفعيل تقارير الأعطال؟</string>
+    <string name="settings_sentry_consent_title">تفعيل تقارير الأعطال</string>
     <string name="settings_sentry_consent_message">إرسال تقارير الأعطال يرفع تشخيصات مجهولة إلى Sentry عبر الإنترنت.\n\nلا يتم تحميل الصور أو الفيديوهات أو أسماء الملفات أو إحداثيات GPS.</string>
     <string name="settings_strict_clean">التنظيف الصارم</string>
-    <string name="settings_strict_clean_subtitle">يزيل كل أثر للبيانات الوصفية، حتى علامة الاتجاه — لذا قد تبدو الصورة المُدارة مائلة بعد ذلك. يعطّل خيارات الاحتفاظ أعلاه ويعيد ترميز الفيديو بالكامل دائماً لأشمل تنظيف ممكن.</string>
+    <string name="settings_strict_clean_subtitle">يزيل كل أثر للبيانات الوصفية، حتى علامة الاتجاه، لذا قد تبدو الصورة المُدارة مائلة بعد ذلك. يعطّل خيارات الاحتفاظ أعلاه ويعيد ترميز الفيديو بالكامل دائماً لأشمل تنظيف ممكن.</string>
     
     <string name="settings_section_advanced_processing">الملفات الكبيرة والذاكرة</string>
     <string name="settings_advanced_processing_subtitle">يتحكم في استخدام الذاكرة عند فك ترميز الصور الكبيرة أثناء التنظيف والتحويل.</string>
     <string name="settings_max_bitmap_size">أقصى دقة معالجة</string>
     <string name="settings_max_bitmap_size_subtitle">أطول حافة بالبكسل عند فك الصور في الذاكرة. القيم الأقل تستخدم ذاكرة أقل.</string>
     <string name="settings_video_fallback">تنظيف فيديو أسرع</string>
-    <string name="settings_video_fallback_subtitle">عندما يكون الفيديو بصيغة متوافقة بالفعل، يزيل Redact بياناته الوصفية بعملية سريعة بدلاً من إعادة الترميز الكاملة — أسرع وأخف على البطارية، رغم أن إعادة الترميز الكاملة تزيل القليل الإضافي. يُعطَّل تلقائياً عند تفعيل التنظيف الصارم أو عند تنظيف ملفات مُشارَكة من تطبيقات أخرى.</string>
+    <string name="settings_video_fallback_subtitle">عندما يكون الفيديو بصيغة متوافقة بالفعل، يزيل Redact بياناته الوصفية بعملية سريعة بدلاً من إعادة الترميز الكاملة، أسرع وأخف على البطارية، رغم أن إعادة الترميز الكاملة تزيل القليل الإضافي. يُعطَّل تلقائياً عند تفعيل التنظيف الصارم أو عند تنظيف ملفات مُشارَكة من تطبيقات أخرى.</string>
 
     <string-array name="settings_secure_delete_labels">
         <item>مرة واحدة (سريع)</item>
@@ -193,7 +207,7 @@
     <string name="settings_section_diagnostics">التشخيص والملاحظات</string>
     <string name="settings_section_diagnostics_subtitle">تقارير اختيارية للمساعدة في إصلاح الأعطال. وسائطك لا تغادر الجهاز أبداً.</string>
     <string name="settings_crash_reporting_label">إرسال تقارير الأعطال</string>
-    <string name="settings_crash_reporting_subtitle">يشارك فقط تفاصيل تقنية مجهولة الهوية (إصدار التطبيق، طراز الجهاز، ما كان يفعله التطبيق عند حدوث العطل) — ولا يشارك صورك أو مقاطع الفيديو أبداً. تُرسَل عبر الإنترنت إلى خدمة الإبلاغ عن الأعطال التي نستخدمها، Sentry، عند التفعيل.</string>
+    <string name="settings_crash_reporting_subtitle">يشارك فقط تفاصيل تقنية مجهولة الهوية (إصدار التطبيق، طراز الجهاز، ما كان يفعله التطبيق عند حدوث العطل)، ولا يشارك صورك أو مقاطع الفيديو أبداً. تُرسَل عبر الإنترنت إلى خدمة الإبلاغ عن الأعطال التي نستخدمها، Sentry، عند التفعيل.</string>
     <string name="settings_section_conversion">افتراضيات تبويب التحويل</string>
     <string name="settings_conversion_subtitle">التنسيقات المحددة مسبقاً عند اختيار الملفات في التحويل. يمكنك تغييرها لكل دفعة.</string>
     <string name="settings_default_image_format">تنسيق الصورة الافتراضي</string>
@@ -208,12 +222,12 @@
     <string name="settings_section_share">المشاركة إلى Redact</string>
     <string name="settings_share_confirm_label">التأكيد قبل إزالة البيانات الوصفية</string>
     <string name="settings_share_confirm_subtitle">عرض مطالبة قبل إزالة EXIF والبيانات الوصفية من الملفات المشتركة.</string>
-    <string name="settings_share_confirm_dialog_title">إزالة البيانات الوصفية؟</string>
+    <string name="settings_share_confirm_dialog_title">إزالة البيانات الوصفية</string>
     <string name="settings_share_confirm_dialog_message">سيزيل Redact بيانات EXIF وغيرها من الملفات المشتركة قبل إعادة مشاركتها.</string>
     <string name="settings_share_confirm_dialog_confirm">إزالة ومتابعة</string>
     <string name="settings_share_confirm_dialog_cancel">إلغاء</string>
     <string name="settings_section_permissions">الأذونات</string>
-    <string name="settings_permissions_subtitle">على Android 13+، يستخدم Redact منتقي ملفات النظام — التنزيلات أو الملفات أو مجلدات المعرض دون وصول واسع للمكتبة. الوصول الكامل للصور/الفيديو اختياري. الإشعارات اختيارية.</string>
+    <string name="settings_permissions_subtitle">على Android 13+، يستخدم Redact منتقي ملفات النظام: التنزيلات أو الملفات أو مجلدات المعرض دون وصول واسع للمكتبة. الوصول الكامل للصور/الفيديو اختياري. الإشعارات اختيارية.</string>
     <string name="settings_permissions_media">الصور والفيديو</string>
     <string name="settings_permissions_notifications">الإشعارات (اختياري)</string>
     <string name="settings_permission_granted">ممنوح</string>
@@ -224,7 +238,7 @@
     <string name="settings_storage_size">الذاكرة المؤقتة المستخدمة: %1$s</string>
     <string name="settings_storage_subtitle">نسخ عمل تُنشأ أثناء المعالجة. ملفات المعرض الأصلية لا تُعدّل أبداً.</string>
     <string name="settings_storage_clear">مسح الملفات المؤقتة</string>
-    <string name="settings_storage_clear_confirm_title">مسح الملفات المؤقتة؟</string>
+    <string name="settings_storage_clear_confirm_title">مسح الملفات المؤقتة</string>
     <string name="settings_storage_clear_confirm_message">يزيل النسخ المخزنة مؤقتًا من المعالجة الأخيرة. ملفات المعرض غير متأثرة.</string>
     <string name="settings_storage_clear_success">تم مسح الملفات المؤقتة.</string>
     <string name="settings_storage_clear_empty">لا توجد ملفات مؤقتة للمسح.</string>
@@ -235,6 +249,7 @@
     <string name="settings_about_privacy">سياسة الخصوصية</string>
     <string name="settings_about_report_issue">الإبلاغ عن مشكلة</string>
     <string name="settings_about_donate">تبرع</string>
+    <string name="settings_about_rate">قيّم Redact على Google Play</string>
     <string name="settings_link_unavailable">لم يُعثر على تطبيق لفتح هذا الرابط.</string>
     <string name="settings_progress_notifications_label">تقدم المهمة الجارية</string>
     <string name="settings_progress_notifications_subtitle">إشعار دائم يعرض التقدم في المهام الطويلة. معطّل افتراضياً حتى تفعّل السماح بالإشعارات.</string>
@@ -282,21 +297,21 @@
     <string name="settings_permission_partial">جزئي</string>
     <string name="scan_status_ready">اختر ملفاً لفحص بياناته الوصفية.</string>
     <string name="animated_image_warning">تُحفظ الصور المتحركة كإطار ثابت واحد.</string>
-    <string name="processing_warning_low_storage">مساحة تخزين منخفضة (%1$s متاحة). قد تفشل المعالجة — جرّب مسح الملفات المؤقتة من الإعدادات.</string>
+    <string name="processing_warning_low_storage">مساحة تخزين منخفضة (%1$s متاحة). قد تفشل المعالجة. جرّب مسح الملفات المؤقتة من الإعدادات.</string>
     <string name="processing_warning_critical_storage_title">مساحة تخزين غير كافية</string>
     <string name="processing_warning_critical_storage_message">قد يحتاج Redact إلى نحو %1$s من المساحة المؤقتة، لكن المتاح فقط %2$s. قد تفشل المعالجة.</string>
     <string name="processing_warning_low_memory">جهازك منخفض الذاكرة. قد تفشل الملفات الكبيرة أو تعمل ببطء.</string>
     <string name="processing_warning_large_video">تم اختيار فيديو(هات) كبيرة. تحتاج المعالجة مساحة مؤقتة إضافية وقد تستغرق وقتاً.</string>
     <string name="processing_warning_continue">المتابعة على أي حال</string>
     <string name="clean_item_failed">فشل: %1$s</string>
-    <string name="settings_preserve_location_confirm_title">الإبقاء على GPS في الصور المنظفة؟</string>
+    <string name="settings_preserve_location_confirm_title">الإبقاء على GPS في الصور المنظفة</string>
     <string name="settings_preserve_location_confirm_message">قد تحتوي الملفات المنظفة في تبويب التنظيف على إحداثيات GPS. المشاركة من تطبيقات أخرى تزيل الموقع دائماً.
 
 فعّل هذا فقط إذا أردت الإبقاء على الموقع عمداً.</string>
     <string name="settings_permission_needs_media">الصور مطلوبة</string>
     <string name="settings_location_permission_grant">منح إذن موقع الصورة</string>
-    <string name="settings_location_needs_media_title">السماح بالصور والفيديو أولاً؟</string>
-    <string name="settings_location_needs_media_message">يتيح موقع الصورة لـ Redact قراءة إحداثيات GPS المضمنة في وسائطك. يلزم أولاً الوصول إلى مكتبة الصور والفيديو — اختيار الملفات بشكل فردي لا يكفي.\n\nفي الشاشة التالية، اضغط على السماح بجميع الصور والفيديو. عادةً يمنح جهازك إذن موقع الصورة في نفس الخطوة.</string>
+    <string name="settings_location_needs_media_title">يلزم الوصول إلى الصور والفيديو</string>
+    <string name="settings_location_needs_media_message">يتيح موقع الصورة لـ Redact قراءة إحداثيات GPS المضمنة في وسائطك. يلزم أولاً الوصول إلى مكتبة الصور والفيديو. اختيار الملفات بشكل فردي لا يكفي.\n\nفي الشاشة التالية، اضغط على السماح بجميع الصور والفيديو. عادةً يمنح جهازك إذن موقع الصورة في نفس الخطوة.</string>
     <string name="settings_location_grant_media_first">متابعة</string>
     <string name="settings_location_permission_granted">تم منح إذن موقع الصورة.</string>
     <string name="settings_location_permission_denied">تم رفض إذن موقع الصورة.</string>
@@ -342,6 +357,9 @@
     <string name="convert_item_type_image">صورة</string>
     <string name="convert_item_type_video">فيديو</string>
     <string name="notification_clean_failed">تعذّر تنظيف أي ملفات هذه المرة.</string>
+    <string name="notification_clean_batch_details">في هذه الدفعة: %1$s</string>
+    <string name="notification_clean_totals">على هذا الجهاز حتى الآن: %1$s</string>
+    <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">فحص البيانات الوصفية للوسائط</string>
     <string name="scan_empty_state_description">حدّد صورة أو مقطع فيديو لعرض تفاصيل EXIF ومواصفات الكاميرا وإحداثيات GPS والخصائص التقنية.</string>
     <string name="scan_grant_location_button">منح الإذن</string>
@@ -446,4 +464,62 @@
     <string name="share_results_chooser_title">مشاركة عبر…</string>
     <string name="settings_output_unavailable">لم يعد بإمكان Redact الحفظ في هذا المجلد، لذلك تُحفظ الملفات في %1$s. اختره مرة أخرى أو اختر مجلدًا آخر.</string>
     <string name="output_folder_fallback">يتم الحفظ في %2$s بدلًا من ذلك: %1$s غير متاح.</string>
+    <string name="settings_output_open">فتح المجلد</string>
+    <string name="settings_output_open_unavailable">لم يتم العثور على تطبيق لفتح هذا المجلد.</string>
+    <string name="settings_output_also_videos">حفظ مقاطع الفيديو هنا أيضًا؟</string>
+    <string name="settings_output_also_images">حفظ الصور هنا أيضًا؟</string>
+    <string name="settings_output_also_confirm">استخدام للاثنين</string>
+    <string name="settings_output_also_decline">لا، شكرًا</string>
+    <string name="settings_reset_all">إعادة ضبط كل الإعدادات</string>
+    <string name="settings_reset_all_title">إعادة ضبط كل الإعدادات</string>
+    <string name="settings_reset_all_message">تعود كل الإعدادات إلى قيمها الافتراضية، وينسى Redact مجلدات الحفظ التي اخترتها. لن تتأثر صورك ومقاطع الفيديو والملفات المنظفة.</string>
+    <string name="settings_reset_all_confirm">إعادة ضبط</string>
+    <string name="settings_reset_all_done">تمت إعادة الإعدادات إلى قيمها الافتراضية.</string>
+    <string name="settings_reset_all_busy">لا يمكن إعادة ضبط الإعدادات أثناء المعالجة.</string>
+    <string name="share_target_scan">مسح باستخدام Redact</string>
+    <string name="button_scan_result">مسح النتيجة</string>
+    <string name="settings_keep_original_names">الاحتفاظ بأسماء الملفات الأصلية</string>
+    <string name="settings_keep_original_names_subtitle">تسمية الملفات المنظفة والمحولة باسم الملفات الأصلية بدلًا من اسم عشوائي. قد تكشف أسماء مثل IMG_20260117 وقت التقاط الصورة.</string>
+    <string name="review_prompt_title">قيّم Redact</string>
+    <string name="review_prompt_message">إذا ساعدك Redact في الحفاظ على خصوصية صورك، فهل تودّ تقييمه على Google Play؟ لن يستغرق ذلك سوى لحظة، ويساعد الآخرين على العثور على التطبيق.</string>
+    <string name="review_prompt_yes">نعم</string>
+    <string name="review_prompt_no">لا</string>
+    <string name="review_prompt_declined">حسنًا، لن يسألك Redact مجددًا. إذا غيّرت رأيك، يمكنك تقييمه في أي وقت من الإعدادات › حول.</string>
+    <string name="crash_prompt_declined">حسنًا، لن يسألك Redact مجددًا. يمكنك تفعيل تقارير الأعطال في أي وقت من الإعدادات › التشخيص والملاحظات.</string>
+    <string name="stats_title">الإحصائيات</string>
+    <string name="stats_navigate_up">رجوع</string>
+    <string name="stats_settings_title">إحصائيات خصوصيتك</string>
+    <string name="stats_settings_empty">نظّف أول صورة أو فيديو لترى ما يزيله Redact من أجلك.</string>
+    <string name="stats_settings_since">يُحتسب على هذا الجهاز منذ %1$s.</string>
+    <string name="stats_fields_removed">الحقول المُزالة</string>
+    <string name="stats_locations_removed">المواقع المُزالة</string>
+    <string name="stats_files_cleaned">الملفات المُنظَّفة</string>
+    <string name="stats_photos">الصور المُنظَّفة</string>
+    <string name="stats_videos">الفيديوهات المُنظَّفة</string>
+    <string name="stats_files_converted">الملفات المُحوَّلة</string>
+    <string name="stats_on_device_note">يُحتسب على هذا الجهاز فقط. لا يُرسل أي شيء من هذا إلى أي مكان.</string>
+    <string name="stats_section_removed">ما أُزيل</string>
+    <string name="stats_section_removed_subtitle">عدد ملفاتك المُنظَّفة التي حملت كل نوع من التفاصيل الشخصية.</string>
+    <string name="stats_removed_location">الموقع</string>
+    <string name="stats_removed_dates">تاريخ الالتقاط ووقته</string>
+    <string name="stats_removed_devices">الكاميرا والهاتف</string>
+    <string name="stats_removed_names">الأسماء والمؤلفون</string>
+    <string name="stats_section_files">الملفات</string>
+    <string name="stats_section_activity">آخر 30 يومًا</string>
+    <string name="stats_chart_empty">لم يُنظَّف أي شيء خلال آخر 30 يومًا.</string>
+    <string name="stats_chart_today">اليوم</string>
+    <string name="stats_clear">مسح الإحصائيات</string>
+    <string name="stats_clear_subtitle">يعيد كل الأعداد إلى الصفر. تبقى إعداداتك وملفاتك كما هي.</string>
+    <string name="stats_clear_title">مسح الإحصائيات</string>
+    <string name="stats_clear_message">تعود كل الأعداد إلى الصفر ويبدأ العدّ من جديد من الآن. لا تتأثر إعداداتك وصورك وفيديوهاتك والملفات المُنظَّفة.</string>
+    <string name="stats_clear_confirm">مسح</string>
+    <string name="stats_cleared">تم مسح الإحصائيات.</string>
+    <plurals name="stats_chart_summary">
+        <item quantity="zero">لم يُنظَّف أي ملف خلال آخر 30 يومًا.</item>
+        <item quantity="one">نُظِّف ملف واحد خلال آخر 30 يومًا.</item>
+        <item quantity="two">نُظِّف ملفان خلال آخر 30 يومًا.</item>
+        <item quantity="few">نُظِّفت %1$s ملفات خلال آخر 30 يومًا.</item>
+        <item quantity="many">نُظِّف %1$s ملفًا خلال آخر 30 يومًا.</item>
+        <item quantity="other">نُظِّف %1$s ملف خلال آخر 30 يومًا.</item>
+    </plurals>
 </resources>

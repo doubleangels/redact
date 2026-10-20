@@ -1,5 +1,6 @@
 package com.doubleangels.redact.media;
 
+import static com.doubleangels.redact.TestWaits.awaitMain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -21,7 +22,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -33,7 +33,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BooleanSupplier;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class MediaProcessorFlowTest {
 
     /** Records every callback; the optional ones are only wired when asked, to cover their defaults. */
@@ -94,15 +93,6 @@ public class MediaProcessorFlowTest {
         }
     }
 
-    private static void await(BooleanSupplier done) throws Exception {
-        long end = System.currentTimeMillis() + 20_000;
-        while (!done.getAsBoolean() && System.currentTimeMillis() < end) {
-            shadowOf(Looper.getMainLooper()).idle();
-            Thread.sleep(10);
-        }
-        assertTrue("timed out", done.getAsBoolean());
-    }
-
     private MediaItem jpeg(String name) throws IOException {
         File f = File.createTempFile("proc_", ".jpg", app.getFilesDir());
         files.add(f);
@@ -124,7 +114,7 @@ public class MediaProcessorFlowTest {
 
         processor.processMediaItems(Arrays.asList(item), cb);
         assertTrue(processor.isBusy());
-        await(() -> cb.events.contains("complete"));
+        awaitMain(() -> cb.events.contains("complete"));
 
         assertEquals(Arrays.asList("started", "complete"), cb.events);
         assertEquals(1, cb.successCount);
@@ -133,7 +123,7 @@ public class MediaProcessorFlowTest {
         assertNotNull(processor.getLastProcessedFileUri());
         assertEquals(Arrays.asList(item.uri()), processor.getSucceededSources());
         assertEquals(1, FakeMediaStoreProvider.entries().size());
-        await(() -> !processor.isBusy());
+        awaitMain(() -> !processor.isBusy());
     }
 
     @Test
@@ -141,7 +131,7 @@ public class MediaProcessorFlowTest {
         Recorder cb = new Recorder();
 
         processor.processMediaItems(Arrays.asList(missing("a.jpg"), jpeg("b.jpg"), missing("c.jpg")), cb);
-        await(() -> cb.events.contains("complete"));
+        awaitMain(() -> cb.events.contains("complete"));
 
         assertEquals(1, cb.successCount);
         assertEquals(3, cb.totalCount);
@@ -155,7 +145,7 @@ public class MediaProcessorFlowTest {
         Recorder none = new Recorder();
         processor.processMediaItems(null, none);
 
-        await(() -> empty.events.contains("complete") && none.events.contains("complete"));
+        awaitMain(() -> empty.events.contains("complete") && none.events.contains("complete"));
 
         assertEquals(0, empty.totalCount);
         assertEquals(0, none.totalCount);
@@ -169,7 +159,7 @@ public class MediaProcessorFlowTest {
 
         processor.processMediaItems(Arrays.asList(jpeg("a.jpg"), jpeg("b.jpg")), first);
         processor.processMediaItems(Arrays.asList(jpeg("c.jpg")), second);
-        await(() -> second.events.contains("already") && first.events.contains("complete"));
+        awaitMain(() -> second.events.contains("already") && first.events.contains("complete"));
 
         assertEquals(Arrays.asList("already"), second.events);
         assertEquals(2, first.totalCount);
@@ -185,10 +175,49 @@ public class MediaProcessorFlowTest {
 
         processor.processMediaItems(items, cb);
         processor.cancel();
-        await(() -> cb.events.contains("cancelled") || cb.events.contains("complete"));
+        awaitMain(() -> cb.events.contains("cancelled") || cb.events.contains("complete"));
 
         assertTrue(cb.events.contains("cancelled") || cb.successCount <= 6);
-        await(() -> !processor.isBusy());
+        awaitMain(() -> !processor.isBusy());
+    }
+
+    @Test
+    public void onceTheOriginalIsTrashed_aCopyThatClashedWithItGetsTheOriginalName() throws Exception {
+        AppPreferences.setKeepOriginalFileNames(app, true);
+        Recorder cb = new Recorder();
+        MediaItem item = jpeg("holiday.jpg");
+        processor.processMediaItems(Arrays.asList(item), cb);
+        awaitMain(() -> cb.events.contains("complete"));
+        awaitMain(() -> !processor.isBusy());
+        // The original still held its name when the copy was saved, so the system added " (1)".
+        Uri output = processor.getSucceededOutputs().get(0);
+        android.content.ContentValues clash = new android.content.ContentValues();
+        clash.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "holiday (1).jpg");
+        app.getContentResolver().update(output, clash, null, null);
+
+        processor.restoreOriginalNames(processor.takeSucceededSources());
+
+        awaitMain(() -> "holiday.jpg".equals(FakeMediaStoreProvider.only().displayName()));
+        assertEquals(Arrays.asList(output), processor.getSucceededOutputs());
+    }
+
+    @Test
+    public void anOriginalThatWasNotTrashed_leavesItsCopyAlone() throws Exception {
+        AppPreferences.setKeepOriginalFileNames(app, true);
+        Recorder cb = new Recorder();
+        processor.processMediaItems(Arrays.asList(jpeg("holiday.jpg")), cb);
+        awaitMain(() -> cb.events.contains("complete"));
+        awaitMain(() -> !processor.isBusy());
+        Uri output = processor.getSucceededOutputs().get(0);
+        android.content.ContentValues clash = new android.content.ContentValues();
+        clash.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "holiday (1).jpg");
+        app.getContentResolver().update(output, clash, null, null);
+
+        processor.takeSucceededSources();
+        processor.restoreOriginalNames(new ArrayList<>());
+        Thread.sleep(200);
+
+        assertEquals("holiday (1).jpg", FakeMediaStoreProvider.only().displayName());
     }
 
     @Test

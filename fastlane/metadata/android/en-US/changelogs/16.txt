@@ -1,1 +1,4 @@
-Bug fixes and performance improvements.
+Fixed Settings dropdowns showing only one option.
+Fixed cancelling a running job.
+Fixed the photo location permission.
+Better translations.

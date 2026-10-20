@@ -1,6 +1,7 @@
 ---
 description: Regenerate the baseline and startup profiles, then the store screenshots, on the Pixel 10 Pro emulator, and summarize the results
 allowed-tools: Bash, PowerShell, Read, Grep, Glob
+argument-hint: "[all | <store locales>]"
 ---
 
 Regenerate the baseline profile and the store screenshots, both on the **Pixel_10_Pro emulator and never on a physical device**, then review the results. This does both tasks in order; use `/generateprofile` or `/generatescreenshots` to do just one. Do not commit or push anything unless I ask. Do not copy screenshots into `fastlane/` unless I ask.
@@ -20,20 +21,11 @@ Regenerate the baseline profile and the store screenshots, both on the **Pixel_1
 
 ## 3. Screenshots
 
-1. Run `bash scripts/screenshots.sh` from Git Bash with `ANDROID_SERIAL` unset or set to the emulator (the script only ever uses an API 37 emulator). Do **not** set `SKIP_INSTALL`: the profile step installs a different build variant, so the script must install the current debug app itself. It applies the black-and-white theme and writes six images to `build/screenshots/` (1 and 2 Clean, 3 and 4 Scan, 5 and 6 Convert, each light then dark). It takes about a minute and a half.
-2. If it fails, report the error and stop.
+Follow step 2 ("Generate the screenshots") of `.claude/commands/generatescreenshots.md`, with the locales I passed (default `en-US`). Do **not** set `SKIP_INSTALL`: the profile step installs a different build variant, so the script must install the current debug app itself.
 
 ## 4. Check the images
 
-Read all six images in `build/screenshots/` and check each for:
-
-- the right tab and the expected state (Clean and Convert show the 8 selected samples; Scan shows one file's metadata),
-- the black-and-white system theme applied (no blue or purple tint),
-- clean status bar (12:00, full battery),
-- light versions are light and dark versions are dark,
-- nothing cut off, blank, overlapping, showing an error or a permission dialog, or showing a notification.
-
-List anything wrong per image. Say plainly if everything looks good.
+Follow step 3 ("Check the images") of `.claude/commands/generatescreenshots.md`.
 
 ## 5. Summarize the profile changes
 
@@ -46,4 +38,4 @@ Using `git diff` on the two profile files (compare to HEAD), report:
 
 ## 6. Wrap up
 
-Finish with a short report: emulator used, profile counts and verdict, screenshot verdict, and what is left uncommitted. Offer to commit the profiles and to copy the screenshots into `fastlane/metadata/android/en-US/images/` (phone, sevenInch and tenInch), but do not do either without being asked.
+Finish with a short report: emulator used, profile counts and verdict, screenshot verdict, and what is left uncommitted. Offer to commit the profiles and to copy the store images into fastlane as step 4 of `generatescreenshots.md` describes, but do not do either without being asked.

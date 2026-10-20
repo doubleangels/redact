@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
-# Dev tool: capture light and dark screenshots of the Clean, Scan and Convert tabs on an Android
-# emulator, using the media in icons/sample. Clean and Convert select every sample file, Scan one.
-# Output: build/screenshots/1.png .. 6.png, grouped by screen, light then dark: 1/2 Clean, 3/4 Scan,
-# 5/6 Convert.
+# Dev tool: capture the store screenshots on an Android emulator, using the media in icons/sample (which
+# carries real-looking GPS, camera and time metadata; see scripts/tag_samples.py), then frame them with
+# captions and draw the feature graphic (scripts/store_graphics.py; set SKIP_FRAMES=1 to skip that).
+#
+# Raw output, per store locale: build/screenshots/<locale>/ clean, clean-done, scan, convert (light) and
+# clean-dark (finished clean), scan-dark, convert-dark. Store-ready output: build/store/<locale>/.
+# LOCALES picks the store locales to capture, with the app switched to each language (default en-US;
+# LOCALES=all captures all 13, about a minute and a half each).
 #
 # Requires: adb, awk (gawk), emulator unlocked. It builds and installs the current debug app on the
 # emulator first (./gradlew installDebug); set SKIP_INSTALL=1 to reuse what is installed.
@@ -14,8 +18,10 @@
 # Emulator setup: sdkmanager "system-images;android-37;google_apis;x86_64", then avdmanager create avd
 # -n Pixel_10_Pro -d pixel_7_pro -k <that image>.
 # Changes it makes on the emulator are undone on exit: system dark mode, the monochrome (black and white)
-# system theme, animation scales, the demo-mode status bar, and the pushed files in
-# /sdcard/Pictures/redact-samples. Notifications are snoozed for a few minutes and return by themselves.
+# system theme, animation scales, the demo-mode status bar, the app language, the pushed files in
+# /sdcard/Pictures/redact-samples and the copies the Clean shots save. Redact's own app data on the
+# emulator is cleared, so every run starts from default settings. Notifications are snoozed for a few
+# minutes and return by themselves.
 #
 # Speed: a uiautomator dump costs ~2s however fast the emulator is, so dumps are kept to a minimum. Button
 # positions are looked up once and cached, window focus (cheap) detects when the picker or the app is up,
@@ -31,6 +37,11 @@ SAMPLE_PREFIX="redact-sample-"   # every pushed file is prefixed with this, so t
 SAMPLE_COUNT=$(ls "$ROOT/icons/sample" | wc -l | tr -d ' ')
 
 AVD="${AVD:-Pixel_10_Pro}"
+ALL_LOCALES="en-US ar de-DE es-ES fr-FR hi-IN it-IT ja-JP ko-KR pt-BR ru-RU zh-CN zh-TW"
+LOCALES="${LOCALES:-en-US}"
+[[ "$LOCALES" != all ]] || LOCALES=$ALL_LOCALES
+RUN_START=""
+UI_FILE=$(mktemp)   # the latest uiautomator dump
 REQUIRED_API=37
 EMU_PORT=5570
 EMU_PID=""
@@ -128,8 +139,11 @@ cleanup() {
     ((MONO_OVERLAY_ENABLED)) && adb shell cmd overlay disable --user 0 android:dynamic_0 >/dev/null 2>&1 || true
     for i in "${!ANIM_ORIG[@]}"; do restore_setting global "${ANIM_KEYS[i]}" "${ANIM_ORIG[i]}"; done
     adb shell rm -rf "$SAMPLE_DIR" >/dev/null 2>&1 || true
+    [[ -z "$RUN_START" ]] || delete_shot_outputs
+    adb shell cmd locale set-app-locales "$PKG" --locales "" >/dev/null 2>&1 || true
     adb shell am force-stop "$PKG" >/dev/null 2>&1 || true
   fi
+  rm -f "$UI_FILE"
   if [[ -n "$EMU_PID" ]]; then   # only an emulator this script started is shut down
     echo "Shutting down emulator"
     adb -s "emulator-$EMU_PORT" emu kill >/dev/null 2>&1 || true
@@ -160,11 +174,16 @@ STORAGE_ROOT=$(adb shell content query --uri content://com.android.externalstora
 [[ -n "$STORAGE_ROOT" ]] || { echo "Could not find the shared storage root in the picker" >&2; exit 1; }
 
 # --- UI helpers --------------------------------------------------------------------------
-# A uiautomator dump takes ~2s, so the screen is dumped into $UI only when something must be read from it.
+# A uiautomator dump takes ~2s, so the screen is dumped into $UI_FILE only when something must be read from it.
 
-ui_dump() { UI=$(adb exec-out uiautomator dump /dev/stdout 2>/dev/null | tr -d '\r' || true); }
+# Each dump goes to a file the matchers read. Not a here-string: a dump can pass 64 KB, more than a Git
+# Bash pipe holds, and bash then blocks for good writing the here-string before the reader starts. The
+# timeout covers a dump that never returns.
+ui_dump() {
+  timeout 20 adb exec-out uiautomator dump /dev/stdout 2>/dev/null | tr -d '\r' >"$UI_FILE" || true
+}
 
-# Prints "cx cy" for the first node in $UI whose attribute matches (suffix match for resource-id, exact
+# Prints "cx cy" for the first node in $UI_FILE whose attribute matches (suffix match for resource-id, exact
 # match for anything else, e.g. text). Exit 1 if absent.
 node_center() {
   awk -v attr="$1" -v want="$2" '
@@ -179,23 +198,32 @@ node_center() {
       gsub(/[][,]/, " ", b); split(b, p, " ")
       print int((p[1] + p[3]) / 2), int((p[2] + p[4]) / 2); found = 1; exit
     }
-    END { exit !found }' <<<"$UI"
+    END { exit !found }' <"$UI_FILE"
 }
 
-# Prints "cx cy" for every picker grid item in $UI, one per line, in on-screen order.
+# Prints "cx cy" for every picker grid item in $UI_FILE, one per line, in on-screen order.
 picker_items() {
   awk 'BEGIN { RS = "<node " }
     index($0, "documentsui:id/item_root") && match($0, /bounds="\[[0-9]+,[0-9]+\]\[[0-9]+,[0-9]+\]"/) {
       b = substr($0, RSTART + 8, RLENGTH - 9)
       gsub(/[][,]/, " ", b); split(b, p, " ")
       if (p[4] - p[2] > 400 && p[4] <= 3000) print int((p[1] + p[3]) / 2), int((p[2] + p[4]) / 2) - 150
-    }' <<<"$UI"
+    }' <"$UI_FILE"
 }
 
-# Prints the file name shown under every picker grid item in $UI.
+# Fills the caller's items array from picker_items. Not "mapfile < <(...)": process substitution
+# under Git Bash now and then never delivers end of file, which hung whole runs.
+read_picker_items() {
+  local out
+  out=$(picker_items)
+  items=()
+  [[ -z "$out" ]] || mapfile -t items <<<"$out"
+}
+
+# Prints the file name shown under every picker grid item in $UI_FILE.
 picker_titles() {
   awk 'BEGIN { RS = "<node " }
-    index($0, "resource-id=\"android:id/title\"") && match($0, / text="[^"]*"/) { print substr($0, RSTART + 7, RLENGTH - 8) }' <<<"$UI"
+    index($0, "resource-id=\"android:id/title\"") && match($0, / text="[^"]*"/) { print substr($0, RSTART + 7, RLENGTH - 8) }' <"$UI_FILE"
 }
 
 # title_center <text>: prints "cx cy" for the picker entry (drawer root, folder or file) titled exactly <text>.
@@ -207,7 +235,7 @@ title_center() {
       gsub(/[][,]/, " ", b); split(b, p, " ")
       print int((p[1] + p[3]) / 2), int((p[2] + p[4]) / 2); found = 1; exit
     }
-    END { exit !found }' <<<"$UI"
+    END { exit !found }' <"$UI_FILE"
 }
 
 # open_entry <text>: dumps until the picker entry titled <text> is on screen, then taps it.
@@ -220,7 +248,7 @@ open_entry() {
   echo "Timed out finding $1 in the picker" >&2; return 1
 }
 
-# True if the picker in $UI is inside the sample folder: its name is on screen (the breadcrumb) and every
+# True if the picker in $UI_FILE is inside the sample folder: its name is on screen (the breadcrumb) and every
 # file listed is a sample. Recent alone can pass the second test, since the samples are the newest files.
 showing_samples() {
   local titles
@@ -228,7 +256,7 @@ showing_samples() {
   [[ -n "$titles" ]] && ! grep -qv "^$SAMPLE_PREFIX" <<<"$titles" && node_center text "${SAMPLE_DIR##*/}" >/dev/null
 }
 
-# wait_for <attr> <value> [tries]: dumps until the node is on screen, leaving that dump in $UI.
+# wait_for <attr> <value> [tries]: dumps until the node is on screen, leaving that dump in $UI_FILE.
 wait_for() {
   local i
   for ((i = 0; i < ${3:-20}; i++)); do
@@ -250,7 +278,7 @@ wait_focus() {
 
 # Position cache: screen geometry is fixed, so each button is located once and tapped by coordinates after.
 declare -A POS=()
-cache_pos() { local p; p=$(node_center "$2" "$3") || return 1; POS[$1]=$p; }   # cache_pos <key> <attr> <want> (from $UI)
+cache_pos() { local p; p=$(node_center "$2" "$3") || return 1; POS[$1]=$p; }   # cache_pos <key> <attr> <want> (from $UI_FILE)
 # ensure_pos <key> <attr> <want> [<attr> <want> ...]: caches the first alternative that is on screen,
 # dumping until one is.
 ensure_pos() {
@@ -274,7 +302,7 @@ settle() {
   local i
   for ((i = 0; i < 60; i++)); do
     ui_dump
-    if node_center resource-id ':id/bottomNavigation' >/dev/null && ! grep -q 'text="[^"]*…' <<<"$UI"; then
+    if node_center resource-id ':id/bottomNavigation' >/dev/null && ! grep -q 'text="[^"]*…' <"$UI_FILE"; then
       sleep 0.6   # let thumbnails finish
       return 0
     fi
@@ -287,7 +315,7 @@ TAB=clean
 # One attempt at opening the picker from the current (empty) tab and selecting <count> sample files.
 # Returns 1 if the selection did not take.
 pick_once() {
-  local count=$1 x y i items=()
+  local count=$1 x y i p items=()
   ensure_pos "$TAB:empty" resource-id ':id/emptyStateSelectButton' resource-id ':id/selectButton' || return 1
   tap_pos "$TAB:empty"
   wait_focus documentsui 60 || return 1
@@ -310,7 +338,16 @@ pick_once() {
     done
     showing_samples || { echo "  picker did not open $SAMPLE_DIR" >&2; return 1; }
   fi
-  mapfile -t items < <(picker_items)
+  read_picker_items
+  if ((${#items[@]} == 0)) && p=$(node_center content-desc 'Grid view'); then
+    # The picker remembers list view (the /test run uses it); the selection below needs the grid.
+    adb shell input tap $p
+    for ((i = 0; i < 10; i++)); do
+      ui_dump
+      read_picker_items
+      ((${#items[@]} == 0)) || break
+    done
+  fi
   ((${#items[@]} > 0)) || return 1
   read -r x y <<<"${items[0]}"
   adb shell input swipe "$x" "$y" "$x" "$y" 700   # long-press starts multi-select
@@ -320,7 +357,7 @@ pick_once() {
     adb shell input keycombination KEYCODE_CTRL_LEFT KEYCODE_A   # select every file in the folder
     sleep 0.5
     ui_dump
-    grep -q "text=\"$count selected\"" <<<"$UI" || { echo "  picker did not report $count selected" >&2; return 1; }
+    grep -q "text=\"$count selected\"" <"$UI_FILE" || { echo "  picker did not report $count selected" >&2; return 1; }
     cache_pos picker:confirm resource-id ':id/action_menu_select' || cache_pos picker:confirm text 'Select' || return 1
     tap_pos picker:confirm
   else
@@ -348,7 +385,11 @@ pick_files() {
   adb shell am force-stop com.google.android.documentsui
   unset 'POS[picker:roots]' 'POS[picker:confirm]'
   wait_focus "$PKG" 20 || true
-  pick_once "$count" || { echo "Could not select $count sample files" >&2; return 1; }
+  if ! pick_once "$count"; then
+    adb exec-out screencap -p >"$OUT/${LOCALE:-unknown}-pick-failed.png" 2>/dev/null || true
+    echo "Could not select $count sample files (screen saved as ${LOCALE:-unknown}-pick-failed.png)" >&2
+    return 1
+  fi
   return 0
 }
 
@@ -360,14 +401,13 @@ hide_notifications() {
   sleep 0.5   # let the status bar drop the icons
 }
 
-# shot <clean|scan|convert>: screens are numbered in pairs, light first.
+# shot <name>: saves the screen as $OUT/<locale>/<name>.png, or <name>-dark.png in the dark pass.
 shot() {
-  local n
-  case $1 in clean) n=1 ;; scan) n=3 ;; convert) n=5 ;; esac
-  [[ "$MODE" != dark ]] || n=$((n + 1))
+  local file="$OUT/$LOCALE/$1.png"
+  [[ "$MODE" != dark ]] || file="$OUT/$LOCALE/$1-dark.png"
   hide_notifications
-  adb exec-out screencap -p >"$OUT/$n.png"
-  echo "  $n.png ($1, $MODE)"
+  adb exec-out screencap -p >"$file"
+  echo "  $LOCALE/${file##*/}"
 }
 
 go_tab() {
@@ -377,10 +417,126 @@ go_tab() {
   sleep 0.5
 }
 
+# Scrolls Scan's metadata list so the camera and location rows (MAKE, MODEL, then the GPS fields) sit
+# near the top of the screen: the store's first image has to show what a photo gives away. Field
+# keys are not translated, so this works in every locale.
+scroll_scan_to_camera() {
+  local i p y
+  for ((i = 0; i < 12; i++)); do
+    ui_dump
+    if p=$(node_center text MAKE); then
+      y=${p#* }
+      if ((y < 700)); then adb shell input swipe 640 1200 640 $((1200 + 700 - y)) 400
+      elif ((y > 1000)); then adb shell input swipe 640 $((y)) 640 850 600
+      else sleep 0.4; return 0; fi
+    else
+      adb shell input swipe 640 2300 640 1300 500
+    fi
+    sleep 0.4
+  done
+  echo "  could not bring the camera rows into view; Scan shows the top of the list" >&2
+}
+
+# Cleans what the Clean tab has selected and waits for the result line and Share button. If the
+# already-clean dialog appears, it picks the choice that cleans every file (Clean All is the neutral
+# button when only some files look clean, Clean Anyway the positive one when all do).
+clean_selected() {
+  local i p
+  ensure_pos clean:strip resource-id ':id/stripButton'
+  tap_pos clean:strip
+  for ((i = 0; i < 90; i++)); do
+    ui_dump
+    if node_center resource-id ':id/shareResultsButton' >/dev/null; then
+      settle
+      return 0
+    fi
+    if p=$(node_center resource-id 'android:id/button3') || p=$(node_center resource-id 'android:id/button1'); then
+      adb shell input tap $p
+    fi
+  done
+  echo "Timed out waiting for the clean to finish" >&2; return 1
+}
+
+# Starts Redact from a clean slate: default settings (so no output folder, Delete Originals or other
+# choice left over from testing shows up), every permission granted, and the rating and crash-report
+# prompts marked as answered so they can never cover a screenshot.
+fresh_app() {
+  local prefs
+  adb shell am force-stop "$PKG"
+  adb shell pm clear "$PKG" >/dev/null
+  adb shell 'for p in POST_NOTIFICATIONS READ_MEDIA_IMAGES READ_MEDIA_VIDEO READ_MEDIA_VISUAL_USER_SELECTED ACCESS_MEDIA_LOCATION; do pm grant '"$PKG"' android.permission.$p 2>/dev/null; done' || true
+  prefs=$(mktemp)
+  cat >"$prefs" <<'XML'
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <boolean name="initial_permissions_prompted" value="true" />
+    <int name="review_state" value="2" />
+    <boolean name="crash_reporting_prompted" value="true" />
+</map>
+XML
+  adb push "$(winpath "$prefs")" /data/local/tmp/redact_prefs.xml >/dev/null
+  rm -f "$prefs"
+  adb shell chmod 644 /data/local/tmp/redact_prefs.xml
+  adb shell "run-as $PKG sh -c 'mkdir -p shared_prefs && cp /data/local/tmp/redact_prefs.xml shared_prefs/redact_prefs.xml'"
+  adb shell rm -f /data/local/tmp/redact_prefs.xml
+}
+
+# Deletes what the Clean shots saved (through MediaStore, so the gallery forgets them too).
+delete_shot_outputs() {
+  adb shell "content delete --uri content://media/external/file --where \"(relative_path='Pictures/Redact/' OR relative_path='Movies/Redact/') AND date_added>=$RUN_START\"" >/dev/null 2>&1 || true
+}
+
+# capture_locale <locale>: every shot for one store locale, in that language.
+capture_locale() {
+  LOCALE=$1
+  mkdir -p "$OUT/$LOCALE"
+  rm -f "$OUT/$LOCALE"/*.png
+  # App positions move with the language; the picker's (system language) do not.
+  local k
+  for k in "${!POS[@]}"; do [[ "$k" == picker:* ]] || unset "POS[$k]"; done
+
+  echo "$LOCALE light:"
+  MODE=light
+  adb shell cmd uimode night no >/dev/null
+  fresh_app
+  adb shell cmd locale set-app-locales "$PKG" --locales "$LOCALE" >/dev/null
+  adb shell am force-stop com.google.android.documentsui
+  adb shell input keyevent KEYCODE_HOME   # leave any picker/other task from a previous run
+  adb shell am start -W -n "$PKG/.MainActivity" >/dev/null
+  wait_for resource-id ':id/bottomNavigation' 30
+  for t in clean scan convert; do cache_pos "nav:$t" resource-id ":id/navigation_$t" || true; done
+  settle
+
+  pick_files all; shot clean
+  clean_selected; shot clean-done
+  go_tab scan;    pick_files 1;   scroll_scan_to_camera; shot scan
+  go_tab convert; pick_files all; shot convert
+
+  # Dark: flip the system theme under the running app. The picks normally survive the activity
+  # recreation; if a tab fell back to its empty state it is picked again. Clean keeps its finished
+  # state, so its dark shot shows the result.
+  echo "$LOCALE dark:"
+  MODE=dark
+  adb shell cmd uimode night yes >/dev/null
+  sleep 1
+  for t in convert scan clean; do
+    go_tab "$t"
+    settle
+    [[ "$t" != scan ]] || { adb shell input swipe 640 900 640 2400 300; adb shell input swipe 640 900 640 2400 300; sleep 0.5; }   # back to the top
+    if node_center resource-id ':id/emptyStateSelectButton' >/dev/null; then
+      if [[ "$t" == scan ]]; then pick_files 1; else pick_files all; fi
+      [[ "$t" != clean ]] || clean_selected
+    fi
+    shot "$t"   # dark Scan stays at the top of the list, showing the file header and search
+  done
+  delete_shot_outputs
+}
+
 # --- run ---------------------------------------------------------------------------------
 
 mkdir -p "$OUT"
-rm -f "$OUT"/[1-6].png
+rm -f "$OUT"/[1-6].png   # the numbered layout from older versions of this script
+RUN_START=$(adb shell date +%s | tr -d '\r')
 
 # Push every sample file (prefixed so the picker shows which are ours) in one adb call, then have the
 # media scanner index them in one shell.
@@ -390,8 +546,6 @@ adb shell mkdir -p "$SAMPLE_DIR"
 adb push "$(winpath "$stage")/." "$SAMPLE_DIR/" >/dev/null
 rm -rf "$stage"
 adb shell 'for f in '"$SAMPLE_DIR"'/*; do am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file://$f >/dev/null; done'
-
-adb shell 'for p in POST_NOTIFICATIONS READ_MEDIA_IMAGES READ_MEDIA_VIDEO READ_MEDIA_VISUAL_USER_SELECTED ACCESS_MEDIA_LOCATION; do pm grant '"$PKG"' android.permission.$p 2>/dev/null; done' || true
 
 # Clean status bar: 12:00, full battery, no notification icons.
 adb shell "settings put global sysui_demo_allowed 1; for c in 'enter' 'clock -e hhmm 1200' 'battery -e level 100 -e plugged false' 'notifications -e visible false'; do am broadcast -a com.android.systemui.demo -e command \$c >/dev/null; done"
@@ -420,32 +574,10 @@ fi
 ORIGINAL_NIGHT=$(adb shell cmd uimode night | awk '{print $NF}' | tr -d '\r')
 adb shell input keyevent KEYCODE_WAKEUP
 
-echo "light:"
-MODE=light
-adb shell cmd uimode night no >/dev/null
-adb shell am force-stop com.google.android.documentsui
-adb shell am force-stop "$PKG"
-adb shell input keyevent KEYCODE_HOME   # leave any picker/other task from a previous run
-adb shell am start -W -n "$PKG/.MainActivity" >/dev/null
-wait_for resource-id ':id/bottomNavigation' 30
-for t in clean scan convert; do cache_pos "nav:$t" resource-id ":id/navigation_$t" || true; done
+for loc in $LOCALES; do capture_locale "$loc"; done
+adb shell cmd locale set-app-locales "$PKG" --locales "" >/dev/null 2>&1 || true   # back to the system language
 
-pick_files all; shot clean
-go_tab scan;    pick_files 1;   shot scan
-go_tab convert; pick_files all; shot convert
-
-# Dark: flip the system theme under the running app. The picks normally survive the activity
-# recreation; if a tab fell back to its empty state it is picked again.
-echo "dark:"
-MODE=dark
-adb shell cmd uimode night yes >/dev/null
-sleep 1
-for t in convert scan clean; do
-  go_tab "$t"
-  settle
-  if node_center resource-id ':id/emptyStateSelectButton' >/dev/null; then
-    if [[ "$t" == scan ]]; then pick_files 1; else pick_files all; fi
-  fi
-  shot "$t"
-done
-echo "Done: $OUT (${SECONDS}s)"
+echo "Raw screenshots: $OUT (${SECONDS}s)"
+if [[ -z "${SKIP_FRAMES:-}" ]]; then
+  python "$(winpath "$ROOT/scripts/store_graphics.py")" --locales "$LOCALES" || { echo "store_graphics.py failed" >&2; exit 1; }
+fi

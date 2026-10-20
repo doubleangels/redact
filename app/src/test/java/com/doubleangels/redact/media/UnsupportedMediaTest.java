@@ -18,7 +18,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
 
 import java.io.File;
@@ -28,7 +27,6 @@ import java.nio.charset.StandardCharsets;
 
 /** Inputs no decoder can read are classified as unsupported rather than reported as crashes. */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 @GraphicsMode(GraphicsMode.Mode.NATIVE) // legacy graphics fakes a bitmap for any input
 public class UnsupportedMediaTest {
 

@@ -5,7 +5,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
 
 import android.app.Application;
 import android.content.ClipData;
@@ -28,7 +27,6 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.android.controller.ActivityController;
-import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
 import org.robolectric.shadows.ShadowDialog;
 import org.robolectric.shadows.ShadowLog;
@@ -41,7 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class ShareHandlerActivityTest {
 
@@ -90,6 +87,7 @@ public class ShareHandlerActivityTest {
 
     private ShareHandlerActivity launch(Intent intent) {
         controller = Robolectric.buildActivity(ShareHandlerActivity.class, intent).setup();
+        ShareHandlerActivityFlowsTest.awaitPreparation(controller.get());
         return controller.get();
     }
 
@@ -138,13 +136,9 @@ public class ShareHandlerActivityTest {
         }
     }
 
-    /**
-     * FileProvider matches roots with a hard-coded '/' separator, so producing the cleaned
-     * content URI only works under Robolectric on POSIX hosts (CI runs on Linux).
-     */
-    private static void assumeFileProviderUsable() {
-        assumeFalse("FileProvider path matching fails on Windows hosts",
-                System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).startsWith("windows"));
+    /** Lets FileProvider produce the cleaned content URI on Windows hosts too. */
+    private static void makeFileProviderUsable() {
+        FileProviderTestSupport.makeUsable(RuntimeEnvironment.getApplication());
     }
 
     /** Error-level logcat captured during the test, to make CI failures diagnosable. */
@@ -342,7 +336,7 @@ public class ShareHandlerActivityTest {
 
     @Test
     public void send_image_stripsAndLaunchesShareChooser() throws Exception {
-        assumeFileProviderUsable();
+        makeFileProviderUsable();
         ShareHandlerActivity activity = launch(sendIntent("image/jpeg", createJpeg()));
 
         Intent chooser = awaitStartedActivity(activity);
@@ -363,8 +357,24 @@ public class ShareHandlerActivityTest {
     }
 
     @Test
+    public void aSuccessfulShare_deletesTheCopiesOfTheOriginals() throws Exception {
+        makeFileProviderUsable();
+        ShareHandlerActivity activity = launch(sendIntent("image/jpeg", createJpeg()));
+
+        assertNotNull(awaitStartedActivity(activity));
+
+        // Only the cleaned file is shared; the snapshot still holds the original's metadata.
+        long deadline = System.currentTimeMillis() + 5000;
+        while (inboundSnapshots().length > 0 && System.currentTimeMillis() < deadline) {
+            Thread.sleep(25);
+        }
+        assertEquals(0, inboundSnapshots().length);
+        assertFalse(activity.isFinishing());
+    }
+
+    @Test
     public void sendMultiple_images_launchesMultipleShareChooser() throws Exception {
-        assumeFileProviderUsable();
+        makeFileProviderUsable();
         ArrayList<Uri> uris = new ArrayList<>();
         uris.add(createJpeg());
         uris.add(createJpeg());

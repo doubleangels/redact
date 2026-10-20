@@ -43,6 +43,10 @@ public final class SentryInitializer {
         return initialized;
     }
 
+    static boolean isInitializingForTests() {
+        return initializing;
+    }
+
     /** Whether a non-empty DSN is available for initialization. */
     public static boolean hasConfiguredDsn() {
         String dsn = testDsnOverride != null ? testDsnOverride : BuildConfig.SENTRY_DSN;
@@ -121,7 +125,7 @@ public final class SentryInitializer {
             // Thread stacks are scrubbed in beforeSend; omit by default to limit path leakage.
             options.setAttachThreads(false);
 
-            // Privacy: do NOT attach screenshots or view hierarchy — could capture user media.
+            // Privacy: do NOT attach screenshots or view hierarchy: they could capture user media.
             options.setAttachScreenshot(false);
             options.setAttachViewHierarchy(false);
             options.setSendDefaultPii(false); // Explicit lock against future SDK defaults.

@@ -35,9 +35,9 @@
     <string name="convert_format_webp">WebP</string>
     <string name="convert_format_h264">MP4 (H.264)</string>
     <string name="convert_format_h265">MP4 (H.265)</string>
-    <string name="convert_format_vp9">WebM (VP9)</string>
+    <string name="convert_format_vp9">MP4 (VP9)</string>
     <string name="convert_format_heif">HEIC</string>
-    <string name="convert_format_av1">MKV (AV1)</string>
+    <string name="convert_format_av1">MP4 (AV1)</string>
     <string name="convert_select_files">選擇檔案</string>
     <string name="convert_run">轉換</string>
     <string name="convert_status_hint">在下方選擇輸出格式，然後點一下「轉換」。</string>
@@ -110,6 +110,15 @@
     <string name="metadata_latitude">緯度：%.15f</string>
     <string name="metadata_longitude">經度：%.15f</string>
     <string name="metadata_no_location_data">無位置資料可用。</string>
+    <string name="metadata_location_unreadable">存在位置資料，但其儲存形式無法在此顯示。清理會將其移除。</string>
+    <string name="metadata_container_tags_header">內嵌的標籤：</string>
+    <string name="metadata_container_tags">在檔案中發現：%1$s</string>
+    <string name="metadata_container_value">存在 – 清理時會移除</string>
+    <string name="metadata_embedded_data_header">隱藏和嵌入的資料</string>
+    <string name="metadata_embedded_value">存在（%1$s） – 清理時會移除</string>
+    <plurals name="metadata_embedded_images">
+        <item quantity="other">%1$d 張圖片（%2$s） – 清理時會移除</item>
+    </plurals>
     <string name="metadata_location_permission_needed">未授予位置權限。授予權限以檢視位置資料。</string>
     <string name="metadata_orientation">方向：%s</string>
     <string name="metadata_flash">閃光燈：%s</string>
@@ -145,7 +154,7 @@
 
     
     <string name="settings_section_advanced_privacy">中繼資料清理</string>
-    <string name="settings_advanced_privacy_subtitle">Redact 如何在清理分頁移除隱藏資訊——例如位置與相機詳情（EXIF）。從其他 App 分享的檔案在轉寄前一律會移除這些資訊。</string>
+    <string name="settings_advanced_privacy_subtitle">Redact 如何在清理分頁移除隱藏資訊，例如位置與相機詳情（EXIF）。從其他 App 分享的檔案在轉寄前一律會移除這些資訊。</string>
     <string name="settings_secure_delete">安全刪除次數</string>
     <string name="settings_secure_delete_subtitle">刪除前覆寫暫存檔（包含清理前的原始相片和影片副本）的次數，使其資料無法從磁碟復原。次數越多越慢；在快閃記憶體上仍可能復原資料。</string>
     <string name="settings_auto_clear_temp">啟動時清除快取</string>
@@ -156,17 +165,17 @@
     <string name="settings_preserve_location_subtitle">在清理分頁保留 GPS 座標。嚴格清理開啟或從其他 App 分享時忽略。</string>
         <string name="settings_sentry_consent_allow">啟用</string>
     <string name="settings_sentry_consent_cancel">暫不</string>
-    <string name="settings_sentry_consent_title">啟用當機報告？</string>
+    <string name="settings_sentry_consent_title">啟用當機報告</string>
     <string name="settings_sentry_consent_message">傳送當機報告會透過網際網路向 Sentry 上傳匿名診斷資訊。\n\n不會上傳照片、影片、檔名或 GPS 座標。</string>
     <string name="settings_strict_clean">嚴格清理</string>
-    <string name="settings_strict_clean_subtitle">移除所有中繼資料痕跡，甚至包括方向標籤——因此旋轉過的相片之後可能會顯示為歪斜。關閉上方的保留選項，並一律完整重新編碼影片，以達到最徹底的清理。</string>
+    <string name="settings_strict_clean_subtitle">移除所有中繼資料痕跡，甚至包括方向標籤，因此旋轉過的相片之後可能會顯示為歪斜。關閉上方的保留選項，並一律完整重新編碼影片，以達到最徹底的清理。</string>
     
     <string name="settings_section_advanced_processing">大型檔案與記憶體</string>
     <string name="settings_advanced_processing_subtitle">控制清理和轉換時解碼大型影像的記憶體使用。</string>
     <string name="settings_max_bitmap_size">最大處理解析度</string>
     <string name="settings_max_bitmap_size_subtitle">在記憶體中解碼影像時的最長邊像素數。較低值使用較少 RAM。</string>
     <string name="settings_video_fallback">更快的影片清理</string>
-    <string name="settings_video_fallback_subtitle">當影片已是相容格式時，Redact 會以快速處理移除其中繼資料，而非完整重新編碼——速度更快、更省電，不過完整重新編碼能多移除一些。在開啟嚴格清理或清理從其他 App 分享的檔案時，會自動關閉此功能。</string>
+    <string name="settings_video_fallback_subtitle">當影片已是相容格式時，Redact 會以快速處理移除其中繼資料，而非完整重新編碼，速度更快、更省電，不過完整重新編碼能多移除一些。在開啟嚴格清理或清理從其他 App 分享的檔案時，會自動關閉此功能。</string>
 
     <string-array name="settings_secure_delete_labels">
         <item>1 次（快速）</item>
@@ -193,7 +202,7 @@
     <string name="settings_section_diagnostics">診斷與意見回饋</string>
     <string name="settings_section_diagnostics_subtitle">可選的當機報告以協助修復問題。您的媒體絕不會離開裝置。</string>
     <string name="settings_crash_reporting_label">傳送當機報告</string>
-    <string name="settings_crash_reporting_subtitle">僅分享匿名的技術資訊（App 版本、裝置型號、當機時 App 正在做什麼）——絕不包含您的相片或影片。啟用後會透過網際網路傳送至我們的當機回報服務 Sentry。</string>
+    <string name="settings_crash_reporting_subtitle">僅分享匿名的技術資訊（App 版本、裝置型號、當機時 App 正在做什麼），絕不包含您的相片或影片。啟用後會透過網際網路傳送至我們的當機回報服務 Sentry。</string>
     <string name="settings_section_conversion">轉換分頁預設值</string>
     <string name="settings_conversion_subtitle">在「轉換」中選擇檔案時預先選取的格式。仍可為每批變更。</string>
     <string name="settings_default_image_format">預設圖片格式</string>
@@ -208,7 +217,7 @@
     <string name="settings_section_share">分享到 Redact</string>
     <string name="settings_share_confirm_label">移除中繼資料前確認</string>
     <string name="settings_share_confirm_subtitle">在從共享檔案中移除 EXIF 和其他中繼資料之前顯示提示。</string>
-    <string name="settings_share_confirm_dialog_title">移除中繼資料？</string>
+    <string name="settings_share_confirm_dialog_title">移除中繼資料</string>
     <string name="settings_share_confirm_dialog_message">Redact 會在您繼續分享前，從共用檔案中移除 EXIF 及其他中繼資料。</string>
     <string name="settings_share_confirm_dialog_confirm">移除並繼續</string>
     <string name="settings_share_confirm_dialog_cancel">取消</string>
@@ -224,7 +233,7 @@
     <string name="settings_storage_size">快取使用中：%1$s</string>
     <string name="settings_storage_subtitle">處理期間建立的工作副本。相簿原檔絕不會被修改。</string>
     <string name="settings_storage_clear">清除暫存檔案</string>
-    <string name="settings_storage_clear_confirm_title">清除暫存檔案？</string>
+    <string name="settings_storage_clear_confirm_title">清除暫存檔案</string>
     <string name="settings_storage_clear_confirm_message">這會移除最近處理的快取副本。您的相簿檔案不受影響。</string>
     <string name="settings_storage_clear_success">已清除暫存檔案。</string>
     <string name="settings_storage_clear_empty">沒有可清除的暫存檔案。</string>
@@ -235,6 +244,7 @@
     <string name="settings_about_privacy">隱私權政策</string>
     <string name="settings_about_report_issue">回報問題</string>
     <string name="settings_about_donate">捐贈</string>
+    <string name="settings_about_rate">在 Google Play 上為 Redact 評分</string>
     <string name="settings_link_unavailable">找不到可開啟此連結的應用程式。</string>
     <string name="settings_progress_notifications_label">進行中工作進度</string>
     <string name="settings_progress_notifications_subtitle">長時間工作期間顯示進度的持續通知。預設關閉，需先開啟允許通知。</string>
@@ -282,21 +292,21 @@
     <string name="settings_permission_partial">部分</string>
     <string name="scan_status_ready">選擇檔案以掃描其中繼資料。</string>
     <string name="animated_image_warning">動畫圖像將儲存為單一靜止畫面。</string>
-    <string name="processing_warning_low_storage">儲存空間不足（剩餘 %1$s）。處理可能失敗 — 請在設定中清除暫存檔。</string>
+    <string name="processing_warning_low_storage">儲存空間不足（剩餘 %1$s）。處理可能失敗，請在設定中清除暫存檔。</string>
     <string name="processing_warning_critical_storage_title">儲存空間不足</string>
     <string name="processing_warning_critical_storage_message">Redact 大約需要 %1$s 暫存空間，但僅有 %2$s 可用。處理可能會失敗。</string>
     <string name="processing_warning_low_memory">裝置記憶體不足。大型檔案可能失敗或執行緩慢。</string>
     <string name="processing_warning_large_video">已選取大型影片。處理需要額外暫存空間，可能需要較長時間。</string>
     <string name="processing_warning_continue">仍然繼續</string>
     <string name="clean_item_failed">失敗：%1$s</string>
-    <string name="settings_preserve_location_confirm_title">在清理後的照片中保留 GPS？</string>
+    <string name="settings_preserve_location_confirm_title">在清理後的照片中保留 GPS</string>
     <string name="settings_preserve_location_confirm_message">在清理分頁清理的檔案可能仍含 GPS 座標。從其他 App 分享時一律會移除位置資訊。
 
 僅在您有意保留位置時才開啟。</string>
     <string name="settings_permission_needs_media">需要照片權限</string>
     <string name="settings_location_permission_grant">授予照片位置權限</string>
-    <string name="settings_location_needs_media_title">是否先允許照片和影片？</string>
-    <string name="settings_location_needs_media_message">照片位置權限可讓 Redact 讀取媒體中嵌入的 GPS 座標。必須先授予照片和影片資料庫存取權限——逐一選擇檔案不符合要求。\n\n在下一個畫面點按允許存取所有照片和影片。您的裝置通常會在同一步驟授予照片位置權限。</string>
+    <string name="settings_location_needs_media_title">需要照片和影片存取權</string>
+    <string name="settings_location_needs_media_message">照片位置權限可讓 Redact 讀取媒體中嵌入的 GPS 座標。必須先授予照片和影片資料庫存取權限。逐一選擇檔案不符合要求。\n\n在下一個畫面點按允許存取所有照片和影片。您的裝置通常會在同一步驟授予照片位置權限。</string>
     <string name="settings_location_grant_media_first">繼續</string>
     <string name="settings_location_permission_granted">已授予照片位置權限。</string>
     <string name="settings_location_permission_denied">已拒絕照片位置權限。</string>
@@ -342,6 +352,9 @@
     <string name="convert_item_type_image">圖片</string>
     <string name="convert_item_type_video">影片</string>
     <string name="notification_clean_failed">這次沒有成功清理任何檔案。</string>
+    <string name="notification_clean_batch_details">本批次：%1$s</string>
+    <string name="notification_clean_totals">此裝置迄今：%1$s</string>
+    <string name="notification_stat_item">%1$s（%2$s）</string>
     <string name="scan_empty_state_title">檢查媒體中繼資料</string>
     <string name="scan_empty_state_description">選擇照片或影片，以檢視 EXIF 詳細資料、相機規格、GPS 座標和技術屬性。</string>
     <string name="scan_grant_location_button">授予權限</string>
@@ -411,4 +424,57 @@
     <string name="share_results_chooser_title">分享方式…</string>
     <string name="settings_output_unavailable">Redact 無法再儲存至這個資料夾，檔案將儲存至 %1$s。請重新選擇這個資料夾或改選其他資料夾。</string>
     <string name="output_folder_fallback">%1$s 無法使用，改為儲存至 %2$s。</string>
+    <string name="settings_output_open">開啟資料夾</string>
+    <string name="settings_output_open_unavailable">找不到可開啟此資料夾的應用程式。</string>
+    <string name="settings_output_also_videos">影片也儲存到這裡嗎？</string>
+    <string name="settings_output_also_images">圖片也儲存到這裡嗎？</string>
+    <string name="settings_output_also_confirm">兩者都用</string>
+    <string name="settings_output_also_decline">不用了</string>
+    <string name="settings_reset_all">重設所有設定</string>
+    <string name="settings_reset_all_title">重設所有設定</string>
+    <string name="settings_reset_all_message">所有設定都會恢復為預設值，Redact 也會忘記你選擇的輸出資料夾。你的相片、影片和已清理的檔案不受影響。</string>
+    <string name="settings_reset_all_confirm">重設</string>
+    <string name="settings_reset_all_done">設定已恢復為預設值。</string>
+    <string name="settings_reset_all_busy">處理期間無法重設設定。</string>
+    <string name="share_target_scan">使用 Redact 掃描</string>
+    <string name="button_scan_result">掃描結果</string>
+    <string name="settings_keep_original_names">保留原始檔名</string>
+    <string name="settings_keep_original_names_subtitle">清理與轉換後的檔案沿用原始檔名，而非隨機名稱。IMG_20260117 這類名稱可能透露照片的拍攝時間。</string>
+    <string name="review_prompt_title">為 Redact 評分</string>
+    <string name="review_prompt_message">如果 Redact 幫你保護了照片隱私，願意在 Google Play 上為它評分嗎？只需片刻，還能幫助更多人找到這個應用程式。</string>
+    <string name="review_prompt_yes">願意</string>
+    <string name="review_prompt_no">不用了</string>
+    <string name="review_prompt_declined">好的，Redact 不會再詢問。如果你改變主意，隨時可以在「設定 › 關於」中評分。</string>
+    <string name="crash_prompt_declined">好的，Redact 不會再詢問。你可以隨時在 設定 › 診斷與意見回饋 中開啟當機報告。</string>
+    <string name="stats_title">統計</string>
+    <string name="stats_navigate_up">返回</string>
+    <string name="stats_settings_title">你的隱私統計</string>
+    <string name="stats_settings_empty">清理第一張照片或第一部影片，即可查看 Redact 為你移除了哪些內容。</string>
+    <string name="stats_settings_since">自 %1$s 起在此裝置上統計。</string>
+    <string name="stats_fields_removed">已移除欄位</string>
+    <string name="stats_locations_removed">已移除位置</string>
+    <string name="stats_files_cleaned">已清理檔案</string>
+    <string name="stats_photos">已清理照片</string>
+    <string name="stats_videos">已清理影片</string>
+    <string name="stats_files_converted">已轉換檔案</string>
+    <string name="stats_on_device_note">僅在此裝置上統計，這些資料絕不會傳送到任何地方。</string>
+    <string name="stats_section_removed">移除的內容</string>
+    <string name="stats_section_removed_subtitle">已清理的檔案中，含有各類個人資訊的檔案數量。</string>
+    <string name="stats_removed_location">位置</string>
+    <string name="stats_removed_dates">拍攝日期和時間</string>
+    <string name="stats_removed_devices">相機和手機</string>
+    <string name="stats_removed_names">姓名和作者</string>
+    <string name="stats_section_files">檔案</string>
+    <string name="stats_section_activity">最近 30 天</string>
+    <string name="stats_chart_empty">最近 30 天內沒有清理任何檔案。</string>
+    <string name="stats_chart_today">今天</string>
+    <string name="stats_clear">清除統計</string>
+    <string name="stats_clear_subtitle">將所有計數歸零。你的設定和檔案維持不變。</string>
+    <string name="stats_clear_title">清除統計</string>
+    <string name="stats_clear_message">所有計數將歸零，並從現在起重新統計。你的設定、照片、影片和已清理的檔案不受影響。</string>
+    <string name="stats_clear_confirm">清除</string>
+    <string name="stats_cleared">統計已清除。</string>
+    <plurals name="stats_chart_summary">
+        <item quantity="other">最近 30 天內清理了 %1$s 個檔案。</item>
+    </plurals>
 </resources>

@@ -1,1 +1,1 @@
-Rimuovi metadati nascosti, scansiona EXIF e converti media sul dispositivo.
+Le foto possono rivelare dove abiti. Vedi e rimuovi GPS ed EXIF, offline.

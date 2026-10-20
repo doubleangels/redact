@@ -163,6 +163,34 @@ public class OutputDestinationTest {
     }
 
     @Test
+    public void currentFolderDocument_isTheFolderFilesAreSavedTo() {
+        // Before anything is saved the default folder does not exist yet, so its parent opens.
+        assertEquals(DocumentsContract.buildDocumentUri(FakeDocumentsProvider.AUTHORITY, "primary:Pictures"),
+                OutputDestination.currentFolderDocument(app, false));
+        assertEquals(DocumentsContract.buildDocumentUri(FakeDocumentsProvider.AUTHORITY, "primary:Movies"),
+                OutputDestination.currentFolderDocument(app, true));
+
+        java.io.File storage = android.os.Environment.getExternalStorageDirectory();
+        assertTrue(new java.io.File(storage, OutputDestination.defaultPath(false)).mkdirs());
+        assertTrue(new java.io.File(storage, OutputDestination.defaultPath(true)).mkdirs());
+        assertEquals(DocumentsContract.buildDocumentUri(FakeDocumentsProvider.AUTHORITY, "primary:Pictures/Redact"),
+                OutputDestination.currentFolderDocument(app, false));
+        assertEquals(DocumentsContract.buildDocumentUri(FakeDocumentsProvider.AUTHORITY, "primary:Movies/Redact"),
+                OutputDestination.currentFolderDocument(app, true));
+
+        Uri tree = chosenImageFolder("primary:Pictures/Private");
+        Uri folder = OutputDestination.currentFolderDocument(app, false);
+        assertEquals("primary:Pictures/Private", DocumentsContract.getDocumentId(folder));
+        assertEquals(tree.getAuthority(), folder.getAuthority());
+
+        // Once the chosen folder is gone, files go to the default, so that is what opens.
+        //noinspection ResultOfMethodCallIgnored
+        FakeDocumentsProvider.fileFor("primary:Pictures/Private").delete();
+        assertEquals(DocumentsContract.buildDocumentUri(FakeDocumentsProvider.AUTHORITY, "primary:Pictures/Redact"),
+                OutputDestination.currentFolderDocument(app, false));
+    }
+
+    @Test
     public void isDefaultFolder_recognizesRedactsOwnFolders() {
         assertTrue(OutputDestination.isDefaultFolder(FakeDocumentsProvider.tree("primary:Pictures/Redact"), false));
         assertTrue(OutputDestination.isDefaultFolder(FakeDocumentsProvider.tree("primary:pictures/redact"), false));

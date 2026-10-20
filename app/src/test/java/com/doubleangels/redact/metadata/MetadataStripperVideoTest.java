@@ -23,7 +23,6 @@ import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowMediaExtractor;
 import org.robolectric.shadows.ShadowMediaMetadataRetriever;
 import org.robolectric.shadows.util.DataSource;
@@ -37,7 +36,6 @@ import java.util.List;
 
 /** Video cleaning with Robolectric's emulated MediaExtractor / MediaMuxer / MediaMetadataRetriever. */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 31, shadows = {com.doubleangels.redact.LenientMediaExtractorShadow.class})
 public class MetadataStripperVideoTest {
 
     @Rule
@@ -70,7 +68,8 @@ public class MetadataStripperVideoTest {
         File f = File.createTempFile("vid_", ext, app.getFilesDir());
         files.add(f);
         try (FileOutputStream out = new FileOutputStream(f)) {
-            out.write(new byte[64]);
+            // A minimal real container: verification reads the boxes and refuses what it can't.
+            out.write(TestVideos.cleanMp4());
         }
         return f;
     }
@@ -351,8 +350,120 @@ public class MetadataStripperVideoTest {
         assertFalse(entry.displayName().contains("holiday"));
         assertEquals("video/mp4", entry.mimeType());
         assertFalse(entry.isPending());
-        assertEquals(64, entry.file.length());
+        assertEquals(TestVideos.cleanMp4().length, entry.file.length());
         assertEquals(Integer.valueOf(100), progress.get(progress.size() - 1));
+    }
+
+    private File writeVideo(byte[] content) throws IOException {
+        File f = TestVideos.write(app.getFilesDir(), "v.mp4", content);
+        files.add(f);
+        return f;
+    }
+
+    @Test
+    public void stripVideo_scrubsWhatTheMuxerLeftBehind_beforeSaving() throws Exception {
+        AppPreferences.setStrictClean(app, false);
+        AppPreferences.setVideoFallbackCopy(app, true);
+        // As MediaMuxer writes it: the Android version key and the time of cleaning in every
+        // header, plus a location the platform retriever cannot see.
+        File muxed = writeVideo(TestVideos.mp4(TestVideos.RECORDED_1904,
+                TestVideos.mdtaMeta("com.android.version", "17"),
+                TestVideos.box("udta", TestVideos.box("loci", TestVideos.bytes(TestVideos.LOCATION)))));
+        long length = muxed.length();
+        stripper.setTestFastStripVideoMetadataOverride(muxed);
+
+        Uri out = stripper.stripVideoMetadata(Uri.fromFile(writeVideo(TestVideos.cleanMp4())), "a.mp4");
+
+        assertNotNull(out);
+        File saved = FakeMediaStoreProvider.only().file;
+        assertEquals(length, saved.length());
+        assertTrue(VideoContainerMetadata.scan(saved).fields.toString(), VideoContainerMetadata.scan(saved).isClean());
+        assertFalse(TestVideos.contains(saved, TestVideos.LOCATION));
+        assertFalse(TestVideos.contains(saved, "com.android.version"));
+        assertTrue(TestVideos.contains(saved, TestVideos.SAMPLES));
+    }
+
+    @Test
+    public void stripVideo_countsTagsThePlatformCannotSee() throws Exception {
+        AppPreferences.setStrictClean(app, false);
+        AppPreferences.setVideoFallbackCopy(app, true);
+        stripper.setTestFastStripVideoMetadataOverride(writeVideo(TestVideos.cleanMp4()));
+        File source = TestVideos.resource(app.getFilesDir(), "video/ffmpeg_location_keys.mp4");
+        files.add(source);
+
+        assertNotNull(stripper.stripVideoMetadata(Uri.fromFile(source), "a.mp4"));
+
+        CleanStats stats = stripper.getLastCleanStats();
+        assertNotNull(stats);
+        assertTrue(stats.hadLocation);
+        assertTrue(String.valueOf(stats.removedFields), stats.removedFields >= 3);
+    }
+
+    private void requireClean(File f) throws Exception {
+        call(stripper, "requireVideoMetadataClean",
+                new Class<?>[]{File.class, MetadataStripper.VideoPrivacySnapshot.class},
+                f, snapshot(null, null));
+    }
+
+    @Test
+    public void verification_neverPassesAFileWithAMetadataTrack() throws Exception {
+        // A metadata track's samples cannot be blanked, so the clean must re-encode instead.
+        File f = writeVideo(TestVideos.mp4(0, TestVideos.trak("meta", 0)));
+        try {
+            requireClean(f);
+            fail("a metadata track passed verification");
+        } catch (IOException expected) {
+            assertEquals("Video metadata verification failed", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void verification_neverPassesAnOutputItCannotRead() throws Exception {
+        for (byte[] content : new byte[][]{new byte[64], TestVideos.bytes("not a video")}) {
+            try {
+                requireClean(writeVideo(content));
+                fail("an unreadable output passed verification");
+            } catch (IOException expected) {
+                // Refused, as it should be.
+            }
+        }
+    }
+
+    @Test
+    public void verification_scrubsAndPasses_aMuxerOutputWithLeftovers() throws Exception {
+        File f = writeVideo(TestVideos.mp4(TestVideos.RECORDED_1904,
+                TestVideos.mdtaMeta("com.android.version", "17"),
+                TestVideos.box("udta", TestVideos.mdtaMeta("location", TestVideos.LOCATION))));
+
+        requireClean(f);
+
+        assertTrue(VideoContainerMetadata.scan(f).isClean());
+        assertFalse(TestVideos.contains(f, TestVideos.LOCATION));
+    }
+
+    @Test
+    public void countVideoPrivacyFields_usesTheContainerCountWhenItSeesMore() {
+        CleanStats hidden = MetadataStripper.countVideoPrivacyFields(
+                new MetadataStripper.VideoPrivacySnapshot(null, null, 0, 3, true));
+        org.junit.Assert.assertEquals(3, hidden.removedFields);
+        org.junit.Assert.assertTrue(hidden.hadLocation);
+
+        CleanStats retrieverSeesMore = MetadataStripper.countVideoPrivacyFields(
+                new MetadataStripper.VideoPrivacySnapshot("+40.7-074.0/", "20250101T000000.000Z", 2, 1, false));
+        org.junit.Assert.assertEquals(4, retrieverSeesMore.removedFields);
+        org.junit.Assert.assertTrue(retrieverSeesMore.hadLocation);
+    }
+
+    @Test
+    public void countVideoPrivacyFields_reportsDatesDevicesAndNames() {
+        CleanStats stats = MetadataStripper.countVideoPrivacyFields(
+                new MetadataStripper.VideoPrivacySnapshot(null, "20250101T000000.000Z", 1,
+                        java.util.List.of("©mak", "©mod"), false, true));
+        org.junit.Assert.assertEquals(2, stats.removedFields);
+        org.junit.Assert.assertTrue(stats.hadDate);
+        org.junit.Assert.assertTrue(stats.hadDevice);
+        org.junit.Assert.assertTrue(stats.hadName);
+        org.junit.Assert.assertFalse(stats.hadLocation);
     }
 
     // ---- progress mapping ------------------------------------------------------------------------------------

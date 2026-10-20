@@ -3,6 +3,7 @@ package com.doubleangels.redact.media;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.media.MediaMetadataRetriever;
+import android.media.metrics.LogSessionId;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -10,16 +11,20 @@ import android.os.Looper;
 import android.provider.MediaStore;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import androidx.media3.common.C;
+import androidx.media3.common.Format;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.util.Clock;
 import androidx.media3.effect.Presentation;
 import androidx.media3.transformer.AssetLoader;
+import androidx.media3.transformer.Codec;
 import androidx.media3.transformer.Composition;
 import androidx.media3.transformer.DefaultAssetLoaderFactory;
 import androidx.media3.transformer.DefaultDecoderFactory;
+import androidx.media3.transformer.DefaultEncoderFactory;
 import androidx.media3.transformer.DefaultMuxer;
 import androidx.media3.transformer.EditedMediaItem;
 import androidx.media3.transformer.EditedMediaItemSequence;
@@ -47,6 +52,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
+import androidx.media3.common.util.ExperimentalApi;
 import androidx.media3.common.util.UnstableApi;
 
 /**
@@ -57,7 +63,7 @@ import androidx.media3.common.util.UnstableApi;
 @OptIn(markerClass = UnstableApi.class)
 public final class VideoMedia3Converter {
 
-    /** H.264 / AAC MP4 — used for Clean metadata stripping (broad device support, audio preserved). */
+    /** H.264 / AAC MP4, used for Clean metadata stripping (broad device support, audio preserved). */
     public static final int FORMAT_STRIP_METADATA = 0;
 
     /** 0–100 while Media3 reports export progress (main thread). */
@@ -66,6 +72,8 @@ public final class VideoMedia3Converter {
     }
 
     private static final long AWAIT_TIMEOUT_MINUTES = 60;
+    /** Replaces the wait above in tests: Media3 never finishes an export under Robolectric. */
+    private static volatile Long testAwaitTimeoutMs;
 
     /** Output short sides tried, largest first, when the encoder rejects the source resolution. */
     private static final int[] FALLBACK_SHORT_SIDES = {1080, 720, 480};
@@ -73,10 +81,62 @@ public final class VideoMedia3Converter {
     private static final AtomicReference<Transformer> activeTransformer = new AtomicReference<>();
     /** Owner id of the flow that started the active export; -1 when idle. */
     private static final AtomicLong activeTranscodeOwner = new AtomicLong(-1L);
+
+    @VisibleForTesting
+    public static void setAwaitTimeoutForTests(@Nullable Long timeoutMs) {
+        testAwaitTimeoutMs = timeoutMs;
+    }
     /** Serializes Media3 exports so Clean and Convert cannot cancel each other's transformer. */
     private static final ReentrantLock TRANSCODE_LOCK = new ReentrantLock();
 
     private VideoMedia3Converter() {
+    }
+
+    /**
+     * Makes {@link Transformer} decode and re-encode every track. Without it, a source already in
+     * the requested codec is passed through as is, keeping whatever the camera or an editor put
+     * inside the stream itself: SEI user data (camcorder date and GPS, drone telemetry, encoder
+     * settings), SEI held in the codec configuration, and audio stream comments. The container is
+     * scrubbed separately, but only a re-encode leaves nothing of the source but its pictures and
+     * sound. Media3 still falls back from keeping HDR to tone mapping when the device cannot
+     * encode HDR.
+     */
+    @VisibleForTesting
+    static final class AlwaysEncodeFactory implements Codec.EncoderFactory {
+        private final Codec.EncoderFactory delegate;
+
+        AlwaysEncodeFactory(@NonNull Codec.EncoderFactory delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public Codec createForAudioEncoding(Format format, @Nullable LogSessionId logSessionId)
+                throws ExportException {
+            return delegate.createForAudioEncoding(format, logSessionId);
+        }
+
+        @Override
+        public Codec createForVideoEncoding(Format format, @Nullable LogSessionId logSessionId)
+                throws ExportException {
+            return delegate.createForVideoEncoding(format, logSessionId);
+        }
+
+        /** Asks the real factory, so Media3 still tone maps HDR the device cannot encode. */
+        @OptIn(markerClass = ExperimentalApi.class)
+        @Override
+        public boolean isVideoFormatSupported(Format format) {
+            return delegate.isVideoFormatSupported(format);
+        }
+
+        @Override
+        public boolean audioNeedsEncoding() {
+            return true;
+        }
+
+        @Override
+        public boolean videoNeedsEncoding() {
+            return true;
+        }
     }
 
     /** Cancels an in-flight Media3 export (any owner). */
@@ -397,6 +457,8 @@ public final class VideoMedia3Converter {
                                 new Transformer.Builder(app)
                                         .setAssetLoaderFactory(decoderFallbackAssetLoaderFactory(app))
                                         .setMuxerFactory(new DefaultMuxer.Factory())
+                                        .setEncoderFactory(new AlwaysEncodeFactory(
+                                                new DefaultEncoderFactory.Builder(app).build()))
                                         .setVideoMimeType(videoMimeType)
                                         .setAudioMimeType(audioMimeTypeForVideoMime(videoMimeType))
                                         .addListener(
@@ -441,7 +503,10 @@ public final class VideoMedia3Converter {
 
         boolean finished;
         try {
-            finished = latch.await(AWAIT_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+            Long testTimeout = testAwaitTimeoutMs;
+            finished = testTimeout != null
+                    ? latch.await(testTimeout, TimeUnit.MILLISECONDS)
+                    : latch.await(AWAIT_TIMEOUT_MINUTES, TimeUnit.MINUTES);
         } finally {
             activeTranscodeOwner.compareAndSet(ownerId, -1L);
             activeTransformer.compareAndSet(transformerRef.get(), null);
@@ -629,13 +694,11 @@ public final class VideoMedia3Converter {
             throws IOException, InterruptedException {
 
         Context app = context.getApplicationContext();
-        String ext = extensionForFormatIndex(formatIndex);
-        File outFile = File.createTempFile("vid_transform_", ext, app.getCacheDir());
-        int actualFormatIndex =
-                transcodeToPath(app, sourceUri, outFile.getAbsolutePath(), formatIndex, progressListener);
+        File outFile = File.createTempFile("vid_transform_", TRANSCODE_EXTENSION, app.getCacheDir());
+        transcodeToPath(app, sourceUri, outFile.getAbsolutePath(), formatIndex, progressListener);
 
         try {
-            return copyToMoviesRedact(app, outFile, baseDisplayName, actualFormatIndex);
+            return copyToMoviesRedact(app, outFile, baseDisplayName);
         } finally {
             deleteQuietly(app, outFile);
         }
@@ -664,6 +727,16 @@ public final class VideoMedia3Converter {
         }
     }
 
+    /**
+     * The extension of everything {@link Transformer} writes: its default muxer is MP4 for every
+     * codec, VP9 and AV1 included.
+     */
+    public static final String TRANSCODE_EXTENSION = ".mp4";
+
+    /**
+     * The container a source in this format is usually in, which the fast transmux keeps (it
+     * writes WebM for VP8/VP9). A transcode is always {@link #TRANSCODE_EXTENSION}.
+     */
     @NonNull
     public static String extensionForFormatIndex(int formatIndex) {
         switch (formatIndex) {
@@ -678,27 +751,19 @@ public final class VideoMedia3Converter {
         }
     }
 
+    /**
+     * Saves a finished video to the output folder. Its extension and type follow the container
+     * {@code file} is really in (WebM only from the fast transmux, otherwise MP4), not the codec:
+     * a VP9 or AV1 transcode is MP4 too.
+     */
     @NonNull
-    public static String containerMimeForFormatIndex(int formatIndex) {
-        switch (formatIndex) {
-            case 2:
-                return "video/webm";
-            case 3:
-                return "video/x-matroska";
-            case 0:
-            case 1:
-            default:
-                return "video/mp4";
-        }
-    }
-
-    @NonNull
-    public static Uri copyToMoviesRedact(Context context, File file, String baseDisplayName, int formatIndex)
+    public static Uri copyToMoviesRedact(Context context, File file, String originalFileName)
             throws IOException {
         ContentResolver resolver = context.getContentResolver();
-        String ext = extensionForFormatIndex(formatIndex);
-        String mime = containerMimeForFormatIndex(formatIndex);
-        String outName = MediaFileNames.generateShortRandomName() + ext;
+        boolean webm = file.getName().toLowerCase(java.util.Locale.ROOT).endsWith(".webm");
+        String ext = webm ? ".webm" : ".mp4";
+        String mime = webm ? "video/webm" : "video/mp4";
+        String outName = MediaFileNames.outputBaseName(context, originalFileName) + ext;
 
         Uri outUri = OutputDestination.create(context, true, outName, mime);
 

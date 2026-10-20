@@ -448,7 +448,7 @@ public class MainViewModel extends AndroidViewModel {
 
     public void setSelectedItems(List<MediaItem> items) {
         List<MediaItem> previous = selectedItems.getValue();
-        releaseStalePermissions(previous, items);
+        releaseStalePermissions(previous, items, convertSelectedItems.getValue());
         selectedItems.setValue(items != null ? new ArrayList<>(items) : new ArrayList<>());
         persistMediaItems(KEY_CLEAN_URIS, KEY_CLEAN_NAMES, KEY_CLEAN_VIDEOS, items);
     }
@@ -457,7 +457,7 @@ public class MainViewModel extends AndroidViewModel {
 
     public void setConvertSelectedItems(List<MediaItem> items) {
         List<MediaItem> previous = convertSelectedItems.getValue();
-        releaseStalePermissions(previous, items);
+        releaseStalePermissions(previous, items, selectedItems.getValue());
         convertSelectedItems.setValue(items != null ? new ArrayList<>(items) : new ArrayList<>());
         persistMediaItems(KEY_CONVERT_URIS, KEY_CONVERT_NAMES, KEY_CONVERT_VIDEOS, items);
     }
@@ -465,16 +465,20 @@ public class MainViewModel extends AndroidViewModel {
     /**
      * Releases the persistable read permission for every item in {@code previous} that is not
      * also present in {@code next}, so a URI re-picked into the new selection keeps its
-     * just-taken permission instead of losing it to the old selection's cleanup.
+     * just-taken permission instead of losing it to the old selection's cleanup. Items the other
+     * tab ({@code otherTab}) still has selected keep theirs too, since the grant is per file.
      */
-    private void releaseStalePermissions(List<MediaItem> previous, List<MediaItem> next) {
+    private void releaseStalePermissions(
+            List<MediaItem> previous, List<MediaItem> next, List<MediaItem> otherTab) {
         if (previous == null || previous.isEmpty()) {
             return;
         }
         java.util.Set<android.net.Uri> keepUris = new java.util.HashSet<>();
-        if (next != null) {
-            for (MediaItem item : next) {
-                keepUris.add(item.uri());
+        for (List<MediaItem> kept : java.util.Arrays.asList(next, otherTab)) {
+            if (kept != null) {
+                for (MediaItem item : kept) {
+                    keepUris.add(item.uri());
+                }
             }
         }
         for (MediaItem item : previous) {
@@ -496,7 +500,8 @@ public class MainViewModel extends AndroidViewModel {
         mediaProcessor.cancel();
         VideoMedia3Converter.cancelActiveTranscode(runGeneration);
         LocalNotifications.cancelCleanProgress(getApplication());
-        LocalNotifications.stopProcessingForeground(getApplication());
+        LocalNotifications.stopProcessingForeground(
+                getApplication(), LocalNotifications.ForegroundJob.CLEAN);
         setCleanProcessingState(ProcessingState.CANCELLED);
         cleanProgressMessage.postValue(getApplication().getString(R.string.status_processing_cancelled));
     }
@@ -507,7 +512,8 @@ public class MainViewModel extends AndroidViewModel {
         convertInProgress.set(false);
         VideoMedia3Converter.cancelActiveTranscode(runGeneration);
         LocalNotifications.cancelConvertProgress(getApplication());
-        LocalNotifications.stopProcessingForeground(getApplication());
+        LocalNotifications.stopProcessingForeground(
+                getApplication(), LocalNotifications.ForegroundJob.CONVERT);
         setConvertProcessingState(ProcessingState.CANCELLED);
     }
 
@@ -594,6 +600,12 @@ public class MainViewModel extends AndroidViewModel {
         return mediaProcessor.getCleanSummary().describe(getApplication().getResources());
     }
 
+    /** The other kinds of detail the last clean batch removed, for the completion notification. */
+    @androidx.annotation.Nullable
+    public String getCleanDetailsText() {
+        return mediaProcessor.getCleanSummary().describeDetails(getApplication().getResources());
+    }
+
     /** Saved outputs of the last convert batch, kept until the next batch starts. */
     public List<android.net.Uri> getConvertOutputs() {
         return new ArrayList<>(convertOutputs);
@@ -606,6 +618,11 @@ public class MainViewModel extends AndroidViewModel {
     /** Like {@link #getCleanSucceededSources()} but consumes the list, so it is returned only once. */
     public List<android.net.Uri> takeCleanSucceededSources() {
         return mediaProcessor.takeSucceededSources();
+    }
+
+    /** Call once the user has let {@code trashed} originals go to the trash; see MediaProcessor. */
+    public void restoreCleanOriginalNames(List<android.net.Uri> trashed) {
+        mediaProcessor.restoreOriginalNames(trashed);
     }
 
     public void startCleaning(List<MediaItem> items) {
@@ -639,7 +656,7 @@ public class MainViewModel extends AndroidViewModel {
                 mediaProcessor.setTranscodeOwnerId(runGeneration);
                 setCleanProcessingState(ProcessingState.PROCESSING);
                 LocalNotifications.startProcessingForeground(
-                        getApplication(),
+                        getApplication(), LocalNotifications.ForegroundJob.CLEAN,
                         getApplication().getString(R.string.notification_clean_progress_title));
             }
 
@@ -668,9 +685,11 @@ public class MainViewModel extends AndroidViewModel {
                 persistBatchCounts(successCount, totalCount, KEY_CLEAN_PROCESSED, KEY_CLEAN_BATCH);
                 setCleanProcessingState(ProcessingState.COMPLETED);
                 int failCount = Math.max(0, totalCount - successCount);
-                LocalNotifications.stopProcessingForeground(getApplication());
+                LocalNotifications.stopProcessingForeground(
+                        getApplication(), LocalNotifications.ForegroundJob.CLEAN);
                 LocalNotifications.showCleanComplete(
-                        getApplication(), successCount, failCount, getCleanSummaryText());
+                        getApplication(), successCount, failCount, getCleanSummaryText(),
+                        getCleanDetailsText());
             }
 
             @Override
@@ -683,7 +702,8 @@ public class MainViewModel extends AndroidViewModel {
                 persistBatchCounts(successCount, totalCount, KEY_CLEAN_PROCESSED, KEY_CLEAN_BATCH);
                 setCleanProcessingState(ProcessingState.CANCELLED);
                 LocalNotifications.cancelCleanProgress(getApplication());
-                LocalNotifications.stopProcessingForeground(getApplication());
+                LocalNotifications.stopProcessingForeground(
+                        getApplication(), LocalNotifications.ForegroundJob.CLEAN);
                 cleanProgressMessage.postValue(getApplication().getString(R.string.status_processing_cancelled));
             }
 
@@ -748,7 +768,9 @@ public class MainViewModel extends AndroidViewModel {
         setConvertProcessingState(ProcessingState.PROCESSING);
         updateConvertProgressPercent(0, "");
         LocalNotifications.startProcessingForeground(
-                getApplication(), getApplication().getString(R.string.notification_convert_progress_title));
+                getApplication(),
+                LocalNotifications.ForegroundJob.CONVERT,
+                getApplication().getString(R.string.notification_convert_progress_title));
 
         final int runGeneration = convertGeneration.incrementAndGet();
         convertExecutor.execute(() -> {
@@ -777,7 +799,9 @@ public class MainViewModel extends AndroidViewModel {
 
                     final int index = i + 1;
 
-                    final String name = mediaItem.fileName() != null ? mediaItem.fileName() : "unknown";
+                    final String name = mediaItem.displayName(getApplication());
+                    // Empty, not the display label, so a nameless source still gets a random output name.
+                    final String outputName = mediaItem.fileName() != null ? mediaItem.fileName() : "";
 
                     ISpan span = transaction.startChild("convert_item", "media_item");
 
@@ -804,7 +828,7 @@ public class MainViewModel extends AndroidViewModel {
 
                                     uri,
 
-                                    name,
+                                    outputName,
 
                                     formatIndex,
 
@@ -876,7 +900,7 @@ public class MainViewModel extends AndroidViewModel {
                             android.net.Uri convertedImage = FormatConverter.convertImageToPictures(
 
                                     getApplication(), uri,
-                                    FormatConverter.formatAtIndex(imageFormatIndex), name);
+                                    FormatConverter.formatAtIndex(imageFormatIndex), outputName);
                             if (runGeneration == convertGeneration.get()) {
                                 convertOutputs.add(convertedImage);
                             }
@@ -884,12 +908,14 @@ public class MainViewModel extends AndroidViewModel {
                         }
 
                         ok++;
+                        com.doubleangels.redact.stats.StatsStore.recordConverted(getApplication());
                         SentryManager.count(
                                 "processing.convert.success", 1, "is_video", String.valueOf(mediaItem.isVideo()));
 
                         span.setStatus(SpanStatus.OK);
 
-                    } catch (Exception e) {
+                    } catch (Exception | OutOfMemoryError e) {
+                        // Out of memory fails this file, not the app: the next file may be smaller.
 
                         boolean cancelled = Thread.currentThread().isInterrupted()
                                 || convertTimedOut.get()
@@ -939,7 +965,8 @@ public class MainViewModel extends AndroidViewModel {
                     if (capturedGeneration != convertGeneration.get()) {
                         return;
                     }
-                    LocalNotifications.stopProcessingForeground(getApplication());
+                    LocalNotifications.stopProcessingForeground(
+                            getApplication(), LocalNotifications.ForegroundJob.CONVERT);
                     if (interrupted) {
                         LocalNotifications.cancelConvertProgress(getApplication());
                         convertProcessedItemCount.setValue(finalOk);

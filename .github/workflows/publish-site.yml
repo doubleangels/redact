@@ -1,0 +1,48 @@
+name: Publish Website
+
+# Publishes site/ (the landing page and guides) to GitHub Pages at
+# https://doubleangels.github.io/redact/ on every change that reaches main.
+# The github-pages environment only lets main deploy, so the site goes live
+# with each release. Needs Settings > Pages > Source set to "GitHub Actions".
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - site/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-site
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Checkout redact
+        uses: actions/checkout@v7.0.1
+        with:
+          sparse-checkout: |
+            site
+          sparse-checkout-cone-mode: true
+          persist-credentials: false
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v5.0.0
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v5.0.1

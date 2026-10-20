@@ -1,1 +1,2 @@
-Bug fixes and performance improvements.
+Video exports retry at a smaller size when the phone's encoder rejects the original size.
+Faster startup.

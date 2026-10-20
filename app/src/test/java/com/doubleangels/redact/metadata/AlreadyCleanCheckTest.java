@@ -185,6 +185,84 @@ public class AlreadyCleanCheckTest {
                 AlreadyCleanCheck.assess(app, items, 60_000L));
     }
 
+    private MediaItem video(int key, String value) throws IOException {
+        return video(TestVideos.cleanMp4(), key, value);
+    }
+
+    private MediaItem video(byte[] content, int key, String value) throws IOException {
+        File f = TestVideos.write(app.getCacheDir(), "check.mp4", content);
+        Uri uri = FakeMediaStoreProvider.add(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, f, "video/mp4");
+        if (value != null) {
+            org.robolectric.shadows.ShadowMediaMetadataRetriever.addMetadata(
+                    org.robolectric.shadows.util.DataSource.toDataSource(app, uri), key, value);
+        }
+        return new MediaItem(uri, true, f.getName());
+    }
+
+    @Test
+    public void video_withLocationDateOrAuthor_needsCleaning() throws IOException {
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app,
+                video(android.media.MediaMetadataRetriever.METADATA_KEY_LOCATION, "+40.5-073.9/")));
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app,
+                video(android.media.MediaMetadataRetriever.METADATA_KEY_DATE, "20240102T030405.000Z")));
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app,
+                video(android.media.MediaMetadataRetriever.METADATA_KEY_AUTHOR, "Someone")));
+    }
+
+    @Test
+    public void video_withNothingIdentifying_isAlreadyClean() throws IOException {
+        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app,
+                video(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION, "1000")));
+    }
+
+    @Test
+    public void video_withALocationOnlyTheContainerShows_needsCleaning() throws IOException {
+        // The platform retriever reports nothing for this file, as on a real device.
+        byte[] hidden = TestVideos.mp4(0, TestVideos.box("udta",
+                TestVideos.mdtaMeta("location", TestVideos.LOCATION), TestVideos.box("loci", new byte[20])));
+
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app,
+                video(hidden, android.media.MediaMetadataRetriever.METADATA_KEY_DURATION, "1000")));
+    }
+
+    @Test
+    public void video_withOnlyARecordingDateInItsHeaders_needsCleaning() throws IOException {
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app,
+                video(TestVideos.mp4(TestVideos.RECORDED_1904),
+                        android.media.MediaMetadataRetriever.METADATA_KEY_DURATION, "1000")));
+    }
+
+    @Test
+    public void aRealVideoWithQuickTimeLocationKeys_isNeverCalledClean() throws IOException {
+        File f = TestVideos.resource(app.getCacheDir(), "video/ffmpeg_location_keys.mp4");
+
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app,
+                video(java.nio.file.Files.readAllBytes(f.toPath()),
+                        android.media.MediaMetadataRetriever.METADATA_KEY_DURATION, "1000")));
+    }
+
+    @Test
+    public void aVideoWhoseContainerCannotBeRead_isNotCalledClean() throws IOException {
+        assertEquals(Status.UNKNOWN, AlreadyCleanCheck.assessItem(app,
+                video(new byte[64], android.media.MediaMetadataRetriever.METADATA_KEY_DURATION, "1000")));
+    }
+
+    @Test
+    public void video_theRetrieverCannotRead_isUnknown() throws IOException {
+        MediaItem item = video(0, null);
+        org.robolectric.shadows.ShadowMediaMetadataRetriever.addException(
+                org.robolectric.shadows.util.DataSource.toDataSource(app, item.uri()),
+                new IllegalArgumentException("not a video"));
+        assertEquals(Status.UNKNOWN, AlreadyCleanCheck.assessItem(app, item));
+    }
+
+    @Test
+    public void unreadableImage_isUnknown() throws IOException {
+        MediaItem item = item(jpegWith(ExifInterface.TAG_MAKE, "Acme"), "image/jpeg");
+        FakeMediaStoreProvider.failOpen = true;
+        assertEquals(Status.UNKNOWN, AlreadyCleanCheck.assessItem(app, item));
+    }
+
     @Test
     public void assess_afterTheBudgetRunsOut_reportsUnknown() throws IOException {
         List<MediaItem> items = Arrays.asList(item(jpeg(), "image/jpeg"), item(jpeg(), "image/jpeg"));

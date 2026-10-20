@@ -144,6 +144,36 @@ public final class OutputDestination {
         }
     }
 
+    /** The file name of an output created by {@link #create}, or null when it cannot be read. */
+    @Nullable
+    public static String displayName(@NonNull ContentResolver resolver, @NonNull Uri uri) {
+        try (Cursor cursor = resolver.query(uri,
+                new String[] {MediaStore.MediaColumns.DISPLAY_NAME}, null, null, null)) {
+            return cursor != null && cursor.moveToFirst() ? cursor.getString(0) : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Renames an output created by {@link #create}. Returns its URI afterwards, which for a
+     * document in a chosen folder can change, or null when it could not be renamed.
+     */
+    @Nullable
+    public static Uri rename(@NonNull ContentResolver resolver, @NonNull Uri uri, @NonNull String displayName) {
+        try {
+            if (isDocumentAuthority(uri)) {
+                return DocumentsContract.renameDocument(resolver, uri, displayName);
+            }
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, displayName);
+            return resolver.update(uri, values, null, null) > 0 ? uri : null;
+        } catch (Exception e) {
+            SentryManager.log("A clean copy could not be renamed: " + e.getMessage() + ".");
+            return null;
+        }
+    }
+
     /** The document URI for the folder a tree URI grants, which is where new files are created. */
     @NonNull
     static Uri rootDocument(@NonNull Uri tree) {
@@ -164,6 +194,25 @@ public final class OutputDestination {
         }
         return DocumentsContract.buildDocumentUri(EXTERNAL_STORAGE_AUTHORITY, PRIMARY_VOLUME + ":"
                 + (video ? Environment.DIRECTORY_MOVIES : Environment.DIRECTORY_PICTURES));
+    }
+
+    /**
+     * The folder {@code video} output is saved to right now, as a document a file manager can
+     * open: the chosen folder while it is usable, otherwise the default {@code Redact} folder.
+     */
+    @NonNull
+    public static Uri currentFolderDocument(@NonNull Context context, boolean video) {
+        Uri tree = AppPreferences.getOutputTree(context, video);
+        if (tree != null && isUsable(context, tree)) {
+            return rootDocument(tree);
+        }
+        // The default folder is only made with the first file saved to it, and a file manager
+        // asked to open a missing folder falls back to Downloads, so open Pictures or Movies.
+        String path = defaultPath(video);
+        if (!new java.io.File(Environment.getExternalStorageDirectory(), path).isDirectory()) {
+            path = video ? Environment.DIRECTORY_MOVIES : Environment.DIRECTORY_PICTURES;
+        }
+        return DocumentsContract.buildDocumentUri(EXTERNAL_STORAGE_AUTHORITY, PRIMARY_VOLUME + ":" + path);
     }
 
     /** True when {@code tree} is the default {@code Pictures/Redact} or {@code Movies/Redact} folder. */

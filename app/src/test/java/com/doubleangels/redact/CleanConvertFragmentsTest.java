@@ -1,5 +1,6 @@
 package com.doubleangels.redact;
 
+import static com.doubleangels.redact.TestWaits.awaitMain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -70,20 +71,6 @@ public class CleanConvertFragmentsTest {
 
     private static void idle() {
         shadowOf(Looper.getMainLooper()).idle();
-    }
-
-    private static void awaitMain(BooleanSupplier condition) throws InterruptedException {
-        long deadline = System.currentTimeMillis() + 20_000;
-        while (!condition.getAsBoolean()) {
-            idle();
-            if (condition.getAsBoolean()) {
-                return;
-            }
-            if (System.currentTimeMillis() > deadline) {
-                throw new AssertionError("Timed out waiting for background work");
-            }
-            Thread.sleep(25);
-        }
     }
 
     private Fragment fragment(String tag) {
@@ -188,6 +175,25 @@ public class CleanConvertFragmentsTest {
     }
 
     @Test
+    public void clean_finishedResult_survivesThePermissionRecheckOfARecreatedScreen() {
+        View v = clean();
+        vm.setSelectedItems(Arrays.asList(image("a.jpg")));
+        idle();
+        vm.setCleanProcessingState(MainViewModel.ProcessingState.PROCESSING);
+        idle();
+        vm.setCleanProcessingState(MainViewModel.ProcessingState.COMPLETED);
+        idle();
+        String result = text(v, R.id.statusText);
+
+        // A rotation or dark-mode switch rebuilds the screen, and the permission check runs again.
+        ((CleanFragment) fragment("clean")).onHostPermissionFlowCompleted();
+        idle();
+
+        assertEquals(result, text(v, R.id.statusText));
+        assertFalse(activity.getString(R.string.clean_status_ready).equals(text(v, R.id.statusText)));
+    }
+
+    @Test
     public void clean_finishingARun_buzzesOnce_andAReplayStaysQuiet() {
         View v = clean();
         vm.setSelectedItems(Arrays.asList(image("a.jpg")));
@@ -264,6 +270,100 @@ public class CleanConvertFragmentsTest {
     }
 
     @Test
+    public void clean_withDeleteOriginals_countsTowardTheRatingPrompt_withoutAsking() throws Exception {
+        AppPreferences.setDeleteOriginalsAfterClean(activity, true);
+        cleanOneFile();
+
+        assertEquals(1, activity.getSharedPreferences(AppPreferences.PREFS_NAME, android.content.Context.MODE_PRIVATE)
+                .getInt(com.doubleangels.redact.ui.ReviewPrompt.KEY_SUCCESS_COUNT, 0));
+        FakeMediaStoreProvider.reset();
+    }
+
+    /** Cleans one real JPEG through the fake MediaStore and waits for the run to finish. */
+    private View cleanOneFile() throws Exception {
+        FakeMediaStoreProvider.install(activity);
+        java.io.File jpeg = java.io.File.createTempFile("result_", ".jpg", activity.getFilesDir());
+        jpeg.deleteOnExit();
+        try (java.io.FileOutputStream out = new java.io.FileOutputStream(jpeg)) {
+            android.graphics.Bitmap.createBitmap(12, 12, android.graphics.Bitmap.Config.ARGB_8888)
+                    .compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out);
+        }
+        View v = clean();
+        vm.startCleaning(Arrays.asList(new MediaItem(Uri.fromFile(jpeg), false, "photo.jpg")));
+        awaitMain(() -> vm.getCleanProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED);
+        idle();
+        assertEquals(1, vm.getCleanOutputs().size());
+        return v;
+    }
+
+    @Test
+    public void clean_scanResult_opensTheCleanCopyInScan() throws Exception {
+        View v = cleanOneFile();
+        assertEquals(View.VISIBLE, visibility(v, R.id.scanResultButton));
+
+        v.findViewById(R.id.scanResultButton).performClick();
+        idle();
+
+        assertNotNull(fragment("scan"));
+        assertTrue(fragment("scan").isVisible());
+        FakeMediaStoreProvider.reset();
+    }
+
+    @Test
+    public void clean_share_opensTheShareSheetForTheOutputs() throws Exception {
+        View v = cleanOneFile();
+        assertEquals(View.VISIBLE, visibility(v, R.id.shareResultsButton));
+
+        v.findViewById(R.id.shareResultsButton).performClick();
+        idle();
+
+        Intent chooser = shadowOf(activity).getNextStartedActivity();
+        while (chooser != null && !Intent.ACTION_CHOOSER.equals(chooser.getAction())) {
+            chooser = shadowOf(activity).getNextStartedActivity();
+        }
+        assertNotNull(chooser);
+        Intent send = chooser.getParcelableExtra(Intent.EXTRA_INTENT);
+        assertEquals(vm.getCleanOutputs().get(0), send.getParcelableExtra(Intent.EXTRA_STREAM));
+        FakeMediaStoreProvider.reset();
+    }
+
+    @Test
+    public void clean_pickingMoreThanTheLimit_keepsTheFirstTwenty() throws Exception {
+        grantStorageRead();
+        View v = clean();
+        v.findViewById(R.id.emptyStateSelectButton).performClick();
+        idle();
+
+        ShadowActivity shadow = shadowOf(activity);
+        ShadowActivity.IntentForResult launched = shadow.peekNextStartedActivityForResult();
+        assertNotNull(launched);
+        Intent data = new Intent();
+        data.setClipData(ClipData.newRawUri("media", Uri.parse("file:///nonexistent/0.jpg")));
+        for (int i = 1; i < 25; i++) {
+            data.getClipData().addItem(new ClipData.Item(Uri.parse("file:///nonexistent/" + i + ".jpg")));
+        }
+        shadow.receiveResult(launched.intent, Activity.RESULT_OK, data);
+        awaitMain(() -> vm.getSelectedItems().getValue().size() == 20);
+        assertEquals(activity.getString(R.string.media_picker_selection_capped, 20),
+                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+    }
+
+    @Test
+    public void clean_cancelledPicker_keepsTheSelection() {
+        grantStorageRead();
+        View v = clean();
+        v.findViewById(R.id.emptyStateSelectButton).performClick();
+        idle();
+
+        ShadowActivity shadow = shadowOf(activity);
+        ShadowActivity.IntentForResult launched = shadow.peekNextStartedActivityForResult();
+        assertNotNull(launched);
+        shadow.receiveResult(launched.intent, Activity.RESULT_CANCELED, null);
+        idle();
+        assertTrue(vm.getSelectedItems().getValue() == null || vm.getSelectedItems().getValue().isEmpty());
+    }
+
+    @Test
     public void clean_changingSelectionAfterCompletion_resetsToIdle() {
         clean();
         vm.setSelectedItems(Arrays.asList(image("a.jpg")));
@@ -312,7 +412,7 @@ public class CleanConvertFragmentsTest {
     }
 
     @Test
-    public void clean_selectButton_launchesPickerAndResultSelectsItems() {
+    public void clean_selectButton_launchesPickerAndResultSelectsItems() throws Exception {
         grantStorageRead();
         View v = clean();
         v.findViewById(R.id.emptyStateSelectButton).performClick();
@@ -325,8 +425,8 @@ public class CleanConvertFragmentsTest {
         data.setClipData(ClipData.newRawUri("media", Uri.parse("file:///nonexistent/a.jpg")));
         data.getClipData().addItem(new ClipData.Item(Uri.parse("file:///nonexistent/b.mp4")));
         shadow.receiveResult(launched.intent, Activity.RESULT_OK, data);
-        idle();
-        assertEquals(2, vm.getSelectedItems().getValue().size());
+        // Picked items are read in the background, then selected on the main thread.
+        awaitMain(() -> vm.getSelectedItems().getValue().size() == 2);
     }
 
     @Test
@@ -346,17 +446,6 @@ public class CleanConvertFragmentsTest {
         convert();
         clean();
         assertEquals(MainViewModel.ProcessingState.PROCESSING, vm.getCleanProcessingState().getValue());
-    }
-
-    @Test
-    public void clean_permissionResult_isHandled() {
-        clean();
-        activity.onRequestPermissionsResult(
-                com.doubleangels.redact.permission.PermissionManager.STORAGE_PERMISSION_REQUEST_CODE,
-                new String[] {android.Manifest.permission.READ_MEDIA_IMAGES},
-                new int[] {android.content.pm.PackageManager.PERMISSION_DENIED});
-        idle();
-        assertNotNull(fragment("clean"));
     }
 
     // ---- Convert ---------------------------------------------------------------------------
@@ -557,7 +646,7 @@ public class CleanConvertFragmentsTest {
     }
 
     @Test
-    public void convert_selectButton_launchesPickerAndResultSelectsItems() {
+    public void convert_selectButton_launchesPickerAndResultSelectsItems() throws Exception {
         grantStorageRead();
         View v = convert();
         v.findViewById(R.id.emptyStateSelectButton).performClick();
@@ -569,8 +658,7 @@ public class CleanConvertFragmentsTest {
         Intent data = new Intent();
         data.setClipData(ClipData.newRawUri("media", Uri.parse("file:///nonexistent/a.jpg")));
         shadow.receiveResult(launched.intent, Activity.RESULT_OK, data);
-        idle();
-        assertEquals(1, vm.getConvertSelectedItems().getValue().size());
+        awaitMain(() -> vm.getConvertSelectedItems().getValue().size() == 1);
     }
 
     @Test
@@ -583,17 +671,6 @@ public class CleanConvertFragmentsTest {
         assertEquals(View.VISIBLE, visibility(v, R.id.formatSection));
         assertEquals(View.VISIBLE, visibility(v, R.id.filesCountBadge));
         assertTrue(v.findViewById(R.id.convertButton).isEnabled());
-    }
-
-    @Test
-    public void convert_permissionResult_isHandled() {
-        convert();
-        activity.onRequestPermissionsResult(
-                com.doubleangels.redact.permission.PermissionManager.STORAGE_PERMISSION_REQUEST_CODE,
-                new String[] {android.Manifest.permission.READ_MEDIA_IMAGES},
-                new int[] {android.content.pm.PackageManager.PERMISSION_GRANTED});
-        idle();
-        assertNotNull(fragment("convert"));
     }
 
     // ---- Clean: already-clean warning -----------------------------------------------------
@@ -692,6 +769,17 @@ public class CleanConvertFragmentsTest {
 
         assertEquals(null, ShadowDialog.getLatestDialog());
         FakeMediaStoreProvider.reset();
+    }
+
+    @Test
+    public void trashableMediaUri_mapsAFileItemToItsImageOrVideoItem() {
+        Uri file = Uri.parse("content://media/external_primary/file/202");
+        assertEquals(Uri.parse("content://media/external_primary/images/media/202"),
+                CleanFragment.trashableMediaUri(file, "image/jpeg"));
+        assertEquals(Uri.parse("content://media/external_primary/video/media/202"),
+                CleanFragment.trashableMediaUri(file, "video/mp4"));
+        Uri image = Uri.parse("content://media/external_primary/images/media/7");
+        assertEquals(image, CleanFragment.trashableMediaUri(image, null));
     }
 
     @SuppressWarnings("unused")

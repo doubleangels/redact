@@ -30,7 +30,7 @@ public final class ProcessingResourceWarnings {
     /** Advisory when free cache space falls below this (~1 GB). */
     private static final long LOW_FREE_STORAGE_BYTES = 1024L * 1024L * 1024L;
 
-    /** Hard floor — always critical below this (~256 MB). */
+    /** Hard floor: always critical below this (~256 MB). */
     private static final long CRITICAL_FREE_STORAGE_BYTES = 256L * 1024L * 1024L;
 
     /** Advisory when the system reports less than this available RAM (~512 MB). */

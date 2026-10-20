@@ -1,1 +1,5 @@
-Bug fixes and performance improvements.
+Redesigned Clean, Scan, Convert and Settings.
+New: a warning before cleaning files that already look clean, optional deletion of originals, Hide Content in Screenshots and Recents, auto-clear for copied metadata, and a Location badge in Scan.
+Converted files are fully stripped of metadata.
+Works better on foldables and tablets.
+Fixed photo orientation and background jobs on Android 14.

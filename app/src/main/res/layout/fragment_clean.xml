@@ -112,7 +112,6 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:padding="16dp">
 
@@ -146,30 +145,40 @@
                                 android:text="@string/clean_selected_hint"
                                 android:textAppearance="?attr/textAppearanceBodySmall"
                                 android:textColor="?attr/colorOnSurfaceVariant" />
+
+                            <!-- On their own row so long translations of the title and hint keep the full width. -->
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="end"
+                                android:layout_marginTop="8dp"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/cleanClearButton"
+                                    style="@style/Widget.Material3.Button.TextButton"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:minWidth="0dp"
+                                    android:paddingHorizontal="8dp"
+                                    android:text="@string/clean_clear_selection"
+                                    android:textColor="?attr/colorError" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/selectButton"
+                                    style="@style/Widget.Material3.Button.TonalButton"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="4dp"
+                                    android:minWidth="0dp"
+                                    android:paddingHorizontal="12dp"
+                                    android:text="@string/button_select_media"
+                                    app:cornerRadius="@dimen/component_corner_medium"
+                                    app:icon="@drawable/ic_add_photo"
+                                    app:iconPadding="4dp" />
+                            </LinearLayout>
                         </LinearLayout>
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/cleanClearButton"
-                            style="@style/Widget.Material3.Button.TextButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:minWidth="0dp"
-                            android:paddingHorizontal="8dp"
-                            android:text="@string/clean_clear_selection"
-                            android:textColor="?attr/colorError" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/selectButton"
-                            style="@style/Widget.Material3.Button.TonalButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="4dp"
-                            android:minWidth="0dp"
-                            android:paddingHorizontal="12dp"
-                            android:text="@string/button_select_media"
-                            app:cornerRadius="@dimen/component_corner_medium"
-                            app:icon="@drawable/ic_add_photo"
-                            app:iconPadding="4dp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -254,19 +263,36 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Share the files just saved; a fainter FAB above the main action, shown after a successful batch -->
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+    <!-- Share the files just saved; a fainter icon FAB above the main action, shown after a
+         successful batch. Its label is the content description and long-press tooltip. -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/shareResultsButton"
-        style="@style/Widget.Material3.ExtendedFloatingActionButton.Secondary"
+        style="@style/Widget.Material3.FloatingActionButton.Secondary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        android:text="@string/button_share_results"
+        android:contentDescription="@string/button_share_results"
+        android:tooltipText="@string/button_share_results"
         android:visibility="gone"
-        app:icon="@drawable/ic_share"
+        app:srcCompat="@drawable/ic_share"
         app:layout_constraintBottom_toTopOf="@id/stripButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_goneMarginBottom="88dp" />
+
+    <!-- Opens the one file a clean just saved in Scan, to see what is left; an icon FAB beside
+         Share, shown after a clean that saved exactly one file -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/scanResultButton"
+        style="@style/Widget.Material3.FloatingActionButton.Secondary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="12dp"
+        android:contentDescription="@string/button_scan_result"
+        android:tooltipText="@string/button_scan_result"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_scan"
+        app:layout_constraintBottom_toBottomOf="@id/shareResultsButton"
+        app:layout_constraintEnd_toStartOf="@id/shareResultsButton" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

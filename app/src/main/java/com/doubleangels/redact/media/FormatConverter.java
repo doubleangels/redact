@@ -114,7 +114,7 @@ public final class FormatConverter {
 
     /**
      * Maps format chip index to image output index. Index 3 (HEIC) is not allowed below API 34;
-     * JPEG (0) is used instead. Video index 3 (AV1) is unchanged — call only for image paths.
+     * JPEG (0) is used instead. Video index 3 (AV1) is unchanged, so call only for image paths.
      */
     public static int effectiveImageFormatIndex(int formatIndex) {
         if (formatIndex == 3 && !isHeicProcessingSupported()) {
@@ -334,7 +334,8 @@ public final class FormatConverter {
      * <p>Uses {@link ImageDecoder} when {@link BitmapFactory} cannot decode (e.g. some HEIF/AVIF
      * sources on newer Android versions).
      *
-     * @param baseDisplayName file name without path; extension is replaced with the output type
+     * @param baseDisplayName the source's file name; the output keeps it (with the output type's
+     *                        extension) only when Keep Original File Names is on
      */
     @NonNull
     public static Uri convertImageToPictures(
@@ -368,15 +369,14 @@ public final class FormatConverter {
         Bitmap bitmap;
         boolean needsOrientationFix = false;
         if (bounds.outWidth > 0 && bounds.outHeight > 0) {
-            int sampleSize = calculateInSampleSize(context, bounds);
-            BitmapFactory.Options opts = new BitmapFactory.Options();
-            opts.inSampleSize = sampleSize;
-            try (InputStream in = resolver.openInputStream(sourceUri)) {
-                if (in == null) {
-                    throw new IOException("Cannot open source");
+            bitmap = decodeSampled(calculateInSampleSize(context, bounds), opts -> {
+                try (InputStream in = resolver.openInputStream(sourceUri)) {
+                    if (in == null) {
+                        throw new IOException("Cannot open source");
+                    }
+                    return BitmapFactory.decodeStream(in, null, opts);
                 }
-                bitmap = BitmapFactory.decodeStream(in, null, opts);
-            }
+            });
             needsOrientationFix = bitmap != null;
         } else {
             bitmap = null;
@@ -394,7 +394,7 @@ public final class FormatConverter {
             bitmap = applyExifOrientation(context, sourceUri, bitmap);
         }
 
-        String outName = MediaFileNames.generateShortRandomName() + ext;
+        String outName = MediaFileNames.outputBaseName(context, baseDisplayName) + ext;
 
         Uri outUri;
         try {
@@ -404,9 +404,9 @@ public final class FormatConverter {
             throw e;
         }
 
+        boolean written = false;
         try (OutputStream os = resolver.openOutputStream(outUri)) {
             if (os == null) {
-                OutputDestination.discard(resolver, outUri);
                 throw new IOException("Cannot open output stream");
             }
             int q = qualityForFormat(format, context);
@@ -419,12 +419,16 @@ public final class FormatConverter {
                 ok = bitmap.compress(format, q, os);
             }
             if (!ok) {
-                OutputDestination.discard(resolver, outUri);
                 throw new IOException("Compress failed");
             }
             os.flush();
+            written = true;
         } finally {
             bitmap.recycle();
+            if (!written) {
+                // Whatever went wrong (including the stream throwing), leave no partial file.
+                OutputDestination.discard(resolver, outUri);
+            }
         }
         // Re-encoding from decoded pixels drops all source metadata (EXIF, XMP, IPTC, ICC
         // thumbnails); intentionally nothing is copied back.
@@ -440,6 +444,9 @@ public final class FormatConverter {
             throws IOException {
         try {
             return decodeWithImageDecoder(context, sourceUri);
+        } catch (OutOfMemoryError e) {
+            // Already scaled to the max bitmap size; fail this file rather than the app.
+            throw new IOException("Not enough memory to decode the image", e);
         } catch (ImageDecoder.DecodeException e) {
             // SOURCE_EXCEPTION means the bytes could not be read (a real I/O failure). Any other
             // error means the bytes were read but are not an image this device can decode.
@@ -493,6 +500,39 @@ public final class FormatConverter {
             return "image/heic";
         }
         return "image/jpeg";
+    }
+
+    /** How many times a decode that ran out of memory is retried at half the size. */
+    private static final int MAX_OUT_OF_MEMORY_RETRIES = 3;
+
+    /** One {@link BitmapFactory} decode with the given options. */
+    public interface SampledDecode {
+        @Nullable
+        Bitmap decode(@NonNull BitmapFactory.Options options) throws IOException;
+    }
+
+    /**
+     * Decodes at {@code inSampleSize}, halving the size again whenever the device runs out of
+     * memory, so a huge image (a panorama, say) is saved smaller instead of crashing the app.
+     * Returns null when the bytes cannot be decoded at all.
+     *
+     * @throws IOException when even the smallest retry runs out of memory
+     */
+    @Nullable
+    public static Bitmap decodeSampled(int inSampleSize, @NonNull SampledDecode decode) throws IOException {
+        int sampleSize = Math.max(1, inSampleSize);
+        for (int attempt = 0; ; attempt++) {
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inSampleSize = sampleSize;
+            try {
+                return decode.decode(options);
+            } catch (OutOfMemoryError e) {
+                if (attempt >= MAX_OUT_OF_MEMORY_RETRIES) {
+                    throw new IOException("Not enough memory to decode the image", e);
+                }
+                sampleSize *= 2;
+            }
+        }
     }
 
     private static final int MAX_ENCODER_DIMENSION = 16383;
@@ -604,7 +644,7 @@ public final class FormatConverter {
             Uri transcodeInput = cleanSource != null ? Uri.fromFile(cleanSource) : sourceUri;
             outFile = File.createTempFile(
                     "vid_transform_",
-                    VideoMedia3Converter.extensionForFormatIndex(formatIndex),
+                    VideoMedia3Converter.TRANSCODE_EXTENSION,
                     context.getApplicationContext().getCacheDir());
             int actualFormat = VideoMedia3Converter.transcodeToPath(
                     context.getApplicationContext(),
@@ -624,7 +664,7 @@ public final class FormatConverter {
             }
             stripper.requireConvertedVideoClean(outFile, sourceUri);
             return VideoMedia3Converter.copyToMoviesRedact(
-                    context, outFile, baseDisplayName, actualFormat);
+                    context, outFile, baseDisplayName);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IOException("Video conversion interrupted", e);

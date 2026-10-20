@@ -1,5 +1,6 @@
 package com.doubleangels.redact.ui;
 
+import static com.doubleangels.redact.TestWaits.awaitMain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -30,7 +31,6 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.android.controller.ServiceController;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -45,7 +45,6 @@ import java.util.function.BooleanSupplier;
 
 /** Batches that really succeed (images are written through the fake MediaStore). */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class MainViewModelSuccessFlowTest {
 
     @Rule
@@ -71,20 +70,6 @@ public class MainViewModelSuccessFlowTest {
         AppProcessingScope.resetForTests();
         for (File f : files) {
             f.delete();
-        }
-    }
-
-    private static void awaitMain(BooleanSupplier condition) throws InterruptedException {
-        long deadline = System.currentTimeMillis() + 20_000;
-        while (!condition.getAsBoolean()) {
-            shadowOf(Looper.getMainLooper()).idle();
-            if (condition.getAsBoolean()) {
-                return;
-            }
-            if (System.currentTimeMillis() > deadline) {
-                throw new AssertionError("Timed out waiting for background work");
-            }
-            Thread.sleep(25);
         }
     }
 
@@ -127,6 +112,10 @@ public class MainViewModelSuccessFlowTest {
         assertEquals(Arrays.asList(a.uri(), b.uri()), vm.getCleanSucceededSources());
         assertEquals(2, FakeMediaStoreProvider.entries().size());
         assertTrue(vm.getCleanProgressMessage().getValue() != null);
+        com.doubleangels.redact.stats.StatsSnapshot stats =
+                com.doubleangels.redact.stats.StatsStore.snapshot(app);
+        assertEquals(2, stats.imagesCleaned);
+        assertEquals(0, stats.sharedIn);
     }
 
     @Test
@@ -148,6 +137,8 @@ public class MainViewModelSuccessFlowTest {
 
         assertEquals(Integer.valueOf(1), vm.getCleanProcessedItemCount().getValue());
         assertEquals(Integer.valueOf(2), vm.getCleanBatchTotalCount().getValue());
+        // Only the file that was cleaned counts towards the statistics.
+        assertEquals(1, com.doubleangels.redact.stats.StatsStore.snapshot(app).filesCleaned());
     }
 
     @Test
@@ -201,6 +192,7 @@ public class MainViewModelSuccessFlowTest {
 
         assertEquals(Integer.valueOf(1), vm.getConvertProcessedItemCount().getValue());
         assertEquals(app.getString(R.string.convert_done_partial, 1, 1), vm.getConvertProgressMessage().getValue());
+        assertEquals(1, com.doubleangels.redact.stats.StatsStore.snapshot(app).converted);
     }
 
     @Test

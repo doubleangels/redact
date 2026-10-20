@@ -1,1 +1,2 @@
-Bug fixes and performance improvements.
+The metadata scanner is complete: pick a file to see its EXIF and video metadata.
+Smaller app, with unneeded libraries removed.

@@ -1,1 +1,1 @@
-Remove hidden metadata, scan EXIF, and convert media, all on your device.
+Your photos can reveal where you live. See and strip GPS & EXIF, all offline.

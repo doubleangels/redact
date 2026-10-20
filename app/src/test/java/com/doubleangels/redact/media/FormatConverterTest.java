@@ -206,6 +206,33 @@ public class FormatConverterTest {
     }
 
     @Test
+    public void decodeSampled_halvesTheSizeWhenADecodeRunsOutOfMemory() throws Exception {
+        java.util.List<Integer> tried = new java.util.ArrayList<>();
+        Bitmap decoded = FormatConverter.decodeSampled(2, options -> {
+            tried.add(options.inSampleSize);
+            if (options.inSampleSize < 8) {
+                throw new OutOfMemoryError();
+            }
+            return Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888);
+        });
+
+        assertNotNull(decoded);
+        assertEquals(java.util.Arrays.asList(2, 4, 8), tried);
+    }
+
+    @Test
+    public void decodeSampled_givesUpWithAnIOException() {
+        try {
+            FormatConverter.decodeSampled(1, options -> {
+                throw new OutOfMemoryError();
+            });
+            org.junit.Assert.fail("expected an IOException");
+        } catch (java.io.IOException expected) {
+            assertTrue(expected.getCause() instanceof OutOfMemoryError);
+        }
+    }
+
+    @Test
     public void calculateInSampleSize_keepsLongScreenshotsWithinTheEncoderLimit() {
         AppPreferences.setMaxBitmapSize(context, 2048);
 

@@ -74,6 +74,29 @@ public class ShareResultsTest {
     }
 
     @Test
+    public void share_countsOneShareForTheStatistics() {
+        Activity app = Robolectric.buildActivity(Activity.class).setup().get();
+        com.doubleangels.redact.stats.StatsStore.clear(app);
+
+        ShareResults.share(app, List.of(JPG, PNG));
+        ShareResults.share(app, List.of());
+
+        assertEquals(1, com.doubleangels.redact.stats.StatsStore.snapshot(app).shares);
+    }
+
+    @Test
+    public void share_thatCannotOpen_isNotCounted() {
+        Activity app = Robolectric.buildActivity(Activity.class).setup().get();
+        com.doubleangels.redact.stats.StatsStore.clear(app);
+        shadowOf(RuntimeEnvironment.getApplication()).checkActivities(true);
+
+        ShareResults.share(app, List.of(JPG));
+
+        assertEquals(0, com.doubleangels.redact.stats.StatsStore.snapshot(app).shares);
+        assertTrue(com.doubleangels.redact.stats.StatsStore.snapshot(app).isEmpty());
+    }
+
+    @Test
     public void share_severalFiles_sendsAllOfThem() {
         Activity app = Robolectric.buildActivity(Activity.class).setup().get();
         ShareResults.share(app, List.of(JPG, PNG, MP4));
@@ -92,6 +115,20 @@ public class ShareResultsTest {
         Activity app = Robolectric.buildActivity(Activity.class).setup().get();
         ShareResults.share(app, List.of());
         assertEquals(null, shadowOf(app).getNextStartedActivity());
+    }
+
+    @Test
+    public void share_leavesRedactsOwnTargetsOut() {
+        Activity app = Robolectric.buildActivity(Activity.class).setup().get();
+        ShareResults.share(app, List.of(JPG));
+
+        Intent chooser = shadowOf(app).getNextStartedActivity();
+        android.os.Parcelable[] excluded = chooser.getParcelableArrayExtra(Intent.EXTRA_EXCLUDE_COMPONENTS);
+        assertNotNull(excluded);
+        assertEquals(List.of(
+                        new android.content.ComponentName(app, "com.doubleangels.redact.ShareHandlerActivity"),
+                        new android.content.ComponentName(app, "com.doubleangels.redact.ScanShareTarget")),
+                List.of(excluded));
     }
 
     /** The share intent inside the chooser that {@link ShareResults#share} started. */

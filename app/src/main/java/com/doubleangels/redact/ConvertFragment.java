@@ -109,13 +109,9 @@ public class ConvertFragment extends Fragment {
                         uris = MediaPickerContracts.trimToMax(uris, MAX_PICK_ITEMS);
                     }
                     SentryManager.log("Media was selected successfully in ConvertFragment.");
-                    List<MediaItem> items = new ArrayList<>();
-                    for (android.net.Uri uri : uris) {
-                        if (mediaSelector != null) {
-                            items.add(mediaSelector.processMediaUri(uri));
-                        }
+                    if (mediaSelector != null) {
+                        mediaSelector.processMediaUrisAsync(uris, viewModel::setConvertSelectedItems);
                     }
-                    viewModel.setConvertSelectedItems(items);
                 });
     }
 
@@ -494,13 +490,17 @@ public class ConvertFragment extends Fragment {
                     Integer finishedOk = viewModel.getConvertProcessedItemCount().getValue();
                     Haptics.runFinished(convertButton, finishedOk != null ? finishedOk : 0);
                 }
-                if (!isHidden()) {
-                    Integer okCount = viewModel.getConvertProcessedItemCount().getValue();
-                    Integer batchTotal = viewModel.getConvertBatchTotalCount().getValue();
-                    int total = batchTotal != null ? batchTotal : selected.size();
-                    if (okCount != null && okCount == total && okCount > 0) {
+                Integer okCount = viewModel.getConvertProcessedItemCount().getValue();
+                Integer batchTotal = viewModel.getConvertBatchTotalCount().getValue();
+                int total = batchTotal != null ? batchTotal : selected.size();
+                if (okCount != null && okCount == total && okCount > 0) {
+                    if (!isHidden()) {
                         Toast.makeText(requireContext(), R.string.convert_saved_to_gallery, Toast.LENGTH_SHORT)
                                 .show();
+                    }
+                    if (justCompleted) {
+                        // Counted even while another tab is showing; asks only when this one is.
+                        com.doubleangels.redact.ui.ReviewPrompt.onJobSucceeded(this);
                     }
                 }
             }

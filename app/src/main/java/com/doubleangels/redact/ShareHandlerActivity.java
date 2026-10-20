@@ -157,7 +157,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             thread.interrupt();
         }
         VideoMedia3Converter.cancelActiveTranscode(previousSession);
-        LocalNotifications.stopProcessingForeground(this);
+        LocalNotifications.stopProcessingForeground(this, LocalNotifications.ForegroundJob.SHARE);
         processingActive = false;
         sharingInitiated = false;
         cleanupProcessedFiles();
@@ -265,19 +265,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 finishWithError(getString(R.string.share_error_too_many_items, MAX_SHARE_ITEMS));
                 return;
             }
-            List<Uri> accepted = filterSupportedUris(uris);
-            if (accepted.isEmpty()) {
-                finishWithError(getString(unsupportedRejectCount > 0
-                        ? R.string.share_error_unsupported_media
-                        : R.string.share_error_failed_receive_media));
-                return;
-            }
-            List<Uri> snapshotted = snapshotInboundUris(accepted);
-            if (snapshotted.isEmpty()) {
-                finishWithError(getString(R.string.share_error_failed_receive_media));
-                return;
-            }
-            maybeConfirmAndProcess(snapshotted);
+            prepareAndProcess(uris);
         } catch (Exception e) {
             SentryManager.recordException(e);
             finishWithError(getString(R.string.share_error_generic));
@@ -292,20 +280,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     finishWithError(getString(R.string.share_error_too_many_items, MAX_SHARE_ITEMS));
                     return;
                 }
-                List<Uri> accepted = filterSupportedUris(uris);
-                if (accepted.isEmpty()) {
-                    finishWithError(getString(unsupportedRejectCount > 0
-                            ? R.string.share_error_unsupported_media
-                            : R.string.share_error_failed_receive_media));
-                    return;
-                }
-                List<Uri> snapshotted = snapshotInboundUris(accepted);
-                if (snapshotted.isEmpty()) {
-                    finishWithError(getString(R.string.share_error_failed_receive_media));
-                    return;
-                }
-                SentryManager.setCustomKey("media_count", snapshotted.size());
-                maybeConfirmAndProcess(snapshotted);
+                prepareAndProcess(uris);
             } else {
                 SentryManager.logEvent("share", "The app received an empty media list.");
                 finishWithError(getString(R.string.share_error_failed_receive_media));
@@ -316,26 +291,113 @@ public class ShareHandlerActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Checks the shared items, warns about storage and copies them to cache, all off the main
+     * thread: each step reads every item through its provider, and the copy reads whole files,
+     * which for a large video takes long enough to freeze the screen. The warning comes before the
+     * copy, so the user can stop before space is used.
+     */
+    private void prepareAndProcess(@NonNull List<Uri> uris) {
+        final int session = shareSessionId.get();
+        // A recreated activity cannot resume this, so treat it like a running job (see onCreate).
+        processingActive = true;
+        startShareThread("redact-share-check", () -> {
+            List<Uri> accepted = filterSupportedUris(uris);
+            List<ProcessingResourceWarnings.Warning> warnings = accepted.isEmpty()
+                    ? new ArrayList<>()
+                    : ProcessingResourceWarnings.assessShareUris(
+                            this, getContentResolver(), accepted, mediaSelector);
+            runOnUiThreadForSession(session, () -> {
+                if (accepted.isEmpty()) {
+                    finishWithError(getString(unsupportedRejectCount > 0
+                            ? R.string.share_error_unsupported_media
+                            : R.string.share_error_failed_receive_media));
+                    return;
+                }
+                ProcessingResourceWarnings.runWithWarnings(
+                        this, warnings, () -> snapshotAndProcess(accepted, session));
+            });
+        });
+    }
+
+    private void snapshotAndProcess(@NonNull List<Uri> accepted, int session) {
+        startShareThread("redact-share-snapshot", () -> {
+            List<Uri> snapshotted = snapshotInboundUris(accepted, session);
+            runOnUiThreadForSession(session, () -> {
+                if (snapshotted.isEmpty()) {
+                    finishWithError(getString(R.string.share_error_failed_receive_media));
+                    return;
+                }
+                SentryManager.setCustomKey("media_count", snapshotted.size());
+                maybeConfirmAndProcess(snapshotted);
+            });
+        });
+    }
+
+    /** Runs preparation work on its own thread; cancelling the share interrupts it. */
+    private void startShareThread(@NonNull String name, @NonNull Runnable work) {
+        Thread thread = new Thread(() -> {
+            try {
+                work.run();
+            } catch (Exception e) {
+                SentryManager.recordException(e);
+                safeRunOnUiThread(() -> finishWithError(getString(R.string.share_error_generic)));
+            }
+        }, name);
+        processingThread = thread;
+        thread.start();
+    }
+
+    /** Runs {@code action} on the main thread unless the share it belongs to was replaced or ended. */
+    private void runOnUiThreadForSession(int session, @NonNull Runnable action) {
+        safeRunOnUiThread(() -> {
+            if (session == shareSessionId.get() && !shareSessionEnded.get()) {
+                action.run();
+            }
+        });
+    }
+
+    /** Whether the share that {@code session} names is still the one this activity is running. */
+    private boolean isCurrentSession(int session) {
+        return session == shareSessionId.get()
+                && !shareSessionEnded.get()
+                && !activityDestroyed.get()
+                && !Thread.currentThread().isInterrupted();
+    }
+
     /** Items dropped by {@link #snapshotInboundUris}; counted as failures in the final toast. */
     private volatile int snapshotFailCount;
 
     /** Items dropped by {@link #filterSupportedUris} for a non-media type; also counted as failures. */
     private volatile int unsupportedRejectCount;
 
+    /** Copies each item to cache, on a background thread; stops early when the share ends. */
     @NonNull
-    private List<Uri> snapshotInboundUris(@NonNull List<Uri> uris) {
+    private List<Uri> snapshotInboundUris(@NonNull List<Uri> uris, int session) {
         List<Uri> stable = new ArrayList<>();
         snapshotFailCount = 0;
         for (Uri uri : uris) {
+            if (!isCurrentSession(session)) {
+                break;
+            }
             String scheme = uri.getScheme();
             if ("content".equalsIgnoreCase(scheme) || "file".equalsIgnoreCase(scheme)) {
                 try {
-                    File snapshot = copyInboundUriToCache(uri);
+                    File snapshot = copyInboundUriToCache(uri, session);
+                    if (!isCurrentSession(session)) {
+                        // The share was cancelled during the copy and its cleanup has already
+                        // run, so nothing else would delete this one.
+                        SecureDelete.secureDelete(getApplicationContext(), snapshot);
+                        break;
+                    }
                     synchronized (fileListLock) {
                         inboundSnapshotFiles.add(snapshot);
                     }
                     stable.add(Uri.fromFile(snapshot));
                 } catch (IOException e) {
+                    if (!isCurrentSession(session)) {
+                        break;
+                    }
                     // The source is already unreadable here, so forwarding the original URI
                     // would only fail identically at every later processing stage (extractor,
                     // transcoder, verifier), each logging its own duplicate exception for what
@@ -358,7 +420,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
     }
 
     @NonNull
-    private File copyInboundUriToCache(@NonNull Uri uri) throws IOException {
+    private File copyInboundUriToCache(@NonNull Uri uri, int session) throws IOException {
         if ("file".equalsIgnoreCase(uri.getScheme())) {
             String path = uri.getPath();
             if (path == null || path.isEmpty()) {
@@ -369,7 +431,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
             File dest = new File(getCacheDir(), "inbound_" + System.nanoTime() + suffix);
             try (FileInputStream in = new FileInputStream(source);
                     FileOutputStream out = new FileOutputStream(dest)) {
-                MediaSizeLimits.copyStream(in, out);
+                copyForSession(in, out, session);
+            } catch (IOException e) {
+                SecureDelete.secureDelete(getApplicationContext(), dest);
+                throw e;
             }
             return dest;
         }
@@ -394,9 +459,27 @@ public class ShareHandlerActivity extends AppCompatActivity {
             if (in == null) {
                 throw new IOException("Cannot open inbound stream");
             }
-            MediaSizeLimits.copyStream(in, out);
+            copyForSession(in, out, session);
+        } catch (IOException e) {
+            // A partial copy still holds part of the original.
+            SecureDelete.secureDelete(getApplicationContext(), dest);
+            throw e;
         }
         return dest;
+    }
+
+    /** Copies a whole stream, giving up as soon as the share it belongs to is cancelled. */
+    private void copyForSession(@NonNull InputStream in, @NonNull java.io.OutputStream out, int session)
+            throws IOException {
+        try {
+            MediaSizeLimits.copyStream(in, out, () -> {
+                if (!isCurrentSession(session)) {
+                    throw new java.io.UncheckedIOException(new IOException("Share cancelled"));
+                }
+            });
+        } catch (java.io.UncheckedIOException e) {
+            throw e.getCause();
+        }
     }
 
     @NonNull
@@ -413,35 +496,28 @@ public class ShareHandlerActivity extends AppCompatActivity {
         return ".bin";
     }
 
+    /** Starts cleaning the snapshots, after asking first when Settings says to. */
     private void maybeConfirmAndProcess(List<Uri> uris) {
-        Runnable startProcessing =
-                () -> {
-                    if (AppPreferences.isShareConfirmBeforeStrip(this)) {
-                        if (progressDialog != null && progressDialog.isShowing()) {
-                            progressDialog.dismiss();
-                        }
-                        new MaterialAlertDialogBuilder(this)
-                                .setTitle(R.string.settings_share_confirm_dialog_title)
-                                .setMessage(R.string.settings_share_confirm_dialog_message)
-                                .setPositiveButton(
-                                        R.string.settings_share_confirm_dialog_confirm,
-                                        (d, w) -> {
-                                            createProgressDialog();
-                                            processMediaItems(uris);
-                                        })
-                                .setNegativeButton(
-                                        R.string.settings_share_confirm_dialog_cancel, (d, w) -> finish())
-                                .setOnCancelListener(d -> finish())
-                                .show();
-                    } else {
-                        processMediaItems(uris);
-                    }
-                };
-        ProcessingResourceWarnings.runWithWarnings(
-                this,
-                ProcessingResourceWarnings.assessShareUris(
-                        this, getContentResolver(), uris, mediaSelector),
-                startProcessing);
+        if (AppPreferences.isShareConfirmBeforeStrip(this)) {
+            if (progressDialog != null && progressDialog.isShowing()) {
+                progressDialog.dismiss();
+            }
+            new MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.settings_share_confirm_dialog_title)
+                    .setMessage(R.string.settings_share_confirm_dialog_message)
+                    .setPositiveButton(
+                            R.string.settings_share_confirm_dialog_confirm,
+                            (d, w) -> {
+                                createProgressDialog();
+                                processMediaItems(uris);
+                            })
+                    .setNegativeButton(
+                            R.string.settings_share_confirm_dialog_cancel, (d, w) -> finish())
+                    .setOnCancelListener(d -> finish())
+                    .show();
+        } else {
+            processMediaItems(uris);
+        }
     }
 
     private void processMediaItems(List<Uri> uris) {
@@ -450,7 +526,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
         final int session = shareSessionId.incrementAndGet();
         activeShareSessions.incrementAndGet();
         metadataStripper.setTranscodeOwnerId(session);
-        LocalNotifications.startProcessingForeground(this, getString(R.string.share_processing_title));
+        LocalNotifications.startProcessingForeground(
+                this, LocalNotifications.ForegroundJob.SHARE, getString(R.string.share_processing_title));
         Thread worker = new Thread(() -> {
             ITransaction transaction = SentryManager.startTransaction("share_cleanup", "task");
             ArrayList<Uri> processedUris = new ArrayList<>();
@@ -482,6 +559,11 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     Uri processedUri = metadataStripper.stripMetadataForSharing(uri, fileName, isVideo);
                     if (processedUri != null) {
                         processedUris.add(processedUri);
+                        com.doubleangels.redact.metadata.CleanStats stats =
+                                metadataStripper.getLastCleanStats();
+                        com.doubleangels.redact.stats.StatsStore.recordClean(this,
+                                stats != null ? stats : new com.doubleangels.redact.metadata.CleanStats(0, false),
+                                isVideo, true);
                         try {
                             File outputFile = metadataStripper.getLastProcessedOutputFile();
                             if (outputFile != null && outputFile.exists() && outputFile.isFile()) {
@@ -545,6 +627,12 @@ public class ShareHandlerActivity extends AppCompatActivity {
                                         .show();
                             }
                             SentryManager.log("Media processing completed successfully.");
+                            if (finalFailCount == 0) {
+                                // Counted only: the share sheet is about to open, so this is no
+                                // time to ask for a rating.
+                                com.doubleangels.redact.ui.ReviewPrompt.recordSuccessfulJob(
+                                        ShareHandlerActivity.this);
+                            }
                             if (processedUris.size() == 1) {
                                 shareCleanFile(finalHasVideo, processedUris.get(0));
                             } else {
@@ -569,6 +657,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 SentryManager.recordException(e);
                 safeRunOnUiThread(() -> finishWithError(getString(R.string.share_error_generic)));
             } finally {
+                // The snapshots are copies of the originals, metadata included, and only the
+                // cleaned files are shared, so delete them now rather than when the share ends:
+                // on a successful share nothing else would until the next process start.
+                cleanupInboundSnapshots();
                 endShareSession(session);
             }
         });
@@ -583,7 +675,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
         if (shareSessionEnded.compareAndSet(false, true)) {
             processingActive = false;
             activeShareSessions.updateAndGet(count -> Math.max(0, count - 1));
-            LocalNotifications.stopProcessingForeground(ShareHandlerActivity.this);
+            LocalNotifications.stopProcessingForeground(
+                    ShareHandlerActivity.this, LocalNotifications.ForegroundJob.SHARE);
         }
     }
 
@@ -616,6 +709,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private void launchShareChooser(Intent chooser) {
         sharingInitiated = true;
         shareResultLauncher.launch(chooser);
+        com.doubleangels.redact.stats.StatsStore.recordShare(this);
     }
 
     private void shareCleanFile(boolean isVideo, Uri cleanedFileUri) {
@@ -639,7 +733,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 shareIntent.setClipData(ClipData.newRawUri(displayName, cleanedFileUri));
                 shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-                Intent chooser = Intent.createChooser(shareIntent, getString(R.string.share_chooser_title));
+                Intent chooser = com.doubleangels.redact.ui.ShareResults.withoutOwnTargets(this,
+                        Intent.createChooser(shareIntent, getString(R.string.share_chooser_title)));
                 chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
                 sharingInitiated = true;
@@ -677,7 +772,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 shareIntent.setClipData(clipData);
                 shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-                Intent chooser = Intent.createChooser(shareIntent, getString(R.string.share_chooser_title));
+                Intent chooser = com.doubleangels.redact.ui.ShareResults.withoutOwnTargets(this,
+                        Intent.createChooser(shareIntent, getString(R.string.share_chooser_title)));
                 chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
                 sharingInitiated = true;
@@ -913,7 +1009,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
         if (!shareSessionEnded.get()) {
             endShareSession(shareSessionId.get());
         }
-        LocalNotifications.stopProcessingForeground(getApplicationContext());
+        LocalNotifications.stopProcessingForeground(
+                getApplicationContext(), LocalNotifications.ForegroundJob.SHARE);
         dismissProgressDialog();
         if (isFinishing()) {
             if (!sharingInitiated) {

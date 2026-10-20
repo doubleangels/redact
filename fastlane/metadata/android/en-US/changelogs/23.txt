@@ -1,1 +1,2 @@
-Bug fixes and performance improvements.
+Choose your own output folders for cleaned and converted files, with Reset to Default.
+Very wide or tall images are resized to fit what the encoder supports.

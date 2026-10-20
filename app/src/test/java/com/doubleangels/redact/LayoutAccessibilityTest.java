@@ -15,11 +15,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
 /** Interactive controls must be at least 48dp, the Android accessibility minimum for touch targets. */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class LayoutAccessibilityTest {
 
     private Context context;

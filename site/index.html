@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>Redact: Remove Location and Metadata from Photos on Android</title>
+    <meta name="description" content="Redact shows the hidden GPS location, phone model and time in your photos and videos, and removes them before you share. Everything runs on your Android phone. No ads, no tracking.">
+    <link rel="canonical" href="https://doubleangels.github.io/redact/">
+    <link rel="icon" href="img/icon.png">
+    <link rel="stylesheet" href="style.css">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Redact: Remove Location and Metadata from Photos">
+    <meta property="og:description" content="See and strip the hidden GPS location, phone model and time from your photos and videos, all on your Android phone.">
+    <meta property="og:url" content="https://doubleangels.github.io/redact/">
+    <meta property="og:image" content="https://doubleangels.github.io/redact/img/feature.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Redact: Photo Metadata Remover",
+        "operatingSystem": "Android 12 or newer",
+        "applicationCategory": "UtilitiesApplication",
+        "description": "Shows and removes hidden metadata such as GPS location, device details and timestamps from photos and videos, entirely on the device.",
+        "url": "https://doubleangels.github.io/redact/",
+        "downloadUrl": "https://play.google.com/store/apps/details?id=com.doubleangels.redact",
+        "image": "https://doubleangels.github.io/redact/img/icon.png",
+        "offers": {"@type": "Offer", "price": "4.99", "priceCurrency": "USD"},
+        "license": "https://www.gnu.org/licenses/gpl-3.0.html"
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {"@type": "Question", "name": "Does Redact upload my photos?",
+             "acceptedAnswer": {"@type": "Answer", "text": "No. Cleaning, scanning and converting all run on your phone and need no internet connection. Redact has no ads, no analytics and no account."}},
+            {"@type": "Question", "name": "What metadata does Redact remove?",
+             "acceptedAnswer": {"@type": "Answer", "text": "GPS location, device make and model, timestamps, camera settings, XMP, IPTC and comments added by editing apps, data hidden after the picture such as extra preview images and Motion Photo clips, and video container tags such as location and creation time."}},
+            {"@type": "Question", "name": "Are my original photos changed?",
+             "acceptedAnswer": {"@type": "Answer", "text": "No. Redact saves a clean copy and leaves the original untouched, unless you turn on the option to move originals to the trash after cleaning."}},
+            {"@type": "Question", "name": "Which Android versions does Redact support?",
+             "acceptedAnswer": {"@type": "Answer", "text": "Android 12 and newer."}}
+        ]
+    }
+    </script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="top">
+    <a class="brand" href="./"><img src="img/icon.png" alt="" width="32" height="32">Redact</a>
+    <nav aria-label="Guides">
+        <a href="guides/remove-location-from-photos-android.html">Remove location</a>
+        <a href="guides/what-is-exif-data.html">What is EXIF?</a>
+        <a href="guides/check-photo-metadata-android.html">Check metadata</a>
+        <a href="guides/sell-online-safely-photo-location.html">Selling online</a>
+    </nav>
+</div>
+
+<main id="main">
+    <section class="hero">
+        <div>
+            <h1>Your photos can reveal where you live</h1>
+            <p class="lede">Every photo your phone takes can carry its exact GPS location, the date and time, and your phone's make and model. Redact shows you what a photo or video gives away, and removes it before you share, entirely on your Android phone.</p>
+            <div class="cta">
+                <a class="button" href="https://play.google.com/store/apps/details?id=com.doubleangels.redact">Get Redact on Google Play</a>
+                <small>One-time purchase. No ads, no subscription.</small>
+            </div>
+            <div class="chips">
+                <span class="chip">Works offline</span>
+                <span class="chip">No data collected</span>
+                <span class="chip">Open source</span>
+                <span class="chip">13 languages</span>
+            </div>
+        </div>
+        <img class="shot" src="img/scan.webp" width="640" height="1428" alt="Redact's Scan tab showing a photo's phone make and model and its GPS latitude and longitude, each marked with a Location badge">
+    </section>
+
+    <h2>See it, remove it, share it</h2>
+    <div class="grid">
+        <div class="card">
+            <h3>Scan</h3>
+            <p>Open any photo or video and see every hidden field in a clear, searchable list. Anything that shows where it was taken gets a Location badge.</p>
+        </div>
+        <div class="card">
+            <h3>Clean</h3>
+            <p>Clean up to 20 photos and videos at once. Redact removes GPS, device details, timestamps, XMP, IPTC, comments and video tags, plus extra preview images and Motion Photo clips hidden after the picture, then tells you exactly what it removed.</p>
+        </div>
+        <div class="card">
+            <h3>Share safely</h3>
+            <p>Share a photo to Redact from any app. It cleans the file and hands it straight back to the share sheet, so the clean copy is the one you send.</p>
+        </div>
+    </div>
+
+    <div class="shots" aria-label="Screenshots">
+        <img src="img/clean-done.webp" width="600" height="1067" loading="lazy" alt="Clean finished: 155 metadata fields removed from 8 files, 7 of which had a location">
+        <img src="img/clean.webp" width="600" height="1067" loading="lazy" alt="Eight photos and a video selected on the Clean tab">
+        <img src="img/convert.webp" width="600" height="1067" loading="lazy" alt="The Convert tab with image and video format choices">
+    </div>
+
+    <h2>Who it's for</h2>
+    <ul>
+        <li><strong>Selling online.</strong> A photo of the thing you're selling, taken at home, can point straight to your address. <a href="guides/sell-online-safely-photo-location.html">How to sell online without giving away where you live</a>.</li>
+        <li><strong>Dating and meeting new people.</strong> Send photos without sending your location.</li>
+        <li><strong>Parents.</strong> Share pictures of your kids, your home and your car with less risk.</li>
+        <li><strong>Journalists and activists.</strong> Protect sources and the places you work from.</li>
+        <li><strong>Anyone who emails photos or sends them as files.</strong> Those routes usually keep every hidden detail.</li>
+    </ul>
+
+    <h2>Private by design</h2>
+    <div class="note">Redact never uploads your photos. Cleaning, scanning and converting run on your phone and need no internet connection. Google Play's Data safety section for Redact says: no data collected, no data shared.</div>
+    <ul>
+        <li>No ads, no analytics, no tracking and no account.</li>
+        <li>Uses Android's own file picker, so Redact never needs access to your whole library.</li>
+        <li>Optional crash reports stay off unless you turn them on, and never include your photos.</li>
+        <li>Open source under the GPL-3.0 license: <a href="https://github.com/doubleangels/redact">read the code on GitHub</a>.</li>
+    </ul>
+
+    <h2>Questions</h2>
+    <details>
+        <summary>Does Redact upload my photos?</summary>
+        <p>No. Cleaning, scanning and converting all run on your phone and need no internet connection. Redact has no ads, no analytics and no account.</p>
+    </details>
+    <details>
+        <summary>What metadata does Redact remove?</summary>
+        <p>GPS location, device make and model, timestamps, camera settings, XMP, IPTC and comments added by editing apps, data hidden after the picture such as extra preview images and Motion Photo clips, and video container tags such as location and creation time. Settings let you keep camera settings, or keep location on the Clean tab if you really want to; files shared into Redact always lose their location.</p>
+    </details>
+    <details>
+        <summary>Are my original photos changed?</summary>
+        <p>No. Redact saves a clean copy to Pictures/Redact or Movies/Redact (or folders you choose) and leaves the original alone, unless you turn on the option to move originals to the trash after cleaning.</p>
+    </details>
+    <details>
+        <summary>Can it convert formats too?</summary>
+        <p>Yes: JPEG, PNG, WebP and HEIC images, and H.264, H.265, VP9 and AV1 video. Converted files are stripped of metadata and checked.</p>
+    </details>
+    <details>
+        <summary>Which Android versions does Redact support?</summary>
+        <p>Android 12 and newer.</p>
+    </details>
+
+    <h2>Guides</h2>
+    <ul>
+        <li><a href="guides/remove-location-from-photos-android.html">How to remove location from photos on Android</a></li>
+        <li><a href="guides/what-is-exif-data.html">What is EXIF data, and what does it reveal about you?</a></li>
+        <li><a href="guides/check-photo-metadata-android.html">How to check a photo's metadata on Android</a></li>
+        <li><a href="guides/sell-online-safely-photo-location.html">Selling online? Remove the location from your photos first</a></li>
+    </ul>
+</main>
+
+<footer>
+    <span>Redact by doubleangels</span>
+    <a href="https://play.google.com/store/apps/details?id=com.doubleangels.redact">Google Play</a>
+    <a href="https://github.com/doubleangels/redact">Source code</a>
+    <a href="https://doubleangels.github.io/privacypolicy/redact.html">Privacy policy</a>
+    <a href="mailto:redact@doubleangels.com">Contact</a>
+</footer>
+</body>
+</html>

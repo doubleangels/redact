@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>How to Remove Location from Photos on Android (2026 Guide)</title>
+    <meta name="description" content="Your Android photos can store the exact GPS spot where they were taken. Here is how to stop new photos saving it, and how to remove it from photos you already have before you share them.">
+    <link rel="canonical" href="https://doubleangels.github.io/redact/guides/remove-location-from-photos-android.html">
+    <link rel="icon" href="../img/icon.png">
+    <link rel="stylesheet" href="../style.css">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="How to Remove Location from Photos on Android">
+    <meta property="og:description" content="Stop new photos saving GPS, and strip it from the ones you already have.">
+    <meta property="og:image" content="https://doubleangels.github.io/redact/img/feature.png">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        "name": "How to remove the location from a photo on Android",
+        "description": "Remove GPS coordinates and other hidden metadata from a photo on Android before you share it.",
+        "tool": [{"@type": "HowToTool", "name": "Redact: Photo Metadata Remover"}],
+        "step": [
+            {"@type": "HowToStep", "name": "Check the photo", "text": "Open Redact, go to Scan and pick the photo. Rows marked Location show the GPS data it carries."},
+            {"@type": "HowToStep", "name": "Clean it", "text": "Go to Clean, select the photos or videos, and tap Clean Metadata. Redact saves clean copies and tells you what it removed."},
+            {"@type": "HowToStep", "name": "Share the clean copy", "text": "Tap Share to send the clean copies, or find them in Pictures/Redact. You can also share a photo to Redact from any app to clean it on the way out."}
+        ]
+    }
+    </script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="top">
+    <a class="brand" href="../"><img src="../img/icon.png" alt="" width="32" height="32">Redact</a>
+    <nav aria-label="Guides">
+        <a href="what-is-exif-data.html">What is EXIF?</a>
+        <a href="check-photo-metadata-android.html">Check metadata</a>
+        <a href="sell-online-safely-photo-location.html">Selling online</a>
+    </nav>
+</div>
+
+<main id="main" class="narrow">
+<article>
+    <header>
+        <div class="crumbs"><a href="../">Redact</a> › Guides</div>
+        <h1>How to remove location from photos on Android</h1>
+        <p class="lede">Most phones save the exact GPS spot where each photo was taken inside the file itself. Anyone who gets the original file can read it and put a pin on a map. Here is how to stop it, and how to clean the photos you already have.</p>
+    </header>
+
+    <h2>Why it matters</h2>
+    <p>The location is stored as EXIF metadata, hidden inside the image file. It is usually precise enough to find a building. Alongside it sit the date and time the photo was taken and your phone's make and model. (<a href="what-is-exif-data.html">More on what EXIF data contains.</a>)</p>
+    <p>Some apps and websites strip this data when you upload, but you can't count on it. Emailed photos, files sent as documents, cloud sharing links and files copied to other devices typically arrive with every hidden detail intact.</p>
+
+    <h2>Step 1: Stop new photos saving your location</h2>
+    <p>Open your camera app's settings and turn off the option that saves location. Depending on your phone it is called something like <em>Location tags</em>, <em>Save location</em> or <em>Location</em>. You can also take location access away from the camera app in Android's Settings › Apps › (your camera app) › Permissions.</p>
+    <p>This only affects new photos. Everything already in your gallery keeps its location, and some features (like browsing photos by place) stop working for new photos.</p>
+
+    <h2>Step 2: Remove the location from photos you already have</h2>
+    <p>Before you share an existing photo, send a clean copy instead. With <a href="../">Redact</a>, which runs entirely on your phone:</p>
+    <ol>
+        <li><strong>Check it.</strong> Open Redact, go to <strong>Scan</strong> and pick the photo. Rows marked <strong>Location</strong> show the GPS data inside it.</li>
+        <li><strong>Clean it.</strong> Go to <strong>Clean</strong>, select up to 20 photos or videos, and tap <strong>Clean Metadata</strong>. Redact saves clean copies and tells you what it removed, for example <em>“Removed 24 metadata fields, including location.”</em></li>
+        <li><strong>Share the clean copy.</strong> Tap <strong>Share</strong>, or find the copies in <code>Pictures/Redact</code> and <code>Movies/Redact</code>. Your originals are not changed.</li>
+    </ol>
+    <div class="note"><strong>Fastest way:</strong> in your gallery or any other app, tap Share and pick Redact. It cleans the photo and reopens the share sheet with the clean copy, so you can send it straight to the person or app you meant to.</div>
+
+    <h2>Step 3: Check that it worked</h2>
+    <p>After cleaning one file, tap <strong>Scan Result</strong> in Redact to open the clean copy in Scan. There should be no Location badge and no GPS, Make or Model fields left.</p>
+
+    <h2>What about videos?</h2>
+    <p>Videos can carry a location too, stored in the video container rather than in EXIF. Redact cleans videos the same way: select them on the Clean tab, or share them to Redact.</p>
+
+    <h2>Questions</h2>
+    <details>
+        <summary>Does removing the location lower the photo's quality?</summary>
+        <p>Redact is designed to keep photos looking the same. Strict Clean and full video re-encodes re-encode the file, which can change some encoding details.</p>
+    </details>
+    <details>
+        <summary>Is my photo uploaded anywhere to be cleaned?</summary>
+        <p>No. Redact does everything on your phone and needs no internet connection.</p>
+    </details>
+
+    <aside class="promo">
+        <img src="../img/icon.png" alt="" width="64" height="64">
+        <div>
+            <strong>Redact: Photo Metadata Remover</strong>
+            <p>See and strip GPS, device and time details from photos and videos. Offline, no ads, open source.</p>
+            <p><a href="https://play.google.com/store/apps/details?id=com.doubleangels.redact">Get it on Google Play</a></p>
+        </div>
+    </aside>
+</article>
+</main>
+
+<footer>
+    <a href="../">Redact</a>
+    <a href="https://github.com/doubleangels/redact">Source code</a>
+    <a href="https://doubleangels.github.io/privacypolicy/redact.html">Privacy policy</a>
+</footer>
+</body>
+</html>

@@ -26,7 +26,6 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
-import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
 import java.util.List;
@@ -36,7 +35,6 @@ import java.util.List;
  * short windows, and the app keeps its tab and selection when the window changes while it is open.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class AdaptiveWindowTest {
 
     private ActivityController<MainActivity> controller;

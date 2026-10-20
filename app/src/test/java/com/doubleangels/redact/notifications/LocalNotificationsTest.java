@@ -14,6 +14,8 @@ import android.content.Context;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.metadata.CleanStats;
+import com.doubleangels.redact.stats.StatsStore;
 
 import org.junit.After;
 import org.junit.Before;
@@ -22,13 +24,11 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
-import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowNotificationManager;
 
 import java.util.List;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class LocalNotificationsTest {
 
     private Application app;
@@ -238,12 +238,94 @@ public class LocalNotificationsTest {
 
     @Test
     public void foregroundHelpers_delegateToTheService() {
-        LocalNotifications.startProcessingForeground(app, "Working");
+        LocalNotifications.clearForegroundJobs();
+        LocalNotifications.startProcessingForeground(app, LocalNotifications.ForegroundJob.CLEAN, "Working");
         android.content.Intent start = Shadows.shadowOf(app).getNextStartedService();
         assertEquals(ProcessingForegroundService.ACTION_START, start.getAction());
 
-        LocalNotifications.stopProcessingForeground(app);
+        LocalNotifications.stopProcessingForeground(app, LocalNotifications.ForegroundJob.CLEAN);
         android.content.Intent stop = Shadows.shadowOf(app).getNextStartedService();
         assertEquals(ProcessingForegroundService.ACTION_STOP, stop.getAction());
+    }
+
+    @Test
+    public void theServiceKeepsRunningUntilEveryJobUsingItHasEnded() {
+        LocalNotifications.clearForegroundJobs();
+        LocalNotifications.startProcessingForeground(app, LocalNotifications.ForegroundJob.CLEAN, "Cleaning");
+        LocalNotifications.startProcessingForeground(app, LocalNotifications.ForegroundJob.SHARE, "Sharing");
+        while (Shadows.shadowOf(app).getNextStartedService() != null) {
+            // Drain the two starts.
+        }
+
+        // A share ending, or a share screen closing that never started one, leaves the clean running.
+        LocalNotifications.stopProcessingForeground(app, LocalNotifications.ForegroundJob.SHARE);
+        LocalNotifications.stopProcessingForeground(app, LocalNotifications.ForegroundJob.SHARE);
+        LocalNotifications.stopProcessingForeground(app, LocalNotifications.ForegroundJob.CONVERT);
+        assertNull(Shadows.shadowOf(app).getNextStartedService());
+
+        LocalNotifications.stopProcessingForeground(app, LocalNotifications.ForegroundJob.CLEAN);
+        assertEquals(ProcessingForegroundService.ACTION_STOP,
+                Shadows.shadowOf(app).getNextStartedService().getAction());
+    }
+
+    // ---- what the clean notification says when expanded -----------------------------------------
+
+    private String onlyNotificationBigText() {
+        List<Notification> posted = shadowNm.getAllNotifications();
+        assertEquals(1, posted.size());
+        return String.valueOf(posted.get(0).extras.getCharSequence(Notification.EXTRA_BIG_TEXT));
+    }
+
+    @Test
+    public void showCleanComplete_expanded_addsTheBatchDetailsAndTheTotals() {
+        StatsStore.clear(app);
+        StatsStore.recordClean(app, new CleanStats(1200, true, true, true, false), false, false);
+        StatsStore.recordClean(app, new CleanStats(84, true, true, false, false), true, false);
+
+        LocalNotifications.showCleanComplete(app, 2, 0, "Removed 1,284 metadata fields. 2 files had location.",
+                "In this batch: Date & Time Taken (2) · Camera & Phone (1)");
+
+        String first = app.getString(R.string.notification_clean_body, 2)
+                + " Removed 1,284 metadata fields. 2 files had location.";
+        // Collapsed, it stays as short as before.
+        assertEquals(first, onlyNotificationText());
+        assertEquals(first
+                        + "\nIn this batch: Date & Time Taken (2) · Camera & Phone (1)"
+                        + "\nOn this device so far: Fields Removed (1,284) · Locations Removed (2)",
+                onlyNotificationBigText());
+        StatsStore.clear(app);
+    }
+
+    @Test
+    public void showCleanComplete_withNothingElseRemoved_stillShowsTheTotals() {
+        StatsStore.clear(app);
+        StatsStore.recordClean(app, new CleanStats(3, false), false, false);
+
+        LocalNotifications.showCleanComplete(app, 1, 0, "Removed 3 metadata fields.", null);
+
+        assertEquals(app.getString(R.string.notification_clean_body, 1) + " Removed 3 metadata fields."
+                        + "\nOn this device so far: Fields Removed (3) · Locations Removed (0)",
+                onlyNotificationBigText());
+        StatsStore.clear(app);
+    }
+
+    @Test
+    public void showCleanComplete_whenEveryFileFailed_addsNoStatistics() {
+        StatsStore.clear(app);
+        StatsStore.recordClean(app, new CleanStats(3, true), false, false);
+
+        LocalNotifications.showCleanComplete(app, 0, 2, null, "In this batch: Camera & Phone (1)");
+
+        assertEquals(app.getString(R.string.notification_clean_failed), onlyNotificationBigText());
+        StatsStore.clear(app);
+    }
+
+    @Test
+    public void cleanTotals_withNothingCleaned_isNull() {
+        StatsStore.clear(app);
+        StatsStore.recordConverted(app);
+
+        assertNull(LocalNotifications.cleanTotals(app));
+        StatsStore.clear(app);
     }
 }

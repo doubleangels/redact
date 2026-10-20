@@ -1,0 +1,800 @@
+package com.doubleangels.redact.metadata;
+
+import android.content.Context;
+import android.net.Uri;
+import android.os.ParcelFileDescriptor;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+
+/**
+ * Finds and removes identifying metadata at the container level of MP4/MOV/3GP (ISO base media)
+ * and WebM/Matroska files.
+ *
+ * <p>{@link android.media.MediaMetadataRetriever} only reports the few tags the platform
+ * understands, so a location written as a QuickTime {@code mdta} key, a 3GPP {@code loci} box,
+ * an XMP packet or a Matroska tag is invisible to it. This class walks the boxes (or EBML
+ * elements) itself, so a file is never called clean while any of them remain.
+ *
+ * <p>{@link #scrub} works in place and never changes the file's length or the position of
+ * anything left in it: a metadata box becomes a {@code free} box (a Matroska element becomes a
+ * Void element) of the same size with its contents zeroed, and header timestamps are zeroed.
+ * Sample offsets therefore stay valid and the video plays exactly as before.
+ */
+public final class VideoContainerMetadata {
+
+    /** What a scan found. Field names are box/key names only, never their values. */
+    public static final class Report {
+        /** False when the file is not a container this class can read. */
+        public final boolean recognized;
+        @NonNull
+        public final List<String> fields;
+        public final boolean hasLocation;
+
+        Report(boolean recognized, @NonNull List<String> fields, boolean hasLocation) {
+            this.recognized = recognized;
+            this.fields = Collections.unmodifiableList(fields);
+            this.hasLocation = hasLocation;
+        }
+
+        /** True only when the file was read and nothing identifying was found. */
+        public boolean isClean() {
+            return recognized && fields.isEmpty();
+        }
+
+        static Report unrecognized() {
+            return new Report(false, new ArrayList<>(), false);
+        }
+    }
+
+    private static final int MAX_DEPTH = 12;
+    private static final int MAX_ELEMENTS = 500_000;
+    /** How much of an XMP packet or uuid box is searched for GPS data. */
+    private static final int CONTENT_PEEK = 1 << 20;
+
+    private VideoContainerMetadata() {}
+
+    // ---- public API ---------------------------------------------------------------------------
+
+    /** Scans a file; never throws. An unreadable file is reported as not recognized. */
+    @NonNull
+    public static Report scan(@NonNull File file) {
+        try (FileInputStream in = new FileInputStream(file)) {
+            return scan(in.getChannel());
+        } catch (IOException | RuntimeException e) {
+            return Report.unrecognized();
+        }
+    }
+
+    /** Scans a content or file URI; never throws. */
+    @NonNull
+    public static Report scan(@NonNull Context context, @NonNull Uri uri) {
+        try (ParcelFileDescriptor pfd = context.getContentResolver().openFileDescriptor(uri, "r")) {
+            if (pfd == null) {
+                return Report.unrecognized();
+            }
+            try (FileInputStream in = new FileInputStream(pfd.getFileDescriptor())) {
+                return scan(in.getChannel());
+            }
+        } catch (IOException | RuntimeException e) {
+            return Report.unrecognized();
+        }
+    }
+
+    /**
+     * Removes every identifying box or element from {@code file} in place.
+     *
+     * @return the number of boxes, elements and timestamps blanked
+     * @throws IOException if the file cannot be read or written, or is not a known container
+     */
+    public static int scrub(@NonNull File file) throws IOException {
+        try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+            Walker walker = new Walker(raf.getChannel(), true);
+            if (!walker.run()) {
+                throw new IOException("Not a recognized video container");
+            }
+            return walker.scrubbed;
+        }
+    }
+
+    @VisibleForTesting
+    @NonNull
+    static Report scan(@NonNull FileChannel channel) throws IOException {
+        Walker walker = new Walker(channel, false);
+        if (!walker.run()) {
+            return Report.unrecognized();
+        }
+        return new Report(true, walker.fields, walker.location);
+    }
+
+    // ---- the walk -----------------------------------------------------------------------------
+
+    private static final class Walker {
+        private final FileChannel ch;
+        private final boolean scrub;
+        private final long length;
+        final List<String> fields = new ArrayList<>();
+        boolean location;
+        int scrubbed;
+        private int elements;
+        private boolean dateCounted;
+        private int simpleTags;
+
+        Walker(FileChannel ch, boolean scrub) throws IOException {
+            this.ch = ch;
+            this.scrub = scrub;
+            this.length = ch.size();
+        }
+
+        boolean run() throws IOException {
+            if (length < 8) {
+                return false;
+            }
+            byte[] head = read(0, 8);
+            if ((head[0] & 0xFF) == 0x1A && (head[1] & 0xFF) == 0x45
+                    && (head[2] & 0xFF) == 0xDF && (head[3] & 0xFF) == 0xA3) {
+                ebmlTop();
+                return true;
+            }
+            String type = fourCc(head, 4);
+            if (BMFF_TOP_LEVEL.contains(type)) {
+                boxes(0, length, Level.TOP, 0);
+                return true;
+            }
+            return false;
+        }
+
+        private void field(@NonNull String name, boolean isLocation) {
+            fields.add(name);
+            location |= isLocation;
+        }
+
+        private void count() throws IOException {
+            if (++elements > MAX_ELEMENTS) {
+                throw new IOException("Too many container elements");
+            }
+        }
+
+        // ---- ISO base media (MP4, MOV, 3GP) ---------------------------------------------------
+
+        private enum Level { TOP, MOOV, TRAK, MDIA, OTHER }
+
+        private static final List<String> BMFF_TOP_LEVEL = List.of(
+                "ftyp", "styp", "moov", "mdat", "free", "skip", "wide", "pnot", "moof", "mfra",
+                "sidx", "ssix", "prft", "emsg", "pdin", "uuid", "meta", "junk");
+        /** Top-level boxes that hold media or structure, not information about the recording. */
+        private static final List<String> BMFF_TOP_BENIGN = List.of(
+                "ftyp", "styp", "moov", "mdat", "free", "skip", "wide", "moof", "mfra", "sidx",
+                "ssix", "prft", "emsg", "pdin");
+        /** Keys ffmpeg copies from the ftyp box; they describe the format, not the recording. */
+        private static final List<String> BENIGN_KEYS = List.of(
+                "major_brand", "minor_version", "compatible_brands");
+        private static final String XMP_UUID = "be7acfcb97a942e89c71999491e3afac";
+
+        private void boxes(long start, long end, Level level, int depth) throws IOException {
+            if (depth > MAX_DEPTH) {
+                throw new IOException("Boxes nested too deeply");
+            }
+            long pos = start;
+            while (pos + 8 <= end) {
+                count();
+                byte[] h = read(pos, 8);
+                long size = u32(h, 0);
+                String type = fourCc(h, 4);
+                int header = 8;
+                if (size == 1) {
+                    if (pos + 16 > end) {
+                        throw new IOException("Truncated box header");
+                    }
+                    size = ByteBuffer.wrap(read(pos + 8, 8)).getLong();
+                    header = 16;
+                } else if (size == 0) {
+                    size = end - pos;
+                }
+                if (size < header || pos + size > end) {
+                    throw new IOException("Malformed box " + type);
+                }
+                box(pos, size, header, type, level, depth);
+                pos += size;
+            }
+        }
+
+        private void box(long pos, long size, int header, String type, Level level, int depth)
+                throws IOException {
+            long body = pos + header;
+            long end = pos + size;
+            switch (type) {
+                case "moov":
+                    if (level == Level.TOP) {
+                        boxes(body, end, Level.MOOV, depth + 1);
+                    }
+                    return;
+                case "trak":
+                    if (level == Level.MOOV) {
+                        trak(body, end, depth);
+                    }
+                    return;
+                case "mdia":
+                    if (level == Level.TRAK) {
+                        boxes(body, end, Level.MDIA, depth + 1);
+                    }
+                    return;
+                case "mvhd":
+                case "tkhd":
+                case "mdhd":
+                    timestamps(body, end);
+                    return;
+                case "udta":
+                    if (level != Level.OTHER) {
+                        udta(body, end, depth);
+                        blank(pos, size, header);
+                    }
+                    return;
+                case "meta":
+                    if (level != Level.OTHER) {
+                        meta(body, end, depth);
+                        blank(pos, size, header);
+                    }
+                    return;
+                case "uuid":
+                    if (level != Level.OTHER) {
+                        uuid(body, end);
+                        blank(pos, size, header);
+                    }
+                    return;
+                default:
+                    if (level == Level.TOP && !BMFF_TOP_BENIGN.contains(type)) {
+                        field(type, false);
+                        blank(pos, size, header);
+                    }
+            }
+        }
+
+        private void trak(long body, long end, int depth) throws IOException {
+            String handler = trackHandler(body, end);
+            if (handler != null && !handler.equals("vide") && !handler.equals("soun")) {
+                // A timed-metadata, subtitle or timecode track. It cannot be blanked without
+                // leaving its samples behind, so a file with one is never reported clean and
+                // verification fails, sending the clean down the full re-encode instead.
+                field("track:" + handler, false);
+            }
+            boxes(body, end, Level.TRAK, depth + 1);
+        }
+
+        @Nullable
+        private String trackHandler(long body, long end) throws IOException {
+            long mdia = child(body, end, "mdia");
+            if (mdia < 0) {
+                return null;
+            }
+            long mdiaEnd = mdia + boxSize(mdia);
+            long hdlr = child(mdia + 8, mdiaEnd, "hdlr");
+            if (hdlr < 0 || hdlr + 20 > mdiaEnd) {
+                return null;
+            }
+            return fourCc(read(hdlr + 16, 4), 0);
+        }
+
+        /** Offset of the first direct child of the given type, or -1. */
+        private long child(long start, long end, String wanted) throws IOException {
+            long pos = start;
+            while (pos + 8 <= end) {
+                byte[] h = read(pos, 8);
+                long size = boxSize(pos);
+                if (size < 8 || pos + size > end) {
+                    return -1;
+                }
+                if (fourCc(h, 4).equals(wanted)) {
+                    return pos;
+                }
+                pos += size;
+            }
+            return -1;
+        }
+
+        private long boxSize(long pos) throws IOException {
+            byte[] h = read(pos, 8);
+            long size = u32(h, 0);
+            if (size == 1) {
+                size = ByteBuffer.wrap(read(pos + 8, 8)).getLong();
+            } else if (size == 0) {
+                size = length - pos;
+            }
+            return size;
+        }
+
+        /** Creation and modification times in mvhd/tkhd/mdhd; counted once as the recording date. */
+        private void timestamps(long body, long end) throws IOException {
+            if (body + 4 > end) {
+                return;
+            }
+            int version = read(body, 1)[0] & 0xFF;
+            int width = version == 1 ? 8 : 4;
+            if (body + 4 + 2L * width > end) {
+                return;
+            }
+            byte[] times = read(body + 4, 2 * width);
+            boolean set = false;
+            for (byte b : times) {
+                if (b != 0) {
+                    set = true;
+                    break;
+                }
+            }
+            if (!set) {
+                return;
+            }
+            if (!dateCounted) {
+                dateCounted = true;
+                field("date", false);
+            }
+            if (scrub) {
+                write(body + 4, new byte[2 * width]);
+                scrubbed++;
+            }
+        }
+
+        private void udta(long body, long end, int depth) throws IOException {
+            long pos = body;
+            while (pos + 8 <= end) {
+                count();
+                byte[] h = read(pos, 8);
+                long size = u32(h, 0);
+                if (size == 0 && u32(h, 4) == 0) {
+                    break; // QuickTime ends some udta boxes with zero padding.
+                }
+                int header = 8;
+                if (size == 1) {
+                    size = ByteBuffer.wrap(read(pos + 8, 8)).getLong();
+                    header = 16;
+                } else if (size == 0) {
+                    size = end - pos;
+                }
+                if (size < header || pos + size > end) {
+                    // Unparseable contents still count as something to remove.
+                    field("udta", false);
+                    return;
+                }
+                String type = fourCc(h, 4);
+                switch (type) {
+                    case "meta":
+                        meta(pos + header, pos + size, depth + 1);
+                        break;
+                    case "free":
+                    case "skip":
+                        break;
+                    case "XMP_":
+                        field("XMP", containsGps(pos + header, pos + size));
+                        break;
+                    case "uuid":
+                        uuid(pos + header, pos + size);
+                        break;
+                    default:
+                        field(type, isLocationName(type));
+                }
+                pos += size;
+            }
+        }
+
+        private void meta(long body, long end, int depth) throws IOException {
+            if (depth > MAX_DEPTH || body + 8 > end) {
+                return;
+            }
+            // QuickTime meta boxes start straight with a child box; ISO ones with version/flags.
+            String second = fourCc(read(body, 8), 4);
+            long start = second.equals("hdlr") || second.equals("keys") || second.equals("ilst")
+                    ? body : body + 4;
+            String handler = null;
+            List<String> keys = new ArrayList<>();
+            long ilst = -1;
+            long pos = start;
+            while (pos + 8 <= end) {
+                count();
+                long size = boxSize(pos);
+                if (size < 8 || pos + size > end) {
+                    field("meta", false);
+                    return;
+                }
+                String type = fourCc(read(pos, 8), 4);
+                switch (type) {
+                    case "hdlr":
+                        if (pos + 20 <= pos + size) {
+                            handler = fourCc(read(pos + 16, 4), 0);
+                        }
+                        break;
+                    case "keys":
+                        keys = readKeys(pos + 8, pos + size);
+                        break;
+                    case "ilst":
+                        ilst = pos;
+                        break;
+                    case "free":
+                    case "skip":
+                        break;
+                    case "uuid":
+                        uuid(pos + 8, pos + size);
+                        break;
+                    case "xml ":
+                    case "XMP_":
+                        field("XMP", containsGps(pos + 8, pos + size));
+                        break;
+                    default:
+                        field(type, false);
+                }
+                pos += size;
+            }
+            if (ilst >= 0) {
+                ilst(ilst + 8, ilst + boxSize(ilst), "mdta".equals(handler) ? keys : null);
+            }
+        }
+
+        private List<String> readKeys(long body, long end) throws IOException {
+            List<String> keys = new ArrayList<>();
+            if (body + 8 > end) {
+                return keys;
+            }
+            long pos = body + 8; // version/flags and entry count
+            while (pos + 8 <= end) {
+                count();
+                long size = u32(read(pos, 4), 0);
+                if (size < 8 || pos + size > end) {
+                    break;
+                }
+                int nameLength = (int) Math.min(size - 8, 512);
+                keys.add(new String(read(pos + 8, nameLength), StandardCharsets.UTF_8));
+                pos += size;
+            }
+            return keys;
+        }
+
+        private void ilst(long body, long end, @Nullable List<String> keys) throws IOException {
+            long pos = body;
+            while (pos + 8 <= end) {
+                count();
+                byte[] h = read(pos, 8);
+                long size = u32(h, 0);
+                if (size < 8 || pos + size > end) {
+                    field("ilst", false);
+                    return;
+                }
+                String name = fourCc(h, 4);
+                if (keys != null) {
+                    long index = u32(h, 4);
+                    if (index >= 1 && index <= keys.size()) {
+                        name = keys.get((int) index - 1);
+                    }
+                }
+                if (!BENIGN_KEYS.contains(name)) {
+                    field(name, isLocationName(name));
+                }
+                pos += size;
+            }
+        }
+
+        private void uuid(long body, long end) throws IOException {
+            if (body + 16 > end) {
+                field("uuid", false);
+                return;
+            }
+            StringBuilder id = new StringBuilder();
+            for (byte b : read(body, 16)) {
+                id.append(String.format(Locale.ROOT, "%02x", b & 0xFF));
+            }
+            boolean gps = containsGps(body + 16, end);
+            field(XMP_UUID.contentEquals(id) ? "XMP" : "uuid", gps);
+        }
+
+        private boolean containsGps(long start, long end) throws IOException {
+            int n = (int) Math.max(0, Math.min(end - start, CONTENT_PEEK));
+            String text = new String(read(start, n), StandardCharsets.ISO_8859_1);
+            return text.contains("GPS") || text.toLowerCase(Locale.ROOT).contains("location");
+        }
+
+        /** Turns a box into a free box of the same size with nothing left inside it. */
+        private void blank(long pos, long size, int header) throws IOException {
+            if (!scrub) {
+                return;
+            }
+            write(pos + 4, "free".getBytes(StandardCharsets.US_ASCII));
+            zero(pos + header, size - header);
+            scrubbed++;
+        }
+
+        // ---- EBML (WebM, Matroska) -------------------------------------------------------------
+
+        private static final long ID_SEGMENT = 0x18538067L;
+        private static final long ID_INFO = 0x1549A966L;
+        private static final long ID_TAGS = 0x1254C367L;
+        private static final long ID_TAG = 0x7373L;
+        private static final long ID_SIMPLE_TAG = 0x67C8L;
+        private static final long ID_TAG_NAME = 0x45A3L;
+        private static final long ID_ATTACHMENTS = 0x1941A469L;
+        private static final long ID_ATTACHED_FILE = 0x61A7L;
+        private static final long ID_TITLE = 0x7BA9L;
+        private static final long ID_DATE_UTC = 0x4461L;
+        private static final long ID_CLUSTER = 0x1F43B675L;
+        /**
+         * Tags muxers add to describe the streams themselves. They are not counted, though the
+         * Tags element holding them is still voided with the rest.
+         */
+        private static final List<String> BENIGN_MATROSKA_TAGS = List.of(
+                "DURATION", "BPS", "NUMBER_OF_FRAMES", "NUMBER_OF_BYTES", "_STATISTICS_TAGS");
+        private static final List<Long> SEGMENT_CHILDREN = List.of(
+                0x114D9B74L, ID_INFO, 0x1654AE6BL, ID_CLUSTER, 0x1C53BB6BL, ID_TAGS,
+                ID_ATTACHMENTS, 0x1043A770L, 0xECL, 0xBFL);
+
+        /** One element header: where its data starts and how long it is (-1 when unknown). */
+        private static final class Element {
+            long id;
+            long dataStart;
+            long dataSize;
+            int headerLength;
+        }
+
+        @NonNull
+        private Element element(long pos, long end) throws IOException {
+            Element e = new Element();
+            int first = read(pos, 1)[0] & 0xFF;
+            int idLength = vintLength(first);
+            if (idLength > 4 || pos + idLength > end) {
+                throw new IOException("Bad EBML id");
+            }
+            byte[] idBytes = read(pos, idLength);
+            long id = 0;
+            for (byte b : idBytes) {
+                id = (id << 8) | (b & 0xFF);
+            }
+            int sizeFirst = read(pos + idLength, 1)[0] & 0xFF;
+            int sizeLength = vintLength(sizeFirst);
+            if (sizeLength > 8 || pos + idLength + sizeLength > end) {
+                throw new IOException("Bad EBML size");
+            }
+            byte[] sizeBytes = read(pos + idLength, sizeLength);
+            long size = sizeBytes[0] & (0xFF >> sizeLength);
+            boolean allOnes = size == (0xFF >> sizeLength);
+            for (int i = 1; i < sizeLength; i++) {
+                size = (size << 8) | (sizeBytes[i] & 0xFF);
+                allOnes &= (sizeBytes[i] & 0xFF) == 0xFF;
+            }
+            e.id = id;
+            e.headerLength = idLength + sizeLength;
+            e.dataStart = pos + e.headerLength;
+            e.dataSize = allOnes ? -1 : size;
+            if (e.dataSize >= 0 && e.dataStart + e.dataSize > end) {
+                throw new IOException("EBML element runs past its parent");
+            }
+            return e;
+        }
+
+        private static int vintLength(int first) throws IOException {
+            if (first == 0) {
+                throw new IOException("Bad EBML vint");
+            }
+            return Integer.numberOfLeadingZeros(first) - 23;
+        }
+
+        private void ebmlTop() throws IOException {
+            long pos = 0;
+            while (pos < length) {
+                count();
+                Element e = element(pos, length);
+                long end = e.dataSize < 0 ? length : e.dataStart + e.dataSize;
+                if (e.id == ID_SEGMENT) {
+                    segment(e.dataStart, end);
+                }
+                pos = end;
+            }
+        }
+
+        private void segment(long start, long end) throws IOException {
+            long pos = start;
+            while (pos < end) {
+                count();
+                Element e = element(pos, end);
+                long elementEnd = e.dataSize < 0 ? unknownSizeEnd(e.dataStart, end) : e.dataStart + e.dataSize;
+                if (e.id == ID_INFO) {
+                    info(e.dataStart, elementEnd);
+                } else if (e.id == ID_TAGS) {
+                    int before = simpleTags;
+                    tags(e.dataStart, elementEnd, 0);
+                    if (simpleTags == before) {
+                        // Nothing readable inside: still something to remove.
+                        field("tags", false);
+                    }
+                    voidOut(pos, elementEnd);
+                } else if (e.id == ID_ATTACHMENTS) {
+                    int before = fields.size();
+                    attachments(e.dataStart, elementEnd);
+                    if (fields.size() == before) {
+                        field("attachments", false);
+                    }
+                    voidOut(pos, elementEnd);
+                }
+                pos = elementEnd;
+            }
+        }
+
+        /** The end of an element of unknown size: where the next segment-level element begins. */
+        private long unknownSizeEnd(long start, long end) throws IOException {
+            long pos = start;
+            while (pos < end) {
+                count();
+                Element e = element(pos, end);
+                if (SEGMENT_CHILDREN.contains(e.id) || e.dataSize < 0) {
+                    return pos;
+                }
+                pos = e.dataStart + e.dataSize;
+            }
+            return end;
+        }
+
+        private void info(long start, long end) throws IOException {
+            long pos = start;
+            while (pos < end) {
+                count();
+                Element e = element(pos, end);
+                if (e.dataSize < 0) {
+                    return;
+                }
+                long elementEnd = e.dataStart + e.dataSize;
+                if (e.id == ID_TITLE) {
+                    field("title", false);
+                    voidOut(pos, elementEnd);
+                } else if (e.id == ID_DATE_UTC) {
+                    if (!dateCounted) {
+                        dateCounted = true;
+                        field("date", false);
+                    }
+                    voidOut(pos, elementEnd);
+                }
+                pos = elementEnd;
+            }
+        }
+
+        private void tags(long start, long end, int depth) throws IOException {
+            if (depth > MAX_DEPTH) {
+                throw new IOException("Tags nested too deeply");
+            }
+            long pos = start;
+            while (pos < end) {
+                count();
+                Element e = element(pos, end);
+                if (e.dataSize < 0) {
+                    return;
+                }
+                long elementEnd = e.dataStart + e.dataSize;
+                if (e.id == ID_TAG) {
+                    tags(e.dataStart, elementEnd, depth + 1);
+                } else if (e.id == ID_SIMPLE_TAG) {
+                    simpleTags++;
+                    String name = tagName(e.dataStart, elementEnd);
+                    if (!BENIGN_MATROSKA_TAGS.contains(name.toUpperCase(Locale.ROOT))) {
+                        field(name, isLocationName(name));
+                    }
+                    tags(e.dataStart, elementEnd, depth + 1);
+                }
+                pos = elementEnd;
+            }
+        }
+
+        @NonNull
+        private String tagName(long start, long end) throws IOException {
+            long pos = start;
+            while (pos < end) {
+                Element e = element(pos, end);
+                if (e.dataSize < 0) {
+                    break;
+                }
+                if (e.id == ID_TAG_NAME) {
+                    return new String(read(e.dataStart, (int) Math.min(e.dataSize, 256)), StandardCharsets.UTF_8);
+                }
+                pos = e.dataStart + e.dataSize;
+            }
+            return "tag";
+        }
+
+        private void attachments(long start, long end) throws IOException {
+            long pos = start;
+            while (pos < end) {
+                count();
+                Element e = element(pos, end);
+                if (e.dataSize < 0) {
+                    return;
+                }
+                if (e.id == ID_ATTACHED_FILE) {
+                    field("attachment", false);
+                }
+                pos = e.dataStart + e.dataSize;
+            }
+        }
+
+        /** Rewrites [pos, end) as one Void element, which every reader skips, with zeroed contents. */
+        private void voidOut(long pos, long end) throws IOException {
+            if (!scrub) {
+                return;
+            }
+            long total = end - pos;
+            if (total < 2) {
+                throw new IOException("Element too small to void");
+            }
+            byte[] header;
+            if (total >= 9) {
+                long data = total - 9;
+                header = new byte[9];
+                header[0] = (byte) 0xEC;
+                header[1] = 0x01;
+                for (int i = 0; i < 7; i++) {
+                    header[8 - i] = (byte) (data >>> (8 * i));
+                }
+            } else {
+                header = new byte[]{(byte) 0xEC, (byte) (0x80 | (total - 2))};
+            }
+            write(pos, header);
+            zero(pos + header.length, total - header.length);
+            scrubbed++;
+        }
+
+        // ---- I/O ------------------------------------------------------------------------------
+
+        @NonNull
+        private byte[] read(long pos, int n) throws IOException {
+            if (n < 0 || pos < 0 || pos + n > length) {
+                throw new IOException("Read past the end of the file");
+            }
+            ByteBuffer buffer = ByteBuffer.allocate(n);
+            while (buffer.hasRemaining()) {
+                if (ch.read(buffer, pos + buffer.position()) < 0) {
+                    throw new IOException("Unexpected end of file");
+                }
+            }
+            return buffer.array();
+        }
+
+        private void write(long pos, @NonNull byte[] bytes) throws IOException {
+            ByteBuffer buffer = ByteBuffer.wrap(bytes);
+            while (buffer.hasRemaining()) {
+                ch.write(buffer, pos + buffer.position());
+            }
+        }
+
+        private void zero(long pos, long n) throws IOException {
+            byte[] zeros = new byte[(int) Math.min(n, 64 * 1024)];
+            long done = 0;
+            while (done < n) {
+                int chunk = (int) Math.min(zeros.length, n - done);
+                write(pos + done, chunk == zeros.length ? zeros : new byte[chunk]);
+                done += chunk;
+            }
+        }
+
+        private static long u32(byte[] b, int offset) {
+            return ((long) (b[offset] & 0xFF) << 24) | ((b[offset + 1] & 0xFF) << 16)
+                    | ((b[offset + 2] & 0xFF) << 8) | (b[offset + 3] & 0xFF);
+        }
+
+        @NonNull
+        private static String fourCc(byte[] b, int offset) {
+            return new String(b, offset, 4, StandardCharsets.ISO_8859_1);
+        }
+    }
+
+    /** True for names that hold a place: ©xyz, loci, and keys such as ...location.ISO6709. */
+    static boolean isLocationName(@NonNull String name) {
+        String lower = name.toLowerCase(Locale.ROOT);
+        return name.equals("©xyz") || lower.equals("loci") || lower.contains("location")
+                || lower.contains("gps") || lower.contains("latitude") || lower.contains("longitude");
+    }
+}

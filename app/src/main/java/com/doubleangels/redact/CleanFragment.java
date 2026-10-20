@@ -65,7 +65,11 @@ public class CleanFragment extends Fragment {
     private MaterialButton stripButton;
     private MaterialButton selectButton;
     private TextView statusText;
-    private MaterialButton shareResultsButton;
+    private View shareResultsButton;
+    private View scanResultButton;
+    /** Originals in the trash request on screen, whose clean copies get their names back if it is accepted. */
+    @Nullable
+    private List<Uri> pendingTrashSources;
     private LinearLayout progressContainer;
     private TextView progressText;
     private LinearProgressIndicator progressBar;
@@ -88,7 +92,14 @@ public class CleanFragment extends Fragment {
             mediaSelector = new MediaSelector(requireActivity());
         }
         trashRequestLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartIntentSenderForResult(), result -> { });
+                new ActivityResultContracts.StartIntentSenderForResult(), result -> {
+                    List<Uri> trashed = pendingTrashSources;
+                    pendingTrashSources = null;
+                    if (result.getResultCode() == android.app.Activity.RESULT_OK && trashed != null
+                            && viewModel != null) {
+                        viewModel.restoreCleanOriginalNames(trashed);
+                    }
+                });
         mediaPickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.OpenMultipleDocuments(),
                 uris -> {
@@ -103,14 +114,12 @@ public class CleanFragment extends Fragment {
                                 uris = MediaPickerContracts.trimToMax(uris, MAX_PICK_ITEMS);
                             }
                             SentryManager.log("Media was selected successfully.");
-                            List<MediaItem> items = new ArrayList<>();
-                            for (android.net.Uri uri : uris) {
-                                if (mediaSelector != null) {
-                                    items.add(mediaSelector.processMediaUri(uri));
-                                }
+                            if (mediaSelector != null) {
+                                mediaSelector.processMediaUrisAsync(uris, items -> {
+                                    SentryManager.setCustomKey("selected_media_count", items.size());
+                                    viewModel.setSelectedItems(items);
+                                });
                             }
-                            SentryManager.setCustomKey("selected_media_count", items.size());
-                            viewModel.setSelectedItems(items);
                         } else {
                             SentryManager.log("Media selection was canceled or failed.");
                         }
@@ -157,6 +166,11 @@ public class CleanFragment extends Fragment {
                 Haptics.tick(v);
                 com.doubleangels.redact.ui.ShareResults.share(
                         requireContext(), viewModel.getCleanOutputs());
+            });
+            scanResultButton = view.findViewById(R.id.scanResultButton);
+            scanResultButton.setOnClickListener(v -> {
+                Haptics.tick(v);
+                openResultInScan();
             });
             progressContainer = view.findViewById(R.id.progressContainer);
             progressText = view.findViewById(R.id.progressText);
@@ -267,7 +281,7 @@ public class CleanFragment extends Fragment {
                             try {
                                 SentryManager.log("Permissions were granted.");
                                 SentryManager.setCustomKey("permissions_granted", true);
-                                uiStateManager.setReadyStatus();
+                                showReadyStatus();
                             } catch (Exception e) {
                                 SentryManager.recordException(e);
                             }
@@ -279,12 +293,12 @@ public class CleanFragment extends Fragment {
                                 SentryManager.log("Permissions were denied.");
                                 SentryManager.setCustomKey("permissions_granted", false);
                                 if (permissionManager.isMediaPickerAvailable()) {
-                                    uiStateManager.setReadyStatus();
+                                    showReadyStatus();
                                     if (selectButton != null) {
                                         selectButton.setEnabled(true);
                                     }
                                 } else {
-                                    uiStateManager.setPermissionsRequiredStatus();
+                                    showPermissionsRequiredStatus();
                                     if (selectButton != null) {
                                         selectButton.setEnabled(false);
                                     }
@@ -320,15 +334,21 @@ public class CleanFragment extends Fragment {
     private void requestTrashOriginals(List<Uri> sources) {
         try {
             List<Uri> mediaUris = new ArrayList<>();
+            List<Uri> trashable = new ArrayList<>();
             for (Uri u : sources) {
                 try {
                     Uri m = MediaStore.getMediaUri(requireContext(), u);
-                    if (m != null) mediaUris.add(m);
+                    if (m != null) {
+                        mediaUris.add(trashableMediaUri(m,
+                                requireContext().getContentResolver().getType(m)));
+                        trashable.add(u);
+                    }
                 } catch (Exception ignored) {
                     // Non-media provider: leave the original alone.
                 }
             }
             if (mediaUris.isEmpty()) return;
+            pendingTrashSources = trashable;
             trashRequestLauncher.launch(new IntentSenderRequest.Builder(
                     MediaStore.createTrashRequest(requireContext().getContentResolver(), mediaUris, true)
                             .getIntentSender()).build());
@@ -337,8 +357,56 @@ public class CleanFragment extends Fragment {
         }
     }
 
+    /**
+     * The Images or Video item for {@code media}. A file picked in the Files app maps to a generic
+     * {@code .../file/<id>} item, which {@link MediaStore#createTrashRequest} rejects.
+     */
+    @NonNull
+    static Uri trashableMediaUri(@NonNull Uri media, @Nullable String mimeType) {
+        String volume = MediaStore.getVolumeName(media);
+        Uri collection = mimeType != null && mimeType.startsWith("video/")
+                ? MediaStore.Video.Media.getContentUri(volume)
+                : MediaStore.Images.Media.getContentUri(volume);
+        return android.content.ContentUris.withAppendedId(collection, android.content.ContentUris.parseId(media));
+    }
+
+    /** Shows the single file a clean just saved in Scan, so the user can see what it still holds. */
+    private void openResultInScan() {
+        List<Uri> outputs = viewModel.getCleanOutputs();
+        if (outputs.size() != 1) {
+            return;
+        }
+        new ViewModelProvider(requireActivity()).get(com.doubleangels.redact.ui.ScanViewModel.class)
+                .setPendingUri(outputs.get(0));
+        if (requireActivity() instanceof MainActivity mainActivity) {
+            mainActivity.selectTab(R.id.navigation_scan);
+        }
+    }
+
     void onHostPermissionFlowCompleted() {
         syncPermissionUi();
+    }
+
+    /**
+     * The status line shows only after a finished clean, to say what it removed. The permission
+     * check runs again whenever the screen is recreated (rotation, dark mode) and must not replace
+     * that result with a ready or permission message.
+     */
+    private boolean showingCleanResult() {
+        return viewModel != null
+                && viewModel.getCleanProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED;
+    }
+
+    private void showReadyStatus() {
+        if (!showingCleanResult()) {
+            uiStateManager.setReadyStatus();
+        }
+    }
+
+    private void showPermissionsRequiredStatus() {
+        if (!showingCleanResult()) {
+            uiStateManager.setPermissionsRequiredStatus();
+        }
     }
 
     private void syncPermissionUi() {
@@ -346,12 +414,12 @@ public class CleanFragment extends Fragment {
             return;
         }
         if (permissionManager.isMediaPickerAvailable()) {
-            uiStateManager.setReadyStatus();
+            showReadyStatus();
             if (selectButton != null) {
                 selectButton.setEnabled(true);
             }
         } else {
-            uiStateManager.setPermissionsRequiredStatus();
+            showPermissionsRequiredStatus();
             if (selectButton != null) {
                 selectButton.setEnabled(false);
             }
@@ -452,8 +520,19 @@ public class CleanFragment extends Fragment {
                             }
                             List<MediaItem> items = viewModel.getSelectedItems().getValue();
                             uiStateManager.enableStripButton(items != null && !items.isEmpty());
-                            if (AppPreferences.isDeleteOriginalsAfterClean(requireContext())) {
+                            boolean trashing = AppPreferences.isDeleteOriginalsAfterClean(requireContext());
+                            if (trashing) {
                                 requestTrashOriginals(viewModel.takeCleanSucceededSources());
+                            }
+                            // Android's trash confirmation takes priority over asking for a rating,
+                            // so a trashing clean is only counted.
+                            if (justCompleted && count != null && count > 0
+                                    && count.equals(total != null ? total : count)) {
+                                if (trashing) {
+                                    com.doubleangels.redact.ui.ReviewPrompt.recordSuccessfulJob(requireContext());
+                                } else {
+                                    com.doubleangels.redact.ui.ReviewPrompt.onJobSucceeded(this);
+                                }
                             }
                             break;
 
@@ -471,6 +550,8 @@ public class CleanFragment extends Fragment {
                     com.doubleangels.redact.ui.ShareResults.updateButton(
                             shareResultsButton, state == MainViewModel.ProcessingState.COMPLETED,
                             viewModel.getCleanOutputs());
+                    scanResultButton.setVisibility(state == MainViewModel.ProcessingState.COMPLETED
+                            && viewModel.getCleanOutputs().size() == 1 ? View.VISIBLE : View.GONE);
                     // The result line (with what the batch removed) shows only once a clean has finished.
                     statusText.setVisibility(state == MainViewModel.ProcessingState.COMPLETED
                             ? View.VISIBLE : View.GONE);

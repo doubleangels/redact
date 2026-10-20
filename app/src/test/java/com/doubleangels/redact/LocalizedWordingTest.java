@@ -13,7 +13,6 @@ import org.robolectric.annotation.Config;
 
 /** Wording fixes found in review of the translations. */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class LocalizedWordingTest {
 
     private static Context context() {

@@ -1,1 +1,2 @@
-Bug fixes and performance improvements.
+The app version now shows on the main screen.
+Updated libraries.

@@ -1,1 +1,4 @@
-Bug fixes and performance improvements.
+Ready for Android 16, with edge-to-edge screens.
+The store listing is now translated.
+UI, performance and security improvements.
+Bug fixes.

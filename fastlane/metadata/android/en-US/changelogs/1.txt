@@ -1,1 +1,1 @@
-Bug fixes and performance improvements.
+First release of Redact. Pick photos and videos and tap Clean Metadata to save copies without their GPS location, device details and timestamps. Share a photo or video to Redact from any app to clean it before sending it on.

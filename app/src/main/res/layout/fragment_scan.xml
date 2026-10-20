@@ -12,6 +12,7 @@
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:clipChildren="false"
         android:clipToPadding="false"
         android:contentDescription="@string/content_description_scroll_view"
         android:fillViewport="true"
@@ -27,6 +28,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:clipChildren="false"
             android:orientation="vertical">
 
             <!-- Empty State View: Welcomes user when no file is selected -->
@@ -94,6 +96,7 @@
                 android:id="@+id/metadataContentContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:clipChildren="false"
                 android:orientation="vertical"
                 android:visibility="gone">
 
@@ -233,7 +236,10 @@
                     android:id="@+id/scanActionCardsScroll"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/scan_action_row_bleed_negative"
+                    android:layout_marginEnd="@dimen/scan_action_row_bleed_negative"
                     android:layout_marginBottom="10dp"
+                    android:paddingHorizontal="@dimen/scan_action_row_bleed"
                     android:clipToPadding="false"
                     android:fillViewport="false"
                     android:scrollbars="none"

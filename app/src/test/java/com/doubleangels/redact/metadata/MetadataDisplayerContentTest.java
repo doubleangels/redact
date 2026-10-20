@@ -1,5 +1,6 @@
 package com.doubleangels.redact.metadata;
 
+import static com.doubleangels.redact.TestWaits.awaitMain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -25,7 +26,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
-import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowMediaMetadataRetriever;
 import org.robolectric.shadows.util.DataSource;
 
@@ -40,7 +40,6 @@ import java.util.function.BooleanSupplier;
 
 /** Extraction from content:// URIs (the shape the system pickers hand the app). */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34)
 public class MetadataDisplayerContentTest {
 
     private Application app;
@@ -59,15 +58,6 @@ public class MetadataDisplayerContentTest {
         for (File f : files) {
             f.delete();
         }
-    }
-
-    private static void await(BooleanSupplier done) throws Exception {
-        long end = System.currentTimeMillis() + 15_000;
-        while (!done.getAsBoolean() && System.currentTimeMillis() < end) {
-            Shadows.shadowOf(Looper.getMainLooper()).idle();
-            Thread.sleep(10);
-        }
-        assertTrue("timed out", done.getAsBoolean());
     }
 
     private void grantLocation(boolean granted) {
@@ -138,7 +128,7 @@ public class MetadataDisplayerContentTest {
                 failed[0] = true;
             }
         });
-        await(() -> result.get() != null || failed[0]);
+        awaitMain(() -> result.get() != null || failed[0]);
         assertFalse("extraction failed", failed[0]);
         return result.get();
     }
@@ -156,7 +146,7 @@ public class MetadataDisplayerContentTest {
                 result.set("FAILED: " + error);
             }
         });
-        await(() -> result.get() != null);
+        awaitMain(() -> result.get() != null);
         return result.get();
     }
 
@@ -251,7 +241,7 @@ public class MetadataDisplayerContentTest {
                 done[0] = true;
             }
         });
-        await(() -> done[0]);
+        awaitMain(() -> done[0]);
         assertNotNull(location.get());
         assertTrue(location.get().contains("GPS_LATITUDE"));
     }
@@ -276,7 +266,7 @@ public class MetadataDisplayerContentTest {
                 outcome.set(error);
             }
         });
-        await(() -> outcome.get() != null);
+        awaitMain(() -> outcome.get() != null);
     }
 
     // ---- video ---------------------------------------------------------------------------------------
@@ -340,6 +330,71 @@ public class MetadataDisplayerContentTest {
         assertTrue(all, all.contains("LOCATION"));
     }
 
+    /** A video whose tags only a read of the container finds; the retriever sees just its size. */
+    private Uri videoWithHiddenTags() throws IOException {
+        File f = TestVideos.write(app.getFilesDir(), "hidden.mp4", TestVideos.mp4(0,
+                TestVideos.box("udta",
+                        TestVideos.mdtaMeta("location", TestVideos.LOCATION, "comment", "secret comment",
+                                "com.apple.quicktime.make", "Apple"),
+                        TestVideos.box("©mod", TestVideos.bytes("iPhone")),
+                        TestVideos.box("loci", new byte[20]))));
+        files.add(f);
+        Uri uri = FakeMediaStoreProvider.add(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, f, "video/mp4");
+        videoMetadata(uri, MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH, "1920");
+        return uri;
+    }
+
+    @Test
+    public void video_aLocationOnlyTheContainerShows_isReportedAsPresent() throws Exception {
+        grantLocation(true);
+
+        Map<String, String> s = sections(videoWithHiddenTags());
+
+        String location = s.get(MetadataDisplayer.SECTION_LOCATION);
+        assertNotNull(String.valueOf(s), location);
+        assertTrue(location, location.contains(app.getString(com.doubleangels.redact.R.string.metadata_location_unreadable)));
+        String all = String.join("\n", s.values());
+        assertTrue(all, all.contains("COMMENT"));
+        assertTrue(all, all.contains("MAKE"));
+        assertTrue(all, all.contains("MODEL"));
+        assertTrue(all, all.contains(app.getString(com.doubleangels.redact.R.string.metadata_container_value)));
+        assertFalse("the values themselves are never shown", all.contains("secret comment"));
+        assertFalse(all.contains(TestVideos.LOCATION));
+        assertFalse(all.contains("iPhone"));
+    }
+
+    @Test
+    public void video_aLocationOnlyTheContainerShows_isWithheldWithoutLocationAccess() throws Exception {
+        grantLocation(false);
+
+        Map<String, String> s = sections(videoWithHiddenTags());
+
+        assertNull(s.get(MetadataDisplayer.SECTION_LOCATION));
+        assertTrue(String.join("\n", s.values()).contains("COMMENT"));
+    }
+
+    @Test
+    public void video_legacyTextApi_saysAHiddenLocationIsThere() throws Exception {
+        grantLocation(true);
+
+        String text = text(videoWithHiddenTags());
+
+        assertTrue(text, text.contains(app.getString(com.doubleangels.redact.R.string.metadata_location_unreadable)));
+        assertFalse(text, text.contains(app.getString(com.doubleangels.redact.R.string.metadata_no_location_data)));
+        assertTrue(text, text.contains("comment"));
+        assertFalse(text, text.contains("secret comment"));
+    }
+
+    @Test
+    public void containerDisplayKeys_areReadable() {
+        assertEquals("MAKE", MetadataDisplayer.containerDisplayKey("©mak"));
+        assertEquals("MODEL", MetadataDisplayer.containerDisplayKey("com.apple.quicktime.model"));
+        assertEquals("VERSION", MetadataDisplayer.containerDisplayKey("com.android.version"));
+        assertEquals("COMMENT", MetadataDisplayer.containerDisplayKey("comment"));
+        assertEquals("TRACK_META", MetadataDisplayer.containerDisplayKey("track:meta"));
+        assertEquals("XMP", MetadataDisplayer.containerDisplayKey("XMP"));
+    }
+
     @Test
     public void video_legacyTextApi() throws Exception {
         grantLocation(true);
@@ -365,7 +420,7 @@ public class MetadataDisplayerContentTest {
                 done[0] = true;
             }
         });
-        await(() -> done[0]);
+        awaitMain(() -> done[0]);
         assertNotNull(location.get());
     }
 

@@ -7,6 +7,9 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.doubleangels.redact.ui.CrashReportingPrompt;
+import com.doubleangels.redact.ui.ReviewPrompt;
+
 /**
  * Central access to app-wide user preferences stored in the default SharedPreferences file.
  */
@@ -33,13 +36,14 @@ public final class AppPreferences {
     private static final String KEY_SECURE_WINDOW = "secure_window";
     private static final String KEY_CLIPBOARD_CLEAR_SECONDS = "clipboard_clear_seconds";
     private static final String KEY_DELETE_ORIGINALS = "delete_originals_after_clean";
+    private static final String KEY_KEEP_ORIGINAL_NAMES = "keep_original_file_names";
     private static final String KEY_VIDEO_FALLBACK_COPY = "video_fallback_copy";
     private static final String KEY_INITIAL_PERMISSIONS_PROMPTED = "initial_permissions_prompted";
     private static final String KEY_MAPS_LOCATION_CONSENT_GIVEN = "maps_location_consent_given";
     private static final String KEY_OUTPUT_TREE_IMAGES = "output_tree_images";
     private static final String KEY_OUTPUT_TREE_VIDEOS = "output_tree_videos";
 
-    /** High quality — matches legacy defaults. */
+    /** High quality, which matches the legacy defaults. */
     public static final int QUALITY_PRESET_HIGH = 0;
     public static final int QUALITY_PRESET_BALANCED = 1;
     public static final int QUALITY_PRESET_SMALLER = 2;
@@ -310,6 +314,15 @@ public final class AppPreferences {
         prefs(context).edit().putBoolean(KEY_DELETE_ORIGINALS, enabled).apply();
     }
 
+    /** Off by default: names such as IMG_20260117_093012 reveal when a photo was taken. */
+    public static boolean isKeepOriginalFileNames(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_KEEP_ORIGINAL_NAMES, false);
+    }
+
+    public static void setKeepOriginalFileNames(@NonNull Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_KEEP_ORIGINAL_NAMES, enabled).apply();
+    }
+
     public static boolean isVideoFallbackCopy(@NonNull Context context) {
         return prefs(context).getBoolean(KEY_VIDEO_FALLBACK_COPY, false);
     }
@@ -339,5 +352,31 @@ public final class AppPreferences {
 
     public static void setConsentedToOpenLocationInMaps(@NonNull Context context, boolean consented) {
         prefs(context).edit().putBoolean(KEY_MAPS_LOCATION_CONSENT_GIVEN, consented).apply();
+    }
+
+    /**
+     * Puts every setting back to its default. The first-launch permission prompt is not shown
+     * again, since resetting settings does not change what Android has already granted, and the
+     * rating prompt's progress and whether the crash-report question was asked are kept, so
+     * neither question is ever asked again.
+     */
+    public static void resetAll(@NonNull Context context) {
+        SharedPreferences p = prefs(context);
+        boolean prompted = hasCompletedInitialPermissionsPrompt(context);
+        int reviewCount = p.getInt(ReviewPrompt.KEY_SUCCESS_COUNT, 0);
+        int reviewState = p.getInt(ReviewPrompt.KEY_STATE, 0);
+        boolean crashPromptAsked = p.getBoolean(CrashReportingPrompt.KEY_ASKED, false);
+        SharedPreferences.Editor e = p.edit().clear()
+                .putBoolean(KEY_INITIAL_PERMISSIONS_PROMPTED, prompted);
+        if (crashPromptAsked) {
+            e.putBoolean(CrashReportingPrompt.KEY_ASKED, true);
+        }
+        if (reviewCount > 0) {
+            e.putInt(ReviewPrompt.KEY_SUCCESS_COUNT, reviewCount);
+        }
+        if (reviewState != 0) {
+            e.putInt(ReviewPrompt.KEY_STATE, reviewState);
+        }
+        e.apply();
     }
 }

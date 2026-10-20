@@ -582,6 +582,7 @@ public class ScanFragment extends Fragment {
                 MetadataDisplayer.SECTION_BASIC_INFO,
                 MetadataDisplayer.SECTION_CAMERA_DETAILS,
                 MetadataDisplayer.SECTION_LOCATION,
+                MetadataDisplayer.SECTION_EMBEDDED,
                 MetadataDisplayer.SECTION_TECHNICAL
         };
         boolean isVideo = currentMediaItem != null && currentMediaItem.isVideo();
@@ -750,6 +751,8 @@ public class ScanFragment extends Fragment {
             return cleanHeaderString(getString(R.string.metadata_location_information_header));
         } else if (MetadataDisplayer.SECTION_TECHNICAL.equals(sectionId)) {
             return cleanHeaderString(getString(R.string.metadata_technical_details_header));
+        } else if (MetadataDisplayer.SECTION_EMBEDDED.equals(sectionId)) {
+            return getString(R.string.metadata_embedded_data_header);
         }
         return formatCustomSectionTitle(sectionId);
     }
@@ -774,6 +777,8 @@ public class ScanFragment extends Fragment {
             return R.drawable.ic_map_24;
         } else if (MetadataDisplayer.SECTION_TECHNICAL.equals(sectionId)) {
             return R.drawable.ic_scan;
+        } else if (MetadataDisplayer.SECTION_EMBEDDED.equals(sectionId)) {
+            return R.drawable.ic_search;
         }
         return R.drawable.ic_scan;
     }

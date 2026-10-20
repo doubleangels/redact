@@ -105,7 +105,6 @@ public class PermissionManagerInstanceTest {
     // ---- needsPermissions / needsLocationPermission ---------------------------------------------
 
     @Test
-    @Config(sdk = 34)
     public void needsPermissions_sdk34_acceptsFullOrPartialAccess() {
         deny(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO,
                 Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED);
@@ -123,8 +122,8 @@ public class PermissionManagerInstanceTest {
     }
 
     @Test
-    @Config(sdk = 33)
     public void needsPermissions_sdk33_needsBothMediaPermissions() {
+        PermissionManager.testSdkIntOverride = 33;
         grant(Manifest.permission.READ_MEDIA_IMAGES);
         deny(Manifest.permission.READ_MEDIA_VIDEO);
         assertTrue(manager.needsPermissions());
@@ -142,7 +141,6 @@ public class PermissionManagerInstanceTest {
     }
 
     @Test
-    @Config(sdk = 33)
     public void pickerNeedsNoStoragePermissionFromAndroid13() {
         deny(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO);
         assertTrue(PermissionManager.canUseSystemPhotoPickerWithoutMediaRead());
@@ -164,7 +162,6 @@ public class PermissionManagerInstanceTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void needsLocationPermission_followsTheGrant() {
         deny(Manifest.permission.ACCESS_MEDIA_LOCATION);
         assertTrue(manager.needsLocationPermission());
@@ -173,7 +170,6 @@ public class PermissionManagerInstanceTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void requestCodes_areExposed() {
         assertEquals(PermissionManager.STORAGE_PERMISSION_REQUEST_CODE, manager.getPermissionRequestCode());
         assertEquals(PermissionManager.LOCATION_PERMISSION_REQUEST_CODE, manager.getLocationPermissionRequestCode());
@@ -182,7 +178,6 @@ public class PermissionManagerInstanceTest {
     // ---- checkPermissions ------------------------------------------------------------------------
 
     @Test
-    @Config(sdk = 34)
     public void checkPermissions_isDeferredDuringTheFirstLaunchFlow() {
         PermissionManager.prepareInitialPermissionFlow();
         manager.checkPermissions();
@@ -190,7 +185,6 @@ public class PermissionManagerInstanceTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void checkPermissions_allGranted_notifiesGrantedAndLocation() {
         grantFullMedia34();
         grant(Manifest.permission.ACCESS_MEDIA_LOCATION);
@@ -201,7 +195,6 @@ public class PermissionManagerInstanceTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void checkPermissions_allGrantedButNoLocation_onlyNotifiesGranted() {
         grantFullMedia34();
         deny(Manifest.permission.ACCESS_MEDIA_LOCATION);
@@ -212,7 +205,6 @@ public class PermissionManagerInstanceTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void checkPermissions_missing_startsARequestOnce() {
         deny(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO,
                 Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED);
@@ -229,7 +221,6 @@ public class PermissionManagerInstanceTest {
     // ---- request methods -------------------------------------------------------------------------
 
     @Test
-    @Config(sdk = 34)
     public void requestStoragePermission_asksForTheMissingMediaPermissions() {
         deny(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO,
                 Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED);
@@ -240,7 +231,6 @@ public class PermissionManagerInstanceTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void requestLocationPermission_withMediaAccess_asksForLocationDirectly() {
         grantFullMedia34();
         deny(Manifest.permission.ACCESS_MEDIA_LOCATION);
@@ -251,7 +241,6 @@ public class PermissionManagerInstanceTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void requestLocationPermission_alreadyGranted_doesNothing() {
         grant(Manifest.permission.ACCESS_MEDIA_LOCATION);
         manager.requestLocationPermission();
@@ -259,7 +248,6 @@ public class PermissionManagerInstanceTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void requestLocationPermission_withoutMediaAccess_asksForMediaFirstThenLocation() {
         deny(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO,
                 Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED, Manifest.permission.ACCESS_MEDIA_LOCATION);
@@ -282,7 +270,6 @@ public class PermissionManagerInstanceTest {
     // ---- handlePermissionResult ------------------------------------------------------------------
 
     @Test
-    @Config(sdk = 34)
     public void storageResult_granted_notifiesGranted() {
         grantFullMedia34();
         grant(Manifest.permission.ACCESS_MEDIA_LOCATION);
@@ -297,7 +284,6 @@ public class PermissionManagerInstanceTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void storageResult_denied_notifiesDenied() {
         deny(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO,
                 Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED);
@@ -324,7 +310,6 @@ public class PermissionManagerInstanceTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void storageResult_withLocationRequestedButDenied_notifiesLocationDenied() {
         grantFullMedia34();
         deny(Manifest.permission.ACCESS_MEDIA_LOCATION);
@@ -338,7 +323,6 @@ public class PermissionManagerInstanceTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void locationResult_grantedAndDenied() {
         manager.handlePermissionResult(
                 PermissionManager.LOCATION_PERMISSION_REQUEST_CODE,
@@ -356,14 +340,12 @@ public class PermissionManagerInstanceTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void unknownRequestCode_isIgnored() {
         manager.handlePermissionResult(999, new String[0], new int[0]);
         assertTrue(events.isEmpty());
     }
 
     @Test
-    @Config(sdk = 34)
     public void resultWithMismatchedArrays_isHandledWithoutCrashing() {
         manager.handlePermissionResult(
                 PermissionManager.LOCATION_PERMISSION_REQUEST_CODE,
@@ -375,7 +357,6 @@ public class PermissionManagerInstanceTest {
     // ---- pending results -------------------------------------------------------------------------
 
     @Test
-    @Config(sdk = 34)
     public void pendingResult_isAppliedOnceToTheMatchingManager() {
         grantFullMedia34();
         PermissionManager.storeActivityPermissionResult(
@@ -399,7 +380,6 @@ public class PermissionManagerInstanceTest {
     // ---- first-launch flow + resume helper ----------------------------------------------------------
 
     @Test
-    @Config(sdk = 34)
     public void initialFlow_walksMediaThenLocationThenNotifications() {
         clearPrompted();
         deny(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO,
@@ -454,7 +434,6 @@ public class PermissionManagerInstanceTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void initialFlow_skipsLocationWithoutMediaAccess() {
         clearPrompted();
         deny(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO,
@@ -472,21 +451,18 @@ public class PermissionManagerInstanceTest {
     }
 
     @Test
-    @Config(sdk = 34)
     public void requestAllInitialPermissions_doesNothingOnceCompleted() {
         PermissionManager.requestAllInitialPermissions(activity);
         assertFalse(PermissionManager.isInitialPermissionFlowInProgress());
     }
 
     @Test
-    @Config(sdk = 34)
     public void startInitialPermissionFlow_isANoOpWhenNotInProgress() {
         PermissionManager.startInitialPermissionFlow(activity);
         assertNull(lastRequested());
     }
 
     @Test
-    @Config(sdk = 34)
     public void requestInitialPermissionsIfNeeded_branches() {
         // In flight: nothing happens.
         PermissionManager.prepareInitialPermissionFlow();

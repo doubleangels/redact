@@ -1,6 +1,7 @@
 package com.doubleangels.redact.permission;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -33,6 +34,8 @@ public class PermissionManager {
     public static final int STORAGE_PERMISSION_REQUEST_CODE = 123;
     public static final int LOCATION_PERMISSION_REQUEST_CODE = 124;
     public static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 125;
+
+    static Integer testSdkIntOverride;
 
     private enum InitialFlowStep {
         MEDIA,
@@ -166,11 +169,12 @@ public class PermissionManager {
         }
     }
 
+    @SuppressLint("InlinedApi") // guarded by sdkInt()
     public boolean needsPermissions() {
         try {
             boolean result;
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            if (sdkInt() >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                 // Android 14+ (API 34): full access OR user-selected partial access are both valid.
                 // READ_MEDIA_VISUAL_USER_SELECTED is granted when the user picks specific photos/videos
                 // rather than granting all-or-nothing access.
@@ -188,7 +192,7 @@ public class PermissionManager {
                 // Either full (IMAGES+VIDEO) or partial (USER_SELECTED) grants are acceptable.
                 result = !(hasImagePermission && hasVideoPermission) && !hasUserSelectedPermission;
 
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            } else if (sdkInt() >= Build.VERSION_CODES.TIRAMISU) {
                 // Android 13 (API 33): granular media permissions, no partial access option.
                 boolean hasImagePermission = ContextCompat.checkSelfPermission(activity,
                         Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED;
@@ -216,7 +220,7 @@ public class PermissionManager {
 
     /** On API 33+, the system photo picker does not require READ_MEDIA_* for selection. */
     public static boolean canUseSystemPhotoPickerWithoutMediaRead() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU;
+        return sdkInt() >= Build.VERSION_CODES.TIRAMISU;
     }
 
     /** Whether the picker should be blocked until storage permissions are granted. */
@@ -478,14 +482,15 @@ public class PermissionManager {
      * A permanent denial occurs when the user selects "Don't ask again" or "Deny"
      * multiple times, requiring the user to enable permissions from Settings.
      */
+    @SuppressLint("InlinedApi") // guarded by sdkInt()
     private void handlePermissionDenial() {
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (sdkInt() >= Build.VERSION_CODES.TIRAMISU) {
                 boolean canAskImagesAgain = ActivityCompat.shouldShowRequestPermissionRationale(
                         activity, Manifest.permission.READ_MEDIA_IMAGES);
                 boolean canAskVideoAgain = ActivityCompat.shouldShowRequestPermissionRationale(
                         activity, Manifest.permission.READ_MEDIA_VIDEO);
-                boolean hasPartialAccess = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+                boolean hasPartialAccess = sdkInt() >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
                         && ContextCompat.checkSelfPermission(activity,
                         Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
                         == PackageManager.PERMISSION_GRANTED;
@@ -670,8 +675,9 @@ public class PermissionManager {
                 LOCATION_PERMISSION_REQUEST_CODE);
     }
 
+    @SuppressLint("InlinedApi") // guarded by sdkInt()
     private static void requestInitialNotificationsStep(@NonNull Activity activity) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+        if (sdkInt() < Build.VERSION_CODES.TIRAMISU) {
             finishInitialPermissionFlow(activity);
             return;
         }
@@ -731,10 +737,15 @@ public class PermissionManager {
         }
     }
 
+    private static int sdkInt() {
+        return testSdkIntOverride != null ? testSdkIntOverride : Build.VERSION.SDK_INT;
+    }
+
+    @SuppressLint("InlinedApi") // guarded by sdkInt()
     static java.util.List<String> collectMissingRuntimePermissions(Activity activity) {
         java.util.List<String> permissions = new java.util.ArrayList<>();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        if (sdkInt() >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_MEDIA_IMAGES)
                     != PackageManager.PERMISSION_GRANTED) {
                 permissions.add(Manifest.permission.READ_MEDIA_IMAGES);
@@ -748,7 +759,7 @@ public class PermissionManager {
                     != PackageManager.PERMISSION_GRANTED) {
                 permissions.add(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED);
             }
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        } else if (sdkInt() >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_MEDIA_IMAGES)
                     != PackageManager.PERMISSION_GRANTED) {
                 permissions.add(Manifest.permission.READ_MEDIA_IMAGES);
@@ -793,5 +804,6 @@ public class PermissionManager {
         initialFlowStep = InitialFlowStep.DONE;
         initialFlowCompletedCallback = null;
         pendingPermissionResults.clear();
+        testSdkIntOverride = null;
     }
 }

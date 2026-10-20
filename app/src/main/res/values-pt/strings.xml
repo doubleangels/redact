@@ -35,9 +35,9 @@
     <string name="convert_format_webp">WebP</string>
     <string name="convert_format_h264">MP4 (H.264)</string>
     <string name="convert_format_h265">MP4 (H.265)</string>
-    <string name="convert_format_vp9">WebM (VP9)</string>
+    <string name="convert_format_vp9">MP4 (VP9)</string>
     <string name="convert_format_heif">HEIC</string>
-    <string name="convert_format_av1" tools:ignore="Typos">MKV (AV1)</string>
+    <string name="convert_format_av1" tools:ignore="Typos">MP4 (AV1)</string>
     <string name="convert_select_files">Selecionar Arquivos</string>
     <string name="convert_run">Converter</string>
     <string name="convert_status_hint">Escolha um formato de saída abaixo e toque em Converter.</string>
@@ -110,6 +110,17 @@
     <string name="metadata_latitude">Latitude: %.15f</string>
     <string name="metadata_longitude">Longitude: %.15f</string>
     <string name="metadata_no_location_data">Nenhum dado de localização disponível.</string>
+    <string name="metadata_location_unreadable">Há dados de localização salvos em um formato que não pode ser mostrado aqui. A limpeza os remove.</string>
+    <string name="metadata_container_tags_header">Tags Incorporadas:</string>
+    <string name="metadata_container_tags">Encontrado no arquivo: %1$s</string>
+    <string name="metadata_container_value">Presente – removido ao limpar</string>
+    <string name="metadata_embedded_data_header">Dados ocultos e incorporados</string>
+    <string name="metadata_embedded_value">Presente (%1$s) – removido ao limpar</string>
+    <plurals name="metadata_embedded_images">
+        <item quantity="one">%1$d imagem (%2$s) – removida ao limpar</item>
+        <item quantity="many">%1$d imagens (%2$s) – removidas ao limpar</item>
+        <item quantity="other">%1$d imagens (%2$s) – removidas ao limpar</item>
+    </plurals>
     <string name="metadata_location_permission_needed">Permissão de localização não concedida. Conceda a permissão para ver dados de localização.</string>
     <string name="metadata_orientation">Orientação: %s</string>
     <string name="metadata_flash">Flash: %s</string>
@@ -145,9 +156,9 @@
 
     
     <string name="settings_section_advanced_privacy">Limpeza de Metadados</string>
-    <string name="settings_advanced_privacy_subtitle">Como o Redact remove informações ocultas — como localização e detalhes da câmera (EXIF) — na aba Limpar. Arquivos compartilhados de outros apps sempre têm essas informações removidas antes de serem encaminhados.</string>
+    <string name="settings_advanced_privacy_subtitle">Como o Redact remove informações ocultas, como localização e detalhes da câmera (EXIF), na aba Limpar. Arquivos compartilhados de outros apps sempre têm essas informações removidas antes de serem encaminhados.</string>
     <string name="settings_secure_delete">Passagens de Exclusão Segura</string>
-    <string name="settings_secure_delete_subtitle">Quantas vezes os arquivos temporários — incluindo cópias originais não editadas de fotos e vídeos antes da limpeza — são sobrescritos antes de excluir, para que seus dados não possam ser recuperados do disco. Mais passagens = mais lento; em armazenamento flash a recuperação ainda pode ser possível.</string>
+    <string name="settings_secure_delete_subtitle">Quantas vezes os arquivos temporários (incluindo cópias originais não editadas de fotos e vídeos antes da limpeza) são sobrescritos antes de excluir, para que seus dados não possam ser recuperados do disco. Mais passagens = mais lento; em armazenamento flash a recuperação ainda pode ser possível.</string>
     <string name="settings_auto_clear_temp">Limpar Cache ao Iniciar</string>
     <string name="settings_auto_clear_temp_subtitle">Remove arquivos de cache de processamento com mais de 24 horas ao abrir o app.</string>
     <string name="settings_preserve_camera">Manter Configurações da Câmera</string>
@@ -156,17 +167,17 @@
     <string name="settings_preserve_location_subtitle">Manter coordenadas GPS em Limpar. Ignorado com Limpeza Rigorosa ou ao compartilhar de outros apps.</string>
         <string name="settings_sentry_consent_allow">Ativar</string>
     <string name="settings_sentry_consent_cancel">Agora Não</string>
-    <string name="settings_sentry_consent_title">Ativar Relatórios de Falha?</string>
+    <string name="settings_sentry_consent_title">Ativar Relatórios de Falha</string>
     <string name="settings_sentry_consent_message">Enviar Relatórios de Falha envia diagnósticos anonimizados ao Sentry pela internet.\n\nFotos, vídeos, nomes de arquivo e coordenadas GPS não são enviados.</string>
     <string name="settings_strict_clean">Limpeza Rigorosa</string>
-    <string name="settings_strict_clean_subtitle">Remove todo vestígio de metadados, até a tag de orientação — por isso uma foto girada pode parecer torta depois. Desativa as opções de manter acima e sempre recodifica o vídeo por completo para a limpeza mais completa.</string>
+    <string name="settings_strict_clean_subtitle">Remove todo vestígio de metadados, até a tag de orientação, por isso uma foto girada pode parecer torta depois. Desativa as opções de manter acima e sempre recodifica o vídeo por completo para a limpeza mais completa.</string>
     
     <string name="settings_section_advanced_processing">Arquivos Grandes e Memória</string>
     <string name="settings_advanced_processing_subtitle">Controla o uso de RAM ao decodificar imagens grandes durante limpeza e conversão.</string>
     <string name="settings_max_bitmap_size">Resolução Máxima de Processamento</string>
     <string name="settings_max_bitmap_size_subtitle">Maior lado em pixels ao decodificar imagens na memória. Valores menores usam menos RAM.</string>
     <string name="settings_video_fallback">Limpeza de Vídeo Mais Rápida</string>
-    <string name="settings_video_fallback_subtitle">Quando seu vídeo já está em um formato compatível, o Redact remove seus metadados com uma passagem rápida em vez de recodificá-lo por completo — mais rápido e mais leve para a bateria, embora uma recodificação completa remova um pouco mais. Desativado automaticamente quando a Limpeza Rigorosa está ativa ou ao limpar arquivos compartilhados de outros apps.</string>
+    <string name="settings_video_fallback_subtitle">Quando seu vídeo já está em um formato compatível, o Redact remove seus metadados com uma passagem rápida em vez de recodificá-lo por completo, mais rápido e mais leve para a bateria, embora uma recodificação completa remova um pouco mais. Desativado automaticamente quando a Limpeza Rigorosa está ativa ou ao limpar arquivos compartilhados de outros apps.</string>
 
     <string-array name="settings_secure_delete_labels">
         <item>1 Passagem (Rápida)</item>
@@ -193,7 +204,7 @@
     <string name="settings_section_diagnostics">Diagnóstico e Feedback</string>
     <string name="settings_section_diagnostics_subtitle">Relatórios opcionais para corrigir falhas. Sua mídia nunca sai do dispositivo.</string>
     <string name="settings_crash_reporting_label">Enviar Relatórios de Falha</string>
-    <string name="settings_crash_reporting_subtitle">Compartilha apenas detalhes técnicos anonimizados (versão do app, modelo do dispositivo, o que o app estava fazendo quando travou) — nunca suas fotos ou vídeos. Enviados pela internet ao nosso serviço de relatório de falhas, o Sentry, quando ativado.</string>
+    <string name="settings_crash_reporting_subtitle">Compartilha apenas detalhes técnicos anonimizados (versão do app, modelo do dispositivo, o que o app estava fazendo quando travou), nunca suas fotos ou vídeos. Enviados pela internet ao nosso serviço de relatório de falhas, o Sentry, quando ativado.</string>
     <string name="settings_section_conversion">Padrões da Aba Converter</string>
     <string name="settings_conversion_subtitle">Formatos pré-selecionados ao escolher arquivos em Converter. Você ainda pode alterá-los em cada lote.</string>
     <string name="settings_default_image_format">Formato de Imagem Padrão</string>
@@ -208,7 +219,7 @@
     <string name="settings_section_share">Compartilhar no Redact</string>
     <string name="settings_share_confirm_label">Confirmar Antes de Remover Metadados</string>
     <string name="settings_share_confirm_subtitle">Mostrar um aviso antes de remover EXIF e outros metadados de arquivos compartilhados.</string>
-    <string name="settings_share_confirm_dialog_title">Remover Metadados?</string>
+    <string name="settings_share_confirm_dialog_title">Remover Metadados</string>
     <string name="settings_share_confirm_dialog_message">O Redact removerá EXIF e outros metadados dos arquivos compartilhados antes de repassá-los.</string>
     <string name="settings_share_confirm_dialog_confirm">Remover e Continuar</string>
     <string name="settings_share_confirm_dialog_cancel">Cancelar</string>
@@ -224,7 +235,7 @@
     <string name="settings_storage_size">Cache em uso: %1$s</string>
     <string name="settings_storage_subtitle">Cópias de trabalho criadas durante o processamento. Seus originais da galeria nunca são modificados.</string>
     <string name="settings_storage_clear">Limpar Arquivos Temporários</string>
-    <string name="settings_storage_clear_confirm_title">Limpar Arquivos Temporários?</string>
+    <string name="settings_storage_clear_confirm_title">Limpar Arquivos Temporários</string>
     <string name="settings_storage_clear_confirm_message">Remove cópias em cache do processamento recente. Seus arquivos da galeria não são afetados.</string>
     <string name="settings_storage_clear_success">Arquivos temporários limpos.</string>
     <string name="settings_storage_clear_empty">Nenhum arquivo temporário para limpar.</string>
@@ -235,6 +246,7 @@
     <string name="settings_about_privacy">Política de Privacidade</string>
     <string name="settings_about_report_issue">Relatar um Problema</string>
     <string name="settings_about_donate">Doe</string>
+    <string name="settings_about_rate">Avaliar o Redact no Google Play</string>
     <string name="settings_link_unavailable">Nenhum app encontrado para abrir este link.</string>
     <string name="settings_progress_notifications_label">Progresso da Tarefa em Andamento</string>
     <string name="settings_progress_notifications_subtitle">Notificação persistente com progresso em tarefas longas. Desativada por padrão até você ativar Permitir notificações.</string>
@@ -282,21 +294,21 @@ Suas fotos e vídeos nunca são enviados. URIs, nomes de arquivo e coordenadas G
     <string name="settings_permission_partial">Parcial</string>
     <string name="scan_status_ready">Selecione um arquivo para analisar os metadados.</string>
     <string name="animated_image_warning">Imagens animadas são salvas como um único quadro.</string>
-    <string name="processing_warning_low_storage">Armazenamento baixo (%1$s livres). O processamento pode falhar — tente limpar arquivos temporários em Configurações.</string>
+    <string name="processing_warning_low_storage">Armazenamento baixo (%1$s livres). O processamento pode falhar. Tente limpar arquivos temporários em Configurações.</string>
     <string name="processing_warning_critical_storage_title">Armazenamento Insuficiente</string>
     <string name="processing_warning_critical_storage_message">O Redact pode precisar de cerca de %1$s de espaço temporário, mas apenas %2$s estão livres. O processamento pode falhar.</string>
     <string name="processing_warning_low_memory">Seu dispositivo está com pouca memória. Arquivos grandes podem falhar ou ficar lentos.</string>
     <string name="processing_warning_large_video">Vídeo(s) grande(s) selecionado(s). O processamento precisa de espaço temporário extra e pode demorar.</string>
     <string name="processing_warning_continue">Continuar Mesmo Assim</string>
     <string name="clean_item_failed">Falhou: %1$s</string>
-    <string name="settings_preserve_location_confirm_title">Manter GPS em Fotos Limpas?</string>
+    <string name="settings_preserve_location_confirm_title">Manter GPS em Fotos Limpas</string>
     <string name="settings_preserve_location_confirm_message">Arquivos limpos em Limpar podem ainda conter coordenadas GPS. Compartilhar de outros apps sempre remove a localização.
 
 Ative apenas se quiser manter a localização de propósito.</string>
     <string name="settings_permission_needs_media">Fotos Necessárias</string>
     <string name="settings_location_permission_grant">Conceder Localização de Fotos</string>
-    <string name="settings_location_needs_media_title">Permitir Fotos e Vídeos Primeiro?</string>
-    <string name="settings_location_needs_media_message">Localização da foto permite que o Redact leia coordenadas GPS incorporadas em sua mídia. O acesso à biblioteca de fotos e vídeos é necessário primeiro — escolher arquivos individualmente não basta.\n\nNa próxima tela, toque em Permitir todas as fotos e vídeos. Seu dispositivo geralmente concede Localização da foto ao mesmo tempo.</string>
+    <string name="settings_location_needs_media_title">Acesso a Fotos e Vídeos Necessário</string>
+    <string name="settings_location_needs_media_message">Localização da foto permite que o Redact leia coordenadas GPS incorporadas em sua mídia. O acesso à biblioteca de fotos e vídeos é necessário primeiro. Escolher arquivos individualmente não basta.\n\nNa próxima tela, toque em Permitir todas as fotos e vídeos. Seu dispositivo geralmente concede Localização da foto ao mesmo tempo.</string>
     <string name="settings_location_grant_media_first">Continuar</string>
     <string name="settings_location_permission_granted">Permissão de localização de fotos concedida.</string>
     <string name="settings_location_permission_denied">Permissão de localização de fotos negada.</string>
@@ -342,6 +354,9 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="convert_item_type_image">Imagem</string>
     <string name="convert_item_type_video">Vídeo</string>
     <string name="notification_clean_failed">Não foi possível limpar nenhum arquivo desta vez.</string>
+    <string name="notification_clean_batch_details">Neste lote: %1$s</string>
+    <string name="notification_clean_totals">Neste dispositivo até agora: %1$s</string>
+    <string name="notification_stat_item">%1$s (%2$s)</string>
     <string name="scan_empty_state_title">Inspecionar Metadados de Mídia</string>
     <string name="scan_empty_state_description">Selecione uma foto ou um vídeo para ver os detalhes EXIF, as especificações da câmera, as coordenadas GPS e as propriedades técnicas.</string>
     <string name="scan_grant_location_button">Conceder Permissão</string>
@@ -425,4 +440,59 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="share_results_chooser_title">Compartilhar via…</string>
     <string name="settings_output_unavailable">O Redact não consegue mais salvar nesta pasta, então os arquivos vão para %1$s. Escolha-a novamente ou escolha outra pasta.</string>
     <string name="output_folder_fallback">Salvando em %2$s: %1$s não está disponível.</string>
+    <string name="settings_output_open">Abrir Pasta</string>
+    <string name="settings_output_open_unavailable">Nenhum app encontrado para abrir esta pasta.</string>
+    <string name="settings_output_also_videos">Salvar os vídeos aqui também?</string>
+    <string name="settings_output_also_images">Salvar as imagens aqui também?</string>
+    <string name="settings_output_also_confirm">Usar para Ambos</string>
+    <string name="settings_output_also_decline">Não, Obrigado</string>
+    <string name="settings_reset_all">Redefinir Todas as Configurações</string>
+    <string name="settings_reset_all_title">Redefinir todas as configurações</string>
+    <string name="settings_reset_all_message">Todas as configurações voltam ao padrão e o Redact esquece as pastas de saída escolhidas. Suas fotos, vídeos e arquivos limpos não são alterados.</string>
+    <string name="settings_reset_all_confirm">Redefinir</string>
+    <string name="settings_reset_all_done">Configurações redefinidas para o padrão.</string>
+    <string name="settings_reset_all_busy">Não é possível redefinir as configurações durante o processamento.</string>
+    <string name="share_target_scan">Escanear com Redact</string>
+    <string name="button_scan_result">Escanear Resultado</string>
+    <string name="settings_keep_original_names">Manter Nomes Originais</string>
+    <string name="settings_keep_original_names_subtitle">Os arquivos limpos e convertidos recebem o nome do original em vez de um nome aleatório. Nomes como IMG_20260117 podem revelar quando uma foto foi tirada.</string>
+    <string name="review_prompt_title">Avalie o Redact</string>
+    <string name="review_prompt_message">Se o Redact ajudou a manter suas fotos privadas, você gostaria de avaliá-lo no Google Play? Leva só um instante e ajuda outras pessoas a encontrar o app.</string>
+    <string name="review_prompt_yes">Sim</string>
+    <string name="review_prompt_no">Não</string>
+    <string name="review_prompt_declined">Tudo bem, o Redact não vai perguntar de novo. Se mudar de ideia, você pode avaliá-lo quando quiser em Configurações › Sobre.</string>
+    <string name="crash_prompt_declined">Tudo bem, o Redact não vai perguntar de novo. Você pode ativar os relatórios de falhas quando quiser em Configurações › Diagnóstico e Feedback.</string>
+    <string name="stats_title">Estatísticas</string>
+    <string name="stats_navigate_up">Voltar</string>
+    <string name="stats_settings_title">Suas Estatísticas de Privacidade</string>
+    <string name="stats_settings_empty">Limpe sua primeira foto ou vídeo para ver o que o Redact remove por você.</string>
+    <string name="stats_settings_since">Contado neste dispositivo desde %1$s.</string>
+    <string name="stats_fields_removed">Campos Removidos</string>
+    <string name="stats_locations_removed">Localizações Removidas</string>
+    <string name="stats_files_cleaned">Arquivos Limpos</string>
+    <string name="stats_photos">Fotos Limpas</string>
+    <string name="stats_videos">Vídeos Limpos</string>
+    <string name="stats_files_converted">Arquivos Convertidos</string>
+    <string name="stats_on_device_note">Contado apenas neste dispositivo. Nada disso é enviado para lugar nenhum.</string>
+    <string name="stats_section_removed">O Que Foi Removido</string>
+    <string name="stats_section_removed_subtitle">Quantos dos seus arquivos limpos continham cada tipo de dado pessoal.</string>
+    <string name="stats_removed_location">Local</string>
+    <string name="stats_removed_dates">Data e Hora da Captura</string>
+    <string name="stats_removed_devices">Câmera e Celular</string>
+    <string name="stats_removed_names">Nomes e Autores</string>
+    <string name="stats_section_files">Arquivos</string>
+    <string name="stats_section_activity">Últimos 30 Dias</string>
+    <string name="stats_chart_empty">Nada foi limpo nos últimos 30 dias.</string>
+    <string name="stats_chart_today">Hoje</string>
+    <string name="stats_clear">Limpar Estatísticas</string>
+    <string name="stats_clear_subtitle">Zera todas as contagens. Suas configurações e arquivos continuam como estão.</string>
+    <string name="stats_clear_title">Limpar estatísticas</string>
+    <string name="stats_clear_message">Todas as contagens voltam a zero e recomeçam a partir de agora. Suas configurações, fotos, vídeos e arquivos limpos não são alterados.</string>
+    <string name="stats_clear_confirm">Limpar</string>
+    <string name="stats_cleared">Estatísticas limpas.</string>
+    <plurals name="stats_chart_summary">
+        <item quantity="one">%1$s arquivo limpo nos últimos 30 dias.</item>
+        <item quantity="many">%1$s de arquivos limpos nos últimos 30 dias.</item>
+        <item quantity="other">%1$s arquivos limpos nos últimos 30 dias.</item>
+    </plurals>
 </resources>
