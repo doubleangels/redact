@@ -265,7 +265,7 @@
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">रद्द करें</string>
-    <string name="clean_selected_count">चयनित: %1$d फ़ाइल(ें)</string>
+    <string name="clean_selected_count">चयनित: %1$d फ़ाइल(फ़ाइलें)</string>
     <string name="clean_status_ready">साफ़ करने के लिए फ़ाइलें चुनने के लिए तैयार।</string>
     <string name="convert_codec_fallback">%1$s उपलब्ध नहीं; इसके बजाय %2$s के रूप में सहेजा गया।</string>
     <string name="metadata_error_basic_info_generic">मूल फ़ाइल जानकारी पढ़ नहीं सकी।</string>
@@ -284,9 +284,9 @@
     <string name="share_error_failed_get_cleaned_files">साफ़ की गई फ़ाइलें साझा करने के लिए तैयार नहीं की जा सकीं।</string>
     <string name="share_error_failed_receive_media">साझा किया गया मीडिया प्राप्त नहीं हो सका।</string>
     <string name="share_error_generic">कुछ गलत हो गया। कृपया पुनः प्रयास करें।</string>
-    <string name="share_error_processing_failed">साझा फ़ाइल(ों) से मेटाडेटा हटाया नहीं जा सका।</string>
+    <string name="share_error_processing_failed">साझा फ़ाइल(फ़ाइलों) से मेटाडेटा हटाया नहीं जा सका।</string>
     <string name="status_already_processing">एक बैच पहले से चल रहा है। कृपया समाप्त होने की प्रतीक्षा करें।</string>
-    <string name="status_clean_done_all">%1$d फ़ाइल(ें) सफलतापूर्वक साफ़ की गईं।</string>
+    <string name="status_clean_done_all">%1$d फ़ाइल(फ़ाइलें) सफलतापूर्वक साफ़ की गईं।</string>
     <string name="status_clean_done_failed">सफ़ाई विफल।</string>
     <string name="status_clean_done_partial">पूर्ण: %1$d साफ़, %2$d विफल।</string>
     <string name="status_processing_cancelled">प्रसंस्करण रद्द किया गया।</string>
@@ -313,7 +313,7 @@
     <string name="settings_location_permission_denied">फ़ोटो स्थान अनुमति अस्वीकृत।</string>
     <string name="settings_crash_reporting_unconfigured">क्रैश रिपोर्टिंग चालू है लेकिन इस बिल्ड में कॉन्फ़िगर नहीं है।</string>
     <string name="settings_crash_reporting_init_failed">क्रैश रिपोर्टिंग शुरू नहीं हो सकी। बाद में पुनः प्रयास करें।</string>
-    <string name="share_error_partial_success">%1$d फ़ाइल(ें) साफ़; %2$d विफल।</string>
+    <string name="share_error_partial_success">%1$d फ़ाइल(फ़ाइलें) साफ़; %2$d विफल।</string>
     <string name="media_picker_selection_capped">एक बार में अधिकतम %1$d फ़ाइलें चुनी जा सकती हैं।</string>
     <string name="scan_metadata_truncated">इस स्कैन से कुछ EXIF टैग हटा दिए गए (प्रदर्शन सीमा)।</string>
     <string name="share_error_interrupted">साझा करना बाधित हुआ। कृपया पुनः प्रयास करें।</string>
