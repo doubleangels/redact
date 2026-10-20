@@ -67,6 +67,38 @@ jobs:
       - name: Run Android Lint
         run: ./gradlew lintRelease --no-daemon
 
+  release-notes:
+    needs: ["check-version"]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Write the release notes from the commits since the last release
+        # Keeps notes written by hand for this versionCode (fastlane/.../changelogs/<versionCode>.txt).
+        # Otherwise asks Claude for English notes and the 12 translations. The key is used only here.
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python3 scripts/generate_release_notes.py
+
+      - name: Read the version code
+        id: version
+        run: echo "code=$(grep 'versionCode' app/build.gradle | head -1 | sed -E 's/.*versionCode[[:space:]]+([0-9]+).*/\1/')" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the release notes
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: release-notes
+          path: |
+            whatsnew
+            fastlane/metadata/android/en-US/changelogs/${{ steps.version.outputs.code }}.txt
+          if-no-files-found: error
+
   bundle-release:
     needs: ["unit-tests", "lint", "check-version"]
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
@@ -125,7 +157,7 @@ jobs:
           path: app/build/outputs/bundle/release/app-release.aab
 
   publish:
-    needs: ["bundle-release"]
+    needs: ["bundle-release", "release-notes"]
     # Requires a "production" environment in repo Settings → Environments with required reviewers.
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     environment: production
@@ -144,6 +176,12 @@ jobs:
         uses: actions/download-artifact@v8.0.2
         with:
           name: google-play-bundle
+          path: .
+
+      - name: Download the release notes
+        uses: actions/download-artifact@v8.0.2
+        with:
+          name: release-notes
           path: .
 
       - name: Create service_account.json for Google Play release
@@ -231,7 +269,7 @@ jobs:
         run: rm -f service_account.json
 
   github-release:
-    needs: ["publish"]
+    needs: ["publish", "release-notes"]
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     permissions:
@@ -244,7 +282,13 @@ jobs:
           fetch-tags: true
           persist-credentials: false
 
-      - name: Create GitHub Release with commit changelog
+      - name: Download the release notes
+        uses: actions/download-artifact@v8.0.2
+        with:
+          name: release-notes
+          path: .
+
+      - name: Create GitHub Release with the release notes and commit changelog
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -260,6 +304,10 @@ jobs:
           PREV_TAG=$(git tag -l 'v*' --sort=-v:refname | head -1)
 
           {
+            echo "## What's new"
+            echo ""
+            cat whatsnew/whatsnew-en-US
+            echo ""
             echo "## Changelog"
             echo ""
             if [ -n "${PREV_TAG}" ]; then
@@ -277,6 +325,7 @@ jobs:
     needs:
       [
         "check-version",
+        "release-notes",
         "unit-tests",
         "lint",
         "bundle-release",
