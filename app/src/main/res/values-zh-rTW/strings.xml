@@ -114,6 +114,11 @@
     <string name="metadata_container_tags_header">內嵌的標籤：</string>
     <string name="metadata_container_tags">在檔案中發現：%1$s</string>
     <string name="metadata_container_value">存在 – 清理時會移除</string>
+    <string name="metadata_embedded_data_header">隱藏和嵌入的資料</string>
+    <string name="metadata_embedded_value">存在（%1$s） – 清理時會移除</string>
+    <plurals name="metadata_embedded_images">
+        <item quantity="other">%1$d 張圖片（%2$s） – 清理時會移除</item>
+    </plurals>
     <string name="metadata_location_permission_needed">未授予位置權限。授予權限以檢視位置資料。</string>
     <string name="metadata_orientation">方向：%s</string>
     <string name="metadata_flash">閃光燈：%s</string>

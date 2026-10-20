@@ -178,6 +178,16 @@ public final class AlreadyCleanCheck {
         } catch (IOException | RuntimeException e) {
             return Status.UNKNOWN;
         }
+        String lower = mime.toLowerCase(Locale.ROOT);
+        if (!lower.equals("image/heic") && !lower.equals("image/heif")) {
+            // IPTC, comments, text chunks, appended images and videos: everything a clean removes
+            // outside EXIF. A file whose structure cannot be followed is cleaned as usual.
+            ImageContainerMetadata.Report container = ImageContainerMetadata.scan(context, uri);
+            if (!container.recognized) {
+                return Status.UNKNOWN;
+            }
+            return container.findings.isEmpty() ? Status.ALREADY_CLEAN : Status.NEEDS_CLEANING;
+        }
         try (InputStream in = resolver.openInputStream(uri)) {
             if (in == null) {
                 return Status.UNKNOWN;
@@ -197,7 +207,7 @@ public final class AlreadyCleanCheck {
                 || lower.equals("image/heic") || lower.equals("image/heif");
     }
 
-    /** Looks for XMP packet markers in the leading bytes, where XMP lives in JPEG, PNG, WebP and HEIC. */
+    /** Looks for XMP packet markers in the leading bytes, where HEIC keeps its XMP. */
     private static boolean containsXmp(@NonNull InputStream in) throws IOException {
         byte[] buffer = new byte[XMP_SCAN_LIMIT];
         int total = 0;

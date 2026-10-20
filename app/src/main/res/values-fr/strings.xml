@@ -114,6 +114,13 @@
     <string name="metadata_container_tags_header">Balises Intégrées :</string>
     <string name="metadata_container_tags">Trouvé dans le fichier : %1$s</string>
     <string name="metadata_container_value">Présent – supprimé lors du nettoyage</string>
+    <string name="metadata_embedded_data_header">Données cachées et intégrées</string>
+    <string name="metadata_embedded_value">Présent (%1$s) – supprimé lors du nettoyage</string>
+    <plurals name="metadata_embedded_images">
+        <item quantity="one">%1$d image (%2$s) – supprimée lors du nettoyage</item>
+        <item quantity="many">%1$d images (%2$s) – supprimées lors du nettoyage</item>
+        <item quantity="other">%1$d images (%2$s) – supprimées lors du nettoyage</item>
+    </plurals>
     <string name="metadata_location_permission_needed">Autorisation de localisation non accordée. Accordez l\'autorisation pour voir les données de localisation.</string>
     <string name="metadata_orientation">Orientation : %s</string>
     <string name="metadata_flash">Flash : %s</string>

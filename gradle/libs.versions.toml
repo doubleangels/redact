@@ -11,7 +11,6 @@ media3 = "1.11.1"
 lifecycleViewmodelKtx = "2.11.0"
 sentry = "8.60.0"
 sentryGradlePlugin = "6.23.0"
-commonsImaging = "1.0.0-alpha6"
 leakcanary = "2.14"
 junit = "4.13.2"
 robolectric = "4.17"
@@ -36,7 +35,6 @@ media3-common = { module = "androidx.media3:media3-common", version.ref = "media
 media3-effect = { module = "androidx.media3:media3-effect", version.ref = "media3" }
 media3-transformer = { module = "androidx.media3:media3-transformer", version.ref = "media3" }
 lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
-commons-imaging = { module = "org.apache.commons:commons-imaging", version.ref = "commonsImaging" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 junit = { module = "junit:junit", version.ref = "junit" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }

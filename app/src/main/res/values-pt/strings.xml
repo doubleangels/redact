@@ -114,6 +114,13 @@
     <string name="metadata_container_tags_header">Tags Incorporadas:</string>
     <string name="metadata_container_tags">Encontrado no arquivo: %1$s</string>
     <string name="metadata_container_value">Presente – removido ao limpar</string>
+    <string name="metadata_embedded_data_header">Dados ocultos e incorporados</string>
+    <string name="metadata_embedded_value">Presente (%1$s) – removido ao limpar</string>
+    <plurals name="metadata_embedded_images">
+        <item quantity="one">%1$d imagem (%2$s) – removida ao limpar</item>
+        <item quantity="many">%1$d imagens (%2$s) – removidas ao limpar</item>
+        <item quantity="other">%1$d imagens (%2$s) – removidas ao limpar</item>
+    </plurals>
     <string name="metadata_location_permission_needed">Permissão de localização não concedida. Conceda a permissão para ver dados de localização.</string>
     <string name="metadata_orientation">Orientação: %s</string>
     <string name="metadata_flash">Flash: %s</string>

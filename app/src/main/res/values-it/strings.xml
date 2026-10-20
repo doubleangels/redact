@@ -114,6 +114,13 @@
     <string name="metadata_container_tags_header">Tag Incorporati:</string>
     <string name="metadata_container_tags">Trovato nel file: %1$s</string>
     <string name="metadata_container_value">Presente – rimosso durante la pulizia</string>
+    <string name="metadata_embedded_data_header">Dati nascosti e incorporati</string>
+    <string name="metadata_embedded_value">Presente (%1$s) – rimosso durante la pulizia</string>
+    <plurals name="metadata_embedded_images">
+        <item quantity="one">%1$d immagine (%2$s) – rimossa durante la pulizia</item>
+        <item quantity="many">%1$d immagini (%2$s) – rimosse durante la pulizia</item>
+        <item quantity="other">%1$d immagini (%2$s) – rimosse durante la pulizia</item>
+    </plurals>
     <string name="metadata_location_permission_needed">Autorizzazione alla posizione non concessa. Concedi l\'autorizzazione per visualizzare i dati di posizione.</string>
     <string name="metadata_orientation">Orientamento: %s</string>
     <string name="metadata_flash">Flash: %s</string>

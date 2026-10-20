@@ -50,6 +50,44 @@ public class VideoMedia3ConverterHelpersTest {
     }
 
     @Test
+    public void everyExportReEncodes_soNothingInsideTheSourceStreamsSurvives() {
+        VideoMedia3Converter.AlwaysEncodeFactory factory = new VideoMedia3Converter.AlwaysEncodeFactory(
+                new androidx.media3.transformer.DefaultEncoderFactory.Builder(
+                        RuntimeEnvironment.getApplication()).build());
+
+        assertTrue(factory.videoNeedsEncoding());
+        assertTrue(factory.audioNeedsEncoding());
+    }
+
+    @Test
+    public void alwaysEncoding_stillAsksTheRealFactoryWhatTheDeviceCanEncode() {
+        // Media3 falls back to tone mapping HDR only when the factory says the device cannot
+        // encode it, so the wrapper must not answer yes for everything.
+        androidx.media3.transformer.Codec.EncoderFactory noHdr =
+                new androidx.media3.transformer.Codec.EncoderFactory() {
+                    @Override
+                    public androidx.media3.transformer.Codec createForAudioEncoding(
+                            androidx.media3.common.Format format, android.media.metrics.LogSessionId id) {
+                        throw new UnsupportedOperationException();
+                    }
+
+                    @Override
+                    public androidx.media3.transformer.Codec createForVideoEncoding(
+                            androidx.media3.common.Format format, android.media.metrics.LogSessionId id) {
+                        throw new UnsupportedOperationException();
+                    }
+
+                    @Override
+                    public boolean isVideoFormatSupported(androidx.media3.common.Format format) {
+                        return false;
+                    }
+                };
+
+        assertFalse(new VideoMedia3Converter.AlwaysEncodeFactory(noHdr)
+                .isVideoFormatSupported(new androidx.media3.common.Format.Builder().build()));
+    }
+
+    @Test
     public void audioFollowsTheVideoCodecsUsualPairing() throws Exception {
         Class<?>[] types = {String.class};
         assertEquals(MimeTypes.AUDIO_OPUS, call("audioMimeTypeForVideoMime", types, MimeTypes.VIDEO_VP9));

@@ -3,6 +3,7 @@ package com.doubleangels.redact.media;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.media.MediaMetadataRetriever;
+import android.media.metrics.LogSessionId;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -12,15 +13,18 @@ import android.provider.MediaStore;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import androidx.media3.common.C;
+import androidx.media3.common.Format;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.util.Clock;
 import androidx.media3.effect.Presentation;
 import androidx.media3.transformer.AssetLoader;
+import androidx.media3.transformer.Codec;
 import androidx.media3.transformer.Composition;
 import androidx.media3.transformer.DefaultAssetLoaderFactory;
 import androidx.media3.transformer.DefaultDecoderFactory;
+import androidx.media3.transformer.DefaultEncoderFactory;
 import androidx.media3.transformer.DefaultMuxer;
 import androidx.media3.transformer.EditedMediaItem;
 import androidx.media3.transformer.EditedMediaItemSequence;
@@ -48,6 +52,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
+import androidx.media3.common.util.ExperimentalApi;
 import androidx.media3.common.util.UnstableApi;
 
 /**
@@ -85,6 +90,53 @@ public final class VideoMedia3Converter {
     private static final ReentrantLock TRANSCODE_LOCK = new ReentrantLock();
 
     private VideoMedia3Converter() {
+    }
+
+    /**
+     * Makes {@link Transformer} decode and re-encode every track. Without it, a source already in
+     * the requested codec is passed through as is, keeping whatever the camera or an editor put
+     * inside the stream itself: SEI user data (camcorder date and GPS, drone telemetry, encoder
+     * settings), SEI held in the codec configuration, and audio stream comments. The container is
+     * scrubbed separately, but only a re-encode leaves nothing of the source but its pictures and
+     * sound. Media3 still falls back from keeping HDR to tone mapping when the device cannot
+     * encode HDR.
+     */
+    @VisibleForTesting
+    static final class AlwaysEncodeFactory implements Codec.EncoderFactory {
+        private final Codec.EncoderFactory delegate;
+
+        AlwaysEncodeFactory(@NonNull Codec.EncoderFactory delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public Codec createForAudioEncoding(Format format, @Nullable LogSessionId logSessionId)
+                throws ExportException {
+            return delegate.createForAudioEncoding(format, logSessionId);
+        }
+
+        @Override
+        public Codec createForVideoEncoding(Format format, @Nullable LogSessionId logSessionId)
+                throws ExportException {
+            return delegate.createForVideoEncoding(format, logSessionId);
+        }
+
+        /** Asks the real factory, so Media3 still tone maps HDR the device cannot encode. */
+        @OptIn(markerClass = ExperimentalApi.class)
+        @Override
+        public boolean isVideoFormatSupported(Format format) {
+            return delegate.isVideoFormatSupported(format);
+        }
+
+        @Override
+        public boolean audioNeedsEncoding() {
+            return true;
+        }
+
+        @Override
+        public boolean videoNeedsEncoding() {
+            return true;
+        }
     }
 
     /** Cancels an in-flight Media3 export (any owner). */
@@ -405,6 +457,8 @@ public final class VideoMedia3Converter {
                                 new Transformer.Builder(app)
                                         .setAssetLoaderFactory(decoderFallbackAssetLoaderFactory(app))
                                         .setMuxerFactory(new DefaultMuxer.Factory())
+                                        .setEncoderFactory(new AlwaysEncodeFactory(
+                                                new DefaultEncoderFactory.Builder(app).build()))
                                         .setVideoMimeType(videoMimeType)
                                         .setAudioMimeType(audioMimeTypeForVideoMime(videoMimeType))
                                         .addListener(

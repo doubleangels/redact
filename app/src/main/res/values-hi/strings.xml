@@ -114,6 +114,12 @@
     <string name="metadata_container_tags_header">एम्बेड किए गए टैग:</string>
     <string name="metadata_container_tags">फ़ाइल में मिला: %1$s</string>
     <string name="metadata_container_value">मौजूद – साफ़ करने पर हट जाता है</string>
+    <string name="metadata_embedded_data_header">छिपा और एम्बेड किया गया डेटा</string>
+    <string name="metadata_embedded_value">मौजूद (%1$s) – साफ़ करने पर हट जाता है</string>
+    <plurals name="metadata_embedded_images">
+        <item quantity="one">%1$d इमेज (%2$s) – साफ़ करने पर हट जाती है</item>
+        <item quantity="other">%1$d इमेज (%2$s) – साफ़ करने पर हट जाती हैं</item>
+    </plurals>
     <string name="metadata_location_permission_needed">स्थान अनुमति प्रदान नहीं की गई। स्थान डेटा देखने के लिए अनुमति प्रदान करें।</string>
     <string name="metadata_orientation">अभिविन्यास: %s</string>
     <string name="metadata_flash">फ्लैश: %s</string>

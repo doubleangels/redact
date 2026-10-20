@@ -114,6 +114,12 @@
     <string name="metadata_container_tags_header">Eingebettete Tags:</string>
     <string name="metadata_container_tags">In der Datei gefunden: %1$s</string>
     <string name="metadata_container_value">Vorhanden – wird beim Bereinigen entfernt</string>
+    <string name="metadata_embedded_data_header">Versteckte &amp; eingebettete Daten</string>
+    <string name="metadata_embedded_value">Vorhanden (%1$s) – wird beim Bereinigen entfernt</string>
+    <plurals name="metadata_embedded_images">
+        <item quantity="one">%1$d Bild (%2$s) – wird beim Bereinigen entfernt</item>
+        <item quantity="other">%1$d Bilder (%2$s) – werden beim Bereinigen entfernt</item>
+    </plurals>
     <string name="metadata_location_permission_needed">Standortberechtigung nicht erteilt. Erteilen Sie die Berechtigung, um Standortdaten anzuzeigen.</string>
     <string name="metadata_orientation">Ausrichtung: %s</string>
     <string name="metadata_flash">Blitz: %s</string>

@@ -114,6 +114,11 @@
     <string name="metadata_container_tags_header">埋め込みタグ:</string>
     <string name="metadata_container_tags">ファイル内で見つかった項目: %1$s</string>
     <string name="metadata_container_value">あり – クリーンすると削除されます</string>
+    <string name="metadata_embedded_data_header">隠れた埋め込みデータ</string>
+    <string name="metadata_embedded_value">あり（%1$s） – クリーンすると削除されます</string>
+    <plurals name="metadata_embedded_images">
+        <item quantity="other">%1$d 枚の画像（%2$s） – クリーンすると削除されます</item>
+    </plurals>
     <string name="metadata_location_permission_needed">位置情報の権限が付与されていません。位置データを表示するには権限を付与してください。</string>
     <string name="metadata_orientation">向き: %s</string>
     <string name="metadata_flash">フラッシュ: %s</string>

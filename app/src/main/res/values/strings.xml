@@ -282,6 +282,12 @@
     <string name="metadata_container_tags_header">Embedded Tags:</string>
     <string name="metadata_container_tags">Found in the file: %1$s</string>
     <string name="metadata_container_value">Present – removed when you clean</string>
+    <string name="metadata_embedded_data_header">Hidden &amp; embedded data</string>
+    <string name="metadata_embedded_value">Present (%1$s) – removed when you clean</string>
+    <plurals name="metadata_embedded_images">
+        <item quantity="one">%1$d image (%2$s) – removed when you clean</item>
+        <item quantity="other">%1$d images (%2$s) – removed when you clean</item>
+    </plurals>
     <string name="metadata_location_permission_needed">Location permission not granted. Grant permission to see location data.</string>
     <string name="metadata_orientation">Orientation: %s</string>
     <string name="metadata_flash">Flash: %s</string>

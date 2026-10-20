@@ -95,18 +95,4 @@ public class MetadataStripperFailureTest {
         assertNull(stripper.stripMetadataForSharing(Uri.fromFile(jpegWithGps()), "photo.jpg", false));
     }
 
-    @Test
-    public void sharePng_whenXmpCannotBeRead_stillCleans() throws Exception {
-        File png = File.createTempFile("fail_", ".png", app.getFilesDir());
-        files.add(png);
-        try (FileOutputStream out = new FileOutputStream(png)) {
-            Bitmap.createBitmap(20, 20, Bitmap.Config.ARGB_8888).compress(Bitmap.CompressFormat.PNG, 100, out);
-        }
-        stripper.setTestForceXmpReadFailure(true);
-
-        Uri out = stripper.stripMetadataForSharing(Uri.fromFile(png), "graphic.png", false);
-        assertNotNull(out);
-        assertTrue(stripper.getLastProcessedOutputFile().length() > 0);
-    }
-
 }

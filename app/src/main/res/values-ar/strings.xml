@@ -114,6 +114,16 @@
     <string name="metadata_container_tags_header">الوسوم المضمّنة:</string>
     <string name="metadata_container_tags">موجود في الملف: %1$s</string>
     <string name="metadata_container_value">موجود – يُزال عند التنظيف</string>
+    <string name="metadata_embedded_data_header">بيانات مخفية ومضمّنة</string>
+    <string name="metadata_embedded_value">موجود (%1$s) – يُزال عند التنظيف</string>
+    <plurals name="metadata_embedded_images">
+        <item quantity="zero">%1$d صورة (%2$s) – تُزال عند التنظيف</item>
+        <item quantity="one">صورة واحدة (%2$s) – تُزال عند التنظيف</item>
+        <item quantity="two">صورتان (%2$s) – تُزالان عند التنظيف</item>
+        <item quantity="few">%1$d صور (%2$s) – تُزال عند التنظيف</item>
+        <item quantity="many">%1$d صورة (%2$s) – تُزال عند التنظيف</item>
+        <item quantity="other">%1$d صورة (%2$s) – تُزال عند التنظيف</item>
+    </plurals>
     <string name="metadata_location_permission_needed">لم يتم منح إذن الموقع. امنح الإذن لعرض بيانات الموقع.</string>
     <string name="metadata_orientation">الاتجاه: %s</string>
     <string name="metadata_flash">الفلاش: %s</string>

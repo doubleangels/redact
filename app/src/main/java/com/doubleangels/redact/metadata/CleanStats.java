@@ -81,6 +81,26 @@ public final class CleanStats {
     }
 
     /**
+     * These stats plus what an image carried outside EXIF, such as IPTC, comments and trailers.
+     * {@code exifCountedXmp} is true when {@link #fromExif} already counted the XMP packet as its
+     * {@code TAG_XMP}, so the container's XMP finding is not counted a second time.
+     */
+    @NonNull
+    CleanStats plus(@NonNull ImageContainerMetadata.Report container, boolean exifCountedXmp) {
+        int added = 0;
+        for (ImageContainerMetadata.Finding finding : container.findings) {
+            if (!(exifCountedXmp && finding.key.equals("XMP"))) {
+                added++;
+            }
+        }
+        return new CleanStats(removedFields + added,
+                hadLocation || container.has(ImageContainerMetadata.Kind.LOCATION),
+                hadDate || container.has(ImageContainerMetadata.Kind.DATE),
+                hadDevice || container.has(ImageContainerMetadata.Kind.DEVICE),
+                hadName || container.has(ImageContainerMetadata.Kind.NAME));
+    }
+
+    /**
      * Counts the identifying EXIF tags in {@code exif}, skipping {@code preservedTags}. Location
      * counts only when the coordinates are real: MediaStore zeroes GPS for apps without
      * ACCESS_MEDIA_LOCATION, and such a copy never carried a location to remove.

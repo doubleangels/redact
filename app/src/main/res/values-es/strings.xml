@@ -114,6 +114,13 @@
     <string name="metadata_container_tags_header">Etiquetas Incrustadas:</string>
     <string name="metadata_container_tags">Encontrado en el archivo: %1$s</string>
     <string name="metadata_container_value">Presente – se elimina al limpiar</string>
+    <string name="metadata_embedded_data_header">Datos ocultos e incrustados</string>
+    <string name="metadata_embedded_value">Presente (%1$s) – se elimina al limpiar</string>
+    <plurals name="metadata_embedded_images">
+        <item quantity="one">%1$d imagen (%2$s) – se elimina al limpiar</item>
+        <item quantity="many">%1$d imágenes (%2$s) – se eliminan al limpiar</item>
+        <item quantity="other">%1$d imágenes (%2$s) – se eliminan al limpiar</item>
+    </plurals>
     <string name="metadata_location_permission_needed">Permiso de ubicación no otorgado. Otorga el permiso para ver datos de ubicación.</string>
     <string name="metadata_orientation">Orientación: %s</string>
     <string name="metadata_flash">Flash: %s</string>

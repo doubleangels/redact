@@ -35,7 +35,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -43,8 +42,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import org.apache.commons.imaging.bytesource.ByteSource;
-import org.apache.commons.imaging.formats.jpeg.xmp.JpegXmpRewriter;
 
 /**
  * Provides functionality to strip metadata from media files (images and
@@ -64,14 +61,15 @@ import org.apache.commons.imaging.formats.jpeg.xmp.JpegXmpRewriter;
  *
  * For images, the process involves:
  * - Reading the original image and any essential EXIF data to preserve
- * - Decoding the image into a bitmap (with memory optimization for large
- * images)
- * - Re-encoding the bitmap without any metadata
+ * - Rebuilding a JPEG, PNG or WebP from only the segments that make up the picture
+ *   ({@link ImageContainerMetadata}), or re-encoding any other image from its pixels
  * - Restoring only essential non-identifying EXIF tags (like orientation)
+ * - Verifying that no EXIF tag beyond those, and nothing outside EXIF, remains
  *
  * For videos, the process involves:
- * - Re-encoding with Media3 {@code Transformer} (H.264/AAC MP4) to strip metadata, or a direct copy if
- *   transcoding fails
+ * - Decoding and re-encoding every track with Media3 {@code Transformer}, scrubbing what the muxer
+ *   writes ({@link VideoContainerMetadata}), and verifying the result; a quick transmux is used
+ *   only when Faster Video Cleaning is on and Strict Clean is off
  *
  * @see ExifInterface
  * @see MediaStore
@@ -139,9 +137,6 @@ public class MetadataStripper {
     boolean testForceOutputDirMkdirsFailure;
 
     @androidx.annotation.VisibleForTesting
-    boolean testForceXmpReadFailure;
-
-    @androidx.annotation.VisibleForTesting
     void setTestFastStripVideoMetadataOverride(@Nullable File overrideFile) {
         this.testFastStripVideoMetadataOverride = overrideFile;
     }
@@ -149,11 +144,6 @@ public class MetadataStripper {
     @androidx.annotation.VisibleForTesting
     void setTestForceOutputDirMkdirsFailure(boolean force) {
         this.testForceOutputDirMkdirsFailure = force;
-    }
-
-    @androidx.annotation.VisibleForTesting
-    void setTestForceXmpReadFailure(boolean force) {
-        this.testForceXmpReadFailure = force;
     }
 
     /**
@@ -452,7 +442,6 @@ public class MetadataStripper {
         SentryManager.setCustomKey("operation_type", "image_to_mediastore");
         Uri newUri = null;
         lastCleanStats = null;
-        Bitmap originalBitmap = null;
         File tempFile = null;
         File cleanFile = null;
 
@@ -476,14 +465,6 @@ public class MetadataStripper {
             readEssentialExifData(tempFile, false);
             lastCleanStats = readCleanStats(tempFile, false);
 
-            // Remove thumbnails from original
-            try {
-                ExifInterface tempExif = new ExifInterface(tempFile.getAbsolutePath());
-                removeThumbnails(tempExif);
-            } catch (Exception e) {
-                SentryManager.log("The thumbnails could not be removed from the temp file: " + e.getMessage() + ".");
-            }
-
             updateProgress(3, 5, context.getString(R.string.strip_progress_removing_metadata));
 
             // Every attempt writes to a private file, and only the finished result is copied to
@@ -491,49 +472,7 @@ public class MetadataStripper {
             // does not truncate on "w" would keep the tail of an earlier, longer attempt, which
             // can be a full copy of the original with its metadata.
             cleanFile = File.createTempFile("temp_clean_", extension, context.getCacheDir());
-            boolean usedLossless;
-            try (OutputStream os = new FileOutputStream(cleanFile)) {
-                usedLossless = stripMetadataLossless(tempFile, os, extension);
-            }
-
-            if (!usedLossless) {
-                try (OutputStream os = new FileOutputStream(cleanFile)) {
-                    usedLossless = stripMetadataNativeExif(tempFile, os, extension);
-                }
-            }
-
-            if (!usedLossless) {
-                FormatConverter.ImageFormatSpec bitmapOutput = outputFormat;
-                if (!outputFormat.bitmapFallbackSupported) {
-                    bitmapOutput = FormatConverter.jpegFormatSpec();
-                }
-                BitmapFactory.Options optionsJustBounds = new BitmapFactory.Options();
-                optionsJustBounds.inJustDecodeBounds = true;
-                BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsJustBounds);
-                int sampleSize = FormatConverter.calculateInSampleSize(context, optionsJustBounds);
-
-                String tempPath = tempFile.getAbsolutePath();
-                originalBitmap = FormatConverter.decodeSampled(
-                        sampleSize, options -> BitmapFactory.decodeFile(tempPath, options));
-
-                if (originalBitmap == null) {
-                    originalBitmap = FormatConverter.decodeBitmapFromUri(context, sourceUri);
-                }
-                if (originalBitmap == null) {
-                    throw new UnsupportedMediaException("Failed to decode bitmap", null);
-                }
-
-                try (OutputStream os = new FileOutputStream(cleanFile)) {
-                    if (!FormatConverter.compressBitmapToStream(
-                            context, originalBitmap, bitmapOutput.compressFormat, os)) {
-                        throw new IOException("Failed to compress bitmap");
-                    }
-                    os.flush();
-                }
-
-                originalBitmap.recycle();
-                originalBitmap = null;
-            }
+            writePictureOnly(tempFile, sourceUri, cleanFile, outputFormat);
 
             // Restore only essential EXIF data (like orientation)
             updateProgress(4, 5, context.getString(R.string.strip_progress_restoring_essential_metadata));
@@ -589,11 +528,6 @@ public class MetadataStripper {
                 newUri = null;
             }
         } finally {
-            // Clean up resources
-            if (originalBitmap != null && !originalBitmap.isRecycled()) {
-                originalBitmap.recycle();
-            }
-
             if (tempFile != null && tempFile.exists()) {
                 // Use secure deletion for temp files
                 secureDeleteFile(tempFile);
@@ -630,7 +564,6 @@ public class MetadataStripper {
         SentryManager.setCustomKey("operation_type", "image_for_sharing");
         lastCleanStats = null;
 
-        Bitmap originalBitmap = null;
         File tempFile = null;
         File outputFile = null;
 
@@ -659,61 +592,11 @@ public class MetadataStripper {
             outputFile = new File(outputDir, newFilename);
 
             updateProgress(3, 5, context.getString(R.string.strip_progress_removing_metadata));
+            writePictureOnly(tempFile, Uri.fromFile(tempFile), outputFile, outputFormat);
 
-            boolean usedLossless = false;
-            try (FileOutputStream fos = new FileOutputStream(outputFile)) {
-                usedLossless = stripMetadataLossless(tempFile, fos, extension);
-            }
-
-            if (!usedLossless) {
-                try (OutputStream os = new FileOutputStream(outputFile)) {
-                    usedLossless = stripMetadataNativeExif(tempFile, os, extension, true);
-                }
-            }
-
-            if (!usedLossless) {
-                BitmapFactory.Options optionsJustBounds = new BitmapFactory.Options();
-                optionsJustBounds.inJustDecodeBounds = true;
-                BitmapFactory.decodeFile(tempFile.getAbsolutePath(), optionsJustBounds);
-                int sampleSize = FormatConverter.calculateInSampleSize(context, optionsJustBounds);
-                SentryManager.setCustomKey("bitmap_sample_size", sampleSize);
-                SentryManager.setCustomKey("original_width", optionsJustBounds.outWidth);
-                SentryManager.setCustomKey("original_height", optionsJustBounds.outHeight);
-
-                String tempPath = tempFile.getAbsolutePath();
-                originalBitmap = FormatConverter.decodeSampled(
-                        sampleSize, options -> BitmapFactory.decodeFile(tempPath, options));
-
-                if (originalBitmap == null) {
-                    originalBitmap = FormatConverter.decodeBitmapFromUri(context, Uri.fromFile(tempFile));
-                }
-                if (originalBitmap == null) {
-                    throw new UnsupportedMediaException("Failed to decode bitmap", null);
-                }
-
-                try (FileOutputStream fos = new FileOutputStream(outputFile)) {
-                    if (!FormatConverter.compressBitmapToStream(
-                            context, originalBitmap, outputFormat.compressFormat, fos)) {
-                        throw new IOException("Failed to compress bitmap");
-                    }
-                    fos.flush();
-                    fos.getFD().sync();
-                }
-
-                originalBitmap.recycle();
-                originalBitmap = null;
-            }
-
-            // Remove all EXIF metadata except essential tags
+            // Put back only the essential tags (orientation)
             updateProgress(4, 5, context.getString(R.string.strip_progress_removing_all_metadata));
-            ExifInterface newExif = new ExifInterface(outputFile.getAbsolutePath());
-            if (usedLossless) {
-                restoreEssentialExifValues(newExif);
-            } else {
-                removeAllExifMetadata(newExif, true);
-                restoreEssentialExifValues(newExif);
-            }
-            newExif.saveAttributes();
+            restoreEssentialExifData(outputFile);
 
             // Verify metadata removal
             updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
@@ -750,11 +633,6 @@ public class MetadataStripper {
             lastProcessedOutputFile = null;
             return null;
         } finally {
-            // Clean up resources
-            if (originalBitmap != null && !originalBitmap.isRecycled()) {
-                originalBitmap.recycle();
-            }
-
             if (tempFile != null && tempFile.exists()) {
                 // Use secure deletion for temp files
                 secureDeleteFile(tempFile);
@@ -1422,7 +1300,18 @@ public class MetadataStripper {
         if (forSharing) {
             return false;
         }
-        return AppPreferences.isVideoFallbackCopy(context);
+        if (!AppPreferences.isVideoFallbackCopy(context)) {
+            return false;
+        }
+        // A transmux copies every sample as is, so user data inside the video stream (a
+        // camcorder's date and GPS, a drone's telemetry) would survive it; only a re-encode
+        // removes that, as Scan promises.
+        VideoStreamMetadata.Report stream = VideoStreamMetadata.scan(context, Uri.fromFile(tempCleanFile));
+        if (stream == null || stream.userDataMessages > 0) {
+            SentryManager.log("The video stream carries user data, so the app is re-encoding it.");
+            return false;
+        }
+        return true;
     }
 
     private List<String> getTagsToPreserve(boolean forSharing) {
@@ -1576,13 +1465,19 @@ public class MetadataStripper {
     /** Counts the identifying fields in an image before it is cleaned; unreadable EXIF counts as none. */
     @NonNull
     private CleanStats readCleanStats(@NonNull File imageFile, boolean forSharing) {
+        CleanStats exif;
+        boolean exifCountedXmp = false;
         try {
-            return CleanStats.fromExif(
-                    new ExifInterface(imageFile.getAbsolutePath()),
-                    new java.util.HashSet<>(getTagsToPreserve(forSharing)));
+            ExifInterface reader = new ExifInterface(imageFile.getAbsolutePath());
+            Set<String> preserved = new java.util.HashSet<>(getTagsToPreserve(forSharing));
+            exif = CleanStats.fromExif(reader, preserved);
+            String xmp = reader.getAttribute(ExifInterface.TAG_XMP);
+            exifCountedXmp = xmp != null && !xmp.isEmpty()
+                    && !preserved.contains(ExifInterface.TAG_XMP);
         } catch (Exception e) {
-            return new CleanStats(0, false);
+            exif = new CleanStats(0, false);
         }
+        return exif.plus(ImageContainerMetadata.scan(imageFile), exifCountedXmp);
     }
 
     /**
@@ -1775,8 +1670,8 @@ public class MetadataStripper {
             ExifInterface.TAG_ORIENTATION);
 
     /**
-     * Verifies that metadata has been properly removed from an image file.
-     * Checks for remaining EXIF, XMP, and IPTC metadata.
+     * Verifies that metadata has been properly removed from an image file: no EXIF tag beyond
+     * the ones the settings keep, and nothing outside EXIF (see {@link ImageContainerMetadata}).
      *
      * @param imageFile The image file to verify
      * @return true if no identifying metadata was found, false if metadata remains
@@ -1787,7 +1682,7 @@ public class MetadataStripper {
             ExifInterface exif = new ExifInterface(imageFile.getAbsolutePath());
 
             // Sweep every TAG_* constant, mirroring the reflection-based removal in
-            // removeAllExifMetadata/stripMetadataNativeExif, so verification can't pass a file
+            // removeAllExifMetadata, so verification can't pass a file
             // that still carries a tag the fixed identifyingTags list used to miss (e.g. lens
             // make/model, body/lens serial numbers, camera owner name, GPS area info).
             for (java.lang.reflect.Field field : ExifInterface.class.getDeclaredFields()) {
@@ -1810,7 +1705,16 @@ public class MetadataStripper {
                 }
             }
 
-            if (containsXMPMetadata(imageFile)) {
+            // Everything outside EXIF: a JPEG, PNG or WebP must be readable to the end of the
+            // picture with nothing else left in it; for any other format no XMP packet may remain.
+            if (ImageContainerMetadata.sniff(imageFile) != ImageContainerMetadata.Format.OTHER) {
+                ImageContainerMetadata.Report container = ImageContainerMetadata.scan(imageFile);
+                if (!container.isClean()) {
+                    SentryManager.log("The app found remaining metadata outside EXIF: "
+                            + (container.findings.isEmpty() ? "UNREADABLE" : container.findings.get(0).key) + ".");
+                    return false;
+                }
+            } else if (containsXmpPacket(imageFile)) {
                 SentryManager.log("The app found XMP metadata in the file.");
                 return false;
             }
@@ -1822,121 +1726,48 @@ public class MetadataStripper {
         }
     }
 
-    /**
-     * Checks if a JPEG file still contains XMP APP1 segments, or if a non-JPEG file
-     * contains well-formed XMP packet markers.
-     */
-    private boolean containsXMPMetadata(@NonNull File file) {
-        String name = file.getName().toLowerCase(Locale.ROOT);
-        if (name.endsWith(".jpg") || name.endsWith(".jpeg")) {
-            return JpegXmpRemover.hasXmpSegment(file);
-        }
-        return containsXmpPacketMarkers(file);
-    }
-
-    private boolean containsXmpPacketMarkers(@NonNull File file) {
-        try (FileInputStream fis = new FileInputStream(file)) {
-            if (testForceXmpReadFailure) {
-                throw new IOException("Forced XMP read failure");
-            }
-            final int maxScan = 256 * 1024;
-            byte[] buffer = new byte[maxScan];
-            int totalRead = 0;
-            int bytesRead;
-            while (totalRead < maxScan
-                    && (bytesRead = fis.read(buffer, totalRead, maxScan - totalRead)) > 0) {
-                totalRead += bytesRead;
-            }
-            String content = new String(buffer, 0, totalRead, StandardCharsets.ISO_8859_1);
-            return content.contains("<?xpacket begin") || content.contains("<x:xmpmeta");
-        } catch (Exception e) {
-            SentryManager.log("XMP detection failed: " + e.getMessage() + ".");
-            return false;
-        }
-    }
-
-    private static boolean isJpegExtension(@NonNull String extension) {
-        return extension.equalsIgnoreCase(".jpg") || extension.equalsIgnoreCase(".jpeg");
-    }
+    private static final byte[][] XMP_MARKERS = {
+            "<?xpacket begin".getBytes(StandardCharsets.US_ASCII),
+            "<x:xmpmeta".getBytes(StandardCharsets.US_ASCII)};
 
     /**
-     * Writes the temp file's bytes to {@code finalOs}, stripping JPEG XMP along the way.
-     *
-     * @return true if the output is known to be free of XMP (non-JPEG, or JPEG XMP removal
-     *     succeeded); false if a JPEG's XMP could not be removed and the raw bytes were copied
-     *     unmodified instead, so the caller should fall back to a full re-encode.
+     * Whether an XMP packet is anywhere in the file. The whole file is searched, as some formats
+     * keep XMP after the picture; a file that cannot be read counts as still holding one.
      */
-    private static boolean writeProcessedImageBytes(
-            @NonNull File tempFile, @NonNull OutputStream finalOs, @NonNull String extension)
-            throws IOException {
-        if (isJpegExtension(extension)) {
-            try {
-                new JpegXmpRemover().removeAllXmp(tempFile, finalOs);
-                return true;
-            } catch (Exception e) {
-                SentryManager.log("The JPEG XMP removal before output failed: " + e.getMessage() + ".");
-            }
-        }
-        try (InputStream in = new FileInputStream(tempFile)) {
-            byte[] buffer = new byte[8192];
+    private boolean containsXmpPacket(@NonNull File file) {
+        int overlap = 16;
+        try (InputStream in = new FileInputStream(file)) {
+            byte[] buffer = new byte[DEFAULT_BUFFER_SIZE + overlap];
+            int carried = 0;
             int read;
-            while ((read = in.read(buffer)) != -1) {
-                finalOs.write(buffer, 0, read);
-            }
-        }
-        return !isJpegExtension(extension);
-    }
-
-    /**
-     * Finds and removes a JPEG's XMP segments, including Extended XMP. {@link JpegXmpRewriter}
-     * only knows the main {@code http://ns.adobe.com/xap/1.0/} segment, so the Extended XMP
-     * segments that follow it (where Google Camera keeps its HDR+ makernote) were left behind.
-     */
-    @VisibleForTesting
-    static final class JpegXmpRemover extends JpegXmpRewriter {
-        private static final byte[] EXTENDED_XMP_ID =
-                "http://ns.adobe.com/xmp/extension/\0".getBytes(StandardCharsets.US_ASCII);
-
-        static boolean hasXmpSegment(@NonNull File file) {
-            try {
-                JFIFPieces pieces = new JpegXmpRemover().analyzeJfif(ByteSource.file(file));
-                for (JFIFPiece piece : pieces.segmentPieces) {
-                    if (isXmp(piece)) {
+            while ((read = in.read(buffer, carried, buffer.length - carried)) > 0) {
+                int filled = carried + read;
+                for (byte[] marker : XMP_MARKERS) {
+                    if (indexOf(buffer, filled, marker) >= 0) {
                         return true;
                     }
                 }
-                return false;
-            } catch (Exception e) {
-                SentryManager.log("The XMP segment scan failed: " + e.getMessage() + ".");
-                return false;
+                carried = Math.min(overlap, filled);
+                System.arraycopy(buffer, filled - carried, buffer, 0, carried);
             }
+            return false;
+        } catch (IOException e) {
+            SentryManager.log("XMP detection failed: " + e.getMessage() + ".");
+            return true;
         }
+    }
 
-        /** Writes {@code jpeg} to {@code out} without any of its XMP segments. */
-        void removeAllXmp(@NonNull File jpeg, @NonNull OutputStream out) throws Exception {
-            List<JFIFPiece> kept = new ArrayList<>();
-            for (JFIFPiece piece : analyzeJfif(ByteSource.file(jpeg)).pieces) {
-                if (!isXmp(piece)) {
-                    kept.add(piece);
+    private static int indexOf(@NonNull byte[] data, int length, @NonNull byte[] needle) {
+        outer:
+        for (int i = 0; i <= length - needle.length; i++) {
+            for (int j = 0; j < needle.length; j++) {
+                if (data[i + j] != needle[j]) {
+                    continue outer;
                 }
             }
-            writeSegments(out, kept);
+            return i;
         }
-
-        private static boolean isXmp(@NonNull JFIFPiece piece) {
-            if (!(piece instanceof JFIFPieceSegment segment)) {
-                return false;
-            }
-            if (segment.isXmpSegment()) {
-                return true;
-            }
-            if (!segment.isApp1Segment()) {
-                return false;
-            }
-            byte[] data = segment.getSegmentData();
-            return data.length >= EXTENDED_XMP_ID.length && Arrays.equals(
-                    Arrays.copyOf(data, EXTENDED_XMP_ID.length), EXTENDED_XMP_ID);
-        }
+        return -1;
     }
 
     /**
@@ -1967,29 +1798,6 @@ public class MetadataStripper {
         }
     }
 
-    /**
-     * Removes embedded thumbnails from an image file by clearing thumbnail-related
-     * EXIF tags.
-     *
-     * @param exif The ExifInterface instance for the image
-     */
-    private void removeThumbnails(@NonNull ExifInterface exif) {
-        try {
-            // Remove thumbnail-related tags
-            exif.setAttribute(ExifInterface.TAG_THUMBNAIL_IMAGE_LENGTH, null);
-            exif.setAttribute(ExifInterface.TAG_THUMBNAIL_IMAGE_WIDTH, null);
-
-            // Try to remove thumbnail data if available
-            byte[] thumbnail = exif.getThumbnailBytes();
-            if (thumbnail != null && thumbnail.length > 0) {
-                // Thumbnail removal is handled by re-encoding without it
-                SentryManager.log("An embedded thumbnail was found and will be removed during re-encoding.");
-            }
-        } catch (Exception e) {
-            SentryManager.log("An error occurred while removing thumbnails: " + e.getMessage() + ".");
-        }
-    }
-
     private void copySourceToTempFile(@NonNull Uri sourceUri, @NonNull File tempFile)
             throws IOException {
         try (InputStream in = contentResolver.openInputStream(sourceUri);
@@ -2002,98 +1810,89 @@ public class MetadataStripper {
     }
 
     /**
-     * Attempts to strip EXIF, XMP, and IPTC losslessly using apache commons-imaging.
-     * @return true if successful, false if it failed or was not a JPEG.
+     * Writes {@code source}'s picture to {@code target} and nothing else. A JPEG, PNG or WebP in
+     * the expected format is rebuilt from its own segments without anything that is not the
+     * picture, which keeps its quality ({@link ImageContainerMetadata#sanitize}). Anything else,
+     * or a file whose structure cannot be followed, is decoded and re-encoded from its pixels, and
+     * a re-encoded JPEG, PNG or WebP is then rebuilt the same way, so whatever the encoder added
+     * goes too. EXIF is gone either way; the caller puts back the tags the settings keep.
      */
-    private boolean stripMetadataLossless(@NonNull File tempFile, @NonNull OutputStream finalOs, @NonNull String extension) {
-        if (!extension.equalsIgnoreCase(".jpg") && !extension.equalsIgnoreCase(".jpeg")) {
-            return false;
-        }
-        final long losslessMaxBytes = 20L * 1024L * 1024L;
-        if (tempFile.length() > losslessMaxBytes) {
-            SentryManager.log("The app is skipping the lossless JPEG strip because the file is large.");
-            return false;
-        }
-        // The EXIF-free intermediate goes through a file: holding it and the XMP-free result as
-        // byte arrays kept about four copies of the image in memory at once.
-        File exifFree = null;
-        try {
-            exifFree = File.createTempFile("temp_exiffree_", extension, context.getCacheDir());
-            try (OutputStream exifOut = new FileOutputStream(exifFree)) {
-                new org.apache.commons.imaging.formats.jpeg.exif.ExifRewriter()
-                        .removeExifMetadata(tempFile, exifOut);
+    private void writePictureOnly(@NonNull File source, @NonNull Uri sourceUri, @NonNull File target,
+                                  @NonNull FormatConverter.ImageFormatSpec outputFormat) throws IOException {
+        ImageContainerMetadata.Format expected = containerFormat(outputFormat.extension);
+        if (expected != ImageContainerMetadata.Format.OTHER
+                && ImageContainerMetadata.sniff(source) == expected) {
+            try {
+                ImageContainerMetadata.sanitize(source, target);
+                return;
+            } catch (IOException | RuntimeException e) {
+                // A structure the walker could not follow, however it failed: the pixels are
+                // re-encoded instead, which carries no metadata either.
+                SentryManager.log("The image could not be rebuilt without its metadata, so the app is re-encoding it: "
+                        + e.getMessage() + ".");
             }
-            new JpegXmpRemover().removeAllXmp(exifFree, finalOs);
-            return true;
-        } catch (Exception e) {
-            SentryManager.log("Lossless stripping failed: " + e.getMessage() + ". The app is falling back to Bitmap.");
-            return false;
+        }
+        checkCancelled();
+        File encoded = File.createTempFile("temp_encoded_", outputFormat.extension, context.getCacheDir());
+        try {
+            reEncode(source, sourceUri, encoded, outputFormat);
+            if (expected != ImageContainerMetadata.Format.OTHER
+                    && ImageContainerMetadata.sniff(encoded) == expected) {
+                ImageContainerMetadata.sanitize(encoded, target);
+            } else {
+                try (InputStream in = new FileInputStream(encoded);
+                        OutputStream out = new FileOutputStream(target)) {
+                    MediaSizeLimits.copyStream(in, out);
+                }
+            }
         } finally {
-            if (exifFree != null) {
-                secureDeleteFile(exifFree);
-            }
+            secureDeleteFile(encoded);
         }
     }
 
-
-    private boolean stripMetadataNativeExif(
-            @NonNull File tempFile, @NonNull OutputStream finalOs, @NonNull String extension) {
-        return stripMetadataNativeExif(tempFile, finalOs, extension, false);
-    }
-
-    private boolean stripMetadataNativeExif(
-            @NonNull File tempFile,
-            @NonNull OutputStream finalOs,
-            @NonNull String extension,
-            boolean forSharing) {
-        // Native ExifInterface supports JPEG, PNG, WEBP, and HEIF
-        boolean isSupported = extension.equalsIgnoreCase(".jpg") || extension.equalsIgnoreCase(".jpeg") ||
-                              extension.equalsIgnoreCase(".png") || extension.equalsIgnoreCase(".webp") ||
-                              extension.equalsIgnoreCase(".heic") || extension.equalsIgnoreCase(".heif");
-        if (!isSupported) return false;
-
-        try {
-            androidx.exifinterface.media.ExifInterface exif = new androidx.exifinterface.media.ExifInterface(tempFile.getAbsolutePath());
-            
-            // Clear all non-essential tags using the same reflection-based logic as removeAllExifMetadata
-            // but adapted for androidx.exifinterface
-            java.lang.reflect.Field[] fields = androidx.exifinterface.media.ExifInterface.class.getDeclaredFields();
-            java.util.Set<String> tagsToPreserve = new java.util.HashSet<>(getTagsToPreserve(forSharing));
-
-            int removedCount = 0;
-            for (java.lang.reflect.Field field : fields) {
-                if (field.getType() == String.class && field.getName().startsWith("TAG_")) {
-                    try {
-                        String tagName = (String) field.get(null);
-                        if (tagName != null && !tagsToPreserve.contains(tagName)) {
-                            String value = exif.getAttribute(tagName);
-                            if (value != null) {
-                                exif.setAttribute(tagName, null);
-                                removedCount++;
-                            }
-                        }
-                    } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored + "."); }
-                }
-            }
-
-            SentryManager.log("The native EXIF stripping removed " + removedCount + " tags.");
-            exif.saveAttributes();
-
-            boolean xmpFree = writeProcessedImageBytes(tempFile, finalOs, extension);
-            if (isJpegExtension(extension)) {
-                if (!xmpFree) {
-                    SentryManager.log("The JPEG XMP rewrite failed, so the app is falling back to re-encoding.");
-                    return false;
-                }
-            } else if (containsXMPMetadata(tempFile)) {
-                SentryManager.log("The native EXIF strip left XMP behind, so the app is falling back to re-encoding.");
-                return false;
-            }
-            return true;
-        } catch (Exception e) {
-            SentryManager.log("The native EXIF stripping failed: " + e.getMessage() + ".");
-            return false;
+    @NonNull
+    private static ImageContainerMetadata.Format containerFormat(@NonNull String extension) {
+        switch (extension.toLowerCase(Locale.ROOT)) {
+            case ".jpg":
+            case ".jpeg":
+                return ImageContainerMetadata.Format.JPEG;
+            case ".png":
+                return ImageContainerMetadata.Format.PNG;
+            case ".webp":
+                return ImageContainerMetadata.Format.WEBP;
+            default:
+                return ImageContainerMetadata.Format.OTHER;
         }
     }
 
+    /** Decodes {@code source} and encodes its pixels, which carry no metadata, to {@code target}. */
+    private void reEncode(@NonNull File source, @NonNull Uri sourceUri, @NonNull File target,
+                          @NonNull FormatConverter.ImageFormatSpec outputFormat) throws IOException {
+        FormatConverter.ImageFormatSpec bitmapOutput = outputFormat.bitmapFallbackSupported
+                ? outputFormat : FormatConverter.jpegFormatSpec();
+        BitmapFactory.Options optionsJustBounds = new BitmapFactory.Options();
+        optionsJustBounds.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(source.getAbsolutePath(), optionsJustBounds);
+        int sampleSize = FormatConverter.calculateInSampleSize(context, optionsJustBounds);
+        SentryManager.setCustomKey("bitmap_sample_size", sampleSize);
+
+        String path = source.getAbsolutePath();
+        Bitmap bitmap = FormatConverter.decodeSampled(
+                sampleSize, options -> BitmapFactory.decodeFile(path, options));
+        if (bitmap == null) {
+            bitmap = FormatConverter.decodeBitmapFromUri(context, sourceUri);
+        }
+        if (bitmap == null) {
+            throw new UnsupportedMediaException("Failed to decode bitmap", null);
+        }
+        try (FileOutputStream out = new FileOutputStream(target)) {
+            if (!FormatConverter.compressBitmapToStream(context, bitmap, bitmapOutput.compressFormat, out)) {
+                throw new IOException("Failed to compress bitmap");
+            }
+            out.flush();
+            out.getFD().sync();
+        } finally {
+            bitmap.recycle();
+        }
+    }
 }

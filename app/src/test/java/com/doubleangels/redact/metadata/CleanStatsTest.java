@@ -144,4 +144,33 @@ public class CleanStatsTest {
         assertFalse(s.hadDevice);
         assertFalse(s.hadName);
     }
+
+    // ---- outside EXIF -----------------------------------------------------------------------------
+
+    private static ImageContainerMetadata.Report containerWith(ImageContainerMetadata.Finding... findings) {
+        return new ImageContainerMetadata.Report(ImageContainerMetadata.Format.JPEG, true,
+                new java.util.ArrayList<>(List.of(findings)), new java.util.ArrayList<>());
+    }
+
+    @Test
+    public void xmpCountedByExif_isNotCountedAgainFromTheContainer() {
+        ImageContainerMetadata.Report container = containerWith(
+                new ImageContainerMetadata.Finding("XMP", "<x:xmpmeta/>", 12, ImageContainerMetadata.Kind.OTHER),
+                new ImageContainerMetadata.Finding("JPEG_COMMENT", "hi", 2, ImageContainerMetadata.Kind.OTHER));
+
+        assertEquals(3, new CleanStats(2, false).plus(container, true).removedFields);
+        assertEquals(4, new CleanStats(2, false).plus(container, false).removedFields);
+    }
+
+    @Test
+    public void containerFindings_addTheirKinds() {
+        CleanStats s = new CleanStats(0, false).plus(containerWith(
+                new ImageContainerMetadata.Finding("LOCATION_CITY", "Paris", 5, ImageContainerMetadata.Kind.LOCATION),
+                new ImageContainerMetadata.Finding("IPTC_BYLINE", "Jo", 2, ImageContainerMetadata.Kind.NAME)), false);
+
+        assertTrue(s.hadLocation);
+        assertTrue(s.hadName);
+        assertFalse(s.hadDate);
+        assertFalse(s.hadDevice);
+    }
 }

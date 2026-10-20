@@ -70,6 +70,11 @@ public class MetadataDisplayer {
     public static final String SECTION_CAMERA_DETAILS = "camera_details";
     public static final String SECTION_LOCATION = "location";
     public static final String SECTION_TECHNICAL = "technical";
+    /**
+     * Metadata outside EXIF and the platform's video tags: IPTC, comments, text chunks, images and
+     * videos appended to a photo, container boxes and stream user data.
+     */
+    public static final String SECTION_EMBEDDED = "embedded_data";
 
     /**
      * Separates metadata records when serializing section strings. Values may contain newlines (XMP/RDF),
@@ -230,6 +235,7 @@ public class MetadataDisplayer {
 
                 // Extract all metadata into a single combined list
                 Map<String, String> allMetadata = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+                Map<String, String> embedded = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
                 
                 // Extract and add basic file information
                 extractBasicFileInfoToMap(context, mediaUri, allMetadata);
@@ -237,10 +243,10 @@ public class MetadataDisplayer {
                 // Extract either video or image specific metadata
                 if (isVideo) {
                     SentryManager.log("The app is extracting video metadata.");
-                    extractVideoMetadataToMap(context, mediaUri, allMetadata);
+                    extractVideoMetadataToMap(context, mediaUri, allMetadata, embedded);
                 } else {
                     SentryManager.log("The app is extracting image metadata.");
-                    extractImageMetadataToMap(context, mediaUri, allMetadata);
+                    extractImageMetadataToMap(context, mediaUri, allMetadata, embedded);
                 }
 
                 List<String> locationKeys = new ArrayList<>();
@@ -274,6 +280,9 @@ public class MetadataDisplayer {
                 }
                 moveKeysToSection(allMetadata, sections, SECTION_CAMERA_DETAILS, cameraKeys);
                 moveKeysToSection(allMetadata, sections, SECTION_TECHNICAL, technicalKeys);
+                if (!embedded.isEmpty()) {
+                    moveKeysToSection(embedded, sections, SECTION_EMBEDDED, new ArrayList<>(embedded.keySet()));
+                }
 
                 // Combine all metadata into a single string (record/unit separators allow multiline XMP/RDF values)
                 StringBuilder combinedMetadata = new StringBuilder();
@@ -327,9 +336,9 @@ public class MetadataDisplayer {
 
                 Map<String, String> locationMetadata = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
                 if (isVideo) {
-                    extractVideoMetadataToMap(context, mediaUri, locationMetadata);
+                    extractVideoMetadataToMap(context, mediaUri, locationMetadata, null);
                 } else {
-                    extractImageMetadataToMap(context, mediaUri, locationMetadata);
+                    extractImageMetadataToMap(context, mediaUri, locationMetadata, null);
                 }
 
                 List<String> locationKeys = new ArrayList<>();
@@ -662,7 +671,82 @@ public class MetadataDisplayer {
      * @param imageUri URI of the image file
      * @param metadataMap Map to add all metadata to (will be sorted alphabetically)
      */
-    private static void extractImageMetadataToMap(Context context, Uri imageUri, Map<String, String> metadataMap) {
+    private static void extractImageMetadataToMap(Context context, Uri imageUri, Map<String, String> metadataMap,
+                                                  @Nullable Map<String, String> embedded) {
+        extractExifToMap(context, imageUri, metadataMap);
+        try {
+            addImageContainerFindings(context, ImageContainerMetadata.scan(context, imageUri),
+                    hasMediaLocationPermission(context), metadataMap, embedded);
+        } catch (RuntimeException e) {
+            SentryManager.recordException(e);
+        }
+    }
+
+    /**
+     * Adds what reading the image's own structure found outside EXIF. Places (IPTC city, an
+     * appended image's GPS) go with the location rows and, like XMP, only with the media location
+     * permission; everything else goes to {@code embedded}, which is null when only location is
+     * wanted.
+     */
+    @androidx.annotation.VisibleForTesting
+    static void addImageContainerFindings(Context context, ImageContainerMetadata.Report report,
+                                          boolean hasLocationPermission, Map<String, String> metadataMap,
+                                          @Nullable Map<String, String> embedded) {
+        for (ImageContainerMetadata.Finding finding : report.findings) {
+            boolean location = finding.kind == ImageContainerMetadata.Kind.LOCATION;
+            if (location && !hasLocationPermission) {
+                continue;
+            }
+            if (isLocationMetadataKey(finding.key)) {
+                appendValue(metadataMap, finding.key, embeddedValue(context, finding));
+                continue;
+            }
+            if (embedded == null) {
+                continue;
+            }
+            if (finding.key.equals("XMP")) {
+                if (metadataMap.containsKey("XMP")) {
+                    continue; // already shown from EXIF's own reading of it
+                }
+                String text = finding.text;
+                if (text != null && XmlLikeMetadataFormatter.looksLikeRdfOrXmp(text)) {
+                    embedded.put("XMP", XmlLikeMetadataFormatter.formatForDisplay(text));
+                    continue;
+                }
+            }
+            appendValue(embedded, finding.key, embeddedValue(context, finding));
+        }
+        if (embedded != null) {
+            for (ImageContainerMetadata.Finding kept : report.kept) {
+                metadataMap.put(kept.key, kept.text != null ? kept.text : "");
+            }
+        }
+    }
+
+    private static String embeddedValue(Context context, ImageContainerMetadata.Finding finding) {
+        String size = android.text.format.Formatter.formatShortFileSize(context, finding.bytes);
+        if (finding.key.equals("EMBEDDED_IMAGES") && finding.text != null) {
+            try {
+                int count = Integer.parseInt(finding.text);
+                return context.getResources().getQuantityString(
+                        R.plurals.metadata_embedded_images, count, count, size);
+            } catch (NumberFormatException ignored) {
+                // Shown as text below.
+            }
+        }
+        if (finding.text != null && !finding.text.isEmpty()) {
+            return finding.text;
+        }
+        return context.getString(R.string.metadata_embedded_value, size);
+    }
+
+    /** Puts {@code value} under {@code key}, after any value already there (IPTC repeats keywords). */
+    private static void appendValue(Map<String, String> map, String key, String value) {
+        String existing = map.get(key);
+        map.put(key, existing == null || existing.equals(value) ? value : existing + ", " + value);
+    }
+
+    private static void extractExifToMap(Context context, Uri imageUri, Map<String, String> metadataMap) {
         SentryManager.log("The app is extracting image metadata to a single map.");
         boolean hasLocationPermission = hasMediaLocationPermission(context);
 
@@ -1046,7 +1130,8 @@ public class MetadataDisplayer {
      * @param videoUri URI of the video file
      * @param metadataMap Map to add all metadata to (will be sorted alphabetically)
      */
-    private static void extractVideoMetadataToMap(Context context, Uri videoUri, Map<String, String> metadataMap) {
+    private static void extractVideoMetadataToMap(Context context, Uri videoUri, Map<String, String> metadataMap,
+                                                  @Nullable Map<String, String> embedded) {
         SentryManager.log("The app is extracting video metadata to a single map.");
         boolean hasLocationPermission = hasMediaLocationPermission(context);
 
@@ -1143,7 +1228,15 @@ public class MetadataDisplayer {
             }
 
             addContainerFields(context, VideoContainerMetadata.scan(context, videoUri),
-                    hasLocationPermission, metadataMap);
+                    hasLocationPermission, metadataMap, embedded);
+            if (embedded != null) {
+                VideoStreamMetadata.Report stream = VideoStreamMetadata.scan(context, videoUri);
+                if (stream != null && stream.userDataMessages > 0) {
+                    embedded.put("VIDEO_STREAM_USER_DATA", stream.text != null ? stream.text
+                            : context.getString(R.string.metadata_embedded_value,
+                                    android.text.format.Formatter.formatShortFileSize(context, stream.userDataBytes)));
+                }
+            }
 
             SentryManager.log("The app has location permission: " + hasLocationPermission + ".");
             SentryManager.setCustomKey("has_location_permission", hasLocationPermission);
@@ -1204,10 +1297,14 @@ public class MetadataDisplayer {
      * keys, 3GPP loci and XMP. Only that each tag is there is shown, never its value.
      */
     private static void addContainerFields(Context context, VideoContainerMetadata.Report container,
-                                           boolean hasLocationPermission, Map<String, String> metadataMap) {
+                                           boolean hasLocationPermission, Map<String, String> metadataMap,
+                                           @Nullable Map<String, String> embedded) {
         if (hasLocationPermission && container.hasLocation
                 && !metadataMap.containsKey("GPS_LATITUDE") && !metadataMap.containsKey("LOCATION")) {
             metadataMap.put("LOCATION", context.getString(R.string.metadata_location_unreadable));
+        }
+        if (embedded == null) {
+            return;
         }
         String present = context.getString(R.string.metadata_container_value);
         for (String name : container.fields) {
@@ -1216,7 +1313,7 @@ public class MetadataDisplayer {
             }
             String key = containerDisplayKey(name);
             if (!key.isEmpty() && !metadataMap.containsKey(key)) {
-                metadataMap.put(key, present);
+                embedded.put(key, present);
             }
         }
     }
@@ -1261,7 +1358,8 @@ public class MetadataDisplayer {
             return false;
         }
         String upper = key.toUpperCase(Locale.ROOT);
-        return upper.startsWith("GPS") || "LOCATION".equals(upper);
+        return upper.startsWith("GPS") || "LOCATION".equals(upper)
+                || ImageContainerMetadata.LOCATION_KEYS.contains(upper);
     }
 
     private static boolean isCameraMetadataKey(String key) {
