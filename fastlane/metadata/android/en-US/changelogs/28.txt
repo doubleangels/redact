@@ -1,3 +1,0 @@
-Clean and convert notifications now say what happened in plain sentences.
-The rating question now appears after a few successful cleans, converts and scans, even when they finished in the background.
-Optimized the store screenshots and website images.
