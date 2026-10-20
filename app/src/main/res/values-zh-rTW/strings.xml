@@ -445,6 +445,7 @@
     <string name="settings_reset_all_done">設定已恢復為預設值。</string>
     <string name="settings_reset_all_busy">處理期間無法重設設定。</string>
     <string name="share_target_scan">使用 Redact 掃描</string>
+    <string name="share_target_convert">使用 Redact 轉換</string>
     <string name="button_scan_result">掃描結果</string>
     <string name="settings_keep_original_names">保留原始檔名</string>
     <string name="settings_keep_original_names_subtitle">清理與轉換後的檔案沿用原始檔名，而非隨機名稱。IMG_20260117 這類名稱可能透露照片的拍攝時間。</string>

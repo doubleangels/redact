@@ -142,12 +142,12 @@ public class MetadataDisplayer {
      */
     public static void extractMetadata(Context context, Uri mediaUri, MetadataCallback callback) {
         SentryManager.log("The app is starting metadata extraction.");
-        SentryManager.setCustomKey("operation_type", "extract_metadata");
 
         cancelActiveScan();
         FutureTask<Void>[] taskRef = new FutureTask[1];
         taskRef[0] = new FutureTask<>(() -> {
             try {
+                SentryManager.beginOperation("extract_metadata");
                 ContentResolver contentResolver = context.getContentResolver();
                 String mimeType = contentResolver.getType(mediaUri);
                 boolean isVideo = com.doubleangels.redact.media.MediaSelector.isVideoFromMimeAndName(
@@ -173,9 +173,9 @@ public class MetadataDisplayer {
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error extracting metadata", e);
-                SentryManager.recordException(e);
                 SentryManager.setCustomKey("extraction_failed", true);
                 SentryManager.setCustomKey("error_type", e.getClass().getName());
+                SentryManager.recordException(e);
                 if (isActiveScan(taskRef[0])) {
                     String errorMessage = context.getString(R.string.status_extraction_fail);
                     deliverOnMain(() -> callback.onExtractionFailed(errorMessage));
@@ -217,12 +217,12 @@ public class MetadataDisplayer {
      */
     public static void extractSectionedMetadata(Context context, Uri mediaUri, SectionedMetadataCallback callback) {
         SentryManager.log("The app is starting sectioned metadata extraction.");
-        SentryManager.setCustomKey("operation_type", "extract_sectioned_metadata");
 
         cancelActiveScan();
         FutureTask<Void>[] taskRef = new FutureTask[1];
         taskRef[0] = new FutureTask<>(() -> {
             try {
+                SentryManager.beginOperation("extract_sectioned_metadata");
                 ContentResolver contentResolver = context.getContentResolver();
                 String mimeType = contentResolver.getType(mediaUri);
                 boolean isVideo = com.doubleangels.redact.media.MediaSelector.isVideoFromMimeAndName(
@@ -306,9 +306,9 @@ public class MetadataDisplayer {
             } catch (Exception e) {
                 // Log the exception and notify callback of failure
                 Log.e(TAG, "Error extracting sectioned metadata", e);
-                SentryManager.recordException(e);
                 SentryManager.setCustomKey("extraction_failed", true);
                 SentryManager.setCustomKey("error_type", e.getClass().getName());
+                SentryManager.recordException(e);
                 if (isActiveScan(taskRef[0])) {
                     String errorMessage = context.getString(R.string.status_extraction_fail);
                     deliverOnMain(() -> callback.onExtractionFailed(errorMessage));

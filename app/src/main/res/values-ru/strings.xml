@@ -484,6 +484,7 @@
     <string name="settings_reset_all_done">Настройки сброшены.</string>
     <string name="settings_reset_all_busy">Нельзя сбросить настройки во время обработки.</string>
     <string name="share_target_scan">Сканировать в Redact</string>
+    <string name="share_target_convert">Конвертировать в Redact</string>
     <string name="button_scan_result">Сканировать Результат</string>
     <string name="settings_keep_original_names">Сохранять Исходные Имена</string>
     <string name="settings_keep_original_names_subtitle">Очищенные и преобразованные файлы получают имя оригинала вместо случайного. Имена вроде IMG_20260117 могут показать, когда был сделан снимок.</string>

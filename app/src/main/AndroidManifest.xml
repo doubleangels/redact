@@ -80,6 +80,22 @@
                 <data android:mimeType="video/*" />
             </intent-filter>
         </activity-alias>
+        <!-- "Convert with Redact" in the share sheet: opens shared photos or videos in Convert. -->
+        <activity-alias
+            android:name=".ConvertShareTarget"
+            android:exported="true"
+            android:label="@string/share_target_convert"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="image/*" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+        </activity-alias>
         <!-- Settings › Statistics. -->
         <activity
             android:name=".StatisticsActivity"

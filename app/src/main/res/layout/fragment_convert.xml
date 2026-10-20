@@ -455,4 +455,19 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_goneMarginBottom="88dp" />
 
+    <!-- Opens the one file a convert just saved in Scan, to see what is left; an icon FAB beside
+         Share, shown after a convert that saved exactly one file -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/scanResultButton"
+        style="@style/Widget.Material3.FloatingActionButton.Secondary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="12dp"
+        android:contentDescription="@string/button_scan_result"
+        android:tooltipText="@string/button_scan_result"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_scan"
+        app:layout_constraintBottom_toBottomOf="@id/shareResultsButton"
+        app:layout_constraintEnd_toStartOf="@id/shareResultsButton" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

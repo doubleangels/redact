@@ -26,6 +26,16 @@ public class SentryPrivacyScrubberTest {
     }
 
     @Test
+    public void scrubCodeIdentifierKeepsPackagesThatLookLikeMediaFileNames() {
+        assertEquals("androidx.media3.extractor.mp4.Mp4Extractor",
+                SentryPrivacyScrubber.scrubCodeIdentifier("androidx.media3.extractor.mp4.Mp4Extractor"));
+        assertEquals("com.bumptech.glide.integration.webp.decoder.WebpDecoder",
+                SentryPrivacyScrubber.scrubCodeIdentifier("com.bumptech.glide.integration.webp.decoder.WebpDecoder"));
+        assertFalse(SentryPrivacyScrubber.scrubCodeIdentifier("load content://media/external/images/media/1")
+                .contains("content://"));
+    }
+
+    @Test
     public void scrubRedactsGpsCoordinatePairs() {
         String input = "Location: 39.7392,-104.9903";
         String scrubbed = SentryPrivacyScrubber.scrub(input);

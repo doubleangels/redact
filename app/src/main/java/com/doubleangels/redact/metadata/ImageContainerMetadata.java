@@ -8,6 +8,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import com.doubleangels.redact.sentry.SentryManager;
+
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -248,7 +250,11 @@ public final class ImageContainerMetadata {
             }
         } catch (IOException | RuntimeException e) {
             // What was found before the structure broke is still worth showing, but the file can
-            // never count as clean.
+            // never count as clean. An IOException is a damaged file; a RuntimeException is a gap
+            // in this parser, so report it.
+            if (e instanceof RuntimeException) {
+                SentryManager.recordException(e);
+            }
             return new Report(walker.format, false, walker.findings, walker.kept);
         }
         return new Report(walker.format, true, walker.findings, walker.kept);

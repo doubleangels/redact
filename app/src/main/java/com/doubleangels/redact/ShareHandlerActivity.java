@@ -474,7 +474,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
         try {
             MediaSizeLimits.copyStream(in, out, () -> {
                 if (!isCurrentSession(session)) {
-                    throw new java.io.UncheckedIOException(new IOException("Share cancelled"));
+                    throw new java.io.UncheckedIOException(
+                            new com.doubleangels.redact.media.ProcessingCancelledException("Share cancelled"));
                 }
             });
         } catch (java.io.UncheckedIOException e) {

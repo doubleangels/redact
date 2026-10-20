@@ -35,6 +35,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_SELECTED_TAB = "selected_tab";
     /** Extra set by the launcher shortcuts in res/xml/shortcuts.xml and by {@link CleanTileService}. */
     static final String EXTRA_TAB = "tab";
+    /** Manifest alias that receives "Convert with Redact" shares. */
+    private static final String CONVERT_SHARE_TARGET = ".ConvertShareTarget";
+    /** Same cap as picking files in Convert. */
+    private static final int MAX_CONVERT_SHARE_ITEMS = 20;
 
     @Override
     protected void onDestroy() {
@@ -116,9 +120,11 @@ public class MainActivity extends AppCompatActivity {
                 restoreTabVisibility(restoredTab);
             } else {
                 bottomNavigationView.setSelectedItemId(
-                        queueViewIntent(getIntent())
-                                ? R.id.navigation_scan
-                                : tabFromIntent(getIntent()));
+                        queueConvertShareIntent(getIntent())
+                                ? R.id.navigation_convert
+                                : queueViewIntent(getIntent())
+                                        ? R.id.navigation_scan
+                                        : tabFromIntent(getIntent()));
             }
 
             SentryManager.setCustomKey("app_started", true);
@@ -139,11 +145,84 @@ public class MainActivity extends AppCompatActivity {
     protected void onNewIntent(@NonNull android.content.Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        if (queueViewIntent(intent)) {
+        if (queueConvertShareIntent(intent)) {
+            selectTab(R.id.navigation_convert);
+        } else if (queueViewIntent(intent)) {
             selectTab(R.id.navigation_scan);
         } else if (intent.hasExtra(EXTRA_TAB)) {
             selectTab(tabFromIntent(intent));
         }
+    }
+
+    /**
+     * Selects shared images/videos in Convert when they were shared to "Convert with Redact"
+     * (ACTION_SEND or ACTION_SEND_MULTIPLE). Returns whether the share was for Convert.
+     */
+    private boolean queueConvertShareIntent(@Nullable android.content.Intent intent) {
+        if (intent == null || intent.getComponent() == null
+                || !intent.getComponent().getClassName().endsWith(CONVERT_SHARE_TARGET)) {
+            return false;
+        }
+        java.util.List<android.net.Uri> shared = new java.util.ArrayList<>();
+        if (android.content.Intent.ACTION_SEND.equals(intent.getAction())) {
+            android.net.Uri uri = androidx.core.content.IntentCompat.getParcelableExtra(
+                    intent, android.content.Intent.EXTRA_STREAM, android.net.Uri.class);
+            if (uri != null) {
+                shared.add(uri);
+            }
+        } else if (android.content.Intent.ACTION_SEND_MULTIPLE.equals(intent.getAction())) {
+            java.util.List<android.net.Uri> uris = androidx.core.content.IntentCompat
+                    .getParcelableArrayListExtra(
+                            intent, android.content.Intent.EXTRA_STREAM, android.net.Uri.class);
+            if (uris != null) {
+                shared.addAll(uris);
+            }
+        } else {
+            return false;
+        }
+        java.util.List<android.net.Uri> media = new java.util.ArrayList<>();
+        for (android.net.Uri uri : shared) {
+            if (isForeignContentUri(uri) && isImageOrVideo(uri, intent.getType())) {
+                media.add(uri);
+            }
+        }
+        if (media.isEmpty()) {
+            android.widget.Toast.makeText(this, R.string.share_error_unsupported_media,
+                    android.widget.Toast.LENGTH_LONG).show();
+            return true;
+        }
+        if (media.size() > MAX_CONVERT_SHARE_ITEMS) {
+            android.widget.Toast.makeText(this,
+                    getString(R.string.media_picker_selection_capped, MAX_CONVERT_SHARE_ITEMS),
+                    android.widget.Toast.LENGTH_LONG).show();
+            media = com.doubleangels.redact.media.MediaPickerContracts.trimToMax(
+                    media, MAX_CONVERT_SHARE_ITEMS);
+        }
+        com.doubleangels.redact.ui.MainViewModel viewModel = new androidx.lifecycle.ViewModelProvider(this)
+                .get(com.doubleangels.redact.ui.MainViewModel.class);
+        if (viewModel.getConvertProcessingState().getValue()
+                == com.doubleangels.redact.ui.MainViewModel.ProcessingState.PROCESSING) {
+            // Don't swap the files out from under a running convert; just show its progress.
+            return true;
+        }
+        SentryManager.logEvent("share", "Media was shared to Convert.");
+        new com.doubleangels.redact.media.MediaSelector(this)
+                .processMediaUrisAsync(media, viewModel::setConvertSelectedItems);
+        return true;
+    }
+
+    private boolean isImageOrVideo(@NonNull android.net.Uri uri, @Nullable String intentType) {
+        String type;
+        try {
+            type = getContentResolver().getType(uri);
+        } catch (Exception e) {
+            SentryManager.recordException(e);
+            type = null;
+        }
+        if (type == null) {
+            type = intentType;
+        }
+        return type != null && (type.startsWith("image/") || type.startsWith("video/"));
     }
 
     /**

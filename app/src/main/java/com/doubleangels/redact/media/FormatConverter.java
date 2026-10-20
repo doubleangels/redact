@@ -639,7 +639,7 @@ public final class FormatConverter {
             // transcoder, then verify the result the same way the Clean tab does.
             cleanSource = stripper.transmuxVideoWithoutMetadata(sourceUri);
             if (cancelled != null && cancelled.getAsBoolean()) {
-                throw new IOException("Video conversion cancelled");
+                throw new ProcessingCancelledException("Video conversion cancelled");
             }
             Uri transcodeInput = cleanSource != null ? Uri.fromFile(cleanSource) : sourceUri;
             outFile = File.createTempFile(
@@ -667,7 +667,7 @@ public final class FormatConverter {
                     context, outFile, baseDisplayName);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new IOException("Video conversion interrupted", e);
+            throw new ProcessingCancelledException("Video conversion interrupted", e);
         } finally {
             if (cleanSource != null) {
                 stripper.deleteTempFile(cleanSource);

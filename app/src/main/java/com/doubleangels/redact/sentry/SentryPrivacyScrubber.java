@@ -85,6 +85,24 @@ public final class SentryPrivacyScrubber {
         return s;
     }
 
+    /**
+     * Scrubs a class, package or method name. Only URIs and paths are removed: the filename
+     * patterns would also match package segments such as {@code media3.extractor.mp4} or
+     * {@code integration.webp}, which breaks deobfuscation and splits issue grouping.
+     */
+    @Nullable
+    static String scrubCodeIdentifier(@Nullable String input) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+        String s = input;
+        s = CONTENT_URI.matcher(s).replaceAll(REDACTED);
+        s = FILE_URI.matcher(s).replaceAll(REDACTED);
+        s = ABSOLUTE_PATH.matcher(s).replaceAll(REDACTED);
+        s = WINDOWS_PATH.matcher(s).replaceAll(REDACTED);
+        return s;
+    }
+
     public static void scrubLog(@Nullable SentryLogEvent logEvent) {
         if (logEvent == null) {
             return;
@@ -194,7 +212,7 @@ public final class SentryPrivacyScrubber {
                     ex.setValue(scrub(ex.getValue()));
                 }
                 if (ex.getModule() != null) {
-                    ex.setModule(scrub(ex.getModule()));
+                    ex.setModule(scrubCodeIdentifier(ex.getModule()));
                 }
                 scrubStacktrace(ex.getStacktrace());
             }
@@ -285,10 +303,10 @@ public final class SentryPrivacyScrubber {
                 frame.setAbsPath(scrub(frame.getAbsPath()));
             }
             if (frame.getModule() != null) {
-                frame.setModule(scrub(frame.getModule()));
+                frame.setModule(scrubCodeIdentifier(frame.getModule()));
             }
             if (frame.getFunction() != null) {
-                frame.setFunction(scrub(frame.getFunction()));
+                frame.setFunction(scrubCodeIdentifier(frame.getFunction()));
             }
         }
     }

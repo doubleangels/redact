@@ -1,12 +1,15 @@
 package com.doubleangels.redact.sentry;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Application;
 
 import com.doubleangels.redact.AppPreferences;
+import com.doubleangels.redact.media.ProcessingCancelledException;
 
 import org.junit.After;
 import org.junit.Before;
@@ -18,8 +21,10 @@ import org.robolectric.RuntimeEnvironment;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Map;
 
 import io.sentry.ITransaction;
+import io.sentry.SentryEvent;
 
 /**
  * With crash reporting enabled but the Sentry SDK not initialised (as in unit tests, where the
@@ -53,8 +58,12 @@ public class SentryManagerEnabledTest {
     public void ignoredErrors_areNetworkIssuesAndCancellations() {
         assertTrue(SentryManager.isIgnored(new UnknownHostException("host")));
         assertTrue(SentryManager.isIgnored(new SocketException("reset")));
-        assertTrue(SentryManager.isIgnored(new IOException("Processing cancelled")));
+        assertTrue(SentryManager.isIgnored(new ProcessingCancelledException("Processing cancelled")));
+        assertTrue(SentryManager.isIgnored(new RuntimeException(new InterruptedException())));
         assertFalse(SentryManager.isIgnored(new IllegalStateException("real bug")));
+        // Only cancellation types count: a real error that mentions it is still reported.
+        assertFalse(SentryManager.isIgnored(new IOException("Codec operation cancelled by the system")));
+        assertFalse(SentryManager.isIgnored(new IllegalStateException("Decoder interrupted mid-frame")));
     }
 
     @Test
@@ -96,9 +105,62 @@ public class SentryManagerEnabledTest {
         SentryManager.recordException(new IllegalStateException("plain message"));
         SentryManager.recordException(new IllegalStateException());
         SentryManager.recordException(new UnknownHostException("offline"));
-        SentryManager.recordException(new IOException("Processing cancelled"));
+        SentryManager.recordException(new ProcessingCancelledException("Processing cancelled"));
         AppPreferences.setCrashReportingEnabled(app, false);
         SentryManager.recordException(new IllegalStateException("not sent"));
+    }
+
+    @Test
+    public void operationData_isSplitIntoTagsAndContext() {
+        SentryManager.beginOperation("image_to_mediastore");
+        SentryManager.setCustomKey("success", false);
+        SentryManager.setCustomKey("image_width", 4032);
+
+        SentryEvent event = new SentryEvent();
+        SentryManager.applyOperationData(event);
+
+        assertEquals("image_to_mediastore", event.getTag("operation_type"));
+        assertEquals("false", event.getTag("success"));
+        assertNull("measurements are not tags", event.getTag("image_width"));
+        Map<?, ?> context = (Map<?, ?>) event.getContexts().get(SentryManager.OPERATION_CONTEXT);
+        assertEquals("4032", context.get("image_width"));
+    }
+
+    @Test
+    public void beginOperation_dropsThePreviousJobsData() {
+        SentryManager.beginOperation("image_to_mediastore");
+        SentryManager.setCustomKey("success", false);
+        SentryManager.setCustomKey("error_type", "java.io.IOException");
+        SentryManager.beginOperation("video_to_mediastore");
+
+        SentryEvent event = new SentryEvent();
+        SentryManager.applyOperationData(event);
+
+        assertEquals("video_to_mediastore", event.getTag("operation_type"));
+        assertNull(event.getTag("success"));
+        assertNull(event.getTag("error_type"));
+    }
+
+    @Test
+    public void operationData_staysOnTheThreadThatSetIt() throws Exception {
+        SentryManager.beginOperation("image_to_mediastore");
+        SentryManager.setCustomKey("success", true);
+
+        SentryEvent[] other = new SentryEvent[1];
+        Thread scan = new Thread(() -> {
+            SentryManager.beginOperation("extract_metadata");
+            other[0] = new SentryEvent();
+            SentryManager.applyOperationData(other[0]);
+        });
+        scan.start();
+        scan.join();
+
+        assertEquals("extract_metadata", other[0].getTag("operation_type"));
+        assertNull("another job's tags don't leak in", other[0].getTag("success"));
+        SentryEvent mine = new SentryEvent();
+        SentryManager.applyOperationData(mine);
+        assertEquals("image_to_mediastore", mine.getTag("operation_type"));
+        assertEquals("true", mine.getTag("success"));
     }
 
     @Test

@@ -471,6 +471,7 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="settings_reset_all_done">Impostazioni ripristinate ai valori predefiniti.</string>
     <string name="settings_reset_all_busy">Impossibile ripristinare le impostazioni durante l\'elaborazione.</string>
     <string name="share_target_scan">Scansiona con Redact</string>
+    <string name="share_target_convert">Converti con Redact</string>
     <string name="button_scan_result">Scansiona Risultato</string>
     <string name="settings_keep_original_names">Mantieni i Nomi Originali</string>
     <string name="settings_keep_original_names_subtitle">I file puliti e convertiti mantengono il nome dell\'originale invece di un nome casuale. Nomi come IMG_20260117 possono rivelare quando è stata scattata una foto.</string>

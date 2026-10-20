@@ -471,6 +471,7 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="settings_reset_all_done">Paramètres réinitialisés.</string>
     <string name="settings_reset_all_busy">Impossible de réinitialiser les paramètres pendant un traitement.</string>
     <string name="share_target_scan">Scanner avec Redact</string>
+    <string name="share_target_convert">Convertir avec Redact</string>
     <string name="button_scan_result">Scanner le Résultat</string>
     <string name="settings_keep_original_names">Conserver les Noms de Fichiers</string>
     <string name="settings_keep_original_names_subtitle">Les fichiers nettoyés et convertis gardent le nom de l\'original au lieu d\'un nom aléatoire. Un nom comme IMG_20260117 peut révéler quand une photo a été prise.</string>

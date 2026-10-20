@@ -457,6 +457,7 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_reset_all_done">Einstellungen auf Standard zurückgesetzt.</string>
     <string name="settings_reset_all_busy">Einstellungen können während der Verarbeitung nicht zurückgesetzt werden.</string>
     <string name="share_target_scan">Mit Redact Scannen</string>
+    <string name="share_target_convert">Mit Redact Konvertieren</string>
     <string name="button_scan_result">Ergebnis Scannen</string>
     <string name="settings_keep_original_names">Originale Dateinamen Behalten</string>
     <string name="settings_keep_original_names_subtitle">Bereinigte und konvertierte Dateien erhalten den Namen des Originals statt eines zufälligen Namens. Namen wie IMG_20260117 können verraten, wann ein Foto aufgenommen wurde.</string>

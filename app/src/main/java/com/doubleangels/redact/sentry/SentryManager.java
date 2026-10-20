@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.doubleangels.redact.AppPreferences;
+import com.doubleangels.redact.media.ProcessingCancelledException;
 import com.doubleangels.redact.media.UnsupportedMediaException;
 
 import java.net.SocketException;
@@ -14,8 +15,10 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import javax.net.ssl.SSLException;
@@ -26,6 +29,7 @@ import io.sentry.ISpan;
 import io.sentry.ITransaction;
 import io.sentry.NoOpTransaction;
 import io.sentry.Sentry;
+import io.sentry.SentryEvent;
 import io.sentry.SentryAttribute;
 import io.sentry.SentryAttributes;
 import io.sentry.SentryLevel;
@@ -108,12 +112,63 @@ public final class SentryManager {
             "video_verify_failed_key",
             "permissions_granted",
             "selected_media_count",
+            "selected_items_count",
+            "persistable_uri_permission",
             "processing_state",
             "processed_items",
             "processing_items_count",
             "has_shown_rationale",
             "all_permissions_granted",
             "has_storage_permission"));
+
+    /**
+     * Low-cardinality keys that describe one scan, clean or convert. They are kept per thread, not
+     * on the shared scope, so a Scan running during a Clean can't tag the other job's events, and
+     * a later unrelated event doesn't carry a finished job's {@code success} or {@code error_type}.
+     */
+    private static final Set<String> OPERATION_TAG_KEYS = new HashSet<>(Arrays.asList(
+            "operation_type",
+            "is_video",
+            "mime_type",
+            "media_type",
+            "extraction_failed",
+            "error_type",
+            "has_location_data",
+            "video_rotation",
+            "image_orientation",
+            "processing_failed",
+            "processing_success",
+            "success",
+            "metadata_verification_passed",
+            "video_metadata_verification_passed",
+            "video_verify_failed_key"));
+
+    /**
+     * Per-item measurements. They have too many distinct values to be useful as indexed tags, so
+     * they go into the event's {@value #OPERATION_CONTEXT} context instead.
+     */
+    private static final Set<String> OPERATION_CONTEXT_KEYS = new HashSet<>(Arrays.asList(
+            "sections_count",
+            "image_width",
+            "image_height",
+            "video_width",
+            "video_height",
+            "video_duration_ms",
+            "video_frame_rate",
+            "video_bitrate_kbps",
+            "audio_sample_rate",
+            "file_size_mb",
+            "preserved_exif_count",
+            "exif_tags_removed",
+            "bitmap_sample_size",
+            "original_width",
+            "original_height"));
+
+    static final String OPERATION_CONTEXT = "operation";
+
+    /** The current thread's job data; each job runs on its own worker thread. */
+    private static final ThreadLocal<Map<String, String>> OPERATION_DATA =
+            ThreadLocal.withInitial(LinkedHashMap::new);
 
     private SentryManager() {
     }
@@ -143,18 +198,20 @@ public final class SentryManager {
         return isUserCancellation(e);
     }
 
-    /** True when video/clean work was stopped by the user or lifecycle, not a real failure. */
+    /**
+     * True when video/clean work was stopped by the user or lifecycle, not a real failure. Matches
+     * cancellation types only: a library error that merely mentions "cancelled" or "interrupted"
+     * in its message is still a real failure and is reported.
+     */
     public static boolean isUserCancellation(Throwable e) {
-        for (Throwable t = e; t != null; t = t.getCause()) {
-            if (t instanceof InterruptedException) {
+        // Bounded walk: a cyclic cause chain must not hang error handling.
+        Throwable t = e;
+        for (int depth = 0; t != null && depth < 16; depth++, t = t.getCause()) {
+            if (t instanceof ProcessingCancelledException
+                    || t instanceof InterruptedException
+                    || t instanceof java.util.concurrent.CancellationException
+                    || t instanceof android.os.OperationCanceledException) {
                 return true;
-            }
-            String msg = t.getMessage();
-            if (msg != null) {
-                String lower = msg.toLowerCase(Locale.US);
-                if (lower.contains("interrupted") || lower.contains("cancelled")) {
-                    return true;
-                }
             }
         }
         return false;
@@ -261,7 +318,47 @@ public final class SentryManager {
             Log.e(TAG, "Crash reporting disabled, not sending:", e);
             return;
         }
-        Sentry.captureException(scrubThrowable(e));
+        // Sent as-is so the issue keeps the real exception type and grouping; beforeSend scrubs the
+        // message of every exception in the cause chain.
+        Sentry.captureException(e);
+    }
+
+    /**
+     * Starts a job on the current thread: drops the previous job's data from this thread and
+     * records the new job's type. Call it on the thread that does the work.
+     */
+    public static void beginOperation(String operationType) {
+        OPERATION_DATA.get().clear();
+        setCustomKey("operation_type", operationType);
+    }
+
+    /**
+     * Adds the capturing thread's job data to {@code event}: low-cardinality keys as tags, the
+     * rest in the {@value #OPERATION_CONTEXT} context. Runs as an event processor, which Sentry
+     * calls on the thread that captured the event (for a crash, the thread that crashed).
+     */
+    static void applyOperationData(@Nullable SentryEvent event) {
+        Map<String, String> data = OPERATION_DATA.get();
+        if (event == null || data.isEmpty()) {
+            return;
+        }
+        Map<String, Object> context = new LinkedHashMap<>();
+        for (Map.Entry<String, String> entry : data.entrySet()) {
+            if (OPERATION_CONTEXT_KEYS.contains(entry.getKey())) {
+                context.put(entry.getKey(), entry.getValue());
+            } else {
+                event.setTag(entry.getKey(), entry.getValue());
+            }
+        }
+        if (!context.isEmpty()) {
+            event.getContexts().put(OPERATION_CONTEXT, context);
+        }
+    }
+
+    private static boolean isOperationKey(@NonNull String lowerKey) {
+        return OPERATION_TAG_KEYS.contains(lowerKey)
+                || OPERATION_CONTEXT_KEYS.contains(lowerKey)
+                || lowerKey.startsWith("video_verify_");
     }
 
     public static void setCustomKey(String key, String value) {
@@ -272,8 +369,12 @@ public final class SentryManager {
         if (v.length() > 200) {
             v = v.substring(0, 200);
         }
-        final String tagKey = key;
+        final String tagKey = key.toLowerCase(Locale.US);
         final String tagVal = v;
+        if (isOperationKey(tagKey)) {
+            OPERATION_DATA.get().put(tagKey, tagVal);
+            return;
+        }
         Sentry.configureScope(scope -> scope.setTag(tagKey, tagVal));
     }
 
@@ -332,18 +433,6 @@ public final class SentryManager {
                                 attrKey1, SentryPrivacyScrubber.scrub(attrValue1 != null ? attrValue1 : "")),
                         SentryAttribute.stringAttribute(
                                 attrKey2, SentryPrivacyScrubber.scrub(attrValue2 != null ? attrValue2 : ""))));
-    }
-
-    private static Throwable scrubThrowable(@NonNull Throwable e) {
-        String message = e.getMessage();
-        if (message == null || message.isEmpty()) {
-            return e;
-        }
-        String scrubbed = SentryPrivacyScrubber.scrub(message);
-        if (scrubbed.equals(message)) {
-            return e;
-        }
-        return new Exception(scrubbed, e);
     }
 
     public static ITransaction startTransaction(String name, String operation) {

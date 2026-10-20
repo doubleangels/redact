@@ -510,6 +510,7 @@
     <string name="settings_reset_all_done">تمت إعادة الإعدادات إلى قيمها الافتراضية.</string>
     <string name="settings_reset_all_busy">لا يمكن إعادة ضبط الإعدادات أثناء المعالجة.</string>
     <string name="share_target_scan">مسح باستخدام Redact</string>
+    <string name="share_target_convert">تحويل باستخدام Redact</string>
     <string name="button_scan_result">مسح النتيجة</string>
     <string name="settings_keep_original_names">الاحتفاظ بأسماء الملفات الأصلية</string>
     <string name="settings_keep_original_names_subtitle">تسمية الملفات المنظفة والمحولة باسم الملفات الأصلية بدلًا من اسم عشوائي. قد تكشف أسماء مثل IMG_20260117 وقت التقاط الصورة.</string>

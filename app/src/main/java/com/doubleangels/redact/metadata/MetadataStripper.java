@@ -204,7 +204,7 @@ public class MetadataStripper {
         java.util.function.BooleanSupplier external = externalCancellationCheck;
         if (operationCancelled.get() || Thread.currentThread().isInterrupted()
                 || (external != null && external.getAsBoolean())) {
-            throw new IOException("Processing cancelled");
+            throw new com.doubleangels.redact.media.ProcessingCancelledException("Processing cancelled");
         }
     }
 
@@ -311,7 +311,7 @@ public class MetadataStripper {
     public Uri stripVideoMetadata(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Log operation start for analytics and debugging
         SentryManager.log("The app is starting video metadata stripping for MediaStore.");
-        SentryManager.setCustomKey("operation_type", "video_to_mediastore");
+        SentryManager.beginOperation("video_to_mediastore");
         Uri newUri = null;
         lastCleanStats = null;
 
@@ -375,7 +375,7 @@ public class MetadataStripper {
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new IOException("Video processing interrupted", e);
+                throw new com.doubleangels.redact.media.ProcessingCancelledException("Video processing interrupted", e);
             } catch (Exception e) {
                 SentryManager.log("Video processing failed: " + e.getMessage() + ".");
                 throw new IOException("Failed to clean video safely", e);
@@ -394,9 +394,9 @@ public class MetadataStripper {
                 throw e;
             }
             Log.e(TAG, "Error processing video", e);
-            SentryManager.recordException(e);
             SentryManager.setCustomKey("success", false);
             SentryManager.setCustomKey("error_type", e.getClass().getName());
+            SentryManager.recordException(e);
 
             if (newUri != null) {
                 OutputDestination.discard(contentResolver, newUri);
@@ -407,9 +407,9 @@ public class MetadataStripper {
             }
             // Log error and clean up any partial files
             Log.e(TAG, "Error processing video", e);
-            SentryManager.recordException(e);
             SentryManager.setCustomKey("success", false);
             SentryManager.setCustomKey("error_type", e.getClass().getName());
+            SentryManager.recordException(e);
 
             if (newUri != null) {
                 OutputDestination.discard(contentResolver, newUri);
@@ -438,7 +438,7 @@ public class MetadataStripper {
     public Uri stripExifData(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Log operation start for analytics and debugging
         SentryManager.log("The app is starting image EXIF stripping for MediaStore.");
-        SentryManager.setCustomKey("operation_type", "image_to_mediastore");
+        SentryManager.beginOperation("image_to_mediastore");
         Uri newUri = null;
         lastCleanStats = null;
         File tempFile = null;
@@ -504,9 +504,9 @@ public class MetadataStripper {
                 throw e;
             }
             Log.e(TAG, "Error processing image", e);
-            SentryManager.recordException(e);
             SentryManager.setCustomKey("success", false);
             SentryManager.setCustomKey("error_type", e.getClass().getName());
+            SentryManager.recordException(e);
 
             if (newUri != null) {
                 OutputDestination.discard(contentResolver, newUri);
@@ -518,9 +518,9 @@ public class MetadataStripper {
             }
             // Log error and clean up any partial files
             Log.e(TAG, "Error processing image", e);
-            SentryManager.recordException(e);
             SentryManager.setCustomKey("success", false);
             SentryManager.setCustomKey("error_type", e.getClass().getName());
+            SentryManager.recordException(e);
 
             if (newUri != null) {
                 OutputDestination.discard(contentResolver, newUri);
@@ -560,7 +560,7 @@ public class MetadataStripper {
         // Log operation start for analytics and debugging
         SentryManager.log("The app is starting image EXIF stripping for sharing.");
 
-        SentryManager.setCustomKey("operation_type", "image_for_sharing");
+        SentryManager.beginOperation("image_for_sharing");
         lastCleanStats = null;
 
         File tempFile = null;
@@ -623,9 +623,9 @@ public class MetadataStripper {
             // Log error
             Log.e(TAG, "Error processing image for sharing", e);
             lastFailureUnsupported = UnsupportedMediaException.isCauseOf(e);
-            SentryManager.recordException(e);
             SentryManager.setCustomKey("success", false);
             SentryManager.setCustomKey("error_type", e.getClass().getName());
+            SentryManager.recordException(e);
             if (outputFile != null && outputFile.exists()) {
                 secureDeleteFile(outputFile);
             }
@@ -661,7 +661,7 @@ public class MetadataStripper {
         // Log operation start for analytics and debugging
         SentryManager.log("The app is starting video metadata stripping for sharing.");
 
-        SentryManager.setCustomKey("operation_type", "video_for_sharing");
+        SentryManager.beginOperation("video_for_sharing");
         lastCleanStats = null;
 
         File outputFile = null;
@@ -719,7 +719,7 @@ public class MetadataStripper {
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new IOException("Video transcoding interrupted", e);
+                throw new com.doubleangels.redact.media.ProcessingCancelledException("Video transcoding interrupted", e);
             } catch (Exception e) {
                 SentryManager.log("Video processing failed: " + e.getMessage() + ".");
                 throw new IOException("Failed to process video safely", e);
@@ -749,9 +749,9 @@ public class MetadataStripper {
             // Log error
             Log.e(TAG, "Error processing video for sharing", e);
             lastFailureUnsupported = UnsupportedMediaException.isCauseOf(e);
-            SentryManager.recordException(e);
             SentryManager.setCustomKey("success", false);
             SentryManager.setCustomKey("error_type", e.getClass().getName());
+            SentryManager.recordException(e);
             if (outputFile != null && outputFile.exists()) {
                 secureDeleteFile(outputFile);
             }

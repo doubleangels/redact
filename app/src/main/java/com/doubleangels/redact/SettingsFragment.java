@@ -273,6 +273,7 @@ public class SettingsFragment extends Fragment {
                         null);
             } catch (Exception e) {
                 android.util.Log.e("SettingsFragment", "Error saving crash reporting pref", e);
+                SentryManager.recordException(e);
             }
         });
 
