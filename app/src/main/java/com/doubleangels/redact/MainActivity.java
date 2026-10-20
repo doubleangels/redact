@@ -40,6 +40,28 @@ public class MainActivity extends AppCompatActivity {
     /** Same cap as picking files in Convert. */
     private static final int MAX_CONVERT_SHARE_ITEMS = 20;
 
+    /**
+     * The first-start introduction. Whichever way it closes, the first-launch permission prompts
+     * start next. The flow is prepared again here because process death while the introduction
+     * was open clears its in-progress flag.
+     */
+    private final androidx.activity.result.ActivityResultLauncher<android.content.Intent> onboardingLauncher =
+            registerForActivityResult(
+                    new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        AppPreferences.setOnboardingSeen(this);
+                        if (com.doubleangels.redact.permission.PermissionManager.shouldPromptInitialPermissions(this)) {
+                            com.doubleangels.redact.permission.PermissionManager.prepareInitialPermissionFlow();
+                            com.doubleangels.redact.permission.PermissionManager.startInitialPermissionFlow(this);
+                        }
+                    });
+
+    /** Fresh installs only: users updating the app have already been through the permission prompts. */
+    private boolean shouldShowOnboarding() {
+        return com.doubleangels.redact.permission.PermissionManager.shouldPromptInitialPermissions(this)
+                && !AppPreferences.hasSeenOnboarding(this);
+    }
+
     @Override
     protected void onDestroy() {
         com.doubleangels.redact.permission.PermissionManager.setInitialFlowCompletedCallback(null);
@@ -133,7 +155,10 @@ public class MainActivity extends AppCompatActivity {
                 notifyVisibleFragmentPermissionFlowCompleted();
                 com.doubleangels.redact.ui.CrashReportingPrompt.onFirstStartPermissionsDone(this);
             });
-            if (com.doubleangels.redact.permission.PermissionManager.isInitialPermissionFlowInProgress()) {
+            if (savedInstanceState == null && shouldShowOnboarding()) {
+                // The permission prompts wait until the introduction closes.
+                onboardingLauncher.launch(new android.content.Intent(this, OnboardingActivity.class));
+            } else if (com.doubleangels.redact.permission.PermissionManager.isInitialPermissionFlowInProgress()) {
                 com.doubleangels.redact.permission.PermissionManager.startInitialPermissionFlow(this);
             }
         } catch (Exception e) {

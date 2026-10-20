@@ -492,4 +492,31 @@
     <plurals name="stats_chart_summary">
         <item quantity="other">최근 30일 동안 파일 %1$s개를 정리했습니다.</item>
     </plurals>
+    <string name="onboarding_skip">건너뛰기</string>
+    <string name="onboarding_next">다음</string>
+    <string name="onboarding_get_started">시작하기</string>
+    <string name="onboarding_done">완료</string>
+    <string name="onboarding_page_indicator">%2$d페이지 중 %1$d페이지</string>
+    <string name="onboarding_metadata_title">사진에는 숨겨진 정보가 담겨 있습니다</string>
+    <string name="onboarding_metadata_body">사진과 동영상에는 이미지 외에도 많은 정보가 몰래 기록될 수 있습니다. 원본 파일을 받은 사람은 누구나 이를 읽을 수 있습니다.</string>
+    <string name="onboarding_metadata_location">촬영 위치 (집을 찾을 수 있을 만큼 정확한 경우가 많음)</string>
+    <string name="onboarding_metadata_time">날짜, 시간, 시간대</string>
+    <string name="onboarding_metadata_device">휴대전화나 카메라의 제조사와 모델</string>
+    <string name="onboarding_private_title">모든 것이 휴대전화 안에 머뭅니다</string>
+    <string name="onboarding_private_body">Redact는 기기에서 파일을 정리, 스캔, 변환합니다. 아무것도 업로드되지 않습니다.</string>
+    <string name="onboarding_private_offline">사진과 동영상이 휴대전화 밖으로 나가지 않습니다</string>
+    <string name="onboarding_private_no_ads">광고와 추적이 없습니다</string>
+    <string name="onboarding_private_open_source">오픈 소스이므로 누구나 작동 방식을 확인할 수 있습니다</string>
+    <string name="onboarding_permissions_title">몇 가지 권한</string>
+    <string name="onboarding_permissions_body">다음으로 Android에서 권한을 요청합니다. 설정에서 언제든지 변경할 수 있습니다.</string>
+    <string name="onboarding_permissions_body_replay">Redact는 다음 권한을 사용합니다. 설정에서 언제든지 변경할 수 있습니다.</string>
+    <string name="onboarding_permission_media">사진 및 동영상: 선택한 파일을 Redact에서 열기 위해 필요합니다</string>
+    <string name="onboarding_permission_location">사진 위치 (선택): 스캔에서 촬영 위치를 표시하고 정리에서 이를 제거합니다</string>
+    <string name="onboarding_permission_notifications">알림 (선택): 오래 걸리는 작업이 끝나면 알려 줍니다</string>
+    <string name="settings_about_intro">소개 다시 보기</string>
+    <string name="settings_about_licenses">오픈 소스 라이선스</string>
+    <string name="licenses_title">오픈 소스 라이선스</string>
+    <string name="licenses_intro">Redact는 다음 오픈 소스 라이브러리로 만들어졌습니다. 항목을 탭하면 라이선스를 볼 수 있습니다.</string>
+    <string name="licenses_project_page">프로젝트 페이지</string>
+    <string name="licenses_close">닫기</string>
 </resources>

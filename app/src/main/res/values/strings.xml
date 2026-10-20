@@ -511,4 +511,35 @@
         <item quantity="one">%1$s file cleaned in the last 30 days.</item>
         <item quantity="other">%1$s files cleaned in the last 30 days.</item>
     </plurals>
+
+    <!-- First-start introduction -->
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_get_started">Get Started</string>
+    <string name="onboarding_done">Done</string>
+    <string name="onboarding_page_indicator">Page %1$d of %2$d</string>
+    <string name="onboarding_metadata_title">Your photos carry hidden details</string>
+    <string name="onboarding_metadata_body">Every photo and video can quietly record more than the picture itself. Anyone who receives the original file can read it.</string>
+    <string name="onboarding_metadata_location">Where it was taken, often precise enough to find a home</string>
+    <string name="onboarding_metadata_time">The date, time and time zone</string>
+    <string name="onboarding_metadata_device">The make and model of your phone or camera</string>
+    <string name="onboarding_private_title">Everything stays on your phone</string>
+    <string name="onboarding_private_body">Redact cleans, scans and converts files on your device. Nothing is uploaded.</string>
+    <string name="onboarding_private_offline">Your photos and videos never leave your phone</string>
+    <string name="onboarding_private_no_ads">No ads and no tracking</string>
+    <string name="onboarding_private_open_source">Open source, so anyone can check how it works</string>
+    <string name="onboarding_permissions_title">A few permissions</string>
+    <string name="onboarding_permissions_body">Android will ask for these next. You can change them any time in Settings.</string>
+    <string name="onboarding_permissions_body_replay">Redact uses these permissions. You can change them any time in Settings.</string>
+    <string name="onboarding_permission_media">Photos and videos: lets Redact open the files you pick</string>
+    <string name="onboarding_permission_location">Photo location (optional): lets Scan show where a photo was taken, and Clean remove it</string>
+    <string name="onboarding_permission_notifications">Notifications (optional): tells you when a long job finishes</string>
+    <string name="settings_about_intro">Show Introduction</string>
+
+    <!-- Settings › Open-Source Licenses -->
+    <string name="settings_about_licenses">Open-Source Licenses</string>
+    <string name="licenses_title">Open-Source Licenses</string>
+    <string name="licenses_intro">Redact is built with these open-source libraries. Tap one to read its license.</string>
+    <string name="licenses_project_page">Project Page</string>
+    <string name="licenses_close">Close</string>
 </resources>

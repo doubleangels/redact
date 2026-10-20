@@ -534,4 +534,31 @@
         <item quantity="many">%1$s файлов очищено за последние 30 дней.</item>
         <item quantity="other">%1$s файла очищено за последние 30 дней.</item>
     </plurals>
+    <string name="onboarding_skip">Пропустить</string>
+    <string name="onboarding_next">Далее</string>
+    <string name="onboarding_get_started">Начать</string>
+    <string name="onboarding_done">Готово</string>
+    <string name="onboarding_page_indicator">Страница %1$d из %2$d</string>
+    <string name="onboarding_metadata_title">Ваши фото хранят скрытые сведения</string>
+    <string name="onboarding_metadata_body">Каждое фото и видео может незаметно записывать больше, чем само изображение. Любой, кто получит исходный файл, сможет это прочитать.</string>
+    <string name="onboarding_metadata_location">Где сделан снимок — часто настолько точно, что можно найти дом</string>
+    <string name="onboarding_metadata_time">Дата, время и часовой пояс</string>
+    <string name="onboarding_metadata_device">Марка и модель вашего телефона или камеры</string>
+    <string name="onboarding_private_title">Всё остаётся на вашем телефоне</string>
+    <string name="onboarding_private_body">Redact очищает, сканирует и конвертирует файлы на устройстве. Ничего не загружается.</string>
+    <string name="onboarding_private_offline">Ваши фото и видео никогда не покидают телефон</string>
+    <string name="onboarding_private_no_ads">Без рекламы и отслеживания</string>
+    <string name="onboarding_private_open_source">Открытый исходный код — любой может проверить, как всё работает</string>
+    <string name="onboarding_permissions_title">Несколько разрешений</string>
+    <string name="onboarding_permissions_body">Сейчас Android запросит их. Изменить их можно в любое время в Настройках.</string>
+    <string name="onboarding_permissions_body_replay">Redact использует эти разрешения. Изменить их можно в любое время в Настройках.</string>
+    <string name="onboarding_permission_media">Фото и видео: чтобы Redact мог открывать выбранные файлы</string>
+    <string name="onboarding_permission_location">Местоположение фото (необязательно): чтобы Сканирование показывало, где сделан снимок, а Очистка удаляла эти данные</string>
+    <string name="onboarding_permission_notifications">Уведомления (необязательно): сообщают, когда долгая задача завершена</string>
+    <string name="settings_about_intro">Показать Введение</string>
+    <string name="settings_about_licenses">Лицензии Открытого ПО</string>
+    <string name="licenses_title">Лицензии Открытого ПО</string>
+    <string name="licenses_intro">Redact создан с использованием этих библиотек с открытым исходным кодом. Нажмите на любую, чтобы прочитать её лицензию.</string>
+    <string name="licenses_project_page">Страница Проекта</string>
+    <string name="licenses_close">Закрыть</string>
 </resources>

@@ -106,6 +106,8 @@ You can also build it yourself, see [For developers](#for-developers).
 
 ### Your first clean
 
+On first start, a short introduction explains what metadata is, that your files never leave your phone, and why Redact asks for each permission, before Android shows the permission prompts. Skip it any time, or see it again from Settings › About › **Show Introduction**.
+
 1. Open Redact and tap the **Clean** tab.
 2. Tap **Select Files** and choose photos or videos.
 3. Tap **Clean Metadata**.
@@ -237,7 +239,7 @@ The Settings tab puts the settings you use every day first: cleaning, sharing, C
 
 **Reset All Settings** puts every setting back to its default and forgets the chosen output folders. Your files are not touched.
 
-**About**: version, links and **Rate Redact on Google Play**.
+**About**: version, links, **Open-Source Licenses** (every library Redact ships, with its full license text, readable offline), **Show Introduction** and **Rate Redact on Google Play**.
 
 Open the Settings tab in the app for the full list.
 

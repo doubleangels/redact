@@ -130,6 +130,46 @@ public class MainActivityTest {
     }
 
     @Test
+    public void freshInstall_opensTheIntroductionBeforeThePermissionPrompts() {
+        MainActivity activity = launch();
+
+        android.content.Intent started = shadowOf(activity).getNextStartedActivity();
+        assertNotNull(started);
+        assertEquals(OnboardingActivity.class.getName(), started.getComponent().getClassName());
+        assertTrue(shadowOf(activity).getLastRequestedPermission() == null);
+
+        shadowOf(activity).receiveResult(started, android.app.Activity.RESULT_OK, null);
+        shadowOf(Looper.getMainLooper()).idle();
+
+        assertTrue(AppPreferences.hasSeenOnboarding(activity));
+        assertNotNull(shadowOf(activity).getLastRequestedPermission());
+    }
+
+    @Test
+    public void afterTheIntroductionOrAnUpdate_itIsNotShownAgain() {
+        AppPreferences.setOnboardingSeen(org.robolectric.RuntimeEnvironment.getApplication());
+        MainActivity seen = launch();
+        assertNoIntroduction(seen);
+        controller.pause().stop().destroy();
+
+        // Updating users finished the permission prompts before the introduction existed.
+        android.content.Context app = org.robolectric.RuntimeEnvironment.getApplication();
+        app.getSharedPreferences(AppPreferences.PREFS_NAME, android.content.Context.MODE_PRIVATE)
+                .edit().clear().commit();
+        AppPreferences.setInitialPermissionsPromptCompleted(app);
+        controller = null;
+        assertNoIntroduction(launch());
+    }
+
+    private static void assertNoIntroduction(MainActivity activity) {
+        android.content.Intent started;
+        while ((started = shadowOf(activity).getNextStartedActivity()) != null) {
+            assertTrue(started.getComponent() == null || !OnboardingActivity.class.getName()
+                    .equals(started.getComponent().getClassName()));
+        }
+    }
+
+    @Test
     public void permissionResults_areRoutedToTheMatchingTab() {
         MainActivity activity = launch();
         select(activity, R.id.navigation_scan);

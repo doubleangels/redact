@@ -39,6 +39,7 @@ public final class AppPreferences {
     private static final String KEY_KEEP_ORIGINAL_NAMES = "keep_original_file_names";
     private static final String KEY_VIDEO_FALLBACK_COPY = "video_fallback_copy";
     private static final String KEY_INITIAL_PERMISSIONS_PROMPTED = "initial_permissions_prompted";
+    private static final String KEY_ONBOARDING_SEEN = "onboarding_seen";
     private static final String KEY_MAPS_LOCATION_CONSENT_GIVEN = "maps_location_consent_given";
     private static final String KEY_OUTPUT_TREE_IMAGES = "output_tree_images";
     private static final String KEY_OUTPUT_TREE_VIDEOS = "output_tree_videos";
@@ -340,6 +341,15 @@ public final class AppPreferences {
         prefs(context).edit().putBoolean(KEY_INITIAL_PERMISSIONS_PROMPTED, true).apply();
     }
 
+    /** Whether the first-start introduction has been shown. */
+    public static boolean hasSeenOnboarding(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_ONBOARDING_SEEN, false);
+    }
+
+    public static void setOnboardingSeen(@NonNull Context context) {
+        prefs(context).edit().putBoolean(KEY_ONBOARDING_SEEN, true).apply();
+    }
+
     /**
      * Whether the user has already agreed, once, that opening a Scan coordinate in the device's
      * maps app is okay. That action hands the GPS coordinates to a third-party app, which may
@@ -356,8 +366,8 @@ public final class AppPreferences {
 
     /**
      * Puts every setting back to its default. The first-launch permission prompt is not shown
-     * again, since resetting settings does not change what Android has already granted, and the
-     * rating prompt's progress and whether the crash-report question was asked are kept, so
+     * again, since resetting settings does not change what Android has already granted, nor is the
+     * introduction, and the rating prompt's progress and whether the crash-report question was asked are kept, so
      * neither question is ever asked again.
      */
     public static void resetAll(@NonNull Context context) {
@@ -366,8 +376,12 @@ public final class AppPreferences {
         int reviewCount = p.getInt(ReviewPrompt.KEY_SUCCESS_COUNT, 0);
         int reviewState = p.getInt(ReviewPrompt.KEY_STATE, 0);
         boolean crashPromptAsked = p.getBoolean(CrashReportingPrompt.KEY_ASKED, false);
+        boolean onboardingSeen = hasSeenOnboarding(context);
         SharedPreferences.Editor e = p.edit().clear()
                 .putBoolean(KEY_INITIAL_PERMISSIONS_PROMPTED, prompted);
+        if (onboardingSeen) {
+            e.putBoolean(KEY_ONBOARDING_SEEN, true);
+        }
         if (crashPromptAsked) {
             e.putBoolean(CrashReportingPrompt.KEY_ASKED, true);
         }

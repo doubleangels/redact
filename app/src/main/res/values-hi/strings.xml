@@ -506,4 +506,31 @@
         <item quantity="one">पिछले 30 दिनों में %1$s फ़ाइल साफ़ की गई।</item>
         <item quantity="other">पिछले 30 दिनों में %1$s फ़ाइलें साफ़ की गईं।</item>
     </plurals>
+    <string name="onboarding_skip">छोड़ें</string>
+    <string name="onboarding_next">आगे</string>
+    <string name="onboarding_get_started">शुरू करें</string>
+    <string name="onboarding_done">हो गया</string>
+    <string name="onboarding_page_indicator">%2$d में से पृष्ठ %1$d</string>
+    <string name="onboarding_metadata_title">आपकी तस्वीरों में छिपी जानकारी होती है</string>
+    <string name="onboarding_metadata_body">हर फ़ोटो और वीडियो चुपचाप तस्वीर से ज़्यादा जानकारी दर्ज कर सकता है। मूल फ़ाइल पाने वाला कोई भी व्यक्ति इसे पढ़ सकता है।</string>
+    <string name="onboarding_metadata_location">इसे कहाँ लिया गया, अक्सर इतना सटीक कि घर तक पहुँचा जा सके</string>
+    <string name="onboarding_metadata_time">तारीख, समय और समय क्षेत्र</string>
+    <string name="onboarding_metadata_device">आपके फ़ोन या कैमरे का ब्रांड और मॉडल</string>
+    <string name="onboarding_private_title">सब कुछ आपके फ़ोन पर ही रहता है</string>
+    <string name="onboarding_private_body">Redact आपके डिवाइस पर ही फ़ाइलों को साफ़, स्कैन और रूपांतरित करता है। कुछ भी अपलोड नहीं होता।</string>
+    <string name="onboarding_private_offline">आपकी तस्वीरें और वीडियो कभी आपके फ़ोन से बाहर नहीं जाते</string>
+    <string name="onboarding_private_no_ads">न विज्ञापन, न ट्रैकिंग</string>
+    <string name="onboarding_private_open_source">ओपन सोर्स, ताकि कोई भी जाँच सके कि यह कैसे काम करता है</string>
+    <string name="onboarding_permissions_title">कुछ अनुमतियाँ</string>
+    <string name="onboarding_permissions_body">इसके बाद Android इनके लिए पूछेगा। आप इन्हें कभी भी सेटिंग्स में बदल सकते हैं।</string>
+    <string name="onboarding_permissions_body_replay">Redact इन अनुमतियों का उपयोग करता है। आप इन्हें कभी भी सेटिंग्स में बदल सकते हैं।</string>
+    <string name="onboarding_permission_media">फ़ोटो और वीडियो: Redact को आपकी चुनी हुई फ़ाइलें खोलने देता है</string>
+    <string name="onboarding_permission_location">फ़ोटो स्थान (वैकल्पिक): स्कैन को यह दिखाने देता है कि फ़ोटो कहाँ ली गई, और साफ़ करें को इसे हटाने देता है</string>
+    <string name="onboarding_permission_notifications">सूचनाएं (वैकल्पिक): लंबा काम पूरा होने पर आपको बताती हैं</string>
+    <string name="settings_about_intro">परिचय दिखाएं</string>
+    <string name="settings_about_licenses">ओपन सोर्स लाइसेंस</string>
+    <string name="licenses_title">ओपन सोर्स लाइसेंस</string>
+    <string name="licenses_intro">Redact इन ओपन सोर्स लाइब्रेरी से बना है। किसी एक पर टैप करके उसका लाइसेंस पढ़ें।</string>
+    <string name="licenses_project_page">प्रोजेक्ट पेज</string>
+    <string name="licenses_close">बंद करें</string>
 </resources>

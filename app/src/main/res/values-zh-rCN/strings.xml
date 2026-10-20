@@ -492,4 +492,31 @@
     <plurals name="stats_chart_summary">
         <item quantity="other">最近 30 天内清理了 %1$s 个文件。</item>
     </plurals>
+    <string name="onboarding_skip">跳过</string>
+    <string name="onboarding_next">下一步</string>
+    <string name="onboarding_get_started">开始使用</string>
+    <string name="onboarding_done">完成</string>
+    <string name="onboarding_page_indicator">第 %1$d 页，共 %2$d 页</string>
+    <string name="onboarding_metadata_title">你的照片藏着隐秘信息</string>
+    <string name="onboarding_metadata_body">每张照片和每段视频都可能悄悄记录画面以外的信息。任何拿到原始文件的人都能读取它们。</string>
+    <string name="onboarding_metadata_location">拍摄地点，往往精确到足以找到住址</string>
+    <string name="onboarding_metadata_time">日期、时间和时区</string>
+    <string name="onboarding_metadata_device">手机或相机的品牌和型号</string>
+    <string name="onboarding_private_title">一切都留在你的手机上</string>
+    <string name="onboarding_private_body">Redact 在你的设备上清理、扫描和转换文件，不会上传任何内容。</string>
+    <string name="onboarding_private_offline">你的照片和视频绝不会离开手机</string>
+    <string name="onboarding_private_no_ads">无广告，无跟踪</string>
+    <string name="onboarding_private_open_source">开源，任何人都可以查看它的工作方式</string>
+    <string name="onboarding_permissions_title">需要几项权限</string>
+    <string name="onboarding_permissions_body">接下来 Android 会请求这些权限。你可以随时在设置中更改。</string>
+    <string name="onboarding_permissions_body_replay">Redact 使用以下权限。你可以随时在设置中更改。</string>
+    <string name="onboarding_permission_media">照片和视频：让 Redact 能打开你选择的文件</string>
+    <string name="onboarding_permission_location">照片位置（可选）：让扫描显示照片的拍摄地点，并让清理将其移除</string>
+    <string name="onboarding_permission_notifications">通知（可选）：耗时较长的任务完成时提醒你</string>
+    <string name="settings_about_intro">再次查看介绍</string>
+    <string name="settings_about_licenses">开源许可</string>
+    <string name="licenses_title">开源许可</string>
+    <string name="licenses_intro">Redact 使用了以下开源库。点按任意一项即可查看其许可。</string>
+    <string name="licenses_project_page">项目主页</string>
+    <string name="licenses_close">关闭</string>
 </resources>

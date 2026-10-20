@@ -562,4 +562,31 @@
         <item quantity="many">نُظِّف %1$s ملفًا خلال آخر 30 يومًا.</item>
         <item quantity="other">نُظِّف %1$s ملف خلال آخر 30 يومًا.</item>
     </plurals>
+    <string name="onboarding_skip">تخطي</string>
+    <string name="onboarding_next">التالي</string>
+    <string name="onboarding_get_started">ابدأ</string>
+    <string name="onboarding_done">تم</string>
+    <string name="onboarding_page_indicator">الصفحة %1$d من %2$d</string>
+    <string name="onboarding_metadata_title">صورك تحمل تفاصيل مخفية</string>
+    <string name="onboarding_metadata_body">قد تسجّل كل صورة وكل فيديو بصمت أكثر من الصورة نفسها. ويمكن لأي شخص يتلقى الملف الأصلي قراءتها.</string>
+    <string name="onboarding_metadata_location">مكان التقاطها، وغالبًا بدقة تكفي للعثور على منزل</string>
+    <string name="onboarding_metadata_time">التاريخ والوقت والمنطقة الزمنية</string>
+    <string name="onboarding_metadata_device">الشركة المصنّعة لهاتفك أو كاميرتك وطرازه</string>
+    <string name="onboarding_private_title">كل شيء يبقى على هاتفك</string>
+    <string name="onboarding_private_body">ينظّف Redact الملفات ويفحصها ويحوّلها على جهازك. لا يتم تحميل أي شيء.</string>
+    <string name="onboarding_private_offline">صورك ومقاطع الفيديو لا تغادر هاتفك أبدًا</string>
+    <string name="onboarding_private_no_ads">بلا إعلانات وبلا تتبّع</string>
+    <string name="onboarding_private_open_source">مفتوح المصدر، ليتمكن أي شخص من التحقق من طريقة عمله</string>
+    <string name="onboarding_permissions_title">بعض الأذونات</string>
+    <string name="onboarding_permissions_body">سيطلب Android هذه الأذونات بعد ذلك. يمكنك تغييرها في أي وقت من الإعدادات.</string>
+    <string name="onboarding_permissions_body_replay">يستخدم Redact هذه الأذونات. يمكنك تغييرها في أي وقت من الإعدادات.</string>
+    <string name="onboarding_permission_media">الصور والفيديو: لتمكين Redact من فتح الملفات التي تختارها</string>
+    <string name="onboarding_permission_location">موقع الصورة (اختياري): ليعرض المسح مكان التقاط الصورة، وليزيله التنظيف</string>
+    <string name="onboarding_permission_notifications">الإشعارات (اختياري): لإعلامك عند انتهاء مهمة طويلة</string>
+    <string name="settings_about_intro">عرض المقدمة</string>
+    <string name="settings_about_licenses">تراخيص البرامج مفتوحة المصدر</string>
+    <string name="licenses_title">تراخيص البرامج مفتوحة المصدر</string>
+    <string name="licenses_intro">Redact مبني باستخدام هذه المكتبات مفتوحة المصدر. انقر على أي منها لقراءة ترخيصها.</string>
+    <string name="licenses_project_page">صفحة المشروع</string>
+    <string name="licenses_close">إغلاق</string>
 </resources>

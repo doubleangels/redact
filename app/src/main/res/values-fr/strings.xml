@@ -520,4 +520,31 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
         <item quantity="many">%1$s de fichiers nettoyés au cours des 30 derniers jours.</item>
         <item quantity="other">%1$s fichiers nettoyés au cours des 30 derniers jours.</item>
     </plurals>
+    <string name="onboarding_skip">Passer</string>
+    <string name="onboarding_next">Suivant</string>
+    <string name="onboarding_get_started">Commencer</string>
+    <string name="onboarding_done">Terminé</string>
+    <string name="onboarding_page_indicator">Page %1$d sur %2$d</string>
+    <string name="onboarding_metadata_title">Vos photos cachent des détails</string>
+    <string name="onboarding_metadata_body">Chaque photo et vidéo peut enregistrer discrètement bien plus que l\'image elle-même. Toute personne qui reçoit le fichier original peut le lire.</string>
+    <string name="onboarding_metadata_location">Le lieu de la prise de vue, souvent assez précis pour retrouver un domicile</string>
+    <string name="onboarding_metadata_time">La date, l\'heure et le fuseau horaire</string>
+    <string name="onboarding_metadata_device">La marque et le modèle de votre téléphone ou appareil photo</string>
+    <string name="onboarding_private_title">Tout reste sur votre téléphone</string>
+    <string name="onboarding_private_body">Redact nettoie, scanne et convertit les fichiers sur votre appareil. Rien n\'est téléversé.</string>
+    <string name="onboarding_private_offline">Vos photos et vidéos ne quittent jamais votre téléphone</string>
+    <string name="onboarding_private_no_ads">Ni publicité ni pistage</string>
+    <string name="onboarding_private_open_source">Open source, pour que chacun puisse vérifier son fonctionnement</string>
+    <string name="onboarding_permissions_title">Quelques autorisations</string>
+    <string name="onboarding_permissions_body">Android va vous les demander ensuite. Vous pouvez les modifier à tout moment dans Paramètres.</string>
+    <string name="onboarding_permissions_body_replay">Redact utilise ces autorisations. Vous pouvez les modifier à tout moment dans Paramètres.</string>
+    <string name="onboarding_permission_media">Photos et vidéos : permet à Redact d\'ouvrir les fichiers que vous choisissez</string>
+    <string name="onboarding_permission_location">Emplacement de la photo (facultatif) : permet à Scanner d\'afficher où une photo a été prise, et à Nettoyer de le supprimer</string>
+    <string name="onboarding_permission_notifications">Notifications (facultatif) : vous préviennent quand une longue tâche se termine</string>
+    <string name="settings_about_intro">Afficher l\'Introduction</string>
+    <string name="settings_about_licenses">Licences Open Source</string>
+    <string name="licenses_title">Licences Open Source</string>
+    <string name="licenses_intro">Redact s\'appuie sur ces bibliothèques open source. Touchez-en une pour lire sa licence.</string>
+    <string name="licenses_project_page">Page du Projet</string>
+    <string name="licenses_close">Fermer</string>
 </resources>

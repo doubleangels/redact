@@ -520,4 +520,31 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
         <item quantity="many">%1$s di file puliti negli ultimi 30 giorni.</item>
         <item quantity="other">%1$s file puliti negli ultimi 30 giorni.</item>
     </plurals>
+    <string name="onboarding_skip">Salta</string>
+    <string name="onboarding_next">Avanti</string>
+    <string name="onboarding_get_started">Inizia</string>
+    <string name="onboarding_done">Fine</string>
+    <string name="onboarding_page_indicator">Pagina %1$d di %2$d</string>
+    <string name="onboarding_metadata_title">Le tue foto nascondono dei dettagli</string>
+    <string name="onboarding_metadata_body">Ogni foto e video può registrare di nascosto più dell\'immagine stessa. Chiunque riceva il file originale può leggerlo.</string>
+    <string name="onboarding_metadata_location">Dove è stata scattata, spesso con una precisione sufficiente a trovare un\'abitazione</string>
+    <string name="onboarding_metadata_time">Data, ora e fuso orario</string>
+    <string name="onboarding_metadata_device">Marca e modello del telefono o della fotocamera</string>
+    <string name="onboarding_private_title">Tutto resta sul tuo telefono</string>
+    <string name="onboarding_private_body">Redact pulisce, scansiona e converte i file sul dispositivo. Non viene caricato nulla.</string>
+    <string name="onboarding_private_offline">Foto e video non lasciano mai il tuo telefono</string>
+    <string name="onboarding_private_no_ads">Niente pubblicità e nessun tracciamento</string>
+    <string name="onboarding_private_open_source">Open source, così chiunque può verificare come funziona</string>
+    <string name="onboarding_permissions_title">Alcune autorizzazioni</string>
+    <string name="onboarding_permissions_body">Android te le chiederà subito dopo. Puoi modificarle in qualsiasi momento in Impostazioni.</string>
+    <string name="onboarding_permissions_body_replay">Redact usa queste autorizzazioni. Puoi modificarle in qualsiasi momento in Impostazioni.</string>
+    <string name="onboarding_permission_media">Foto e video: consente a Redact di aprire i file che scegli</string>
+    <string name="onboarding_permission_location">Posizione foto (facoltativa): consente a Scansiona di mostrare dove è stata scattata una foto e a Pulisci di rimuoverla</string>
+    <string name="onboarding_permission_notifications">Notifiche (facoltative): ti avvisano quando un\'operazione lunga termina</string>
+    <string name="settings_about_intro">Mostra Introduzione</string>
+    <string name="settings_about_licenses">Licenze Open Source</string>
+    <string name="licenses_title">Licenze Open Source</string>
+    <string name="licenses_intro">Redact è realizzato con queste librerie open source. Toccane una per leggerne la licenza.</string>
+    <string name="licenses_project_page">Pagina del Progetto</string>
+    <string name="licenses_close">Chiudi</string>
 </resources>

@@ -218,4 +218,14 @@ public class AppPreferencesTest {
         assertEquals(null, AppPreferences.getOutputTree(context, false));
         assertTrue(AppPreferences.hasCompletedInitialPermissionsPrompt(context));
     }
+
+    @Test
+    public void onboarding_isUnseenByDefault_andResetAllKeepsItSeen() {
+        assertFalse(AppPreferences.hasSeenOnboarding(context));
+
+        AppPreferences.setOnboardingSeen(context);
+        AppPreferences.resetAll(context);
+
+        assertTrue(AppPreferences.hasSeenOnboarding(context));
+    }
 }
