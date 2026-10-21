@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The photo being censored; the parent sizes it to take the space that is left. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/censorCanvasCard"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
+    app:cardCornerRadius="@dimen/component_corner_large"
+    app:cardElevation="1dp"
+    app:strokeWidth="0dp">
+
+    <com.doubleangels.redact.ui.CensorCanvasView
+        android:id="@+id/censorCanvas"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@string/censor_canvas_description" />
+
+    <!-- Status: shown while saving and after a save. Over the photo rather than in its own row,
+         so the photo does not shift when it appears. -->
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_margin="12dp"
+        android:background="@drawable/bg_rounded_surface"
+        android:backgroundTint="?attr/colorSurfaceContainerHigh"
+        android:elevation="2dp"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="10dp"
+        android:textAlignment="center"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurface"
+        android:visibility="gone" />
+
+    <!-- Zoom from buttons as well as by pinching, to cover fine details. -->
+    <LinearLayout
+        android:id="@+id/censorZoomControls"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="8dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/censorZoomIn"
+            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/censor_zoom_in"
+            android:tooltipText="@string/censor_zoom_in"
+            app:icon="@drawable/ic_zoom_in" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/censorZoomOut"
+            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/censor_zoom_out"
+            android:enabled="false"
+            android:tooltipText="@string/censor_zoom_out"
+            app:icon="@drawable/ic_zoom_out" />
+    </LinearLayout>
+
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/censorLoading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminate="true"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/censorMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="24dp"
+        android:textAlignment="center"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:visibility="gone" />
+</com.google.android.material.card.MaterialCardView>

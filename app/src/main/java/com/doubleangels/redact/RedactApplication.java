@@ -45,6 +45,8 @@ public class RedactApplication extends Application {
 
         // Working files from a previous process are orphans whatever their age (see the method).
         CacheCleanup.scheduleOrphanedWorkFileSweep(this);
+
+        com.doubleangels.redact.stats.StatsStore.preload(this);
     }
 
     @NonNull

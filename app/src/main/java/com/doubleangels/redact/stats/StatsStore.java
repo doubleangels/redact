@@ -49,6 +49,15 @@ public final class StatsStore {
         return context.getApplicationContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
 
+    /**
+     * Starts reading the statistics file from disk off the main thread, so Settings, which shows
+     * the figures as soon as it opens, does not wait for it.
+     */
+    public static void preload(@NonNull Context context) {
+        Context app = context.getApplicationContext();
+        new Thread(() -> prefs(app).getAll(), "redact-stats-preload").start();
+    }
+
     /** Counts one file cleaned on the Clean tab ({@code viaShare} false) or shared into Redact. */
     public static synchronized void recordClean(@NonNull Context context, @NonNull CleanStats stats,
                                                 boolean isVideo, boolean viaShare) {

@@ -214,4 +214,24 @@ public class VideoMedia3ConverterHelpersTest {
             ownerId.set(-1L);
         }
     }
+
+    @Test
+    public void trackTypes_includeAudioOnlyWhenTheSourceHasIt() {
+        assertTrue(VideoMedia3Converter.trackTypes(true).contains(androidx.media3.common.C.TRACK_TYPE_AUDIO));
+        assertTrue(VideoMedia3Converter.trackTypes(true).contains(androidx.media3.common.C.TRACK_TYPE_VIDEO));
+        assertFalse(VideoMedia3Converter.trackTypes(false).contains(androidx.media3.common.C.TRACK_TYPE_AUDIO));
+        assertTrue(VideoMedia3Converter.trackTypes(false).contains(androidx.media3.common.C.TRACK_TYPE_VIDEO));
+    }
+
+    @Test
+    public void ownerIds_ofDifferentJobs_neverMatch() {
+        for (int run = 0; run < 50; run++) {
+            long clean = VideoMedia3Converter.cleanOwner(run);
+            long convert = VideoMedia3Converter.convertOwner(run);
+            long share = VideoMedia3Converter.shareOwner(run);
+            assertTrue(clean != convert && clean != share && convert != share);
+            assertTrue("never the cancel-anything id", clean >= 0 && convert >= 0 && share >= 0);
+        }
+        assertEquals(VideoMedia3Converter.cleanOwner(3), VideoMedia3Converter.cleanOwner(3));
+    }
 }

@@ -296,7 +296,7 @@ public class MainActivityTest {
         assertEquals(R.id.navigation_clean, launchedTab(own));
     }
 
-    // ---- "Convert with Redact" ----------------------------------------------------------------
+    // ---- Redact › Convert ----------------------------------------------------------------
 
     private static android.net.Uri sharedImage(int n) {
         return android.net.Uri.parse("content://com.android.externalstorage.documents/document/primary%3APictures%2F"
@@ -383,5 +383,64 @@ public class MainActivityTest {
         assertEquals(R.id.navigation_convert, nav.getSelectedItemId());
         assertTrue(viewModel().getConvertSelectedItems().getValue().isEmpty());
         viewModel().setConvertProcessingState(com.doubleangels.redact.ui.MainViewModel.ProcessingState.IDLE);
+    }
+
+    // ---- Censor ---------------------------------------------------------------------------------
+
+    private static android.content.Intent censorShare(android.net.Uri stream) {
+        android.content.Intent send = new android.content.Intent(android.content.Intent.ACTION_SEND)
+                .setClassName("com.doubleangels.redact", "com.doubleangels.redact.CensorShareTarget")
+                .setType("image/jpeg");
+        return stream == null ? send : send.putExtra(android.content.Intent.EXTRA_STREAM, stream);
+    }
+
+    private com.doubleangels.redact.ui.CensorViewModel censorViewModel() {
+        return new androidx.lifecycle.ViewModelProvider(controller.get())
+                .get(com.doubleangels.redact.ui.CensorViewModel.class);
+    }
+
+    @Test
+    public void selectingCensor_showsItsTabOnly() {
+        MainActivity activity = launch();
+
+        select(activity, R.id.navigation_censor);
+
+        assertNotNull(fragment(activity, "censor"));
+        assertTrue(fragment(activity, "censor").isVisible());
+        assertTrue(fragment(activity, "clean").isHidden());
+    }
+
+    @Test
+    public void sharingAPhotoToCensor_opensItInTheCensorTab() {
+        FakeDocumentsProvider.install(org.robolectric.RuntimeEnvironment.getApplication());
+
+        assertEquals(R.id.navigation_censor, launchedTab(censorShare(sharedImage(1))));
+        assertEquals(sharedImage(1), censorViewModel().getSource());
+    }
+
+    @Test
+    public void sharingSomethingUnusableToCensor_saysSoAndOpensNothing() {
+        assertEquals(R.id.navigation_censor,
+                launchedTab(censorShare(android.net.Uri.parse("file:///sdcard/a.jpg"))));
+        assertEquals(controller.get().getString(R.string.share_error_unsupported_media),
+                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+        assertNull(censorViewModel().getSource());
+        controller.pause().stop().destroy();
+
+        assertEquals(R.id.navigation_censor, launchedTab(censorShare(null)));
+        assertNull(censorViewModel().getSource());
+    }
+
+    @Test
+    public void sharingToCensorWhileRunning_switchesToCensor() {
+        FakeDocumentsProvider.install(org.robolectric.RuntimeEnvironment.getApplication());
+        MainActivity activity = launch();
+
+        controller.newIntent(censorShare(sharedImage(2)));
+        shadowOf(Looper.getMainLooper()).idle();
+
+        BottomNavigationView nav = activity.findViewById(R.id.bottomNavigation);
+        assertEquals(R.id.navigation_censor, nav.getSelectedItemId());
+        assertEquals(sharedImage(2), censorViewModel().getSource());
     }
 }

@@ -33,13 +33,13 @@ The store screenshots show the Clean, Scan and Convert tabs (light and dark). Re
    `git log -1 --format=%H --perl-regexp --author='^(?!ImgBot)' -- fastlane/metadata/android/en-US/images/phoneScreenshots`
 2. List what changed since then, including uncommitted changes (the translation step may have edited strings): `git diff --stat <that commit> -- app/src/main/res app/src/main/java scripts/screenshots.sh scripts/store_graphics.py scripts/tag_samples.py icons/sample`.
 3. It **counts as a visual change** when any of these changed:
-   - layouts for those tabs and the parts they share: `activity_main.xml`, `fragment_clean.xml`, `fragment_scan.xml`, `fragment_convert.xml`, every `item_*.xml`, `dialog_progress.xml`;
-   - anything under `res/drawable*` or `res/mipmap*`, except a drawable used only by `fragment_settings.xml` (check with grep);
+   - layouts for those tabs and the parts they share: `activity_main.xml`, `menu/bottom_navigation_menu.xml` (the tab bar is in every shot), `fragment_clean.xml`, `fragment_scan.xml`, `fragment_convert.xml`, every `item_*.xml`, `dialog_progress.xml`;
+   - anything under `res/drawable*` or `res/mipmap*`, except a drawable used only by `fragment_settings.xml` or the Censor tab's layouts (check with grep); `ic_censor` counts, since the tab bar shows it;
    - styling resources in any `values*` folder: `colors.xml`, `themes.xml`, `styles.xml`, `dimens.xml`, `shapes.xml`, or a font;
    - English text shown on those tabs in the screenshot state (titles, button labels, hints, badges, format chips): check whether each changed `values/strings.xml` name is used in those layouts or in the classes below;
    - code that sets how those tabs look (visibility, colours, sizes, icons, text, which views appear for a selection): `MainActivity`, `CleanFragment`, `ScanFragment`, `ConvertFragment`, `MediaAdapter`, `ConvertFileAdapter`, `ScanMetadataAdapter`, `UIStateManager`. Read the diff and judge: a change only to background work, logging, or dialogs and states the screenshots never show does not count;
    - the screenshot scripts `scripts/screenshots.sh`, `scripts/store_graphics.py` or `scripts/tag_samples.py`, or the sample media in `icons/sample`.
-4. It does **not** count when the only changes are to `fragment_settings.xml`, `SettingsFragment`, Settings-only strings, translations into other locales, or non-UI code.
+4. It does **not** count when the only changes are to `fragment_settings.xml`, `SettingsFragment`, Settings-only strings, the Censor tab (`fragment_censor.xml`, `layout-land/fragment_censor.xml`, `censor_*.xml`, `CensorFragment`, `CensorCanvasView`, `CensorViewModel`, `censor_*` strings other than `navigation_censor`), translations into other locales, or non-UI code. The store screenshots never open Censor.
 5. If there is a visual change, follow `.claude/commands/generatescreenshots.md` for `all` locales (store screenshots and feature graphics are per language). Also compare each new en-US store image with the matching one in `fastlane/metadata/android/en-US/images/phoneScreenshots/` (read both) and describe what looks different. If there is no visual change, skip the screenshots and say which commit you compared against and that nothing on those tabs changed.
 
 ## 5. Release notes, preview only

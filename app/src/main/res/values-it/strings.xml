@@ -31,6 +31,7 @@
     <string name="notification_clean_progress_title">Pulizia Metadati…</string>
 
     <string name="navigation_convert">Converti</string>
+    <string name="navigation_censor">Censura</string>
 
     
     <string name="convert_output_format_images">Formato Immagine</string>
@@ -175,7 +176,7 @@
     <string name="settings_sentry_consent_title">Attiva Segnalazioni Crash</string>
     <string name="settings_sentry_consent_message">Invia Segnalazioni Crash carica diagnostica anonima su Sentry via internet.\n\nFoto, video, nomi file e coordinate GPS non vengono caricati.</string>
     <string name="settings_strict_clean">Pulizia Rigorosa</string>
-    <string name="settings_strict_clean_subtitle">Rimuove ogni traccia di metadati, persino il tag di orientamento, quindi una foto ruotata potrebbe apparire storta in seguito. Disattiva le opzioni di mantenimento sopra e ricodifica sempre completamente il video per la pulizia più approfondita.</string>
+    <string name="settings_strict_clean_subtitle">Rimuove ogni traccia di metadati, persino il tag di orientamento, quindi una foto ruotata potrebbe apparire storta in seguito. Disattiva le opzioni di mantenimento sotto e ricodifica sempre completamente il video per la pulizia più approfondita.</string>
     
     <string name="settings_section_advanced_processing">File Grandi e Memoria</string>
     <string name="settings_advanced_processing_subtitle">Controlla l\'uso della RAM durante la decodifica di immagini grandi in pulizia e conversione.</string>
@@ -296,6 +297,7 @@ Le tue foto e video non vengono mai caricati. URI, nomi file e coordinate GPS ve
     <string name="notification_progress_percent">%1$d%% completato</string>
     <string name="scan_clean_this_file">Pulisci Questo File</string>
     <string name="scan_convert_this_file">Converti Questo File</string>
+    <string name="scan_censor_this_photo">Censura Questa Foto</string>
     <string name="scan_copied_to_clipboard">Copiato negli appunti</string>
     <string name="scan_copy_all_metadata">Copia Tutti i Metadati</string>
     <string name="scan_copy_camera">Copia Info Fotocamera</string>
@@ -468,8 +470,32 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="settings_reset_all_confirm">Ripristina</string>
     <string name="settings_reset_all_done">Impostazioni ripristinate ai valori predefiniti.</string>
     <string name="settings_reset_all_busy">Impossibile ripristinare le impostazioni durante l\'elaborazione.</string>
-    <string name="share_target_scan">Scansiona con Redact</string>
-    <string name="share_target_convert">Converti con Redact</string>
+    <string name="censor_empty_state_title">Copri Ciò Che Deve Restare Privato</string>
+    <string name="censor_empty_state_description">Pixela, oscura o sfoca volti, targhe, indirizzi e qualsiasi altra cosa in una foto. Redact salva una copia censurata senza metadati, e l’originale resta com’è.</string>
+    <string name="censor_select_photo">Seleziona Foto</string>
+    <string name="censor_hint">Disegna su tutto ciò che deve restare privato, poi tocca Salva Copia. Tocca un rettangolo per spostarlo o ridimensionarlo.</string>
+    <string name="censor_canvas_description">Foto da censurare. Disegna con un dito per coprire un’area; avvicina o allontana due dita per lo zoom.</string>
+    <string name="censor_tool_rectangle">Rettangolo</string>
+    <string name="censor_tool_brush">Pennello</string>
+    <string name="censor_tool_move">Sposta</string>
+    <string name="censor_brush_size">Dimensione pennello</string>
+    <string name="censor_effect_pixelate">Pixela</string>
+    <string name="censor_effect_black">Nero</string>
+    <string name="censor_effect_blur">Sfoca</string>
+    <string name="censor_undo">Annulla</string>
+    <string name="censor_redo">Ripeti</string>
+    <string name="censor_zoom_in">Ingrandisci</string>
+    <string name="censor_zoom_out">Riduci</string>
+    <string name="censor_save">Salva Copia</string>
+    <string name="censor_saved">Copia censurata salvata.</string>
+    <string name="censor_saved_downscaled">Copia censurata salvata, più piccola dell’originale. Per mantenere le dimensioni originali, aumenta la Risoluzione Max di Elaborazione nelle impostazioni.</string>
+    <string name="censor_error_open">Impossibile aprire questa foto.</string>
+    <string name="censor_error_unsupported">Questo tipo di immagine non può essere censurato su questo dispositivo.</string>
+    <string name="censor_error_save">Impossibile salvare la copia censurata.</string>
+    <string name="censor_discard_title">Annullare le Modifiche?</string>
+    <string name="censor_discard_message">Le aree che hai coperto non sono state salvate.</string>
+    <string name="censor_discard">Annulla Modifiche</string>
+    <string name="censor_keep_editing">Continua a Modificare</string>
     <string name="button_scan_result">Scansiona Risultato</string>
     <string name="settings_keep_original_names">Mantieni i Nomi Originali</string>
     <string name="settings_keep_original_names_subtitle">I file puliti e convertiti mantengono il nome dell\'originale invece di un nome casuale. Nomi come IMG_20260117 possono rivelare quando è stata scattata una foto.</string>
@@ -539,6 +565,7 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="onboarding_welcome_clean">Pulisci rimuove i dettagli nascosti da foto e video.</string>
     <string name="onboarding_welcome_scan">Scansiona ti mostra esattamente cosa rivela un file prima che tu lo condivida.</string>
     <string name="onboarding_welcome_convert">Converti cambia il formato di una foto o di un video e lo mantiene pulito.</string>
+    <string name="onboarding_welcome_censor">Censura copre volti, targhe e qualsiasi altra cosa in una foto che deve restare privata.</string>
     <string name="onboarding_hidden_title">Le tue foto e i tuoi video possono dire più di quanto pensi.</string>
     <string name="onboarding_hidden_body">Quando scatti una foto o registri un video, il telefono salva di nascosto informazioni extra all\'interno del file. Chiunque riceva il file potrebbe riuscire a leggerle.</string>
     <string name="onboarding_hidden_location">Possono mostrare dove ti trovavi, a volte con una precisione tale da individuare casa tua.</string>

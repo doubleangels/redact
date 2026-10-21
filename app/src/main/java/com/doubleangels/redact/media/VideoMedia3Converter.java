@@ -81,6 +81,32 @@ public final class VideoMedia3Converter {
     private static final AtomicReference<Transformer> activeTransformer = new AtomicReference<>();
     /** Owner id of the flow that started the active export; -1 when idle. */
     private static final AtomicLong activeTranscodeOwner = new AtomicLong(-1L);
+    /** Ends the wait of the export in progress when it is cancelled: Transformer.cancel() calls no listener. */
+    private static final AtomicReference<Runnable> activeCancelHook = new AtomicReference<>();
+
+    /*
+     * Owner ids: each kind of job counts its own runs from 1, so the kind is kept in the high bits.
+     * Without it, a share's session 3 and a Clean's run 3 were the same owner, and leaving a photo
+     * share cancelled the video a Clean was transcoding.
+     */
+    private static final long OWNER_CLEAN = 1L << 40;
+    private static final long OWNER_CONVERT = 2L << 40;
+    private static final long OWNER_SHARE = 3L << 40;
+
+    /** The owner id of Clean run {@code run}, for {@link #cancelActiveTranscode(long)}. */
+    public static long cleanOwner(int run) {
+        return OWNER_CLEAN | (run & 0xFFFFFFFFL);
+    }
+
+    /** The owner id of Convert run {@code run}. */
+    public static long convertOwner(int run) {
+        return OWNER_CONVERT | (run & 0xFFFFFFFFL);
+    }
+
+    /** The owner id of share session {@code session}. */
+    public static long shareOwner(int session) {
+        return OWNER_SHARE | (session & 0xFFFFFFFFL);
+    }
 
     @VisibleForTesting
     public static void setAwaitTimeoutForTests(@Nullable Long timeoutMs) {
@@ -156,11 +182,16 @@ public final class VideoMedia3Converter {
         if (transformer == null) {
             return;
         }
+        Runnable endWait = activeCancelHook.get();
         new Handler(Looper.getMainLooper()).post(() -> {
             try {
                 transformer.cancel();
             } catch (RuntimeException ignored) {
                 // Transformer may already be finished.
+            }
+            // cancel() tells no listener, so the export would otherwise wait out its timeout.
+            if (endWait != null) {
+                endWait.run();
             }
         });
     }
@@ -296,6 +327,44 @@ public final class VideoMedia3Converter {
         }
     }
 
+    /**
+     * The track types to write: video, plus audio only when the source has some. Declaring audio
+     * for a source without any makes Transformer add a silent track the original never had.
+     */
+    @VisibleForTesting
+    @NonNull
+    static ImmutableSet<Integer> trackTypes(boolean sourceHasAudio) {
+        return sourceHasAudio
+                ? ImmutableSet.of(C.TRACK_TYPE_AUDIO, C.TRACK_TYPE_VIDEO)
+                : ImmutableSet.of(C.TRACK_TYPE_VIDEO);
+    }
+
+    /**
+     * Whether the source has an audio track. When its tracks cannot be read this answers true, as
+     * before, so audio is never dropped by mistake.
+     */
+    private static boolean sourceHasAudio(@NonNull Context app, @NonNull Uri sourceUri) {
+        android.media.MediaExtractor extractor = new android.media.MediaExtractor();
+        try {
+            extractor.setDataSource(app, sourceUri, null);
+            int tracks = extractor.getTrackCount();
+            if (tracks == 0) {
+                return true;
+            }
+            for (int i = 0; i < tracks; i++) {
+                String mime = extractor.getTrackFormat(i).getString(android.media.MediaFormat.KEY_MIME);
+                if (mime != null && mime.startsWith("audio/")) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            return true;
+        } finally {
+            extractor.release();
+        }
+    }
+
     private static int parseIntOrZero(@Nullable String value) {
         if (value == null) {
             return 0;
@@ -410,14 +479,19 @@ public final class VideoMedia3Converter {
         EditedMediaItem editedMediaItem = editedMediaItemBuilder.build();
 
         EditedMediaItemSequence sequence =
-                new EditedMediaItemSequence.Builder(
-                                ImmutableSet.of(C.TRACK_TYPE_AUDIO, C.TRACK_TYPE_VIDEO))
+                new EditedMediaItemSequence.Builder(trackTypes(sourceHasAudio(app, sourceUri)))
                         .addItem(editedMediaItem)
                         .build();
 
         Composition composition = new Composition.Builder(sequence).setHdrMode(hdrMode).build();
 
         CountDownLatch latch = new CountDownLatch(1);
+        AtomicBoolean cancelled = new AtomicBoolean(false);
+        Runnable endWait = () -> {
+            cancelled.set(true);
+            latch.countDown();
+        };
+        activeCancelHook.set(endWait);
         AtomicReference<ExportException> errorRef = new AtomicReference<>();
         AtomicReference<Throwable> syncFailureRef = new AtomicReference<>();
         AtomicReference<Transformer> transformerRef = new AtomicReference<>();
@@ -510,6 +584,12 @@ public final class VideoMedia3Converter {
         } finally {
             activeTranscodeOwner.compareAndSet(ownerId, -1L);
             activeTransformer.compareAndSet(transformerRef.get(), null);
+            activeCancelHook.compareAndSet(endWait, null);
+        }
+        if (cancelled.get() && errorRef.get() == null && syncFailureRef.get() == null) {
+            stopPolling(mainHandler, pollingActive, pollRunnable[0]);
+            deleteQuietly(app, outFile);
+            throw new InterruptedException("Video conversion was cancelled");
         }
         if (!finished) {
             CountDownLatch cancelDone = new CountDownLatch(1);

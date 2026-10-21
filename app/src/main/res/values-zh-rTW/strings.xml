@@ -27,6 +27,7 @@
     <string name="notification_clean_progress_title">正在清理中繼資料…</string>
 
     <string name="navigation_convert">轉換</string>
+    <string name="navigation_censor">遮蔽</string>
 
     
     <string name="convert_output_format_images">圖片格式</string>
@@ -169,7 +170,7 @@
     <string name="settings_sentry_consent_title">啟用當機報告</string>
     <string name="settings_sentry_consent_message">傳送當機報告會透過網際網路向 Sentry 上傳匿名診斷資訊。\n\n不會上傳照片、影片、檔名或 GPS 座標。</string>
     <string name="settings_strict_clean">嚴格清理</string>
-    <string name="settings_strict_clean_subtitle">移除所有中繼資料痕跡，甚至包括方向標籤，因此旋轉過的相片之後可能會顯示為歪斜。關閉上方的保留選項，並一律完整重新編碼影片，以達到最徹底的清理。</string>
+    <string name="settings_strict_clean_subtitle">移除所有中繼資料痕跡，甚至包括方向標籤，因此旋轉過的相片之後可能會顯示為歪斜。關閉下方的保留選項，並一律完整重新編碼影片，以達到最徹底的清理。</string>
     
     <string name="settings_section_advanced_processing">大型檔案與記憶體</string>
     <string name="settings_advanced_processing_subtitle">控制清理和轉換時解碼大型影像的記憶體使用。</string>
@@ -284,6 +285,7 @@
     <string name="notification_progress_percent">已完成 %1$d%%</string>
     <string name="scan_clean_this_file">清理此檔案</string>
     <string name="scan_convert_this_file">轉換此檔案</string>
+    <string name="scan_censor_this_photo">遮蔽此照片的部分內容</string>
     <string name="scan_copied_to_clipboard">已複製到剪貼簿</string>
     <string name="scan_copy_all_metadata">複製全部中繼資料</string>
     <string name="scan_copy_camera">複製相機資訊</string>
@@ -442,8 +444,32 @@
     <string name="settings_reset_all_confirm">重設</string>
     <string name="settings_reset_all_done">設定已恢復為預設值。</string>
     <string name="settings_reset_all_busy">處理期間無法重設設定。</string>
-    <string name="share_target_scan">使用 Redact 掃描</string>
-    <string name="share_target_convert">使用 Redact 轉換</string>
+    <string name="censor_empty_state_title">遮住應保持私密的內容</string>
+    <string name="censor_empty_state_description">為照片中的人臉、車牌、地址等任何內容加上馬賽克、塗黑或模糊處理。Redact 會儲存一份不含任何中繼資料的遮蔽副本，原始照片維持不變。</string>
+    <string name="censor_select_photo">選擇照片</string>
+    <string name="censor_hint">在需要保密的內容上繪製，然後輕觸「儲存副本」。輕觸矩形即可移動或調整大小。</string>
+    <string name="censor_canvas_description">正在遮蔽的照片。用一根手指繪製以遮蔽區域；用兩根手指縮放。</string>
+    <string name="censor_tool_rectangle">矩形</string>
+    <string name="censor_tool_brush">筆刷</string>
+    <string name="censor_tool_move">移動</string>
+    <string name="censor_brush_size">筆刷大小</string>
+    <string name="censor_effect_pixelate">馬賽克</string>
+    <string name="censor_effect_black">塗黑</string>
+    <string name="censor_effect_blur">模糊</string>
+    <string name="censor_undo">復原</string>
+    <string name="censor_redo">重做</string>
+    <string name="censor_zoom_in">放大</string>
+    <string name="censor_zoom_out">縮小</string>
+    <string name="censor_save">儲存副本</string>
+    <string name="censor_saved">已儲存遮蔽副本。</string>
+    <string name="censor_saved_downscaled">已儲存副本，但尺寸小於原始照片。若要保留完整尺寸，請在設定中提高最大處理解析度。</string>
+    <string name="censor_error_open">無法開啟此照片。</string>
+    <string name="censor_error_unsupported">此裝置無法處理這種類型的圖片。</string>
+    <string name="censor_error_save">無法儲存遮蔽副本。</string>
+    <string name="censor_discard_title">要捨棄變更嗎？</string>
+    <string name="censor_discard_message">你遮蔽的區域尚未儲存。</string>
+    <string name="censor_discard">捨棄</string>
+    <string name="censor_keep_editing">繼續編輯</string>
     <string name="button_scan_result">掃描結果</string>
     <string name="settings_keep_original_names">保留原始檔名</string>
     <string name="settings_keep_original_names_subtitle">清理與轉換後的檔案沿用原始檔名，而非隨機名稱。IMG_20260117 這類名稱可能透露照片的拍攝時間。</string>
@@ -511,6 +537,7 @@
     <string name="onboarding_welcome_clean">清理會移除相片和影片中隱藏的資訊。</string>
     <string name="onboarding_welcome_scan">掃描會在你分享之前，準確顯示檔案會透露哪些資訊。</string>
     <string name="onboarding_welcome_convert">轉換會把相片或影片改成其他格式，並保持乾淨。</string>
+    <string name="onboarding_welcome_censor">「遮蔽」可遮住照片中的人臉、車牌以及其他應保持私密的內容。</string>
     <string name="onboarding_hidden_title">相片和影片透露的資訊可能比你想的更多。</string>
     <string name="onboarding_hidden_body">拍照或錄影時，手機會悄悄在檔案裡儲存額外的資訊。收到檔案的人可能都能讀取這些資訊。</string>
     <string name="onboarding_hidden_location">它們可能顯示你去過哪裡，有時精確到能找到你的住處。</string>

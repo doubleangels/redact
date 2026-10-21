@@ -27,6 +27,7 @@
     <string name="notification_clean_progress_title">正在清理元数据…</string>
 
     <string name="navigation_convert">转换</string>
+    <string name="navigation_censor">遮挡</string>
 
     
     <string name="convert_output_format_images">图片格式</string>
@@ -169,7 +170,7 @@
     <string name="settings_sentry_consent_title">启用崩溃报告</string>
     <string name="settings_sentry_consent_message">发送崩溃报告会通过互联网向 Sentry 上传匿名诊断信息。\n\n不会上传照片、视频、文件名或 GPS 坐标。</string>
     <string name="settings_strict_clean">严格清理</string>
-    <string name="settings_strict_clean_subtitle">移除所有元数据痕迹，甚至包括方向标签，因此旋转过的照片之后可能会显示为歪斜。关闭上方的保留选项，并始终完全重新编码视频以实现最彻底的清理。</string>
+    <string name="settings_strict_clean_subtitle">移除所有元数据痕迹，甚至包括方向标签，因此旋转过的照片之后可能会显示为歪斜。关闭下方的保留选项，并始终完全重新编码视频以实现最彻底的清理。</string>
     
     <string name="settings_section_advanced_processing">大文件与内存</string>
     <string name="settings_advanced_processing_subtitle">控制清理和转换时解码大图像的内存使用。</string>
@@ -284,6 +285,7 @@
     <string name="notification_progress_percent">已完成 %1$d%%</string>
     <string name="scan_clean_this_file">清理此文件</string>
     <string name="scan_convert_this_file">转换此文件</string>
+    <string name="scan_censor_this_photo">遮挡此照片的部分内容</string>
     <string name="scan_copied_to_clipboard">已复制到剪贴板</string>
     <string name="scan_copy_all_metadata">复制全部元数据</string>
     <string name="scan_copy_camera">复制相机信息</string>
@@ -442,8 +444,32 @@
     <string name="settings_reset_all_confirm">重置</string>
     <string name="settings_reset_all_done">设置已恢复为默认值。</string>
     <string name="settings_reset_all_busy">处理过程中无法重置设置。</string>
-    <string name="share_target_scan">使用 Redact 扫描</string>
-    <string name="share_target_convert">使用 Redact 转换</string>
+    <string name="censor_empty_state_title">遮住应保持私密的内容</string>
+    <string name="censor_empty_state_description">为照片中的人脸、车牌、地址等任何内容打码、涂黑或模糊处理。Redact 会保存一份不含任何元数据的遮挡副本，原图保持不变。</string>
+    <string name="censor_select_photo">选择照片</string>
+    <string name="censor_hint">在需要保密的内容上绘制，然后点按“保存副本”。点按矩形即可移动或调整大小。</string>
+    <string name="censor_canvas_description">正在遮挡的照片。用一根手指绘制以遮挡区域；用两根手指缩放。</string>
+    <string name="censor_tool_rectangle">矩形</string>
+    <string name="censor_tool_brush">画笔</string>
+    <string name="censor_tool_move">移动</string>
+    <string name="censor_brush_size">画笔大小</string>
+    <string name="censor_effect_pixelate">马赛克</string>
+    <string name="censor_effect_black">涂黑</string>
+    <string name="censor_effect_blur">模糊</string>
+    <string name="censor_undo">撤销</string>
+    <string name="censor_redo">重做</string>
+    <string name="censor_zoom_in">放大</string>
+    <string name="censor_zoom_out">缩小</string>
+    <string name="censor_save">保存副本</string>
+    <string name="censor_saved">已保存遮挡副本。</string>
+    <string name="censor_saved_downscaled">已保存副本，但尺寸小于原图。若要保留完整尺寸，请在设置中提高最大处理分辨率。</string>
+    <string name="censor_error_open">无法打开此照片。</string>
+    <string name="censor_error_unsupported">此设备无法处理这种类型的图片。</string>
+    <string name="censor_error_save">无法保存遮挡副本。</string>
+    <string name="censor_discard_title">放弃更改？</string>
+    <string name="censor_discard_message">你遮挡的区域尚未保存。</string>
+    <string name="censor_discard">放弃</string>
+    <string name="censor_keep_editing">继续编辑</string>
     <string name="button_scan_result">扫描结果</string>
     <string name="settings_keep_original_names">保留原文件名</string>
     <string name="settings_keep_original_names_subtitle">清理和转换后的文件沿用原文件名，而不是随机名称。IMG_20260117 这样的名称可能会暴露照片的拍摄时间。</string>
@@ -511,6 +537,7 @@
     <string name="onboarding_welcome_clean">清理会移除照片和视频中隐藏的信息。</string>
     <string name="onboarding_welcome_scan">扫描会在你分享之前，准确显示文件会透露哪些信息。</string>
     <string name="onboarding_welcome_convert">转换会把照片或视频改成其他格式，并保持干净。</string>
+    <string name="onboarding_welcome_censor">“遮挡”可遮住照片中的人脸、车牌以及其他应保持私密的内容。</string>
     <string name="onboarding_hidden_title">照片和视频透露的信息可能比你想的更多。</string>
     <string name="onboarding_hidden_body">拍照或录像时，手机会悄悄在文件里保存额外的信息。收到文件的人可能都能读取这些信息。</string>
     <string name="onboarding_hidden_location">它们可能显示你去过哪里，有时精确到能找到你的住址。</string>

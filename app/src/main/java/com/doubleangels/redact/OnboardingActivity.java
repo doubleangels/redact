@@ -394,6 +394,7 @@ public class OnboardingActivity extends AppCompatActivity {
                 points.add(point(R.drawable.ic_clean, R.string.onboarding_welcome_clean));
                 points.add(point(R.drawable.ic_scan, R.string.onboarding_welcome_scan));
                 points.add(point(R.drawable.ic_convert, R.string.onboarding_welcome_convert));
+                points.add(point(R.drawable.ic_censor, R.string.onboarding_welcome_censor));
             }
             case HIDDEN_DETAILS -> {
                 icon = R.drawable.ic_scan;

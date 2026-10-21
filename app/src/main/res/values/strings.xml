@@ -42,6 +42,7 @@
     <string name="navigation_clean">Clean</string>
     <string name="navigation_scan">Scan</string>
     <string name="navigation_convert">Convert</string>
+    <string name="navigation_censor">Censor</string>
     <string name="navigation_settings">Settings</string>
 
     
@@ -242,6 +243,7 @@
     <string name="scan_copy_all_metadata">Copy All Metadata</string>
     <string name="scan_clean_this_file">Clean This File</string>
     <string name="scan_convert_this_file">Convert This File</string>
+    <string name="scan_censor_this_photo">Censor This Photo</string>
     <string name="scan_copied_to_clipboard">Copied to clipboard</string>
     <string name="scan_maps_consent_title">Open in Maps</string>
     <string name="scan_maps_consent_message">This opens the coordinates in your device\'s default maps app. Unlike every other action on this screen, that hands your exact GPS location to a separate app, which may send it off this device, for example to load map tiles or look up the address. Redact itself never sends this data anywhere.\n\nYou\'ll only see this message once. Choosing to continue is remembered, so this won\'t ask again.</string>
@@ -357,7 +359,7 @@
     <string name="settings_sentry_consent_title">Enable Crash Reporting</string>
     <string name="settings_sentry_consent_message">Send Crash Reports uploads anonymized diagnostics to Sentry over the internet.\n\nNo photos, videos, filenames, or GPS coordinates are uploaded.</string>
     <string name="settings_strict_clean">Strict Clean</string>
-    <string name="settings_strict_clean_subtitle">Removes every trace of metadata, even the orientation tag, so a rotated photo may look sideways afterward. Turns off the keep options above and always fully re-encodes video for the most thorough clean.</string>
+    <string name="settings_strict_clean_subtitle">Removes every trace of metadata, even the orientation tag, so a rotated photo may look sideways afterward. Turns off the keep options below and always fully re-encodes video for the most thorough clean.</string>
     <string name="settings_video_fallback">Faster Video Cleaning</string>
     <string name="settings_video_fallback_subtitle">When your video is already in a compatible format, Redact strips its metadata with a quick pass instead of fully re-encoding it. That\'s faster and lighter on battery, though a full re-encode removes a touch more. Automatically turned off when Strict Clean is on or when cleaning files shared in from other apps.</string>
     
@@ -460,8 +462,34 @@
     <string name="settings_reset_all_confirm">Reset</string>
     <string name="settings_reset_all_done">Settings reset to defaults.</string>
     <string name="settings_reset_all_busy">Cannot reset settings while processing is in progress.</string>
-    <string name="share_target_scan">Scan with Redact</string>
-    <string name="share_target_convert">Convert with Redact</string>
+
+    <!-- Censor: cover parts of a photo -->
+    <string name="censor_empty_state_title">Cover What Should Stay Private</string>
+    <string name="censor_empty_state_description">Pixelate, black out or blur faces, number plates, addresses and anything else in a photo. Redact saves a censored copy without any metadata, and your original stays as it is.</string>
+    <string name="censor_select_photo">Select Photo</string>
+    <string name="censor_hint">Draw over anything that should stay private, then tap Save Copy. Tap a rectangle to move or resize it.</string>
+    <string name="censor_canvas_description">Photo being censored. Draw with one finger to cover an area; pinch with two fingers to zoom.</string>
+    <string name="censor_tool_rectangle">Rectangle</string>
+    <string name="censor_tool_brush">Brush</string>
+    <string name="censor_tool_move">Move</string>
+    <string name="censor_brush_size">Brush size</string>
+    <string name="censor_effect_pixelate">Pixelate</string>
+    <string name="censor_effect_black">Black</string>
+    <string name="censor_effect_blur">Blur</string>
+    <string name="censor_undo">Undo</string>
+    <string name="censor_redo">Redo</string>
+    <string name="censor_zoom_in">Zoom in</string>
+    <string name="censor_zoom_out">Zoom out</string>
+    <string name="censor_save">Save Copy</string>
+    <string name="censor_saved">Censored copy saved.</string>
+    <string name="censor_saved_downscaled">Censored copy saved, smaller than the original. To keep the full size, raise Max Processing Resolution in Settings.</string>
+    <string name="censor_error_open">This photo could not be opened.</string>
+    <string name="censor_error_unsupported">This type of image cannot be censored on this device.</string>
+    <string name="censor_error_save">The censored copy could not be saved.</string>
+    <string name="censor_discard_title">Discard Your Changes?</string>
+    <string name="censor_discard_message">The areas you covered have not been saved.</string>
+    <string name="censor_discard">Discard</string>
+    <string name="censor_keep_editing">Keep Editing</string>
     <string name="button_scan_result">Scan Result</string>
     <string name="settings_keep_original_names">Keep Original File Names</string>
     <string name="settings_keep_original_names_subtitle">Name cleaned and converted files after the originals instead of a random name. Names such as IMG_20260117 can reveal when a photo was taken.</string>
@@ -526,6 +554,7 @@
     <string name="onboarding_welcome_clean">Clean removes the hidden details from your photos and videos.</string>
     <string name="onboarding_welcome_scan">Scan shows you exactly what a file reveals before you share it.</string>
     <string name="onboarding_welcome_convert">Convert changes a photo or video to another format and keeps it clean.</string>
+    <string name="onboarding_welcome_censor">Censor covers faces, number plates and anything else in a photo that should stay private.</string>
     <string name="onboarding_hidden_title">Your photos and videos can say more than you think.</string>
     <string name="onboarding_hidden_body">When you take a photo or video, your phone quietly saves extra information inside the file. Anyone you send the file to may be able to read it.</string>
     <string name="onboarding_hidden_location">It can show where you were, sometimes closely enough to find your home.</string>

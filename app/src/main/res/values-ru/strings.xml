@@ -33,6 +33,7 @@
     <string name="notification_clean_progress_title">Очистка Метаданных…</string>
 
     <string name="navigation_convert">Конвертировать</string>
+    <string name="navigation_censor">Скрыть</string>
 
     
     <string name="convert_output_format_images">Формат Изображения</string>
@@ -178,7 +179,7 @@
     <string name="settings_sentry_consent_title">Включить Отчёты о Сбоях</string>
     <string name="settings_sentry_consent_message">Отправка отчётов о сбоях загружает анонимную диагностику в Sentry через интернет.\n\nФото, видео, имена файлов и GPS-координаты не загружаются.</string>
     <string name="settings_strict_clean">Строгая Очистка</string>
-    <string name="settings_strict_clean_subtitle">Удаляет все следы метаданных, включая тег ориентации, поэтому повёрнутое фото может выглядеть боком после очистки. Отключает опции сохранения выше и всегда полностью перекодирует видео для максимально тщательной очистки.</string>
+    <string name="settings_strict_clean_subtitle">Удаляет все следы метаданных, включая тег ориентации, поэтому повёрнутое фото может выглядеть боком после очистки. Отключает опции сохранения ниже и всегда полностью перекодирует видео для максимально тщательной очистки.</string>
     
     <string name="settings_section_advanced_processing">Большие Файлы и Память</string>
     <string name="settings_advanced_processing_subtitle">Управляет использованием ОЗУ при декодировании больших изображений при очистке и конвертации.</string>
@@ -302,6 +303,7 @@
     <string name="notification_progress_percent">%1$d%% завершено</string>
     <string name="scan_clean_this_file">Очистить Этот Файл</string>
     <string name="scan_convert_this_file">Конвертировать Этот Файл</string>
+    <string name="scan_censor_this_photo">Скрыть Части Этого Фото</string>
     <string name="scan_copied_to_clipboard">Скопировано в буфер обмена</string>
     <string name="scan_copy_all_metadata">Копировать Все Метаданные</string>
     <string name="scan_copy_camera">Копировать Данные Камеры</string>
@@ -481,8 +483,32 @@
     <string name="settings_reset_all_confirm">Сбросить</string>
     <string name="settings_reset_all_done">Настройки сброшены.</string>
     <string name="settings_reset_all_busy">Нельзя сбросить настройки во время обработки.</string>
-    <string name="share_target_scan">Сканировать в Redact</string>
-    <string name="share_target_convert">Конвертировать в Redact</string>
+    <string name="censor_empty_state_title">Скройте То, Что Должно Остаться Личным</string>
+    <string name="censor_empty_state_description">Пикселизируйте, закрасьте чёрным или размойте лица, номера машин, адреса и всё остальное на фото. Redact сохраняет копию со скрытыми областями без метаданных, а оригинал остаётся без изменений.</string>
+    <string name="censor_select_photo">Выбрать Фото</string>
+    <string name="censor_hint">Закрасьте всё, что должно остаться личным, затем нажмите Сохранить Копию. Нажмите на прямоугольник, чтобы переместить его или изменить размер.</string>
+    <string name="censor_canvas_description">Редактируемое фото. Рисуйте одним пальцем, чтобы скрыть область; сведите или разведите два пальца для масштабирования.</string>
+    <string name="censor_tool_rectangle">Прямоугольник</string>
+    <string name="censor_tool_brush">Кисть</string>
+    <string name="censor_tool_move">Переместить</string>
+    <string name="censor_brush_size">Размер кисти</string>
+    <string name="censor_effect_pixelate">Пиксели</string>
+    <string name="censor_effect_black">Чёрный</string>
+    <string name="censor_effect_blur">Размытие</string>
+    <string name="censor_undo">Отменить</string>
+    <string name="censor_redo">Повторить</string>
+    <string name="censor_zoom_in">Увеличить</string>
+    <string name="censor_zoom_out">Уменьшить</string>
+    <string name="censor_save">Сохранить Копию</string>
+    <string name="censor_saved">Копия со скрытыми областями сохранена.</string>
+    <string name="censor_saved_downscaled">Копия сохранена, но меньше оригинала. Чтобы сохранить полный размер, увеличьте Макс. Разрешение Обработки в настройках.</string>
+    <string name="censor_error_open">Не удалось открыть это фото.</string>
+    <string name="censor_error_unsupported">Этот тип изображения нельзя редактировать на этом устройстве.</string>
+    <string name="censor_error_save">Не удалось сохранить копию со скрытыми областями.</string>
+    <string name="censor_discard_title">Сбросить Изменения?</string>
+    <string name="censor_discard_message">Скрытые вами области не сохранены.</string>
+    <string name="censor_discard">Сбросить</string>
+    <string name="censor_keep_editing">Продолжить</string>
     <string name="button_scan_result">Сканировать Результат</string>
     <string name="settings_keep_original_names">Сохранять Исходные Имена</string>
     <string name="settings_keep_original_names_subtitle">Очищенные и преобразованные файлы получают имя оригинала вместо случайного. Имена вроде IMG_20260117 могут показать, когда был сделан снимок.</string>
@@ -553,6 +579,7 @@
     <string name="onboarding_welcome_clean">Очистка удаляет скрытые сведения из ваших фото и видео.</string>
     <string name="onboarding_welcome_scan">Сканирование точно показывает, что раскрывает файл, прежде чем вы им поделитесь.</string>
     <string name="onboarding_welcome_convert">Конвертация меняет формат фото или видео и сохраняет его чистым.</string>
+    <string name="onboarding_welcome_censor">Скрытие закрывает лица, номера машин и всё остальное на фото, что должно остаться личным.</string>
     <string name="onboarding_hidden_title">Ваши фото и видео могут рассказать больше, чем вы думаете.</string>
     <string name="onboarding_hidden_body">Когда вы снимаете фото или видео, телефон незаметно сохраняет в файле дополнительные сведения. Любой, кому вы отправите файл, может их прочитать.</string>
     <string name="onboarding_hidden_location">Они могут показать, где вы были, иногда настолько точно, что можно найти ваш дом.</string>

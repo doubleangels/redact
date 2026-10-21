@@ -507,7 +507,7 @@ public class MainViewModel extends AndroidViewModel {
         final int runGeneration = cleanGeneration.get();
         cleanGeneration.incrementAndGet();
         mediaProcessor.cancel();
-        VideoMedia3Converter.cancelActiveTranscode(runGeneration);
+        VideoMedia3Converter.cancelActiveTranscode(VideoMedia3Converter.cleanOwner(runGeneration));
         LocalNotifications.cancelCleanProgress(getApplication());
         LocalNotifications.stopProcessingForeground(
                 getApplication(), LocalNotifications.ForegroundJob.CLEAN);
@@ -519,7 +519,7 @@ public class MainViewModel extends AndroidViewModel {
         final int runGeneration = convertGeneration.get();
         convertGeneration.incrementAndGet();
         convertInProgress.set(false);
-        VideoMedia3Converter.cancelActiveTranscode(runGeneration);
+        VideoMedia3Converter.cancelActiveTranscode(VideoMedia3Converter.convertOwner(runGeneration));
         LocalNotifications.cancelConvertProgress(getApplication());
         LocalNotifications.stopProcessingForeground(
                 getApplication(), LocalNotifications.ForegroundJob.CONVERT);
@@ -682,7 +682,7 @@ public class MainViewModel extends AndroidViewModel {
                 if (runGeneration != cleanGeneration.get()) {
                     return;
                 }
-                mediaProcessor.setTranscodeOwnerId(runGeneration);
+                mediaProcessor.setTranscodeOwnerId(VideoMedia3Converter.cleanOwner(runGeneration));
                 setCleanProcessingState(ProcessingState.PROCESSING);
                 LocalNotifications.startProcessingForeground(
                         getApplication(), LocalNotifications.ForegroundJob.CLEAN,
@@ -895,7 +895,7 @@ public class MainViewModel extends AndroidViewModel {
 
                                     },
                                     actualFormatIndex,
-                                    runGeneration,
+                                    VideoMedia3Converter.convertOwner(runGeneration),
                                     () -> Thread.currentThread().isInterrupted()
                                             || convertTimedOut.get()
                                             || runGeneration != convertGeneration.get());

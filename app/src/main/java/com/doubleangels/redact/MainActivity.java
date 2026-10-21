@@ -31,12 +31,15 @@ public class MainActivity extends AppCompatActivity {
     static final String TAG_CLEAN = "clean";
     private static final String TAG_SCAN = "scan";
     private static final String TAG_CONVERT = "convert";
+    private static final String TAG_CENSOR = "censor";
     private static final String TAG_SETTINGS = "settings";
     private static final String KEY_SELECTED_TAB = "selected_tab";
     /** Extra set by the launcher shortcuts in res/xml/shortcuts.xml and by {@link CleanTileService}. */
     static final String EXTRA_TAB = "tab";
-    /** Manifest alias that receives "Convert with Redact" shares. */
+    /** Manifest alias that receives Redact › Convert shares. */
     private static final String CONVERT_SHARE_TARGET = ".ConvertShareTarget";
+    /** Manifest alias that receives Redact › Censor shares. */
+    private static final String CENSOR_SHARE_TARGET = ".CensorShareTarget";
     /** Same cap as picking files in Convert. */
     private static final int MAX_CONVERT_SHARE_ITEMS = 20;
 
@@ -122,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
                         return false;
                     }
                     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                    for (String tag : new String[] {TAG_CLEAN, TAG_SCAN, TAG_CONVERT, TAG_SETTINGS}) {
+                    for (String tag : new String[] {TAG_CLEAN, TAG_SCAN, TAG_CONVERT, TAG_CENSOR, TAG_SETTINGS}) {
                         Fragment f = getSupportFragmentManager().findFragmentByTag(tag);
                         if (f != null) {
                             if (f == target) {
@@ -148,9 +151,11 @@ public class MainActivity extends AppCompatActivity {
                 bottomNavigationView.setSelectedItemId(
                         queueConvertShareIntent(getIntent())
                                 ? R.id.navigation_convert
-                                : queueViewIntent(getIntent())
-                                        ? R.id.navigation_scan
-                                        : tabFromIntent(getIntent()));
+                                : queueCensorShareIntent(getIntent())
+                                        ? R.id.navigation_censor
+                                        : queueViewIntent(getIntent())
+                                                ? R.id.navigation_scan
+                                                : tabFromIntent(getIntent()));
             }
 
             SentryManager.setCustomKey("app_started", true);
@@ -174,6 +179,8 @@ public class MainActivity extends AppCompatActivity {
         setIntent(intent);
         if (queueConvertShareIntent(intent)) {
             selectTab(R.id.navigation_convert);
+        } else if (queueCensorShareIntent(intent)) {
+            selectTab(R.id.navigation_censor);
         } else if (queueViewIntent(intent)) {
             selectTab(R.id.navigation_scan);
         } else if (intent.hasExtra(EXTRA_TAB)) {
@@ -182,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Selects shared images/videos in Convert when they were shared to "Convert with Redact"
+     * Selects shared images/videos in Convert when they were shared to Redact › Convert
      * (ACTION_SEND or ACTION_SEND_MULTIPLE). Returns whether the share was for Convert.
      */
     private boolean queueConvertShareIntent(@Nullable android.content.Intent intent) {
@@ -238,6 +245,44 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * Opens a photo shared to Redact › Censor in the Censor tab. Returns whether the share
+     * was for Censor, including one that could not be used (which shows a message).
+     */
+    private boolean queueCensorShareIntent(@Nullable android.content.Intent intent) {
+        if (intent == null || intent.getComponent() == null
+                || !intent.getComponent().getClassName().endsWith(CENSOR_SHARE_TARGET)) {
+            return false;
+        }
+        android.net.Uri uri = android.content.Intent.ACTION_SEND.equals(intent.getAction())
+                ? androidx.core.content.IntentCompat.getParcelableExtra(
+                        intent, android.content.Intent.EXTRA_STREAM, android.net.Uri.class)
+                : null;
+        if (!isForeignContentUri(uri) || !isImage(uri, intent.getType())) {
+            android.widget.Toast.makeText(this, R.string.share_error_unsupported_media,
+                    android.widget.Toast.LENGTH_LONG).show();
+            return true;
+        }
+        SentryManager.logEvent("share", "A photo was shared to Censor.");
+        new androidx.lifecycle.ViewModelProvider(this)
+                .get(com.doubleangels.redact.ui.CensorViewModel.class).requestOpen(uri);
+        return true;
+    }
+
+    private boolean isImage(@NonNull android.net.Uri uri, @Nullable String intentType) {
+        String type;
+        try {
+            type = getContentResolver().getType(uri);
+        } catch (Exception e) {
+            SentryManager.recordException(e);
+            type = null;
+        }
+        if (type == null) {
+            type = intentType;
+        }
+        return type != null && type.startsWith("image/");
+    }
+
     private boolean isImageOrVideo(@NonNull android.net.Uri uri, @Nullable String intentType) {
         String type;
         try {
@@ -254,7 +299,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Queues an image/video for Scan when it was opened from another app (ACTION_VIEW) or shared
-     * to "Scan with Redact" (ACTION_SEND). Returns whether one was queued.
+     * to Redact › Scan (ACTION_SEND). Returns whether one was queued.
      */
     private boolean queueViewIntent(@Nullable android.content.Intent intent) {
         if (intent == null) {
@@ -327,6 +372,9 @@ public class MainActivity extends AppCompatActivity {
         } else if (itemId == R.id.navigation_convert) {
             tag = TAG_CONVERT;
             newFragment = new ConvertFragment();
+        } else if (itemId == R.id.navigation_censor) {
+            tag = TAG_CENSOR;
+            newFragment = new CensorFragment();
         } else if (itemId == R.id.navigation_settings) {
             tag = TAG_SETTINGS;
             newFragment = new SettingsFragment();
@@ -441,7 +489,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        for (String tag : new String[] {TAG_CLEAN, TAG_SCAN, TAG_CONVERT, TAG_SETTINGS}) {
+        for (String tag : new String[] {TAG_CLEAN, TAG_SCAN, TAG_CONVERT, TAG_CENSOR, TAG_SETTINGS}) {
             Fragment f = getSupportFragmentManager().findFragmentByTag(tag);
             if (f != null) {
                 if (f == target) {
@@ -494,6 +542,8 @@ public class MainActivity extends AppCompatActivity {
             tag = TAG_SCAN;
         } else if (selectedItemId == R.id.navigation_convert) {
             tag = TAG_CONVERT;
+        } else if (selectedItemId == R.id.navigation_censor) {
+            tag = TAG_CENSOR;
         } else if (selectedItemId == R.id.navigation_settings) {
             tag = TAG_SETTINGS;
         } else {

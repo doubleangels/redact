@@ -29,6 +29,7 @@
     <string name="notification_clean_progress_title">मेटाडेटा साफ़ किया जा रहा है…</string>
 
     <string name="navigation_convert">बदलें</string>
+    <string name="navigation_censor">छिपाएँ</string>
 
     
     <string name="convert_output_format_images">छवि प्रारूप</string>
@@ -172,7 +173,7 @@
     <string name="settings_sentry_consent_title">क्रैश रिपोर्टिंग सक्षम करें</string>
     <string name="settings_sentry_consent_message">क्रैश रिपोर्ट भेजना इंटरनेट पर Sentry को अनाम निदान अपलोड करता है।\n\nफ़ोटो, वीडियो, फ़ाइल नाम या GPS निर्देशांक अपलोड नहीं होते।</string>
     <string name="settings_strict_clean">सख्त सफ़ाई</string>
-    <string name="settings_strict_clean_subtitle">मेटाडेटा का हर निशान हटाता है, यहाँ तक कि ओरिएंटेशन टैग भी, इसलिए घुमाई गई फ़ोटो बाद में तिरछी दिख सकती है। ऊपर के रखने के विकल्प बंद करता है और सबसे गहन सफ़ाई के लिए वीडियो को हमेशा पूरी तरह पुनः-एन्कोड करता है।</string>
+    <string name="settings_strict_clean_subtitle">मेटाडेटा का हर निशान हटाता है, यहाँ तक कि ओरिएंटेशन टैग भी, इसलिए घुमाई गई फ़ोटो बाद में तिरछी दिख सकती है। नीचे के रखने के विकल्प बंद करता है और सबसे गहन सफ़ाई के लिए वीडियो को हमेशा पूरी तरह पुनः-एन्कोड करता है।</string>
     
     <string name="settings_section_advanced_processing">बड़ी फ़ाइलें और मेमोरी</string>
     <string name="settings_advanced_processing_subtitle">साफ़ और रूपांतरण के दौरान बड़ी छवियों को डिकोड करते समय RAM उपयोग को नियंत्रित करता है।</string>
@@ -290,6 +291,7 @@
     <string name="notification_progress_percent">%1$d%% पूर्ण</string>
     <string name="scan_clean_this_file">इस फ़ाइल को साफ़ करें</string>
     <string name="scan_convert_this_file">इस फ़ाइल को कनवर्ट करें</string>
+    <string name="scan_censor_this_photo">इस फ़ोटो के हिस्से छिपाएँ</string>
     <string name="scan_copied_to_clipboard">क्लिपबोर्ड पर कॉपी किया गया</string>
     <string name="scan_copy_all_metadata">सभी मेटाडेटा कॉपी करें</string>
     <string name="scan_copy_camera">कैमरा जानकारी कॉपी करें</string>
@@ -455,8 +457,32 @@
     <string name="settings_reset_all_confirm">रीसेट करें</string>
     <string name="settings_reset_all_done">सेटिंग डिफ़ॉल्ट पर रीसेट हो गईं।</string>
     <string name="settings_reset_all_busy">प्रोसेसिंग चलते समय सेटिंग रीसेट नहीं की जा सकतीं।</string>
-    <string name="share_target_scan">Redact से स्कैन करें</string>
-    <string name="share_target_convert">Redact से बदलें</string>
+    <string name="censor_empty_state_title">जो निजी रहना चाहिए, उसे छिपाएँ</string>
+    <string name="censor_empty_state_description">फ़ोटो में चेहरे, नंबर प्लेट, पते और कुछ भी पिक्सेलेट करें, काला करें या धुंधला करें। Redact बिना किसी मेटाडेटा के एक छिपाई गई कॉपी सहेजता है, और आपकी मूल फ़ोटो जैसी है वैसी ही रहती है।</string>
+    <string name="censor_select_photo">फ़ोटो चुनें</string>
+    <string name="censor_hint">जो कुछ भी निजी रहना चाहिए उस पर बनाएँ, फिर कॉपी सहेजें पर टैप करें। किसी आयत को खिसकाने या उसका आकार बदलने के लिए उस पर टैप करें।</string>
+    <string name="censor_canvas_description">फ़ोटो जिसके हिस्से छिपाए जा रहे हैं। किसी हिस्से को ढकने के लिए एक उंगली से बनाएँ; ज़ूम करने के लिए दो उंगलियों से पिंच करें।</string>
+    <string name="censor_tool_rectangle">आयत</string>
+    <string name="censor_tool_brush">ब्रश</string>
+    <string name="censor_tool_move">खिसकाएँ</string>
+    <string name="censor_brush_size">ब्रश का आकार</string>
+    <string name="censor_effect_pixelate">पिक्सेलेट</string>
+    <string name="censor_effect_black">काला</string>
+    <string name="censor_effect_blur">धुंधला</string>
+    <string name="censor_undo">पूर्ववत करें</string>
+    <string name="censor_redo">फिर से करें</string>
+    <string name="censor_zoom_in">ज़ूम इन करें</string>
+    <string name="censor_zoom_out">ज़ूम आउट करें</string>
+    <string name="censor_save">कॉपी सहेजें</string>
+    <string name="censor_saved">छिपाई गई कॉपी सहेजी गई।</string>
+    <string name="censor_saved_downscaled">कॉपी सहेजी गई, लेकिन मूल से छोटी। पूरा आकार रखने के लिए सेटिंग में अधिकतम प्रसंस्करण रिज़ॉल्यूशन बढ़ाएँ।</string>
+    <string name="censor_error_open">यह फ़ोटो खोली नहीं जा सकी।</string>
+    <string name="censor_error_unsupported">इस प्रकार की इमेज के हिस्से इस डिवाइस पर नहीं छिपाए जा सकते।</string>
+    <string name="censor_error_save">छिपाई गई कॉपी सहेजी नहीं जा सकी।</string>
+    <string name="censor_discard_title">बदलाव छोड़ दें?</string>
+    <string name="censor_discard_message">आपके ढके गए हिस्से सहेजे नहीं गए हैं।</string>
+    <string name="censor_discard">छोड़ें</string>
+    <string name="censor_keep_editing">संपादन जारी रखें</string>
     <string name="button_scan_result">परिणाम स्कैन करें</string>
     <string name="settings_keep_original_names">मूल फ़ाइल नाम रखें</string>
     <string name="settings_keep_original_names_subtitle">साफ़ और कन्वर्ट की गई फ़ाइलों को किसी यादृच्छिक नाम के बजाय मूल फ़ाइल का नाम दें। IMG_20260117 जैसे नाम बता सकते हैं कि फ़ोटो कब ली गई थी।</string>
@@ -525,6 +551,7 @@
     <string name="onboarding_welcome_clean">साफ़ करें आपकी फ़ोटो और वीडियो से छिपी जानकारी हटा देता है।</string>
     <string name="onboarding_welcome_scan">स्कैन करें शेयर करने से पहले आपको ठीक-ठीक दिखाता है कि फ़ाइल क्या बताती है।</string>
     <string name="onboarding_welcome_convert">बदलें किसी फ़ोटो या वीडियो को दूसरे फ़ॉर्मैट में बदलता है और उसे साफ़ रखता है।</string>
+    <string name="onboarding_welcome_censor">छिपाएँ फ़ोटो में चेहरे, नंबर प्लेट और जो कुछ भी निजी रहना चाहिए, उसे ढक देता है।</string>
     <string name="onboarding_hidden_title">आपकी फ़ोटो और वीडियो आपकी सोच से ज़्यादा बता सकते हैं।</string>
     <string name="onboarding_hidden_body">जब आप फ़ोटो या वीडियो लेते हैं, तो आपका फ़ोन चुपचाप फ़ाइल के अंदर अतिरिक्त जानकारी सहेज लेता है। जिसे भी आप फ़ाइल भेजते हैं, वह इसे पढ़ सकता है।</string>
     <string name="onboarding_hidden_location">यह बता सकती है कि आप कहाँ थे, कभी-कभी इतना सटीक कि आपका घर ढूँढा जा सके।</string>

@@ -37,6 +37,7 @@
     <string name="notification_clean_progress_title">جارٍ تنظيف البيانات الوصفية…</string>
 
     <string name="navigation_convert">تحويل</string>
+    <string name="navigation_censor">إخفاء</string>
 
     
     <string name="convert_output_format_images">تنسيق الصورة</string>
@@ -184,7 +185,7 @@
     <string name="settings_sentry_consent_title">تفعيل تقارير الأعطال</string>
     <string name="settings_sentry_consent_message">إرسال تقارير الأعطال يرفع تشخيصات مجهولة إلى Sentry عبر الإنترنت.\n\nلا يتم تحميل الصور أو الفيديوهات أو أسماء الملفات أو إحداثيات GPS.</string>
     <string name="settings_strict_clean">التنظيف الصارم</string>
-    <string name="settings_strict_clean_subtitle">يزيل كل أثر للبيانات الوصفية، حتى علامة الاتجاه، لذا قد تبدو الصورة المُدارة مائلة بعد ذلك. يعطّل خيارات الاحتفاظ أعلاه ويعيد ترميز الفيديو بالكامل دائماً لأشمل تنظيف ممكن.</string>
+    <string name="settings_strict_clean_subtitle">يزيل كل أثر للبيانات الوصفية، حتى علامة الاتجاه، لذا قد تبدو الصورة المُدارة مائلة بعد ذلك. يعطّل خيارات الاحتفاظ أدناه ويعيد ترميز الفيديو بالكامل دائماً لأشمل تنظيف ممكن.</string>
     
     <string name="settings_section_advanced_processing">الملفات الكبيرة والذاكرة</string>
     <string name="settings_advanced_processing_subtitle">يتحكم في استخدام الذاكرة عند فك ترميز الصور الكبيرة أثناء التنظيف والتحويل.</string>
@@ -314,6 +315,7 @@
     <string name="notification_progress_percent">%1$d%% مكتمل</string>
     <string name="scan_clean_this_file">تنظيف هذا الملف</string>
     <string name="scan_convert_this_file">تحويل هذا الملف</string>
+    <string name="scan_censor_this_photo">إخفاء أجزاء من هذه الصورة</string>
     <string name="scan_copied_to_clipboard">تم النسخ إلى الحافظة</string>
     <string name="scan_copy_all_metadata">نسخ كل البيانات الوصفية</string>
     <string name="scan_copy_camera">نسخ معلومات الكاميرا</string>
@@ -507,8 +509,32 @@
     <string name="settings_reset_all_confirm">إعادة ضبط</string>
     <string name="settings_reset_all_done">تمت إعادة الإعدادات إلى قيمها الافتراضية.</string>
     <string name="settings_reset_all_busy">لا يمكن إعادة ضبط الإعدادات أثناء المعالجة.</string>
-    <string name="share_target_scan">مسح باستخدام Redact</string>
-    <string name="share_target_convert">تحويل باستخدام Redact</string>
+    <string name="censor_empty_state_title">أخفِ ما يجب أن يبقى خاصًا</string>
+    <string name="censor_empty_state_description">حوّل الوجوه ولوحات السيارات والعناوين وأي شيء آخر في الصورة إلى بكسلات، أو غطِّها بالأسود، أو اجعلها ضبابية. يحفظ Redact نسخة مخفية الأجزاء بلا أي بيانات وصفية، ويبقى الأصل كما هو.</string>
+    <string name="censor_select_photo">تحديد صورة</string>
+    <string name="censor_hint">ارسم فوق كل ما يجب أن يبقى خاصًا، ثم انقر على حفظ نسخة. انقر على مستطيل لتحريكه أو تغيير حجمه.</string>
+    <string name="censor_canvas_description">الصورة التي يتم إخفاء أجزاء منها. ارسم بإصبع واحد لتغطية منطقة، وقرّب أو باعد بين إصبعين للتكبير.</string>
+    <string name="censor_tool_rectangle">مستطيل</string>
+    <string name="censor_tool_brush">فرشاة</string>
+    <string name="censor_tool_move">تحريك</string>
+    <string name="censor_brush_size">حجم الفرشاة</string>
+    <string name="censor_effect_pixelate">بكسلة</string>
+    <string name="censor_effect_black">أسود</string>
+    <string name="censor_effect_blur">ضبابية</string>
+    <string name="censor_undo">تراجع</string>
+    <string name="censor_redo">إعادة</string>
+    <string name="censor_zoom_in">تكبير</string>
+    <string name="censor_zoom_out">تصغير</string>
+    <string name="censor_save">حفظ نسخة</string>
+    <string name="censor_saved">تم حفظ النسخة المخفية الأجزاء.</string>
+    <string name="censor_saved_downscaled">تم حفظ النسخة بحجم أصغر من الأصل. للاحتفاظ بالحجم الكامل، ارفع أقصى دقة معالجة في الإعدادات.</string>
+    <string name="censor_error_open">تعذّر فتح هذه الصورة.</string>
+    <string name="censor_error_unsupported">لا يمكن إخفاء أجزاء من هذا النوع من الصور على هذا الجهاز.</string>
+    <string name="censor_error_save">تعذّر حفظ النسخة المخفية الأجزاء.</string>
+    <string name="censor_discard_title">هل تريد تجاهل التغييرات؟</string>
+    <string name="censor_discard_message">لم يتم حفظ المناطق التي غطيتها.</string>
+    <string name="censor_discard">تجاهل</string>
+    <string name="censor_keep_editing">متابعة التعديل</string>
     <string name="button_scan_result">مسح النتيجة</string>
     <string name="settings_keep_original_names">الاحتفاظ بأسماء الملفات الأصلية</string>
     <string name="settings_keep_original_names_subtitle">تسمية الملفات المنظفة والمحولة باسم الملفات الأصلية بدلًا من اسم عشوائي. قد تكشف أسماء مثل IMG_20260117 وقت التقاط الصورة.</string>
@@ -581,6 +607,7 @@
     <string name="onboarding_welcome_clean">تنظيف يزيل التفاصيل المخفية من صورك ومقاطع الفيديو.</string>
     <string name="onboarding_welcome_scan">مسح يعرض لك بدقة ما يكشفه الملف قبل أن تشاركه.</string>
     <string name="onboarding_welcome_convert">تحويل يغيّر صيغة الصورة أو الفيديو ويُبقيه نظيفًا.</string>
+    <string name="onboarding_welcome_censor">إخفاء يغطي الوجوه ولوحات السيارات وأي شيء آخر في الصورة يجب أن يبقى خاصًا.</string>
     <string name="onboarding_hidden_title">قد تكشف صورك ومقاطع الفيديو أكثر مما تظن.</string>
     <string name="onboarding_hidden_body">عندما تلتقط صورة أو فيديو، يحفظ هاتفك بصمت معلومات إضافية داخل الملف. وقد يتمكن أي شخص ترسل إليه الملف من قراءتها.</string>
     <string name="onboarding_hidden_location">قد تكشف مكان وجودك، وأحيانًا بدقة تكفي للعثور على منزلك.</string>

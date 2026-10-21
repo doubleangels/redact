@@ -127,7 +127,9 @@ public class ShareResultsTest {
         assertNotNull(excluded);
         assertEquals(List.of(
                         new android.content.ComponentName(app, "com.doubleangels.redact.ShareHandlerActivity"),
-                        new android.content.ComponentName(app, "com.doubleangels.redact.ScanShareTarget")),
+                        new android.content.ComponentName(app, "com.doubleangels.redact.ScanShareTarget"),
+                        new android.content.ComponentName(app, "com.doubleangels.redact.ConvertShareTarget"),
+                        new android.content.ComponentName(app, "com.doubleangels.redact.CensorShareTarget")),
                 List.of(excluded));
     }
 

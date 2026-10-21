@@ -29,6 +29,7 @@
     <string name="notification_clean_progress_title">Metadaten Bereinigen…</string>
 
     <string name="navigation_convert">Konvertieren</string>
+    <string name="navigation_censor">Zensieren</string>
 
     
     <string name="convert_output_format_images">Bildformat</string>
@@ -172,7 +173,7 @@
     <string name="settings_sentry_consent_title">Absturzberichte Aktivieren</string>
     <string name="settings_sentry_consent_message">Absturzberichte senden lädt anonymisierte Diagnosedaten über Sentry ins Internet hoch.\n\nKeine Fotos, Videos, Dateinamen oder GPS-Koordinaten werden hochgeladen.</string>
     <string name="settings_strict_clean">Strikte Bereinigung</string>
-    <string name="settings_strict_clean_subtitle">Entfernt jede Spur von Metadaten, sogar den Orientierungs-Tag, ein gedrehtes Foto kann danach also schräg aussehen. Schaltet die Behalten-Optionen oben aus und kodiert Videos für die gründlichste Bereinigung immer vollständig neu.</string>
+    <string name="settings_strict_clean_subtitle">Entfernt jede Spur von Metadaten, sogar den Orientierungs-Tag, ein gedrehtes Foto kann danach also schräg aussehen. Schaltet die Behalten-Optionen unten aus und kodiert Videos für die gründlichste Bereinigung immer vollständig neu.</string>
     
     <string name="settings_section_advanced_processing">Große Dateien &amp; Speicher</string>
     <string name="settings_advanced_processing_subtitle">Steuert den RAM-Verbrauch beim Dekodieren großer Bilder beim Bereinigen und Konvertieren.</string>
@@ -289,6 +290,7 @@ Ihre Fotos und Videos werden nie hochgeladen. URIs, Dateinamen und GPS-Koordinat
     <string name="notification_progress_percent">%1$d%% abgeschlossen</string>
     <string name="scan_clean_this_file">Diese Datei Bereinigen</string>
     <string name="scan_convert_this_file">Diese Datei Konvertieren</string>
+    <string name="scan_censor_this_photo">Dieses Foto Zensieren</string>
     <string name="scan_copied_to_clipboard">In Zwischenablage kopiert</string>
     <string name="scan_copy_all_metadata">Alle Metadaten Kopieren</string>
     <string name="scan_copy_camera">Kamerainfo Kopieren</string>
@@ -454,8 +456,32 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_reset_all_confirm">Zurücksetzen</string>
     <string name="settings_reset_all_done">Einstellungen auf Standard zurückgesetzt.</string>
     <string name="settings_reset_all_busy">Einstellungen können während der Verarbeitung nicht zurückgesetzt werden.</string>
-    <string name="share_target_scan">Mit Redact Scannen</string>
-    <string name="share_target_convert">Mit Redact Konvertieren</string>
+    <string name="censor_empty_state_title">Verdecke, Was Privat Bleiben Soll</string>
+    <string name="censor_empty_state_description">Verpixle, schwärze oder verwische Gesichter, Kennzeichen, Adressen und alles andere in einem Foto. Redact speichert eine zensierte Kopie ohne Metadaten, und dein Original bleibt unverändert.</string>
+    <string name="censor_select_photo">Foto Auswählen</string>
+    <string name="censor_hint">Male über alles, was privat bleiben soll, und tippe dann auf Kopie Speichern. Tippe auf ein Rechteck, um es zu verschieben oder seine Größe zu ändern.</string>
+    <string name="censor_canvas_description">Foto, das zensiert wird. Zeichne mit einem Finger, um einen Bereich zu verdecken; ziehe zwei Finger auseinander, um zu zoomen.</string>
+    <string name="censor_tool_rectangle">Rechteck</string>
+    <string name="censor_tool_brush">Pinsel</string>
+    <string name="censor_tool_move">Verschieben</string>
+    <string name="censor_brush_size">Pinselgröße</string>
+    <string name="censor_effect_pixelate">Verpixeln</string>
+    <string name="censor_effect_black">Schwärzen</string>
+    <string name="censor_effect_blur">Verwischen</string>
+    <string name="censor_undo">Rückgängig</string>
+    <string name="censor_redo">Wiederholen</string>
+    <string name="censor_zoom_in">Vergrößern</string>
+    <string name="censor_zoom_out">Verkleinern</string>
+    <string name="censor_save">Kopie Speichern</string>
+    <string name="censor_saved">Zensierte Kopie gespeichert.</string>
+    <string name="censor_saved_downscaled">Zensierte Kopie gespeichert, kleiner als das Original. Um die volle Größe zu behalten, erhöhe in den Einstellungen die Max. Verarbeitungsauflösung.</string>
+    <string name="censor_error_open">Dieses Foto konnte nicht geöffnet werden.</string>
+    <string name="censor_error_unsupported">Dieser Bildtyp kann auf diesem Gerät nicht zensiert werden.</string>
+    <string name="censor_error_save">Die zensierte Kopie konnte nicht gespeichert werden.</string>
+    <string name="censor_discard_title">Änderungen Verwerfen?</string>
+    <string name="censor_discard_message">Die verdeckten Bereiche wurden nicht gespeichert.</string>
+    <string name="censor_discard">Verwerfen</string>
+    <string name="censor_keep_editing">Weiter Bearbeiten</string>
     <string name="button_scan_result">Ergebnis Scannen</string>
     <string name="settings_keep_original_names">Originale Dateinamen Behalten</string>
     <string name="settings_keep_original_names_subtitle">Bereinigte und konvertierte Dateien erhalten den Namen des Originals statt eines zufälligen Namens. Namen wie IMG_20260117 können verraten, wann ein Foto aufgenommen wurde.</string>
@@ -524,6 +550,7 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="onboarding_welcome_clean">Bereinigen entfernt die versteckten Details aus deinen Fotos und Videos.</string>
     <string name="onboarding_welcome_scan">Scannen zeigt dir genau, was eine Datei verrät, bevor du sie teilst.</string>
     <string name="onboarding_welcome_convert">Konvertieren wandelt ein Foto oder Video in ein anderes Format um und hält es dabei sauber.</string>
+    <string name="onboarding_welcome_censor">Zensieren verdeckt Gesichter, Kennzeichen und alles andere in einem Foto, was privat bleiben soll.</string>
     <string name="onboarding_hidden_title">Deine Fotos und Videos verraten mehr, als du denkst.</string>
     <string name="onboarding_hidden_body">Wenn du ein Foto oder Video aufnimmst, speichert dein Handy unbemerkt zusätzliche Informationen in der Datei. Wer die Datei von dir bekommt, kann sie unter Umständen lesen.</string>
     <string name="onboarding_hidden_location">Sie können zeigen, wo du warst, manchmal so genau, dass man dein Zuhause finden kann.</string>

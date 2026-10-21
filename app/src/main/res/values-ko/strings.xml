@@ -27,6 +27,7 @@
     <string name="notification_clean_progress_title">메타데이터 정리 중…</string>
 
     <string name="navigation_convert">변환</string>
+    <string name="navigation_censor">가리기</string>
 
     
     <string name="convert_output_format_images">이미지 형식</string>
@@ -169,7 +170,7 @@
     <string name="settings_sentry_consent_title">크래시 보고 사용</string>
     <string name="settings_sentry_consent_message">크래시 보고 전송은 익명 진단 정보를 인터넷을 통해 Sentry로 업로드합니다.\n\n사진, 동영상, 파일 이름, GPS 좌표는 업로드되지 않습니다.</string>
     <string name="settings_strict_clean">엄격한 정리</string>
-    <string name="settings_strict_clean_subtitle">방향 태그를 포함해 메타데이터의 모든 흔적을 제거합니다. 따라서 회전된 사진은 이후 옆으로 누워 보일 수 있습니다. 위의 유지 옵션을 끄고, 가장 철저한 정리를 위해 동영상을 항상 완전히 재인코딩합니다.</string>
+    <string name="settings_strict_clean_subtitle">방향 태그를 포함해 메타데이터의 모든 흔적을 제거합니다. 따라서 회전된 사진은 이후 옆으로 누워 보일 수 있습니다. 아래의 유지 옵션을 끄고, 가장 철저한 정리를 위해 동영상을 항상 완전히 재인코딩합니다.</string>
     
     <string name="settings_section_advanced_processing">대용량 파일 및 메모리</string>
     <string name="settings_advanced_processing_subtitle">정리 및 변환 시 큰 이미지를 디코딩할 때 RAM 사용량을 제어합니다.</string>
@@ -284,6 +285,7 @@
     <string name="notification_progress_percent">%1$d%% 완료</string>
     <string name="scan_clean_this_file">이 파일 정리</string>
     <string name="scan_convert_this_file">이 파일 변환</string>
+    <string name="scan_censor_this_photo">이 사진 일부 가리기</string>
     <string name="scan_copied_to_clipboard">클립보드에 복사됨</string>
     <string name="scan_copy_all_metadata">모든 메타데이터 복사</string>
     <string name="scan_copy_camera">카메라 정보 복사</string>
@@ -442,8 +444,32 @@
     <string name="settings_reset_all_confirm">초기화</string>
     <string name="settings_reset_all_done">설정을 기본값으로 초기화했습니다.</string>
     <string name="settings_reset_all_busy">처리 중에는 설정을 초기화할 수 없습니다.</string>
-    <string name="share_target_scan">Redact로 스캔</string>
-    <string name="share_target_convert">Redact로 변환</string>
+    <string name="censor_empty_state_title">비공개로 남겨야 할 부분 가리기</string>
+    <string name="censor_empty_state_description">사진 속 얼굴, 번호판, 주소 등 무엇이든 모자이크, 검게 칠하기, 흐리게 하기로 가릴 수 있습니다. Redact는 메타데이터가 전혀 없는 사본을 저장하며, 원본은 그대로 유지됩니다.</string>
+    <string name="censor_select_photo">사진 선택</string>
+    <string name="censor_hint">비공개로 남겨야 할 부분 위에 그린 다음 사본 저장을 탭하세요. 사각형을 탭하면 이동하거나 크기를 바꿀 수 있습니다.</string>
+    <string name="censor_canvas_description">편집 중인 사진입니다. 한 손가락으로 그려 영역을 가리고, 두 손가락으로 오므리거나 벌려 확대/축소하세요.</string>
+    <string name="censor_tool_rectangle">사각형</string>
+    <string name="censor_tool_brush">브러시</string>
+    <string name="censor_tool_move">이동</string>
+    <string name="censor_brush_size">브러시 크기</string>
+    <string name="censor_effect_pixelate">모자이크</string>
+    <string name="censor_effect_black">검게 칠하기</string>
+    <string name="censor_effect_blur">흐리게</string>
+    <string name="censor_undo">실행 취소</string>
+    <string name="censor_redo">다시 실행</string>
+    <string name="censor_zoom_in">확대</string>
+    <string name="censor_zoom_out">축소</string>
+    <string name="censor_save">사본 저장</string>
+    <string name="censor_saved">일부를 가린 사본을 저장했습니다.</string>
+    <string name="censor_saved_downscaled">사본이 원본보다 작은 크기로 저장되었습니다. 원래 크기를 유지하려면 설정에서 최대 처리 해상도를 높이세요.</string>
+    <string name="censor_error_open">이 사진을 열 수 없습니다.</string>
+    <string name="censor_error_unsupported">이 기기에서는 이 유형의 이미지를 편집할 수 없습니다.</string>
+    <string name="censor_error_save">일부를 가린 사본을 저장할 수 없습니다.</string>
+    <string name="censor_discard_title">변경사항을 삭제할까요?</string>
+    <string name="censor_discard_message">가린 영역이 저장되지 않았습니다.</string>
+    <string name="censor_discard">삭제</string>
+    <string name="censor_keep_editing">계속 편집</string>
     <string name="button_scan_result">결과 스캔</string>
     <string name="settings_keep_original_names">원본 파일 이름 유지</string>
     <string name="settings_keep_original_names_subtitle">정리하거나 변환한 파일에 무작위 이름 대신 원본 파일 이름을 사용합니다. IMG_20260117 같은 이름은 사진을 찍은 시기를 드러낼 수 있습니다.</string>
@@ -511,6 +537,7 @@
     <string name="onboarding_welcome_clean">정리는 사진과 동영상에서 숨겨진 정보를 제거합니다.</string>
     <string name="onboarding_welcome_scan">스캔은 공유하기 전에 파일에서 무엇이 드러나는지 정확히 보여 줍니다.</string>
     <string name="onboarding_welcome_convert">변환은 사진이나 동영상을 다른 형식으로 바꾸고 깨끗하게 유지합니다.</string>
+    <string name="onboarding_welcome_censor">가리기는 사진 속 얼굴, 번호판 등 비공개로 남겨야 할 모든 것을 가립니다.</string>
     <string name="onboarding_hidden_title">사진과 동영상은 생각보다 많은 것을 알려 줍니다.</string>
     <string name="onboarding_hidden_body">사진이나 동영상을 찍으면 휴대전화가 파일 안에 추가 정보를 조용히 저장합니다. 파일을 받은 사람은 누구나 이 정보를 읽을 수 있습니다.</string>
     <string name="onboarding_hidden_location">어디에 있었는지 보여 줄 수 있으며, 때로는 집을 찾을 수 있을 만큼 정확합니다.</string>

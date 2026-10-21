@@ -131,6 +131,8 @@ public class ScanFragment extends Fragment {
     private ScanViewModel scanViewModel;
     @Nullable
     private MediaItem currentMediaItem;
+    /** Counts picks, so a slow earlier pick does not replace a newer one. */
+    private int scanPickCount;
     @Nullable
     private io.sentry.ITransaction activeScanTransaction;
 
@@ -150,14 +152,21 @@ public class ScanFragment extends Fragment {
     }
 
     private void scanUri(@NonNull Uri uri) {
-        if (mediaSelector != null) {
-            MediaItem item = mediaSelector.processMediaUri(uri);
-            currentMediaItem = item;
-            checkLocationPermissionAndDisplayMetadata(item.uri());
-        } else {
+        if (mediaSelector == null) {
             currentMediaItem = null;
             checkLocationPermissionAndDisplayMetadata(uri);
+            return;
         }
+        // The read grant, name and type come from the provider, which can be slow (a cloud file),
+        // so they are read off the main thread. Only the latest pick is shown.
+        int pick = ++scanPickCount;
+        mediaSelector.processMediaUrisAsync(List.of(uri), items -> {
+            if (pick != scanPickCount || !isAdded()) {
+                return;
+            }
+            currentMediaItem = items.isEmpty() ? null : items.get(0);
+            checkLocationPermissionAndDisplayMetadata(currentMediaItem != null ? currentMediaItem.uri() : uri);
+        });
     }
 
     @Nullable
@@ -457,7 +466,12 @@ public class ScanFragment extends Fragment {
             clearCoordinateState();
 
             String mimeType = requireContext().getContentResolver().getType(mediaUri);
-            String fileName = mediaSelector != null ? mediaSelector.getFileName(mediaUri) : null;
+            // The picked item already has its name (read off the main thread); ask the provider
+            // again only for a file that came without one.
+            String fileName = currentMediaItem != null && mediaUri.equals(currentMediaItem.uri())
+                    && currentMediaItem.fileName() != null
+                    ? currentMediaItem.fileName()
+                    : mediaSelector != null ? mediaSelector.getFileName(mediaUri) : null;
             boolean isVideo = MediaSelector.isVideoFromMimeAndName(mimeType, fileName);
 
             SentryManager.logEvent("scan", "The app is starting metadata extraction.");
@@ -900,6 +914,11 @@ public class ScanFragment extends Fragment {
                     v -> openInCleanTab(currentMediaItem));
             addScanActionCard(R.drawable.ic_convert, getString(R.string.scan_convert_this_file),
                     v -> openInConvertTab(currentMediaItem));
+            if (!currentMediaItem.isVideo()) {
+                MediaItem photo = currentMediaItem;
+                addScanActionCard(R.drawable.ic_censor, getString(R.string.scan_censor_this_photo),
+                        v -> openInCensorTab(photo));
+            }
             added = true;
         }
 
@@ -1016,7 +1035,15 @@ public class ScanFragment extends Fragment {
         }
     }
 
-    private void openInConvertTab(@NonNull MediaItem item) {
+    private void openInCensorTab(@NonNull MediaItem item) {
+        new ViewModelProvider(requireActivity()).get(com.doubleangels.redact.ui.CensorViewModel.class)
+                .requestOpen(item.uri());
+        if (requireActivity() instanceof MainActivity mainActivity) {
+            mainActivity.selectTab(R.id.navigation_censor);
+        }
+    }
+
+        private void openInConvertTab(@NonNull MediaItem item) {
         MainViewModel viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
         viewModel.setConvertSelectedItems(List.of(item));
         if (requireActivity() instanceof MainActivity mainActivity) {

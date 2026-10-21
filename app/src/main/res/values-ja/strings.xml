@@ -27,6 +27,7 @@
     <string name="notification_clean_progress_title">メタデータを削除中…</string>
 
     <string name="navigation_convert">変換</string>
+    <string name="navigation_censor">隠す</string>
 
     
     <string name="convert_output_format_images">画像形式</string>
@@ -170,7 +171,7 @@
     <string name="settings_sentry_consent_title">クラッシュレポートを有効にする</string>
     <string name="settings_sentry_consent_message">クラッシュレポートの送信は、匿名化された診断情報をインターネット経由で Sentry にアップロードします。\n\n写真、動画、ファイル名、GPS 座標はアップロードされません。</string>
     <string name="settings_strict_clean">厳格クリーン</string>
-    <string name="settings_strict_clean_subtitle">向きのタグを含む、メタデータのあらゆる痕跡を削除します。そのため、回転させた写真は後で横向きに表示されることがあります。上の保持オプションをオフにし、最も徹底したクリーンのために動画を常に完全に再エンコードします。</string>
+    <string name="settings_strict_clean_subtitle">向きのタグを含む、メタデータのあらゆる痕跡を削除します。そのため、回転させた写真は後で横向きに表示されることがあります。下の保持オプションをオフにし、最も徹底したクリーンのために動画を常に完全に再エンコードします。</string>
     
     <string name="settings_section_advanced_processing">大きなファイルとメモリ</string>
     <string name="settings_advanced_processing_subtitle">クリーンと変換時に大きな画像をデコードする際のRAM使用量を制御します。</string>
@@ -285,6 +286,7 @@
     <string name="notification_progress_percent">%1$d%% 完了</string>
     <string name="scan_clean_this_file">このファイルをクリーン</string>
     <string name="scan_convert_this_file">このファイルを変換</string>
+    <string name="scan_censor_this_photo">この写真の一部を隠す</string>
     <string name="scan_copied_to_clipboard">クリップボードにコピーしました</string>
     <string name="scan_copy_all_metadata">すべてのメタデータをコピー</string>
     <string name="scan_copy_camera">カメラ情報をコピー</string>
@@ -443,8 +445,32 @@
     <string name="settings_reset_all_confirm">リセット</string>
     <string name="settings_reset_all_done">設定を初期値に戻しました。</string>
     <string name="settings_reset_all_busy">処理中は設定をリセットできません。</string>
-    <string name="share_target_scan">Redact でスキャン</string>
-    <string name="share_target_convert">Redact で変換</string>
+    <string name="censor_empty_state_title">見せたくないものを隠す</string>
+    <string name="censor_empty_state_description">写真の顔、ナンバープレート、住所などをモザイク、黒塗り、ぼかしで隠せます。Redact はメタデータを一切含まないコピーを保存し、元の写真はそのまま残ります。</string>
+    <string name="censor_select_photo">写真を選択</string>
+    <string name="censor_hint">見せたくない部分をなぞってから、「コピーを保存」をタップします。四角形をタップすると、移動やサイズ変更ができます。</string>
+    <string name="censor_canvas_description">編集中の写真。1 本の指でなぞると範囲を隠します。2 本の指でピンチするとズームします。</string>
+    <string name="censor_tool_rectangle">四角形</string>
+    <string name="censor_tool_brush">ブラシ</string>
+    <string name="censor_tool_move">移動</string>
+    <string name="censor_brush_size">ブラシのサイズ</string>
+    <string name="censor_effect_pixelate">モザイク</string>
+    <string name="censor_effect_black">黒塗り</string>
+    <string name="censor_effect_blur">ぼかし</string>
+    <string name="censor_undo">元に戻す</string>
+    <string name="censor_redo">やり直す</string>
+    <string name="censor_zoom_in">拡大</string>
+    <string name="censor_zoom_out">縮小</string>
+    <string name="censor_save">コピーを保存</string>
+    <string name="censor_saved">一部を隠したコピーを保存しました。</string>
+    <string name="censor_saved_downscaled">コピーを元の写真より小さいサイズで保存しました。元のサイズを保つには、設定の最大処理解像度を上げてください。</string>
+    <string name="censor_error_open">この写真を開けませんでした。</string>
+    <string name="censor_error_unsupported">この種類の画像は、このデバイスでは編集できません。</string>
+    <string name="censor_error_save">一部を隠したコピーを保存できませんでした。</string>
+    <string name="censor_discard_title">変更を破棄しますか？</string>
+    <string name="censor_discard_message">隠した範囲はまだ保存されていません。</string>
+    <string name="censor_discard">破棄</string>
+    <string name="censor_keep_editing">編集を続ける</string>
     <string name="button_scan_result">結果をスキャン</string>
     <string name="settings_keep_original_names">元のファイル名を保持</string>
     <string name="settings_keep_original_names_subtitle">クリーン・変換したファイルに、ランダムな名前ではなく元のファイル名を付けます。IMG_20260117 のような名前から撮影日時がわかる場合があります。</string>
@@ -512,6 +538,7 @@
     <string name="onboarding_welcome_clean">クリーンは、写真や動画から隠れた情報を取り除きます。</string>
     <string name="onboarding_welcome_scan">スキャンは、共有する前にファイルから何がわかるのかを正確に表示します。</string>
     <string name="onboarding_welcome_convert">変換は、写真や動画を別の形式に変え、きれいな状態に保ちます。</string>
+    <string name="onboarding_welcome_censor">「隠す」は、写真の顔やナンバープレートなど、見せたくないものを隠します。</string>
     <string name="onboarding_hidden_title">写真や動画は、思った以上に多くを語ります。</string>
     <string name="onboarding_hidden_body">写真や動画を撮ると、スマートフォンはファイルの中に追加の情報をこっそり保存します。ファイルを受け取った人は、それを読み取れる場合があります。</string>
     <string name="onboarding_hidden_location">撮影した場所がわかることがあり、自宅を特定できるほど正確な場合もあります。</string>
