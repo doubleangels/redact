@@ -141,8 +141,23 @@ public class MainActivityTest {
         shadowOf(activity).receiveResult(started, android.app.Activity.RESULT_OK, null);
         shadowOf(Looper.getMainLooper()).idle();
 
+        // The introduction already asked on its own pages, so nothing is asked again here.
         assertTrue(AppPreferences.hasSeenOnboarding(activity));
-        assertNotNull(shadowOf(activity).getLastRequestedPermission());
+        assertTrue(AppPreferences.hasCompletedInitialPermissionsPrompt(activity));
+        assertTrue(shadowOf(activity).getLastRequestedPermission() == null);
+    }
+
+    @Test
+    public void backingOutOfTheIntroduction_closesTheApp_andShowsItNextTime() {
+        MainActivity activity = launch();
+        android.content.Intent started = shadowOf(activity).getNextStartedActivity();
+
+        shadowOf(activity).receiveResult(started, android.app.Activity.RESULT_CANCELED, null);
+        shadowOf(Looper.getMainLooper()).idle();
+
+        assertTrue(activity.isFinishing());
+        assertTrue(!AppPreferences.hasSeenOnboarding(activity));
+        assertTrue(!AppPreferences.hasCompletedInitialPermissionsPrompt(activity));
     }
 
     @Test

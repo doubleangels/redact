@@ -106,7 +106,7 @@ You can also build it yourself, see [For developers](#for-developers).
 
 ### Your first clean
 
-On first start, a short introduction explains what metadata is, that your files never leave your phone, and why Redact asks for each permission, before Android shows the permission prompts. Skip it any time, or see it again from Settings › About › **Show Introduction**.
+On first start, a short introduction explains what hidden metadata is and that your files never leave your phone. It then walks through each permission on its own page (photos and videos, photo locations, notifications), saying what it is for before asking, so you can allow it or choose **Not Now**. The last page sums up your choices. See it again any time from Settings › About › **Show Introduction**.
 
 1. Open Redact and tap the **Clean** tab.
 2. Tap **Select Files** and choose photos or videos.

@@ -41,18 +41,23 @@ public class MainActivity extends AppCompatActivity {
     private static final int MAX_CONVERT_SHARE_ITEMS = 20;
 
     /**
-     * The first-start introduction. Whichever way it closes, the first-launch permission prompts
-     * start next. The flow is prepared again here because process death while the introduction
-     * was open clears its in-progress flag.
+     * The first-start introduction, which asks for each permission on its own page. When it
+     * finishes, the first-launch flow ends without prompting again, and the crash-report question
+     * follows. Backing out of its first page closes the app, and the introduction shows again on
+     * the next start.
      */
     private final androidx.activity.result.ActivityResultLauncher<android.content.Intent> onboardingLauncher =
             registerForActivityResult(
                     new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
                     result -> {
+                        if (result.getResultCode() != RESULT_OK) {
+                            finish();
+                            return;
+                        }
                         AppPreferences.setOnboardingSeen(this);
                         if (com.doubleangels.redact.permission.PermissionManager.shouldPromptInitialPermissions(this)) {
-                            com.doubleangels.redact.permission.PermissionManager.prepareInitialPermissionFlow();
-                            com.doubleangels.redact.permission.PermissionManager.startInitialPermissionFlow(this);
+                            com.doubleangels.redact.permission.PermissionManager
+                                    .finishInitialPermissionFlowFromIntroduction(this);
                         }
                     });
 
@@ -156,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
                 com.doubleangels.redact.ui.CrashReportingPrompt.onFirstStartPermissionsDone(this);
             });
             if (savedInstanceState == null && shouldShowOnboarding()) {
-                // The permission prompts wait until the introduction closes.
+                // The introduction asks for the permissions itself.
                 onboardingLauncher.launch(new android.content.Intent(this, OnboardingActivity.class));
             } else if (com.doubleangels.redact.permission.PermissionManager.isInitialPermissionFlowInProgress()) {
                 com.doubleangels.redact.permission.PermissionManager.startInitialPermissionFlow(this);

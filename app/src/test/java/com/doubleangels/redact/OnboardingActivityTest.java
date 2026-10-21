@@ -2,16 +2,20 @@ package com.doubleangels.redact;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Looper;
+import android.view.View;
 import android.widget.Button;
-
-import androidx.viewpager2.widget.ViewPager2;
+import android.widget.TextView;
 
 import org.junit.After;
 import org.junit.Before;
@@ -23,17 +27,20 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 
+import java.time.Duration;
+import java.util.Arrays;
+
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 34)
 public class OnboardingActivityTest {
 
     private ActivityController<OnboardingActivity> controller;
+    private Application app;
 
     @Before
     public void setUp() {
-        RuntimeEnvironment.getApplication()
-                .getSharedPreferences(AppPreferences.PREFS_NAME, Context.MODE_PRIVATE)
-                .edit().clear().commit();
+        app = RuntimeEnvironment.getApplication();
+        app.getSharedPreferences(AppPreferences.PREFS_NAME, Context.MODE_PRIVATE).edit().clear().commit();
     }
 
     @After
@@ -44,83 +51,161 @@ public class OnboardingActivityTest {
     }
 
     private OnboardingActivity launch(boolean replay) {
-        Intent intent = new Intent(RuntimeEnvironment.getApplication(), OnboardingActivity.class)
+        Intent intent = new Intent(app, OnboardingActivity.class)
                 .putExtra(OnboardingActivity.EXTRA_REPLAY, replay);
         controller = Robolectric.buildActivity(OnboardingActivity.class, intent).setup();
-        shadowOf(Looper.getMainLooper()).idle();
+        settle();
         return controller.get();
+    }
+
+    /** Lets page animations and the short pause after a grant finish. */
+    private static void settle() {
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
     }
 
     private static void tap(Activity activity, int id) {
         activity.findViewById(id).performClick();
-        shadowOf(Looper.getMainLooper()).idle();
+        settle();
     }
 
-    private static int page(Activity activity) {
-        return ((ViewPager2) activity.findViewById(R.id.onboardingPager)).getCurrentItem();
+    private static String text(Activity activity, int id) {
+        return ((Button) activity.findViewById(id)).getText().toString();
     }
 
-    private static CharSequence nextLabel(Activity activity) {
-        return ((Button) activity.findViewById(R.id.onboardingNext)).getText();
+    private static boolean visible(Activity activity, int id) {
+        return activity.findViewById(id).getVisibility() == View.VISIBLE;
     }
 
-    @Test
-    public void next_walksThePages_thenGetStartedFinishesWithOk() {
-        OnboardingActivity activity = launch(false);
-        assertEquals(0, page(activity));
-        assertEquals(activity.getString(R.string.onboarding_next), nextLabel(activity));
-
-        tap(activity, R.id.onboardingNext);
-        assertEquals(1, page(activity));
-        tap(activity, R.id.onboardingNext);
-        assertEquals(2, page(activity));
-        assertEquals(activity.getString(R.string.onboarding_get_started), nextLabel(activity));
-
-        tap(activity, R.id.onboardingNext);
-        assertTrue(activity.isFinishing());
-        assertEquals(Activity.RESULT_OK, shadowOf(activity).getResultCode());
+    private static void walkTo(OnboardingActivity activity, OnboardingActivity.Step step) {
+        while (activity.currentStep() != step) {
+            tap(activity, R.id.onboardingPrimary);
+        }
     }
 
     @Test
-    public void skip_finishesFromAnyPage() {
+    public void introPages_leadToTheFirstChoice_andSkipJumpsThere() {
         OnboardingActivity activity = launch(false);
+        assertEquals(OnboardingActivity.Step.WELCOME, activity.currentStep());
+        assertEquals(activity.getString(R.string.onboarding_get_started), text(activity, R.id.onboardingPrimary));
+        assertFalse(visible(activity, R.id.onboardingBack));
+        assertTrue(visible(activity, R.id.onboardingSkip));
+
+        tap(activity, R.id.onboardingPrimary);
+        assertEquals(OnboardingActivity.Step.HIDDEN_DETAILS, activity.currentStep());
+        assertTrue(visible(activity, R.id.onboardingBack));
+
         tap(activity, R.id.onboardingSkip);
-        assertTrue(activity.isFinishing());
-        assertEquals(Activity.RESULT_OK, shadowOf(activity).getResultCode());
+        assertEquals(OnboardingActivity.Step.CHOICES, activity.currentStep());
+        assertFalse(visible(activity, R.id.onboardingSkip));
     }
 
     @Test
-    public void back_goesToThePreviousPage_andFinishesOnTheFirst() {
+    public void backOnTheFirstPage_cancelsOnFirstStart_butFinishesAReplay() {
+        OnboardingActivity first = launch(false);
+        first.getOnBackPressedDispatcher().onBackPressed();
+        assertTrue(first.isFinishing());
+        assertEquals(Activity.RESULT_CANCELED, shadowOf(first).getResultCode());
+        controller.destroy();
+
+        OnboardingActivity replay = launch(true);
+        replay.getOnBackPressedDispatcher().onBackPressed();
+        assertTrue(replay.isFinishing());
+        assertEquals(Activity.RESULT_OK, shadowOf(replay).getResultCode());
+    }
+
+    @Test
+    public void mediaPage_asksForAccess_whenAllowIsTapped() {
         OnboardingActivity activity = launch(false);
-        tap(activity, R.id.onboardingNext);
-        assertEquals(1, page(activity));
+        walkTo(activity, OnboardingActivity.Step.MEDIA);
+        assertEquals(activity.getString(R.string.onboarding_media_allow), text(activity, R.id.onboardingPrimary));
+        assertEquals(activity.getString(R.string.onboarding_not_now), text(activity, R.id.onboardingSecondary));
 
-        activity.getOnBackPressedDispatcher().onBackPressed();
-        shadowOf(Looper.getMainLooper()).idle();
-        assertEquals(0, page(activity));
-        assertFalse(activity.isFinishing());
+        activity.findViewById(R.id.onboardingPrimary).performClick();
 
-        activity.getOnBackPressedDispatcher().onBackPressed();
-        assertTrue(activity.isFinishing());
+        assertNotNull(shadowOf(activity).getLastRequestedPermission());
+        assertTrue(Arrays.asList(shadowOf(activity).getLastRequestedPermission().requestedPermissions)
+                .contains(Manifest.permission.READ_MEDIA_IMAGES));
     }
 
     @Test
-    public void replay_endsWithDone() {
-        OnboardingActivity activity = launch(true);
-        tap(activity, R.id.onboardingNext);
-        tap(activity, R.id.onboardingNext);
-        assertEquals(activity.getString(R.string.onboarding_done), nextLabel(activity));
+    public void notNow_movesOn_andLocationWaitsForPhotoAccess() {
+        OnboardingActivity activity = launch(false);
+        walkTo(activity, OnboardingActivity.Step.MEDIA);
 
-        tap(activity, R.id.onboardingNext);
-        assertTrue(activity.isFinishing());
-        assertEquals(Activity.RESULT_OK, shadowOf(activity).getResultCode());
+        tap(activity, R.id.onboardingSecondary);
+
+        assertEquals(OnboardingActivity.Step.LOCATION, activity.currentStep());
+        assertEquals(activity.getString(R.string.onboarding_continue), text(activity, R.id.onboardingPrimary));
+        assertFalse(visible(activity, R.id.onboardingSecondary));
+        TextView status = currentPage(activity).findViewById(R.id.onboardingStatusText);
+        assertEquals(activity.getString(R.string.onboarding_status_blocked), status.getText().toString());
     }
 
     @Test
-    public void notificationsPoint_onlyWhereAndroidAsksForIt() {
-        assertEquals(3, OnboardingActivity.pages(false, true).get(2).points().size());
-        assertEquals(2, OnboardingActivity.pages(false, false).get(2).points().size());
-        assertEquals(R.string.onboarding_permissions_body_replay,
-                OnboardingActivity.pages(true, true).get(2).body());
+    public void alreadyAllowedMedia_showsAllowed_andOffersContinue() {
+        shadowOf(app).grantPermissions(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO);
+        OnboardingActivity activity = launch(false);
+        walkTo(activity, OnboardingActivity.Step.CHOICES);
+        tap(activity, R.id.onboardingPrimary);
+
+        assertEquals(OnboardingActivity.Step.MEDIA, activity.currentStep());
+        assertEquals(activity.getString(R.string.onboarding_continue), text(activity, R.id.onboardingPrimary));
+        TextView status = currentPage(activity).findViewById(R.id.onboardingStatusText);
+        assertEquals(activity.getString(R.string.onboarding_status_granted), status.getText().toString());
+    }
+
+    @Test
+    public void turningOnNotifications_alsoTurnsOnRedactsCleanAndConvertAlerts() {
+        shadowOf(app).grantPermissions(Manifest.permission.POST_NOTIFICATIONS);
+        OnboardingActivity activity = launch(false);
+        walkTo(activity, OnboardingActivity.Step.NOTIFICATIONS);
+        assertEquals(activity.getString(R.string.onboarding_notifications_allow),
+                text(activity, R.id.onboardingPrimary));
+
+        tap(activity, R.id.onboardingPrimary);
+
+        assertTrue(AppPreferences.areNotificationsEnabled(activity));
+        assertTrue(AppPreferences.areCleanNotificationsEnabled(activity));
+        assertTrue(AppPreferences.areConvertNotificationsEnabled(activity));
+        assertEquals(OnboardingActivity.Step.DONE, activity.currentStep());
+    }
+
+    @Test
+    public void lastPage_startsTheAppOnFirstStart_andSaysDoneOnAReplay() {
+        OnboardingActivity first = launch(false);
+        skipToDone(first);
+        assertEquals(first.getString(R.string.onboarding_start), text(first, R.id.onboardingPrimary));
+        tap(first, R.id.onboardingPrimary);
+        assertTrue(first.isFinishing());
+        assertEquals(Activity.RESULT_OK, shadowOf(first).getResultCode());
+        controller.destroy();
+
+        OnboardingActivity replay = launch(true);
+        skipToDone(replay);
+        assertEquals(replay.getString(R.string.onboarding_done), text(replay, R.id.onboardingPrimary));
+    }
+
+    @Test
+    public void declinedPermissions_areNotRequestedByTheIntroduction() {
+        OnboardingActivity activity = launch(false);
+        skipToDone(activity);
+        assertNull(shadowOf(activity).getLastRequestedPermission());
+        assertFalse(activity.wasAsked(OnboardingActivity.Step.MEDIA));
+    }
+
+    /** Taps Not Now (or Continue) on every permission page. */
+    private static void skipToDone(OnboardingActivity activity) {
+        walkTo(activity, OnboardingActivity.Step.MEDIA);
+        while (activity.currentStep() != OnboardingActivity.Step.DONE) {
+            int id = visible(activity, R.id.onboardingSecondary)
+                    ? R.id.onboardingSecondary : R.id.onboardingPrimary;
+            tap(activity, id);
+        }
+    }
+
+    private static View currentPage(OnboardingActivity activity) {
+        androidx.recyclerview.widget.RecyclerView recycler = (androidx.recyclerview.widget.RecyclerView)
+                ((androidx.viewpager2.widget.ViewPager2) activity.findViewById(R.id.onboardingPager)).getChildAt(0);
+        return recycler.findViewHolderForAdapterPosition(activity.currentStep().ordinal()).itemView;
     }
 }
