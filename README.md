@@ -106,7 +106,7 @@ You can also build it yourself, see [For developers](#for-developers).
 
 ### Your first clean
 
-On first start, a short introduction explains what hidden metadata is and that your files never leave your phone. It then walks through each permission on its own page (photos and videos, photo locations, notifications), saying what it is for before asking, so you can allow it or choose **Not Now**. The last page sums up your choices. See it again any time from Settings › About › **Show Introduction**.
+On first start, a short introduction explains what hidden metadata is and that your files never leave your phone. It then walks through each permission on its own page (photos and videos, photo and video locations, notifications), plus whether to send crash reports, saying what each is for before asking, so you can allow it or choose **Not Now**. The last page sums up your choices. See it again any time from Settings › About › **Show Introduction**.
 
 1. Open Redact and tap the **Clean** tab.
 2. Tap **Select Files** and choose photos or videos.
@@ -235,7 +235,7 @@ The Settings tab puts the settings you use every day first: cleaning, sharing, C
 
 | Setting | What it does |
 |---|---|
-| **Send Crash Reports** | Optional anonymized crash diagnostics through Sentry, off by default, with a consent prompt. On first start Redact asks once whether to turn it on; if you choose Not Now it says where this setting is and never asks again. |
+| **Send Crash Reports** | Optional anonymized crash diagnostics through Sentry, off by default, with a consent prompt. On first start the introduction asks once, on its own page, whether to turn it on; choosing Not Now leaves it off. |
 
 **Reset All Settings** puts every setting back to its default and forgets the chosen output folders. Your files are not touched.
 

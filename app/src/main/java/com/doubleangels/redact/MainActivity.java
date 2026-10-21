@@ -41,10 +41,9 @@ public class MainActivity extends AppCompatActivity {
     private static final int MAX_CONVERT_SHARE_ITEMS = 20;
 
     /**
-     * The first-start introduction, which asks for each permission on its own page. When it
-     * finishes, the first-launch flow ends without prompting again, and the crash-report question
-     * follows. Backing out of its first page closes the app, and the introduction shows again on
-     * the next start.
+     * The first-start introduction, which asks for each permission and about crash reports on its
+     * own page. When it finishes, the first-launch flow ends without prompting again. Backing out
+     * of its first page closes the app, and the introduction shows again on the next start.
      */
     private final androidx.activity.result.ActivityResultLauncher<android.content.Intent> onboardingLauncher =
             registerForActivityResult(
@@ -156,10 +155,8 @@ public class MainActivity extends AppCompatActivity {
 
             SentryManager.setCustomKey("app_started", true);
 
-            com.doubleangels.redact.permission.PermissionManager.setInitialFlowCompletedCallback(() -> {
-                notifyVisibleFragmentPermissionFlowCompleted();
-                com.doubleangels.redact.ui.CrashReportingPrompt.onFirstStartPermissionsDone(this);
-            });
+            com.doubleangels.redact.permission.PermissionManager.setInitialFlowCompletedCallback(
+                    this::notifyVisibleFragmentPermissionFlowCompleted);
             if (savedInstanceState == null && shouldShowOnboarding()) {
                 // The introduction asks for the permissions itself.
                 onboardingLauncher.launch(new android.content.Intent(this, OnboardingActivity.class));

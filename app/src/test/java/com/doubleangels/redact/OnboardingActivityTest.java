@@ -14,6 +14,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Looper;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -37,8 +38,21 @@ public class OnboardingActivityTest {
     private ActivityController<OnboardingActivity> controller;
     private Application app;
 
+    /** Keeps the SDK from initialising against the debug build's real DSN. */
+    private static void overrideSentryDsn(String dsn) {
+        try {
+            java.lang.reflect.Field f = com.doubleangels.redact.sentry.SentryInitializer.class
+                    .getDeclaredField("testDsnOverride");
+            f.setAccessible(true);
+            f.set(null, dsn);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError(e);
+        }
+    }
+
     @Before
     public void setUp() {
+        overrideSentryDsn("");
         app = RuntimeEnvironment.getApplication();
         app.getSharedPreferences(AppPreferences.PREFS_NAME, Context.MODE_PRIVATE).edit().clear().commit();
     }
@@ -48,6 +62,8 @@ public class OnboardingActivityTest {
         if (controller != null) {
             controller.pause().stop().destroy();
         }
+        com.doubleangels.redact.sentry.SentryInitializer.shutdown();
+        overrideSentryDsn(null);
     }
 
     private OnboardingActivity launch(boolean replay) {
@@ -167,7 +183,34 @@ public class OnboardingActivityTest {
         assertTrue(AppPreferences.areNotificationsEnabled(activity));
         assertTrue(AppPreferences.areCleanNotificationsEnabled(activity));
         assertTrue(AppPreferences.areConvertNotificationsEnabled(activity));
+        assertEquals(OnboardingActivity.Step.CRASH_REPORTS, activity.currentStep());
+    }
+
+    @Test
+    public void crashReportsPage_turnsThemOn_andTheSummarySaysSo() {
+        OnboardingActivity activity = launch(false);
+        walkTo(activity, OnboardingActivity.Step.MEDIA);
+        while (activity.currentStep() != OnboardingActivity.Step.CRASH_REPORTS) {
+            tap(activity, visible(activity, R.id.onboardingSecondary)
+                    ? R.id.onboardingSecondary : R.id.onboardingPrimary);
+        }
+        assertEquals(activity.getString(R.string.onboarding_crash_allow), text(activity, R.id.onboardingPrimary));
+        assertEquals(activity.getString(R.string.onboarding_not_now), text(activity, R.id.onboardingSecondary));
+
+        tap(activity, R.id.onboardingPrimary);
+
+        assertTrue(AppPreferences.isCrashReportingEnabled(activity));
         assertEquals(OnboardingActivity.Step.DONE, activity.currentStep());
+        ViewGroup summary = currentPage(activity).findViewById(R.id.onboardingPoints);
+        TextView last = summary.getChildAt(summary.getChildCount() - 1).findViewById(R.id.onboardingPointText);
+        assertEquals(activity.getString(R.string.onboarding_done_crash_on), last.getText().toString());
+    }
+
+    @Test
+    public void notNowOnCrashReports_leavesThemOff() {
+        OnboardingActivity activity = launch(false);
+        skipToDone(activity);
+        assertFalse(AppPreferences.isCrashReportingEnabled(activity));
     }
 
     @Test

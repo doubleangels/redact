@@ -35,6 +35,7 @@ import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.permission.PermissionStatusHelper;
 import com.doubleangels.redact.permission.PermissionStatusHelper.Status;
+import com.doubleangels.redact.sentry.SentryInitializer;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -46,10 +47,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The first-start introduction. Three pages explain what Redact does, then each permission gets
- * its own page that says what it is for and asks for it right there, and a last page sums up what
- * was chosen. {@link MainActivity} opens it on a fresh install in place of the old run of cold
- * permission prompts; Settings › Show Introduction opens it again with {@link #EXTRA_REPLAY}.
+ * The first-start introduction. Three pages explain what Redact does, then each permission, and
+ * the crash-report question, gets its own page that says what it is for and asks right there, and
+ * a last page sums up what was chosen. {@link MainActivity} opens it on a fresh install in place
+ * of the old run of cold permission prompts and crash-report popup; Settings › Show Introduction
+ * opens it again with {@link #EXTRA_REPLAY}.
  * It finishes with RESULT_OK once the user reaches the end, or RESULT_CANCELED when they back out
  * of the first page.
  */
@@ -64,7 +66,9 @@ public class OnboardingActivity extends AppCompatActivity {
     private static final long ADVANCE_AFTER_GRANT_MS = 700;
 
     @VisibleForTesting
-    enum Step { WELCOME, HIDDEN_DETAILS, PRIVATE, CHOICES, MEDIA, LOCATION, NOTIFICATIONS, DONE }
+    enum Step {
+        WELCOME, HIDDEN_DETAILS, PRIVATE, CHOICES, MEDIA, LOCATION, NOTIFICATIONS, CRASH_REPORTS, DONE
+    }
 
     private static final Step[] STEPS = Step.values();
 
@@ -195,8 +199,10 @@ public class OnboardingActivity extends AppCompatActivity {
 
     // ---- Permission state ----
 
+    /** The pages that ask for something: the three permissions and crash reports. */
     private static boolean isPermissionStep(@NonNull Step step) {
-        return step == Step.MEDIA || step == Step.LOCATION || step == Step.NOTIFICATIONS;
+        return step == Step.MEDIA || step == Step.LOCATION || step == Step.NOTIFICATIONS
+                || step == Step.CRASH_REPORTS;
     }
 
     @VisibleForTesting
@@ -207,6 +213,8 @@ public class OnboardingActivity extends AppCompatActivity {
             case LOCATION -> PermissionStatusHelper.getLocationStatus(this);
             // Both Android's permission and Redact's own notification setting must be on.
             case NOTIFICATIONS -> LocalNotifications.canPostNotifications(this)
+                    ? Status.GRANTED : Status.DENIED;
+            case CRASH_REPORTS -> AppPreferences.isCrashReportingEnabled(this)
                     ? Status.GRANTED : Status.DENIED;
             default -> Status.NOT_REQUIRED;
         };
@@ -230,7 +238,8 @@ public class OnboardingActivity extends AppCompatActivity {
             default -> new String[0];
         };
         if (permissions.length == 0) {
-            // Nothing for Android to ask: on older versions notifications only need Redact's setting.
+            // Nothing for Android to ask: crash reports, and notifications on older versions, are
+            // only Redact's own settings.
             pendingStep = step.ordinal();
             onPermissionResult();
             return;
@@ -251,6 +260,10 @@ public class OnboardingActivity extends AppCompatActivity {
             AppPreferences.setNotificationsEnabled(this, true);
             AppPreferences.setCleanNotificationsEnabled(this, true);
             AppPreferences.setConvertNotificationsEnabled(this, true);
+        } else if (step == Step.CRASH_REPORTS) {
+            AppPreferences.setCrashReportingEnabled(this, true);
+            SentryInitializer.initializeIfNeeded(this);
+            SentryManager.setCustomKey("crash_reporting_enabled", true);
         }
         refresh();
         if (isAllowed(status(step))) {
@@ -301,11 +314,17 @@ public class OnboardingActivity extends AppCompatActivity {
 
     private void onSecondary() {
         Step step = current();
-        if (isPermissionStep(step) && !canAsk(step) && status(step) == Status.DENIED) {
+        if (canOpenSettings(step)) {
             openSystemSettings(step);
         } else {
             goNext();
         }
+    }
+
+    /** A declined permission can still be turned on in Android's settings for the app. */
+    private boolean canOpenSettings(@NonNull Step step) {
+        return isPermissionStep(step) && step != Step.CRASH_REPORTS && !canAsk(step)
+                && status(step) == Status.DENIED;
     }
 
     private void refresh() {
@@ -326,13 +345,12 @@ public class OnboardingActivity extends AppCompatActivity {
         @StringRes int primaryText;
         @StringRes int secondaryText = 0;
         if (isPermissionStep(step)) {
-            Status status = status(step);
             if (canAsk(step)) {
                 primaryText = allowLabel(step);
                 secondaryText = R.string.onboarding_not_now;
             } else {
                 primaryText = R.string.onboarding_continue;
-                if (status == Status.DENIED) {
+                if (canOpenSettings(step)) {
                     secondaryText = R.string.onboarding_open_settings;
                 }
             }
@@ -356,6 +374,7 @@ public class OnboardingActivity extends AppCompatActivity {
         return switch (step) {
             case MEDIA -> R.string.onboarding_media_allow;
             case LOCATION -> R.string.onboarding_location_allow;
+            case CRASH_REPORTS -> R.string.onboarding_crash_allow;
             default -> R.string.onboarding_notifications_allow;
         };
     }
@@ -399,6 +418,7 @@ public class OnboardingActivity extends AppCompatActivity {
                 points.add(point(R.drawable.ic_image, R.string.onboarding_choices_media));
                 points.add(point(R.drawable.ic_map_24, R.string.onboarding_choices_location));
                 points.add(point(R.drawable.ic_notification, R.string.onboarding_choices_notifications));
+                points.add(point(R.drawable.ic_bug_report, R.string.onboarding_choices_crash));
             }
             case MEDIA -> {
                 icon = R.drawable.ic_image;
@@ -429,6 +449,15 @@ public class OnboardingActivity extends AppCompatActivity {
                         R.string.onboarding_notifications_point_finished));
                 points.add(point(R.drawable.ic_person, R.string.onboarding_notifications_point_no_ads));
             }
+            case CRASH_REPORTS -> {
+                icon = R.drawable.ic_bug_report;
+                title = R.string.onboarding_crash_title;
+                body = getText(R.string.onboarding_crash_body);
+                points.add(point(R.drawable.ic_lock, R.string.onboarding_crash_point_private));
+                points.add(point(R.drawable.ic_shield, R.string.onboarding_crash_point_sentry));
+                points.add(point(R.drawable.ic_info_outline_20,
+                        R.string.onboarding_notifications_point_optional));
+            }
             default -> {
                 icon = R.drawable.ic_check_circle;
                 title = R.string.onboarding_done_title;
@@ -456,7 +485,7 @@ public class OnboardingActivity extends AppCompatActivity {
         return new Point(icon, getText(text));
     }
 
-    /** The last page: one sentence per permission saying what the user chose. */
+    /** The last page: one sentence per choice saying what the user picked. */
     @NonNull
     private List<Point> summary() {
         List<Point> rows = new ArrayList<>();
@@ -472,6 +501,10 @@ public class OnboardingActivity extends AppCompatActivity {
         rows.add(summaryRow(notifications, notifications
                 ? R.string.onboarding_done_notifications_granted
                 : R.string.onboarding_done_notifications_denied));
+        boolean crashReports = status(Step.CRASH_REPORTS) == Status.GRANTED;
+        rows.add(summaryRow(crashReports, crashReports
+                ? R.string.onboarding_done_crash_on
+                : R.string.onboarding_done_crash_off));
         return rows;
     }
 
@@ -492,8 +525,11 @@ public class OnboardingActivity extends AppCompatActivity {
         if (status == Status.PARTIAL) {
             text = R.string.onboarding_status_partial;
         } else if (positive) {
-            text = step == Step.NOTIFICATIONS ? R.string.onboarding_status_notifications_on
-                    : R.string.onboarding_status_granted;
+            text = switch (step) {
+                case NOTIFICATIONS -> R.string.onboarding_status_notifications_on;
+                case CRASH_REPORTS -> R.string.onboarding_status_crash_on;
+                default -> R.string.onboarding_status_granted;
+            };
         } else if (status == Status.BLOCKED) {
             text = R.string.onboarding_status_blocked;
         } else if (asked[step.ordinal()]) {
