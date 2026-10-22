@@ -131,7 +131,9 @@ final class ReadableText {
         } catch (NumberFormatException e) {
             return null;
         }
-        ByteArrayOutputStream out = new ByteArrayOutputStream(Math.max(0, expected));
+        // The length comes from the file, so it only sizes the buffer as far as the hex can fill it.
+        ByteArrayOutputStream out = new ByteArrayOutputStream(
+                Math.max(0, Math.min(expected, lines[2].length() / 2)));
         int high = -1;
         for (int i = 0; i < lines[2].length() && out.size() < expected; i++) {
             int digit = Character.digit(lines[2].charAt(i), 16);

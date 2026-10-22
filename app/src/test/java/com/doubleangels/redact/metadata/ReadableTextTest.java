@@ -83,6 +83,13 @@ public class ReadableTextTest {
     }
 
     @Test
+    public void hexProfile_doesNotTrustTheLengthInTheFile() {
+        // A claimed 2 GB profile must not allocate 2 GB; only the hex that is there is read.
+        byte[] decoded = ReadableText.hexProfile("\nexif\n 2000000000\n4578");
+        assertTrue(decoded == null || decoded.length <= 2);
+    }
+
+    @Test
     public void iso6709_readsLatitudeAndLongitude_withOrWithoutAltitude() {
         assertArrayEquals(new double[] {40.6892, -74.0445}, ReadableText.iso6709("+40.6892-074.0445+010.000/"), 1e-9);
         assertArrayEquals(new double[] {40.6892, -74.0445}, ReadableText.iso6709("+40.6892-074.0445/"), 1e-9);
