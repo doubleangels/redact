@@ -463,7 +463,7 @@ public class MetadataStripper {
             readEssentialExifData(tempFile, false);
             lastCleanStats = readCleanStats(tempFile, false);
 
-            newUri = writeCleanImage(tempFile, sourceUri, newFilename, outputFormat);
+            newUri = writeCleanImage(tempFile, sourceUri, newFilename, outputFormat, false);
 
             lastProcessedFileUri = newUri;
             SentryManager.log("The image was processed successfully.");
@@ -539,7 +539,7 @@ public class MetadataStripper {
         }
         try {
             // The censored file is also what a re-encode falls back to decoding, never the original.
-            Uri out = writeCleanImage(censored, Uri.fromFile(censored), outputName, outputFormat);
+            Uri out = writeCleanImage(censored, Uri.fromFile(censored), outputName, outputFormat, true);
             lastProcessedFileUri = out;
             return out;
         } finally {
@@ -550,10 +550,14 @@ public class MetadataStripper {
     /**
      * Writes {@code picture} to a new gallery entry with only the preserved tags, verifies it and
      * publishes it. On failure the entry is removed and the error is rethrown.
+     *
+     * @param fromPixels {@code picture} was just encoded from pixels, so it holds no metadata and a
+     *                   format the walker cannot rebuild is copied rather than encoded again
      */
     @NonNull
     private Uri writeCleanImage(@NonNull File picture, @NonNull Uri pictureUri, @NonNull String newFilename,
-                                @NonNull FormatConverter.ImageFormatSpec outputFormat) throws IOException {
+                                @NonNull FormatConverter.ImageFormatSpec outputFormat, boolean fromPixels)
+            throws IOException {
         Uri newUri = null;
         File cleanFile = null;
         try {
@@ -564,7 +568,7 @@ public class MetadataStripper {
             // does not truncate on "w" would keep the tail of an earlier, longer attempt, which
             // can be a full copy of the original with its metadata.
             cleanFile = File.createTempFile("temp_clean_", outputFormat.extension, context.getCacheDir());
-            writePictureOnly(picture, pictureUri, cleanFile, outputFormat);
+            writePictureOnly(picture, pictureUri, cleanFile, outputFormat, fromPixels);
 
             // Restore only essential EXIF data (like orientation)
             updateProgress(4, 5, context.getString(R.string.strip_progress_restoring_essential_metadata));
@@ -650,7 +654,7 @@ public class MetadataStripper {
             outputFile = new File(outputDir, newFilename);
 
             updateProgress(3, 5, context.getString(R.string.strip_progress_removing_metadata));
-            writePictureOnly(tempFile, Uri.fromFile(tempFile), outputFile, outputFormat);
+            writePictureOnly(tempFile, Uri.fromFile(tempFile), outputFile, outputFormat, false);
 
             // Put back only the essential tags (orientation)
             updateProgress(4, 5, context.getString(R.string.strip_progress_removing_all_metadata));
@@ -1845,8 +1849,18 @@ public class MetadataStripper {
      * goes too. EXIF is gone either way; the caller puts back the tags the settings keep.
      */
     private void writePictureOnly(@NonNull File source, @NonNull Uri sourceUri, @NonNull File target,
-                                  @NonNull FormatConverter.ImageFormatSpec outputFormat) throws IOException {
+                                  @NonNull FormatConverter.ImageFormatSpec outputFormat, boolean fromPixels)
+            throws IOException {
         ImageContainerMetadata.Format expected = containerFormat(outputFormat.extension);
+        if (fromPixels && expected == ImageContainerMetadata.Format.OTHER) {
+            // Encoding it again (HEIC, say) would only cost time and quality; the check before
+            // publishing still makes sure nothing identifying is in it.
+            try (InputStream in = new FileInputStream(source);
+                    OutputStream out = new FileOutputStream(target)) {
+                MediaSizeLimits.copyStream(in, out);
+            }
+            return;
+        }
         if (expected != ImageContainerMetadata.Format.OTHER
                 && ImageContainerMetadata.sniff(source) == expected) {
             try {
