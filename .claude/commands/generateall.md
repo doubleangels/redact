@@ -23,7 +23,7 @@ Regenerate the baseline profile and the store screenshots, both on the **Pixel_1
 
 ## 3. Screenshots
 
-Follow step 2 ("Generate the screenshots") of `.claude/commands/generatescreenshots.md`, with the locales I passed (default `en-US`). Do **not** set `SKIP_INSTALL`: the profile step installs a different build variant, so the script must install the current debug app itself.
+Follow step 2 ("Generate the screenshots") of `.claude/commands/generatescreenshots.md`, with the locales I passed (default `all`). Do **not** set `SKIP_INSTALL`: the profile step installs a different build variant, so the script must install the current debug app itself.
 
 ## 4. Check the images
 

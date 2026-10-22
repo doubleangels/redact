@@ -57,7 +57,7 @@ The store screenshots show the Clean, Scan and Convert tabs (light and dark). Re
    - code that sets how those tabs look (visibility, colours, sizes, icons, text, which views appear for a selection): `MainActivity`, `CleanFragment`, `ScanFragment`, `ConvertFragment`, `MediaAdapter`, `ConvertFileAdapter`, `ScanMetadataAdapter`, `UIStateManager`. Read the diff and judge: a change only to background work, logging, or dialogs and states the screenshots never show does not count;
    - the screenshot scripts `scripts/screenshots.sh`, `scripts/store_graphics.py` or `scripts/tag_samples.py`, or the sample media in `icons/sample`.
 4. It does **not** count when the only changes are to `fragment_settings.xml`, `SettingsFragment`, Settings-only strings, the Censor tab (`fragment_censor.xml`, `layout-land/fragment_censor.xml`, `censor_*.xml`, `CensorFragment`, `CensorCanvasView`, `CensorViewModel`, `censor_*` strings other than `navigation_censor`), translations into other locales, or non-UI code. The store screenshots never open Censor.
-5. If there is a visual change, follow `.claude/commands/generatescreenshots.md` for `all` locales (store screenshots and feature graphics are per language). Also compare each new en-US store image with the matching one in `fastlane/metadata/android/en-US/images/phoneScreenshots/` (read both) and describe what looks different. If there is no visual change, skip the screenshots and say which commit you compared against and that nothing on those tabs changed.
+5. If there is a visual change, follow `.claude/commands/generatescreenshots.md` for `all` locales: every locale has its own store screenshots and feature graphic. Compare each locale's new store images with its published ones in `fastlane/metadata/android/<locale>/images/phoneScreenshots/` (read both), describe what looks different, and say which locales had no published images yet. If there is no visual change, skip the screenshots and say which commit you compared against and that nothing on those tabs changed.
 
 ## 5. Release notes, preview only
 
@@ -81,4 +81,4 @@ Finish with one report:
 8. **Sentry coverage:** the release range checked, each gap with its `file:line` and how it was fixed, anything left unfixed and why, and the unit test result after the fixes.
 9. **Left uncommitted:** every changed file (translations, Sentry fixes, profiles), plus the screenshots in `build/screenshots/` and `build/store/`.
 
-Offer to commit the translations, Sentry fixes and profiles, to copy the store images into fastlane (as step 4 of `generatescreenshots.md` describes), and to fix any failures, but do none of these without being asked.
+Offer to commit the translations, Sentry fixes and profiles, to copy every locale's store images into fastlane (as step 4 of `generatescreenshots.md` describes), and to fix any failures, but do none of these without being asked.
