@@ -1,5 +1,5 @@
 ---
-description: Before a release, run /test and /translate, regenerate the profiles, regenerate the screenshots if Clean, Scan or Convert look different, preview the release notes CI will write, and show one summary
+description: Before a release, run /test and /translate, check that new code reports to Sentry, regenerate the profiles, regenerate the screenshots if Clean, Scan or Convert look different, preview the release notes CI will write, and show one summary
 allowed-tools: Bash, PowerShell, Read, Edit, Write, Grep, Glob
 ---
 
@@ -15,11 +15,28 @@ Follow `.claude/commands/test.md` in full: the unit tests, then every feature on
 
 ## 2. Translations
 
-Follow `.claude/commands/translate.md`: check every string in all 12 locales and translate anything missing or left in English. Translation fixes are the one kind of change this command makes to the source; leave them uncommitted unless commits are allowed. If strings changed, run only `./gradlew :app:testDebugUnitTest --tests com.doubleangels.redact.StringTranslationsTest -q` afterwards (the full suite already ran in step 1) and note the result.
+Follow `.claude/commands/translate.md`: check every string in all 12 locales and translate anything missing or left in English. Translation fixes and the Sentry fixes in step 2c are the only changes this command makes to the source; leave them uncommitted unless commits are allowed. If strings changed, run only `./gradlew :app:testDebugUnitTest --tests com.doubleangels.redact.StringTranslationsTest -q` afterwards (the full suite already ran in step 1) and note the result.
 
 ## 2b. Dependencies, report only
 
 Follow `.claude/commands/dependencies.md` through step 3 (collect, find the latest versions, decide) and **stop there: do not apply any upgrade** in a release run, since new versions would invalidate the test results above. Keep the table for the summary so I can decide what goes in the next release.
+
+## 2c. Sentry coverage
+
+Check that the code added or changed for this release reports to Sentry like the rest of the app, without sending anything private, and fix every gap.
+
+1. Find the previous release the way CI does: `last-published-version` if `git rev-parse --verify --quiet refs/tags/last-published-version` succeeds, otherwise the newest `v*` tag. Run `git fetch --tags --force origin` first, since a local copy of that tag can be stale. The scope is `git diff <tag> -- app/src/main/java` (committed and uncommitted changes), read hunk by hunk, plus every file added since the tag.
+2. For each new or changed piece of code, check:
+   - **Failures are reported.** Every `catch` either calls `SentryManager.recordException(e)`, or has a clear reason not to (`SentryManager.isUserCancellation(e)` or `isIgnored(e)`, an expected case such as an unsupported format or a missing file that is logged with `SentryManager.log`, or a comment explaining why it is ignored). An empty or comment-free `catch (Exception ignored)` on a processing, saving or sharing path is a gap.
+   - **Background work is covered.** Code run on a `new Thread`, an executor, `worker.execute`, a `Handler.post` or a callback catches and records its exceptions instead of losing them or crashing the process.
+   - **New flows leave a trail.** A new screen, tab, button, dialog choice, share target or job logs a breadcrumb (`SentryManager.logEvent` or `SentryManager.log`) when it starts and for its outcome. A long job uses `SentryManager.beginOperation` or `startTransaction` like Clean and Convert do, and sets its failure tags (`setCustomKey`) before `recordException`. New fragments and activities are picked up by the lifecycle integrations in `SentryInitializer`, so they need no extra code.
+   - **Everything goes through `SentryManager`.** No direct `Sentry.*`, `io.sentry` capture or breadcrumb calls outside `app/src/main/java/com/doubleangels/redact/sentry/`, because those calls would skip the consent check (`SentryManager.isEnabled()`) and the scrubbing.
+   - **Nothing private is sent.** No string passed to Sentry (log messages, breadcrumbs, tags, metric attributes, exception messages from our own `throw`s) contains a URI, path, file name, coordinate, metadata value or text the user typed. Do not rely on `SentryPrivacyScrubber` alone: check each value against its patterns, and keep in mind that it currently misses `.heic` names, names with spaces or parentheses (such as `IMG_1 (1).jpg`), and `/sdcard/` and `/mnt/` paths.
+3. Fix each gap with the smallest change, written like the surrounding code: add the missing `recordException`, breadcrumb, operation or failure tag; route a direct Sentry call through `SentryManager`; drop or reword a private value so it never reaches Sentry. When the scrubber misses something, fix the pattern in `SentryPrivacyScrubber` and add a case to its test (`SentryPrivacyScrubberTest`) for the value it missed. Do not change behaviour beyond reporting, and do not report user cancellations or expected cases such as an unsupported format, which would only add noise.
+4. If anything changed, run the full `./gradlew :app:testDebugUnitTest -q` again (step 1's results no longer cover the final code) and check `app/build/test-results/testDebugUnitTest/*.xml` for `failures="[1-9]"` or `errors="[1-9]"`. A fix that breaks a test is rolled back and listed as a gap instead. Leave the fixes uncommitted unless commits are allowed.
+5. Keep for the summary: each gap with its `file:line`, what was missing and how it was fixed (or why it was left), and one line per file of new code that was already covered, so I can see the scope was complete.
+
+A gap that could not be fixed does not on its own make the release not ready, but anything that still sends private data to Sentry does.
 
 ## 3. Profiles
 
@@ -54,13 +71,14 @@ CI (the `release-notes` job in `deploy.yml`) writes the Play "What's new" text, 
 
 Finish with one report:
 
-1. **Verdict:** ready to release, or not, and why, in one or two sentences. Any unit test failure, failed feature, crash, ANR, translation error left unfixed, or failed profile run means not ready.
+1. **Verdict:** ready to release, or not, and why, in one or two sentences. Any unit test failure, failed feature, crash, ANR, translation error left unfixed, failed profile run, or private data sent to Sentry means not ready.
 2. **Tests:** the unit test totals and the feature table from step 1.
 3. **Translations:** what was missing or left in English, what was translated (per locale), and whether the check now passes.
 4. **Profiles:** rule counts before and after, and whether the change is meaningful or noise.
 5. **Screenshots:** regenerated or skipped, the reason (the files that count as a visual change, or the baseline commit), and the review of the new images.
 6. **Release notes:** the previewed English text with its character count, and whether CI will generate it or keep a hand-written one.
 7. **Dependencies:** how many are outdated, and the ones in the "needs care" group.
-8. **Left uncommitted:** every changed file (translations, profiles), plus the screenshots in `build/screenshots/` and `build/store/`.
+8. **Sentry coverage:** the release range checked, each gap with its `file:line` and how it was fixed, anything left unfixed and why, and the unit test result after the fixes.
+9. **Left uncommitted:** every changed file (translations, Sentry fixes, profiles), plus the screenshots in `build/screenshots/` and `build/store/`.
 
-Offer to commit the translations and profiles, to copy the store images into fastlane (as step 4 of `generatescreenshots.md` describes), and to fix any failures, but do none of these without being asked.
+Offer to commit the translations, Sentry fixes and profiles, to copy the store images into fastlane (as step 4 of `generatescreenshots.md` describes), and to fix any failures, but do none of these without being asked.
