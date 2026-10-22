@@ -359,6 +359,8 @@ public final class VideoMedia3Converter {
             }
             return false;
         } catch (Exception e) {
+            // Keeping the audio track is the safe default when the source cannot be inspected.
+            com.doubleangels.redact.sentry.SentryManager.log("The video's tracks could not be read, so its audio is kept.");
             return true;
         } finally {
             extractor.release();

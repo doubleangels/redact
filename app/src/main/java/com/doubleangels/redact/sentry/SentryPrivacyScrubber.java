@@ -28,7 +28,7 @@ public final class SentryPrivacyScrubber {
     private static final Pattern FILE_URI =
             Pattern.compile("file://[^\\s\"']+", Pattern.CASE_INSENSITIVE);
     private static final Pattern ABSOLUTE_PATH =
-            Pattern.compile("(?:/storage/|/data/)[^\\s\"']+", Pattern.CASE_INSENSITIVE);
+            Pattern.compile("(?:/storage/|/data/|/sdcard/|/mnt/)[^\\s\"']+", Pattern.CASE_INSENSITIVE);
     private static final Pattern WINDOWS_PATH =
             Pattern.compile("(?:[A-Za-z]:\\\\|\\\\\\\\)[^\\s\"']+");
     private static final Pattern LAT_LON =
@@ -49,11 +49,15 @@ public final class SentryPrivacyScrubber {
      * Catches a media filename anywhere in text, not just after one of the literal prefixes
      * {@link #FILENAME_IN_MESSAGE} requires (e.g. a raw filename embedded in a vendor
      * IOException/FileNotFoundException message). Scoped to this app's own media extensions
-     * so it doesn't also redact harmless tokens like source file names in stack traces.
+     * so it doesn't also redact harmless tokens like source file names in stack traces. A name can
+     * hold spaces and brackets ("IMG_1 (1).jpg", "My Trip.jpg") and the text does not show where
+     * it starts, so up to three words before it go too: losing a little context is better than
+     * sending part of a name.
      */
     private static final Pattern MEDIA_FILENAME =
             Pattern.compile(
-                    "\\b[\\w.\\-]+\\.(?:jpe?g|png|webp|heif?|gif|bmp|apng"
+                    "(?:[\\w.\\-()'\\[\\]]+ ){0,3}[\\w.\\-()'\\[\\]]*"
+                            + "\\.(?:jpe?g|png|webp|heic|heics|heif|avif|dng|tiff?|jxl|gif|bmp|apng"
                             + "|mp4|mov|m4v|avi|mkv|webm|3gp|vp[89]|bin)\\b",
                     Pattern.CASE_INSENSITIVE);
 

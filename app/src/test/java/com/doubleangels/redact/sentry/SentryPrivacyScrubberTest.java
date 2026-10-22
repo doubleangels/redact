@@ -29,6 +29,28 @@ public class SentryPrivacyScrubberTest {
     }
 
     @Test
+    public void scrubRedactsHeicNamesNamesWithSpacesAndOtherStoragePaths() {
+        String[] inputs = {
+                "open failed: PXL_20261006_020342821.heic",
+                "photo.HEIC could not be read",
+                "cannot read IMG_beach (1).jpg",
+                "saved CEN_noise (censored).jpg",
+                "My Trip to Paris.jpg failed",
+                "raw.dng and scan.avif",
+                "/sdcard/DCIM/Camera/secret.png",
+                "/mnt/media_rw/1234-ABCD/DCIM/x.mp4",
+        };
+        String[] leaks = {"PXL_2026", "photo", "IMG_beach", "CEN_noise", "Paris", "raw", "/sdcard", "/mnt"};
+        for (int i = 0; i < inputs.length; i++) {
+            String scrubbed = SentryPrivacyScrubber.scrub(inputs[i]);
+            assertNotNull(scrubbed);
+            assertFalse(inputs[i] + " -> " + scrubbed, scrubbed.contains(leaks[i]));
+        }
+        assertEquals("open failed: [redacted]",
+                SentryPrivacyScrubber.scrub("open failed: PXL_20261006_020342821.heic"));
+    }
+
+    @Test
     public void scrubCodeIdentifierKeepsPackagesThatLookLikeMediaFileNames() {
         assertEquals("androidx.media3.extractor.mp4.Mp4Extractor",
                 SentryPrivacyScrubber.scrubCodeIdentifier("androidx.media3.extractor.mp4.Mp4Extractor"));
