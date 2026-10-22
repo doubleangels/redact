@@ -591,6 +591,22 @@ public class ImageContainerWalkerTest {
     }
 
     @Test
+    public void extendedXmp_findsALocationSplitAcrossChunks() throws Exception {
+        String guid = "0123456789ABCDEF0123456789ABCDEF";
+        String head = "<x:xmpmeta><exif:GPSLat";
+        String tail = "itude>40,41.3N</exif:GPSLatitude></x:xmpmeta>";
+        int total = head.length() + tail.length();
+        byte[] second = cat(a("http://ns.adobe.com/xmp/extension/\0"), a(guid), be32(total), be32(head.length()),
+                a(tail));
+        byte[] first = cat(a("http://ns.adobe.com/xmp/extension/\0"), a(guid), be32(total), be32(0), a(head));
+        ImageContainerMetadata.Report r = scan(jpeg(seg(0xE1, second), seg(0xE1, first)));
+
+        assertEquals(List.of("XMP_EXTENDED"), keys(r.findings));
+        assertEquals(head + tail, r.findings.get(0).text);
+        assertEquals(ImageContainerMetadata.Kind.LOCATION, r.findings.get(0).kind);
+    }
+
+    @Test
     public void thumbnails_showTheirSize() throws Exception {
         byte[] jfif = cat(a("JFIF\0"), b(1, 2, 0, 0, 1, 0, 1, 2, 3), new byte[18]);
         byte[] photoshopThumb = cat(be32(1), be32(160), be32(120), new byte[16]);

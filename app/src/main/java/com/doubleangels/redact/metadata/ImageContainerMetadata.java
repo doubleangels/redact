@@ -255,8 +255,10 @@ public final class ImageContainerMetadata {
             if (e instanceof RuntimeException) {
                 SentryManager.recordException(e);
             }
+            walker.finishExtendedXmp();
             return new Report(walker.format, false, walker.findings, walker.kept);
         }
+        walker.finishExtendedXmp();
         return new Report(walker.format, true, walker.findings, walker.kept);
     }
 
@@ -496,20 +498,32 @@ public final class ImageContainerMetadata {
             }
         }
 
-        /** Adds a chunk of extended XMP to the one finding for its GUID. */
+        /**
+         * Adds a chunk of extended XMP to the one finding for its GUID. The chunks are joined once,
+         * by {@link #finishExtendedXmp}, since joining them again for every chunk grows with the
+         * square of their number. A clean does not read findings, so it keeps none.
+         */
         private void extendedXmp(@NonNull String guid, long offset, @NonNull String xmp, long size) {
-            java.util.TreeMap<Long, String> parts = extendedXmp.computeIfAbsent(guid, g -> new java.util.TreeMap<>());
-            parts.put(offset, xmp);
-            String whole = String.join("", parts.values());
-            long bytes = extendedXmpBytes.merge(guid, size, Long::sum);
-            Integer at = extendedXmpAt.get(guid);
-            if (at == null) {
+            if (out != null) {
+                return;
+            }
+            extendedXmp.computeIfAbsent(guid, g -> new java.util.TreeMap<>()).put(offset, xmp);
+            extendedXmpBytes.merge(guid, size, Long::sum);
+            if (!extendedXmpAt.containsKey(guid)) {
                 if (findings.size() < MAX_FINDINGS) {
                     extendedXmpAt.put(guid, findings.size());
                 }
-                find("XMP_EXTENDED", out != null ? null : whole, bytes, xmpKind(whole));
-            } else {
-                findings.set(at, new Finding("XMP_EXTENDED", out != null ? null : cap(whole), bytes, xmpKind(whole)));
+                // Holds the finding's place until the walk ends.
+                find("XMP_EXTENDED", null, size, Kind.OTHER);
+            }
+        }
+
+        /** Fills in each extended XMP finding from all of its chunks. */
+        void finishExtendedXmp() {
+            for (Map.Entry<String, Integer> entry : extendedXmpAt.entrySet()) {
+                String whole = String.join("", extendedXmp.get(entry.getKey()).values());
+                findings.set(entry.getValue(), new Finding("XMP_EXTENDED", cap(whole),
+                        extendedXmpBytes.get(entry.getKey()), xmpKind(whole)));
             }
         }
 
