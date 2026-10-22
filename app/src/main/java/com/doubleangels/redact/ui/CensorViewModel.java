@@ -525,7 +525,11 @@ public class CensorViewModel extends AndroidViewModel {
             }
         } catch (OutOfMemoryError e) {
             SentryManager.log("The censor preview ran out of memory.");
-            preview.postValue(from);
+            // Like a finished render, only for the photo and edits still on screen: after Clear
+            // or another photo, this one must not come back.
+            if (generation == renderGeneration.get()) {
+                preview.postValue(from);
+            }
         }
     }
 
