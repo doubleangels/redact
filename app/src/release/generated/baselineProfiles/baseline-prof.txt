@@ -586,7 +586,7 @@ SPLandroidx/appcompat/widget/AppCompatTextHelper;->onLayout(ZIIII)V
 PLandroidx/appcompat/widget/AppCompatTextHelper;->onSetCompoundDrawables()V
 SPLandroidx/appcompat/widget/AppCompatTextHelper;->onSetTextAppearance(Landroid/content/Context;I)V
 SPLandroidx/appcompat/widget/AppCompatTextHelper;->setCompoundDrawables(Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;)V
-HSPLandroidx/appcompat/widget/AppCompatTextHelper;->updateTypefaceAndStyle(Landroid/content/Context;Landroidx/appcompat/widget/TintTypedArray;)Z
+SPLandroidx/appcompat/widget/AppCompatTextHelper;->updateTypefaceAndStyle(Landroid/content/Context;Landroidx/appcompat/widget/TintTypedArray;)Z
 Landroidx/appcompat/widget/AppCompatTextHelper$1;
 SPLandroidx/appcompat/widget/AppCompatTextHelper$1;-><init>(Landroidx/appcompat/widget/AppCompatTextHelper;IILjava/lang/ref/WeakReference;)V
 SPLandroidx/appcompat/widget/AppCompatTextHelper$1;->onFontRetrievalFailed(I)V
@@ -739,6 +739,7 @@ PLandroidx/appcompat/widget/SwitchCompat;->getTrackTintMode()Landroid/graphics/P
 PLandroidx/appcompat/widget/SwitchCompat;->jumpDrawablesToCurrentState()V
 PLandroidx/appcompat/widget/SwitchCompat;->onCreateDrawableState(I)[I
 PLandroidx/appcompat/widget/SwitchCompat;->onDraw(Landroid/graphics/Canvas;)V
+PLandroidx/appcompat/widget/SwitchCompat;->onInitializeAccessibilityNodeInfo(Landroid/view/accessibility/AccessibilityNodeInfo;)V
 PLandroidx/appcompat/widget/SwitchCompat;->onLayout(ZIIII)V
 PLandroidx/appcompat/widget/SwitchCompat;->onMeasure(II)V
 PLandroidx/appcompat/widget/SwitchCompat;->setChecked(Z)V
@@ -1982,7 +1983,6 @@ Landroidx/dynamicanimation/animation/FrameCallbackScheduler;
 Landroidx/dynamicanimation/animation/SpringAnimation;
 SPLandroidx/dynamicanimation/animation/SpringAnimation;-><init>(Ljava/lang/Object;Landroidx/dynamicanimation/animation/FloatPropertyCompat;)V
 SPLandroidx/dynamicanimation/animation/SpringAnimation;->canSkipToEnd()Z
-SPLandroidx/dynamicanimation/animation/SpringAnimation;->getSpring()Landroidx/dynamicanimation/animation/SpringForce;
 SPLandroidx/dynamicanimation/animation/SpringAnimation;->setSpring(Landroidx/dynamicanimation/animation/SpringForce;)Landroidx/dynamicanimation/animation/SpringAnimation;
 SPLandroidx/dynamicanimation/animation/SpringAnimation;->skipToEnd()V
 Landroidx/dynamicanimation/animation/SpringForce;
@@ -3792,6 +3792,7 @@ Landroidx/vectordrawable/graphics/drawable/VectorDrawableCompat;
 PLandroidx/vectordrawable/graphics/drawable/VectorDrawableCompat;-><clinit>()V
 PLandroidx/vectordrawable/graphics/drawable/VectorDrawableCompat;-><init>()V
 PLandroidx/vectordrawable/graphics/drawable/VectorDrawableCompat;->create(Landroid/content/res/Resources;ILandroid/content/res/Resources$Theme;)Landroidx/vectordrawable/graphics/drawable/VectorDrawableCompat;
+PLandroidx/vectordrawable/graphics/drawable/VectorDrawableCompat;->setVisible(ZZ)Z
 PLandroidx/vectordrawable/graphics/drawable/VectorDrawableCompat$VGroup;-><init>()V
 PLandroidx/vectordrawable/graphics/drawable/VectorDrawableCompat$VObject;-><init>()V
 PLandroidx/vectordrawable/graphics/drawable/VectorDrawableCompat$VObject;-><init>(Landroidx/vectordrawable/graphics/drawable/VectorDrawableCompat$1;)V
@@ -3831,7 +3832,6 @@ PLcom/doubleangels/redact/AppPreferences;->isVideoFallbackCopy(Landroid/content/
 PLcom/doubleangels/redact/AppPreferences;->isWarnAlreadyClean(Landroid/content/Context;)Z
 PLcom/doubleangels/redact/AppPreferences;->outputTreeKey(Z)Ljava/lang/String;
 SPLcom/doubleangels/redact/AppPreferences;->prefs(Landroid/content/Context;)Landroid/content/SharedPreferences;
-PLcom/doubleangels/redact/AppPreferences;->setCensorTool(Landroid/content/Context;Ljava/lang/String;)V
 Lcom/doubleangels/redact/CacheCleanup;
 SPLcom/doubleangels/redact/CacheCleanup;-><clinit>()V
 SPLcom/doubleangels/redact/CacheCleanup;->clearStaleTempFiles(Landroid/content/Context;J)I
@@ -3853,7 +3853,7 @@ SPLcom/doubleangels/redact/CacheCleanup$$ExternalSyntheticLambda0;->run()V
 PLcom/doubleangels/redact/CensorFragment;->$r8$lambda$FqfAJaJc8j-I8EHr5WTUqKjRszw(Lcom/doubleangels/redact/CensorFragment;Ljava/lang/Integer;)V
 PLcom/doubleangels/redact/CensorFragment;->$r8$lambda$d4yhDMDe0Q4dmUqTSe6xNi-UyzY(Lcom/doubleangels/redact/CensorFragment;Lcom/doubleangels/redact/ui/CensorViewModel$State;)V
 PLcom/doubleangels/redact/CensorFragment;-><init>()V
-PLcom/doubleangels/redact/CensorFragment;->applyTool(ILcom/google/android/material/slider/Slider;)V
+PLcom/doubleangels/redact/CensorFragment;->applyTool(ILcom/google/android/material/slider/Slider;Z)V
 PLcom/doubleangels/redact/CensorFragment;->buttonFor(Ljava/lang/String;)I
 PLcom/doubleangels/redact/CensorFragment;->chipFor(Lcom/doubleangels/redact/media/CensorEffects$Effect;)I
 PLcom/doubleangels/redact/CensorFragment;->lambda$onViewCreated$13(Ljava/lang/Integer;)V
@@ -3861,6 +3861,7 @@ PLcom/doubleangels/redact/CensorFragment;->onCreate(Landroid/os/Bundle;)V
 PLcom/doubleangels/redact/CensorFragment;->onCreateView(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;
 PLcom/doubleangels/redact/CensorFragment;->onHiddenChanged(Z)V
 PLcom/doubleangels/redact/CensorFragment;->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V
+PLcom/doubleangels/redact/CensorFragment;->onViewStateRestored(Landroid/os/Bundle;)V
 PLcom/doubleangels/redact/CensorFragment;->render(Lcom/doubleangels/redact/ui/CensorViewModel$State;)V
 PLcom/doubleangels/redact/CensorFragment;->setUpEffects(Landroid/view/View;)V
 PLcom/doubleangels/redact/CensorFragment;->setUpTools(Landroid/view/View;Landroid/os/Bundle;)V
@@ -5162,7 +5163,7 @@ SPLcom/google/android/material/navigation/NavigationBarItemView$$ExternalSynthet
 SPLcom/google/android/material/navigation/NavigationBarItemView$$ExternalSyntheticLambda0;->onLayoutChange(Landroid/view/View;IIIIIIII)V
 Lcom/google/android/material/navigation/NavigationBarItemView$1;
 SPLcom/google/android/material/navigation/NavigationBarItemView$1;-><init>(Lcom/google/android/material/navigation/NavigationBarItemView;I)V
-PLcom/google/android/material/navigation/NavigationBarItemView$1;->run()V
+SPLcom/google/android/material/navigation/NavigationBarItemView$1;->run()V
 PLcom/google/android/material/navigation/NavigationBarItemView$2;-><init>(Lcom/google/android/material/navigation/NavigationBarItemView;F)V
 PLcom/google/android/material/navigation/NavigationBarItemView$2;->onAnimationUpdate(Landroid/animation/ValueAnimator;)V
 Lcom/google/android/material/navigation/NavigationBarItemView$ActiveIndicatorTransform;
@@ -5338,7 +5339,6 @@ PLcom/google/android/material/progressindicator/CircularDrawingDelegate;->getPre
 PLcom/google/android/material/progressindicator/CircularDrawingDelegate;->getSize()I
 PLcom/google/android/material/progressindicator/CircularIndeterminateAdvanceAnimatorDelegate;-><clinit>()V
 PLcom/google/android/material/progressindicator/CircularIndeterminateAdvanceAnimatorDelegate;-><init>(Lcom/google/android/material/progressindicator/CircularProgressIndicatorSpec;)V
-PLcom/google/android/material/progressindicator/CircularIndeterminateAdvanceAnimatorDelegate;->cancelAnimatorImmediately()V
 PLcom/google/android/material/progressindicator/CircularIndeterminateAdvanceAnimatorDelegate;->registerAnimatorsCompleteCallback(Landroidx/vectordrawable/graphics/drawable/Animatable2Compat$AnimationCallback;)V
 PLcom/google/android/material/progressindicator/CircularIndeterminateAdvanceAnimatorDelegate$3;-><init>(Ljava/lang/Class;Ljava/lang/String;)V
 PLcom/google/android/material/progressindicator/CircularIndeterminateAdvanceAnimatorDelegate$4;-><init>(Ljava/lang/Class;Ljava/lang/String;)V
@@ -5638,7 +5638,7 @@ SPLcom/google/android/material/shape/ShapeAppearanceModel;->getShapeForState([I)
 SPLcom/google/android/material/shape/ShapeAppearanceModel;->getTopLeftCornerSize()Lcom/google/android/material/shape/CornerSize;
 PLcom/google/android/material/shape/ShapeAppearanceModel;->getTopRightCornerSize()Lcom/google/android/material/shape/CornerSize;
 SPLcom/google/android/material/shape/ShapeAppearanceModel;->hasRoundedCorners()Z
-HSPLcom/google/android/material/shape/ShapeAppearanceModel;->isRoundRect(Landroid/graphics/RectF;)Z
+SPLcom/google/android/material/shape/ShapeAppearanceModel;->isRoundRect(Landroid/graphics/RectF;)Z
 SPLcom/google/android/material/shape/ShapeAppearanceModel;->isStateful()Z
 SPLcom/google/android/material/shape/ShapeAppearanceModel;->toBuilder()Lcom/google/android/material/shape/ShapeAppearanceModel$Builder;
 SPLcom/google/android/material/shape/ShapeAppearanceModel;->withCornerSize(F)Lcom/google/android/material/shape/ShapeAppearanceModel;
