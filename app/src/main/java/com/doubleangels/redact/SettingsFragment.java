@@ -628,8 +628,8 @@ public class SettingsFragment extends Fragment {
 
     /**
      * Shows where each media type's output goes. Whether a chosen folder still works is checked in
-     * the background, since that asks its storage provider; until the answer arrives the badge
-     * and warning keep what they last showed.
+     * the background, since that asks its storage provider; until the answer arrives a chosen
+     * folder's badge and warning keep what they last showed.
      */
     private void refreshOutputFolders() {
         View root = getView();
@@ -641,6 +641,15 @@ public class SettingsFragment extends Fragment {
         Uri videos = AppPreferences.getOutputTree(context, true);
         showOutputFolder(textOutputImages, buttonResetOutputImages, images, false);
         showOutputFolder(textOutputVideos, buttonResetOutputVideos, videos, true);
+        // The default folder is always usable, so it needs no check and no lingering warning.
+        if (images == null) {
+            showOutputFolderUsable(textOutputImagesWarning, root.findViewById(R.id.badgeOutputImages),
+                    root.findViewById(R.id.iconOutputImages), false, true);
+        }
+        if (videos == null) {
+            showOutputFolderUsable(textOutputVideosWarning, root.findViewById(R.id.badgeOutputVideos),
+                    root.findViewById(R.id.iconOutputVideos), true, true);
+        }
         if (backgroundExecutor == null) {
             return;
         }
