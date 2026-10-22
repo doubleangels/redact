@@ -270,6 +270,7 @@
     <string name="clean_selected_count">已选择：%1$d 个文件</string>
     <string name="clean_status_ready">准备选择要清理的文件。</string>
     <string name="convert_codec_fallback">%1$s 不可用；已改为保存为 %2$s。</string>
+    <string name="video_downscaled">此手机无法以原始尺寸处理该视频，因此已保存为 %1$dp。</string>
     <string name="metadata_error_basic_info_generic">无法读取基本文件信息。</string>
     <string name="metadata_error_image_generic">无法读取图像元数据。</string>
     <string name="metadata_error_video_generic">无法读取视频元数据。</string>

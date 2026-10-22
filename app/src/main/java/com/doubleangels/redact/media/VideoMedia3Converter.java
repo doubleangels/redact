@@ -298,6 +298,7 @@ public final class VideoMedia3Converter {
                             progressListener,
                             ownerId,
                             shortSide);
+                    warnDownscaled(app, shortSide);
                     return;
                 } catch (RetryAtSmallerSizeException retryFailure) {
                     lastFailure = retryFailure;
@@ -305,6 +306,19 @@ public final class VideoMedia3Converter {
             }
             throw lastFailure;
         }
+    }
+
+    /**
+     * Tells the user a video was saved smaller than its source, since nothing else on screen
+     * shows it. Clean, Share and Convert all come through here.
+     */
+    @VisibleForTesting
+    static void warnDownscaled(@NonNull Context app, int shortSide) {
+        com.doubleangels.redact.sentry.SentryManager.log(
+                "The video was saved at " + shortSide + "p after the full size failed.");
+        String message = app.getString(com.doubleangels.redact.R.string.video_downscaled, shortSide);
+        new Handler(Looper.getMainLooper()).post(
+                () -> android.widget.Toast.makeText(app, message, android.widget.Toast.LENGTH_LONG).show());
     }
 
     /**

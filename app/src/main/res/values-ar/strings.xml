@@ -285,6 +285,7 @@
     <string name="clean_selected_count">المحدد: %1$d ملف(ات)</string>
     <string name="clean_status_ready">جاهز لتحديد الملفات للتنظيف.</string>
     <string name="convert_codec_fallback">%1$s غير متاح؛ تم الحفظ كـ %2$s بدلاً من ذلك.</string>
+    <string name="video_downscaled">تم الحفظ بدقة %1$dp لأن هذا الهاتف لم يتمكن من معالجة الفيديو بحجمه الكامل.</string>
     <string name="metadata_error_basic_info_generic">تعذر قراءة معلومات الملف الأساسية.</string>
     <string name="metadata_error_image_generic">تعذر قراءة بيانات الصورة الوصفية.</string>
     <string name="metadata_error_video_generic">تعذر قراءة بيانات الفيديو الوصفية.</string>

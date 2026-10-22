@@ -270,6 +270,7 @@
     <string name="clean_selected_count">선택됨: %1$d개 파일</string>
     <string name="clean_status_ready">정리할 파일을 선택할 준비가 되었습니다.</string>
     <string name="convert_codec_fallback">%1$s을(를) 사용할 수 없어 %2$s(으)로 저장했습니다.</string>
+    <string name="video_downscaled">이 휴대폰에서 원본 크기로 동영상을 처리할 수 없어 %1$dp로 저장했습니다.</string>
     <string name="metadata_error_basic_info_generic">기본 파일 정보를 읽을 수 없습니다.</string>
     <string name="metadata_error_image_generic">이미지 메타데이터를 읽을 수 없습니다.</string>
     <string name="metadata_error_video_generic">동영상 메타데이터를 읽을 수 없습니다.</string>

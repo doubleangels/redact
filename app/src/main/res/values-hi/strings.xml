@@ -273,6 +273,7 @@
     <string name="clean_selected_count">चयनित: %1$d फ़ाइल(फ़ाइलें)</string>
     <string name="clean_status_ready">साफ़ करने के लिए फ़ाइलें चुनने के लिए तैयार।</string>
     <string name="convert_codec_fallback">%1$s उपलब्ध नहीं; इसके बजाय %2$s के रूप में सहेजा गया।</string>
+    <string name="video_downscaled">%1$dp पर सहेजा गया क्योंकि यह फ़ोन वीडियो को पूरे आकार में प्रोसेस नहीं कर सका।</string>
     <string name="metadata_error_basic_info_generic">मूल फ़ाइल जानकारी पढ़ नहीं सकी।</string>
     <string name="metadata_error_image_generic">छवि मेटाडेटा पढ़ नहीं सका।</string>
     <string name="metadata_error_video_generic">वीडियो मेटाडेटा पढ़ नहीं सका।</string>

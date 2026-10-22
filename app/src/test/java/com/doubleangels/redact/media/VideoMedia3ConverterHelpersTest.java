@@ -128,6 +128,16 @@ public class VideoMedia3ConverterHelpersTest {
     }
 
     @Test
+    public void downscaledVideo_tellsTheUserItsNewSize() {
+        Application app = RuntimeEnvironment.getApplication();
+        VideoMedia3Converter.warnDownscaled(app, 720);
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertEquals(app.getString(com.doubleangels.redact.R.string.video_downscaled, 720),
+                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+        assertTrue(org.robolectric.shadows.ShadowToast.getTextOfLatestToast().contains("720p"));
+    }
+
+    @Test
     public void fallbackShortSides_onlyStepsDownFromTheSource() {
         for (int side : VideoMedia3Converter.fallbackShortSides(1080)) {
             assertTrue(side < 1080);

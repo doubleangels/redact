@@ -276,6 +276,7 @@ Tus fotos y videos nunca se suben. Se eliminan URIs, nombres de archivo y coorde
     <string name="clean_selected_count">Seleccionados: %1$d archivo(s)</string>
     <string name="clean_status_ready">Listo para seleccionar archivos para limpiar.</string>
     <string name="convert_codec_fallback">%1$s no disponible; guardado como %2$s en su lugar.</string>
+    <string name="video_downscaled">Guardado en %1$dp porque este teléfono no pudo procesar el vídeo a tamaño completo.</string>
     <string name="metadata_error_basic_info_generic">No se pudo leer la información básica del archivo.</string>
     <string name="metadata_error_image_generic">No se pudieron leer los metadatos de la imagen.</string>
     <string name="metadata_error_video_generic">No se pudieron leer los metadatos del video.</string>

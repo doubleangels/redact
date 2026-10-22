@@ -272,6 +272,7 @@ Ihre Fotos und Videos werden nie hochgeladen. URIs, Dateinamen und GPS-Koordinat
     <string name="clean_selected_count">Ausgewählt: %1$d Datei(en)</string>
     <string name="clean_status_ready">Bereit, Dateien zum Bereinigen auszuwählen.</string>
     <string name="convert_codec_fallback">%1$s nicht verfügbar; stattdessen als %2$s gespeichert.</string>
+    <string name="video_downscaled">In %1$dp gespeichert, da dieses Telefon das Video nicht in voller Größe verarbeiten konnte.</string>
     <string name="metadata_error_basic_info_generic">Grundlegende Dateiinformationen konnten nicht gelesen werden.</string>
     <string name="metadata_error_image_generic">Bild-Metadaten konnten nicht gelesen werden.</string>
     <string name="metadata_error_video_generic">Video-Metadaten konnten nicht gelesen werden.</string>

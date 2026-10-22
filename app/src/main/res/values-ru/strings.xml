@@ -279,6 +279,7 @@
     <string name="clean_selected_count">Выбрано: %1$d файл(ов)</string>
     <string name="clean_status_ready">Готово к выбору файлов для очистки.</string>
     <string name="convert_codec_fallback">%1$s недоступен; сохранено как %2$s.</string>
+    <string name="video_downscaled">Сохранено в %1$dp, так как этот телефон не смог обработать видео в полном размере.</string>
     <string name="metadata_error_basic_info_generic">Не удалось прочитать основную информацию о файле.</string>
     <string name="metadata_error_image_generic">Не удалось прочитать метаданные изображения.</string>
     <string name="metadata_error_video_generic">Не удалось прочитать метаданные видео.</string>

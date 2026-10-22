@@ -276,6 +276,7 @@ Suas fotos e vídeos nunca são enviados. URIs, nomes de arquivo e coordenadas G
     <string name="clean_selected_count">Selecionados: %1$d arquivo(s)</string>
     <string name="clean_status_ready">Pronto para selecionar arquivos para limpar.</string>
     <string name="convert_codec_fallback">%1$s indisponível; salvo como %2$s.</string>
+    <string name="video_downscaled">Salvo em %1$dp porque este celular não conseguiu processar o vídeo no tamanho original.</string>
     <string name="metadata_error_basic_info_generic">Não foi possível ler as informações básicas do arquivo.</string>
     <string name="metadata_error_image_generic">Não foi possível ler os metadados da imagem.</string>
     <string name="metadata_error_video_generic">Não foi possível ler os metadados do vídeo.</string>

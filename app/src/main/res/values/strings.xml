@@ -136,6 +136,7 @@
     
     <string name="convert_heic_fallback_jpeg">This phone can\'t save HEIC images, so they will be saved as JPEG instead.</string>
     <string name="convert_codec_fallback">%1$s unavailable; saved as %2$s instead.</string>
+    <string name="video_downscaled">Saved at %1$dp because this phone couldn\'t process the video at full size.</string>
     <string name="convert_output_format_images">Image Format</string>
     <string name="convert_output_format_videos">Video Codec</string>
     <string name="convert_output_format_mixed">Formats (Image / Video)</string>
