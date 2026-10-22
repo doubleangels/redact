@@ -260,9 +260,9 @@ public final class VideoMedia3Converter {
 
     /**
      * Runs one export at the source resolution and, if the encoder can't be configured for that
-     * size, retries at progressively smaller standard sizes. Media3 sizes the encoder itself, but
-     * for some uncommon resolutions its fallback search throws instead of picking a smaller size
-     * ("unsupported width" from {@code MediaCodecInfo.VideoCapabilities}).
+     * size or the codecs stall on it, retries at progressively smaller standard sizes. Media3 sizes
+     * the encoder itself, but for some uncommon resolutions its fallback search throws instead of
+     * picking a smaller size ("unsupported width" from {@code MediaCodecInfo.VideoCapabilities}).
      */
     private static void transcodeWithResolutionFallback(
             @NonNull Context app,
@@ -276,7 +276,7 @@ public final class VideoMedia3Converter {
         try {
             transcodeToPathOnce(
                     app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, ownerId, 0);
-        } catch (EncoderResolutionException e) {
+        } catch (RetryAtSmallerSizeException e) {
             IOException lastFailure = e;
             for (int shortSide : fallbackShortSides(readSourceShortSide(app, sourceUri))) {
                 try {
@@ -290,7 +290,7 @@ public final class VideoMedia3Converter {
                             ownerId,
                             shortSide);
                     return;
-                } catch (EncoderResolutionException retryFailure) {
+                } catch (RetryAtSmallerSizeException retryFailure) {
                     lastFailure = retryFailure;
                 }
             }
@@ -616,8 +616,8 @@ public final class VideoMedia3Converter {
                 throw new UnsupportedMediaException(
                         "Unsupported video format: " + exportException.getMessage(), exportException);
             }
-            if (isEncoderResolutionFailure(exportException)) {
-                throw new EncoderResolutionException(
+            if (isEncoderResolutionFailure(exportException) || isMuxerStall(exportException)) {
+                throw new RetryAtSmallerSizeException(
                         "Video conversion failed: " + exportException.getMessage(), exportException);
             }
             throw new IOException(
@@ -682,9 +682,19 @@ public final class VideoMedia3Converter {
         return false;
     }
 
-    /** An export the encoder rejected for its frame size; a smaller size may still succeed. */
-    private static final class EncoderResolutionException extends IOException {
-        EncoderResolutionException(String message, Throwable cause) {
+    /**
+     * Whether Media3's watchdog aborted the export because no sample reached the muxer for too
+     * long. Some hardware codecs hang at certain frame sizes (REDACT-25), and a smaller frame
+     * gives them a lighter load to retry with.
+     */
+    @androidx.annotation.VisibleForTesting
+    static boolean isMuxerStall(@NonNull ExportException e) {
+        return e.errorCode == ExportException.ERROR_CODE_MUXING_TIMEOUT;
+    }
+
+    /** An export that failed at its frame size; a smaller size may still succeed. */
+    private static final class RetryAtSmallerSizeException extends IOException {
+        RetryAtSmallerSizeException(String message, Throwable cause) {
             super(message, cause);
         }
     }
