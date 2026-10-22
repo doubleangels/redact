@@ -134,6 +134,13 @@ public class UnsupportedMediaTest {
     }
 
     @Test
+    public void stallTimeout_isLongerOnPhonesWithoutAPerformanceClass() {
+        long rated = VideoMedia3Converter.maxSampleGapMs(android.os.Build.VERSION_CODES.TIRAMISU);
+        assertEquals(androidx.media3.transformer.Transformer.DEFAULT_MAX_DELAY_BETWEEN_MUXER_SAMPLES_MS, rated);
+        assertEquals(Math.max(rated, 20_000L), VideoMedia3Converter.maxSampleGapMs(0));
+    }
+
+    @Test
     public void fallbackShortSides_neverUpscale() {
         assertArrayEquals(new int[] {1080, 720, 480}, VideoMedia3Converter.fallbackShortSides(2160));
         assertArrayEquals(new int[] {720, 480}, VideoMedia3Converter.fallbackShortSides(1080));

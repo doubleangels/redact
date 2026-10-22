@@ -75,6 +75,15 @@ public final class VideoMedia3Converter {
     /** Replaces the wait above in tests: Media3 never finishes an export under Robolectric. */
     private static volatile Long testAwaitTimeoutMs;
 
+    /**
+     * How long an export may go without writing a sample before Media3 aborts it as stalled.
+     * Phones that declare a media performance class keep Media3's default (10 seconds, 25 on an
+     * emulator). Others get at least 20 seconds, since a budget phone decoding in software or
+     * starting a slow codec can take longer between samples without being stuck.
+     */
+    private static final long MAX_SAMPLE_GAP_MS = Transformer.DEFAULT_MAX_DELAY_BETWEEN_MUXER_SAMPLES_MS;
+    private static final long MAX_SAMPLE_GAP_UNRATED_MS = Math.max(MAX_SAMPLE_GAP_MS, 20_000L);
+
     /** Output short sides tried, largest first, when the encoder rejects the source resolution. */
     private static final int[] FALLBACK_SHORT_SIDES = {1080, 720, 480};
 
@@ -537,6 +546,8 @@ public final class VideoMedia3Converter {
                                                 new DefaultEncoderFactory.Builder(app).build()))
                                         .setVideoMimeType(videoMimeType)
                                         .setAudioMimeType(audioMimeTypeForVideoMime(videoMimeType))
+                                        .setMaxDelayBetweenMuxerSamplesMs(
+                                                maxSampleGapMs(Build.VERSION.MEDIA_PERFORMANCE_CLASS))
                                         .addListener(
                                                 new Transformer.Listener() {
                                                     @Override
@@ -690,6 +701,12 @@ public final class VideoMedia3Converter {
     @androidx.annotation.VisibleForTesting
     static boolean isMuxerStall(@NonNull ExportException e) {
         return e.errorCode == ExportException.ERROR_CODE_MUXING_TIMEOUT;
+    }
+
+    /** The stall timeout for a phone of {@code mediaPerformanceClass} (0 when it declares none). */
+    @androidx.annotation.VisibleForTesting
+    static long maxSampleGapMs(int mediaPerformanceClass) {
+        return mediaPerformanceClass > 0 ? MAX_SAMPLE_GAP_MS : MAX_SAMPLE_GAP_UNRATED_MS;
     }
 
     /** An export that failed at its frame size; a smaller size may still succeed. */
