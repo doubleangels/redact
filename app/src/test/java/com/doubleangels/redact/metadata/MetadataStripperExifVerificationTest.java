@@ -50,6 +50,68 @@ public class MetadataStripperExifVerificationTest {
         assertVerificationPasses(/* strictClean= */ true, /* forSharing= */ true);
     }
 
+    private static boolean verify(File file) throws Exception {
+        Method verify = MetadataStripper.class.getDeclaredMethod(
+                "verifyMetadataRemoval", File.class, boolean.class);
+        verify.setAccessible(true);
+        return (boolean) verify.invoke(new MetadataStripper(RuntimeEnvironment.getApplication()), file, false);
+    }
+
+    private static byte[] plainJpeg() {
+        Bitmap bitmap = Bitmap.createBitmap(16, 16, Bitmap.Config.ARGB_8888);
+        bitmap.eraseColor(Color.BLUE);
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
+        return out.toByteArray();
+    }
+
+    private static File write(String suffix, byte[] content) throws Exception {
+        File f = File.createTempFile("exif_verify_", suffix);
+        f.deleteOnExit();
+        java.nio.file.Files.write(f.toPath(), content);
+        return f;
+    }
+
+    @Test
+    public void verificationFails_forALeftoverExifTag() throws Exception {
+        AppPreferences.setStrictClean(RuntimeEnvironment.getApplication(), true);
+        File jpeg = write(".jpg", plainJpeg());
+        ExifInterface exif = new ExifInterface(jpeg.getAbsolutePath());
+        exif.setAttribute(ExifInterface.TAG_ARTIST, "Jane");
+        exif.saveAttributes();
+
+        org.junit.Assert.assertFalse(verify(jpeg));
+    }
+
+    @Test
+    public void verificationFails_forMetadataOutsideExif_orAPictureThatCannotBeRead() throws Exception {
+        AppPreferences.setStrictClean(RuntimeEnvironment.getApplication(), true);
+        byte[] plain = plainJpeg();
+        assertTrue(verify(write(".jpg", plain)));
+
+        byte[] comment = {(byte) 0xFF, (byte) 0xFE, 0, 6, 'J', 'a', 'n', 'e'};
+        byte[] withComment = new byte[plain.length + comment.length];
+        System.arraycopy(plain, 0, withComment, 0, 2);
+        System.arraycopy(comment, 0, withComment, 2, comment.length);
+        System.arraycopy(plain, 2, withComment, 2 + comment.length, plain.length - 2);
+        org.junit.Assert.assertFalse(verify(write(".jpg", withComment)));
+
+        // No end of image: the walk breaks before reading the whole picture, finding nothing.
+        org.junit.Assert.assertFalse(verify(write(".jpg", java.util.Arrays.copyOf(plain, plain.length - 2))));
+    }
+
+    @Test
+    public void verificationOfOtherFormats_looksForAnXmpPacket() throws Exception {
+        AppPreferences.setStrictClean(RuntimeEnvironment.getApplication(), true);
+        byte[] gif = "GIF89a\1\0\1\0\0\0\0;".getBytes(java.nio.charset.StandardCharsets.ISO_8859_1);
+        byte[] gifWithXmp = (new String(gif, java.nio.charset.StandardCharsets.ISO_8859_1)
+                + "XMP DataXMP<x:xmpmeta xmlns:x='adobe:ns:meta/'>").getBytes(java.nio.charset.StandardCharsets.ISO_8859_1);
+
+        assertTrue(verify(write(".gif", gif)));
+        org.junit.Assert.assertFalse(verify(write(".gif", gifWithXmp)));
+        org.junit.Assert.assertFalse(verify(new File("/no/such/file.jpg")));
+    }
+
     private void assertVerificationPasses(boolean strictClean, boolean forSharing) throws Exception {
         Application app = RuntimeEnvironment.getApplication();
         AppPreferences.setStrictClean(app, strictClean);

@@ -28,7 +28,7 @@ public final class SentryPrivacyScrubber {
     private static final Pattern FILE_URI =
             Pattern.compile("file://[^\\s\"']+", Pattern.CASE_INSENSITIVE);
     private static final Pattern ABSOLUTE_PATH =
-            Pattern.compile("(?:/storage/|/data/)[^\\s\"']+", Pattern.CASE_INSENSITIVE);
+            Pattern.compile("(?:/storage/|/data/|/sdcard/|/mnt/)[^\\s\"']+", Pattern.CASE_INSENSITIVE);
     private static final Pattern WINDOWS_PATH =
             Pattern.compile("(?:[A-Za-z]:\\\\|\\\\\\\\)[^\\s\"']+");
     private static final Pattern LAT_LON =
@@ -49,11 +49,15 @@ public final class SentryPrivacyScrubber {
      * Catches a media filename anywhere in text, not just after one of the literal prefixes
      * {@link #FILENAME_IN_MESSAGE} requires (e.g. a raw filename embedded in a vendor
      * IOException/FileNotFoundException message). Scoped to this app's own media extensions
-     * so it doesn't also redact harmless tokens like source file names in stack traces.
+     * so it doesn't also redact harmless tokens like source file names in stack traces. A name can
+     * hold spaces and brackets ("IMG_1 (1).jpg", "My Trip.jpg") and the text does not show where
+     * it starts, so up to three words before it go too: losing a little context is better than
+     * sending part of a name.
      */
     private static final Pattern MEDIA_FILENAME =
             Pattern.compile(
-                    "\\b[\\w.\\-]+\\.(?:jpe?g|png|webp|heif?|gif|bmp|apng"
+                    "(?:[\\w.\\-()'\\[\\]]+ ){0,3}[\\w.\\-()'\\[\\]]*"
+                            + "\\.(?:jpe?g|png|webp|heic|heics|heif|avif|dng|tiff?|jxl|gif|bmp|apng"
                             + "|mp4|mov|m4v|avi|mkv|webm|3gp|vp[89]|bin)\\b",
                     Pattern.CASE_INSENSITIVE);
 
@@ -82,6 +86,24 @@ public final class SentryPrivacyScrubber {
         if (s.length() > 500) {
             s = s.substring(0, 500) + "…";
         }
+        return s;
+    }
+
+    /**
+     * Scrubs a class, package or method name. Only URIs and paths are removed: the filename
+     * patterns would also match package segments such as {@code media3.extractor.mp4} or
+     * {@code integration.webp}, which breaks deobfuscation and splits issue grouping.
+     */
+    @Nullable
+    static String scrubCodeIdentifier(@Nullable String input) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+        String s = input;
+        s = CONTENT_URI.matcher(s).replaceAll(REDACTED);
+        s = FILE_URI.matcher(s).replaceAll(REDACTED);
+        s = ABSOLUTE_PATH.matcher(s).replaceAll(REDACTED);
+        s = WINDOWS_PATH.matcher(s).replaceAll(REDACTED);
         return s;
     }
 
@@ -194,7 +216,7 @@ public final class SentryPrivacyScrubber {
                     ex.setValue(scrub(ex.getValue()));
                 }
                 if (ex.getModule() != null) {
-                    ex.setModule(scrub(ex.getModule()));
+                    ex.setModule(scrubCodeIdentifier(ex.getModule()));
                 }
                 scrubStacktrace(ex.getStacktrace());
             }
@@ -231,6 +253,25 @@ public final class SentryPrivacyScrubber {
                 event.getUser().setIpAddress(scrub(event.getUser().getIpAddress()));
             }
         }
+    }
+
+    /**
+     * Scrubs a user feedback event: the event itself, plus the feedback context, which is not a
+     * map and so is skipped by {@link #scrubEvent}. Name, email and URL are dropped outright.
+     */
+    public static void scrubFeedbackEvent(SentryEvent event) {
+        scrubEvent(event);
+        if (event == null || event.getContexts() == null) {
+            return;
+        }
+        io.sentry.protocol.Feedback feedback = event.getContexts().getFeedback();
+        if (feedback == null) {
+            return;
+        }
+        feedback.setMessage(scrub(feedback.getMessage() != null ? feedback.getMessage() : ""));
+        feedback.setName(null);
+        feedback.setContactEmail(null);
+        feedback.setUrl(null);
     }
 
     private static void scrubStringObjectMap(@Nullable Map<String, Object> map) {
@@ -285,10 +326,10 @@ public final class SentryPrivacyScrubber {
                 frame.setAbsPath(scrub(frame.getAbsPath()));
             }
             if (frame.getModule() != null) {
-                frame.setModule(scrub(frame.getModule()));
+                frame.setModule(scrubCodeIdentifier(frame.getModule()));
             }
             if (frame.getFunction() != null) {
-                frame.setFunction(scrub(frame.getFunction()));
+                frame.setFunction(scrubCodeIdentifier(frame.getFunction()));
             }
         }
     }

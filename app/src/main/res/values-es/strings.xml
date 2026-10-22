@@ -4,8 +4,9 @@
     <string name="app_name">Redact</string>
 
     
-    <string name="content_description_image_view">Vista de Imagen</string>
-    <string name="content_description_scroll_view">Vista de Desplazamiento</string>
+    <string name="content_description_selected_files">Archivos seleccionados</string>
+    <string name="content_description_selected_photo">Foto: %1$s</string>
+    <string name="content_description_selected_video">Vídeo: %1$s</string>
 
     
     <string name="navigation_clean">Limpiar</string>
@@ -31,6 +32,7 @@
     <string name="notification_clean_progress_title">Limpiando Metadatos…</string>
 
     <string name="navigation_convert">Convertir</string>
+    <string name="navigation_censor">Censurar</string>
 
     
     <string name="convert_output_format_images">Formato de Imagen</string>
@@ -120,9 +122,7 @@
     <string name="metadata_location_unreadable">Hay datos de ubicación guardados en un formato que no se puede mostrar aquí. La limpieza los elimina.</string>
     <string name="metadata_container_tags_header">Etiquetas Incrustadas:</string>
     <string name="metadata_container_tags">Encontrado en el archivo: %1$s</string>
-    <string name="metadata_container_value">Presente – se elimina al limpiar</string>
     <string name="metadata_embedded_data_header">Datos ocultos e incrustados</string>
-    <string name="metadata_embedded_value">Presente (%1$s) – se elimina al limpiar</string>
     <plurals name="metadata_embedded_images">
         <item quantity="one">%1$d imagen (%2$s) – se elimina al limpiar</item>
         <item quantity="many">%1$d imágenes (%2$s) – se eliminan al limpiar</item>
@@ -177,7 +177,7 @@
     <string name="settings_sentry_consent_title">Activar Informes de Fallos</string>
     <string name="settings_sentry_consent_message">Enviar Informes de Fallos sube diagnósticos anonimizados a Sentry por internet.\n\nNo se suben fotos, videos, nombres de archivo ni coordenadas GPS.</string>
     <string name="settings_strict_clean">Limpieza Estricta</string>
-    <string name="settings_strict_clean_subtitle">Elimina todo rastro de metadatos, incluso la etiqueta de orientación, por lo que una foto girada puede verse torcida después. Desactiva las opciones de conservar de arriba y siempre recodifica el video por completo para la limpieza más profunda.</string>
+    <string name="settings_strict_clean_subtitle">Elimina todo rastro de metadatos, incluso la etiqueta de orientación, por lo que una foto girada puede verse torcida después. Desactiva las opciones de conservar de abajo y siempre recodifica el video por completo para la limpieza más profunda.</string>
     
     <string name="settings_section_advanced_processing">Archivos Grandes y Memoria</string>
     <string name="settings_advanced_processing_subtitle">Controla el uso de RAM al decodificar imágenes grandes durante la limpieza y conversión.</string>
@@ -298,7 +298,9 @@ Tus fotos y videos nunca se suben. Se eliminan URIs, nombres de archivo y coorde
     <string name="notification_progress_percent">%1$d%% completado</string>
     <string name="scan_clean_this_file">Limpiar Este Archivo</string>
     <string name="scan_convert_this_file">Convertir Este Archivo</string>
+    <string name="scan_censor_this_photo">Censurar Esta Foto</string>
     <string name="scan_copied_to_clipboard">Copiado al portapapeles</string>
+    <string name="scan_copy_value">Copiar Valor</string>
     <string name="scan_copy_all_metadata">Copiar Todos los Metadatos</string>
     <string name="scan_copy_camera">Copiar Info de Cámara</string>
 <string name="settings_permissions_location">Ubicación de la Foto</string>
@@ -372,7 +374,7 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="convert_empty_state_title">Convertir Formatos Multimedia</string>
     <string name="convert_empty_state_description">Selecciona fotos o videos para convertirlos a los formatos JPEG, PNG, WebP, HEIC o MP4.</string>
     <string name="convert_files_card_title">Archivos para Convertir</string>
-    <string name="convert_heic_fallback_jpeg">La salida HEIC requiere Android 14 o superior. En su lugar, las imágenes se guardarán como JPEG.</string>
+    <string name="convert_heic_fallback_jpeg">Este teléfono no puede guardar imágenes HEIC, así que se guardarán como JPEG.</string>
     <string name="convert_item_type_image">Imagen</string>
     <string name="convert_item_type_video">Video</string>
     <string name="scan_empty_state_title">Inspeccionar Metadatos Multimedia</string>
@@ -458,7 +460,8 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="share_results_chooser_title">Compartir con…</string>
     <string name="settings_output_unavailable">Redact ya no puede guardar en esta carpeta, así que los archivos van a %1$s. Vuelve a elegirla o elige otra carpeta.</string>
     <string name="output_folder_fallback">Se guardará en %2$s: %1$s no está disponible.</string>
-    <string name="settings_output_open">Abrir Carpeta</string>
+    <string name="settings_output_open_images">Abrir Carpeta de Imágenes</string>
+    <string name="settings_output_open_videos">Abrir Carpeta de Vídeos</string>
     <string name="settings_output_open_unavailable">No se encontró ninguna app para abrir esta carpeta.</string>
     <string name="settings_output_also_videos">¿Guardar también los videos aquí?</string>
     <string name="settings_output_also_images">¿Guardar también las imágenes aquí?</string>
@@ -470,7 +473,34 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="settings_reset_all_confirm">Restablecer</string>
     <string name="settings_reset_all_done">Ajustes restablecidos a los valores predeterminados.</string>
     <string name="settings_reset_all_busy">No se pueden restablecer los ajustes mientras hay un procesamiento en curso.</string>
-    <string name="share_target_scan">Escanear con Redact</string>
+    <string name="censor_empty_state_title">Cubre lo Que Debe Seguir Siendo Privado</string>
+    <string name="censor_empty_state_description">Pixela, tapa en negro o desenfoca caras, matrículas, direcciones y cualquier otra cosa de una foto. Redact guarda una copia censurada sin metadatos, y tu original queda tal como está.</string>
+    <string name="censor_select_photo">Seleccionar Foto</string>
+    <string name="censor_hint">Dibuja sobre todo lo que deba seguir siendo privado y luego toca Guardar Copia. Usa Mover para hacer zoom con dos dedos y desplazarte, y toca un rectángulo para moverlo o cambiar su tamaño.</string>
+    <string name="censor_canvas_description">Foto que se está censurando. Dibuja con un dedo para cubrir una zona. Con Mover, arrastra para desplazarte y pellizca para hacer zoom.</string>
+    <string name="censor_tool_rectangle">Rectángulo</string>
+    <string name="censor_tool_brush">Pincel</string>
+    <string name="censor_tool_move">Mover</string>
+    <string name="censor_brush_size">Tamaño del pincel</string>
+    <string name="censor_effect_pixelate">Pixelar</string>
+    <string name="censor_effect_black">Negro</string>
+    <string name="censor_effect_blur">Desenfocar</string>
+    <string name="censor_undo">Deshacer</string>
+    <string name="censor_redo">Rehacer</string>
+    <string name="censor_delete_rectangle">Eliminar Rectángulo</string>
+    <string name="censor_zoom_level">%1$s×</string>
+    <string name="censor_zoom_reset">Ampliado %1$s veces. Toca para ver la foto completa.</string>
+    <string name="censor_save">Guardar Copia</string>
+    <string name="censor_saved">Copia censurada guardada.</string>
+    <string name="censor_saved_downscaled">Copia censurada guardada, más pequeña que la original. Para conservar el tamaño completo, aumenta la Resolución Máxima de Procesamiento en Ajustes.</string>
+    <string name="censor_file_name">%1$s (censurada)</string>
+    <string name="censor_error_open">No se pudo abrir esta foto.</string>
+    <string name="censor_error_unsupported">Este tipo de imagen no se puede censurar en este dispositivo.</string>
+    <string name="censor_error_save">No se pudo guardar la copia censurada.</string>
+    <string name="censor_discard_title">¿Descartar los Cambios?</string>
+    <string name="censor_discard_message">Las zonas que cubriste no se han guardado.</string>
+    <string name="censor_discard">Descartar</string>
+    <string name="censor_keep_editing">Seguir Editando</string>
     <string name="button_scan_result">Escanear Resultado</string>
     <string name="settings_keep_original_names">Conservar Nombres Originales</string>
     <string name="settings_keep_original_names_subtitle">Los archivos limpiados y convertidos usan el nombre del original en lugar de uno aleatorio. Nombres como IMG_20260117 pueden revelar cuándo se tomó una foto.</string>
@@ -479,7 +509,14 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="review_prompt_yes">Sí</string>
     <string name="review_prompt_no">No</string>
     <string name="review_prompt_declined">Entendido, Redact no volverá a preguntar. Si cambias de opinión, puedes valorarlo cuando quieras desde Configuración › Acerca de.</string>
-    <string name="crash_prompt_declined">Entendido, Redact no volverá a preguntar. Puedes activar los informes de errores cuando quieras en Configuración › Diagnóstico y Comentarios.</string>
+    <string name="error_feedback_offer">Algo salió mal. Se envió un informe de errores.</string>
+    <string name="error_feedback_action">Añadir Detalles</string>
+    <string name="error_feedback_title">¿Qué Pasó?</string>
+    <string name="error_feedback_message">Tu nota se adjunta al informe de errores. No incluyas información personal. Las rutas de archivos y las coordenadas GPS se eliminan antes de enviarla.</string>
+    <string name="error_feedback_hint">¿Qué estabas haciendo cuando falló?</string>
+    <string name="error_feedback_send">Enviar</string>
+    <string name="error_feedback_cancel">Cancelar</string>
+    <string name="error_feedback_thanks">Gracias, tu nota se envió.</string>
     <string name="stats_title">Estadísticas</string>
     <string name="stats_navigate_up">Atrás</string>
     <string name="stats_settings_title">Tus Estadísticas de Privacidad</string>
@@ -513,4 +550,82 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
         <item quantity="many">%1$s de archivos limpiados en los últimos 30 días.</item>
         <item quantity="other">%1$s archivos limpiados en los últimos 30 días.</item>
     </plurals>
+    <string name="settings_about_intro">Mostrar Introducción</string>
+    <string name="settings_about_licenses">Licencias de Código Abierto</string>
+    <string name="licenses_title">Licencias de Código Abierto</string>
+    <string name="licenses_intro">Redact está hecho con estas bibliotecas de código abierto. Toca una para leer su licencia.</string>
+    <string name="licenses_project_page">Página del Proyecto</string>
+    <string name="licenses_close">Cerrar</string>
+    <string name="onboarding_skip">Omitir</string>
+    <string name="onboarding_next">Siguiente</string>
+    <string name="onboarding_continue">Continuar</string>
+    <string name="onboarding_not_now">Ahora No</string>
+    <string name="onboarding_open_settings">Abrir Configuración</string>
+    <string name="onboarding_get_started">Comenzar</string>
+    <string name="onboarding_start">Empezar a Usar Redact</string>
+    <string name="onboarding_done">Listo</string>
+    <string name="onboarding_progress">Paso %1$d de %2$d</string>
+    <string name="onboarding_welcome_title">¡Te damos la bienvenida a Redact!</string>
+    <string name="onboarding_welcome_body">Redact te ayuda a compartir fotos y videos sin compartir tus datos privados. Este breve recorrido dura más o menos un minuto.</string>
+    <string name="onboarding_welcome_clean">Limpiar quita los detalles ocultos de tus fotos y videos.</string>
+    <string name="onboarding_welcome_scan">Escanear te muestra exactamente lo que revela un archivo antes de compartirlo.</string>
+    <string name="onboarding_welcome_convert">Convertir cambia una foto o un video a otro formato y lo mantiene limpio.</string>
+    <string name="onboarding_welcome_censor">Censurar cubre caras, matrículas y cualquier otra cosa de una foto que deba seguir siendo privada.</string>
+    <string name="onboarding_hidden_title">Tus fotos y videos pueden decir más de lo que crees.</string>
+    <string name="onboarding_hidden_body">Cuando tomas una foto o grabas un video, tu teléfono guarda en silencio información adicional dentro del archivo. Cualquier persona a la que se lo envíes podría leerla.</string>
+    <string name="onboarding_hidden_location">Puede mostrar dónde estabas, a veces con tanta precisión que se podría encontrar tu casa.</string>
+    <string name="onboarding_hidden_time">Puede mostrar la fecha y la hora en que la tomaste.</string>
+    <string name="onboarding_hidden_device">Puede mostrar qué teléfono o cámara usaste.</string>
+    <string name="onboarding_private_title">Tus archivos nunca salen de tu teléfono.</string>
+    <string name="onboarding_private_body">Redact hace todo su trabajo aquí mismo, en tu teléfono. Guarda una copia limpia para que la compartas y deja tu original tal como estaba.</string>
+    <string name="onboarding_private_offline">No se sube nada, así que tus fotos y videos siguen siendo privados.</string>
+    <string name="onboarding_private_no_ads">No hay anuncios y nada rastrea lo que haces.</string>
+    <string name="onboarding_private_open_source">Redact es de código abierto, así que cualquiera puede comprobar cómo funciona.</string>
+    <string name="onboarding_choices_title">Tú decides qué puede usar Redact.</string>
+    <string name="onboarding_choices_body">A continuación, Redact te explicará qué le gustaría usar y por qué, una cosa a la vez. Siempre decides tú, y puedes cambiar de opinión más tarde en Configuración.</string>
+    <string name="onboarding_choices_media">Primero, tus fotos y videos, para que Redact pueda abrir los que elijas.</string>
+    <string name="onboarding_choices_location">Luego, las ubicaciones guardadas en tus fotos y videos, para que Escanear pueda mostrártelas.</string>
+    <string name="onboarding_choices_notifications">Después, las notificaciones, para que Redact te avise cuando termine una tarea.</string>
+    <string name="onboarding_media_title">Permite el acceso a tus fotos y videos.</string>
+    <string name="onboarding_media_body">Redact lo necesita para abrir las fotos y videos que elijas limpiar, escanear o convertir.</string>
+    <string name="onboarding_media_point_pick">Redact solo abre los archivos que eliges.</string>
+    <string name="onboarding_media_point_private">Tus fotos y videos se quedan en tu teléfono.</string>
+    <string name="onboarding_media_point_partial">Android puede permitirte dar acceso solo a algunas fotos y videos. Redact funciona de ambas formas.</string>
+    <string name="onboarding_media_point_change">Puedes cambiar esto en cualquier momento en los ajustes de tu teléfono.</string>
+    <string name="onboarding_media_allow">Permitir Acceso</string>
+    <string name="onboarding_location_title">Descubre dónde se hicieron tus fotos y videos.</string>
+    <string name="onboarding_location_body">Android oculta la ubicación guardada en tus fotos y videos a menos que dejes que Redact la vea. Si lo activas, Escanear puede mostrarte dónde se hizo una foto o un video, para que sepas qué estarías compartiendo.</string>
+    <string name="onboarding_location_point_optional">Es opcional. Redact quita las ubicaciones de las copias que crea de todos modos.</string>
+    <string name="onboarding_location_point_private">Redact nunca comparte una ubicación con nadie.</string>
+    <string name="onboarding_location_point_change">Puedes desactivarlo en cualquier momento en Configuración.</string>
+    <string name="onboarding_location_allow">Permitir</string>
+    <string name="onboarding_notifications_title">Entérate cuando tus archivos estén listos.</string>
+    <string name="onboarding_notifications_body">Limpiar un video largo puede tardar unos minutos. Redact puede avisarte cuando termine, para que no tengas que dejar la app abierta.</string>
+    <string name="onboarding_notifications_point_optional">Es opcional y puedes desactivarlo en cualquier momento en Configuración.</string>
+    <string name="onboarding_notifications_point_finished">Redact solo envía una notificación cuando termina una tarea.</string>
+    <string name="onboarding_notifications_point_no_ads">Redact nunca envía anuncios ni recordatorios.</string>
+    <string name="onboarding_notifications_allow">Activar Notificaciones</string>
+    <string name="onboarding_status_granted">Lo has permitido.</string>
+    <string name="onboarding_status_partial">Has permitido algunas de tus fotos y videos.</string>
+    <string name="onboarding_status_denied">No lo has permitido. Puedes activarlo más tarde en Configuración.</string>
+    <string name="onboarding_status_blocked">Para usar esto, primero permite el acceso a tus fotos y videos.</string>
+    <string name="onboarding_status_notifications_on">Las notificaciones están activadas.</string>
+    <string name="onboarding_done_title">¡Todo listo!</string>
+    <string name="onboarding_done_body">Este es un resumen de lo que elegiste. Puedes cambiar cualquier cosa más tarde en Configuración.</string>
+    <string name="onboarding_done_media_granted">Redact puede abrir tus fotos y videos.</string>
+    <string name="onboarding_done_media_partial">Redact puede abrir las fotos y videos que seleccionaste.</string>
+    <string name="onboarding_done_media_denied">Redact todavía no puede abrir tus fotos y videos.</string>
+    <string name="onboarding_done_location_granted">Escanear puede mostrar dónde se hicieron tus fotos y videos.</string>
+    <string name="onboarding_done_location_denied">Escanear no mostrará dónde se hicieron tus fotos y videos.</string>
+    <string name="onboarding_done_notifications_granted">Redact te avisará cuando termine una tarea.</string>
+    <string name="onboarding_done_notifications_denied">Redact no te enviará notificaciones.</string>
+    <string name="onboarding_crash_title">Ayuda a mejorar Redact.</string>
+    <string name="onboarding_crash_body">Si Redact llega a fallar, puede enviar un informe anónimo para que el problema se encuentre y se solucione. Los informes de errores son lo único que Redact envía por internet.</string>
+    <string name="onboarding_crash_point_private">Los informes nunca incluyen tus fotos, videos, nombres de archivo ni ubicaciones.</string>
+    <string name="onboarding_crash_point_sentry">Los informes van a Sentry, un servicio que ayuda a los desarrolladores a encontrar y corregir fallos.</string>
+    <string name="onboarding_crash_allow">Enviar Informes de Errores</string>
+    <string name="onboarding_status_crash_on">Los informes de errores están activados.</string>
+    <string name="onboarding_choices_crash">Por último, los informes de errores, para que los problemas se encuentren y se solucionen antes.</string>
+    <string name="onboarding_done_crash_on">Redact enviará informes de errores anónimos si algo sale mal.</string>
+    <string name="onboarding_done_crash_off">Redact no enviará informes de errores.</string>
 </resources>

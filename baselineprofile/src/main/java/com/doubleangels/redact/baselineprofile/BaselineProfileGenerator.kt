@@ -27,7 +27,7 @@ class BaselineProfileGenerator {
         // A fresh install asks for media, location and notification access in turn. Answer each
         // prompt so the first-launch flow lands in the profile and the tabs underneath can be tapped.
         allowPermissionPrompts(device)
-        for (tab in listOf("scan", "convert", "settings", "clean")) {
+        for (tab in listOf("scan", "convert", "censor", "settings", "clean")) {
             val item = device.wait(Until.findObject(By.res(PACKAGE, "navigation_$tab")), 3_000)
             item?.click()
             device.waitForIdle()

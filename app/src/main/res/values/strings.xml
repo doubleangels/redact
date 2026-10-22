@@ -4,8 +4,9 @@
     <string name="app_name">Redact</string>
 
     
-    <string name="content_description_image_view">Image View</string>
-    <string name="content_description_scroll_view">Scroll View</string>
+    <string name="content_description_selected_files">Selected files</string>
+    <string name="content_description_selected_photo">Photo: %1$s</string>
+    <string name="content_description_selected_video">Video: %1$s</string>
 
     
     <string name="notification_channel_tasks_name">Tasks</string>
@@ -42,6 +43,7 @@
     <string name="navigation_clean">Clean</string>
     <string name="navigation_scan">Scan</string>
     <string name="navigation_convert">Convert</string>
+    <string name="navigation_censor">Censor</string>
     <string name="navigation_settings">Settings</string>
 
     
@@ -132,7 +134,7 @@
     <string name="url_donate" translatable="false">https://donate.stripe.com/4gw8yhbvH0mg6SQ7ss</string>
 
     
-    <string name="convert_heic_fallback_jpeg">HEIC output requires Android 14+. Images will be saved as JPEG instead.</string>
+    <string name="convert_heic_fallback_jpeg">This phone can\'t save HEIC images, so they will be saved as JPEG instead.</string>
     <string name="convert_codec_fallback">%1$s unavailable; saved as %2$s instead.</string>
     <string name="convert_output_format_images">Image Format</string>
     <string name="convert_output_format_videos">Video Codec</string>
@@ -242,7 +244,9 @@
     <string name="scan_copy_all_metadata">Copy All Metadata</string>
     <string name="scan_clean_this_file">Clean This File</string>
     <string name="scan_convert_this_file">Convert This File</string>
+    <string name="scan_censor_this_photo">Censor This Photo</string>
     <string name="scan_copied_to_clipboard">Copied to clipboard</string>
+    <string name="scan_copy_value">Copy Value</string>
     <string name="scan_maps_consent_title">Open in Maps</string>
     <string name="scan_maps_consent_message">This opens the coordinates in your device\'s default maps app. Unlike every other action on this screen, that hands your exact GPS location to a separate app, which may send it off this device, for example to load map tiles or look up the address. Redact itself never sends this data anywhere.\n\nYou\'ll only see this message once. Choosing to continue is remembered, so this won\'t ask again.</string>
     <string name="scan_maps_consent_continue">Open Maps</string>
@@ -294,9 +298,7 @@
     <string name="metadata_location_unreadable">Location data is present, stored in a form that can\'t be shown here. Cleaning removes it.</string>
     <string name="metadata_container_tags_header">Embedded Tags:</string>
     <string name="metadata_container_tags">Found in the file: %1$s</string>
-    <string name="metadata_container_value">Present – removed when you clean</string>
     <string name="metadata_embedded_data_header">Hidden &amp; embedded data</string>
-    <string name="metadata_embedded_value">Present (%1$s) – removed when you clean</string>
     <plurals name="metadata_embedded_images">
         <item quantity="one">%1$d image (%2$s) – removed when you clean</item>
         <item quantity="other">%1$d images (%2$s) – removed when you clean</item>
@@ -359,7 +361,7 @@
     <string name="settings_sentry_consent_title">Enable Crash Reporting</string>
     <string name="settings_sentry_consent_message">Send Crash Reports uploads anonymized diagnostics to Sentry over the internet.\n\nNo photos, videos, filenames, or GPS coordinates are uploaded.</string>
     <string name="settings_strict_clean">Strict Clean</string>
-    <string name="settings_strict_clean_subtitle">Removes every trace of metadata, even the orientation tag, so a rotated photo may look sideways afterward. Turns off the keep options above and always fully re-encodes video for the most thorough clean.</string>
+    <string name="settings_strict_clean_subtitle">Removes every trace of metadata, even the orientation tag, so a rotated photo may look sideways afterward. Turns off the keep options below and always fully re-encodes video for the most thorough clean.</string>
     <string name="settings_video_fallback">Faster Video Cleaning</string>
     <string name="settings_video_fallback_subtitle">When your video is already in a compatible format, Redact strips its metadata with a quick pass instead of fully re-encoding it. That\'s faster and lighter on battery, though a full re-encode removes a touch more. Automatically turned off when Strict Clean is on or when cleaning files shared in from other apps.</string>
     
@@ -450,7 +452,8 @@
     <string name="share_results_chooser_title">Share via…</string>
     <string name="settings_output_unavailable">Redact can no longer save to this folder, so files go to %1$s. Choose it again or pick another folder.</string>
     <string name="output_folder_fallback">Saving to %2$s instead: %1$s is unavailable.</string>
-    <string name="settings_output_open">Open Folder</string>
+    <string name="settings_output_open_images">Open Images Folder</string>
+    <string name="settings_output_open_videos">Open Videos Folder</string>
     <string name="settings_output_open_unavailable">No app found to open this folder.</string>
     <string name="settings_output_also_videos">Save videos here too?</string>
     <string name="settings_output_also_images">Save images here too?</string>
@@ -462,7 +465,36 @@
     <string name="settings_reset_all_confirm">Reset</string>
     <string name="settings_reset_all_done">Settings reset to defaults.</string>
     <string name="settings_reset_all_busy">Cannot reset settings while processing is in progress.</string>
-    <string name="share_target_scan">Scan with Redact</string>
+
+    <!-- Censor: cover parts of a photo -->
+    <string name="censor_empty_state_title">Cover What Should Stay Private</string>
+    <string name="censor_empty_state_description">Pixelate, black out or blur faces, number plates, addresses and anything else in a photo. Redact saves a censored copy without any metadata, and your original stays as it is.</string>
+    <string name="censor_select_photo">Select Photo</string>
+    <string name="censor_hint">Draw over anything that should stay private, then tap Save Copy. Use Move to pinch-zoom and pan, and tap a rectangle to move or resize it.</string>
+    <string name="censor_canvas_description">Photo being censored. Draw with one finger to cover an area. With Move, drag to pan and pinch to zoom.</string>
+    <string name="censor_tool_rectangle">Rectangle</string>
+    <string name="censor_tool_brush">Brush</string>
+    <string name="censor_tool_move">Move</string>
+    <string name="censor_brush_size">Brush size</string>
+    <string name="censor_effect_pixelate">Pixelate</string>
+    <string name="censor_effect_black">Black</string>
+    <string name="censor_effect_blur">Blur</string>
+    <string name="censor_undo">Undo</string>
+    <string name="censor_redo">Redo</string>
+    <string name="censor_delete_rectangle">Delete Rectangle</string>
+    <string name="censor_zoom_level">%1$s×</string>
+    <string name="censor_zoom_reset">Zoomed in %1$s times. Tap to show the whole photo.</string>
+    <string name="censor_save">Save Copy</string>
+    <string name="censor_saved">Censored copy saved.</string>
+    <string name="censor_saved_downscaled">Censored copy saved, smaller than the original. To keep the full size, raise Max Processing Resolution in Settings.</string>
+    <string name="censor_file_name">%1$s (censored)</string>
+    <string name="censor_error_open">This photo could not be opened.</string>
+    <string name="censor_error_unsupported">This type of image cannot be censored on this device.</string>
+    <string name="censor_error_save">The censored copy could not be saved.</string>
+    <string name="censor_discard_title">Discard Your Changes?</string>
+    <string name="censor_discard_message">The areas you covered have not been saved.</string>
+    <string name="censor_discard">Discard</string>
+    <string name="censor_keep_editing">Keep Editing</string>
     <string name="button_scan_result">Scan Result</string>
     <string name="settings_keep_original_names">Keep Original File Names</string>
     <string name="settings_keep_original_names_subtitle">Name cleaned and converted files after the originals instead of a random name. Names such as IMG_20260117 can reveal when a photo was taken.</string>
@@ -471,7 +503,14 @@
     <string name="review_prompt_yes">Yes</string>
     <string name="review_prompt_no">No</string>
     <string name="review_prompt_declined">Got it, Redact won\'t ask again. If you change your mind, you can rate it anytime from Settings › About.</string>
-    <string name="crash_prompt_declined">Got it, Redact won\'t ask again. You can turn on crash reports anytime in Settings › Diagnostics &amp; Feedback.</string>
+    <string name="error_feedback_offer">Something went wrong. A crash report was sent.</string>
+    <string name="error_feedback_action">Add Details</string>
+    <string name="error_feedback_title">What Happened?</string>
+    <string name="error_feedback_message">Your note is attached to the crash report. Don\'t include personal information. File paths and GPS coordinates are removed before sending.</string>
+    <string name="error_feedback_hint">What were you doing when it went wrong?</string>
+    <string name="error_feedback_send">Send</string>
+    <string name="error_feedback_cancel">Cancel</string>
+    <string name="error_feedback_thanks">Thanks, your note was sent.</string>
     <string name="stats_title">Statistics</string>
     <string name="stats_navigate_up">Back</string>
     <string name="stats_settings_title">Your Privacy Stats</string>
@@ -504,4 +543,86 @@
         <item quantity="one">%1$s file cleaned in the last 30 days.</item>
         <item quantity="other">%1$s files cleaned in the last 30 days.</item>
     </plurals>
+
+    <!-- First-start introduction -->
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_continue">Continue</string>
+    <string name="onboarding_not_now">Not Now</string>
+    <string name="onboarding_open_settings">Open Settings</string>
+    <string name="onboarding_get_started">Get Started</string>
+    <string name="onboarding_start">Start Using Redact</string>
+    <string name="onboarding_done">Done</string>
+    <string name="onboarding_progress">Step %1$d of %2$d</string>
+    <string name="onboarding_welcome_title">Welcome to Redact!</string>
+    <string name="onboarding_welcome_body">Redact helps you share photos and videos without sharing your private details. This short tour takes about a minute.</string>
+    <string name="onboarding_welcome_clean">Clean removes the hidden details from your photos and videos.</string>
+    <string name="onboarding_welcome_scan">Scan shows you exactly what a file reveals before you share it.</string>
+    <string name="onboarding_welcome_convert">Convert changes a photo or video to another format and keeps it clean.</string>
+    <string name="onboarding_welcome_censor">Censor covers faces, number plates and anything else in a photo that should stay private.</string>
+    <string name="onboarding_hidden_title">Your photos and videos can say more than you think.</string>
+    <string name="onboarding_hidden_body">When you take a photo or video, your phone quietly saves extra information inside the file. Anyone you send the file to may be able to read it.</string>
+    <string name="onboarding_hidden_location">It can show where you were, sometimes closely enough to find your home.</string>
+    <string name="onboarding_hidden_time">It can show the date and time you took it.</string>
+    <string name="onboarding_hidden_device">It can show which phone or camera you used.</string>
+    <string name="onboarding_private_title">Your files never leave your phone.</string>
+    <string name="onboarding_private_body">Redact does all of its work right here on your phone. It saves a clean copy for you to share and leaves your original just as it was.</string>
+    <string name="onboarding_private_offline">Nothing is uploaded, so your photos and videos stay private.</string>
+    <string name="onboarding_private_no_ads">There are no ads, and nothing tracks what you do.</string>
+    <string name="onboarding_private_open_source">Redact is open source, so anyone can check how it works.</string>
+    <string name="onboarding_choices_title">You decide what Redact can use.</string>
+    <string name="onboarding_choices_body">Next, Redact will explain what it would like to use and why, one thing at a time. It\'s always your choice, and you can change your mind later in Settings.</string>
+    <string name="onboarding_choices_media">First, your photos and videos, so Redact can open the ones you pick.</string>
+    <string name="onboarding_choices_location">Then, the locations saved in your photos and videos, so Scan can show them to you.</string>
+    <string name="onboarding_choices_notifications">After that, notifications, so Redact can tell you when a task is done.</string>
+    <string name="onboarding_media_title">Allow access to your photos and videos.</string>
+    <string name="onboarding_media_body">Redact needs this to open the photos and videos you choose to clean, scan or convert.</string>
+    <string name="onboarding_media_point_pick">Redact only opens the files you pick.</string>
+    <string name="onboarding_media_point_private">Your photos and videos stay on your phone.</string>
+    <string name="onboarding_media_point_partial">Android may let you allow only some of your photos and videos. Redact works either way.</string>
+    <string name="onboarding_media_point_change">You can change this at any time in your phone\'s settings.</string>
+    <string name="onboarding_media_allow">Allow Access</string>
+    <string name="onboarding_location_title">See where your photos and videos were taken.</string>
+    <string name="onboarding_location_body">Android hides the location saved in your photos and videos unless you let Redact see it. With this turned on, Scan can show you where a photo or video was taken, so you know what you would be sharing.</string>
+    <string name="onboarding_location_point_optional">This is optional. Redact removes locations from the copies it makes either way.</string>
+    <string name="onboarding_location_point_private">Redact never shares a location with anyone.</string>
+    <string name="onboarding_location_point_change">You can turn this off at any time in Settings.</string>
+    <string name="onboarding_location_allow">Allow</string>
+    <string name="onboarding_notifications_title">Find out when your files are ready.</string>
+    <string name="onboarding_notifications_body">Cleaning a long video can take a few minutes. Redact can let you know when it\'s finished, so you don\'t have to keep the app open.</string>
+    <string name="onboarding_notifications_point_optional">This is optional, and you can turn it off at any time in Settings.</string>
+    <string name="onboarding_notifications_point_finished">Redact only sends a notification when a task finishes.</string>
+    <string name="onboarding_notifications_point_no_ads">Redact never sends ads or reminders.</string>
+    <string name="onboarding_notifications_allow">Turn On Notifications</string>
+    <string name="onboarding_status_granted">You\'ve allowed this.</string>
+    <string name="onboarding_status_partial">You\'ve allowed some of your photos and videos.</string>
+    <string name="onboarding_status_denied">You haven\'t allowed this. You can turn it on later in Settings.</string>
+    <string name="onboarding_status_blocked">To use this, first allow access to your photos and videos.</string>
+    <string name="onboarding_status_notifications_on">Notifications are on.</string>
+    <string name="onboarding_done_title">You\'re all set!</string>
+    <string name="onboarding_done_body">Here\'s a summary of your choices. You can change any of them later in Settings.</string>
+    <string name="onboarding_done_media_granted">Redact can open your photos and videos.</string>
+    <string name="onboarding_done_media_partial">Redact can open the photos and videos you selected.</string>
+    <string name="onboarding_done_media_denied">Redact can\'t open your photos and videos yet.</string>
+    <string name="onboarding_done_location_granted">Scan can show where your photos and videos were taken.</string>
+    <string name="onboarding_done_location_denied">Scan won\'t show where your photos and videos were taken.</string>
+    <string name="onboarding_done_notifications_granted">Redact will let you know when a task finishes.</string>
+    <string name="onboarding_done_notifications_denied">Redact won\'t send you notifications.</string>
+    <string name="onboarding_crash_title">Help make Redact better.</string>
+    <string name="onboarding_crash_body">If Redact ever crashes, it can send an anonymous report so the problem can be found and fixed. Crash reports are the only thing Redact ever sends over the internet.</string>
+    <string name="onboarding_crash_point_private">Reports never include your photos, videos, file names or locations.</string>
+    <string name="onboarding_crash_point_sentry">Reports go to Sentry, a service that helps developers find and fix crashes.</string>
+    <string name="onboarding_crash_allow">Send Crash Reports</string>
+    <string name="onboarding_status_crash_on">Crash reports are on.</string>
+    <string name="onboarding_choices_crash">Last, crash reports, so problems can be found and fixed sooner.</string>
+    <string name="onboarding_done_crash_on">Redact will send anonymous crash reports if something goes wrong.</string>
+    <string name="onboarding_done_crash_off">Redact won\'t send crash reports.</string>
+    <string name="settings_about_intro">Show Introduction</string>
+
+    <!-- Settings › Open-Source Licenses -->
+    <string name="settings_about_licenses">Open-Source Licenses</string>
+    <string name="licenses_title">Open-Source Licenses</string>
+    <string name="licenses_intro">Redact is built with these open-source libraries. Tap one to read its license.</string>
+    <string name="licenses_project_page">Project Page</string>
+    <string name="licenses_close">Close</string>
 </resources>

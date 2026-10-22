@@ -4,8 +4,9 @@
     <string name="app_name">Redact</string>
 
     
-    <string name="content_description_image_view">عرض الصورة</string>
-    <string name="content_description_scroll_view">عرض التمرير</string>
+    <string name="content_description_selected_files">الملفات المحددة</string>
+    <string name="content_description_selected_photo">صورة: %1$s</string>
+    <string name="content_description_selected_video">فيديو: %1$s</string>
 
     
     <string name="navigation_clean">تنظيف</string>
@@ -37,6 +38,7 @@
     <string name="notification_clean_progress_title">جارٍ تنظيف البيانات الوصفية…</string>
 
     <string name="navigation_convert">تحويل</string>
+    <string name="navigation_censor">إخفاء</string>
 
     
     <string name="convert_output_format_images">تنسيق الصورة</string>
@@ -126,9 +128,7 @@
     <string name="metadata_location_unreadable">توجد بيانات موقع محفوظة بصيغة لا يمكن عرضها هنا. التنظيف يزيلها.</string>
     <string name="metadata_container_tags_header">الوسوم المضمّنة:</string>
     <string name="metadata_container_tags">موجود في الملف: %1$s</string>
-    <string name="metadata_container_value">موجود – يُزال عند التنظيف</string>
     <string name="metadata_embedded_data_header">بيانات مخفية ومضمّنة</string>
-    <string name="metadata_embedded_value">موجود (%1$s) – يُزال عند التنظيف</string>
     <plurals name="metadata_embedded_images">
         <item quantity="zero">%1$d صورة (%2$s) – تُزال عند التنظيف</item>
         <item quantity="one">صورة واحدة (%2$s) – تُزال عند التنظيف</item>
@@ -186,7 +186,7 @@
     <string name="settings_sentry_consent_title">تفعيل تقارير الأعطال</string>
     <string name="settings_sentry_consent_message">إرسال تقارير الأعطال يرفع تشخيصات مجهولة إلى Sentry عبر الإنترنت.\n\nلا يتم تحميل الصور أو الفيديوهات أو أسماء الملفات أو إحداثيات GPS.</string>
     <string name="settings_strict_clean">التنظيف الصارم</string>
-    <string name="settings_strict_clean_subtitle">يزيل كل أثر للبيانات الوصفية، حتى علامة الاتجاه، لذا قد تبدو الصورة المُدارة مائلة بعد ذلك. يعطّل خيارات الاحتفاظ أعلاه ويعيد ترميز الفيديو بالكامل دائماً لأشمل تنظيف ممكن.</string>
+    <string name="settings_strict_clean_subtitle">يزيل كل أثر للبيانات الوصفية، حتى علامة الاتجاه، لذا قد تبدو الصورة المُدارة مائلة بعد ذلك. يعطّل خيارات الاحتفاظ أدناه ويعيد ترميز الفيديو بالكامل دائماً لأشمل تنظيف ممكن.</string>
     
     <string name="settings_section_advanced_processing">الملفات الكبيرة والذاكرة</string>
     <string name="settings_advanced_processing_subtitle">يتحكم في استخدام الذاكرة عند فك ترميز الصور الكبيرة أثناء التنظيف والتحويل.</string>
@@ -316,7 +316,9 @@
     <string name="notification_progress_percent">%1$d%% مكتمل</string>
     <string name="scan_clean_this_file">تنظيف هذا الملف</string>
     <string name="scan_convert_this_file">تحويل هذا الملف</string>
+    <string name="scan_censor_this_photo">إخفاء أجزاء من هذه الصورة</string>
     <string name="scan_copied_to_clipboard">تم النسخ إلى الحافظة</string>
+    <string name="scan_copy_value">نسخ القيمة</string>
     <string name="scan_copy_all_metadata">نسخ كل البيانات الوصفية</string>
     <string name="scan_copy_camera">نسخ معلومات الكاميرا</string>
 <string name="settings_permissions_location">موقع الصورة</string>
@@ -390,7 +392,7 @@
     <string name="convert_empty_state_title">تحويل صيغ الوسائط</string>
     <string name="convert_empty_state_description">حدّد صورًا أو مقاطع فيديو لتحويلها إلى صيغ JPEG وPNG وWebP وHEIC أو MP4.</string>
     <string name="convert_files_card_title">الملفات المراد تحويلها</string>
-    <string name="convert_heic_fallback_jpeg">يتطلب إخراج HEIC نظام Android 14 أو أحدث. ستُحفظ الصور بصيغة JPEG بدلًا من ذلك.</string>
+    <string name="convert_heic_fallback_jpeg">لا يستطيع هذا الهاتف حفظ الصور بصيغة HEIC، لذا ستُحفظ بصيغة JPEG بدلًا من ذلك.</string>
     <string name="convert_item_type_image">صورة</string>
     <string name="convert_item_type_video">فيديو</string>
     <string name="scan_empty_state_title">فحص البيانات الوصفية للوسائط</string>
@@ -497,7 +499,8 @@
     <string name="share_results_chooser_title">مشاركة عبر…</string>
     <string name="settings_output_unavailable">لم يعد بإمكان Redact الحفظ في هذا المجلد، لذلك تُحفظ الملفات في %1$s. اختره مرة أخرى أو اختر مجلدًا آخر.</string>
     <string name="output_folder_fallback">يتم الحفظ في %2$s بدلًا من ذلك: %1$s غير متاح.</string>
-    <string name="settings_output_open">فتح المجلد</string>
+    <string name="settings_output_open_images">فتح مجلد الصور</string>
+    <string name="settings_output_open_videos">فتح مجلد الفيديوهات</string>
     <string name="settings_output_open_unavailable">لم يتم العثور على تطبيق لفتح هذا المجلد.</string>
     <string name="settings_output_also_videos">حفظ مقاطع الفيديو هنا أيضًا؟</string>
     <string name="settings_output_also_images">حفظ الصور هنا أيضًا؟</string>
@@ -509,7 +512,34 @@
     <string name="settings_reset_all_confirm">إعادة ضبط</string>
     <string name="settings_reset_all_done">تمت إعادة الإعدادات إلى قيمها الافتراضية.</string>
     <string name="settings_reset_all_busy">لا يمكن إعادة ضبط الإعدادات أثناء المعالجة.</string>
-    <string name="share_target_scan">مسح باستخدام Redact</string>
+    <string name="censor_empty_state_title">أخفِ ما يجب أن يبقى خاصًا</string>
+    <string name="censor_empty_state_description">حوّل الوجوه ولوحات السيارات والعناوين وأي شيء آخر في الصورة إلى بكسلات، أو غطِّها بالأسود، أو اجعلها ضبابية. يحفظ Redact نسخة مخفية الأجزاء بلا أي بيانات وصفية، ويبقى الأصل كما هو.</string>
+    <string name="censor_select_photo">تحديد صورة</string>
+    <string name="censor_hint">ارسم فوق كل ما يجب أن يبقى خاصًا، ثم انقر على حفظ نسخة. استخدم تحريك للتكبير بإصبعين والتنقل، وانقر على مستطيل لتحريكه أو تغيير حجمه.</string>
+    <string name="censor_canvas_description">الصورة التي يتم إخفاء أجزاء منها. ارسم بإصبع واحد لتغطية منطقة. مع تحريك، اسحب للتنقل وقرّب إصبعين أو باعد بينهما للتكبير.</string>
+    <string name="censor_tool_rectangle">مستطيل</string>
+    <string name="censor_tool_brush">فرشاة</string>
+    <string name="censor_tool_move">تحريك</string>
+    <string name="censor_brush_size">حجم الفرشاة</string>
+    <string name="censor_effect_pixelate">بكسلة</string>
+    <string name="censor_effect_black">أسود</string>
+    <string name="censor_effect_blur">ضبابية</string>
+    <string name="censor_undo">تراجع</string>
+    <string name="censor_redo">إعادة</string>
+    <string name="censor_delete_rectangle">حذف المستطيل</string>
+    <string name="censor_zoom_level">%1$s×</string>
+    <string name="censor_zoom_reset">مكبّرة %1$s مرة. انقر لعرض الصورة كاملة.</string>
+    <string name="censor_save">حفظ نسخة</string>
+    <string name="censor_saved">تم حفظ النسخة المخفية الأجزاء.</string>
+    <string name="censor_saved_downscaled">تم حفظ النسخة بحجم أصغر من الأصل. للاحتفاظ بالحجم الكامل، ارفع أقصى دقة معالجة في الإعدادات.</string>
+    <string name="censor_file_name">%1$s (محجوبة)</string>
+    <string name="censor_error_open">تعذّر فتح هذه الصورة.</string>
+    <string name="censor_error_unsupported">لا يمكن إخفاء أجزاء من هذا النوع من الصور على هذا الجهاز.</string>
+    <string name="censor_error_save">تعذّر حفظ النسخة المخفية الأجزاء.</string>
+    <string name="censor_discard_title">هل تريد تجاهل التغييرات؟</string>
+    <string name="censor_discard_message">لم يتم حفظ المناطق التي غطيتها.</string>
+    <string name="censor_discard">تجاهل</string>
+    <string name="censor_keep_editing">متابعة التعديل</string>
     <string name="button_scan_result">مسح النتيجة</string>
     <string name="settings_keep_original_names">الاحتفاظ بأسماء الملفات الأصلية</string>
     <string name="settings_keep_original_names_subtitle">تسمية الملفات المنظفة والمحولة باسم الملفات الأصلية بدلًا من اسم عشوائي. قد تكشف أسماء مثل IMG_20260117 وقت التقاط الصورة.</string>
@@ -518,7 +548,14 @@
     <string name="review_prompt_yes">نعم</string>
     <string name="review_prompt_no">لا</string>
     <string name="review_prompt_declined">حسنًا، لن يسألك Redact مجددًا. إذا غيّرت رأيك، يمكنك تقييمه في أي وقت من الإعدادات › حول.</string>
-    <string name="crash_prompt_declined">حسنًا، لن يسألك Redact مجددًا. يمكنك تفعيل تقارير الأعطال في أي وقت من الإعدادات › التشخيص والملاحظات.</string>
+    <string name="error_feedback_offer">حدث خطأ ما. تم إرسال تقرير عطل.</string>
+    <string name="error_feedback_action">إضافة تفاصيل</string>
+    <string name="error_feedback_title">ماذا حدث؟</string>
+    <string name="error_feedback_message">ستُرفق ملاحظتك بتقرير العطل. لا تُضمّن معلومات شخصية. تُزال مسارات الملفات وإحداثيات GPS قبل الإرسال.</string>
+    <string name="error_feedback_hint">ماذا كنت تفعل عندما حدث الخطأ؟</string>
+    <string name="error_feedback_send">إرسال</string>
+    <string name="error_feedback_cancel">إلغاء</string>
+    <string name="error_feedback_thanks">شكرًا، تم إرسال ملاحظتك.</string>
     <string name="stats_title">الإحصائيات</string>
     <string name="stats_navigate_up">رجوع</string>
     <string name="stats_settings_title">إحصائيات خصوصيتك</string>
@@ -555,4 +592,82 @@
         <item quantity="many">نُظِّف %1$s ملفًا خلال آخر 30 يومًا.</item>
         <item quantity="other">نُظِّف %1$s ملف خلال آخر 30 يومًا.</item>
     </plurals>
+    <string name="settings_about_intro">عرض المقدمة</string>
+    <string name="settings_about_licenses">تراخيص البرامج مفتوحة المصدر</string>
+    <string name="licenses_title">تراخيص البرامج مفتوحة المصدر</string>
+    <string name="licenses_intro">Redact مبني باستخدام هذه المكتبات مفتوحة المصدر. انقر على أي منها لقراءة ترخيصها.</string>
+    <string name="licenses_project_page">صفحة المشروع</string>
+    <string name="licenses_close">إغلاق</string>
+    <string name="onboarding_skip">تخطي</string>
+    <string name="onboarding_next">التالي</string>
+    <string name="onboarding_continue">متابعة</string>
+    <string name="onboarding_not_now">ليس الآن</string>
+    <string name="onboarding_open_settings">فتح الإعدادات</string>
+    <string name="onboarding_get_started">ابدأ</string>
+    <string name="onboarding_start">ابدأ استخدام Redact</string>
+    <string name="onboarding_done">تم</string>
+    <string name="onboarding_progress">الخطوة %1$d من %2$d</string>
+    <string name="onboarding_welcome_title">مرحبًا بك في Redact!</string>
+    <string name="onboarding_welcome_body">يساعدك Redact على مشاركة الصور ومقاطع الفيديو دون مشاركة تفاصيلك الخاصة. تستغرق هذه الجولة القصيرة دقيقة تقريبًا.</string>
+    <string name="onboarding_welcome_clean">تنظيف يزيل التفاصيل المخفية من صورك ومقاطع الفيديو.</string>
+    <string name="onboarding_welcome_scan">مسح يعرض لك بدقة ما يكشفه الملف قبل أن تشاركه.</string>
+    <string name="onboarding_welcome_convert">تحويل يغيّر صيغة الصورة أو الفيديو ويُبقيه نظيفًا.</string>
+    <string name="onboarding_welcome_censor">إخفاء يغطي الوجوه ولوحات السيارات وأي شيء آخر في الصورة يجب أن يبقى خاصًا.</string>
+    <string name="onboarding_hidden_title">قد تكشف صورك ومقاطع الفيديو أكثر مما تظن.</string>
+    <string name="onboarding_hidden_body">عندما تلتقط صورة أو فيديو، يحفظ هاتفك بصمت معلومات إضافية داخل الملف. وقد يتمكن أي شخص ترسل إليه الملف من قراءتها.</string>
+    <string name="onboarding_hidden_location">قد تكشف مكان وجودك، وأحيانًا بدقة تكفي للعثور على منزلك.</string>
+    <string name="onboarding_hidden_time">قد تكشف تاريخ التقاطها ووقته.</string>
+    <string name="onboarding_hidden_device">قد تكشف الهاتف أو الكاميرا التي استخدمتها.</string>
+    <string name="onboarding_private_title">ملفاتك لا تغادر هاتفك أبدًا.</string>
+    <string name="onboarding_private_body">يُنجز Redact كل عمله هنا على هاتفك. يحفظ نسخة نظيفة لتشاركها ويترك ملفك الأصلي كما هو تمامًا.</string>
+    <string name="onboarding_private_offline">لا يتم تحميل أي شيء، لذا تبقى صورك ومقاطع الفيديو خاصة.</string>
+    <string name="onboarding_private_no_ads">لا توجد إعلانات، ولا شيء يتتبع ما تفعله.</string>
+    <string name="onboarding_private_open_source">Redact مفتوح المصدر، لذا يمكن لأي شخص التحقق من طريقة عمله.</string>
+    <string name="onboarding_choices_title">أنت من يقرر ما يمكن لـ Redact استخدامه.</string>
+    <string name="onboarding_choices_body">سيشرح لك Redact الآن ما يرغب في استخدامه ولماذا، خطوة بخطوة. القرار لك دائمًا، ويمكنك تغيير رأيك لاحقًا من الإعدادات.</string>
+    <string name="onboarding_choices_media">أولًا، صورك ومقاطع الفيديو، ليتمكن Redact من فتح ما تختاره منها.</string>
+    <string name="onboarding_choices_location">ثم المواقع المحفوظة في صورك ومقاطع الفيديو، ليتمكن المسح من عرضها لك.</string>
+    <string name="onboarding_choices_notifications">بعد ذلك الإشعارات، ليُعلمك Redact عند انتهاء مهمة.</string>
+    <string name="onboarding_media_title">اسمح بالوصول إلى صورك ومقاطع الفيديو.</string>
+    <string name="onboarding_media_body">يحتاج Redact إلى هذا لفتح الصور ومقاطع الفيديو التي تختار تنظيفها أو مسحها أو تحويلها.</string>
+    <string name="onboarding_media_point_pick">لا يفتح Redact إلا الملفات التي تختارها.</string>
+    <string name="onboarding_media_point_private">تبقى صورك ومقاطع الفيديو على هاتفك.</string>
+    <string name="onboarding_media_point_partial">قد يتيح لك Android السماح ببعض صورك ومقاطع الفيديو فقط. يعمل Redact في الحالتين.</string>
+    <string name="onboarding_media_point_change">يمكنك تغيير هذا في أي وقت من إعدادات هاتفك.</string>
+    <string name="onboarding_media_allow">السماح بالوصول</string>
+    <string name="onboarding_location_title">اعرف أين التُقطت صورك ومقاطع الفيديو.</string>
+    <string name="onboarding_location_body">يُخفي Android الموقع المحفوظ في صورك ومقاطع الفيديو ما لم تسمح لـ Redact برؤيته. عند تفعيل ذلك، يمكن للمسح أن يعرض لك مكان التقاط الصورة أو الفيديو، لتعرف ما ستشاركه.</string>
+    <string name="onboarding_location_point_optional">هذا اختياري. يزيل Redact المواقع من النسخ التي ينشئها في كل الأحوال.</string>
+    <string name="onboarding_location_point_private">لا يشارك Redact أي موقع مع أي أحد أبدًا.</string>
+    <string name="onboarding_location_point_change">يمكنك إيقاف هذا في أي وقت من الإعدادات.</string>
+    <string name="onboarding_location_allow">سماح</string>
+    <string name="onboarding_notifications_title">اعرف متى تصبح ملفاتك جاهزة.</string>
+    <string name="onboarding_notifications_body">قد يستغرق تنظيف فيديو طويل بضع دقائق. يمكن لـ Redact إعلامك عند الانتهاء، فلا تحتاج إلى إبقاء التطبيق مفتوحًا.</string>
+    <string name="onboarding_notifications_point_optional">هذا اختياري، ويمكنك إيقافه في أي وقت من الإعدادات.</string>
+    <string name="onboarding_notifications_point_finished">لا يرسل Redact إشعارًا إلا عند انتهاء مهمة.</string>
+    <string name="onboarding_notifications_point_no_ads">لا يرسل Redact أبدًا إعلانات أو تذكيرات.</string>
+    <string name="onboarding_notifications_allow">تفعيل الإشعارات</string>
+    <string name="onboarding_status_granted">لقد سمحت بهذا.</string>
+    <string name="onboarding_status_partial">لقد سمحت ببعض صورك ومقاطع الفيديو.</string>
+    <string name="onboarding_status_denied">لم تسمح بهذا. يمكنك تفعيله لاحقًا من الإعدادات.</string>
+    <string name="onboarding_status_blocked">لاستخدام هذا، اسمح أولًا بالوصول إلى صورك ومقاطع الفيديو.</string>
+    <string name="onboarding_status_notifications_on">الإشعارات مفعّلة.</string>
+    <string name="onboarding_done_title">كل شيء جاهز!</string>
+    <string name="onboarding_done_body">إليك ملخص اختياراتك. يمكنك تغيير أي منها لاحقًا من الإعدادات.</string>
+    <string name="onboarding_done_media_granted">يمكن لـ Redact فتح صورك ومقاطع الفيديو.</string>
+    <string name="onboarding_done_media_partial">يمكن لـ Redact فتح الصور ومقاطع الفيديو التي اخترتها.</string>
+    <string name="onboarding_done_media_denied">لا يمكن لـ Redact فتح صورك ومقاطع الفيديو بعد.</string>
+    <string name="onboarding_done_location_granted">يمكن للمسح أن يعرض أين التُقطت صورك ومقاطع الفيديو.</string>
+    <string name="onboarding_done_location_denied">لن يعرض المسح أين التُقطت صورك ومقاطع الفيديو.</string>
+    <string name="onboarding_done_notifications_granted">سيُعلمك Redact عند انتهاء مهمة.</string>
+    <string name="onboarding_done_notifications_denied">لن يرسل لك Redact إشعارات.</string>
+    <string name="onboarding_crash_title">ساعد في تحسين Redact.</string>
+    <string name="onboarding_crash_body">إذا تعطّل Redact يومًا، يمكنه إرسال تقرير مجهول الهوية حتى يتم العثور على المشكلة وإصلاحها. تقارير الأعطال هي الشيء الوحيد الذي يرسله Redact عبر الإنترنت.</string>
+    <string name="onboarding_crash_point_private">لا تتضمن التقارير أبدًا صورك أو مقاطع الفيديو أو أسماء الملفات أو المواقع.</string>
+    <string name="onboarding_crash_point_sentry">تُرسل التقارير إلى Sentry، وهي خدمة تساعد المطورين في العثور على الأعطال وإصلاحها.</string>
+    <string name="onboarding_crash_allow">إرسال تقارير الأعطال</string>
+    <string name="onboarding_status_crash_on">تقارير الأعطال مفعّلة.</string>
+    <string name="onboarding_choices_crash">وأخيرًا تقارير الأعطال، ليتم العثور على المشكلات وإصلاحها بشكل أسرع.</string>
+    <string name="onboarding_done_crash_on">سيرسل Redact تقارير أعطال مجهولة الهوية إذا حدث خطأ ما.</string>
+    <string name="onboarding_done_crash_off">لن يرسل Redact تقارير الأعطال.</string>
 </resources>

@@ -142,12 +142,12 @@ public class MetadataDisplayer {
      */
     public static void extractMetadata(Context context, Uri mediaUri, MetadataCallback callback) {
         SentryManager.log("The app is starting metadata extraction.");
-        SentryManager.setCustomKey("operation_type", "extract_metadata");
 
         cancelActiveScan();
         FutureTask<Void>[] taskRef = new FutureTask[1];
         taskRef[0] = new FutureTask<>(() -> {
             try {
+                SentryManager.beginOperation("extract_metadata");
                 ContentResolver contentResolver = context.getContentResolver();
                 String mimeType = contentResolver.getType(mediaUri);
                 boolean isVideo = com.doubleangels.redact.media.MediaSelector.isVideoFromMimeAndName(
@@ -173,9 +173,9 @@ public class MetadataDisplayer {
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error extracting metadata", e);
-                SentryManager.recordException(e);
                 SentryManager.setCustomKey("extraction_failed", true);
                 SentryManager.setCustomKey("error_type", e.getClass().getName());
+                SentryManager.recordException(e);
                 if (isActiveScan(taskRef[0])) {
                     String errorMessage = context.getString(R.string.status_extraction_fail);
                     deliverOnMain(() -> callback.onExtractionFailed(errorMessage));
@@ -217,12 +217,12 @@ public class MetadataDisplayer {
      */
     public static void extractSectionedMetadata(Context context, Uri mediaUri, SectionedMetadataCallback callback) {
         SentryManager.log("The app is starting sectioned metadata extraction.");
-        SentryManager.setCustomKey("operation_type", "extract_sectioned_metadata");
 
         cancelActiveScan();
         FutureTask<Void>[] taskRef = new FutureTask[1];
         taskRef[0] = new FutureTask<>(() -> {
             try {
+                SentryManager.beginOperation("extract_sectioned_metadata");
                 ContentResolver contentResolver = context.getContentResolver();
                 String mimeType = contentResolver.getType(mediaUri);
                 boolean isVideo = com.doubleangels.redact.media.MediaSelector.isVideoFromMimeAndName(
@@ -306,9 +306,9 @@ public class MetadataDisplayer {
             } catch (Exception e) {
                 // Log the exception and notify callback of failure
                 Log.e(TAG, "Error extracting sectioned metadata", e);
-                SentryManager.recordException(e);
                 SentryManager.setCustomKey("extraction_failed", true);
                 SentryManager.setCustomKey("error_type", e.getClass().getName());
+                SentryManager.recordException(e);
                 if (isActiveScan(taskRef[0])) {
                     String errorMessage = context.getString(R.string.status_extraction_fail);
                     deliverOnMain(() -> callback.onExtractionFailed(errorMessage));
@@ -704,13 +704,13 @@ public class MetadataDisplayer {
             if (embedded == null) {
                 continue;
             }
-            if (finding.key.equals("XMP")) {
-                if (metadataMap.containsKey("XMP")) {
+            if (finding.key.equals("XMP") || finding.key.equals("XMP_EXTENDED")) {
+                if (finding.key.equals("XMP") && metadataMap.containsKey("XMP")) {
                     continue; // already shown from EXIF's own reading of it
                 }
                 String text = finding.text;
                 if (text != null && XmlLikeMetadataFormatter.looksLikeRdfOrXmp(text)) {
-                    embedded.put("XMP", XmlLikeMetadataFormatter.formatForDisplay(text));
+                    embedded.put(finding.key, XmlLikeMetadataFormatter.formatForDisplay(text));
                     continue;
                 }
             }
@@ -737,7 +737,7 @@ public class MetadataDisplayer {
         if (finding.text != null && !finding.text.isEmpty()) {
             return finding.text;
         }
-        return context.getString(R.string.metadata_embedded_value, size);
+        return size;
     }
 
     /** Puts {@code value} under {@code key}, after any value already there (IPTC repeats keywords). */
@@ -1062,6 +1062,10 @@ public class MetadataDisplayer {
             if (hasLocationPermission) {
                 String locationRaw = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_LOCATION);
                 float[] coords = parseVideoLocationCoordinates(locationRaw);
+                if (coords == null && container.coordinates != null
+                        && isUsableMapCoordinate(container.coordinates[0], container.coordinates[1])) {
+                    coords = new float[]{(float) container.coordinates[0], (float) container.coordinates[1]};
+                }
                 if (coords != null) {
                     float lat = coords[0];
                     float lon = coords[1];
@@ -1083,10 +1087,16 @@ public class MetadataDisplayer {
             }
 
             if (!container.fields.isEmpty()) {
-                // Names only: the values can be anything, including the location itself.
+                // A location's value is left out without the permission, as above.
+                List<String> tags = new ArrayList<>();
+                for (String name : new java.util.LinkedHashSet<>(container.fields)) {
+                    String value = container.values.get(name);
+                    boolean place = container.isLocationField(name);
+                    tags.add(value == null || (place && !hasLocationPermission) ? name : name + ": " + value);
+                }
                 metadata.append("\n").append(context.getString(R.string.metadata_container_tags_header)).append("\n");
-                metadata.append(context.getString(R.string.metadata_container_tags,
-                        String.join(", ", new java.util.LinkedHashSet<>(container.fields)))).append("\n");
+                metadata.append(context.getString(R.string.metadata_container_tags, String.join(", ", tags)))
+                        .append("\n");
             }
 
             // Extract and append technical details
@@ -1233,8 +1243,7 @@ public class MetadataDisplayer {
                 VideoStreamMetadata.Report stream = VideoStreamMetadata.scan(context, videoUri);
                 if (stream != null && stream.userDataMessages > 0) {
                     embedded.put("VIDEO_STREAM_USER_DATA", stream.text != null ? stream.text
-                            : context.getString(R.string.metadata_embedded_value,
-                                    android.text.format.Formatter.formatShortFileSize(context, stream.userDataBytes)));
+                            : android.text.format.Formatter.formatShortFileSize(context, stream.userDataBytes));
                 }
             }
 
@@ -1294,27 +1303,62 @@ public class MetadataDisplayer {
 
     /**
      * Lists what reading the container found beyond the platform retriever, such as QuickTime
-     * keys, 3GPP loci and XMP. Only that each tag is there is shown, never its value.
+     * keys, 3GPP loci and XMP, with what each holds or, for binary data, its size. A location
+     * is shown only with the media location permission.
      */
     private static void addContainerFields(Context context, VideoContainerMetadata.Report container,
                                            boolean hasLocationPermission, Map<String, String> metadataMap,
                                            @Nullable Map<String, String> embedded) {
+        java.util.Set<String> names = new java.util.LinkedHashSet<>(container.fields);
         if (hasLocationPermission && container.hasLocation
                 && !metadataMap.containsKey("GPS_LATITUDE") && !metadataMap.containsKey("LOCATION")) {
-            metadataMap.put("LOCATION", context.getString(R.string.metadata_location_unreadable));
+            double[] coordinates = container.coordinates;
+            boolean usable = coordinates != null && isUsableMapCoordinate(coordinates[0], coordinates[1]);
+            if (usable) {
+                metadataMap.put("GPS_LATITUDE", formatGpsCoordinate(coordinates[0]));
+                metadataMap.put("GPS_LONGITUDE", formatGpsCoordinate(coordinates[1]));
+            }
+            // A place's name, such as the one a 3GPP loci box can hold, goes with them.
+            List<String> places = new ArrayList<>();
+            for (String name : names) {
+                String value = container.values.get(name);
+                if (VideoContainerMetadata.isLocationName(name) && value != null
+                        && !value.matches("[+-]\\d+(\\.\\d+)?[+-]\\d.*") && !places.contains(value)) {
+                    places.add(value);
+                }
+            }
+            if (!places.isEmpty()) {
+                metadataMap.put("LOCATION", String.join(", ", places));
+            } else if (!usable) {
+                metadataMap.put("LOCATION", context.getString(R.string.metadata_location_unreadable));
+            }
         }
         if (embedded == null) {
             return;
         }
-        String present = context.getString(R.string.metadata_container_value);
-        for (String name : container.fields) {
+        String date = container.values.get("date");
+        if (date != null && !metadataMap.containsKey("DATE")) {
+            metadataMap.put("DATE", date);
+        }
+        for (String name : names) {
             if (name.equals("date") || VideoContainerMetadata.isLocationName(name)) {
                 continue;
             }
             String key = containerDisplayKey(name);
-            if (!key.isEmpty() && !metadataMap.containsKey(key)) {
-                embedded.put(key, present);
+            if (key.isEmpty() || metadataMap.containsKey(key) || embedded.containsKey(key)) {
+                continue;
             }
+            // Without the permission, a field holding a location (XMP with GPS in it) shows only its size.
+            String value = hasLocationPermission || !container.isLocationField(name)
+                    ? container.values.get(name) : null;
+            if (value != null && name.equals("XMP") && XmlLikeMetadataFormatter.looksLikeRdfOrXmp(value)) {
+                value = XmlLikeMetadataFormatter.formatForDisplay(value);
+            }
+            if (value == null) {
+                Long size = container.sizes.get(name);
+                value = android.text.format.Formatter.formatShortFileSize(context, size != null ? size : 0);
+            }
+            embedded.put(key, value);
         }
     }
 
@@ -1427,21 +1471,8 @@ public class MetadataDisplayer {
         if (raw == null || raw.isEmpty()) {
             return null;
         }
-        String clean = raw.trim();
-        if (clean.endsWith("/")) {
-            clean = clean.substring(0, clean.length() - 1).trim();
-        }
-        int splitIndex = findVideoLocationSplitIndex(clean);
-        if (splitIndex <= 0) {
-            return null;
-        }
-        try {
-            float lat = Float.parseFloat(clean.substring(0, splitIndex));
-            float lon = Float.parseFloat(clean.substring(splitIndex));
-            return normalizeLatLon(lat, lon);
-        } catch (NumberFormatException ignored) {
-            return null;
-        }
+        double[] coordinates = ReadableText.iso6709(raw);
+        return coordinates == null ? null : new float[]{(float) coordinates[0], (float) coordinates[1]};
     }
 
     /**
@@ -1639,40 +1670,6 @@ public class MetadataDisplayer {
 
     private static String formatGpsCoordinate(double value) {
         return String.format(Locale.US, "%.7f", value);
-    }
-
-    private static int findVideoLocationSplitIndex(String clean) {
-        int index = 0;
-        if (!clean.isEmpty() && (clean.charAt(0) == '+' || clean.charAt(0) == '-')) {
-            index = 1;
-        }
-        boolean seenDigit = false;
-        for (; index < clean.length(); index++) {
-            char c = clean.charAt(index);
-            if (Character.isDigit(c) || c == '.') {
-                seenDigit = true;
-            } else if ((c == '+' || c == '-') && seenDigit) {
-                return index;
-            }
-        }
-        return -1;
-    }
-
-    @Nullable
-    private static float[] normalizeLatLon(float lat, float lon) {
-        if (Math.abs(lat) > 90f && Math.abs(lon) <= 90f) {
-            float swappedLat = lon;
-            float swappedLon = lat;
-            lat = swappedLat;
-            lon = swappedLon;
-        }
-        if (Math.abs(lat) > 90f || Math.abs(lon) > 180f) {
-            return null;
-        }
-        if (lat == 0f && lon == 0f) {
-            return null;
-        }
-        return new float[]{lat, lon};
     }
 
     @Nullable

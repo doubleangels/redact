@@ -156,7 +156,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         if (thread != null) {
             thread.interrupt();
         }
-        VideoMedia3Converter.cancelActiveTranscode(previousSession);
+        VideoMedia3Converter.cancelActiveTranscode(VideoMedia3Converter.shareOwner(previousSession));
         LocalNotifications.stopProcessingForeground(this, LocalNotifications.ForegroundJob.SHARE);
         processingActive = false;
         sharingInitiated = false;
@@ -474,7 +474,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
         try {
             MediaSizeLimits.copyStream(in, out, () -> {
                 if (!isCurrentSession(session)) {
-                    throw new java.io.UncheckedIOException(new IOException("Share cancelled"));
+                    throw new java.io.UncheckedIOException(
+                            new com.doubleangels.redact.media.ProcessingCancelledException("Share cancelled"));
                 }
             });
         } catch (java.io.UncheckedIOException e) {
@@ -525,7 +526,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         shareSessionEnded.set(false);
         final int session = shareSessionId.incrementAndGet();
         activeShareSessions.incrementAndGet();
-        metadataStripper.setTranscodeOwnerId(session);
+        metadataStripper.setTranscodeOwnerId(VideoMedia3Converter.shareOwner(session));
         LocalNotifications.startProcessingForeground(
                 this, LocalNotifications.ForegroundJob.SHARE, getString(R.string.share_processing_title));
         Thread worker = new Thread(() -> {
@@ -685,7 +686,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         if (thread != null) {
             thread.interrupt();
         }
-        VideoMedia3Converter.cancelActiveTranscode(shareSessionId.get());
+        VideoMedia3Converter.cancelActiveTranscode(VideoMedia3Converter.shareOwner(shareSessionId.get()));
         if (metadataStripper != null) {
             metadataStripper.requestCancellation();
         }
@@ -1002,7 +1003,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         if (thread != null) {
             thread.interrupt();
         }
-        VideoMedia3Converter.cancelActiveTranscode(shareSessionId.get());
+        VideoMedia3Converter.cancelActiveTranscode(VideoMedia3Converter.shareOwner(shareSessionId.get()));
         if (metadataStripper != null) {
             metadataStripper.requestCancellation();
         }

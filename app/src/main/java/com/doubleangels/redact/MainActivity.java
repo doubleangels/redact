@@ -31,10 +31,50 @@ public class MainActivity extends AppCompatActivity {
     static final String TAG_CLEAN = "clean";
     private static final String TAG_SCAN = "scan";
     private static final String TAG_CONVERT = "convert";
+    private static final String TAG_CENSOR = "censor";
     private static final String TAG_SETTINGS = "settings";
     private static final String KEY_SELECTED_TAB = "selected_tab";
     /** Extra set by the launcher shortcuts in res/xml/shortcuts.xml and by {@link CleanTileService}. */
     static final String EXTRA_TAB = "tab";
+    /**
+     * Debug builds only: launching with {@code --ez skip_intro true} marks the introduction and the
+     * first-launch permission prompts as done, so a cleared install opens straight to the tabs.
+     */
+    static final String EXTRA_SKIP_INTRO = "skip_intro";
+    /** Manifest alias that receives Redact › Convert shares. */
+    private static final String CONVERT_SHARE_TARGET = ".ConvertShareTarget";
+    /** Manifest alias that receives Redact › Censor shares. */
+    private static final String CENSOR_SHARE_TARGET = ".CensorShareTarget";
+    /** Same cap as picking files in Convert. */
+    private static final int MAX_CONVERT_SHARE_ITEMS = 20;
+
+    /**
+     * The first-start introduction, which asks for each permission and about crash reports on its
+     * own page. When it finishes, the first-launch flow ends without prompting again. Backing out
+     * of its first page closes the app, and the introduction shows again on the next start.
+     */
+    private final androidx.activity.result.ActivityResultLauncher<android.content.Intent> onboardingLauncher =
+            registerForActivityResult(
+                    new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() != RESULT_OK) {
+                            finish();
+                            return;
+                        }
+                        AppPreferences.setOnboardingSeen(this);
+                        if (com.doubleangels.redact.permission.PermissionManager.shouldPromptInitialPermissions(this)) {
+                            com.doubleangels.redact.permission.PermissionManager
+                                    .finishInitialPermissionFlowFromIntroduction(this);
+                        }
+                    });
+
+    /**
+     * Shown once to everyone, including users updating from a version without the introduction:
+     * its permission pages show what is already granted instead of asking again.
+     */
+    private boolean shouldShowOnboarding() {
+        return !AppPreferences.hasSeenOnboarding(this);
+    }
 
     @Override
     protected void onDestroy() {
@@ -47,6 +87,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         SplashScreen.installSplashScreen(this);
         try {
+            if (savedInstanceState == null && BuildConfig.DEBUG
+                    && getIntent().getBooleanExtra(EXTRA_SKIP_INTRO, false)) {
+                AppPreferences.setOnboardingSeen(this);
+                AppPreferences.setInitialPermissionsPromptCompleted(this);
+            }
             if (savedInstanceState == null
                     && com.doubleangels.redact.permission.PermissionManager.shouldPromptInitialPermissions(this)) {
                 com.doubleangels.redact.permission.PermissionManager.prepareInitialPermissionFlow();
@@ -92,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
                         return false;
                     }
                     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                    for (String tag : new String[] {TAG_CLEAN, TAG_SCAN, TAG_CONVERT, TAG_SETTINGS}) {
+                    for (String tag : new String[] {TAG_CLEAN, TAG_SCAN, TAG_CONVERT, TAG_CENSOR, TAG_SETTINGS}) {
                         Fragment f = getSupportFragmentManager().findFragmentByTag(tag);
                         if (f != null) {
                             if (f == target) {
@@ -116,18 +161,23 @@ public class MainActivity extends AppCompatActivity {
                 restoreTabVisibility(restoredTab);
             } else {
                 bottomNavigationView.setSelectedItemId(
-                        queueViewIntent(getIntent())
-                                ? R.id.navigation_scan
-                                : tabFromIntent(getIntent()));
+                        queueConvertShareIntent(getIntent())
+                                ? R.id.navigation_convert
+                                : queueCensorShareIntent(getIntent())
+                                        ? R.id.navigation_censor
+                                        : queueViewIntent(getIntent())
+                                                ? R.id.navigation_scan
+                                                : tabFromIntent(getIntent()));
             }
 
             SentryManager.setCustomKey("app_started", true);
 
-            com.doubleangels.redact.permission.PermissionManager.setInitialFlowCompletedCallback(() -> {
-                notifyVisibleFragmentPermissionFlowCompleted();
-                com.doubleangels.redact.ui.CrashReportingPrompt.onFirstStartPermissionsDone(this);
-            });
-            if (com.doubleangels.redact.permission.PermissionManager.isInitialPermissionFlowInProgress()) {
+            com.doubleangels.redact.permission.PermissionManager.setInitialFlowCompletedCallback(
+                    this::notifyVisibleFragmentPermissionFlowCompleted);
+            if (savedInstanceState == null && shouldShowOnboarding()) {
+                // The introduction asks for the permissions itself.
+                onboardingLauncher.launch(new android.content.Intent(this, OnboardingActivity.class));
+            } else if (com.doubleangels.redact.permission.PermissionManager.isInitialPermissionFlowInProgress()) {
                 com.doubleangels.redact.permission.PermissionManager.startInitialPermissionFlow(this);
             }
         } catch (Exception e) {
@@ -139,7 +189,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onNewIntent(@NonNull android.content.Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        if (queueViewIntent(intent)) {
+        if (queueConvertShareIntent(intent)) {
+            selectTab(R.id.navigation_convert);
+        } else if (queueCensorShareIntent(intent)) {
+            selectTab(R.id.navigation_censor);
+        } else if (queueViewIntent(intent)) {
             selectTab(R.id.navigation_scan);
         } else if (intent.hasExtra(EXTRA_TAB)) {
             selectTab(tabFromIntent(intent));
@@ -147,8 +201,117 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Selects shared images/videos in Convert when they were shared to Redact › Convert
+     * (ACTION_SEND or ACTION_SEND_MULTIPLE). Returns whether the share was for Convert.
+     */
+    private boolean queueConvertShareIntent(@Nullable android.content.Intent intent) {
+        if (intent == null || intent.getComponent() == null
+                || !intent.getComponent().getClassName().endsWith(CONVERT_SHARE_TARGET)) {
+            return false;
+        }
+        java.util.List<android.net.Uri> shared = new java.util.ArrayList<>();
+        if (android.content.Intent.ACTION_SEND.equals(intent.getAction())) {
+            android.net.Uri uri = androidx.core.content.IntentCompat.getParcelableExtra(
+                    intent, android.content.Intent.EXTRA_STREAM, android.net.Uri.class);
+            if (uri != null) {
+                shared.add(uri);
+            }
+        } else if (android.content.Intent.ACTION_SEND_MULTIPLE.equals(intent.getAction())) {
+            java.util.List<android.net.Uri> uris = androidx.core.content.IntentCompat
+                    .getParcelableArrayListExtra(
+                            intent, android.content.Intent.EXTRA_STREAM, android.net.Uri.class);
+            if (uris != null) {
+                shared.addAll(uris);
+            }
+        } else {
+            return false;
+        }
+        java.util.List<android.net.Uri> media = new java.util.ArrayList<>();
+        for (android.net.Uri uri : shared) {
+            if (isForeignContentUri(uri) && isImageOrVideo(uri, intent.getType())) {
+                media.add(uri);
+            }
+        }
+        if (media.isEmpty()) {
+            android.widget.Toast.makeText(this, R.string.share_error_unsupported_media,
+                    android.widget.Toast.LENGTH_LONG).show();
+            return true;
+        }
+        if (media.size() > MAX_CONVERT_SHARE_ITEMS) {
+            android.widget.Toast.makeText(this,
+                    getString(R.string.media_picker_selection_capped, MAX_CONVERT_SHARE_ITEMS),
+                    android.widget.Toast.LENGTH_LONG).show();
+            media = com.doubleangels.redact.media.MediaPickerContracts.trimToMax(
+                    media, MAX_CONVERT_SHARE_ITEMS);
+        }
+        com.doubleangels.redact.ui.MainViewModel viewModel = new androidx.lifecycle.ViewModelProvider(this)
+                .get(com.doubleangels.redact.ui.MainViewModel.class);
+        if (viewModel.getConvertProcessingState().getValue()
+                == com.doubleangels.redact.ui.MainViewModel.ProcessingState.PROCESSING) {
+            // Don't swap the files out from under a running convert; just show its progress.
+            return true;
+        }
+        SentryManager.logEvent("share", "Media was shared to Convert.");
+        new com.doubleangels.redact.media.MediaSelector(this)
+                .processMediaUrisAsync(media, viewModel::setConvertSelectedItems);
+        return true;
+    }
+
+    /**
+     * Opens a photo shared to Redact › Censor in the Censor tab. Returns whether the share
+     * was for Censor, including one that could not be used (which shows a message).
+     */
+    private boolean queueCensorShareIntent(@Nullable android.content.Intent intent) {
+        if (intent == null || intent.getComponent() == null
+                || !intent.getComponent().getClassName().endsWith(CENSOR_SHARE_TARGET)) {
+            return false;
+        }
+        android.net.Uri uri = android.content.Intent.ACTION_SEND.equals(intent.getAction())
+                ? androidx.core.content.IntentCompat.getParcelableExtra(
+                        intent, android.content.Intent.EXTRA_STREAM, android.net.Uri.class)
+                : null;
+        if (!isForeignContentUri(uri) || !isImage(uri, intent.getType())) {
+            android.widget.Toast.makeText(this, R.string.share_error_unsupported_media,
+                    android.widget.Toast.LENGTH_LONG).show();
+            return true;
+        }
+        SentryManager.logEvent("share", "A photo was shared to Censor.");
+        new androidx.lifecycle.ViewModelProvider(this)
+                .get(com.doubleangels.redact.ui.CensorViewModel.class).requestOpen(uri);
+        return true;
+    }
+
+    private boolean isImage(@NonNull android.net.Uri uri, @Nullable String intentType) {
+        String type;
+        try {
+            type = getContentResolver().getType(uri);
+        } catch (Exception e) {
+            SentryManager.recordException(e);
+            type = null;
+        }
+        if (type == null) {
+            type = intentType;
+        }
+        return type != null && type.startsWith("image/");
+    }
+
+    private boolean isImageOrVideo(@NonNull android.net.Uri uri, @Nullable String intentType) {
+        String type;
+        try {
+            type = getContentResolver().getType(uri);
+        } catch (Exception e) {
+            SentryManager.recordException(e);
+            type = null;
+        }
+        if (type == null) {
+            type = intentType;
+        }
+        return type != null && (type.startsWith("image/") || type.startsWith("video/"));
+    }
+
+    /**
      * Queues an image/video for Scan when it was opened from another app (ACTION_VIEW) or shared
-     * to "Scan with Redact" (ACTION_SEND). Returns whether one was queued.
+     * to Redact › Scan (ACTION_SEND). Returns whether one was queued.
      */
     private boolean queueViewIntent(@Nullable android.content.Intent intent) {
         if (intent == null) {
@@ -221,6 +384,9 @@ public class MainActivity extends AppCompatActivity {
         } else if (itemId == R.id.navigation_convert) {
             tag = TAG_CONVERT;
             newFragment = new ConvertFragment();
+        } else if (itemId == R.id.navigation_censor) {
+            tag = TAG_CENSOR;
+            newFragment = new CensorFragment();
         } else if (itemId == R.id.navigation_settings) {
             tag = TAG_SETTINGS;
             newFragment = new SettingsFragment();
@@ -335,7 +501,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        for (String tag : new String[] {TAG_CLEAN, TAG_SCAN, TAG_CONVERT, TAG_SETTINGS}) {
+        for (String tag : new String[] {TAG_CLEAN, TAG_SCAN, TAG_CONVERT, TAG_CENSOR, TAG_SETTINGS}) {
             Fragment f = getSupportFragmentManager().findFragmentByTag(tag);
             if (f != null) {
                 if (f == target) {
@@ -388,6 +554,8 @@ public class MainActivity extends AppCompatActivity {
             tag = TAG_SCAN;
         } else if (selectedItemId == R.id.navigation_convert) {
             tag = TAG_CONVERT;
+        } else if (selectedItemId == R.id.navigation_censor) {
+            tag = TAG_CENSOR;
         } else if (selectedItemId == R.id.navigation_settings) {
             tag = TAG_SETTINGS;
         } else {

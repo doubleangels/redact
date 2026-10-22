@@ -273,6 +273,7 @@ public class SettingsFragment extends Fragment {
                         null);
             } catch (Exception e) {
                 android.util.Log.e("SettingsFragment", "Error saving crash reporting pref", e);
+                SentryManager.recordException(e);
             }
         });
 
@@ -751,6 +752,11 @@ public class SettingsFragment extends Fragment {
                 openUrl(getString(R.string.url_github)));
         view.findViewById(R.id.rowAboutPrivacy).setOnClickListener(v ->
                 openUrl(getString(R.string.url_privacy_policy)));
+        view.findViewById(R.id.rowAboutLicenses).setOnClickListener(v ->
+                startActivity(new Intent(requireContext(), LicensesActivity.class)));
+        view.findViewById(R.id.rowAboutIntro).setOnClickListener(v ->
+                startActivity(new Intent(requireContext(), OnboardingActivity.class)
+                        .putExtra(OnboardingActivity.EXTRA_REPLAY, true)));
         view.findViewById(R.id.rowAboutReportIssue).setOnClickListener(v ->
                 openUrl(getString(R.string.url_report_issue)));
         view.findViewById(R.id.rowAboutRate).setOnClickListener(v ->

@@ -4,8 +4,9 @@
     <string name="app_name">Redact</string>
 
     
-    <string name="content_description_image_view">이미지 보기</string>
-    <string name="content_description_scroll_view">스크롤 보기</string>
+    <string name="content_description_selected_files">선택한 파일</string>
+    <string name="content_description_selected_photo">사진: %1$s</string>
+    <string name="content_description_selected_video">동영상: %1$s</string>
 
     
     <string name="navigation_clean">정리</string>
@@ -27,6 +28,7 @@
     <string name="notification_clean_progress_title">메타데이터 정리 중…</string>
 
     <string name="navigation_convert">변환</string>
+    <string name="navigation_censor">가리기</string>
 
     
     <string name="convert_output_format_images">이미지 형식</string>
@@ -116,9 +118,7 @@
     <string name="metadata_location_unreadable">위치 데이터가 있지만 여기에서 표시할 수 없는 형식으로 저장되어 있습니다. 정리하면 삭제됩니다.</string>
     <string name="metadata_container_tags_header">포함된 태그:</string>
     <string name="metadata_container_tags">파일에서 발견됨: %1$s</string>
-    <string name="metadata_container_value">있음 – 정리하면 삭제됨</string>
     <string name="metadata_embedded_data_header">숨겨진 데이터 및 포함된 데이터</string>
-    <string name="metadata_embedded_value">있음(%1$s) – 정리하면 삭제됨</string>
     <plurals name="metadata_embedded_images">
         <item quantity="other">이미지 %1$d개(%2$s) – 정리하면 삭제됨</item>
     </plurals>
@@ -171,7 +171,7 @@
     <string name="settings_sentry_consent_title">크래시 보고 사용</string>
     <string name="settings_sentry_consent_message">크래시 보고 전송은 익명 진단 정보를 인터넷을 통해 Sentry로 업로드합니다.\n\n사진, 동영상, 파일 이름, GPS 좌표는 업로드되지 않습니다.</string>
     <string name="settings_strict_clean">엄격한 정리</string>
-    <string name="settings_strict_clean_subtitle">방향 태그를 포함해 메타데이터의 모든 흔적을 제거합니다. 따라서 회전된 사진은 이후 옆으로 누워 보일 수 있습니다. 위의 유지 옵션을 끄고, 가장 철저한 정리를 위해 동영상을 항상 완전히 재인코딩합니다.</string>
+    <string name="settings_strict_clean_subtitle">방향 태그를 포함해 메타데이터의 모든 흔적을 제거합니다. 따라서 회전된 사진은 이후 옆으로 누워 보일 수 있습니다. 아래의 유지 옵션을 끄고, 가장 철저한 정리를 위해 동영상을 항상 완전히 재인코딩합니다.</string>
     
     <string name="settings_section_advanced_processing">대용량 파일 및 메모리</string>
     <string name="settings_advanced_processing_subtitle">정리 및 변환 시 큰 이미지를 디코딩할 때 RAM 사용량을 제어합니다.</string>
@@ -286,7 +286,9 @@
     <string name="notification_progress_percent">%1$d%% 완료</string>
     <string name="scan_clean_this_file">이 파일 정리</string>
     <string name="scan_convert_this_file">이 파일 변환</string>
+    <string name="scan_censor_this_photo">이 사진 일부 가리기</string>
     <string name="scan_copied_to_clipboard">클립보드에 복사됨</string>
+    <string name="scan_copy_value">값 복사</string>
     <string name="scan_copy_all_metadata">모든 메타데이터 복사</string>
     <string name="scan_copy_camera">카메라 정보 복사</string>
 <string name="settings_permissions_location">사진 위치</string>
@@ -360,7 +362,7 @@
     <string name="convert_empty_state_title">미디어 형식 변환</string>
     <string name="convert_empty_state_description">사진이나 동영상을 선택해 JPEG, PNG, WebP, HEIC 또는 MP4 형식으로 변환하세요.</string>
     <string name="convert_files_card_title">변환할 파일</string>
-    <string name="convert_heic_fallback_jpeg">HEIC 출력은 Android 14 이상이 필요합니다. 대신 이미지가 JPEG로 저장됩니다.</string>
+    <string name="convert_heic_fallback_jpeg">이 휴대전화는 HEIC 이미지를 저장할 수 없으므로 대신 JPEG로 저장됩니다.</string>
     <string name="convert_item_type_image">이미지</string>
     <string name="convert_item_type_video">동영상</string>
     <string name="scan_empty_state_title">미디어 메타데이터 검사</string>
@@ -432,7 +434,8 @@
     <string name="share_results_chooser_title">공유 방법…</string>
     <string name="settings_output_unavailable">Redact가 더 이상 이 폴더에 저장할 수 없어 파일이 %1$s에 저장됩니다. 다시 선택하거나 다른 폴더를 고르세요.</string>
     <string name="output_folder_fallback">%1$s을(를) 사용할 수 없어 %2$s에 저장합니다.</string>
-    <string name="settings_output_open">폴더 열기</string>
+    <string name="settings_output_open_images">이미지 폴더 열기</string>
+    <string name="settings_output_open_videos">동영상 폴더 열기</string>
     <string name="settings_output_open_unavailable">이 폴더를 열 수 있는 앱이 없습니다.</string>
     <string name="settings_output_also_videos">동영상도 여기에 저장할까요?</string>
     <string name="settings_output_also_images">이미지도 여기에 저장할까요?</string>
@@ -444,7 +447,34 @@
     <string name="settings_reset_all_confirm">초기화</string>
     <string name="settings_reset_all_done">설정을 기본값으로 초기화했습니다.</string>
     <string name="settings_reset_all_busy">처리 중에는 설정을 초기화할 수 없습니다.</string>
-    <string name="share_target_scan">Redact로 스캔</string>
+    <string name="censor_empty_state_title">비공개로 남겨야 할 부분 가리기</string>
+    <string name="censor_empty_state_description">사진 속 얼굴, 번호판, 주소 등 무엇이든 모자이크, 검게 칠하기, 흐리게 하기로 가릴 수 있습니다. Redact는 메타데이터가 전혀 없는 사본을 저장하며, 원본은 그대로 유지됩니다.</string>
+    <string name="censor_select_photo">사진 선택</string>
+    <string name="censor_hint">비공개로 남겨야 할 부분 위에 그린 다음 사본 저장을 탭하세요. 이동을 선택하면 두 손가락으로 확대하고 끌어서 위치를 옮길 수 있습니다. 사각형을 탭하면 이동하거나 크기를 바꿀 수 있습니다.</string>
+    <string name="censor_canvas_description">편집 중인 사진입니다. 한 손가락으로 그려 영역을 가립니다. 이동을 선택하면 끌어서 옮기고 두 손가락으로 확대/축소합니다.</string>
+    <string name="censor_tool_rectangle">사각형</string>
+    <string name="censor_tool_brush">브러시</string>
+    <string name="censor_tool_move">이동</string>
+    <string name="censor_brush_size">브러시 크기</string>
+    <string name="censor_effect_pixelate">모자이크</string>
+    <string name="censor_effect_black">검게 칠하기</string>
+    <string name="censor_effect_blur">흐리게</string>
+    <string name="censor_undo">실행 취소</string>
+    <string name="censor_redo">다시 실행</string>
+    <string name="censor_delete_rectangle">사각형 삭제</string>
+    <string name="censor_zoom_level">%1$s×</string>
+    <string name="censor_zoom_reset">%1$s배 확대됨. 탭하면 사진 전체를 표시합니다.</string>
+    <string name="censor_save">사본 저장</string>
+    <string name="censor_saved">일부를 가린 사본을 저장했습니다.</string>
+    <string name="censor_saved_downscaled">사본이 원본보다 작은 크기로 저장되었습니다. 원래 크기를 유지하려면 설정에서 최대 처리 해상도를 높이세요.</string>
+    <string name="censor_file_name">%1$s (가림)</string>
+    <string name="censor_error_open">이 사진을 열 수 없습니다.</string>
+    <string name="censor_error_unsupported">이 기기에서는 이 유형의 이미지를 편집할 수 없습니다.</string>
+    <string name="censor_error_save">일부를 가린 사본을 저장할 수 없습니다.</string>
+    <string name="censor_discard_title">변경사항을 삭제할까요?</string>
+    <string name="censor_discard_message">가린 영역이 저장되지 않았습니다.</string>
+    <string name="censor_discard">삭제</string>
+    <string name="censor_keep_editing">계속 편집</string>
     <string name="button_scan_result">결과 스캔</string>
     <string name="settings_keep_original_names">원본 파일 이름 유지</string>
     <string name="settings_keep_original_names_subtitle">정리하거나 변환한 파일에 무작위 이름 대신 원본 파일 이름을 사용합니다. IMG_20260117 같은 이름은 사진을 찍은 시기를 드러낼 수 있습니다.</string>
@@ -453,7 +483,14 @@
     <string name="review_prompt_yes">예</string>
     <string name="review_prompt_no">아니요</string>
     <string name="review_prompt_declined">알겠습니다. 다시 묻지 않을게요. 마음이 바뀌면 설정 › 정보에서 언제든지 평가할 수 있습니다.</string>
-    <string name="crash_prompt_declined">알겠습니다. 다시 묻지 않을게요. 비정상 종료 보고서는 설정 › 진단 및 피드백에서 언제든지 켤 수 있습니다.</string>
+    <string name="error_feedback_offer">문제가 발생했습니다. 비정상 종료 보고서를 보냈습니다.</string>
+    <string name="error_feedback_action">세부정보 추가</string>
+    <string name="error_feedback_title">무슨 일이 있었나요?</string>
+    <string name="error_feedback_message">메모는 비정상 종료 보고서에 첨부됩니다. 개인 정보는 포함하지 마세요. 파일 경로와 GPS 좌표는 보내기 전에 삭제됩니다.</string>
+    <string name="error_feedback_hint">문제가 발생했을 때 무엇을 하고 있었나요?</string>
+    <string name="error_feedback_send">보내기</string>
+    <string name="error_feedback_cancel">취소</string>
+    <string name="error_feedback_thanks">감사합니다. 메모를 보냈습니다.</string>
     <string name="stats_title">통계</string>
     <string name="stats_navigate_up">뒤로</string>
     <string name="stats_settings_title">개인정보 보호 통계</string>
@@ -485,4 +522,82 @@
     <plurals name="stats_chart_summary">
         <item quantity="other">최근 30일 동안 파일 %1$s개를 정리했습니다.</item>
     </plurals>
+    <string name="settings_about_intro">소개 다시 보기</string>
+    <string name="settings_about_licenses">오픈 소스 라이선스</string>
+    <string name="licenses_title">오픈 소스 라이선스</string>
+    <string name="licenses_intro">Redact는 다음 오픈 소스 라이브러리로 만들어졌습니다. 항목을 탭하면 라이선스를 볼 수 있습니다.</string>
+    <string name="licenses_project_page">프로젝트 페이지</string>
+    <string name="licenses_close">닫기</string>
+    <string name="onboarding_skip">건너뛰기</string>
+    <string name="onboarding_next">다음</string>
+    <string name="onboarding_continue">계속</string>
+    <string name="onboarding_not_now">나중에</string>
+    <string name="onboarding_open_settings">설정 열기</string>
+    <string name="onboarding_get_started">시작하기</string>
+    <string name="onboarding_start">Redact 사용 시작</string>
+    <string name="onboarding_done">완료</string>
+    <string name="onboarding_progress">%2$d단계 중 %1$d단계</string>
+    <string name="onboarding_welcome_title">Redact에 오신 것을 환영합니다!</string>
+    <string name="onboarding_welcome_body">Redact를 사용하면 개인 정보를 드러내지 않고 사진과 동영상을 공유할 수 있습니다. 이 짧은 안내는 1분 정도 걸립니다.</string>
+    <string name="onboarding_welcome_clean">정리는 사진과 동영상에서 숨겨진 정보를 제거합니다.</string>
+    <string name="onboarding_welcome_scan">스캔은 공유하기 전에 파일에서 무엇이 드러나는지 정확히 보여 줍니다.</string>
+    <string name="onboarding_welcome_convert">변환은 사진이나 동영상을 다른 형식으로 바꾸고 깨끗하게 유지합니다.</string>
+    <string name="onboarding_welcome_censor">가리기는 사진 속 얼굴, 번호판 등 비공개로 남겨야 할 모든 것을 가립니다.</string>
+    <string name="onboarding_hidden_title">사진과 동영상은 생각보다 많은 것을 알려 줍니다.</string>
+    <string name="onboarding_hidden_body">사진이나 동영상을 찍으면 휴대전화가 파일 안에 추가 정보를 조용히 저장합니다. 파일을 받은 사람은 누구나 이 정보를 읽을 수 있습니다.</string>
+    <string name="onboarding_hidden_location">어디에 있었는지 보여 줄 수 있으며, 때로는 집을 찾을 수 있을 만큼 정확합니다.</string>
+    <string name="onboarding_hidden_time">촬영한 날짜와 시간을 보여 줄 수 있습니다.</string>
+    <string name="onboarding_hidden_device">어떤 휴대전화나 카메라를 사용했는지 보여 줄 수 있습니다.</string>
+    <string name="onboarding_private_title">파일은 휴대전화 밖으로 나가지 않습니다.</string>
+    <string name="onboarding_private_body">Redact는 모든 작업을 바로 이 휴대전화에서 처리합니다. 공유할 깨끗한 사본을 저장하고 원본은 그대로 둡니다.</string>
+    <string name="onboarding_private_offline">아무것도 업로드되지 않으므로 사진과 동영상은 비공개로 유지됩니다.</string>
+    <string name="onboarding_private_no_ads">광고가 없으며 사용자의 활동을 추적하지 않습니다.</string>
+    <string name="onboarding_private_open_source">Redact는 오픈 소스이므로 누구나 작동 방식을 확인할 수 있습니다.</string>
+    <string name="onboarding_choices_title">Redact가 무엇을 사용할지는 사용자가 결정합니다.</string>
+    <string name="onboarding_choices_body">이제 Redact가 사용하려는 항목과 그 이유를 하나씩 설명합니다. 선택은 언제나 사용자에게 달려 있으며, 나중에 설정에서 바꿀 수 있습니다.</string>
+    <string name="onboarding_choices_media">먼저, 사진과 동영상입니다. 선택한 파일을 Redact에서 열기 위해 필요합니다.</string>
+    <string name="onboarding_choices_location">다음은 사진과 동영상에 저장된 위치입니다. 스캔에서 위치를 보여 주기 위해 필요합니다.</string>
+    <string name="onboarding_choices_notifications">그다음은 알림입니다. 작업이 끝나면 Redact가 알려 드립니다.</string>
+    <string name="onboarding_media_title">사진 및 동영상 액세스를 허용하세요.</string>
+    <string name="onboarding_media_body">정리, 스캔 또는 변환할 사진과 동영상을 열려면 이 권한이 필요합니다.</string>
+    <string name="onboarding_media_point_pick">Redact는 사용자가 선택한 파일만 엽니다.</string>
+    <string name="onboarding_media_point_private">사진과 동영상은 휴대전화에 그대로 남아 있습니다.</string>
+    <string name="onboarding_media_point_partial">Android에서는 일부 사진과 동영상만 허용할 수도 있습니다. 어느 쪽이든 Redact를 사용할 수 있습니다.</string>
+    <string name="onboarding_media_point_change">휴대전화 설정에서 언제든지 변경할 수 있습니다.</string>
+    <string name="onboarding_media_allow">액세스 허용</string>
+    <string name="onboarding_location_title">사진과 동영상을 찍은 위치를 확인하세요.</string>
+    <string name="onboarding_location_body">Android는 Redact에 허용하지 않으면 사진과 동영상에 저장된 위치를 숨깁니다. 이 기능을 켜면 스캔에서 사진이나 동영상을 찍은 위치를 보여 주므로 무엇을 공유하게 될지 알 수 있습니다.</string>
+    <string name="onboarding_location_point_optional">선택 사항입니다. 어느 쪽이든 Redact가 만드는 사본에서는 위치가 제거됩니다.</string>
+    <string name="onboarding_location_point_private">Redact는 위치를 누구와도 공유하지 않습니다.</string>
+    <string name="onboarding_location_point_change">설정에서 언제든지 끌 수 있습니다.</string>
+    <string name="onboarding_location_allow">허용</string>
+    <string name="onboarding_notifications_title">파일이 준비되면 알림을 받으세요.</string>
+    <string name="onboarding_notifications_body">긴 동영상을 정리하는 데는 몇 분이 걸릴 수 있습니다. 작업이 끝나면 Redact가 알려 드리므로 앱을 계속 열어 둘 필요가 없습니다.</string>
+    <string name="onboarding_notifications_point_optional">선택 사항이며 설정에서 언제든지 끌 수 있습니다.</string>
+    <string name="onboarding_notifications_point_finished">Redact는 작업이 끝났을 때만 알림을 보냅니다.</string>
+    <string name="onboarding_notifications_point_no_ads">광고나 리마인더는 보내지 않습니다.</string>
+    <string name="onboarding_notifications_allow">알림 켜기</string>
+    <string name="onboarding_status_granted">허용했습니다.</string>
+    <string name="onboarding_status_partial">일부 사진과 동영상을 허용했습니다.</string>
+    <string name="onboarding_status_denied">허용하지 않았습니다. 나중에 설정에서 켤 수 있습니다.</string>
+    <string name="onboarding_status_blocked">이 기능을 사용하려면 먼저 사진 및 동영상 액세스를 허용하세요.</string>
+    <string name="onboarding_status_notifications_on">알림이 켜져 있습니다.</string>
+    <string name="onboarding_done_title">모든 준비가 끝났습니다!</string>
+    <string name="onboarding_done_body">선택한 내용을 요약했습니다. 나중에 설정에서 언제든지 바꿀 수 있습니다.</string>
+    <string name="onboarding_done_media_granted">Redact에서 사진과 동영상을 열 수 있습니다.</string>
+    <string name="onboarding_done_media_partial">Redact에서 선택한 사진과 동영상을 열 수 있습니다.</string>
+    <string name="onboarding_done_media_denied">Redact에서 아직 사진과 동영상을 열 수 없습니다.</string>
+    <string name="onboarding_done_location_granted">스캔에서 사진과 동영상을 찍은 위치를 보여 줄 수 있습니다.</string>
+    <string name="onboarding_done_location_denied">스캔에서 사진과 동영상을 찍은 위치를 보여 주지 않습니다.</string>
+    <string name="onboarding_done_notifications_granted">작업이 끝나면 Redact가 알려 드립니다.</string>
+    <string name="onboarding_done_notifications_denied">Redact에서 알림을 보내지 않습니다.</string>
+    <string name="onboarding_crash_title">Redact 개선에 도움을 주세요.</string>
+    <string name="onboarding_crash_body">Redact가 비정상 종료되면 문제를 찾아 해결할 수 있도록 익명 보고서를 보낼 수 있습니다. Redact가 인터넷으로 보내는 것은 비정상 종료 보고서뿐입니다.</string>
+    <string name="onboarding_crash_point_private">보고서에는 사진, 동영상, 파일 이름, 위치가 절대 포함되지 않습니다.</string>
+    <string name="onboarding_crash_point_sentry">보고서는 개발자가 비정상 종료를 찾아 해결하도록 돕는 서비스인 Sentry로 전송됩니다.</string>
+    <string name="onboarding_crash_allow">비정상 종료 보고서 보내기</string>
+    <string name="onboarding_status_crash_on">비정상 종료 보고서가 켜져 있습니다.</string>
+    <string name="onboarding_choices_crash">마지막은 비정상 종료 보고서입니다. 문제를 더 빨리 찾아 해결하기 위해 필요합니다.</string>
+    <string name="onboarding_done_crash_on">문제가 생기면 Redact가 익명 비정상 종료 보고서를 보냅니다.</string>
+    <string name="onboarding_done_crash_off">Redact에서 비정상 종료 보고서를 보내지 않습니다.</string>
 </resources>

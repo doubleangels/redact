@@ -357,42 +357,7 @@ public final class FormatConverter {
         String mime = mimeForFormat(format);
         String ext = extensionForFormat(format);
 
-        BitmapFactory.Options bounds = new BitmapFactory.Options();
-        bounds.inJustDecodeBounds = true;
-        try (InputStream in = resolver.openInputStream(sourceUri)) {
-            if (in == null) {
-                throw new IOException("Cannot open source");
-            }
-            BitmapFactory.decodeStream(in, null, bounds);
-        }
-
-        Bitmap bitmap;
-        boolean needsOrientationFix = false;
-        if (bounds.outWidth > 0 && bounds.outHeight > 0) {
-            bitmap = decodeSampled(calculateInSampleSize(context, bounds), opts -> {
-                try (InputStream in = resolver.openInputStream(sourceUri)) {
-                    if (in == null) {
-                        throw new IOException("Cannot open source");
-                    }
-                    return BitmapFactory.decodeStream(in, null, opts);
-                }
-            });
-            needsOrientationFix = bitmap != null;
-        } else {
-            bitmap = null;
-        }
-
-        if (bitmap == null) {
-            // ImageDecoder already applies EXIF orientation to the pixels.
-            bitmap = decodeBitmapFromUri(context, sourceUri);
-        }
-        if (bitmap == null) {
-            throw new UnsupportedMediaException("Decode failed", null);
-        }
-        if (needsOrientationFix) {
-            // The output carries no EXIF at all, so bake the rotation into the pixels.
-            bitmap = applyExifOrientation(context, sourceUri, bitmap);
-        }
+        Bitmap bitmap = decodeUpright(context, sourceUri, AppPreferences.getMaxBitmapSize(context));
 
         String outName = MediaFileNames.outputBaseName(context, baseDisplayName) + ext;
 
@@ -437,13 +402,69 @@ public final class FormatConverter {
     }
 
     /**
+     * Decodes the image at {@code sourceUri} with its EXIF orientation baked into the pixels, no
+     * larger than about {@code maxDimension} on its longest side and within what the encoders
+     * accept. Halves the size again when the device runs out of memory.
+     *
+     * @throws UnsupportedMediaException when the bytes are not an image this device can decode
+     */
+    @NonNull
+    public static Bitmap decodeUpright(
+            @NonNull Context context, @NonNull Uri sourceUri, int maxDimension) throws IOException {
+        ContentResolver resolver = context.getContentResolver();
+        BitmapFactory.Options bounds = new BitmapFactory.Options();
+        bounds.inJustDecodeBounds = true;
+        try (InputStream in = resolver.openInputStream(sourceUri)) {
+            if (in == null) {
+                throw new IOException("Cannot open source");
+            }
+            BitmapFactory.decodeStream(in, null, bounds);
+        }
+
+        Bitmap bitmap;
+        boolean needsOrientationFix = false;
+        if (bounds.outWidth > 0 && bounds.outHeight > 0) {
+            bitmap = decodeSampled(calculateInSampleSize(maxDimension, bounds), opts -> {
+                try (InputStream in = resolver.openInputStream(sourceUri)) {
+                    if (in == null) {
+                        throw new IOException("Cannot open source");
+                    }
+                    return BitmapFactory.decodeStream(in, null, opts);
+                }
+            });
+            needsOrientationFix = bitmap != null;
+        } else {
+            bitmap = null;
+        }
+
+        if (bitmap == null) {
+            // ImageDecoder already applies EXIF orientation to the pixels.
+            bitmap = decodeBitmapFromUri(context, sourceUri, maxDimension);
+        }
+        if (bitmap == null) {
+            throw new UnsupportedMediaException("Decode failed", null);
+        }
+        if (needsOrientationFix) {
+            // The output carries no EXIF at all, so bake the rotation into the pixels.
+            bitmap = applyExifOrientation(context, sourceUri, bitmap);
+        }
+        return bitmap;
+    }
+
+    /**
      * Decodes a bitmap from a URI, using {@link ImageDecoder} when {@link BitmapFactory} cannot.
      */
     @Nullable
     public static Bitmap decodeBitmapFromUri(@NonNull Context context, @NonNull Uri sourceUri)
             throws IOException {
+        return decodeBitmapFromUri(context, sourceUri, AppPreferences.getMaxBitmapSize(context));
+    }
+
+    @Nullable
+    private static Bitmap decodeBitmapFromUri(
+            @NonNull Context context, @NonNull Uri sourceUri, int maxDimension) throws IOException {
         try {
-            return decodeWithImageDecoder(context, sourceUri);
+            return decodeWithImageDecoder(context, sourceUri, maxDimension);
         } catch (OutOfMemoryError e) {
             // Already scaled to the max bitmap size; fail this file rather than the app.
             throw new IOException("Not enough memory to decode the image", e);
@@ -457,15 +478,17 @@ public final class FormatConverter {
         }
     }
 
-    private static Bitmap decodeWithImageDecoder(Context context, Uri sourceUri)
+    private static Bitmap decodeWithImageDecoder(Context context, Uri sourceUri, int maxDimension)
             throws IOException {
         ImageDecoder.Source source = ImageDecoder.createSource(context.getContentResolver(), sourceUri);
         return ImageDecoder.decodeBitmap(
                 source,
                 (decoder, info, s) -> {
+                    // A hardware bitmap (the default) cannot be drawn on a software canvas, which
+                    // Censor's previews and exports need.
+                    decoder.setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE);
                     int w = info.getSize().getWidth();
                     int h = info.getSize().getHeight();
-                    int maxDimension = AppPreferences.getMaxBitmapSize(context);
                     int maxSide = Math.max(w, h);
                     if (maxSide > maxDimension) {
                         float scale = maxDimension / (float) maxSide;
@@ -538,10 +561,13 @@ public final class FormatConverter {
     private static final int MAX_ENCODER_DIMENSION = 16383;
 
     public static int calculateInSampleSize(Context context, BitmapFactory.Options options) {
+        return calculateInSampleSize(AppPreferences.getMaxBitmapSize(context), options);
+    }
+
+    static int calculateInSampleSize(int maxDimension, BitmapFactory.Options options) {
         int height = options.outHeight;
         int width = options.outWidth;
         int inSampleSize = 1;
-        int maxDimension = AppPreferences.getMaxBitmapSize(context);
         if (height > maxDimension || width > maxDimension) {
             int halfHeight = height / 2;
             int halfWidth = width / 2;
@@ -639,7 +665,7 @@ public final class FormatConverter {
             // transcoder, then verify the result the same way the Clean tab does.
             cleanSource = stripper.transmuxVideoWithoutMetadata(sourceUri);
             if (cancelled != null && cancelled.getAsBoolean()) {
-                throw new IOException("Video conversion cancelled");
+                throw new ProcessingCancelledException("Video conversion cancelled");
             }
             Uri transcodeInput = cleanSource != null ? Uri.fromFile(cleanSource) : sourceUri;
             outFile = File.createTempFile(
@@ -667,7 +693,7 @@ public final class FormatConverter {
                     context, outFile, baseDisplayName);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new IOException("Video conversion interrupted", e);
+            throw new ProcessingCancelledException("Video conversion interrupted", e);
         } finally {
             if (cleanSource != null) {
                 stripper.deleteTempFile(cleanSource);

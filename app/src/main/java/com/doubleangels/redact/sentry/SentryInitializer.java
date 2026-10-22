@@ -6,14 +6,18 @@ import android.util.Log;
 
 import com.doubleangels.redact.BuildConfig;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.doubleangels.redact.AppPreferences;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.sentry.EventProcessor;
+import io.sentry.Hint;
 import io.sentry.ProfileLifecycle;
 import io.sentry.Sentry;
+import io.sentry.SentryEvent;
 import io.sentry.SentryLogLevel;
 import io.sentry.android.core.SentryAndroid;
 import io.sentry.android.fragment.FragmentLifecycleIntegration;
@@ -177,6 +181,15 @@ public final class SentryInitializer {
                 return metric;
             });
 
+            // Adds the capturing thread's scan/clean/convert data, so concurrent jobs don't mix.
+            options.addEventProcessor(new EventProcessor() {
+                @Override
+                public SentryEvent process(@NonNull SentryEvent event, @NonNull Hint hint) {
+                    SentryManager.applyOperationData(event);
+                    return event;
+                }
+            });
+
             options.setBeforeBreadcrumb((breadcrumb, hint) -> {
                 SentryPrivacyScrubber.scrubBreadcrumb(breadcrumb);
                 return breadcrumb;
@@ -192,6 +205,15 @@ public final class SentryInitializer {
                     return null;
                 }
                 SentryPrivacyScrubber.scrubEvent(event);
+                return event;
+            });
+
+            // User feedback skips beforeSend, so it gets its own consent check and scrub.
+            options.setBeforeSendFeedback((event, hint) -> {
+                if (!SentryManager.isEnabled()) {
+                    return null;
+                }
+                SentryPrivacyScrubber.scrubFeedbackEvent(event);
                 return event;
             });
 

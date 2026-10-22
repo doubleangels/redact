@@ -426,8 +426,10 @@ scroll_scan_to_camera() {
     ui_dump
     if p=$(node_center text MAKE); then
       y=${p#* }
-      if ((y < 700)); then adb shell input swipe 640 1200 640 $((1200 + 700 - y)) 400
-      elif ((y > 1000)); then adb shell input swipe 640 $((y)) 640 850 600
+      # Anywhere in 600-1100 will do. Every correction moves at least 250px: a swipe of a few
+      # pixels is a long press, which selects a field's text and shows the copy popup.
+      if ((y < 600)); then adb shell input swipe 640 1100 640 $((1100 + 850 - y)) 400
+      elif ((y > 1100)); then adb shell input swipe 640 $((y)) 640 850 400
       else sleep 0.4; return 0; fi
     else
       adb shell input swipe 640 2300 640 1300 500
@@ -435,6 +437,22 @@ scroll_scan_to_camera() {
     sleep 0.4
   done
   echo "  could not bring the camera rows into view; Scan shows the top of the list" >&2
+}
+
+# Scrolls Scan back until its file header (name and badges) is at the top. A fixed number of flings
+# does not always get there on a long list, and the dark shot must show the header.
+scroll_scan_to_top() {
+  local i p
+  for ((i = 0; i < 10; i++)); do
+    ui_dump
+    node_center resource-id ':id/emptyStateSelectButton' >/dev/null && return 0
+    if p=$(node_center resource-id ':id/heroFileName') && ((${p#* } < 500)); then
+      sleep 0.3; return 0
+    fi
+    adb shell input swipe 640 900 640 2400 300
+    sleep 0.5
+  done
+  echo "  could not scroll Scan back to its header" >&2
 }
 
 # Cleans what the Clean tab has selected and waits for the result line and Share button. If the
@@ -470,6 +488,7 @@ fresh_app() {
 <?xml version='1.0' encoding='utf-8' standalone='yes' ?>
 <map>
     <boolean name="initial_permissions_prompted" value="true" />
+    <boolean name="onboarding_seen" value="true" />
     <int name="review_state" value="2" />
     <boolean name="crash_reporting_prompted" value="true" />
 </map>
@@ -522,7 +541,7 @@ capture_locale() {
   for t in convert scan clean; do
     go_tab "$t"
     settle
-    [[ "$t" != scan ]] || { adb shell input swipe 640 900 640 2400 300; adb shell input swipe 640 900 640 2400 300; sleep 0.5; }   # back to the top
+    [[ "$t" != scan ]] || scroll_scan_to_top
     if node_center resource-id ':id/emptyStateSelectButton' >/dev/null; then
       if [[ "$t" == scan ]]; then pick_files 1; else pick_files all; fi
       [[ "$t" != clean ]] || clean_selected

@@ -12,7 +12,7 @@ import java.nio.file.Files;
 /** Builds small MP4 and WebM files box by box, for tests of container metadata. */
 final class TestVideos {
 
-    /** The QuickTime/MP4 timestamp for 2026-01-17 09:30 UTC (seconds since 1904). */
+    /** The QuickTime/MP4 timestamp for 2026-01-18 10:30 UTC (seconds since 1904). */
     static final long RECORDED_1904 = 3851577000L;
     static final String LOCATION = "+40.6892-074.0445/";
     /** Stands in for compressed video: tests check these bytes survive a scrub untouched. */

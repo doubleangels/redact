@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The photo being censored; the parent sizes it to take the space that is left. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/censorCanvasCard"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
+    app:cardCornerRadius="@dimen/component_corner_large"
+    app:cardElevation="1dp"
+    app:strokeWidth="0dp">
+
+    <com.doubleangels.redact.ui.CensorCanvasView
+        android:id="@+id/censorCanvas"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@string/censor_canvas_description" />
+
+    <!-- Status: shown while saving and after a save. Over the photo rather than in its own row,
+         so the photo does not shift when it appears. -->
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_margin="12dp"
+        android:background="@drawable/bg_rounded_surface"
+        android:backgroundTint="?attr/colorSurfaceContainerHighest"
+        android:elevation="4dp"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:textAlignment="center"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:textColor="?attr/colorOnSurface"
+        android:visibility="gone" />
+
+    <!-- The zoom level while zoomed in; tapping it shows the whole photo again. Placed at bottom-start
+         so it never collides with the primary action button in the bottom right. -->
+    <com.google.android.material.chip.Chip
+        android:id="@+id/censorZoomChip"
+        style="@style/Widget.Material3.Chip.Assist.Elevated"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="12dp"
+        android:visibility="gone"
+        app:chipIcon="@drawable/ic_pan"
+        app:chipIconSize="18dp" />
+
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/censorLoading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminate="true"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/censorMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="24dp"
+        android:textAlignment="center"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:visibility="gone" />
+</com.google.android.material.card.MaterialCardView>

@@ -44,6 +44,13 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
         public final String value;
         /** True for location metadata (GPS coordinates and the like); shown with a red "Location" badge. */
         public final boolean isLocation;
+        /** The title, name and value as {@link #normalize} gives them, worked out on the first search. */
+        @Nullable
+        private String searchTitle;
+        @Nullable
+        private String searchKey;
+        @Nullable
+        private String searchValue;
 
         private Entry(int viewType, @Nullable String sectionId, @Nullable String headerTitle,
                       int headerIconRes, int itemCount, @Nullable String key, @Nullable String value,
@@ -56,6 +63,37 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
             this.key = key;
             this.value = value;
             this.isLocation = isLocation;
+        }
+
+        // Values can be long (an XMP packet), so each is normalized once rather than on every keystroke.
+        boolean titleMatches(@NonNull String query) {
+            if (headerTitle == null) {
+                return false;
+            }
+            if (searchTitle == null) {
+                searchTitle = normalize(headerTitle);
+            }
+            return searchTitle.contains(query);
+        }
+
+        boolean keyMatches(@NonNull String query) {
+            if (key == null) {
+                return false;
+            }
+            if (searchKey == null) {
+                searchKey = normalize(key);
+            }
+            return searchKey.contains(query);
+        }
+
+        boolean valueMatches(@NonNull String query) {
+            if (value == null) {
+                return false;
+            }
+            if (searchValue == null) {
+                searchValue = normalize(value);
+            }
+            return searchValue.contains(query);
         }
 
         public static Entry header(@Nullable String sectionId, @NonNull String title, int iconRes, int itemCount) {
@@ -157,9 +195,9 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
             if (entry.viewType == Entry.VIEW_TYPE_HEADER) {
                 flushGroup(header, headerMatches, matches);
                 header = entry;
-                headerMatches = contains(entry.headerTitle);
+                headerMatches = entry.titleMatches(query);
                 matches = new ArrayList<>();
-            } else if (headerMatches || contains(entry.key) || contains(entry.value)) {
+            } else if (headerMatches || entry.keyMatches(query) || entry.valueMatches(query)) {
                 matches.add(entry);
             }
         }
@@ -178,9 +216,7 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
         displayedEntries.addAll(matches);
     }
 
-    private boolean contains(@Nullable String text) {
-        return text != null && normalize(text).contains(query);
-    }
+    private static final java.util.regex.Pattern SPACES = java.util.regex.Pattern.compile("\\s+");
 
     /** Lower-cases, treats underscores as spaces and collapses runs of spaces, for matching. */
     @NonNull
@@ -188,7 +224,7 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
         if (text == null) {
             return "";
         }
-        return text.toLowerCase(Locale.ROOT).replace('_', ' ').replaceAll("\\s+", " ").trim();
+        return SPACES.matcher(text.toLowerCase(Locale.ROOT).replace('_', ' ')).replaceAll(" ").trim();
     }
 
     @android.annotation.SuppressLint("NotifyDataSetChanged")

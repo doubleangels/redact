@@ -264,6 +264,34 @@ public class AlreadyCleanCheckTest {
     }
 
     @Test
+    public void heic_isCheckedForXmpNearItsStart() throws IOException {
+        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item(jpeg(), "image/heic")));
+
+        File withXmp = jpeg();
+        try (FileOutputStream out = new FileOutputStream(withXmp, true)) {
+            out.write("<x:xmpmeta xmlns:x=\"adobe:ns:meta/\"></x:xmpmeta>".getBytes());
+        }
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(withXmp, "image/heif")));
+    }
+
+    @Test
+    public void anImageWhoseStructureCannotBeFollowed_isUnknown() throws IOException {
+        File f = jpeg();
+        byte[] bytes = java.nio.file.Files.readAllBytes(f.toPath());
+        java.nio.file.Files.write(f.toPath(), Arrays.copyOf(bytes, bytes.length - 2)); // no end of image
+
+        assertEquals(Status.UNKNOWN, AlreadyCleanCheck.assessItem(app, item(f, "image/jpeg")));
+    }
+
+    @Test
+    public void aUriNoProviderAnswersFor_isNotARedactOutput_andIsUnknown() {
+        Uri orphan = Uri.parse("content://com.example.nobody/images/1");
+
+        assertEquals(false, AlreadyCleanCheck.isRedactOutput(app, orphan));
+        assertEquals(Status.UNKNOWN, AlreadyCleanCheck.assessItem(app, new MediaItem(orphan, false, "1.jpg")));
+    }
+
+    @Test
     public void assess_afterTheBudgetRunsOut_reportsUnknown() throws IOException {
         List<MediaItem> items = Arrays.asList(item(jpeg(), "image/jpeg"), item(jpeg(), "image/jpeg"));
 

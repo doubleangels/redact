@@ -7,7 +7,6 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.doubleangels.redact.ui.CrashReportingPrompt;
 import com.doubleangels.redact.ui.ReviewPrompt;
 
 /**
@@ -39,9 +38,13 @@ public final class AppPreferences {
     private static final String KEY_KEEP_ORIGINAL_NAMES = "keep_original_file_names";
     private static final String KEY_VIDEO_FALLBACK_COPY = "video_fallback_copy";
     private static final String KEY_INITIAL_PERMISSIONS_PROMPTED = "initial_permissions_prompted";
+    private static final String KEY_ONBOARDING_SEEN = "onboarding_seen";
     private static final String KEY_MAPS_LOCATION_CONSENT_GIVEN = "maps_location_consent_given";
     private static final String KEY_OUTPUT_TREE_IMAGES = "output_tree_images";
     private static final String KEY_OUTPUT_TREE_VIDEOS = "output_tree_videos";
+    private static final String KEY_CENSOR_TOOL = "censor_tool";
+    private static final String KEY_CENSOR_EFFECT = "censor_effect";
+    private static final String KEY_CENSOR_BRUSH_SIZE = "censor_brush_size";
 
     /** High quality, which matches the legacy defaults. */
     public static final int QUALITY_PRESET_HIGH = 0;
@@ -323,6 +326,35 @@ public final class AppPreferences {
         prefs(context).edit().putBoolean(KEY_KEEP_ORIGINAL_NAMES, enabled).apply();
     }
 
+    /** The Censor tool last used (a {@code CensorCanvasView.Tool} name), or null. */
+    @Nullable
+    public static String getCensorTool(@NonNull Context context) {
+        return prefs(context).getString(KEY_CENSOR_TOOL, null);
+    }
+
+    public static void setCensorTool(@NonNull Context context, @NonNull String tool) {
+        prefs(context).edit().putString(KEY_CENSOR_TOOL, tool).apply();
+    }
+
+    /** The Censor effect last used (a {@code CensorEffects.Effect} name), or null. */
+    @Nullable
+    public static String getCensorEffect(@NonNull Context context) {
+        return prefs(context).getString(KEY_CENSOR_EFFECT, null);
+    }
+
+    public static void setCensorEffect(@NonNull Context context, @NonNull String effect) {
+        prefs(context).edit().putString(KEY_CENSOR_EFFECT, effect).apply();
+    }
+
+    /** The Censor brush size last used, on the slider's 1 to 10 scale, or {@code fallback}. */
+    public static float getCensorBrushSize(@NonNull Context context, float fallback) {
+        return prefs(context).getFloat(KEY_CENSOR_BRUSH_SIZE, fallback);
+    }
+
+    public static void setCensorBrushSize(@NonNull Context context, float size) {
+        prefs(context).edit().putFloat(KEY_CENSOR_BRUSH_SIZE, size).apply();
+    }
+
     public static boolean isVideoFallbackCopy(@NonNull Context context) {
         return prefs(context).getBoolean(KEY_VIDEO_FALLBACK_COPY, false);
     }
@@ -338,6 +370,15 @@ public final class AppPreferences {
 
     public static void setInitialPermissionsPromptCompleted(@NonNull Context context) {
         prefs(context).edit().putBoolean(KEY_INITIAL_PERMISSIONS_PROMPTED, true).apply();
+    }
+
+    /** Whether the first-start introduction has been shown. */
+    public static boolean hasSeenOnboarding(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_ONBOARDING_SEEN, false);
+    }
+
+    public static void setOnboardingSeen(@NonNull Context context) {
+        prefs(context).edit().putBoolean(KEY_ONBOARDING_SEEN, true).apply();
     }
 
     /**
@@ -356,20 +397,19 @@ public final class AppPreferences {
 
     /**
      * Puts every setting back to its default. The first-launch permission prompt is not shown
-     * again, since resetting settings does not change what Android has already granted, and the
-     * rating prompt's progress and whether the crash-report question was asked are kept, so
-     * neither question is ever asked again.
+     * again, since resetting settings does not change what Android has already granted, nor is the
+     * introduction, and the rating prompt's progress is kept, so it is never asked again.
      */
     public static void resetAll(@NonNull Context context) {
         SharedPreferences p = prefs(context);
         boolean prompted = hasCompletedInitialPermissionsPrompt(context);
         int reviewCount = p.getInt(ReviewPrompt.KEY_SUCCESS_COUNT, 0);
         int reviewState = p.getInt(ReviewPrompt.KEY_STATE, 0);
-        boolean crashPromptAsked = p.getBoolean(CrashReportingPrompt.KEY_ASKED, false);
+        boolean onboardingSeen = hasSeenOnboarding(context);
         SharedPreferences.Editor e = p.edit().clear()
                 .putBoolean(KEY_INITIAL_PERMISSIONS_PROMPTED, prompted);
-        if (crashPromptAsked) {
-            e.putBoolean(CrashReportingPrompt.KEY_ASKED, true);
+        if (onboardingSeen) {
+            e.putBoolean(KEY_ONBOARDING_SEEN, true);
         }
         if (reviewCount > 0) {
             e.putInt(ReviewPrompt.KEY_SUCCESS_COUNT, reviewCount);

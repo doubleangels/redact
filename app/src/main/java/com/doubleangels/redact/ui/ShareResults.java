@@ -27,15 +27,19 @@ public final class ShareResults {
     }
 
     /**
-     * Leaves Redact's own share targets out of {@code chooser}: they ignore files Redact made, so
-     * picking one from a share of its own output would do nothing.
+     * Leaves Redact's own share targets out of {@code chooser}. A share into Redact forwards
+     * Redact's own file, which they all refuse, so picking one would only show an error; and
+     * sending a result back into Redact from a share sheet is never needed, since the tabs (and
+     * Scan Result) are a tap away.
      */
     @NonNull
     public static Intent withoutOwnTargets(@NonNull Context context, @NonNull Intent chooser) {
         String pkg = context.getPackageName();
         return chooser.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, new ComponentName[]{
                 new ComponentName(pkg, "com.doubleangels.redact.ShareHandlerActivity"),
-                new ComponentName(pkg, "com.doubleangels.redact.ScanShareTarget")});
+                new ComponentName(pkg, "com.doubleangels.redact.ScanShareTarget"),
+                new ComponentName(pkg, "com.doubleangels.redact.ConvertShareTarget"),
+                new ComponentName(pkg, "com.doubleangels.redact.CensorShareTarget")});
     }
 
     public static void share(@NonNull Context context, @NonNull List<Uri> uris) {

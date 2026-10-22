@@ -4,8 +4,9 @@
     <string name="app_name">Redact</string>
 
     
-    <string name="content_description_image_view">छवि दृश्य</string>
-    <string name="content_description_scroll_view">स्क्रॉल दृश्य</string>
+    <string name="content_description_selected_files">चुनी गई फ़ाइलें</string>
+    <string name="content_description_selected_photo">फ़ोटो: %1$s</string>
+    <string name="content_description_selected_video">वीडियो: %1$s</string>
 
     
     <string name="navigation_clean">साफ करें</string>
@@ -29,6 +30,7 @@
     <string name="notification_clean_progress_title">मेटाडेटा साफ़ किया जा रहा है…</string>
 
     <string name="navigation_convert">बदलें</string>
+    <string name="navigation_censor">छिपाएँ</string>
 
     
     <string name="convert_output_format_images">छवि प्रारूप</string>
@@ -118,9 +120,7 @@
     <string name="metadata_location_unreadable">स्थान डेटा मौजूद है, लेकिन ऐसे रूप में सहेजा गया है जिसे यहाँ नहीं दिखाया जा सकता। साफ़ करने पर यह हट जाता है।</string>
     <string name="metadata_container_tags_header">एम्बेड किए गए टैग:</string>
     <string name="metadata_container_tags">फ़ाइल में मिला: %1$s</string>
-    <string name="metadata_container_value">मौजूद – साफ़ करने पर हट जाता है</string>
     <string name="metadata_embedded_data_header">छिपा और एम्बेड किया गया डेटा</string>
-    <string name="metadata_embedded_value">मौजूद (%1$s) – साफ़ करने पर हट जाता है</string>
     <plurals name="metadata_embedded_images">
         <item quantity="one">%1$d इमेज (%2$s) – साफ़ करने पर हट जाती है</item>
         <item quantity="other">%1$d इमेज (%2$s) – साफ़ करने पर हट जाती हैं</item>
@@ -174,7 +174,7 @@
     <string name="settings_sentry_consent_title">क्रैश रिपोर्टिंग सक्षम करें</string>
     <string name="settings_sentry_consent_message">क्रैश रिपोर्ट भेजना इंटरनेट पर Sentry को अनाम निदान अपलोड करता है।\n\nफ़ोटो, वीडियो, फ़ाइल नाम या GPS निर्देशांक अपलोड नहीं होते।</string>
     <string name="settings_strict_clean">सख्त सफ़ाई</string>
-    <string name="settings_strict_clean_subtitle">मेटाडेटा का हर निशान हटाता है, यहाँ तक कि ओरिएंटेशन टैग भी, इसलिए घुमाई गई फ़ोटो बाद में तिरछी दिख सकती है। ऊपर के रखने के विकल्प बंद करता है और सबसे गहन सफ़ाई के लिए वीडियो को हमेशा पूरी तरह पुनः-एन्कोड करता है।</string>
+    <string name="settings_strict_clean_subtitle">मेटाडेटा का हर निशान हटाता है, यहाँ तक कि ओरिएंटेशन टैग भी, इसलिए घुमाई गई फ़ोटो बाद में तिरछी दिख सकती है। नीचे के रखने के विकल्प बंद करता है और सबसे गहन सफ़ाई के लिए वीडियो को हमेशा पूरी तरह पुनः-एन्कोड करता है।</string>
     
     <string name="settings_section_advanced_processing">बड़ी फ़ाइलें और मेमोरी</string>
     <string name="settings_advanced_processing_subtitle">साफ़ और रूपांतरण के दौरान बड़ी छवियों को डिकोड करते समय RAM उपयोग को नियंत्रित करता है।</string>
@@ -292,7 +292,9 @@
     <string name="notification_progress_percent">%1$d%% पूर्ण</string>
     <string name="scan_clean_this_file">इस फ़ाइल को साफ़ करें</string>
     <string name="scan_convert_this_file">इस फ़ाइल को कनवर्ट करें</string>
+    <string name="scan_censor_this_photo">इस फ़ोटो के हिस्से छिपाएँ</string>
     <string name="scan_copied_to_clipboard">क्लिपबोर्ड पर कॉपी किया गया</string>
+    <string name="scan_copy_value">मान कॉपी करें</string>
     <string name="scan_copy_all_metadata">सभी मेटाडेटा कॉपी करें</string>
     <string name="scan_copy_camera">कैमरा जानकारी कॉपी करें</string>
 <string name="settings_permissions_location">फ़ोटो स्थान</string>
@@ -366,7 +368,7 @@
     <string name="convert_empty_state_title">मीडिया फ़ॉर्मैट बदलें</string>
     <string name="convert_empty_state_description">फ़ोटो या वीडियो को JPEG, PNG, WebP, HEIC या MP4 फ़ॉर्मैट में बदलने के लिए चुनें।</string>
     <string name="convert_files_card_title">बदलने के लिए फ़ाइलें</string>
-    <string name="convert_heic_fallback_jpeg">HEIC आउटपुट के लिए Android 14 या उसके बाद का संस्करण ज़रूरी है। इसके बजाय चित्र JPEG के रूप में सहेजे जाएँगे।</string>
+    <string name="convert_heic_fallback_jpeg">यह फ़ोन HEIC चित्र सहेज नहीं सकता, इसलिए वे JPEG के रूप में सहेजे जाएँगे।</string>
     <string name="convert_item_type_image">चित्र</string>
     <string name="convert_item_type_video">वीडियो</string>
     <string name="scan_empty_state_title">मीडिया मेटाडेटा जाँचें</string>
@@ -445,7 +447,8 @@
     <string name="share_results_chooser_title">इसके ज़रिए साझा करें…</string>
     <string name="settings_output_unavailable">Redact अब इस फ़ोल्डर में सेव नहीं कर सकता, इसलिए फ़ाइलें %1$s में जाती हैं। इसे फिर से चुनें या कोई दूसरा फ़ोल्डर चुनें।</string>
     <string name="output_folder_fallback">%1$s उपलब्ध नहीं है, इसलिए %2$s में सेव किया जा रहा है।</string>
-    <string name="settings_output_open">फ़ोल्डर खोलें</string>
+    <string name="settings_output_open_images">छवियों का फ़ोल्डर खोलें</string>
+    <string name="settings_output_open_videos">वीडियो का फ़ोल्डर खोलें</string>
     <string name="settings_output_open_unavailable">इस फ़ोल्डर को खोलने के लिए कोई ऐप नहीं मिला।</string>
     <string name="settings_output_also_videos">वीडियो भी यहीं सहेजें?</string>
     <string name="settings_output_also_images">छवियाँ भी यहीं सहेजें?</string>
@@ -457,7 +460,34 @@
     <string name="settings_reset_all_confirm">रीसेट करें</string>
     <string name="settings_reset_all_done">सेटिंग डिफ़ॉल्ट पर रीसेट हो गईं।</string>
     <string name="settings_reset_all_busy">प्रोसेसिंग चलते समय सेटिंग रीसेट नहीं की जा सकतीं।</string>
-    <string name="share_target_scan">Redact से स्कैन करें</string>
+    <string name="censor_empty_state_title">जो निजी रहना चाहिए, उसे छिपाएँ</string>
+    <string name="censor_empty_state_description">फ़ोटो में चेहरे, नंबर प्लेट, पते और कुछ भी पिक्सेलेट करें, काला करें या धुंधला करें। Redact बिना किसी मेटाडेटा के एक छिपाई गई कॉपी सहेजता है, और आपकी मूल फ़ोटो जैसी है वैसी ही रहती है।</string>
+    <string name="censor_select_photo">फ़ोटो चुनें</string>
+    <string name="censor_hint">जो कुछ भी निजी रहना चाहिए उस पर बनाएँ, फिर कॉपी सहेजें पर टैप करें। ज़ूम करने के लिए खिसकाएँ चुनकर दो उंगलियों से पिंच करें और खींचकर इधर-उधर जाएँ। किसी आयत को खिसकाने या उसका आकार बदलने के लिए उस पर टैप करें।</string>
+    <string name="censor_canvas_description">फ़ोटो जिसके हिस्से छिपाए जा रहे हैं। किसी हिस्से को ढकने के लिए एक उंगली से बनाएँ। खिसकाएँ चुनकर खींचें और ज़ूम करने के लिए पिंच करें।</string>
+    <string name="censor_tool_rectangle">आयत</string>
+    <string name="censor_tool_brush">ब्रश</string>
+    <string name="censor_tool_move">खिसकाएँ</string>
+    <string name="censor_brush_size">ब्रश का आकार</string>
+    <string name="censor_effect_pixelate">पिक्सेलेट</string>
+    <string name="censor_effect_black">काला</string>
+    <string name="censor_effect_blur">धुंधला</string>
+    <string name="censor_undo">पूर्ववत करें</string>
+    <string name="censor_redo">फिर से करें</string>
+    <string name="censor_delete_rectangle">आयत हटाएँ</string>
+    <string name="censor_zoom_level">%1$s×</string>
+    <string name="censor_zoom_reset">%1$s गुना ज़ूम किया गया। पूरी फ़ोटो देखने के लिए टैप करें।</string>
+    <string name="censor_save">कॉपी सहेजें</string>
+    <string name="censor_saved">छिपाई गई कॉपी सहेजी गई।</string>
+    <string name="censor_saved_downscaled">कॉपी सहेजी गई, लेकिन मूल से छोटी। पूरा आकार रखने के लिए सेटिंग में अधिकतम प्रसंस्करण रिज़ॉल्यूशन बढ़ाएँ।</string>
+    <string name="censor_file_name">%1$s (छिपाया गया)</string>
+    <string name="censor_error_open">यह फ़ोटो खोली नहीं जा सकी।</string>
+    <string name="censor_error_unsupported">इस प्रकार की इमेज के हिस्से इस डिवाइस पर नहीं छिपाए जा सकते।</string>
+    <string name="censor_error_save">छिपाई गई कॉपी सहेजी नहीं जा सकी।</string>
+    <string name="censor_discard_title">बदलाव छोड़ दें?</string>
+    <string name="censor_discard_message">आपके ढके गए हिस्से सहेजे नहीं गए हैं।</string>
+    <string name="censor_discard">छोड़ें</string>
+    <string name="censor_keep_editing">संपादन जारी रखें</string>
     <string name="button_scan_result">परिणाम स्कैन करें</string>
     <string name="settings_keep_original_names">मूल फ़ाइल नाम रखें</string>
     <string name="settings_keep_original_names_subtitle">साफ़ और कन्वर्ट की गई फ़ाइलों को किसी यादृच्छिक नाम के बजाय मूल फ़ाइल का नाम दें। IMG_20260117 जैसे नाम बता सकते हैं कि फ़ोटो कब ली गई थी।</string>
@@ -466,7 +496,14 @@
     <string name="review_prompt_yes">हाँ</string>
     <string name="review_prompt_no">नहीं</string>
     <string name="review_prompt_declined">ठीक है, Redact फिर से नहीं पूछेगा। अगर आप अपना मन बदलें, तो सेटिंग्स › के बारे में से इसे कभी भी रेट कर सकते हैं।</string>
-    <string name="crash_prompt_declined">ठीक है, Redact फिर से नहीं पूछेगा। आप क्रैश रिपोर्ट कभी भी सेटिंग्स › निदान और प्रतिक्रिया में चालू कर सकते हैं।</string>
+    <string name="error_feedback_offer">कुछ गलत हो गया। एक क्रैश रिपोर्ट भेजी गई।</string>
+    <string name="error_feedback_action">विवरण जोड़ें</string>
+    <string name="error_feedback_title">क्या हुआ?</string>
+    <string name="error_feedback_message">आपका नोट क्रैश रिपोर्ट के साथ जोड़ा जाता है। कोई निजी जानकारी शामिल न करें। भेजने से पहले फ़ाइल पथ और GPS निर्देशांक हटा दिए जाते हैं।</string>
+    <string name="error_feedback_hint">जब गड़बड़ी हुई तब आप क्या कर रहे थे?</string>
+    <string name="error_feedback_send">भेजें</string>
+    <string name="error_feedback_cancel">रद्द करें</string>
+    <string name="error_feedback_thanks">धन्यवाद, आपका नोट भेज दिया गया।</string>
     <string name="stats_title">आँकड़े</string>
     <string name="stats_navigate_up">वापस</string>
     <string name="stats_settings_title">आपके गोपनीयता आँकड़े</string>
@@ -499,4 +536,82 @@
         <item quantity="one">पिछले 30 दिनों में %1$s फ़ाइल साफ़ की गई।</item>
         <item quantity="other">पिछले 30 दिनों में %1$s फ़ाइलें साफ़ की गईं।</item>
     </plurals>
+    <string name="settings_about_intro">परिचय दिखाएं</string>
+    <string name="settings_about_licenses">ओपन सोर्स लाइसेंस</string>
+    <string name="licenses_title">ओपन सोर्स लाइसेंस</string>
+    <string name="licenses_intro">Redact इन ओपन सोर्स लाइब्रेरी से बना है। किसी एक पर टैप करके उसका लाइसेंस पढ़ें।</string>
+    <string name="licenses_project_page">प्रोजेक्ट पेज</string>
+    <string name="licenses_close">बंद करें</string>
+    <string name="onboarding_skip">छोड़ें</string>
+    <string name="onboarding_next">आगे</string>
+    <string name="onboarding_continue">जारी रखें</string>
+    <string name="onboarding_not_now">अभी नहीं</string>
+    <string name="onboarding_open_settings">सेटिंग्स खोलें</string>
+    <string name="onboarding_get_started">शुरू करें</string>
+    <string name="onboarding_start">Redact इस्तेमाल करना शुरू करें</string>
+    <string name="onboarding_done">हो गया</string>
+    <string name="onboarding_progress">%2$d में से चरण %1$d</string>
+    <string name="onboarding_welcome_title">Redact में आपका स्वागत है!</string>
+    <string name="onboarding_welcome_body">Redact की मदद से आप अपनी निजी जानकारी बताए बिना फ़ोटो और वीडियो शेयर कर सकते हैं। यह छोटा-सा परिचय लगभग एक मिनट का है।</string>
+    <string name="onboarding_welcome_clean">साफ़ करें आपकी फ़ोटो और वीडियो से छिपी जानकारी हटा देता है।</string>
+    <string name="onboarding_welcome_scan">स्कैन करें शेयर करने से पहले आपको ठीक-ठीक दिखाता है कि फ़ाइल क्या बताती है।</string>
+    <string name="onboarding_welcome_convert">बदलें किसी फ़ोटो या वीडियो को दूसरे फ़ॉर्मैट में बदलता है और उसे साफ़ रखता है।</string>
+    <string name="onboarding_welcome_censor">छिपाएँ फ़ोटो में चेहरे, नंबर प्लेट और जो कुछ भी निजी रहना चाहिए, उसे ढक देता है।</string>
+    <string name="onboarding_hidden_title">आपकी फ़ोटो और वीडियो आपकी सोच से ज़्यादा बता सकते हैं।</string>
+    <string name="onboarding_hidden_body">जब आप फ़ोटो या वीडियो लेते हैं, तो आपका फ़ोन चुपचाप फ़ाइल के अंदर अतिरिक्त जानकारी सहेज लेता है। जिसे भी आप फ़ाइल भेजते हैं, वह इसे पढ़ सकता है।</string>
+    <string name="onboarding_hidden_location">यह बता सकती है कि आप कहाँ थे, कभी-कभी इतना सटीक कि आपका घर ढूँढा जा सके।</string>
+    <string name="onboarding_hidden_time">यह बता सकती है कि आपने इसे किस तारीख और समय पर लिया।</string>
+    <string name="onboarding_hidden_device">यह बता सकती है कि आपने कौन-सा फ़ोन या कैमरा इस्तेमाल किया।</string>
+    <string name="onboarding_private_title">आपकी फ़ाइलें कभी आपके फ़ोन से बाहर नहीं जातीं।</string>
+    <string name="onboarding_private_body">Redact सारा काम यहीं आपके फ़ोन पर करता है। यह शेयर करने के लिए एक साफ़ कॉपी सहेजता है और आपकी मूल फ़ाइल को जैसी थी वैसी ही छोड़ देता है।</string>
+    <string name="onboarding_private_offline">कुछ भी अपलोड नहीं होता, इसलिए आपकी फ़ोटो और वीडियो निजी रहते हैं।</string>
+    <string name="onboarding_private_no_ads">कोई विज्ञापन नहीं है, और आप क्या करते हैं इस पर कोई नज़र नहीं रखता।</string>
+    <string name="onboarding_private_open_source">Redact ओपन सोर्स है, इसलिए कोई भी जाँच सकता है कि यह कैसे काम करता है।</string>
+    <string name="onboarding_choices_title">Redact क्या इस्तेमाल कर सकता है, यह आप तय करते हैं।</string>
+    <string name="onboarding_choices_body">आगे Redact एक-एक करके बताएगा कि वह किस चीज़ का इस्तेमाल करना चाहता है और क्यों। फ़ैसला हमेशा आपका है, और आप बाद में सेटिंग्स में अपना मन बदल सकते हैं।</string>
+    <string name="onboarding_choices_media">पहले, आपकी फ़ोटो और वीडियो, ताकि Redact आपकी चुनी हुई फ़ाइलें खोल सके।</string>
+    <string name="onboarding_choices_location">फिर, आपकी फ़ोटो और वीडियो में सहेजे गए स्थान, ताकि स्कैन करें उन्हें आपको दिखा सके।</string>
+    <string name="onboarding_choices_notifications">इसके बाद, सूचनाएं, ताकि कोई काम पूरा होने पर Redact आपको बता सके।</string>
+    <string name="onboarding_media_title">अपनी फ़ोटो और वीडियो तक पहुँच की अनुमति दें।</string>
+    <string name="onboarding_media_body">जिन फ़ोटो और वीडियो को आप साफ़, स्कैन या बदलना चाहते हैं, उन्हें खोलने के लिए Redact को इसकी ज़रूरत है।</string>
+    <string name="onboarding_media_point_pick">Redact सिर्फ़ वही फ़ाइलें खोलता है जिन्हें आप चुनते हैं।</string>
+    <string name="onboarding_media_point_private">आपकी फ़ोटो और वीडियो आपके फ़ोन पर ही रहते हैं।</string>
+    <string name="onboarding_media_point_partial">Android आपको सिर्फ़ कुछ फ़ोटो और वीडियो की अनुमति देने का विकल्प दे सकता है। Redact दोनों तरह से काम करता है।</string>
+    <string name="onboarding_media_point_change">आप इसे कभी भी अपने फ़ोन की सेटिंग्स में बदल सकते हैं।</string>
+    <string name="onboarding_media_allow">पहुँच की अनुमति दें</string>
+    <string name="onboarding_location_title">देखें कि आपकी फ़ोटो और वीडियो कहाँ लिए गए।</string>
+    <string name="onboarding_location_body">जब तक आप Redact को अनुमति नहीं देते, Android आपकी फ़ोटो और वीडियो में सहेजा गया स्थान छिपा देता है। इसे चालू करने पर स्कैन करें आपको दिखा सकता है कि फ़ोटो या वीडियो कहाँ लिया गया था, ताकि आप जान सकें कि आप क्या शेयर करेंगे।</string>
+    <string name="onboarding_location_point_optional">यह वैकल्पिक है। Redact अपनी बनाई कॉपी से स्थान हर हाल में हटा देता है।</string>
+    <string name="onboarding_location_point_private">Redact किसी के साथ भी स्थान कभी शेयर नहीं करता।</string>
+    <string name="onboarding_location_point_change">आप इसे कभी भी सेटिंग्स में बंद कर सकते हैं।</string>
+    <string name="onboarding_location_allow">अनुमति दें</string>
+    <string name="onboarding_notifications_title">जानें कि आपकी फ़ाइलें कब तैयार हैं।</string>
+    <string name="onboarding_notifications_body">लंबा वीडियो साफ़ करने में कुछ मिनट लग सकते हैं। काम पूरा होने पर Redact आपको बता सकता है, ताकि आपको ऐप खुला न रखना पड़े।</string>
+    <string name="onboarding_notifications_point_optional">यह वैकल्पिक है, और आप इसे कभी भी सेटिंग्स में बंद कर सकते हैं।</string>
+    <string name="onboarding_notifications_point_finished">Redact सिर्फ़ तब सूचना भेजता है जब कोई काम पूरा हो जाता है।</string>
+    <string name="onboarding_notifications_point_no_ads">Redact कभी विज्ञापन या रिमाइंडर नहीं भेजता।</string>
+    <string name="onboarding_notifications_allow">सूचनाएं चालू करें</string>
+    <string name="onboarding_status_granted">आपने इसकी अनुमति दी है।</string>
+    <string name="onboarding_status_partial">आपने अपनी कुछ फ़ोटो और वीडियो की अनुमति दी है।</string>
+    <string name="onboarding_status_denied">आपने इसकी अनुमति नहीं दी है। आप इसे बाद में सेटिंग्स में चालू कर सकते हैं।</string>
+    <string name="onboarding_status_blocked">इसे इस्तेमाल करने के लिए, पहले अपनी फ़ोटो और वीडियो तक पहुँच की अनुमति दें।</string>
+    <string name="onboarding_status_notifications_on">सूचनाएं चालू हैं।</string>
+    <string name="onboarding_done_title">सब तैयार है!</string>
+    <string name="onboarding_done_body">यह रहा आपके विकल्पों का सारांश। आप इनमें से कोई भी बाद में सेटिंग्स में बदल सकते हैं।</string>
+    <string name="onboarding_done_media_granted">Redact आपकी फ़ोटो और वीडियो खोल सकता है।</string>
+    <string name="onboarding_done_media_partial">Redact आपकी चुनी हुई फ़ोटो और वीडियो खोल सकता है।</string>
+    <string name="onboarding_done_media_denied">Redact अभी आपकी फ़ोटो और वीडियो नहीं खोल सकता।</string>
+    <string name="onboarding_done_location_granted">स्कैन करें दिखा सकता है कि आपकी फ़ोटो और वीडियो कहाँ लिए गए।</string>
+    <string name="onboarding_done_location_denied">स्कैन करें यह नहीं दिखाएगा कि आपकी फ़ोटो और वीडियो कहाँ लिए गए।</string>
+    <string name="onboarding_done_notifications_granted">कोई काम पूरा होने पर Redact आपको बताएगा।</string>
+    <string name="onboarding_done_notifications_denied">Redact आपको सूचनाएं नहीं भेजेगा।</string>
+    <string name="onboarding_crash_title">Redact को बेहतर बनाने में मदद करें।</string>
+    <string name="onboarding_crash_body">अगर Redact कभी क्रैश होता है, तो वह एक गुमनाम रिपोर्ट भेज सकता है ताकि समस्या ढूँढकर ठीक की जा सके। क्रैश रिपोर्ट ही एकमात्र चीज़ है जो Redact इंटरनेट पर भेजता है।</string>
+    <string name="onboarding_crash_point_private">रिपोर्ट में आपकी फ़ोटो, वीडियो, फ़ाइल नाम या स्थान कभी शामिल नहीं होते।</string>
+    <string name="onboarding_crash_point_sentry">रिपोर्ट Sentry को जाती हैं, जो डेवलपर को क्रैश ढूँढने और ठीक करने में मदद करने वाली सेवा है।</string>
+    <string name="onboarding_crash_allow">क्रैश रिपोर्ट भेजें</string>
+    <string name="onboarding_status_crash_on">क्रैश रिपोर्ट चालू हैं।</string>
+    <string name="onboarding_choices_crash">आख़िर में, क्रैश रिपोर्ट, ताकि समस्याएं जल्दी ढूँढी और ठीक की जा सकें।</string>
+    <string name="onboarding_done_crash_on">कुछ गड़बड़ होने पर Redact गुमनाम क्रैश रिपोर्ट भेजेगा।</string>
+    <string name="onboarding_done_crash_off">Redact क्रैश रिपोर्ट नहीं भेजेगा।</string>
 </resources>

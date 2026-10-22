@@ -694,6 +694,14 @@ public class PermissionManager {
                 NOTIFICATION_PERMISSION_REQUEST_CODE);
     }
 
+    /**
+     * Ends the first-launch flow without any prompts, because the introduction already asked for
+     * each permission on its own page. Anything the user declined there is not asked again.
+     */
+    public static void finishInitialPermissionFlowFromIntroduction(@NonNull Activity activity) {
+        finishInitialPermissionFlow(activity);
+    }
+
     private static void finishInitialPermissionFlow(@NonNull Activity activity) {
         initialPermissionFlowInProgress = false;
         initialFlowStep = InitialFlowStep.DONE;
@@ -742,7 +750,7 @@ public class PermissionManager {
     }
 
     @SuppressLint("InlinedApi") // guarded by sdkInt()
-    static java.util.List<String> collectMissingRuntimePermissions(Activity activity) {
+    public static java.util.List<String> collectMissingRuntimePermissions(Activity activity) {
         java.util.List<String> permissions = new java.util.ArrayList<>();
 
         if (sdkInt() >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {

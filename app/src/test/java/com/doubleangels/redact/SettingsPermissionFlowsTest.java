@@ -49,6 +49,7 @@ public class SettingsPermissionFlowsTest {
         AppProcessingScope.resetForTests();
         app = RuntimeEnvironment.getApplication();
         AppPreferences.setInitialPermissionsPromptCompleted(app);
+        AppPreferences.setOnboardingSeen(app);
         shadowOf(app).denyPermissions(
                 Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO,
                 Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED, Manifest.permission.ACCESS_MEDIA_LOCATION,

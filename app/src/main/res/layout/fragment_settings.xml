@@ -790,8 +790,8 @@
                                 android:layout_width="48dp"
                                 android:layout_height="48dp"
                                 android:layout_marginStart="4dp"
-                                android:contentDescription="@string/settings_output_open"
-                                android:tooltipText="@string/settings_output_open"
+                                android:contentDescription="@string/settings_output_open_images"
+                                android:tooltipText="@string/settings_output_open_images"
                                 app:icon="@drawable/ic_folder_open"
                                 app:iconTint="?attr/colorOnSurfaceVariant" />
                         </LinearLayout>
@@ -913,8 +913,8 @@
                                 android:layout_width="48dp"
                                 android:layout_height="48dp"
                                 android:layout_marginStart="4dp"
-                                android:contentDescription="@string/settings_output_open"
-                                android:tooltipText="@string/settings_output_open"
+                                android:contentDescription="@string/settings_output_open_videos"
+                                android:tooltipText="@string/settings_output_open_videos"
                                 app:icon="@drawable/ic_folder_open"
                                 app:iconTint="?attr/colorOnSurfaceVariant" />
                         </LinearLayout>
@@ -1900,6 +1900,74 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/settings_about_privacy"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="?attr/colorPrimary" />
+
+                    <ImageView
+                        android:contentDescription="@null"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <LinearLayout
+                    android:id="@+id/rowAboutLicenses"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:orientation="horizontal"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/settings_about_licenses"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="?attr/colorPrimary" />
+
+                    <ImageView
+                        android:contentDescription="@null"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <LinearLayout
+                    android:id="@+id/rowAboutIntro"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:orientation="horizontal"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/settings_about_intro"
                         android:textAppearance="?attr/textAppearanceBodyLarge"
                         android:textColor="?attr/colorPrimary" />
 

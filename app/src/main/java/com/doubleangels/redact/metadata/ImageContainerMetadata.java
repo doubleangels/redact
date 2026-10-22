@@ -8,6 +8,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import com.doubleangels.redact.sentry.SentryManager;
+
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -248,9 +250,15 @@ public final class ImageContainerMetadata {
             }
         } catch (IOException | RuntimeException e) {
             // What was found before the structure broke is still worth showing, but the file can
-            // never count as clean.
+            // never count as clean. An IOException is a damaged file; a RuntimeException is a gap
+            // in this parser, so report it.
+            if (e instanceof RuntimeException) {
+                SentryManager.recordException(e);
+            }
+            walker.finishExtendedXmp();
             return new Report(walker.format, false, walker.findings, walker.kept);
         }
+        walker.finishExtendedXmp();
         return new Report(walker.format, true, walker.findings, walker.kept);
     }
 
@@ -265,6 +273,10 @@ public final class ImageContainerMetadata {
         Format format = Format.OTHER;
         final List<Finding> findings = new ArrayList<>();
         final List<Finding> kept = new ArrayList<>();
+        /** Extended XMP arrives in chunks; each GUID is one finding, its text the chunks in order. */
+        private final Map<String, java.util.TreeMap<Long, String>> extendedXmp = new java.util.HashMap<>();
+        private final Map<String, Integer> extendedXmpAt = new java.util.HashMap<>();
+        private final Map<String, Long> extendedXmpBytes = new java.util.HashMap<>();
 
         Walker(@NonNull FileChannel channel, @Nullable OutputStream out) throws IOException {
             this.src = new Source(channel);
@@ -296,6 +308,23 @@ public final class ImageContainerMetadata {
                 // Still more to remove; one row says so rather than hundreds.
                 findings.add(new Finding("MORE_METADATA", null, bytes, Kind.OTHER));
             }
+        }
+
+        /** The readable strings in a finding's data, for Scan; a clean has no use for them. */
+        @Nullable
+        private String readable(@NonNull byte[] data, int offset, int length) {
+            return out != null ? null : ReadableText.strings(data, offset, length);
+        }
+
+        @Nullable
+        private String readable(@NonNull byte[] data) {
+            return readable(data, 0, data.length);
+        }
+
+        /** The readable strings in the file at {@code pos}, read only when scanning. */
+        @Nullable
+        private String readableAt(long pos, long length) throws IOException {
+            return out != null ? null : ReadableText.strings(src.read(pos, (int) Math.min(length, 70_000)));
         }
 
         private void write(@NonNull byte[] bytes) throws IOException {
@@ -422,13 +451,14 @@ public final class ImageContainerMetadata {
                 find("JPEG_COMMENT", printable(data), size, Kind.OTHER);
             } else if (marker == 0xEB) {
                 boolean c2pa = indexOf(data, ascii("c2pa")) >= 0;
-                find(c2pa ? "CONTENT_CREDENTIALS" : "JUMBF_DATA", null, size, Kind.OTHER);
+                find(c2pa ? "CONTENT_CREDENTIALS" : "JUMBF_DATA", readable(data), size, Kind.OTHER);
             } else if (marker >= 0xE0 && marker <= 0xEF) {
                 String id = identifier(data);
-                find("APP" + (marker - 0xE0) + (id.isEmpty() ? "_DATA" : "_" + keyOf(id)), null, size,
-                        id.toLowerCase(Locale.ROOT).contains("ducky") ? Kind.NAME : Kind.OTHER);
+                boolean ducky = id.toLowerCase(Locale.ROOT).contains("ducky");
+                find("APP" + (marker - 0xE0) + (id.isEmpty() ? "_DATA" : "_" + keyOf(id)),
+                        ducky ? ducky(data) : readable(data), size, ducky ? Kind.NAME : Kind.OTHER);
             } else {
-                find(String.format(Locale.ROOT, "JPEG_SEGMENT_%02X", marker), null, size, Kind.OTHER);
+                find(String.format(Locale.ROOT, "JPEG_SEGMENT_%02X", marker), readable(data), size, Kind.OTHER);
             }
         }
 
@@ -440,12 +470,13 @@ public final class ImageContainerMetadata {
                 jfif[13] = 0;
                 writeSegment(0xE0, jfif);
                 if ((data[12] & 0xFF) * (data[13] & 0xFF) > 0) {
-                    find("JFIF_THUMBNAIL", null, data.length - 14L, Kind.OTHER);
+                    find("JFIF_THUMBNAIL", (data[12] & 0xFF) + "×" + (data[13] & 0xFF), data.length - 14L,
+                            Kind.OTHER);
                 }
             } else if (startsWith(data, ascii("JFXX\0"))) {
                 find("JFIF_THUMBNAIL", null, data.length, Kind.OTHER);
             } else {
-                find("APP0_DATA", null, data.length, Kind.OTHER);
+                find("APP0_DATA", readable(data), data.length, Kind.OTHER);
             }
         }
 
@@ -459,11 +490,65 @@ public final class ImageContainerMetadata {
             } else if (startsWith(data, ascii("http://ns.adobe.com/xmp/extension/\0"))) {
                 int start = Math.min(data.length, 35 + 32 + 8);
                 String xmp = new String(data, start, data.length - start, StandardCharsets.UTF_8);
-                find("XMP_EXTENDED", null, size, xmpKind(xmp));
+                String guid = data.length >= 67 ? new String(data, 35, 32, StandardCharsets.ISO_8859_1) : "";
+                extendedXmp(guid, data.length >= 75 ? u32(data, 71) : 0, xmp, size);
             } else {
                 String id = identifier(data);
-                find(id.isEmpty() ? "APP1_DATA" : "APP1_" + keyOf(id), null, size, Kind.OTHER);
+                find(id.isEmpty() ? "APP1_DATA" : "APP1_" + keyOf(id), readable(data), size, Kind.OTHER);
             }
+        }
+
+        /**
+         * Adds a chunk of extended XMP to the one finding for its GUID. The chunks are joined once,
+         * by {@link #finishExtendedXmp}, since joining them again for every chunk grows with the
+         * square of their number. A clean does not read findings, so it keeps none.
+         */
+        private void extendedXmp(@NonNull String guid, long offset, @NonNull String xmp, long size) {
+            if (out != null) {
+                return;
+            }
+            extendedXmp.computeIfAbsent(guid, g -> new java.util.TreeMap<>()).put(offset, xmp);
+            extendedXmpBytes.merge(guid, size, Long::sum);
+            if (!extendedXmpAt.containsKey(guid)) {
+                if (findings.size() < MAX_FINDINGS) {
+                    extendedXmpAt.put(guid, findings.size());
+                }
+                // Holds the finding's place until the walk ends.
+                find("XMP_EXTENDED", null, size, Kind.OTHER);
+            }
+        }
+
+        /** Fills in each extended XMP finding from all of its chunks. */
+        void finishExtendedXmp() {
+            for (Map.Entry<String, Integer> entry : extendedXmpAt.entrySet()) {
+                String whole = String.join("", extendedXmp.get(entry.getKey()).values());
+                findings.set(entry.getValue(), new Finding("XMP_EXTENDED", cap(whole),
+                        extendedXmpBytes.get(entry.getKey()), xmpKind(whole)));
+            }
+        }
+
+        /** Photoshop's Save for Web segment: its comment and copyright, in UTF-16. */
+        @Nullable
+        private String ducky(@NonNull byte[] data) {
+            List<String> texts = new ArrayList<>();
+            int pos = 5;
+            while (pos + 4 <= data.length) {
+                int tag = u16(data, pos);
+                int length = u16(data, pos + 2);
+                pos += 4;
+                if (tag == 0 || pos + length > data.length) {
+                    break;
+                }
+                if ((tag == 2 || tag == 3) && length >= 4) {
+                    int chars = (int) Math.min(u32(data, pos), (length - 4) / 2);
+                    String text = new String(data, pos + 4, chars * 2, StandardCharsets.UTF_16BE).trim();
+                    if (!text.isEmpty()) {
+                        texts.add(text);
+                    }
+                }
+                pos += length;
+            }
+            return texts.isEmpty() || out != null ? readable(data) : String.join(" · ", texts);
         }
 
         private void app2(byte[] data, long size, ByteArrayOutputStream icc) throws IOException {
@@ -478,12 +563,12 @@ public final class ImageContainerMetadata {
                 return;
             }
             if (startsWith(data, ascii("MPF\0"))) {
-                find("MULTI_PICTURE_INDEX", null, size, Kind.OTHER);
+                find("MULTI_PICTURE_INDEX", readable(data), size, Kind.OTHER);
             } else if (startsWith(data, ascii("FPXR\0"))) {
-                find("FLASHPIX_DATA", null, size, Kind.OTHER);
+                find("FLASHPIX_DATA", readable(data), size, Kind.OTHER);
             } else {
                 String id = identifier(data);
-                find(id.isEmpty() ? "APP2_DATA" : "APP2_" + keyOf(id), null, size, Kind.OTHER);
+                find(id.isEmpty() ? "APP2_DATA" : "APP2_" + keyOf(id), readable(data), size, Kind.OTHER);
             }
         }
 
@@ -491,10 +576,11 @@ public final class ImageContainerMetadata {
         private void photoshop(byte[] data, long size) {
             byte[] id = ascii("Photoshop 3.0\0");
             if (!startsWith(data, id)) {
-                find("APP13_DATA", null, size, Kind.OTHER);
+                find("APP13_DATA", readable(data), size, Kind.OTHER);
                 return;
             }
             int other = 0;
+            ByteArrayOutputStream otherData = new ByteArrayOutputStream();
             int pos = id.length;
             while (pos + 12 <= data.length && data[pos] == '8' && data[pos + 1] == 'B'
                     && data[pos + 2] == 'I' && data[pos + 3] == 'M') {
@@ -514,19 +600,23 @@ public final class ImageContainerMetadata {
                 if (resource == 0x0404) {
                     iptc(data, start, end);
                 } else if (resource == 0x0409 || resource == 0x040C) {
-                    find("PHOTOSHOP_THUMBNAIL", null, end - start, Kind.OTHER);
+                    String dimensions = end - start >= 12
+                            ? u32(data, start + 4) + "×" + u32(data, start + 8) : null;
+                    find("PHOTOSHOP_THUMBNAIL", dimensions, end - start, Kind.OTHER);
                 } else if (resource == 0x0424) {
                     String xmp = new String(data, start, end - start, StandardCharsets.UTF_8);
                     find("XMP", xmp, end - start, xmpKind(xmp));
                 } else {
                     other++;
+                    otherData.write(data, start, end - start);
+                    otherData.write(0);
                 }
                 pos = start + (int) ((resourceSize + 1) & ~1L);
             }
             if (other > 0) {
-                find("PHOTOSHOP_RESOURCES", null, size, Kind.OTHER);
+                find("PHOTOSHOP_RESOURCES", readable(otherData.toByteArray()), size, Kind.OTHER);
             } else if (pos == id.length) {
-                find("APP13_DATA", null, size, Kind.OTHER);
+                find("APP13_DATA", readable(data, id.length, data.length - id.length), size, Kind.OTHER);
             }
         }
 
@@ -553,7 +643,7 @@ public final class ImageContainerMetadata {
                 pos = valueEnd;
             }
             if (found == 0 && end > start) {
-                find("IPTC", null, end - start, Kind.OTHER);
+                find("IPTC", readable(data, start, end - start), end - start, Kind.OTHER);
             }
         }
 
@@ -615,13 +705,15 @@ public final class ImageContainerMetadata {
             }
             if (end - start >= 8 && java.util.Arrays.equals(src.read(end - 4, 4), ascii("SEFT"))) {
                 long sefStart = Math.max(start, end - Math.min(end - start, 4L * 1024 * 1024));
-                Set<String> names = samsungEntries(src.read(sefStart, (int) (end - sefStart)));
-                find("SAMSUNG_TRAILER", names.isEmpty() ? null : String.join(", ", names), end - start,
+                byte[] sef = src.read(sefStart, (int) (end - sefStart));
+                Set<String> names = samsungEntries(sef);
+                find("SAMSUNG_TRAILER", names.isEmpty() ? null : samsungText(names, sef), end - start,
                         names.contains("MCC_Data") || names.contains("Image_UTC_Data") ? Kind.DATE : Kind.OTHER);
                 described = true;
             }
             if (!described) {
-                find("DATA_AFTER_IMAGE", null, end - start, Kind.OTHER);
+                find("DATA_AFTER_IMAGE", readableAt(start, Math.min(end - start, 64 * 1024)), end - start,
+                        Kind.OTHER);
             }
         }
 
@@ -747,7 +839,7 @@ public final class ImageContainerMetadata {
                     find("CONTENT_CREDENTIALS", null, length, Kind.OTHER);
                     return;
                 default:
-                    find("PNG_CHUNK_" + keyOf(type), null, length, Kind.OTHER);
+                    find("PNG_CHUNK_" + keyOf(type), readableAt(data, length), length, Kind.OTHER);
             }
         }
 
@@ -786,7 +878,10 @@ public final class ImageContainerMetadata {
             String lower = keyword.toLowerCase(Locale.ROOT);
             if (lower.startsWith("raw profile type")) {
                 // ImageMagick's hex dump of a whole EXIF, IPTC or XMP block.
-                find("PNG_TEXT_" + keyOf(keyword), null, length,
+                byte[] profile = out != null ? null : ReadableText.hexProfile(text);
+                String shown = profile == null ? null : lower.endsWith("xmp")
+                        ? new String(profile, StandardCharsets.UTF_8) : ReadableText.strings(profile);
+                find("PNG_TEXT_" + keyOf(keyword), shown, length,
                         lower.contains("exif") || lower.contains("xmp") ? Kind.LOCATION : Kind.OTHER);
                 return;
             }
@@ -888,7 +983,7 @@ public final class ImageContainerMetadata {
                         break;
                     }
                     default:
-                        find("WEBP_CHUNK_" + keyOf(type.trim()), null, size, Kind.OTHER);
+                        find("WEBP_CHUNK_" + keyOf(type.trim()), readableAt(data, size), size, Kind.OTHER);
                 }
                 pos = end;
             }
@@ -942,7 +1037,8 @@ public final class ImageContainerMetadata {
                         copyWebpChunk(inner, innerSize, frame);
                     }
                 } else {
-                    find("WEBP_CHUNK_" + keyOf(type.trim()), null, innerSize, Kind.OTHER);
+                    find("WEBP_CHUNK_" + keyOf(type.trim()), readableAt(inner + 8, innerSize), innerSize,
+                            Kind.OTHER);
                 }
                 inner = innerEnd;
             }
@@ -1170,6 +1266,20 @@ public final class ImageContainerMetadata {
         return names;
     }
 
+    private static final Pattern SAMSUNG_UTC = Pattern.compile("Image_UTC_Data(\\d{13})");
+
+    /** The entry names, with the capture time Samsung keeps in {@code Image_UTC_Data} when it is there. */
+    @NonNull
+    static String samsungText(@NonNull Set<String> names, @NonNull byte[] trailer) {
+        String joined = String.join(", ", names);
+        Matcher m = SAMSUNG_UTC.matcher(new String(trailer, StandardCharsets.ISO_8859_1));
+        if (!m.find()) {
+            return joined;
+        }
+        return joined.replace("Image_UTC_Data",
+                "Image_UTC_Data (" + ReadableText.utc(Long.parseLong(m.group(1))) + ")");
+    }
+
     private static final class EmbeddedExif {
         @Nullable double[] latLong;
         @Nullable String dateTime;
@@ -1298,6 +1408,10 @@ public final class ImageContainerMetadata {
             return i;
         }
         return -1;
+    }
+
+    private static int u16(byte[] b, int offset) {
+        return ((b[offset] & 0xFF) << 8) | (b[offset + 1] & 0xFF);
     }
 
     private static long u32(byte[] b, int offset) {

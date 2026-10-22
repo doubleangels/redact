@@ -130,6 +130,85 @@ public class MainActivityTest {
     }
 
     @Test
+    public void freshInstall_opensTheIntroductionBeforeThePermissionPrompts() {
+        MainActivity activity = launch();
+
+        android.content.Intent started = shadowOf(activity).getNextStartedActivity();
+        assertNotNull(started);
+        assertEquals(OnboardingActivity.class.getName(), started.getComponent().getClassName());
+        assertTrue(shadowOf(activity).getLastRequestedPermission() == null);
+
+        shadowOf(activity).receiveResult(started, android.app.Activity.RESULT_OK, null);
+        shadowOf(Looper.getMainLooper()).idle();
+
+        // The introduction already asked on its own pages, so nothing is asked again here.
+        assertTrue(AppPreferences.hasSeenOnboarding(activity));
+        assertTrue(AppPreferences.hasCompletedInitialPermissionsPrompt(activity));
+        assertTrue(shadowOf(activity).getLastRequestedPermission() == null);
+    }
+
+    @Test
+    public void backingOutOfTheIntroduction_closesTheApp_andShowsItNextTime() {
+        MainActivity activity = launch();
+        android.content.Intent started = shadowOf(activity).getNextStartedActivity();
+
+        shadowOf(activity).receiveResult(started, android.app.Activity.RESULT_CANCELED, null);
+        shadowOf(Looper.getMainLooper()).idle();
+
+        assertTrue(activity.isFinishing());
+        assertTrue(!AppPreferences.hasSeenOnboarding(activity));
+        assertTrue(!AppPreferences.hasCompletedInitialPermissionsPrompt(activity));
+    }
+
+    @Test
+    public void afterTheIntroduction_itIsNotShownAgain() {
+        AppPreferences.setOnboardingSeen(org.robolectric.RuntimeEnvironment.getApplication());
+        assertNoIntroduction(launch());
+    }
+
+    @Test
+    public void updatingFromAVersionWithoutTheIntroduction_showsItOnce_withoutAskingAgain() {
+        // Updating users finished the permission prompts before the introduction existed.
+        android.content.Context app = org.robolectric.RuntimeEnvironment.getApplication();
+        AppPreferences.setInitialPermissionsPromptCompleted(app);
+        MainActivity activity = launch();
+
+        android.content.Intent started = shadowOf(activity).getNextStartedActivity();
+        assertNotNull(started);
+        assertEquals(OnboardingActivity.class.getName(), started.getComponent().getClassName());
+
+        shadowOf(activity).receiveResult(started, android.app.Activity.RESULT_OK, null);
+        shadowOf(Looper.getMainLooper()).idle();
+
+        assertTrue(AppPreferences.hasSeenOnboarding(activity));
+        assertTrue(shadowOf(activity).getLastRequestedPermission() == null);
+        controller.pause().stop().destroy();
+        controller = null;
+        assertNoIntroduction(launch());
+    }
+
+    @Test
+    public void skipIntroExtra_opensStraightToTheTabs_inDebugBuilds() {
+        android.content.Intent intent = new android.content.Intent(
+                org.robolectric.RuntimeEnvironment.getApplication(), MainActivity.class)
+                .putExtra(MainActivity.EXTRA_SKIP_INTRO, true);
+        controller = Robolectric.buildActivity(MainActivity.class, intent).setup();
+        MainActivity activity = controller.get();
+
+        assertNoIntroduction(activity);
+        assertTrue(AppPreferences.hasSeenOnboarding(activity));
+        assertTrue(AppPreferences.hasCompletedInitialPermissionsPrompt(activity));
+    }
+
+    private static void assertNoIntroduction(MainActivity activity) {
+        android.content.Intent started;
+        while ((started = shadowOf(activity).getNextStartedActivity()) != null) {
+            assertTrue(started.getComponent() == null || !OnboardingActivity.class.getName()
+                    .equals(started.getComponent().getClassName()));
+        }
+    }
+
+    @Test
     public void permissionResults_areRoutedToTheMatchingTab() {
         MainActivity activity = launch();
         select(activity, R.id.navigation_scan);
@@ -239,5 +318,153 @@ public class MainActivityTest {
                 .setDataAndType(android.net.Uri.parse(
                         "content://com.doubleangels.redact.fileprovider/cache/processed/a.jpg"), "image/jpeg");
         assertEquals(R.id.navigation_clean, launchedTab(own));
+    }
+
+    // ---- Redact › Convert ----------------------------------------------------------------
+
+    private static android.net.Uri sharedImage(int n) {
+        return android.net.Uri.parse("content://com.android.externalstorage.documents/document/primary%3APictures%2F"
+                + n + ".jpg");
+    }
+
+    private static android.content.Intent convertShare(String action) {
+        return new android.content.Intent(action)
+                .setClassName("com.doubleangels.redact", "com.doubleangels.redact.ConvertShareTarget")
+                .setType("image/*");
+    }
+
+    private com.doubleangels.redact.ui.MainViewModel viewModel() {
+        return new androidx.lifecycle.ViewModelProvider(controller.get())
+                .get(com.doubleangels.redact.ui.MainViewModel.class);
+    }
+
+    private java.util.List<com.doubleangels.redact.media.MediaItem> awaitConvertItems() throws InterruptedException {
+        TestWaits.awaitMain(() -> viewModel().getConvertSelectedItems().getValue() != null
+                && !viewModel().getConvertSelectedItems().getValue().isEmpty());
+        return viewModel().getConvertSelectedItems().getValue();
+    }
+
+    @Test
+    public void sharingAnImageToConvert_opensConvertWithItSelected() throws Exception {
+        FakeDocumentsProvider.install(org.robolectric.RuntimeEnvironment.getApplication());
+        android.content.Intent send = convertShare(android.content.Intent.ACTION_SEND)
+                .putExtra(android.content.Intent.EXTRA_STREAM, sharedImage(1));
+
+        assertEquals(R.id.navigation_convert, launchedTab(send));
+        java.util.List<com.doubleangels.redact.media.MediaItem> items = awaitConvertItems();
+        assertEquals(1, items.size());
+        assertEquals(sharedImage(1), items.get(0).uri());
+    }
+
+    @Test
+    public void sharingMoreThanTheCapToConvert_keepsTheFirstTwenty() throws Exception {
+        FakeDocumentsProvider.install(org.robolectric.RuntimeEnvironment.getApplication());
+        java.util.ArrayList<android.net.Uri> uris = new java.util.ArrayList<>();
+        for (int i = 0; i < 25; i++) {
+            uris.add(sharedImage(i));
+        }
+        android.content.Intent send = convertShare(android.content.Intent.ACTION_SEND_MULTIPLE)
+                .putParcelableArrayListExtra(android.content.Intent.EXTRA_STREAM, uris);
+
+        assertEquals(R.id.navigation_convert, launchedTab(send));
+        assertEquals(20, awaitConvertItems().size());
+        assertTrue(org.robolectric.shadows.ShadowToast.getTextOfLatestToast().contains("20"));
+    }
+
+    @Test
+    public void sharingNothingUsableToConvert_saysSo() {
+        android.content.Intent fileUri = convertShare(android.content.Intent.ACTION_SEND)
+                .putExtra(android.content.Intent.EXTRA_STREAM, android.net.Uri.parse("file:///sdcard/a.jpg"));
+        assertEquals(R.id.navigation_convert, launchedTab(fileUri));
+        assertEquals(controller.get().getString(R.string.share_error_unsupported_media),
+                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+        controller.pause().stop().destroy();
+
+        android.content.Intent noStream = convertShare(android.content.Intent.ACTION_SEND_MULTIPLE);
+        assertEquals(R.id.navigation_convert, launchedTab(noStream));
+        assertTrue(viewModel().getConvertSelectedItems().getValue().isEmpty());
+    }
+
+    @Test
+    public void viewingThroughTheConvertTarget_isNotAConvertShare() {
+        FakeDocumentsProvider.install(org.robolectric.RuntimeEnvironment.getApplication());
+        android.content.Intent view = convertShare(android.content.Intent.ACTION_VIEW).setData(sharedImage(1));
+
+        assertEquals(R.id.navigation_scan, launchedTab(view));
+    }
+
+    @Test
+    public void sharingToConvertWhileItRuns_onlyShowsTheRunningConvert() {
+        FakeDocumentsProvider.install(org.robolectric.RuntimeEnvironment.getApplication());
+        MainActivity activity = launch();
+        viewModel().setConvertProcessingState(com.doubleangels.redact.ui.MainViewModel.ProcessingState.PROCESSING);
+
+        controller.newIntent(convertShare(android.content.Intent.ACTION_SEND)
+                .putExtra(android.content.Intent.EXTRA_STREAM, sharedImage(1)));
+        shadowOf(Looper.getMainLooper()).idle();
+
+        BottomNavigationView nav = activity.findViewById(R.id.bottomNavigation);
+        assertEquals(R.id.navigation_convert, nav.getSelectedItemId());
+        assertTrue(viewModel().getConvertSelectedItems().getValue().isEmpty());
+        viewModel().setConvertProcessingState(com.doubleangels.redact.ui.MainViewModel.ProcessingState.IDLE);
+    }
+
+    // ---- Censor ---------------------------------------------------------------------------------
+
+    private static android.content.Intent censorShare(android.net.Uri stream) {
+        android.content.Intent send = new android.content.Intent(android.content.Intent.ACTION_SEND)
+                .setClassName("com.doubleangels.redact", "com.doubleangels.redact.CensorShareTarget")
+                .setType("image/jpeg");
+        return stream == null ? send : send.putExtra(android.content.Intent.EXTRA_STREAM, stream);
+    }
+
+    private com.doubleangels.redact.ui.CensorViewModel censorViewModel() {
+        return new androidx.lifecycle.ViewModelProvider(controller.get())
+                .get(com.doubleangels.redact.ui.CensorViewModel.class);
+    }
+
+    @Test
+    public void selectingCensor_showsItsTabOnly() {
+        MainActivity activity = launch();
+
+        select(activity, R.id.navigation_censor);
+
+        assertNotNull(fragment(activity, "censor"));
+        assertTrue(fragment(activity, "censor").isVisible());
+        assertTrue(fragment(activity, "clean").isHidden());
+    }
+
+    @Test
+    public void sharingAPhotoToCensor_opensItInTheCensorTab() {
+        FakeDocumentsProvider.install(org.robolectric.RuntimeEnvironment.getApplication());
+
+        assertEquals(R.id.navigation_censor, launchedTab(censorShare(sharedImage(1))));
+        assertEquals(sharedImage(1), censorViewModel().getSource());
+    }
+
+    @Test
+    public void sharingSomethingUnusableToCensor_saysSoAndOpensNothing() {
+        assertEquals(R.id.navigation_censor,
+                launchedTab(censorShare(android.net.Uri.parse("file:///sdcard/a.jpg"))));
+        assertEquals(controller.get().getString(R.string.share_error_unsupported_media),
+                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+        assertNull(censorViewModel().getSource());
+        controller.pause().stop().destroy();
+
+        assertEquals(R.id.navigation_censor, launchedTab(censorShare(null)));
+        assertNull(censorViewModel().getSource());
+    }
+
+    @Test
+    public void sharingToCensorWhileRunning_switchesToCensor() {
+        FakeDocumentsProvider.install(org.robolectric.RuntimeEnvironment.getApplication());
+        MainActivity activity = launch();
+
+        controller.newIntent(censorShare(sharedImage(2)));
+        shadowOf(Looper.getMainLooper()).idle();
+
+        BottomNavigationView nav = activity.findViewById(R.id.bottomNavigation);
+        assertEquals(R.id.navigation_censor, nav.getSelectedItemId());
+        assertEquals(sharedImage(2), censorViewModel().getSource());
     }
 }

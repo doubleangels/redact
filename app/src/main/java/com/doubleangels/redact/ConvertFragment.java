@@ -60,6 +60,7 @@ public class ConvertFragment extends Fragment {
     private MaterialButton convertButton;
     private TextView statusText;
     private MaterialButton shareResultsButton;
+    private View scanResultButton;
     private LinearLayout progressContainer;
     private TextView progressText;
     private LinearProgressIndicator progressBar;
@@ -133,6 +134,11 @@ public class ConvertFragment extends Fragment {
             Haptics.tick(v);
             com.doubleangels.redact.ui.ShareResults.share(
                     requireContext(), viewModel.getConvertOutputs());
+        });
+        scanResultButton = view.findViewById(R.id.scanResultButton);
+        scanResultButton.setOnClickListener(v -> {
+            Haptics.tick(v);
+            openResultInScan();
         });
         progressContainer = view.findViewById(R.id.progressContainer);
         progressText = view.findViewById(R.id.progressText);
@@ -501,10 +507,16 @@ public class ConvertFragment extends Fragment {
                     // Counted by the view model; asks only when this tab is showing.
                     com.doubleangels.redact.ui.ReviewPrompt.askIfDue(this);
                 }
+                if (!isHidden()) {
+                    com.doubleangels.redact.ui.ErrorFeedbackPrompt.offer(
+                            getView(), viewModel.takeConvertFeedbackEventId());
+                }
             }
             com.doubleangels.redact.ui.ShareResults.updateButton(
                     shareResultsButton, state == MainViewModel.ProcessingState.COMPLETED,
                     viewModel.getConvertOutputs());
+            scanResultButton.setVisibility(state == MainViewModel.ProcessingState.COMPLETED
+                    && viewModel.getConvertOutputs().size() == 1 ? View.VISIBLE : View.GONE);
         });
         viewModel.getConvertProgressPercent().observe(getViewLifecycleOwner(), percent -> {
             if (progressBar.getVisibility() == View.VISIBLE) {
@@ -529,8 +541,9 @@ public class ConvertFragment extends Fragment {
         int formatIndex = getSelectedFormatIndex();
         int imageFormatIndex = FormatConverter.effectiveImageFormatIndex(formatIndex);
         Bitmap.CompressFormat imageFormat = FormatConverter.formatAtIndex(imageFormatIndex);
-        final boolean heicOutputFallback =
-                formatIndex == 3 && imageFormatIndex != formatIndex;
+        // Below Android 14, or on a phone whose Android has no HEIC encoder, HEIC becomes JPEG.
+        final boolean heicOutputFallback = formatIndex == 3
+                && (imageFormatIndex != formatIndex || !FormatConverter.isHeicOutputSupported());
 
         progressBar.setIndeterminate(false);
         progressBar.setMax(100);
@@ -664,6 +677,19 @@ public class ConvertFragment extends Fragment {
             }
         } catch (Exception e) {
             SentryManager.recordException(e);
+        }
+    }
+
+    /** Opens the single converted file in Scan so the user can see what it still carries. */
+    private void openResultInScan() {
+        List<android.net.Uri> outputs = viewModel.getConvertOutputs();
+        if (outputs.size() != 1) {
+            return;
+        }
+        new ViewModelProvider(requireActivity()).get(com.doubleangels.redact.ui.ScanViewModel.class)
+                .setPendingUri(outputs.get(0));
+        if (requireActivity() instanceof MainActivity mainActivity) {
+            mainActivity.selectTab(R.id.navigation_scan);
         }
     }
 }

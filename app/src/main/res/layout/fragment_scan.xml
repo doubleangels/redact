@@ -14,7 +14,7 @@
         android:layout_height="0dp"
         android:clipChildren="false"
         android:clipToPadding="false"
-        android:contentDescription="@string/content_description_scroll_view"
+        android:contentDescription="@null"
         android:fillViewport="true"
         android:paddingHorizontal="@dimen/scan_screen_horizontal_padding"
         android:paddingTop="8dp"
@@ -129,7 +129,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:background="?attr/colorSurfaceContainerHigh"
-                                android:contentDescription="@string/content_description_image_view"
+                                android:contentDescription="@null"
                                 android:scaleType="centerCrop"
                                 app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium" />
 
@@ -138,7 +138,7 @@
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
                                 android:layout_margin="4dp"
-                                android:contentDescription="@string/content_description_image_view"
+                                android:contentDescription="@null"
                                 android:src="@drawable/ic_video"
                                 android:visibility="gone"
                                 app:layout_constraintBottom_toBottomOf="parent"

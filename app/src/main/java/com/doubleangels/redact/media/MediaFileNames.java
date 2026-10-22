@@ -5,6 +5,7 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 
 import com.doubleangels.redact.AppPreferences;
 
@@ -41,10 +42,21 @@ public final class MediaFileNames {
      */
     @NonNull
     public static String outputBaseName(@NonNull Context context, @Nullable String originalFileName) {
+        return outputBaseName(context, originalFileName, 0);
+    }
+
+    /**
+     * Like {@link #outputBaseName(Context, String)}, but a kept name goes through
+     * {@code keptNameFormat}, a string resource such as "%1$s (censored)", so the copy is told
+     * apart from the original. Zero keeps the name as it is.
+     */
+    @NonNull
+    public static String outputBaseName(@NonNull Context context, @Nullable String originalFileName,
+                                        @StringRes int keptNameFormat) {
         if (AppPreferences.isKeepOriginalFileNames(context)) {
             String base = baseNameOf(originalFileName);
             if (!base.isEmpty()) {
-                return base;
+                return keptNameFormat != 0 ? context.getString(keptNameFormat, base) : base;
             }
         }
         return generateShortRandomName();

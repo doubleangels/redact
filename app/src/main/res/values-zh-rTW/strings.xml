@@ -4,8 +4,9 @@
     <string name="app_name">Redact</string>
 
     
-    <string name="content_description_image_view">圖片檢視</string>
-    <string name="content_description_scroll_view">捲動檢視</string>
+    <string name="content_description_selected_files">已選取的檔案</string>
+    <string name="content_description_selected_photo">相片：%1$s</string>
+    <string name="content_description_selected_video">影片：%1$s</string>
 
     
     <string name="navigation_clean">清理</string>
@@ -27,6 +28,7 @@
     <string name="notification_clean_progress_title">正在清理中繼資料…</string>
 
     <string name="navigation_convert">轉換</string>
+    <string name="navigation_censor">遮蔽</string>
 
     
     <string name="convert_output_format_images">圖片格式</string>
@@ -116,9 +118,7 @@
     <string name="metadata_location_unreadable">存在位置資料，但其儲存形式無法在此顯示。清理會將其移除。</string>
     <string name="metadata_container_tags_header">內嵌的標籤：</string>
     <string name="metadata_container_tags">在檔案中發現：%1$s</string>
-    <string name="metadata_container_value">存在 – 清理時會移除</string>
     <string name="metadata_embedded_data_header">隱藏和嵌入的資料</string>
-    <string name="metadata_embedded_value">存在（%1$s） – 清理時會移除</string>
     <plurals name="metadata_embedded_images">
         <item quantity="other">%1$d 張圖片（%2$s） – 清理時會移除</item>
     </plurals>
@@ -171,7 +171,7 @@
     <string name="settings_sentry_consent_title">啟用當機報告</string>
     <string name="settings_sentry_consent_message">傳送當機報告會透過網際網路向 Sentry 上傳匿名診斷資訊。\n\n不會上傳照片、影片、檔名或 GPS 座標。</string>
     <string name="settings_strict_clean">嚴格清理</string>
-    <string name="settings_strict_clean_subtitle">移除所有中繼資料痕跡，甚至包括方向標籤，因此旋轉過的相片之後可能會顯示為歪斜。關閉上方的保留選項，並一律完整重新編碼影片，以達到最徹底的清理。</string>
+    <string name="settings_strict_clean_subtitle">移除所有中繼資料痕跡，甚至包括方向標籤，因此旋轉過的相片之後可能會顯示為歪斜。關閉下方的保留選項，並一律完整重新編碼影片，以達到最徹底的清理。</string>
     
     <string name="settings_section_advanced_processing">大型檔案與記憶體</string>
     <string name="settings_advanced_processing_subtitle">控制清理和轉換時解碼大型影像的記憶體使用。</string>
@@ -286,7 +286,9 @@
     <string name="notification_progress_percent">已完成 %1$d%%</string>
     <string name="scan_clean_this_file">清理此檔案</string>
     <string name="scan_convert_this_file">轉換此檔案</string>
+    <string name="scan_censor_this_photo">遮蔽此照片的部分內容</string>
     <string name="scan_copied_to_clipboard">已複製到剪貼簿</string>
+    <string name="scan_copy_value">複製值</string>
     <string name="scan_copy_all_metadata">複製全部中繼資料</string>
     <string name="scan_copy_camera">複製相機資訊</string>
 <string name="settings_permissions_location">照片位置</string>
@@ -360,7 +362,7 @@
     <string name="convert_empty_state_title">轉換媒體格式</string>
     <string name="convert_empty_state_description">選擇照片或影片，將其轉換為 JPEG、PNG、WebP、HEIC 或 MP4 格式。</string>
     <string name="convert_files_card_title">要轉換的檔案</string>
-    <string name="convert_heic_fallback_jpeg">HEIC 輸出需要 Android 14 或更新版本。圖片將改為儲存為 JPEG。</string>
+    <string name="convert_heic_fallback_jpeg">這支手機無法儲存 HEIC 圖片，因此將改為儲存為 JPEG。</string>
     <string name="convert_item_type_image">圖片</string>
     <string name="convert_item_type_video">影片</string>
     <string name="scan_empty_state_title">檢查媒體中繼資料</string>
@@ -432,7 +434,8 @@
     <string name="share_results_chooser_title">分享方式…</string>
     <string name="settings_output_unavailable">Redact 無法再儲存至這個資料夾，檔案將儲存至 %1$s。請重新選擇這個資料夾或改選其他資料夾。</string>
     <string name="output_folder_fallback">%1$s 無法使用，改為儲存至 %2$s。</string>
-    <string name="settings_output_open">開啟資料夾</string>
+    <string name="settings_output_open_images">開啟圖片資料夾</string>
+    <string name="settings_output_open_videos">開啟影片資料夾</string>
     <string name="settings_output_open_unavailable">找不到可開啟此資料夾的應用程式。</string>
     <string name="settings_output_also_videos">影片也儲存到這裡嗎？</string>
     <string name="settings_output_also_images">圖片也儲存到這裡嗎？</string>
@@ -444,7 +447,34 @@
     <string name="settings_reset_all_confirm">重設</string>
     <string name="settings_reset_all_done">設定已恢復為預設值。</string>
     <string name="settings_reset_all_busy">處理期間無法重設設定。</string>
-    <string name="share_target_scan">使用 Redact 掃描</string>
+    <string name="censor_empty_state_title">遮住應保持私密的內容</string>
+    <string name="censor_empty_state_description">為照片中的人臉、車牌、地址等任何內容加上馬賽克、塗黑或模糊處理。Redact 會儲存一份不含任何中繼資料的遮蔽副本，原始照片維持不變。</string>
+    <string name="censor_select_photo">選擇照片</string>
+    <string name="censor_hint">在需要保密的內容上繪製，然後輕觸「儲存副本」。選擇「移動」後可雙指縮放並拖曳畫面。輕觸矩形即可移動或調整大小。</string>
+    <string name="censor_canvas_description">正在遮蔽的照片。用一根手指繪製以遮蔽區域。選擇「移動」後可拖曳畫面並雙指縮放。</string>
+    <string name="censor_tool_rectangle">矩形</string>
+    <string name="censor_tool_brush">筆刷</string>
+    <string name="censor_tool_move">移動</string>
+    <string name="censor_brush_size">筆刷大小</string>
+    <string name="censor_effect_pixelate">馬賽克</string>
+    <string name="censor_effect_black">塗黑</string>
+    <string name="censor_effect_blur">模糊</string>
+    <string name="censor_undo">復原</string>
+    <string name="censor_redo">重做</string>
+    <string name="censor_delete_rectangle">刪除矩形</string>
+    <string name="censor_zoom_level">%1$s×</string>
+    <string name="censor_zoom_reset">已放大 %1$s 倍。輕觸可顯示整張相片。</string>
+    <string name="censor_save">儲存副本</string>
+    <string name="censor_saved">已儲存遮蔽副本。</string>
+    <string name="censor_saved_downscaled">已儲存副本，但尺寸小於原始照片。若要保留完整尺寸，請在設定中提高最大處理解析度。</string>
+    <string name="censor_file_name">%1$s（已遮蔽）</string>
+    <string name="censor_error_open">無法開啟此照片。</string>
+    <string name="censor_error_unsupported">此裝置無法處理這種類型的圖片。</string>
+    <string name="censor_error_save">無法儲存遮蔽副本。</string>
+    <string name="censor_discard_title">要捨棄變更嗎？</string>
+    <string name="censor_discard_message">你遮蔽的區域尚未儲存。</string>
+    <string name="censor_discard">捨棄</string>
+    <string name="censor_keep_editing">繼續編輯</string>
     <string name="button_scan_result">掃描結果</string>
     <string name="settings_keep_original_names">保留原始檔名</string>
     <string name="settings_keep_original_names_subtitle">清理與轉換後的檔案沿用原始檔名，而非隨機名稱。IMG_20260117 這類名稱可能透露照片的拍攝時間。</string>
@@ -453,7 +483,14 @@
     <string name="review_prompt_yes">願意</string>
     <string name="review_prompt_no">不用了</string>
     <string name="review_prompt_declined">好的，Redact 不會再詢問。如果你改變主意，隨時可以在「設定 › 關於」中評分。</string>
-    <string name="crash_prompt_declined">好的，Redact 不會再詢問。你可以隨時在 設定 › 診斷與意見回饋 中開啟當機報告。</string>
+    <string name="error_feedback_offer">發生問題。已傳送當機報告。</string>
+    <string name="error_feedback_action">新增詳細資訊</string>
+    <string name="error_feedback_title">發生了什麼事？</string>
+    <string name="error_feedback_message">你的說明會附加到當機報告中。請勿包含個人資訊。檔案路徑和 GPS 座標會在傳送前移除。</string>
+    <string name="error_feedback_hint">出錯時你正在做什麼？</string>
+    <string name="error_feedback_send">傳送</string>
+    <string name="error_feedback_cancel">取消</string>
+    <string name="error_feedback_thanks">謝謝，你的說明已傳送。</string>
     <string name="stats_title">統計</string>
     <string name="stats_navigate_up">返回</string>
     <string name="stats_settings_title">你的隱私統計</string>
@@ -485,4 +522,82 @@
     <plurals name="stats_chart_summary">
         <item quantity="other">最近 30 天內清理了 %1$s 個檔案。</item>
     </plurals>
+    <string name="settings_about_intro">再次查看介紹</string>
+    <string name="settings_about_licenses">開放原始碼授權</string>
+    <string name="licenses_title">開放原始碼授權</string>
+    <string name="licenses_intro">Redact 使用了以下開放原始碼程式庫。輕觸任一項目即可查看授權。</string>
+    <string name="licenses_project_page">專案網頁</string>
+    <string name="licenses_close">關閉</string>
+    <string name="onboarding_skip">略過</string>
+    <string name="onboarding_next">下一步</string>
+    <string name="onboarding_continue">繼續</string>
+    <string name="onboarding_not_now">稍後再說</string>
+    <string name="onboarding_open_settings">開啟設定</string>
+    <string name="onboarding_get_started">開始</string>
+    <string name="onboarding_start">開始使用 Redact</string>
+    <string name="onboarding_done">完成</string>
+    <string name="onboarding_progress">第 %1$d 步，共 %2$d 步</string>
+    <string name="onboarding_welcome_title">歡迎使用 Redact！</string>
+    <string name="onboarding_welcome_body">有了 Redact，你可以分享相片和影片，而不洩露個人資訊。這段簡短的介紹大約需要一分鐘。</string>
+    <string name="onboarding_welcome_clean">清理會移除相片和影片中隱藏的資訊。</string>
+    <string name="onboarding_welcome_scan">掃描會在你分享之前，準確顯示檔案會透露哪些資訊。</string>
+    <string name="onboarding_welcome_convert">轉換會把相片或影片改成其他格式，並保持乾淨。</string>
+    <string name="onboarding_welcome_censor">「遮蔽」可遮住照片中的人臉、車牌以及其他應保持私密的內容。</string>
+    <string name="onboarding_hidden_title">相片和影片透露的資訊可能比你想的更多。</string>
+    <string name="onboarding_hidden_body">拍照或錄影時，手機會悄悄在檔案裡儲存額外的資訊。收到檔案的人可能都能讀取這些資訊。</string>
+    <string name="onboarding_hidden_location">它們可能顯示你去過哪裡，有時精確到能找到你的住處。</string>
+    <string name="onboarding_hidden_time">它們可能顯示拍攝的日期和時間。</string>
+    <string name="onboarding_hidden_device">它們可能顯示你用的是哪支手機或相機。</string>
+    <string name="onboarding_private_title">你的檔案絕不會離開手機。</string>
+    <string name="onboarding_private_body">Redact 的所有處理都在你的手機上完成。它會儲存一份乾淨的副本供你分享，原始檔案保持原樣。</string>
+    <string name="onboarding_private_offline">不會上傳任何內容，你的相片和影片始終保持私密。</string>
+    <string name="onboarding_private_no_ads">沒有廣告，也不會追蹤你的操作。</string>
+    <string name="onboarding_private_open_source">Redact 是開放原始碼，任何人都能查看它的運作方式。</string>
+    <string name="onboarding_choices_title">Redact 能使用什麼，由你決定。</string>
+    <string name="onboarding_choices_body">接下來，Redact 會逐一說明想使用什麼以及原因。選擇權始終在你，之後也可以在設定中變更。</string>
+    <string name="onboarding_choices_media">首先是相片和影片，這樣 Redact 才能開啟你選的檔案。</string>
+    <string name="onboarding_choices_location">接著是相片和影片中儲存的位置，這樣掃描才能顯示給你看。</string>
+    <string name="onboarding_choices_notifications">然後是通知，這樣工作完成時 Redact 可以提醒你。</string>
+    <string name="onboarding_media_title">請允許存取你的相片和影片。</string>
+    <string name="onboarding_media_body">Redact 需要這項權限，才能開啟你要清理、掃描或轉換的相片和影片。</string>
+    <string name="onboarding_media_point_pick">Redact 只會開啟你選擇的檔案。</string>
+    <string name="onboarding_media_point_private">你的相片和影片會一直留在手機上。</string>
+    <string name="onboarding_media_point_partial">Android 可能讓你只授權部分相片和影片。兩種方式 Redact 都能使用。</string>
+    <string name="onboarding_media_point_change">你可以隨時在手機設定中變更。</string>
+    <string name="onboarding_media_allow">允許存取</string>
+    <string name="onboarding_location_title">查看相片和影片的拍攝地點。</string>
+    <string name="onboarding_location_body">除非你允許 Redact 查看，否則 Android 會隱藏相片和影片中儲存的位置。開啟後，掃描可以顯示相片或影片的拍攝地點，讓你知道自己會分享什麼。</string>
+    <string name="onboarding_location_point_optional">這是選用功能。無論如何，Redact 都會從它產生的副本中移除位置。</string>
+    <string name="onboarding_location_point_private">Redact 絕不會與任何人分享位置。</string>
+    <string name="onboarding_location_point_change">你可以隨時在設定中關閉。</string>
+    <string name="onboarding_location_allow">允許</string>
+    <string name="onboarding_notifications_title">檔案處理好時，Redact 會通知你。</string>
+    <string name="onboarding_notifications_body">清理較長的影片可能需要幾分鐘。處理完成後 Redact 可以通知你，你不必一直開著應用程式。</string>
+    <string name="onboarding_notifications_point_optional">這是選用功能，你可以隨時在設定中關閉。</string>
+    <string name="onboarding_notifications_point_finished">Redact 只會在工作完成時傳送通知。</string>
+    <string name="onboarding_notifications_point_no_ads">Redact 絕不會傳送廣告或提醒。</string>
+    <string name="onboarding_notifications_allow">開啟通知</string>
+    <string name="onboarding_status_granted">你已允許。</string>
+    <string name="onboarding_status_partial">你已允許存取部分相片和影片。</string>
+    <string name="onboarding_status_denied">你尚未允許。之後可以在設定中開啟。</string>
+    <string name="onboarding_status_blocked">要使用這項功能，請先允許存取相片和影片。</string>
+    <string name="onboarding_status_notifications_on">通知已開啟。</string>
+    <string name="onboarding_done_title">一切就緒！</string>
+    <string name="onboarding_done_body">以下是你的選擇摘要。之後可以隨時在設定中變更。</string>
+    <string name="onboarding_done_media_granted">Redact 可以開啟你的相片和影片。</string>
+    <string name="onboarding_done_media_partial">Redact 可以開啟你選擇的相片和影片。</string>
+    <string name="onboarding_done_media_denied">Redact 暫時無法開啟你的相片和影片。</string>
+    <string name="onboarding_done_location_granted">掃描可以顯示相片和影片的拍攝地點。</string>
+    <string name="onboarding_done_location_denied">掃描不會顯示相片和影片的拍攝地點。</string>
+    <string name="onboarding_done_notifications_granted">工作完成時 Redact 會通知你。</string>
+    <string name="onboarding_done_notifications_denied">Redact 不會傳送通知給你。</string>
+    <string name="onboarding_crash_title">幫助改善 Redact。</string>
+    <string name="onboarding_crash_body">如果 Redact 發生當機，它可以傳送一份匿名報告，以便找出並修正問題。當機報告是 Redact 透過網際網路傳送的唯一內容。</string>
+    <string name="onboarding_crash_point_private">報告絕不會包含你的相片、影片、檔名或位置。</string>
+    <string name="onboarding_crash_point_sentry">報告會傳送到 Sentry，這是一項協助開發者找出並修正當機的服務。</string>
+    <string name="onboarding_crash_allow">傳送當機報告</string>
+    <string name="onboarding_status_crash_on">當機報告已開啟。</string>
+    <string name="onboarding_choices_crash">最後是當機報告，這樣問題可以更快被找出並修正。</string>
+    <string name="onboarding_done_crash_on">發生問題時，Redact 會傳送匿名當機報告。</string>
+    <string name="onboarding_done_crash_off">Redact 不會傳送當機報告。</string>
 </resources>

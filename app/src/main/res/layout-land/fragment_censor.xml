@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Landscape: the photo on the left at full height, its card and the tools in a column on the
+     right, which ends above the buttons in the bottom right so they never cover a tool. The photo
+     uses the width the other tabs leave as margin. -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    tools:context=".CensorFragment"
+    tools:ignore="Overdraw">
+
+    <include
+        layout="@layout/censor_empty_state"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <include
+        layout="@layout/censor_canvas_card"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/censorColumn"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/censorColumn"
+        android:layout_width="360dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
+        android:scrollbars="none"
+        app:layout_constraintBottom_toTopOf="@id/censorActionsTop"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="RtlSymmetry">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Tools first: editing needs them at hand. -->
+            <include layout="@layout/censor_tools_card" />
+
+            <include layout="@layout/censor_summary_card" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Shown and hidden together, as censorContent is in portrait. -->
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/censorContent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:constraint_referenced_ids="censorCanvasCard,censorColumn" />
+
+    <include layout="@layout/censor_actions" />
+
+    <!-- The top of whichever buttons show; a hidden button collapses to the bottom edge. -->
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/censorActionsTop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="top"
+        app:constraint_referenced_ids="censorSaveButton,shareResultsButton,scanResultButton" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

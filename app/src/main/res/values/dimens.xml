@@ -20,4 +20,6 @@
     <dimen name="scan_metadata_card_corner">@dimen/component_corner_large</dimen>
     <dimen name="scan_metadata_row_horizontal_padding">16dp</dimen>
     <dimen name="media_thumbnail_px">96dp</dimen>
+    <!-- Widest the introduction text gets, so it stays readable on tablets. -->
+    <dimen name="onboarding_content_max_width">560dp</dimen>
 </resources>

@@ -16,8 +16,8 @@ android {
         applicationId "com.doubleangels.redact"
         minSdk 31
         targetSdk 37
-        versionCode 28
-        versionName "1.6.1"
+        versionCode 29
+        versionName "1.7.0"
 
         def sentryRelease = "${applicationId}@${versionName}+${versionCode}"
         buildConfigField "String", "SENTRY_RELEASE", "\"${sentryRelease}\""
@@ -188,7 +188,7 @@ tasks.register('jacocoTestReport', JacocoReport) {
 
 tasks.register('jacocoTestCoverageVerification', JacocoCoverageVerification) {
     group = 'verification'
-    description = 'Fails when unit tests cover less than 87% of the app\'s lines.'
+    description = 'Fails when unit tests cover less than 90% of the app\'s lines.'
     dependsOn 'testDebugUnitTest'
     classDirectories.setFrom(coverageClasses)
     sourceDirectories.setFrom(files('src/main/java'))
@@ -197,7 +197,7 @@ tasks.register('jacocoTestCoverageVerification', JacocoCoverageVerification) {
         rule {
             limit {
                 counter = 'LINE'
-                minimum = 0.87
+                minimum = 0.90
             }
         }
     }

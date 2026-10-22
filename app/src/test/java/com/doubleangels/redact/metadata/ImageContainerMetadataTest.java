@@ -296,6 +296,18 @@ public class ImageContainerMetadataTest {
     }
 
     @Test
+    public void embeddedImageThatCannotBeFollowed_runsToTheNextOne() throws Exception {
+        byte[] plain = encode(Bitmap.CompressFormat.JPEG);
+        byte[] broken = cat(new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xD0}, a("junk"));
+        File source = write("broken-preview.jpg", cat(plain, broken, plain));
+
+        Map<String, ImageContainerMetadata.Finding> found = byKey(ImageContainerMetadata.scan(source));
+
+        assertEquals("2", found.get("EMBEDDED_IMAGES").text);
+        assertEquals(broken.length + plain.length, found.get("EMBEDDED_IMAGES").bytes);
+    }
+
+    @Test
     public void xmpKind_readsPropertiesNotNamespaceDeclarations() {
         String declarationsOnly = "<x:xmpmeta><rdf:RDF><rdf:Description"
                 + " xmlns:xmpRights='http://ns.adobe.com/xap/1.0/rights/'"
@@ -515,8 +527,16 @@ public class ImageContainerMetadataTest {
         assertEquals("SECRET_COMMENT", embedded.get("JPEG_COMMENT"));
         assertEquals("SECRET_BYLINE", embedded.get("IPTC_BYLINE"));
         assertTrue(embedded.get("EMBEDDED_IMAGES").startsWith("1 image"));
-        assertTrue(embedded.get("EMBEDDED_VIDEO").startsWith("Present"));
+        // Binary data with nothing readable shows its size alone.
+        assertTrue(embedded.get("EMBEDDED_VIDEO"), embedded.get("EMBEDDED_VIDEO").matches("[0-9.,]+\\s*\\S*B"));
         assertTrue(embedded.get("SAMSUNG_TRAILER").contains("MCC_Data"));
+        assertTrue(embedded.get("SAMSUNG_TRAILER"),
+                embedded.get("SAMSUNG_TRAILER").contains("Image_UTC_Data (2026-01-01 00:00:00 UTC)"));
+        // What the rest hold, rather than only that they are there.
+        assertTrue(embedded.get("APP12_DUCKY"), embedded.get("APP12_DUCKY").contains("SECRET_DUCKY"));
+        assertTrue(embedded.get("CONTENT_CREDENTIALS").contains("SECRET_C2PA"));
+        assertTrue(embedded.get("MULTI_PICTURE_INDEX").contains("SECRET_MPF"));
+        assertTrue(embedded.get("XMP_EXTENDED").contains("SECRET_EXT_XMP"));
     }
 
     @Test
