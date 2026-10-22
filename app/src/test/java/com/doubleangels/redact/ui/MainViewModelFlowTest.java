@@ -19,6 +19,7 @@ import androidx.lifecycle.SavedStateHandle;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.MediaItem;
+import com.doubleangels.redact.media.VideoMedia3Converter;
 
 import org.junit.After;
 import org.junit.Before;
@@ -57,6 +58,7 @@ public class MainViewModelFlowTest {
     @After
     public void tearDown() {
         AppProcessingScope.resetForTests();
+        VideoMedia3Converter.setAwaitTimeoutForTests(null);
     }
 
     private static MediaItem image(String name) {
@@ -322,6 +324,9 @@ public class MainViewModelFlowTest {
 
     @Test
     public void startConversion_withVideo_finishesEvenWhenTheVideoCannotBeRead() throws Exception {
+        // Media3 never finishes an export under Robolectric; give up quickly instead of waiting
+        // for its stall watchdog, which is longer than this test's wait on unrated phones.
+        VideoMedia3Converter.setAwaitTimeoutForTests(500L);
         vm.startConversion(Arrays.asList(video("v.mp4")), 0, 0, Bitmap.CompressFormat.JPEG);
 
         awaitMain(() -> vm.getConvertProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED);
