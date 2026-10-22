@@ -102,6 +102,8 @@ public final class VideoContainerMetadata {
     private static final int CONTENT_PEEK = 1 << 20;
     /** Longest value kept for Scan. */
     private static final int MAX_VALUE = 16 * 1024;
+    /** How many bytes of a text field to read: enough for MAX_VALUE characters and then some. */
+    private static final int TEXT_PEEK = MAX_VALUE * 4 + 16;
     /** Seconds from 1904, when QuickTime's clock starts, to 1970. */
     private static final long SECONDS_1904_TO_1970 = 2_082_844_800L;
     /** Milliseconds from 1970 to 2001, when Matroska's clock starts. */
@@ -236,7 +238,9 @@ public final class VideoContainerMetadata {
             if (scrub || end <= start) {
                 return null;
             }
-            return new String(read(start, (int) Math.min(end - start, CONTENT_PEEK)), StandardCharsets.UTF_8);
+            // A field keeps MAX_VALUE characters, at most four bytes each; a little more tells
+            // field() that the value was cut short.
+            return new String(read(start, (int) Math.min(end - start, TEXT_PEEK)), StandardCharsets.UTF_8);
         }
 
         /** [start, end) as text when it all is, else the readable strings in it; null when scrubbing. */

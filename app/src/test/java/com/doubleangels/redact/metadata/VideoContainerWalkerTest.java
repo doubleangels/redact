@@ -194,6 +194,17 @@ public class VideoContainerWalkerTest {
     }
 
     @Test
+    public void aLongTextField_isCutToTheLimit_andMarked() throws Exception {
+        String big = "<x:xmpmeta>" + "a".repeat(200_000) + "</x:xmpmeta>";
+        VideoContainerMetadata.Report r = scan(mp4(0, box("udta", box("XMP_", bytes(big)))));
+
+        String value = r.values.get("XMP");
+        assertEquals(16 * 1024 + 1, value.length());
+        assertTrue(value.endsWith("…"));
+        assertEquals(Long.valueOf(big.length()), r.sizes.get("XMP"));
+    }
+
+    @Test
     public void userDataAtoms_showTheirText_andTheirSize() throws Exception {
         byte[] make = concat(new byte[] {0, 4, 0x15, (byte) 0xC7}, bytes("Acme"));
         VideoContainerMetadata.Report r = scan(mp4(0, box("udta", concat(be32(8 + make.length), iso("©mak"), make),
