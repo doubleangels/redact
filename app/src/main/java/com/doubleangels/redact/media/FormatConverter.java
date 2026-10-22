@@ -484,6 +484,9 @@ public final class FormatConverter {
         return ImageDecoder.decodeBitmap(
                 source,
                 (decoder, info, s) -> {
+                    // A hardware bitmap (the default) cannot be drawn on a software canvas, which
+                    // Censor's previews and exports need.
+                    decoder.setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE);
                     int w = info.getSize().getWidth();
                     int h = info.getSize().getHeight();
                     int maxSide = Math.max(w, h);

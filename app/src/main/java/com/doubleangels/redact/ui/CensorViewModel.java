@@ -497,7 +497,7 @@ public class CensorViewModel extends AndroidViewModel {
     @NonNull
     private Bitmap target(@NonNull Bitmap from) {
         Bitmap reuse = spare.getAndSet(null);
-        if (reuse != null && reuse != from && !reuse.isRecycled()
+        if (reuse != null && reuse != from && !reuse.isRecycled() && from.getConfig() != Bitmap.Config.HARDWARE
                 && reuse.getWidth() == from.getWidth() && reuse.getHeight() == from.getHeight()) {
             android.graphics.Paint copy = new android.graphics.Paint();
             copy.setXfermode(new android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.SRC));
