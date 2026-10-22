@@ -474,12 +474,9 @@ public class ScanFragment extends Fragment {
                     : mediaSelector != null ? mediaSelector.getFileName(mediaUri) : null;
             boolean isVideo = MediaSelector.isVideoFromMimeAndName(mimeType, fileName);
 
+            // The worker tags its own operation with the type and permission: these keys belong to
+            // the thread that sets them, and set here they would only tag later main-thread events.
             SentryManager.logEvent("scan", "The app is starting metadata extraction.");
-            SentryManager.setCustomKey("media_type", mimeType != null ? mimeType : "unknown");
-            SentryManager.setCustomKey("is_video", isVideo);
-
-            boolean hasLocationPermission = !permissionManager.needsLocationPermission();
-            SentryManager.setCustomKey("has_location_permission", hasLocationPermission);
 
             progressText.setText(isVideo ? R.string.status_extracting_media : R.string.status_extracting_image);
 
