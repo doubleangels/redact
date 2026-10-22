@@ -44,6 +44,7 @@ public abstract class FragmentPermissionFlowsBase {
         AppProcessingScope.resetForTests();
         app = RuntimeEnvironment.getApplication();
         AppPreferences.setInitialPermissionsPromptCompleted(app);
+        AppPreferences.setOnboardingSeen(app);
         denyAll();
         controller = Robolectric.buildActivity(MainActivity.class).setup();
         activity = controller.get();

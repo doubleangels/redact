@@ -470,6 +470,7 @@ fresh_app() {
 <?xml version='1.0' encoding='utf-8' standalone='yes' ?>
 <map>
     <boolean name="initial_permissions_prompted" value="true" />
+    <boolean name="onboarding_seen" value="true" />
     <int name="review_state" value="2" />
     <boolean name="crash_reporting_prompted" value="true" />
 </map>

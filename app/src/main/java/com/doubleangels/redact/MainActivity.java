@@ -36,6 +36,11 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_SELECTED_TAB = "selected_tab";
     /** Extra set by the launcher shortcuts in res/xml/shortcuts.xml and by {@link CleanTileService}. */
     static final String EXTRA_TAB = "tab";
+    /**
+     * Debug builds only: launching with {@code --ez skip_intro true} marks the introduction and the
+     * first-launch permission prompts as done, so a cleared install opens straight to the tabs.
+     */
+    static final String EXTRA_SKIP_INTRO = "skip_intro";
     /** Manifest alias that receives Redact › Convert shares. */
     private static final String CONVERT_SHARE_TARGET = ".ConvertShareTarget";
     /** Manifest alias that receives Redact › Censor shares. */
@@ -63,10 +68,12 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
 
-    /** Fresh installs only: users updating the app have already been through the permission prompts. */
+    /**
+     * Shown once to everyone, including users updating from a version without the introduction:
+     * its permission pages show what is already granted instead of asking again.
+     */
     private boolean shouldShowOnboarding() {
-        return com.doubleangels.redact.permission.PermissionManager.shouldPromptInitialPermissions(this)
-                && !AppPreferences.hasSeenOnboarding(this);
+        return !AppPreferences.hasSeenOnboarding(this);
     }
 
     @Override
@@ -80,6 +87,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         SplashScreen.installSplashScreen(this);
         try {
+            if (savedInstanceState == null && BuildConfig.DEBUG
+                    && getIntent().getBooleanExtra(EXTRA_SKIP_INTRO, false)) {
+                AppPreferences.setOnboardingSeen(this);
+                AppPreferences.setInitialPermissionsPromptCompleted(this);
+            }
             if (savedInstanceState == null
                     && com.doubleangels.redact.permission.PermissionManager.shouldPromptInitialPermissions(this)) {
                 com.doubleangels.redact.permission.PermissionManager.prepareInitialPermissionFlow();

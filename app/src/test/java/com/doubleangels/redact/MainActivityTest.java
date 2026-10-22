@@ -161,19 +161,43 @@ public class MainActivityTest {
     }
 
     @Test
-    public void afterTheIntroductionOrAnUpdate_itIsNotShownAgain() {
+    public void afterTheIntroduction_itIsNotShownAgain() {
         AppPreferences.setOnboardingSeen(org.robolectric.RuntimeEnvironment.getApplication());
-        MainActivity seen = launch();
-        assertNoIntroduction(seen);
-        controller.pause().stop().destroy();
+        assertNoIntroduction(launch());
+    }
 
+    @Test
+    public void updatingFromAVersionWithoutTheIntroduction_showsItOnce_withoutAskingAgain() {
         // Updating users finished the permission prompts before the introduction existed.
         android.content.Context app = org.robolectric.RuntimeEnvironment.getApplication();
-        app.getSharedPreferences(AppPreferences.PREFS_NAME, android.content.Context.MODE_PRIVATE)
-                .edit().clear().commit();
         AppPreferences.setInitialPermissionsPromptCompleted(app);
+        MainActivity activity = launch();
+
+        android.content.Intent started = shadowOf(activity).getNextStartedActivity();
+        assertNotNull(started);
+        assertEquals(OnboardingActivity.class.getName(), started.getComponent().getClassName());
+
+        shadowOf(activity).receiveResult(started, android.app.Activity.RESULT_OK, null);
+        shadowOf(Looper.getMainLooper()).idle();
+
+        assertTrue(AppPreferences.hasSeenOnboarding(activity));
+        assertTrue(shadowOf(activity).getLastRequestedPermission() == null);
+        controller.pause().stop().destroy();
         controller = null;
         assertNoIntroduction(launch());
+    }
+
+    @Test
+    public void skipIntroExtra_opensStraightToTheTabs_inDebugBuilds() {
+        android.content.Intent intent = new android.content.Intent(
+                org.robolectric.RuntimeEnvironment.getApplication(), MainActivity.class)
+                .putExtra(MainActivity.EXTRA_SKIP_INTRO, true);
+        controller = Robolectric.buildActivity(MainActivity.class, intent).setup();
+        MainActivity activity = controller.get();
+
+        assertNoIntroduction(activity);
+        assertTrue(AppPreferences.hasSeenOnboarding(activity));
+        assertTrue(AppPreferences.hasCompletedInitialPermissionsPrompt(activity));
     }
 
     private static void assertNoIntroduction(MainActivity activity) {
