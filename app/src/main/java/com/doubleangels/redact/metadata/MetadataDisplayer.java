@@ -1091,7 +1091,7 @@ public class MetadataDisplayer {
                 List<String> tags = new ArrayList<>();
                 for (String name : new java.util.LinkedHashSet<>(container.fields)) {
                     String value = container.values.get(name);
-                    boolean place = VideoContainerMetadata.isLocationName(name);
+                    boolean place = container.isLocationField(name);
                     tags.add(value == null || (place && !hasLocationPermission) ? name : name + ": " + value);
                 }
                 metadata.append("\n").append(context.getString(R.string.metadata_container_tags_header)).append("\n");
@@ -1348,7 +1348,9 @@ public class MetadataDisplayer {
             if (key.isEmpty() || metadataMap.containsKey(key) || embedded.containsKey(key)) {
                 continue;
             }
-            String value = container.values.get(name);
+            // Without the permission, a field holding a location (XMP with GPS in it) shows only its size.
+            String value = hasLocationPermission || !container.isLocationField(name)
+                    ? container.values.get(name) : null;
             if (value != null && name.equals("XMP") && XmlLikeMetadataFormatter.looksLikeRdfOrXmp(value)) {
                 value = XmlLikeMetadataFormatter.formatForDisplay(value);
             }

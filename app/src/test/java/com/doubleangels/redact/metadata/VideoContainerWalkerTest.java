@@ -180,6 +180,20 @@ public class VideoContainerWalkerTest {
     }
 
     @Test
+    public void anXmpPacketWithGps_isALocationField_butOneWithoutIsNot() throws Exception {
+        VideoContainerMetadata.Report withGps = scan(mp4(0, box("udta",
+                box("XMP_", bytes("<x:xmpmeta><exif:GPSLatitude>40,41.3N</exif:GPSLatitude></x:xmpmeta>")))));
+        assertTrue(withGps.isLocationField("XMP"));
+        assertTrue(withGps.values.get("XMP").contains("GPSLatitude"));
+
+        VideoContainerMetadata.Report without = scan(mp4(0, box("udta",
+                box("XMP_", bytes("<x:xmpmeta><dc:title>Holiday</dc:title></x:xmpmeta>")))));
+        assertFalse(without.isLocationField("XMP"));
+        // A tag named for a place counts whatever it holds.
+        assertTrue(without.isLocationField("©xyz"));
+    }
+
+    @Test
     public void userDataAtoms_showTheirText_andTheirSize() throws Exception {
         byte[] make = concat(new byte[] {0, 4, 0x15, (byte) 0xC7}, bytes("Acme"));
         VideoContainerMetadata.Report r = scan(mp4(0, box("udta", concat(be32(8 + make.length), iso("©mak"), make),

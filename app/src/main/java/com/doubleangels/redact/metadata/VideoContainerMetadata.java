@@ -17,10 +17,12 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Finds and removes identifying metadata at the container level of MP4/MOV/3GP (ISO base media)
@@ -54,20 +56,34 @@ public final class VideoContainerMetadata {
         /** Latitude and longitude, when a location field holds coordinates. */
         @Nullable
         public final double[] coordinates;
+        /** The fields found to hold a location, such as an XMP packet with GPS tags in it. */
+        @NonNull
+        private final Set<String> locationFields;
 
         Report(boolean recognized, @NonNull List<String> fields, boolean hasLocation) {
-            this(recognized, fields, hasLocation, new LinkedHashMap<>(), new LinkedHashMap<>(), null);
+            this(recognized, fields, hasLocation, new LinkedHashMap<>(), new LinkedHashMap<>(), null,
+                    new HashSet<>());
         }
 
         Report(boolean recognized, @NonNull List<String> fields, boolean hasLocation,
                @NonNull Map<String, String> values, @NonNull Map<String, Long> sizes,
-               @Nullable double[] coordinates) {
+               @Nullable double[] coordinates, @NonNull Set<String> locationFields) {
             this.recognized = recognized;
             this.fields = Collections.unmodifiableList(fields);
             this.hasLocation = hasLocation;
             this.values = Collections.unmodifiableMap(values);
             this.sizes = Collections.unmodifiableMap(sizes);
             this.coordinates = coordinates;
+            this.locationFields = Collections.unmodifiableSet(locationFields);
+        }
+
+        /**
+         * Whether {@code name}'s value can give away where the video was made: a location tag, or
+         * a field such as XMP that was found to hold GPS data. Scan hides these values without the
+         * media location permission.
+         */
+        public boolean isLocationField(@NonNull String name) {
+            return locationFields.contains(name) || isLocationName(name);
         }
 
         /** True only when the file was read and nothing identifying was found. */
@@ -143,7 +159,8 @@ public final class VideoContainerMetadata {
         if (!walker.run()) {
             return Report.unrecognized();
         }
-        return new Report(true, walker.fields, walker.location, walker.values, walker.sizes, walker.coordinates);
+        return new Report(true, walker.fields, walker.location, walker.values, walker.sizes, walker.coordinates,
+                walker.locationFields);
     }
 
     // ---- the walk -----------------------------------------------------------------------------
@@ -155,6 +172,7 @@ public final class VideoContainerMetadata {
         final List<String> fields = new ArrayList<>();
         final Map<String, String> values = new LinkedHashMap<>();
         final Map<String, Long> sizes = new LinkedHashMap<>();
+        final Set<String> locationFields = new HashSet<>();
         @Nullable double[] coordinates;
         boolean location;
         int scrubbed;
@@ -194,6 +212,9 @@ public final class VideoContainerMetadata {
         private void field(@NonNull String name, boolean isLocation, @Nullable String value, long size) {
             fields.add(name);
             location |= isLocation;
+            if (isLocation) {
+                locationFields.add(name);
+            }
             if (scrub) {
                 return;
             }
