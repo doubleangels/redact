@@ -4,8 +4,9 @@
     <string name="app_name">Redact</string>
 
     
-    <string name="content_description_image_view">Visualização de Imagem</string>
-    <string name="content_description_scroll_view">Visualização de Rolagem</string>
+    <string name="content_description_selected_files">Arquivos selecionados</string>
+    <string name="content_description_selected_photo">Foto: %1$s</string>
+    <string name="content_description_selected_video">Vídeo: %1$s</string>
 
     
     <string name="navigation_clean">Limpar</string>
@@ -299,6 +300,7 @@ Suas fotos e vídeos nunca são enviados. URIs, nomes de arquivo e coordenadas G
     <string name="scan_convert_this_file">Converter Este Arquivo</string>
     <string name="scan_censor_this_photo">Censurar Esta Foto</string>
     <string name="scan_copied_to_clipboard">Copiado para a área de transferência</string>
+    <string name="scan_copy_value">Copiar Valor</string>
     <string name="scan_copy_all_metadata">Copiar Todos os Metadados</string>
     <string name="scan_copy_camera">Copiar Info da Câmera</string>
 <string name="settings_permissions_location">Localização da Foto</string>
@@ -372,7 +374,7 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="convert_empty_state_title">Converter Formatos de Mídia</string>
     <string name="convert_empty_state_description">Selecione fotos ou vídeos para convertê-los para os formatos JPEG, PNG, WebP, HEIC ou MP4.</string>
     <string name="convert_files_card_title">Arquivos para Converter</string>
-    <string name="convert_heic_fallback_jpeg">A saída HEIC exige Android 14 ou superior. As imagens serão salvas como JPEG.</string>
+    <string name="convert_heic_fallback_jpeg">Este telefone não consegue salvar imagens HEIC, então elas serão salvas como JPEG.</string>
     <string name="convert_item_type_image">Imagem</string>
     <string name="convert_item_type_video">Vídeo</string>
     <string name="scan_empty_state_title">Inspecionar Metadados de Mídia</string>
@@ -458,7 +460,8 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="share_results_chooser_title">Compartilhar via…</string>
     <string name="settings_output_unavailable">O Redact não consegue mais salvar nesta pasta, então os arquivos vão para %1$s. Escolha-a novamente ou escolha outra pasta.</string>
     <string name="output_folder_fallback">Salvando em %2$s: %1$s não está disponível.</string>
-    <string name="settings_output_open">Abrir Pasta</string>
+    <string name="settings_output_open_images">Abrir Pasta de Imagens</string>
+    <string name="settings_output_open_videos">Abrir Pasta de Vídeos</string>
     <string name="settings_output_open_unavailable">Nenhum app encontrado para abrir esta pasta.</string>
     <string name="settings_output_also_videos">Salvar os vídeos aqui também?</string>
     <string name="settings_output_also_images">Salvar as imagens aqui também?</string>
@@ -473,8 +476,8 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="censor_empty_state_title">Cubra o Que Deve Continuar Privado</string>
     <string name="censor_empty_state_description">Pixelize, tarje de preto ou desfoque rostos, placas de carro, endereços e qualquer outra coisa em uma foto. O Redact salva uma cópia censurada sem nenhum metadado, e seu original continua como está.</string>
     <string name="censor_select_photo">Selecionar Foto</string>
-    <string name="censor_hint">Desenhe sobre tudo o que deve continuar privado e toque em Salvar Cópia. Toque em um retângulo para movê-lo ou redimensioná-lo.</string>
-    <string name="censor_canvas_description">Foto sendo censurada. Desenhe com um dedo para cobrir uma área; faça pinça com dois dedos para dar zoom.</string>
+    <string name="censor_hint">Desenhe sobre tudo o que deve continuar privado e toque em Salvar Cópia. Use Mover para dar zoom com dois dedos e se deslocar, e toque em um retângulo para movê-lo ou redimensioná-lo.</string>
+    <string name="censor_canvas_description">Foto sendo censurada. Desenhe com um dedo para cobrir uma área. Com Mover, arraste para se deslocar e faça pinça para dar zoom.</string>
     <string name="censor_tool_rectangle">Retângulo</string>
     <string name="censor_tool_brush">Pincel</string>
     <string name="censor_tool_move">Mover</string>
@@ -484,11 +487,13 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="censor_effect_blur">Desfocar</string>
     <string name="censor_undo">Desfazer</string>
     <string name="censor_redo">Refazer</string>
-    <string name="censor_zoom_in">Aumentar zoom</string>
-    <string name="censor_zoom_out">Diminuir zoom</string>
+    <string name="censor_delete_rectangle">Excluir Retângulo</string>
+    <string name="censor_zoom_level">%1$s×</string>
+    <string name="censor_zoom_reset">Ampliado %1$s vezes. Toque para ver a foto inteira.</string>
     <string name="censor_save">Salvar Cópia</string>
     <string name="censor_saved">Cópia censurada salva.</string>
     <string name="censor_saved_downscaled">Cópia censurada salva, menor que a original. Para manter o tamanho completo, aumente a Resolução Máxima de Processamento nas configurações.</string>
+    <string name="censor_file_name">%1$s (censurada)</string>
     <string name="censor_error_open">Não foi possível abrir esta foto.</string>
     <string name="censor_error_unsupported">Este tipo de imagem não pode ser censurado neste dispositivo.</string>
     <string name="censor_error_save">Não foi possível salvar a cópia censurada.</string>

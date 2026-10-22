@@ -10,29 +10,36 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.doubleangels.redact.AppPreferences;
+import com.doubleangels.redact.metadata.CleanStats;
+import com.doubleangels.redact.metadata.MetadataStripper;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
 /**
- * Saves a censored copy of a photo: decodes it upright at full size, covers the regions and
- * encodes a new file in the source's format. The copy is built from pixels only, so none of the
- * original's metadata comes along, including the small EXIF preview that would still show the
- * uncensored photo.
+ * Saves a censored copy of a photo: decodes it upright at full size, covers the regions, encodes
+ * the pixels in the source's format and saves them through the same clean as the Clean tab. Only
+ * the tags the clean settings keep come back from the original, never its small EXIF preview,
+ * which would still show the uncensored photo.
  */
 public final class CensorExporter {
 
-    /** The saved copy, and whether it had to be saved smaller than the original. */
+    /** The saved copy, whether it had to be saved smaller than the original, and what was removed. */
     public static final class Result {
         @NonNull
         public final Uri uri;
         public final boolean downscaled;
+        @Nullable
+        public final CleanStats stats;
 
-        Result(@NonNull Uri uri, boolean downscaled) {
+        Result(@NonNull Uri uri, boolean downscaled, @Nullable CleanStats stats) {
             this.uri = uri;
             this.downscaled = downscaled;
+            this.stats = stats;
         }
     }
 
@@ -41,7 +48,7 @@ public final class CensorExporter {
 
     /**
      * @param fileName the source's file name, used for the output's type and, when Keep Original
-     *                 File Names is on, its name
+     *                 File Names is on, its name with "(censored)" added
      */
     @NonNull
     public static Result export(
@@ -60,31 +67,29 @@ public final class CensorExporter {
         boolean downscaled = sourceLongSide > 0
                 && Math.max(bitmap.getWidth(), bitmap.getHeight()) < sourceLongSide;
 
-        Uri out;
-        boolean written = false;
+        // The censored pixels, encoded privately before the clean saves them.
+        File censored = File.createTempFile("censored_", spec.extension, context.getCacheDir());
         try {
-            CensorEffects.apply(bitmap, regions, effect);
-            String name = MediaFileNames.outputBaseName(context, fileName) + spec.extension;
-            out = OutputDestination.create(context, false, name, spec.mimeType);
-            try (OutputStream os = resolver.openOutputStream(out)) {
-                if (os == null) {
-                    throw new IOException("Cannot open output stream");
+            try {
+                CensorEffects.apply(bitmap, regions, effect);
+                try (OutputStream os = new FileOutputStream(censored)) {
+                    if (!FormatConverter.compressBitmapToStream(context, bitmap, spec.compressFormat, os)) {
+                        throw new IOException("Compress failed");
+                    }
                 }
-                if (!FormatConverter.compressBitmapToStream(context, bitmap, spec.compressFormat, os)) {
-                    throw new IOException("Compress failed");
-                }
-                os.flush();
-                written = true;
             } finally {
-                if (!written) {
-                    OutputDestination.discard(resolver, out);
-                }
+                bitmap.recycle();
             }
+            String name = MediaFileNames.outputBaseName(context, fileName,
+                    com.doubleangels.redact.R.string.censor_file_name) + spec.extension;
+            MetadataStripper stripper = new MetadataStripper(context);
+            Uri out = stripper.saveCensoredImage(source, censored, name, spec);
+            return new Result(out, downscaled, stripper.getLastCleanStats());
         } finally {
-            bitmap.recycle();
+            if (!SecureDelete.secureDelete(context, censored)) {
+                censored.deleteOnExit();
+            }
         }
-        OutputDestination.publish(resolver, out);
-        return new Result(out, downscaled);
     }
 
     /** A bitmap that can be drawn on: decoders may return an immutable or hardware one. */

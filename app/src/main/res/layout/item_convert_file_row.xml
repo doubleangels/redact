@@ -43,7 +43,7 @@
                 android:layout_margin="3dp"
                 android:background="@drawable/bg_rounded_surface"
                 android:backgroundTint="#80000000"
-                android:contentDescription="@string/content_description_image_view"
+                android:contentDescription="@null"
                 android:padding="2dp"
                 android:src="@drawable/ic_video"
                 android:visibility="gone"

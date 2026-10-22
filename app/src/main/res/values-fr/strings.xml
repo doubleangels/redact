@@ -4,8 +4,9 @@
     <string name="app_name">Redact</string>
 
     
-    <string name="content_description_image_view">Vue d\'Image</string>
-    <string name="content_description_scroll_view">Vue de Défilement</string>
+    <string name="content_description_selected_files">Fichiers sélectionnés</string>
+    <string name="content_description_selected_photo">Photo : %1$s</string>
+    <string name="content_description_selected_video">Vidéo : %1$s</string>
 
     
     <string name="navigation_clean">Nettoyer</string>
@@ -299,6 +300,7 @@ Vos photos et vidéos ne sont jamais téléversées. Les URI, noms de fichier et
     <string name="scan_convert_this_file">Convertir Ce Fichier</string>
     <string name="scan_censor_this_photo">Censurer Cette Photo</string>
     <string name="scan_copied_to_clipboard">Copié dans le presse-papiers</string>
+    <string name="scan_copy_value">Copier la Valeur</string>
     <string name="scan_copy_all_metadata">Copier Toutes les Métadonnées</string>
     <string name="scan_copy_camera">Copier les Infos Appareil Photo</string>
 <string name="settings_permissions_location">Emplacement de la Photo</string>
@@ -372,7 +374,7 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="convert_empty_state_title">Convertir les Formats Multimédias</string>
     <string name="convert_empty_state_description">Sélectionnez des photos ou des vidéos pour les convertir aux formats JPEG, PNG, WebP, HEIC ou MP4.</string>
     <string name="convert_files_card_title">Fichiers à Convertir</string>
-    <string name="convert_heic_fallback_jpeg">La sortie HEIC nécessite Android 14 ou version ultérieure. Les images seront enregistrées en JPEG à la place.</string>
+    <string name="convert_heic_fallback_jpeg">Ce téléphone ne peut pas enregistrer d\'images HEIC, elles seront donc enregistrées en JPEG.</string>
     <string name="convert_item_type_image">Image</string>
     <string name="convert_item_type_video">Vidéo</string>
     <string name="scan_empty_state_title">Inspecter les Métadonnées Multimédias</string>
@@ -458,7 +460,8 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="share_results_chooser_title">Partager via…</string>
     <string name="settings_output_unavailable">Redact ne peut plus enregistrer dans ce dossier : les fichiers vont dans %1$s. Choisissez-le à nouveau ou un autre dossier.</string>
     <string name="output_folder_fallback">Enregistrement dans %2$s : %1$s est indisponible.</string>
-    <string name="settings_output_open">Ouvrir le Dossier</string>
+    <string name="settings_output_open_images">Ouvrir le Dossier des Images</string>
+    <string name="settings_output_open_videos">Ouvrir le Dossier des Vidéos</string>
     <string name="settings_output_open_unavailable">Aucune app trouvée pour ouvrir ce dossier.</string>
     <string name="settings_output_also_videos">Enregistrer aussi les vidéos ici ?</string>
     <string name="settings_output_also_images">Enregistrer aussi les images ici ?</string>
@@ -473,8 +476,8 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="censor_empty_state_title">Masquez Ce Qui Doit Rester Privé</string>
     <string name="censor_empty_state_description">Pixellisez, noircissez ou floutez les visages, les plaques d’immatriculation, les adresses et tout le reste sur une photo. Redact enregistre une copie censurée sans aucune métadonnée, et votre original reste intact.</string>
     <string name="censor_select_photo">Sélectionner une Photo</string>
-    <string name="censor_hint">Dessinez sur tout ce qui doit rester privé, puis appuyez sur Enregistrer une Copie. Appuyez sur un rectangle pour le déplacer ou le redimensionner.</string>
-    <string name="censor_canvas_description">Photo en cours de censure. Dessinez avec un doigt pour masquer une zone ; pincez avec deux doigts pour zoomer.</string>
+    <string name="censor_hint">Dessinez sur tout ce qui doit rester privé, puis appuyez sur Enregistrer une Copie. Avec Déplacer, pincez pour zoomer et faites glisser pour vous déplacer ; appuyez sur un rectangle pour le déplacer ou le redimensionner.</string>
+    <string name="censor_canvas_description">Photo en cours de censure. Dessinez avec un doigt pour masquer une zone. Avec Déplacer, faites glisser pour vous déplacer et pincez pour zoomer.</string>
     <string name="censor_tool_rectangle">Rectangle</string>
     <string name="censor_tool_brush">Pinceau</string>
     <string name="censor_tool_move">Déplacer</string>
@@ -484,11 +487,13 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="censor_effect_blur">Flouter</string>
     <string name="censor_undo">Annuler</string>
     <string name="censor_redo">Rétablir</string>
-    <string name="censor_zoom_in">Zoom avant</string>
-    <string name="censor_zoom_out">Zoom arrière</string>
+    <string name="censor_delete_rectangle">Supprimer le Rectangle</string>
+    <string name="censor_zoom_level">%1$s×</string>
+    <string name="censor_zoom_reset">Zoom ×%1$s. Appuyez pour afficher la photo entière.</string>
     <string name="censor_save">Enregistrer une Copie</string>
     <string name="censor_saved">Copie censurée enregistrée.</string>
     <string name="censor_saved_downscaled">Copie censurée enregistrée, plus petite que l’original. Pour garder la taille d’origine, augmentez la Résolution Max. de Traitement dans les paramètres.</string>
+    <string name="censor_file_name">%1$s (censurée)</string>
     <string name="censor_error_open">Impossible d’ouvrir cette photo.</string>
     <string name="censor_error_unsupported">Ce type d’image ne peut pas être censuré sur cet appareil.</string>
     <string name="censor_error_save">Impossible d’enregistrer la copie censurée.</string>

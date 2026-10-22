@@ -17,15 +17,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- The open photo: its card, the photo filling the space left, then the tools. Not
-         scrollable, so drawing on the photo never scrolls the screen. -->
+    <!-- The open photo: its summary card, the tools card, and the photo filling the space
+         left all the way to the bottom. Not scrollable, so drawing on the photo never scrolls
+         the screen. -->
     <LinearLayout
         android:id="@+id/censorContent"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:orientation="vertical"
         android:paddingHorizontal="@dimen/screen_edge_padding"
-        android:paddingBottom="88dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="8dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -34,13 +36,13 @@
 
         <include layout="@layout/censor_summary_card" />
 
+        <include layout="@layout/censor_tools_card" />
+
         <include
             layout="@layout/censor_canvas_card"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1" />
-
-        <include layout="@layout/censor_tools_card" />
     </LinearLayout>
 
     <include layout="@layout/censor_actions" />

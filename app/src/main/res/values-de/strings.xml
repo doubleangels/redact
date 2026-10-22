@@ -4,8 +4,9 @@
     <string name="app_name">Redact</string>
 
     
-    <string name="content_description_image_view">Bildansicht</string>
-    <string name="content_description_scroll_view">Scrollansicht</string>
+    <string name="content_description_selected_files">Ausgewählte Dateien</string>
+    <string name="content_description_selected_photo">Foto: %1$s</string>
+    <string name="content_description_selected_video">Video: %1$s</string>
 
     
     <string name="navigation_clean">Bereinigen</string>
@@ -292,6 +293,7 @@ Ihre Fotos und Videos werden nie hochgeladen. URIs, Dateinamen und GPS-Koordinat
     <string name="scan_convert_this_file">Diese Datei Konvertieren</string>
     <string name="scan_censor_this_photo">Dieses Foto Zensieren</string>
     <string name="scan_copied_to_clipboard">In Zwischenablage kopiert</string>
+    <string name="scan_copy_value">Wert Kopieren</string>
     <string name="scan_copy_all_metadata">Alle Metadaten Kopieren</string>
     <string name="scan_copy_camera">Kamerainfo Kopieren</string>
 <string name="settings_permissions_location">Foto-Standort</string>
@@ -365,7 +367,7 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="convert_empty_state_title">Medienformate Konvertieren</string>
     <string name="convert_empty_state_description">Fotos oder Videos auswählen, um sie in die Formate JPEG, PNG, WebP, HEIC oder MP4 zu konvertieren.</string>
     <string name="convert_files_card_title">Zu Konvertierende Dateien</string>
-    <string name="convert_heic_fallback_jpeg">Die HEIC-Ausgabe erfordert Android 14 oder neuer. Bilder werden stattdessen als JPEG gespeichert.</string>
+    <string name="convert_heic_fallback_jpeg">Dieses Handy kann keine HEIC-Bilder speichern, daher werden sie stattdessen als JPEG gespeichert.</string>
     <string name="convert_item_type_image">Bild</string>
     <string name="convert_item_type_video">Video</string>
     <string name="scan_empty_state_title">Medien-Metadaten Prüfen</string>
@@ -444,7 +446,8 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="share_results_chooser_title">Teilen über…</string>
     <string name="settings_output_unavailable">Redact kann nicht mehr in diesem Ordner speichern, daher landen Dateien in %1$s. Wähle ihn erneut oder einen anderen Ordner aus.</string>
     <string name="output_folder_fallback">Speichere stattdessen in %2$s: %1$s ist nicht verfügbar.</string>
-    <string name="settings_output_open">Ordner Öffnen</string>
+    <string name="settings_output_open_images">Bilderordner Öffnen</string>
+    <string name="settings_output_open_videos">Videoordner Öffnen</string>
     <string name="settings_output_open_unavailable">Keine App zum Öffnen dieses Ordners gefunden.</string>
     <string name="settings_output_also_videos">Videos auch hier speichern?</string>
     <string name="settings_output_also_images">Bilder auch hier speichern?</string>
@@ -459,8 +462,8 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="censor_empty_state_title">Verdecke, Was Privat Bleiben Soll</string>
     <string name="censor_empty_state_description">Verpixle, schwärze oder verwische Gesichter, Kennzeichen, Adressen und alles andere in einem Foto. Redact speichert eine zensierte Kopie ohne Metadaten, und dein Original bleibt unverändert.</string>
     <string name="censor_select_photo">Foto Auswählen</string>
-    <string name="censor_hint">Male über alles, was privat bleiben soll, und tippe dann auf Kopie Speichern. Tippe auf ein Rechteck, um es zu verschieben oder seine Größe zu ändern.</string>
-    <string name="censor_canvas_description">Foto, das zensiert wird. Zeichne mit einem Finger, um einen Bereich zu verdecken; ziehe zwei Finger auseinander, um zu zoomen.</string>
+    <string name="censor_hint">Male über alles, was privat bleiben soll, und tippe dann auf Kopie Speichern. Mit Verschieben kannst du mit zwei Fingern zoomen und den Ausschnitt bewegen. Tippe auf ein Rechteck, um es zu verschieben oder seine Größe zu ändern.</string>
+    <string name="censor_canvas_description">Foto, das zensiert wird. Zeichne mit einem Finger, um einen Bereich zu verdecken. Mit Verschieben ziehst du den Ausschnitt und zoomst mit zwei Fingern.</string>
     <string name="censor_tool_rectangle">Rechteck</string>
     <string name="censor_tool_brush">Pinsel</string>
     <string name="censor_tool_move">Verschieben</string>
@@ -470,11 +473,13 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="censor_effect_blur">Verwischen</string>
     <string name="censor_undo">Rückgängig</string>
     <string name="censor_redo">Wiederholen</string>
-    <string name="censor_zoom_in">Vergrößern</string>
-    <string name="censor_zoom_out">Verkleinern</string>
+    <string name="censor_delete_rectangle">Rechteck Löschen</string>
+    <string name="censor_zoom_level">%1$s×</string>
+    <string name="censor_zoom_reset">%1$s-fach vergrößert. Tippe, um das ganze Foto zu zeigen.</string>
     <string name="censor_save">Kopie Speichern</string>
     <string name="censor_saved">Zensierte Kopie gespeichert.</string>
     <string name="censor_saved_downscaled">Zensierte Kopie gespeichert, kleiner als das Original. Um die volle Größe zu behalten, erhöhe in den Einstellungen die Max. Verarbeitungsauflösung.</string>
+    <string name="censor_file_name">%1$s (zensiert)</string>
     <string name="censor_error_open">Dieses Foto konnte nicht geöffnet werden.</string>
     <string name="censor_error_unsupported">Dieser Bildtyp kann auf diesem Gerät nicht zensiert werden.</string>
     <string name="censor_error_save">Die zensierte Kopie konnte nicht gespeichert werden.</string>

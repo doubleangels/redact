@@ -790,8 +790,8 @@
                                 android:layout_width="48dp"
                                 android:layout_height="48dp"
                                 android:layout_marginStart="4dp"
-                                android:contentDescription="@string/settings_output_open"
-                                android:tooltipText="@string/settings_output_open"
+                                android:contentDescription="@string/settings_output_open_images"
+                                android:tooltipText="@string/settings_output_open_images"
                                 app:icon="@drawable/ic_folder_open"
                                 app:iconTint="?attr/colorOnSurfaceVariant" />
                         </LinearLayout>
@@ -913,8 +913,8 @@
                                 android:layout_width="48dp"
                                 android:layout_height="48dp"
                                 android:layout_marginStart="4dp"
-                                android:contentDescription="@string/settings_output_open"
-                                android:tooltipText="@string/settings_output_open"
+                                android:contentDescription="@string/settings_output_open_videos"
+                                android:tooltipText="@string/settings_output_open_videos"
                                 app:icon="@drawable/ic_folder_open"
                                 app:iconTint="?attr/colorOnSurfaceVariant" />
                         </LinearLayout>

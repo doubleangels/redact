@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Save Copy, then Share and Scan Result beside it once a copy is saved: the same buttons as
-     Clean and Convert, in one row so the photo keeps as much height as it can. -->
+<!-- The same buttons as Clean: Save Copy is the big action in the bottom right, and once a copy is
+     saved, Share and Scan Result take its place as Clean's smaller buttons. The two never show
+     together (Save Copy only shows with new edits), so they share the bottom right. -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -22,19 +23,20 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/shareResultsButton"
-        style="@style/Widget.Material3.ExtendedFloatingActionButton.Secondary"
+        style="@style/Widget.Material3.FloatingActionButton.Secondary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="12dp"
-        android:text="@string/button_share_results"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:contentDescription="@string/button_share_results"
+        android:tooltipText="@string/button_share_results"
         android:visibility="gone"
-        app:icon="@drawable/ic_share"
-        app:layout_constraintBottom_toBottomOf="@id/censorSaveButton"
-        app:layout_constraintEnd_toStartOf="@id/censorSaveButton"
+        app:layout_constraintBottom_toTopOf="@id/censorSaveButton"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_goneMarginBottom="16dp"
-        app:layout_goneMarginEnd="16dp" />
+        app:srcCompat="@drawable/ic_share" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/scanResultButton"

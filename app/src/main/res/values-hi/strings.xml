@@ -4,8 +4,9 @@
     <string name="app_name">Redact</string>
 
     
-    <string name="content_description_image_view">छवि दृश्य</string>
-    <string name="content_description_scroll_view">स्क्रॉल दृश्य</string>
+    <string name="content_description_selected_files">चुनी गई फ़ाइलें</string>
+    <string name="content_description_selected_photo">फ़ोटो: %1$s</string>
+    <string name="content_description_selected_video">वीडियो: %1$s</string>
 
     
     <string name="navigation_clean">साफ करें</string>
@@ -293,6 +294,7 @@
     <string name="scan_convert_this_file">इस फ़ाइल को कनवर्ट करें</string>
     <string name="scan_censor_this_photo">इस फ़ोटो के हिस्से छिपाएँ</string>
     <string name="scan_copied_to_clipboard">क्लिपबोर्ड पर कॉपी किया गया</string>
+    <string name="scan_copy_value">मान कॉपी करें</string>
     <string name="scan_copy_all_metadata">सभी मेटाडेटा कॉपी करें</string>
     <string name="scan_copy_camera">कैमरा जानकारी कॉपी करें</string>
 <string name="settings_permissions_location">फ़ोटो स्थान</string>
@@ -366,7 +368,7 @@
     <string name="convert_empty_state_title">मीडिया फ़ॉर्मैट बदलें</string>
     <string name="convert_empty_state_description">फ़ोटो या वीडियो को JPEG, PNG, WebP, HEIC या MP4 फ़ॉर्मैट में बदलने के लिए चुनें।</string>
     <string name="convert_files_card_title">बदलने के लिए फ़ाइलें</string>
-    <string name="convert_heic_fallback_jpeg">HEIC आउटपुट के लिए Android 14 या उसके बाद का संस्करण ज़रूरी है। इसके बजाय चित्र JPEG के रूप में सहेजे जाएँगे।</string>
+    <string name="convert_heic_fallback_jpeg">यह फ़ोन HEIC चित्र सहेज नहीं सकता, इसलिए वे JPEG के रूप में सहेजे जाएँगे।</string>
     <string name="convert_item_type_image">चित्र</string>
     <string name="convert_item_type_video">वीडियो</string>
     <string name="scan_empty_state_title">मीडिया मेटाडेटा जाँचें</string>
@@ -445,7 +447,8 @@
     <string name="share_results_chooser_title">इसके ज़रिए साझा करें…</string>
     <string name="settings_output_unavailable">Redact अब इस फ़ोल्डर में सेव नहीं कर सकता, इसलिए फ़ाइलें %1$s में जाती हैं। इसे फिर से चुनें या कोई दूसरा फ़ोल्डर चुनें।</string>
     <string name="output_folder_fallback">%1$s उपलब्ध नहीं है, इसलिए %2$s में सेव किया जा रहा है।</string>
-    <string name="settings_output_open">फ़ोल्डर खोलें</string>
+    <string name="settings_output_open_images">छवियों का फ़ोल्डर खोलें</string>
+    <string name="settings_output_open_videos">वीडियो का फ़ोल्डर खोलें</string>
     <string name="settings_output_open_unavailable">इस फ़ोल्डर को खोलने के लिए कोई ऐप नहीं मिला।</string>
     <string name="settings_output_also_videos">वीडियो भी यहीं सहेजें?</string>
     <string name="settings_output_also_images">छवियाँ भी यहीं सहेजें?</string>
@@ -460,8 +463,8 @@
     <string name="censor_empty_state_title">जो निजी रहना चाहिए, उसे छिपाएँ</string>
     <string name="censor_empty_state_description">फ़ोटो में चेहरे, नंबर प्लेट, पते और कुछ भी पिक्सेलेट करें, काला करें या धुंधला करें। Redact बिना किसी मेटाडेटा के एक छिपाई गई कॉपी सहेजता है, और आपकी मूल फ़ोटो जैसी है वैसी ही रहती है।</string>
     <string name="censor_select_photo">फ़ोटो चुनें</string>
-    <string name="censor_hint">जो कुछ भी निजी रहना चाहिए उस पर बनाएँ, फिर कॉपी सहेजें पर टैप करें। किसी आयत को खिसकाने या उसका आकार बदलने के लिए उस पर टैप करें।</string>
-    <string name="censor_canvas_description">फ़ोटो जिसके हिस्से छिपाए जा रहे हैं। किसी हिस्से को ढकने के लिए एक उंगली से बनाएँ; ज़ूम करने के लिए दो उंगलियों से पिंच करें।</string>
+    <string name="censor_hint">जो कुछ भी निजी रहना चाहिए उस पर बनाएँ, फिर कॉपी सहेजें पर टैप करें। ज़ूम करने के लिए खिसकाएँ चुनकर दो उंगलियों से पिंच करें और खींचकर इधर-उधर जाएँ। किसी आयत को खिसकाने या उसका आकार बदलने के लिए उस पर टैप करें।</string>
+    <string name="censor_canvas_description">फ़ोटो जिसके हिस्से छिपाए जा रहे हैं। किसी हिस्से को ढकने के लिए एक उंगली से बनाएँ। खिसकाएँ चुनकर खींचें और ज़ूम करने के लिए पिंच करें।</string>
     <string name="censor_tool_rectangle">आयत</string>
     <string name="censor_tool_brush">ब्रश</string>
     <string name="censor_tool_move">खिसकाएँ</string>
@@ -471,11 +474,13 @@
     <string name="censor_effect_blur">धुंधला</string>
     <string name="censor_undo">पूर्ववत करें</string>
     <string name="censor_redo">फिर से करें</string>
-    <string name="censor_zoom_in">ज़ूम इन करें</string>
-    <string name="censor_zoom_out">ज़ूम आउट करें</string>
+    <string name="censor_delete_rectangle">आयत हटाएँ</string>
+    <string name="censor_zoom_level">%1$s×</string>
+    <string name="censor_zoom_reset">%1$s गुना ज़ूम किया गया। पूरी फ़ोटो देखने के लिए टैप करें।</string>
     <string name="censor_save">कॉपी सहेजें</string>
     <string name="censor_saved">छिपाई गई कॉपी सहेजी गई।</string>
     <string name="censor_saved_downscaled">कॉपी सहेजी गई, लेकिन मूल से छोटी। पूरा आकार रखने के लिए सेटिंग में अधिकतम प्रसंस्करण रिज़ॉल्यूशन बढ़ाएँ।</string>
+    <string name="censor_file_name">%1$s (छिपाया गया)</string>
     <string name="censor_error_open">यह फ़ोटो खोली नहीं जा सकी।</string>
     <string name="censor_error_unsupported">इस प्रकार की इमेज के हिस्से इस डिवाइस पर नहीं छिपाए जा सकते।</string>
     <string name="censor_error_save">छिपाई गई कॉपी सहेजी नहीं जा सकी।</string>

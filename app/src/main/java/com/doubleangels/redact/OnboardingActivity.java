@@ -305,6 +305,7 @@ public class OnboardingActivity extends AppCompatActivity {
 
     private void onPrimary() {
         Step step = current();
+        SentryManager.logEvent("onboarding", "The user tapped the main button on " + step.name() + ".");
         if (isPermissionStep(step) && canAsk(step)) {
             requestPermission(step);
         } else {
@@ -314,6 +315,7 @@ public class OnboardingActivity extends AppCompatActivity {
 
     private void onSecondary() {
         Step step = current();
+        SentryManager.logEvent("onboarding", "The user tapped the second button on " + step.name() + ".");
         if (canOpenSettings(step)) {
             openSystemSettings(step);
         } else {
@@ -388,7 +390,7 @@ public class OnboardingActivity extends AppCompatActivity {
         List<Point> points = new ArrayList<>();
         switch (step) {
             case WELCOME -> {
-                icon = R.drawable.ic_shield;
+                icon = R.drawable.ic_launcher_foreground;
                 title = R.string.onboarding_welcome_title;
                 body = getText(R.string.onboarding_welcome_body);
                 points.add(point(R.drawable.ic_clean, R.string.onboarding_welcome_clean));
@@ -467,7 +469,7 @@ public class OnboardingActivity extends AppCompatActivity {
             }
         }
 
-        holder.icon.setImageResource(icon);
+        holder.showIcon(icon, step == Step.WELCOME);
         holder.title.setText(title);
         holder.body.setText(body);
         bindStatus(holder, step);
@@ -614,6 +616,8 @@ public class OnboardingActivity extends AppCompatActivity {
             final MaterialCardView status;
             final TextView statusText;
             final ViewGroup points;
+            private final ColorStateList iconTint;
+            private final int iconSize;
 
             Holder(@NonNull View itemView) {
                 super(itemView);
@@ -623,8 +627,25 @@ public class OnboardingActivity extends AppCompatActivity {
                 status = itemView.findViewById(R.id.onboardingStatus);
                 statusText = itemView.findViewById(R.id.onboardingStatusText);
                 points = itemView.findViewById(R.id.onboardingPoints);
-                icon.setImageTintList(ColorStateList.valueOf(MaterialColors.getColor(itemView,
-                        com.google.android.material.R.attr.colorOnPrimaryContainer)));
+                iconTint = ColorStateList.valueOf(MaterialColors.getColor(itemView,
+                        com.google.android.material.R.attr.colorOnPrimaryContainer));
+                iconSize = icon.getLayoutParams().width;
+            }
+
+            /**
+             * Shows a page's icon. The app's logo keeps its own colours and fills the badge, the way
+             * the launcher icon sits in its circle; other icons are tinted and centred.
+             */
+            void showIcon(@DrawableRes int drawable, boolean logo) {
+                icon.setImageResource(drawable);
+                icon.setImageTintList(logo ? null : iconTint);
+                ViewGroup.LayoutParams params = icon.getLayoutParams();
+                int size = logo ? ViewGroup.LayoutParams.MATCH_PARENT : iconSize;
+                if (params.width != size) {
+                    params.width = size;
+                    params.height = size;
+                    icon.setLayoutParams(params);
+                }
             }
         }
     }

@@ -72,4 +72,41 @@ public class SecureWindowTest {
         SecureWindow.apply(activity);
         assertEquals(false, isSecure(activity));
     }
+
+    @Test
+    public void anOpenCensorPhoto_onAndroid12_makesTheWindowSecureUntilItCloses() {
+        controller = Robolectric.buildActivity(MainActivity.class).setup();
+        MainActivity activity = controller.get();
+
+        SecureWindow.setPhotoOpen(activity, true);
+        assertTrue(isSecure(activity));
+        SecureWindow.apply(activity);
+        assertTrue("the setting being off does not undo it", isSecure(activity));
+
+        SecureWindow.setPhotoOpen(activity, false);
+        assertEquals(false, isSecure(activity));
+    }
+
+    @Test
+    public void closingTheCensorPhoto_keepsTheWindowSecure_whenTheSettingIsOn() {
+        AppPreferences.setSecureWindow(RuntimeEnvironment.getApplication(), true);
+        controller = Robolectric.buildActivity(MainActivity.class).setup();
+        MainActivity activity = controller.get();
+
+        SecureWindow.setPhotoOpen(activity, true);
+        SecureWindow.setPhotoOpen(activity, false);
+        assertTrue(isSecure(activity));
+    }
+
+    @Test
+    @Config(sdk = 33)
+    public void anOpenCensorPhoto_onAndroid13_hidesOnlyThePreview() {
+        controller = Robolectric.buildActivity(MainActivity.class).setup();
+        MainActivity activity = controller.get();
+
+        SecureWindow.setPhotoOpen(activity, true);
+        assertEquals("screenshots stay allowed", false, isSecure(activity));
+        SecureWindow.setPhotoOpen(activity, false);
+        assertEquals(false, isSecure(activity));
+    }
 }

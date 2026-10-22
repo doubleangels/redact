@@ -238,7 +238,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     android:clipToPadding="false"
-                    android:contentDescription="@string/content_description_image_view"
+                    android:contentDescription="@string/content_description_selected_files"
                     android:nestedScrollingEnabled="false"
                     tools:listitem="@layout/item_selected_media" />
             </LinearLayout>

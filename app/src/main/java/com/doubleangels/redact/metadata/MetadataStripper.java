@@ -442,7 +442,6 @@ public class MetadataStripper {
         Uri newUri = null;
         lastCleanStats = null;
         File tempFile = null;
-        File cleanFile = null;
 
         try {
             FormatConverter.ImageFormatSpec outputFormat = resolveImageOutputFormat(sourceUri, originalFilename);
@@ -464,36 +463,7 @@ public class MetadataStripper {
             readEssentialExifData(tempFile, false);
             lastCleanStats = readCleanStats(tempFile, false);
 
-            updateProgress(3, 5, context.getString(R.string.strip_progress_removing_metadata));
-
-            // Every attempt writes to a private file, and only the finished result is copied to
-            // the output. Rewriting the output itself between attempts is unsafe: a provider that
-            // does not truncate on "w" would keep the tail of an earlier, longer attempt, which
-            // can be a full copy of the original with its metadata.
-            cleanFile = File.createTempFile("temp_clean_", extension, context.getCacheDir());
-            writePictureOnly(tempFile, sourceUri, cleanFile, outputFormat);
-
-            // Restore only essential EXIF data (like orientation)
-            updateProgress(4, 5, context.getString(R.string.strip_progress_restoring_essential_metadata));
-            restoreEssentialExifData(cleanFile);
-
-            // Create the output (a pending MediaStore entry, or a file in the chosen folder) and
-            // write the finished file to it once.
-            newUri = OutputDestination.create(context, false, newFilename, outputFormat.mimeType);
-            try (InputStream in = new FileInputStream(cleanFile);
-                    OutputStream os = contentResolver.openOutputStream(newUri)) {
-                if (os == null) {
-                    throw new IOException("Failed to open output stream for new image");
-                }
-                MediaSizeLimits.copyStream(in, os);
-            }
-
-            // Verify metadata removal while the entry is still IS_PENDING=1, so a file that
-            // fails verification is never visible to other apps via MediaStore even briefly.
-            // The owning app can read/write its own pending entry; only other apps are blocked.
-            updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
-            verifyCleanedImageAtUri(newUri, extension);
-            OutputDestination.publish(contentResolver, newUri);
+            newUri = writeCleanImage(tempFile, sourceUri, newFilename, outputFormat);
 
             lastProcessedFileUri = newUri;
             SentryManager.log("The image was processed successfully.");
@@ -531,14 +501,103 @@ public class MetadataStripper {
                 // Use secure deletion for temp files
                 secureDeleteFile(tempFile);
             }
-            if (cleanFile != null && cleanFile.exists()) {
-                secureDeleteFile(cleanFile);
-            }
 
             preservedExifValues.clear();
         }
 
         return newUri;
+    }
+
+    /**
+     * Saves a censored photo to the gallery the way {@link #stripExifData} saves a clean one, so it
+     * follows the same settings: the tags they keep are copied from the original, the file is
+     * rebuilt with nothing else in it, and it is checked before anyone can see it.
+     *
+     * @param original the photo that was censored, read only for the tags the settings keep and
+     *                 for the clean statistics
+     * @param censored the censored picture, already upright, so the original's orientation is
+     *                 not copied
+     * @param outputName the saved file's name, with its extension
+     * @return the saved copy
+     * @throws IOException when it could not be saved; nothing is left behind
+     */
+    @NonNull
+    public Uri saveCensoredImage(@NonNull Uri original, @NonNull File censored,
+                                 @NonNull String outputName,
+                                 @NonNull FormatConverter.ImageFormatSpec outputFormat) throws IOException {
+        SentryManager.log("The app is saving a censored image to MediaStore.");
+        lastCleanStats = null;
+        // A private copy of the uncensored original, deleted as soon as its tags are read.
+        File originalCopy = File.createTempFile("temp_", outputFormat.extension, context.getCacheDir());
+        try {
+            copySourceToTempFile(original, originalCopy);
+            readEssentialExifData(originalCopy, false);
+            preservedExifValues.remove(ExifInterface.TAG_ORIENTATION);
+            lastCleanStats = readCleanStats(originalCopy, false);
+        } finally {
+            secureDeleteFile(originalCopy);
+        }
+        try {
+            // The censored file is also what a re-encode falls back to decoding, never the original.
+            Uri out = writeCleanImage(censored, Uri.fromFile(censored), outputName, outputFormat);
+            lastProcessedFileUri = out;
+            return out;
+        } finally {
+            preservedExifValues.clear();
+        }
+    }
+
+    /**
+     * Writes {@code picture} to a new gallery entry with only the preserved tags, verifies it and
+     * publishes it. On failure the entry is removed and the error is rethrown.
+     */
+    @NonNull
+    private Uri writeCleanImage(@NonNull File picture, @NonNull Uri pictureUri, @NonNull String newFilename,
+                                @NonNull FormatConverter.ImageFormatSpec outputFormat) throws IOException {
+        Uri newUri = null;
+        File cleanFile = null;
+        try {
+            updateProgress(3, 5, context.getString(R.string.strip_progress_removing_metadata));
+
+            // Every attempt writes to a private file, and only the finished result is copied to
+            // the output. Rewriting the output itself between attempts is unsafe: a provider that
+            // does not truncate on "w" would keep the tail of an earlier, longer attempt, which
+            // can be a full copy of the original with its metadata.
+            cleanFile = File.createTempFile("temp_clean_", outputFormat.extension, context.getCacheDir());
+            writePictureOnly(picture, pictureUri, cleanFile, outputFormat);
+
+            // Restore only essential EXIF data (like orientation)
+            updateProgress(4, 5, context.getString(R.string.strip_progress_restoring_essential_metadata));
+            restoreEssentialExifData(cleanFile);
+
+            // Create the output (a pending MediaStore entry, or a file in the chosen folder) and
+            // write the finished file to it once.
+            newUri = OutputDestination.create(context, false, newFilename, outputFormat.mimeType);
+            try (InputStream in = new FileInputStream(cleanFile);
+                    OutputStream os = contentResolver.openOutputStream(newUri)) {
+                if (os == null) {
+                    throw new IOException("Failed to open output stream for new image");
+                }
+                MediaSizeLimits.copyStream(in, os);
+            }
+
+            // Verify metadata removal while the entry is still IS_PENDING=1, so a file that
+            // fails verification is never visible to other apps via MediaStore even briefly.
+            // The owning app can read/write its own pending entry; only other apps are blocked.
+            updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
+            verifyCleanedImageAtUri(newUri, outputFormat.extension);
+            OutputDestination.publish(contentResolver, newUri);
+            return newUri;
+        } catch (IOException | RuntimeException e) {
+            if (newUri != null) {
+                OutputDestination.discard(contentResolver, newUri);
+            }
+            throw e;
+        } finally {
+            if (cleanFile != null && cleanFile.exists()) {
+                secureDeleteFile(cleanFile);
+            }
+        }
     }
 
     /**

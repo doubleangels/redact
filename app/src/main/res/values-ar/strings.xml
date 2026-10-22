@@ -4,8 +4,9 @@
     <string name="app_name">Redact</string>
 
     
-    <string name="content_description_image_view">عرض الصورة</string>
-    <string name="content_description_scroll_view">عرض التمرير</string>
+    <string name="content_description_selected_files">الملفات المحددة</string>
+    <string name="content_description_selected_photo">صورة: %1$s</string>
+    <string name="content_description_selected_video">فيديو: %1$s</string>
 
     
     <string name="navigation_clean">تنظيف</string>
@@ -317,6 +318,7 @@
     <string name="scan_convert_this_file">تحويل هذا الملف</string>
     <string name="scan_censor_this_photo">إخفاء أجزاء من هذه الصورة</string>
     <string name="scan_copied_to_clipboard">تم النسخ إلى الحافظة</string>
+    <string name="scan_copy_value">نسخ القيمة</string>
     <string name="scan_copy_all_metadata">نسخ كل البيانات الوصفية</string>
     <string name="scan_copy_camera">نسخ معلومات الكاميرا</string>
 <string name="settings_permissions_location">موقع الصورة</string>
@@ -390,7 +392,7 @@
     <string name="convert_empty_state_title">تحويل صيغ الوسائط</string>
     <string name="convert_empty_state_description">حدّد صورًا أو مقاطع فيديو لتحويلها إلى صيغ JPEG وPNG وWebP وHEIC أو MP4.</string>
     <string name="convert_files_card_title">الملفات المراد تحويلها</string>
-    <string name="convert_heic_fallback_jpeg">يتطلب إخراج HEIC نظام Android 14 أو أحدث. ستُحفظ الصور بصيغة JPEG بدلًا من ذلك.</string>
+    <string name="convert_heic_fallback_jpeg">لا يستطيع هذا الهاتف حفظ الصور بصيغة HEIC، لذا ستُحفظ بصيغة JPEG بدلًا من ذلك.</string>
     <string name="convert_item_type_image">صورة</string>
     <string name="convert_item_type_video">فيديو</string>
     <string name="scan_empty_state_title">فحص البيانات الوصفية للوسائط</string>
@@ -497,7 +499,8 @@
     <string name="share_results_chooser_title">مشاركة عبر…</string>
     <string name="settings_output_unavailable">لم يعد بإمكان Redact الحفظ في هذا المجلد، لذلك تُحفظ الملفات في %1$s. اختره مرة أخرى أو اختر مجلدًا آخر.</string>
     <string name="output_folder_fallback">يتم الحفظ في %2$s بدلًا من ذلك: %1$s غير متاح.</string>
-    <string name="settings_output_open">فتح المجلد</string>
+    <string name="settings_output_open_images">فتح مجلد الصور</string>
+    <string name="settings_output_open_videos">فتح مجلد الفيديوهات</string>
     <string name="settings_output_open_unavailable">لم يتم العثور على تطبيق لفتح هذا المجلد.</string>
     <string name="settings_output_also_videos">حفظ مقاطع الفيديو هنا أيضًا؟</string>
     <string name="settings_output_also_images">حفظ الصور هنا أيضًا؟</string>
@@ -512,8 +515,8 @@
     <string name="censor_empty_state_title">أخفِ ما يجب أن يبقى خاصًا</string>
     <string name="censor_empty_state_description">حوّل الوجوه ولوحات السيارات والعناوين وأي شيء آخر في الصورة إلى بكسلات، أو غطِّها بالأسود، أو اجعلها ضبابية. يحفظ Redact نسخة مخفية الأجزاء بلا أي بيانات وصفية، ويبقى الأصل كما هو.</string>
     <string name="censor_select_photo">تحديد صورة</string>
-    <string name="censor_hint">ارسم فوق كل ما يجب أن يبقى خاصًا، ثم انقر على حفظ نسخة. انقر على مستطيل لتحريكه أو تغيير حجمه.</string>
-    <string name="censor_canvas_description">الصورة التي يتم إخفاء أجزاء منها. ارسم بإصبع واحد لتغطية منطقة، وقرّب أو باعد بين إصبعين للتكبير.</string>
+    <string name="censor_hint">ارسم فوق كل ما يجب أن يبقى خاصًا، ثم انقر على حفظ نسخة. استخدم تحريك للتكبير بإصبعين والتنقل، وانقر على مستطيل لتحريكه أو تغيير حجمه.</string>
+    <string name="censor_canvas_description">الصورة التي يتم إخفاء أجزاء منها. ارسم بإصبع واحد لتغطية منطقة. مع تحريك، اسحب للتنقل وقرّب إصبعين أو باعد بينهما للتكبير.</string>
     <string name="censor_tool_rectangle">مستطيل</string>
     <string name="censor_tool_brush">فرشاة</string>
     <string name="censor_tool_move">تحريك</string>
@@ -523,11 +526,13 @@
     <string name="censor_effect_blur">ضبابية</string>
     <string name="censor_undo">تراجع</string>
     <string name="censor_redo">إعادة</string>
-    <string name="censor_zoom_in">تكبير</string>
-    <string name="censor_zoom_out">تصغير</string>
+    <string name="censor_delete_rectangle">حذف المستطيل</string>
+    <string name="censor_zoom_level">%1$s×</string>
+    <string name="censor_zoom_reset">مكبّرة %1$s مرة. انقر لعرض الصورة كاملة.</string>
     <string name="censor_save">حفظ نسخة</string>
     <string name="censor_saved">تم حفظ النسخة المخفية الأجزاء.</string>
     <string name="censor_saved_downscaled">تم حفظ النسخة بحجم أصغر من الأصل. للاحتفاظ بالحجم الكامل، ارفع أقصى دقة معالجة في الإعدادات.</string>
+    <string name="censor_file_name">%1$s (محجوبة)</string>
     <string name="censor_error_open">تعذّر فتح هذه الصورة.</string>
     <string name="censor_error_unsupported">لا يمكن إخفاء أجزاء من هذا النوع من الصور على هذا الجهاز.</string>
     <string name="censor_error_save">تعذّر حفظ النسخة المخفية الأجزاء.</string>

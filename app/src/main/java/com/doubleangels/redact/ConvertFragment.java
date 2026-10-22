@@ -541,8 +541,9 @@ public class ConvertFragment extends Fragment {
         int formatIndex = getSelectedFormatIndex();
         int imageFormatIndex = FormatConverter.effectiveImageFormatIndex(formatIndex);
         Bitmap.CompressFormat imageFormat = FormatConverter.formatAtIndex(imageFormatIndex);
-        final boolean heicOutputFallback =
-                formatIndex == 3 && imageFormatIndex != formatIndex;
+        // Below Android 14, or on a phone whose Android has no HEIC encoder, HEIC becomes JPEG.
+        final boolean heicOutputFallback = formatIndex == 3
+                && (imageFormatIndex != formatIndex || !FormatConverter.isHeicOutputSupported());
 
         progressBar.setIndeterminate(false);
         progressBar.setMax(100);

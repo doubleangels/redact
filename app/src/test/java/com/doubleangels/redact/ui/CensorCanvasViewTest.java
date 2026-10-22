@@ -29,10 +29,9 @@ public class CensorCanvasViewTest {
     private CensorRegion drawn;
     private CensorRegion changed;
     private int changedIndex = -1;
+    private final java.util.List<Integer> selections = new java.util.ArrayList<>();
+    private final java.util.List<Float> zooms = new java.util.ArrayList<>();
     private final java.util.List<CensorRegion> regions = new java.util.ArrayList<>();
-    private float lastZoom;
-    private boolean canZoomIn;
-    private boolean canZoomOut;
 
     @Before
     public void setUp() {
@@ -57,11 +56,16 @@ public class CensorCanvasViewTest {
                 regions.set(index, region);
                 view.setRegions(regions);
             }
-        });
-        view.setZoomListener((zoom, in, out) -> {
-            lastZoom = zoom;
-            canZoomIn = in;
-            canZoomOut = out;
+
+            @Override
+            public void onSelectionChanged(int index) {
+                selections.add(index);
+            }
+
+            @Override
+            public void onZoomChanged(float zoom) {
+                zooms.add(zoom);
+            }
         });
     }
 
@@ -73,30 +77,73 @@ public class CensorCanvasViewTest {
         view.onTouchEvent(MotionEvent.obtain(t, t + 30, MotionEvent.ACTION_UP, x1, y1, 0));
     }
 
-    @Test
-    public void startsFitted_andCanOnlyZoomIn() {
-        assertEquals(1f, lastZoom, 0.001f);
-        assertTrue(canZoomIn);
-        assertFalse(canZoomOut);
+    /** Two fingers 100 px apart moving to 300 px apart about the centre: a pinch to zoom in. */
+    private void pinchOut() {
+        long t = SystemClock.uptimeMillis();
+        MotionEvent.PointerProperties[] props = {new MotionEvent.PointerProperties(), new MotionEvent.PointerProperties()};
+        props[0].id = 0;
+        props[1].id = 1;
+        view.onTouchEvent(MotionEvent.obtain(t, t, MotionEvent.ACTION_DOWN, 150, 150, 0));
+        view.onTouchEvent(MotionEvent.obtain(t, t + 10,
+                MotionEvent.ACTION_POINTER_DOWN | (1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT),
+                2, props, coords(150, 250), 0, 0, 1f, 1f, 0, 0, 0, 0));
+        for (int i = 1; i <= 10; i++) {
+            float half = 50 + i * 10;
+            view.onTouchEvent(MotionEvent.obtain(t, t + 10 + i * 16, MotionEvent.ACTION_MOVE,
+                    2, props, coords(200 - half, 200 + half), 0, 0, 1f, 1f, 0, 0, 0, 0));
+        }
+        view.onTouchEvent(MotionEvent.obtain(t, t + 200,
+                MotionEvent.ACTION_POINTER_UP | (1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT),
+                2, props, coords(50, 350), 0, 0, 1f, 1f, 0, 0, 0, 0));
+        view.onTouchEvent(MotionEvent.obtain(t, t + 210, MotionEvent.ACTION_UP, 50, 150, 0));
+    }
+
+    private static MotionEvent.PointerCoords[] coords(float x0, float x1) {
+        MotionEvent.PointerCoords a = new MotionEvent.PointerCoords();
+        MotionEvent.PointerCoords b = new MotionEvent.PointerCoords();
+        a.x = x0;
+        a.y = 150;
+        b.x = x1;
+        b.y = 150;
+        return new MotionEvent.PointerCoords[] {a, b};
     }
 
     @Test
-    public void zoomButtons_stayBetweenFitAndTheMaximum() {
+    public void zoom_staysBetweenFitAndTheMaximum() {
+        assertEquals(1f, view.getZoom(), 0.001f);
         view.zoomBy(2f);
         assertEquals(2f, view.getZoom(), 0.001f);
-        assertTrue(canZoomOut);
 
         for (int i = 0; i < 10; i++) {
             view.zoomBy(2f);
         }
         assertEquals(CensorCanvasView.MAX_ZOOM, view.getZoom(), 0.001f);
-        assertFalse(canZoomIn);
 
         for (int i = 0; i < 10; i++) {
             view.zoomBy(0.5f);
         }
         assertEquals(1f, view.getZoom(), 0.001f);
-        assertFalse(canZoomOut);
+    }
+
+    @Test
+    public void pinching_zoomsWithTheMoveTool() {
+        view.setTool(CensorCanvasView.Tool.MOVE);
+        pinchOut();
+        assertTrue("zoom " + view.getZoom(), view.getZoom() > 1.5f);
+        assertNull("moving draws nothing", drawn);
+    }
+
+    @Test
+    public void pinching_whileDrawing_neitherZoomsNorDraws() {
+        view.setTool(CensorCanvasView.Tool.BRUSH);
+        pinchOut();
+        assertEquals(1f, view.getZoom(), 0.001f);
+        assertNull(drawn);
+
+        view.setTool(CensorCanvasView.Tool.RECT);
+        pinchOut();
+        assertEquals(1f, view.getZoom(), 0.001f);
+        assertNull(drawn);
     }
 
     @Test
@@ -244,5 +291,67 @@ public class CensorCanvasViewTest {
         }
         assertEquals(5, regions.size());
         assertEquals(-1, changedIndex);
+    }
+
+    @Test
+    public void selecting_isReported_soDeleteCanShow_andClearingHidesIt() {
+        drag(100, 100, 200, 200);
+        drag(150, 150, 150, 150); // Tap to select.
+        assertEquals(java.util.List.of(0), selections);
+
+        view.clearSelection();
+        assertEquals(java.util.List.of(0, -1), selections);
+
+        drag(150, 150, 150, 150);
+        regions.clear();
+        view.setRegions(regions); // The rectangle was deleted.
+        assertEquals(java.util.List.of(0, -1, 0, -1), selections);
+    }
+
+    private void doubleTap(float x, float y) {
+        long t = SystemClock.uptimeMillis();
+        view.onTouchEvent(MotionEvent.obtain(t, t, MotionEvent.ACTION_DOWN, x, y, 0));
+        view.onTouchEvent(MotionEvent.obtain(t, t + 40, MotionEvent.ACTION_UP, x, y, 0));
+        view.onTouchEvent(MotionEvent.obtain(t + 120, t + 120, MotionEvent.ACTION_DOWN, x, y, 0));
+        view.onTouchEvent(MotionEvent.obtain(t + 120, t + 160, MotionEvent.ACTION_UP, x, y, 0));
+    }
+
+    @Test
+    public void doubleTap_withMove_zoomsIn_andAgainShowsTheWholePhoto() {
+        view.setTool(CensorCanvasView.Tool.MOVE);
+
+        doubleTap(100, 100);
+        assertEquals(CensorCanvasView.DOUBLE_TAP_ZOOM, view.getZoom(), 0.001f);
+        assertEquals(CensorCanvasView.DOUBLE_TAP_ZOOM, zooms.get(zooms.size() - 1), 0.001f);
+
+        doubleTap(200, 150);
+        assertEquals(1f, view.getZoom(), 0.001f);
+        assertEquals(1f, zooms.get(zooms.size() - 1), 0.001f);
+        assertNull("moving draws nothing", drawn);
+    }
+
+    @Test
+    public void doubleTap_whileDrawing_doesNotZoom() {
+        view.setTool(CensorCanvasView.Tool.RECT);
+        doubleTap(100, 100);
+        assertEquals(1f, view.getZoom(), 0.001f);
+        assertTrue(zooms.isEmpty());
+    }
+
+    @Test
+    public void resetZoom_showsTheWholePhoto_andIsReported() {
+        view.zoomBy(4f);
+        view.resetZoom();
+        assertEquals(1f, view.getZoom(), 0.001f);
+        assertEquals(java.util.List.of(4f, 1f), zooms);
+    }
+
+    @Test
+    public void brushPreview_isTheBrushWidthOnScreen_atAnyZoom() {
+        view.setBrushWidth(0.04f);
+        // 400 px photo fitted 1:1: 4% of 400 px is 16 px on screen.
+        assertEquals(16f, view.brushScreenWidth(), 0.01f);
+        view.zoomBy(4f);
+        assertEquals("the brush keeps its size on screen", 16f, view.brushScreenWidth(), 0.01f);
     }
 }

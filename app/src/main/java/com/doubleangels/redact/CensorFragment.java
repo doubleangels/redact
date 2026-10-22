@@ -10,6 +10,7 @@ import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -41,8 +42,21 @@ public class CensorFragment extends Fragment {
 
     /** Brush widths for the slider's 1 to 10, as fractions of the photo's longer side at fit. */
     private static final float BRUSH_WIDTH_PER_STEP = 0.01f;
-    /** Each tap of a zoom button doubles or halves the zoom. */
-    private static final float ZOOM_STEP = 2f;
+    /** How long the brush size circle stays after the slider is let go. */
+    private static final long BRUSH_PREVIEW_LINGER_MS = 700;
+    private ActivityResultLauncher<IntentSenderRequest> trashRequestLauncher;
+    /** The source photo in the trash request on screen. */
+    @Nullable
+    private Uri pendingTrashSource;
+
+    private boolean draggingBrushSize;
+    /** False until the view's saved state is back, so restoring the tool buttons is not taken as a choice. */
+    private boolean toolsRestored;
+    private final Runnable hideBrushPreview = () -> {
+        if (this.canvas != null) {
+            this.canvas.setBrushPreview(false);
+        }
+    };
 
     private ActivityResultLauncher<String[]> photoPickerLauncher;
     private CensorViewModel viewModel;
@@ -53,9 +67,8 @@ public class CensorFragment extends Fragment {
     private TextView message;
     private TextView fileName;
     private View toolsCard;
-    private View zoomControls;
-    private View zoomInButton;
-    private View zoomOutButton;
+    private View deleteButton;
+    private com.google.android.material.chip.Chip zoomChip;
     private View undoButton;
     private View redoButton;
     private TextView statusText;
@@ -64,6 +77,8 @@ public class CensorFragment extends Fragment {
     private View scanResultButton;
     @Nullable
     private androidx.appcompat.app.AlertDialog replaceDialog;
+    /** The rectangle selected on the canvas, which Delete removes, or minus one. */
+    private int selectedRectangle = -1;
 
     /** Asks before Back throws away covered areas that have not been saved. */
     private final OnBackPressedCallback unsavedEditsCallback = new OnBackPressedCallback(false) {
@@ -82,6 +97,19 @@ public class CensorFragment extends Fragment {
                     if (uri != null) {
                         SentryManager.log("A photo was selected in CensorFragment.");
                         viewModel.requestOpen(uri);
+                    }
+                });
+        trashRequestLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartIntentSenderForResult(), result -> {
+                    Uri trashed = pendingTrashSource;
+                    pendingTrashSource = null;
+                    SentryManager.logEvent("censor", result.getResultCode() == android.app.Activity.RESULT_OK
+                            ? "The user moved the uncensored original to the trash."
+                            : "The user kept the uncensored original.");
+                    // The original is gone, so there is nothing left to save another copy from.
+                    if (result.getResultCode() == android.app.Activity.RESULT_OK && trashed != null
+                            && viewModel != null && trashed.equals(viewModel.getSource())) {
+                        viewModel.close();
                     }
                 });
     }
@@ -106,9 +134,12 @@ public class CensorFragment extends Fragment {
         message = view.findViewById(R.id.censorMessage);
         fileName = view.findViewById(R.id.censorFileName);
         toolsCard = view.findViewById(R.id.censorToolsCard);
-        zoomControls = view.findViewById(R.id.censorZoomControls);
-        zoomInButton = view.findViewById(R.id.censorZoomIn);
-        zoomOutButton = view.findViewById(R.id.censorZoomOut);
+        deleteButton = view.findViewById(R.id.censorDeleteButton);
+        zoomChip = view.findViewById(R.id.censorZoomChip);
+        zoomChip.setOnClickListener(v -> {
+            Haptics.tick(v);
+            canvas.resetZoom();
+        });
         undoButton = view.findViewById(R.id.censorUndoButton);
         redoButton = view.findViewById(R.id.censorRedoButton);
         statusText = view.findViewById(R.id.statusText);
@@ -124,6 +155,14 @@ public class CensorFragment extends Fragment {
                 confirmDiscard(() -> viewModel.close());
             } else {
                 viewModel.close();
+            }
+        });
+        deleteButton.setOnClickListener(v -> {
+            int index = selectedRectangle;
+            if (index >= 0) {
+                Haptics.tick(v);
+                canvas.clearSelection();
+                viewModel.removeRegion(index);
             }
         });
         undoButton.setOnClickListener(v -> {
@@ -145,30 +184,35 @@ public class CensorFragment extends Fragment {
             Haptics.tick(v);
             openResultInScan();
         });
-        setUpTools(view);
+        setUpTools(view, savedInstanceState);
         setUpEffects(view);
         canvas.setListener(new CensorCanvasView.Listener() {
             @Override
             public void onRegionDrawn(@NonNull com.doubleangels.redact.media.CensorRegion region) {
                 viewModel.addRegion(region);
+                Haptics.tick(canvas);
             }
 
             @Override
             public void onRegionChanged(int index, @NonNull com.doubleangels.redact.media.CensorRegion region) {
                 viewModel.replaceRegion(index, region);
+                Haptics.tick(canvas);
             }
-        });
-        zoomInButton.setOnClickListener(v -> {
-            Haptics.tick(v);
-            canvas.zoomBy(ZOOM_STEP);
-        });
-        zoomOutButton.setOnClickListener(v -> {
-            Haptics.tick(v);
-            canvas.zoomBy(1f / ZOOM_STEP);
-        });
-        canvas.setZoomListener((zoom, canZoomIn, canZoomOut) -> {
-            zoomInButton.setEnabled(canZoomIn);
-            zoomOutButton.setEnabled(canZoomOut);
+
+            @Override
+            public void onSelectionChanged(int index) {
+                if (index >= 0 && index != selectedRectangle) {
+                    // A light tick tells the user the tap picked up the rectangle.
+                    Haptics.tick(canvas);
+                }
+                selectedRectangle = index;
+                deleteButton.setVisibility(index >= 0 ? View.VISIBLE : View.GONE);
+            }
+
+            @Override
+            public void onZoomChanged(float zoom) {
+                showZoom(zoom);
+            }
         });
 
         requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), unsavedEditsCallback);
@@ -193,11 +237,29 @@ public class CensorFragment extends Fragment {
         super.onHiddenChanged(hidden);
         if (viewModel != null) {
             updateControls();
+            updateRecentsPreview();
         }
+    }
+
+    /** Hides the recent apps preview while this tab shows an open photo. */
+    private void updateRecentsPreview() {
+        CensorViewModel.State state = viewModel.getState().getValue();
+        boolean photoShowing = !isHidden() && getView() != null
+                && state != null && state != CensorViewModel.State.NONE;
+        com.doubleangels.redact.ui.SecureWindow.setPhotoOpen(requireActivity(), photoShowing);
+    }
+
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+        toolsRestored = true;
     }
 
     @Override
     public void onDestroyView() {
+        toolsRestored = false;
+        canvas.removeCallbacks(hideBrushPreview);
+        com.doubleangels.redact.ui.SecureWindow.setPhotoOpen(requireActivity(), false);
         if (replaceDialog != null) {
             replaceDialog.dismiss();
             replaceDialog = null;
@@ -209,30 +271,85 @@ public class CensorFragment extends Fragment {
         try {
             photoPickerLauncher.launch(new String[] {"image/*"});
         } catch (android.content.ActivityNotFoundException e) {
+            SentryManager.recordException(e);
             Toast.makeText(requireContext(), R.string.share_error_generic, Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void setUpTools(@NonNull View view) {
+    private void setUpTools(@NonNull View view, @Nullable Bundle savedInstanceState) {
         MaterialButtonToggleGroup tools = view.findViewById(R.id.censorToolGroup);
         Slider brushSize = view.findViewById(R.id.censorBrushSize);
+        // The tool and brush size used last time; the view's own saved state wins after a rotation.
+        if (savedInstanceState == null) {
+            tools.check(buttonFor(AppPreferences.getCensorTool(requireContext())));
+            float size = AppPreferences.getCensorBrushSize(requireContext(), brushSize.getValue());
+            brushSize.setValue(Math.max(brushSize.getValueFrom(), Math.min(brushSize.getValueTo(), Math.round(size))));
+        }
         canvas.setBrushWidth(brushSize.getValue() * BRUSH_WIDTH_PER_STEP);
-        brushSize.addOnChangeListener((slider, value, fromUser) ->
-                canvas.setBrushWidth(value * BRUSH_WIDTH_PER_STEP));
-        tools.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (isChecked) {
-                applyTool(checkedId, brushSize);
+        // A circle of the brush's real size shows while the slider moves, since the size on the
+        // photo depends on the zoom.
+        brushSize.addOnChangeListener((slider, value, fromUser) -> {
+            canvas.setBrushWidth(value * BRUSH_WIDTH_PER_STEP);
+            if (fromUser && !draggingBrushSize) {
+                // Changed without dragging (keys or an accessibility action): show it briefly.
+                canvas.setBrushPreview(true);
+                canvas.removeCallbacks(hideBrushPreview);
+                canvas.postDelayed(hideBrushPreview, BRUSH_PREVIEW_LINGER_MS);
             }
         });
-        applyTool(tools.getCheckedButtonId(), brushSize);
+        brushSize.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
+            @Override
+            public void onStartTrackingTouch(@NonNull Slider slider) {
+                draggingBrushSize = true;
+                canvas.removeCallbacks(hideBrushPreview);
+                canvas.setBrushPreview(true);
+            }
+
+            @Override
+            public void onStopTrackingTouch(@NonNull Slider slider) {
+                draggingBrushSize = false;
+                canvas.postDelayed(hideBrushPreview, BRUSH_PREVIEW_LINGER_MS);
+            }
+        });
+        brushSize.addOnChangeListener((slider, value, fromUser) -> {
+            if (fromUser) {
+                AppPreferences.setCensorBrushSize(requireContext(), value);
+            }
+        });
+        tools.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (isChecked) {
+                applyTool(checkedId, brushSize, toolsRestored);
+            }
+        });
+        // Not remembered here: a rebuilt view (after Reset All Settings, say) would save the old tool again.
+        applyTool(tools.getCheckedButtonId(), brushSize, false);
     }
 
-    private void applyTool(int checkedId, @NonNull Slider brushSize) {
+    private void applyTool(int checkedId, @NonNull Slider brushSize, boolean remember) {
         CensorCanvasView.Tool tool = checkedId == R.id.censorToolBrush ? CensorCanvasView.Tool.BRUSH
                 : checkedId == R.id.censorToolMove ? CensorCanvasView.Tool.MOVE
                 : CensorCanvasView.Tool.RECT;
         canvas.setTool(tool);
-        brushSize.setVisibility(tool == CensorCanvasView.Tool.BRUSH ? View.VISIBLE : View.GONE);
+        int visibility = tool == CensorCanvasView.Tool.BRUSH ? View.VISIBLE : View.GONE;
+        brushSize.setVisibility(visibility);
+        View container = getView() != null ? getView().findViewById(R.id.censorBrushSizeContainer) : null;
+        if (container != null) {
+            container.setVisibility(visibility);
+        }
+        if (remember) {
+            AppPreferences.setCensorTool(requireContext(), tool.name());
+        }
+    }
+
+    /** The tool button for a saved tool name; Rectangle when there is none. */
+    private static int buttonFor(@Nullable String tool) {
+        if (CensorCanvasView.Tool.BRUSH.name().equals(tool)) {
+            return R.id.censorToolBrush;
+        }
+        if (CensorCanvasView.Tool.MOVE.name().equals(tool)) {
+            return R.id.censorToolMove;
+        }
+        return R.id.censorToolRect;
     }
 
     private void setUpEffects(@NonNull View view) {
@@ -268,7 +385,10 @@ public class CensorFragment extends Fragment {
         if (state == CensorViewModel.State.SAVED) {
             Haptics.confirm(saveButton);
             viewModel.acknowledgeSaveResult();
-            com.doubleangels.redact.ui.ReviewPrompt.askIfDue(this);
+            // Android's trash confirmation takes priority over asking for a rating.
+            if (!requestTrashOriginal()) {
+                com.doubleangels.redact.ui.ReviewPrompt.askIfDue(this);
+            }
             return;
         }
         if (state == CensorViewModel.State.SAVE_FAILED) {
@@ -277,6 +397,7 @@ public class CensorFragment extends Fragment {
             return;
         }
         boolean open = state != CensorViewModel.State.NONE;
+        updateRecentsPreview();
         emptyState.setVisibility(open ? View.GONE : View.VISIBLE);
         content.setVisibility(open ? View.VISIBLE : View.GONE);
         loading.setVisibility(state == CensorViewModel.State.LOADING ? View.VISIBLE : View.GONE);
@@ -288,8 +409,6 @@ public class CensorFragment extends Fragment {
                     ? R.string.censor_error_unsupported : R.string.censor_error_open);
         }
         toolsCard.setVisibility(failedToOpen ? View.GONE : View.VISIBLE);
-        zoomControls.setVisibility(state == CensorViewModel.State.READY
-                || state == CensorViewModel.State.SAVING ? View.VISIBLE : View.GONE);
         canvas.setEnabled(state == CensorViewModel.State.READY);
         updateControls();
     }
@@ -326,6 +445,79 @@ public class CensorFragment extends Fragment {
         unsavedEditsCallback.setEnabled(!isHidden() && unsaved);
     }
 
+    /** Shows "2×" while zoomed in, so the way back to the whole photo is one tap away. */
+    private void showZoom(float zoom) {
+        boolean zoomed = zoom > 1.01f;
+        zoomChip.setVisibility(zoomed ? View.VISIBLE : View.GONE);
+        if (zoomed) {
+            String level = zoomLabel(zoom);
+            zoomChip.setText(getString(R.string.censor_zoom_level, level));
+            zoomChip.setContentDescription(getString(R.string.censor_zoom_reset, level));
+        }
+    }
+
+    /** 2, 2.5 or 12: whole numbers without a decimal, others to one place. */
+    @NonNull
+    static String zoomLabel(float zoom) {
+        float rounded = Math.round(zoom * 10f) / 10f;
+        java.text.NumberFormat format = java.text.NumberFormat.getNumberInstance();
+        format.setMaximumFractionDigits(rounded == Math.rint(rounded) ? 0 : 1);
+        return format.format(rounded);
+    }
+
+    /**
+     * After a save with Delete Originals After Cleaning on, asks Android (with its own confirmation,
+     * the same one Clean uses) to move the uncensored original to the trash, when it is a photo in
+     * the phone's media library. Returns whether the request was made.
+     */
+    private boolean requestTrashOriginal() {
+        if (!AppPreferences.isDeleteOriginalsAfterClean(requireContext())) {
+            return false;
+        }
+        Uri source = viewModel.getSource();
+        Uri media = source != null ? trashableSource(source) : null;
+        if (media == null || getView() == null || isHidden()) {
+            return false;
+        }
+        requestTrash(source, media);
+        return true;
+    }
+
+    /** The trashable Images item for a source photo, or null when it is not in the media library. */
+    @Nullable
+    private Uri trashableSource(@NonNull Uri source) {
+        try {
+            Uri media;
+            if (android.provider.MediaStore.AUTHORITY.equals(source.getAuthority())) {
+                // A photo picker item's number is the picker's own, not the library's.
+                List<String> path = source.getPathSegments();
+                if (path.isEmpty() || path.get(0).startsWith("picker")) {
+                    return null;
+                }
+                media = source;
+            } else {
+                media = android.provider.MediaStore.getMediaUri(requireContext(), source);
+            }
+            return media != null ? CleanFragment.trashableMediaUri(media, "image/*") : null;
+        } catch (Exception notMedia) {
+            // A photo from another app's provider: leave it alone.
+            return null;
+        }
+    }
+
+    private void requestTrash(@NonNull Uri source, @NonNull Uri media) {
+        try {
+            pendingTrashSource = source;
+            trashRequestLauncher.launch(new IntentSenderRequest.Builder(
+                    android.provider.MediaStore.createTrashRequest(requireContext().getContentResolver(),
+                            List.of(media), true).getIntentSender()).build());
+        } catch (Exception e) {
+            pendingTrashSource = null;
+            SentryManager.recordException(e);
+            Toast.makeText(requireContext(), R.string.share_error_generic, Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void showStatus(@NonNull String text) {
         statusText.setText(text);
         statusText.setVisibility(View.VISIBLE);
@@ -351,7 +543,10 @@ public class CensorFragment extends Fragment {
                 .setTitle(R.string.censor_discard_title)
                 .setMessage(R.string.censor_discard_message)
                 .setNegativeButton(R.string.censor_keep_editing, null)
-                .setPositiveButton(R.string.censor_discard, (d, w) -> onDiscard.run())
+                .setPositiveButton(R.string.censor_discard, (d, w) -> {
+                    SentryManager.logEvent("censor", "The user discarded unsaved censor edits.");
+                    onDiscard.run();
+                })
                 .show();
     }
 

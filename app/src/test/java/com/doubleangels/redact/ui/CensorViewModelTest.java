@@ -162,4 +162,42 @@ public class CensorViewModelTest {
         assertTrue("only adding the box was an edit", vm.regions().isEmpty());
         assertFalse(vm.canUndo());
     }
+
+    @Test
+    public void deletingARegion_canBeUndoneAndRedone() {
+        vm.requestOpen(A);
+        CensorRegion second = CensorRegion.rect(0.6f, 0.6f, 0.9f, 0.9f);
+        vm.addRegion(BOX);
+        vm.addRegion(second);
+
+        vm.removeRegion(0);
+        assertEquals(1, vm.regions().size());
+        assertEquals(second, vm.regions().get(0));
+
+        vm.undo();
+        assertEquals(BOX, vm.regions().get(0));
+        assertEquals(2, vm.regions().size());
+
+        vm.redo();
+        assertEquals(1, vm.regions().size());
+
+        vm.removeRegion(7);
+        assertEquals("an index out of range is ignored", 1, vm.regions().size());
+    }
+
+    @Test
+    public void theEffect_isRememberedForTheNextEditor() {
+        assertEquals(CensorEffects.Effect.PIXELATE, vm.getEffect().getValue());
+        vm.setEffect(CensorEffects.Effect.BLUR);
+
+        CensorViewModel next = new CensorViewModel(RuntimeEnvironment.getApplication());
+        assertEquals(CensorEffects.Effect.BLUR, next.getEffect().getValue());
+    }
+
+    @Test
+    public void anUnknownSavedEffect_fallsBackToPixelate() {
+        com.doubleangels.redact.AppPreferences.setCensorEffect(RuntimeEnvironment.getApplication(), "SWIRL");
+        assertEquals(CensorEffects.Effect.PIXELATE,
+                CensorViewModel.savedEffect(RuntimeEnvironment.getApplication()));
+    }
 }

@@ -1,155 +1,229 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Tool, brush size and effect, like the format card on Convert. -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Tool, brush size, effect, undo and redo for the Censor editor. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/censorToolsCard"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:layout_marginTop="0dp"
+    android:layout_marginBottom="8dp"
+    app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
+    app:cardCornerRadius="@dimen/component_corner_large"
+    app:cardElevation="1dp"
+    app:strokeWidth="0dp">
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/censorToolsCard"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="12dp"
-        app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
-        app:cardCornerRadius="@dimen/component_corner_large"
-        app:cardElevation="1dp"
-        app:strokeWidth="0dp">
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp">
 
-        <LinearLayout
+        <!-- Tool Selection: Rectangle, Brush, Move -->
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/censorToolGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="12dp">
+            app:checkedButton="@id/censorToolRect"
+            app:selectionRequired="true"
+            app:singleSelection="true">
 
-            <com.google.android.material.button.MaterialButtonToggleGroup
-                android:id="@+id/censorToolGroup"
-                android:layout_width="match_parent"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/censorToolRect"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                app:checkedButton="@id/censorToolRect"
-                app:selectionRequired="true"
-                app:singleSelection="true">
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:minHeight="48dp"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="6dp"
+                android:text="@string/censor_tool_rectangle"
+                app:icon="@drawable/ic_rectangle"
+                app:iconGravity="top"
+                app:iconPadding="2dp"
+                app:iconSize="18dp" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorToolRect"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:paddingHorizontal="4dp"
-                    android:layout_weight="1"
-                    android:text="@string/censor_tool_rectangle"
-                    app:icon="@drawable/ic_rectangle"
-                    app:iconGravity="top"
-                    app:iconPadding="2dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/censorToolBrush"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:minHeight="48dp"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="6dp"
+                android:text="@string/censor_tool_brush"
+                app:icon="@drawable/ic_brush"
+                app:iconGravity="top"
+                app:iconPadding="2dp"
+                app:iconSize="18dp" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorToolBrush"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:paddingHorizontal="4dp"
-                    android:layout_weight="1"
-                    android:text="@string/censor_tool_brush"
-                    app:icon="@drawable/ic_brush"
-                    app:iconGravity="top"
-                    app:iconPadding="2dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/censorToolMove"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:minHeight="48dp"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="6dp"
+                android:text="@string/censor_tool_move"
+                app:icon="@drawable/ic_pan"
+                app:iconGravity="top"
+                app:iconPadding="2dp"
+                app:iconSize="18dp" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorToolMove"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:paddingHorizontal="4dp"
-                    android:layout_weight="1"
-                    android:text="@string/censor_tool_move"
-                    app:icon="@drawable/ic_pan"
-                    app:iconGravity="top"
-                    app:iconPadding="2dp" />
-            </com.google.android.material.button.MaterialButtonToggleGroup>
+        <!-- Brush Size Slider with indicator icons (shown when Brush is active) -->
+        <LinearLayout
+            android:id="@+id/censorBrushSizeContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="6dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_brush"
+                app:tint="?attr/colorOnSurfaceVariant" />
 
             <com.google.android.material.slider.Slider
                 android:id="@+id/censorBrushSize"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:contentDescription="@string/censor_brush_size"
                 android:stepSize="1"
                 android:value="4"
                 android:valueFrom="1"
                 android:valueTo="10"
-                android:visibility="gone"
                 app:labelBehavior="gone" />
 
-            <!-- Effect chips, with undo and redo at the end of the row. -->
-            <LinearLayout
-                android:layout_width="match_parent"
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="6dp"
+                android:layout_marginEnd="4dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_brush"
+                app:tint="?attr/colorOnSurfaceVariant" />
+        </LinearLayout>
+
+        <!-- Effect chips, centered horizontally under the row above -->
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/censorEffectGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            app:checkedChip="@id/censorEffectPixelate"
+            app:chipSpacingHorizontal="8dp"
+            app:selectionRequired="true"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/censorEffectPixelate"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:text="@string/censor_effect_pixelate" />
 
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/censorEffectGroup"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    app:checkedChip="@id/censorEffectPixelate"
-                    app:selectionRequired="true"
-                    app:singleSelection="true">
+            <com.google.android.material.chip.Chip
+                android:id="@+id/censorEffectBlack"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/censor_effect_black" />
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/censorEffectPixelate"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/censor_effect_pixelate" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/censorEffectBlur"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/censor_effect_blur" />
+        </com.google.android.material.chip.ChipGroup>
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/censorEffectBlack"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/censor_effect_black" />
+        <!-- Undo, Redo, and Delete while a rectangle is selected; centered under the effect chips.
+             Save Copy, Share and Scan Result are the buttons in the bottom right, as on Clean. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:orientation="horizontal">
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/censorEffectBlur"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/censor_effect_blur" />
-                </com.google.android.material.chip.ChipGroup>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/censorUndoButton"
+                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/censor_undo"
+                android:enabled="false"
+                android:insetLeft="0dp"
+                android:insetTop="0dp"
+                android:insetRight="0dp"
+                android:insetBottom="0dp"
+                android:padding="0dp"
+                android:tooltipText="@string/censor_undo"
+                app:icon="@drawable/ic_undo"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="24dp" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorUndoButton"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_marginStart="4dp"
-                    android:contentDescription="@string/censor_undo"
-                    android:enabled="false"
-                    android:tooltipText="@string/censor_undo"
-                    app:icon="@drawable/ic_undo" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/censorRedoButton"
+                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="8dp"
+                android:contentDescription="@string/censor_redo"
+                android:enabled="false"
+                android:insetLeft="0dp"
+                android:insetTop="0dp"
+                android:insetRight="0dp"
+                android:insetBottom="0dp"
+                android:padding="0dp"
+                android:tooltipText="@string/censor_redo"
+                app:icon="@drawable/ic_redo"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="24dp" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorRedoButton"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:contentDescription="@string/censor_redo"
-                    android:enabled="false"
-                    android:tooltipText="@string/censor_redo"
-                    app:icon="@drawable/ic_redo" />
-            </LinearLayout>
+            <!-- Shown while a rectangle is selected -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/censorDeleteButton"
+                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="8dp"
+                android:contentDescription="@string/censor_delete_rectangle"
+                android:insetLeft="0dp"
+                android:insetTop="0dp"
+                android:insetRight="0dp"
+                android:insetBottom="0dp"
+                android:padding="0dp"
+                android:tooltipText="@string/censor_delete_rectangle"
+                android:visibility="gone"
+                app:icon="@drawable/ic_delete"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="24dp"
+                app:iconTint="?attr/colorError" />
 
         </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
 
-</LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

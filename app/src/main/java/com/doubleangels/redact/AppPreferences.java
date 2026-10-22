@@ -42,6 +42,9 @@ public final class AppPreferences {
     private static final String KEY_MAPS_LOCATION_CONSENT_GIVEN = "maps_location_consent_given";
     private static final String KEY_OUTPUT_TREE_IMAGES = "output_tree_images";
     private static final String KEY_OUTPUT_TREE_VIDEOS = "output_tree_videos";
+    private static final String KEY_CENSOR_TOOL = "censor_tool";
+    private static final String KEY_CENSOR_EFFECT = "censor_effect";
+    private static final String KEY_CENSOR_BRUSH_SIZE = "censor_brush_size";
 
     /** High quality, which matches the legacy defaults. */
     public static final int QUALITY_PRESET_HIGH = 0;
@@ -321,6 +324,35 @@ public final class AppPreferences {
 
     public static void setKeepOriginalFileNames(@NonNull Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_KEEP_ORIGINAL_NAMES, enabled).apply();
+    }
+
+    /** The Censor tool last used (a {@code CensorCanvasView.Tool} name), or null. */
+    @Nullable
+    public static String getCensorTool(@NonNull Context context) {
+        return prefs(context).getString(KEY_CENSOR_TOOL, null);
+    }
+
+    public static void setCensorTool(@NonNull Context context, @NonNull String tool) {
+        prefs(context).edit().putString(KEY_CENSOR_TOOL, tool).apply();
+    }
+
+    /** The Censor effect last used (a {@code CensorEffects.Effect} name), or null. */
+    @Nullable
+    public static String getCensorEffect(@NonNull Context context) {
+        return prefs(context).getString(KEY_CENSOR_EFFECT, null);
+    }
+
+    public static void setCensorEffect(@NonNull Context context, @NonNull String effect) {
+        prefs(context).edit().putString(KEY_CENSOR_EFFECT, effect).apply();
+    }
+
+    /** The Censor brush size last used, on the slider's 1 to 10 scale, or {@code fallback}. */
+    public static float getCensorBrushSize(@NonNull Context context, float fallback) {
+        return prefs(context).getFloat(KEY_CENSOR_BRUSH_SIZE, fallback);
+    }
+
+    public static void setCensorBrushSize(@NonNull Context context, float size) {
+        prefs(context).edit().putFloat(KEY_CENSOR_BRUSH_SIZE, size).apply();
     }
 
     public static boolean isVideoFallbackCopy(@NonNull Context context) {

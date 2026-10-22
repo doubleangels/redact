@@ -2,6 +2,7 @@ package com.doubleangels.redact.media;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -153,5 +154,75 @@ public class CensorExporterTest {
         assertEquals(".jpg", CensorExporter.extensionOf("a.b.jpg"));
         assertNull(CensorExporter.extensionOf("noext"));
         assertNull(CensorExporter.extensionOf(null));
+    }
+
+    @Test
+    public void keptNames_sayTheCopyIsCensored() {
+        com.doubleangels.redact.AppPreferences.setKeepOriginalFileNames(context, true);
+        assertEquals("IMG_1234 (censored)", MediaFileNames.outputBaseName(context, "IMG_1234.jpg",
+                com.doubleangels.redact.R.string.censor_file_name));
+        assertEquals("photo.v2 (censored)", MediaFileNames.outputBaseName(context, "photo.v2.png",
+                com.doubleangels.redact.R.string.censor_file_name));
+        assertEquals("other jobs keep the name as it is",
+                "IMG_1234", MediaFileNames.outputBaseName(context, "IMG_1234.jpg"));
+
+        com.doubleangels.redact.AppPreferences.setKeepOriginalFileNames(context, false);
+        String random = MediaFileNames.outputBaseName(context, "IMG_1234.jpg",
+                com.doubleangels.redact.R.string.censor_file_name);
+        assertFalse(random.contains("IMG_1234") || random.contains("censored"));
+    }
+
+    @Test
+    public void theCleanSettings_decideWhatTheCopyKeeps() throws Exception {
+        com.doubleangels.redact.AppPreferences.setStrictClean(context, false);
+        com.doubleangels.redact.AppPreferences.setPreserveLocation(context, true);
+        com.doubleangels.redact.AppPreferences.setPreserveCameraSettings(context, true);
+        File src = photo(".jpg", Bitmap.CompressFormat.JPEG, 64, 48, ExifInterface.ORIENTATION_ROTATE_90);
+
+        CensorExporter.Result result = CensorExporter.export(context, Uri.fromFile(src), "street.jpg",
+                List.of(CensorRegion.rect(0.1f, 0.1f, 0.4f, 0.4f)), CensorEffects.Effect.BLACK);
+
+        ExifInterface exif = new ExifInterface(FakeMediaStoreProvider.only().file.getAbsolutePath());
+        assertTrue("kept, as a clean keeps it", exif.getLatLong() != null);
+        assertEquals("Camera", exif.getAttribute(ExifInterface.TAG_MAKE));
+        int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+        assertTrue("the pixels are upright already",
+                orientation == ExifInterface.ORIENTATION_UNDEFINED
+                        || orientation == ExifInterface.ORIENTATION_NORMAL);
+        assertFalse(exif.hasThumbnail());
+        assertTrue("counted like a clean", result.stats != null);
+    }
+
+    @Test
+    public void strictClean_keepsNothing_evenWithTheKeepSettingsOn() throws Exception {
+        com.doubleangels.redact.AppPreferences.setPreserveLocation(context, true);
+        com.doubleangels.redact.AppPreferences.setStrictClean(context, true);
+        File src = photo(".jpg", Bitmap.CompressFormat.JPEG, 64, 48, ExifInterface.ORIENTATION_NORMAL);
+
+        CensorExporter.export(context, Uri.fromFile(src), "street.jpg",
+                List.of(CensorRegion.rect(0.1f, 0.1f, 0.4f, 0.4f)), CensorEffects.Effect.BLACK);
+
+        assertNull(new ExifInterface(FakeMediaStoreProvider.only().file.getAbsolutePath()).getLatLong());
+    }
+
+    @Test
+    public void noTemporaryCopies_areLeftInTheCache() throws Exception {
+        File src = photo(".jpg", Bitmap.CompressFormat.JPEG, 64, 48, ExifInterface.ORIENTATION_NORMAL);
+
+        CensorExporter.export(context, Uri.fromFile(src), "street.jpg",
+                List.of(CensorRegion.rect(0.1f, 0.1f, 0.4f, 0.4f)), CensorEffects.Effect.BLACK);
+
+        String[] left = context.getCacheDir().list((dir, name) -> name.startsWith("temp_")
+                || name.startsWith("censored_") || name.startsWith("verify_"));
+        assertEquals(0, left == null ? 0 : left.length);
+    }
+
+    @Test
+    public void secureDeletion_cleansUpCensoredTempFile() throws Exception {
+        com.doubleangels.redact.AppPreferences.setSecureDeletePasses(context, 1);
+        File src = photo(".jpg", Bitmap.CompressFormat.JPEG, 64, 48, ExifInterface.ORIENTATION_NORMAL);
+        CensorExporter.Result result = CensorExporter.export(context, Uri.fromFile(src), "secure.jpg",
+                List.of(CensorRegion.rect(0.1f, 0.1f, 0.4f, 0.4f)), CensorEffects.Effect.BLACK);
+        assertNotNull(result.uri);
     }
 }

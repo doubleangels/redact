@@ -4,8 +4,9 @@
     <string name="app_name">Redact</string>
 
     
-    <string name="content_description_image_view">이미지 보기</string>
-    <string name="content_description_scroll_view">스크롤 보기</string>
+    <string name="content_description_selected_files">선택한 파일</string>
+    <string name="content_description_selected_photo">사진: %1$s</string>
+    <string name="content_description_selected_video">동영상: %1$s</string>
 
     
     <string name="navigation_clean">정리</string>
@@ -287,6 +288,7 @@
     <string name="scan_convert_this_file">이 파일 변환</string>
     <string name="scan_censor_this_photo">이 사진 일부 가리기</string>
     <string name="scan_copied_to_clipboard">클립보드에 복사됨</string>
+    <string name="scan_copy_value">값 복사</string>
     <string name="scan_copy_all_metadata">모든 메타데이터 복사</string>
     <string name="scan_copy_camera">카메라 정보 복사</string>
 <string name="settings_permissions_location">사진 위치</string>
@@ -360,7 +362,7 @@
     <string name="convert_empty_state_title">미디어 형식 변환</string>
     <string name="convert_empty_state_description">사진이나 동영상을 선택해 JPEG, PNG, WebP, HEIC 또는 MP4 형식으로 변환하세요.</string>
     <string name="convert_files_card_title">변환할 파일</string>
-    <string name="convert_heic_fallback_jpeg">HEIC 출력은 Android 14 이상이 필요합니다. 대신 이미지가 JPEG로 저장됩니다.</string>
+    <string name="convert_heic_fallback_jpeg">이 휴대전화는 HEIC 이미지를 저장할 수 없으므로 대신 JPEG로 저장됩니다.</string>
     <string name="convert_item_type_image">이미지</string>
     <string name="convert_item_type_video">동영상</string>
     <string name="scan_empty_state_title">미디어 메타데이터 검사</string>
@@ -432,7 +434,8 @@
     <string name="share_results_chooser_title">공유 방법…</string>
     <string name="settings_output_unavailable">Redact가 더 이상 이 폴더에 저장할 수 없어 파일이 %1$s에 저장됩니다. 다시 선택하거나 다른 폴더를 고르세요.</string>
     <string name="output_folder_fallback">%1$s을(를) 사용할 수 없어 %2$s에 저장합니다.</string>
-    <string name="settings_output_open">폴더 열기</string>
+    <string name="settings_output_open_images">이미지 폴더 열기</string>
+    <string name="settings_output_open_videos">동영상 폴더 열기</string>
     <string name="settings_output_open_unavailable">이 폴더를 열 수 있는 앱이 없습니다.</string>
     <string name="settings_output_also_videos">동영상도 여기에 저장할까요?</string>
     <string name="settings_output_also_images">이미지도 여기에 저장할까요?</string>
@@ -447,8 +450,8 @@
     <string name="censor_empty_state_title">비공개로 남겨야 할 부분 가리기</string>
     <string name="censor_empty_state_description">사진 속 얼굴, 번호판, 주소 등 무엇이든 모자이크, 검게 칠하기, 흐리게 하기로 가릴 수 있습니다. Redact는 메타데이터가 전혀 없는 사본을 저장하며, 원본은 그대로 유지됩니다.</string>
     <string name="censor_select_photo">사진 선택</string>
-    <string name="censor_hint">비공개로 남겨야 할 부분 위에 그린 다음 사본 저장을 탭하세요. 사각형을 탭하면 이동하거나 크기를 바꿀 수 있습니다.</string>
-    <string name="censor_canvas_description">편집 중인 사진입니다. 한 손가락으로 그려 영역을 가리고, 두 손가락으로 오므리거나 벌려 확대/축소하세요.</string>
+    <string name="censor_hint">비공개로 남겨야 할 부분 위에 그린 다음 사본 저장을 탭하세요. 이동을 선택하면 두 손가락으로 확대하고 끌어서 위치를 옮길 수 있습니다. 사각형을 탭하면 이동하거나 크기를 바꿀 수 있습니다.</string>
+    <string name="censor_canvas_description">편집 중인 사진입니다. 한 손가락으로 그려 영역을 가립니다. 이동을 선택하면 끌어서 옮기고 두 손가락으로 확대/축소합니다.</string>
     <string name="censor_tool_rectangle">사각형</string>
     <string name="censor_tool_brush">브러시</string>
     <string name="censor_tool_move">이동</string>
@@ -458,11 +461,13 @@
     <string name="censor_effect_blur">흐리게</string>
     <string name="censor_undo">실행 취소</string>
     <string name="censor_redo">다시 실행</string>
-    <string name="censor_zoom_in">확대</string>
-    <string name="censor_zoom_out">축소</string>
+    <string name="censor_delete_rectangle">사각형 삭제</string>
+    <string name="censor_zoom_level">%1$s×</string>
+    <string name="censor_zoom_reset">%1$s배 확대됨. 탭하면 사진 전체를 표시합니다.</string>
     <string name="censor_save">사본 저장</string>
     <string name="censor_saved">일부를 가린 사본을 저장했습니다.</string>
     <string name="censor_saved_downscaled">사본이 원본보다 작은 크기로 저장되었습니다. 원래 크기를 유지하려면 설정에서 최대 처리 해상도를 높이세요.</string>
+    <string name="censor_file_name">%1$s (가림)</string>
     <string name="censor_error_open">이 사진을 열 수 없습니다.</string>
     <string name="censor_error_unsupported">이 기기에서는 이 유형의 이미지를 편집할 수 없습니다.</string>
     <string name="censor_error_save">일부를 가린 사본을 저장할 수 없습니다.</string>

@@ -17,6 +17,7 @@ import com.doubleangels.redact.media.CensorExporter;
 import com.doubleangels.redact.media.CensorRegion;
 import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.UnsupportedMediaException;
+import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.util.ArrayDeque;
@@ -94,6 +95,21 @@ public class CensorViewModel extends AndroidViewModel {
 
     public CensorViewModel(@NonNull Application application) {
         super(application);
+        effect.setValue(savedEffect(application));
+    }
+
+    /** The effect used last time, so it does not have to be picked again for every photo. */
+    @NonNull
+    static CensorEffects.Effect savedEffect(@NonNull Application application) {
+        String name = com.doubleangels.redact.AppPreferences.getCensorEffect(application);
+        if (name != null) {
+            try {
+                return CensorEffects.Effect.valueOf(name);
+            } catch (IllegalArgumentException ignored) {
+                // A name from another version: use the default.
+            }
+        }
+        return CensorEffects.Effect.PIXELATE;
     }
 
     @NonNull
@@ -184,6 +200,7 @@ public class CensorViewModel extends AndroidViewModel {
         reset();
         source = uri;
         state.setValue(State.LOADING);
+        SentryManager.log("A photo was opened for censoring.");
         worker.execute(() -> {
             try {
                 String name = queryFileName(uri);
@@ -232,6 +249,7 @@ public class CensorViewModel extends AndroidViewModel {
             }
             return scaled;
         } catch (OutOfMemoryError e) {
+            SentryManager.log("The censor preview could not be scaled down because memory ran out.");
             return decoded;
         }
     }
@@ -279,6 +297,16 @@ public class CensorViewModel extends AndroidViewModel {
         historyChanged();
     }
 
+    /** Removes the region at {@code index}, as an edit that can be undone. */
+    public void removeRegion(int index) {
+        if (index < 0 || index >= regions.size()) {
+            return;
+        }
+        remember();
+        regions.remove(index);
+        historyChanged();
+    }
+
     /** Saves the current regions for undo, before they change. */
     private void remember() {
         undoHistory.push(new ArrayList<>(regions));
@@ -318,6 +346,7 @@ public class CensorViewModel extends AndroidViewModel {
     public void setEffect(@NonNull CensorEffects.Effect newEffect) {
         if (newEffect != effect.getValue()) {
             effect.setValue(newEffect);
+            com.doubleangels.redact.AppPreferences.setCensorEffect(getApplication(), newEffect.name());
             lastSaveFailed = false;
             render();
         }
@@ -349,9 +378,15 @@ public class CensorViewModel extends AndroidViewModel {
         state.setValue(State.SAVING);
         SentryManager.logEvent("censor", "The user saved a censored photo.");
         worker.execute(() -> {
+            SentryManager.beginOperation("censor_export");
             try {
                 CensorExporter.Result result =
                         CensorExporter.export(getApplication(), uri, name, snapshot, chosen);
+                // The copy went through a clean, so it counts in the statistics like one.
+                com.doubleangels.redact.stats.StatsStore.recordClean(getApplication(),
+                        result.stats != null ? result.stats
+                                : new com.doubleangels.redact.metadata.CleanStats(0, false),
+                        false, false);
                 if (generation != photoGeneration.get()) {
                     return;
                 }
@@ -361,8 +396,11 @@ public class CensorViewModel extends AndroidViewModel {
                 savedEffect = chosen;
                 // Counted here, so a save that finishes with the app in the background still counts.
                 ReviewPrompt.recordSuccessfulJob(getApplication());
+                LocalNotifications.showCleanComplete(getApplication(), 1, 0, result.stats != null && result.stats.hadLocation ? 1 : 0);
+                SentryManager.log("The censored copy was saved.");
                 state.postValue(State.SAVED);
             } catch (Exception e) {
+                SentryManager.setCustomKey("error_type", e.getClass().getName());
                 SentryManager.recordException(e);
                 if (generation == photoGeneration.get()) {
                     lastSaveFailed = true;

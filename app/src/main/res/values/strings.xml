@@ -4,8 +4,9 @@
     <string name="app_name">Redact</string>
 
     
-    <string name="content_description_image_view">Image View</string>
-    <string name="content_description_scroll_view">Scroll View</string>
+    <string name="content_description_selected_files">Selected files</string>
+    <string name="content_description_selected_photo">Photo: %1$s</string>
+    <string name="content_description_selected_video">Video: %1$s</string>
 
     
     <string name="notification_channel_tasks_name">Tasks</string>
@@ -133,7 +134,7 @@
     <string name="url_donate" translatable="false">https://donate.stripe.com/4gw8yhbvH0mg6SQ7ss</string>
 
     
-    <string name="convert_heic_fallback_jpeg">HEIC output requires Android 14+. Images will be saved as JPEG instead.</string>
+    <string name="convert_heic_fallback_jpeg">This phone can\'t save HEIC images, so they will be saved as JPEG instead.</string>
     <string name="convert_codec_fallback">%1$s unavailable; saved as %2$s instead.</string>
     <string name="convert_output_format_images">Image Format</string>
     <string name="convert_output_format_videos">Video Codec</string>
@@ -245,6 +246,7 @@
     <string name="scan_convert_this_file">Convert This File</string>
     <string name="scan_censor_this_photo">Censor This Photo</string>
     <string name="scan_copied_to_clipboard">Copied to clipboard</string>
+    <string name="scan_copy_value">Copy Value</string>
     <string name="scan_maps_consent_title">Open in Maps</string>
     <string name="scan_maps_consent_message">This opens the coordinates in your device\'s default maps app. Unlike every other action on this screen, that hands your exact GPS location to a separate app, which may send it off this device, for example to load map tiles or look up the address. Redact itself never sends this data anywhere.\n\nYou\'ll only see this message once. Choosing to continue is remembered, so this won\'t ask again.</string>
     <string name="scan_maps_consent_continue">Open Maps</string>
@@ -450,7 +452,8 @@
     <string name="share_results_chooser_title">Share via…</string>
     <string name="settings_output_unavailable">Redact can no longer save to this folder, so files go to %1$s. Choose it again or pick another folder.</string>
     <string name="output_folder_fallback">Saving to %2$s instead: %1$s is unavailable.</string>
-    <string name="settings_output_open">Open Folder</string>
+    <string name="settings_output_open_images">Open Images Folder</string>
+    <string name="settings_output_open_videos">Open Videos Folder</string>
     <string name="settings_output_open_unavailable">No app found to open this folder.</string>
     <string name="settings_output_also_videos">Save videos here too?</string>
     <string name="settings_output_also_images">Save images here too?</string>
@@ -467,8 +470,8 @@
     <string name="censor_empty_state_title">Cover What Should Stay Private</string>
     <string name="censor_empty_state_description">Pixelate, black out or blur faces, number plates, addresses and anything else in a photo. Redact saves a censored copy without any metadata, and your original stays as it is.</string>
     <string name="censor_select_photo">Select Photo</string>
-    <string name="censor_hint">Draw over anything that should stay private, then tap Save Copy. Tap a rectangle to move or resize it.</string>
-    <string name="censor_canvas_description">Photo being censored. Draw with one finger to cover an area; pinch with two fingers to zoom.</string>
+    <string name="censor_hint">Draw over anything that should stay private, then tap Save Copy. Use Move to pinch-zoom and pan, and tap a rectangle to move or resize it.</string>
+    <string name="censor_canvas_description">Photo being censored. Draw with one finger to cover an area. With Move, drag to pan and pinch to zoom.</string>
     <string name="censor_tool_rectangle">Rectangle</string>
     <string name="censor_tool_brush">Brush</string>
     <string name="censor_tool_move">Move</string>
@@ -478,11 +481,13 @@
     <string name="censor_effect_blur">Blur</string>
     <string name="censor_undo">Undo</string>
     <string name="censor_redo">Redo</string>
-    <string name="censor_zoom_in">Zoom in</string>
-    <string name="censor_zoom_out">Zoom out</string>
+    <string name="censor_delete_rectangle">Delete Rectangle</string>
+    <string name="censor_zoom_level">%1$s×</string>
+    <string name="censor_zoom_reset">Zoomed in %1$s times. Tap to show the whole photo.</string>
     <string name="censor_save">Save Copy</string>
     <string name="censor_saved">Censored copy saved.</string>
     <string name="censor_saved_downscaled">Censored copy saved, smaller than the original. To keep the full size, raise Max Processing Resolution in Settings.</string>
+    <string name="censor_file_name">%1$s (censored)</string>
     <string name="censor_error_open">This photo could not be opened.</string>
     <string name="censor_error_unsupported">This type of image cannot be censored on this device.</string>
     <string name="censor_error_save">The censored copy could not be saved.</string>

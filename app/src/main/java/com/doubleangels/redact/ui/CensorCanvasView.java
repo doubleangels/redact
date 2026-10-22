@@ -9,12 +9,14 @@ import android.graphics.Path;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.TypedValue;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.doubleangels.redact.media.CensorRegion;
 import com.google.android.material.color.MaterialColors;
@@ -24,8 +26,9 @@ import java.util.List;
 
 /**
  * Shows the censor preview and lets the user draw over it: one finger draws a rectangle or a
- * brush stroke (or pans, with the move tool), two fingers zoom and pan, and {@link #zoomBy} zooms
- * from buttons. The brush keeps its size on screen, so zooming in covers finer details. With the
+ * brush stroke. The move tool is for getting around: one finger pans and two fingers pinch to
+ * zoom; while drawing, a second finger only cancels the shape, so drawing and zooming never mix.
+ * The brush keeps its size on screen, so zooming in covers finer details. With the
  * rectangle tool, tapping a rectangle selects it, and the selected one can be moved by dragging
  * inside it or resized by its corner handles. Finished shapes and changes go to the
  * {@link Listener} in image fractions; the owner covers them and hands back a new preview with
@@ -40,17 +43,22 @@ public class CensorCanvasView extends View {
 
         /** The rectangle at {@code index} was moved or resized. */
         void onRegionChanged(int index, @NonNull CensorRegion region);
+
+        /** A rectangle was selected (its index) or the selection was cleared (minus one). */
+        default void onSelectionChanged(int index) {
+        }
+
+        /** The zoom changed; 1 is the whole photo fitting the view. */
+        default void onZoomChanged(float zoom) {
+        }
     }
 
     /** What a one-finger touch with the rectangle tool is doing. */
     private enum RectGesture { DRAW, MOVE, RESIZE }
 
-    /** Told whenever the zoom changes, so zoom buttons can enable and disable. */
-    public interface ZoomListener {
-        void onZoomChanged(float zoom, boolean canZoomIn, boolean canZoomOut);
-    }
-
     static final float MAX_ZOOM = 16f;
+    /** How far a double-tap with the move tool zooms in. */
+    static final float DOUBLE_TAP_ZOOM = 2f;
     /** A rectangle smaller than this on screen is treated as a stray touch (or a tap). */
     private static final float MIN_RECT_DP = 12f;
     /** Corner handles of the selected rectangle: drawn radius, and how near counts as a grab. */
@@ -65,20 +73,23 @@ public class CensorCanvasView extends View {
     private final Paint outlinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint handleFill = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint imageBorderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final ScaleGestureDetector scaleDetector;
+    private final GestureDetector tapDetector;
+    private float reportedZoom = 1f;
 
     @Nullable
     private Bitmap image;
     @Nullable
     private Listener listener;
-    @Nullable
-    private ZoomListener zoomListener;
     @NonNull
     private Tool tool = Tool.RECT;
     /** Brush width as a fraction of the image's longer side when the photo fits the view. */
     private float brushWidth = 0.04f;
     /** The brush width of the stroke being drawn, fixed when it starts. */
     private float strokeWidth;
+    /** Shows a circle the size of the brush in the middle of the view, while its size is chosen. */
+    private boolean brushPreview;
 
     /** The shape being drawn, in image pixels; kept after it is finished until the next preview. */
     @Nullable
@@ -89,7 +100,7 @@ public class CensorCanvasView extends View {
     @Nullable
     private float[] strokePoints;
     private int strokeCount;
-    /** A second finger turned this touch into zoom/pan: draw nothing until all fingers lift. */
+    /** A second finger cancelled this touch's shape: draw nothing until all fingers lift. */
     private boolean gestureCancelled;
     private float lastFocusX;
     private float lastFocusY;
@@ -109,6 +120,8 @@ public class CensorCanvasView extends View {
     private int resizeCorner;
     /** An unselected rectangle under the finger when it went down, selected if this is a tap. */
     private int tapIndex = -1;
+    /** The selection last reported to the listener. */
+    private int reportedSelection = -1;
 
     public CensorCanvasView(@NonNull Context context) {
         this(context, null);
@@ -126,6 +139,9 @@ public class CensorCanvasView extends View {
         fillPaint.setAlpha(80);
         handleFill.setStyle(Paint.Style.FILL);
         handleFill.setColor(0xFFFFFFFF);
+        imageBorderPaint.setStyle(Paint.Style.STROKE);
+        imageBorderPaint.setColor(MaterialColors.getColor(this,
+                com.google.android.material.R.attr.colorOutlineVariant, 0x33888888));
         scaleDetector = new ScaleGestureDetector(context, new ScaleGestureDetector.SimpleOnScaleGestureListener() {
             @Override
             public boolean onScale(@NonNull ScaleGestureDetector detector) {
@@ -135,7 +151,19 @@ public class CensorCanvasView extends View {
                 userMatrix.postScale(factor, factor, detector.getFocusX(), detector.getFocusY());
                 constrainPan();
                 invalidate();
-                notifyZoom();
+                reportZoom();
+                return true;
+            }
+        });
+        tapDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDoubleTap(@NonNull MotionEvent e) {
+                // Zoomed in, a double-tap goes back to the whole photo; otherwise it zooms on the spot.
+                if (currentZoom() > 1.01f) {
+                    resetZoom();
+                } else {
+                    zoomAt(DOUBLE_TAP_ZOOM, e.getX(), e.getY());
+                }
                 return true;
             }
         });
@@ -151,6 +179,27 @@ public class CensorCanvasView extends View {
             selectedRegion = null;
             invalidate();
         }
+        reportSelection();
+    }
+
+    /** Clears the selected rectangle, if any. */
+    public void clearSelection() {
+        if (selectedRegion != null) {
+            selectedRegion = null;
+            invalidate();
+        }
+        reportSelection();
+    }
+
+    /** Tells the listener when the selected rectangle changes. */
+    private void reportSelection() {
+        int index = selectedIndex();
+        if (index != reportedSelection) {
+            reportedSelection = index;
+            if (listener != null) {
+                listener.onSelectionChanged(index);
+            }
+        }
     }
 
     /** The current regions, after any change; a selected rectangle stays selected if it is still there. */
@@ -160,6 +209,7 @@ public class CensorCanvasView extends View {
             selectedRegion = null;
         }
         invalidate();
+        reportSelection();
     }
 
     /** The index of the selected rectangle, or -1. */
@@ -167,39 +217,72 @@ public class CensorCanvasView extends View {
         return selectedRegion == null ? -1 : regions.lastIndexOf(selectedRegion);
     }
 
-    public void setZoomListener(@Nullable ZoomListener listener) {
-        zoomListener = listener;
-        notifyZoom();
+    /** Zooms about the centre of the view, kept between fitting the view and {@link #MAX_ZOOM}. */
+    @VisibleForTesting
+    void zoomBy(float factor) {
+        zoomAt(factor, getWidth() / 2f, getHeight() / 2f);
     }
 
-    /** Zooms about the centre of the view, kept between fitting the view and {@link #MAX_ZOOM}. */
-    public void zoomBy(float factor) {
+    /** Zooms about a view point, kept between fitting the view and {@link #MAX_ZOOM}. */
+    private void zoomAt(float factor, float x, float y) {
         if (image == null) {
             return;
         }
         float current = currentZoom();
         float clamped = Math.max(1f / current, Math.min(MAX_ZOOM / current, factor));
-        userMatrix.postScale(clamped, clamped, getWidth() / 2f, getHeight() / 2f);
+        userMatrix.postScale(clamped, clamped, x, y);
         constrainPan();
         invalidate();
-        notifyZoom();
+        reportZoom();
     }
 
-    public float getZoom() {
-        return currentZoom();
+    /** Shows the whole photo again. */
+    public void resetZoom() {
+        userMatrix.reset();
+        constrainPan();
+        invalidate();
+        reportZoom();
     }
 
-    private void notifyZoom() {
-        if (zoomListener != null) {
-            float zoom = currentZoom();
-            boolean hasImage = image != null;
-            // A little slack, so float error at the limits still disables the button.
-            zoomListener.onZoomChanged(zoom, hasImage && zoom < MAX_ZOOM - 0.01f, hasImage && zoom > 1.01f);
+    private void reportZoom() {
+        float zoom = currentZoom();
+        if (Math.abs(zoom - reportedZoom) > 0.001f) {
+            reportedZoom = zoom;
+            if (listener != null) {
+                listener.onZoomChanged(zoom);
+            }
         }
+    }
+
+    @VisibleForTesting
+    float getZoom() {
+        return currentZoom();
     }
 
     public void setBrushWidth(float fractionOfLongSide) {
         brushWidth = fractionOfLongSide;
+        if (brushPreview) {
+            invalidate();
+        }
+    }
+
+    public void setBrushPreview(boolean show) {
+        if (brushPreview != show) {
+            brushPreview = show;
+            invalidate();
+        }
+    }
+
+    /**
+     * The brush's width on screen. It is the same at any zoom: the brush stays the same size on
+     * screen, so it covers less of the photo when zoomed in.
+     */
+    @VisibleForTesting
+    float brushScreenWidth() {
+        if (image == null) {
+            return 0f;
+        }
+        return brushWidth * Math.max(image.getWidth(), image.getHeight()) * baseMatrix.mapRadius(1f);
     }
 
     /** A new preview: keeps the zoom when only the covered regions changed. */
@@ -212,9 +295,10 @@ public class CensorCanvasView extends View {
             selectedRegion = null;
             userMatrix.reset();
             updateBaseMatrix();
-            notifyZoom();
         }
         invalidate();
+        reportSelection();
+        reportZoom();
     }
 
     @Override
@@ -262,6 +346,8 @@ public class CensorCanvasView extends View {
         canvas.save();
         canvas.concat(drawMatrix);
         canvas.drawBitmap(image, 0, 0, imagePaint);
+        imageBorderPaint.setStrokeWidth(dp(1) / mapScale());
+        canvas.drawRect(0, 0, image.getWidth(), image.getHeight(), imageBorderPaint);
         // Keep outlines and handles the same size on screen at any zoom.
         outlinePaint.setStrokeWidth(dp(2) / mapScale());
         if (shape != null) {
@@ -280,6 +366,12 @@ public class CensorCanvasView extends View {
             drawHandles(canvas, r);
         }
         canvas.restore();
+        if (brushPreview) {
+            float radius = brushScreenWidth() / 2f;
+            outlinePaint.setStrokeWidth(dp(2));
+            canvas.drawCircle(getWidth() / 2f, getHeight() / 2f, radius, fillPaint);
+            canvas.drawCircle(getWidth() / 2f, getHeight() / 2f, radius, outlinePaint);
+        }
     }
 
     private void drawHandles(@NonNull Canvas canvas, @NonNull RectF r) {
@@ -334,7 +426,11 @@ public class CensorCanvasView extends View {
         if (image == null || !isEnabled()) {
             return false;
         }
-        scaleDetector.onTouchEvent(event);
+        if (tool == Tool.MOVE) {
+            // Pinching and double-tapping zoom only with the move tool, so nothing zooms mid-stroke.
+            scaleDetector.onTouchEvent(event);
+            tapDetector.onTouchEvent(event);
+        }
         updateDrawMatrix();
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
@@ -362,7 +458,7 @@ public class CensorCanvasView extends View {
                 return true;
             case MotionEvent.ACTION_MOVE:
                 if (gestureCancelled || tool == Tool.MOVE) {
-                    if (event.getPointerCount() > 1 || tool == Tool.MOVE) {
+                    if (tool == Tool.MOVE) {
                         float fx = focusX(event);
                         float fy = focusY(event);
                         userMatrix.postTranslate(fx - lastFocusX, fy - lastFocusY);
@@ -554,6 +650,7 @@ public class CensorCanvasView extends View {
                 selectedRegion = tapIndex >= 0 ? regions.get(tapIndex) : null;
                 shape = null;
                 invalidate();
+                reportSelection();
                 return;
             }
             region = CensorRegion.rect(startX / w, startY / h, p[0] / w, p[1] / h);

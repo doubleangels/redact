@@ -74,6 +74,10 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
 
         // Show video indicator only for video items
         holder.videoIndicator.setVisibility(item.isVideo() ? View.VISIBLE : View.GONE);
+        holder.thumbnail.setContentDescription(holder.thumbnail.getContext().getString(
+                item.isVideo() ? R.string.content_description_selected_video
+                        : R.string.content_description_selected_photo,
+                item.displayName(holder.thumbnail.getContext())));
     }
 
     /**

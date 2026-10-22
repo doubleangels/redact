@@ -41,6 +41,7 @@ SAME_AS_ENGLISH_OK = re.compile(
 # Words that a reviewer confirmed are correct as-is in that language (e.g. German "Video").
 # Add "locale:name" here after checking, so the review list only shows new suspects.
 REVIEWED_SAME_AS_ENGLISH = {
+    "de:content_description_selected_video", "it:content_description_selected_video",
     "de:convert_item_type_video", "de:settings_output_videos", "de:metadata_orientation_normal",
     "de:scan_section_details", "de:settings_about_version", "de:metadata_rotation", "de:metadata_bitrate",
     "de:settings_max_bitmap_size_labels",

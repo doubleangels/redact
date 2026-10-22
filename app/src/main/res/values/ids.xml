@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Decor view tag: a photo is open in Censor, so the window stays out of the Recents preview. -->
+    <item name="secure_window_photo_open" type="id" />
+</resources>

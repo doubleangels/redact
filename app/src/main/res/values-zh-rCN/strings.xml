@@ -4,8 +4,9 @@
     <string name="app_name">Redact</string>
 
     
-    <string name="content_description_image_view">图像视图</string>
-    <string name="content_description_scroll_view">滚动视图</string>
+    <string name="content_description_selected_files">已选择的文件</string>
+    <string name="content_description_selected_photo">照片：%1$s</string>
+    <string name="content_description_selected_video">视频：%1$s</string>
 
     
     <string name="navigation_clean">清理</string>
@@ -287,6 +288,7 @@
     <string name="scan_convert_this_file">转换此文件</string>
     <string name="scan_censor_this_photo">遮挡此照片的部分内容</string>
     <string name="scan_copied_to_clipboard">已复制到剪贴板</string>
+    <string name="scan_copy_value">复制值</string>
     <string name="scan_copy_all_metadata">复制全部元数据</string>
     <string name="scan_copy_camera">复制相机信息</string>
 <string name="settings_permissions_location">照片位置</string>
@@ -360,7 +362,7 @@
     <string name="convert_empty_state_title">转换媒体格式</string>
     <string name="convert_empty_state_description">选择照片或视频，将其转换为 JPEG、PNG、WebP、HEIC 或 MP4 格式。</string>
     <string name="convert_files_card_title">待转换的文件</string>
-    <string name="convert_heic_fallback_jpeg">HEIC 输出需要 Android 14 或更高版本。图片将改为保存为 JPEG。</string>
+    <string name="convert_heic_fallback_jpeg">此手机无法保存 HEIC 图片，因此将改为保存为 JPEG。</string>
     <string name="convert_item_type_image">图片</string>
     <string name="convert_item_type_video">视频</string>
     <string name="scan_empty_state_title">检查媒体元数据</string>
@@ -432,7 +434,8 @@
     <string name="share_results_chooser_title">分享方式…</string>
     <string name="settings_output_unavailable">Redact 无法再保存到此文件夹，文件将保存到 %1$s。请重新选择此文件夹或选择其他文件夹。</string>
     <string name="output_folder_fallback">%1$s 不可用，改为保存到 %2$s。</string>
-    <string name="settings_output_open">打开文件夹</string>
+    <string name="settings_output_open_images">打开图片文件夹</string>
+    <string name="settings_output_open_videos">打开视频文件夹</string>
     <string name="settings_output_open_unavailable">找不到可打开此文件夹的应用。</string>
     <string name="settings_output_also_videos">视频也保存到这里吗？</string>
     <string name="settings_output_also_images">图片也保存到这里吗？</string>
@@ -447,8 +450,8 @@
     <string name="censor_empty_state_title">遮住应保持私密的内容</string>
     <string name="censor_empty_state_description">为照片中的人脸、车牌、地址等任何内容打码、涂黑或模糊处理。Redact 会保存一份不含任何元数据的遮挡副本，原图保持不变。</string>
     <string name="censor_select_photo">选择照片</string>
-    <string name="censor_hint">在需要保密的内容上绘制，然后点按“保存副本”。点按矩形即可移动或调整大小。</string>
-    <string name="censor_canvas_description">正在遮挡的照片。用一根手指绘制以遮挡区域；用两根手指缩放。</string>
+    <string name="censor_hint">在需要保密的内容上绘制，然后点按“保存副本”。选择“移动”后可双指缩放并拖动画面。点按矩形即可移动或调整大小。</string>
+    <string name="censor_canvas_description">正在遮挡的照片。用一根手指绘制以遮挡区域。选择“移动”后可拖动画面并双指缩放。</string>
     <string name="censor_tool_rectangle">矩形</string>
     <string name="censor_tool_brush">画笔</string>
     <string name="censor_tool_move">移动</string>
@@ -458,11 +461,13 @@
     <string name="censor_effect_blur">模糊</string>
     <string name="censor_undo">撤销</string>
     <string name="censor_redo">重做</string>
-    <string name="censor_zoom_in">放大</string>
-    <string name="censor_zoom_out">缩小</string>
+    <string name="censor_delete_rectangle">删除矩形</string>
+    <string name="censor_zoom_level">%1$s×</string>
+    <string name="censor_zoom_reset">已放大 %1$s 倍。点按可显示整张照片。</string>
     <string name="censor_save">保存副本</string>
     <string name="censor_saved">已保存遮挡副本。</string>
     <string name="censor_saved_downscaled">已保存副本，但尺寸小于原图。若要保留完整尺寸，请在设置中提高最大处理分辨率。</string>
+    <string name="censor_file_name">%1$s（已遮盖）</string>
     <string name="censor_error_open">无法打开此照片。</string>
     <string name="censor_error_unsupported">此设备无法处理这种类型的图片。</string>
     <string name="censor_error_save">无法保存遮挡副本。</string>
