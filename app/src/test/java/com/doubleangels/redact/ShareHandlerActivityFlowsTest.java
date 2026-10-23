@@ -548,7 +548,7 @@ public class ShareHandlerActivityFlowsTest {
         for (File f : inboundSnapshots()) {
             suffixes.add(f.getName().substring(f.getName().lastIndexOf('.')));
         }
-        assertTrue(suffixes.contains(".mp4"));
+        assertTrue("a video keeps its own container", suffixes.contains(".mov"));
         assertTrue(suffixes.contains(".bin"));
     }
 

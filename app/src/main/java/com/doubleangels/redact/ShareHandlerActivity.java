@@ -34,6 +34,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import com.doubleangels.redact.media.MediaSizeLimits;
+import com.doubleangels.redact.media.MediaUriResolver;
 import com.doubleangels.redact.media.ProcessingResourceWarnings;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.doubleangels.redact.sentry.SentryManager;
@@ -441,21 +442,16 @@ public class ShareHandlerActivity extends AppCompatActivity {
             }
             return dest;
         }
-        String suffix = ".bin";
-        String type = getContentResolver().getType(uri);
-        if (type != null && type.startsWith("video/")) {
-            suffix = ".mp4";
-        } else if (type != null && type.startsWith("image/")) {
-            suffix = ".jpg";
-        } else {
-            // No usable type (e.g. shared as */*): the suffix decides later whether this is
-            // processed as video or image, so take it from the display name rather than letting
-            // every untyped video fall through to the image decoder.
-            String name = mediaSelector.getFileName(uri);
-            if (name != null) {
-                suffix = suffixForPath(name);
-            }
+        String type;
+        try {
+            type = getContentResolver().getType(uri);
+        } catch (RuntimeException e) {
+            type = null;
         }
+        // The suffix is all the clean has to go on later (a file:// copy has no type), and it
+        // picks the output's format: naming every image .jpg turned PNGs, WebPs and HEICs into
+        // JPEGs, and a PNG's transparency into black.
+        String suffix = suffixFor(type, MediaUriResolver.readDisplayName(this, uri));
         File dest = new File(getCacheDir(), "inbound_" + System.nanoTime() + suffix);
         try (InputStream in = getContentResolver().openInputStream(uri);
                 FileOutputStream out = new FileOutputStream(dest)) {
@@ -488,13 +484,76 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     @NonNull
     private static String suffixForPath(@NonNull String path) {
-        String lower = path.toLowerCase(java.util.Locale.US);
-        if (MediaSelector.isVideoFromMimeAndName(null, lower)) {
+        return suffixFor(null, path);
+    }
+
+    /**
+     * The suffix for a snapshot of a shared item: the one its type names, else the extension of its
+     * name when that is a media extension Redact recognizes, else {@code .bin}.
+     */
+    @androidx.annotation.VisibleForTesting
+    @NonNull
+    static String suffixFor(@Nullable String mimeType, @Nullable String name) {
+        if (mimeType != null) {
+            switch (mimeType.toLowerCase(java.util.Locale.US)) {
+                case "image/jpeg":
+                case "image/jpg":
+                    return ".jpg";
+                case "image/png":
+                    return ".png";
+                case "image/webp":
+                    return ".webp";
+                case "image/heic":
+                    return ".heic";
+                case "image/heif":
+                    return ".heif";
+                case "image/gif":
+                    return ".gif";
+                case "image/bmp":
+                    return ".bmp";
+                case "video/mp4":
+                    return ".mp4";
+                case "video/quicktime":
+                    return ".mov";
+                case "video/webm":
+                    return ".webm";
+                case "video/x-matroska":
+                    return ".mkv";
+                case "video/3gpp":
+                    return ".3gp";
+                default:
+                    break;
+            }
+        }
+        String lower = name != null ? name.toLowerCase(java.util.Locale.US) : "";
+        int dot = lower.lastIndexOf('.');
+        String extension = dot >= 0 ? lower.substring(dot) : "";
+        switch (extension) {
+            case ".jpeg":
+                return ".jpg";
+            case ".jpg":
+            case ".png":
+            case ".webp":
+            case ".heic":
+            case ".heif":
+            case ".gif":
+            case ".bmp":
+            case ".mp4":
+            case ".m4v":
+            case ".mov":
+            case ".webm":
+            case ".mkv":
+            case ".3gp":
+            case ".avi":
+                return extension;
+            default:
+                break;
+        }
+        // A type with no known extension still says which decoder the item needs.
+        if (mimeType != null && mimeType.startsWith("video/")) {
             return ".mp4";
         }
-        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png")
-                || lower.endsWith(".webp") || lower.endsWith(".heic") || lower.endsWith(".heif")
-                || lower.endsWith(".gif")) {
+        if (mimeType != null && mimeType.startsWith("image/")) {
             return ".jpg";
         }
         return ".bin";
