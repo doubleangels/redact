@@ -46,6 +46,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
@@ -71,10 +72,17 @@ public final class VideoMedia3Converter {
         void onProgress(int percent);
     }
 
+    /**
+     * How long an export may go without progress, or without its output growing, before it is
+     * given up. A fixed limit on the whole export failed long 4K videos on slow phones after an
+     * hour of good work; one that only fires when nothing moves does not.
+     */
+    private static final long STALL_TIMEOUT_MS = 10L * 60L * 1000L;
+    /** How often the waiting thread checks an export for progress. */
+    private static final long STALL_CHECK_SECONDS = 5;
     /** How often a job waiting for another's export checks whether it was cancelled. */
     private static final long LOCK_POLL_MS = 250;
-    private static final long AWAIT_TIMEOUT_MINUTES = 60;
-    /** Replaces the wait above in tests: Media3 never finishes an export under Robolectric. */
+    /** Replaces the stall check in tests: Media3 never finishes an export under Robolectric. */
     private static volatile Long testAwaitTimeoutMs;
 
     /**
@@ -553,9 +561,12 @@ public final class VideoMedia3Converter {
         AtomicReference<ExportException> errorRef = new AtomicReference<>();
         AtomicReference<Throwable> syncFailureRef = new AtomicReference<>();
         AtomicReference<Transformer> transformerRef = new AtomicReference<>();
+        // The last progress Media3 reported, for the stall check; -1 before the first.
+        AtomicInteger progressSeen = new AtomicInteger(-1);
 
         Handler mainHandler = new Handler(Looper.getMainLooper());
-        AtomicBoolean pollingActive = new AtomicBoolean(progressListener != null);
+        // Polled with or without a listener: the stall check needs the progress too.
+        AtomicBoolean pollingActive = new AtomicBoolean(true);
         final Runnable[] pollRunnable = new Runnable[1];
         // Runs on the main thread. Transformer.cancel() calls no listener, so this also ends the
         // wait; before the transformer is built, it keeps it from being started at all.
@@ -579,10 +590,13 @@ public final class VideoMedia3Converter {
                         return;
                     }
                     Transformer t = transformerRef.get();
-                    if (t != null && progressListener != null) {
+                    if (t != null) {
                         ProgressHolder holder = new ProgressHolder();
                         int state = t.getProgress(holder);
                         if (state == Transformer.PROGRESS_STATE_AVAILABLE) {
+                            progressSeen.set(holder.progress);
+                        }
+                        if (state == Transformer.PROGRESS_STATE_AVAILABLE && progressListener != null) {
                             try {
                                 progressListener.onProgress(holder.progress);
                             } catch (RuntimeException e) {
@@ -644,9 +658,7 @@ public final class VideoMedia3Converter {
                         transformerRef.set(transformer);
                         activeTransformer.set(transformer);
                         transformer.start(composition, outputPath);
-                        if (progressListener != null) {
-                            mainHandler.post(pollRunnable[0]);
-                        }
+                        mainHandler.post(pollRunnable[0]);
                     } catch (RuntimeException e) {
                         stopPolling(mainHandler, pollingActive, pollRunnable[0]);
                         syncFailureRef.set(e);
@@ -659,7 +671,7 @@ public final class VideoMedia3Converter {
             Long testTimeout = testAwaitTimeoutMs;
             finished = testTimeout != null
                     ? latch.await(testTimeout, TimeUnit.MILLISECONDS)
-                    : latch.await(AWAIT_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+                    : awaitUnlessStalled(latch, outFile, progressSeen);
         } finally {
             activeTranscodeOwner.compareAndSet(ownerId, -1L);
             activeTransformer.compareAndSet(transformerRef.get(), null);
@@ -683,7 +695,7 @@ public final class VideoMedia3Converter {
                     });
             cancelDone.await(5, TimeUnit.SECONDS);
             deleteQuietly(app, outFile);
-            throw new IOException("Video conversion timed out");
+            throw new IOException("Video conversion stalled");
         }
 
         ExportException exportException = errorRef.get();
@@ -711,6 +723,32 @@ public final class VideoMedia3Converter {
             deleteQuietly(app, outFile);
             throw new IOException("Video conversion produced no output");
         }
+    }
+
+    /**
+     * Waits for an export to end. Returns false when neither its progress nor the size of its
+     * output has changed for {@link #STALL_TIMEOUT_MS}; however long it runs, an export that keeps
+     * moving is waited for.
+     */
+    private static boolean awaitUnlessStalled(
+            @NonNull CountDownLatch latch, @NonNull File outFile, @NonNull AtomicInteger progressSeen)
+            throws InterruptedException {
+        long lastChange = android.os.SystemClock.elapsedRealtime();
+        long lastLength = -1;
+        int lastProgress = -1;
+        while (!latch.await(STALL_CHECK_SECONDS, TimeUnit.SECONDS)) {
+            long now = android.os.SystemClock.elapsedRealtime();
+            long length = outFile.length();
+            int progress = progressSeen.get();
+            if (length != lastLength || progress != lastProgress) {
+                lastLength = length;
+                lastProgress = progress;
+                lastChange = now;
+            } else if (now - lastChange > STALL_TIMEOUT_MS) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
