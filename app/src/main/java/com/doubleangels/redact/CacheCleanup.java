@@ -37,7 +37,7 @@ public final class CacheCleanup {
 
     private static final String PROCESSED_SUBDIR = "processed";
     private static final String[] TEMP_PREFIXES = {
-            "temp_", "verify_", "vid_transform_", "vid_transmux_", "inbound_"
+            "temp_", "verify_", "vid_transform_", "vid_transmux_", "inbound_", "censored_"
     };
     /**
      * Grace period below which a temp file is left alone even for a "clear all" request, so a

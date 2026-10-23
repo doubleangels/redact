@@ -257,4 +257,14 @@ public class CacheCleanupTest {
         assertFalse("a share older than the grace period is gone", old.exists());
         assertTrue("a recent share stays for the app reading it", fresh.exists());
     }
+
+    @Test
+    public void orphanSweep_removesALeftoverCensoredCopy() throws IOException {
+        File censored = cacheFile("censored_123.jpg");
+
+        CacheCleanup.scheduleOrphanedWorkFileSweep(context);
+        CacheCleanup.awaitOrphanSweepForTests();
+
+        assertFalse(censored.exists());
+    }
 }
