@@ -326,8 +326,14 @@ public class MetadataStripper {
             throwIfCancelled();
             int formatIndex = detectVideoFormatIndex(sourceUri, originalFilename);
 
-            updateProgress(2, 4, context.getString(R.string.strip_progress_transmuxing));
-            File tempCleanFile = fastStripVideoMetadata(sourceUri);
+            // The quick transmux is only worth its full copy of the video when that copy may be
+            // saved as it is. A transcode reads the source directly: Media3 is kept from writing
+            // any of its metadata (VideoMedia3Converter.MetadataDroppingMuxerFactory).
+            File tempCleanFile = null;
+            if (mayKeepTransmux()) {
+                updateProgress(2, 4, context.getString(R.string.strip_progress_transmuxing));
+                tempCleanFile = fastStripVideoMetadata(sourceUri);
+            }
             Uri cleanSourceUri = tempCleanFile != null ? Uri.fromFile(tempCleanFile) : sourceUri;
 
             boolean needsTranscode = !shouldSkipVideoTranscode(formatIndex, tempCleanFile, false);
@@ -1372,6 +1378,17 @@ public class MetadataStripper {
             }
         }
         SentryManager.log("The app removed " + removedCount + " EXIF metadata tags using the fallback method.");
+    }
+
+    /**
+     * Whether a gallery clean may save the quick transmux as it is (Faster Video Cleaning on,
+     * Strict Clean off), which is the only reason to make one.
+     */
+    private boolean mayKeepTransmux() {
+        if (testFastStripVideoMetadataOverride != null) {
+            return true;
+        }
+        return !AppPreferences.isStrictClean(context) && AppPreferences.isVideoFallbackCopy(context);
     }
 
     /**
