@@ -1714,9 +1714,8 @@ public class MetadataStripper {
                                 retriever.extractMetadata(
                                         android.media.MediaMetadataRetriever.METADATA_KEY_DATE));
                 if (outputDate != null && outputDate.equals(sourceSnapshot.date)) {
+                    // Only that it happened: the date is when the user recorded the video.
                     SentryManager.setCustomKey("video_verify_failed_key", "DATE_PRESERVED");
-                    SentryManager.setCustomKey("video_verify_source_date", truncateForSentry(sourceSnapshot.date));
-                    SentryManager.setCustomKey("video_verify_output_date", truncateForSentry(outputDate));
                     SentryManager.log(
                             "The original recording date was preserved in the output: "
                                     + videoMetadataKeyName(
@@ -1742,11 +1741,6 @@ public class MetadataStripper {
             SentryManager.log("The video metadata verification read failed.");
             return false;
         }
-    }
-
-    @NonNull
-    private static String truncateForSentry(@NonNull String value) {
-        return value.length() <= 64 ? value : value.substring(0, 64);
     }
 
     /**
