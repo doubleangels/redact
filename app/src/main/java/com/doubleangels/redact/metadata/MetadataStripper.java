@@ -854,21 +854,33 @@ public class MetadataStripper {
         return 0;
     }
 
-    private void remuxSingleTrack(
+    /**
+     * Copies the selected tracks' samples in the order the source stores them, so video and audio
+     * stay interleaved. Copying one whole track and then the other wrote every video sample ahead
+     * of every audio sample, a file that cannot start playing until it has been read to the end.
+     */
+    private void remuxTracks(
             android.media.MediaExtractor extractor,
-            int sourceTrackIndex,
-            android.media.MediaMuxer muxer,
-            int muxerTrackIndex) {
+            java.util.Map<Integer, Integer> muxerTracks,
+            android.media.MediaMuxer muxer) {
         for (int i = 0; i < extractor.getTrackCount(); i++) {
             extractor.unselectTrack(i);
         }
-        extractor.selectTrack(sourceTrackIndex);
+        for (int sourceTrack : muxerTracks.keySet()) {
+            extractor.selectTrack(sourceTrack);
+        }
         java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(1024 * 1024 * 2);
         android.media.MediaCodec.BufferInfo info = new android.media.MediaCodec.BufferInfo();
         while (true) {
             checkCancelled();
-            if (extractor.getSampleTrackIndex() == -1) {
+            int sourceTrack = extractor.getSampleTrackIndex();
+            if (sourceTrack == -1) {
                 break;
+            }
+            Integer muxerTrackIndex = muxerTracks.get(sourceTrack);
+            if (muxerTrackIndex == null) {
+                extractor.advance();
+                continue;
             }
             info.size = extractor.readSampleData(buffer, 0);
             if (info.size < 0) {
@@ -1004,15 +1016,14 @@ public class MetadataStripper {
             
             muxer.start();
 
+            java.util.Map<Integer, Integer> muxerTracks = new java.util.HashMap<>();
             if (videoTrackIndex != -1 && muxerVideoTrackIndex != -1) {
-                remuxSingleTrack(extractor, videoTrackIndex, muxer, muxerVideoTrackIndex);
+                muxerTracks.put(videoTrackIndex, muxerVideoTrackIndex);
             }
             if (audioTrackIndex != -1 && muxerAudioTrackIndex != -1) {
-                for (int i = 0; i < extractor.getTrackCount(); i++) {
-                    extractor.unselectTrack(i);
-                }
-                remuxSingleTrack(extractor, audioTrackIndex, muxer, muxerAudioTrackIndex);
+                muxerTracks.put(audioTrackIndex, muxerAudioTrackIndex);
             }
+            remuxTracks(extractor, muxerTracks, muxer);
 
             muxer.stop();
             succeeded = true;
