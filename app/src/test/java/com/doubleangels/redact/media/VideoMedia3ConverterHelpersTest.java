@@ -283,4 +283,56 @@ public class VideoMedia3ConverterHelpersTest {
         }
     }
 
+    @Test
+    public void metadataDroppingMuxer_writesTracksAndSamples_butNoMetadata() throws Exception {
+        java.util.List<String> calls = new java.util.ArrayList<>();
+        androidx.media3.muxer.Muxer.Factory recording = new androidx.media3.muxer.Muxer.Factory() {
+            @Override
+            public androidx.media3.muxer.Muxer create(String path) {
+                calls.add("create " + path);
+                return new androidx.media3.muxer.Muxer() {
+                    @Override
+                    public int addTrack(androidx.media3.common.Format format) {
+                        calls.add("track " + format.sampleMimeType);
+                        return 7;
+                    }
+
+                    @Override
+                    public void writeSampleData(int trackId, java.nio.ByteBuffer data,
+                                                androidx.media3.muxer.BufferInfo bufferInfo) {
+                        calls.add("sample " + trackId);
+                    }
+
+                    @Override
+                    public void addMetadataEntry(androidx.media3.common.Metadata.Entry entry) {
+                        calls.add("metadata");
+                    }
+
+                    @Override
+                    public void close() {
+                        calls.add("close");
+                    }
+                };
+            }
+
+            @Override
+            public com.google.common.collect.ImmutableList<String> getSupportedSampleMimeTypes(int trackType) {
+                return com.google.common.collect.ImmutableList.of("video/avc");
+            }
+        };
+
+        VideoMedia3Converter.MetadataDroppingMuxerFactory factory =
+                new VideoMedia3Converter.MetadataDroppingMuxerFactory(recording);
+        androidx.media3.muxer.Muxer muxer = factory.create("/out.mp4");
+        int track = muxer.addTrack(new androidx.media3.common.Format.Builder()
+                .setSampleMimeType("video/avc").build());
+        muxer.addMetadataEntry(new androidx.media3.common.Metadata.Entry() { });
+        muxer.writeSampleData(track, java.nio.ByteBuffer.allocate(4),
+                new androidx.media3.muxer.BufferInfo(0, 4, 0));
+        muxer.close();
+
+        assertEquals(java.util.Arrays.asList("create /out.mp4", "track video/avc", "sample 7", "close"), calls);
+        assertEquals(com.google.common.collect.ImmutableList.of("video/avc"),
+                factory.getSupportedSampleMimeTypes(androidx.media3.common.C.TRACK_TYPE_VIDEO));
+    }
 }

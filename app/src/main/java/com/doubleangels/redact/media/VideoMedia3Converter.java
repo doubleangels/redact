@@ -19,6 +19,9 @@ import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.util.Clock;
 import androidx.media3.effect.Presentation;
+import androidx.media3.muxer.BufferInfo;
+import androidx.media3.muxer.Muxer;
+import androidx.media3.muxer.MuxerException;
 import androidx.media3.transformer.AssetLoader;
 import androidx.media3.transformer.Codec;
 import androidx.media3.transformer.Composition;
@@ -193,6 +196,62 @@ public final class VideoMedia3Converter {
         @Override
         public boolean videoNeedsEncoding() {
             return true;
+        }
+    }
+
+    /**
+     * Keeps Media3 from writing any metadata of its own. Transformer copies the source's location
+     * and dates into the output through {@link Muxer#addMetadataEntry}; dropping every entry here
+     * means a source can be transcoded directly, where it used to be copied into a metadata-free
+     * remux first, a whole extra read, write and secure delete of the video. Rotation is not an
+     * entry (it goes with the track format), so it is kept. The output is still scrubbed and
+     * verified afterwards.
+     */
+    @VisibleForTesting
+    static final class MetadataDroppingMuxerFactory implements Muxer.Factory {
+        private final Muxer.Factory delegate;
+
+        MetadataDroppingMuxerFactory(@NonNull Muxer.Factory delegate) {
+            this.delegate = delegate;
+        }
+
+        @NonNull
+        @Override
+        public Muxer create(@NonNull String path) throws MuxerException {
+            Muxer muxer = delegate.create(path);
+            return new Muxer() {
+                @Override
+                public int addTrack(@NonNull Format format) throws MuxerException {
+                    return muxer.addTrack(format);
+                }
+
+                @Override
+                public void writeSampleData(int trackId, @NonNull java.nio.ByteBuffer data,
+                                            @NonNull BufferInfo bufferInfo) throws MuxerException {
+                    muxer.writeSampleData(trackId, data, bufferInfo);
+                }
+
+                @Override
+                public void addMetadataEntry(@NonNull androidx.media3.common.Metadata.Entry entry) {
+                    // Dropped: see the class comment.
+                }
+
+                @Override
+                public void close() throws MuxerException {
+                    muxer.close();
+                }
+            };
+        }
+
+        @NonNull
+        @Override
+        public ImmutableList<String> getSupportedSampleMimeTypes(int trackType) {
+            return delegate.getSupportedSampleMimeTypes(trackType);
+        }
+
+        @Override
+        public boolean supportsWritingNegativeTimestampsInEditList() {
+            return delegate.supportsWritingNegativeTimestampsInEditList();
         }
     }
 
@@ -621,7 +680,8 @@ public final class VideoMedia3Converter {
                         Transformer transformer =
                                 new Transformer.Builder(app)
                                         .setAssetLoaderFactory(decoderFallbackAssetLoaderFactory(app))
-                                        .setMuxerFactory(new DefaultMuxer.Factory())
+                                        .setMuxerFactory(new MetadataDroppingMuxerFactory(
+                                                new DefaultMuxer.Factory()))
                                         .setEncoderFactory(new AlwaysEncodeFactory(
                                                 new DefaultEncoderFactory.Builder(app).build()))
                                         .setVideoMimeType(videoMimeType)
