@@ -292,7 +292,11 @@ public final class AppPreferences {
 
     /** Delay choices, in seconds, for clearing copied metadata from the clipboard; 0 is off. */
     public static final int[] CLIPBOARD_CLEAR_SECONDS_OPTIONS = {0, 15, 30, 60, 300};
-    public static final int DEFAULT_CLIPBOARD_CLEAR_SECONDS = 0;
+    /**
+     * Copied metadata (a photo's location, say) is cleared after a minute unless the user chose
+     * otherwise; left on the clipboard it is readable by whatever app is in front later.
+     */
+    public static final int DEFAULT_CLIPBOARD_CLEAR_SECONDS = 60;
 
     /** Seconds until copied metadata is cleared from the clipboard, 0 when turned off. */
     public static int getClipboardClearSeconds(@NonNull Context context) {

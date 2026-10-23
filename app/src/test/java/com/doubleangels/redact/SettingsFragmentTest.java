@@ -262,9 +262,9 @@ public class SettingsFragmentTest {
     }
 
     @Test
-    public void clipboardClearDropdown_isOffByDefault_andMapsIndexesToSeconds() {
+    public void clipboardClearDropdown_isOneMinuteByDefault_andMapsIndexesToSeconds() {
         MaterialAutoCompleteTextView clear = settings.findViewById(R.id.dropdownClipboardClear);
-        assertEquals(activity.getString(R.string.settings_clipboard_clear_off), clear.getText().toString());
+        assertEquals(activity.getString(R.string.settings_clipboard_clear_1m), clear.getText().toString());
 
         int[] expected = {0, 15, 30, 60, 300};
         for (int i = 0; i < expected.length; i++) {
