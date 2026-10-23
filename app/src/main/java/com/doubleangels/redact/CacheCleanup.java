@@ -36,6 +36,8 @@ public final class CacheCleanup {
     private static volatile Thread orphanSweepThread;
 
     private static final String PROCESSED_SUBDIR = "processed";
+    /** Glide's default disk cache folder (InternalCacheDiskCacheFactory). */
+    private static final String GLIDE_DISK_CACHE_DIR = "image_manager_disk_cache";
     private static final String[] TEMP_PREFIXES = {
             "temp_", "verify_", "vid_transform_", "vid_transmux_", "inbound_", "censored_"
     };
@@ -137,6 +139,11 @@ public final class CacheCleanup {
         if (cacheDir != null) {
             collectFilesOlderThan(new File(cacheDir, PROCESSED_SUBDIR),
                     System.currentTimeMillis() - SHARED_OUTPUT_MAX_AGE_MS, sharedOutputs);
+        }
+        // Thumbnails earlier versions kept in Glide's disk cache, which is now off.
+        File thumbnailCache = cacheDir != null ? new File(cacheDir, GLIDE_DISK_CACHE_DIR) : null;
+        if (thumbnailCache != null && thumbnailCache.isDirectory()) {
+            collectFilesOlderThan(thumbnailCache, Long.MAX_VALUE, orphans);
         }
         if (orphans.isEmpty() && sharedOutputs.isEmpty()) {
             return;

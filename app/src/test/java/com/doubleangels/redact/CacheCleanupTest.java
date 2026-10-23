@@ -267,4 +267,19 @@ public class CacheCleanupTest {
 
         assertFalse(censored.exists());
     }
+
+    @Test
+    public void orphanSweep_removesThumbnailsAnEarlierVersionCachedOnDisk() throws IOException {
+        File dir = new File(context.getCacheDir(), "image_manager_disk_cache");
+        dir.mkdirs();
+        File thumbnail = new File(dir, "0a1b2c.0");
+        try (java.io.FileOutputStream out = new java.io.FileOutputStream(thumbnail)) {
+            out.write(new byte[64]);
+        }
+
+        CacheCleanup.scheduleOrphanedWorkFileSweep(context);
+        CacheCleanup.awaitOrphanSweepForTests();
+
+        assertFalse(thumbnail.exists());
+    }
 }
