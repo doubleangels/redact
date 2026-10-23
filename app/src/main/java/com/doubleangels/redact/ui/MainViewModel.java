@@ -1077,7 +1077,11 @@ public class MainViewModel extends AndroidViewModel {
                         Thread.currentThread().isInterrupted()
                                 || convertTimedOut.get()
                                 || capturedGeneration != convertGeneration.get();
-                convertInProgress.set(false);
+                // A cancelled run already cleared the flag, and a newer run may have set it since;
+                // only the run that is still current may clear it.
+                if (capturedGeneration == convertGeneration.get()) {
+                    convertInProgress.set(false);
+                }
                 mainHandler.post(() -> {
                     if (capturedGeneration != convertGeneration.get()) {
                         return;
