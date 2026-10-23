@@ -892,10 +892,11 @@ public class MetadataStripper {
     }
 
     /**
-     * Transmuxes {@code sourceUri} into a cache file without container-level metadata, for use as
-     * the input of a format-conversion transcode. Returns null when transmuxing isn't possible;
+     * Transmuxes {@code sourceUri} into a cache file without container-level metadata: the quick
+     * path of Faster Video Cleaning on its own. Returns null when transmuxing isn't possible;
      * callers must delete a non-null result.
      */
+    @VisibleForTesting
     @Nullable
     public File transmuxVideoWithoutMetadata(@NonNull Uri sourceUri) {
         return fastStripVideoMetadata(sourceUri);
