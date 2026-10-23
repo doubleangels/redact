@@ -71,6 +71,8 @@ public final class VideoMedia3Converter {
         void onProgress(int percent);
     }
 
+    /** How often a job waiting for another's export checks whether it was cancelled. */
+    private static final long LOCK_POLL_MS = 250;
     private static final long AWAIT_TIMEOUT_MINUTES = 60;
     /** Replaces the wait above in tests: Media3 never finishes an export under Robolectric. */
     private static volatile Long testAwaitTimeoutMs;
@@ -123,6 +125,18 @@ public final class VideoMedia3Converter {
     }
     /** Serializes Media3 exports so Clean and Convert cannot cancel each other's transformer. */
     private static final ReentrantLock TRANSCODE_LOCK = new ReentrantLock();
+
+    /** A job waiting for {@link #TRANSCODE_LOCK}, so cancelling it need not wait for the export ahead. */
+    private static final class Waiter {
+        final long ownerId;
+        volatile boolean cancelled;
+
+        Waiter(long ownerId) {
+            this.ownerId = ownerId;
+        }
+    }
+
+    private static final java.util.Set<Waiter> WAITERS = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     private VideoMedia3Converter() {
     }
@@ -184,23 +198,30 @@ public final class VideoMedia3Converter {
      * Pass {@code -1} to cancel regardless of owner.
      */
     public static void cancelActiveTranscode(long ownerId) {
+        for (Waiter waiter : WAITERS) {
+            if (ownerId < 0 || waiter.ownerId == ownerId) {
+                waiter.cancelled = true;
+            }
+        }
         if (ownerId >= 0 && activeTranscodeOwner.get() != ownerId) {
             return;
         }
+        // The hook cancels the export's transformer, or, when it has not been built yet, stops it
+        // from being started: both run on the main thread, so one always sees the other.
+        Runnable cancelHook = activeCancelHook.get();
         Transformer transformer = activeTransformer.get();
-        if (transformer == null) {
+        if (cancelHook == null && transformer == null) {
             return;
         }
-        Runnable endWait = activeCancelHook.get();
         new Handler(Looper.getMainLooper()).post(() -> {
+            if (cancelHook != null) {
+                cancelHook.run();
+                return;
+            }
             try {
                 transformer.cancel();
             } catch (RuntimeException ignored) {
                 // Transformer may already be finished.
-            }
-            // cancel() tells no listener, so the export would otherwise wait out its timeout.
-            if (endWait != null) {
-                endWait.run();
             }
         });
     }
@@ -451,8 +472,22 @@ public final class VideoMedia3Converter {
 
         File outFile = new File(outputPath);
 
-        TRANSCODE_LOCK.lock();
+        Waiter waiter = new Waiter(ownerId);
+        WAITERS.add(waiter);
+        boolean locked = false;
         try {
+            while (!(locked = TRANSCODE_LOCK.tryLock(LOCK_POLL_MS, TimeUnit.MILLISECONDS))) {
+                if (waiter.cancelled) {
+                    throw new InterruptedException("Video conversion was cancelled");
+                }
+            }
+            // Owner first, then stop waiting: a cancel in between finds one or the other.
+            activeTranscodeOwner.set(ownerId);
+            WAITERS.remove(waiter);
+            if (waiter.cancelled) {
+                activeTranscodeOwner.compareAndSet(ownerId, -1L);
+                throw new InterruptedException("Video conversion was cancelled");
+            }
             transcodeToPathOnceLocked(
                     app,
                     sourceUri,
@@ -464,7 +499,10 @@ public final class VideoMedia3Converter {
                     ownerId,
                     outputShortSide);
         } finally {
-            TRANSCODE_LOCK.unlock();
+            WAITERS.remove(waiter);
+            if (locked) {
+                TRANSCODE_LOCK.unlock();
+            }
         }
     }
 
@@ -512,11 +550,6 @@ public final class VideoMedia3Converter {
 
         CountDownLatch latch = new CountDownLatch(1);
         AtomicBoolean cancelled = new AtomicBoolean(false);
-        Runnable endWait = () -> {
-            cancelled.set(true);
-            latch.countDown();
-        };
-        activeCancelHook.set(endWait);
         AtomicReference<ExportException> errorRef = new AtomicReference<>();
         AtomicReference<Throwable> syncFailureRef = new AtomicReference<>();
         AtomicReference<Transformer> transformerRef = new AtomicReference<>();
@@ -524,6 +557,22 @@ public final class VideoMedia3Converter {
         Handler mainHandler = new Handler(Looper.getMainLooper());
         AtomicBoolean pollingActive = new AtomicBoolean(progressListener != null);
         final Runnable[] pollRunnable = new Runnable[1];
+        // Runs on the main thread. Transformer.cancel() calls no listener, so this also ends the
+        // wait; before the transformer is built, it keeps it from being started at all.
+        Runnable cancelHook = () -> {
+            cancelled.set(true);
+            stopPolling(mainHandler, pollingActive, pollRunnable[0]);
+            Transformer t = transformerRef.get();
+            if (t != null) {
+                try {
+                    t.cancel();
+                } catch (RuntimeException ignored) {
+                    // Transformer may already be finished.
+                }
+            }
+            latch.countDown();
+        };
+        activeCancelHook.set(cancelHook);
         pollRunnable[0] =
                 () -> {
                     if (!pollingActive.get()) {
@@ -551,6 +600,9 @@ public final class VideoMedia3Converter {
 
         mainHandler.post(
                 () -> {
+                    if (cancelled.get()) {
+                        return; // cancelled before it started; the hook already ended the wait
+                    }
                     try {
                         Transformer transformer =
                                 new Transformer.Builder(app)
@@ -611,7 +663,7 @@ public final class VideoMedia3Converter {
         } finally {
             activeTranscodeOwner.compareAndSet(ownerId, -1L);
             activeTransformer.compareAndSet(transformerRef.get(), null);
-            activeCancelHook.compareAndSet(endWait, null);
+            activeCancelHook.compareAndSet(cancelHook, null);
         }
         if (cancelled.get() && errorRef.get() == null && syncFailureRef.get() == null) {
             stopPolling(mainHandler, pollingActive, pollRunnable[0]);

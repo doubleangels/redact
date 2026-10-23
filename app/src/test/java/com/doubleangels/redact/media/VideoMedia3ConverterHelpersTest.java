@@ -244,4 +244,43 @@ public class VideoMedia3ConverterHelpersTest {
         }
         assertEquals(VideoMedia3Converter.cleanOwner(3), VideoMedia3Converter.cleanOwner(3));
     }
+
+    @Test
+    public void aJobWaitingForAnotherExport_stopsAsSoonAsItIsCancelled() throws Exception {
+        java.lang.reflect.Field lockField = VideoMedia3Converter.class.getDeclaredField("TRANSCODE_LOCK");
+        lockField.setAccessible(true);
+        java.util.concurrent.locks.ReentrantLock lock =
+                (java.util.concurrent.locks.ReentrantLock) lockField.get(null);
+        java.io.File out = java.io.File.createTempFile("vid_transform_", ".mp4",
+                RuntimeEnvironment.getApplication().getCacheDir());
+        java.util.concurrent.atomic.AtomicReference<Throwable> thrown =
+                new java.util.concurrent.atomic.AtomicReference<>();
+        lock.lock(); // another job's export is running
+        try {
+            Thread waiting = new Thread(() -> {
+                try {
+                    VideoMedia3Converter.transcodeToPath(RuntimeEnvironment.getApplication(),
+                            android.net.Uri.fromFile(out), out.getAbsolutePath(), 0, null, 7L);
+                } catch (Throwable t) {
+                    thrown.set(t);
+                }
+            });
+            waiting.start();
+            Thread.sleep(300);
+            assertTrue("it waits while the other export runs", waiting.isAlive());
+
+            VideoMedia3Converter.cancelActiveTranscode(8L); // someone else's job
+            Thread.sleep(400);
+            assertTrue(waiting.isAlive());
+
+            VideoMedia3Converter.cancelActiveTranscode(7L);
+            waiting.join(3000);
+            assertFalse("cancelled without waiting for the other export", waiting.isAlive());
+            assertTrue(thrown.get() instanceof InterruptedException);
+        } finally {
+            lock.unlock();
+            out.delete();
+        }
+    }
+
 }
