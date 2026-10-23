@@ -580,22 +580,30 @@ public class MetadataStripper {
             updateProgress(4, 5, context.getString(R.string.strip_progress_restoring_essential_metadata));
             restoreEssentialExifData(cleanFile);
 
+            // Verified while still private: a folder the user chose shows a new file at once (a
+            // cloud-backed one may upload it), so nothing unverified may reach the output.
+            updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
+            boolean metadataRemoved = verifyMetadataRemoval(cleanFile, false);
+            SentryManager.setCustomKey("metadata_verification_passed", metadataRemoved);
+            if (!metadataRemoved) {
+                throw new IOException("Metadata verification failed");
+            }
+
             // Create the output (a pending MediaStore entry, or a file in the chosen folder) and
-            // write the finished file to it once.
+            // write the verified file to it once, then check that the output holds exactly those
+            // bytes: a provider that keeps the tail of an older file would add to them.
             newUri = OutputDestination.create(context, false, newFilename, outputFormat.mimeType);
+            byte[] written;
             try (InputStream in = new FileInputStream(cleanFile);
                     OutputStream os = contentResolver.openOutputStream(newUri)) {
                 if (os == null) {
                     throw new IOException("Failed to open output stream for new image");
                 }
-                MediaSizeLimits.copyStream(in, os);
+                java.security.MessageDigest digest = sha256();
+                MediaSizeLimits.copyStream(in, new java.security.DigestOutputStream(os, digest));
+                written = digest.digest();
             }
-
-            // Verify metadata removal while the entry is still IS_PENDING=1, so a file that
-            // fails verification is never visible to other apps via MediaStore even briefly.
-            // The owning app can read/write its own pending entry; only other apps are blocked.
-            updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
-            verifyCleanedImageAtUri(newUri, outputFormat.extension);
+            requireSameContent(newUri, written);
             OutputDestination.publish(contentResolver, newUri);
             return newUri;
         } catch (IOException | RuntimeException e) {
@@ -1824,30 +1832,33 @@ public class MetadataStripper {
     }
 
     /**
-     * Verifies a cleaned gallery image; throws in strict mode when metadata remains or checks fail.
+     * Fails unless the saved output reads back as exactly the bytes that were verified. Hashed as
+     * it is read, so no second copy of the image is written to check it.
      */
-    private void verifyCleanedImageAtUri(@NonNull Uri imageUri, @NonNull String extension)
-            throws IOException {
-        File tempVerifyFile = File.createTempFile("verify_", extension, context.getCacheDir());
+    private void requireSameContent(@NonNull Uri output, @NonNull byte[] expectedSha256) throws IOException {
+        java.security.MessageDigest digest = sha256();
+        try (InputStream is = contentResolver.openInputStream(output)) {
+            if (is == null) {
+                throw new IOException("Cannot open cleaned image for verification");
+            }
+            byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+            int read;
+            while ((read = is.read(buffer)) != -1) {
+                digest.update(buffer, 0, read);
+            }
+        }
+        if (!java.security.MessageDigest.isEqual(expectedSha256, digest.digest())) {
+            SentryManager.setCustomKey("metadata_verification_passed", false);
+            throw new IOException("Metadata verification failed: the saved copy differs from the verified one");
+        }
+    }
+
+    @NonNull
+    private static java.security.MessageDigest sha256() throws IOException {
         try {
-            try (InputStream is = contentResolver.openInputStream(imageUri);
-                    FileOutputStream fos = new FileOutputStream(tempVerifyFile)) {
-                if (is == null) {
-                    throw new IOException("Cannot open cleaned image for verification");
-                }
-                byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-                int bytesRead;
-                while ((bytesRead = is.read(buffer)) > 0) {
-                    fos.write(buffer, 0, bytesRead);
-                }
-            }
-            boolean metadataRemoved = verifyMetadataRemoval(tempVerifyFile, false);
-            SentryManager.setCustomKey("metadata_verification_passed", metadataRemoved);
-            if (!metadataRemoved) {
-                throw new IOException("Metadata verification failed");
-            }
-        } finally {
-            secureDeleteFile(tempVerifyFile);
+            return java.security.MessageDigest.getInstance("SHA-256");
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new IOException(e);
         }
     }
 
