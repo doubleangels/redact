@@ -466,8 +466,7 @@ public class MetadataStripper {
 
             // Extract essential EXIF data to preserve (like orientation)
             updateProgress(2, 5, context.getString(R.string.strip_progress_reading_essential_metadata));
-            readEssentialExifData(tempFile, false);
-            lastCleanStats = readCleanStats(tempFile, false);
+            lastCleanStats = readEssentialTagsAndStats(tempFile, false);
 
             newUri = writeCleanImage(tempFile, sourceUri, newFilename, outputFormat, false);
 
@@ -537,9 +536,8 @@ public class MetadataStripper {
         File originalCopy = File.createTempFile("temp_", outputFormat.extension, context.getCacheDir());
         try {
             copySourceToTempFile(original, originalCopy);
-            readEssentialExifData(originalCopy, false);
+            lastCleanStats = readEssentialTagsAndStats(originalCopy, false);
             preservedExifValues.remove(ExifInterface.TAG_ORIENTATION);
-            lastCleanStats = readCleanStats(originalCopy, false);
         } finally {
             secureDeleteFile(originalCopy);
         }
@@ -654,8 +652,7 @@ public class MetadataStripper {
             copySourceToTempFile(sourceUri, tempFile);
 
             updateProgress(2, 4, context.getString(R.string.strip_progress_reading_essential_metadata));
-            readEssentialExifData(tempFile, true);
-            lastCleanStats = readCleanStats(tempFile, true);
+            lastCleanStats = readEssentialTagsAndStats(tempFile, true);
 
             File outputDir = new File(context.getCacheDir(), "processed");
             if (!outputDir.exists()) {
@@ -1173,9 +1170,19 @@ public class MetadataStripper {
      * @throws IOException if the file cannot be read or EXIF data cannot be
      *                     extracted
      */
-    private void readEssentialExifData(@NonNull File imageFile, boolean forSharing) throws IOException {
-        // Create ExifInterface for reading EXIF data
+    /**
+     * Reads the tags a clean keeps and counts what it removes, from one parse of the file's EXIF.
+     *
+     * @throws IOException when the EXIF cannot be read at all
+     */
+    @NonNull
+    private CleanStats readEssentialTagsAndStats(@NonNull File imageFile, boolean forSharing) throws IOException {
         ExifInterface exif = new ExifInterface(imageFile.getAbsolutePath());
+        readEssentialExifData(exif, forSharing);
+        return readCleanStats(imageFile, exif, forSharing);
+    }
+
+    private void readEssentialExifData(@NonNull ExifInterface exif, boolean forSharing) {
         preservedExifValues.clear();
 
         List<String> tagsToPreserve = getTagsToPreserve(forSharing);
@@ -1556,11 +1563,10 @@ public class MetadataStripper {
 
     /** Counts the identifying fields in an image before it is cleaned; unreadable EXIF counts as none. */
     @NonNull
-    private CleanStats readCleanStats(@NonNull File imageFile, boolean forSharing) {
+    private CleanStats readCleanStats(@NonNull File imageFile, @NonNull ExifInterface reader, boolean forSharing) {
         CleanStats exif;
         boolean exifCountedXmp = false;
         try {
-            ExifInterface reader = new ExifInterface(imageFile.getAbsolutePath());
             Set<String> preserved = new java.util.HashSet<>(getTagsToPreserve(forSharing));
             exif = CleanStats.fromExif(reader, preserved);
             String xmp = reader.getAttribute(ExifInterface.TAG_XMP);
