@@ -109,4 +109,18 @@ public class SecureWindowTest {
         SecureWindow.setPhotoOpen(activity, false);
         assertEquals(false, isSecure(activity));
     }
+
+    @Test
+    public void scanAndCensor_eachKeepTheWindowHidden_untilBothAreDone() {
+        controller = Robolectric.buildActivity(MainActivity.class).setup();
+        MainActivity activity = controller.get();
+
+        SecureWindow.setSensitiveContentShowing(activity, SecureWindow.SOURCE_SCAN, true);
+        SecureWindow.setPhotoOpen(activity, true);
+        SecureWindow.setPhotoOpen(activity, false);
+        assertTrue("Scan's result is still showing", isSecure(activity));
+
+        SecureWindow.setSensitiveContentShowing(activity, SecureWindow.SOURCE_SCAN, false);
+        assertEquals(false, isSecure(activity));
+    }
 }

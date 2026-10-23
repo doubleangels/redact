@@ -136,9 +136,8 @@ public class SentryPrivacyScrubberPayloadsTest {
         assertRedacted(((Object[]) event.getExtras().get("array"))[0]);
         assertEquals(12, event.getExtras().get("number"));
         assertRedacted(ctx.get("where"));
-        assertRedacted(user.getUsername());
-        assertRedacted(user.getEmail());
-        assertRedacted(user.getIpAddress());
+        // No user at all: the SDK's per-installation ID would link every report from a device.
+        assertNull(event.getUser());
     }
 
     @Test

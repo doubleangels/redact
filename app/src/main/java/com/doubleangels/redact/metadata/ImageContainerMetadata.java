@@ -233,6 +233,7 @@ public final class ImageContainerMetadata {
         try (FileInputStream in = new FileInputStream(source);
              OutputStream out = new BufferedOutputStream(new FileOutputStream(target), 64 * 1024)) {
             Walker walker = new Walker(in.getChannel(), out);
+            walker.workDir = target.getAbsoluteFile().getParentFile();
             if (!walker.run()) {
                 throw new IOException("Not a JPEG, PNG or WebP file");
             }
@@ -270,6 +271,8 @@ public final class ImageContainerMetadata {
         private final Source src;
         /** Null when scanning. */
         @Nullable private final OutputStream out;
+        /** Where a WebP's chunks are gathered before its size is known; the system's when null. */
+        @Nullable File workDir;
         Format format = Format.OTHER;
         final List<Finding> findings = new ArrayList<>();
         final List<Finding> kept = new ArrayList<>();
@@ -929,11 +932,64 @@ public final class ImageContainerMetadata {
 
         // ---- WebP -----------------------------------------------------------------------------
 
+        /**
+         * Walks a WebP. A clean writes the chunks it keeps to a private file first, as the RIFF
+         * header that comes before them needs their total size; gathering them in memory held a
+         * large animated WebP in the heap several times over.
+         */
         private void webp() throws IOException {
+            if (out == null) {
+                webp(null);
+                return;
+            }
+            File chunks = File.createTempFile("temp_webp_", ".chunks", workDir);
+            try {
+                long vp8xAt;
+                long size;
+                boolean keptIcc;
+                try (CountingOutputStream body = new CountingOutputStream(
+                        new BufferedOutputStream(new FileOutputStream(chunks), 64 * 1024))) {
+                    long[] result = webp(body);
+                    vp8xAt = result[0];
+                    keptIcc = result[1] != 0;
+                    body.flush();
+                    size = body.count;
+                }
+                if (vp8xAt >= 0 && vp8xAt + 9 <= size) {
+                    try (java.io.RandomAccessFile raf = new java.io.RandomAccessFile(chunks, "rw")) {
+                        // Clear the EXIF and XMP flags, and the ICC one when no profile was kept.
+                        raf.seek(vp8xAt + 8);
+                        int flags = raf.read() & 0xFF;
+                        flags &= ~0x0C;
+                        if (!keptIcc) {
+                            flags &= ~0x20;
+                        }
+                        raf.seek(vp8xAt + 8);
+                        raf.write(flags);
+                    }
+                }
+                write(ascii("RIFF"));
+                write(le32Bytes(size + 4));
+                write(ascii("WEBP"));
+                try (FileInputStream in = new FileInputStream(chunks)) {
+                    byte[] buffer = new byte[64 * 1024];
+                    int read;
+                    while ((read = in.read(buffer)) != -1) {
+                        out.write(buffer, 0, read);
+                    }
+                }
+            } finally {
+                // Only the picture's own chunks are in it, the same bytes as the output.
+                //noinspection ResultOfMethodCallIgnored
+                chunks.delete();
+            }
+        }
+
+        /** Walks the chunks, writing the kept ones to {@code body}; returns the VP8X offset and whether an ICC profile was kept. */
+        private long[] webp(@Nullable CountingOutputStream body) throws IOException {
             long riffEnd = Math.min(src.length, 8 + le32(src.read(4, 4), 0));
-            ByteArrayOutputStream body = out != null ? new ByteArrayOutputStream() : null;
             long pos = 12;
-            int vp8xAt = -1;
+            long vp8xAt = -1;
             boolean keptIcc = false;
             while (pos + 8 <= riffEnd) {
                 String type = new String(src.read(pos, 4), StandardCharsets.ISO_8859_1);
@@ -946,7 +1002,7 @@ public final class ImageContainerMetadata {
                 switch (type) {
                     case "VP8X":
                         if (body != null && vp8xAt < 0) {
-                            vp8xAt = body.size();
+                            vp8xAt = body.count;
                             copyWebpChunk(pos, size, body);
                         }
                         break;
@@ -988,34 +1044,19 @@ public final class ImageContainerMetadata {
                 pos = end;
             }
             afterEnd(riffEnd, "DATA_AFTER_IMAGE");
-            if (body != null) {
-                byte[] chunks = body.toByteArray();
-                if (vp8xAt >= 0 && vp8xAt + 9 <= chunks.length) {
-                    // Clear the EXIF and XMP flags, and the ICC one when no profile was kept.
-                    int flags = chunks[vp8xAt + 8] & 0xFF;
-                    flags &= ~0x0C;
-                    if (!keptIcc) {
-                        flags &= ~0x20;
-                    }
-                    chunks[vp8xAt + 8] = (byte) flags;
-                }
-                write(ascii("RIFF"));
-                write(le32Bytes(chunks.length + 4));
-                write(ascii("WEBP"));
-                write(chunks);
-            }
+            return new long[] {vp8xAt, keptIcc ? 1 : 0};
         }
 
         /** Copies a chunk's header and data, and always ends it on an even offset. */
-        private void copyWebpChunk(long pos, long size, @NonNull ByteArrayOutputStream to) throws IOException {
-            to.write(src.read(pos, (int) (8 + size)));
+        private void copyWebpChunk(long pos, long size, @NonNull OutputStream to) throws IOException {
+            src.copyTo(pos, 8 + size, to);
             if ((size & 1) == 1) {
                 to.write(0);
             }
         }
 
         /** An animation frame keeps its alpha and bitstream; anything else inside it is dropped. */
-        private void anmf(long pos, long data, long size, @Nullable ByteArrayOutputStream body) throws IOException {
+        private void anmf(long pos, long data, long size, @Nullable OutputStream body) throws IOException {
             if (size < 16) {
                 throw new IOException("Short ANMF");
             }
@@ -1432,6 +1473,27 @@ public final class ImageContainerMetadata {
     @NonNull
     private static byte[] le32Bytes(long v) {
         return new byte[] {(byte) v, (byte) (v >>> 8), (byte) (v >>> 16), (byte) (v >>> 24)};
+    }
+
+    /** Counts what passes through, so a WebP's size is known once its chunks are written. */
+    private static final class CountingOutputStream extends java.io.FilterOutputStream {
+        long count;
+
+        CountingOutputStream(@NonNull OutputStream out) {
+            super(out);
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+            out.write(b);
+            count++;
+        }
+
+        @Override
+        public void write(@NonNull byte[] b, int off, int len) throws IOException {
+            out.write(b, off, len);
+            count += len;
+        }
     }
 
     // ---- reading ------------------------------------------------------------------------------

@@ -276,6 +276,7 @@ Tus fotos y videos nunca se suben. Se eliminan URIs, nombres de archivo y coorde
     <string name="clean_selected_count">Seleccionados: %1$d archivo(s)</string>
     <string name="clean_status_ready">Listo para seleccionar archivos para limpiar.</string>
     <string name="convert_codec_fallback">%1$s no disponible; guardado como %2$s en su lugar.</string>
+    <string name="video_downscaled">Guardado en %1$dp porque este teléfono no pudo procesar el vídeo a tamaño completo.</string>
     <string name="metadata_error_basic_info_generic">No se pudo leer la información básica del archivo.</string>
     <string name="metadata_error_image_generic">No se pudieron leer los metadatos de la imagen.</string>
     <string name="metadata_error_video_generic">No se pudieron leer los metadatos del video.</string>
@@ -343,7 +344,6 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="scan_metadata_truncated">Algunas etiquetas EXIF se omitieron en este escaneo (límite de visualización).</string>
     <string name="share_error_interrupted">Se interrumpió el uso compartido. Inténtelo de nuevo.</string>
     <string name="share_error_too_many_items">Demasiados elementos (máx. %1$d a la vez).</string>
-    <string name="strip_progress_processing_video_metadata">Procesando metadatos de video…</string>
     <string name="strip_progress_reading_essential_metadata">Leyendo metadatos esenciales…</string>
     <string name="strip_progress_reading_image">Leyendo imagen…</string>
     <string name="strip_progress_reading_video">Leyendo video…</string>
@@ -539,6 +539,8 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="stats_section_activity">Últimos 30 Días</string>
     <string name="stats_chart_empty">No se limpió nada en los últimos 30 días.</string>
     <string name="stats_chart_today">Hoy</string>
+    <string name="stats_keep">Guardar estadísticas</string>
+    <string name="stats_keep_subtitle">Cuenta lo que Redact elimina, solo en este dispositivo, incluido cuántos archivos limpias cada día. Al desactivarlo se borran los recuentos y se deja de contar.</string>
     <string name="stats_clear">Borrar Estadísticas</string>
     <string name="stats_clear_subtitle">Pone todos los contadores a cero. Tus ajustes y archivos no cambian.</string>
     <string name="stats_clear_title">Borrar estadísticas</string>

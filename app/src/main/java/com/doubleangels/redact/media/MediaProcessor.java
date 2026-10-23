@@ -234,6 +234,16 @@ public class MediaProcessor {
      * @param callback The callback to report progress and completion
      */
     public void processMediaItems(List<MediaItem> items, ProcessingCallback callback) {
+        processMediaItems(items, metadataStripper.getTranscodeOwnerId(), callback);
+    }
+
+    /**
+     * Like {@link #processMediaItems(List, ProcessingCallback)}, with the batch's video transcodes
+     * owned by {@code transcodeOwnerId} from its first item on. Set here, once the batch is
+     * accepted, rather than by the caller afterwards: a batch that starts with a video would
+     * otherwise begin it under the previous batch's owner, which cancelling this one misses.
+     */
+    public void processMediaItems(List<MediaItem> items, long transcodeOwnerId, ProcessingCallback callback) {
         Handler mainHandler = new Handler(Looper.getMainLooper());
         if (items == null || items.isEmpty()) {
             mainHandler.post(() -> callback.onComplete(0, 0));
@@ -244,6 +254,7 @@ public class MediaProcessor {
             return;
         }
         cancelled.set(false);
+        metadataStripper.setTranscodeOwnerId(transcodeOwnerId);
         succeededSources.clear();
         succeededSourceNames.clear();
         succeededOutputs.clear();

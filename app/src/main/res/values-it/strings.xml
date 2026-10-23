@@ -276,6 +276,7 @@ Le tue foto e video non vengono mai caricati. URI, nomi file e coordinate GPS ve
     <string name="clean_selected_count">Selezionati: %1$d file</string>
     <string name="clean_status_ready">Pronto per selezionare file da pulire.</string>
     <string name="convert_codec_fallback">%1$s non disponibile; salvato come %2$s.</string>
+    <string name="video_downscaled">Salvato a %1$dp perché questo telefono non è riuscito a elaborare il video a dimensione piena.</string>
     <string name="metadata_error_basic_info_generic">Impossibile leggere le informazioni di base del file.</string>
     <string name="metadata_error_image_generic">Impossibile leggere i metadati dell\'immagine.</string>
     <string name="metadata_error_video_generic">Impossibile leggere i metadati del video.</string>
@@ -343,7 +344,6 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="scan_metadata_truncated">Alcuni tag EXIF sono stati omessi da questa scansione (limite di visualizzazione).</string>
     <string name="share_error_interrupted">Condivisione interrotta. Riprova.</string>
     <string name="share_error_too_many_items">Troppi elementi (massimo %1$d alla volta).</string>
-    <string name="strip_progress_processing_video_metadata">Elaborazione dei metadati video in corso…</string>
     <string name="strip_progress_reading_essential_metadata">Lettura dei metadati essenziali in corso…</string>
     <string name="strip_progress_reading_image">Lettura dell\'immagine in corso…</string>
     <string name="strip_progress_reading_video">Lettura del video in corso…</string>
@@ -539,6 +539,8 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="stats_section_activity">Ultimi 30 Giorni</string>
     <string name="stats_chart_empty">Nulla è stato pulito negli ultimi 30 giorni.</string>
     <string name="stats_chart_today">Oggi</string>
+    <string name="stats_keep">Conserva statistiche</string>
+    <string name="stats_keep_subtitle">Conta ciò che Redact rimuove, solo su questo dispositivo, incluso quanti file pulisci ogni giorno. Disattivandolo i conteggi vengono cancellati e il conteggio si interrompe.</string>
     <string name="stats_clear">Cancella Statistiche</string>
     <string name="stats_clear_subtitle">Azzera tutti i conteggi. Le tue impostazioni e i tuoi file restano invariati.</string>
     <string name="stats_clear_title">Cancella statistiche</string>

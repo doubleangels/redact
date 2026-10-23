@@ -279,6 +279,7 @@
     <string name="clean_selected_count">Выбрано: %1$d файл(ов)</string>
     <string name="clean_status_ready">Готово к выбору файлов для очистки.</string>
     <string name="convert_codec_fallback">%1$s недоступен; сохранено как %2$s.</string>
+    <string name="video_downscaled">Сохранено в %1$dp, так как этот телефон не смог обработать видео в полном размере.</string>
     <string name="metadata_error_basic_info_generic">Не удалось прочитать основную информацию о файле.</string>
     <string name="metadata_error_image_generic">Не удалось прочитать метаданные изображения.</string>
     <string name="metadata_error_video_generic">Не удалось прочитать метаданные видео.</string>
@@ -349,7 +350,6 @@
     <string name="scan_metadata_truncated">Некоторые теги EXIF были опущены при этом сканировании (ограничение отображения).</string>
     <string name="share_error_interrupted">Отправка была прервана. Попробуйте снова.</string>
     <string name="share_error_too_many_items">Слишком много элементов (макс. %1$d за раз).</string>
-    <string name="strip_progress_processing_video_metadata">Обработка метаданных видео…</string>
     <string name="strip_progress_reading_essential_metadata">Чтение основных метаданных…</string>
     <string name="strip_progress_reading_image">Чтение изображения…</string>
     <string name="strip_progress_reading_video">Чтение видео…</string>
@@ -552,6 +552,8 @@
     <string name="stats_section_activity">Последние 30 Дней</string>
     <string name="stats_chart_empty">За последние 30 дней ничего не очищено.</string>
     <string name="stats_chart_today">Сегодня</string>
+    <string name="stats_keep">Вести статистику</string>
+    <string name="stats_keep_subtitle">Считает, что удаляет Redact, только на этом устройстве, включая число файлов, очищенных за каждый день. Если выключить, счётчики сбросятся и подсчёт прекратится.</string>
     <string name="stats_clear">Очистить Статистику</string>
     <string name="stats_clear_subtitle">Сбрасывает все счётчики до нуля. Ваши настройки и файлы не меняются.</string>
     <string name="stats_clear_title">Очистка статистики</string>

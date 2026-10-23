@@ -122,13 +122,15 @@ public final class LocalNotifications {
      */
     public static void updateConversionProgress(
             @NonNull Context context, int percent, @NonNull String message) {
+        // Throttled first: the checks below cost a permission check, an IPC call and preference
+        // reads, and progress arrives several times a second.
+        if (shouldThrottleProgress(lastConvertProgressNotifyMs)) {
+            return;
+        }
         if (!canPostConvertNotifications(context)) {
             return;
         }
         if (!AppPreferences.areProgressNotificationsEnabled(context)) {
-            return;
-        }
-        if (shouldThrottleProgress(lastConvertProgressNotifyMs)) {
             return;
         }
         Context app = context.getApplicationContext();
@@ -146,13 +148,15 @@ public final class LocalNotifications {
      */
     public static void updateCleanProgress(
             @NonNull Context context, int percent, @NonNull String message) {
+        // Throttled first: the checks below cost a permission check, an IPC call and preference
+        // reads, and progress arrives several times a second.
+        if (shouldThrottleProgress(lastCleanProgressNotifyMs)) {
+            return;
+        }
         if (!canPostCleanNotifications(context)) {
             return;
         }
         if (!AppPreferences.areProgressNotificationsEnabled(context)) {
-            return;
-        }
-        if (shouldThrottleProgress(lastCleanProgressNotifyMs)) {
             return;
         }
         Context app = context.getApplicationContext();

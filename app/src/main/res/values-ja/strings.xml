@@ -271,6 +271,7 @@
     <string name="clean_selected_count">選択済み: %1$d 件</string>
     <string name="clean_status_ready">クリーンするファイルを選択する準備ができました。</string>
     <string name="convert_codec_fallback">%1$s は利用できません。代わりに %2$s として保存しました。</string>
+    <string name="video_downscaled">このスマートフォンでは元のサイズで動画を処理できなかったため、%1$dp で保存しました。</string>
     <string name="metadata_error_basic_info_generic">基本的なファイル情報を読み取れませんでした。</string>
     <string name="metadata_error_image_generic">画像メタデータを読み取れませんでした。</string>
     <string name="metadata_error_video_generic">動画メタデータを読み取れませんでした。</string>
@@ -332,7 +333,6 @@
     <string name="scan_metadata_truncated">一部のEXIFタグはこのスキャンで省略されました(表示上限のため)。</string>
     <string name="share_error_interrupted">共有が中断されました。もう一度お試しください。</string>
     <string name="share_error_too_many_items">アイテムが多すぎます(一度に最大%1$d件まで)。</string>
-    <string name="strip_progress_processing_video_metadata">動画のメタデータを処理中…</string>
     <string name="strip_progress_reading_essential_metadata">重要なメタデータを読み取り中…</string>
     <string name="strip_progress_reading_image">画像を読み取り中…</string>
     <string name="strip_progress_reading_video">動画を読み取り中…</string>
@@ -514,6 +514,8 @@
     <string name="stats_section_activity">過去30日間</string>
     <string name="stats_chart_empty">過去30日間にクリーンしたファイルはありません。</string>
     <string name="stats_chart_today">今日</string>
+    <string name="stats_keep">統計を記録</string>
+    <string name="stats_keep_subtitle">Redactが削除した内容を、このデバイス上だけで記録します。毎日クリーンしたファイル数も含まれます。オフにすると記録が消去され、記録も停止します。</string>
     <string name="stats_clear">統計を消去</string>
     <string name="stats_clear_subtitle">すべての数値をゼロに戻します。設定とファイルはそのままです。</string>
     <string name="stats_clear_title">統計を消去</string>

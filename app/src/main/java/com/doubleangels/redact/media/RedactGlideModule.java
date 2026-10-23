@@ -1,7 +1,14 @@
 package com.doubleangels.redact.media;
 
+import android.content.Context;
+
+import androidx.annotation.NonNull;
+
+import com.bumptech.glide.GlideBuilder;
 import com.bumptech.glide.annotation.GlideModule;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.module.AppGlideModule;
+import com.bumptech.glide.request.RequestOptions;
 
 /**
  * Empty marker so Glide's annotation processor generates a merged module and manifest
@@ -15,5 +22,15 @@ public final class RedactGlideModule extends AppGlideModule {
     @Override
     public boolean isManifestParsingEnabled() {
         return false;
+    }
+
+    /**
+     * Thumbnails stay in memory only. Glide's disk cache would keep a copy of every photo picked in
+     * Clean, Scan or Convert in the app's cache, where neither the temp cleanup nor Clear Temporary
+     * Files reached it; and the files are local, so caching them saves little.
+     */
+    @Override
+    public void applyOptions(@NonNull Context context, @NonNull GlideBuilder builder) {
+        builder.setDefaultRequestOptions(new RequestOptions().diskCacheStrategy(DiskCacheStrategy.NONE));
     }
 }

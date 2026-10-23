@@ -236,4 +236,50 @@ public class CacheCleanupTest {
         CacheCleanup.scheduleOrphanedWorkFileSweep(context);
         CacheCleanup.awaitOrphanSweepForTests();
     }
+
+    @Test
+    public void orphanSweep_removesSharedFilesOnlyOnceTheirAppHasHadTimeToReadThem() throws IOException {
+        File dir = new File(context.getCacheDir(), "processed");
+        dir.mkdirs();
+        File old = new File(dir, "shared_old.jpg");
+        File fresh = new File(dir, "shared_fresh.jpg");
+        for (File f : new File[] {old, fresh}) {
+            try (java.io.FileOutputStream out = new java.io.FileOutputStream(f)) {
+                out.write(new byte[64]);
+            }
+        }
+        assertTrue(old.setLastModified(
+                System.currentTimeMillis() - CacheCleanup.SHARED_OUTPUT_MAX_AGE_MS - 60_000L));
+
+        CacheCleanup.scheduleOrphanedWorkFileSweep(context);
+        CacheCleanup.awaitOrphanSweepForTests();
+
+        assertFalse("a share older than the grace period is gone", old.exists());
+        assertTrue("a recent share stays for the app reading it", fresh.exists());
+    }
+
+    @Test
+    public void orphanSweep_removesALeftoverCensoredCopy() throws IOException {
+        File censored = cacheFile("censored_123.jpg");
+
+        CacheCleanup.scheduleOrphanedWorkFileSweep(context);
+        CacheCleanup.awaitOrphanSweepForTests();
+
+        assertFalse(censored.exists());
+    }
+
+    @Test
+    public void orphanSweep_removesThumbnailsAnEarlierVersionCachedOnDisk() throws IOException {
+        File dir = new File(context.getCacheDir(), "image_manager_disk_cache");
+        dir.mkdirs();
+        File thumbnail = new File(dir, "0a1b2c.0");
+        try (java.io.FileOutputStream out = new java.io.FileOutputStream(thumbnail)) {
+            out.write(new byte[64]);
+        }
+
+        CacheCleanup.scheduleOrphanedWorkFileSweep(context);
+        CacheCleanup.awaitOrphanSweepForTests();
+
+        assertFalse(thumbnail.exists());
+    }
 }

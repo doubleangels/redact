@@ -122,6 +122,25 @@ public class UnsupportedMediaTest {
     }
 
     @Test
+    public void muxerWatchdogTimeout_isAStall() {
+        // REDACT-25: no sample reached the muxer for 10 seconds, so Media3 aborted the export.
+        ExportException stall = ExportException.createForAssetLoader(
+                new IllegalStateException("Abort: no output sample written in the last 10000 milliseconds."),
+                ExportException.ERROR_CODE_MUXING_TIMEOUT);
+        assertTrue(VideoMedia3Converter.isMuxerStall(stall));
+        assertFalse(VideoMedia3Converter.isUnsupportedInput(stall));
+        assertFalse(VideoMedia3Converter.isMuxerStall(ExportException.createForAssetLoader(
+                new IllegalStateException(), ExportException.ERROR_CODE_MUXING_FAILED)));
+    }
+
+    @Test
+    public void stallTimeout_isLongerOnPhonesWithoutAPerformanceClass() {
+        long rated = VideoMedia3Converter.maxSampleGapMs(android.os.Build.VERSION_CODES.TIRAMISU);
+        assertEquals(androidx.media3.transformer.Transformer.DEFAULT_MAX_DELAY_BETWEEN_MUXER_SAMPLES_MS, rated);
+        assertEquals(Math.max(rated, 20_000L), VideoMedia3Converter.maxSampleGapMs(0));
+    }
+
+    @Test
     public void fallbackShortSides_neverUpscale() {
         assertArrayEquals(new int[] {1080, 720, 480}, VideoMedia3Converter.fallbackShortSides(2160));
         assertArrayEquals(new int[] {720, 480}, VideoMedia3Converter.fallbackShortSides(1080));

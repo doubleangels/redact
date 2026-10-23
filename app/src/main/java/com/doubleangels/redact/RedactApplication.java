@@ -37,14 +37,18 @@ public class RedactApplication extends Application {
         SentryInitializer.initializeIfNeeded(this);
         LocalNotifications.ensureChannels(this);
 
+        // Working files from a previous process are orphans whatever their age (see the method).
+        // Started first: the stale sweep below waits for it rather than racing it.
+        CacheCleanup.scheduleOrphanedWorkFileSweep(this);
+
         // Runs on every process start, including a cold start into ShareHandlerActivity via the
         // share sheet -- not just when MainActivity happens to be opened -- so stale temp copies
         // of source media (unredacted EXIF/GPS included) don't linger past the cutoff just
         // because the user never opens the main app.
         CacheCleanup.scheduleAutoCleanupIfEnabled(this);
 
-        // Working files from a previous process are orphans whatever their age (see the method).
-        CacheCleanup.scheduleOrphanedWorkFileSweep(this);
+        // Files a killed process left half-written in a folder the user chose as the output.
+        com.doubleangels.redact.media.OutputDestination.scheduleAbandonedDocumentSweep(this);
 
         com.doubleangels.redact.stats.StatsStore.preload(this);
     }

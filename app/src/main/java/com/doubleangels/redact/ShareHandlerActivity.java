@@ -34,6 +34,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import com.doubleangels.redact.media.MediaSizeLimits;
+import com.doubleangels.redact.media.MediaUriResolver;
 import com.doubleangels.redact.media.ProcessingResourceWarnings;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.doubleangels.redact.sentry.SentryManager;
@@ -50,8 +51,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     /** Maximum items accepted from ACTION_SEND_MULTIPLE. */
     private static final int MAX_SHARE_ITEMS = 20;
-    /** Delay before deleting shared files so the target app can finish reading the URI. */
-    private static final long SHARE_CLEANUP_DELAY_MS = 2L * 60L * 1000L;
+    /**
+     * How long shared files are kept so the target app can read them. Some apps read a shared
+     * file only when the user finally sends (an email draft, a chat queued offline), so this is
+     * generous; the files are already clean. If the process dies first, the next start removes
+     * them ({@link CacheCleanup#SHARED_OUTPUT_MAX_AGE_MS}).
+     */
+    private static final long SHARE_CLEANUP_DELAY_MS = CacheCleanup.SHARED_OUTPUT_MAX_AGE_MS;
     private static final String KEY_SHARING_INITIATED = "sharing_initiated";
     private static final String KEY_PROCESSING_ACTIVE = "processing_active";
 
@@ -75,13 +81,11 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private final ActivityResultLauncher<Intent> shareResultLauncher =
             registerForActivityResult(
                     new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+                    // The chooser forwards the chosen app's result, and most apps never set one, so
+                    // RESULT_CANCELED does not mean nothing was shared: an app that opens in its own
+                    // task returns it at once, before it has read anything. Every result waits.
                     result -> {
-                        if (result.getResultCode() == RESULT_CANCELED) {
-                            SentryManager.log("The share chooser was canceled, so cleanup is happening immediately.");
-                            cleanupProcessedFiles();
-                        } else {
-                            scheduleDelayedShareCleanup();
-                        }
+                        scheduleDelayedShareCleanup();
                         finish();
                     });
 
@@ -438,21 +442,16 @@ public class ShareHandlerActivity extends AppCompatActivity {
             }
             return dest;
         }
-        String suffix = ".bin";
-        String type = getContentResolver().getType(uri);
-        if (type != null && type.startsWith("video/")) {
-            suffix = ".mp4";
-        } else if (type != null && type.startsWith("image/")) {
-            suffix = ".jpg";
-        } else {
-            // No usable type (e.g. shared as */*): the suffix decides later whether this is
-            // processed as video or image, so take it from the display name rather than letting
-            // every untyped video fall through to the image decoder.
-            String name = mediaSelector.getFileName(uri);
-            if (name != null) {
-                suffix = suffixForPath(name);
-            }
+        String type;
+        try {
+            type = getContentResolver().getType(uri);
+        } catch (RuntimeException e) {
+            type = null;
         }
+        // The suffix is all the clean has to go on later (a file:// copy has no type), and it
+        // picks the output's format: naming every image .jpg turned PNGs, WebPs and HEICs into
+        // JPEGs, and a PNG's transparency into black.
+        String suffix = suffixFor(type, MediaUriResolver.readDisplayName(this, uri));
         File dest = new File(getCacheDir(), "inbound_" + System.nanoTime() + suffix);
         try (InputStream in = getContentResolver().openInputStream(uri);
                 FileOutputStream out = new FileOutputStream(dest)) {
@@ -485,13 +484,76 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     @NonNull
     private static String suffixForPath(@NonNull String path) {
-        String lower = path.toLowerCase(java.util.Locale.US);
-        if (MediaSelector.isVideoFromMimeAndName(null, lower)) {
+        return suffixFor(null, path);
+    }
+
+    /**
+     * The suffix for a snapshot of a shared item: the one its type names, else the extension of its
+     * name when that is a media extension Redact recognizes, else {@code .bin}.
+     */
+    @androidx.annotation.VisibleForTesting
+    @NonNull
+    static String suffixFor(@Nullable String mimeType, @Nullable String name) {
+        if (mimeType != null) {
+            switch (mimeType.toLowerCase(java.util.Locale.US)) {
+                case "image/jpeg":
+                case "image/jpg":
+                    return ".jpg";
+                case "image/png":
+                    return ".png";
+                case "image/webp":
+                    return ".webp";
+                case "image/heic":
+                    return ".heic";
+                case "image/heif":
+                    return ".heif";
+                case "image/gif":
+                    return ".gif";
+                case "image/bmp":
+                    return ".bmp";
+                case "video/mp4":
+                    return ".mp4";
+                case "video/quicktime":
+                    return ".mov";
+                case "video/webm":
+                    return ".webm";
+                case "video/x-matroska":
+                    return ".mkv";
+                case "video/3gpp":
+                    return ".3gp";
+                default:
+                    break;
+            }
+        }
+        String lower = name != null ? name.toLowerCase(java.util.Locale.US) : "";
+        int dot = lower.lastIndexOf('.');
+        String extension = dot >= 0 ? lower.substring(dot) : "";
+        switch (extension) {
+            case ".jpeg":
+                return ".jpg";
+            case ".jpg":
+            case ".png":
+            case ".webp":
+            case ".heic":
+            case ".heif":
+            case ".gif":
+            case ".bmp":
+            case ".mp4":
+            case ".m4v":
+            case ".mov":
+            case ".webm":
+            case ".mkv":
+            case ".3gp":
+            case ".avi":
+                return extension;
+            default:
+                break;
+        }
+        // A type with no known extension still says which decoder the item needs.
+        if (mimeType != null && mimeType.startsWith("video/")) {
             return ".mp4";
         }
-        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png")
-                || lower.endsWith(".webp") || lower.endsWith(".heic") || lower.endsWith(".heif")
-                || lower.endsWith(".gif")) {
+        if (mimeType != null && mimeType.startsWith("image/")) {
             return ".jpg";
         }
         return ".bin";
@@ -840,11 +902,16 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 SHARE_CLEANUP_DELAY_MS);
     }
 
+    /**
+     * Deletes shared files. They are already clean, so they are only unlinked, not overwritten:
+     * overwriting would corrupt a file an app that was shared it is still reading, while unlinking
+     * leaves an open file readable until it is closed.
+     */
     private static void deleteProcessedFileList(@NonNull Context context, List<File> files) {
         for (File processedFile : files) {
             if (processedFile != null && processedFile.exists()) {
                 try {
-                    if (SecureDelete.secureDelete(context, processedFile)) {
+                    if (processedFile.delete()) {
                         SentryManager.log("The temporary processed file was deleted after sharing.");
                     } else {
                         SentryManager.log("The temporary processed file failed to delete.");

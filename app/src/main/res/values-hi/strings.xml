@@ -273,6 +273,7 @@
     <string name="clean_selected_count">चयनित: %1$d फ़ाइल(फ़ाइलें)</string>
     <string name="clean_status_ready">साफ़ करने के लिए फ़ाइलें चुनने के लिए तैयार।</string>
     <string name="convert_codec_fallback">%1$s उपलब्ध नहीं; इसके बजाय %2$s के रूप में सहेजा गया।</string>
+    <string name="video_downscaled">%1$dp पर सहेजा गया क्योंकि यह फ़ोन वीडियो को पूरे आकार में प्रोसेस नहीं कर सका।</string>
     <string name="metadata_error_basic_info_generic">मूल फ़ाइल जानकारी पढ़ नहीं सकी।</string>
     <string name="metadata_error_image_generic">छवि मेटाडेटा पढ़ नहीं सका।</string>
     <string name="metadata_error_video_generic">वीडियो मेटाडेटा पढ़ नहीं सका।</string>
@@ -337,7 +338,6 @@
     <string name="scan_metadata_truncated">इस स्कैन से कुछ EXIF टैग हटा दिए गए (प्रदर्शन सीमा)।</string>
     <string name="share_error_interrupted">साझा करना बाधित हुआ। कृपया पुनः प्रयास करें।</string>
     <string name="share_error_too_many_items">बहुत अधिक आइटम (एक बार में अधिकतम %1$d)।</string>
-    <string name="strip_progress_processing_video_metadata">वीडियो मेटाडेटा संसाधित किया जा रहा है…</string>
     <string name="strip_progress_reading_essential_metadata">आवश्यक मेटाडेटा पढ़ा जा रहा है…</string>
     <string name="strip_progress_reading_image">छवि पढ़ी जा रही है…</string>
     <string name="strip_progress_reading_video">वीडियो पढ़ा जा रहा है…</string>
@@ -526,6 +526,8 @@
     <string name="stats_section_activity">पिछले 30 दिन</string>
     <string name="stats_chart_empty">पिछले 30 दिनों में कुछ भी साफ़ नहीं किया गया।</string>
     <string name="stats_chart_today">आज</string>
+    <string name="stats_keep">आँकड़े रखें</string>
+    <string name="stats_keep_subtitle">Redact जो हटाता है उसे केवल इसी डिवाइस पर गिनता है, जिसमें यह भी शामिल है कि आप हर दिन कितनी फ़ाइलें साफ़ करते हैं। इसे बंद करने पर गिनती मिट जाती है और गिनना बंद हो जाता है।</string>
     <string name="stats_clear">आँकड़े मिटाएँ</string>
     <string name="stats_clear_subtitle">सभी गिनतियों को शून्य कर देता है। आपकी सेटिंग और फ़ाइलें जैसी हैं वैसी ही रहती हैं।</string>
     <string name="stats_clear_title">आँकड़े मिटाएँ</string>

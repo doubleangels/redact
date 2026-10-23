@@ -276,6 +276,7 @@ Vos photos et vidéos ne sont jamais téléversées. Les URI, noms de fichier et
     <string name="clean_selected_count">Sélectionné : %1$d fichier(s)</string>
     <string name="clean_status_ready">Prêt à sélectionner des fichiers à nettoyer.</string>
     <string name="convert_codec_fallback">%1$s indisponible ; enregistré en %2$s à la place.</string>
+    <string name="video_downscaled">Enregistré en %1$dp, car ce téléphone n\'a pas pu traiter la vidéo en taille réelle.</string>
     <string name="metadata_error_basic_info_generic">Impossible de lire les informations de base du fichier.</string>
     <string name="metadata_error_image_generic">Impossible de lire les métadonnées de l\'image.</string>
     <string name="metadata_error_video_generic">Impossible de lire les métadonnées de la vidéo.</string>
@@ -343,7 +344,6 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="scan_metadata_truncated">Certaines balises EXIF ont été omises de cette analyse (limite d\'affichage).</string>
     <string name="share_error_interrupted">Le partage a été interrompu. Veuillez réessayer.</string>
     <string name="share_error_too_many_items">Trop d\'éléments (max. %1$d à la fois).</string>
-    <string name="strip_progress_processing_video_metadata">Traitement des métadonnées vidéo en cours…</string>
     <string name="strip_progress_reading_essential_metadata">Lecture des métadonnées essentielles en cours…</string>
     <string name="strip_progress_reading_image">Lecture de l\'image en cours…</string>
     <string name="strip_progress_reading_video">Lecture de la vidéo en cours…</string>
@@ -539,6 +539,8 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="stats_section_activity">30 Derniers Jours</string>
     <string name="stats_chart_empty">Rien n’a été nettoyé au cours des 30 derniers jours.</string>
     <string name="stats_chart_today">Aujourd’hui</string>
+    <string name="stats_keep">Conserver les statistiques</string>
+    <string name="stats_keep_subtitle">Compte ce que Redact supprime, uniquement sur cet appareil, y compris le nombre de fichiers nettoyés chaque jour. Le désactiver efface les compteurs et arrête le comptage.</string>
     <string name="stats_clear">Effacer les Statistiques</string>
     <string name="stats_clear_subtitle">Remet tous les compteurs à zéro. Vos paramètres et vos fichiers restent inchangés.</string>
     <string name="stats_clear_title">Effacer les statistiques</string>

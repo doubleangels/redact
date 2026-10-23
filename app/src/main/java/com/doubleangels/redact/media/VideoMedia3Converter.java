@@ -19,6 +19,9 @@ import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.util.Clock;
 import androidx.media3.effect.Presentation;
+import androidx.media3.muxer.BufferInfo;
+import androidx.media3.muxer.Muxer;
+import androidx.media3.muxer.MuxerException;
 import androidx.media3.transformer.AssetLoader;
 import androidx.media3.transformer.Codec;
 import androidx.media3.transformer.Composition;
@@ -46,6 +49,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
@@ -71,9 +75,27 @@ public final class VideoMedia3Converter {
         void onProgress(int percent);
     }
 
-    private static final long AWAIT_TIMEOUT_MINUTES = 60;
-    /** Replaces the wait above in tests: Media3 never finishes an export under Robolectric. */
+    /**
+     * How long an export may go without progress, or without its output growing, before it is
+     * given up. A fixed limit on the whole export failed long 4K videos on slow phones after an
+     * hour of good work; one that only fires when nothing moves does not.
+     */
+    private static final long STALL_TIMEOUT_MS = 10L * 60L * 1000L;
+    /** How often the waiting thread checks an export for progress. */
+    private static final long STALL_CHECK_SECONDS = 5;
+    /** How often a job waiting for another's export checks whether it was cancelled. */
+    private static final long LOCK_POLL_MS = 250;
+    /** Replaces the stall check in tests: Media3 never finishes an export under Robolectric. */
     private static volatile Long testAwaitTimeoutMs;
+
+    /**
+     * How long an export may go without writing a sample before Media3 aborts it as stalled.
+     * Phones that declare a media performance class keep Media3's default (10 seconds, 25 on an
+     * emulator). Others get at least 20 seconds, since a budget phone decoding in software or
+     * starting a slow codec can take longer between samples without being stuck.
+     */
+    private static final long MAX_SAMPLE_GAP_MS = Transformer.DEFAULT_MAX_DELAY_BETWEEN_MUXER_SAMPLES_MS;
+    private static final long MAX_SAMPLE_GAP_UNRATED_MS = Math.max(MAX_SAMPLE_GAP_MS, 20_000L);
 
     /** Output short sides tried, largest first, when the encoder rejects the source resolution. */
     private static final int[] FALLBACK_SHORT_SIDES = {1080, 720, 480};
@@ -114,6 +136,18 @@ public final class VideoMedia3Converter {
     }
     /** Serializes Media3 exports so Clean and Convert cannot cancel each other's transformer. */
     private static final ReentrantLock TRANSCODE_LOCK = new ReentrantLock();
+
+    /** A job waiting for {@link #TRANSCODE_LOCK}, so cancelling it need not wait for the export ahead. */
+    private static final class Waiter {
+        final long ownerId;
+        volatile boolean cancelled;
+
+        Waiter(long ownerId) {
+            this.ownerId = ownerId;
+        }
+    }
+
+    private static final java.util.Set<Waiter> WAITERS = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     private VideoMedia3Converter() {
     }
@@ -165,6 +199,62 @@ public final class VideoMedia3Converter {
         }
     }
 
+    /**
+     * Keeps Media3 from writing any metadata of its own. Transformer copies the source's location
+     * and dates into the output through {@link Muxer#addMetadataEntry}; dropping every entry here
+     * means a source can be transcoded directly, where it used to be copied into a metadata-free
+     * remux first, a whole extra read, write and secure delete of the video. Rotation is not an
+     * entry (it goes with the track format), so it is kept. The output is still scrubbed and
+     * verified afterwards.
+     */
+    @VisibleForTesting
+    static final class MetadataDroppingMuxerFactory implements Muxer.Factory {
+        private final Muxer.Factory delegate;
+
+        MetadataDroppingMuxerFactory(@NonNull Muxer.Factory delegate) {
+            this.delegate = delegate;
+        }
+
+        @NonNull
+        @Override
+        public Muxer create(@NonNull String path) throws MuxerException {
+            Muxer muxer = delegate.create(path);
+            return new Muxer() {
+                @Override
+                public int addTrack(@NonNull Format format) throws MuxerException {
+                    return muxer.addTrack(format);
+                }
+
+                @Override
+                public void writeSampleData(int trackId, @NonNull java.nio.ByteBuffer data,
+                                            @NonNull BufferInfo bufferInfo) throws MuxerException {
+                    muxer.writeSampleData(trackId, data, bufferInfo);
+                }
+
+                @Override
+                public void addMetadataEntry(@NonNull androidx.media3.common.Metadata.Entry entry) {
+                    // Dropped: see the class comment.
+                }
+
+                @Override
+                public void close() throws MuxerException {
+                    muxer.close();
+                }
+            };
+        }
+
+        @NonNull
+        @Override
+        public ImmutableList<String> getSupportedSampleMimeTypes(int trackType) {
+            return delegate.getSupportedSampleMimeTypes(trackType);
+        }
+
+        @Override
+        public boolean supportsWritingNegativeTimestampsInEditList() {
+            return delegate.supportsWritingNegativeTimestampsInEditList();
+        }
+    }
+
     /** Cancels an in-flight Media3 export (any owner). */
     public static void cancelActiveTranscode() {
         cancelActiveTranscode(-1L);
@@ -175,23 +265,30 @@ public final class VideoMedia3Converter {
      * Pass {@code -1} to cancel regardless of owner.
      */
     public static void cancelActiveTranscode(long ownerId) {
+        for (Waiter waiter : WAITERS) {
+            if (ownerId < 0 || waiter.ownerId == ownerId) {
+                waiter.cancelled = true;
+            }
+        }
         if (ownerId >= 0 && activeTranscodeOwner.get() != ownerId) {
             return;
         }
+        // The hook cancels the export's transformer, or, when it has not been built yet, stops it
+        // from being started: both run on the main thread, so one always sees the other.
+        Runnable cancelHook = activeCancelHook.get();
         Transformer transformer = activeTransformer.get();
-        if (transformer == null) {
+        if (cancelHook == null && transformer == null) {
             return;
         }
-        Runnable endWait = activeCancelHook.get();
         new Handler(Looper.getMainLooper()).post(() -> {
+            if (cancelHook != null) {
+                cancelHook.run();
+                return;
+            }
             try {
                 transformer.cancel();
             } catch (RuntimeException ignored) {
                 // Transformer may already be finished.
-            }
-            // cancel() tells no listener, so the export would otherwise wait out its timeout.
-            if (endWait != null) {
-                endWait.run();
             }
         });
     }
@@ -229,6 +326,8 @@ public final class VideoMedia3Converter {
 
         File outFile = new File(outputPath);
         Context app = context.getApplicationContext();
+        // Read once: every codec and size attempt below would otherwise open the source again.
+        boolean hasAudio = sourceHasAudio(app, sourceUri);
 
         IOException lastFailure = null;
         for (int attemptIndex : encoderFallbackOrder(formatIndex)) {
@@ -242,7 +341,8 @@ public final class VideoMedia3Converter {
                         videoMime,
                         hdrModeForMp4VideoMime(videoMime),
                         progressListener,
-                        ownerId);
+                        ownerId,
+                        hasAudio);
                 return attemptIndex;
             } catch (UnsupportedMediaException e) {
                 // The source itself can't be read; another output codec won't change that.
@@ -260,9 +360,9 @@ public final class VideoMedia3Converter {
 
     /**
      * Runs one export at the source resolution and, if the encoder can't be configured for that
-     * size, retries at progressively smaller standard sizes. Media3 sizes the encoder itself, but
-     * for some uncommon resolutions its fallback search throws instead of picking a smaller size
-     * ("unsupported width" from {@code MediaCodecInfo.VideoCapabilities}).
+     * size or the codecs stall on it, retries at progressively smaller standard sizes. Media3 sizes
+     * the encoder itself, but for some uncommon resolutions its fallback search throws instead of
+     * picking a smaller size ("unsupported width" from {@code MediaCodecInfo.VideoCapabilities}).
      */
     private static void transcodeWithResolutionFallback(
             @NonNull Context app,
@@ -271,12 +371,14 @@ public final class VideoMedia3Converter {
             @NonNull String videoMimeType,
             int hdrMode,
             @Nullable TranscodeProgressListener progressListener,
-            long ownerId)
+            long ownerId,
+            boolean hasAudio)
             throws IOException, InterruptedException {
         try {
             transcodeToPathOnce(
-                    app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, ownerId, 0);
-        } catch (EncoderResolutionException e) {
+                    app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, ownerId, 0,
+                    hasAudio);
+        } catch (RetryAtSmallerSizeException e) {
             IOException lastFailure = e;
             for (int shortSide : fallbackShortSides(readSourceShortSide(app, sourceUri))) {
                 try {
@@ -288,14 +390,29 @@ public final class VideoMedia3Converter {
                             hdrMode,
                             progressListener,
                             ownerId,
-                            shortSide);
+                            shortSide,
+                            hasAudio);
+                    warnDownscaled(app, shortSide);
                     return;
-                } catch (EncoderResolutionException retryFailure) {
+                } catch (RetryAtSmallerSizeException retryFailure) {
                     lastFailure = retryFailure;
                 }
             }
             throw lastFailure;
         }
+    }
+
+    /**
+     * Tells the user a video was saved smaller than its source, since nothing else on screen
+     * shows it. Clean, Share and Convert all come through here.
+     */
+    @VisibleForTesting
+    static void warnDownscaled(@NonNull Context app, int shortSide) {
+        com.doubleangels.redact.sentry.SentryManager.log(
+                "The video was saved at " + shortSide + "p after the full size failed.");
+        String message = app.getString(com.doubleangels.redact.R.string.video_downscaled, shortSide);
+        new Handler(Looper.getMainLooper()).post(
+                () -> android.widget.Toast.makeText(app, message, android.widget.Toast.LENGTH_LONG).show());
     }
 
     /**
@@ -423,13 +540,28 @@ public final class VideoMedia3Converter {
             int hdrMode,
             @Nullable TranscodeProgressListener progressListener,
             long ownerId,
-            int outputShortSide)
+            int outputShortSide,
+            boolean hasAudio)
             throws IOException, InterruptedException {
 
         File outFile = new File(outputPath);
 
-        TRANSCODE_LOCK.lock();
+        Waiter waiter = new Waiter(ownerId);
+        WAITERS.add(waiter);
+        boolean locked = false;
         try {
+            while (!(locked = TRANSCODE_LOCK.tryLock(LOCK_POLL_MS, TimeUnit.MILLISECONDS))) {
+                if (waiter.cancelled) {
+                    throw new InterruptedException("Video conversion was cancelled");
+                }
+            }
+            // Owner first, then stop waiting: a cancel in between finds one or the other.
+            activeTranscodeOwner.set(ownerId);
+            WAITERS.remove(waiter);
+            if (waiter.cancelled) {
+                activeTranscodeOwner.compareAndSet(ownerId, -1L);
+                throw new InterruptedException("Video conversion was cancelled");
+            }
             transcodeToPathOnceLocked(
                     app,
                     sourceUri,
@@ -439,22 +571,14 @@ public final class VideoMedia3Converter {
                     progressListener,
                     outFile,
                     ownerId,
-                    outputShortSide);
+                    outputShortSide,
+                    hasAudio);
         } finally {
-            TRANSCODE_LOCK.unlock();
+            WAITERS.remove(waiter);
+            if (locked) {
+                TRANSCODE_LOCK.unlock();
+            }
         }
-    }
-
-    private static void transcodeToPathOnce(
-            @NonNull Context app,
-            @NonNull Uri sourceUri,
-            @NonNull String outputPath,
-            @NonNull String videoMimeType,
-            int hdrMode,
-            @Nullable TranscodeProgressListener progressListener)
-            throws IOException, InterruptedException {
-        transcodeToPathOnce(
-                app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, -1L, 0);
     }
 
     private static void transcodeToPathOnceLocked(
@@ -466,7 +590,8 @@ public final class VideoMedia3Converter {
             @Nullable TranscodeProgressListener progressListener,
             @NonNull File outFile,
             long ownerId,
-            int outputShortSide)
+            int outputShortSide,
+            boolean hasAudio)
             throws IOException, InterruptedException {
 
         activeTranscodeOwner.set(ownerId);
@@ -481,7 +606,7 @@ public final class VideoMedia3Converter {
         EditedMediaItem editedMediaItem = editedMediaItemBuilder.build();
 
         EditedMediaItemSequence sequence =
-                new EditedMediaItemSequence.Builder(trackTypes(sourceHasAudio(app, sourceUri)))
+                new EditedMediaItemSequence.Builder(trackTypes(hasAudio))
                         .addItem(editedMediaItem)
                         .build();
 
@@ -489,28 +614,45 @@ public final class VideoMedia3Converter {
 
         CountDownLatch latch = new CountDownLatch(1);
         AtomicBoolean cancelled = new AtomicBoolean(false);
-        Runnable endWait = () -> {
-            cancelled.set(true);
-            latch.countDown();
-        };
-        activeCancelHook.set(endWait);
         AtomicReference<ExportException> errorRef = new AtomicReference<>();
         AtomicReference<Throwable> syncFailureRef = new AtomicReference<>();
         AtomicReference<Transformer> transformerRef = new AtomicReference<>();
+        // The last progress Media3 reported, for the stall check; -1 before the first.
+        AtomicInteger progressSeen = new AtomicInteger(-1);
 
         Handler mainHandler = new Handler(Looper.getMainLooper());
-        AtomicBoolean pollingActive = new AtomicBoolean(progressListener != null);
+        // Polled with or without a listener: the stall check needs the progress too.
+        AtomicBoolean pollingActive = new AtomicBoolean(true);
         final Runnable[] pollRunnable = new Runnable[1];
+        // Runs on the main thread. Transformer.cancel() calls no listener, so this also ends the
+        // wait; before the transformer is built, it keeps it from being started at all.
+        Runnable cancelHook = () -> {
+            cancelled.set(true);
+            stopPolling(mainHandler, pollingActive, pollRunnable[0]);
+            Transformer t = transformerRef.get();
+            if (t != null) {
+                try {
+                    t.cancel();
+                } catch (RuntimeException ignored) {
+                    // Transformer may already be finished.
+                }
+            }
+            latch.countDown();
+        };
+        activeCancelHook.set(cancelHook);
         pollRunnable[0] =
                 () -> {
                     if (!pollingActive.get()) {
                         return;
                     }
                     Transformer t = transformerRef.get();
-                    if (t != null && progressListener != null) {
+                    if (t != null) {
                         ProgressHolder holder = new ProgressHolder();
                         int state = t.getProgress(holder);
                         if (state == Transformer.PROGRESS_STATE_AVAILABLE) {
+                            progressSeen.set(holder.progress);
+                        }
+                        if (state == Transformer.PROGRESS_STATE_AVAILABLE && progressListener != null) {
                             try {
                                 progressListener.onProgress(holder.progress);
                             } catch (RuntimeException e) {
@@ -528,15 +670,21 @@ public final class VideoMedia3Converter {
 
         mainHandler.post(
                 () -> {
+                    if (cancelled.get()) {
+                        return; // cancelled before it started; the hook already ended the wait
+                    }
                     try {
                         Transformer transformer =
                                 new Transformer.Builder(app)
                                         .setAssetLoaderFactory(decoderFallbackAssetLoaderFactory(app))
-                                        .setMuxerFactory(new DefaultMuxer.Factory())
+                                        .setMuxerFactory(new MetadataDroppingMuxerFactory(
+                                                new DefaultMuxer.Factory()))
                                         .setEncoderFactory(new AlwaysEncodeFactory(
                                                 new DefaultEncoderFactory.Builder(app).build()))
                                         .setVideoMimeType(videoMimeType)
                                         .setAudioMimeType(audioMimeTypeForVideoMime(videoMimeType))
+                                        .setMaxDelayBetweenMuxerSamplesMs(
+                                                maxSampleGapMs(Build.VERSION.MEDIA_PERFORMANCE_CLASS))
                                         .addListener(
                                                 new Transformer.Listener() {
                                                     @Override
@@ -567,9 +715,7 @@ public final class VideoMedia3Converter {
                         transformerRef.set(transformer);
                         activeTransformer.set(transformer);
                         transformer.start(composition, outputPath);
-                        if (progressListener != null) {
-                            mainHandler.post(pollRunnable[0]);
-                        }
+                        mainHandler.post(pollRunnable[0]);
                     } catch (RuntimeException e) {
                         stopPolling(mainHandler, pollingActive, pollRunnable[0]);
                         syncFailureRef.set(e);
@@ -582,11 +728,11 @@ public final class VideoMedia3Converter {
             Long testTimeout = testAwaitTimeoutMs;
             finished = testTimeout != null
                     ? latch.await(testTimeout, TimeUnit.MILLISECONDS)
-                    : latch.await(AWAIT_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+                    : awaitUnlessStalled(latch, outFile, progressSeen);
         } finally {
             activeTranscodeOwner.compareAndSet(ownerId, -1L);
             activeTransformer.compareAndSet(transformerRef.get(), null);
-            activeCancelHook.compareAndSet(endWait, null);
+            activeCancelHook.compareAndSet(cancelHook, null);
         }
         if (cancelled.get() && errorRef.get() == null && syncFailureRef.get() == null) {
             stopPolling(mainHandler, pollingActive, pollRunnable[0]);
@@ -606,7 +752,7 @@ public final class VideoMedia3Converter {
                     });
             cancelDone.await(5, TimeUnit.SECONDS);
             deleteQuietly(app, outFile);
-            throw new IOException("Video conversion timed out");
+            throw new IOException("Video conversion stalled");
         }
 
         ExportException exportException = errorRef.get();
@@ -616,8 +762,8 @@ public final class VideoMedia3Converter {
                 throw new UnsupportedMediaException(
                         "Unsupported video format: " + exportException.getMessage(), exportException);
             }
-            if (isEncoderResolutionFailure(exportException)) {
-                throw new EncoderResolutionException(
+            if (isEncoderResolutionFailure(exportException) || isMuxerStall(exportException)) {
+                throw new RetryAtSmallerSizeException(
                         "Video conversion failed: " + exportException.getMessage(), exportException);
             }
             throw new IOException(
@@ -634,6 +780,32 @@ public final class VideoMedia3Converter {
             deleteQuietly(app, outFile);
             throw new IOException("Video conversion produced no output");
         }
+    }
+
+    /**
+     * Waits for an export to end. Returns false when neither its progress nor the size of its
+     * output has changed for {@link #STALL_TIMEOUT_MS}; however long it runs, an export that keeps
+     * moving is waited for.
+     */
+    private static boolean awaitUnlessStalled(
+            @NonNull CountDownLatch latch, @NonNull File outFile, @NonNull AtomicInteger progressSeen)
+            throws InterruptedException {
+        long lastChange = android.os.SystemClock.elapsedRealtime();
+        long lastLength = -1;
+        int lastProgress = -1;
+        while (!latch.await(STALL_CHECK_SECONDS, TimeUnit.SECONDS)) {
+            long now = android.os.SystemClock.elapsedRealtime();
+            long length = outFile.length();
+            int progress = progressSeen.get();
+            if (length != lastLength || progress != lastProgress) {
+                lastLength = length;
+                lastProgress = progress;
+                lastChange = now;
+            } else if (now - lastChange > STALL_TIMEOUT_MS) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -682,9 +854,25 @@ public final class VideoMedia3Converter {
         return false;
     }
 
-    /** An export the encoder rejected for its frame size; a smaller size may still succeed. */
-    private static final class EncoderResolutionException extends IOException {
-        EncoderResolutionException(String message, Throwable cause) {
+    /**
+     * Whether Media3's watchdog aborted the export because no sample reached the muxer for too
+     * long. Some hardware codecs hang at certain frame sizes (REDACT-25), and a smaller frame
+     * gives them a lighter load to retry with.
+     */
+    @androidx.annotation.VisibleForTesting
+    static boolean isMuxerStall(@NonNull ExportException e) {
+        return e.errorCode == ExportException.ERROR_CODE_MUXING_TIMEOUT;
+    }
+
+    /** The stall timeout for a phone of {@code mediaPerformanceClass} (0 when it declares none). */
+    @androidx.annotation.VisibleForTesting
+    static long maxSampleGapMs(int mediaPerformanceClass) {
+        return mediaPerformanceClass > 0 ? MAX_SAMPLE_GAP_MS : MAX_SAMPLE_GAP_UNRATED_MS;
+    }
+
+    /** An export that failed at its frame size; a smaller size may still succeed. */
+    private static final class RetryAtSmallerSizeException extends IOException {
+        RetryAtSmallerSizeException(String message, Throwable cause) {
             super(message, cause);
         }
     }

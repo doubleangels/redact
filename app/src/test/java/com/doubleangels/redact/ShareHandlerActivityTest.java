@@ -434,4 +434,23 @@ public class ShareHandlerActivityTest {
         assertTrue(controller.get().isFinishing());
         assertNull(ShadowToast.getTextOfLatestToast());
     }
+
+    @Test
+    public void snapshotSuffix_keepsTheSharedItemsOwnFormat() {
+        assertEquals(".png", ShareHandlerActivity.suffixFor("image/png", "shot.png"));
+        assertEquals(".webp", ShareHandlerActivity.suffixFor("image/webp", null));
+        assertEquals(".heic", ShareHandlerActivity.suffixFor("image/heic", "IMG_1.HEIC"));
+        assertEquals(".gif", ShareHandlerActivity.suffixFor("image/gif", null));
+        assertEquals(".jpg", ShareHandlerActivity.suffixFor("image/jpeg", "a.png"));
+        assertEquals(".mov", ShareHandlerActivity.suffixFor("video/quicktime", null));
+        assertEquals(".webm", ShareHandlerActivity.suffixFor("video/webm", null));
+        // No type: the name decides, so an untyped video is not handed to the image decoder.
+        assertEquals(".png", ShareHandlerActivity.suffixFor(null, "Screenshot.PNG"));
+        assertEquals(".jpg", ShareHandlerActivity.suffixFor(null, "photo.jpeg"));
+        assertEquals(".mkv", ShareHandlerActivity.suffixFor("application/octet-stream", "clip.mkv"));
+        // An unfamiliar type keeps to its kind; nothing usable at all is left to the decoders.
+        assertEquals(".jpg", ShareHandlerActivity.suffixFor("image/x-unknown", "picture"));
+        assertEquals(".mp4", ShareHandlerActivity.suffixFor("video/x-unknown", null));
+        assertEquals(".bin", ShareHandlerActivity.suffixFor(null, null));
+    }
 }

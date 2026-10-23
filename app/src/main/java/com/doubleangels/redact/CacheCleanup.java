@@ -20,6 +20,13 @@ public final class CacheCleanup {
     public static final long DEFAULT_STALE_TEMP_MAX_AGE_MS = 24L * 60L * 60L * 1000L;
 
     /**
+     * How long a cleaned file shared from {@code processed/} is kept for the app it was shared to.
+     * The share flow deletes it after this; a file older than this at process start was left by a
+     * process that died first, and is removed then.
+     */
+    public static final long SHARED_OUTPUT_MAX_AGE_MS = 60L * 60L * 1000L;
+
+    /**
      * Ensures {@link #scheduleAutoCleanupIfEnabled} runs at most once per process, however many
      * entry points call it (the Application on cold start, MainActivity on open).
      */
@@ -29,8 +36,10 @@ public final class CacheCleanup {
     private static volatile Thread orphanSweepThread;
 
     private static final String PROCESSED_SUBDIR = "processed";
+    /** Glide's default disk cache folder (InternalCacheDiskCacheFactory). */
+    private static final String GLIDE_DISK_CACHE_DIR = "image_manager_disk_cache";
     private static final String[] TEMP_PREFIXES = {
-            "temp_", "verify_", "vid_transform_", "vid_transmux_", "inbound_"
+            "temp_", "verify_", "vid_transform_", "vid_transmux_", "inbound_", "censored_"
     };
     /**
      * Grace period below which a temp file is left alone even for a "clear all" request, so a
@@ -65,7 +74,7 @@ public final class CacheCleanup {
         int deleted = 0;
         File cacheDir = context.getCacheDir();
         if (cacheDir != null) {
-            deleted += deleteStaleFilesInDirectory(context, new File(cacheDir, PROCESSED_SUBDIR), cutoff);
+            deleted += deleteStaleSharedOutputs(new File(cacheDir, PROCESSED_SUBDIR), cutoff);
             deleted += deleteStaleTempPrefixFiles(context, cacheDir, cutoff);
         }
         File externalCacheDir = context.getExternalCacheDir();
@@ -94,8 +103,13 @@ public final class CacheCleanup {
             return;
         }
         Context appContext = context.getApplicationContext();
+        Thread orphanSweep = orphanSweepThread;
         // Guarded to once per process, so a one-shot thread beats a never-released executor.
-        Thread thread = new Thread(() -> performAutoCleanup(appContext), "redact-auto-cleanup");
+        Thread thread = new Thread(() -> {
+            // After the orphan sweep, so the two never overwrite the same file at once.
+            awaitQuietly(orphanSweep);
+            performAutoCleanup(appContext);
+        }, "redact-auto-cleanup");
         autoCleanupThread = thread;
         thread.start();
     }
@@ -118,7 +132,20 @@ public final class CacheCleanup {
         java.util.List<File> orphans = new java.util.ArrayList<>();
         collectTempPrefixFiles(appContext.getCacheDir(), orphans);
         collectTempPrefixFiles(appContext.getExternalCacheDir(), orphans);
-        if (orphans.isEmpty()) {
+        // Shared files whose delayed deletion died with an earlier process. They are clean, so
+        // they are only unlinked, and only once the app they went to has had time to read them.
+        java.util.List<File> sharedOutputs = new java.util.ArrayList<>();
+        File cacheDir = appContext.getCacheDir();
+        if (cacheDir != null) {
+            collectFilesOlderThan(new File(cacheDir, PROCESSED_SUBDIR),
+                    System.currentTimeMillis() - SHARED_OUTPUT_MAX_AGE_MS, sharedOutputs);
+        }
+        // Thumbnails earlier versions kept in Glide's disk cache, which is now off.
+        File thumbnailCache = cacheDir != null ? new File(cacheDir, GLIDE_DISK_CACHE_DIR) : null;
+        if (thumbnailCache != null && thumbnailCache.isDirectory()) {
+            collectFilesOlderThan(thumbnailCache, Long.MAX_VALUE, orphans);
+        }
+        if (orphans.isEmpty() && sharedOutputs.isEmpty()) {
             return;
         }
         Thread thread = new Thread(() -> {
@@ -127,6 +154,10 @@ public final class CacheCleanup {
                     //noinspection ResultOfMethodCallIgnored
                     orphan.delete();
                 }
+            }
+            for (File shared : sharedOutputs) {
+                //noinspection ResultOfMethodCallIgnored
+                shared.delete();
             }
         }, "redact-orphan-sweep");
         orphanSweepThread = thread;
@@ -152,6 +183,32 @@ public final class CacheCleanup {
                     break;
                 }
             }
+        }
+    }
+
+    private static void collectFilesOlderThan(File directory, long cutoff, java.util.List<File> out) {
+        if (directory == null || !directory.isDirectory()) {
+            return;
+        }
+        File[] files = directory.listFiles();
+        if (files == null) {
+            return;
+        }
+        for (File file : files) {
+            if (file.isFile() && file.lastModified() < cutoff) {
+                out.add(file);
+            }
+        }
+    }
+
+    private static void awaitQuietly(Thread thread) {
+        if (thread == null) {
+            return;
+        }
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -244,8 +301,12 @@ public final class CacheCleanup {
         return total;
     }
 
-    private static int deleteStaleFilesInDirectory(
-            @NonNull Context context, File directory, long cutoffTime) {
+    /**
+     * Deletes cleaned files in {@code processed/} older than {@code cutoffTime}. They hold no
+     * metadata, and one may still be open in an app it was shared to, so they are unlinked rather
+     * than overwritten, which would hand that app random bytes.
+     */
+    private static int deleteStaleSharedOutputs(File directory, long cutoffTime) {
         if (directory == null || !directory.isDirectory()) {
             return 0;
         }
@@ -255,9 +316,7 @@ public final class CacheCleanup {
             return 0;
         }
         for (File file : files) {
-            if (file.isFile()
-                    && file.lastModified() < cutoffTime
-                    && SecureDelete.secureDelete(context, file)) {
+            if (file.isFile() && file.lastModified() < cutoffTime && file.delete()) {
                 deleted++;
             }
         }

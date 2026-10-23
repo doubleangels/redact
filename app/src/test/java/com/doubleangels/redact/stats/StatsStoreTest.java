@@ -346,8 +346,11 @@ public class StatsStoreTest {
             worker.start();
         }
         go.countDown();
+        // Generous: 6,000 writes take most of a minute under Robolectric on a busy machine, and a
+        // worker still running when the counts are read looks like a lost count.
         for (Thread worker : workers) {
-            worker.join(30_000);
+            worker.join(180_000);
+            assertFalse("a worker did not finish", worker.isAlive());
         }
 
         StatsSnapshot s = StatsStore.snapshot(context);
@@ -392,5 +395,21 @@ public class StatsStoreTest {
     @Test
     public void statisticsAreNeverBackedUp() {
         assertEquals(0, context.getApplicationInfo().flags & ApplicationInfo.FLAG_ALLOW_BACKUP);
+    }
+
+    @Test
+    public void withStatisticsOff_nothingIsCounted() {
+        AppPreferences.setKeepStatistics(context, false);
+
+        StatsStore.recordClean(context, fields(4, true), false, true);
+        StatsStore.recordShare(context);
+        StatsStore.recordConverted(context);
+
+        assertTrue(StatsStore.snapshot(context).isEmpty());
+        assertTrue("not even the day it happened", raw().getAll().isEmpty());
+
+        AppPreferences.setKeepStatistics(context, true);
+        StatsStore.recordConverted(context);
+        assertEquals(1, StatsStore.snapshot(context).converted);
     }
 }

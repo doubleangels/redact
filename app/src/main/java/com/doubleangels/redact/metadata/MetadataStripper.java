@@ -326,8 +326,14 @@ public class MetadataStripper {
             throwIfCancelled();
             int formatIndex = detectVideoFormatIndex(sourceUri, originalFilename);
 
-            updateProgress(2, 4, context.getString(R.string.strip_progress_transmuxing));
-            File tempCleanFile = fastStripVideoMetadata(sourceUri);
+            // The quick transmux is only worth its full copy of the video when that copy may be
+            // saved as it is. A transcode reads the source directly: Media3 is kept from writing
+            // any of its metadata (VideoMedia3Converter.MetadataDroppingMuxerFactory).
+            File tempCleanFile = null;
+            if (mayKeepTransmux()) {
+                updateProgress(2, 4, context.getString(R.string.strip_progress_transmuxing));
+                tempCleanFile = fastStripVideoMetadata(sourceUri);
+            }
             Uri cleanSourceUri = tempCleanFile != null ? Uri.fromFile(tempCleanFile) : sourceUri;
 
             boolean needsTranscode = !shouldSkipVideoTranscode(formatIndex, tempCleanFile, false);
@@ -460,8 +466,7 @@ public class MetadataStripper {
 
             // Extract essential EXIF data to preserve (like orientation)
             updateProgress(2, 5, context.getString(R.string.strip_progress_reading_essential_metadata));
-            readEssentialExifData(tempFile, false);
-            lastCleanStats = readCleanStats(tempFile, false);
+            lastCleanStats = readEssentialTagsAndStats(tempFile, false);
 
             newUri = writeCleanImage(tempFile, sourceUri, newFilename, outputFormat, false);
 
@@ -531,9 +536,8 @@ public class MetadataStripper {
         File originalCopy = File.createTempFile("temp_", outputFormat.extension, context.getCacheDir());
         try {
             copySourceToTempFile(original, originalCopy);
-            readEssentialExifData(originalCopy, false);
+            lastCleanStats = readEssentialTagsAndStats(originalCopy, false);
             preservedExifValues.remove(ExifInterface.TAG_ORIENTATION);
-            lastCleanStats = readCleanStats(originalCopy, false);
         } finally {
             secureDeleteFile(originalCopy);
         }
@@ -574,22 +578,30 @@ public class MetadataStripper {
             updateProgress(4, 5, context.getString(R.string.strip_progress_restoring_essential_metadata));
             restoreEssentialExifData(cleanFile);
 
+            // Verified while still private: a folder the user chose shows a new file at once (a
+            // cloud-backed one may upload it), so nothing unverified may reach the output.
+            updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
+            boolean metadataRemoved = verifyMetadataRemoval(cleanFile, false);
+            SentryManager.setCustomKey("metadata_verification_passed", metadataRemoved);
+            if (!metadataRemoved) {
+                throw new IOException("Metadata verification failed");
+            }
+
             // Create the output (a pending MediaStore entry, or a file in the chosen folder) and
-            // write the finished file to it once.
+            // write the verified file to it once, then check that the output holds exactly those
+            // bytes: a provider that keeps the tail of an older file would add to them.
             newUri = OutputDestination.create(context, false, newFilename, outputFormat.mimeType);
+            byte[] written;
             try (InputStream in = new FileInputStream(cleanFile);
                     OutputStream os = contentResolver.openOutputStream(newUri)) {
                 if (os == null) {
                     throw new IOException("Failed to open output stream for new image");
                 }
-                MediaSizeLimits.copyStream(in, os);
+                java.security.MessageDigest digest = sha256();
+                MediaSizeLimits.copyStream(in, new java.security.DigestOutputStream(os, digest));
+                written = digest.digest();
             }
-
-            // Verify metadata removal while the entry is still IS_PENDING=1, so a file that
-            // fails verification is never visible to other apps via MediaStore even briefly.
-            // The owning app can read/write its own pending entry; only other apps are blocked.
-            updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
-            verifyCleanedImageAtUri(newUri, outputFormat.extension);
+            requireSameContent(newUri, written);
             OutputDestination.publish(contentResolver, newUri);
             return newUri;
         } catch (IOException | RuntimeException e) {
@@ -640,8 +652,7 @@ public class MetadataStripper {
             copySourceToTempFile(sourceUri, tempFile);
 
             updateProgress(2, 4, context.getString(R.string.strip_progress_reading_essential_metadata));
-            readEssentialExifData(tempFile, true);
-            lastCleanStats = readCleanStats(tempFile, true);
+            lastCleanStats = readEssentialTagsAndStats(tempFile, true);
 
             File outputDir = new File(context.getCacheDir(), "processed");
             if (!outputDir.exists()) {
@@ -743,53 +754,27 @@ public class MetadataStripper {
                 }
             }
 
-            int formatIndex = detectVideoFormatIndex(sourceUri, originalFilename);
-
-            updateProgress(2, 4, context.getString(R.string.strip_progress_transmuxing));
-            File tempCleanFile = fastStripVideoMetadata(sourceUri);
-            Uri cleanSourceUri = tempCleanFile != null ? Uri.fromFile(tempCleanFile) : sourceUri;
-
-            boolean needsTranscode = !shouldSkipVideoTranscode(formatIndex, tempCleanFile, true);
-
-            // A transcode is always MP4; a reused transmux keeps the container it was written in.
-            String extension = needsTranscode
-                    ? VideoMedia3Converter.TRANSCODE_EXTENSION
-                    : VideoMedia3Converter.extensionForFormatIndex(formatIndex);
-            String newFilename = generateShortRandomName() + extension;
+            // Shared videos are always H.264, which every app they go to can play. A share always
+            // re-encodes (a transmux keeps what is inside the stream), straight from the source.
+            int formatIndex = VideoMedia3Converter.FORMAT_STRIP_METADATA;
+            String newFilename = generateShortRandomName() + VideoMedia3Converter.TRANSCODE_EXTENSION;
             outputFile = new File(outputDir, newFilename);
 
             try {
-                if (!needsTranscode && tempCleanFile != null) {
-                    updateProgress(3, 4, context.getString(R.string.strip_progress_processing_video_metadata));
-                    try (InputStream in = new FileInputStream(tempCleanFile);
-                            FileOutputStream out = new FileOutputStream(outputFile)) {
-                        byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-                        int length;
-                        while ((length = in.read(buffer)) > 0) {
-                            out.write(buffer, 0, length);
-                        }
-                        out.flush();
-                    }
-                } else {
-                    updateProgress(3, 4, context.getString(R.string.strip_progress_transcoding));
-                    VideoMedia3Converter.transcodeToFile(
-                            context.getApplicationContext(),
-                            cleanSourceUri,
-                            outputFile,
-                            formatIndex,
-                            this::reportTranscodeProgress,
-                            transcodeOwnerId);
-                }
+                updateProgress(3, 4, context.getString(R.string.strip_progress_transcoding));
+                VideoMedia3Converter.transcodeToFile(
+                        context.getApplicationContext(),
+                        sourceUri,
+                        outputFile,
+                        formatIndex,
+                        this::reportTranscodeProgress,
+                        transcodeOwnerId);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new com.doubleangels.redact.media.ProcessingCancelledException("Video transcoding interrupted", e);
             } catch (Exception e) {
                 SentryManager.log("Video processing failed: " + e.getMessage() + ".");
                 throw new IOException("Failed to process video safely", e);
-            } finally {
-                if (tempCleanFile != null && tempCleanFile.exists()) {
-                    secureDeleteFile(tempCleanFile);
-                }
             }
 
             updateProgress(4, 4, context.getString(R.string.strip_progress_verifying));
@@ -823,32 +808,33 @@ public class MetadataStripper {
         }
     }
 
+    /**
+     * The output codec that keeps a source's own: its video track's codec as the extractor reads
+     * it, and only when the tracks cannot be read, what its name suggests. The name used to win,
+     * so an HEVC video named .mp4 was re-encoded to H.264 while the same video named .mov stayed
+     * HEVC.
+     */
     @androidx.annotation.VisibleForTesting
     int detectVideoFormatIndex(Uri sourceUri, String fileName) {
-        if (fileName != null) {
-            String lower = fileName.toLowerCase(java.util.Locale.ROOT);
-            if (lower.endsWith(".webm") || lower.endsWith(".vp9") || lower.endsWith(".vp8")) return 2;
-            if (lower.endsWith(".mp4") || lower.endsWith(".m4v")) return 0;
-            // .mkv is a container; codec is resolved below via MediaExtractor.
-        }
-        
         android.media.MediaExtractor extractor = new android.media.MediaExtractor();
         try {
             extractor.setDataSource(context, sourceUri, null);
             for (int i = 0; i < extractor.getTrackCount(); i++) {
                 android.media.MediaFormat format = extractor.getTrackFormat(i);
                 String mime = format.getString(android.media.MediaFormat.KEY_MIME);
-                if (mime != null) {
-                    if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_HEVC)) {
-                        return 1;
-                    }
-                    if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP9) || mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP8)) {
-                        return 2;
-                    }
-                    if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_AV1)) {
-                        return 3;
-                    }
+                if (mime == null || !mime.startsWith("video/")) {
+                    continue;
                 }
+                if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_HEVC)) {
+                    return 1;
+                }
+                if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP9) || mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP8)) {
+                    return 2;
+                }
+                if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_AV1)) {
+                    return 3;
+                }
+                return 0;
             }
         } catch (Exception ignored) {
             SentryManager.log("An exception was ignored: " + ignored + ".");
@@ -859,24 +845,42 @@ public class MetadataStripper {
                 SentryManager.log("An exception was ignored: " + ignored + ".");
             }
         }
+        if (fileName != null) {
+            String lower = fileName.toLowerCase(java.util.Locale.ROOT);
+            if (lower.endsWith(".webm") || lower.endsWith(".vp9") || lower.endsWith(".vp8")) {
+                return 2;
+            }
+        }
         return 0;
     }
 
-    private void remuxSingleTrack(
+    /**
+     * Copies the selected tracks' samples in the order the source stores them, so video and audio
+     * stay interleaved. Copying one whole track and then the other wrote every video sample ahead
+     * of every audio sample, a file that cannot start playing until it has been read to the end.
+     */
+    private void remuxTracks(
             android.media.MediaExtractor extractor,
-            int sourceTrackIndex,
-            android.media.MediaMuxer muxer,
-            int muxerTrackIndex) {
+            java.util.Map<Integer, Integer> muxerTracks,
+            android.media.MediaMuxer muxer) {
         for (int i = 0; i < extractor.getTrackCount(); i++) {
             extractor.unselectTrack(i);
         }
-        extractor.selectTrack(sourceTrackIndex);
+        for (int sourceTrack : muxerTracks.keySet()) {
+            extractor.selectTrack(sourceTrack);
+        }
         java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(1024 * 1024 * 2);
         android.media.MediaCodec.BufferInfo info = new android.media.MediaCodec.BufferInfo();
         while (true) {
             checkCancelled();
-            if (extractor.getSampleTrackIndex() == -1) {
+            int sourceTrack = extractor.getSampleTrackIndex();
+            if (sourceTrack == -1) {
                 break;
+            }
+            Integer muxerTrackIndex = muxerTracks.get(sourceTrack);
+            if (muxerTrackIndex == null) {
+                extractor.advance();
+                continue;
             }
             info.size = extractor.readSampleData(buffer, 0);
             if (info.size < 0) {
@@ -905,10 +909,11 @@ public class MetadataStripper {
     }
 
     /**
-     * Transmuxes {@code sourceUri} into a cache file without container-level metadata, for use as
-     * the input of a format-conversion transcode. Returns null when transmuxing isn't possible;
+     * Transmuxes {@code sourceUri} into a cache file without container-level metadata: the quick
+     * path of Faster Video Cleaning on its own. Returns null when transmuxing isn't possible;
      * callers must delete a non-null result.
      */
+    @VisibleForTesting
     @Nullable
     public File transmuxVideoWithoutMetadata(@NonNull Uri sourceUri) {
         return fastStripVideoMetadata(sourceUri);
@@ -949,15 +954,7 @@ public class MetadataStripper {
                 return null;
             }
 
-            boolean useWebm = false;
-            for (int i = 0; i < extractor.getTrackCount(); i++) {
-                android.media.MediaFormat format = extractor.getTrackFormat(i);
-                String mime = format.getString(android.media.MediaFormat.KEY_MIME);
-                if (mime != null && (mime.contains("vp8") || mime.contains("vp9") || mime.contains("opus"))) {
-                    useWebm = true;
-                    break;
-                }
-            }
+            boolean useWebm = useWebmContainer(extractor);
             
             outputFile = File.createTempFile(
                     "vid_transmux_", useWebm ? ".webm" : ".mp4", context.getCacheDir());
@@ -1019,15 +1016,14 @@ public class MetadataStripper {
             
             muxer.start();
 
+            java.util.Map<Integer, Integer> muxerTracks = new java.util.HashMap<>();
             if (videoTrackIndex != -1 && muxerVideoTrackIndex != -1) {
-                remuxSingleTrack(extractor, videoTrackIndex, muxer, muxerVideoTrackIndex);
+                muxerTracks.put(videoTrackIndex, muxerVideoTrackIndex);
             }
             if (audioTrackIndex != -1 && muxerAudioTrackIndex != -1) {
-                for (int i = 0; i < extractor.getTrackCount(); i++) {
-                    extractor.unselectTrack(i);
-                }
-                remuxSingleTrack(extractor, audioTrackIndex, muxer, muxerAudioTrackIndex);
+                muxerTracks.put(audioTrackIndex, muxerAudioTrackIndex);
             }
+            remuxTracks(extractor, muxerTracks, muxer);
 
             muxer.stop();
             succeeded = true;
@@ -1055,6 +1051,30 @@ public class MetadataStripper {
                 secureDeleteFile(outputFile);
             }
         }
+    }
+
+    /**
+     * Whether the fast transmux must write WebM: for VP8 or VP9 video, which MP4 cannot hold, or
+     * for Opus or Vorbis audio with no video. The video decides when there is some, so H.264 with
+     * Opus audio is not sent to a WebM muxer that would only reject the H.264.
+     */
+    private static boolean useWebmContainer(@NonNull android.media.MediaExtractor extractor) {
+        boolean webmAudio = false;
+        for (int i = 0; i < extractor.getTrackCount(); i++) {
+            String mime = extractor.getTrackFormat(i).getString(android.media.MediaFormat.KEY_MIME);
+            if (mime == null) {
+                continue;
+            }
+            if (mime.startsWith("video/")) {
+                return mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP8)
+                        || mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP9);
+            }
+            if (mime.equals(android.media.MediaFormat.MIMETYPE_AUDIO_OPUS)
+                    || mime.equals(android.media.MediaFormat.MIMETYPE_AUDIO_VORBIS)) {
+                webmAudio = true;
+            }
+        }
+        return webmAudio;
     }
 
     /**
@@ -1161,9 +1181,19 @@ public class MetadataStripper {
      * @throws IOException if the file cannot be read or EXIF data cannot be
      *                     extracted
      */
-    private void readEssentialExifData(@NonNull File imageFile, boolean forSharing) throws IOException {
-        // Create ExifInterface for reading EXIF data
+    /**
+     * Reads the tags a clean keeps and counts what it removes, from one parse of the file's EXIF.
+     *
+     * @throws IOException when the EXIF cannot be read at all
+     */
+    @NonNull
+    private CleanStats readEssentialTagsAndStats(@NonNull File imageFile, boolean forSharing) throws IOException {
         ExifInterface exif = new ExifInterface(imageFile.getAbsolutePath());
+        readEssentialExifData(exif, forSharing);
+        return readCleanStats(imageFile, exif, forSharing);
+    }
+
+    private void readEssentialExifData(@NonNull ExifInterface exif, boolean forSharing) {
         preservedExifValues.clear();
 
         List<String> tagsToPreserve = getTagsToPreserve(forSharing);
@@ -1191,6 +1221,13 @@ public class MetadataStripper {
     private void restoreEssentialExifData(@NonNull File imageFile) {
         // Skip if no EXIF values were preserved
         if (preservedExifValues.isEmpty()) {
+            return;
+        }
+        if (ImageContainerMetadata.sniff(imageFile) == ImageContainerMetadata.Format.OTHER) {
+            // ExifInterface writes only JPEG, PNG and WebP; saving a HEIC throws. Its pixels
+            // were decoded upright (see reEncode), so the orientation is not needed, and the other
+            // kept tags cannot go back in.
+            SentryManager.log("The kept EXIF tags could not be written to this format.");
             return;
         }
 
@@ -1342,6 +1379,17 @@ public class MetadataStripper {
             }
         }
         SentryManager.log("The app removed " + removedCount + " EXIF metadata tags using the fallback method.");
+    }
+
+    /**
+     * Whether a gallery clean may save the quick transmux as it is (Faster Video Cleaning on,
+     * Strict Clean off), which is the only reason to make one.
+     */
+    private boolean mayKeepTransmux() {
+        if (testFastStripVideoMetadataOverride != null) {
+            return true;
+        }
+        return !AppPreferences.isStrictClean(context) && AppPreferences.isVideoFallbackCopy(context);
     }
 
     /**
@@ -1526,11 +1574,10 @@ public class MetadataStripper {
 
     /** Counts the identifying fields in an image before it is cleaned; unreadable EXIF counts as none. */
     @NonNull
-    private CleanStats readCleanStats(@NonNull File imageFile, boolean forSharing) {
+    private CleanStats readCleanStats(@NonNull File imageFile, @NonNull ExifInterface reader, boolean forSharing) {
         CleanStats exif;
         boolean exifCountedXmp = false;
         try {
-            ExifInterface reader = new ExifInterface(imageFile.getAbsolutePath());
             Set<String> preserved = new java.util.HashSet<>(getTagsToPreserve(forSharing));
             exif = CleanStats.fromExif(reader, preserved);
             String xmp = reader.getAttribute(ExifInterface.TAG_XMP);
@@ -1667,9 +1714,8 @@ public class MetadataStripper {
                                 retriever.extractMetadata(
                                         android.media.MediaMetadataRetriever.METADATA_KEY_DATE));
                 if (outputDate != null && outputDate.equals(sourceSnapshot.date)) {
+                    // Only that it happened: the date is when the user recorded the video.
                     SentryManager.setCustomKey("video_verify_failed_key", "DATE_PRESERVED");
-                    SentryManager.setCustomKey("video_verify_source_date", truncateForSentry(sourceSnapshot.date));
-                    SentryManager.setCustomKey("video_verify_output_date", truncateForSentry(outputDate));
                     SentryManager.log(
                             "The original recording date was preserved in the output: "
                                     + videoMetadataKeyName(
@@ -1695,11 +1741,6 @@ public class MetadataStripper {
             SentryManager.log("The video metadata verification read failed.");
             return false;
         }
-    }
-
-    @NonNull
-    private static String truncateForSentry(@NonNull String value) {
-        return value.length() <= 64 ? value : value.substring(0, 64);
     }
 
     /**
@@ -1802,30 +1843,33 @@ public class MetadataStripper {
     }
 
     /**
-     * Verifies a cleaned gallery image; throws in strict mode when metadata remains or checks fail.
+     * Fails unless the saved output reads back as exactly the bytes that were verified. Hashed as
+     * it is read, so no second copy of the image is written to check it.
      */
-    private void verifyCleanedImageAtUri(@NonNull Uri imageUri, @NonNull String extension)
-            throws IOException {
-        File tempVerifyFile = File.createTempFile("verify_", extension, context.getCacheDir());
+    private void requireSameContent(@NonNull Uri output, @NonNull byte[] expectedSha256) throws IOException {
+        java.security.MessageDigest digest = sha256();
+        try (InputStream is = contentResolver.openInputStream(output)) {
+            if (is == null) {
+                throw new IOException("Cannot open cleaned image for verification");
+            }
+            byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+            int read;
+            while ((read = is.read(buffer)) != -1) {
+                digest.update(buffer, 0, read);
+            }
+        }
+        if (!java.security.MessageDigest.isEqual(expectedSha256, digest.digest())) {
+            SentryManager.setCustomKey("metadata_verification_passed", false);
+            throw new IOException("Metadata verification failed: the saved copy differs from the verified one");
+        }
+    }
+
+    @NonNull
+    private static java.security.MessageDigest sha256() throws IOException {
         try {
-            try (InputStream is = contentResolver.openInputStream(imageUri);
-                    FileOutputStream fos = new FileOutputStream(tempVerifyFile)) {
-                if (is == null) {
-                    throw new IOException("Cannot open cleaned image for verification");
-                }
-                byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-                int bytesRead;
-                while ((bytesRead = is.read(buffer)) > 0) {
-                    fos.write(buffer, 0, bytesRead);
-                }
-            }
-            boolean metadataRemoved = verifyMetadataRemoval(tempVerifyFile, false);
-            SentryManager.setCustomKey("metadata_verification_passed", metadataRemoved);
-            if (!metadataRemoved) {
-                throw new IOException("Metadata verification failed");
-            }
-        } finally {
-            secureDeleteFile(tempVerifyFile);
+            return java.security.MessageDigest.getInstance("SHA-256");
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new IOException(e);
         }
     }
 
@@ -1911,6 +1955,15 @@ public class MetadataStripper {
                           @NonNull FormatConverter.ImageFormatSpec outputFormat) throws IOException {
         FormatConverter.ImageFormatSpec bitmapOutput = outputFormat.bitmapFallbackSupported
                 ? outputFormat : FormatConverter.jpegFormatSpec();
+        if (containerFormat(bitmapOutput.extension) == ImageContainerMetadata.Format.OTHER) {
+            // No tags can be written back into this format (HEIC), so the orientation has to be
+            // in the pixels: ImageDecoder applies it, BitmapFactory does not.
+            Bitmap upright = FormatConverter.decodeUpright(context, Uri.fromFile(source),
+                    AppPreferences.getMaxBitmapSize(context));
+            preservedExifValues.remove(ExifInterface.TAG_ORIENTATION);
+            compressTo(upright, bitmapOutput, target);
+            return;
+        }
         BitmapFactory.Options optionsJustBounds = new BitmapFactory.Options();
         optionsJustBounds.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(source.getAbsolutePath(), optionsJustBounds);
@@ -1926,6 +1979,12 @@ public class MetadataStripper {
         if (bitmap == null) {
             throw new UnsupportedMediaException("Failed to decode bitmap", null);
         }
+        compressTo(bitmap, bitmapOutput, target);
+    }
+
+    /** Encodes {@code bitmap} to {@code target} and recycles it. */
+    private void compressTo(@NonNull Bitmap bitmap, @NonNull FormatConverter.ImageFormatSpec bitmapOutput,
+                            @NonNull File target) throws IOException {
         try (FileOutputStream out = new FileOutputStream(target)) {
             if (!FormatConverter.compressBitmapToStream(context, bitmap, bitmapOutput.compressFormat, out)) {
                 throw new IOException("Failed to compress bitmap");

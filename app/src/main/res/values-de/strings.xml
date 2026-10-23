@@ -272,6 +272,7 @@ Ihre Fotos und Videos werden nie hochgeladen. URIs, Dateinamen und GPS-Koordinat
     <string name="clean_selected_count">Ausgewählt: %1$d Datei(en)</string>
     <string name="clean_status_ready">Bereit, Dateien zum Bereinigen auszuwählen.</string>
     <string name="convert_codec_fallback">%1$s nicht verfügbar; stattdessen als %2$s gespeichert.</string>
+    <string name="video_downscaled">In %1$dp gespeichert, da dieses Telefon das Video nicht in voller Größe verarbeiten konnte.</string>
     <string name="metadata_error_basic_info_generic">Grundlegende Dateiinformationen konnten nicht gelesen werden.</string>
     <string name="metadata_error_image_generic">Bild-Metadaten konnten nicht gelesen werden.</string>
     <string name="metadata_error_video_generic">Video-Metadaten konnten nicht gelesen werden.</string>
@@ -336,7 +337,6 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="scan_metadata_truncated">Einige EXIF-Tags wurden bei diesem Scan ausgelassen (Anzeigelimit).</string>
     <string name="share_error_interrupted">Das Teilen wurde unterbrochen. Bitte versuchen Sie es erneut.</string>
     <string name="share_error_too_many_items">Zu viele Elemente (max. %1$d gleichzeitig).</string>
-    <string name="strip_progress_processing_video_metadata">Video-Metadaten werden verarbeitet…</string>
     <string name="strip_progress_reading_essential_metadata">Wichtige Metadaten werden gelesen…</string>
     <string name="strip_progress_reading_image">Bild wird gelesen…</string>
     <string name="strip_progress_reading_video">Video wird gelesen…</string>
@@ -525,6 +525,8 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="stats_section_activity">Letzte 30 Tage</string>
     <string name="stats_chart_empty">In den letzten 30 Tagen wurde nichts bereinigt.</string>
     <string name="stats_chart_today">Heute</string>
+    <string name="stats_keep">Statistik führen</string>
+    <string name="stats_keep_subtitle">Zählt, was Redact entfernt, nur auf diesem Gerät, auch wie viele Dateien du pro Tag bereinigst. Beim Ausschalten werden die Zahlen gelöscht und es wird nicht mehr gezählt.</string>
     <string name="stats_clear">Statistik Löschen</string>
     <string name="stats_clear_subtitle">Setzt alle Zähler auf null zurück. Deine Einstellungen und Dateien bleiben unverändert.</string>
     <string name="stats_clear_title">Statistik löschen</string>

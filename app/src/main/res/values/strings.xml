@@ -136,6 +136,7 @@
     
     <string name="convert_heic_fallback_jpeg">This phone can\'t save HEIC images, so they will be saved as JPEG instead.</string>
     <string name="convert_codec_fallback">%1$s unavailable; saved as %2$s instead.</string>
+    <string name="video_downscaled">Saved at %1$dp because this phone couldn\'t process the video at full size.</string>
     <string name="convert_output_format_images">Image Format</string>
     <string name="convert_output_format_videos">Video Codec</string>
     <string name="convert_output_format_mixed">Formats (Image / Video)</string>
@@ -220,7 +221,6 @@
     <string name="strip_progress_transcoding">Transcoding…</string>
     <string name="strip_progress_transcoding_target">Transcoding to target format…</string>
     <string name="strip_progress_saving_clean_copy">Saving clean copy…</string>
-    <string name="strip_progress_processing_video_metadata">Processing video metadata…</string>
 
     <string name="strip_progress_saving_clean_video">Saving cleaned video…</string>
 
@@ -533,6 +533,8 @@
     <string name="stats_section_activity">Last 30 Days</string>
     <string name="stats_chart_empty">Nothing cleaned in the last 30 days.</string>
     <string name="stats_chart_today">Today</string>
+    <string name="stats_keep">Keep Statistics</string>
+    <string name="stats_keep_subtitle">Counts what Redact removes, on this device only, including how many files you clean each day. Turning it off clears the counts and stops counting.</string>
     <string name="stats_clear">Clear Statistics</string>
     <string name="stats_clear_subtitle">Sets every count back to zero. Your settings and files stay as they are.</string>
     <string name="stats_clear_title">Clear Statistics</string>

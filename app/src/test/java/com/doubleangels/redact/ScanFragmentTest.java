@@ -434,7 +434,8 @@ public class ScanFragmentTest {
         View v = pick(Uri.parse("content://com.doubleangels.redact.test.broken/photo/1"));
         TextView status = v.findViewById(R.id.statusText);
         awaitMain(() -> status.getVisibility() == View.VISIBLE);
-        assertEquals(activity.getString(R.string.status_extraction_media_fail), status.getText().toString());
+        // The type is asked for off the main thread, where the extraction reports the failure.
+        assertEquals(activity.getString(R.string.status_extraction_fail), status.getText().toString());
     }
 
     /** Answers on the main thread but fails on the background thread that reads the metadata. */

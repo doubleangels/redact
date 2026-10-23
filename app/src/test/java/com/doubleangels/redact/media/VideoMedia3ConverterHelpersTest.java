@@ -128,6 +128,16 @@ public class VideoMedia3ConverterHelpersTest {
     }
 
     @Test
+    public void downscaledVideo_tellsTheUserItsNewSize() {
+        Application app = RuntimeEnvironment.getApplication();
+        VideoMedia3Converter.warnDownscaled(app, 720);
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertEquals(app.getString(com.doubleangels.redact.R.string.video_downscaled, 720),
+                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+        assertTrue(org.robolectric.shadows.ShadowToast.getTextOfLatestToast().contains("720p"));
+    }
+
+    @Test
     public void fallbackShortSides_onlyStepsDownFromTheSource() {
         for (int side : VideoMedia3Converter.fallbackShortSides(1080)) {
             assertTrue(side < 1080);
@@ -233,5 +243,96 @@ public class VideoMedia3ConverterHelpersTest {
             assertTrue("never the cancel-anything id", clean >= 0 && convert >= 0 && share >= 0);
         }
         assertEquals(VideoMedia3Converter.cleanOwner(3), VideoMedia3Converter.cleanOwner(3));
+    }
+
+    @Test
+    public void aJobWaitingForAnotherExport_stopsAsSoonAsItIsCancelled() throws Exception {
+        java.lang.reflect.Field lockField = VideoMedia3Converter.class.getDeclaredField("TRANSCODE_LOCK");
+        lockField.setAccessible(true);
+        java.util.concurrent.locks.ReentrantLock lock =
+                (java.util.concurrent.locks.ReentrantLock) lockField.get(null);
+        java.io.File out = java.io.File.createTempFile("vid_transform_", ".mp4",
+                RuntimeEnvironment.getApplication().getCacheDir());
+        java.util.concurrent.atomic.AtomicReference<Throwable> thrown =
+                new java.util.concurrent.atomic.AtomicReference<>();
+        lock.lock(); // another job's export is running
+        try {
+            Thread waiting = new Thread(() -> {
+                try {
+                    VideoMedia3Converter.transcodeToPath(RuntimeEnvironment.getApplication(),
+                            android.net.Uri.fromFile(out), out.getAbsolutePath(), 0, null, 7L);
+                } catch (Throwable t) {
+                    thrown.set(t);
+                }
+            });
+            waiting.start();
+            Thread.sleep(300);
+            assertTrue("it waits while the other export runs", waiting.isAlive());
+
+            VideoMedia3Converter.cancelActiveTranscode(8L); // someone else's job
+            Thread.sleep(400);
+            assertTrue(waiting.isAlive());
+
+            VideoMedia3Converter.cancelActiveTranscode(7L);
+            waiting.join(3000);
+            assertFalse("cancelled without waiting for the other export", waiting.isAlive());
+            assertTrue(thrown.get() instanceof InterruptedException);
+        } finally {
+            lock.unlock();
+            out.delete();
+        }
+    }
+
+    @Test
+    public void metadataDroppingMuxer_writesTracksAndSamples_butNoMetadata() throws Exception {
+        java.util.List<String> calls = new java.util.ArrayList<>();
+        androidx.media3.muxer.Muxer.Factory recording = new androidx.media3.muxer.Muxer.Factory() {
+            @Override
+            public androidx.media3.muxer.Muxer create(String path) {
+                calls.add("create " + path);
+                return new androidx.media3.muxer.Muxer() {
+                    @Override
+                    public int addTrack(androidx.media3.common.Format format) {
+                        calls.add("track " + format.sampleMimeType);
+                        return 7;
+                    }
+
+                    @Override
+                    public void writeSampleData(int trackId, java.nio.ByteBuffer data,
+                                                androidx.media3.muxer.BufferInfo bufferInfo) {
+                        calls.add("sample " + trackId);
+                    }
+
+                    @Override
+                    public void addMetadataEntry(androidx.media3.common.Metadata.Entry entry) {
+                        calls.add("metadata");
+                    }
+
+                    @Override
+                    public void close() {
+                        calls.add("close");
+                    }
+                };
+            }
+
+            @Override
+            public com.google.common.collect.ImmutableList<String> getSupportedSampleMimeTypes(int trackType) {
+                return com.google.common.collect.ImmutableList.of("video/avc");
+            }
+        };
+
+        VideoMedia3Converter.MetadataDroppingMuxerFactory factory =
+                new VideoMedia3Converter.MetadataDroppingMuxerFactory(recording);
+        androidx.media3.muxer.Muxer muxer = factory.create("/out.mp4");
+        int track = muxer.addTrack(new androidx.media3.common.Format.Builder()
+                .setSampleMimeType("video/avc").build());
+        muxer.addMetadataEntry(new androidx.media3.common.Metadata.Entry() { });
+        muxer.writeSampleData(track, java.nio.ByteBuffer.allocate(4),
+                new androidx.media3.muxer.BufferInfo(0, 4, 0));
+        muxer.close();
+
+        assertEquals(java.util.Arrays.asList("create /out.mp4", "track video/avc", "sample 7", "close"), calls);
+        assertEquals(com.google.common.collect.ImmutableList.of("video/avc"),
+                factory.getSupportedSampleMimeTypes(androidx.media3.common.C.TRACK_TYPE_VIDEO));
     }
 }

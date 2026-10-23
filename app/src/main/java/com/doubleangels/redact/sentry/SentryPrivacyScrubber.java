@@ -200,6 +200,7 @@ public final class SentryPrivacyScrubber {
         if (transaction.getUnknown() != null) {
             scrubStringObjectMap(transaction.getUnknown());
         }
+        transaction.setUser(null);
     }
 
     public static void scrubEvent(SentryEvent event) {
@@ -242,17 +243,9 @@ public final class SentryPrivacyScrubber {
                 }
             }
         }
-        if (event.getUser() != null) {
-            if (event.getUser().getUsername() != null) {
-                event.getUser().setUsername(scrub(event.getUser().getUsername()));
-            }
-            if (event.getUser().getEmail() != null) {
-                event.getUser().setEmail(scrub(event.getUser().getEmail()));
-            }
-            if (event.getUser().getIpAddress() != null) {
-                event.getUser().setIpAddress(scrub(event.getUser().getIpAddress()));
-            }
-        }
+        // The SDK fills in a random ID per installation, which would tie every report from one
+        // device together. Logs and metrics already drop it; events go without a user at all.
+        event.setUser(null);
     }
 
     /**

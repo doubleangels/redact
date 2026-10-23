@@ -228,6 +228,11 @@ public final class SentryManager {
 
     /** Fixed-category breadcrumb; message must not contain user data. */
     public static void logEvent(String category, String message) {
+        // Nothing would be sent, and release builds strip Log.i: scrubbing would be wasted work,
+        // on every log line, for the users who left crash reports off (the default).
+        if (!isEnabled() && !com.doubleangels.redact.BuildConfig.DEBUG) {
+            return;
+        }
         String safeCategory = category != null ? category : "app";
         String safeMessage = SentryPrivacyScrubber.scrub(message != null ? message : "");
         Log.i(TAG, safeCategory + ": " + safeMessage);
@@ -306,7 +311,7 @@ public final class SentryManager {
     /** @deprecated Use {@link #logEvent(String, String)} with non-identifying messages. */
     @Deprecated
     public static void log(String message) {
-        logEvent("custom", SentryPrivacyScrubber.scrub(message));
+        logEvent("custom", message);
     }
 
     /**

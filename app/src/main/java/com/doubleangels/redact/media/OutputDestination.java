@@ -48,6 +48,20 @@ public final class OutputDestination {
     /** Chosen folders already reported as unusable, so a batch warns once rather than per file. */
     private static final Set<String> warnedFallbacks = ConcurrentHashMap.newKeySet();
 
+    /**
+     * Documents in chosen folders that are being written, saved so that one a killed process left
+     * half-written can be removed on the next start. MediaStore entries need none of this: they
+     * stay pending, hidden from other apps, and MediaStore deletes them itself.
+     */
+    private static final String PENDING_PREFS = "redact_pending_outputs";
+    private static final String KEY_PENDING_DOCUMENTS = "documents";
+    /** Marks this process's entries, so the sweep at start never touches a file being written now. */
+    private static final String PROCESS_TOKEN = java.util.UUID.randomUUID().toString();
+    private static final Object PENDING_LOCK = new Object();
+    /** The file of documents being written, once this process has created one. */
+    @Nullable
+    private static volatile android.content.SharedPreferences pendingDocuments;
+
     private OutputDestination() {
     }
 
@@ -74,6 +88,7 @@ public final class OutputDestination {
             try {
                 Uri doc = DocumentsContract.createDocument(resolver, rootDocument(tree), mime, displayName);
                 if (doc != null) {
+                    markPendingDocument(context, doc);
                     return doc;
                 }
                 failure = "the provider created nothing";
@@ -126,6 +141,7 @@ public final class OutputDestination {
     /** Makes a finished output visible. Documents in a chosen folder need no publish step. */
     public static void publish(@NonNull ContentResolver resolver, @Nullable Uri uri) {
         MediaStoreWrites.markPublished(resolver, uri);
+        clearPendingDocument(uri);
     }
 
     /** Removes a partially written output created by {@link #create}. */
@@ -142,6 +158,76 @@ public final class OutputDestination {
         } catch (Exception e) {
             SentryManager.log("The partial output failed to clean up: " + e.getMessage() + ".");
         }
+        clearPendingDocument(uri);
+    }
+
+    private static void markPendingDocument(@NonNull Context context, @NonNull Uri doc) {
+        android.content.SharedPreferences prefs = pendingPrefs(context.getApplicationContext());
+        pendingDocuments = prefs;
+        synchronized (PENDING_LOCK) {
+            Set<String> entries = new java.util.HashSet<>(
+                    prefs.getStringSet(KEY_PENDING_DOCUMENTS, java.util.Collections.emptySet()));
+            entries.add(PROCESS_TOKEN + "\t" + doc);
+            prefs.edit().putStringSet(KEY_PENDING_DOCUMENTS, entries).apply();
+        }
+    }
+
+    private static void clearPendingDocument(@Nullable Uri uri) {
+        android.content.SharedPreferences prefs = pendingDocuments;
+        if (uri == null || prefs == null || !isDocumentAuthority(uri)) {
+            return;
+        }
+        synchronized (PENDING_LOCK) {
+            Set<String> stored = prefs.getStringSet(KEY_PENDING_DOCUMENTS, java.util.Collections.emptySet());
+            Set<String> entries = new java.util.HashSet<>(stored);
+            if (entries.remove(PROCESS_TOKEN + "\t" + uri)) {
+                prefs.edit().putStringSet(KEY_PENDING_DOCUMENTS, entries).apply();
+            }
+        }
+    }
+
+    /**
+     * Deletes, in the background, the documents an earlier process created in a chosen folder but
+     * never finished: a partial copy the user would otherwise find there. Entries this process
+     * adds meanwhile are left alone.
+     */
+    public static void scheduleAbandonedDocumentSweep(@NonNull Context context) {
+        Context app = context.getApplicationContext();
+        new Thread(() -> sweepAbandonedDocuments(app), "redact-output-sweep").start();
+    }
+
+    @VisibleForTesting
+    static void sweepAbandonedDocuments(@NonNull Context app) {
+        List<Uri> abandoned = new ArrayList<>();
+        synchronized (PENDING_LOCK) {
+            android.content.SharedPreferences prefs = pendingPrefs(app);
+            Set<String> stored = prefs.getStringSet(KEY_PENDING_DOCUMENTS, java.util.Collections.emptySet());
+            Set<String> kept = new java.util.HashSet<>();
+            for (String entry : stored) {
+                int tab = entry.indexOf('\t');
+                if (tab > 0 && entry.substring(0, tab).equals(PROCESS_TOKEN)) {
+                    kept.add(entry);
+                } else if (tab > 0) {
+                    abandoned.add(Uri.parse(entry.substring(tab + 1)));
+                }
+            }
+            if (kept.size() != stored.size()) {
+                prefs.edit().putStringSet(KEY_PENDING_DOCUMENTS, kept).apply();
+            }
+        }
+        for (Uri doc : abandoned) {
+            try {
+                DocumentsContract.deleteDocument(app.getContentResolver(), doc);
+            } catch (Exception e) {
+                // Already gone, or the folder's permission was revoked: nothing left to do.
+                SentryManager.log("An abandoned output could not be removed: " + e.getMessage() + ".");
+            }
+        }
+    }
+
+    @NonNull
+    private static android.content.SharedPreferences pendingPrefs(@NonNull Context app) {
+        return app.getSharedPreferences(PENDING_PREFS, Context.MODE_PRIVATE);
     }
 
     /** The file name of an output created by {@link #create}, or null when it cannot be read. */

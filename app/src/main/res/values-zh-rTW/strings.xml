@@ -270,6 +270,7 @@
     <string name="clean_selected_count">已選取：%1$d 個檔案</string>
     <string name="clean_status_ready">準備選擇要清理的檔案。</string>
     <string name="convert_codec_fallback">%1$s 無法使用；已改為儲存為 %2$s。</string>
+    <string name="video_downscaled">這支手機無法以原始尺寸處理此影片，因此已儲存為 %1$dp。</string>
     <string name="metadata_error_basic_info_generic">無法讀取基本檔案資訊。</string>
     <string name="metadata_error_image_generic">無法讀取影像中繼資料。</string>
     <string name="metadata_error_video_generic">無法讀取影片中繼資料。</string>
@@ -331,7 +332,6 @@
     <string name="scan_metadata_truncated">本次掃描省略了部分 EXIF 標籤（顯示上限）。</string>
     <string name="share_error_interrupted">分享已中斷。請再試一次。</string>
     <string name="share_error_too_many_items">項目過多（一次最多 %1$d 個）。</string>
-    <string name="strip_progress_processing_video_metadata">正在處理影片中繼資料…</string>
     <string name="strip_progress_reading_essential_metadata">正在讀取基本中繼資料…</string>
     <string name="strip_progress_reading_image">正在讀取影像…</string>
     <string name="strip_progress_reading_video">正在讀取影片…</string>
@@ -513,6 +513,8 @@
     <string name="stats_section_activity">最近 30 天</string>
     <string name="stats_chart_empty">最近 30 天內沒有清理任何檔案。</string>
     <string name="stats_chart_today">今天</string>
+    <string name="stats_keep">保留統計資料</string>
+    <string name="stats_keep_subtitle">僅在此裝置上統計 Redact 移除的內容，包括你每天清理的檔案數。關閉後會清除統計並停止統計。</string>
     <string name="stats_clear">清除統計</string>
     <string name="stats_clear_subtitle">將所有計數歸零。你的設定和檔案維持不變。</string>
     <string name="stats_clear_title">清除統計</string>
