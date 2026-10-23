@@ -753,14 +753,14 @@ public class MainViewModel extends AndroidViewModel {
         final int runGeneration = cleanGeneration.incrementAndGet();
         shared.cleanFeedbackEventId = null;
         final SentryId reportedBefore = SentryManager.lastReportedEventId();
-        mediaProcessor.processMediaItems(items, new MediaProcessor.ProcessingCallback() {
+        mediaProcessor.processMediaItems(items, VideoMedia3Converter.cleanOwner(runGeneration),
+                new MediaProcessor.ProcessingCallback() {
 
             @Override
             public void onBatchStarted() {
                 if (runGeneration != cleanGeneration.get()) {
                     return;
                 }
-                mediaProcessor.setTranscodeOwnerId(VideoMedia3Converter.cleanOwner(runGeneration));
                 setCleanProcessingState(ProcessingState.PROCESSING);
                 LocalNotifications.startProcessingForeground(
                         getApplication(), LocalNotifications.ForegroundJob.CLEAN,
