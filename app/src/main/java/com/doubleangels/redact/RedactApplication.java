@@ -47,6 +47,8 @@ public class RedactApplication extends Application {
         // because the user never opens the main app.
         CacheCleanup.scheduleAutoCleanupIfEnabled(this);
 
+        // Files a killed process left half-written in a folder the user chose as the output.
+        com.doubleangels.redact.media.OutputDestination.scheduleAbandonedDocumentSweep(this);
 
         com.doubleangels.redact.stats.StatsStore.preload(this);
     }

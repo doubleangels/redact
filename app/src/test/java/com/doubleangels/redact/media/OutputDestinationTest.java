@@ -226,4 +226,33 @@ public class OutputDestinationTest {
         assertEquals("Pictures/Private", OutputDestination.trimSlashes("/Pictures/Private//"));
         assertEquals("", OutputDestination.trimSlashes("///"));
     }
+
+    @Test
+    public void aDocumentLeftHalfWritten_isRemovedByTheNextStart() throws Exception {
+        chosenImageFolder("primary:Pictures/Private");
+        Uri finished = OutputDestination.create(app, false, "done.jpg", "image/jpeg");
+        OutputDestination.publish(app.getContentResolver(), finished);
+        Uri unfinished = OutputDestination.create(app, false, "partial.jpg", "image/jpeg");
+
+        // This process's own files are never touched: one may be being written right now.
+        OutputDestination.sweepAbandonedDocuments(app);
+        assertTrue(FakeDocumentsProvider.fileFor("primary:Pictures/Private/partial.jpg").exists());
+
+        // The next process finds the unfinished one from this process, which it never published.
+        android.content.SharedPreferences prefs =
+                app.getSharedPreferences("redact_pending_outputs", Context.MODE_PRIVATE);
+        java.util.Set<String> entries = new java.util.HashSet<>();
+        for (String entry : prefs.getStringSet("documents", new java.util.HashSet<>())) {
+            entries.add("an-earlier-process" + entry.substring(entry.indexOf('\t')));
+        }
+        assertEquals(1, entries.size());
+        prefs.edit().putStringSet("documents", entries).commit();
+
+        OutputDestination.sweepAbandonedDocuments(app);
+
+        assertFalse(FakeDocumentsProvider.fileFor("primary:Pictures/Private/partial.jpg").exists());
+        assertTrue(FakeDocumentsProvider.fileFor("primary:Pictures/Private/done.jpg").exists());
+        assertTrue(prefs.getStringSet("documents", new java.util.HashSet<>()).isEmpty());
+        assertEquals(FakeDocumentsProvider.AUTHORITY, unfinished.getAuthority());
+    }
 }
