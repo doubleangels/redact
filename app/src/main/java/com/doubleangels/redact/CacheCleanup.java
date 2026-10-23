@@ -94,8 +94,13 @@ public final class CacheCleanup {
             return;
         }
         Context appContext = context.getApplicationContext();
+        Thread orphanSweep = orphanSweepThread;
         // Guarded to once per process, so a one-shot thread beats a never-released executor.
-        Thread thread = new Thread(() -> performAutoCleanup(appContext), "redact-auto-cleanup");
+        Thread thread = new Thread(() -> {
+            // After the orphan sweep, so the two never overwrite the same file at once.
+            awaitQuietly(orphanSweep);
+            performAutoCleanup(appContext);
+        }, "redact-auto-cleanup");
         autoCleanupThread = thread;
         thread.start();
     }
@@ -152,6 +157,17 @@ public final class CacheCleanup {
                     break;
                 }
             }
+        }
+    }
+
+    private static void awaitQuietly(Thread thread) {
+        if (thread == null) {
+            return;
+        }
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
