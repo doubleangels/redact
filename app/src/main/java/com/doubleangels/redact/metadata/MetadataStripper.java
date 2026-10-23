@@ -823,32 +823,33 @@ public class MetadataStripper {
         }
     }
 
+    /**
+     * The output codec that keeps a source's own: its video track's codec as the extractor reads
+     * it, and only when the tracks cannot be read, what its name suggests. The name used to win,
+     * so an HEVC video named .mp4 was re-encoded to H.264 while the same video named .mov stayed
+     * HEVC.
+     */
     @androidx.annotation.VisibleForTesting
     int detectVideoFormatIndex(Uri sourceUri, String fileName) {
-        if (fileName != null) {
-            String lower = fileName.toLowerCase(java.util.Locale.ROOT);
-            if (lower.endsWith(".webm") || lower.endsWith(".vp9") || lower.endsWith(".vp8")) return 2;
-            if (lower.endsWith(".mp4") || lower.endsWith(".m4v")) return 0;
-            // .mkv is a container; codec is resolved below via MediaExtractor.
-        }
-        
         android.media.MediaExtractor extractor = new android.media.MediaExtractor();
         try {
             extractor.setDataSource(context, sourceUri, null);
             for (int i = 0; i < extractor.getTrackCount(); i++) {
                 android.media.MediaFormat format = extractor.getTrackFormat(i);
                 String mime = format.getString(android.media.MediaFormat.KEY_MIME);
-                if (mime != null) {
-                    if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_HEVC)) {
-                        return 1;
-                    }
-                    if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP9) || mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP8)) {
-                        return 2;
-                    }
-                    if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_AV1)) {
-                        return 3;
-                    }
+                if (mime == null || !mime.startsWith("video/")) {
+                    continue;
                 }
+                if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_HEVC)) {
+                    return 1;
+                }
+                if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP9) || mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP8)) {
+                    return 2;
+                }
+                if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_AV1)) {
+                    return 3;
+                }
+                return 0;
             }
         } catch (Exception ignored) {
             SentryManager.log("An exception was ignored: " + ignored + ".");
@@ -857,6 +858,12 @@ public class MetadataStripper {
                 extractor.release();
             } catch (Exception ignored) {
                 SentryManager.log("An exception was ignored: " + ignored + ".");
+            }
+        }
+        if (fileName != null) {
+            String lower = fileName.toLowerCase(java.util.Locale.ROOT);
+            if (lower.endsWith(".webm") || lower.endsWith(".vp9") || lower.endsWith(".vp8")) {
+                return 2;
             }
         }
         return 0;
