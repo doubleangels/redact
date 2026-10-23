@@ -350,6 +350,7 @@ public class ScanFragment extends Fragment {
     @Override
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
+        updateRecentsPreview();
         if (!hidden && permissionManager != null) {
             permissionManager.checkPermissions();
             if (metadataCard != null && metadataCard.getVisibility() == View.VISIBLE) {
@@ -379,6 +380,11 @@ public class ScanFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
+        android.app.Activity activity = getActivity();
+        if (activity != null) {
+            com.doubleangels.redact.ui.SecureWindow.setSensitiveContentShowing(
+                    activity, com.doubleangels.redact.ui.SecureWindow.SOURCE_SCAN, false);
+        }
         MetadataDisplayer.cancelActiveScan();
         if (metadataSearchInput != null) {
             metadataSearchInput.removeCallbacks(applyMetadataSearch);
@@ -661,6 +667,7 @@ public class ScanFragment extends Fragment {
             return;
         }
         heroCard.setVisibility(View.VISIBLE);
+        updateRecentsPreview();
 
         if (mediaItem != null) {
             Glide.with(heroThumbnail)
@@ -874,6 +881,21 @@ public class ScanFragment extends Fragment {
                 && scanMetadataAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
     }
 
+    /**
+     * Keeps the recent apps preview from showing a scanned photo and its metadata (a location,
+     * say) while this tab shows them.
+     */
+    private void updateRecentsPreview() {
+        android.app.Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        boolean showing = !isHidden() && getView() != null
+                && heroCard != null && heroCard.getVisibility() == View.VISIBLE;
+        com.doubleangels.redact.ui.SecureWindow.setSensitiveContentShowing(
+                activity, com.doubleangels.redact.ui.SecureWindow.SOURCE_SCAN, showing);
+    }
+
     private void clearMetadataUi() {
         scanMetadataAdapter.clear();
         lastMetadataRows = List.of();
@@ -883,6 +905,7 @@ public class ScanFragment extends Fragment {
         if (heroCard != null) {
             heroCard.setVisibility(View.GONE);
         }
+        updateRecentsPreview();
         if (locationPermissionBanner != null) {
             locationPermissionBanner.setVisibility(View.GONE);
         }

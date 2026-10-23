@@ -36,32 +36,58 @@ public final class SecureWindow {
         }
     }
 
-    /**
-     * Keeps the window out of the recent apps preview while a photo is open in Censor, whatever the
-     * setting, so the uncovered photo is never shown there. Android 13 and later can hide only the
-     * preview; Android 12 has no such switch, so the window is made secure until the photo closes.
-     */
+    /** What Censor shows: the photo, before it is covered. */
+    public static final String SOURCE_CENSOR = "censor";
+    /** What Scan shows: the photo and what it gives away, its location included. */
+    public static final String SOURCE_SCAN = "scan";
+
+    /** Like {@link #setSensitiveContentShowing}, for Censor's open photo. */
     public static void setPhotoOpen(@NonNull Activity activity, boolean open) {
+        setSensitiveContentShowing(activity, SOURCE_CENSOR, open);
+    }
+
+    /**
+     * Keeps the window out of the recent apps preview while any tab shows a photo or its metadata,
+     * whatever the setting, so neither is ever shown there. {@code source} names the tab, so one
+     * tab closing its photo does not uncover another's. Android 13 and later can hide only the
+     * preview; Android 12 has no such switch, so the window is made secure meanwhile.
+     */
+    public static void setSensitiveContentShowing(@NonNull Activity activity, @NonNull String source,
+                                                  boolean showing) {
         Window window = activity.getWindow();
         if (window == null) {
             return;
         }
         View decor = window.getDecorView();
-        if (Boolean.valueOf(open).equals(decor.getTag(R.id.secure_window_photo_open))) {
+        java.util.Set<String> before = showingSources(decor);
+        java.util.Set<String> after = new java.util.HashSet<>(before);
+        if (showing) {
+            after.add(source);
+        } else {
+            after.remove(source);
+        }
+        decor.setTag(R.id.secure_window_photo_open, after);
+        if (before.isEmpty() == after.isEmpty()) {
             return;
         }
-        decor.setTag(R.id.secure_window_photo_open, open);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            activity.setRecentsScreenshotEnabled(!open);
+            activity.setRecentsScreenshotEnabled(after.isEmpty());
         } else {
             apply(activity);
         }
+    }
+
+    @NonNull
+    @SuppressWarnings("unchecked")
+    private static java.util.Set<String> showingSources(@NonNull View decor) {
+        Object tag = decor.getTag(R.id.secure_window_photo_open);
+        return tag instanceof java.util.Set<?> set ? (java.util.Set<String>) set : java.util.Collections.emptySet();
     }
 
     private static boolean needsFlagForPhoto(@NonNull Window window) {
         // peekDecorView: apply() runs before setContentView, when there is no decor to create yet.
         View decor = window.peekDecorView();
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU && decor != null
-                && Boolean.TRUE.equals(decor.getTag(R.id.secure_window_photo_open));
+                && !showingSources(decor).isEmpty();
     }
 }
