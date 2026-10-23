@@ -427,7 +427,9 @@ public class ShareHandlerActivityFlowsTest {
     }
 
     @Test
-    public void chooserCancelled_deletesProcessedFilesAtOnce() throws Exception {
+    public void chooserCancelled_stillKeepsFilesForTheGracePeriod() throws Exception {
+        // The chooser forwards the chosen app's result, which is RESULT_CANCELED for most apps
+        // even after something was shared, so it must not delete what that app is reading.
         ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
         File processed = addProcessedFile(activity);
         Uri cleaned = Uri.fromFile(processed);
@@ -439,6 +441,8 @@ public class ShareHandlerActivityFlowsTest {
         idle();
 
         assertTrue(activity.isFinishing());
+        assertTrue("Files stay until the target app has read them", processed.exists());
+        ShadowLooper.idleMainLooper(61, java.util.concurrent.TimeUnit.MINUTES);
         awaitMain(() -> !processed.exists());
     }
 
@@ -453,7 +457,7 @@ public class ShareHandlerActivityFlowsTest {
         shadow.receiveResult(launched.intent, Activity.RESULT_OK, new Intent());
         idle();
         assertTrue("Files stay until the target app has read them", processed.exists());
-        ShadowLooper.idleMainLooper(3, java.util.concurrent.TimeUnit.MINUTES);
+        ShadowLooper.idleMainLooper(61, java.util.concurrent.TimeUnit.MINUTES);
 
         awaitMain(() -> !processed.exists());
         assertTrue(activity.isFinishing());
@@ -467,7 +471,7 @@ public class ShareHandlerActivityFlowsTest {
         activity.finish();
 
         controller.pause().stop().destroy();
-        ShadowLooper.idleMainLooper(3, java.util.concurrent.TimeUnit.MINUTES);
+        ShadowLooper.idleMainLooper(61, java.util.concurrent.TimeUnit.MINUTES);
 
         awaitMain(() -> !processed.exists());
     }

@@ -50,8 +50,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     /** Maximum items accepted from ACTION_SEND_MULTIPLE. */
     private static final int MAX_SHARE_ITEMS = 20;
-    /** Delay before deleting shared files so the target app can finish reading the URI. */
-    private static final long SHARE_CLEANUP_DELAY_MS = 2L * 60L * 1000L;
+    /**
+     * How long shared files are kept so the target app can read them. Some apps read a shared
+     * file only when the user finally sends (an email draft, a chat queued offline), so this is
+     * generous; the files are already clean. If the process dies first, the next start removes
+     * them ({@link CacheCleanup#SHARED_OUTPUT_MAX_AGE_MS}).
+     */
+    private static final long SHARE_CLEANUP_DELAY_MS = CacheCleanup.SHARED_OUTPUT_MAX_AGE_MS;
     private static final String KEY_SHARING_INITIATED = "sharing_initiated";
     private static final String KEY_PROCESSING_ACTIVE = "processing_active";
 
@@ -75,13 +80,11 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private final ActivityResultLauncher<Intent> shareResultLauncher =
             registerForActivityResult(
                     new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+                    // The chooser forwards the chosen app's result, and most apps never set one, so
+                    // RESULT_CANCELED does not mean nothing was shared: an app that opens in its own
+                    // task returns it at once, before it has read anything. Every result waits.
                     result -> {
-                        if (result.getResultCode() == RESULT_CANCELED) {
-                            SentryManager.log("The share chooser was canceled, so cleanup is happening immediately.");
-                            cleanupProcessedFiles();
-                        } else {
-                            scheduleDelayedShareCleanup();
-                        }
+                        scheduleDelayedShareCleanup();
                         finish();
                     });
 
@@ -840,11 +843,16 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 SHARE_CLEANUP_DELAY_MS);
     }
 
+    /**
+     * Deletes shared files. They are already clean, so they are only unlinked, not overwritten:
+     * overwriting would corrupt a file an app that was shared it is still reading, while unlinking
+     * leaves an open file readable until it is closed.
+     */
     private static void deleteProcessedFileList(@NonNull Context context, List<File> files) {
         for (File processedFile : files) {
             if (processedFile != null && processedFile.exists()) {
                 try {
-                    if (SecureDelete.secureDelete(context, processedFile)) {
+                    if (processedFile.delete()) {
                         SentryManager.log("The temporary processed file was deleted after sharing.");
                     } else {
                         SentryManager.log("The temporary processed file failed to delete.");
