@@ -526,6 +526,8 @@
     <string name="stats_section_activity">पिछले 30 दिन</string>
     <string name="stats_chart_empty">पिछले 30 दिनों में कुछ भी साफ़ नहीं किया गया।</string>
     <string name="stats_chart_today">आज</string>
+    <string name="stats_keep">आँकड़े रखें</string>
+    <string name="stats_keep_subtitle">Redact जो हटाता है उसे केवल इसी डिवाइस पर गिनता है, जिसमें यह भी शामिल है कि आप हर दिन कितनी फ़ाइलें साफ़ करते हैं। इसे बंद करने पर गिनती मिट जाती है और गिनना बंद हो जाता है।</string>
     <string name="stats_clear">आँकड़े मिटाएँ</string>
     <string name="stats_clear_subtitle">सभी गिनतियों को शून्य कर देता है। आपकी सेटिंग और फ़ाइलें जैसी हैं वैसी ही रहती हैं।</string>
     <string name="stats_clear_title">आँकड़े मिटाएँ</string>

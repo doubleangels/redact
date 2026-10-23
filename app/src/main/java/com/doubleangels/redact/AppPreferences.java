@@ -22,6 +22,7 @@ public final class AppPreferences {
     private static final String KEY_PROGRESS_NOTIFICATIONS_ENABLED = "progress_notifications_enabled";
     private static final String KEY_CRASH_REPORTING_ENABLED = "crash_reporting_enabled";
     private static final String KEY_DEFAULT_IMAGE_FORMAT_INDEX = "default_image_format_index";
+    private static final String KEY_KEEP_STATISTICS = "keep_statistics";
     private static final String KEY_DEFAULT_VIDEO_FORMAT_INDEX = "default_video_format_index";
     private static final String KEY_IMAGE_QUALITY_PRESET = "image_quality_preset";
     private static final String KEY_SHARE_CONFIRM_BEFORE_STRIP = "share_confirm_before_strip";
@@ -311,6 +312,18 @@ public final class AppPreferences {
 
     public static void setClipboardClearSeconds(@NonNull Context context, int seconds) {
         prefs(context).edit().putInt(KEY_CLIPBOARD_CLEAR_SECONDS, seconds).apply();
+    }
+
+    /**
+     * Whether Settings › Statistics counts what Redact does. On by default; when off nothing is
+     * counted, so no record of when the user cleaned files is kept on the device.
+     */
+    public static boolean isKeepStatistics(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_KEEP_STATISTICS, true);
+    }
+
+    public static void setKeepStatistics(@NonNull Context context, boolean keep) {
+        prefs(context).edit().putBoolean(KEY_KEEP_STATISTICS, keep).apply();
     }
 
     public static boolean isDeleteOriginalsAfterClean(@NonNull Context context) {

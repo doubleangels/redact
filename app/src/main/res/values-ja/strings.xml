@@ -514,6 +514,8 @@
     <string name="stats_section_activity">過去30日間</string>
     <string name="stats_chart_empty">過去30日間にクリーンしたファイルはありません。</string>
     <string name="stats_chart_today">今日</string>
+    <string name="stats_keep">統計を記録</string>
+    <string name="stats_keep_subtitle">Redactが削除した内容を、このデバイス上だけで記録します。毎日クリーンしたファイル数も含まれます。オフにすると記録が消去され、記録も停止します。</string>
     <string name="stats_clear">統計を消去</string>
     <string name="stats_clear_subtitle">すべての数値をゼロに戻します。設定とファイルはそのままです。</string>
     <string name="stats_clear_title">統計を消去</string>

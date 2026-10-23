@@ -539,6 +539,8 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="stats_section_activity">Últimos 30 Días</string>
     <string name="stats_chart_empty">No se limpió nada en los últimos 30 días.</string>
     <string name="stats_chart_today">Hoy</string>
+    <string name="stats_keep">Guardar estadísticas</string>
+    <string name="stats_keep_subtitle">Cuenta lo que Redact elimina, solo en este dispositivo, incluido cuántos archivos limpias cada día. Al desactivarlo se borran los recuentos y se deja de contar.</string>
     <string name="stats_clear">Borrar Estadísticas</string>
     <string name="stats_clear_subtitle">Pone todos los contadores a cero. Tus ajustes y archivos no cambian.</string>
     <string name="stats_clear_title">Borrar estadísticas</string>

@@ -525,6 +525,8 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="stats_section_activity">Letzte 30 Tage</string>
     <string name="stats_chart_empty">In den letzten 30 Tagen wurde nichts bereinigt.</string>
     <string name="stats_chart_today">Heute</string>
+    <string name="stats_keep">Statistik führen</string>
+    <string name="stats_keep_subtitle">Zählt, was Redact entfernt, nur auf diesem Gerät, auch wie viele Dateien du pro Tag bereinigst. Beim Ausschalten werden die Zahlen gelöscht und es wird nicht mehr gezählt.</string>
     <string name="stats_clear">Statistik Löschen</string>
     <string name="stats_clear_subtitle">Setzt alle Zähler auf null zurück. Deine Einstellungen und Dateien bleiben unverändert.</string>
     <string name="stats_clear_title">Statistik löschen</string>

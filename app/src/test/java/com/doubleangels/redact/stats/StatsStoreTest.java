@@ -393,4 +393,20 @@ public class StatsStoreTest {
     public void statisticsAreNeverBackedUp() {
         assertEquals(0, context.getApplicationInfo().flags & ApplicationInfo.FLAG_ALLOW_BACKUP);
     }
+
+    @Test
+    public void withStatisticsOff_nothingIsCounted() {
+        AppPreferences.setKeepStatistics(context, false);
+
+        StatsStore.recordClean(context, fields(4, true), false, true);
+        StatsStore.recordShare(context);
+        StatsStore.recordConverted(context);
+
+        assertTrue(StatsStore.snapshot(context).isEmpty());
+        assertTrue("not even the day it happened", raw().getAll().isEmpty());
+
+        AppPreferences.setKeepStatistics(context, true);
+        StatsStore.recordConverted(context);
+        assertEquals(1, StatsStore.snapshot(context).converted);
+    }
 }

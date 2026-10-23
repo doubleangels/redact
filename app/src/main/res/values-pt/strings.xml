@@ -539,6 +539,8 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="stats_section_activity">Últimos 30 Dias</string>
     <string name="stats_chart_empty">Nada foi limpo nos últimos 30 dias.</string>
     <string name="stats_chart_today">Hoje</string>
+    <string name="stats_keep">Manter estatísticas</string>
+    <string name="stats_keep_subtitle">Conta o que o Redact remove, apenas neste dispositivo, incluindo quantos arquivos você limpa por dia. Desativar apaga as contagens e interrompe a contagem.</string>
     <string name="stats_clear">Limpar Estatísticas</string>
     <string name="stats_clear_subtitle">Zera todas as contagens. Suas configurações e arquivos continuam como estão.</string>
     <string name="stats_clear_title">Limpar estatísticas</string>

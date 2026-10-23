@@ -539,6 +539,8 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="stats_section_activity">30 Derniers Jours</string>
     <string name="stats_chart_empty">Rien n’a été nettoyé au cours des 30 derniers jours.</string>
     <string name="stats_chart_today">Aujourd’hui</string>
+    <string name="stats_keep">Conserver les statistiques</string>
+    <string name="stats_keep_subtitle">Compte ce que Redact supprime, uniquement sur cet appareil, y compris le nombre de fichiers nettoyés chaque jour. Le désactiver efface les compteurs et arrête le comptage.</string>
     <string name="stats_clear">Effacer les Statistiques</string>
     <string name="stats_clear_subtitle">Remet tous les compteurs à zéro. Vos paramètres et vos fichiers restent inchangés.</string>
     <string name="stats_clear_title">Effacer les statistiques</string>

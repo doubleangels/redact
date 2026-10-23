@@ -539,6 +539,8 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="stats_section_activity">Ultimi 30 Giorni</string>
     <string name="stats_chart_empty">Nulla è stato pulito negli ultimi 30 giorni.</string>
     <string name="stats_chart_today">Oggi</string>
+    <string name="stats_keep">Conserva statistiche</string>
+    <string name="stats_keep_subtitle">Conta ciò che Redact rimuove, solo su questo dispositivo, incluso quanti file pulisci ogni giorno. Disattivandolo i conteggi vengono cancellati e il conteggio si interrompe.</string>
     <string name="stats_clear">Cancella Statistiche</string>
     <string name="stats_clear_subtitle">Azzera tutti i conteggi. Le tue impostazioni e i tuoi file restano invariati.</string>
     <string name="stats_clear_title">Cancella statistiche</string>

@@ -513,6 +513,8 @@
     <string name="stats_section_activity">최근 30일</string>
     <string name="stats_chart_empty">최근 30일 동안 정리한 파일이 없습니다.</string>
     <string name="stats_chart_today">오늘</string>
+    <string name="stats_keep">통계 기록</string>
+    <string name="stats_keep_subtitle">Redact가 제거한 항목을 이 기기에서만 집계하며, 매일 정리한 파일 수도 포함됩니다. 끄면 집계가 삭제되고 더 이상 집계하지 않습니다.</string>
     <string name="stats_clear">통계 지우기</string>
     <string name="stats_clear_subtitle">모든 수치를 0으로 되돌립니다. 설정과 파일은 그대로 유지됩니다.</string>
     <string name="stats_clear_title">통계 지우기</string>

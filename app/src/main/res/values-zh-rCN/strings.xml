@@ -513,6 +513,8 @@
     <string name="stats_section_activity">最近 30 天</string>
     <string name="stats_chart_empty">最近 30 天内没有清理任何文件。</string>
     <string name="stats_chart_today">今天</string>
+    <string name="stats_keep">保留统计信息</string>
+    <string name="stats_keep_subtitle">仅在此设备上统计 Redact 移除的内容，包括你每天清理的文件数。关闭后会清除统计并停止统计。</string>
     <string name="stats_clear">清除统计</string>
     <string name="stats_clear_subtitle">将所有计数归零。你的设置和文件保持不变。</string>
     <string name="stats_clear_title">清除统计</string>

@@ -578,6 +578,8 @@
     <string name="stats_section_activity">آخر 30 يومًا</string>
     <string name="stats_chart_empty">لم يُنظَّف أي شيء خلال آخر 30 يومًا.</string>
     <string name="stats_chart_today">اليوم</string>
+    <string name="stats_keep">الاحتفاظ بالإحصاءات</string>
+    <string name="stats_keep_subtitle">يحسب ما يزيله Redact على هذا الجهاز فقط، بما في ذلك عدد الملفات التي تنظفها كل يوم. يؤدي إيقافه إلى مسح الأعداد والتوقف عن العد.</string>
     <string name="stats_clear">مسح الإحصائيات</string>
     <string name="stats_clear_subtitle">يعيد كل الأعداد إلى الصفر. تبقى إعداداتك وملفاتك كما هي.</string>
     <string name="stats_clear_title">مسح الإحصائيات</string>

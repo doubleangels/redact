@@ -552,6 +552,8 @@
     <string name="stats_section_activity">Последние 30 Дней</string>
     <string name="stats_chart_empty">За последние 30 дней ничего не очищено.</string>
     <string name="stats_chart_today">Сегодня</string>
+    <string name="stats_keep">Вести статистику</string>
+    <string name="stats_keep_subtitle">Считает, что удаляет Redact, только на этом устройстве, включая число файлов, очищенных за каждый день. Если выключить, счётчики сбросятся и подсчёт прекратится.</string>
     <string name="stats_clear">Очистить Статистику</string>
     <string name="stats_clear_subtitle">Сбрасывает все счётчики до нуля. Ваши настройки и файлы не меняются.</string>
     <string name="stats_clear_title">Очистка статистики</string>

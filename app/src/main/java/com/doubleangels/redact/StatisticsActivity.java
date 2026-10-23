@@ -79,6 +79,16 @@ public class StatisticsActivity extends AppCompatActivity {
         tileConverted = setUpTile(R.id.tileConverted, R.drawable.ic_convert, R.string.stats_files_converted);
 
         findViewById(R.id.rowClearStats).setOnClickListener(v -> confirmClear());
+        com.google.android.material.materialswitch.MaterialSwitch keep = findViewById(R.id.switchKeepStats);
+        keep.setChecked(com.doubleangels.redact.AppPreferences.isKeepStatistics(this));
+        keep.setOnCheckedChangeListener((button, checked) -> {
+            com.doubleangels.redact.AppPreferences.setKeepStatistics(this, checked);
+            if (!checked) {
+                // Off means no record at all, including the day-by-day history kept so far.
+                StatsStore.clear(this);
+                render();
+            }
+        });
         applyInsets();
     }
 
