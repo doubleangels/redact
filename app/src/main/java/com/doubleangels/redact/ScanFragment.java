@@ -465,14 +465,16 @@ public class ScanFragment extends Fragment {
             metadataCard.setVisibility(View.GONE);
             clearCoordinateState();
 
-            String mimeType = requireContext().getContentResolver().getType(mediaUri);
-            // The picked item already has its name (read off the main thread); ask the provider
-            // again only for a file that came without one.
-            String fileName = currentMediaItem != null && mediaUri.equals(currentMediaItem.uri())
-                    && currentMediaItem.fileName() != null
-                    ? currentMediaItem.fileName()
-                    : mediaSelector != null ? mediaSelector.getFileName(mediaUri) : null;
-            boolean isVideo = MediaSelector.isVideoFromMimeAndName(mimeType, fileName);
+            // A picked item already knows whether it is a video (worked out off the main thread);
+            // only a file that arrived some other way asks its provider here, which can be slow.
+            boolean isVideo;
+            if (currentMediaItem != null && mediaUri.equals(currentMediaItem.uri())) {
+                isVideo = currentMediaItem.isVideo();
+            } else {
+                String mimeType = requireContext().getContentResolver().getType(mediaUri);
+                String fileName = mediaSelector != null ? mediaSelector.getFileName(mediaUri) : null;
+                isVideo = MediaSelector.isVideoFromMimeAndName(mimeType, fileName);
+            }
 
             // The worker tags its own operation with the type and permission: these keys belong to
             // the thread that sets them, and set here they would only tag later main-thread events.
