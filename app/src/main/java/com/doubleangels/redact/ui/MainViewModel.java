@@ -13,6 +13,7 @@ import android.os.Looper;
 
 
 import androidx.fragment.app.FragmentActivity;
+import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -89,8 +90,7 @@ public class MainViewModel extends AndroidViewModel {
 
     private final ExecutorService convertExecutor;
 
-    private final List<android.net.Uri> convertOutputs =
-            new java.util.concurrent.CopyOnWriteArrayList<>();
+    private final List<android.net.Uri> convertOutputs;
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
@@ -102,15 +102,65 @@ public class MainViewModel extends AndroidViewModel {
 
     private final AtomicInteger cleanGeneration;
 
-    private final ProgressUpdateThrottler convertProgressThrottler = new ProgressUpdateThrottler();
+    private final ProgressUpdateThrottler convertProgressThrottler;
 
-    /** Error report the last failed clean sent, until its tab offers feedback on it. */
-    @androidx.annotation.Nullable
-    private SentryId cleanFeedbackEventId;
+    /**
+     * What the Clean and Convert tabs show, kept with the {@link AppProcessingScope} that runs
+     * their jobs rather than in this ViewModel. A job outlives the activity that started it (the
+     * user backs out and opens the app again), and its callbacks must reach the screen that is
+     * showing then, not the ViewModel that was cleared with the old activity.
+     */
+    private final SharedState shared;
 
-    /** Error report the last failed convert sent, until its tab offers feedback on it. */
+    private static final class SharedState {
+        final MutableLiveData<List<MediaItem>> selectedItems = new MutableLiveData<>(new ArrayList<>());
+        final MutableLiveData<List<MediaItem>> convertSelectedItems = new MutableLiveData<>(new ArrayList<>());
+        final MutableLiveData<ProcessingState> cleanProcessingState = new MutableLiveData<>(ProcessingState.IDLE);
+        final MutableLiveData<ProcessingState> convertProcessingState = new MutableLiveData<>(ProcessingState.IDLE);
+        final MutableLiveData<Integer> cleanProcessedItemCount = new MutableLiveData<>(0);
+        final MutableLiveData<Integer> convertProcessedItemCount = new MutableLiveData<>(0);
+        final MutableLiveData<Integer> cleanBatchTotalCount = new MutableLiveData<>(0);
+        final MutableLiveData<Integer> convertBatchTotalCount = new MutableLiveData<>(0);
+        final MutableLiveData<Integer> cleanProgressPercent = new MutableLiveData<>(0);
+        final MutableLiveData<Integer> convertProgressPercent = new MutableLiveData<>(0);
+        final MutableLiveData<String> cleanProgressMessage = new MutableLiveData<>("");
+        final MutableLiveData<String> convertProgressMessage = new MutableLiveData<>("");
+        final List<android.net.Uri> convertOutputs = new java.util.concurrent.CopyOnWriteArrayList<>();
+        final ProgressUpdateThrottler convertProgressThrottler = new ProgressUpdateThrottler();
+        /** Error report the last failed clean sent, until its tab offers feedback on it. */
+        @androidx.annotation.Nullable
+        volatile SentryId cleanFeedbackEventId;
+        /** Error report the last failed convert sent, until its tab offers feedback on it. */
+        @androidx.annotation.Nullable
+        volatile SentryId convertFeedbackEventId;
+        /**
+         * False until a ViewModel has filled this from its saved state. Only the first one does:
+         * saved state matters after the process was killed, while a later ViewModel in the same
+         * process would replace live values with older saved ones.
+         */
+        boolean restored;
+        /**
+         * The saved state of the newest ViewModel. A job reports through the ViewModel that
+         * started it, so its results are saved here, where a recreated screen will look.
+         */
+        @androidx.annotation.Nullable
+        volatile SavedStateHandle savingHandle;
+    }
+
     @androidx.annotation.Nullable
-    private SentryId convertFeedbackEventId;
+    private static SharedState sharedState;
+    @androidx.annotation.Nullable
+    private static AppProcessingScope sharedStateScope;
+
+    /** The state for {@code scope}; a new scope (a new process, or tests) starts a new one. */
+    @NonNull
+    private static synchronized SharedState sharedStateFor(@NonNull AppProcessingScope scope) {
+        if (sharedState == null || sharedStateScope != scope) {
+            sharedState = new SharedState();
+            sharedStateScope = scope;
+        }
+        return sharedState;
+    }
 
 
 
@@ -148,7 +198,32 @@ public class MainViewModel extends AndroidViewModel {
         convertTimedOut = processingScope.convertTimedOut();
         cleanGeneration = processingScope.cleanGeneration();
 
-        restorePersistedProcessingState();
+        shared = sharedStateFor(processingScope);
+        selectedItems = shared.selectedItems;
+        convertSelectedItems = shared.convertSelectedItems;
+        cleanProcessingState = shared.cleanProcessingState;
+        convertProcessingState = shared.convertProcessingState;
+        cleanProcessedItemCount = shared.cleanProcessedItemCount;
+        convertProcessedItemCount = shared.convertProcessedItemCount;
+        cleanBatchTotalCount = shared.cleanBatchTotalCount;
+        convertBatchTotalCount = shared.convertBatchTotalCount;
+        cleanProgressPercent = shared.cleanProgressPercent;
+        convertProgressPercent = shared.convertProgressPercent;
+        cleanProgressMessage = shared.cleanProgressMessage;
+        convertProgressMessage = shared.convertProgressMessage;
+        convertOutputs = shared.convertOutputs;
+        convertProgressThrottler = shared.convertProgressThrottler;
+        shared.savingHandle = savedStateHandle;
+
+        if (!shared.restored) {
+            shared.restored = true;
+            restorePersistedProcessingState();
+        } else {
+            // This screen's saved state starts from what is showing now.
+            persistMediaItems(KEY_CLEAN_URIS, KEY_CLEAN_NAMES, KEY_CLEAN_VIDEOS, selectedItems.getValue());
+            persistMediaItems(KEY_CONVERT_URIS, KEY_CONVERT_NAMES, KEY_CONVERT_VIDEOS,
+                    convertSelectedItems.getValue());
+        }
 
     }
 
@@ -194,12 +269,19 @@ public class MainViewModel extends AndroidViewModel {
         }
     }
 
+    /** Where state is saved: the newest ViewModel's handle (see {@link SharedState#savingHandle}). */
+    @NonNull
+    private SavedStateHandle savingHandle() {
+        SavedStateHandle handle = shared.savingHandle;
+        return handle != null ? handle : savedStateHandle;
+    }
+
     private void persistMediaItems(
             String urisKey, String namesKey, String videosKey, List<MediaItem> items) {
         if (items == null || items.isEmpty()) {
-            savedStateHandle.remove(urisKey);
-            savedStateHandle.remove(namesKey);
-            savedStateHandle.remove(videosKey);
+            savingHandle().remove(urisKey);
+            savingHandle().remove(namesKey);
+            savingHandle().remove(videosKey);
             return;
         }
         ArrayList<String> uris = new ArrayList<>(items.size());
@@ -210,9 +292,9 @@ public class MainViewModel extends AndroidViewModel {
             names.add(item.fileName() != null ? item.fileName() : "");
             videos.add(item.isVideo());
         }
-        savedStateHandle.set(urisKey, uris);
-        savedStateHandle.set(namesKey, names);
-        savedStateHandle.set(videosKey, videos);
+        savingHandle().set(urisKey, uris);
+        savingHandle().set(namesKey, names);
+        savingHandle().set(videosKey, videos);
     }
 
     private List<MediaItem> restoreMediaItems(String urisKey, String namesKey, String videosKey) {
@@ -235,15 +317,15 @@ public class MainViewModel extends AndroidViewModel {
     }
 
     private void persistBatchCounts(int processed, int batchTotal, String processedKey, String batchKey) {
-        savedStateHandle.set(processedKey, processed);
-        savedStateHandle.set(batchKey, batchTotal);
+        savingHandle().set(processedKey, processed);
+        savingHandle().set(batchKey, batchTotal);
     }
 
     private void persistProcessingState(ProcessingState state, String key) {
         if (state == ProcessingState.PROCESSING) {
-            savedStateHandle.remove(key);
+            savingHandle().remove(key);
         } else {
-            savedStateHandle.set(key, state);
+            savingHandle().set(key, state);
         }
     }
 
@@ -311,51 +393,47 @@ public class MainViewModel extends AndroidViewModel {
 
     /** Currently selected media items for the Clean tab */
 
-    private final MutableLiveData<List<MediaItem>> selectedItems = new MutableLiveData<>(new ArrayList<>());
+    private final MutableLiveData<List<MediaItem>> selectedItems;
 
 
 
     /** Currently selected media items for the Convert tab */
 
-    private final MutableLiveData<List<MediaItem>> convertSelectedItems = new MutableLiveData<>(new ArrayList<>());
+    private final MutableLiveData<List<MediaItem>> convertSelectedItems;
 
 
 
-    private final MutableLiveData<ProcessingState> cleanProcessingState =
+    private final MutableLiveData<ProcessingState> cleanProcessingState;
 
-            new MutableLiveData<>(ProcessingState.IDLE);
-
-    private final MutableLiveData<ProcessingState> convertProcessingState =
-
-            new MutableLiveData<>(ProcessingState.IDLE);
+    private final MutableLiveData<ProcessingState> convertProcessingState;
 
 
 
-    private final MutableLiveData<Integer> cleanProcessedItemCount = new MutableLiveData<>(0);
+    private final MutableLiveData<Integer> cleanProcessedItemCount;
 
-    private final MutableLiveData<Integer> convertProcessedItemCount = new MutableLiveData<>(0);
+    private final MutableLiveData<Integer> convertProcessedItemCount;
 
 
 
     /** Batch size when the last clean run started (survives rotation). */
 
-    private final MutableLiveData<Integer> cleanBatchTotalCount = new MutableLiveData<>(0);
+    private final MutableLiveData<Integer> cleanBatchTotalCount;
 
     /** Batch size when the last convert run started (survives rotation). */
 
-    private final MutableLiveData<Integer> convertBatchTotalCount = new MutableLiveData<>(0);
+    private final MutableLiveData<Integer> convertBatchTotalCount;
 
 
 
-    private final MutableLiveData<Integer> cleanProgressPercent = new MutableLiveData<>(0);
+    private final MutableLiveData<Integer> cleanProgressPercent;
 
-    private final MutableLiveData<Integer> convertProgressPercent = new MutableLiveData<>(0);
+    private final MutableLiveData<Integer> convertProgressPercent;
 
 
 
-    private final MutableLiveData<String> cleanProgressMessage = new MutableLiveData<>("");
+    private final MutableLiveData<String> cleanProgressMessage;
 
-    private final MutableLiveData<String> convertProgressMessage = new MutableLiveData<>("");
+    private final MutableLiveData<String> convertProgressMessage;
 
 
 
@@ -601,16 +679,16 @@ public class MainViewModel extends AndroidViewModel {
      */
     @androidx.annotation.Nullable
     public SentryId takeCleanFeedbackEventId() {
-        SentryId id = cleanFeedbackEventId;
-        cleanFeedbackEventId = null;
+        SentryId id = shared.cleanFeedbackEventId;
+        shared.cleanFeedbackEventId = null;
         return id;
     }
 
     /** Like {@link #takeCleanFeedbackEventId()}, for the last convert. */
     @androidx.annotation.Nullable
     public SentryId takeConvertFeedbackEventId() {
-        SentryId id = convertFeedbackEventId;
-        convertFeedbackEventId = null;
+        SentryId id = shared.convertFeedbackEventId;
+        shared.convertFeedbackEventId = null;
         return id;
     }
 
@@ -673,7 +751,7 @@ public class MainViewModel extends AndroidViewModel {
         persistBatchCounts(0, items.size(), KEY_CLEAN_PROCESSED, KEY_CLEAN_BATCH);
 
         final int runGeneration = cleanGeneration.incrementAndGet();
-        cleanFeedbackEventId = null;
+        shared.cleanFeedbackEventId = null;
         final SentryId reportedBefore = SentryManager.lastReportedEventId();
         mediaProcessor.processMediaItems(items, new MediaProcessor.ProcessingCallback() {
 
@@ -715,7 +793,7 @@ public class MainViewModel extends AndroidViewModel {
                 int failCount = Math.max(0, totalCount - successCount);
                 // Set before COMPLETED, whose observers run right away and read it.
                 if (failCount > 0) {
-                    cleanFeedbackEventId = SentryManager.reportedSince(reportedBefore);
+                    shared.cleanFeedbackEventId = SentryManager.reportedSince(reportedBefore);
                 }
                 setCleanProcessingState(ProcessingState.COMPLETED);
                 // Counted here rather than by the Clean tab, which sees only the runs it was
@@ -810,7 +888,7 @@ public class MainViewModel extends AndroidViewModel {
                 getApplication().getString(R.string.notification_convert_progress_title));
 
         final int runGeneration = convertGeneration.incrementAndGet();
-        convertFeedbackEventId = null;
+        shared.convertFeedbackEventId = null;
         final SentryId reportedBefore = SentryManager.lastReportedEventId();
         convertExecutor.execute(() -> {
 
@@ -1015,7 +1093,7 @@ public class MainViewModel extends AndroidViewModel {
                                 getApplication().getString(R.string.status_processing_cancelled));
                     } else {
                         if (finalFail > 0) {
-                            convertFeedbackEventId = SentryManager.reportedSince(reportedBefore);
+                            shared.convertFeedbackEventId = SentryManager.reportedSince(reportedBefore);
                         }
                         updateConvertProgressPercentForce(
                                 100, convertCompletionMessage(finalOk, finalFail));

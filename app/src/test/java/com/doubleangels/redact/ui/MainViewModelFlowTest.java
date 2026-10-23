@@ -104,6 +104,7 @@ public class MainViewModelFlowTest {
     @Test
     public void nullFileName_isPersistedAsEmpty() {
         vm.setSelectedItems(Arrays.asList(new MediaItem(Uri.parse("file:///x/y.jpg"), false, null)));
+        AppProcessingScope.resetForTests(); // the process died; only the saved state is left
         MainViewModel restored = new MainViewModel(app, handle);
         assertEquals("", restored.getSelectedItems().getValue().get(0).fileName());
     }
@@ -144,6 +145,7 @@ public class MainViewModelFlowTest {
         handle.set("clean_selected_uris", new ArrayList<>(Arrays.asList("file:///a.jpg", "file:///b.jpg")));
         handle.set("clean_selected_names", new ArrayList<>(Arrays.asList("a.jpg")));
         handle.set("clean_selected_videos", new ArrayList<>(Arrays.asList(false, true)));
+        AppProcessingScope.resetForTests(); // the process died; only the saved state is left
 
         MainViewModel restored = new MainViewModel(app, handle);
         assertEquals(1, restored.getSelectedItems().getValue().size());
@@ -159,6 +161,7 @@ public class MainViewModelFlowTest {
         handle.set("clean_batch_total", 4);
         handle.set("convert_processed_count", 1);
         handle.set("convert_batch_total", 2);
+        AppProcessingScope.resetForTests(); // the process died; only the saved state is left
 
         MainViewModel restored = new MainViewModel(app, handle);
 
@@ -172,6 +175,7 @@ public class MainViewModelFlowTest {
 
     @Test
     public void restoredState_reflectsBusyScope() {
+        AppProcessingScope.resetForTests();
         AppProcessingScope.get(app).convertInProgress().set(true);
         MainViewModel restored = new MainViewModel(app, new SavedStateHandle());
         assertEquals(MainViewModel.ProcessingState.PROCESSING, restored.getConvertProcessingState().getValue());
@@ -332,5 +336,34 @@ public class MainViewModelFlowTest {
         awaitMain(() -> vm.getConvertProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED);
 
         assertEquals(Integer.valueOf(0), vm.getConvertProcessedItemCount().getValue());
+    }
+
+    @Test
+    public void aRunningJob_reachesAViewModelCreatedAfterTheOneThatStartedIt() {
+        // The user backs out while a clean runs and opens the app again: a new ViewModel, with
+        // empty saved state, while the job keeps reporting through the one it started from.
+        vm.setCleanProcessingState(MainViewModel.ProcessingState.PROCESSING);
+        MainViewModel reopened = new MainViewModel(app, new SavedStateHandle());
+        assertEquals(MainViewModel.ProcessingState.PROCESSING, reopened.getCleanProcessingState().getValue());
+
+        vm.updateCleanProgressPercent(40, "halfway");
+        vm.setCleanProcessingState(MainViewModel.ProcessingState.COMPLETED);
+        org.robolectric.shadows.ShadowLooper.idleMainLooper();
+
+        assertEquals(MainViewModel.ProcessingState.COMPLETED, reopened.getCleanProcessingState().getValue());
+        assertEquals(Integer.valueOf(40), reopened.getCleanProgressPercent().getValue());
+        assertEquals("halfway", reopened.getCleanProgressMessage().getValue());
+    }
+
+    @Test
+    public void aLaterViewModel_keepsLiveStateOverItsOwnOlderSavedState() {
+        vm.setSelectedItems(Arrays.asList(image("live.jpg")));
+        handle.set("clean_selected_uris", new ArrayList<>(Arrays.asList("file:///old.jpg")));
+        handle.set("clean_selected_names", new ArrayList<>(Arrays.asList("old.jpg")));
+        handle.set("clean_selected_videos", new ArrayList<>(Arrays.asList(false)));
+
+        MainViewModel later = new MainViewModel(app, handle);
+
+        assertEquals("live.jpg", later.getSelectedItems().getValue().get(0).fileName());
     }
 }
