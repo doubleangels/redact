@@ -344,7 +344,6 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="scan_metadata_truncated">Algumas tags EXIF foram omitidas desta verificação (limite de exibição).</string>
     <string name="share_error_interrupted">O compartilhamento foi interrompido. Tente novamente.</string>
     <string name="share_error_too_many_items">Muitos itens (máx. %1$d por vez).</string>
-    <string name="strip_progress_processing_video_metadata">Processando metadados do vídeo…</string>
     <string name="strip_progress_reading_essential_metadata">Lendo metadados essenciais…</string>
     <string name="strip_progress_reading_image">Lendo imagem…</string>
     <string name="strip_progress_reading_video">Lendo vídeo…</string>

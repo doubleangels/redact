@@ -344,7 +344,6 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="scan_metadata_truncated">Alcuni tag EXIF sono stati omessi da questa scansione (limite di visualizzazione).</string>
     <string name="share_error_interrupted">Condivisione interrotta. Riprova.</string>
     <string name="share_error_too_many_items">Troppi elementi (massimo %1$d alla volta).</string>
-    <string name="strip_progress_processing_video_metadata">Elaborazione dei metadati video in corso…</string>
     <string name="strip_progress_reading_essential_metadata">Lettura dei metadati essenziali in corso…</string>
     <string name="strip_progress_reading_image">Lettura dell\'immagine in corso…</string>
     <string name="strip_progress_reading_video">Lettura del video in corso…</string>

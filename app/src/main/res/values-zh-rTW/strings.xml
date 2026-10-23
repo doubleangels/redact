@@ -332,7 +332,6 @@
     <string name="scan_metadata_truncated">本次掃描省略了部分 EXIF 標籤（顯示上限）。</string>
     <string name="share_error_interrupted">分享已中斷。請再試一次。</string>
     <string name="share_error_too_many_items">項目過多（一次最多 %1$d 個）。</string>
-    <string name="strip_progress_processing_video_metadata">正在處理影片中繼資料…</string>
     <string name="strip_progress_reading_essential_metadata">正在讀取基本中繼資料…</string>
     <string name="strip_progress_reading_image">正在讀取影像…</string>
     <string name="strip_progress_reading_video">正在讀取影片…</string>

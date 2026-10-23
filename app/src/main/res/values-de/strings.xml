@@ -337,7 +337,6 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="scan_metadata_truncated">Einige EXIF-Tags wurden bei diesem Scan ausgelassen (Anzeigelimit).</string>
     <string name="share_error_interrupted">Das Teilen wurde unterbrochen. Bitte versuchen Sie es erneut.</string>
     <string name="share_error_too_many_items">Zu viele Elemente (max. %1$d gleichzeitig).</string>
-    <string name="strip_progress_processing_video_metadata">Video-Metadaten werden verarbeitet…</string>
     <string name="strip_progress_reading_essential_metadata">Wichtige Metadaten werden gelesen…</string>
     <string name="strip_progress_reading_image">Bild wird gelesen…</string>
     <string name="strip_progress_reading_video">Video wird gelesen…</string>

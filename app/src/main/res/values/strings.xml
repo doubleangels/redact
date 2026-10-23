@@ -221,7 +221,6 @@
     <string name="strip_progress_transcoding">Transcoding…</string>
     <string name="strip_progress_transcoding_target">Transcoding to target format…</string>
     <string name="strip_progress_saving_clean_copy">Saving clean copy…</string>
-    <string name="strip_progress_processing_video_metadata">Processing video metadata…</string>
 
     <string name="strip_progress_saving_clean_video">Saving cleaned video…</string>
 

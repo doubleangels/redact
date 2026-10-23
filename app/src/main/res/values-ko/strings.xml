@@ -332,7 +332,6 @@
     <string name="scan_metadata_truncated">이 스캔에서 일부 EXIF 태그가 생략되었습니다(표시 제한).</string>
     <string name="share_error_interrupted">공유가 중단되었습니다. 다시 시도해 주세요.</string>
     <string name="share_error_too_many_items">항목이 너무 많습니다(한 번에 최대 %1$d개).</string>
-    <string name="strip_progress_processing_video_metadata">동영상 메타데이터 처리 중…</string>
     <string name="strip_progress_reading_essential_metadata">필수 메타데이터 읽는 중…</string>
     <string name="strip_progress_reading_image">이미지 읽는 중…</string>
     <string name="strip_progress_reading_video">동영상 읽는 중…</string>

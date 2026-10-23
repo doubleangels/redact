@@ -344,7 +344,6 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="scan_metadata_truncated">Certaines balises EXIF ont été omises de cette analyse (limite d\'affichage).</string>
     <string name="share_error_interrupted">Le partage a été interrompu. Veuillez réessayer.</string>
     <string name="share_error_too_many_items">Trop d\'éléments (max. %1$d à la fois).</string>
-    <string name="strip_progress_processing_video_metadata">Traitement des métadonnées vidéo en cours…</string>
     <string name="strip_progress_reading_essential_metadata">Lecture des métadonnées essentielles en cours…</string>
     <string name="strip_progress_reading_image">Lecture de l\'image en cours…</string>
     <string name="strip_progress_reading_video">Lecture de la vidéo en cours…</string>

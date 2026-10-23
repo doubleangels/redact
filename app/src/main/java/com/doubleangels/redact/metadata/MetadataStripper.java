@@ -749,53 +749,27 @@ public class MetadataStripper {
                 }
             }
 
-            int formatIndex = detectVideoFormatIndex(sourceUri, originalFilename);
-
-            updateProgress(2, 4, context.getString(R.string.strip_progress_transmuxing));
-            File tempCleanFile = fastStripVideoMetadata(sourceUri);
-            Uri cleanSourceUri = tempCleanFile != null ? Uri.fromFile(tempCleanFile) : sourceUri;
-
-            boolean needsTranscode = !shouldSkipVideoTranscode(formatIndex, tempCleanFile, true);
-
-            // A transcode is always MP4; a reused transmux keeps the container it was written in.
-            String extension = needsTranscode
-                    ? VideoMedia3Converter.TRANSCODE_EXTENSION
-                    : VideoMedia3Converter.extensionForFormatIndex(formatIndex);
-            String newFilename = generateShortRandomName() + extension;
+            // Shared videos are always H.264, which every app they go to can play. A share always
+            // re-encodes (a transmux keeps what is inside the stream), straight from the source.
+            int formatIndex = VideoMedia3Converter.FORMAT_STRIP_METADATA;
+            String newFilename = generateShortRandomName() + VideoMedia3Converter.TRANSCODE_EXTENSION;
             outputFile = new File(outputDir, newFilename);
 
             try {
-                if (!needsTranscode && tempCleanFile != null) {
-                    updateProgress(3, 4, context.getString(R.string.strip_progress_processing_video_metadata));
-                    try (InputStream in = new FileInputStream(tempCleanFile);
-                            FileOutputStream out = new FileOutputStream(outputFile)) {
-                        byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-                        int length;
-                        while ((length = in.read(buffer)) > 0) {
-                            out.write(buffer, 0, length);
-                        }
-                        out.flush();
-                    }
-                } else {
-                    updateProgress(3, 4, context.getString(R.string.strip_progress_transcoding));
-                    VideoMedia3Converter.transcodeToFile(
-                            context.getApplicationContext(),
-                            cleanSourceUri,
-                            outputFile,
-                            formatIndex,
-                            this::reportTranscodeProgress,
-                            transcodeOwnerId);
-                }
+                updateProgress(3, 4, context.getString(R.string.strip_progress_transcoding));
+                VideoMedia3Converter.transcodeToFile(
+                        context.getApplicationContext(),
+                        sourceUri,
+                        outputFile,
+                        formatIndex,
+                        this::reportTranscodeProgress,
+                        transcodeOwnerId);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new com.doubleangels.redact.media.ProcessingCancelledException("Video transcoding interrupted", e);
             } catch (Exception e) {
                 SentryManager.log("Video processing failed: " + e.getMessage() + ".");
                 throw new IOException("Failed to process video safely", e);
-            } finally {
-                if (tempCleanFile != null && tempCleanFile.exists()) {
-                    secureDeleteFile(tempCleanFile);
-                }
             }
 
             updateProgress(4, 4, context.getString(R.string.strip_progress_verifying));

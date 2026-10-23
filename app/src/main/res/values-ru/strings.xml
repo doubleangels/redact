@@ -350,7 +350,6 @@
     <string name="scan_metadata_truncated">Некоторые теги EXIF были опущены при этом сканировании (ограничение отображения).</string>
     <string name="share_error_interrupted">Отправка была прервана. Попробуйте снова.</string>
     <string name="share_error_too_many_items">Слишком много элементов (макс. %1$d за раз).</string>
-    <string name="strip_progress_processing_video_metadata">Обработка метаданных видео…</string>
     <string name="strip_progress_reading_essential_metadata">Чтение основных метаданных…</string>
     <string name="strip_progress_reading_image">Чтение изображения…</string>
     <string name="strip_progress_reading_video">Чтение видео…</string>

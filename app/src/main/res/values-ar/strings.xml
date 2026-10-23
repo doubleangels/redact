@@ -362,7 +362,6 @@
     <string name="scan_metadata_truncated">تم حذف بعض علامات EXIF من هذا الفحص (حد العرض).</string>
     <string name="share_error_interrupted">تمت مقاطعة المشاركة. يرجى المحاولة مرة أخرى.</string>
     <string name="share_error_too_many_items">عدد العناصر كبير جدًا (الحد الأقصى %1$d في المرة الواحدة).</string>
-    <string name="strip_progress_processing_video_metadata">جارٍ معالجة بيانات الفيديو الوصفية…</string>
     <string name="strip_progress_reading_essential_metadata">جارٍ قراءة البيانات الوصفية الأساسية…</string>
     <string name="strip_progress_reading_image">جارٍ قراءة الصورة…</string>
     <string name="strip_progress_reading_video">جارٍ قراءة الفيديو…</string>

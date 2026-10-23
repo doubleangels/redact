@@ -338,7 +338,6 @@
     <string name="scan_metadata_truncated">इस स्कैन से कुछ EXIF टैग हटा दिए गए (प्रदर्शन सीमा)।</string>
     <string name="share_error_interrupted">साझा करना बाधित हुआ। कृपया पुनः प्रयास करें।</string>
     <string name="share_error_too_many_items">बहुत अधिक आइटम (एक बार में अधिकतम %1$d)।</string>
-    <string name="strip_progress_processing_video_metadata">वीडियो मेटाडेटा संसाधित किया जा रहा है…</string>
     <string name="strip_progress_reading_essential_metadata">आवश्यक मेटाडेटा पढ़ा जा रहा है…</string>
     <string name="strip_progress_reading_image">छवि पढ़ी जा रही है…</string>
     <string name="strip_progress_reading_video">वीडियो पढ़ा जा रहा है…</string>

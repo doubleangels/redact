@@ -333,7 +333,6 @@
     <string name="scan_metadata_truncated">一部のEXIFタグはこのスキャンで省略されました(表示上限のため)。</string>
     <string name="share_error_interrupted">共有が中断されました。もう一度お試しください。</string>
     <string name="share_error_too_many_items">アイテムが多すぎます(一度に最大%1$d件まで)。</string>
-    <string name="strip_progress_processing_video_metadata">動画のメタデータを処理中…</string>
     <string name="strip_progress_reading_essential_metadata">重要なメタデータを読み取り中…</string>
     <string name="strip_progress_reading_image">画像を読み取り中…</string>
     <string name="strip_progress_reading_video">動画を読み取り中…</string>
