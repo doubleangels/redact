@@ -1216,6 +1216,13 @@ public class MetadataStripper {
         if (preservedExifValues.isEmpty()) {
             return;
         }
+        if (ImageContainerMetadata.sniff(imageFile) == ImageContainerMetadata.Format.OTHER) {
+            // ExifInterface writes only JPEG, PNG and WebP; saving a HEIC throws. Its pixels
+            // were decoded upright (see reEncode), so the orientation is not needed, and the other
+            // kept tags cannot go back in.
+            SentryManager.log("The kept EXIF tags could not be written to this format.");
+            return;
+        }
 
         try {
             ExifInterface newExif = new ExifInterface(imageFile.getAbsolutePath());
@@ -1934,6 +1941,15 @@ public class MetadataStripper {
                           @NonNull FormatConverter.ImageFormatSpec outputFormat) throws IOException {
         FormatConverter.ImageFormatSpec bitmapOutput = outputFormat.bitmapFallbackSupported
                 ? outputFormat : FormatConverter.jpegFormatSpec();
+        if (containerFormat(bitmapOutput.extension) == ImageContainerMetadata.Format.OTHER) {
+            // No tags can be written back into this format (HEIC), so the orientation has to be
+            // in the pixels: ImageDecoder applies it, BitmapFactory does not.
+            Bitmap upright = FormatConverter.decodeUpright(context, Uri.fromFile(source),
+                    AppPreferences.getMaxBitmapSize(context));
+            preservedExifValues.remove(ExifInterface.TAG_ORIENTATION);
+            compressTo(upright, bitmapOutput, target);
+            return;
+        }
         BitmapFactory.Options optionsJustBounds = new BitmapFactory.Options();
         optionsJustBounds.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(source.getAbsolutePath(), optionsJustBounds);
@@ -1949,6 +1965,12 @@ public class MetadataStripper {
         if (bitmap == null) {
             throw new UnsupportedMediaException("Failed to decode bitmap", null);
         }
+        compressTo(bitmap, bitmapOutput, target);
+    }
+
+    /** Encodes {@code bitmap} to {@code target} and recycles it. */
+    private void compressTo(@NonNull Bitmap bitmap, @NonNull FormatConverter.ImageFormatSpec bitmapOutput,
+                            @NonNull File target) throws IOException {
         try (FileOutputStream out = new FileOutputStream(target)) {
             if (!FormatConverter.compressBitmapToStream(context, bitmap, bitmapOutput.compressFormat, out)) {
                 throw new IOException("Failed to compress bitmap");
