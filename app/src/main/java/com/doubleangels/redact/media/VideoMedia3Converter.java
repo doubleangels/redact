@@ -326,6 +326,8 @@ public final class VideoMedia3Converter {
 
         File outFile = new File(outputPath);
         Context app = context.getApplicationContext();
+        // Read once: every codec and size attempt below would otherwise open the source again.
+        boolean hasAudio = sourceHasAudio(app, sourceUri);
 
         IOException lastFailure = null;
         for (int attemptIndex : encoderFallbackOrder(formatIndex)) {
@@ -339,7 +341,8 @@ public final class VideoMedia3Converter {
                         videoMime,
                         hdrModeForMp4VideoMime(videoMime),
                         progressListener,
-                        ownerId);
+                        ownerId,
+                        hasAudio);
                 return attemptIndex;
             } catch (UnsupportedMediaException e) {
                 // The source itself can't be read; another output codec won't change that.
@@ -368,11 +371,13 @@ public final class VideoMedia3Converter {
             @NonNull String videoMimeType,
             int hdrMode,
             @Nullable TranscodeProgressListener progressListener,
-            long ownerId)
+            long ownerId,
+            boolean hasAudio)
             throws IOException, InterruptedException {
         try {
             transcodeToPathOnce(
-                    app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, ownerId, 0);
+                    app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, ownerId, 0,
+                    hasAudio);
         } catch (RetryAtSmallerSizeException e) {
             IOException lastFailure = e;
             for (int shortSide : fallbackShortSides(readSourceShortSide(app, sourceUri))) {
@@ -385,7 +390,8 @@ public final class VideoMedia3Converter {
                             hdrMode,
                             progressListener,
                             ownerId,
-                            shortSide);
+                            shortSide,
+                            hasAudio);
                     warnDownscaled(app, shortSide);
                     return;
                 } catch (RetryAtSmallerSizeException retryFailure) {
@@ -534,7 +540,8 @@ public final class VideoMedia3Converter {
             int hdrMode,
             @Nullable TranscodeProgressListener progressListener,
             long ownerId,
-            int outputShortSide)
+            int outputShortSide,
+            boolean hasAudio)
             throws IOException, InterruptedException {
 
         File outFile = new File(outputPath);
@@ -564,25 +571,14 @@ public final class VideoMedia3Converter {
                     progressListener,
                     outFile,
                     ownerId,
-                    outputShortSide);
+                    outputShortSide,
+                    hasAudio);
         } finally {
             WAITERS.remove(waiter);
             if (locked) {
                 TRANSCODE_LOCK.unlock();
             }
         }
-    }
-
-    private static void transcodeToPathOnce(
-            @NonNull Context app,
-            @NonNull Uri sourceUri,
-            @NonNull String outputPath,
-            @NonNull String videoMimeType,
-            int hdrMode,
-            @Nullable TranscodeProgressListener progressListener)
-            throws IOException, InterruptedException {
-        transcodeToPathOnce(
-                app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, -1L, 0);
     }
 
     private static void transcodeToPathOnceLocked(
@@ -594,7 +590,8 @@ public final class VideoMedia3Converter {
             @Nullable TranscodeProgressListener progressListener,
             @NonNull File outFile,
             long ownerId,
-            int outputShortSide)
+            int outputShortSide,
+            boolean hasAudio)
             throws IOException, InterruptedException {
 
         activeTranscodeOwner.set(ownerId);
@@ -609,7 +606,7 @@ public final class VideoMedia3Converter {
         EditedMediaItem editedMediaItem = editedMediaItemBuilder.build();
 
         EditedMediaItemSequence sequence =
-                new EditedMediaItemSequence.Builder(trackTypes(sourceHasAudio(app, sourceUri)))
+                new EditedMediaItemSequence.Builder(trackTypes(hasAudio))
                         .addItem(editedMediaItem)
                         .build();
 
