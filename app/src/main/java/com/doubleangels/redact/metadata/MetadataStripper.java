@@ -956,15 +956,7 @@ public class MetadataStripper {
                 return null;
             }
 
-            boolean useWebm = false;
-            for (int i = 0; i < extractor.getTrackCount(); i++) {
-                android.media.MediaFormat format = extractor.getTrackFormat(i);
-                String mime = format.getString(android.media.MediaFormat.KEY_MIME);
-                if (mime != null && (mime.contains("vp8") || mime.contains("vp9") || mime.contains("opus"))) {
-                    useWebm = true;
-                    break;
-                }
-            }
+            boolean useWebm = useWebmContainer(extractor);
             
             outputFile = File.createTempFile(
                     "vid_transmux_", useWebm ? ".webm" : ".mp4", context.getCacheDir());
@@ -1062,6 +1054,30 @@ public class MetadataStripper {
                 secureDeleteFile(outputFile);
             }
         }
+    }
+
+    /**
+     * Whether the fast transmux must write WebM: for VP8 or VP9 video, which MP4 cannot hold, or
+     * for Opus or Vorbis audio with no video. The video decides when there is some, so H.264 with
+     * Opus audio is not sent to a WebM muxer that would only reject the H.264.
+     */
+    private static boolean useWebmContainer(@NonNull android.media.MediaExtractor extractor) {
+        boolean webmAudio = false;
+        for (int i = 0; i < extractor.getTrackCount(); i++) {
+            String mime = extractor.getTrackFormat(i).getString(android.media.MediaFormat.KEY_MIME);
+            if (mime == null) {
+                continue;
+            }
+            if (mime.startsWith("video/")) {
+                return mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP8)
+                        || mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP9);
+            }
+            if (mime.equals(android.media.MediaFormat.MIMETYPE_AUDIO_OPUS)
+                    || mime.equals(android.media.MediaFormat.MIMETYPE_AUDIO_VORBIS)) {
+                webmAudio = true;
+            }
+        }
+        return webmAudio;
     }
 
     /**
