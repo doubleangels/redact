@@ -54,7 +54,11 @@
             <!-- Tools first: editing needs them at hand. -->
             <include layout="@layout/censor_tools_card" />
 
-            <include layout="@layout/censor_summary_card" />
+            <include
+                android:id="@+id/censorSummaryCard"
+                layout="@layout/summary_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

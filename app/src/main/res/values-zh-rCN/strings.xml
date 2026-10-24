@@ -355,7 +355,6 @@
     <string name="scan_risk_serial">设备序列号</string>
 
     <string name="clean_clear_selection">清除</string>
-    <string name="convert_clear_selection">清除</string>
     <string name="clean_empty_state_title">清理并移除元数据</string>
     <string name="clean_empty_state_description">选择照片或视频，以移除 EXIF 标签、GPS 位置、相机详情和设备标识符。你也可以在任意应用中直接分享到 Redact。</string>
     <string name="clean_selected_hint">已准备好移除 EXIF 和位置数据。</string>

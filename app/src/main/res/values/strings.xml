@@ -264,7 +264,6 @@
 
     <string name="convert_empty_state_title">Convert Media Formats</string>
     <string name="convert_empty_state_description">Select photos or videos to convert them into JPEG, PNG, WebP, HEIC, or MP4 formats.</string>
-    <string name="convert_clear_selection">Clear</string>
     <string name="convert_files_card_title">Files to Convert</string>
     <string name="convert_item_type_image">Image</string>
     <string name="convert_item_type_video">Video</string>

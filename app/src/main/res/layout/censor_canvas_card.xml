@@ -17,13 +17,15 @@
         android:contentDescription="@string/censor_canvas_description" />
 
     <!-- Status: shown while saving and after a save. Over the photo rather than in its own row,
-         so the photo does not shift when it appears. -->
+         so the photo does not shift when it appears; its side margins keep it clear of the undo
+         column. -->
     <TextView
         android:id="@+id/statusText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|center_horizontal"
-        android:layout_margin="12dp"
+        android:layout_marginHorizontal="72dp"
+        android:layout_marginTop="12dp"
         android:background="@drawable/bg_rounded_surface"
         android:backgroundTint="?attr/colorSurfaceContainerHighest"
         android:elevation="4dp"
@@ -33,6 +35,75 @@
         android:textAppearance="?attr/textAppearanceLabelLarge"
         android:textColor="?attr/colorOnSurface"
         android:visibility="gone" />
+
+    <!-- Undo, Redo, and Delete while a rectangle is selected, over the photo's top end like the
+         zoom chip at its bottom start, so they take none of the photo's height. Save Copy, Share
+         and Scan Result are the buttons in the bottom right, as on Clean. -->
+    <LinearLayout
+        android:id="@+id/censorHistoryControls"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_margin="12dp"
+        android:orientation="vertical">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/censorUndoButton"
+            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/censor_undo"
+            android:enabled="false"
+            android:insetLeft="0dp"
+            android:insetTop="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:padding="0dp"
+            android:tooltipText="@string/censor_undo"
+            app:icon="@drawable/ic_undo"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="24dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/censorRedoButton"
+            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:contentDescription="@string/censor_redo"
+            android:enabled="false"
+            android:insetLeft="0dp"
+            android:insetTop="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:padding="0dp"
+            android:tooltipText="@string/censor_redo"
+            app:icon="@drawable/ic_redo"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="24dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/censorDeleteButton"
+            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:contentDescription="@string/censor_delete_rectangle"
+            android:insetLeft="0dp"
+            android:insetTop="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:padding="0dp"
+            android:tooltipText="@string/censor_delete_rectangle"
+            android:visibility="gone"
+            app:icon="@drawable/ic_delete"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="24dp"
+            app:iconTint="?attr/colorError" />
+    </LinearLayout>
 
     <!-- The zoom level while zoomed in; tapping it shows the whole photo again. Placed at bottom-start
          so it never collides with the primary action button in the bottom right. -->

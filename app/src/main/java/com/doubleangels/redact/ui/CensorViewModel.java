@@ -396,6 +396,8 @@ public class CensorViewModel extends AndroidViewModel {
                 savedEffect = chosen;
                 // Counted here, so a save that finishes with the app in the background still counts.
                 ReviewPrompt.recordSuccessfulJob(getApplication());
+                com.doubleangels.redact.AppPreferences.setSummaryHintLearned(
+                        getApplication(), com.doubleangels.redact.AppPreferences.HINT_CENSOR);
                 LocalNotifications.showCleanComplete(getApplication(), 1, 0, result.stats != null && result.stats.hadLocation ? 1 : 0);
                 SentryManager.log("The censored copy was saved.");
                 state.postValue(State.SAVED);

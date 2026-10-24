@@ -113,7 +113,7 @@ public class CensorFragmentTest {
         assertNotNull(root.findViewById(R.id.censorCanvasCard));
         assertNotNull(root.findViewById(R.id.censorToolsCard));
 
-        TextView fileName = root.findViewById(R.id.censorFileName);
+        TextView fileName = root.findViewById(R.id.summaryTitle);
         assertNotNull(fileName);
         assertEquals("sample.jpg", fileName.getText().toString());
     }
@@ -197,10 +197,14 @@ public class CensorFragmentTest {
         assertNotNull(delete);
         assertNotNull(save);
 
-        android.view.ViewGroup undoRow = (android.view.ViewGroup) undo.getParent();
-        assertTrue(undoRow instanceof android.widget.LinearLayout);
-        android.widget.LinearLayout undoLinear = (android.widget.LinearLayout) undoRow;
-        assertEquals(android.view.Gravity.CENTER, undoLinear.getGravity());
+        // Undo, redo and delete float in a column over the photo's top end, taking none of its height.
+        android.widget.LinearLayout undoColumn = (android.widget.LinearLayout) undo.getParent();
+        assertEquals(android.widget.LinearLayout.VERTICAL, undoColumn.getOrientation());
+        assertTrue(undoColumn == redo.getParent() && undoColumn == delete.getParent());
+        assertEquals(root.findViewById(R.id.censorCanvasCard),
+                undoColumn.getParent());
+        assertEquals(android.view.Gravity.TOP | android.view.Gravity.END,
+                ((android.widget.FrameLayout.LayoutParams) undoColumn.getLayoutParams()).gravity);
 
         int expectedSize = Math.round(48 * root.getResources().getDisplayMetrics().density);
         assertEquals(expectedSize, undo.getLayoutParams().width);

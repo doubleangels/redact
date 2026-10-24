@@ -46,6 +46,12 @@ public final class AppPreferences {
     private static final String KEY_CENSOR_TOOL = "censor_tool";
     private static final String KEY_CENSOR_EFFECT = "censor_effect";
     private static final String KEY_CENSOR_BRUSH_SIZE = "censor_brush_size";
+    private static final String KEY_SUMMARY_HINT_LEARNED_PREFIX = "summary_hint_learned_";
+
+    /** The tabs whose summary card shows a how-to line until a job there succeeds once. */
+    public static final String HINT_CLEAN = "clean";
+    public static final String HINT_CONVERT = "convert";
+    public static final String HINT_CENSOR = "censor";
 
     /** High quality, which matches the legacy defaults. */
     public static final int QUALITY_PRESET_HIGH = 0;
@@ -370,6 +376,18 @@ public final class AppPreferences {
 
     public static void setCensorBrushSize(@NonNull Context context, float size) {
         prefs(context).edit().putFloat(KEY_CENSOR_BRUSH_SIZE, size).apply();
+    }
+
+    /**
+     * Whether a job has succeeded on {@code tab} (one of the {@code HINT_} names), so its summary
+     * card no longer needs the how-to line and gives that space back to the content below.
+     */
+    public static boolean isSummaryHintLearned(@NonNull Context context, @NonNull String tab) {
+        return prefs(context).getBoolean(KEY_SUMMARY_HINT_LEARNED_PREFIX + tab, false);
+    }
+
+    public static void setSummaryHintLearned(@NonNull Context context, @NonNull String tab) {
+        prefs(context).edit().putBoolean(KEY_SUMMARY_HINT_LEARNED_PREFIX + tab, true).apply();
     }
 
     public static boolean isVideoFallbackCopy(@NonNull Context context) {

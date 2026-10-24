@@ -355,7 +355,6 @@
     <string name="scan_risk_serial">裝置序號</string>
 
     <string name="clean_clear_selection">清除</string>
-    <string name="convert_clear_selection">清除</string>
     <string name="clean_empty_state_title">清理並移除中繼資料</string>
     <string name="clean_empty_state_description">選擇照片或影片，以移除 EXIF 標籤、GPS 位置、相機詳細資料和裝置識別碼。你也可以在任何應用程式中直接分享到 Redact。</string>
     <string name="clean_selected_hint">已準備好移除 EXIF 和位置資料。</string>

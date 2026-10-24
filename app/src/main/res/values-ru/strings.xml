@@ -373,7 +373,6 @@
     <string name="scan_risk_serial">Серийный номер устройства</string>
 
     <string name="clean_clear_selection">Сбросить</string>
-    <string name="convert_clear_selection">Сбросить</string>
     <string name="clean_empty_state_title">Очистка и Удаление Метаданных</string>
     <string name="clean_empty_state_description">Выберите фото или видео, чтобы удалить теги EXIF, геопозицию GPS, сведения о камере и идентификаторы устройства. Также можно поделиться ими с Redact прямо из любого приложения.</string>
     <string name="clean_selected_hint">Готово к удалению данных EXIF и местоположения.</string>

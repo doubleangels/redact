@@ -28,6 +28,17 @@ public class AppPreferencesTest {
     }
 
     @Test
+    public void summaryHints_areLearnedPerTab_andComeBackAfterAReset() {
+        assertFalse(AppPreferences.isSummaryHintLearned(context, AppPreferences.HINT_CENSOR));
+        AppPreferences.setSummaryHintLearned(context, AppPreferences.HINT_CENSOR);
+        assertTrue(AppPreferences.isSummaryHintLearned(context, AppPreferences.HINT_CENSOR));
+        assertFalse(AppPreferences.isSummaryHintLearned(context, AppPreferences.HINT_CLEAN));
+
+        AppPreferences.resetAll(context);
+        assertFalse(AppPreferences.isSummaryHintLearned(context, AppPreferences.HINT_CENSOR));
+    }
+
+    @Test
     public void keepOriginalFileNames_isOffByDefault_andDecidesTheOutputName() {
         assertFalse(AppPreferences.isKeepOriginalFileNames(context));
         String random = com.doubleangels.redact.media.MediaFileNames.outputBaseName(context, "IMG_1234.jpg");

@@ -367,7 +367,6 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="scan_risk_serial">Numero di serie del dispositivo</string>
 
     <string name="clean_clear_selection">Cancella</string>
-    <string name="convert_clear_selection">Cancella</string>
     <string name="clean_empty_state_title">Pulisci e Rimuovi i Metadati</string>
     <string name="clean_empty_state_description">Seleziona foto o video per rimuovere i tag EXIF, la posizione GPS, i dettagli della fotocamera e gli identificatori del dispositivo. Puoi anche condividerli direttamente con Redact da qualsiasi app.</string>
     <string name="clean_selected_hint">Pronto a rimuovere i dati EXIF e di posizione.</string>

@@ -25,6 +25,7 @@ import com.doubleangels.redact.ui.CensorViewModel;
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.ScanViewModel;
 import com.doubleangels.redact.ui.ShareResults;
+import com.doubleangels.redact.ui.SummaryCard;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -66,7 +67,9 @@ public class CensorFragment extends Fragment {
     private View loading;
     private TextView message;
     private TextView fileName;
+    private View summaryCard;
     private View toolsCard;
+    private View historyControls;
     private View deleteButton;
     private com.google.android.material.chip.Chip zoomChip;
     private View undoButton;
@@ -132,8 +135,15 @@ public class CensorFragment extends Fragment {
         canvas = view.findViewById(R.id.censorCanvas);
         loading = view.findViewById(R.id.censorLoading);
         message = view.findViewById(R.id.censorMessage);
-        fileName = view.findViewById(R.id.censorFileName);
+        summaryCard = view.findViewById(R.id.censorSummaryCard);
+        SummaryCard.bind(summaryCard, R.drawable.ic_censor, R.string.censor_hint,
+                R.string.censor_select_photo, AppPreferences.HINT_CENSOR);
+        fileName = view.findViewById(R.id.summaryTitle);
+        // A file name keeps its extension visible, which a count has no need for.
+        fileName.setSingleLine(true);
+        fileName.setEllipsize(android.text.TextUtils.TruncateAt.MIDDLE);
         toolsCard = view.findViewById(R.id.censorToolsCard);
+        historyControls = view.findViewById(R.id.censorHistoryControls);
         deleteButton = view.findViewById(R.id.censorDeleteButton);
         zoomChip = view.findViewById(R.id.censorZoomChip);
         zoomChip.setOnClickListener(v -> {
@@ -149,7 +159,7 @@ public class CensorFragment extends Fragment {
 
         view.findViewById(R.id.emptyStateSelectButton).setOnClickListener(v -> pickPhoto());
         view.findViewById(R.id.selectButton).setOnClickListener(v -> pickPhoto());
-        view.findViewById(R.id.censorClearButton).setOnClickListener(v -> {
+        view.findViewById(R.id.summaryClearButton).setOnClickListener(v -> {
             Haptics.tick(v);
             if (viewModel.hasUnsavedEdits()) {
                 confirmDiscard(() -> viewModel.close());
@@ -221,9 +231,11 @@ public class CensorFragment extends Fragment {
             canvas.setImage(bitmap);
             viewModel.onPreviewShown(bitmap);
         });
-        viewModel.getFileName().observe(getViewLifecycleOwner(), name ->
-                fileName.setText(name != null && !name.isEmpty()
-                        ? name : getString(R.string.scan_default_file_name)));
+        viewModel.getFileName().observe(getViewLifecycleOwner(), name -> {
+            fileName.setText(name != null && !name.isEmpty()
+                    ? name : getString(R.string.scan_default_file_name));
+            SummaryCard.refreshHint(summaryCard, AppPreferences.HINT_CENSOR);
+        });
         viewModel.getHistoryVersion().observe(getViewLifecycleOwner(), v -> {
             canvas.setRegions(viewModel.regions());
             updateControls();
@@ -409,6 +421,7 @@ public class CensorFragment extends Fragment {
                     ? R.string.censor_error_unsupported : R.string.censor_error_open);
         }
         toolsCard.setVisibility(failedToOpen ? View.GONE : View.VISIBLE);
+        historyControls.setVisibility(failedToOpen ? View.GONE : View.VISIBLE);
         canvas.setEnabled(state == CensorViewModel.State.READY);
         updateControls();
     }

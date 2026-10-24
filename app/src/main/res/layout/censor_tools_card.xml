@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Tool, brush size, effect, undo and redo for the Censor editor. -->
+<!-- Tool, brush size and effect for the Censor editor. Undo, redo and delete float over the photo
+     (censor_canvas_card), so this card stays two rows tall. -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -155,75 +156,6 @@
                 android:layout_height="wrap_content"
                 android:text="@string/censor_effect_blur" />
         </com.google.android.material.chip.ChipGroup>
-
-        <!-- Undo, Redo, and Delete while a rectangle is selected; centered under the effect chips.
-             Save Copy, Share and Scan Result are the buttons in the bottom right, as on Clean. -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/censorUndoButton"
-                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:contentDescription="@string/censor_undo"
-                android:enabled="false"
-                android:insetLeft="0dp"
-                android:insetTop="0dp"
-                android:insetRight="0dp"
-                android:insetBottom="0dp"
-                android:padding="0dp"
-                android:tooltipText="@string/censor_undo"
-                app:icon="@drawable/ic_undo"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconSize="24dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/censorRedoButton"
-                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginStart="8dp"
-                android:contentDescription="@string/censor_redo"
-                android:enabled="false"
-                android:insetLeft="0dp"
-                android:insetTop="0dp"
-                android:insetRight="0dp"
-                android:insetBottom="0dp"
-                android:padding="0dp"
-                android:tooltipText="@string/censor_redo"
-                app:icon="@drawable/ic_redo"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconSize="24dp" />
-
-            <!-- Shown while a rectangle is selected -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/censorDeleteButton"
-                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginStart="8dp"
-                android:contentDescription="@string/censor_delete_rectangle"
-                android:insetLeft="0dp"
-                android:insetTop="0dp"
-                android:insetRight="0dp"
-                android:insetBottom="0dp"
-                android:padding="0dp"
-                android:tooltipText="@string/censor_delete_rectangle"
-                android:visibility="gone"
-                app:icon="@drawable/ic_delete"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconSize="24dp"
-                app:iconTint="?attr/colorError" />
-
-        </LinearLayout>
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

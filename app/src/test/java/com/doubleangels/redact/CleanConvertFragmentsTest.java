@@ -125,7 +125,7 @@ public class CleanConvertFragmentsTest {
         assertEquals(View.VISIBLE, visibility(v, R.id.mediaContentContainer));
         assertEquals(View.VISIBLE, visibility(v, R.id.stripButton));
         assertTrue(v.findViewById(R.id.stripButton).isEnabled());
-        assertEquals(activity.getString(R.string.clean_selected_count, 2), text(v, R.id.cleanSelectedCountText));
+        assertEquals(activity.getString(R.string.clean_selected_count, 2), text(v, R.id.summaryTitle));
     }
 
     @Test
@@ -136,12 +136,12 @@ public class CleanConvertFragmentsTest {
 
         vm.setCleanProcessingState(MainViewModel.ProcessingState.PROCESSING);
         idle();
-        v.findViewById(R.id.cleanClearButton).performClick();
+        v.findViewById(R.id.summaryClearButton).performClick();
         assertEquals(1, vm.getSelectedItems().getValue().size());
 
         vm.setCleanProcessingState(MainViewModel.ProcessingState.IDLE);
         idle();
-        v.findViewById(R.id.cleanClearButton).performClick();
+        v.findViewById(R.id.summaryClearButton).performClick();
         idle();
         assertTrue(vm.getSelectedItems().getValue().isEmpty());
         assertEquals(View.VISIBLE, visibility(v, R.id.emptyStateContainer));
@@ -474,10 +474,28 @@ public class CleanConvertFragmentsTest {
         idle();
 
         // The count is the title; the subtitle must no longer ask you to select files.
-        assertEquals(activity.getString(R.string.convert_selected_count, 2), text(v, R.id.convertSelectedCountText));
-        String hint = text(v, R.id.convertSelectedHint);
+        assertEquals(activity.getString(R.string.convert_selected_count, 2), text(v, R.id.summaryTitle));
+        String hint = text(v, R.id.summaryHint);
         assertEquals("Choose an output format below, then tap Convert.", hint);
         assertFalse(hint.toLowerCase(java.util.Locale.ROOT).startsWith("select files"));
+    }
+
+    @Test
+    public void summaryHint_showsUntilItsTabHasBeenUsed_andOnlyForThatTab() {
+        View c = clean();
+        vm.setSelectedItems(Arrays.asList(image("a.jpg")));
+        idle();
+        assertEquals(View.VISIBLE, visibility(c, R.id.summaryHint));
+
+        AppPreferences.setSummaryHintLearned(activity, AppPreferences.HINT_CLEAN);
+        vm.setSelectedItems(Arrays.asList(image("a.jpg"), image("b.jpg")));
+        idle();
+        assertEquals(View.GONE, visibility(c, R.id.summaryHint));
+
+        View v = convert();
+        vm.setConvertSelectedItems(Arrays.asList(image("a.jpg")));
+        idle();
+        assertEquals(View.VISIBLE, visibility(v, R.id.summaryHint));
     }
 
     @Test
@@ -569,12 +587,12 @@ public class CleanConvertFragmentsTest {
 
         vm.setConvertProcessingState(MainViewModel.ProcessingState.PROCESSING);
         idle();
-        v.findViewById(R.id.convertClearButton).performClick();
+        v.findViewById(R.id.summaryClearButton).performClick();
         assertEquals(1, vm.getConvertSelectedItems().getValue().size());
 
         vm.setConvertProcessingState(MainViewModel.ProcessingState.IDLE);
         idle();
-        v.findViewById(R.id.convertClearButton).performClick();
+        v.findViewById(R.id.summaryClearButton).performClick();
         idle();
         assertTrue(vm.getConvertSelectedItems().getValue().isEmpty());
     }
