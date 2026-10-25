@@ -108,6 +108,48 @@ public class SettingsFragmentTest {
         return (AlertDialog) ShadowDialog.getLatestDialog();
     }
 
+    // ---- switch rows ---------------------------------------------------------------------
+
+    @Test
+    public void tappingAnywhereOnASwitchRow_togglesItsSwitch() {
+        MaterialSwitch keepNames = sw(R.id.switchKeepOriginalNames);
+        View row = (View) keepNames.getParent();
+        boolean before = keepNames.isChecked();
+
+        row.performClick();
+        idle();
+        assertEquals(!before, keepNames.isChecked());
+        assertEquals(!before, AppPreferences.isKeepOriginalFileNames(activity));
+
+        row.performClick();
+        idle();
+        assertEquals(before, keepNames.isChecked());
+    }
+
+    @Test
+    public void aDisabledSwitchRow_ignoresTaps() {
+        sw(R.id.switchNotifications).setChecked(false);
+        idle();
+        MaterialSwitch clean = sw(R.id.switchCleanNotifications);
+        boolean before = clean.isChecked();
+
+        settings.findViewById(R.id.rowCleanNotifications).performClick();
+        idle();
+        assertEquals(before, clean.isChecked());
+    }
+
+    @Test
+    public void aSwitchRow_readsAsOneSwitchWithItsState() {
+        MaterialSwitch keepNames = sw(R.id.switchKeepOriginalNames);
+        View row = (View) keepNames.getParent();
+        android.view.accessibility.AccessibilityNodeInfo info = row.createAccessibilityNodeInfo();
+        assertEquals(android.widget.Switch.class.getName(), info.getClassName().toString());
+        assertTrue(info.isCheckable());
+        assertEquals(keepNames.isChecked(), info.isChecked());
+        assertTrue(info.isClickable());
+        assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_NO, keepNames.getImportantForAccessibility());
+    }
+
     // ---- notifications -------------------------------------------------------------------
 
     @Test

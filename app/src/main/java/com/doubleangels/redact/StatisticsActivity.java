@@ -89,6 +89,7 @@ public class StatisticsActivity extends AppCompatActivity {
                 render();
             }
         });
+        com.doubleangels.redact.ui.SwitchRows.wire(keep);
         applyInsets();
     }
 

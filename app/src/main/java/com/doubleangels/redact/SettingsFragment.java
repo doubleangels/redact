@@ -129,6 +129,7 @@ public class SettingsFragment extends Fragment {
             bindPrivacy(view);
             bindAdvancedSettings();
             bindAbout(view);
+            com.doubleangels.redact.ui.SwitchRows.wire(view);
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
