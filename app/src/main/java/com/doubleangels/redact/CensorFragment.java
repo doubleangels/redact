@@ -13,7 +13,6 @@ import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.doubleangels.redact.media.CensorEffects;
@@ -38,7 +37,7 @@ import java.util.List;
  * without any of the original's metadata. The photo comes from the picker here, from Scan, or
  * from sharing it to Redact › Censor; all of them go through {@link CensorViewModel}.
  */
-public class CensorFragment extends Fragment {
+public class CensorFragment extends TabFragment {
 
     /** Brush widths for the slider's 1 to 10, as fractions of the photo's longer side at fit. */
     private static final float BRUSH_WIDTH_PER_STEP = 0.01f;

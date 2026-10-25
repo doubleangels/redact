@@ -21,7 +21,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
 
 import com.doubleangels.redact.ShareHandlerActivity;
 import com.doubleangels.redact.media.OutputDestination;
@@ -45,7 +44,7 @@ import java.util.concurrent.Executors;
 /**
  * Settings screen for notifications, conversion defaults, privacy, permissions, and about info.
  */
-public class SettingsFragment extends Fragment {
+public class SettingsFragment extends TabFragment {
 
     private boolean suppressNotificationToggleCallback;
     private boolean suppressCrashReportingToggleCallback;

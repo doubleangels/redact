@@ -15,7 +15,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -46,7 +45,7 @@ import java.util.List;
  * Converts images to JPEG, PNG, WebP, or HEIC and transcodes videos to MP4; saves under
  * Pictures/Redact or Movies/Redact respectively.
  */
-public class ConvertFragment extends Fragment {
+public class ConvertFragment extends TabFragment {
 
     private static final int MAX_PICK_ITEMS = 20;
 

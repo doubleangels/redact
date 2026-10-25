@@ -112,6 +112,22 @@ public class MainActivityTest {
     }
 
     @Test
+    public void tabFade_runsOnAHardwareLayer_onlyWhileItPlays() {
+        MainActivity activity = launch();
+        TabFragment clean = (TabFragment) fragment(activity, "clean");
+        assertNull(clean.onCreateAnimator(0, true, 0));
+
+        android.animation.Animator fade = clean.onCreateAnimator(0, true, R.animator.fade_through_enter);
+        assertNotNull(fade);
+        fade.setTarget(clean.getView());
+        fade.start();
+        assertEquals(android.view.View.LAYER_TYPE_HARDWARE, clean.getView().getLayerType());
+        fade.end();
+        assertEquals(android.view.View.LAYER_TYPE_NONE, clean.getView().getLayerType());
+        assertEquals(1f, clean.getView().getAlpha(), 0.001f);
+    }
+
+    @Test
     public void recreate_restoresSelectedTab() {
         MainActivity activity = launch();
         select(activity, R.id.navigation_convert);

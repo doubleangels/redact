@@ -21,7 +21,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -63,7 +62,7 @@ import io.sentry.protocol.SentryId;
 /**
  * Scan tab: metadata inspection UI; hosted in {@link MainActivity}'s fragment container.
  */
-public class ScanFragment extends Fragment {
+public class ScanFragment extends TabFragment {
 
     /** How long the metadata search waits after the last keystroke before filtering. */
     static final long SEARCH_DEBOUNCE_MS = 150;

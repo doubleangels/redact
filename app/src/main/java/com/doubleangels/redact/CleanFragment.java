@@ -16,7 +16,6 @@ import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -49,7 +48,7 @@ import java.util.function.Consumer;
 /**
  * Hosts the Clean (strip metadata) UI and logic; shown in {@link MainActivity}'s fragment container.
  */
-public class CleanFragment extends Fragment {
+public class CleanFragment extends TabFragment {
 
     private static final int MAX_PICK_ITEMS = 20;
     /** Total time the already-clean check may spend reading files before it gives up. */
