@@ -10,7 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -23,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
+import com.doubleangels.redact.ui.Notice;
 import com.doubleangels.redact.ui.SummaryCard;
 import com.doubleangels.redact.media.ConvertFileAdapter;
 import com.doubleangels.redact.media.FormatConverter;
@@ -104,11 +104,9 @@ public class ConvertFragment extends Fragment {
                         return;
                     }
                     if (uris.size() > MAX_PICK_ITEMS) {
-                        Toast.makeText(
-                                        requireContext(),
-                                        getString(R.string.media_picker_selection_capped, MAX_PICK_ITEMS),
-                                        Toast.LENGTH_LONG)
-                                .show();
+                        Notice.show(requireContext(),
+                                getString(R.string.media_picker_selection_capped, MAX_PICK_ITEMS),
+                                true);
                         uris = MediaPickerContracts.trimToMax(uris, MAX_PICK_ITEMS);
                     }
                     SentryManager.log("Media was selected successfully in ConvertFragment.");
@@ -507,8 +505,7 @@ public class ConvertFragment extends Fragment {
                 int total = batchTotal != null ? batchTotal : selected.size();
                 if (okCount != null && okCount == total && okCount > 0) {
                     if (!isHidden()) {
-                        Toast.makeText(requireContext(), R.string.convert_saved_to_gallery, Toast.LENGTH_SHORT)
-                                .show();
+                        Notice.show(requireContext(), R.string.convert_saved_to_gallery, false);
                     }
                     // Counted by the view model; asks only when this tab is showing.
                     com.doubleangels.redact.ui.ReviewPrompt.askIfDue(this);
@@ -555,11 +552,7 @@ public class ConvertFragment extends Fragment {
         progressBar.setMax(100);
         progressBar.setProgress(0);
         if (heicOutputFallback) {
-            Toast.makeText(
-                            requireContext(),
-                            R.string.convert_heic_fallback_jpeg,
-                            Toast.LENGTH_LONG)
-                    .show();
+            Notice.show(requireContext(), R.string.convert_heic_fallback_jpeg, true);
         }
         // Animated-image detection and resource assessment both do content-resolver I/O
         // (up to 64KB reads and a cache-directory walk per selected item), which can be slow
@@ -572,11 +565,7 @@ public class ConvertFragment extends Fragment {
                         ProcessingResourceWarnings.assess(appContext, selectedItems);
                 runOnUiThreadIfAdded(() -> {
                     if (hasAnimatedImage) {
-                        Toast.makeText(
-                                        requireContext(),
-                                        R.string.animated_image_warning,
-                                        Toast.LENGTH_LONG)
-                                .show();
+                        Notice.show(requireContext(), R.string.animated_image_warning, true);
                     }
                     ProcessingResourceWarnings.runWithWarnings(
                             requireActivity(),

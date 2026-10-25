@@ -5,7 +5,6 @@ import android.content.Context;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.os.Bundle;
-import android.widget.Toast;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +30,7 @@ import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
+import com.doubleangels.redact.ui.Notice;
 import com.doubleangels.redact.ui.SummaryCard;
 import com.doubleangels.redact.ui.UIStateManager;
 import com.google.android.material.button.MaterialButton;
@@ -108,11 +108,9 @@ public class CleanFragment extends Fragment {
                     try {
                         if (uris != null && !uris.isEmpty()) {
                             if (uris.size() > MAX_PICK_ITEMS) {
-                                Toast.makeText(
-                                                requireContext(),
-                                                getString(R.string.media_picker_selection_capped, MAX_PICK_ITEMS),
-                                                Toast.LENGTH_LONG)
-                                        .show();
+                                Notice.show(requireContext(),
+                                        getString(R.string.media_picker_selection_capped, MAX_PICK_ITEMS),
+                                        true);
                                 uris = MediaPickerContracts.trimToMax(uris, MAX_PICK_ITEMS);
                             }
                             SentryManager.log("Media was selected successfully.");
@@ -238,11 +236,9 @@ public class CleanFragment extends Fragment {
                                                 : null;
                                 runOnUiThreadIfAdded(() -> {
                                     if (hasAnimatedImage) {
-                                        Toast.makeText(
-                                                        requireContext(),
-                                                        R.string.animated_image_warning,
-                                                        Toast.LENGTH_LONG)
-                                                .show();
+                                        Notice.show(requireContext(),
+                                                R.string.animated_image_warning,
+                                                true);
                                     }
                                     confirmAlreadyClean(items, cleanStatuses, chosen ->
                                             ProcessingResourceWarnings.runWithWarnings(

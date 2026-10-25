@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
@@ -135,7 +134,7 @@ public final class ReviewPrompt {
                 context.startActivity(new Intent(Intent.ACTION_VIEW,
                         Uri.parse("https://play.google.com/store/apps/details?id=" + pkg)));
             } catch (ActivityNotFoundException noBrowser) {
-                Toast.makeText(context, R.string.settings_link_unavailable, Toast.LENGTH_SHORT).show();
+                Notice.show(context, R.string.settings_link_unavailable, false);
             }
         }
     }

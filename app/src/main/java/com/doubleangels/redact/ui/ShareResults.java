@@ -5,7 +5,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -65,7 +64,7 @@ public final class ShareResults {
                     Intent.createChooser(send, context.getString(R.string.share_results_chooser_title))));
             com.doubleangels.redact.stats.StatsStore.recordShare(context);
         } catch (android.content.ActivityNotFoundException e) {
-            Toast.makeText(context, R.string.share_error_generic, Toast.LENGTH_SHORT).show();
+            Notice.show(context, R.string.share_error_generic, false);
         }
     }
 

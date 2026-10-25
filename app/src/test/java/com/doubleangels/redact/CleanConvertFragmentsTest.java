@@ -52,6 +52,7 @@ public class CleanConvertFragmentsTest {
 
     @Before
     public void setUp() {
+        com.doubleangels.redact.ui.Notice.resetForTests();
         AppProcessingScope.resetForTests();
         controller = Robolectric.buildActivity(MainActivity.class).setup();
         activity = controller.get();
@@ -345,7 +346,7 @@ public class CleanConvertFragmentsTest {
         shadow.receiveResult(launched.intent, Activity.RESULT_OK, data);
         awaitMain(() -> vm.getSelectedItems().getValue().size() == 20);
         assertEquals(activity.getString(R.string.media_picker_selection_capped, 20),
-                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
     }
 
     @Test

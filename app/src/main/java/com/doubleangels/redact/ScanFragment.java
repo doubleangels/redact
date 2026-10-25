@@ -16,7 +16,6 @@ import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -36,6 +35,7 @@ import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
+import com.doubleangels.redact.ui.Notice;
 import com.doubleangels.redact.ui.ScanMetadataAdapter;
 import com.doubleangels.redact.ui.ScanViewModel;
 import com.doubleangels.redact.ui.SensitiveClipboard;
@@ -1013,7 +1013,7 @@ public class ScanFragment extends Fragment {
     private void copyPlainTextToClipboard(@NonNull String text) {
         if (SensitiveClipboard.copy(requireContext(), getString(R.string.scan_metadata), text)) {
             Haptics.confirm(getView());
-            Toast.makeText(requireContext(), R.string.scan_copied_to_clipboard, Toast.LENGTH_SHORT).show();
+            Notice.show(requireContext(), R.string.scan_copied_to_clipboard, false);
         }
     }
 
@@ -1045,7 +1045,7 @@ public class ScanFragment extends Fragment {
         try {
             startActivity(intent);
         } catch (ActivityNotFoundException e) {
-            Toast.makeText(requireContext(), R.string.scan_maps_not_available, Toast.LENGTH_SHORT).show();
+            Notice.show(requireContext(), R.string.scan_maps_not_available, false);
         }
     }
 

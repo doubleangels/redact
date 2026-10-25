@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -326,7 +325,7 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
                             : v.getContext().getString(R.string.scan_metadata);
                     if (SensitiveClipboard.copy(v.getContext(), label, entry.value)) {
                         Haptics.confirm(v);
-                        Toast.makeText(v.getContext(), R.string.scan_copied_to_clipboard, Toast.LENGTH_SHORT).show();
+                        Notice.show(v.getContext(), R.string.scan_copied_to_clipboard, false);
                     }
                 }
             };

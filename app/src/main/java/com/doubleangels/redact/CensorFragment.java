@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -23,6 +22,7 @@ import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.CensorCanvasView;
 import com.doubleangels.redact.ui.CensorViewModel;
 import com.doubleangels.redact.ui.Haptics;
+import com.doubleangels.redact.ui.Notice;
 import com.doubleangels.redact.ui.ScanViewModel;
 import com.doubleangels.redact.ui.ShareResults;
 import com.doubleangels.redact.ui.SummaryCard;
@@ -311,7 +311,7 @@ public class CensorFragment extends Fragment {
             photoPickerLauncher.launch(new String[] {"image/*"});
         } catch (android.content.ActivityNotFoundException e) {
             SentryManager.recordException(e);
-            Toast.makeText(requireContext(), R.string.share_error_generic, Toast.LENGTH_SHORT).show();
+            Notice.show(requireContext(), R.string.share_error_generic, false);
         }
     }
 
@@ -678,7 +678,7 @@ public class CensorFragment extends Fragment {
         } catch (Exception e) {
             pendingTrashSource = null;
             SentryManager.recordException(e);
-            Toast.makeText(requireContext(), R.string.share_error_generic, Toast.LENGTH_SHORT).show();
+            Notice.show(requireContext(), R.string.share_error_generic, false);
         }
     }
 

@@ -21,6 +21,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.color.DynamicColors;
 import com.doubleangels.redact.sentry.SentryManager;
+import com.doubleangels.redact.ui.Notice;
 
 /**
  * Single host activity: version line and bottom navigation stay fixed;
@@ -233,14 +234,13 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         if (media.isEmpty()) {
-            android.widget.Toast.makeText(this, R.string.share_error_unsupported_media,
-                    android.widget.Toast.LENGTH_LONG).show();
+            Notice.show(this, R.string.share_error_unsupported_media, true);
             return true;
         }
         if (media.size() > MAX_CONVERT_SHARE_ITEMS) {
-            android.widget.Toast.makeText(this,
+            Notice.show(this,
                     getString(R.string.media_picker_selection_capped, MAX_CONVERT_SHARE_ITEMS),
-                    android.widget.Toast.LENGTH_LONG).show();
+                    true);
             media = com.doubleangels.redact.media.MediaPickerContracts.trimToMax(
                     media, MAX_CONVERT_SHARE_ITEMS);
         }
@@ -271,8 +271,7 @@ public class MainActivity extends AppCompatActivity {
                         intent, android.content.Intent.EXTRA_STREAM, android.net.Uri.class)
                 : null;
         if (!isForeignContentUri(uri) || !isImage(uri, intent.getType())) {
-            android.widget.Toast.makeText(this, R.string.share_error_unsupported_media,
-                    android.widget.Toast.LENGTH_LONG).show();
+            Notice.show(this, R.string.share_error_unsupported_media, true);
             return true;
         }
         SentryManager.logEvent("share", "A photo was shared to Censor.");

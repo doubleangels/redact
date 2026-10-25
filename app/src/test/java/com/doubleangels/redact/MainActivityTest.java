@@ -34,6 +34,7 @@ public class MainActivityTest {
 
     @Before
     public void setUp() {
+        com.doubleangels.redact.ui.Notice.resetForTests();
         AppProcessingScope.resetForTests();
     }
 
@@ -368,7 +369,7 @@ public class MainActivityTest {
 
         assertEquals(R.id.navigation_convert, launchedTab(send));
         assertEquals(20, awaitConvertItems().size());
-        assertTrue(org.robolectric.shadows.ShadowToast.getTextOfLatestToast().contains("20"));
+        assertTrue(com.doubleangels.redact.ui.Notice.lastShownForTests().contains("20"));
     }
 
     @Test
@@ -377,7 +378,7 @@ public class MainActivityTest {
                 .putExtra(android.content.Intent.EXTRA_STREAM, android.net.Uri.parse("file:///sdcard/a.jpg"));
         assertEquals(R.id.navigation_convert, launchedTab(fileUri));
         assertEquals(controller.get().getString(R.string.share_error_unsupported_media),
-                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
         controller.pause().stop().destroy();
 
         android.content.Intent noStream = convertShare(android.content.Intent.ACTION_SEND_MULTIPLE);
@@ -447,7 +448,7 @@ public class MainActivityTest {
         assertEquals(R.id.navigation_censor,
                 launchedTab(censorShare(android.net.Uri.parse("file:///sdcard/a.jpg"))));
         assertEquals(controller.get().getString(R.string.share_error_unsupported_media),
-                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
         assertNull(censorViewModel().getSource());
         controller.pause().stop().destroy();
 

@@ -58,6 +58,7 @@ public class SettingsFragmentTest {
 
     @Before
     public void setUp() {
+        com.doubleangels.redact.ui.Notice.resetForTests();
         overrideSentryDsn("");
         AppProcessingScope.resetForTests();
         controller = Robolectric.buildActivity(MainActivity.class).setup();
@@ -596,7 +597,7 @@ public class SettingsFragmentTest {
         idle();
 
         assertEquals(activity.getString(R.string.settings_reset_all_busy),
-                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
         assertTrue(AppPreferences.isDeleteOriginalsAfterClean(activity));
     }
 

@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -53,8 +52,7 @@ public final class ErrorFeedbackPrompt {
                 .setPositiveButton(R.string.error_feedback_send, (d, w) -> {
                     boolean sent = SentryManager.sendFeedback(String.valueOf(input.getText()), eventId);
                     if (sent) {
-                        Toast.makeText(context, R.string.error_feedback_thanks,
-                                Toast.LENGTH_SHORT).show();
+                        Notice.show(context, R.string.error_feedback_thanks, false);
                     }
                 })
                 .setNegativeButton(R.string.error_feedback_cancel, null)
