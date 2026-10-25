@@ -433,9 +433,12 @@ public class ScanFragmentTest {
         Robolectric.setupContentProvider(BrokenProvider.class, "com.doubleangels.redact.test.broken");
         View v = pick(Uri.parse("content://com.doubleangels.redact.test.broken/photo/1"));
         TextView status = v.findViewById(R.id.statusText);
-        awaitMain(() -> status.getVisibility() == View.VISIBLE);
+        String failed = activity.getString(R.string.status_extraction_fail);
         // The type is asked for off the main thread, where the extraction reports the failure.
-        assertEquals(activity.getString(R.string.status_extraction_fail), status.getText().toString());
+        // The status shows "Analyzing" first, so wait for the failure itself, not just the status.
+        awaitMain(() -> status.getVisibility() == View.VISIBLE
+                && failed.contentEquals(status.getText()));
+        assertEquals(failed, status.getText().toString());
     }
 
     /** Answers on the main thread but fails on the background thread that reads the metadata. */

@@ -47,7 +47,9 @@
     <string name="convert_run">转换</string>
     <string name="convert_status_hint">在下方选择输出格式，然后点按“转换”。</string>
     <string name="convert_status_ready">准备选择要转换的文件。</string>
-    <string name="convert_selected_count">已选择：%1$d 个文件</string>
+    <plurals name="summary_selected_files">
+        <item quantity="other">已选择 %1$d 个文件</item>
+    </plurals>
     <string name="convert_nothing_selected">请先至少选择一张图片。</string>
     <string name="convert_progress_item">正在转换第 %1$d 个，共 %2$d 个…</string>
     <string name="convert_progress_detail">第 %1$d 个，共 %2$d 个 · %3$s\n%4$s</string>
@@ -267,7 +269,6 @@
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">取消</string>
-    <string name="clean_selected_count">已选择：%1$d 个文件</string>
     <string name="clean_status_ready">准备选择要清理的文件。</string>
     <string name="convert_codec_fallback">%1$s 不可用；已改为保存为 %2$s。</string>
     <string name="video_downscaled">此手机无法以原始尺寸处理该视频，因此已保存为 %1$dp。</string>
@@ -355,7 +356,6 @@
     <string name="scan_risk_serial">设备序列号</string>
 
     <string name="clean_clear_selection">清除</string>
-    <string name="convert_clear_selection">清除</string>
     <string name="clean_empty_state_title">清理并移除元数据</string>
     <string name="clean_empty_state_description">选择照片或视频，以移除 EXIF 标签、GPS 位置、相机详情和设备标识符。你也可以在任意应用中直接分享到 Redact。</string>
     <string name="clean_selected_hint">已准备好移除 EXIF 和位置数据。</string>
@@ -459,9 +459,13 @@
     <string name="censor_effect_pixelate">马赛克</string>
     <string name="censor_effect_black">涂黑</string>
     <string name="censor_effect_blur">模糊</string>
+    <string name="censor_effect">效果</string>
+    <string name="censor_effect_current">效果：%1$s</string>
     <string name="censor_undo">撤销</string>
     <string name="censor_redo">重做</string>
     <string name="censor_delete_rectangle">删除矩形</string>
+    <string name="censor_full_screen">全屏</string>
+    <string name="censor_exit_full_screen">退出全屏</string>
     <string name="censor_zoom_level">%1$s×</string>
     <string name="censor_zoom_reset">已放大 %1$s 倍。点按可显示整张照片。</string>
     <string name="censor_save">保存副本</string>

@@ -366,6 +366,26 @@ public class MainActivity extends AppCompatActivity {
         return TAG_CONVERT.equals(tab) ? R.id.navigation_convert : R.id.navigation_clean;
     }
 
+    /**
+     * Hides the bottom navigation and the system bars so a tab can fill the screen, or brings them
+     * back. The system bars return for a moment with a swipe from the edge.
+     */
+    public void setImmersive(boolean immersive) {
+        View nav = findViewById(R.id.bottomNavigation);
+        if (nav != null) {
+            nav.setVisibility(immersive ? View.GONE : View.VISIBLE);
+        }
+        androidx.core.view.WindowInsetsControllerCompat controller =
+                androidx.core.view.WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        controller.setSystemBarsBehavior(
+                androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+        if (immersive) {
+            controller.hide(WindowInsetsCompat.Type.systemBars());
+        } else {
+            controller.show(WindowInsetsCompat.Type.systemBars());
+        }
+    }
+
     /** Switches bottom navigation and shows the tab fragment. */
     public void selectTab(int navigationItemId) {
         BottomNavigationView nav = findViewById(R.id.bottomNavigation);

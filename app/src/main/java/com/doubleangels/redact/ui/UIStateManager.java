@@ -126,7 +126,7 @@ public final class UIStateManager {
             if (count == 0) {
                 statusText.setText(R.string.clean_status_ready);
             } else {
-                statusText.setText(activity.getString(R.string.clean_selected_count, count));
+                statusText.setText(activity.getResources().getQuantityString(R.plurals.summary_selected_files, count, count));
             }
         });
     }

@@ -49,7 +49,10 @@
     <string name="convert_run">बदलें</string>
     <string name="convert_status_hint">नीचे आउटपुट फ़ॉर्मैट चुनें, फिर बदलें पर टैप करें।</string>
     <string name="convert_status_ready">कन्वर्ट करने के लिए फ़ाइलें चुनने के लिए तैयार।</string>
-    <string name="convert_selected_count">चयनित: %1$d फ़ाइल(फ़ाइलें)</string>
+    <plurals name="summary_selected_files">
+        <item quantity="one">%1$d फ़ाइल चुनी गई</item>
+        <item quantity="other">%1$d फ़ाइलें चुनी गईं</item>
+    </plurals>
     <string name="convert_nothing_selected">कृपया पहले कम से कम एक चित्र चुनें।</string>
     <string name="convert_progress_item">%2$d में से %1$d बदला जा रहा है…</string>
     <string name="convert_progress_detail">%2$d में से %1$d · %3$s\n%4$s</string>
@@ -270,7 +273,6 @@
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">रद्द करें</string>
-    <string name="clean_selected_count">चयनित: %1$d फ़ाइल(फ़ाइलें)</string>
     <string name="clean_status_ready">साफ़ करने के लिए फ़ाइलें चुनने के लिए तैयार।</string>
     <string name="convert_codec_fallback">%1$s उपलब्ध नहीं; इसके बजाय %2$s के रूप में सहेजा गया।</string>
     <string name="video_downscaled">%1$dp पर सहेजा गया क्योंकि यह फ़ोन वीडियो को पूरे आकार में प्रोसेस नहीं कर सका।</string>
@@ -361,7 +363,6 @@
     <string name="scan_risk_serial">डिवाइस सीरियल नंबर</string>
 
     <string name="clean_clear_selection">साफ़ करें</string>
-    <string name="convert_clear_selection">साफ़ करें</string>
     <string name="clean_empty_state_title">मेटाडेटा साफ़ करें और हटाएँ</string>
     <string name="clean_empty_state_description">EXIF टैग, GPS स्थान, कैमरा विवरण और डिवाइस पहचानकर्ता हटाने के लिए फ़ोटो या वीडियो चुनें। आप किसी भी ऐप से उन्हें सीधे Redact पर शेयर भी कर सकते हैं।</string>
     <string name="clean_selected_hint">EXIF और स्थान डेटा हटाने के लिए तैयार।</string>
@@ -472,9 +473,13 @@
     <string name="censor_effect_pixelate">पिक्सेलेट</string>
     <string name="censor_effect_black">काला</string>
     <string name="censor_effect_blur">धुंधला</string>
+    <string name="censor_effect">इफ़ेक्ट</string>
+    <string name="censor_effect_current">इफ़ेक्ट: %1$s</string>
     <string name="censor_undo">पूर्ववत करें</string>
     <string name="censor_redo">फिर से करें</string>
     <string name="censor_delete_rectangle">आयत हटाएँ</string>
+    <string name="censor_full_screen">फ़ुल स्क्रीन</string>
+    <string name="censor_exit_full_screen">फ़ुल स्क्रीन से बाहर निकलें</string>
     <string name="censor_zoom_level">%1$s×</string>
     <string name="censor_zoom_reset">%1$s गुना ज़ूम किया गया। पूरी फ़ोटो देखने के लिए टैप करें।</string>
     <string name="censor_save">कॉपी सहेजें</string>

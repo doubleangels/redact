@@ -154,8 +154,10 @@
     <string name="convert_status_hint">Choose an output format below, then tap Convert.</string>
     <string name="convert_status_ready">Ready to select files to convert.</string>
     <string name="clean_status_ready">Ready to select files to clean.</string>
-    <string name="convert_selected_count" tools:ignore="PluralsCandidate">Selected: %1$d file(s)</string>
-    <string name="clean_selected_count" tools:ignore="PluralsCandidate">Selected: %1$d file(s)</string>
+    <plurals name="summary_selected_files">
+        <item quantity="one">%1$d file selected</item>
+        <item quantity="other">%1$d files selected</item>
+    </plurals>
     <string name="convert_nothing_selected">Select at least one image first.</string>
     <string name="convert_progress_item">Converting %1$d of %2$d…</string>
     <string name="convert_progress_detail">%1$d of %2$d · %3$s\n%4$s</string>
@@ -264,7 +266,6 @@
 
     <string name="convert_empty_state_title">Convert Media Formats</string>
     <string name="convert_empty_state_description">Select photos or videos to convert them into JPEG, PNG, WebP, HEIC, or MP4 formats.</string>
-    <string name="convert_clear_selection">Clear</string>
     <string name="convert_files_card_title">Files to Convert</string>
     <string name="convert_item_type_image">Image</string>
     <string name="convert_item_type_video">Video</string>
@@ -479,9 +480,13 @@
     <string name="censor_effect_pixelate">Pixelate</string>
     <string name="censor_effect_black">Black</string>
     <string name="censor_effect_blur">Blur</string>
+    <string name="censor_effect">Effect</string>
+    <string name="censor_effect_current">Effect: %1$s</string>
     <string name="censor_undo">Undo</string>
     <string name="censor_redo">Redo</string>
     <string name="censor_delete_rectangle">Delete Rectangle</string>
+    <string name="censor_full_screen">Full Screen</string>
+    <string name="censor_exit_full_screen">Exit Full Screen</string>
     <string name="censor_zoom_level">%1$s×</string>
     <string name="censor_zoom_reset">Zoomed in %1$s times. Tap to show the whole photo.</string>
     <string name="censor_save">Save Copy</string>

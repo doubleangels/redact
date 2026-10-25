@@ -49,7 +49,10 @@
     <string name="convert_run">Konvertieren</string>
     <string name="convert_status_hint">Unten ein Ausgabeformat wählen, dann auf „Konvertieren“ tippen.</string>
     <string name="convert_status_ready">Bereit, Dateien zum Konvertieren auszuwählen.</string>
-    <string name="convert_selected_count">Ausgewählt: %1$d Datei(en)</string>
+    <plurals name="summary_selected_files">
+        <item quantity="one">%1$d Datei ausgewählt</item>
+        <item quantity="other">%1$d Dateien ausgewählt</item>
+    </plurals>
     <string name="convert_nothing_selected">Wählen Sie zuerst ein Bild aus.</string>
     <string name="convert_progress_item">Konvertiere %1$d von %2$d…</string>
     <string name="convert_progress_detail">%1$d von %2$d · %3$s\n%4$s</string>
@@ -269,7 +272,6 @@ Ihre Fotos und Videos werden nie hochgeladen. URIs, Dateinamen und GPS-Koordinat
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">Abbrechen</string>
-    <string name="clean_selected_count">Ausgewählt: %1$d Datei(en)</string>
     <string name="clean_status_ready">Bereit, Dateien zum Bereinigen auszuwählen.</string>
     <string name="convert_codec_fallback">%1$s nicht verfügbar; stattdessen als %2$s gespeichert.</string>
     <string name="video_downscaled">In %1$dp gespeichert, da dieses Telefon das Video nicht in voller Größe verarbeiten konnte.</string>
@@ -360,7 +362,6 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="scan_risk_serial">Geräteseriennummer</string>
 
     <string name="clean_clear_selection">Leeren</string>
-    <string name="convert_clear_selection">Leeren</string>
     <string name="clean_empty_state_title">Metadaten Bereinigen und Entfernen</string>
     <string name="clean_empty_state_description">Fotos oder Videos auswählen, um EXIF-Tags, GPS-Standort, Kameradetails und Gerätekennungen zu entfernen. Du kannst sie auch direkt aus jeder App mit Redact teilen.</string>
     <string name="clean_selected_hint">Bereit, EXIF- und Standortdaten zu entfernen.</string>
@@ -471,9 +472,13 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="censor_effect_pixelate">Verpixeln</string>
     <string name="censor_effect_black">Schwärzen</string>
     <string name="censor_effect_blur">Verwischen</string>
+    <string name="censor_effect">Effekt</string>
+    <string name="censor_effect_current">Effekt: %1$s</string>
     <string name="censor_undo">Rückgängig</string>
     <string name="censor_redo">Wiederholen</string>
     <string name="censor_delete_rectangle">Rechteck Löschen</string>
+    <string name="censor_full_screen">Vollbild</string>
+    <string name="censor_exit_full_screen">Vollbild Beenden</string>
     <string name="censor_zoom_level">%1$s×</string>
     <string name="censor_zoom_reset">%1$s-fach vergrößert. Tippe, um das ganze Foto zu zeigen.</string>
     <string name="censor_save">Kopie Speichern</string>

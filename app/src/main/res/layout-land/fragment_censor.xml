@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Landscape: the photo on the left at full height, its card and the tools in a column on the
-     right, which ends above the buttons in the bottom right so they never cover a tool. The photo
-     uses the width the other tabs leave as margin. -->
+<!-- Landscape: the photo on the left at full height, with its tools over it as in portrait, and
+     its card in a column on the right, which ends above the buttons in the bottom right so they
+     never cover it. The photo uses the width the other tabs leave as margin. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -30,6 +30,7 @@
         android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/censorColumn"
+        app:layout_goneMarginEnd="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -41,30 +42,36 @@
         android:paddingEnd="16dp"
         android:paddingBottom="8dp"
         android:scrollbars="none"
+        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/censorActionsTop"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="RtlSymmetry">
+        tools:ignore="RtlSymmetry,InconsistentLayout">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Tools first: editing needs them at hand. -->
-            <include layout="@layout/censor_tools_card" />
-
-            <include layout="@layout/censor_summary_card" />
+            <include
+                android:id="@+id/censorSummaryCard"
+                layout="@layout/summary_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Shown and hidden together, as censorContent is in portrait. -->
+    <!-- The photo, shown and hidden as censorContent is in portrait. The column is not in the
+         group: a group keeps setting its own visibility on its views, and full screen hides the
+         column while the photo stays. -->
     <androidx.constraintlayout.widget.Group
         android:id="@+id/censorContent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        app:constraint_referenced_ids="censorCanvasCard,censorColumn" />
+        app:constraint_referenced_ids="censorCanvasCard" />
 
     <include layout="@layout/censor_actions" />
 

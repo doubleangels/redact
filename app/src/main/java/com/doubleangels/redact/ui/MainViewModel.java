@@ -801,6 +801,10 @@ public class MainViewModel extends AndroidViewModel {
                 if (successCount > 0 && failCount == 0) {
                     ReviewPrompt.recordSuccessfulJob(getApplication());
                 }
+                if (successCount > 0) {
+                    com.doubleangels.redact.AppPreferences.setSummaryHintLearned(
+                            getApplication(), com.doubleangels.redact.AppPreferences.HINT_CLEAN);
+                }
                 LocalNotifications.stopProcessingForeground(
                         getApplication(), LocalNotifications.ForegroundJob.CLEAN);
                 LocalNotifications.showCleanComplete(
@@ -1106,6 +1110,10 @@ public class MainViewModel extends AndroidViewModel {
                         setConvertProcessingState(ProcessingState.COMPLETED);
                         if (finalOk > 0 && finalFail == 0) {
                             ReviewPrompt.recordSuccessfulJob(getApplication());
+                        }
+                        if (finalOk > 0) {
+                            com.doubleangels.redact.AppPreferences.setSummaryHintLearned(getApplication(),
+                                    com.doubleangels.redact.AppPreferences.HINT_CONVERT);
                         }
                         LocalNotifications.showConversionComplete(getApplication(), finalOk, finalFail);
                     }

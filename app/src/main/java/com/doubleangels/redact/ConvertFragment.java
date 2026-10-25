@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
+import com.doubleangels.redact.ui.SummaryCard;
 import com.doubleangels.redact.media.ConvertFileAdapter;
 import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaItem;
@@ -84,6 +85,7 @@ public class ConvertFragment extends Fragment {
     private View convertContentContainer;
     private TextView convertSelectedCountText;
     private MaterialButton convertClearButton;
+    private View convertSummaryCard;
 
     private ActivityResultLauncher<String[]> mediaPickerLauncher;
 
@@ -157,8 +159,11 @@ public class ConvertFragment extends Fragment {
         emptyStateContainer = view.findViewById(R.id.emptyStateContainer);
         emptyStateSelectButton = view.findViewById(R.id.emptyStateSelectButton);
         convertContentContainer = view.findViewById(R.id.convertContentContainer);
-        convertSelectedCountText = view.findViewById(R.id.convertSelectedCountText);
-        convertClearButton = view.findViewById(R.id.convertClearButton);
+        convertSummaryCard = view.findViewById(R.id.convertSummaryCard);
+        SummaryCard.bind(convertSummaryCard, R.drawable.ic_convert, R.string.convert_status_hint,
+                R.string.convert_select_files, AppPreferences.HINT_CONVERT);
+        convertSelectedCountText = view.findViewById(R.id.summaryTitle);
+        convertClearButton = view.findViewById(R.id.summaryClearButton);
         filesCountBadge = view.findViewById(R.id.filesCountBadge);
 
         if (emptyStateSelectButton != null) {
@@ -250,7 +255,7 @@ public class ConvertFragment extends Fragment {
         if (restored != null && !restored.isEmpty()) {
             convertFileAdapter.setItems(restored);
             convertButton.setEnabled(true);
-            statusText.setText(getString(R.string.convert_selected_count, restored.size()));
+            statusText.setText(getResources().getQuantityString(R.plurals.summary_selected_files, restored.size(), restored.size()));
             refreshFormatSectionForSelection(restored);
             if (filesCountBadge != null) {
                 filesCountBadge.setText(getResources().getQuantityString(
@@ -423,7 +428,8 @@ public class ConvertFragment extends Fragment {
                 convertButton.setVisibility(hasItems ? View.VISIBLE : View.GONE);
             }
             if (convertSelectedCountText != null && hasItems) {
-                convertSelectedCountText.setText(getString(R.string.convert_selected_count, list.size()));
+                convertSelectedCountText.setText(getResources().getQuantityString(R.plurals.summary_selected_files, list.size(), list.size()));
+                SummaryCard.refreshHint(convertSummaryCard, AppPreferences.HINT_CONVERT);
             }
             if (filesCountBadge != null) {
                 if (hasItems) {
@@ -452,7 +458,7 @@ public class ConvertFragment extends Fragment {
                 statusText.setText(R.string.convert_status_ready);
             } else if (viewModel.getConvertProcessingState().getValue()
                     != MainViewModel.ProcessingState.COMPLETED) {
-                statusText.setText(getString(R.string.convert_selected_count, list.size()));
+                statusText.setText(getResources().getQuantityString(R.plurals.summary_selected_files, list.size(), list.size()));
             }
             refreshFormatSectionForSelection(list);
         });

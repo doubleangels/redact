@@ -31,6 +31,7 @@ import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
+import com.doubleangels.redact.ui.SummaryCard;
 import com.doubleangels.redact.ui.UIStateManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
@@ -80,6 +81,7 @@ public class CleanFragment extends Fragment {
     private View mediaContentContainer;
     private TextView cleanSelectedCountText;
     private MaterialButton cleanClearButton;
+    private View cleanSummaryCard;
 
     private ActivityResultLauncher<String[]> mediaPickerLauncher;
     private ActivityResultLauncher<IntentSenderRequest> trashRequestLauncher;
@@ -179,8 +181,11 @@ public class CleanFragment extends Fragment {
             emptyStateContainer = view.findViewById(R.id.emptyStateContainer);
             emptyStateSelectButton = view.findViewById(R.id.emptyStateSelectButton);
             mediaContentContainer = view.findViewById(R.id.mediaContentContainer);
-            cleanSelectedCountText = view.findViewById(R.id.cleanSelectedCountText);
-            cleanClearButton = view.findViewById(R.id.cleanClearButton);
+            cleanSummaryCard = view.findViewById(R.id.cleanSummaryCard);
+            SummaryCard.bind(cleanSummaryCard, R.drawable.ic_clean, R.string.clean_selected_hint,
+                    R.string.button_select_media, AppPreferences.HINT_CLEAN);
+            cleanSelectedCountText = view.findViewById(R.id.summaryTitle);
+            cleanClearButton = view.findViewById(R.id.summaryClearButton);
 
             if (emptyStateSelectButton != null) {
                 emptyStateSelectButton.setOnClickListener(v -> onSelectMediaClicked());
@@ -441,7 +446,8 @@ public class CleanFragment extends Fragment {
                         stripButton.setVisibility(hasItems ? View.VISIBLE : View.GONE);
                     }
                     if (cleanSelectedCountText != null && hasItems) {
-                        cleanSelectedCountText.setText(getString(R.string.clean_selected_count, items.size()));
+                        cleanSelectedCountText.setText(getResources().getQuantityString(R.plurals.summary_selected_files, items.size(), items.size()));
+                        SummaryCard.refreshHint(cleanSummaryCard, AppPreferences.HINT_CLEAN);
                     }
 
                     mediaAdapter.updateItems(items);

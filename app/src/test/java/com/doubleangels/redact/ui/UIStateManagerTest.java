@@ -110,7 +110,7 @@ public class UIStateManagerTest {
 
         uiStateManager.setSelectedItemsStatus(3);
         idleMainLooper();
-        assertEquals(activity.getString(R.string.clean_selected_count, 3), statusText.getText().toString());
+        assertEquals(activity.getResources().getQuantityString(R.plurals.summary_selected_files, 3, 3), statusText.getText().toString());
     }
 
     @Test

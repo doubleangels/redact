@@ -51,7 +51,11 @@
     <string name="convert_run">Convertir</string>
     <string name="convert_status_hint">Elige un formato de salida abajo y toca Convertir.</string>
     <string name="convert_status_ready">Listo para seleccionar archivos para convertir.</string>
-    <string name="convert_selected_count">Seleccionados: %1$d archivo(s)</string>
+    <plurals name="summary_selected_files">
+        <item quantity="one">%1$d archivo seleccionado</item>
+        <item quantity="many">%1$d archivos seleccionados</item>
+        <item quantity="other">%1$d archivos seleccionados</item>
+    </plurals>
     <string name="convert_nothing_selected">Selecciona al menos una imagen primero.</string>
     <string name="convert_progress_item">Convirtiendo %1$d de %2$d…</string>
     <string name="convert_progress_detail">%1$d de %2$d · %3$s\n%4$s</string>
@@ -273,7 +277,6 @@ Tus fotos y videos nunca se suben. Se eliminan URIs, nombres de archivo y coorde
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">Cancelar</string>
-    <string name="clean_selected_count">Seleccionados: %1$d archivo(s)</string>
     <string name="clean_status_ready">Listo para seleccionar archivos para limpiar.</string>
     <string name="convert_codec_fallback">%1$s no disponible; guardado como %2$s en su lugar.</string>
     <string name="video_downscaled">Guardado en %1$dp porque este teléfono no pudo procesar el vídeo a tamaño completo.</string>
@@ -367,7 +370,6 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="scan_risk_serial">Número de serie del dispositivo</string>
 
     <string name="clean_clear_selection">Borrar</string>
-    <string name="convert_clear_selection">Borrar</string>
     <string name="clean_empty_state_title">Limpiar y Eliminar Metadatos</string>
     <string name="clean_empty_state_description">Selecciona fotos o videos para eliminar las etiquetas EXIF, la ubicación GPS, los datos de la cámara y los identificadores del dispositivo. También puedes compartirlos directamente con Redact desde cualquier app.</string>
     <string name="clean_selected_hint">Listo para eliminar los datos EXIF y de ubicación.</string>
@@ -485,9 +487,13 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="censor_effect_pixelate">Pixelar</string>
     <string name="censor_effect_black">Negro</string>
     <string name="censor_effect_blur">Desenfocar</string>
+    <string name="censor_effect">Efecto</string>
+    <string name="censor_effect_current">Efecto: %1$s</string>
     <string name="censor_undo">Deshacer</string>
     <string name="censor_redo">Rehacer</string>
     <string name="censor_delete_rectangle">Eliminar Rectángulo</string>
+    <string name="censor_full_screen">Pantalla Completa</string>
+    <string name="censor_exit_full_screen">Salir de Pantalla Completa</string>
     <string name="censor_zoom_level">%1$s×</string>
     <string name="censor_zoom_reset">Ampliado %1$s veces. Toca para ver la foto completa.</string>
     <string name="censor_save">Guardar Copia</string>
