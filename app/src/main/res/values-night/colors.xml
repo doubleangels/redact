@@ -41,7 +41,6 @@
     <color name="md_theme_inverse_on_surface">#2F3036</color>
     <color name="md_theme_outline">#8E9099</color>
     <color name="md_theme_outline_variant">#44474F</color>
-    <color name="md_theme_scrim">#000000</color>
 
     <color name="permission_status_granted">#3EE0A0</color>
 </resources>

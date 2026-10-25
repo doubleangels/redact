@@ -42,7 +42,6 @@
     <color name="md_theme_inverse_on_surface">#F0F0F7</color>
     <color name="md_theme_outline">#74777F</color>
     <color name="md_theme_outline_variant">#C4C6D0</color>
-    <color name="md_theme_scrim">#000000</color>
 
     <!-- "Granted" in Settings: a green harmonized with the brand blue, at Material's text tones
          (40 on light surfaces). Harmonized again at runtime with the wallpaper's primary. -->
