@@ -96,6 +96,22 @@ public class MainActivityTest {
     }
 
     @Test
+    public void switchingTabs_fadesThrough_andEndsWithTheNewTabWhole() {
+        MainActivity activity = launch();
+        select(activity, R.id.navigation_scan);
+        select(activity, R.id.navigation_clean);
+        select(activity, R.id.navigation_scan);
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(500));
+
+        android.view.View scan = fragment(activity, "scan").getView();
+        android.view.View clean = fragment(activity, "clean").getView();
+        assertEquals(android.view.View.VISIBLE, scan.getVisibility());
+        assertEquals(1f, scan.getAlpha(), 0.001f);
+        assertEquals(1f, scan.getScaleX(), 0.001f);
+        assertEquals(android.view.View.GONE, clean.getVisibility());
+    }
+
+    @Test
     public void recreate_restoresSelectedTab() {
         MainActivity activity = launch();
         select(activity, R.id.navigation_convert);
