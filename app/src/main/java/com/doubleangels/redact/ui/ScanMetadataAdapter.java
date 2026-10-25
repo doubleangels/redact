@@ -263,9 +263,9 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
             boolean isLocationHeader = MetadataDisplayer.SECTION_LOCATION.equalsIgnoreCase(entry.sectionId);
             int headerColor = isLocationHeader
                     ? MaterialColors.getColor(headerHolder.itemView, androidx.appcompat.R.attr.colorError,
-                            ContextCompat.getColor(headerHolder.itemView.getContext(), R.color.permission_status_denied))
+                            ContextCompat.getColor(headerHolder.itemView.getContext(), R.color.md_theme_error))
                     : MaterialColors.getColor(headerHolder.itemView, androidx.appcompat.R.attr.colorPrimary,
-                            ContextCompat.getColor(headerHolder.itemView.getContext(), R.color.primary));
+                            ContextCompat.getColor(headerHolder.itemView.getContext(), R.color.md_theme_primary));
 
             headerHolder.titleView.setTextColor(headerColor);
             if (entry.headerIconRes != 0) {
@@ -280,14 +280,14 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
                 if (isLocationHeader) {
                     headerHolder.countView.setBackgroundTintList(ColorStateList.valueOf(
                             MaterialColors.getColor(headerHolder.itemView, com.google.android.material.R.attr.colorErrorContainer,
-                                    ContextCompat.getColor(headerHolder.itemView.getContext(), R.color.permission_status_denied))));
+                                    ContextCompat.getColor(headerHolder.itemView.getContext(), R.color.md_theme_error))));
                     headerHolder.countView.setTextColor(
                             MaterialColors.getColor(headerHolder.itemView, com.google.android.material.R.attr.colorOnErrorContainer,
                                     ContextCompat.getColor(headerHolder.itemView.getContext(), R.color.black)));
                 } else {
                     headerHolder.countView.setBackgroundTintList(ColorStateList.valueOf(
                             MaterialColors.getColor(headerHolder.itemView, com.google.android.material.R.attr.colorSurfaceContainerHigh,
-                                    ContextCompat.getColor(headerHolder.itemView.getContext(), R.color.primary))));
+                                    ContextCompat.getColor(headerHolder.itemView.getContext(), R.color.md_theme_primary))));
                     headerHolder.countView.setTextColor(
                             MaterialColors.getColor(headerHolder.itemView, com.google.android.material.R.attr.colorOnSurfaceVariant,
                                     ContextCompat.getColor(headerHolder.itemView.getContext(), R.color.black)));
@@ -298,9 +298,9 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
             }
         } else if (holder instanceof RowHolder rowHolder) {
             int primaryColor = MaterialColors.getColor(rowHolder.itemView, androidx.appcompat.R.attr.colorPrimary,
-                    ContextCompat.getColor(rowHolder.itemView.getContext(), R.color.primary));
+                    ContextCompat.getColor(rowHolder.itemView.getContext(), R.color.md_theme_primary));
             int errorColor = MaterialColors.getColor(rowHolder.itemView, androidx.appcompat.R.attr.colorError,
-                    ContextCompat.getColor(rowHolder.itemView.getContext(), R.color.permission_status_denied));
+                    ContextCompat.getColor(rowHolder.itemView.getContext(), R.color.md_theme_error));
 
             if (rowHolder.tintOverlay != null) {
                 rowHolder.tintOverlay.setVisibility(entry.isLocation ? View.VISIBLE : View.GONE);

@@ -1397,7 +1397,7 @@
                         android:textAppearance="?attr/textAppearanceLabelLarge"
                         android:textStyle="bold"
                         tools:text="Granted"
-                        tools:textColor="@color/accent" />
+                        tools:textColor="@color/permission_status_granted" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -1426,7 +1426,7 @@
                         android:textAppearance="?attr/textAppearanceLabelLarge"
                         android:textStyle="bold"
                         tools:text="Denied"
-                        tools:textColor="@color/permission_status_denied" />
+                        tools:textColor="@color/md_theme_error" />
                 </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton

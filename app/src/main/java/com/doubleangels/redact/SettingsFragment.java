@@ -881,13 +881,18 @@ public class SettingsFragment extends Fragment {
             @NonNull PermissionStatusHelper.Status status) {
         statusView.setText(getString(statusLabel(status)));
         int color = switch (status) {
-            case GRANTED -> ContextCompat.getColor(requireContext(), R.color.accent);
+            // Green for granted, harmonized with the primary (the wallpaper's, where Android offers
+            // one) as Material asks of colors outside the scheme.
+            case GRANTED -> MaterialColors.harmonizeWithPrimary(requireContext(),
+                    ContextCompat.getColor(requireContext(), R.color.permission_status_granted));
             case PARTIAL -> MaterialColors.getColor(
                     requireContext(),
                     com.google.android.material.R.attr.colorSecondary,
-                    ContextCompat.getColor(requireContext(), R.color.accent));
-            case DENIED, BLOCKED -> ContextCompat.getColor(
-                    requireContext(), R.color.permission_status_denied);
+                    ContextCompat.getColor(requireContext(), R.color.md_theme_secondary));
+            case DENIED, BLOCKED -> MaterialColors.getColor(
+                    requireContext(),
+                    androidx.appcompat.R.attr.colorError,
+                    ContextCompat.getColor(requireContext(), R.color.md_theme_error));
             case NOT_REQUIRED -> MaterialColors.getColor(
                     requireContext(),
                     com.google.android.material.R.attr.colorOnSurfaceVariant,
