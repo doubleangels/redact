@@ -28,12 +28,14 @@ import com.doubleangels.redact.media.ProcessingResourceWarnings;
 import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.permission.PermissionManager;
+import com.doubleangels.redact.ui.FabScroll;
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.ui.Notice;
 import com.doubleangels.redact.ui.SummaryCard;
 import com.doubleangels.redact.ui.UIStateManager;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.doubleangels.redact.sentry.SentryManager;
 
@@ -160,6 +162,8 @@ public class CleanFragment extends Fragment {
             MaterialButton selectButton = view.findViewById(R.id.selectButton);
             this.selectButton = selectButton;
             stripButton = view.findViewById(R.id.stripButton);
+            FabScroll.shrinkOnScroll(view.findViewById(R.id.cleanScrollView),
+                    view.<ExtendedFloatingActionButton>findViewById(R.id.stripButton));
             statusText = view.findViewById(R.id.statusText);
             shareResultsButton = view.findViewById(R.id.shareResultsButton);
             shareResultsButton.setOnClickListener(v -> {

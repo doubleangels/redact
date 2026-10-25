@@ -482,6 +482,36 @@ public class CleanConvertFragmentsTest {
     }
 
     @Test
+    public void clean_floatingButton_collapsesWhileScrollingDown_andComesBackAtTheTop() {
+        View v = clean();
+        List<MediaItem> many = new ArrayList<>();
+        for (int i = 0; i < 40; i++) {
+            many.add(image(i + ".jpg"));
+        }
+        vm.setSelectedItems(many);
+        idle();
+        com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton fab =
+                v.findViewById(R.id.stripButton);
+        androidx.core.widget.NestedScrollView scroll = v.findViewById(R.id.cleanScrollView);
+        assertTrue(fab.isExtended());
+
+        scroll.scrollTo(0, 600);
+        idle();
+        assertFalse(fab.isExtended());
+
+        scroll.scrollTo(0, 300);
+        idle();
+        assertTrue(fab.isExtended());
+
+        scroll.scrollTo(0, 900);
+        idle();
+        assertFalse(fab.isExtended());
+        scroll.scrollTo(0, 0);
+        idle();
+        assertTrue(fab.isExtended());
+    }
+
+    @Test
     public void summaryHint_showsUntilItsTabHasBeenUsed_andOnlyForThatTab() {
         View c = clean();
         vm.setSelectedItems(Arrays.asList(image("a.jpg")));

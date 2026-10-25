@@ -20,6 +20,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.doubleangels.redact.ui.FabScroll;
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.ui.Notice;
@@ -34,6 +35,7 @@ import com.doubleangels.redact.permission.PermissionManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.doubleangels.redact.sentry.SentryManager;
 
@@ -144,6 +146,9 @@ public class ConvertFragment extends Fragment {
         progressText = view.findViewById(R.id.progressText);
         progressBar = view.findViewById(R.id.progressBar);
         convertButton = view.findViewById(R.id.convertButton);
+        FabScroll.shrinkOnScroll(view.findViewById(R.id.convertScrollView),
+                view.<ExtendedFloatingActionButton>findViewById(R.id.convertButton),
+                view.<ExtendedFloatingActionButton>findViewById(R.id.shareResultsButton));
         selectButton = view.findViewById(R.id.selectButton);
         formatSection = view.findViewById(R.id.formatSection);
         formatLabel = view.findViewById(R.id.formatLabel);
