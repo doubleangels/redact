@@ -396,11 +396,18 @@ public class SettingsFragment extends TabFragment {
         switchPreserveCamera.setEnabled(enabled);
         switchPreserveLocation.setEnabled(enabled);
         
+        // A disabled row shows no ripple when tapped, as its switch does nothing.
         View rowCamera = getView().findViewById(R.id.rowPreserveCamera);
-        if (rowCamera != null) rowCamera.setAlpha(alpha);
-        
+        if (rowCamera != null) {
+            rowCamera.setAlpha(alpha);
+            rowCamera.setEnabled(enabled);
+        }
+
         View rowLocation = getView().findViewById(R.id.rowPreserveLocation);
-        if (rowLocation != null) rowLocation.setAlpha(alpha);
+        if (rowLocation != null) {
+            rowLocation.setAlpha(alpha);
+            rowLocation.setEnabled(enabled);
+        }
         
         if (strictClean) {
             switchPreserveCamera.setChecked(false);
@@ -799,7 +806,10 @@ public class SettingsFragment extends TabFragment {
         if (crashReporting) {
             SentryInitializer.shutdown();
         }
-        Notice.show(context, R.string.settings_reset_all_done, false);
+        // A toast, not a snackbar: the activity is recreated just below, which would take a
+        // snackbar with it before it could be read.
+        android.widget.Toast.makeText(context.getApplicationContext(), R.string.settings_reset_all_done,
+                android.widget.Toast.LENGTH_SHORT).show();
         // Restored view state would put back each switch and dropdown as it was, and the switch
         // listeners would then write the old values straight back into the reset preferences.
         View root = getView();
@@ -1047,6 +1057,10 @@ public class SettingsFragment extends TabFragment {
         rowClean.setAlpha(alpha);
         rowConvert.setAlpha(alpha);
         rowProgress.setAlpha(alpha);
+        // A disabled row shows no ripple when tapped, as its switch does nothing.
+        rowClean.setEnabled(enabled);
+        rowConvert.setEnabled(enabled);
+        rowProgress.setEnabled(enabled);
         switchClean.setEnabled(enabled);
         switchConvert.setEnabled(enabled);
         switchProgress.setEnabled(enabled);

@@ -137,6 +137,12 @@ public class SettingsFragmentTest {
         settings.findViewById(R.id.rowCleanNotifications).performClick();
         idle();
         assertEquals(before, clean.isChecked());
+        // No ripple either: the row itself is disabled along with its switch.
+        assertFalse(settings.findViewById(R.id.rowCleanNotifications).isEnabled());
+
+        sw(R.id.switchNotifications).setChecked(true);
+        idle();
+        assertTrue(settings.findViewById(R.id.rowCleanNotifications).isEnabled());
     }
 
     @Test
@@ -480,6 +486,16 @@ public class SettingsFragmentTest {
         settings = fragment().getView();
         assertFalse(sw(R.id.switchDeleteOriginals).isChecked());
         assertFalse(sw(R.id.switchKeepOriginalNames).isChecked());
+    }
+
+    @Test
+    public void resetAllSettings_saysSoInAToast_whichOutlivesTheRecreatedScreen() {
+        settings.findViewById(R.id.rowResetSettings).performClick();
+        idle();
+        latestDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        idle();
+        assertEquals(activity.getString(R.string.settings_reset_all_done),
+                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
     }
 
     @Test
