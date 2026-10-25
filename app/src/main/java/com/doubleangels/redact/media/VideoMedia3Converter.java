@@ -762,7 +762,8 @@ public final class VideoMedia3Converter {
                 throw new UnsupportedMediaException(
                         "Unsupported video format: " + exportException.getMessage(), exportException);
             }
-            if (isEncoderResolutionFailure(exportException) || isMuxerStall(exportException)) {
+            if (isEncoderResolutionFailure(exportException) || isMuxerStall(exportException)
+                    || isVideoEncoderFailure(exportException)) {
                 throw new RetryAtSmallerSizeException(
                         "Video conversion failed: " + exportException.getMessage(), exportException);
             }
@@ -862,6 +863,19 @@ public final class VideoMedia3Converter {
     @androidx.annotation.VisibleForTesting
     static boolean isMuxerStall(@NonNull ExportException e) {
         return e.errorCode == ExportException.ERROR_CODE_MUXING_TIMEOUT;
+    }
+
+    /**
+     * Whether the video encoder failed to start or gave out mid-export. Hardware encoders can fail
+     * on sources past their limits, such as 4K at 60fps and about 70 Mbps on a Snapdragon 778G+
+     * (REDACT-26), and a smaller frame brings the load back within them. Audio encoder failures
+     * are left alone, since a smaller frame would not help.
+     */
+    @androidx.annotation.VisibleForTesting
+    static boolean isVideoEncoderFailure(@NonNull ExportException e) {
+        return (e.errorCode == ExportException.ERROR_CODE_ENCODING_FAILED
+                        || e.errorCode == ExportException.ERROR_CODE_ENCODER_INIT_FAILED)
+                && e.codecInfo != null && e.codecInfo.isVideo && !e.codecInfo.isDecoder;
     }
 
     /** The stall timeout for a phone of {@code mediaPerformanceClass} (0 when it declares none). */

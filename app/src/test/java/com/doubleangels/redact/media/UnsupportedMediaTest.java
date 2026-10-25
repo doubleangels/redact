@@ -134,6 +134,31 @@ public class UnsupportedMediaTest {
     }
 
     @Test
+    public void aVideoEncoderFailure_retriesSmaller_butNotAudioOrDecoderFailures() {
+        ExportException.CodecInfo videoEncoder =
+                new ExportException.CodecInfo("video/avc 3840x2160 60fps", true, false, "c2.qti.avc.encoder");
+        // REDACT-26: the encoder was released mid-export on a 4K60 source.
+        ExportException failed = ExportException.createForCodec(
+                new IllegalStateException("Invalid to call at Released state; only valid in executing state"),
+                ExportException.ERROR_CODE_ENCODING_FAILED, videoEncoder);
+        assertTrue(VideoMedia3Converter.isVideoEncoderFailure(failed));
+        assertFalse(VideoMedia3Converter.isUnsupportedInput(failed));
+        assertTrue(VideoMedia3Converter.isVideoEncoderFailure(ExportException.createForCodec(
+                new IllegalStateException(), ExportException.ERROR_CODE_ENCODER_INIT_FAILED, videoEncoder)));
+
+        ExportException.CodecInfo audioEncoder =
+                new ExportException.CodecInfo("audio/mp4a-latm", false, false, "c2.android.aac.encoder");
+        assertFalse(VideoMedia3Converter.isVideoEncoderFailure(ExportException.createForCodec(
+                new IllegalStateException(), ExportException.ERROR_CODE_ENCODING_FAILED, audioEncoder)));
+        ExportException.CodecInfo videoDecoder =
+                new ExportException.CodecInfo("video/hevc", true, true, "c2.qti.hevc.decoder");
+        assertFalse(VideoMedia3Converter.isVideoEncoderFailure(ExportException.createForCodec(
+                new IllegalStateException(), ExportException.ERROR_CODE_DECODING_FAILED, videoDecoder)));
+        assertFalse(VideoMedia3Converter.isVideoEncoderFailure(ExportException.createForAssetLoader(
+                new IllegalStateException(), ExportException.ERROR_CODE_ENCODING_FAILED)));
+    }
+
+    @Test
     public void stallTimeout_isLongerOnPhonesWithoutAPerformanceClass() {
         long rated = VideoMedia3Converter.maxSampleGapMs(android.os.Build.VERSION_CODES.TIRAMISU);
         assertEquals(androidx.media3.transformer.Transformer.DEFAULT_MAX_DELAY_BETWEEN_MUXER_SAMPLES_MS, rated);
