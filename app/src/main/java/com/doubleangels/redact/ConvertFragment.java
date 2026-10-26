@@ -10,19 +10,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.doubleangels.redact.ui.FabScroll;
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
+import com.doubleangels.redact.ui.Notice;
+import com.doubleangels.redact.ui.SummaryCard;
 import com.doubleangels.redact.media.ConvertFileAdapter;
 import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaItem;
@@ -33,6 +34,7 @@ import com.doubleangels.redact.permission.PermissionManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.doubleangels.redact.sentry.SentryManager;
 
@@ -43,7 +45,7 @@ import java.util.List;
  * Converts images to JPEG, PNG, WebP, or HEIC and transcodes videos to MP4; saves under
  * Pictures/Redact or Movies/Redact respectively.
  */
-public class ConvertFragment extends Fragment {
+public class ConvertFragment extends TabFragment {
 
     private static final int MAX_PICK_ITEMS = 20;
 
@@ -84,6 +86,7 @@ public class ConvertFragment extends Fragment {
     private View convertContentContainer;
     private TextView convertSelectedCountText;
     private MaterialButton convertClearButton;
+    private View convertSummaryCard;
 
     private ActivityResultLauncher<String[]> mediaPickerLauncher;
 
@@ -102,11 +105,9 @@ public class ConvertFragment extends Fragment {
                         return;
                     }
                     if (uris.size() > MAX_PICK_ITEMS) {
-                        Toast.makeText(
-                                        requireContext(),
-                                        getString(R.string.media_picker_selection_capped, MAX_PICK_ITEMS),
-                                        Toast.LENGTH_LONG)
-                                .show();
+                        Notice.show(requireContext(),
+                                getString(R.string.media_picker_selection_capped, MAX_PICK_ITEMS),
+                                true);
                         uris = MediaPickerContracts.trimToMax(uris, MAX_PICK_ITEMS);
                     }
                     SentryManager.log("Media was selected successfully in ConvertFragment.");
@@ -144,6 +145,9 @@ public class ConvertFragment extends Fragment {
         progressText = view.findViewById(R.id.progressText);
         progressBar = view.findViewById(R.id.progressBar);
         convertButton = view.findViewById(R.id.convertButton);
+        FabScroll.shrinkOnScroll(view.findViewById(R.id.convertScrollView),
+                view.<ExtendedFloatingActionButton>findViewById(R.id.convertButton),
+                view.<ExtendedFloatingActionButton>findViewById(R.id.shareResultsButton));
         selectButton = view.findViewById(R.id.selectButton);
         formatSection = view.findViewById(R.id.formatSection);
         formatLabel = view.findViewById(R.id.formatLabel);
@@ -157,8 +161,11 @@ public class ConvertFragment extends Fragment {
         emptyStateContainer = view.findViewById(R.id.emptyStateContainer);
         emptyStateSelectButton = view.findViewById(R.id.emptyStateSelectButton);
         convertContentContainer = view.findViewById(R.id.convertContentContainer);
-        convertSelectedCountText = view.findViewById(R.id.convertSelectedCountText);
-        convertClearButton = view.findViewById(R.id.convertClearButton);
+        convertSummaryCard = view.findViewById(R.id.convertSummaryCard);
+        SummaryCard.bind(convertSummaryCard, R.drawable.ic_convert, R.string.convert_status_hint,
+                R.string.convert_select_files, AppPreferences.HINT_CONVERT);
+        convertSelectedCountText = view.findViewById(R.id.summaryTitle);
+        convertClearButton = view.findViewById(R.id.summaryClearButton);
         filesCountBadge = view.findViewById(R.id.filesCountBadge);
 
         if (emptyStateSelectButton != null) {
@@ -250,7 +257,7 @@ public class ConvertFragment extends Fragment {
         if (restored != null && !restored.isEmpty()) {
             convertFileAdapter.setItems(restored);
             convertButton.setEnabled(true);
-            statusText.setText(getString(R.string.convert_selected_count, restored.size()));
+            statusText.setText(getResources().getQuantityString(R.plurals.summary_selected_files, restored.size(), restored.size()));
             refreshFormatSectionForSelection(restored);
             if (filesCountBadge != null) {
                 filesCountBadge.setText(getResources().getQuantityString(
@@ -423,7 +430,8 @@ public class ConvertFragment extends Fragment {
                 convertButton.setVisibility(hasItems ? View.VISIBLE : View.GONE);
             }
             if (convertSelectedCountText != null && hasItems) {
-                convertSelectedCountText.setText(getString(R.string.convert_selected_count, list.size()));
+                convertSelectedCountText.setText(getResources().getQuantityString(R.plurals.summary_selected_files, list.size(), list.size()));
+                SummaryCard.refreshHint(convertSummaryCard, AppPreferences.HINT_CONVERT);
             }
             if (filesCountBadge != null) {
                 if (hasItems) {
@@ -452,7 +460,7 @@ public class ConvertFragment extends Fragment {
                 statusText.setText(R.string.convert_status_ready);
             } else if (viewModel.getConvertProcessingState().getValue()
                     != MainViewModel.ProcessingState.COMPLETED) {
-                statusText.setText(getString(R.string.convert_selected_count, list.size()));
+                statusText.setText(getResources().getQuantityString(R.plurals.summary_selected_files, list.size(), list.size()));
             }
             refreshFormatSectionForSelection(list);
         });
@@ -501,8 +509,7 @@ public class ConvertFragment extends Fragment {
                 int total = batchTotal != null ? batchTotal : selected.size();
                 if (okCount != null && okCount == total && okCount > 0) {
                     if (!isHidden()) {
-                        Toast.makeText(requireContext(), R.string.convert_saved_to_gallery, Toast.LENGTH_SHORT)
-                                .show();
+                        Notice.show(requireContext(), R.string.convert_saved_to_gallery, false);
                     }
                     // Counted by the view model; asks only when this tab is showing.
                     com.doubleangels.redact.ui.ReviewPrompt.askIfDue(this);
@@ -549,11 +556,7 @@ public class ConvertFragment extends Fragment {
         progressBar.setMax(100);
         progressBar.setProgress(0);
         if (heicOutputFallback) {
-            Toast.makeText(
-                            requireContext(),
-                            R.string.convert_heic_fallback_jpeg,
-                            Toast.LENGTH_LONG)
-                    .show();
+            Notice.show(requireContext(), R.string.convert_heic_fallback_jpeg, true);
         }
         // Animated-image detection and resource assessment both do content-resolver I/O
         // (up to 64KB reads and a cache-directory walk per selected item), which can be slow
@@ -566,11 +569,7 @@ public class ConvertFragment extends Fragment {
                         ProcessingResourceWarnings.assess(appContext, selectedItems);
                 runOnUiThreadIfAdded(() -> {
                     if (hasAnimatedImage) {
-                        Toast.makeText(
-                                        requireContext(),
-                                        R.string.animated_image_warning,
-                                        Toast.LENGTH_LONG)
-                                .show();
+                        Notice.show(requireContext(), R.string.animated_image_warning, true);
                     }
                     ProcessingResourceWarnings.runWithWarnings(
                             requireActivity(),

@@ -30,7 +30,6 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowDialog;
-import org.robolectric.shadows.ShadowToast;
 
 import java.lang.reflect.Field;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -46,6 +45,7 @@ public class SettingsPermissionFlowsTest {
 
     @Before
     public void setUp() {
+        com.doubleangels.redact.ui.Notice.resetForTests();
         AppProcessingScope.resetForTests();
         app = RuntimeEnvironment.getApplication();
         AppPreferences.setInitialPermissionsPromptCompleted(app);
@@ -151,7 +151,7 @@ public class SettingsPermissionFlowsTest {
         assertNotNull(shadowOf(activity).getLastRequestedPermission());
         assertFalse(AppPreferences.areNotificationsEnabled(app));
         assertFalse(master.isChecked());
-        assertEquals(app.getString(R.string.settings_notifications_permission_denied), ShadowToast.getTextOfLatestToast());
+        assertEquals(app.getString(R.string.settings_notifications_permission_denied), com.doubleangels.redact.ui.Notice.lastShownForTests());
     }
 
     @Test
@@ -178,7 +178,7 @@ public class SettingsPermissionFlowsTest {
         idle();
         assertEquals(Manifest.permission.ACCESS_MEDIA_LOCATION,
                 shadowOf(activity).getLastRequestedPermission().requestedPermissions[0]);
-        assertEquals(app.getString(R.string.settings_location_permission_denied), ShadowToast.getTextOfLatestToast());
+        assertEquals(app.getString(R.string.settings_location_permission_denied), com.doubleangels.redact.ui.Notice.lastShownForTests());
 
         settings.findViewById(R.id.buttonLocationPermission).performClick();
         idle();
@@ -226,14 +226,14 @@ public class SettingsPermissionFlowsTest {
     public void clearingTempFiles_isRefusedWhileASharIsBeingProcessed() {
         setShareSessions(1);
         confirmClear();
-        assertEquals(app.getString(R.string.settings_storage_clear_busy), ShadowToast.getTextOfLatestToast());
+        assertEquals(app.getString(R.string.settings_storage_clear_busy), com.doubleangels.redact.ui.Notice.lastShownForTests());
     }
 
     @Test
     public void clearingTempFiles_isRefusedWhileConverting() {
         AppProcessingScope.get(app).convertInProgress().set(true);
         confirmClear();
-        assertEquals(app.getString(R.string.settings_storage_clear_busy), ShadowToast.getTextOfLatestToast());
+        assertEquals(app.getString(R.string.settings_storage_clear_busy), com.doubleangels.redact.ui.Notice.lastShownForTests());
     }
 
     @Test
@@ -241,11 +241,11 @@ public class SettingsPermissionFlowsTest {
         confirmClear();
         long end = System.currentTimeMillis() + 3000;
         while (System.currentTimeMillis() < end
-                && !app.getString(R.string.settings_storage_clear_empty).equals(ShadowToast.getTextOfLatestToast())) {
+                && !app.getString(R.string.settings_storage_clear_empty).equals(com.doubleangels.redact.ui.Notice.lastShownForTests())) {
             idle();
             Thread.sleep(25);
         }
-        assertEquals(app.getString(R.string.settings_storage_clear_empty), ShadowToast.getTextOfLatestToast());
+        assertEquals(app.getString(R.string.settings_storage_clear_empty), com.doubleangels.redact.ui.Notice.lastShownForTests());
     }
 
     @Test
@@ -261,11 +261,11 @@ public class SettingsPermissionFlowsTest {
         confirmClear();
         long end = System.currentTimeMillis() + 3000;
         while (System.currentTimeMillis() < end
-                && !app.getString(R.string.settings_storage_clear_success).equals(ShadowToast.getTextOfLatestToast())) {
+                && !app.getString(R.string.settings_storage_clear_success).equals(com.doubleangels.redact.ui.Notice.lastShownForTests())) {
             idle();
             Thread.sleep(25);
         }
-        assertEquals(app.getString(R.string.settings_storage_clear_success), ShadowToast.getTextOfLatestToast());
+        assertEquals(app.getString(R.string.settings_storage_clear_success), com.doubleangels.redact.ui.Notice.lastShownForTests());
         assertFalse(leftover.exists());
     }
 

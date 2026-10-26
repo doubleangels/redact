@@ -52,6 +52,7 @@ public class CleanConvertFragmentsTest {
 
     @Before
     public void setUp() {
+        com.doubleangels.redact.ui.Notice.resetForTests();
         AppProcessingScope.resetForTests();
         controller = Robolectric.buildActivity(MainActivity.class).setup();
         activity = controller.get();
@@ -125,7 +126,7 @@ public class CleanConvertFragmentsTest {
         assertEquals(View.VISIBLE, visibility(v, R.id.mediaContentContainer));
         assertEquals(View.VISIBLE, visibility(v, R.id.stripButton));
         assertTrue(v.findViewById(R.id.stripButton).isEnabled());
-        assertEquals(activity.getString(R.string.clean_selected_count, 2), text(v, R.id.cleanSelectedCountText));
+        assertEquals(activity.getResources().getQuantityString(R.plurals.summary_selected_files, 2, 2), text(v, R.id.summaryTitle));
     }
 
     @Test
@@ -136,12 +137,12 @@ public class CleanConvertFragmentsTest {
 
         vm.setCleanProcessingState(MainViewModel.ProcessingState.PROCESSING);
         idle();
-        v.findViewById(R.id.cleanClearButton).performClick();
+        v.findViewById(R.id.summaryClearButton).performClick();
         assertEquals(1, vm.getSelectedItems().getValue().size());
 
         vm.setCleanProcessingState(MainViewModel.ProcessingState.IDLE);
         idle();
-        v.findViewById(R.id.cleanClearButton).performClick();
+        v.findViewById(R.id.summaryClearButton).performClick();
         idle();
         assertTrue(vm.getSelectedItems().getValue().isEmpty());
         assertEquals(View.VISIBLE, visibility(v, R.id.emptyStateContainer));
@@ -345,7 +346,7 @@ public class CleanConvertFragmentsTest {
         shadow.receiveResult(launched.intent, Activity.RESULT_OK, data);
         awaitMain(() -> vm.getSelectedItems().getValue().size() == 20);
         assertEquals(activity.getString(R.string.media_picker_selection_capped, 20),
-                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
     }
 
     @Test
@@ -474,10 +475,58 @@ public class CleanConvertFragmentsTest {
         idle();
 
         // The count is the title; the subtitle must no longer ask you to select files.
-        assertEquals(activity.getString(R.string.convert_selected_count, 2), text(v, R.id.convertSelectedCountText));
-        String hint = text(v, R.id.convertSelectedHint);
+        assertEquals(activity.getResources().getQuantityString(R.plurals.summary_selected_files, 2, 2), text(v, R.id.summaryTitle));
+        String hint = text(v, R.id.summaryHint);
         assertEquals("Choose an output format below, then tap Convert.", hint);
         assertFalse(hint.toLowerCase(java.util.Locale.ROOT).startsWith("select files"));
+    }
+
+    @Test
+    public void clean_floatingButton_collapsesWhileScrollingDown_andComesBackAtTheTop() {
+        View v = clean();
+        List<MediaItem> many = new ArrayList<>();
+        for (int i = 0; i < 40; i++) {
+            many.add(image(i + ".jpg"));
+        }
+        vm.setSelectedItems(many);
+        idle();
+        com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton fab =
+                v.findViewById(R.id.stripButton);
+        androidx.core.widget.NestedScrollView scroll = v.findViewById(R.id.cleanScrollView);
+        assertTrue(fab.isExtended());
+
+        scroll.scrollTo(0, 600);
+        idle();
+        assertFalse(fab.isExtended());
+
+        scroll.scrollTo(0, 300);
+        idle();
+        assertTrue(fab.isExtended());
+
+        scroll.scrollTo(0, 900);
+        idle();
+        assertFalse(fab.isExtended());
+        scroll.scrollTo(0, 0);
+        idle();
+        assertTrue(fab.isExtended());
+    }
+
+    @Test
+    public void summaryHint_showsUntilItsTabHasBeenUsed_andOnlyForThatTab() {
+        View c = clean();
+        vm.setSelectedItems(Arrays.asList(image("a.jpg")));
+        idle();
+        assertEquals(View.VISIBLE, visibility(c, R.id.summaryHint));
+
+        AppPreferences.setSummaryHintLearned(activity, AppPreferences.HINT_CLEAN);
+        vm.setSelectedItems(Arrays.asList(image("a.jpg"), image("b.jpg")));
+        idle();
+        assertEquals(View.GONE, visibility(c, R.id.summaryHint));
+
+        View v = convert();
+        vm.setConvertSelectedItems(Arrays.asList(image("a.jpg")));
+        idle();
+        assertEquals(View.VISIBLE, visibility(v, R.id.summaryHint));
     }
 
     @Test
@@ -569,12 +618,12 @@ public class CleanConvertFragmentsTest {
 
         vm.setConvertProcessingState(MainViewModel.ProcessingState.PROCESSING);
         idle();
-        v.findViewById(R.id.convertClearButton).performClick();
+        v.findViewById(R.id.summaryClearButton).performClick();
         assertEquals(1, vm.getConvertSelectedItems().getValue().size());
 
         vm.setConvertProcessingState(MainViewModel.ProcessingState.IDLE);
         idle();
-        v.findViewById(R.id.convertClearButton).performClick();
+        v.findViewById(R.id.summaryClearButton).performClick();
         idle();
         assertTrue(vm.getConvertSelectedItems().getValue().isEmpty());
     }

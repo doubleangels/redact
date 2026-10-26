@@ -87,6 +87,8 @@ public class CensorViewModel extends AndroidViewModel {
     @Nullable
     private volatile CensorExporter.Result lastSaved;
     private volatile boolean lastSaveFailed;
+    /** Whether the photo fills the screen; kept here so it survives a rotation. */
+    private boolean fullScreen;
     /** The regions and effect the last saved copy was made with, to tell whether there are unsaved edits. */
     @Nullable
     private volatile List<CensorRegion> savedRegions;
@@ -151,6 +153,14 @@ public class CensorViewModel extends AndroidViewModel {
         return lastSaveFailed;
     }
 
+    public boolean isFullScreen() {
+        return fullScreen;
+    }
+
+    public void setFullScreen(boolean fullScreen) {
+        this.fullScreen = fullScreen;
+    }
+
     @Nullable
     public Uri getSource() {
         return source;
@@ -191,6 +201,7 @@ public class CensorViewModel extends AndroidViewModel {
         renderGeneration.incrementAndGet();
         reset();
         source = null;
+        fullScreen = false;
         state.setValue(State.NONE);
     }
 
@@ -396,6 +407,8 @@ public class CensorViewModel extends AndroidViewModel {
                 savedEffect = chosen;
                 // Counted here, so a save that finishes with the app in the background still counts.
                 ReviewPrompt.recordSuccessfulJob(getApplication());
+                com.doubleangels.redact.AppPreferences.setSummaryHintLearned(
+                        getApplication(), com.doubleangels.redact.AppPreferences.HINT_CENSOR);
                 LocalNotifications.showCleanComplete(getApplication(), 1, 0, result.stats != null && result.stats.hadLocation ? 1 : 0);
                 SentryManager.log("The censored copy was saved.");
                 state.postValue(State.SAVED);

@@ -15,7 +15,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowToast;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -29,6 +28,7 @@ public class SettingsOutputFolderTest {
 
     @Before
     public void setUp() {
+        com.doubleangels.redact.ui.Notice.resetForTests();
         app = RuntimeEnvironment.getApplication();
         FakeDocumentsProvider.install(app);
         AppPreferences.resetOutputTree(app, false);
@@ -93,7 +93,7 @@ public class SettingsOutputFolderTest {
 
         assertEquals(before, AppPreferences.getOutputTree(app, false));
         assertEquals(Set.of(before), grants());
-        assertEquals(app.getString(R.string.settings_output_error), ShadowToast.getTextOfLatestToast());
+        assertEquals(app.getString(R.string.settings_output_error), com.doubleangels.redact.ui.Notice.lastShownForTests());
     }
 
     @Test

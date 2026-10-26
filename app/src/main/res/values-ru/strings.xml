@@ -53,7 +53,12 @@
     <string name="convert_run">Конвертировать</string>
     <string name="convert_status_hint">Выберите формат вывода ниже и нажмите «Конвертировать».</string>
     <string name="convert_status_ready">Готово к выбору файлов для конвертации.</string>
-    <string name="convert_selected_count">Выбрано: %1$d файл(ов)</string>
+    <plurals name="summary_selected_files">
+        <item quantity="one">Выбран %1$d файл</item>
+        <item quantity="few">Выбрано %1$d файла</item>
+        <item quantity="many">Выбрано %1$d файлов</item>
+        <item quantity="other">Выбрано %1$d файла</item>
+    </plurals>
     <string name="convert_nothing_selected">Сначала выберите хотя бы одно изображение.</string>
     <string name="convert_progress_item">Конвертация %1$d из %2$d…</string>
     <string name="convert_progress_detail">%1$d из %2$d · %3$s\n%4$s</string>
@@ -276,7 +281,6 @@
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">Отмена</string>
-    <string name="clean_selected_count">Выбрано: %1$d файл(ов)</string>
     <string name="clean_status_ready">Готово к выбору файлов для очистки.</string>
     <string name="convert_codec_fallback">%1$s недоступен; сохранено как %2$s.</string>
     <string name="video_downscaled">Сохранено в %1$dp, так как этот телефон не смог обработать видео в полном размере.</string>
@@ -373,7 +377,6 @@
     <string name="scan_risk_serial">Серийный номер устройства</string>
 
     <string name="clean_clear_selection">Сбросить</string>
-    <string name="convert_clear_selection">Сбросить</string>
     <string name="clean_empty_state_title">Очистка и Удаление Метаданных</string>
     <string name="clean_empty_state_description">Выберите фото или видео, чтобы удалить теги EXIF, геопозицию GPS, сведения о камере и идентификаторы устройства. Также можно поделиться ими с Redact прямо из любого приложения.</string>
     <string name="clean_selected_hint">Готово к удалению данных EXIF и местоположения.</string>
@@ -498,9 +501,13 @@
     <string name="censor_effect_pixelate">Пиксели</string>
     <string name="censor_effect_black">Чёрный</string>
     <string name="censor_effect_blur">Размытие</string>
+    <string name="censor_effect">Эффект</string>
+    <string name="censor_effect_current">Эффект: %1$s</string>
     <string name="censor_undo">Отменить</string>
     <string name="censor_redo">Повторить</string>
     <string name="censor_delete_rectangle">Удалить Прямоугольник</string>
+    <string name="censor_full_screen">Во весь экран</string>
+    <string name="censor_exit_full_screen">Выйти из полноэкранного режима</string>
     <string name="censor_zoom_level">%1$s×</string>
     <string name="censor_zoom_reset">Увеличено в %1$s раза. Нажмите, чтобы показать всё фото.</string>
     <string name="censor_save">Сохранить Копию</string>

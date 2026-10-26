@@ -16,13 +16,11 @@ import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -34,14 +32,17 @@ import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.metadata.MetadataDisplayer;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.sentry.SentryManager;
+import com.doubleangels.redact.ui.FabScroll;
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
+import com.doubleangels.redact.ui.Notice;
 import com.doubleangels.redact.ui.ScanMetadataAdapter;
 import com.doubleangels.redact.ui.ScanViewModel;
 import com.doubleangels.redact.ui.SensitiveClipboard;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -61,7 +62,7 @@ import io.sentry.protocol.SentryId;
 /**
  * Scan tab: metadata inspection UI; hosted in {@link MainActivity}'s fragment container.
  */
-public class ScanFragment extends Fragment {
+public class ScanFragment extends TabFragment {
 
     /** How long the metadata search waits after the last keystroke before filtering. */
     static final long SEARCH_DEBOUNCE_MS = 150;
@@ -188,6 +189,8 @@ public class ScanFragment extends Fragment {
         progressBar = view.findViewById(R.id.progressBar);
         progressContainer = view.findViewById(R.id.progressContainer);
         selectMediaButton = view.findViewById(R.id.selectButton);
+        FabScroll.shrinkOnScroll(view.findViewById(R.id.scrollView),
+                view.<ExtendedFloatingActionButton>findViewById(R.id.selectButton));
 
         emptyStateContainer = view.findViewById(R.id.emptyStateContainer);
         emptyStateSelectButton = view.findViewById(R.id.emptyStateSelectButton);
@@ -1013,7 +1016,7 @@ public class ScanFragment extends Fragment {
     private void copyPlainTextToClipboard(@NonNull String text) {
         if (SensitiveClipboard.copy(requireContext(), getString(R.string.scan_metadata), text)) {
             Haptics.confirm(getView());
-            Toast.makeText(requireContext(), R.string.scan_copied_to_clipboard, Toast.LENGTH_SHORT).show();
+            Notice.show(requireContext(), R.string.scan_copied_to_clipboard, false);
         }
     }
 
@@ -1045,7 +1048,7 @@ public class ScanFragment extends Fragment {
         try {
             startActivity(intent);
         } catch (ActivityNotFoundException e) {
-            Toast.makeText(requireContext(), R.string.scan_maps_not_available, Toast.LENGTH_SHORT).show();
+            Notice.show(requireContext(), R.string.scan_maps_not_available, false);
         }
     }
 

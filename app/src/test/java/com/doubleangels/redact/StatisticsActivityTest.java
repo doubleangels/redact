@@ -32,7 +32,6 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowDialog;
-import org.robolectric.shadows.ShadowToast;
 
 import java.text.DateFormat;
 import java.time.LocalDate;
@@ -57,6 +56,7 @@ public class StatisticsActivityTest {
 
     @Before
     public void setUp() {
+        com.doubleangels.redact.ui.Notice.resetForTests();
         context = RuntimeEnvironment.getApplication();
         StatsStore.setClockForTests(() -> TODAY, () -> STARTED_MS);
         StatsStore.clear(context);
@@ -349,7 +349,7 @@ public class StatisticsActivityTest {
             assertEquals("0", tile(activity, id));
         }
         assertEquals(activity.getString(R.string.stats_chart_empty), text(activity, R.id.statsChartSummary));
-        assertEquals(activity.getString(R.string.stats_cleared), ShadowToast.getTextOfLatestToast());
+        assertEquals(activity.getString(R.string.stats_cleared), com.doubleangels.redact.ui.Notice.lastShownForTests());
     }
 
     @Test
@@ -376,7 +376,7 @@ public class StatisticsActivityTest {
         idle();
 
         assertTrue(StatsStore.snapshot(context).isEmpty());
-        assertEquals(activity.getString(R.string.stats_cleared), ShadowToast.getTextOfLatestToast());
+        assertEquals(activity.getString(R.string.stats_cleared), com.doubleangels.redact.ui.Notice.lastShownForTests());
     }
 
     @Test

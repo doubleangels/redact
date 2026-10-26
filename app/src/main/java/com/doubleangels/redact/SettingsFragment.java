@@ -14,7 +14,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -22,7 +21,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
 
 import com.doubleangels.redact.ShareHandlerActivity;
 import com.doubleangels.redact.media.OutputDestination;
@@ -33,6 +31,7 @@ import com.doubleangels.redact.sentry.SentryInitializer;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.stats.StatsSnapshot;
 import com.doubleangels.redact.stats.StatsStore;
+import com.doubleangels.redact.ui.Notice;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -45,7 +44,7 @@ import java.util.concurrent.Executors;
 /**
  * Settings screen for notifications, conversion defaults, privacy, permissions, and about info.
  */
-public class SettingsFragment extends Fragment {
+public class SettingsFragment extends TabFragment {
 
     private boolean suppressNotificationToggleCallback;
     private boolean suppressCrashReportingToggleCallback;
@@ -129,6 +128,7 @@ public class SettingsFragment extends Fragment {
             bindPrivacy(view);
             bindAdvancedSettings();
             bindAbout(view);
+            com.doubleangels.redact.ui.SwitchRows.wire(view);
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
@@ -259,13 +259,11 @@ public class SettingsFragment extends Fragment {
                             AppPreferences.setCrashReportingEnabled(requireContext(), true);
                             SentryInitializer.initializeBlocking(requireContext());
                             if (!SentryInitializer.isInitialized()) {
-                                Toast.makeText(
-                                                requireContext(),
-                                                SentryInitializer.hasConfiguredDsn()
-                                                        ? R.string.settings_crash_reporting_init_failed
-                                                        : R.string.settings_crash_reporting_unconfigured,
-                                                Toast.LENGTH_LONG)
-                                        .show();
+                                Notice.show(requireContext(),
+                                        SentryInitializer.hasConfiguredDsn()
+                                                ? R.string.settings_crash_reporting_init_failed
+                                                : R.string.settings_crash_reporting_unconfigured,
+                                        true);
                             }
                             setSwitchChecked(switchCrashReporting, true);
                             SentryManager.setCustomKey("crash_reporting_enabled", true);
@@ -398,11 +396,18 @@ public class SettingsFragment extends Fragment {
         switchPreserveCamera.setEnabled(enabled);
         switchPreserveLocation.setEnabled(enabled);
         
+        // A disabled row shows no ripple when tapped, as its switch does nothing.
         View rowCamera = getView().findViewById(R.id.rowPreserveCamera);
-        if (rowCamera != null) rowCamera.setAlpha(alpha);
-        
+        if (rowCamera != null) {
+            rowCamera.setAlpha(alpha);
+            rowCamera.setEnabled(enabled);
+        }
+
         View rowLocation = getView().findViewById(R.id.rowPreserveLocation);
-        if (rowLocation != null) rowLocation.setAlpha(alpha);
+        if (rowLocation != null) {
+            rowLocation.setAlpha(alpha);
+            rowLocation.setEnabled(enabled);
+        }
         
         if (strictClean) {
             switchPreserveCamera.setChecked(false);
@@ -518,12 +523,12 @@ public class SettingsFragment extends Fragment {
             context.getContentResolver().takePersistableUriPermission(tree,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         } catch (SecurityException e) {
-            Toast.makeText(context, R.string.settings_output_error, Toast.LENGTH_LONG).show();
+            Notice.show(context, R.string.settings_output_error, true);
             return false;
         }
         if (!OutputDestination.acceptsNewFiles(context, tree)) {
             releaseOutputTree(context, tree);
-            Toast.makeText(context, R.string.settings_output_error, Toast.LENGTH_LONG).show();
+            Notice.show(context, R.string.settings_output_error, true);
             return false;
         }
         AppPreferences.setOutputTree(context, video, tree);
@@ -572,7 +577,7 @@ public class SettingsFragment extends Fragment {
             try {
                 picker.launch(start);
             } catch (ActivityNotFoundException e) {
-                Toast.makeText(requireContext(), R.string.settings_output_error, Toast.LENGTH_LONG).show();
+                Notice.show(requireContext(), R.string.settings_output_error, true);
             }
         });
     }
@@ -590,8 +595,7 @@ public class SettingsFragment extends Fragment {
             try {
                 startActivity(intent);
             } catch (ActivityNotFoundException | SecurityException e) {
-                Toast.makeText(requireContext(), R.string.settings_output_open_unavailable,
-                        Toast.LENGTH_SHORT).show();
+                Notice.show(requireContext(), R.string.settings_output_open_unavailable, false);
             }
         });
     }
@@ -789,7 +793,7 @@ public class SettingsFragment extends Fragment {
         Context context = requireContext();
         // A running job may be writing into a chosen folder whose grant this would release.
         if (ShareHandlerActivity.isShareProcessingActive() || MainViewModel.isAnyProcessing(requireActivity())) {
-            Toast.makeText(context, R.string.settings_reset_all_busy, Toast.LENGTH_SHORT).show();
+            Notice.show(context, R.string.settings_reset_all_busy, false);
             return;
         }
         Uri images = AppPreferences.getOutputTree(context, false);
@@ -802,7 +806,10 @@ public class SettingsFragment extends Fragment {
         if (crashReporting) {
             SentryInitializer.shutdown();
         }
-        Toast.makeText(context, R.string.settings_reset_all_done, Toast.LENGTH_SHORT).show();
+        // A toast, not a snackbar: the activity is recreated just below, which would take a
+        // snackbar with it before it could be read.
+        android.widget.Toast.makeText(context.getApplicationContext(), R.string.settings_reset_all_done,
+                android.widget.Toast.LENGTH_SHORT).show();
         // Restored view state would put back each switch and dropdown as it was, and the switch
         // listeners would then write the old values straight back into the reset preferences.
         View root = getView();
@@ -883,13 +890,18 @@ public class SettingsFragment extends Fragment {
             @NonNull PermissionStatusHelper.Status status) {
         statusView.setText(getString(statusLabel(status)));
         int color = switch (status) {
-            case GRANTED -> ContextCompat.getColor(requireContext(), R.color.accent);
+            // Green for granted, harmonized with the primary (the wallpaper's, where Android offers
+            // one) as Material asks of colors outside the scheme.
+            case GRANTED -> MaterialColors.harmonizeWithPrimary(requireContext(),
+                    ContextCompat.getColor(requireContext(), R.color.permission_status_granted));
             case PARTIAL -> MaterialColors.getColor(
                     requireContext(),
                     com.google.android.material.R.attr.colorSecondary,
-                    ContextCompat.getColor(requireContext(), R.color.accent));
-            case DENIED, BLOCKED -> ContextCompat.getColor(
-                    requireContext(), R.color.permission_status_denied);
+                    ContextCompat.getColor(requireContext(), R.color.md_theme_secondary));
+            case DENIED, BLOCKED -> MaterialColors.getColor(
+                    requireContext(),
+                    androidx.appcompat.R.attr.colorError,
+                    ContextCompat.getColor(requireContext(), R.color.md_theme_error));
             case NOT_REQUIRED -> MaterialColors.getColor(
                     requireContext(),
                     com.google.android.material.R.attr.colorOnSurfaceVariant,
@@ -928,11 +940,11 @@ public class SettingsFragment extends Fragment {
 
     private void clearTempFiles() {
         if (ShareHandlerActivity.isShareProcessingActive()) {
-            Toast.makeText(requireContext(), R.string.settings_storage_clear_busy, Toast.LENGTH_SHORT).show();
+            Notice.show(requireContext(), R.string.settings_storage_clear_busy, false);
             return;
         }
         if (getActivity() != null && MainViewModel.isAnyProcessing(requireActivity())) {
-            Toast.makeText(requireContext(), R.string.settings_storage_clear_busy, Toast.LENGTH_SHORT).show();
+            Notice.show(requireContext(), R.string.settings_storage_clear_busy, false);
             return;
         }
         if (backgroundExecutor == null) {
@@ -948,9 +960,9 @@ public class SettingsFragment extends Fragment {
                     if (isAdded()) {
                         refreshStorageSize();
                         if (before == 0 || deleted == 0) {
-                            Toast.makeText(ctx, R.string.settings_storage_clear_empty, Toast.LENGTH_SHORT).show();
+                            Notice.show(ctx, R.string.settings_storage_clear_empty, false);
                         } else {
-                            Toast.makeText(ctx, R.string.settings_storage_clear_success, Toast.LENGTH_SHORT).show();
+                            Notice.show(ctx, R.string.settings_storage_clear_success, false);
                         }
                     }
                 });
@@ -962,7 +974,7 @@ public class SettingsFragment extends Fragment {
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
         } catch (ActivityNotFoundException e) {
-            Toast.makeText(requireContext(), R.string.settings_link_unavailable, Toast.LENGTH_SHORT).show();
+            Notice.show(requireContext(), R.string.settings_link_unavailable, false);
         }
     }
 
@@ -1009,13 +1021,9 @@ public class SettingsFragment extends Fragment {
                     new ActivityResultContracts.RequestPermission(),
                     granted -> {
                         refreshPermissionStatuses();
-                        Toast.makeText(
-                                        requireContext(),
-                                        granted
-                                                ? R.string.settings_location_permission_granted
-                                                : R.string.settings_location_permission_denied,
-                                        Toast.LENGTH_SHORT)
-                                .show();
+                        Notice.show(requireContext(),
+                                granted ? R.string.settings_location_permission_granted : R.string.settings_location_permission_denied,
+                                false);
                     });
 
     private final ActivityResultLauncher<String> notificationPermissionLauncher =
@@ -1025,21 +1033,17 @@ public class SettingsFragment extends Fragment {
                         if (granted) {
                             applyNotificationsEnabled(true);
                             SentryManager.setCustomKey("notifications_enabled", true);
-                            Toast.makeText(
-                                            requireContext(),
-                                            R.string.settings_notifications_permission_granted,
-                                            Toast.LENGTH_SHORT)
-                                    .show();
+                            Notice.show(requireContext(),
+                                    R.string.settings_notifications_permission_granted,
+                                    false);
                         } else {
                             suppressNotificationToggleCallback = true;
                             switchNotifications.setChecked(false);
                             suppressNotificationToggleCallback = false;
                             applyNotificationsEnabled(false);
-                            Toast.makeText(
-                                            requireContext(),
-                                            R.string.settings_notifications_permission_denied,
-                                            Toast.LENGTH_SHORT)
-                                    .show();
+                            Notice.show(requireContext(),
+                                    R.string.settings_notifications_permission_denied,
+                                    false);
                         }
                     });
 
@@ -1053,6 +1057,10 @@ public class SettingsFragment extends Fragment {
         rowClean.setAlpha(alpha);
         rowConvert.setAlpha(alpha);
         rowProgress.setAlpha(alpha);
+        // A disabled row shows no ripple when tapped, as its switch does nothing.
+        rowClean.setEnabled(enabled);
+        rowConvert.setEnabled(enabled);
+        rowProgress.setEnabled(enabled);
         switchClean.setEnabled(enabled);
         switchConvert.setEnabled(enabled);
         switchProgress.setEnabled(enabled);

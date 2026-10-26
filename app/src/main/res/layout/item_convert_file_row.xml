@@ -81,16 +81,25 @@
                 tools:text="Image" />
         </LinearLayout>
 
-        <ImageButton
+        <!-- A Material icon button, like the app's other icon buttons: 40dp to look at, 48dp to
+             touch. The adapter names the file in its description and tooltip. -->
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/convertItemRemove"
+            style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_marginStart="4dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/clean_clear_selection"
-            android:padding="12dp"
-            android:src="@drawable/ic_close"
-            app:tint="?attr/colorOnSurfaceVariant" />
+            android:insetLeft="4dp"
+            android:insetTop="4dp"
+            android:insetRight="4dp"
+            android:insetBottom="4dp"
+            android:padding="0dp"
+            app:icon="@drawable/ic_close"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="24dp"
+            app:iconTint="?attr/colorOnSurfaceVariant" />
     </LinearLayout>
 
     <com.google.android.material.divider.MaterialDivider

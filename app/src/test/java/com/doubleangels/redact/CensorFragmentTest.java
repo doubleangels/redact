@@ -18,8 +18,6 @@ import androidx.lifecycle.ViewModelProvider;
 import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.CensorRegion;
 import com.doubleangels.redact.ui.CensorViewModel;
-import com.google.android.material.button.MaterialButtonToggleGroup;
-import com.google.android.material.chip.ChipGroup;
 
 import org.junit.After;
 import org.junit.Before;
@@ -99,7 +97,7 @@ public class CensorFragmentTest {
     }
 
     @Test
-    public void openPhoto_showsSummaryCanvasAndToolsCards() throws Exception {
+    public void openPhoto_showsSummaryCanvasAndToolPill() throws Exception {
         View root = censorTab();
         Uri testUri = createTestJpeg("sample.jpg");
         vm.requestOpen(testUri);
@@ -111,9 +109,9 @@ public class CensorFragmentTest {
 
         assertNotNull(root.findViewById(R.id.censorSummaryCard));
         assertNotNull(root.findViewById(R.id.censorCanvasCard));
-        assertNotNull(root.findViewById(R.id.censorToolsCard));
+        assertEquals(View.VISIBLE, root.findViewById(R.id.censorToolPill).getVisibility());
 
-        TextView fileName = root.findViewById(R.id.censorFileName);
+        TextView fileName = root.findViewById(R.id.summaryTitle);
         assertNotNull(fileName);
         assertEquals("sample.jpg", fileName.getText().toString());
     }
@@ -126,38 +124,39 @@ public class CensorFragmentTest {
         awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.READY);
         idle();
 
-        MaterialButtonToggleGroup toolGroup = root.findViewById(R.id.censorToolGroup);
-        View brushSlider = root.findViewById(R.id.censorBrushSize);
         View brushContainer = root.findViewById(R.id.censorBrushSizeContainer);
+        com.google.android.material.button.MaterialButton rect = root.findViewById(R.id.censorToolRect);
+        com.google.android.material.button.MaterialButton brush = root.findViewById(R.id.censorToolBrush);
+        com.google.android.material.button.MaterialButton move = root.findViewById(R.id.censorToolMove);
 
-        // Rect tool by default -> slider is GONE
-        assertEquals(View.GONE, brushSlider.getVisibility());
-        if (brushContainer != null) {
-            assertEquals(View.GONE, brushContainer.getVisibility());
-        }
+        // Rectangle by default: the brush size bar is hidden
+        assertTrue(rect.isChecked());
+        assertEquals(View.GONE, brushContainer.getVisibility());
 
-        // Switch to Brush tool -> slider and container become VISIBLE
-        toolGroup.check(R.id.censorToolBrush);
+        // Brush shows the bar and is the only tool checked
+        brush.performClick();
         idle();
-        assertEquals(View.VISIBLE, brushSlider.getVisibility());
-        if (brushContainer != null) {
-            assertEquals(View.VISIBLE, brushContainer.getVisibility());
-        }
+        assertEquals(View.VISIBLE, brushContainer.getVisibility());
+        assertTrue(brush.isChecked());
+        assertFalse(rect.isChecked());
 
-        // Switch to Move tool -> slider and container become GONE
-        toolGroup.check(R.id.censorToolMove);
+        // Tapping the checked tool again keeps it checked
+        brush.performClick();
         idle();
-        assertEquals(View.GONE, brushSlider.getVisibility());
-        if (brushContainer != null) {
-            assertEquals(View.GONE, brushContainer.getVisibility());
-        }
+        assertTrue(brush.isChecked());
+
+        // Move hides the bar again
+        move.performClick();
+        idle();
+        assertEquals(View.GONE, brushContainer.getVisibility());
+        assertTrue(move.isChecked());
+        assertFalse(brush.isChecked());
     }
 
     @Test
     public void choosingATool_isRemembered_butARebuiltViewDoesNotSaveItAgain() {
         View root = censorTab();
-        MaterialButtonToggleGroup toolGroup = root.findViewById(R.id.censorToolGroup);
-        toolGroup.check(R.id.censorToolBrush);
+        root.findViewById(R.id.censorToolBrush).performClick();
         idle();
         assertEquals("BRUSH", AppPreferences.getCensorTool(activity));
 
@@ -170,6 +169,12 @@ public class CensorFragmentTest {
         idle();
         assertFalse(activity.getSharedPreferences(AppPreferences.PREFS_NAME, android.content.Context.MODE_PRIVATE)
                 .contains("censor_tool"));
+        // The buttons follow the reset tool, not the state they saved before the rebuild.
+        View rebuilt = fragment("censor").getView();
+        assertTrue(((com.google.android.material.button.MaterialButton)
+                rebuilt.findViewById(R.id.censorToolRect)).isChecked());
+        assertFalse(((com.google.android.material.button.MaterialButton)
+                rebuilt.findViewById(R.id.censorToolBrush)).isChecked());
     }
 
     @Test
@@ -180,12 +185,17 @@ public class CensorFragmentTest {
         awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.READY);
         idle();
 
-        ChipGroup effectGroup = root.findViewById(R.id.censorEffectGroup);
-        assertNotNull(effectGroup);
-        assertEquals(R.id.censorEffectPixelate, effectGroup.getCheckedChipId());
-
-        android.widget.LinearLayout.LayoutParams effectLp = (android.widget.LinearLayout.LayoutParams) effectGroup.getLayoutParams();
-        assertEquals(android.view.Gravity.CENTER_HORIZONTAL, effectLp.gravity);
+        // The effect button names the current effect, and follows a new choice.
+        View effectButton = root.findViewById(R.id.censorEffectButton);
+        assertEquals(activity.getString(R.string.censor_effect_current,
+                        activity.getString(R.string.censor_effect_pixelate)),
+                effectButton.getContentDescription().toString());
+        ((CensorFragment) fragment("censor")).chooseEffect(com.doubleangels.redact.media.CensorEffects.Effect.BLUR);
+        idle();
+        assertEquals(com.doubleangels.redact.media.CensorEffects.Effect.BLUR, vm.getEffect().getValue());
+        assertEquals(activity.getString(R.string.censor_effect_current,
+                        activity.getString(R.string.censor_effect_blur)),
+                effectButton.getContentDescription().toString());
 
         View undo = root.findViewById(R.id.censorUndoButton);
         View redo = root.findViewById(R.id.censorRedoButton);
@@ -197,10 +207,15 @@ public class CensorFragmentTest {
         assertNotNull(delete);
         assertNotNull(save);
 
-        android.view.ViewGroup undoRow = (android.view.ViewGroup) undo.getParent();
-        assertTrue(undoRow instanceof android.widget.LinearLayout);
-        android.widget.LinearLayout undoLinear = (android.widget.LinearLayout) undoRow;
-        assertEquals(android.view.Gravity.CENTER, undoLinear.getGravity());
+        // Undo, redo and delete float in one pill over the photo's top end, taking none of its height.
+        android.widget.LinearLayout undoColumn = (android.widget.LinearLayout) undo.getParent();
+        assertEquals(android.widget.LinearLayout.VERTICAL, undoColumn.getOrientation());
+        assertTrue(undoColumn == redo.getParent() && undoColumn == delete.getParent());
+        View pill = root.findViewById(R.id.censorHistoryControls);
+        assertEquals(pill, undoColumn.getParent());
+        assertEquals(root.findViewById(R.id.censorCanvasCard), pill.getParent());
+        assertEquals(android.view.Gravity.TOP | android.view.Gravity.END,
+                ((android.widget.FrameLayout.LayoutParams) pill.getLayoutParams()).gravity);
 
         int expectedSize = Math.round(48 * root.getResources().getDisplayMetrics().density);
         assertEquals(expectedSize, undo.getLayoutParams().width);
@@ -208,18 +223,20 @@ public class CensorFragmentTest {
         assertEquals(expectedSize, redo.getLayoutParams().width);
         assertEquals(expectedSize, redo.getLayoutParams().height);
 
-        // Initially no edits: undo/redo disabled, delete gone, save gone
+        // Initially no edits: undo/redo disabled, delete gone, save gone, and so is the pill
         assertFalse(undo.isEnabled());
         assertFalse(redo.isEnabled());
         assertEquals(View.GONE, delete.getVisibility());
         assertEquals(View.GONE, save.getVisibility());
+        assertEquals(View.GONE, pill.getVisibility());
 
         // Add a region
         vm.addRegion(CensorRegion.rect(0.1f, 0.1f, 0.5f, 0.5f));
         idle();
 
-        // Now undo should be enabled and save visible
+        // Now undo should be enabled, with its pill, and save visible
         assertTrue(undo.isEnabled());
+        assertEquals(View.VISIBLE, pill.getVisibility());
         assertEquals(View.VISIBLE, save.getVisibility());
 
         // Undo the region
@@ -227,6 +244,143 @@ public class CensorFragmentTest {
         idle();
         assertFalse(undo.isEnabled());
         assertTrue(redo.isEnabled());
+        // Redo is still there to use, so the pill stays.
+        assertEquals(View.VISIBLE, pill.getVisibility());
+    }
+
+    @Test
+    public void fullScreen_hidesEverythingButThePhoto_keepsTheTools_andBackLeavesIt() throws Exception {
+        View root = censorTab();
+        vm.requestOpen(createTestJpeg("full.jpg"));
+        awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.READY);
+        idle();
+        View nav = activity.findViewById(R.id.bottomNavigation);
+        View pill = root.findViewById(R.id.censorToolPill);
+        assertEquals(View.VISIBLE, pill.getVisibility());
+
+        root.findViewById(R.id.censorFullScreenButton).performClick();
+        idle();
+        assertEquals(View.GONE, root.findViewById(R.id.censorSummaryCard).getVisibility());
+        assertEquals(View.GONE, nav.getVisibility());
+        assertEquals(View.VISIBLE, pill.getVisibility());
+        assertEquals(activity.getString(R.string.censor_exit_full_screen),
+                root.findViewById(R.id.censorFullScreenButton).getContentDescription().toString());
+
+        // The tools work the same in full screen.
+        root.findViewById(R.id.censorToolMove).performClick();
+        idle();
+        assertTrue(((com.google.android.material.button.MaterialButton)
+                root.findViewById(R.id.censorToolMove)).isChecked());
+        assertEquals("MOVE", AppPreferences.getCensorTool(activity));
+
+        activity.getOnBackPressedDispatcher().onBackPressed();
+        idle();
+        assertFalse(vm.isFullScreen());
+        assertEquals(View.VISIBLE, root.findViewById(R.id.censorSummaryCard).getVisibility());
+        assertEquals(View.VISIBLE, nav.getVisibility());
+        assertEquals(activity.getString(R.string.censor_full_screen),
+                root.findViewById(R.id.censorFullScreenButton).getContentDescription().toString());
+        // The photo is still open: Back only left full screen.
+        assertEquals(CensorViewModel.State.READY, vm.getState().getValue());
+    }
+
+    @Test
+    public void toolPill_makesRoomForTheZoomChip_onlyWhileItShows() throws Exception {
+        View root = censorTab();
+        vm.requestOpen(createTestJpeg("zoom.jpg"));
+        awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.READY);
+        idle();
+        View pill = root.findViewById(R.id.censorToolPill);
+        View chip = root.findViewById(R.id.censorZoomChip);
+        float density = root.getResources().getDisplayMetrics().density;
+        int bottom = ((android.view.ViewGroup.MarginLayoutParams) pill.getLayoutParams()).bottomMargin;
+        assertEquals(Math.round(12 * density), bottom);
+
+        java.lang.reflect.Method zoomBy = com.doubleangels.redact.ui.CensorCanvasView.class
+                .getDeclaredMethod("zoomBy", float.class);
+        zoomBy.setAccessible(true);
+        zoomBy.invoke(root.findViewById(R.id.censorCanvas), 2f);
+        idle();
+        assertEquals(View.VISIBLE, chip.getVisibility());
+        bottom = ((android.view.ViewGroup.MarginLayoutParams) pill.getLayoutParams()).bottomMargin;
+        assertEquals(Math.round(64 * density), bottom);
+
+        chip.performClick();
+        idle();
+        assertEquals(View.GONE, chip.getVisibility());
+        bottom = ((android.view.ViewGroup.MarginLayoutParams) pill.getLayoutParams()).bottomMargin;
+        assertEquals(Math.round(12 * density), bottom);
+    }
+
+    @Test
+    public void fullScreen_endsWhenThePhotoCloses() throws Exception {
+        View root = censorTab();
+        vm.requestOpen(createTestJpeg("close.jpg"));
+        awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.READY);
+        idle();
+        root.findViewById(R.id.censorFullScreenButton).performClick();
+        idle();
+
+        vm.close();
+        idle();
+        assertFalse(vm.isFullScreen());
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.bottomNavigation).getVisibility());
+        assertEquals(View.VISIBLE, root.findViewById(R.id.censorEmptyState).getVisibility());
+    }
+
+    @Test
+    public void fullScreen_endsWhenAReplacementFailsToOpen() throws Exception {
+        View root = censorTab();
+        vm.requestOpen(createTestJpeg("first.jpg"));
+        awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.READY);
+        idle();
+        root.findViewById(R.id.censorFullScreenButton).performClick();
+        idle();
+
+        vm.requestOpen(Uri.parse("content://com.doubleangels.redact.missing/photo/1"));
+        awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.LOAD_FAILED
+                || vm.getState().getValue() == CensorViewModel.State.UNSUPPORTED);
+        idle();
+        assertFalse(vm.isFullScreen());
+        assertEquals(View.VISIBLE, root.findViewById(R.id.censorSummaryCard).getVisibility());
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.bottomNavigation).getVisibility());
+    }
+
+    @Test
+    public void fullScreen_endsWhenLeavingTheTab() throws Exception {
+        View root = censorTab();
+        vm.requestOpen(createTestJpeg("leave.jpg"));
+        awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.READY);
+        idle();
+        root.findViewById(R.id.censorFullScreenButton).performClick();
+        idle();
+
+        activity.selectTab(R.id.navigation_scan);
+        idle();
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.bottomNavigation).getVisibility());
+        activity.selectTab(R.id.navigation_censor);
+        idle();
+        assertFalse(vm.isFullScreen());
+        assertEquals(View.VISIBLE, root.findViewById(R.id.censorSummaryCard).getVisibility());
+    }
+
+    @Test
+    @Config(qualifiers = "land")
+    public void fullScreen_inLandscape_hidesTheColumn() throws Exception {
+        View root = censorTab();
+        vm.requestOpen(createTestJpeg("land-full.jpg"));
+        awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.READY);
+        idle();
+        assertEquals(View.VISIBLE, root.findViewById(R.id.censorColumn).getVisibility());
+
+        root.findViewById(R.id.censorFullScreenButton).performClick();
+        idle();
+        assertEquals(View.GONE, root.findViewById(R.id.censorColumn).getVisibility());
+        assertEquals(View.VISIBLE, root.findViewById(R.id.censorCanvasCard).getVisibility());
+
+        root.findViewById(R.id.censorFullScreenButton).performClick();
+        idle();
+        assertEquals(View.VISIBLE, root.findViewById(R.id.censorColumn).getVisibility());
     }
 
     @Test
@@ -240,7 +394,7 @@ public class CensorFragmentTest {
         idle();
 
         assertEquals(View.VISIBLE, root.findViewById(R.id.censorContent).getVisibility());
-        assertNotNull(root.findViewById(R.id.censorToolsCard));
+        assertNotNull(root.findViewById(R.id.censorToolPill));
         assertNotNull(root.findViewById(R.id.censorCanvasCard));
         assertNotNull(root.findViewById(R.id.censorSummaryCard));
     }

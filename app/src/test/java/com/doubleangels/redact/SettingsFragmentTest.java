@@ -58,6 +58,7 @@ public class SettingsFragmentTest {
 
     @Before
     public void setUp() {
+        com.doubleangels.redact.ui.Notice.resetForTests();
         overrideSentryDsn("");
         AppProcessingScope.resetForTests();
         controller = Robolectric.buildActivity(MainActivity.class).setup();
@@ -106,6 +107,54 @@ public class SettingsFragmentTest {
 
     private AlertDialog latestDialog() {
         return (AlertDialog) ShadowDialog.getLatestDialog();
+    }
+
+    // ---- switch rows ---------------------------------------------------------------------
+
+    @Test
+    public void tappingAnywhereOnASwitchRow_togglesItsSwitch() {
+        MaterialSwitch keepNames = sw(R.id.switchKeepOriginalNames);
+        View row = (View) keepNames.getParent();
+        boolean before = keepNames.isChecked();
+
+        row.performClick();
+        idle();
+        assertEquals(!before, keepNames.isChecked());
+        assertEquals(!before, AppPreferences.isKeepOriginalFileNames(activity));
+
+        row.performClick();
+        idle();
+        assertEquals(before, keepNames.isChecked());
+    }
+
+    @Test
+    public void aDisabledSwitchRow_ignoresTaps() {
+        sw(R.id.switchNotifications).setChecked(false);
+        idle();
+        MaterialSwitch clean = sw(R.id.switchCleanNotifications);
+        boolean before = clean.isChecked();
+
+        settings.findViewById(R.id.rowCleanNotifications).performClick();
+        idle();
+        assertEquals(before, clean.isChecked());
+        // No ripple either: the row itself is disabled along with its switch.
+        assertFalse(settings.findViewById(R.id.rowCleanNotifications).isEnabled());
+
+        sw(R.id.switchNotifications).setChecked(true);
+        idle();
+        assertTrue(settings.findViewById(R.id.rowCleanNotifications).isEnabled());
+    }
+
+    @Test
+    public void aSwitchRow_readsAsOneSwitchWithItsState() {
+        MaterialSwitch keepNames = sw(R.id.switchKeepOriginalNames);
+        View row = (View) keepNames.getParent();
+        android.view.accessibility.AccessibilityNodeInfo info = row.createAccessibilityNodeInfo();
+        assertEquals(android.widget.Switch.class.getName(), info.getClassName().toString());
+        assertTrue(info.isCheckable());
+        assertEquals(keepNames.isChecked(), info.isChecked());
+        assertTrue(info.isClickable());
+        assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_NO, keepNames.getImportantForAccessibility());
     }
 
     // ---- notifications -------------------------------------------------------------------
@@ -440,6 +489,16 @@ public class SettingsFragmentTest {
     }
 
     @Test
+    public void resetAllSettings_saysSoInAToast_whichOutlivesTheRecreatedScreen() {
+        settings.findViewById(R.id.rowResetSettings).performClick();
+        idle();
+        latestDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        idle();
+        assertEquals(activity.getString(R.string.settings_reset_all_done),
+                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+    }
+
+    @Test
     public void aboutRows_openTheirLinks() {
         int[] rows = {R.id.rowAboutGithub, R.id.rowAboutPrivacy, R.id.rowAboutReportIssue,
                 R.id.rowAboutRate, R.id.rowAboutDonate};
@@ -554,7 +613,7 @@ public class SettingsFragmentTest {
         idle();
 
         assertEquals(activity.getString(R.string.settings_reset_all_busy),
-                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
         assertTrue(AppPreferences.isDeleteOriginalsAfterClean(activity));
     }
 

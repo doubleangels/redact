@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -14,7 +13,6 @@ import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.doubleangels.redact.media.CensorEffects;
@@ -23,10 +21,11 @@ import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.CensorCanvasView;
 import com.doubleangels.redact.ui.CensorViewModel;
 import com.doubleangels.redact.ui.Haptics;
+import com.doubleangels.redact.ui.Notice;
 import com.doubleangels.redact.ui.ScanViewModel;
 import com.doubleangels.redact.ui.ShareResults;
-import com.google.android.material.button.MaterialButtonToggleGroup;
-import com.google.android.material.chip.ChipGroup;
+import com.doubleangels.redact.ui.SummaryCard;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.slider.Slider;
@@ -38,7 +37,7 @@ import java.util.List;
  * without any of the original's metadata. The photo comes from the picker here, from Scan, or
  * from sharing it to Redact › Censor; all of them go through {@link CensorViewModel}.
  */
-public class CensorFragment extends Fragment {
+public class CensorFragment extends TabFragment {
 
     /** Brush widths for the slider's 1 to 10, as fractions of the photo's longer side at fit. */
     private static final float BRUSH_WIDTH_PER_STEP = 0.01f;
@@ -50,8 +49,7 @@ public class CensorFragment extends Fragment {
     private Uri pendingTrashSource;
 
     private boolean draggingBrushSize;
-    /** False until the view's saved state is back, so restoring the tool buttons is not taken as a choice. */
-    private boolean toolsRestored;
+    private CensorCanvasView.Tool currentTool = CensorCanvasView.Tool.RECT;
     private final Runnable hideBrushPreview = () -> {
         if (this.canvas != null) {
             this.canvas.setBrushPreview(false);
@@ -66,7 +64,15 @@ public class CensorFragment extends Fragment {
     private View loading;
     private TextView message;
     private TextView fileName;
-    private View toolsCard;
+    private View summaryCard;
+    private View historyControls;
+    private View toolPill;
+    private MaterialButton fullScreenButton;
+    private MaterialButton effectButton;
+    private View brushSizeBar;
+    /** The landscape column holding the summary card; null in portrait. */
+    @Nullable
+    private View column;
     private View deleteButton;
     private com.google.android.material.chip.Chip zoomChip;
     private View undoButton;
@@ -77,6 +83,10 @@ public class CensorFragment extends Fragment {
     private View scanResultButton;
     @Nullable
     private androidx.appcompat.app.AlertDialog replaceDialog;
+    @Nullable
+    private androidx.appcompat.widget.PopupMenu effectMenu;
+    /** Whether this fragment last hid the bars, so they are only shown or hidden on a change. */
+    private boolean immersive;
     /** The rectangle selected on the canvas, which Delete removes, or minus one. */
     private int selectedRectangle = -1;
 
@@ -85,6 +95,14 @@ public class CensorFragment extends Fragment {
         @Override
         public void handleOnBackPressed() {
             confirmDiscard(() -> viewModel.close());
+        }
+    };
+
+    /** Back leaves full screen before anything else. */
+    private final OnBackPressedCallback fullScreenCallback = new OnBackPressedCallback(false) {
+        @Override
+        public void handleOnBackPressed() {
+            setFullScreen(false);
         }
     };
 
@@ -132,8 +150,19 @@ public class CensorFragment extends Fragment {
         canvas = view.findViewById(R.id.censorCanvas);
         loading = view.findViewById(R.id.censorLoading);
         message = view.findViewById(R.id.censorMessage);
-        fileName = view.findViewById(R.id.censorFileName);
-        toolsCard = view.findViewById(R.id.censorToolsCard);
+        summaryCard = view.findViewById(R.id.censorSummaryCard);
+        SummaryCard.bind(summaryCard, R.drawable.ic_censor, R.string.censor_hint,
+                R.string.censor_select_photo, AppPreferences.HINT_CENSOR);
+        fileName = view.findViewById(R.id.summaryTitle);
+        // A file name keeps its extension visible, which a count has no need for.
+        fileName.setSingleLine(true);
+        fileName.setEllipsize(android.text.TextUtils.TruncateAt.MIDDLE);
+        historyControls = view.findViewById(R.id.censorHistoryControls);
+        toolPill = view.findViewById(R.id.censorToolPill);
+        fullScreenButton = view.findViewById(R.id.censorFullScreenButton);
+        effectButton = view.findViewById(R.id.censorEffectButton);
+        brushSizeBar = view.findViewById(R.id.censorBrushSizeContainer);
+        column = view.findViewById(R.id.censorColumn);
         deleteButton = view.findViewById(R.id.censorDeleteButton);
         zoomChip = view.findViewById(R.id.censorZoomChip);
         zoomChip.setOnClickListener(v -> {
@@ -149,7 +178,7 @@ public class CensorFragment extends Fragment {
 
         view.findViewById(R.id.emptyStateSelectButton).setOnClickListener(v -> pickPhoto());
         view.findViewById(R.id.selectButton).setOnClickListener(v -> pickPhoto());
-        view.findViewById(R.id.censorClearButton).setOnClickListener(v -> {
+        view.findViewById(R.id.summaryClearButton).setOnClickListener(v -> {
             Haptics.tick(v);
             if (viewModel.hasUnsavedEdits()) {
                 confirmDiscard(() -> viewModel.close());
@@ -184,8 +213,8 @@ public class CensorFragment extends Fragment {
             Haptics.tick(v);
             openResultInScan();
         });
-        setUpTools(view, savedInstanceState);
-        setUpEffects(view);
+        setUpTools(view);
+        setUpEffects();
         canvas.setListener(new CensorCanvasView.Listener() {
             @Override
             public void onRegionDrawn(@NonNull com.doubleangels.redact.media.CensorRegion region) {
@@ -207,6 +236,7 @@ public class CensorFragment extends Fragment {
                 }
                 selectedRectangle = index;
                 deleteButton.setVisibility(index >= 0 ? View.VISIBLE : View.GONE);
+                updateHistoryControls();
             }
 
             @Override
@@ -216,14 +246,18 @@ public class CensorFragment extends Fragment {
         });
 
         requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), unsavedEditsCallback);
+        // Added last, so it runs first: Back leaves full screen before it asks about unsaved edits.
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), fullScreenCallback);
 
         viewModel.getPreview().observe(getViewLifecycleOwner(), bitmap -> {
             canvas.setImage(bitmap);
             viewModel.onPreviewShown(bitmap);
         });
-        viewModel.getFileName().observe(getViewLifecycleOwner(), name ->
-                fileName.setText(name != null && !name.isEmpty()
-                        ? name : getString(R.string.scan_default_file_name)));
+        viewModel.getFileName().observe(getViewLifecycleOwner(), name -> {
+            fileName.setText(name != null && !name.isEmpty()
+                    ? name : getString(R.string.scan_default_file_name));
+            SummaryCard.refreshHint(summaryCard, AppPreferences.HINT_CENSOR);
+        });
         viewModel.getHistoryVersion().observe(getViewLifecycleOwner(), v -> {
             canvas.setRegions(viewModel.regions());
             updateControls();
@@ -236,8 +270,14 @@ public class CensorFragment extends Fragment {
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
         if (viewModel != null) {
+            if (hidden) {
+                // Leaving the tab (to Scan with Scan Result, say) ends full screen, rather than
+                // coming back to it later without the bottom navigation.
+                viewModel.setFullScreen(false);
+            }
             updateControls();
             updateRecentsPreview();
+            applyFullScreen();
         }
     }
 
@@ -250,16 +290,14 @@ public class CensorFragment extends Fragment {
     }
 
     @Override
-    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
-        toolsRestored = true;
-    }
-
-    @Override
     public void onDestroyView() {
-        toolsRestored = false;
         canvas.removeCallbacks(hideBrushPreview);
         com.doubleangels.redact.ui.SecureWindow.setPhotoOpen(requireActivity(), false);
+        setImmersive(false);
+        if (effectMenu != null) {
+            effectMenu.dismiss();
+            effectMenu = null;
+        }
         if (replaceDialog != null) {
             replaceDialog.dismiss();
             replaceDialog = null;
@@ -272,19 +310,16 @@ public class CensorFragment extends Fragment {
             photoPickerLauncher.launch(new String[] {"image/*"});
         } catch (android.content.ActivityNotFoundException e) {
             SentryManager.recordException(e);
-            Toast.makeText(requireContext(), R.string.share_error_generic, Toast.LENGTH_SHORT).show();
+            Notice.show(requireContext(), R.string.share_error_generic, false);
         }
     }
 
-    private void setUpTools(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        MaterialButtonToggleGroup tools = view.findViewById(R.id.censorToolGroup);
+    private void setUpTools(@NonNull View view) {
         Slider brushSize = view.findViewById(R.id.censorBrushSize);
-        // The tool and brush size used last time; the view's own saved state wins after a rotation.
-        if (savedInstanceState == null) {
-            tools.check(buttonFor(AppPreferences.getCensorTool(requireContext())));
-            float size = AppPreferences.getCensorBrushSize(requireContext(), brushSize.getValue());
-            brushSize.setValue(Math.max(brushSize.getValueFrom(), Math.min(brushSize.getValueTo(), Math.round(size))));
-        }
+        // The tool and brush size used last time; both are saved the moment they change.
+        currentTool = toolFor(AppPreferences.getCensorTool(requireContext()));
+        float size = AppPreferences.getCensorBrushSize(requireContext(), brushSize.getValue());
+        brushSize.setValue(Math.max(brushSize.getValueFrom(), Math.min(brushSize.getValueTo(), Math.round(size))));
         canvas.setBrushWidth(brushSize.getValue() * BRUSH_WIDTH_PER_STEP);
         // A circle of the brush's real size shows while the slider moves, since the size on the
         // photo depends on the zoom.
@@ -316,65 +351,174 @@ public class CensorFragment extends Fragment {
                 AppPreferences.setCensorBrushSize(requireContext(), value);
             }
         });
-        tools.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (isChecked) {
-                applyTool(checkedId, brushSize, toolsRestored);
-            }
+        for (CensorCanvasView.Tool tool : CensorCanvasView.Tool.values()) {
+            view.findViewById(buttonFor(tool)).setOnClickListener(v -> {
+                Haptics.tick(v);
+                currentTool = tool;
+                AppPreferences.setCensorTool(requireContext(), tool.name());
+                applyTool();
+            });
+        }
+        fullScreenButton.setOnClickListener(v -> {
+            Haptics.tick(v);
+            setFullScreen(!viewModel.isFullScreen());
         });
-        // Not remembered here: a rebuilt view (after Reset All Settings, say) would save the old tool again.
-        applyTool(tools.getCheckedButtonId(), brushSize, false);
+        applyTool();
     }
 
-    private void applyTool(int checkedId, @NonNull Slider brushSize, boolean remember) {
-        CensorCanvasView.Tool tool = checkedId == R.id.censorToolBrush ? CensorCanvasView.Tool.BRUSH
-                : checkedId == R.id.censorToolMove ? CensorCanvasView.Tool.MOVE
-                : CensorCanvasView.Tool.RECT;
-        canvas.setTool(tool);
-        int visibility = tool == CensorCanvasView.Tool.BRUSH ? View.VISIBLE : View.GONE;
-        brushSize.setVisibility(visibility);
-        View container = getView() != null ? getView().findViewById(R.id.censorBrushSizeContainer) : null;
-        if (container != null) {
-            container.setVisibility(visibility);
+    /** Puts the current tool on the canvas and marks its button, the only one checked. */
+    private void applyTool() {
+        canvas.setTool(currentTool);
+        for (CensorCanvasView.Tool tool : CensorCanvasView.Tool.values()) {
+            ((MaterialButton) toolPill.findViewById(buttonFor(tool))).setChecked(tool == currentTool);
         }
-        if (remember) {
-            AppPreferences.setCensorTool(requireContext(), tool.name());
+        updateBrushSizeBar();
+    }
+
+    /** The brush size bar shows with Brush on a photo, and the status moves down to clear it. */
+    private void updateBrushSizeBar() {
+        boolean visible = currentTool == CensorCanvasView.Tool.BRUSH && isPhotoShown();
+        brushSizeBar.setVisibility(visible ? View.VISIBLE : View.GONE);
+        float density = getResources().getDisplayMetrics().density;
+        ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) statusText.getLayoutParams();
+        int top = Math.round((visible ? 12 + 48 + 8 : 12) * density);
+        if (lp.topMargin != top) {
+            lp.topMargin = top;
+            statusText.setLayoutParams(lp);
         }
     }
 
-    /** The tool button for a saved tool name; Rectangle when there is none. */
-    private static int buttonFor(@Nullable String tool) {
-        if (CensorCanvasView.Tool.BRUSH.name().equals(tool)) {
-            return R.id.censorToolBrush;
-        }
-        if (CensorCanvasView.Tool.MOVE.name().equals(tool)) {
-            return R.id.censorToolMove;
-        }
-        return R.id.censorToolRect;
+    private boolean isPhotoShown() {
+        CensorViewModel.State state = viewModel.getState().getValue();
+        return state == CensorViewModel.State.READY || state == CensorViewModel.State.SAVING;
     }
 
-    private void setUpEffects(@NonNull View view) {
-        ChipGroup effects = view.findViewById(R.id.censorEffectGroup);
-        CensorEffects.Effect current = viewModel.getEffect().getValue();
-        if (current != null) {
-            effects.check(chipFor(current));
+    private void setFullScreen(boolean fullScreen) {
+        SentryManager.logEvent("censor", fullScreen
+                ? "The user turned on full screen." : "The user left full screen.");
+        viewModel.setFullScreen(fullScreen);
+        applyFullScreen();
+    }
+
+    /**
+     * Shows the photo on its own, filling the screen, while full screen is on and the photo is
+     * open: the card above it (or beside it, in landscape), the bottom navigation and the system
+     * bars all hide. The tools stay, over the photo.
+     */
+    private void applyFullScreen() {
+        CensorViewModel.State state = viewModel.getState().getValue();
+        boolean open = state != null && state != CensorViewModel.State.NONE;
+        if (state == CensorViewModel.State.LOAD_FAILED || state == CensorViewModel.State.UNSUPPORTED) {
+            // Nothing to edit, and the card with Clear and Select must be in reach.
+            viewModel.setFullScreen(false);
         }
-        effects.setOnCheckedStateChangeListener((group, checkedIds) -> {
-            if (checkedIds.isEmpty()) {
+        // Loading a replacement keeps full screen, so it does not drop out and back in.
+        boolean on = viewModel.isFullScreen() && open && !isHidden();
+        toolPill.setVisibility(isPhotoShown() ? View.VISIBLE : View.GONE);
+        updateBrushSizeBar();
+        int label = on ? R.string.censor_exit_full_screen : R.string.censor_full_screen;
+        fullScreenButton.setIconResource(on ? R.drawable.ic_fullscreen_exit : R.drawable.ic_fullscreen);
+        fullScreenButton.setContentDescription(getString(label));
+        fullScreenButton.setTooltipText(getString(label));
+        if (column != null) {
+            column.setVisibility(open && !on ? View.VISIBLE : View.GONE);
+        } else {
+            summaryCard.setVisibility(on ? View.GONE : View.VISIBLE);
+        }
+        fullScreenCallback.setEnabled(on);
+        setImmersive(on);
+    }
+
+    private void setImmersive(boolean immersive) {
+        if (this.immersive == immersive) {
+            return;
+        }
+        this.immersive = immersive;
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).setImmersive(immersive);
+        }
+    }
+
+    /** The tool for a saved tool name; Rectangle when there is none. */
+    @NonNull
+    private static CensorCanvasView.Tool toolFor(@Nullable String name) {
+        for (CensorCanvasView.Tool tool : CensorCanvasView.Tool.values()) {
+            if (tool.name().equals(name)) {
+                return tool;
+            }
+        }
+        return CensorCanvasView.Tool.RECT;
+    }
+
+    private static int buttonFor(@NonNull CensorCanvasView.Tool tool) {
+        return switch (tool) {
+            case BRUSH -> R.id.censorToolBrush;
+            case MOVE -> R.id.censorToolMove;
+            default -> R.id.censorToolRect;
+        };
+    }
+
+    private void setUpEffects() {
+        effectButton.setOnClickListener(v -> {
+            Haptics.tick(v);
+            showEffectMenu(v);
+        });
+        viewModel.getEffect().observe(getViewLifecycleOwner(), effect -> {
+            if (effect == null) {
                 return;
             }
-            int id = checkedIds.get(0);
-            viewModel.setEffect(id == R.id.censorEffectBlack ? CensorEffects.Effect.BLACK
-                    : id == R.id.censorEffectBlur ? CensorEffects.Effect.BLUR
-                    : CensorEffects.Effect.PIXELATE);
-            updateControls();
+            effectButton.setIconResource(iconFor(effect));
+            String label = getString(R.string.censor_effect_current, getString(labelFor(effect)));
+            effectButton.setContentDescription(label);
+            effectButton.setTooltipText(label);
         });
     }
 
-    private static int chipFor(@NonNull CensorEffects.Effect effect) {
+    /** Pixelate, Black and Blur, with the current one checked. */
+    private void showEffectMenu(@NonNull View anchor) {
+        if (effectMenu != null) {
+            return;
+        }
+        androidx.appcompat.widget.PopupMenu popup =
+                new androidx.appcompat.widget.PopupMenu(requireContext(), anchor);
+        effectMenu = popup;
+        popup.setOnDismissListener(menu -> effectMenu = null);
+        android.view.Menu menu = popup.getMenu();
+        CensorEffects.Effect current = viewModel.getEffect().getValue();
+        CensorEffects.Effect[] effects = CensorEffects.Effect.values();
+        for (int i = 0; i < effects.length; i++) {
+            menu.add(0, i, i, labelFor(effects[i])).setIcon(iconFor(effects[i]))
+                    .setChecked(effects[i] == current);
+        }
+        menu.setGroupCheckable(0, true, true);
+        popup.setForceShowIcon(true);
+        popup.setOnMenuItemClickListener(item -> {
+            chooseEffect(effects[item.getItemId()]);
+            return true;
+        });
+        popup.show();
+    }
+
+    @androidx.annotation.VisibleForTesting
+    void chooseEffect(@NonNull CensorEffects.Effect effect) {
+        SentryManager.logEvent("censor", "The user chose the " + effect.name() + " effect.");
+        viewModel.setEffect(effect);
+        updateControls();
+    }
+
+    private static int iconFor(@NonNull CensorEffects.Effect effect) {
         return switch (effect) {
-            case BLACK -> R.id.censorEffectBlack;
-            case BLUR -> R.id.censorEffectBlur;
-            default -> R.id.censorEffectPixelate;
+            case BLACK -> R.drawable.ic_effect_black;
+            case BLUR -> R.drawable.ic_effect_blur;
+            default -> R.drawable.ic_censor;
+        };
+    }
+
+    private static int labelFor(@NonNull CensorEffects.Effect effect) {
+        return switch (effect) {
+            case BLACK -> R.string.censor_effect_black;
+            case BLUR -> R.string.censor_effect_blur;
+            default -> R.string.censor_effect_pixelate;
         };
     }
 
@@ -408,9 +552,22 @@ public class CensorFragment extends Fragment {
             message.setText(state == CensorViewModel.State.UNSUPPORTED
                     ? R.string.censor_error_unsupported : R.string.censor_error_open);
         }
-        toolsCard.setVisibility(failedToOpen ? View.GONE : View.VISIBLE);
         canvas.setEnabled(state == CensorViewModel.State.READY);
         updateControls();
+        applyFullScreen();
+    }
+
+    /**
+     * The undo pill floats over the photo, so it shows only while it holds something to use; it
+     * stays up while a copy saves so it does not blink out and back.
+     */
+    private void updateHistoryControls() {
+        CensorViewModel.State state = viewModel.getState().getValue();
+        boolean editing = state == CensorViewModel.State.READY
+                || state == CensorViewModel.State.SAVING;
+        boolean useful = viewModel.canUndo() || viewModel.canRedo()
+                || deleteButton.getVisibility() == View.VISIBLE;
+        historyControls.setVisibility(editing && useful ? View.VISIBLE : View.GONE);
     }
 
     private void updateControls() {
@@ -420,6 +577,7 @@ public class CensorFragment extends Fragment {
         boolean unsaved = viewModel.hasUnsavedEdits();
         undoButton.setEnabled(ready && viewModel.canUndo());
         redoButton.setEnabled(ready && viewModel.canRedo());
+        updateHistoryControls();
 
         // Save Copy shows once there is something new to save, as Convert shows its button only
         // with files selected; it stays (disabled) while the copy is being saved.
@@ -449,6 +607,14 @@ public class CensorFragment extends Fragment {
     private void showZoom(float zoom) {
         boolean zoomed = zoom > 1.01f;
         zoomChip.setVisibility(zoomed ? View.VISIBLE : View.GONE);
+        // The tool pill stops 12dp above the chip while it shows (the chip's 48dp touch target
+        // has 8dp of it below its 32dp shape), and runs to 12dp from the bottom otherwise.
+        ViewGroup.MarginLayoutParams pill = (ViewGroup.MarginLayoutParams) toolPill.getLayoutParams();
+        int bottom = Math.round((zoomed ? 12 + 48 + 4 : 12) * getResources().getDisplayMetrics().density);
+        if (pill.bottomMargin != bottom) {
+            pill.bottomMargin = bottom;
+            toolPill.setLayoutParams(pill);
+        }
         if (zoomed) {
             String level = zoomLabel(zoom);
             zoomChip.setText(getString(R.string.censor_zoom_level, level));
@@ -514,7 +680,7 @@ public class CensorFragment extends Fragment {
         } catch (Exception e) {
             pendingTrashSource = null;
             SentryManager.recordException(e);
-            Toast.makeText(requireContext(), R.string.share_error_generic, Toast.LENGTH_SHORT).show();
+            Notice.show(requireContext(), R.string.share_error_generic, false);
         }
     }
 

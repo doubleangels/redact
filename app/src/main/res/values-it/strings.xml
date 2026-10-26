@@ -51,7 +51,11 @@
     <string name="convert_run">Converti</string>
     <string name="convert_status_hint">Scegli un formato di output qui sotto, poi tocca Converti.</string>
     <string name="convert_status_ready">Pronto per selezionare file da convertire.</string>
-    <string name="convert_selected_count">Selezionati: %1$d file(s)</string>
+    <plurals name="summary_selected_files">
+        <item quantity="one">%1$d file selezionato</item>
+        <item quantity="many">%1$d file selezionati</item>
+        <item quantity="other">%1$d file selezionati</item>
+    </plurals>
     <string name="convert_nothing_selected">Seleziona prima un\'immagine.</string>
     <string name="convert_progress_item">Conversione %1$d di %2$d…</string>
     <string name="convert_progress_detail">%1$d di %2$d · %3$s\n%4$s</string>
@@ -273,7 +277,6 @@ Le tue foto e video non vengono mai caricati. URI, nomi file e coordinate GPS ve
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">Annulla</string>
-    <string name="clean_selected_count">Selezionati: %1$d file</string>
     <string name="clean_status_ready">Pronto per selezionare file da pulire.</string>
     <string name="convert_codec_fallback">%1$s non disponibile; salvato come %2$s.</string>
     <string name="video_downscaled">Salvato a %1$dp perché questo telefono non è riuscito a elaborare il video a dimensione piena.</string>
@@ -367,7 +370,6 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="scan_risk_serial">Numero di serie del dispositivo</string>
 
     <string name="clean_clear_selection">Cancella</string>
-    <string name="convert_clear_selection">Cancella</string>
     <string name="clean_empty_state_title">Pulisci e Rimuovi i Metadati</string>
     <string name="clean_empty_state_description">Seleziona foto o video per rimuovere i tag EXIF, la posizione GPS, i dettagli della fotocamera e gli identificatori del dispositivo. Puoi anche condividerli direttamente con Redact da qualsiasi app.</string>
     <string name="clean_selected_hint">Pronto a rimuovere i dati EXIF e di posizione.</string>
@@ -485,9 +487,13 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="censor_effect_pixelate">Pixela</string>
     <string name="censor_effect_black">Nero</string>
     <string name="censor_effect_blur">Sfoca</string>
+    <string name="censor_effect">Effetto</string>
+    <string name="censor_effect_current">Effetto: %1$s</string>
     <string name="censor_undo">Annulla</string>
     <string name="censor_redo">Ripeti</string>
     <string name="censor_delete_rectangle">Elimina Rettangolo</string>
+    <string name="censor_full_screen">Schermo Intero</string>
+    <string name="censor_exit_full_screen">Esci da Schermo Intero</string>
     <string name="censor_zoom_level">%1$s×</string>
     <string name="censor_zoom_reset">Ingrandito %1$s volte. Tocca per vedere la foto intera.</string>
     <string name="censor_save">Salva Copia</string>

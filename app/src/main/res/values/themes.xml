@@ -1,12 +1,45 @@
 <resources>
-    <!-- Main theme -->
+    <!-- Main theme, for light and dark alike: the night colors come from values-night/colors.xml. -->
     <style name="Theme.Redact" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryDark">@color/primary_dark</item>
-        <item name="colorAccent">@color/accent</item>
+        <!-- The full Material 3 scheme from colors.xml, light and dark. Dynamic color replaces it
+             wherever Android offers wallpaper colors. -->
+        <item name="colorPrimary">@color/md_theme_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_on_primary</item>
+        <item name="colorPrimaryContainer">@color/md_theme_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/md_theme_on_primary_container</item>
+        <item name="colorPrimaryInverse">@color/md_theme_inverse_primary</item>
+        <item name="colorSecondary">@color/md_theme_secondary</item>
+        <item name="colorOnSecondary">@color/md_theme_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/md_theme_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/md_theme_on_secondary_container</item>
+        <item name="colorTertiary">@color/md_theme_tertiary</item>
+        <item name="colorOnTertiary">@color/md_theme_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/md_theme_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/md_theme_on_tertiary_container</item>
+        <item name="colorError">@color/md_theme_error</item>
+        <item name="colorOnError">@color/md_theme_on_error</item>
+        <item name="colorErrorContainer">@color/md_theme_error_container</item>
+        <item name="colorOnErrorContainer">@color/md_theme_on_error_container</item>
+        <item name="android:colorBackground">@color/md_theme_background</item>
+        <item name="colorOnBackground">@color/md_theme_on_background</item>
+        <item name="colorSurface">@color/md_theme_surface</item>
+        <item name="colorOnSurface">@color/md_theme_on_surface</item>
+        <item name="colorSurfaceVariant">@color/md_theme_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/md_theme_on_surface_variant</item>
+        <item name="colorSurfaceDim">@color/md_theme_surface_dim</item>
+        <item name="colorSurfaceBright">@color/md_theme_surface_bright</item>
+        <item name="colorSurfaceContainerLowest">@color/md_theme_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/md_theme_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/md_theme_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/md_theme_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/md_theme_surface_container_highest</item>
+        <item name="colorSurfaceInverse">@color/md_theme_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/md_theme_inverse_on_surface</item>
+        <item name="colorOutline">@color/md_theme_outline</item>
+        <item name="colorOutlineVariant">@color/md_theme_outline_variant</item>
+        <!-- Each activity calls EdgeToEdge.enable, which picks light or dark bar icons. -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">true</item>
         <!-- Edge-to-edge: draw into display cutout (API 28+). -->
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
         <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Redact.SmallComponent</item>

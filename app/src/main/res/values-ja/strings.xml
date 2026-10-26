@@ -47,7 +47,9 @@
     <string name="convert_run">変換</string>
     <string name="convert_status_hint">下の出力形式を選んで、「変換」をタップしてください。</string>
     <string name="convert_status_ready">変換するファイルを選択する準備ができました。</string>
-    <string name="convert_selected_count">選択済み: %1$d個のファイル</string>
+    <plurals name="summary_selected_files">
+        <item quantity="other">%1$d 個のファイルを選択済み</item>
+    </plurals>
     <string name="convert_nothing_selected">まず画像を1つ以上選択してください。</string>
     <string name="convert_progress_item">%2$d個中%1$d個目を変換中…</string>
     <string name="convert_progress_detail">%2$d個中%1$d個目 · %3$s\n%4$s</string>
@@ -268,7 +270,6 @@
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">キャンセル</string>
-    <string name="clean_selected_count">選択済み: %1$d 件</string>
     <string name="clean_status_ready">クリーンするファイルを選択する準備ができました。</string>
     <string name="convert_codec_fallback">%1$s は利用できません。代わりに %2$s として保存しました。</string>
     <string name="video_downscaled">このスマートフォンでは元のサイズで動画を処理できなかったため、%1$dp で保存しました。</string>
@@ -356,7 +357,6 @@
     <string name="scan_risk_serial">デバイスのシリアル番号</string>
 
     <string name="clean_clear_selection">クリア</string>
-    <string name="convert_clear_selection">クリア</string>
     <string name="clean_empty_state_title">メタデータのクリーンと削除</string>
     <string name="clean_empty_state_description">写真や動画を選択して、EXIFタグ、GPS位置情報、カメラの詳細、デバイス識別子を削除します。どのアプリからでも、Redact に直接共有することもできます。</string>
     <string name="clean_selected_hint">EXIFと位置情報を削除する準備ができました。</string>
@@ -460,9 +460,13 @@
     <string name="censor_effect_pixelate">モザイク</string>
     <string name="censor_effect_black">黒塗り</string>
     <string name="censor_effect_blur">ぼかし</string>
+    <string name="censor_effect">効果</string>
+    <string name="censor_effect_current">効果: %1$s</string>
     <string name="censor_undo">元に戻す</string>
     <string name="censor_redo">やり直す</string>
     <string name="censor_delete_rectangle">四角形を削除</string>
+    <string name="censor_full_screen">全画面表示</string>
+    <string name="censor_exit_full_screen">全画面表示を終了</string>
     <string name="censor_zoom_level">%1$s×</string>
     <string name="censor_zoom_reset">%1$s 倍に拡大中。タップすると写真全体を表示します。</string>
     <string name="censor_save">コピーを保存</string>

@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.DrawableRes;
@@ -16,6 +15,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.doubleangels.redact.stats.StatsSnapshot;
 import com.doubleangels.redact.stats.StatsStore;
+import com.doubleangels.redact.ui.Notice;
 import com.doubleangels.redact.ui.StatsBarChart;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.color.DynamicColors;
@@ -89,6 +89,7 @@ public class StatisticsActivity extends AppCompatActivity {
                 render();
             }
         });
+        com.doubleangels.redact.ui.SwitchRows.wire(keep);
         applyInsets();
     }
 
@@ -165,7 +166,7 @@ public class StatisticsActivity extends AppCompatActivity {
                 .setPositiveButton(R.string.stats_clear_confirm, (d, w) -> {
                     StatsStore.clear(this);
                     render();
-                    Toast.makeText(this, R.string.stats_cleared, Toast.LENGTH_SHORT).show();
+                    Notice.show(this, R.string.stats_cleared, false);
                 })
                 .setNegativeButton(android.R.string.cancel, null)
                 .show();

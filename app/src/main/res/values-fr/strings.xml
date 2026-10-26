@@ -51,7 +51,11 @@
     <string name="convert_run">Convertir</string>
     <string name="convert_status_hint">Choisissez un format de sortie ci-dessous, puis touchez Convertir.</string>
     <string name="convert_status_ready">Prêt à sélectionner des fichiers à convertir.</string>
-    <string name="convert_selected_count">Sélectionnés : %1$d fichier(s)</string>
+    <plurals name="summary_selected_files">
+        <item quantity="one">%1$d fichier sélectionné</item>
+        <item quantity="many">%1$d fichiers sélectionnés</item>
+        <item quantity="other">%1$d fichiers sélectionnés</item>
+    </plurals>
     <string name="convert_nothing_selected">Sélectionnez d\'abord une image.</string>
     <string name="convert_progress_item">Conversion %1$d sur %2$d…</string>
     <string name="convert_progress_detail">%1$d sur %2$d · %3$s\n%4$s</string>
@@ -273,7 +277,6 @@ Vos photos et vidéos ne sont jamais téléversées. Les URI, noms de fichier et
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">Annuler</string>
-    <string name="clean_selected_count">Sélectionné : %1$d fichier(s)</string>
     <string name="clean_status_ready">Prêt à sélectionner des fichiers à nettoyer.</string>
     <string name="convert_codec_fallback">%1$s indisponible ; enregistré en %2$s à la place.</string>
     <string name="video_downscaled">Enregistré en %1$dp, car ce téléphone n\'a pas pu traiter la vidéo en taille réelle.</string>
@@ -367,7 +370,6 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="scan_risk_serial">Numéro de série de l’appareil</string>
 
     <string name="clean_clear_selection">Effacer</string>
-    <string name="convert_clear_selection">Effacer</string>
     <string name="clean_empty_state_title">Nettoyer et Supprimer les Métadonnées</string>
     <string name="clean_empty_state_description">Sélectionnez des photos ou des vidéos pour supprimer les balises EXIF, la position GPS, les détails de l’appareil photo et les identifiants de l’appareil. Vous pouvez aussi les partager directement vers Redact depuis n’importe quelle appli.</string>
     <string name="clean_selected_hint">Prêt à supprimer les données EXIF et de localisation.</string>
@@ -485,9 +487,13 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="censor_effect_pixelate">Pixelliser</string>
     <string name="censor_effect_black">Noir</string>
     <string name="censor_effect_blur">Flouter</string>
+    <string name="censor_effect">Effet</string>
+    <string name="censor_effect_current">Effet : %1$s</string>
     <string name="censor_undo">Annuler</string>
     <string name="censor_redo">Rétablir</string>
     <string name="censor_delete_rectangle">Supprimer le Rectangle</string>
+    <string name="censor_full_screen">Plein Écran</string>
+    <string name="censor_exit_full_screen">Quitter le Plein Écran</string>
     <string name="censor_zoom_level">%1$s×</string>
     <string name="censor_zoom_reset">Zoom ×%1$s. Appuyez pour afficher la photo entière.</string>
     <string name="censor_save">Enregistrer une Copie</string>

@@ -5,7 +5,6 @@ import android.content.Context;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.os.Bundle;
-import android.widget.Toast;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +16,6 @@ import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -29,10 +27,14 @@ import com.doubleangels.redact.media.ProcessingResourceWarnings;
 import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.permission.PermissionManager;
+import com.doubleangels.redact.ui.FabScroll;
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
+import com.doubleangels.redact.ui.Notice;
+import com.doubleangels.redact.ui.SummaryCard;
 import com.doubleangels.redact.ui.UIStateManager;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.doubleangels.redact.sentry.SentryManager;
 
@@ -46,7 +48,7 @@ import java.util.function.Consumer;
 /**
  * Hosts the Clean (strip metadata) UI and logic; shown in {@link MainActivity}'s fragment container.
  */
-public class CleanFragment extends Fragment {
+public class CleanFragment extends TabFragment {
 
     private static final int MAX_PICK_ITEMS = 20;
     /** Total time the already-clean check may spend reading files before it gives up. */
@@ -80,6 +82,7 @@ public class CleanFragment extends Fragment {
     private View mediaContentContainer;
     private TextView cleanSelectedCountText;
     private MaterialButton cleanClearButton;
+    private View cleanSummaryCard;
 
     private ActivityResultLauncher<String[]> mediaPickerLauncher;
     private ActivityResultLauncher<IntentSenderRequest> trashRequestLauncher;
@@ -106,11 +109,9 @@ public class CleanFragment extends Fragment {
                     try {
                         if (uris != null && !uris.isEmpty()) {
                             if (uris.size() > MAX_PICK_ITEMS) {
-                                Toast.makeText(
-                                                requireContext(),
-                                                getString(R.string.media_picker_selection_capped, MAX_PICK_ITEMS),
-                                                Toast.LENGTH_LONG)
-                                        .show();
+                                Notice.show(requireContext(),
+                                        getString(R.string.media_picker_selection_capped, MAX_PICK_ITEMS),
+                                        true);
                                 uris = MediaPickerContracts.trimToMax(uris, MAX_PICK_ITEMS);
                             }
                             SentryManager.log("Media was selected successfully.");
@@ -160,6 +161,8 @@ public class CleanFragment extends Fragment {
             MaterialButton selectButton = view.findViewById(R.id.selectButton);
             this.selectButton = selectButton;
             stripButton = view.findViewById(R.id.stripButton);
+            FabScroll.shrinkOnScroll(view.findViewById(R.id.cleanScrollView),
+                    view.<ExtendedFloatingActionButton>findViewById(R.id.stripButton));
             statusText = view.findViewById(R.id.statusText);
             shareResultsButton = view.findViewById(R.id.shareResultsButton);
             shareResultsButton.setOnClickListener(v -> {
@@ -179,8 +182,11 @@ public class CleanFragment extends Fragment {
             emptyStateContainer = view.findViewById(R.id.emptyStateContainer);
             emptyStateSelectButton = view.findViewById(R.id.emptyStateSelectButton);
             mediaContentContainer = view.findViewById(R.id.mediaContentContainer);
-            cleanSelectedCountText = view.findViewById(R.id.cleanSelectedCountText);
-            cleanClearButton = view.findViewById(R.id.cleanClearButton);
+            cleanSummaryCard = view.findViewById(R.id.cleanSummaryCard);
+            SummaryCard.bind(cleanSummaryCard, R.drawable.ic_clean, R.string.clean_selected_hint,
+                    R.string.button_select_media, AppPreferences.HINT_CLEAN);
+            cleanSelectedCountText = view.findViewById(R.id.summaryTitle);
+            cleanClearButton = view.findViewById(R.id.summaryClearButton);
 
             if (emptyStateSelectButton != null) {
                 emptyStateSelectButton.setOnClickListener(v -> onSelectMediaClicked());
@@ -233,11 +239,9 @@ public class CleanFragment extends Fragment {
                                                 : null;
                                 runOnUiThreadIfAdded(() -> {
                                     if (hasAnimatedImage) {
-                                        Toast.makeText(
-                                                        requireContext(),
-                                                        R.string.animated_image_warning,
-                                                        Toast.LENGTH_LONG)
-                                                .show();
+                                        Notice.show(requireContext(),
+                                                R.string.animated_image_warning,
+                                                true);
                                     }
                                     confirmAlreadyClean(items, cleanStatuses, chosen ->
                                             ProcessingResourceWarnings.runWithWarnings(
@@ -441,7 +445,8 @@ public class CleanFragment extends Fragment {
                         stripButton.setVisibility(hasItems ? View.VISIBLE : View.GONE);
                     }
                     if (cleanSelectedCountText != null && hasItems) {
-                        cleanSelectedCountText.setText(getString(R.string.clean_selected_count, items.size()));
+                        cleanSelectedCountText.setText(getResources().getQuantityString(R.plurals.summary_selected_files, items.size(), items.size()));
+                        SummaryCard.refreshHint(cleanSummaryCard, AppPreferences.HINT_CLEAN);
                     }
 
                     mediaAdapter.updateItems(items);

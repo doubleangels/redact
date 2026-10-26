@@ -21,6 +21,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.color.DynamicColors;
 import com.doubleangels.redact.sentry.SentryManager;
+import com.doubleangels.redact.ui.Notice;
 
 /**
  * Single host activity: version line and bottom navigation stay fixed;
@@ -34,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG_CENSOR = "censor";
     private static final String TAG_SETTINGS = "settings";
     private static final String KEY_SELECTED_TAB = "selected_tab";
+    /** False until the first tab is up, so only tab changes the user makes fade through. */
+    private boolean animateTabSwitches;
     /** Extra set by the launcher shortcuts in res/xml/shortcuts.xml and by {@link CleanTileService}. */
     static final String EXTRA_TAB = "tab";
     /**
@@ -137,6 +140,16 @@ public class MainActivity extends AppCompatActivity {
                         return false;
                     }
                     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                    if (animateTabSwitches) {
+                        // Material's fade through between top-level destinations. Not for the tab
+                        // shown at launch or after a rotation, which should simply be there.
+                        ft.setCustomAnimations(R.animator.fade_through_enter, R.animator.fade_through_exit);
+                    } else if (target.getView() != null) {
+                        // A tab faded out earlier keeps the fade's end values; show it whole.
+                        target.getView().setAlpha(1f);
+                        target.getView().setScaleX(1f);
+                        target.getView().setScaleY(1f);
+                    }
                     for (String tag : new String[] {TAG_CLEAN, TAG_SCAN, TAG_CONVERT, TAG_CENSOR, TAG_SETTINGS}) {
                         Fragment f = getSupportFragmentManager().findFragmentByTag(tag);
                         if (f != null) {
@@ -170,6 +183,7 @@ public class MainActivity extends AppCompatActivity {
                                                 : tabFromIntent(getIntent()));
             }
 
+            animateTabSwitches = true;
             SentryManager.setCustomKey("app_started", true);
 
             com.doubleangels.redact.permission.PermissionManager.setInitialFlowCompletedCallback(
@@ -233,14 +247,13 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         if (media.isEmpty()) {
-            android.widget.Toast.makeText(this, R.string.share_error_unsupported_media,
-                    android.widget.Toast.LENGTH_LONG).show();
+            Notice.show(this, R.string.share_error_unsupported_media, true);
             return true;
         }
         if (media.size() > MAX_CONVERT_SHARE_ITEMS) {
-            android.widget.Toast.makeText(this,
+            Notice.show(this,
                     getString(R.string.media_picker_selection_capped, MAX_CONVERT_SHARE_ITEMS),
-                    android.widget.Toast.LENGTH_LONG).show();
+                    true);
             media = com.doubleangels.redact.media.MediaPickerContracts.trimToMax(
                     media, MAX_CONVERT_SHARE_ITEMS);
         }
@@ -271,8 +284,7 @@ public class MainActivity extends AppCompatActivity {
                         intent, android.content.Intent.EXTRA_STREAM, android.net.Uri.class)
                 : null;
         if (!isForeignContentUri(uri) || !isImage(uri, intent.getType())) {
-            android.widget.Toast.makeText(this, R.string.share_error_unsupported_media,
-                    android.widget.Toast.LENGTH_LONG).show();
+            Notice.show(this, R.string.share_error_unsupported_media, true);
             return true;
         }
         SentryManager.logEvent("share", "A photo was shared to Censor.");
@@ -364,6 +376,26 @@ public class MainActivity extends AppCompatActivity {
             return R.id.navigation_scan;
         }
         return TAG_CONVERT.equals(tab) ? R.id.navigation_convert : R.id.navigation_clean;
+    }
+
+    /**
+     * Hides the bottom navigation and the system bars so a tab can fill the screen, or brings them
+     * back. The system bars return for a moment with a swipe from the edge.
+     */
+    public void setImmersive(boolean immersive) {
+        View nav = findViewById(R.id.bottomNavigation);
+        if (nav != null) {
+            nav.setVisibility(immersive ? View.GONE : View.VISIBLE);
+        }
+        androidx.core.view.WindowInsetsControllerCompat controller =
+                androidx.core.view.WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        controller.setSystemBarsBehavior(
+                androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+        if (immersive) {
+            controller.hide(WindowInsetsCompat.Type.systemBars());
+        } else {
+            controller.show(WindowInsetsCompat.Type.systemBars());
+        }
     }
 
     /** Switches bottom navigation and shows the tab fragment. */

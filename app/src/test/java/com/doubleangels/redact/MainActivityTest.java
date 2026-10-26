@@ -34,6 +34,7 @@ public class MainActivityTest {
 
     @Before
     public void setUp() {
+        com.doubleangels.redact.ui.Notice.resetForTests();
         AppProcessingScope.resetForTests();
     }
 
@@ -92,6 +93,38 @@ public class MainActivityTest {
         select(activity, R.id.navigation_clean);
         assertTrue(fragment(activity, "clean").isVisible());
         assertTrue(fragment(activity, "settings").isHidden());
+    }
+
+    @Test
+    public void switchingTabs_fadesThrough_andEndsWithTheNewTabWhole() {
+        MainActivity activity = launch();
+        select(activity, R.id.navigation_scan);
+        select(activity, R.id.navigation_clean);
+        select(activity, R.id.navigation_scan);
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(500));
+
+        android.view.View scan = fragment(activity, "scan").getView();
+        android.view.View clean = fragment(activity, "clean").getView();
+        assertEquals(android.view.View.VISIBLE, scan.getVisibility());
+        assertEquals(1f, scan.getAlpha(), 0.001f);
+        assertEquals(1f, scan.getScaleX(), 0.001f);
+        assertEquals(android.view.View.GONE, clean.getVisibility());
+    }
+
+    @Test
+    public void tabFade_runsOnAHardwareLayer_onlyWhileItPlays() {
+        MainActivity activity = launch();
+        TabFragment clean = (TabFragment) fragment(activity, "clean");
+        assertNull(clean.onCreateAnimator(0, true, 0));
+
+        android.animation.Animator fade = clean.onCreateAnimator(0, true, R.animator.fade_through_enter);
+        assertNotNull(fade);
+        fade.setTarget(clean.getView());
+        fade.start();
+        assertEquals(android.view.View.LAYER_TYPE_HARDWARE, clean.getView().getLayerType());
+        fade.end();
+        assertEquals(android.view.View.LAYER_TYPE_NONE, clean.getView().getLayerType());
+        assertEquals(1f, clean.getView().getAlpha(), 0.001f);
     }
 
     @Test
@@ -368,7 +401,7 @@ public class MainActivityTest {
 
         assertEquals(R.id.navigation_convert, launchedTab(send));
         assertEquals(20, awaitConvertItems().size());
-        assertTrue(org.robolectric.shadows.ShadowToast.getTextOfLatestToast().contains("20"));
+        assertTrue(com.doubleangels.redact.ui.Notice.lastShownForTests().contains("20"));
     }
 
     @Test
@@ -377,7 +410,7 @@ public class MainActivityTest {
                 .putExtra(android.content.Intent.EXTRA_STREAM, android.net.Uri.parse("file:///sdcard/a.jpg"));
         assertEquals(R.id.navigation_convert, launchedTab(fileUri));
         assertEquals(controller.get().getString(R.string.share_error_unsupported_media),
-                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
         controller.pause().stop().destroy();
 
         android.content.Intent noStream = convertShare(android.content.Intent.ACTION_SEND_MULTIPLE);
@@ -447,7 +480,7 @@ public class MainActivityTest {
         assertEquals(R.id.navigation_censor,
                 launchedTab(censorShare(android.net.Uri.parse("file:///sdcard/a.jpg"))));
         assertEquals(controller.get().getString(R.string.share_error_unsupported_media),
-                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
         assertNull(censorViewModel().getSource());
         controller.pause().stop().destroy();
 
