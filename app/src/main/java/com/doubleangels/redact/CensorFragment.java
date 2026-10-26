@@ -394,6 +394,8 @@ public class CensorFragment extends TabFragment {
     }
 
     private void setFullScreen(boolean fullScreen) {
+        SentryManager.logEvent("censor", fullScreen
+                ? "The user turned on full screen." : "The user left full screen.");
         viewModel.setFullScreen(fullScreen);
         applyFullScreen();
     }
@@ -499,6 +501,7 @@ public class CensorFragment extends TabFragment {
 
     @androidx.annotation.VisibleForTesting
     void chooseEffect(@NonNull CensorEffects.Effect effect) {
+        SentryManager.logEvent("censor", "The user chose the " + effect.name() + " effect.");
         viewModel.setEffect(effect);
         updateControls();
     }
