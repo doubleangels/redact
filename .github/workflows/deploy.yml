@@ -224,21 +224,21 @@ jobs:
           set -euo pipefail
           AAB_PATH="app/build/outputs/bundle/release/app-release.aab"
           if [ -z "${PRODUCTION_SIGNING_CERT_SHA256}" ]; then
-            echo "::warning::PRODUCTION_SIGNING_CERT_SHA256 secret is not set, skipping signing certificate verification."
-          else
-            ACTUAL_SHA256=$(keytool -printcert -jarfile "${AAB_PATH}" 2>/dev/null \
-              | grep -oP 'SHA256:\s*\K[0-9A-Fa-f:]+' | tr -d ':' | tr '[:lower:]' '[:upper:]')
-            EXPECTED_SHA256=$(echo -n "${PRODUCTION_SIGNING_CERT_SHA256}" | tr -d ':' | tr '[:lower:]' '[:upper:]')
-            if [ -z "${ACTUAL_SHA256}" ]; then
-              echo "::error::Could not read a certificate fingerprint from the signed bundle."
-              exit 1
-            fi
-            if [ "${ACTUAL_SHA256}" != "${EXPECTED_SHA256}" ]; then
-              echo "::error::Signed bundle certificate fingerprint (${ACTUAL_SHA256}) does not match the expected production signing certificate (${EXPECTED_SHA256}). Refusing to publish."
-              exit 1
-            fi
-            echo "Verified signed bundle matches the expected production signing certificate."
+            echo "::error::PRODUCTION_SIGNING_CERT_SHA256 secret is not set. Add the expected SHA-256 fingerprint of the production signing certificate as a repository secret. Refusing to publish."
+            exit 1
           fi
+          ACTUAL_SHA256=$(keytool -printcert -jarfile "${AAB_PATH}" 2>/dev/null \
+            | grep -oP 'SHA256:\s*\K[0-9A-Fa-f:]+' | tr -d ':' | tr '[:lower:]' '[:upper:]')
+          EXPECTED_SHA256=$(echo -n "${PRODUCTION_SIGNING_CERT_SHA256}" | tr -d ':' | tr '[:lower:]' '[:upper:]')
+          if [ -z "${ACTUAL_SHA256}" ]; then
+            echo "::error::Could not read a certificate fingerprint from the signed bundle."
+            exit 1
+          fi
+          if [ "${ACTUAL_SHA256}" != "${EXPECTED_SHA256}" ]; then
+            echo "::error::Signed bundle certificate fingerprint (${ACTUAL_SHA256}) does not match the expected production signing certificate (${EXPECTED_SHA256}). Refusing to publish."
+            exit 1
+          fi
+          echo "Verified signed bundle matches the expected production signing certificate."
 
       - name: Upload bundle to artifacts
         uses: actions/upload-artifact@v7.0.2
