@@ -24,263 +24,256 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <!-- Convert Content Container: shown when items are selected -->
         <LinearLayout
+            android:id="@+id/convertContentContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="gone">
 
-            <!-- Convert Content Container: shown when items are selected -->
-            <LinearLayout
-                android:id="@+id/convertContentContainer"
+            <include
+                android:id="@+id/convertSummaryCard"
+                layout="@layout/summary_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Format Selection Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/formatSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
+                app:cardCornerRadius="@dimen/component_corner_large"
+                app:cardElevation="1dp"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_marginEnd="10dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_settings"
+                            app:tint="?attr/colorPrimary" />
+
+                        <TextView
+                            android:id="@+id/formatLabel"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/convert_output_format_images"
+                            android:textAppearance="?attr/textAppearanceTitleMedium"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/formatBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_rounded_surface"
+                            android:backgroundTint="?attr/colorPrimaryContainer"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="2dp"
+                            android:textAppearance="?attr/textAppearanceLabelSmall"
+                            android:textColor="?attr/colorOnPrimaryContainer"
+                            android:textStyle="bold"
+                            android:visibility="gone"
+                            tools:text="JPEG"
+                            tools:visibility="visible" />
+                    </LinearLayout>
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/formatChipGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        app:chipSpacingHorizontal="8dp"
+                        app:chipSpacingVertical="4dp"
+                        app:selectionRequired="true"
+                        app:singleSelection="true">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipFormatJpeg"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:text="@string/convert_format_jpeg"
+                            app:checkedIconVisible="true"
+                            app:chipIconVisible="false"
+                            app:closeIconVisible="false" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipFormatPng"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/convert_format_png"
+                            app:checkedIconVisible="true"
+                            app:chipIconVisible="false"
+                            app:closeIconVisible="false" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipFormatWebp"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/convert_format_webp"
+                            app:checkedIconVisible="true"
+                            app:chipIconVisible="false"
+                            app:closeIconVisible="false" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipFormatHeif"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/convert_format_heif"
+                            app:checkedIconVisible="true"
+                            app:chipIconVisible="false"
+                            app:closeIconVisible="false" />
+                    </com.google.android.material.chip.ChipGroup>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Status Text: Shown during/after processing -->
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_rounded_surface"
+                android:backgroundTint="?attr/colorSurfaceContainerHigh"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="10dp"
+                android:textAlignment="center"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurface"
+                android:visibility="gone"
+                tools:text="@string/convert_status_ready" />
+
+            <!-- Progress Container -->
+            <LinearLayout
+                android:id="@+id/progressContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_rounded_surface"
+                android:backgroundTint="?attr/colorSurfaceContainerHigh"
                 android:orientation="vertical"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="12dp"
                 android:visibility="gone">
 
-                <include
-                    android:id="@+id/convertSummaryCard"
-                    layout="@layout/summary_card"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="12dp" />
-
-                <!-- Format Selection Card -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/formatSection"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
-                    app:cardCornerRadius="@dimen/component_corner_large"
-                    app:cardElevation="1dp"
-                    app:strokeWidth="0dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:layout_marginEnd="10dp"
-                                android:contentDescription="@null"
-                                android:src="@drawable/ic_settings"
-                                app:tint="?attr/colorPrimary" />
-
-                            <TextView
-                                android:id="@+id/formatLabel"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/convert_output_format_images"
-                                android:textAppearance="?attr/textAppearanceTitleMedium"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/formatBadge"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/bg_rounded_surface"
-                                android:backgroundTint="?attr/colorPrimaryContainer"
-                                android:paddingHorizontal="8dp"
-                                android:paddingVertical="2dp"
-                                android:textAppearance="?attr/textAppearanceLabelSmall"
-                                android:textColor="?attr/colorOnPrimaryContainer"
-                                android:textStyle="bold"
-                                android:visibility="gone"
-                                tools:text="JPEG"
-                                tools:visibility="visible" />
-                        </LinearLayout>
-
-                        <com.google.android.material.chip.ChipGroup
-                            android:id="@+id/formatChipGroup"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            app:chipSpacingHorizontal="8dp"
-                            app:chipSpacingVertical="4dp"
-                            app:selectionRequired="true"
-                            app:singleSelection="true">
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipFormatJpeg"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:checked="true"
-                                android:text="@string/convert_format_jpeg"
-                                app:checkedIconVisible="true"
-                                app:chipIconVisible="false"
-                                app:closeIconVisible="false" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipFormatPng"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/convert_format_png"
-                                app:checkedIconVisible="true"
-                                app:chipIconVisible="false"
-                                app:closeIconVisible="false" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipFormatWebp"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/convert_format_webp"
-                                app:checkedIconVisible="true"
-                                app:chipIconVisible="false"
-                                app:closeIconVisible="false" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipFormatHeif"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/convert_format_heif"
-                                app:checkedIconVisible="true"
-                                app:chipIconVisible="false"
-                                app:closeIconVisible="false" />
-                        </com.google.android.material.chip.ChipGroup>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Status Text: Shown during/after processing -->
                 <TextView
-                    android:id="@+id/statusText"
+                    android:id="@+id/progressText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:background="@drawable/bg_rounded_surface"
-                    android:backgroundTint="?attr/colorSurfaceContainerHigh"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="10dp"
+                    android:text="@string/status_processing"
                     android:textAlignment="center"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurface"
-                    android:visibility="gone"
-                    tools:text="@string/convert_status_ready" />
+                    android:textColor="?attr/colorOnSurface" />
 
-                <!-- Progress Container -->
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/progressBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:indeterminate="false"
+                    app:indicatorColor="?attr/colorPrimary"
+                    app:trackCornerRadius="4dp"
+                    app:trackThickness="6dp" />
+            </LinearLayout>
+
+            <!-- Files List Card with Header & Item Rows -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/filesSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
+                app:cardCornerRadius="@dimen/component_corner_large"
+                app:cardElevation="1dp"
+                app:strokeWidth="0dp">
+
                 <LinearLayout
-                    android:id="@+id/progressContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:background="@drawable/bg_rounded_surface"
-                    android:backgroundTint="?attr/colorSurfaceContainerHigh"
                     android:orientation="vertical"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="12dp"
-                    android:visibility="gone">
-
-                    <TextView
-                        android:id="@+id/progressText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/status_processing"
-                        android:textAlignment="center"
-                        android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurface" />
-
-                    <com.google.android.material.progressindicator.LinearProgressIndicator
-                        android:id="@+id/progressBar"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:indeterminate="false"
-                        app:indicatorColor="?attr/colorPrimary"
-                        app:trackCornerRadius="4dp"
-                        app:trackThickness="6dp" />
-                </LinearLayout>
-
-                <!-- Files List Card with Header & Item Rows -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/filesSection"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
-                    app:cardCornerRadius="@dimen/component_corner_large"
-                    app:cardElevation="1dp"
-                    app:strokeWidth="0dp">
+                    android:paddingTop="16dp"
+                    android:paddingBottom="4dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:paddingTop="16dp"
-                        android:paddingBottom="4dp">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="16dp"
+                        android:paddingBottom="10dp">
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_marginEnd="10dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_add_photo"
+                            app:tint="?attr/colorPrimary" />
+
+                        <TextView
+                            android:id="@+id/filesCardLabel"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingHorizontal="16dp"
-                            android:paddingBottom="10dp">
+                            android:layout_weight="1"
+                            android:text="@string/convert_files_card_title"
+                            android:textAppearance="?attr/textAppearanceTitleMedium"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textStyle="bold" />
 
-                            <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:layout_marginEnd="10dp"
-                                android:contentDescription="@null"
-                                android:src="@drawable/ic_add_photo"
-                                app:tint="?attr/colorPrimary" />
-
-                            <TextView
-                                android:id="@+id/filesCardLabel"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/convert_files_card_title"
-                                android:textAppearance="?attr/textAppearanceTitleMedium"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/filesCountBadge"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/bg_rounded_surface"
-                                android:backgroundTint="?attr/colorSurfaceContainerHigh"
-                                android:paddingHorizontal="8dp"
-                                android:paddingVertical="2dp"
-                                android:textAppearance="?attr/textAppearanceLabelSmall"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                android:textStyle="bold"
-                                android:visibility="gone"
-                                tools:text="3 files"
-                                tools:visibility="visible" />
-                        </LinearLayout>
-
-                        <com.google.android.material.divider.MaterialDivider
-                            android:layout_width="match_parent"
+                        <TextView
+                            android:id="@+id/filesCountBadge"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            app:dividerColor="?attr/colorSurfaceContainerHighest" />
-
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/convertFileList"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:nestedScrollingEnabled="false"
-                            android:overScrollMode="never"
-                            tools:listitem="@layout/item_convert_file_row" />
+                            android:background="@drawable/bg_rounded_surface"
+                            android:backgroundTint="?attr/colorSurfaceContainerHigh"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="2dp"
+                            android:textAppearance="?attr/textAppearanceLabelSmall"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:textStyle="bold"
+                            android:visibility="gone"
+                            tools:text="3 files"
+                            tools:visibility="visible" />
                     </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
 
-            </LinearLayout>
+                    <com.google.android.material.divider.MaterialDivider
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:dividerColor="?attr/colorSurfaceContainerHighest" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/convertFileList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false"
+                        android:overScrollMode="never"
+                        tools:listitem="@layout/item_convert_file_row" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

@@ -24,88 +24,81 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <!-- Media Content Container: shown when items are selected -->
         <LinearLayout
+            android:id="@+id/mediaContentContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="gone">
 
-            <!-- Media Content Container: shown when items are selected -->
-            <LinearLayout
-                android:id="@+id/mediaContentContainer"
+            <include
+                android:id="@+id/cleanSummaryCard"
+                layout="@layout/summary_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Status Text: Shown during/after processing -->
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_rounded_surface"
+                android:backgroundTint="?attr/colorSurfaceContainerHigh"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="10dp"
+                android:text="@string/clean_status_ready"
+                android:textAlignment="center"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurface"
+                android:visibility="gone" />
+
+            <!-- Progress Container -->
+            <LinearLayout
+                android:id="@+id/progressContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_rounded_surface"
+                android:backgroundTint="?attr/colorSurfaceContainerHigh"
                 android:orientation="vertical"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="12dp"
                 android:visibility="gone">
 
-                <include
-                    android:id="@+id/cleanSummaryCard"
-                    layout="@layout/summary_card"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="12dp" />
-
-                <!-- Status Text: Shown during/after processing -->
                 <TextView
-                    android:id="@+id/statusText"
+                    android:id="@+id/progressText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:background="@drawable/bg_rounded_surface"
-                    android:backgroundTint="?attr/colorSurfaceContainerHigh"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="10dp"
-                    android:text="@string/clean_status_ready"
+                    android:text="@string/status_processing"
                     android:textAlignment="center"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurface"
-                    android:visibility="gone" />
+                    android:textColor="?attr/colorOnSurface" />
 
-                <!-- Progress Container -->
-                <LinearLayout
-                    android:id="@+id/progressContainer"
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/progressBar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:background="@drawable/bg_rounded_surface"
-                    android:backgroundTint="?attr/colorSurfaceContainerHigh"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="12dp"
-                    android:visibility="gone">
-
-                    <TextView
-                        android:id="@+id/progressText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/status_processing"
-                        android:textAlignment="center"
-                        android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurface" />
-
-                    <com.google.android.material.progressindicator.LinearProgressIndicator
-                        android:id="@+id/progressBar"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:indeterminate="false"
-                        app:indicatorColor="?attr/colorPrimary"
-                        app:trackCornerRadius="4dp"
-                        app:trackThickness="6dp" />
-                </LinearLayout>
-
-                <!-- Grid of selected media -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/selectedItemsGrid"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:clipToPadding="false"
-                    android:contentDescription="@string/content_description_selected_files"
-                    android:nestedScrollingEnabled="false"
-                    tools:listitem="@layout/item_selected_media" />
+                    android:layout_marginTop="10dp"
+                    android:indeterminate="false"
+                    app:indicatorColor="?attr/colorPrimary"
+                    app:trackCornerRadius="4dp"
+                    app:trackThickness="6dp" />
             </LinearLayout>
 
+            <!-- Grid of selected media -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/selectedItemsGrid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:clipToPadding="false"
+                android:contentDescription="@string/content_description_selected_files"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_selected_media" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
