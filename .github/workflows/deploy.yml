@@ -8,12 +8,15 @@ permissions:
 
 concurrency:
   group: deploy-release
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   check-version:
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.version.outputs.code }}
+      name: ${{ steps.version.outputs.name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
@@ -23,9 +26,13 @@ jobs:
           persist-credentials: false
 
       - name: Verify versionCode increased since the last published release
+        id: version
         run: |
           set -euo pipefail
           CURRENT_VERSION_CODE=$(grep 'versionCode' app/build.gradle | head -1 | sed -E 's/.*versionCode[[:space:]]+([0-9]+).*/\1/')
+          VERSION_NAME=$(grep 'versionName' app/build.gradle | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
+          echo "code=${CURRENT_VERSION_CODE}" >> "$GITHUB_OUTPUT"
+          echo "name=${VERSION_NAME}" >> "$GITHUB_OUTPUT"
           if git rev-parse --verify --quiet refs/tags/last-published-version >/dev/null; then
             LAST_VERSION_CODE=$(git show refs/tags/last-published-version:app/build.gradle | grep 'versionCode' | head -1 | sed -E 's/.*versionCode[[:space:]]+([0-9]+).*/\1/')
             echo "Current versionCode: ${CURRENT_VERSION_CODE}, last published versionCode: ${LAST_VERSION_CODE}"
@@ -38,7 +45,7 @@ jobs:
           fi
 
   unit-tests:
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    needs: ["check-version"]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -53,7 +60,7 @@ jobs:
         run: ./gradlew test --no-daemon
 
   lint:
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    needs: ["check-version"]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -69,8 +76,8 @@ jobs:
 
   release-notes:
     needs: ["check-version"]
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
@@ -79,14 +86,12 @@ jobs:
           fetch-tags: true
           persist-credentials: false
 
-      - name: Read the version and look for hand-written notes
-        id: version
+      - name: Look for hand-written notes
+        id: notes
+        env:
+          CODE: ${{ needs.check-version.outputs.code }}
         run: |
           set -euo pipefail
-          CODE=$(grep 'versionCode' app/build.gradle | head -1 | sed -E 's/.*versionCode[[:space:]]+([0-9]+).*/\1/')
-          NAME=$(grep 'versionName' app/build.gradle | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
-          echo "code=${CODE}" >> "$GITHUB_OUTPUT"
-          echo "name=${NAME}" >> "$GITHUB_OUTPUT"
           # Notes saved as fastlane/.../changelogs/<versionCode>.txt were written by hand: keep them.
           if [ -f "fastlane/metadata/android/en-US/changelogs/${CODE}.txt" ]; then
             echo "handwritten=true" >> "$GITHUB_OUTPUT"
@@ -97,7 +102,7 @@ jobs:
           fi
 
       - name: Write the release notes from the commits since the last release
-        if: steps.version.outputs.handwritten == 'false'
+        if: steps.notes.outputs.handwritten == 'false'
         uses: anthropics/claude-code-action@6b6870e649b5ff408753befeaee5fc7989d4e6a9 # v1.0.258
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -106,8 +111,8 @@ jobs:
             --allowedTools "Read,Write,Glob,Grep,Bash(git log:*),Bash(git show:*),Bash(git diff:*),Bash(git tag:*),Bash(git rev-parse:*)"
             --max-turns 40
           prompt: |
-            You write the Google Play "What's new" text for Redact ${{ steps.version.outputs.name }}
-            (versionCode ${{ steps.version.outputs.code }}), an Android app that removes hidden metadata
+            You write the Google Play "What's new" text for Redact ${{ needs.check-version.outputs.name }}
+            (versionCode ${{ needs.check-version.outputs.code }}), an Android app that removes hidden metadata
             (location, camera, names) from photos and videos. Readers are people deciding whether to update.
 
             1. Find the previous release: the tag `last-published-version` if `git rev-parse --verify
@@ -128,7 +133,7 @@ jobs:
                  better, for example "Updated libraries for stability and security."
                - At most 6 lines and 500 characters in total.
             3. Write it to `whatsnew/whatsnew-en-US` and to
-               `fastlane/metadata/android/en-US/changelogs/${{ steps.version.outputs.code }}.txt`, each ending
+               `fastlane/metadata/android/en-US/changelogs/${{ needs.check-version.outputs.code }}.txt`, each ending
                with one newline.
             4. Translate it into `whatsnew/whatsnew-<locale>` for ar, de-DE, es-ES, fr-FR, hi-IN, it-IT,
                ja-JP, ko-KR, pt-BR, ru-RU, zh-CN and zh-TW. Natural, friendly text, one line per line, at
@@ -144,7 +149,7 @@ jobs:
       - name: Check the release notes
         run: |
           set -euo pipefail
-          CODE='${{ steps.version.outputs.code }}'
+          CODE='${{ needs.check-version.outputs.code }}'
           RECORD="fastlane/metadata/android/en-US/changelogs/${CODE}.txt"
           python3 - "$RECORD" <<'PY'
           import glob, os, re, sys
@@ -182,12 +187,11 @@ jobs:
           name: release-notes
           path: |
             whatsnew
-            fastlane/metadata/android/en-US/changelogs/${{ steps.version.outputs.code }}.txt
+            fastlane/metadata/android/en-US/changelogs/${{ needs.check-version.outputs.code }}.txt
           if-no-files-found: error
 
   bundle-release:
     needs: ["unit-tests", "lint", "check-version"]
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -220,21 +224,21 @@ jobs:
           set -euo pipefail
           AAB_PATH="app/build/outputs/bundle/release/app-release.aab"
           if [ -z "${PRODUCTION_SIGNING_CERT_SHA256}" ]; then
-            echo "::warning::PRODUCTION_SIGNING_CERT_SHA256 secret is not set, skipping signing certificate verification."
-          else
-            ACTUAL_SHA256=$(keytool -printcert -jarfile "${AAB_PATH}" 2>/dev/null \
-              | grep -oP 'SHA256:\s*\K[0-9A-Fa-f:]+' | tr -d ':' | tr '[:lower:]' '[:upper:]')
-            EXPECTED_SHA256=$(echo -n "${PRODUCTION_SIGNING_CERT_SHA256}" | tr -d ':' | tr '[:lower:]' '[:upper:]')
-            if [ -z "${ACTUAL_SHA256}" ]; then
-              echo "::error::Could not read a certificate fingerprint from the signed bundle."
-              exit 1
-            fi
-            if [ "${ACTUAL_SHA256}" != "${EXPECTED_SHA256}" ]; then
-              echo "::error::Signed bundle certificate fingerprint (${ACTUAL_SHA256}) does not match the expected production signing certificate (${EXPECTED_SHA256}). Refusing to publish."
-              exit 1
-            fi
-            echo "Verified signed bundle matches the expected production signing certificate."
+            echo "::error::PRODUCTION_SIGNING_CERT_SHA256 secret is not set. Add the expected SHA-256 fingerprint of the production signing certificate as a repository secret. Refusing to publish."
+            exit 1
           fi
+          ACTUAL_SHA256=$(keytool -printcert -jarfile "${AAB_PATH}" 2>/dev/null \
+            | grep -oP 'SHA256:\s*\K[0-9A-Fa-f:]+' | tr -d ':' | tr '[:lower:]' '[:upper:]')
+          EXPECTED_SHA256=$(echo -n "${PRODUCTION_SIGNING_CERT_SHA256}" | tr -d ':' | tr '[:lower:]' '[:upper:]')
+          if [ -z "${ACTUAL_SHA256}" ]; then
+            echo "::error::Could not read a certificate fingerprint from the signed bundle."
+            exit 1
+          fi
+          if [ "${ACTUAL_SHA256}" != "${EXPECTED_SHA256}" ]; then
+            echo "::error::Signed bundle certificate fingerprint (${ACTUAL_SHA256}) does not match the expected production signing certificate (${EXPECTED_SHA256}). Refusing to publish."
+            exit 1
+          fi
+          echo "Verified signed bundle matches the expected production signing certificate."
 
       - name: Upload bundle to artifacts
         uses: actions/upload-artifact@v7.0.2
@@ -243,10 +247,11 @@ jobs:
           path: app/build/outputs/bundle/release/app-release.aab
 
   publish:
-    needs: ["bundle-release", "release-notes"]
-    # Requires a "production" environment in repo Settings → Environments with required reviewers.
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
-    environment: production
+    needs: ["check-version", "bundle-release", "release-notes"]
+    # Requires a "Production" environment in repo Settings → Environments with required reviewers.
+    environment:
+      name: Production
+      url: https://play.google.com/store/apps/details?id=com.doubleangels.redact
     runs-on: ubuntu-latest
     permissions:
       contents: write # Needed only to move the last-metadata-publish tag below.
@@ -314,15 +319,7 @@ jobs:
         uses: ruby/setup-ruby@e1bd6146574da5e0795075b5319b300edb30c5b0 # v1.333.0
         with:
           ruby-version: "3.3"
-          bundler-cache: false
-
-      - name: Lock Ruby gems for reproducible Fastlane
-        if: steps.metadata_diff.outputs.changed == 'true'
-        run: bundle lock
-
-      - name: Install Ruby gems
-        if: steps.metadata_diff.outputs.changed == 'true'
-        run: bundle install --deployment
+          bundler-cache: true
 
       - name: Push Fastlane metadata to Play Store
         if: steps.metadata_diff.outputs.changed == 'true'
@@ -333,13 +330,6 @@ jobs:
           git tag -f last-metadata-publish
           git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" last-metadata-publish --force
 
-      - name: Read app version for Sentry release
-        id: version
-        run: |
-          VERSION_NAME=$(grep 'versionName' app/build.gradle | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
-          VERSION_CODE=$(grep 'versionCode' app/build.gradle | head -1 | sed -E 's/.*versionCode[[:space:]]+([0-9]+).*/\1/')
-          echo "release=com.doubleangels.redact@${VERSION_NAME}+${VERSION_CODE}" >> "$GITHUB_OUTPUT"
-
       - name: Finalize Sentry release
         uses: getsentry/action-release@e6703d0b00208e0b3687ba660d18ab5af7892821 # v3.7.2
         env:
@@ -348,15 +338,14 @@ jobs:
           SENTRY_PROJECT: redact
         with:
           environment: production
-          release: ${{ steps.version.outputs.release }}
+          release: com.doubleangels.redact@${{ needs.check-version.outputs.name }}+${{ needs.check-version.outputs.code }}
 
       - name: Remove service account credentials
         if: always()
         run: rm -f service_account.json
 
   github-release:
-    needs: ["publish", "release-notes"]
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    needs: ["check-version", "publish", "release-notes"]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -377,9 +366,9 @@ jobs:
       - name: Create GitHub Release with the release notes and commit changelog
         env:
           GH_TOKEN: ${{ github.token }}
+          VERSION_NAME: ${{ needs.check-version.outputs.name }}
         run: |
           set -euo pipefail
-          VERSION_NAME=$(grep 'versionName' app/build.gradle | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
           TAG="v${VERSION_NAME}"
 
           if git rev-parse --verify --quiet "refs/tags/${TAG}" >/dev/null; then
@@ -397,9 +386,9 @@ jobs:
             echo "## Changelog"
             echo ""
             if [ -n "${PREV_TAG}" ]; then
-              git log "${PREV_TAG}..HEAD" --pretty=format:'- %s (%h)'
+              git log "${PREV_TAG}..HEAD" --no-merges --pretty=format:'- %s (%h)'
             else
-              git log --pretty=format:'- %s (%h)'
+              git log --no-merges --pretty=format:'- %s (%h)'
             fi
           } > changelog.md
 
