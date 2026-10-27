@@ -383,6 +383,153 @@ public class CensorFragmentTest {
         assertEquals(View.VISIBLE, root.findViewById(R.id.censorColumn).getVisibility());
     }
 
+    /** Opens a photo on the Censor tab and covers one rectangle of it. */
+    private View openWithOneRegion() throws Exception {
+        View root = censorTab();
+        vm.requestOpen(createTestJpeg("sample.jpg"));
+        awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.READY);
+        vm.addRegion(CensorRegion.rect(0.1f, 0.1f, 0.5f, 0.5f));
+        idle();
+        return root;
+    }
+
+    private void saveAndWait() throws InterruptedException {
+        vm.save();
+        awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.READY
+                && (vm.getLastSaved() != null || vm.isLastSaveFailed()));
+        idle();
+    }
+
+    @Test
+    public void saving_showsTheResult_andScanResultOpensTheCopyInScan() throws Exception {
+        View root = openWithOneRegion();
+
+        saveAndWait();
+
+        assertNotNull(vm.getLastSaved());
+        TextView status = root.findViewById(R.id.statusText);
+        assertEquals(View.VISIBLE, status.getVisibility());
+        assertEquals(activity.getString(R.string.censor_saved), status.getText().toString());
+        assertEquals(View.VISIBLE, root.findViewById(R.id.shareResultsButton).getVisibility());
+        View scanResult = root.findViewById(R.id.scanResultButton);
+        assertEquals(View.VISIBLE, scanResult.getVisibility());
+
+        scanResult.performClick();
+        idle();
+
+        assertEquals(R.id.navigation_scan,
+                ((com.google.android.material.navigation.NavigationBarView)
+                        activity.findViewById(R.id.bottomNavigation)).getSelectedItemId());
+    }
+
+    @Test
+    public void aSaveThatCannotWrite_saysSo_andOffersNoShare() throws Exception {
+        View root = openWithOneRegion();
+        FakeMediaStoreProvider.failInsert = true;
+        try {
+            saveAndWait();
+        } finally {
+            FakeMediaStoreProvider.failInsert = false;
+        }
+
+        assertTrue(vm.isLastSaveFailed());
+        TextView status = root.findViewById(R.id.statusText);
+        assertEquals(activity.getString(R.string.censor_error_save), status.getText().toString());
+        assertEquals(View.GONE, root.findViewById(R.id.shareResultsButton).getVisibility());
+    }
+
+    @Test
+    public void savingWithDeleteOriginalsOn_stillSaves() throws Exception {
+        AppPreferences.setDeleteOriginalsAfterClean(activity, true);
+        try {
+            openWithOneRegion();
+            saveAndWait();
+        } finally {
+            AppPreferences.setDeleteOriginalsAfterClean(activity, false);
+        }
+
+        assertNotNull(vm.getLastSaved());
+    }
+
+    @Test
+    public void undoRedo_andClearWithUnsavedEdits_asksBeforeDiscarding() throws Exception {
+        View root = openWithOneRegion();
+
+        root.findViewById(R.id.censorUndoButton).performClick();
+        idle();
+        assertFalse(vm.hasRegions());
+        root.findViewById(R.id.censorRedoButton).performClick();
+        idle();
+        assertTrue(vm.hasRegions());
+
+        root.findViewById(R.id.summaryClearButton).performClick();
+        idle();
+        androidx.appcompat.app.AlertDialog dialog =
+                (androidx.appcompat.app.AlertDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        assertNotNull(dialog);
+        assertTrue(vm.hasRegions());
+
+        dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE).performClick();
+        idle();
+
+        assertEquals(View.VISIBLE, root.findViewById(R.id.censorEmptyState).getVisibility());
+    }
+
+    @Test
+    public void anotherPhotoWithUnsavedEdits_asks_andKeepEditingKeepsThem() throws Exception {
+        openWithOneRegion();
+
+        vm.requestOpen(createTestJpeg("other.jpg"));
+        idle();
+        androidx.appcompat.app.AlertDialog dialog =
+                (androidx.appcompat.app.AlertDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        assertNotNull(dialog);
+        assertTrue(dialog.isShowing());
+
+        dialog.getButton(android.content.DialogInterface.BUTTON_NEGATIVE).performClick();
+        idle();
+
+        assertTrue(vm.hasRegions());
+        assertEquals(null, vm.getPendingReplacement().getValue());
+    }
+
+    @Test
+    public void theEffectButton_opensAMenu_whoseChoiceIsUsed() throws Exception {
+        View root = openWithOneRegion();
+        View effectButton = root.findViewById(R.id.censorEffectButton);
+
+        effectButton.performClick();
+        effectButton.performClick(); // a second tap while it is open opens no second menu
+        idle();
+        java.lang.reflect.Field field = CensorFragment.class.getDeclaredField("effectMenu");
+        field.setAccessible(true);
+        androidx.appcompat.widget.PopupMenu menu =
+                (androidx.appcompat.widget.PopupMenu) field.get(fragment("censor"));
+        assertNotNull(menu);
+        assertEquals(com.doubleangels.redact.media.CensorEffects.Effect.values().length, menu.getMenu().size());
+
+        int black = com.doubleangels.redact.media.CensorEffects.Effect.BLACK.ordinal();
+        menu.getMenu().performIdentifierAction(black, 0);
+        idle();
+
+        assertEquals(com.doubleangels.redact.media.CensorEffects.Effect.BLACK, vm.getEffect().getValue());
+        // The choice is remembered for later photos; put the default back for the other tests.
+        vm.setEffect(com.doubleangels.redact.media.CensorEffects.Effect.PIXELATE);
+    }
+
+    @Test
+    public void selectPhoto_withoutAFilePicker_saysSomethingWentWrong() {
+        View root = censorTab();
+        com.doubleangels.redact.ui.Notice.resetForTests();
+        shadowOf(activity.getApplication()).checkActivities(true);
+
+        root.findViewById(R.id.emptyStateSelectButton).performClick();
+        idle();
+
+        assertEquals(activity.getString(R.string.share_error_generic),
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
+    }
+
     @Test
     @Config(qualifiers = "land")
     public void landscape_inflatesAndBindsSuccessfully() throws Exception {
