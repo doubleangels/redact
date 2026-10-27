@@ -500,7 +500,8 @@ public class SettingsFragmentTest {
 
     @Test
     public void aboutRows_openTheirLinks() {
-        int[] rows = {R.id.rowAboutGithub, R.id.rowAboutPrivacy, R.id.rowAboutReportIssue,
+        int[] rows = {R.id.rowAboutGithub, R.id.rowAboutPrivacy, R.id.rowAboutTerms,
+                R.id.rowAboutReportIssue,
                 R.id.rowAboutRate, R.id.rowAboutDonate};
         for (int row : rows) {
             settings.findViewById(row).performClick();

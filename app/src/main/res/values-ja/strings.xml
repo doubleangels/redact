@@ -248,6 +248,7 @@
     <string name="settings_about_subtitle">クリーン、スキャン、変換はすべて端末上で実行されます。写真や動画はアップロードされません。</string>
     <string name="settings_about_github">GitHubでソースを表示</string>
     <string name="settings_about_privacy">プライバシーポリシー</string>
+    <string name="settings_about_terms">利用規約</string>
     <string name="settings_about_report_issue">問題を報告</string>
     <string name="settings_about_donate">寄付</string>
     <string name="settings_about_rate">Google Play で Redact を評価</string>

@@ -247,6 +247,7 @@
     <string name="settings_about_subtitle">所有清理、掃描與轉換皆在裝置上執行。相片與影片絕不會上傳。</string>
     <string name="settings_about_github">在 GitHub 檢視原始碼</string>
     <string name="settings_about_privacy">隱私權政策</string>
+    <string name="settings_about_terms">使用條款</string>
     <string name="settings_about_report_issue">回報問題</string>
     <string name="settings_about_donate">捐贈</string>
     <string name="settings_about_rate">在 Google Play 上為 Redact 評分</string>

@@ -251,6 +251,7 @@
     <string name="settings_about_subtitle">सभी सफ़ाई, स्कैन और रूपांतरण आपके डिवाइस पर चलता है। तस्वीरें और वीडियो कभी अपलोड नहीं होते।</string>
     <string name="settings_about_github">GitHub पर स्रोत देखें</string>
     <string name="settings_about_privacy">गोपनीयता नीति</string>
+    <string name="settings_about_terms">उपयोग की शर्तें</string>
     <string name="settings_about_report_issue">समस्या रिपोर्ट करें</string>
     <string name="settings_about_donate">दान करें</string>
     <string name="settings_about_rate">Google Play पर Redact को रेट करें</string>

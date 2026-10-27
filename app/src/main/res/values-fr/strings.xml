@@ -255,6 +255,7 @@
     <string name="settings_about_subtitle">Tout le nettoyage, l\'analyse et la conversion s\'effectuent sur votre appareil. Les photos et vidéos ne sont jamais téléversées.</string>
     <string name="settings_about_github">Voir le Code sur GitHub</string>
     <string name="settings_about_privacy">Politique de Confidentialité</string>
+    <string name="settings_about_terms">Conditions d\'Utilisation</string>
     <string name="settings_about_report_issue">Signaler un Problème</string>
     <string name="settings_about_donate">Faites un Don</string>
     <string name="settings_about_rate">Noter Redact sur Google Play</string>

@@ -267,6 +267,7 @@
     <string name="settings_about_subtitle">كل التنظيف والفحص والتحويل يعمل على جهازك. لا يتم تحميل الصور ومقاطع الفيديو أبدًا.</string>
     <string name="settings_about_github">عرض المصدر على GitHub</string>
     <string name="settings_about_privacy">سياسة الخصوصية</string>
+    <string name="settings_about_terms">شروط الاستخدام</string>
     <string name="settings_about_report_issue">الإبلاغ عن مشكلة</string>
     <string name="settings_about_donate">تبرع</string>
     <string name="settings_about_rate">قيّم Redact على Google Play</string>

@@ -765,6 +765,8 @@ public class SettingsFragment extends TabFragment {
                 openUrl(getString(R.string.url_github)));
         view.findViewById(R.id.rowAboutPrivacy).setOnClickListener(v ->
                 openUrl(getString(R.string.url_privacy_policy)));
+        view.findViewById(R.id.rowAboutTerms).setOnClickListener(v ->
+                openUrl(getString(R.string.url_terms_of_use)));
         view.findViewById(R.id.rowAboutLicenses).setOnClickListener(v ->
                 startActivity(new Intent(requireContext(), LicensesActivity.class)));
         view.findViewById(R.id.rowAboutIntro).setOnClickListener(v ->

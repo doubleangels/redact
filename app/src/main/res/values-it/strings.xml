@@ -255,6 +255,7 @@
     <string name="settings_about_subtitle">Tutta la pulizia, la scansione e la conversione avviene sul dispositivo. Foto e video non vengono mai caricati.</string>
     <string name="settings_about_github">Visualizza il Codice su GitHub</string>
     <string name="settings_about_privacy">Informativa sulla Privacy</string>
+    <string name="settings_about_terms">Termini d\'Uso</string>
     <string name="settings_about_report_issue">Segnala un Problema</string>
     <string name="settings_about_donate">Fai una Donazione</string>
     <string name="settings_about_rate">Valuta Redact su Google Play</string>

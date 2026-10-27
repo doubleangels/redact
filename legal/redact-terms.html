@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<!--
+    This is the canonical source of Redact's Terms of Use. Edit it here.
+
+    The same GitHub Actions workflow that publishes the privacy policy
+    (.github/workflows/publish-privacy.yml) copies this file to
+    doubleangels/privacypolicy on every push to dev, where it is served at
+    https://doubleangels.github.io/privacypolicy/redact-terms.html
+
+    Do not hand-edit the copy in the privacypolicy repo, it gets overwritten
+    on the next sync.
+-->
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#faf9fc" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141218" />
+    <title>Redact Terms of Use</title>
+    <meta name="description" content="Redact's Terms of Use, in plain language: how the app is provided, what it can and can't guarantee, and the limits of our responsibility." />
+    <style>
+        :root {
+            /* Neutral grey for interactive accents (links, FAB, focus rings), with the
+               app's own colorAccent green kept for positive/"safe" indicators. */
+            --primary: #5f5f66;
+            --primary-text: #44444a;
+            --accent: #00c853;
+            --accent-text: #00913b;
+            --ink: #1b1b1f;
+            --ink-soft: #49454f;
+            --bg: #faf9fc;
+            --card: #f1eef4;
+            --card-high: #e6e1ea;
+            --border: #e3dfe8;
+            --code-bg: #e6e1ea;
+            /* App's own component_corner_small/medium/large (dimens.xml), deliberately
+               squarer than default Material pills. */
+            --radius-sm: 10px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --shadow: 0 1px 2px rgba(20, 18, 24, 0.08), 0 1px 3px rgba(20, 18, 24, 0.08);
+            --shadow-raised: 0 2px 4px rgba(20, 18, 24, 0.14), 0 4px 10px rgba(20, 18, 24, 0.12);
+            --edge: 20px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #9a9aa2;
+                --primary-text: #c7c7cc;
+                --accent: #00c853;
+                --accent-text: #4cdb8f;
+                --ink: #e6e1e9;
+                --ink-soft: #cac4cf;
+                --bg: #141218;
+                --card: #1d1b20;
+                --card-high: #2b2930;
+                --border: #332f37;
+                --code-bg: #2b2930;
+                --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.25);
+                --shadow-raised: 0 2px 4px rgba(0, 0, 0, 0.4), 0 6px 14px rgba(0, 0, 0, 0.35);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            line-height: 1.7;
+            font-size: 1rem;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        .skip-link {
+            position: absolute;
+            left: 1rem;
+            top: -3rem;
+            background: var(--primary);
+            color: #fff;
+            padding: 0.6rem 1rem;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            z-index: 100;
+            transition: top 0.15s ease;
+        }
+
+        .skip-link:focus {
+            top: 1rem;
+        }
+
+        .content {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: calc(1.5rem + env(safe-area-inset-top)) var(--edge) calc(6rem + env(safe-area-inset-bottom));
+        }
+
+        header.hero {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .mark {
+            flex: 0 0 auto;
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mark img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
+        }
+
+        header.hero h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            line-height: 1.25;
+        }
+
+        header.hero p {
+            margin-top: 0.2rem;
+            color: var(--ink-soft);
+            font-size: 0.92rem;
+        }
+
+        .meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: var(--card-high);
+            color: var(--ink);
+            padding: 0.4rem 0.8rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow);
+        }
+
+        .glance h2 {
+            font-size: 1.05rem;
+            margin-bottom: 1rem;
+        }
+
+        .glance ul {
+            list-style: none;
+            display: grid;
+            gap: 0.9rem;
+        }
+
+        .glance li {
+            display: flex;
+            gap: 0.65rem;
+            align-items: flex-start;
+            font-size: 0.97rem;
+        }
+
+        .glance li .tick {
+            flex: 0 0 auto;
+            width: 22px;
+            height: 22px;
+            border-radius: 7px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 0.78rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 0.1rem;
+        }
+
+        /* Table of contents: a single-column, thumb-friendly list (Material list style),
+           not a dense multi-column index. Each row is a full-width tap target. */
+        nav.toc h2 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--ink-soft);
+            margin-bottom: 0.25rem;
+        }
+
+        nav.toc ol {
+            list-style: none;
+            counter-reset: toc;
+        }
+
+        nav.toc li {
+            counter-increment: toc;
+            border-top: 1px solid var(--border);
+        }
+
+        nav.toc li:first-child {
+            border-top: none;
+        }
+
+        nav.toc a {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            min-height: 48px;
+            padding: 0.6rem 0.1rem;
+            color: var(--ink);
+            text-decoration: none;
+            font-size: 0.97rem;
+            font-weight: 500;
+        }
+
+        nav.toc a::before {
+            content: counter(toc) ".";
+            flex: 0 0 auto;
+            min-width: 1.4em;
+            color: var(--primary-text);
+            font-weight: 700;
+        }
+
+        nav.toc a:hover,
+        nav.toc a:active {
+            color: var(--primary-text);
+        }
+
+        /* Accordion sections (Material expansion-panel pattern): collapsed rows that expand
+           to full content. A fragment link to a section's id auto-opens it in modern browsers. */
+        details.section-card {
+            background: var(--card);
+            border-radius: var(--radius-lg);
+            margin-bottom: 0.75rem;
+            box-shadow: var(--shadow);
+            scroll-margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        details.section-card summary {
+            list-style: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            min-height: 56px;
+            padding: 1rem 1.25rem;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        details.section-card summary::-webkit-details-marker {
+            display: none;
+        }
+
+        details.section-card summary:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: -2px;
+            border-radius: var(--radius-lg);
+        }
+
+        details.section-card summary h2 {
+            margin: 0;
+            font-size: 1.02rem;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: -0.005em;
+        }
+
+        details.section-card .chevron {
+            flex: 0 0 auto;
+            width: 22px;
+            height: 22px;
+            color: var(--ink-soft);
+            transition: transform 0.2s ease;
+        }
+
+        details.section-card[open] .chevron {
+            transform: rotate(180deg);
+        }
+
+        .section-body {
+            padding: 0 1.25rem 1.25rem;
+        }
+
+        .section-body h3 {
+            font-size: 0.98rem;
+            margin: 1.1rem 0 0.5rem;
+            color: var(--ink);
+        }
+
+        .section-body h3:first-child {
+            margin-top: 0;
+        }
+
+        p {
+            margin-bottom: 0.9rem;
+            font-size: 0.97rem;
+            color: var(--ink);
+        }
+
+        .section-body p:last-child,
+        .section-body ul:last-child,
+        .section-body .table-wrap:last-child,
+        .section-body .callout:last-child {
+            margin-bottom: 0;
+        }
+
+        ul {
+            margin: 0 0 0.9rem 1.2rem;
+        }
+
+        li {
+            margin-bottom: 0.4rem;
+            font-size: 0.97rem;
+        }
+
+        a {
+            color: var(--primary-text);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        strong {
+            font-weight: 700;
+        }
+
+        code {
+            background: var(--code-bg);
+            border-radius: 5px;
+            padding: 0.15rem 0.4rem;
+            font-size: 0.85em;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            word-break: break-word;
+        }
+
+        .table-wrap {
+            margin-bottom: 1rem;
+        }
+
+        table {
+            display: block;
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 0.93rem;
+        }
+
+        /* Mobile-first table base: each row renders as its own stacked card, with the
+           column name shown as a small label above each value. No horizontal scrolling. */
+        thead {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        tbody,
+        tr,
+        td {
+            display: block;
+            width: 100%;
+        }
+
+        tr {
+            background: var(--card-high);
+            border-radius: var(--radius-md);
+            padding: 0.9rem 1rem;
+            margin-bottom: 0.65rem;
+        }
+
+        tr:last-child {
+            margin-bottom: 0;
+        }
+
+        td {
+            padding: 0.3rem 0;
+            border: none;
+            color: var(--ink-soft);
+        }
+
+        td[data-label]::before {
+            content: attr(data-label);
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--ink-soft);
+            margin-bottom: 0.15rem;
+        }
+
+        td:first-child {
+            padding-top: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        td:first-child::before {
+            content: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.65rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.78rem;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .badge-off {
+            background: var(--card);
+            background: color-mix(in srgb, var(--accent) 16%, var(--card));
+            color: var(--accent-text);
+        }
+
+        .badge-cond {
+            background: var(--card);
+            background: color-mix(in srgb, var(--primary) 16%, var(--card));
+            color: var(--primary-text);
+        }
+
+        .callout {
+            border-left: 4px solid var(--primary);
+            background: var(--card-high);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            padding: 0.9rem 1.1rem;
+            margin-bottom: 1rem;
+            font-size: 0.93rem;
+        }
+
+        footer {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+
+        footer a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--ink-soft);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        footer svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Material 3 floating action button: back to top, always reachable with a thumb. */
+        .fab {
+            position: fixed;
+            right: 16px;
+            bottom: calc(16px + env(safe-area-inset-bottom));
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: var(--primary);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-raised);
+            text-decoration: none;
+            z-index: 40;
+        }
+
+        .fab svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        /* Desktop / wide-viewport enhancement, layered on top of the mobile-first base. */
+        @media (min-width: 720px) {
+            .content {
+                padding-top: calc(2.5rem + env(safe-area-inset-top));
+            }
+
+            nav.toc ol {
+                columns: 2;
+                column-gap: 2rem;
+            }
+
+            nav.toc li {
+                break-inside: avoid;
+            }
+
+            .table-wrap {
+                overflow-x: auto;
+                border: 1px solid var(--border);
+                border-radius: var(--radius-md);
+            }
+
+            table {
+                display: table;
+                min-width: 560px;
+            }
+
+            thead {
+                position: static;
+                width: auto;
+                height: auto;
+                overflow: visible;
+                clip: auto;
+                white-space: normal;
+            }
+
+            thead th {
+                background: var(--card-high);
+                text-align: left;
+                padding: 0.75rem 1rem;
+                font-weight: 700;
+                color: var(--ink);
+                border-bottom: 1px solid var(--border);
+            }
+
+            tbody {
+                display: table-row-group;
+            }
+
+            tr {
+                display: table-row;
+                background: transparent;
+                border-radius: 0;
+                padding: 0;
+                margin-bottom: 0;
+            }
+
+            td {
+                display: table-cell;
+                padding: 0.85rem 1rem;
+                border-bottom: 1px solid var(--border);
+                vertical-align: top;
+            }
+
+            tr:last-child td {
+                border-bottom: none;
+            }
+
+            td:first-child {
+                padding-top: 0.85rem;
+                font-size: inherit;
+                font-weight: 600;
+            }
+
+            td[data-label]::before {
+                content: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <div class="content" id="main">
+        <header class="hero" id="top">
+            <div class="mark">
+                <img src="assets/redact-icon.png" width="300" height="310" alt="Redact app icon" />
+            </div>
+            <div>
+                <h1>Redact Terms of Use</h1>
+                <p>Privacy &amp; Metadata Remover for Android · <code>com.doubleangels.redact</code></p>
+            </div>
+        </header>
+
+        <div class="meta-row">
+            <span class="chip">Last Updated: October 27, 2026</span>
+        </div>
+
+        <div class="card glance">
+            <h2>At a Glance</h2>
+            <ul>
+                <li><span class="tick">✓</span><span>Redact is free and open source, and it's provided <strong>as is</strong>, without warranties.</span></li>
+                <li><span class="tick">✓</span><span>It removes a lot of hidden metadata, but no tool can guarantee every trace is gone. <strong>Check files with Scan and keep your originals</strong> before sharing anything sensitive.</span></li>
+                <li><span class="tick">✓</span><span>You're responsible for what you share, and for only using Redact on files you have the right to change.</span></li>
+                <li><span class="tick">✓</span><span>Your rights as a consumer under your local law always still apply.</span></li>
+            </ul>
+        </div>
+
+        <nav class="toc card" aria-label="Table of contents">
+            <h2>Contents</h2>
+            <ol>
+                <li><a href="#agreement">Agreement to These Terms</a></li>
+                <li><a href="#license">Open-Source License</a></li>
+                <li><a href="#what-redact-does">What Redact Can and Can't Do</a></li>
+                <li><a href="#your-responsibilities">Your Responsibilities</a></li>
+                <li><a href="#third-party">Third-Party Services</a></li>
+                <li><a href="#warranty">No Warranty</a></li>
+                <li><a href="#liability">Limitation of Liability</a></li>
+                <li><a href="#indemnity">Your Responsibility to Us</a></li>
+                <li><a href="#consumer-rights">Your Rights as a Consumer</a></li>
+                <li><a href="#availability">Updates and Ending Use</a></li>
+                <li><a href="#export">Export and Sanctions</a></li>
+                <li><a href="#law">Governing Law and Disputes</a></li>
+                <li><a href="#changes">Changes to These Terms</a></li>
+                <li><a href="#general">General</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ol>
+        </nav>
+
+        <details class="section-card" id="agreement" open>
+            <summary>
+                <h2>1. Agreement to These Terms</h2>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="section-body">
+                <p>These Terms of Use are an agreement between you and DoubleAngels, the independent developer of Redact, based in the United States. By installing or using Redact, you agree to them. If you don't agree, please don't use the app, and uninstall it.</p>
+                <p>How we handle your information is explained separately in our <a href="redact.html">Privacy Policy</a>, which is part of these terms.</p>
+            </div>
+        </details>
+        <details class="section-card" id="license">
+            <summary>
+                <h2>2. Open-Source License</h2>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="section-body">
+                <p>Redact's source code is licensed under the <a href="https://github.com/doubleangels/redact/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">GNU General Public License, version 3</a> (GPLv3). These terms cover your use of the app as we distribute it, for example through Google Play. They don't take away any right the GPLv3 gives you to copy, change, or share the code. If the two ever conflict over the source code, the GPLv3 wins.</p>
+                <p>The Redact name and icon identify our official builds. If you publish a modified version, please give it a different name so people don't confuse it with ours.</p>
+            </div>
+        </details>
+        <details class="section-card" id="what-redact-does">
+            <summary>
+                <h2>3. What Redact Can and Can't Do</h2>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="section-body">
+                <p>Redact is built to remove hidden metadata, like GPS location, device details, and timestamps, from photos and videos, and to help you see what's in a file before you share it. We work hard to make it thorough, but <strong>no tool can promise to find and remove every piece of identifying information in every file</strong>. In particular, keep in mind that</p>
+                <ul><li>file formats keep changing, and some cameras and apps store data in unusual or undocumented places that Redact may not recognize,</li><li>removing metadata doesn't change what's visible in the picture or video itself, like faces, street signs, landmarks, screens, documents, reflections, or sounds in a video's audio track,</li><li>a file's name can reveal information on its own, and the apps or services you share a file through may add their own data,</li><li>areas you cover with Censor are only as private as the coverage you choose, so check the result before sharing it,</li><li>converting a file can change its quality, size, or compatibility.</li></ul>
+                <p>Before you share anything sensitive, check the cleaned file with Scan, look at the content yourself, and keep a backup of any original you want to keep. <strong>You are responsible for deciding what you share and with whom.</strong> If your safety depends on a file being completely anonymous, don't rely on Redact, or any single tool, alone.</p>
+            </div>
+        </details>
+        <details class="section-card" id="your-responsibilities">
+            <summary>
+                <h2>4. Your Responsibilities</h2>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="section-body">
+                <p>When you use Redact, you agree to</p>
+                <ul><li>use it only for lawful purposes, and only on files you own or have the right to change,</li><li>not use it to remove copyright or licensing information in a way the law forbids, for example under 17 U.S.C. &sect;1202 in the United States or similar laws elsewhere, or to hide evidence, mislead anyone about where a file came from, or violate anyone else's rights,</li><li>follow the laws that apply to you, including where you share the files Redact produces.</li></ul>
+            </div>
+        </details>
+        <details class="section-card" id="third-party">
+            <summary>
+                <h2>5. Third-Party Services</h2>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="section-body">
+                <p>If you got Redact from Google Play, Google's own terms also apply to how you download and update it. Google isn't a party to these terms and isn't responsible for the app. Optional crash reporting uses Sentry, as described in our <a href="redact.html#crash-reporting">Privacy Policy</a>. We don't control these services and aren't responsible for them.</p>
+            </div>
+        </details>
+        <details class="section-card" id="warranty">
+            <summary>
+                <h2>6. No Warranty</h2>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="section-body">
+                <p>Redact is free, and it's provided <strong>"as is" and "as available"</strong>. To the fullest extent the law allows, DoubleAngels makes no warranties of any kind, whether express, implied, or statutory, including any warranty of merchantability, fitness for a particular purpose, title, non-infringement, accuracy, or that the app will be error-free, uninterrupted, secure, or that it will remove all metadata or identifying information from any file. No advice or information you get from us, in the app, on our website, on GitHub, or by email, creates any warranty not stated here.</p>
+            </div>
+        </details>
+        <details class="section-card" id="liability">
+            <summary>
+                <h2>7. Limitation of Liability</h2>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="section-body">
+                <p>To the fullest extent the law allows, DoubleAngels will not be liable for any indirect, incidental, special, consequential, exemplary, or punitive damages, or for any loss of data, files, privacy, profits, goodwill, or reputation, arising from or related to your use of, or inability to use, Redact, including information that remains in, or is revealed by, a file you processed or shared, even if we were told such damage was possible.</p>
+                <p>To the fullest extent the law allows, our total liability for any claim related to Redact or these terms is limited to the greater of the amount you paid us for the app (which is nothing) or fifty U.S. dollars (US$50).</p>
+            </div>
+        </details>
+        <details class="section-card" id="indemnity">
+            <summary>
+                <h2>8. Your Responsibility to Us</h2>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="section-body">
+                <p>To the extent the law allows, you agree to cover any claims, losses, and reasonable legal costs DoubleAngels faces because you used Redact unlawfully or in breach of these terms. This doesn't apply where the law where you live doesn't allow it.</p>
+            </div>
+        </details>
+        <details class="section-card" id="consumer-rights">
+            <summary>
+                <h2>9. Your Rights as a Consumer</h2>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="section-body">
+                <p>Some countries and states don't allow certain warranties to be excluded or liability to be limited. If you live in one of them, including the European Union, the United Kingdom, Australia, and New Zealand, the limits in Sections 6 to 8 apply only as far as your local law permits, and nothing in these terms takes away rights you have as a consumer that can't be waived by contract. Nothing in these terms limits liability for death or personal injury caused by negligence, for fraud, or for anything else that can't legally be limited.</p>
+            </div>
+        </details>
+        <details class="section-card" id="availability">
+            <summary>
+                <h2>10. Updates and Ending Use</h2>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="section-body">
+                <p>We may change, update, or stop offering Redact, or any part of it, at any time, without notice and without liability. Updates may add, change, or remove features. You can stop using Redact whenever you like by uninstalling it. If you break these terms, your permission to use our official builds ends, though your rights under the GPLv3 to the source code continue as that license provides. Sections 3, 4, 6 to 9, 12, and 14 keep applying after you stop using the app.</p>
+            </div>
+        </details>
+        <details class="section-card" id="export">
+            <summary>
+                <h2>11. Export and Sanctions</h2>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="section-body">
+                <p>You agree not to use or export Redact in violation of U.S. export laws or sanctions, or those of your own country.</p>
+            </div>
+        </details>
+        <details class="section-card" id="law">
+            <summary>
+                <h2>12. Governing Law and Disputes</h2>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="section-body">
+                <p>These terms are governed by the laws of the United States and of the U.S. state where DoubleAngels resides, without regard to conflict-of-law rules. If you have a problem, please contact us first and give us at least 30 days to try to resolve it informally. If that doesn't work, any dispute will be decided by the courts located where DoubleAngels resides, and you agree to their jurisdiction. If you're a consumer living outside the United States, you may also have the right to bring a claim in the courts where you live, and to rely on the mandatory consumer protection laws of your country, which these terms don't override.</p>
+            </div>
+        </details>
+        <details class="section-card" id="changes">
+            <summary>
+                <h2>13. Changes to These Terms</h2>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="section-body">
+                <p>We may update these terms from time to time. The "Last Updated" date at the top will change, and every earlier version is kept in the public <a href="https://github.com/doubleangels/redact/commits/main/legal/redact-terms.html" target="_blank" rel="noopener noreferrer">edit history</a>. If you keep using Redact after a change takes effect, you accept the updated terms.</p>
+            </div>
+        </details>
+        <details class="section-card" id="general">
+            <summary>
+                <h2>14. General</h2>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="section-body">
+                <p>If any part of these terms is found unenforceable, the rest stays in effect, and that part is applied as far as the law allows. If we don't enforce a term right away, we haven't given up the right to enforce it later. These terms, together with the Privacy Policy and the GPLv3, are the whole agreement between you and us about Redact. You can't transfer them to someone else, but we may transfer them, for example if someone else takes over the project. These terms are written in English, and any translation is for convenience only.</p>
+            </div>
+        </details>
+        <details class="section-card" id="contact">
+            <summary>
+                <h2>15. Contact</h2>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="section-body">
+                <p>Questions about these terms? Email <a href="mailto:jzgm2llm@addy.io">jzgm2llm@addy.io</a>. As explained in our <a href="redact.html#contact">Privacy Policy</a>, help is offered in good faith and at our discretion, apart from privacy requests, which we handle as the law requires.</p>
+            </div>
+        </details>
+
+        <footer>
+            <a href="https://github.com/doubleangels/redact" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+                <span>doubleangels/redact</span>
+            </a>
+        </footer>
+    </div>
+
+    <a class="fab" href="#top" aria-label="Back to top">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+
+    <a class="fab" href="#top" aria-label="Back to top">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+
+    <script>
+        // Progressive enhancement: open the matching accordion section when a table-of-contents
+        // link (or any deep link) jumps to it. The page works fine without this script too,
+        // it just lands on a collapsed section's summary instead of its open content.
+        (function () {
+            function openTarget() {
+                var hash = window.location.hash;
+                if (!hash || hash.length < 2) return;
+                var el = document.getElementById(hash.slice(1));
+                if (!el) return;
+                if (el.tagName === "DETAILS") el.open = true;
+                var parent = el.parentElement;
+                while (parent) {
+                    if (parent.tagName === "DETAILS") parent.open = true;
+                    parent = parent.parentElement;
+                }
+            }
+            openTarget();
+            window.addEventListener("hashchange", openTarget);
+        })();
+    </script>
+</body>
+
+</html>
