@@ -224,4 +224,19 @@
         app:layout_constraintBottom_toBottomOf="@id/shareResultsButton"
         app:layout_constraintEnd_toStartOf="@id/shareResultsButton" />
 
+    <!-- Opens the one photo a clean just saved in Censor, to cover faces or other details; an
+         icon FAB beside Scan Result, shown after a clean that saved exactly one photo -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/censorResultButton"
+        style="@style/Widget.Material3.FloatingActionButton.Secondary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="12dp"
+        android:contentDescription="@string/scan_censor_this_photo"
+        android:tooltipText="@string/scan_censor_this_photo"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_censor"
+        app:layout_constraintBottom_toBottomOf="@id/shareResultsButton"
+        app:layout_constraintEnd_toStartOf="@id/scanResultButton" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

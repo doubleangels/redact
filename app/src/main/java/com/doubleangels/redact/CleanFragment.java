@@ -69,6 +69,7 @@ public class CleanFragment extends TabFragment {
     private TextView statusText;
     private View shareResultsButton;
     private View scanResultButton;
+    private View censorResultButton;
     /** Originals in the trash request on screen, whose clean copies get their names back if it is accepted. */
     @Nullable
     private List<Uri> pendingTrashSources;
@@ -174,6 +175,11 @@ public class CleanFragment extends TabFragment {
             scanResultButton.setOnClickListener(v -> {
                 Haptics.tick(v);
                 openResultInScan();
+            });
+            censorResultButton = view.findViewById(R.id.censorResultButton);
+            censorResultButton.setOnClickListener(v -> {
+                Haptics.tick(v);
+                openResultInCensor();
             });
             progressContainer = view.findViewById(R.id.progressContainer);
             progressText = view.findViewById(R.id.progressText);
@@ -387,6 +393,38 @@ public class CleanFragment extends TabFragment {
         }
     }
 
+    private void openResultInCensor() {
+        Uri photo = singleImageOutput();
+        if (photo == null) {
+            return;
+        }
+        new ViewModelProvider(requireActivity()).get(com.doubleangels.redact.ui.CensorViewModel.class)
+                .requestOpen(photo);
+        if (requireActivity() instanceof MainActivity mainActivity) {
+            mainActivity.selectTab(R.id.navigation_censor);
+        }
+    }
+
+    /**
+     * The one file the last clean saved, when it is a photo; otherwise null. A finished clean
+     * still shows the batch it cleaned (changing the selection ends that state), so a batch of
+     * photos alone tells it is a photo without asking the output's storage provider.
+     */
+    @Nullable
+    private Uri singleImageOutput() {
+        List<Uri> outputs = viewModel.getCleanOutputs();
+        List<MediaItem> batch = viewModel.getSelectedItems().getValue();
+        if (outputs.size() != 1 || batch == null || batch.isEmpty()) {
+            return null;
+        }
+        for (MediaItem item : batch) {
+            if (item.isVideo()) {
+                return null;
+            }
+        }
+        return outputs.get(0);
+    }
+
     void onHostPermissionFlowCompleted() {
         syncPermissionUi();
     }
@@ -559,6 +597,8 @@ public class CleanFragment extends TabFragment {
                             viewModel.getCleanOutputs());
                     scanResultButton.setVisibility(state == MainViewModel.ProcessingState.COMPLETED
                             && viewModel.getCleanOutputs().size() == 1 ? View.VISIBLE : View.GONE);
+                    censorResultButton.setVisibility(state == MainViewModel.ProcessingState.COMPLETED
+                            && singleImageOutput() != null ? View.VISIBLE : View.GONE);
                     // The result line (with what the batch removed) shows only once a clean has finished.
                     statusText.setVisibility(state == MainViewModel.ProcessingState.COMPLETED
                             ? View.VISIBLE : View.GONE);

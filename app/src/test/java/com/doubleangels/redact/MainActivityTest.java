@@ -297,6 +297,51 @@ public class MainActivityTest {
     }
 
     @Test
+    public void censorShortcut_opensCensor() {
+        android.content.Intent censor = new android.content.Intent(android.content.Intent.ACTION_MAIN)
+                .setClassName("com.doubleangels.redact", "com.doubleangels.redact.MainActivity")
+                .putExtra("tab", "censor");
+        assertEquals(R.id.navigation_censor, launchedTab(censor));
+    }
+
+    @Test
+    public void censorShortcutWhileRunning_switchesToCensor() {
+        MainActivity activity = launch();
+        controller.newIntent(new android.content.Intent(android.content.Intent.ACTION_MAIN)
+                .putExtra("tab", "censor"));
+        shadowOf(Looper.getMainLooper()).idle();
+        BottomNavigationView nav = activity.findViewById(R.id.bottomNavigation);
+        assertEquals(R.id.navigation_censor, nav.getSelectedItemId());
+    }
+
+    /** Every launcher shortcut in res/xml/shortcuts.xml opens the tab it is named after. */
+    @Test
+    public void everyLauncherShortcut_opensItsOwnTab() throws Exception {
+        android.content.res.Resources res = org.robolectric.RuntimeEnvironment.getApplication().getResources();
+        java.util.List<String> tabs = new java.util.ArrayList<>();
+        try (android.content.res.XmlResourceParser xml = res.getXml(R.xml.shortcuts)) {
+            for (int event = xml.next(); event != org.xmlpull.v1.XmlPullParser.END_DOCUMENT; event = xml.next()) {
+                if (event == org.xmlpull.v1.XmlPullParser.START_TAG && "extra".equals(xml.getName())
+                        && MainActivity.EXTRA_TAB.equals(xml.getAttributeValue(
+                                "http://schemas.android.com/apk/res/android", "name"))) {
+                    tabs.add(xml.getAttributeValue("http://schemas.android.com/apk/res/android", "value"));
+                }
+            }
+        }
+        assertEquals(java.util.List.of("clean", "scan", "convert", "censor"), tabs);
+        for (String tab : tabs) {
+            int expected = res.getIdentifier("navigation_" + tab, "id", "com.doubleangels.redact");
+            if (controller != null) {
+                controller.pause().stop().destroy();
+            }
+            android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_MAIN)
+                    .setClassName("com.doubleangels.redact", "com.doubleangels.redact.MainActivity")
+                    .putExtra(MainActivity.EXTRA_TAB, tab);
+            assertEquals(tab, expected, launchedTab(intent));
+        }
+    }
+
+    @Test
     public void unknownShortcutTab_opensClean() {
         android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_MAIN)
                 .putExtra("tab", "nonsense");
