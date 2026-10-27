@@ -288,6 +288,7 @@
     <string name="settings_crash_reporting_dismiss">إغلاق</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
+    <string name="url_terms_of_use">https://doubleangels.github.io/privacypolicy/redact-terms.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">إلغاء</string>
     <string name="clean_status_ready">جاهز لتحديد الملفات للتنظيف.</string>

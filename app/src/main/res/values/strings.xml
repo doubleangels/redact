@@ -131,7 +131,7 @@
 
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
-    <string name="url_terms_of_use" translatable="false">https://doubleangels.github.io/privacypolicy/redact-terms.html</string>
+    <string name="url_terms_of_use">https://doubleangels.github.io/privacypolicy/redact-terms.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="url_donate" translatable="false">https://donate.stripe.com/4gw8yhbvH0mg6SQ7ss</string>
 
