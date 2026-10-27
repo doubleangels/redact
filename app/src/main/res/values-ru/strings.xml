@@ -259,6 +259,7 @@
     <string name="settings_about_subtitle">Вся очистка, сканирование и конвертация выполняется на устройстве. Фото и видео никогда не загружаются.</string>
     <string name="settings_about_github">Исходный Код на GitHub</string>
     <string name="settings_about_privacy">Политика Конфиденциальности</string>
+    <string name="settings_about_terms">Условия Использования</string>
     <string name="settings_about_report_issue">Сообщить о Проблеме</string>
     <string name="settings_about_donate">Пожертвовать</string>
     <string name="settings_about_rate">Оценить Redact в Google Play</string>
@@ -279,6 +280,7 @@
     <string name="settings_crash_reporting_dismiss">Закрыть</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
+    <string name="url_terms_of_use">https://doubleangels.github.io/privacypolicy/redact-terms.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">Отмена</string>
     <string name="clean_status_ready">Готово к выбору файлов для очистки.</string>

@@ -255,6 +255,7 @@
     <string name="settings_about_subtitle">Toda limpeza, varredura e conversão ocorre no seu dispositivo. Fotos e vídeos nunca são enviados.</string>
     <string name="settings_about_github">Ver Código no GitHub</string>
     <string name="settings_about_privacy">Política de Privacidade</string>
+    <string name="settings_about_terms">Termos de Uso</string>
     <string name="settings_about_report_issue">Relatar um Problema</string>
     <string name="settings_about_donate">Doe</string>
     <string name="settings_about_rate">Avaliar o Redact no Google Play</string>
@@ -275,6 +276,7 @@ Suas fotos e vídeos nunca são enviados. URIs, nomes de arquivo e coordenadas G
     <string name="settings_crash_reporting_dismiss">Fechar</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
+    <string name="url_terms_of_use">https://doubleangels.github.io/privacypolicy/redact-terms.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">Cancelar</string>
     <string name="clean_status_ready">Pronto para selecionar arquivos para limpar.</string>

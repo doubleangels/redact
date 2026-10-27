@@ -267,6 +267,7 @@
     <string name="settings_about_subtitle">كل التنظيف والفحص والتحويل يعمل على جهازك. لا يتم تحميل الصور ومقاطع الفيديو أبدًا.</string>
     <string name="settings_about_github">عرض المصدر على GitHub</string>
     <string name="settings_about_privacy">سياسة الخصوصية</string>
+    <string name="settings_about_terms">شروط الاستخدام</string>
     <string name="settings_about_report_issue">الإبلاغ عن مشكلة</string>
     <string name="settings_about_donate">تبرع</string>
     <string name="settings_about_rate">قيّم Redact على Google Play</string>
@@ -287,6 +288,7 @@
     <string name="settings_crash_reporting_dismiss">إغلاق</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
+    <string name="url_terms_of_use">https://doubleangels.github.io/privacypolicy/redact-terms.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">إلغاء</string>
     <string name="clean_status_ready">جاهز لتحديد الملفات للتنظيف.</string>

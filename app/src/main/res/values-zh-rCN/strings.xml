@@ -247,6 +247,7 @@
     <string name="settings_about_subtitle">所有清理、扫描和转换均在设备上运行。照片和视频绝不会上传。</string>
     <string name="settings_about_github">在 GitHub 查看源码</string>
     <string name="settings_about_privacy">隐私政策</string>
+    <string name="settings_about_terms">使用条款</string>
     <string name="settings_about_report_issue">报告问题</string>
     <string name="settings_about_donate">捐赠</string>
     <string name="settings_about_rate">在 Google Play 上为 Redact 评分</string>
@@ -267,6 +268,7 @@
     <string name="settings_crash_reporting_dismiss">关闭</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
+    <string name="url_terms_of_use">https://doubleangels.github.io/privacypolicy/redact-terms.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">取消</string>
     <string name="clean_status_ready">准备选择要清理的文件。</string>

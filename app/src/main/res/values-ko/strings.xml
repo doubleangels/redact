@@ -247,6 +247,7 @@
     <string name="settings_about_subtitle">모든 정리, 스캔, 변환은 기기에서 실행됩니다. 사진과 동영상은 업로드되지 않습니다.</string>
     <string name="settings_about_github">GitHub에서 소스 보기</string>
     <string name="settings_about_privacy">개인정보 처리방침</string>
+    <string name="settings_about_terms">이용약관</string>
     <string name="settings_about_report_issue">문제 신고</string>
     <string name="settings_about_donate">기부</string>
     <string name="settings_about_rate">Google Play에서 Redact 평가하기</string>
@@ -267,6 +268,7 @@
     <string name="settings_crash_reporting_dismiss">닫기</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
+    <string name="url_terms_of_use">https://doubleangels.github.io/privacypolicy/redact-terms.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">취소</string>
     <string name="clean_status_ready">정리할 파일을 선택할 준비가 되었습니다.</string>

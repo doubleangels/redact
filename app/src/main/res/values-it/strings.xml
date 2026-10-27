@@ -255,6 +255,7 @@
     <string name="settings_about_subtitle">Tutta la pulizia, la scansione e la conversione avviene sul dispositivo. Foto e video non vengono mai caricati.</string>
     <string name="settings_about_github">Visualizza il Codice su GitHub</string>
     <string name="settings_about_privacy">Informativa sulla Privacy</string>
+    <string name="settings_about_terms">Termini d\'Uso</string>
     <string name="settings_about_report_issue">Segnala un Problema</string>
     <string name="settings_about_donate">Fai una Donazione</string>
     <string name="settings_about_rate">Valuta Redact su Google Play</string>
@@ -275,6 +276,7 @@ Le tue foto e video non vengono mai caricati. URI, nomi file e coordinate GPS ve
     <string name="settings_crash_reporting_dismiss">Chiudi</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
+    <string name="url_terms_of_use">https://doubleangels.github.io/privacypolicy/redact-terms.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">Annulla</string>
     <string name="clean_status_ready">Pronto per selezionare file da pulire.</string>

@@ -255,6 +255,7 @@
     <string name="settings_about_subtitle">Toda la limpieza, exploración y conversión se ejecuta en tu dispositivo. Las fotos y videos nunca se suben.</string>
     <string name="settings_about_github">Ver Código en GitHub</string>
     <string name="settings_about_privacy">Política de Privacidad</string>
+    <string name="settings_about_terms">Términos de Uso</string>
     <string name="settings_about_report_issue">Informar un Problema</string>
     <string name="settings_about_donate">Donar</string>
     <string name="settings_about_rate">Valorar Redact en Google Play</string>
@@ -275,6 +276,7 @@ Tus fotos y videos nunca se suben. Se eliminan URIs, nombres de archivo y coorde
     <string name="settings_crash_reporting_dismiss">Cerrar</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
+    <string name="url_terms_of_use">https://doubleangels.github.io/privacypolicy/redact-terms.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">Cancelar</string>
     <string name="clean_status_ready">Listo para seleccionar archivos para limpiar.</string>

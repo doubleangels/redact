@@ -1,6 +1,7 @@
 name: Publish Privacy Policy
 
-# Publishes legal/redact.html to doubleangels/privacypolicy on every change,
+# Publishes legal/redact.html and legal/redact-terms.html to
+# doubleangels/privacypolicy on every change,
 # keeping it live at the URL baked into strings.xml and the Play Console.
 
 on:
@@ -9,6 +10,7 @@ on:
       - dev
     paths:
       - legal/redact.html
+      - legal/redact-terms.html
       - legal/assets/**
   workflow_dispatch:
 
@@ -41,6 +43,7 @@ jobs:
       - name: Copy published files
         run: |
           cp legal/redact.html privacypolicy/redact.html
+          cp legal/redact-terms.html privacypolicy/redact-terms.html
           mkdir -p privacypolicy/assets
           cp legal/assets/redact-icon.png privacypolicy/assets/redact-icon.png
 
@@ -49,7 +52,7 @@ jobs:
         run: |
           git config user.name "redact-privacy-sync[bot]"
           git config user.email "actions@users.noreply.github.com"
-          git add redact.html assets/redact-icon.png
+          git add redact.html redact-terms.html assets/redact-icon.png
           if git diff --cached --quiet; then
             echo "No changes to publish."
             exit 0

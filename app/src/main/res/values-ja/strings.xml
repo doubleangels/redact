@@ -248,6 +248,7 @@
     <string name="settings_about_subtitle">クリーン、スキャン、変換はすべて端末上で実行されます。写真や動画はアップロードされません。</string>
     <string name="settings_about_github">GitHubでソースを表示</string>
     <string name="settings_about_privacy">プライバシーポリシー</string>
+    <string name="settings_about_terms">利用規約</string>
     <string name="settings_about_report_issue">問題を報告</string>
     <string name="settings_about_donate">寄付</string>
     <string name="settings_about_rate">Google Play で Redact を評価</string>
@@ -268,6 +269,7 @@
     <string name="settings_crash_reporting_dismiss">閉じる</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
+    <string name="url_terms_of_use">https://doubleangels.github.io/privacypolicy/redact-terms.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">キャンセル</string>
     <string name="clean_status_ready">クリーンするファイルを選択する準備ができました。</string>

@@ -255,6 +255,7 @@
     <string name="settings_about_subtitle">Tout le nettoyage, l\'analyse et la conversion s\'effectuent sur votre appareil. Les photos et vidéos ne sont jamais téléversées.</string>
     <string name="settings_about_github">Voir le Code sur GitHub</string>
     <string name="settings_about_privacy">Politique de Confidentialité</string>
+    <string name="settings_about_terms">Conditions d\'Utilisation</string>
     <string name="settings_about_report_issue">Signaler un Problème</string>
     <string name="settings_about_donate">Faites un Don</string>
     <string name="settings_about_rate">Noter Redact sur Google Play</string>
@@ -275,6 +276,7 @@ Vos photos et vidéos ne sont jamais téléversées. Les URI, noms de fichier et
     <string name="settings_crash_reporting_dismiss">Fermer</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
     <string name="url_privacy_policy">https://doubleangels.github.io/privacypolicy/redact.html</string>
+    <string name="url_terms_of_use">https://doubleangels.github.io/privacypolicy/redact-terms.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">Annuler</string>
     <string name="clean_status_ready">Prêt à sélectionner des fichiers à nettoyer.</string>
