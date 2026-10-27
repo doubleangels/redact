@@ -311,6 +311,36 @@ public class CleanConvertFragmentsTest {
     }
 
     @Test
+    public void clean_censorResult_opensTheCleanPhotoInCensor() throws Exception {
+        FakeMediaStoreProvider.install(activity);
+        java.io.File jpeg = java.io.File.createTempFile("result_", ".jpg", activity.getFilesDir());
+        jpeg.deleteOnExit();
+        try (java.io.FileOutputStream out = new java.io.FileOutputStream(jpeg)) {
+            android.graphics.Bitmap.createBitmap(12, 12, android.graphics.Bitmap.Config.ARGB_8888)
+                    .compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out);
+        }
+        View v = clean();
+        List<MediaItem> batch = Arrays.asList(new MediaItem(Uri.fromFile(jpeg), false, "photo.jpg"));
+        vm.setSelectedItems(batch);
+        idle();
+        assertEquals(View.GONE, visibility(v, R.id.censorResultButton));
+
+        vm.startCleaning(batch);
+        awaitMain(() -> vm.getCleanProcessingState().getValue() == MainViewModel.ProcessingState.COMPLETED);
+        idle();
+        assertEquals(View.VISIBLE, visibility(v, R.id.censorResultButton));
+
+        v.findViewById(R.id.censorResultButton).performClick();
+        idle();
+
+        assertNotNull(fragment("censor"));
+        assertTrue(fragment("censor").isVisible());
+        assertEquals(vm.getCleanOutputs().get(0), new androidx.lifecycle.ViewModelProvider(activity)
+                .get(com.doubleangels.redact.ui.CensorViewModel.class).getSource());
+        FakeMediaStoreProvider.reset();
+    }
+
+    @Test
     public void clean_share_opensTheShareSheetForTheOutputs() throws Exception {
         View v = cleanOneFile();
         assertEquals(View.VISIBLE, visibility(v, R.id.shareResultsButton));

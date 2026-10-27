@@ -30,14 +30,14 @@ import com.doubleangels.redact.ui.Notice;
 public class MainActivity extends AppCompatActivity {
 
     static final String TAG_CLEAN = "clean";
-    private static final String TAG_SCAN = "scan";
+    static final String TAG_SCAN = "scan";
     private static final String TAG_CONVERT = "convert";
-    private static final String TAG_CENSOR = "censor";
+    static final String TAG_CENSOR = "censor";
     private static final String TAG_SETTINGS = "settings";
     private static final String KEY_SELECTED_TAB = "selected_tab";
     /** False until the first tab is up, so only tab changes the user makes fade through. */
     private boolean animateTabSwitches;
-    /** Extra set by the launcher shortcuts in res/xml/shortcuts.xml and by {@link CleanTileService}. */
+    /** Extra set by the launcher shortcuts in res/xml/shortcuts.xml and by the Quick Settings tiles ({@link TabTileService}). */
     static final String EXTRA_TAB = "tab";
     /**
      * Debug builds only: launching with {@code --ez skip_intro true} marks the introduction and the
@@ -374,6 +374,9 @@ public class MainActivity extends AppCompatActivity {
         String tab = intent == null ? null : intent.getStringExtra(EXTRA_TAB);
         if (TAG_SCAN.equals(tab)) {
             return R.id.navigation_scan;
+        }
+        if (TAG_CENSOR.equals(tab)) {
+            return R.id.navigation_censor;
         }
         return TAG_CONVERT.equals(tab) ? R.id.navigation_convert : R.id.navigation_clean;
     }

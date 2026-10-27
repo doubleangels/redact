@@ -169,12 +169,32 @@
             android:exported="false"
             android:foregroundServiceType="dataSync|mediaProcessing" />
 
-        <!-- Quick Settings tile that opens the Clean tab -->
+        <!-- Quick Settings tiles that open the Clean, Scan and Censor tabs -->
         <service
             android:name=".CleanTileService"
             android:exported="true"
             android:icon="@drawable/ic_clean"
             android:label="@string/navigation_clean"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+        <service
+            android:name=".ScanTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_scan"
+            android:label="@string/navigation_scan"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+        <service
+            android:name=".CensorTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_censor"
+            android:label="@string/navigation_censor"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />

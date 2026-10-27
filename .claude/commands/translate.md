@@ -14,11 +14,18 @@ Make sure every user-visible string is translated into all 12 locales (`ar de es
    - the strings added or changed in `values/` since the tag.
    It exits 1 when there is any ERROR.
 3. Also look for user-visible text that is not a resource at all: string literals passed to `setText`, `Toast.makeText`, `Snackbar.make`, `setTitle`, `setMessage`, `setContentTitle`/`setContentText` or `setContentDescription` in `app/src/main/java`. Log tags, intent extras, preference keys and exception messages that are never shown are fine.
-4. If there are no ERRORs, no CHECKs and no hardcoded text, skip to step 3 (Verify).
+4. Compare the letter case of every translation in `de es fr it pt ru` with its English original (see **Case** under Fix). The checker does not flag this, so read the files side by side.
+5. If there are no ERRORs, no CHECKs, no hardcoded text and no case mismatches, skip to step 3 (Verify).
 
 ## 2. Fix
 
-- **Missing strings, arrays or plurals**: translate from the English in `values/` into each locale, and insert the entry at the same position as in `values/strings.xml` (usually the end). Match the tone and terms already used in that locale's file: read its neighbouring strings first, and reuse the same words for "Clean", "Convert", "Scan", "output folder", "metadata" and so on. Keep title case on buttons and headings where the locale's existing buttons use it.
+- **Missing strings, arrays or plurals**: translate from the English in `values/` into each locale, and insert the entry at the same position as in `values/strings.xml` (usually the end). Match the tone and terms already used in that locale's file: read its neighbouring strings first, and reuse the same words for "Clean", "Convert", "Scan", "output folder", "metadata" and so on. Follow **Case** below.
+- **Case**: match the letter case of the English original wherever the language has case (`de es fr it pt ru`; `ar hi ja ko zh-rCN zh-rTW` have none, so skip them):
+  - English in Title Case ("Output Folder", "Remove Location") → capitalize each major word of the translation the same way, leaving articles, prepositions and conjunctions lowercase as English does.
+  - English in sentence case ("Remove location data") → capitalize only the first word.
+  - English starting lowercase (a fragment joined into another string) → start lowercase too.
+  - English in ALL CAPS → ALL CAPS.
+  The language's own rules still win where they conflict: German nouns are always capitalized, and proper nouns, brand names and acronyms keep their usual case. Apply this to existing translations whose case does not match too, not only to new ones.
 - **Hardcoded text**: move it into `values/strings.xml` under a name that follows the file's prefixes (`settings_`, `clean_`, `convert_`, `scan_`, …), reference it, then translate it everywhere as above.
 - **Placeholders**: every `%1$s`, `%2$d`, … in the English must appear in the translation; reorder them for the language's grammar but never drop or renumber them.
 - **Plurals**: give each locale exactly the quantities its language needs (`ar`: zero one two few many other; `ru`: one few many other; `es fr it pt`: one many other; `ja ko zh-rCN zh-rTW`: other; the rest: one other). This matches `StringTranslationsTest.quantitiesFor`.
@@ -39,6 +46,7 @@ End with:
 
 - a table with one row per locale: problems found, fixed, and same-as-English values reviewed,
 - the strings added since the last tag, and whether each is now present in all 12 locales,
+- the strings whose case you changed, per locale, with the English for comparison,
 - every string you translated, grouped by name, with the English and a short back-translation for anything you were unsure of,
 - anything that needs a native speaker or a human decision.
 

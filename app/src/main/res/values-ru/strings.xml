@@ -195,9 +195,9 @@
     <string name="settings_video_fallback_subtitle">Если видео уже в совместимом формате, Redact удаляет его метаданные быстрым проходом вместо полного перекодирования. Это быстрее и бережнее к батарее, хотя полное перекодирование удаляет чуть больше. Автоматически отключается при включённой Строгой Очистке или при очистке файлов, отправленных из других приложений.</string>
 
     <string-array name="settings_secure_delete_labels">
-        <item>1 проход (быстро)</item>
-        <item>3 прохода (безопасно)</item>
-        <item>7 проходов (ультрабезопасно)</item>
+        <item>1 Проход (Быстро)</item>
+        <item>3 Прохода (Безопасно)</item>
+        <item>7 Проходов (Ультрабезопасно)</item>
     </string-array>
 
     <string-array name="settings_max_bitmap_size_labels">
@@ -241,7 +241,7 @@
     <string name="settings_section_permissions">Разрешения</string>
     <string name="settings_permissions_subtitle">На Android 13+ Redact использует системный выбор файлов: «Загрузки», «Файлы» или папки галереи без широкого доступа к медиатеке. Полный доступ к фото/видео необязателен. Уведомления необязательны.</string>
     <string name="settings_permissions_media">Фото и Видео</string>
-    <string name="settings_permissions_notifications">Уведомления (необязательно)</string>
+    <string name="settings_permissions_notifications">Уведомления (Необязательно)</string>
     <string name="settings_permission_granted">Предоставлено</string>
     <string name="settings_permission_denied">Отклонено</string>
     <string name="settings_permission_not_required">Не Требуется</string>
@@ -336,13 +336,13 @@
     <string name="processing_warning_large_video">Выбраны большие видео. Обработке нужно дополнительное временное пространство и может потребоваться время.</string>
     <string name="processing_warning_continue">Всё Равно Продолжить</string>
     <string name="clean_item_failed">Ошибка: %1$s</string>
-    <string name="settings_preserve_location_confirm_title">Сохранение GPS на очищенных фото</string>
+    <string name="settings_preserve_location_confirm_title">Сохранение GPS на Очищенных Фото</string>
     <string name="settings_preserve_location_confirm_message">Очищенные файлы могут содержать GPS-координаты. При отправке из других приложений местоположение всегда удаляется.
 
 Включайте только если намеренно хотите сохранить местоположение.</string>
     <string name="settings_permission_needs_media">Требуются Фото</string>
     <string name="settings_location_permission_grant">Предоставить Геоданные Фото</string>
-    <string name="settings_location_needs_media_title">Нужен доступ к фото и видео</string>
+    <string name="settings_location_needs_media_title">Нужен Доступ к Фото и Видео</string>
     <string name="settings_location_needs_media_message">Местоположение фото позволяет Redact читать GPS-координаты, встроенные в ваши медиафайлы. Сначала требуется доступ к библиотеке фото и видео. Выбор отдельных файлов недостаточен.\n\nНа следующем экране нажмите «Разрешить доступ ко всем фото и видео». Обычно устройство одновременно предоставляет местоположение фото.</string>
     <string name="settings_location_grant_media_first">Продолжить</string>
     <string name="settings_location_permission_granted">Разрешение на геоданные фото предоставлено.</string>
@@ -425,7 +425,7 @@
     </plurals>
     <string name="clean_summary_nothing_found">Идентифицирующие метаданные не найдены.</string>
 
-    <string name="scan_search_hint">Поиск полей</string>
+    <string name="scan_search_hint">Поиск</string>
     <string name="scan_search_no_matches">Нет подходящих полей.</string>
     <string name="scan_section_details">Подробности</string>
     <string name="scan_default_file_name">Медиафайл</string>
@@ -484,7 +484,7 @@
     <string name="settings_output_also_confirm">Для Обоих</string>
     <string name="settings_output_also_decline">Нет, Спасибо</string>
     <string name="settings_reset_all">Сбросить Все Настройки</string>
-    <string name="settings_reset_all_title">Сброс всех настроек</string>
+    <string name="settings_reset_all_title">Сброс Всех Настроек</string>
     <string name="settings_reset_all_message">Все настройки вернутся к значениям по умолчанию, а Redact забудет выбранные папки для сохранения. Ваши фото, видео и очищенные файлы не изменятся.</string>
     <string name="settings_reset_all_confirm">Сбросить</string>
     <string name="settings_reset_all_done">Настройки сброшены.</string>
@@ -506,8 +506,8 @@
     <string name="censor_undo">Отменить</string>
     <string name="censor_redo">Повторить</string>
     <string name="censor_delete_rectangle">Удалить Прямоугольник</string>
-    <string name="censor_full_screen">Во весь экран</string>
-    <string name="censor_exit_full_screen">Выйти из полноэкранного режима</string>
+    <string name="censor_full_screen">Во Весь Экран</string>
+    <string name="censor_exit_full_screen">Выйти из Полноэкранного Режима</string>
     <string name="censor_zoom_level">%1$s×</string>
     <string name="censor_zoom_reset">Увеличено в %1$s раза. Нажмите, чтобы показать всё фото.</string>
     <string name="censor_save">Сохранить Копию</string>
@@ -559,11 +559,11 @@
     <string name="stats_section_activity">Последние 30 Дней</string>
     <string name="stats_chart_empty">За последние 30 дней ничего не очищено.</string>
     <string name="stats_chart_today">Сегодня</string>
-    <string name="stats_keep">Вести статистику</string>
+    <string name="stats_keep">Вести Статистику</string>
     <string name="stats_keep_subtitle">Считает, что удаляет Redact, только на этом устройстве, включая число файлов, очищенных за каждый день. Если выключить, счётчики сбросятся и подсчёт прекратится.</string>
     <string name="stats_clear">Очистить Статистику</string>
     <string name="stats_clear_subtitle">Сбрасывает все счётчики до нуля. Ваши настройки и файлы не меняются.</string>
-    <string name="stats_clear_title">Очистка статистики</string>
+    <string name="stats_clear_title">Очистка Статистики</string>
     <string name="stats_clear_message">Все счётчики обнулятся и начнут отсчёт заново. Ваши настройки, фото, видео и очищенные файлы не затрагиваются.</string>
     <string name="stats_clear_confirm">Очистить</string>
     <string name="stats_cleared">Статистика очищена.</string>
@@ -588,7 +588,7 @@
     <string name="onboarding_start">Начать Работу с Redact</string>
     <string name="onboarding_done">Готово</string>
     <string name="onboarding_progress">Шаг %1$d из %2$d</string>
-    <string name="onboarding_welcome_title">Добро пожаловать в Redact!</string>
+    <string name="onboarding_welcome_title">Добро Пожаловать в Redact!</string>
     <string name="onboarding_welcome_body">Redact помогает делиться фото и видео, не раскрывая личные данные. Это короткое знакомство займёт около минуты.</string>
     <string name="onboarding_welcome_clean">Очистка удаляет скрытые сведения из ваших фото и видео.</string>
     <string name="onboarding_welcome_scan">Сканирование точно показывает, что раскрывает файл, прежде чем вы им поделитесь.</string>

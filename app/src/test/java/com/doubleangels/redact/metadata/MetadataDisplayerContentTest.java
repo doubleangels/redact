@@ -453,6 +453,49 @@ public class MetadataDisplayerContentTest {
         assertNotNull(s.get(MetadataDisplayer.SECTION_BASIC_INFO));
     }
 
+    /** A JPEG whose EXIF holds values a camera would not write, to reach the parsing fallbacks. */
+    private File jpegWithOddExif() throws IOException {
+        File f = jpeg(false, 0);
+        ExifInterface exif = new ExifInterface(f.getAbsolutePath());
+        exif.setAttribute(ExifInterface.TAG_EXPOSURE_TIME, "2");
+        exif.setAttribute(ExifInterface.TAG_ORIENTATION, "sideways");
+        exif.setAttribute(ExifInterface.TAG_FLASH, "maybe");
+        exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, "33/1,52/1,0/1");
+        exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, "S");
+        exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, "151/1,12/1,0/1");
+        exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, "E");
+        exif.saveAttributes();
+        return f;
+    }
+
+    @Test
+    public void oddExifValues_stillProduceTheReport_withSouthAndEastAsSigns() throws Exception {
+        grantLocation(true);
+        Uri uri = imageUri(jpegWithOddExif());
+
+        String report = text(uri);
+        assertFalse(report, report.startsWith("FAILED"));
+
+        Map<String, String> s = sections(uri);
+        String location = s.get(MetadataDisplayer.SECTION_LOCATION);
+        assertNotNull(location);
+        assertTrue(location, location.contains("-33.8"));
+        assertTrue(location, location.contains("151.2"));
+        assertFalse(location, location.contains("-151.2"));
+    }
+
+    @Test
+    public void oddExifValues_withoutLocationAccess_showNoCoordinates() throws Exception {
+        grantLocation(false);
+        Uri uri = imageUri(jpegWithOddExif());
+
+        String report = text(uri);
+        assertFalse(report, report.contains("33.8"));
+        Map<String, String> s = sections(uri);
+        String all = String.valueOf(s);
+        assertFalse(all, all.contains("33.8"));
+    }
+
     @Test
     public void cancelActiveScan_isSafeWhenIdle() {
         MetadataDisplayer.cancelActiveScan();

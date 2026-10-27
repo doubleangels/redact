@@ -413,7 +413,7 @@ Ative apenas se quiser manter a localização de propósito.</string>
     </plurals>
     <string name="clean_summary_nothing_found">Nenhum metadado de identificação foi encontrado.</string>
 
-    <string name="scan_search_hint">Pesquisar campos</string>
+    <string name="scan_search_hint">Pesquisar</string>
     <string name="scan_search_no_matches">Nenhum campo correspondente.</string>
     <string name="scan_section_details">Detalhes</string>
     <string name="scan_default_file_name">Arquivo de mídia</string>
@@ -470,7 +470,7 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="settings_output_also_confirm">Usar para Ambos</string>
     <string name="settings_output_also_decline">Não, Obrigado</string>
     <string name="settings_reset_all">Redefinir Todas as Configurações</string>
-    <string name="settings_reset_all_title">Redefinir todas as configurações</string>
+    <string name="settings_reset_all_title">Redefinir Todas as Configurações</string>
     <string name="settings_reset_all_message">Todas as configurações voltam ao padrão e o Redact esquece as pastas de saída escolhidas. Suas fotos, vídeos e arquivos limpos não são alterados.</string>
     <string name="settings_reset_all_confirm">Redefinir</string>
     <string name="settings_reset_all_done">Configurações redefinidas para o padrão.</string>
@@ -545,11 +545,11 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="stats_section_activity">Últimos 30 Dias</string>
     <string name="stats_chart_empty">Nada foi limpo nos últimos 30 dias.</string>
     <string name="stats_chart_today">Hoje</string>
-    <string name="stats_keep">Manter estatísticas</string>
+    <string name="stats_keep">Manter Estatísticas</string>
     <string name="stats_keep_subtitle">Conta o que o Redact remove, apenas neste dispositivo, incluindo quantos arquivos você limpa por dia. Desativar apaga as contagens e interrompe a contagem.</string>
     <string name="stats_clear">Limpar Estatísticas</string>
     <string name="stats_clear_subtitle">Zera todas as contagens. Suas configurações e arquivos continuam como estão.</string>
-    <string name="stats_clear_title">Limpar estatísticas</string>
+    <string name="stats_clear_title">Limpar Estatísticas</string>
     <string name="stats_clear_message">Todas as contagens voltam a zero e recomeçam a partir de agora. Suas configurações, fotos, vídeos e arquivos limpos não são alterados.</string>
     <string name="stats_clear_confirm">Limpar</string>
     <string name="stats_cleared">Estatísticas limpas.</string>
@@ -573,7 +573,7 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="onboarding_start">Começar a Usar o Redact</string>
     <string name="onboarding_done">Concluído</string>
     <string name="onboarding_progress">Etapa %1$d de %2$d</string>
-    <string name="onboarding_welcome_title">Boas-vindas ao Redact!</string>
+    <string name="onboarding_welcome_title">Boas-Vindas ao Redact!</string>
     <string name="onboarding_welcome_body">O Redact ajuda você a compartilhar fotos e vídeos sem compartilhar seus dados pessoais. Este tour rápido leva cerca de um minuto.</string>
     <string name="onboarding_welcome_clean">Limpar remove os detalhes ocultos das suas fotos e vídeos.</string>
     <string name="onboarding_welcome_scan">Escanear mostra exatamente o que um arquivo revela antes de você compartilhá-lo.</string>

@@ -33,4 +33,15 @@
             <extra android:name="tab" android:value="convert" />
         </intent>
     </shortcut>
+    <shortcut
+        android:shortcutId="censor"
+        android:icon="@drawable/ic_shortcut_censor"
+        android:shortcutShortLabel="@string/navigation_censor">
+        <intent
+            android:action="android.intent.action.MAIN"
+            android:targetPackage="com.doubleangels.redact"
+            android:targetClass="com.doubleangels.redact.MainActivity">
+            <extra android:name="tab" android:value="censor" />
+        </intent>
+    </shortcut>
 </shortcuts>

@@ -11,6 +11,7 @@ import android.app.Application;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.os.Looper;
 
 import com.doubleangels.redact.AppPreferences;
@@ -122,6 +123,25 @@ public class SensitiveClipboardTest {
 
         passTime(600);
 
+        assertEquals("secret", clipText());
+    }
+
+    @Test
+    public void copy_takesTheClipboardFromTheApplication_soTheTimerNeverHoldsAnActivity() {
+        // Stands in for an Activity: its own clipboard manager would keep it alive until the timer fires.
+        Context screen = new ContextWrapper(app) {
+            @Override
+            public Object getSystemService(String name) {
+                throw new AssertionError("the clipboard must come from the application context");
+            }
+
+            @Override
+            public Context getApplicationContext() {
+                return app;
+            }
+        };
+
+        assertTrue(SensitiveClipboard.copy(screen, "label", "secret"));
         assertEquals("secret", clipText());
     }
 

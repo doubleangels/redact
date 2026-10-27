@@ -35,7 +35,7 @@
     <string name="navigation_censor">Censurer</string>
 
     
-    <string name="convert_output_format_images">Format D\'Image</string>
+    <string name="convert_output_format_images">Format d\'Image</string>
     <string name="convert_output_format_videos">Codec Vidéo</string>
     <string name="convert_output_format_mixed">Formats (Image / Vidéo)</string>
     <string name="convert_format_mixed_pair">%1$s · %2$s</string>
@@ -220,7 +220,7 @@
     <string name="settings_conversion_subtitle">Formats présélectionnés lors du choix des fichiers dans Convertir. Modifiables pour chaque lot.</string>
     <string name="settings_default_image_format">Format d\'Image par Défaut</string>
     <string name="settings_default_video_format">Codec Vidéo par Défaut</string>
-    <string name="settings_image_quality">Qualité D\'Image</string>
+    <string name="settings_image_quality">Qualité d\'Image</string>
     <string name="settings_quality_high">Élevée</string>
     <string name="settings_quality_balanced">Équilibrée</string>
     <string name="settings_quality_smaller">Fichier Plus Petit</string>
@@ -413,7 +413,7 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     </plurals>
     <string name="clean_summary_nothing_found">Aucune métadonnée identifiante n’a été trouvée.</string>
 
-    <string name="scan_search_hint">Rechercher des champs</string>
+    <string name="scan_search_hint">Rechercher</string>
     <string name="scan_search_no_matches">Aucun champ correspondant.</string>
     <string name="scan_section_details">Détails</string>
     <string name="scan_default_file_name">Fichier multimédia</string>
@@ -470,7 +470,7 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="settings_output_also_confirm">Utiliser pour les Deux</string>
     <string name="settings_output_also_decline">Non Merci</string>
     <string name="settings_reset_all">Réinitialiser Tous les Paramètres</string>
-    <string name="settings_reset_all_title">Réinitialiser tous les paramètres</string>
+    <string name="settings_reset_all_title">Réinitialiser Tous les Paramètres</string>
     <string name="settings_reset_all_message">Tous les paramètres reprennent leur valeur par défaut et Redact oublie les dossiers d\'enregistrement choisis. Vos photos, vidéos et fichiers nettoyés ne sont pas touchés.</string>
     <string name="settings_reset_all_confirm">Réinitialiser</string>
     <string name="settings_reset_all_done">Paramètres réinitialisés.</string>
@@ -545,11 +545,11 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="stats_section_activity">30 Derniers Jours</string>
     <string name="stats_chart_empty">Rien n’a été nettoyé au cours des 30 derniers jours.</string>
     <string name="stats_chart_today">Aujourd’hui</string>
-    <string name="stats_keep">Conserver les statistiques</string>
+    <string name="stats_keep">Conserver les Statistiques</string>
     <string name="stats_keep_subtitle">Compte ce que Redact supprime, uniquement sur cet appareil, y compris le nombre de fichiers nettoyés chaque jour. Le désactiver efface les compteurs et arrête le comptage.</string>
     <string name="stats_clear">Effacer les Statistiques</string>
     <string name="stats_clear_subtitle">Remet tous les compteurs à zéro. Vos paramètres et vos fichiers restent inchangés.</string>
-    <string name="stats_clear_title">Effacer les statistiques</string>
+    <string name="stats_clear_title">Effacer les Statistiques</string>
     <string name="stats_clear_message">Tous les compteurs reviennent à zéro et repartent de maintenant. Vos paramètres, photos, vidéos et fichiers nettoyés ne sont pas modifiés.</string>
     <string name="stats_clear_confirm">Effacer</string>
     <string name="stats_cleared">Statistiques effacées.</string>

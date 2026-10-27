@@ -1,0 +1,66 @@
+package com.doubleangels.redact;
+
+import android.annotation.SuppressLint;
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.os.Build;
+import android.service.quicksettings.Tile;
+import android.service.quicksettings.TileService;
+
+import androidx.annotation.NonNull;
+
+import com.doubleangels.redact.sentry.SentryManager;
+
+/** Quick Settings tile that opens Redact on one tab, like the launcher shortcuts. */
+public abstract class TabTileService extends TileService {
+
+    /** The {@link MainActivity#EXTRA_TAB} value this tile opens. */
+    @NonNull
+    protected abstract String tab();
+
+    @Override
+    public void onStartListening() {
+        super.onStartListening();
+        Tile tile = getQsTile();
+        if (tile != null) {
+            // A shortcut, not a toggle: it never shows as on.
+            tile.setState(Tile.STATE_INACTIVE);
+            tile.updateTile();
+        }
+    }
+
+    @Override
+    public void onClick() {
+        super.onClick();
+        if (isLocked()) {
+            unlockAndRun(this::openTab);
+        } else {
+            openTab();
+        }
+    }
+
+    @SuppressLint("StartActivityAndCollapseDeprecated")
+    private void openTab() {
+        SentryManager.logEvent("navigation", "A Quick Settings tile opened a tab.");
+        Intent intent = tabIntent();
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startActivityAndCollapse(PendingIntent.getActivity(this, 0, intent,
+                        PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
+            } else {
+                startActivityAndCollapse(intent);
+            }
+        } catch (RuntimeException e) {
+            SentryManager.setCustomKey("tile_tab", tab());
+            SentryManager.recordException(e);
+        }
+    }
+
+    @NonNull
+    private Intent tabIntent() {
+        return new Intent(this, MainActivity.class)
+                .setAction(Intent.ACTION_MAIN)
+                .putExtra(MainActivity.EXTRA_TAB, tab())
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+    }
+}

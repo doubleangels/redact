@@ -28,11 +28,12 @@ ICON_SVG = ROOT / "app" / "src" / "main" / "ic_launcher-playstore.svg"
 ALL_LOCALES = ["en-US", "ar", "de-DE", "es-ES", "fr-FR", "hi-IN", "it-IT", "ja-JP", "ko-KR",
                "pt-BR", "ru-RU", "zh-CN", "zh-TW"]
 
-# Store order: (raw screenshot, dark background)
-SHOTS = [("scan", False), ("clean-done", False), ("clean", False), ("convert", False),
-         ("scan-dark", True), ("clean-dark", True)]
+# Store order, alternating light and dark: (raw screenshot, dark background, index into CAPTIONS)
+SHOTS = [("scan", False, 0), ("clean-dark", True, 1), ("clean", False, 2),
+         ("convert-dark", True, 3), ("clean-done", False, 5), ("scan-dark", True, 4)]
 
-# Per locale: six (headline, subline) pairs in SHOTS order, then the feature graphic's pair. Headlines
+# Per locale: six (headline, subline) pairs, one per screen (Scan, Clean result, Clean selection,
+# Convert, Scan, Clean result; SHOTS picks the order), then the feature graphic's pair. Headlines
 # and sublines are both written as sentences, ending with the language's full stop.
 CAPTIONS = {
     "en-US": [
@@ -260,10 +261,11 @@ def main():
                 sys.exit(f"No captions for {loc}")
             captions = CAPTIONS[loc]
             raw = RAW / loc
-            have_shots = all((raw / f"{name}.png").exists() for name, _ in SHOTS)
+            have_shots = all((raw / f"{name}.png").exists() for name, _, _ in SHOTS)
             dest = OUT / loc
             if have_shots:
-                for i, ((name, dark), (headline, sub)) in enumerate(zip(SHOTS, captions), start=1):
+                for i, (name, dark, caption) in enumerate(SHOTS, start=1):
+                    headline, sub = captions[caption]
                     render(browser, screenshot_page(loc, raw / f"{name}.png", dark, headline, sub),
                            dest / "phone" / f"{i}.png", 1440, 2560, work)
             scan = raw / "scan.png" if (raw / "scan.png").exists() else RAW / "en-US" / "scan.png"

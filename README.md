@@ -78,11 +78,12 @@ Most apps and websites do not show you this, but anyone who receives the origina
 |---|---|
 | **Clean** | Removes GPS coordinates, device details, timestamps and other hidden EXIF and container metadata from images and videos, along with IPTC, comments, extra preview images and Motion Photo clips hidden inside photos. Strict Clean re-encodes video for the most thorough removal; Faster Video Cleaning is available on compatible files. When a clean finishes, Redact tells you what it removed and a **Share** button sends the clean copies on. |
 | **Scan** | Shows a file's metadata in an organized, readable list *before* you decide what to do. Rows that reveal where a file was taken carry a **Location** badge. Search the list, copy values, send the file to Clean or Convert, or open the location in your maps app. |
+| **Censor** | Pixelate, black out or blur faces, number plates, addresses and anything else in a photo with a rectangle or brush, with undo, redo and pinch-zoom. The censored copy is saved without metadata, and the original stays as it is. |
 | **Statistics** | **Your Privacy Stats** at the top of Settings, and the **Statistics** screen it opens, show how many metadata fields and locations Redact has removed, which kinds of personal details your files carried, and your activity over the last 30 days. Counted only on your device and never sent anywhere. |
 | **Convert** | Converts images between JPEG, PNG, WebP and HEIC (on supported devices) and video between H.264, H.265, VP9 and AV1. Converted files are stripped of metadata and checked afterward, so they do not carry the original's location or device details. |
 | **Share into Redact** | Share a photo or video from any other app. Redact cleans it and reopens the share sheet with the clean copy, with an optional confirmation step and a progress dialog you can cancel. |
 | **Open with Redact** | Open a photo or video in Redact from your gallery or file manager, or share it to **Scan with Redact**, and it goes straight to Scan. |
-| **Shortcuts** | Long-press the app icon to jump straight to Clean, Scan or Convert, or add the **Clean** tile to Quick Settings. |
+| **Shortcuts** | Long-press the app icon to jump straight to Clean, Scan, Convert or Censor, or add the **Clean**, **Scan** or **Censor** tiles to Quick Settings. |
 | **Batches** | Clean or convert up to 20 files at once. If some files fail, Redact keeps going and reports what succeeded. |
 | **Large files** | There is no hard size cap. Redact warns you first when storage or memory looks too low for the job. |
 | **Delete originals (optional)** | Turn on **Delete Originals After Cleaning** and Redact asks Android to move the originals to trash after a successful clean. Android shows its own confirmation, so nothing is removed without your say-so. |
@@ -141,11 +142,26 @@ Pick **one** file to see everything embedded in it, grouped into sections such a
 
 - **Open with Redact:** when you open a photo or video from your gallery or file manager and choose Redact, it opens in Scan so you can check it before doing anything else.
 - **Scan with Redact:** the share sheet also lists **Scan with Redact** next to Redact. It opens the shared photo or video in Scan instead of cleaning it.
-- **App shortcuts:** long-press the Redact icon on your home screen to go straight to Clean, Scan or Convert.
+- **Convert with Redact / Censor with Redact:** the share sheet also lists these. Shared files open in Convert, or a shared photo opens in Censor.
+- **App shortcuts:** long-press the Redact icon on your home screen to go straight to Clean, Scan, Convert or Censor.
+- **Quick Settings tiles:** add the **Clean**, **Scan** or **Censor** tile to open that tab from anywhere.
 
 ### Convert
 
 Choose a target format (images: JPEG, PNG, WebP, HEIC where supported; video: H.264, H.265, VP9, AV1) and Redact writes the converted copy with metadata stripped and verified. The format you pick is kept when you change the selection.
+
+### Censor
+
+Pick one photo and cover anything that should stay private.
+
+- **Rectangle:** drag to cover an area. Tap a rectangle to move or resize it, or delete it.
+- **Brush:** paint over irregular shapes, with an adjustable brush size.
+- **Move:** pinch to zoom and drag to pan. **Full Screen** gives the photo the whole screen.
+- **Effect:** Pixelate, Black or Blur. Your tool, effect and brush size are remembered.
+- **Undo / Redo**, and a prompt before discarding unsaved changes.
+- **Save Copy** writes a censored copy with no metadata to your output folder, and a **Share** button sends it on. With **Delete Originals After Cleaning** on, Redact also asks Android to move the original to trash.
+
+You can also reach Censor from Scan (**Censor This Photo**), from the icon that appears after cleaning a single photo, or by sharing a photo to **Censor with Redact**.
 
 ### Share into Redact
 

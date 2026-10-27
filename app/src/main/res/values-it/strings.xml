@@ -230,7 +230,7 @@
     <string name="settings_section_share">Condivisione in Redact</string>
     <string name="settings_share_confirm_label">Conferma Prima di Rimuovere i Metadati</string>
     <string name="settings_share_confirm_subtitle">Mostra un prompt prima di rimuovere EXIF e altri metadati dai file condivisi.</string>
-    <string name="settings_share_confirm_dialog_title">Rimuovi I Metadati</string>
+    <string name="settings_share_confirm_dialog_title">Rimuovi i Metadati</string>
     <string name="settings_share_confirm_dialog_message">Redact rimuoverà EXIF e altri metadati dai file condivisi prima di inoltrarli.</string>
     <string name="settings_share_confirm_dialog_confirm">Rimuovi e Continua</string>
     <string name="settings_share_confirm_dialog_cancel">Annulla</string>
@@ -246,7 +246,7 @@
     <string name="settings_storage_size">Cache in uso: %1$s</string>
     <string name="settings_storage_subtitle">Copie di lavoro create durante l\'elaborazione. Gli originali della galleria non vengono mai modificati.</string>
     <string name="settings_storage_clear">Cancella File Temporanei</string>
-    <string name="settings_storage_clear_confirm_title">Cancella I File Temporanei</string>
+    <string name="settings_storage_clear_confirm_title">Cancella i File Temporanei</string>
     <string name="settings_storage_clear_confirm_message">Rimuove le copie in cache dell\'elaborazione recente. I file della galleria non sono interessati.</string>
     <string name="settings_storage_clear_success">File temporanei cancellati.</string>
     <string name="settings_storage_clear_empty">Nessun file temporaneo da cancellare.</string>
@@ -329,7 +329,7 @@ Le tue foto e video non vengono mai caricati. URI, nomi file e coordinate GPS ve
     <string name="processing_warning_large_video">Video di grandi dimensioni selezionati. L\'elaborazione richiede spazio temporaneo extra e può richiedere tempo.</string>
     <string name="processing_warning_continue">Continua Comunque</string>
     <string name="clean_item_failed">Non riuscito: %1$s</string>
-    <string name="settings_preserve_location_confirm_title">Mantieni Il GPS sulle Foto Pulite</string>
+    <string name="settings_preserve_location_confirm_title">Mantieni il GPS sulle Foto Pulite</string>
     <string name="settings_preserve_location_confirm_message">I file puliti in Pulisci possono ancora contenere coordinate GPS. La condivisione da altre app rimuove sempre la posizione.
 
 Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
@@ -413,7 +413,7 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     </plurals>
     <string name="clean_summary_nothing_found">Nessun metadato identificativo trovato.</string>
 
-    <string name="scan_search_hint">Cerca campi</string>
+    <string name="scan_search_hint">Cerca</string>
     <string name="scan_search_no_matches">Nessun campo corrispondente.</string>
     <string name="scan_section_details">Dettagli</string>
     <string name="scan_default_file_name">File multimediale</string>
@@ -470,7 +470,7 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="settings_output_also_confirm">Usa per Entrambi</string>
     <string name="settings_output_also_decline">No, Grazie</string>
     <string name="settings_reset_all">Ripristina Tutte le Impostazioni</string>
-    <string name="settings_reset_all_title">Ripristina tutte le impostazioni</string>
+    <string name="settings_reset_all_title">Ripristina Tutte le Impostazioni</string>
     <string name="settings_reset_all_message">Ogni impostazione torna al valore predefinito e Redact dimentica le cartelle di output scelte. Foto, video e file puliti non vengono toccati.</string>
     <string name="settings_reset_all_confirm">Ripristina</string>
     <string name="settings_reset_all_done">Impostazioni ripristinate ai valori predefiniti.</string>
@@ -545,11 +545,11 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="stats_section_activity">Ultimi 30 Giorni</string>
     <string name="stats_chart_empty">Nulla è stato pulito negli ultimi 30 giorni.</string>
     <string name="stats_chart_today">Oggi</string>
-    <string name="stats_keep">Conserva statistiche</string>
+    <string name="stats_keep">Conserva Statistiche</string>
     <string name="stats_keep_subtitle">Conta ciò che Redact rimuove, solo su questo dispositivo, incluso quanti file pulisci ogni giorno. Disattivandolo i conteggi vengono cancellati e il conteggio si interrompe.</string>
     <string name="stats_clear">Cancella Statistiche</string>
     <string name="stats_clear_subtitle">Azzera tutti i conteggi. Le tue impostazioni e i tuoi file restano invariati.</string>
-    <string name="stats_clear_title">Cancella statistiche</string>
+    <string name="stats_clear_title">Cancella Statistiche</string>
     <string name="stats_clear_message">Tutti i conteggi tornano a zero e ripartono da adesso. Impostazioni, foto, video e file puliti non vengono toccati.</string>
     <string name="stats_clear_confirm">Cancella</string>
     <string name="stats_cleared">Statistiche cancellate.</string>
@@ -573,7 +573,7 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="onboarding_start">Inizia a Usare Redact</string>
     <string name="onboarding_done">Fine</string>
     <string name="onboarding_progress">Passaggio %1$d di %2$d</string>
-    <string name="onboarding_welcome_title">Ti diamo il benvenuto in Redact!</string>
+    <string name="onboarding_welcome_title">Ti Diamo il Benvenuto in Redact!</string>
     <string name="onboarding_welcome_body">Redact ti aiuta a condividere foto e video senza condividere i tuoi dati privati. Questo breve tour dura circa un minuto.</string>
     <string name="onboarding_welcome_clean">Pulisci rimuove i dettagli nascosti da foto e video.</string>
     <string name="onboarding_welcome_scan">Scansiona ti mostra esattamente cosa rivela un file prima che tu lo condivida.</string>

@@ -56,4 +56,20 @@ public class CleanTileServiceTest {
         service.onClick();
         assertOpensClean();
     }
+
+    @Test
+    public void scanTile_opensTheScanTab() {
+        Robolectric.setupService(ScanTileService.class).onClick();
+        Intent started = shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity();
+        assertNotNull(started);
+        assertEquals(MainActivity.TAG_SCAN, started.getStringExtra(MainActivity.EXTRA_TAB));
+    }
+
+    @Test
+    public void censorTile_opensTheCensorTab() {
+        Robolectric.setupService(CensorTileService.class).onClick();
+        Intent started = shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity();
+        assertNotNull(started);
+        assertEquals(MainActivity.TAG_CENSOR, started.getStringExtra(MainActivity.EXTRA_TAB));
+    }
 }

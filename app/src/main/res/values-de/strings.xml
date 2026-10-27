@@ -232,7 +232,7 @@
     <string name="settings_section_permissions">Berechtigungen</string>
     <string name="settings_permissions_subtitle">Ab Android 13+ nutzt Redact die System-Dateiauswahl: Downloads, Dateien oder Galerieordner ohne breiten Medienzugriff. Vollständiger Foto-/Videozugriff ist optional. Benachrichtigungen sind optional.</string>
     <string name="settings_permissions_media">Fotos &amp; Videos</string>
-    <string name="settings_permissions_notifications">Benachrichtigungen (optional)</string>
+    <string name="settings_permissions_notifications">Benachrichtigungen (Optional)</string>
     <string name="settings_permission_granted">Erteilt</string>
     <string name="settings_permission_denied">Verweigert</string>
     <string name="settings_permission_not_required">Nicht Erforderlich</string>
@@ -252,7 +252,7 @@
     <string name="settings_about_privacy">Datenschutzrichtlinie</string>
     <string name="settings_about_report_issue">Problem Melden</string>
     <string name="settings_about_donate">Spenden</string>
-    <string name="settings_about_rate">Redact bei Google Play bewerten</string>
+    <string name="settings_about_rate">Redact bei Google Play Bewerten</string>
     <string name="settings_link_unavailable">Keine App zum Öffnen dieses Links gefunden.</string>
     <string name="settings_progress_notifications_label">Laufender Aufgabenfortschritt</string>
     <string name="settings_progress_notifications_subtitle">Dauerhafte Fortschrittsbenachrichtigung bei langen Aufträgen. Standard aus, bis Sie Benachrichtigungen erlauben aktivieren.</string>
@@ -321,13 +321,13 @@ Ihre Fotos und Videos werden nie hochgeladen. URIs, Dateinamen und GPS-Koordinat
     <string name="processing_warning_large_video">Große(s) Video(s) ausgewählt. Verarbeitung benötigt zusätzlichen temporären Speicher und kann länger dauern.</string>
     <string name="processing_warning_continue">Trotzdem Fortfahren</string>
     <string name="clean_item_failed">Fehlgeschlagen: %1$s</string>
-    <string name="settings_preserve_location_confirm_title">GPS in bereinigten Fotos behalten</string>
+    <string name="settings_preserve_location_confirm_title">GPS in Bereinigten Fotos Behalten</string>
     <string name="settings_preserve_location_confirm_message">Bereinigte Dateien auf Bereinigen können weiterhin GPS-Koordinaten enthalten. Teilen aus anderen Apps entfernt den Standort immer.
 
 Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_permission_needs_media">Fotos Erforderlich</string>
     <string name="settings_location_permission_grant">Foto-Standort Gewähren</string>
-    <string name="settings_location_needs_media_title">Zugriff auf Fotos &amp; Videos nötig</string>
+    <string name="settings_location_needs_media_title">Zugriff auf Fotos &amp; Videos Nötig</string>
     <string name="settings_location_needs_media_message">Foto-Standort ermöglicht Redact, in Ihren Medien eingebettete GPS-Koordinaten zu lesen. Zuerst ist Bibliothekszugriff auf Fotos und Videos erforderlich. Einzelne Dateien auswählen reicht nicht aus.\n\nTippen Sie auf dem nächsten Bildschirm auf Alle Fotos und Videos erlauben. Ihr Gerät gewährt Foto-Standort in der Regel gleichzeitig.</string>
     <string name="settings_location_grant_media_first">Weiter</string>
     <string name="settings_location_permission_granted">Foto-Standortberechtigung erteilt.</string>
@@ -400,7 +400,7 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     </plurals>
     <string name="clean_summary_nothing_found">Es wurden keine identifizierenden Metadaten gefunden.</string>
 
-    <string name="scan_search_hint">Felder durchsuchen</string>
+    <string name="scan_search_hint">Suchen</string>
     <string name="scan_search_no_matches">Keine passenden Felder.</string>
     <string name="scan_section_details">Details</string>
     <string name="scan_default_file_name">Mediendatei</string>
@@ -436,7 +436,7 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_cleaning_workflow_subtitle">Was Redact vor dem Bereinigen prüft und was danach mit deinen Originalen passiert.</string>
     <string name="settings_section_privacy">Datenschutz</string>
     <string name="settings_privacy_subtitle">Hält, was du in Redact siehst und kopierst, aus Screenshots, der App-Übersicht und der Zwischenablage heraus.</string>
-    <string name="settings_output_folder_reset">Auf Standard zurücksetzen</string>
+    <string name="settings_output_folder_reset">Auf Standard Zurücksetzen</string>
     <string name="settings_output_folders">Ausgabeordner</string>
     <string name="settings_output_folders_subtitle">Lege fest, wo bereinigte und konvertierte Dateien gespeichert werden. Öffne den Dateibrowser, wähle einen Ordner aus oder erstelle einen und tippe dann auf „Diesen Ordner verwenden“.</string>
     <string name="settings_output_images">Bilder</string>
@@ -455,7 +455,7 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_output_also_confirm">Für Beides Verwenden</string>
     <string name="settings_output_also_decline">Nein, Danke</string>
     <string name="settings_reset_all">Alle Einstellungen Zurücksetzen</string>
-    <string name="settings_reset_all_title">Alle Einstellungen zurücksetzen</string>
+    <string name="settings_reset_all_title">Alle Einstellungen Zurücksetzen</string>
     <string name="settings_reset_all_message">Alle Einstellungen werden auf ihre Standardwerte gesetzt und Redact vergisst deine gewählten Ausgabeordner. Deine Fotos, Videos und bereinigten Dateien bleiben unverändert.</string>
     <string name="settings_reset_all_confirm">Zurücksetzen</string>
     <string name="settings_reset_all_done">Einstellungen auf Standard zurückgesetzt.</string>
@@ -495,7 +495,7 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="button_scan_result">Ergebnis Scannen</string>
     <string name="settings_keep_original_names">Originale Dateinamen Behalten</string>
     <string name="settings_keep_original_names_subtitle">Bereinigte und konvertierte Dateien erhalten den Namen des Originals statt eines zufälligen Namens. Namen wie IMG_20260117 können verraten, wann ein Foto aufgenommen wurde.</string>
-    <string name="review_prompt_title">Redact bewerten</string>
+    <string name="review_prompt_title">Redact Bewerten</string>
     <string name="review_prompt_message">Wenn Redact dir hilft, deine Fotos privat zu halten, möchtest du es bei Google Play bewerten? Das dauert nur einen Moment und hilft anderen, die App zu finden.</string>
     <string name="review_prompt_yes">Ja</string>
     <string name="review_prompt_no">Nein</string>
@@ -530,11 +530,11 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="stats_section_activity">Letzte 30 Tage</string>
     <string name="stats_chart_empty">In den letzten 30 Tagen wurde nichts bereinigt.</string>
     <string name="stats_chart_today">Heute</string>
-    <string name="stats_keep">Statistik führen</string>
+    <string name="stats_keep">Statistik Führen</string>
     <string name="stats_keep_subtitle">Zählt, was Redact entfernt, nur auf diesem Gerät, auch wie viele Dateien du pro Tag bereinigst. Beim Ausschalten werden die Zahlen gelöscht und es wird nicht mehr gezählt.</string>
     <string name="stats_clear">Statistik Löschen</string>
     <string name="stats_clear_subtitle">Setzt alle Zähler auf null zurück. Deine Einstellungen und Dateien bleiben unverändert.</string>
-    <string name="stats_clear_title">Statistik löschen</string>
+    <string name="stats_clear_title">Statistik Löschen</string>
     <string name="stats_clear_message">Alle Zähler gehen auf null zurück und beginnen ab jetzt neu. Deine Einstellungen, Fotos, Videos und bereinigten Dateien bleiben unberührt.</string>
     <string name="stats_clear_confirm">Löschen</string>
     <string name="stats_cleared">Statistik gelöscht.</string>
