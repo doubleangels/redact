@@ -40,7 +40,10 @@ public final class SensitiveClipboard {
 
     /** @return true if the text was placed on the clipboard */
     public static boolean copy(@NonNull Context context, @NonNull String label, @NonNull String text) {
-        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+        // From the application context: the clear timer below holds this manager, and one taken
+        // from an Activity would keep that Activity alive until the timer fires.
+        Context appContext = context.getApplicationContext();
+        ClipboardManager clipboard = (ClipboardManager) appContext.getSystemService(Context.CLIPBOARD_SERVICE);
         if (clipboard == null) {
             return false;
         }
@@ -53,7 +56,7 @@ public final class SensitiveClipboard {
         }
         clip.getDescription().setExtras(extras);
         clipboard.setPrimaryClip(clip);
-        scheduleClear(context.getApplicationContext(), clipboard, token);
+        scheduleClear(appContext, clipboard, token);
         return true;
     }
 
