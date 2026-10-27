@@ -609,7 +609,7 @@
                 <li><span class="tick">✓</span><span>We don't collect or sell your personal information. There's no account to create, no sign-in, and no server of ours holding onto your data.</span></li>
                 <li><span class="tick">✓</span><span>Every photo and video you clean, scan, or convert stays right there on your phone, processed <strong>entirely on your device</strong>. Your photos and videos are never uploaded, anywhere.</span></li>
                 <li><span class="tick">✓</span><span>We never ask for access to your camera, microphone, contacts, or real-time location. Redact simply can't see, hear, or track you, that's built into how the app works, not just something we promise.</span></li>
-                <li><span class="tick">✓</span><span>Crash reporting (Sentry) is a helpful extra, not something forced on you, it's <strong>off by default</strong>. Even once you turn it on, we only ever get anonymous diagnostics, scrubbed on your phone before they're sent, never your media, file names, or anything that identifies you.</span></li>
+                <li><span class="tick">✓</span><span>Crash reporting (Sentry) exists only to catch bugs and make Redact better for everyone, and it's never forced on you, it's <strong>off by default</strong>. Even once you turn it on, we only ever get anonymous diagnostics, scrubbed on your phone before they're sent, never your media, file names, or anything that identifies you.</span></li>
                 <li><span class="tick">✓</span><span>No ads, no analytics, no Firebase, no Google Play Services. We don't sell or share anything with data brokers, because we simply don't have anything to sell.</span></li>
                 <li><span class="tick">✓</span><span>Don't just take our word for it, our full source code is public on <a href="https://github.com/doubleangels/redact" target="_blank" rel="noopener noreferrer">GitHub</a>, so anyone can check that everything here is true.</span></li>
             </ul>
@@ -647,6 +647,7 @@
             <div class="section-body">
                 <p>Redact is a free, open-source Android app that strips hidden metadata, things like GPS location, device details, timestamps, and camera settings, out of your photos and videos. You can also peek at what's hidden inside a file before you share it, and convert between formats, all without anything ever leaving your phone.</p>
                 <p>This page explains, in plain language, exactly what Redact does (and doesn't do) with your information. Here's the short version: we built this app because we don't want your data, so we made sure it never collects any. Everything below walks through why that's true, including every permission the app asks for, every piece of outside code it uses, and the rights you have under privacy law, wherever you happen to be.</p>
+                <p>Privacy isn't a feature we bolted on, it's the reason Redact exists. We believe what's on your phone is yours, and that an app has no business watching what you do with it. That's why Redact has no analytics, no ads, no tracking, and no account, and why its code is public for anyone to check. A privacy tool that tracked its own users would defeat its whole purpose, and we'd never build one.</p>
             </div>
         </details>
 
@@ -816,6 +817,7 @@
                 <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </summary>
             <div class="section-body">
+                <p>Sentry is in Redact for one reason only: to find bugs and errors so we can fix them and make the app better for everyone. It isn't used for analytics, marketing, or tracking, and it never will be. We don't use it to learn who you are, what you do in the app, or what's in your files, only where the app broke or ran slowly.</p>
                 <p>If you ever want to help us catch bugs, Redact has an optional crash-reporting feature powered by a service called <a href="https://sentry.io" target="_blank" rel="noopener noreferrer">Sentry</a>. It lives behind a single setting, <strong>Send Crash Reports</strong>, and it starts <strong>off</strong>. Until you switch it on yourself, nothing is sent anywhere, Sentry's SDK isn't even initialized.</p>
                 <p>If you do turn it on, here's everything we do to protect your privacy before anything leaves your phone.</p>
                 <ul>
