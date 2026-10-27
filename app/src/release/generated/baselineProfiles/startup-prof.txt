@@ -2160,7 +2160,6 @@ PLandroidx/emoji2/text/MetadataRepo$Node;-><init>()V
 PLandroidx/emoji2/text/MetadataRepo$Node;-><init>(I)V
 HPLandroidx/emoji2/text/MetadataRepo$Node;->get(I)Landroidx/emoji2/text/MetadataRepo$Node;
 PLandroidx/emoji2/text/MetadataRepo$Node;->getData()Landroidx/emoji2/text/TypefaceEmojiRasterizer;
-PLandroidx/emoji2/text/MetadataRepo$Node;->put(Landroidx/emoji2/text/TypefaceEmojiRasterizer;II)V
 PLandroidx/emoji2/text/SpannableBuilder;-><init>(Ljava/lang/Class;Ljava/lang/CharSequence;)V
 PLandroidx/emoji2/text/SpannableBuilder;->beginBatchEdit()V
 PLandroidx/emoji2/text/SpannableBuilder;->blockWatchers()V
