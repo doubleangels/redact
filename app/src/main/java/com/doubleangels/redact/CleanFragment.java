@@ -398,6 +398,7 @@ public class CleanFragment extends TabFragment {
         if (photo == null) {
             return;
         }
+        SentryManager.log("The user opened the cleaned photo in Censor.");
         new ViewModelProvider(requireActivity()).get(com.doubleangels.redact.ui.CensorViewModel.class)
                 .requestOpen(photo);
         if (requireActivity() instanceof MainActivity mainActivity) {

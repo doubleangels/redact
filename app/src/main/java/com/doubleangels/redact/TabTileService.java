@@ -9,6 +9,8 @@ import android.service.quicksettings.TileService;
 
 import androidx.annotation.NonNull;
 
+import com.doubleangels.redact.sentry.SentryManager;
+
 /** Quick Settings tile that opens Redact on one tab, like the launcher shortcuts. */
 public abstract class TabTileService extends TileService {
 
@@ -39,12 +41,18 @@ public abstract class TabTileService extends TileService {
 
     @SuppressLint("StartActivityAndCollapseDeprecated")
     private void openTab() {
+        SentryManager.logEvent("navigation", "A Quick Settings tile opened a tab.");
         Intent intent = tabIntent();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            startActivityAndCollapse(PendingIntent.getActivity(this, 0, intent,
-                    PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
-        } else {
-            startActivityAndCollapse(intent);
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startActivityAndCollapse(PendingIntent.getActivity(this, 0, intent,
+                        PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
+            } else {
+                startActivityAndCollapse(intent);
+            }
+        } catch (RuntimeException e) {
+            SentryManager.setCustomKey("tile_tab", tab());
+            SentryManager.recordException(e);
         }
     }
 
