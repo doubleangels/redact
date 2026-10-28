@@ -359,7 +359,7 @@ jobs:
           PREV_TAG=$(git tag -l 'v*' --sort=-v:refname | head -1)
 
           {
-            echo "## What's new"
+            echo "## What's New"
             echo ""
             cat whatsnew/whatsnew-en-US
             echo ""
