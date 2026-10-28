@@ -14,6 +14,7 @@ jobs:
   check-version:
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       code: ${{ steps.version.outputs.code }}
       name: ${{ steps.version.outputs.name }}
@@ -47,6 +48,7 @@ jobs:
   unit-tests:
     needs: ["check-version"]
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
@@ -57,11 +59,22 @@ jobs:
         uses: ./.github/actions/setup-android-build
 
       - name: Run unit tests
-        run: ./gradlew test --no-daemon
+        run: ./gradlew test
+
+      - name: Upload test report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: test-report-${{ github.job }}
+          path: |
+            **/build/reports/tests
+            **/build/test-results
+          retention-days: 7
 
   lint:
     needs: ["check-version"]
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
@@ -72,7 +85,17 @@ jobs:
         uses: ./.github/actions/setup-android-build
 
       - name: Run Android Lint
-        run: ./gradlew lintRelease --no-daemon
+        run: ./gradlew lintRelease
+
+      - name: Upload lint report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: lint-report-${{ github.job }}
+          path: |
+            **/build/reports/lint-results-*.html
+            **/build/reports/lint-results-*.txt
+          retention-days: 7
 
   release-notes:
     needs: ["check-version"]
@@ -193,6 +216,7 @@ jobs:
   bundle-release:
     needs: ["unit-tests", "lint", "check-version"]
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
@@ -206,7 +230,7 @@ jobs:
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        run: ./gradlew bundleRelease --no-daemon
+        run: ./gradlew bundleRelease
 
       - name: Sign bundle for Google Play release
         uses: r0adkll/sign-android-release@349ebdef58775b1e0d8099458af0816dc79b6407 # v1
@@ -253,6 +277,7 @@ jobs:
       name: Production
       url: https://play.google.com/store/apps/details?id=com.doubleangels.redact
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: write # Needed only to move the last-metadata-publish tag below.
     steps:
@@ -347,6 +372,7 @@ jobs:
   github-release:
     needs: ["check-version", "publish", "release-notes"]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: write
     steps:
@@ -408,6 +434,7 @@ jobs:
         "github-release",
       ]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: always()
     steps:
       - name: Delete workflow runs

@@ -1,9 +1,12 @@
 name: Setup Android build
-description: JDK 21, Android SDK licenses, API 37.0 platform, and Gradle wrapper permissions.
+description: Gradle wrapper check, JDK 21, Android SDK licenses, API 37.0 platform, and Gradle wrapper permissions.
 
 runs:
   using: composite
   steps:
+    - name: Validate Gradle wrapper
+      uses: gradle/actions/wrapper-validation@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+
     - name: Set up JDK 21
       uses: actions/setup-java@v6.1.0
       with:
