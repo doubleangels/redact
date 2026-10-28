@@ -45,57 +45,11 @@ jobs:
             echo "No last-published-version tag found yet, skipping comparison for this first tracked release."
           fi
 
-  unit-tests:
+  checks:
     needs: ["check-version"]
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Setup Android build
-        uses: ./.github/actions/setup-android-build
-
-      - name: Run unit tests
-        run: ./gradlew test
-
-      - name: Upload test report on failure
-        if: failure()
-        uses: actions/upload-artifact@v7.0.2
-        with:
-          name: test-report-${{ github.job }}
-          path: |
-            **/build/reports/tests
-            **/build/test-results
-          retention-days: 7
-
-  lint:
-    needs: ["check-version"]
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Setup Android build
-        uses: ./.github/actions/setup-android-build
-
-      - name: Run Android Lint
-        run: ./gradlew lintRelease
-
-      - name: Upload lint report on failure
-        if: failure()
-        uses: actions/upload-artifact@v7.0.2
-        with:
-          name: lint-report-${{ github.job }}
-          path: |
-            **/build/reports/lint-results-*.html
-            **/build/reports/lint-results-*.txt
-          retention-days: 7
+    uses: ./.github/workflows/test-dev.yml
+    with:
+      build: "false"
 
   release-notes:
     needs: ["check-version"]
@@ -214,7 +168,7 @@ jobs:
           if-no-files-found: error
 
   bundle-release:
-    needs: ["unit-tests", "lint", "check-version"]
+    needs: ["checks", "check-version"]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -427,8 +381,7 @@ jobs:
       [
         "check-version",
         "release-notes",
-        "unit-tests",
-        "lint",
+        "checks",
         "bundle-release",
         "publish",
         "github-release",

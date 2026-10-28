@@ -10,6 +10,13 @@ on:
       - synchronize
       - reopened
   workflow_dispatch:
+  # Called by deploy.yml so a release runs the same tests and lint.
+  workflow_call:
+    inputs:
+      build:
+        description: Also build the release bundle ("false" to skip, deploy builds its own).
+        type: string
+        default: "true"
 
 permissions:
   contents: read
@@ -77,8 +84,9 @@ jobs:
 
   build:
     if: |
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.ref != 'dev'
+      inputs.build != 'false' &&
+      (github.event_name != 'pull_request' ||
+      github.event.pull_request.head.ref != 'dev')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
