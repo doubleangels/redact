@@ -10,6 +10,13 @@ on:
       - synchronize
       - reopened
   workflow_dispatch:
+  # Called by deploy.yml so a release runs the same tests and lint.
+  workflow_call:
+    inputs:
+      build:
+        description: Also build the release bundle ("false" to skip, deploy builds its own).
+        type: string
+        default: "true"
 
 permissions:
   contents: read
@@ -24,6 +31,7 @@ jobs:
       github.event_name != 'pull_request' ||
       github.event.pull_request.head.ref != 'dev'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
@@ -34,13 +42,24 @@ jobs:
         uses: ./.github/actions/setup-android-build
 
       - name: Run unit tests
-        run: ./gradlew test --no-daemon
+        run: ./gradlew test
+
+      - name: Upload test report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: test-report-${{ github.job }}
+          path: |
+            **/build/reports/tests
+            **/build/test-results
+          retention-days: 7
 
   lint:
     if: |
       github.event_name != 'pull_request' ||
       github.event.pull_request.head.ref != 'dev'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
@@ -51,13 +70,25 @@ jobs:
         uses: ./.github/actions/setup-android-build
 
       - name: Run Android Lint
-        run: ./gradlew lintRelease --no-daemon
+        run: ./gradlew lintRelease
+
+      - name: Upload lint report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: lint-report-${{ github.job }}
+          path: |
+            **/build/reports/lint-results-*.html
+            **/build/reports/lint-results-*.txt
+          retention-days: 7
 
   build:
     if: |
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.ref != 'dev'
+      inputs.build != 'false' &&
+      (github.event_name != 'pull_request' ||
+      github.event.pull_request.head.ref != 'dev')
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
@@ -68,4 +99,4 @@ jobs:
         uses: ./.github/actions/setup-android-build
 
       - name: Build release bundle
-        run: ./gradlew bundleRelease --no-daemon
+        run: ./gradlew bundleRelease

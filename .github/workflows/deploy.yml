@@ -14,6 +14,7 @@ jobs:
   check-version:
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       code: ${{ steps.version.outputs.code }}
       name: ${{ steps.version.outputs.name }}
@@ -44,35 +45,11 @@ jobs:
             echo "No last-published-version tag found yet, skipping comparison for this first tracked release."
           fi
 
-  unit-tests:
+  checks:
     needs: ["check-version"]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Setup Android build
-        uses: ./.github/actions/setup-android-build
-
-      - name: Run unit tests
-        run: ./gradlew test --no-daemon
-
-  lint:
-    needs: ["check-version"]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Setup Android build
-        uses: ./.github/actions/setup-android-build
-
-      - name: Run Android Lint
-        run: ./gradlew lintRelease --no-daemon
+    uses: ./.github/workflows/test-dev.yml
+    with:
+      build: "false"
 
   release-notes:
     needs: ["check-version"]
@@ -103,7 +80,7 @@ jobs:
 
       - name: Write the release notes from the commits since the last release
         if: steps.notes.outputs.handwritten == 'false'
-        uses: anthropics/claude-code-action@925afb53776cf1a2b738c6bdbed37b4d4000ef13 # v1.0.262
+        uses: anthropics/claude-code-action@8041f1d17e0e7d2f2cfe35002962e9f26237c0bb # v1.0.263
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}
@@ -191,8 +168,9 @@ jobs:
           if-no-files-found: error
 
   bundle-release:
-    needs: ["unit-tests", "lint", "check-version"]
+    needs: ["checks", "check-version"]
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
@@ -206,7 +184,7 @@ jobs:
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        run: ./gradlew bundleRelease --no-daemon
+        run: ./gradlew bundleRelease
 
       - name: Sign bundle for Google Play release
         uses: r0adkll/sign-android-release@349ebdef58775b1e0d8099458af0816dc79b6407 # v1
@@ -253,6 +231,7 @@ jobs:
       name: Production
       url: https://play.google.com/store/apps/details?id=com.doubleangels.redact
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: write # Needed only to move the last-metadata-publish tag below.
     steps:
@@ -347,6 +326,7 @@ jobs:
   github-release:
     needs: ["check-version", "publish", "release-notes"]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: write
     steps:
@@ -379,7 +359,7 @@ jobs:
           PREV_TAG=$(git tag -l 'v*' --sort=-v:refname | head -1)
 
           {
-            echo "## What's new"
+            echo "## What's New"
             echo ""
             cat whatsnew/whatsnew-en-US
             echo ""
@@ -401,13 +381,13 @@ jobs:
       [
         "check-version",
         "release-notes",
-        "unit-tests",
-        "lint",
+        "checks",
         "bundle-release",
         "publish",
         "github-release",
       ]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: always()
     steps:
       - name: Delete workflow runs

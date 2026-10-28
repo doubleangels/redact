@@ -49,6 +49,9 @@ public final class MediaUriResolver {
                     }
                 }
             }
+        } catch (SecurityException e) {
+            // The sender shared a URI without granting read access, which only the sender can fix.
+            SentryManager.log("The display name query was denied: " + e.getMessage() + ".");
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
