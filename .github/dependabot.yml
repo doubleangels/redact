@@ -1,7 +1,9 @@
 version: 2
 updates:
   - package-ecosystem: github-actions
-    directory: "/"
+    directories:
+      - "/"
+      - "/.github/actions/setup-android-build"
     schedule:
       interval: daily
     target-branch: dev
@@ -16,6 +18,13 @@ updates:
     commit-message:
       prefix: "[Gradle]"
     open-pull-requests-limit: 10
+    groups:
+      media3:
+        patterns:
+          - "androidx.media3:*"
+      sentry:
+        patterns:
+          - "io.sentry*"
 
   - package-ecosystem: bundler
     directory: "/"
