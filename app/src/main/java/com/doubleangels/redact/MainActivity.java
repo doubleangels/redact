@@ -20,6 +20,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.color.DynamicColors;
+import com.doubleangels.redact.media.MediaPickerContracts;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.Notice;
 
@@ -49,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
     /** Manifest alias that receives Redact › Censor shares. */
     private static final String CENSOR_SHARE_TARGET = ".CensorShareTarget";
     /** Same cap as picking files in Convert. */
-    private static final int MAX_CONVERT_SHARE_ITEMS = 20;
 
     /**
      * The first-start introduction, which asks for each permission and about crash reports on its
@@ -250,12 +250,12 @@ public class MainActivity extends AppCompatActivity {
             Notice.show(this, R.string.share_error_unsupported_media, true);
             return true;
         }
-        if (media.size() > MAX_CONVERT_SHARE_ITEMS) {
+        if (media.size() > MediaPickerContracts.MAX_SHARE_ITEMS) {
             Notice.show(this,
-                    getString(R.string.media_picker_selection_capped, MAX_CONVERT_SHARE_ITEMS),
+                    getString(R.string.media_picker_selection_capped, MediaPickerContracts.MAX_SHARE_ITEMS),
                     true);
-            media = com.doubleangels.redact.media.MediaPickerContracts.trimToMax(
-                    media, MAX_CONVERT_SHARE_ITEMS);
+            media = MediaPickerContracts.trimToMax(
+                    media, MediaPickerContracts.MAX_SHARE_ITEMS);
         }
         com.doubleangels.redact.ui.MainViewModel viewModel = new androidx.lifecycle.ViewModelProvider(this)
                 .get(com.doubleangels.redact.ui.MainViewModel.class);

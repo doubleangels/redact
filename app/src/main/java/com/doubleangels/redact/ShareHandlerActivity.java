@@ -21,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.IntentCompat;
 
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.media.MediaPickerContracts;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.media.ProgressUpdateThrottler;
 import com.doubleangels.redact.media.SecureDelete;
@@ -50,7 +51,6 @@ import io.sentry.SpanStatus;
 public class ShareHandlerActivity extends AppCompatActivity {
 
     /** Maximum items accepted from ACTION_SEND_MULTIPLE. */
-    private static final int MAX_SHARE_ITEMS = 20;
     /**
      * How long shared files are kept so the target app can read them. Some apps read a shared
      * file only when the user finally sends (an email draft, a chat queued offline), so this is
@@ -265,8 +265,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 finishWithError(getString(R.string.share_error_failed_receive_media));
                 return;
             }
-            if (uris.size() > MAX_SHARE_ITEMS) {
-                finishWithError(getString(R.string.share_error_too_many_items, MAX_SHARE_ITEMS));
+            if (uris.size() > MediaPickerContracts.MAX_SHARE_ITEMS) {
+                finishWithError(getString(R.string.share_error_too_many_items, MediaPickerContracts.MAX_SHARE_ITEMS));
                 return;
             }
             prepareAndProcess(uris);
@@ -280,8 +280,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
         try {
             List<Uri> uris = extractUrisFromIntent(intent);
             if (!uris.isEmpty()) {
-                if (uris.size() > MAX_SHARE_ITEMS) {
-                    finishWithError(getString(R.string.share_error_too_many_items, MAX_SHARE_ITEMS));
+                if (uris.size() > MediaPickerContracts.MAX_SHARE_ITEMS) {
+                    finishWithError(getString(R.string.share_error_too_many_items, MediaPickerContracts.MAX_SHARE_ITEMS));
                     return;
                 }
                 prepareAndProcess(uris);

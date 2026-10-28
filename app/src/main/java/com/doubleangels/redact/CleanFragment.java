@@ -50,7 +50,6 @@ import java.util.function.Consumer;
  */
 public class CleanFragment extends TabFragment {
 
-    private static final int MAX_PICK_ITEMS = 20;
     /** Total time the already-clean check may spend reading files before it gives up. */
     private static final long ALREADY_CLEAN_BUDGET_MS = 8_000L;
 
@@ -109,11 +108,11 @@ public class CleanFragment extends TabFragment {
                 uris -> {
                     try {
                         if (uris != null && !uris.isEmpty()) {
-                            if (uris.size() > MAX_PICK_ITEMS) {
+                            if (uris.size() > MediaPickerContracts.MAX_PICK_ITEMS) {
                                 Notice.show(requireContext(),
-                                        getString(R.string.media_picker_selection_capped, MAX_PICK_ITEMS),
+                                        getString(R.string.media_picker_selection_capped, MediaPickerContracts.MAX_PICK_ITEMS),
                                         true);
-                                uris = MediaPickerContracts.trimToMax(uris, MAX_PICK_ITEMS);
+                                uris = MediaPickerContracts.trimToMax(uris, MediaPickerContracts.MAX_PICK_ITEMS);
                             }
                             SentryManager.log("Media was selected successfully.");
                             if (mediaSelector != null) {
