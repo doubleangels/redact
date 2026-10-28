@@ -209,7 +209,8 @@ public class CleanFragment extends TabFragment {
 
             mediaAdapter = new MediaAdapter(new ArrayList<>());
             selectedItemsGrid.setAdapter(mediaAdapter);
-            selectedItemsGrid.setLayoutManager(new GridLayoutManager(requireContext(), 3));
+            selectedItemsGrid.setLayoutManager(new GridLayoutManager(
+                    requireContext(), getResources().getInteger(R.integer.selected_grid_columns)));
 
             selectButton.setOnClickListener(v -> onSelectMediaClicked());
 

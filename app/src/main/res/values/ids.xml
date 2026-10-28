@@ -2,4 +2,8 @@
 <resources>
     <!-- Decor view tag: a photo is open in Censor, so the window stays out of the Recents preview. -->
     <item name="secure_window_photo_open" type="id" />
+    <!-- Remembers the horizontal padding a tab's content had before it was fitted to one half of a folded screen. -->
+    <item name="edge_padding_original" type="id" />
+    <!-- Remembers the end margin an action button had before it was fitted to one half of a folded screen. -->
+    <item name="edge_margin_original" type="id" />
 </resources>

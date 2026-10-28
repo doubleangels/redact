@@ -35,7 +35,7 @@ public final class ErrorFeedbackPrompt {
         }
         Snackbar bar = Snackbar.make(view, R.string.error_feedback_offer, Snackbar.LENGTH_LONG)
                 .setAction(R.string.error_feedback_action, v -> showDialog(view.getContext(), eventId));
-        View nav = view.getRootView().findViewById(R.id.bottomNavigation);
+        View nav = Notice.bottomBar(view.getRootView());
         if (nav != null) {
             bar.setAnchorView(nav);
         }

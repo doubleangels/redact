@@ -18,9 +18,11 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.color.DynamicColors;
 import com.doubleangels.redact.media.MediaPickerContracts;
+import com.doubleangels.redact.ui.FoldPosture;
+import com.doubleangels.redact.ui.FoldTracker;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.Notice;
 
@@ -108,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
             setContentView(R.layout.activity_main);
 
             setupEdgeToEdgeInsets();
+            getLifecycle().addObserver(new FoldTracker(this, this::onFoldPostureChanged));
             setupStatusBarColors();
             setupVersionNumber();
 
@@ -130,7 +133,8 @@ public class MainActivity extends AppCompatActivity {
                         .commitNow();
             }
 
-            BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigation);
+            NavigationBarView bottomNavigationView = findViewById(R.id.bottomNavigation);
+            updateRailLabels();
             bottomNavigationView.setOnItemSelectedListener(item -> {
                 try {
                     int itemId = item.getItemId();
@@ -403,7 +407,7 @@ public class MainActivity extends AppCompatActivity {
 
     /** Switches bottom navigation and shows the tab fragment. */
     public void selectTab(int navigationItemId) {
-        BottomNavigationView nav = findViewById(R.id.bottomNavigation);
+        NavigationBarView nav = findViewById(R.id.bottomNavigation);
         if (nav != null) {
             nav.setSelectedItemId(navigationItemId);
         }
@@ -445,11 +449,85 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        BottomNavigationView nav = findViewById(R.id.bottomNavigation);
+        NavigationBarView nav = findViewById(R.id.bottomNavigation);
         if (nav != null) {
             outState.putInt(KEY_SELECTED_TAB, nav.getSelectedItemId());
         }
     }
+
+    /** How the device is folded, so the app stays off the hinge. */
+    private FoldPosture foldPosture = FoldPosture.NONE;
+
+    /**
+     * Keeps everything on one side of the hinge when the screen is folded like a book, or in the
+     * top half when it stands on a table, and tells the tabs so they size their content for the
+     * space they have. Not private so a test can fold the screen without a real fold.
+     */
+    void onFoldPostureChanged(@NonNull FoldPosture posture) {
+        if (posture.equals(foldPosture)) {
+            return;
+        }
+        foldPosture = posture;
+        new androidx.lifecycle.ViewModelProvider(this).get(com.doubleangels.redact.ui.MainViewModel.class).setFoldPosture(posture);
+        View content = findViewById(R.id.main_content);
+        if (content != null) {
+            content.setPadding(posture.leftInset(), 0, posture.rightInset(), posture.bottomInset());
+        }
+        updateRailLabels();
+        View root = findViewById(android.R.id.content);
+        if (root != null) {
+            ViewCompat.requestApplyInsets(root);
+        }
+    }
+
+    /**
+     * Five labelled tabs need about 400dp of height. Below that (a phone in landscape, or the top
+     * half of a screen folded on a table) the rail shows icons only, so the tabs still fit and sit
+     * centred like everywhere else instead of filling the whole height from the top.
+     */
+    private void updateRailLabels() {
+        View nav = findViewById(R.id.bottomNavigation);
+        if (!(nav instanceof com.google.android.material.navigationrail.NavigationRailView rail)) {
+            return;
+        }
+        float density = getResources().getDisplayMetrics().density;
+        float usableHeightDp = getResources().getConfiguration().screenHeightDp
+                - foldPosture.bottomInset() / density;
+        boolean shortRail = usableHeightDp < 400;
+        int mode = shortRail
+                ? NavigationBarView.LABEL_VISIBILITY_UNLABELED
+                : NavigationBarView.LABEL_VISIBILITY_LABELED;
+        if (rail.getLabelVisibilityMode() != mode) {
+            rail.setLabelVisibilityMode(mode);
+        }
+        // Unlabelled, each tab still takes about 64dp (a 56dp round indicator plus padding), so five
+        // of them fill a short rail from top to bottom. A 40dp pill with tight padding makes each
+        // tab 48dp, still a full touch target, and leaves room above and below to centre them.
+        if (railMetrics == null) {
+            railMetrics = new int[] {rail.getCollapsedItemMinimumHeight(), rail.getItemSpacing(),
+                    rail.getItemPaddingTop(), rail.getItemPaddingBottom(),
+                    rail.getItemActiveIndicatorHeight(), rail.getItemActiveIndicatorExpandedHeight(),
+                    rail.getItemMinimumHeight(), rail.getItemActiveIndicatorWidth()};
+        }
+        int dp4 = Math.round(4 * density);
+        rail.setCollapsedItemMinimumHeight(shortRail ? Math.round(48 * density) : railMetrics[0]);
+        rail.setItemMinimumHeight(shortRail ? Math.round(48 * density) : railMetrics[6]);
+        rail.setCollapsedItemSpacing(shortRail ? 0 : railMetrics[1]);
+        rail.setItemPaddingTop(shortRail ? dp4 : railMetrics[2]);
+        rail.setItemPaddingBottom(shortRail ? dp4 : railMetrics[3]);
+        rail.setItemActiveIndicatorHeight(shortRail ? Math.round(40 * density) : railMetrics[4]);
+        // Without labels the indicator is a circle as wide as the indicator width, and that circle
+        // sets the tab's height, so the width has to shrink too.
+        rail.setItemActiveIndicatorExpandedHeight(shortRail ? Math.round(40 * density) : railMetrics[5]);
+        rail.setItemActiveIndicatorWidth(shortRail ? Math.round(40 * density) : railMetrics[7]);
+    }
+
+    /**
+     * The rail's own tab heights, spacing, top and bottom padding and indicator sizes,
+     * read before {@link #updateRailLabels} first shortened them; null until then.
+     */
+    @Nullable
+    private int[] railMetrics;
 
     private void setupEdgeToEdgeInsets() {
         try {
@@ -461,7 +539,9 @@ public class MainActivity extends AppCompatActivity {
                     androidx.core.graphics.Insets outer = insets.getInsets(barsAndCutout);
                     androidx.core.graphics.Insets nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars());
                     androidx.core.graphics.Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
-                    int bottomOverlap = Math.max(nav.bottom, ime.bottom);
+                    // On a table the app ends at the hinge, above the system bar, so it is not padded for it.
+                    int bottomOverlap = foldPosture.type() == FoldPosture.Type.TABLETOP
+                            ? 0 : Math.max(nav.bottom, ime.bottom);
 
                     View coordinatorLayout = findViewById(R.id.root_layout);
                     if (coordinatorLayout != null) {
@@ -473,7 +553,7 @@ public class MainActivity extends AppCompatActivity {
                         );
                     }
 
-                    BottomNavigationView bottomNav = findViewById(R.id.bottomNavigation);
+                    NavigationBarView bottomNav = findViewById(R.id.bottomNavigation);
                     if (bottomNav != null) {
                         bottomNav.setPadding(
                                 bottomNav.getPaddingLeft(),
@@ -481,6 +561,13 @@ public class MainActivity extends AppCompatActivity {
                                 bottomNav.getPaddingRight(),
                                 bottomOverlap
                         );
+                    }
+                    // With the tabs in a side rail the content runs to the bottom of the window, so
+                    // it has to clear the system bar and the keyboard itself.
+                    View container = findViewById(R.id.fragment_container);
+                    if (container != null && bottomNav instanceof
+                            com.google.android.material.navigationrail.NavigationRailView) {
+                        container.setPadding(0, 0, 0, bottomOverlap);
                     }
 
                     return insets;
@@ -579,7 +666,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Nullable
     private Fragment getVisibleTabFragment() {
-        BottomNavigationView nav = findViewById(R.id.bottomNavigation);
+        NavigationBarView nav = findViewById(R.id.bottomNavigation);
         if (nav == null) {
             return null;
         }

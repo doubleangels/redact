@@ -66,6 +66,18 @@ public class NoticeTest {
     }
 
     @Test
+    public void withTheTabsInASideRail_noSnackbarIsAnchoredToThem() {
+        controller.pause().stop().destroy();
+        RuntimeEnvironment.setQualifiers("w1280dp-h800dp");
+        controller = Robolectric.buildActivity(MainActivity.class).setup();
+        activity = controller.get();
+        activity.selectTab(R.id.navigation_settings);
+        idle();
+        assertEquals(null, Notice.anchorFor(root()));
+        assertEquals(null, Notice.bottomBar(root()));
+    }
+
+    @Test
     public void aboveTheFloatingButton_whenOneShows() {
         activity.selectTab(R.id.navigation_clean);
         new ViewModelProvider(activity).get(MainViewModel.class).setSelectedItems(

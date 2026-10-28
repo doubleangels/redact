@@ -89,7 +89,17 @@ public final class Notice {
     @Nullable
     static View anchorFor(@NonNull View root) {
         View best = highestFab(root, null);
-        return best != null ? best : root.findViewById(R.id.bottomNavigation);
+        return best != null ? best : bottomBar(root);
+    }
+
+    /**
+     * The bottom navigation bar, or null when the tabs are in a side rail (wide windows), which a
+     * snackbar must not be anchored to: it would jump to the rail's top.
+     */
+    @Nullable
+    static View bottomBar(@NonNull View root) {
+        View nav = root.findViewById(R.id.bottomNavigation);
+        return nav instanceof com.google.android.material.navigationrail.NavigationRailView ? null : nav;
     }
 
     @Nullable

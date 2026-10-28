@@ -117,7 +117,7 @@ public final class ReviewPrompt {
     /** Says the question won't come back and where the setting lives, above the bottom bar. */
     static void showDeclinedNote(@NonNull View view, int messageRes) {
         Snackbar bar = Snackbar.make(view, messageRes, Snackbar.LENGTH_LONG);
-        View nav = view.getRootView().findViewById(R.id.bottomNavigation);
+        View nav = Notice.bottomBar(view.getRootView());
         if (nav != null) {
             bar.setAnchorView(nav);
         }
