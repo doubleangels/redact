@@ -1,4 +1,4 @@
-## What's new
+## What's New
 
 <!-- Two or three sentences on what this changes for people using Redact, and why. -->
 
