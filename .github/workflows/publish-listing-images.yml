@@ -1,0 +1,109 @@
+name: Publish Store Listing Images
+
+# Pushes the store screenshots and graphics under fastlane/metadata to Google Play
+# without uploading a new app version, so regenerated images can go live on their
+# own. Titles, descriptions and release notes are never touched. Run it by hand
+# from main (or a tag) after the regenerated images have been merged.
+#
+# It does not move the last-metadata-publish tag. The release workflow compares
+# against that tag to decide whether to push the listing text, and this run
+# says nothing about the text.
+
+on:
+  workflow_dispatch:
+    inputs:
+      screenshots:
+        description: Upload the phone and tablet screenshots
+        type: boolean
+        default: true
+      graphics:
+        description: Upload the icon and feature graphic
+        type: boolean
+        default: true
+      validate_only:
+        description: Check the upload with Google Play without publishing it
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-listing-images
+  cancel-in-progress: false
+
+jobs:
+  publish-images:
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: Production
+      url: https://play.google.com/store/apps/details?id=com.doubleangels.redact
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check what was selected and which images exist
+        env:
+          SCREENSHOTS: ${{ inputs.screenshots }}
+          GRAPHICS: ${{ inputs.graphics }}
+        run: |
+          set -euo pipefail
+          if [ "${SCREENSHOTS}" != "true" ] && [ "${GRAPHICS}" != "true" ]; then
+            echo "::error::Select at least one of screenshots or graphics."
+            exit 1
+          fi
+          SHOTS=$(find fastlane/metadata/android -type f \( -path '*Screenshots/*.png' -o -path '*Screenshots/*.jpg' \) | wc -l)
+          GRAPHIC_FILES=$(find fastlane/metadata/android -type f \( -name 'icon.png' -o -name 'featureGraphic.png' -o -name 'promoGraphic.png' \) | wc -l)
+          echo "Screenshots found: ${SHOTS}"
+          echo "Icon and graphics found: ${GRAPHIC_FILES}"
+          if [ "${SCREENSHOTS}" = "true" ] && [ "${SHOTS}" -eq 0 ]; then
+            echo "::error::No screenshots under fastlane/metadata/android."
+            exit 1
+          fi
+          if [ "${GRAPHICS}" = "true" ] && [ "${GRAPHIC_FILES}" -eq 0 ]; then
+            echo "::error::No icon or graphics under fastlane/metadata/android."
+            exit 1
+          fi
+
+      - name: Set up Ruby for Fastlane
+        uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f # v1.335.0
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Create service_account.json for Google Play
+        env:
+          SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+        run: printf '%s' "$SERVICE_ACCOUNT_JSON" > service_account.json
+
+      - name: Push the images to Google Play
+        env:
+          SCREENSHOTS: ${{ inputs.screenshots }}
+          GRAPHICS: ${{ inputs.graphics }}
+          VALIDATE_ONLY: ${{ inputs.validate_only }}
+        run: |
+          set -euo pipefail
+          # Text and release notes stay out of this run. sync_image_upload compares
+          # checksums, so images Google Play already has are left alone.
+          ARGS=(
+            --skip_upload_apk true
+            --skip_upload_aab true
+            --skip_upload_metadata true
+            --skip_upload_changelogs true
+            --sync_image_upload true
+            --json_key service_account.json
+            --package_name com.doubleangels.redact
+            --track production
+          )
+          if [ "${SCREENSHOTS}" != "true" ]; then ARGS+=(--skip_upload_screenshots true); fi
+          if [ "${GRAPHICS}" != "true" ]; then ARGS+=(--skip_upload_images true); fi
+          if [ "${VALIDATE_ONLY}" = "true" ]; then ARGS+=(--validate_only true); fi
+          bundle exec fastlane supply "${ARGS[@]}"
+
+      - name: Remove service account credentials
+        if: always()
+        run: rm -f service_account.json
