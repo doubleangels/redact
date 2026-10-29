@@ -43,7 +43,7 @@ CAPTIONS = {
         ("Convert without uploading anything.", "JPEG, PNG, WebP, HEIC and MP4, stripped and checked."),
         ("Check any file before you send it.", "Every hidden field, in a clear, searchable list."),
         ("Nothing leaves your phone.", "No ads, no tracking and no account. Open source."),
-        ("Strip the hidden location from your photos.", "Scan, clean and convert, all on your phone."),
+        ("Strip the hidden location from your photos.", "Redact scans, cleans and converts everything on your phone."),
     ],
     "de-DE": [
         ("Deine Fotos können verraten, wo du wohnst.", "Scannen zeigt den versteckten GPS-Standort, das Handymodell und die Uhrzeit."),
@@ -52,7 +52,7 @@ CAPTIONS = {
         ("Konvertiere, ohne etwas hochzuladen.", "JPEG, PNG, WebP, HEIC und MP4, bereinigt und geprüft."),
         ("Prüfe jede Datei vor dem Senden.", "Jedes versteckte Feld in einer klaren, durchsuchbaren Liste."),
         ("Nichts verlässt dein Handy.", "Keine Werbung, kein Tracking, kein Konto. Open Source."),
-        ("Entferne den versteckten Standort aus deinen Fotos.", "Scannen, bereinigen und konvertieren, alles auf deinem Handy."),
+        ("Entferne den versteckten Standort aus deinen Fotos.", "Redact scannt, bereinigt und konvertiert alles auf deinem Handy."),
     ],
     "es-ES": [
         ("Tus fotos pueden revelar dónde vives.", "Escanear muestra la ubicación GPS oculta, el modelo del móvil y la hora."),
@@ -61,7 +61,7 @@ CAPTIONS = {
         ("Convierte sin subir nada.", "JPEG, PNG, WebP, HEIC y MP4, limpios y comprobados."),
         ("Revisa cualquier archivo antes de enviarlo.", "Cada campo oculto, en una lista clara y con búsqueda."),
         ("Nada sale de tu móvil.", "Sin anuncios, sin rastreo y sin cuenta. Código abierto."),
-        ("Borra la ubicación oculta de tus fotos.", "Escanea, limpia y convierte, todo en tu móvil."),
+        ("Borra la ubicación oculta de tus fotos.", "Redact escanea, limpia y convierte todo en tu móvil."),
     ],
     "fr-FR": [
         ("Vos photos peuvent révéler où vous habitez.", "Scanner affiche la position GPS cachée, le modèle du téléphone et l'heure."),
@@ -70,7 +70,7 @@ CAPTIONS = {
         ("Convertissez sans rien envoyer en ligne.", "JPEG, PNG, WebP, HEIC et MP4, nettoyés et vérifiés."),
         ("Vérifiez chaque fichier avant de l'envoyer.", "Chaque champ caché, dans une liste claire avec recherche."),
         ("Rien ne quitte votre téléphone.", "Pas de pub, pas de pistage et pas de compte. Open source."),
-        ("Effacez la position cachée de vos photos.", "Scanner, nettoyer et convertir, tout sur votre téléphone."),
+        ("Effacez la position cachée de vos photos.", "Redact scanne, nettoie et convertit tout sur votre téléphone."),
     ],
     "it-IT": [
         ("Le tue foto possono rivelare dove abiti.", "Scansiona mostra la posizione GPS nascosta, il modello del telefono e l'ora."),
@@ -79,7 +79,7 @@ CAPTIONS = {
         ("Converti senza caricare nulla.", "JPEG, PNG, WebP, HEIC e MP4, puliti e verificati."),
         ("Controlla ogni file prima di inviarlo.", "Ogni campo nascosto, in un elenco chiaro e ricercabile."),
         ("Niente lascia il tuo telefono.", "Niente pubblicità, tracciamento o account. Open source."),
-        ("Rimuovi la posizione nascosta dalle tue foto.", "Scansiona, pulisci e converti, tutto sul telefono."),
+        ("Rimuovi la posizione nascosta dalle tue foto.", "Redact scansiona, pulisce e converte tutto sul telefono."),
     ],
     "pt-BR": [
         ("Suas fotos podem revelar onde você mora.", "Escanear mostra a localização GPS oculta, o modelo do celular e o horário."),
@@ -88,7 +88,7 @@ CAPTIONS = {
         ("Converta sem enviar nada.", "JPEG, PNG, WebP, HEIC e MP4, limpos e verificados."),
         ("Confira qualquer arquivo antes de enviar.", "Cada campo oculto, em uma lista clara e pesquisável."),
         ("Nada sai do seu celular.", "Sem anúncios, sem rastreamento e sem conta. Código aberto."),
-        ("Apague a localização oculta das suas fotos.", "Escaneie, limpe e converta, tudo no seu celular."),
+        ("Apague a localização oculta das suas fotos.", "O Redact escaneia, limpa e converte tudo no seu celular."),
     ],
     "ru-RU": [
         ("Ваши фото могут выдать, где вы живёте.", "Сканирование покажет скрытые GPS-координаты, модель телефона и время."),
@@ -97,7 +97,7 @@ CAPTIONS = {
         ("Конвертируйте без загрузки в сеть.", "JPEG, PNG, WebP, HEIC и MP4: очищены и проверены."),
         ("Проверьте файл перед отправкой.", "Все скрытые поля в понятном списке с поиском."),
         ("Ничто не покидает ваш телефон.", "Без рекламы, слежки и аккаунта. Открытый код."),
-        ("Удалите скрытое местоположение из своих фото.", "Сканирование, очистка и конвертация: всё на телефоне."),
+        ("Удалите скрытое местоположение из своих фото.", "Redact сканирует, очищает и конвертирует всё на телефоне."),
     ],
     "ja-JP": [
         ("写真から住所がわかってしまうかも。", "スキャンで、隠れた GPS 位置情報・機種・日時を表示します。"),
@@ -106,7 +106,7 @@ CAPTIONS = {
         ("アップロードせずに変換。", "JPEG・PNG・WebP・HEIC・MP4 に対応。クリーンして確認済みです。"),
         ("送る前に、どんなファイルもチェック。", "隠れた項目を、見やすく検索できる一覧で表示します。"),
         ("データはスマホから出ません。", "広告・追跡・アカウントなし。オープンソースです。"),
-        ("写真に隠れた位置情報を削除。", "スキャン・クリーン・変換を、すべてスマホの中で。"),
+        ("写真に隠れた位置情報を削除。", "Redact はスキャン、クリーン、変換のすべてをスマホの中で行います。"),
     ],
     "ko-KR": [
         ("사진이 사는 곳을 드러낼 수 있습니다.", "스캔으로 숨은 GPS 위치, 휴대전화 모델, 시간을 확인하세요."),
@@ -115,7 +115,7 @@ CAPTIONS = {
         ("업로드 없이 변환하세요.", "JPEG, PNG, WebP, HEIC, MP4를 지원하며, 정리 후 검사까지 합니다."),
         ("보내기 전에 모든 파일을 확인하세요.", "숨은 항목을 검색 가능한 깔끔한 목록으로 보여 줍니다."),
         ("아무것도 휴대전화를 떠나지 않습니다.", "광고, 추적, 계정이 없습니다. 오픈소스입니다."),
-        ("사진 속 숨은 위치 정보를 지우세요.", "스캔, 정리, 변환을 모두 휴대전화에서 합니다."),
+        ("사진 속 숨은 위치 정보를 지우세요.", "Redact는 스캔, 정리, 변환을 모두 휴대전화에서 처리합니다."),
     ],
     "zh-CN": [
         ("你的照片可能暴露你的住址。", "扫描即可看到隐藏的 GPS 位置、手机型号和拍摄时间。"),
@@ -124,7 +124,7 @@ CAPTIONS = {
         ("无需上传即可转换。", "支持 JPEG、PNG、WebP、HEIC 和 MP4，清理并检查。"),
         ("发送前先检查文件。", "所有隐藏字段，清晰可搜索。"),
         ("数据从不离开你的手机。", "无广告、无跟踪、无需账号。开源。"),
-        ("清除照片中隐藏的位置信息。", "扫描、清理、转换，全部在手机上完成。"),
+        ("清除照片中隐藏的位置信息。", "Redact 在手机上完成扫描、清理和转换。"),
     ],
     "zh-TW": [
         ("你的照片可能洩露你的住址。", "掃描即可看到隱藏的 GPS 位置、手機型號與拍攝時間。"),
@@ -133,7 +133,7 @@ CAPTIONS = {
         ("不必上傳就能轉換。", "支援 JPEG、PNG、WebP、HEIC 與 MP4，清理並檢查。"),
         ("傳送前先檢查檔案。", "所有隱藏欄位，清楚又可搜尋。"),
         ("資料從不離開你的手機。", "沒有廣告、追蹤或帳號。開放原始碼。"),
-        ("清除照片中隱藏的位置資訊。", "掃描、清理、轉換，全部在手機上完成。"),
+        ("清除照片中隱藏的位置資訊。", "Redact 在手機上完成掃描、清理和轉換。"),
     ],
     "hi-IN": [
         ("आपकी फ़ोटो बता सकती हैं कि आप कहाँ रहते हैं।", "स्कैन छिपी GPS लोकेशन, फ़ोन मॉडल और समय दिखाता है।"),
@@ -142,7 +142,7 @@ CAPTIONS = {
         ("बिना अपलोड किए फ़ॉर्मैट बदलें।", "JPEG, PNG, WebP, HEIC और MP4, साफ़ और जाँचे हुए।"),
         ("भेजने से पहले हर फ़ाइल जाँचें।", "हर छिपा फ़ील्ड, साफ़ और खोजने योग्य सूची में।"),
         ("कुछ भी आपके फ़ोन से बाहर नहीं जाता।", "कोई विज्ञापन, ट्रैकिंग या खाता नहीं। ओपन सोर्स।"),
-        ("अपनी फ़ोटो से छिपी लोकेशन हटाएँ।", "स्कैन करें, साफ़ करें, बदलें, सब आपके फ़ोन पर।"),
+        ("अपनी फ़ोटो से छिपी लोकेशन हटाएँ।", "Redact स्कैन, सफ़ाई और बदलाव सब आपके फ़ोन पर करता है।"),
     ],
     "ar": [
         ("قد تكشف صورك مكان سكنك.", "يعرض المسح موقع GPS المخفي وطراز الهاتف ووقت الالتقاط."),
@@ -151,7 +151,7 @@ CAPTIONS = {
         ("حوّل الصيغ دون رفع أي شيء.", "JPEG وPNG وWebP وHEIC وMP4، منظّفة ومفحوصة."),
         ("افحص أي ملف قبل إرساله.", "كل حقل مخفي في قائمة واضحة قابلة للبحث."),
         ("لا شيء يغادر هاتفك.", "بلا إعلانات ولا تتبّع ولا حساب. مفتوح المصدر."),
-        ("أزل الموقع المخفي من صورك.", "مسح وتنظيف وتحويل، كل ذلك على هاتفك."),
+        ("أزل الموقع المخفي من صورك.", "يمسح Redact صورك وينظّفها ويحوّلها، كل ذلك على هاتفك."),
     ],
 }
 
