@@ -27,7 +27,7 @@
 <ul>
 <li>Tutto avviene sul telefono. Pulire, analizzare e convertire non richiedono una connessione a internet.</li>
 <li>Niente pubblicità, niente analisi, niente tracciamento e nessun account</li>
-<li>Sicurezza dei dati di Google Play: nessun dato raccolto, nessun dato condiviso</li>
+<li>Le tue foto, i tuoi video e i tuoi dati personali non vengono mai raccolti né condivisi</li>
 <li>Open source con licenza GPL-3.0: chiunque può leggere il codice su GitHub</li>
 <li>Funziona con il selettore di file di sistema, quindi l'accesso a tutta la galleria è facoltativo</li>
 <li>I rapporti sugli arresti anomali facoltativi restano disattivati finché non li attivi</li>

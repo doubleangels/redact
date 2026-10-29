@@ -27,7 +27,7 @@
 <ul>
 <li>Alles läuft auf deinem Handy. Bereinigen, Scannen und Konvertieren brauchen keine Internetverbindung.</li>
 <li>Keine Werbung, keine Analysen, kein Tracking und kein Konto</li>
-<li>Google Play Datensicherheit: keine Daten erfasst, keine Daten weitergegeben</li>
+<li>Deine Fotos, Videos und persönlichen Daten werden nie erfasst oder weitergegeben</li>
 <li>Open Source unter GPL-3.0, jeder kann den Code auf GitHub lesen</li>
 <li>Funktioniert mit der Dateiauswahl des Systems, Zugriff auf deine ganze Mediathek ist daher optional</li>
 <li>Optionale Absturzberichte bleiben aus, bis du sie einschaltest</li>

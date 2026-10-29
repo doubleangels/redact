@@ -41,8 +41,9 @@ jobs:
       - name: Setup Android build
         uses: ./.github/actions/setup-android-build
 
-      - name: Run unit tests
-        run: ./gradlew test
+      # Debug only: the release variant reruns the same tests, and coverage is measured on debug.
+      - name: Run unit tests and check coverage
+        run: ./gradlew testDebugUnitTest jacocoTestCoverageVerification
 
       - name: Upload test report on failure
         if: failure()

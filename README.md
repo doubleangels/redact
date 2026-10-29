@@ -464,6 +464,10 @@ Java, Android Jetpack and Material 3, [Media3 Transformer](https://developer.and
 
 Redact is released under the [GNU General Public License v3.0](LICENSE).
 
+### Name and icon
+
+The GPL covers the code, not the Redact name or icon. You are welcome to fork, modify and redistribute the code under the GPL, but a published fork must use its own name and icon and must not present itself as Redact or as made by its developer.
+
 ---
 
 <p align="center">

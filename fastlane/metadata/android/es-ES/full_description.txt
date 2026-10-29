@@ -27,7 +27,7 @@
 <ul>
 <li>Todo funciona en tu móvil. Limpiar, escanear y convertir no necesitan conexión a internet.</li>
 <li>Sin anuncios, sin analíticas, sin rastreo y sin cuenta</li>
-<li>Seguridad de los datos de Google Play: no se recopilan ni se comparten datos</li>
+<li>Tus fotos, vídeos y datos personales nunca se recopilan ni se comparten</li>
 <li>Código abierto bajo GPL-3.0: cualquiera puede leerlo en GitHub</li>
 <li>Funciona con el selector de archivos del sistema, así que el acceso a toda tu galería es opcional</li>
 <li>Los informes de errores opcionales están desactivados hasta que tú los actives</li>

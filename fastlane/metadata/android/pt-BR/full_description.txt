@@ -27,7 +27,7 @@
 <ul>
 <li>Tudo acontece no seu celular. Limpar, analisar e converter não precisam de internet.</li>
 <li>Sem anúncios, sem análises, sem rastreamento e sem conta</li>
-<li>Segurança dos dados no Google Play: nenhum dado coletado, nenhum dado compartilhado</li>
+<li>Suas fotos, vídeos e informações pessoais nunca são coletados nem compartilhados</li>
 <li>Código aberto sob GPL-3.0: qualquer pessoa pode ler o código no GitHub</li>
 <li>Funciona com o seletor de arquivos do sistema, então o acesso a toda a sua galeria é opcional</li>
 <li>Os relatórios de falhas opcionais ficam desativados até você ativá-los</li>

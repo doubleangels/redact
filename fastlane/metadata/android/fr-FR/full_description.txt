@@ -27,7 +27,7 @@
 <ul>
 <li>Tout se passe sur votre téléphone. Nettoyer, analyser et convertir ne demandent aucune connexion Internet.</li>
 <li>Pas de publicité, pas d'analyses, pas de pistage et pas de compte</li>
-<li>Sécurité des données Google Play : aucune donnée collectée, aucune donnée partagée</li>
+<li>Vos photos, vidéos et informations personnelles ne sont jamais collectées ni partagées</li>
 <li>Open source sous GPL-3.0 : tout le monde peut lire le code sur GitHub</li>
 <li>Fonctionne avec le sélecteur de fichiers du système : l'accès à toute votre galerie est donc facultatif</li>
 <li>Les rapports de plantage facultatifs restent désactivés tant que vous ne les activez pas</li>

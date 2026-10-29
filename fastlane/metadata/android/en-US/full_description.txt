@@ -27,7 +27,7 @@
 <ul>
 <li>Everything runs on your phone. Cleaning, scanning and converting need no internet connection.</li>
 <li>No ads, no analytics, no tracking and no account</li>
-<li>Google Play Data safety: no data collected, no data shared</li>
+<li>Your photos, videos and personal information are never collected or shared</li>
 <li>Open source under GPL-3.0, so anyone can read the code on GitHub</li>
 <li>Works with the system file picker, so access to your whole library is optional</li>
 <li>Optional crash reports stay off unless you turn them on</li>
