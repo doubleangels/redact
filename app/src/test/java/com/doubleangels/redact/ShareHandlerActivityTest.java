@@ -6,6 +6,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.doubleangels.redact.media.MediaPickerContracts;
+
 import android.app.Application;
 import android.content.ClipData;
 import android.content.DialogInterface;
@@ -217,11 +219,12 @@ public class ShareHandlerActivityTest {
     @Test
     public void sendMultiple_tooManyItems_finishesWithLimitError() {
         ArrayList<Uri> uris = new ArrayList<>();
-        for (int i = 0; i < 21; i++) {
+        for (int i = 0; i <= MediaPickerContracts.MAX_SHARE_ITEMS; i++) {
             uris.add(Uri.parse("content://com.example/media/" + i));
         }
         ShareHandlerActivity activity = launch(sendMultipleIntent("image/*", uris));
-        assertEquals(app.getString(R.string.share_error_too_many_items, 20),
+        assertEquals(app.getString(R.string.share_error_too_many_items,
+                MediaPickerContracts.MAX_SHARE_ITEMS),
                 ShadowToast.getTextOfLatestToast());
         assertTrue(activity.isFinishing());
         assertEquals(0, inboundSnapshots().length);

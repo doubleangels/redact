@@ -16,6 +16,7 @@
         android:clipToPadding="false"
         android:fillViewport="true"
         android:paddingHorizontal="@dimen/screen_edge_padding"
+        android:tag="edgePadded"
         android:paddingTop="8dp"
         android:paddingBottom="160dp"
         android:scrollbars="none"
@@ -153,10 +154,11 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="@string/clean_empty_state_description"
+                android:maxWidth="@dimen/empty_state_text_max_width"
                 android:textAlignment="center"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="?attr/colorOnSurfaceVariant" />
@@ -181,7 +183,8 @@
         style="@style/Widget.Material3.ExtendedFloatingActionButton.Primary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="@dimen/fab_margin_end"
+        android:tag="edgeFab"
         android:layout_marginBottom="16dp"
         android:text="@string/button_strip_exif_data"
         android:textColor="?attr/colorOnPrimary"
@@ -199,7 +202,8 @@
         style="@style/Widget.Material3.FloatingActionButton.Secondary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="@dimen/fab_margin_end"
+        android:tag="edgeFab"
         android:layout_marginBottom="16dp"
         android:contentDescription="@string/button_share_results"
         android:tooltipText="@string/button_share_results"

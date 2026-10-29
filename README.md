@@ -84,7 +84,7 @@ Most apps and websites do not show you this, but anyone who receives the origina
 | **Share into Redact** | Share a photo or video from any other app. Redact cleans it and reopens the share sheet with the clean copy, with an optional confirmation step and a progress dialog you can cancel. |
 | **Open with Redact** | Open a photo or video in Redact from your gallery or file manager, or share it to **Scan with Redact**, and it goes straight to Scan. |
 | **Shortcuts** | Long-press the app icon to jump straight to Clean, Scan, Convert or Censor, or add the **Clean**, **Scan** or **Censor** tiles to Quick Settings. |
-| **Batches** | Clean or convert up to 20 files at once. If some files fail, Redact keeps going and reports what succeeded. |
+| **Batches** | Clean or convert up to 100 files at once (50 when you share them in from another app). If some files fail, Redact keeps going and reports what succeeded. |
 | **Large files** | There is no hard size cap. Redact warns you first when storage or memory looks too low for the job. |
 | **Delete originals (optional)** | Turn on **Delete Originals After Cleaning** and Redact asks Android to move the originals to trash after a successful clean. Android shows its own confirmation, so nothing is removed without your say-so. |
 | **Open source, no ads** | No ads and no behavioral tracking. The source is public for anyone to review. |
@@ -122,7 +122,7 @@ Your originals are never modified.
 
 ### Clean
 
-Removes metadata and saves a new copy to `Pictures/Redact` (images) or `Movies/Redact` (videos). Choose up to 20 files. Location data is removed unless you explicitly turn on **Keep Location** in Settings (this asks for confirmation and is ignored by Strict Clean).
+Removes metadata and saves a new copy to `Pictures/Redact` (images) or `Movies/Redact` (videos). Choose up to 100 files. Location data is removed unless you explicitly turn on **Keep Location** in Settings (this asks for confirmation and is ignored by Strict Clean).
 
 When the clean finishes, Redact sums up what it removed, for example *"Removed 24 metadata fields, including location"* for one file, or the total and how many files had a location for a batch. Fields you chose to keep in Settings are not counted. The same summary appears in the completion notification if notifications are on. A **Share** icon button then appears above **Clean Metadata** to send the clean copies to another app. Convert shows a **Share** button when it finishes. After cleaning a single file, a **Scan Result** icon button also appears beside Share and opens the clean copy in Scan, so you can see exactly what is left. Long-press either icon to see its name.
 
@@ -463,6 +463,10 @@ Java, Android Jetpack and Material 3, [Media3 Transformer](https://developer.and
 ## License
 
 Redact is released under the [GNU General Public License v3.0](LICENSE).
+
+### Name and icon
+
+The GPL covers the code, not the Redact name or icon. You are welcome to fork, modify and redistribute the code under the GPL, but a published fork must use its own name and icon and must not present itself as Redact or as made by its developer.
 
 ---
 

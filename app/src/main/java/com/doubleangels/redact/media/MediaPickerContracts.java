@@ -16,6 +16,15 @@ public final class MediaPickerContracts {
 
     public static final String[] IMAGE_AND_VIDEO_MIME_TYPES = {"image/*", "video/*"};
 
+    /** Most files Clean or Convert accepts from their file pickers in one run. */
+    public static final int MAX_PICK_ITEMS = 100;
+
+    /**
+     * Most files accepted when another app shares into Redact. Lower than the picker limit because
+     * a share is copied into the cache before it is processed.
+     */
+    public static final int MAX_SHARE_ITEMS = 50;
+
     private MediaPickerContracts() {
     }
 

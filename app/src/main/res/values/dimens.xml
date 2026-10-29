@@ -6,6 +6,15 @@
     <dimen name="component_corner_large">20dp</dimen>
     <!-- Side padding of every tab; larger-width qualifiers keep content a readable width on foldables and tablets. -->
     <dimen name="screen_edge_padding">20dp</dimen>
+    <!-- Widest the explanation under an empty-state title grows, so a line stays readable on a tablet. -->
+    <dimen name="empty_state_text_max_width">480dp</dimen>
+    <!-- The padding of a tab on the smallest windows, and the widest a tab's content column grows. A
+         folded screen sizes its tabs from these and from the half it uses, not from the window. -->
+    <dimen name="screen_edge_padding_compact">20dp</dimen>
+    <dimen name="content_max_width">640dp</dimen>
+    <!-- Gap between the action buttons and the window edge. On wide windows they line up with the
+         content column instead of sitting at the far edge of the window. -->
+    <dimen name="fab_margin_end">16dp</dimen>
     <!-- Vertical padding of the empty states; small by default so they fit short windows (phone landscape,
          split screen), larger from 600dp of available height (see values-h600dp). -->
     <dimen name="empty_state_vertical_padding">8dp</dimen>

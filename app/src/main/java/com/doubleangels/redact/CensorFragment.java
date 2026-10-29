@@ -694,18 +694,18 @@ public class CensorFragment extends TabFragment {
         if (pending == null || replaceDialog != null) {
             return;
         }
-        replaceDialog = new MaterialAlertDialogBuilder(requireContext())
+        replaceDialog = com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.censor_discard_title)
                 .setMessage(R.string.censor_discard_message)
                 .setNegativeButton(R.string.censor_keep_editing, (d, w) -> viewModel.cancelReplacement())
                 .setPositiveButton(R.string.censor_discard, (d, w) -> viewModel.confirmReplacement())
                 .setOnCancelListener(d -> viewModel.cancelReplacement())
                 .setOnDismissListener(d -> replaceDialog = null)
-                .show();
+                .show());
     }
 
     private void confirmDiscard(@NonNull Runnable onDiscard) {
-        new MaterialAlertDialogBuilder(requireContext())
+        com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.censor_discard_title)
                 .setMessage(R.string.censor_discard_message)
                 .setNegativeButton(R.string.censor_keep_editing, null)
@@ -713,7 +713,7 @@ public class CensorFragment extends TabFragment {
                     SentryManager.logEvent("censor", "The user discarded unsaved censor edits.");
                     onDiscard.run();
                 })
-                .show();
+                .show());
     }
 
     private void openResultInScan() {

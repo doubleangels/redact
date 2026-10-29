@@ -15,7 +15,7 @@
 <p>Ouvrez n'importe quelle photo ou vidéo et voyez chaque champ caché dans une liste claire, avec recherche. Un badge Position signale tout ce qui indique où elle a été prise.</p>
 
 <b>Supprimer : Nettoyer</b>
-<p>Nettoyez jusqu'à 20 photos et vidéos à la fois. Redact supprime le GPS, les informations sur l'appareil, les horodatages, les données XMP et IPTC, les commentaires et les balises vidéo, ainsi que les données cachées après l'image, comme des aperçus supplémentaires et les clips Motion Photo, puis vous indique précisément ce qu'il a supprimé. Vos originaux restent intacts, sauf si vous demandez à Redact de les mettre à la corbeille.</p>
+<p>Nettoyez jusqu'à 100 photos et vidéos à la fois. Redact supprime le GPS, les informations sur l'appareil, les horodatages, les données XMP et IPTC, les commentaires et les balises vidéo, ainsi que les données cachées après l'image, comme des aperçus supplémentaires et les clips Motion Photo, puis vous indique précisément ce qu'il a supprimé. Vos originaux restent intacts, sauf si vous demandez à Redact de les mettre à la corbeille.</p>
 
 <b>Partagez en toute sécurité depuis n'importe quelle app</b>
 <p>Partagez une photo ou une vidéo vers Redact depuis votre galerie ou une autre app. Le fichier est nettoyé puis renvoyé directement au menu de partage. Ou partagez-le vers « Scanner avec Redact » pour le vérifier d'abord.</p>
@@ -27,7 +27,7 @@
 <ul>
 <li>Tout se passe sur votre téléphone. Nettoyer, analyser et convertir ne demandent aucune connexion Internet.</li>
 <li>Pas de publicité, pas d'analyses, pas de pistage et pas de compte</li>
-<li>Sécurité des données Google Play : aucune donnée collectée, aucune donnée partagée</li>
+<li>Vos photos, vidéos et informations personnelles ne sont jamais collectées ni partagées</li>
 <li>Open source sous GPL-3.0 : tout le monde peut lire le code sur GitHub</li>
 <li>Fonctionne avec le sélecteur de fichiers du système : l'accès à toute votre galerie est donc facultatif</li>
 <li>Les rapports de plantage facultatifs restent désactivés tant que vous ne les activez pas</li>

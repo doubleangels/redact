@@ -18,6 +18,7 @@ archCoreTesting = "2.2.0"
 baselineprofile = "1.5.0"
 profileinstaller = "1.4.1"
 uiautomator = "2.4.0"
+window = "1.5.1"
 splashscreen = "1.2.0"
 
 [libraries]
@@ -42,6 +43,8 @@ arch-core-testing = { module = "androidx.arch.core:core-testing", version.ref = 
 profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileinstaller" }
 benchmark-macro-junit4 = { module = "androidx.benchmark:benchmark-macro-junit4", version.ref = "baselineprofile" }
 uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
+window-java = { module = "androidx.window:window-java", version.ref = "window" }
+window-testing = { module = "androidx.window:window-testing", version.ref = "window" }
 core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "splashscreen" }
 
 [plugins]

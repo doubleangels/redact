@@ -71,8 +71,15 @@ public final class Notice {
     /** For code that only has a context: the activity's screen when it has one, else a toast. */
     public static void show(@NonNull Context context, @NonNull CharSequence text, boolean longer) {
         Activity activity = activityOf(context);
-        View content = activity != null && !activity.isFinishing()
-                ? activity.findViewById(android.R.id.content) : null;
+        View content = null;
+        if (activity != null && !activity.isFinishing()) {
+            // MainActivity's root is padded off the hinge of a folded screen; the window's content
+            // frame above it is not, and a snackbar made from it would sit across the hinge.
+            content = activity.findViewById(R.id.root_layout);
+            if (content == null) {
+                content = activity.findViewById(android.R.id.content);
+            }
+        }
         if (content != null && content.isAttachedToWindow()) {
             show(content, text, longer);
         } else {
@@ -89,7 +96,17 @@ public final class Notice {
     @Nullable
     static View anchorFor(@NonNull View root) {
         View best = highestFab(root, null);
-        return best != null ? best : root.findViewById(R.id.bottomNavigation);
+        return best != null ? best : bottomBar(root);
+    }
+
+    /**
+     * The bottom navigation bar, or null when the tabs are in a side rail (wide windows), which a
+     * snackbar must not be anchored to: it would jump to the rail's top.
+     */
+    @Nullable
+    static View bottomBar(@NonNull View root) {
+        View nav = root.findViewById(R.id.bottomNavigation);
+        return nav instanceof com.google.android.material.navigationrail.NavigationRailView ? null : nav;
     }
 
     @Nullable
@@ -114,7 +131,7 @@ public final class Notice {
     }
 
     @Nullable
-    private static Activity activityOf(@NonNull Context context) {
+    static Activity activityOf(@NonNull Context context) {
         while (context instanceof ContextWrapper) {
             if (context instanceof Activity) {
                 return (Activity) context;

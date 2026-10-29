@@ -17,6 +17,7 @@
         android:contentDescription="@null"
         android:fillViewport="true"
         android:paddingHorizontal="@dimen/scan_screen_horizontal_padding"
+        android:tag="edgePadded"
         android:paddingTop="8dp"
         android:paddingBottom="88dp"
         android:scrollbars="none"
@@ -369,10 +370,11 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="@string/scan_empty_state_description"
+                android:maxWidth="@dimen/empty_state_text_max_width"
                 android:textAlignment="center"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="?attr/colorOnSurfaceVariant" />
@@ -454,7 +456,8 @@
         style="@style/Widget.Material3.ExtendedFloatingActionButton.Primary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="@dimen/fab_margin_end"
+        android:tag="edgeFab"
         android:layout_marginBottom="16dp"
         android:text="@string/button_select_media"
         android:textColor="?attr/colorOnPrimary"

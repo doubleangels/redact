@@ -36,12 +36,14 @@ On Windows use `gradlew.bat`, or Git Bash. You do not need a Sentry DSN to build
 4. **Run the checks** before you push:
 
    ```bash
-   ./gradlew testDebugUnitTest
+   ./gradlew testDebugUnitTest jacocoTestCoverageVerification
    ./gradlew lintRelease
    ```
 
+   The coverage check fails when unit tests cover less than 90% of the app's lines, so new code needs tests of its own.
+
 5. **Localize any user-visible text** (see below).
-6. **Open a pull request against `dev`.** Describe what changed and why, and include screenshots for UI changes. CI runs the tests and Android Lint on every pull request.
+6. **Open a pull request against `dev`.** Describe what changed and why, and include screenshots for UI changes. CI runs the tests, the coverage check and Android Lint on every pull request.
 
 ### Commit messages
 

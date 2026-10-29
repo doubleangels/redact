@@ -26,6 +26,7 @@
         android:layout_height="0dp"
         android:orientation="vertical"
         android:paddingHorizontal="@dimen/screen_edge_padding"
+        android:tag="edgePadded"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
         android:visibility="gone"

@@ -359,7 +359,7 @@ public class CleanConvertFragmentsTest {
     }
 
     @Test
-    public void clean_pickingMoreThanTheLimit_keepsTheFirstTwenty() throws Exception {
+    public void clean_pickingMoreThanTheLimit_keepsOnlyTheFirstFew() throws Exception {
         grantStorageRead();
         View v = clean();
         v.findViewById(R.id.emptyStateSelectButton).performClick();
@@ -370,12 +370,13 @@ public class CleanConvertFragmentsTest {
         assertNotNull(launched);
         Intent data = new Intent();
         data.setClipData(ClipData.newRawUri("media", Uri.parse("file:///nonexistent/0.jpg")));
-        for (int i = 1; i < 25; i++) {
+        int cap = com.doubleangels.redact.media.MediaPickerContracts.MAX_PICK_ITEMS;
+        for (int i = 1; i < cap + 5; i++) {
             data.getClipData().addItem(new ClipData.Item(Uri.parse("file:///nonexistent/" + i + ".jpg")));
         }
         shadow.receiveResult(launched.intent, Activity.RESULT_OK, data);
-        awaitMain(() -> vm.getSelectedItems().getValue().size() == 20);
-        assertEquals(activity.getString(R.string.media_picker_selection_capped, 20),
+        awaitMain(() -> vm.getSelectedItems().getValue().size() == cap);
+        assertEquals(activity.getString(R.string.media_picker_selection_capped, cap),
                 com.doubleangels.redact.ui.Notice.lastShownForTests());
     }
 

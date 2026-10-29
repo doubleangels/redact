@@ -15,7 +15,7 @@
 <p>Open any photo or video and see every hidden field in a clear, searchable list. A Location badge marks anything that shows where it was taken.</p>
 
 <b>Remove it: Clean</b>
-<p>Clean up to 20 photos and videos at once. Redact removes GPS, device details, timestamps, XMP, IPTC, comments and video tags, plus data hidden after the picture such as extra preview images and Motion Photo clips, then tells you exactly what it removed. Your originals stay untouched unless you ask Redact to move them to the trash.</p>
+<p>Clean up to 100 photos and videos at once. Redact removes GPS, device details, timestamps, XMP, IPTC, comments and video tags, plus data hidden after the picture such as extra preview images and Motion Photo clips, then tells you exactly what it removed. Your originals stay untouched unless you ask Redact to move them to the trash.</p>
 
 <b>Share safely from any app</b>
 <p>Share a photo or video to Redact from your gallery or any other app. It cleans the file and hands it straight back to the share sheet. Or share it to Scan with Redact to check it first.</p>
@@ -27,7 +27,7 @@
 <ul>
 <li>Everything runs on your phone. Cleaning, scanning and converting need no internet connection.</li>
 <li>No ads, no analytics, no tracking and no account</li>
-<li>Google Play Data safety: no data collected, no data shared</li>
+<li>Your photos, videos and personal information are never collected or shared</li>
 <li>Open source under GPL-3.0, so anyone can read the code on GitHub</li>
 <li>Works with the system file picker, so access to your whole library is optional</li>
 <li>Optional crash reports stay off unless you turn them on</li>

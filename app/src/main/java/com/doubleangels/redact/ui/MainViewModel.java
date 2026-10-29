@@ -112,6 +112,9 @@ public class MainViewModel extends AndroidViewModel {
      */
     private final SharedState shared;
 
+    /** Window state, not job state, so it lives here and not in {@link SharedState}. */
+    private final MutableLiveData<FoldPosture> foldPosture = new MutableLiveData<>(FoldPosture.NONE);
+
     private static final class SharedState {
         final MutableLiveData<List<MediaItem>> selectedItems = new MutableLiveData<>(new ArrayList<>());
         final MutableLiveData<List<MediaItem>> convertSelectedItems = new MutableLiveData<>(new ArrayList<>());
@@ -436,6 +439,17 @@ public class MainViewModel extends AndroidViewModel {
     private final MutableLiveData<String> convertProgressMessage;
 
 
+
+    /** How the device is folded; {@link FoldPosture#NONE} when it is flat or does not fold. */
+    public LiveData<FoldPosture> getFoldPosture() {
+        return foldPosture;
+    }
+
+    public void setFoldPosture(@NonNull FoldPosture posture) {
+        if (!posture.equals(foldPosture.getValue())) {
+            foldPosture.setValue(posture);
+        }
+    }
 
     public LiveData<List<MediaItem>> getSelectedItems() {
 

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="screen_edge_padding">48dp</dimen>
+    <dimen name="fab_margin_end">@dimen/screen_edge_padding</dimen>
     <dimen name="scan_action_row_bleed">0dp</dimen>
     <dimen name="scan_action_row_bleed_negative">0dp</dimen>
 </resources>

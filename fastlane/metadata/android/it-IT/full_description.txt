@@ -15,7 +15,7 @@
 <p>Apri qualsiasi foto o video e vedi ogni campo nascosto in un elenco chiaro e ricercabile. Un badge Posizione segnala tutto ciò che mostra dove è stato scattato.</p>
 
 <b>Rimuovi: Pulisci</b>
-<p>Pulisci fino a 20 foto e video alla volta. Redact rimuove GPS, dati del dispositivo, date e orari, XMP, IPTC, commenti e tag video, oltre ai dati nascosti dopo l'immagine, come anteprime aggiuntive e clip Motion Photo, poi ti dice esattamente cosa ha rimosso. Gli originali restano intatti, a meno che tu non chieda a Redact di spostarli nel cestino.</p>
+<p>Pulisci fino a 100 foto e video alla volta. Redact rimuove GPS, dati del dispositivo, date e orari, XMP, IPTC, commenti e tag video, oltre ai dati nascosti dopo l'immagine, come anteprime aggiuntive e clip Motion Photo, poi ti dice esattamente cosa ha rimosso. Gli originali restano intatti, a meno che tu non chieda a Redact di spostarli nel cestino.</p>
 
 <b>Condividi in sicurezza da qualsiasi app</b>
 <p>Condividi una foto o un video con Redact dalla galleria o da un'altra app. Il file viene pulito e restituito subito al menu di condivisione. Oppure condividilo con Scansiona con Redact per controllarlo prima.</p>
@@ -27,7 +27,7 @@
 <ul>
 <li>Tutto avviene sul telefono. Pulire, analizzare e convertire non richiedono una connessione a internet.</li>
 <li>Niente pubblicità, niente analisi, niente tracciamento e nessun account</li>
-<li>Sicurezza dei dati di Google Play: nessun dato raccolto, nessun dato condiviso</li>
+<li>Le tue foto, i tuoi video e i tuoi dati personali non vengono mai raccolti né condivisi</li>
 <li>Open source con licenza GPL-3.0: chiunque può leggere il codice su GitHub</li>
 <li>Funziona con il selettore di file di sistema, quindi l'accesso a tutta la galleria è facoltativo</li>
 <li>I rapporti sugli arresti anomali facoltativi restano disattivati finché non li attivi</li>

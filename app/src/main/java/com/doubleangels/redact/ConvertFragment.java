@@ -47,7 +47,6 @@ import java.util.List;
  */
 public class ConvertFragment extends TabFragment {
 
-    private static final int MAX_PICK_ITEMS = 20;
 
     private PermissionManager permissionManager;
     private MediaSelector mediaSelector;
@@ -104,11 +103,11 @@ public class ConvertFragment extends TabFragment {
                         SentryManager.log("Media selection was cancelled or failed in ConvertFragment.");
                         return;
                     }
-                    if (uris.size() > MAX_PICK_ITEMS) {
+                    if (uris.size() > MediaPickerContracts.MAX_PICK_ITEMS) {
                         Notice.show(requireContext(),
-                                getString(R.string.media_picker_selection_capped, MAX_PICK_ITEMS),
+                                getString(R.string.media_picker_selection_capped, MediaPickerContracts.MAX_PICK_ITEMS),
                                 true);
-                        uris = MediaPickerContracts.trimToMax(uris, MAX_PICK_ITEMS);
+                        uris = MediaPickerContracts.trimToMax(uris, MediaPickerContracts.MAX_PICK_ITEMS);
                     }
                     SentryManager.log("Media was selected successfully in ConvertFragment.");
                     if (mediaSelector != null) {

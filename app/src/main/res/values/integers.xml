@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Columns in the grid of selected files on Clean. -->
+    <integer name="selected_grid_columns">3</integer>
+    <!-- Columns when Clean has one half of a screen folded like a book, about a phone's width. -->
+    <integer name="selected_grid_columns_folded">3</integer>
+</resources>

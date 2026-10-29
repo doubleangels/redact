@@ -435,18 +435,19 @@ public class MainActivityTest {
     }
 
     @Test
-    public void sharingMoreThanTheCapToConvert_keepsTheFirstTwenty() throws Exception {
+    public void sharingMoreThanTheCapToConvert_keepsOnlyTheFirstFew() throws Exception {
         FakeDocumentsProvider.install(org.robolectric.RuntimeEnvironment.getApplication());
         java.util.ArrayList<android.net.Uri> uris = new java.util.ArrayList<>();
-        for (int i = 0; i < 25; i++) {
+        int cap = com.doubleangels.redact.media.MediaPickerContracts.MAX_SHARE_ITEMS;
+        for (int i = 0; i < cap + 5; i++) {
             uris.add(sharedImage(i));
         }
         android.content.Intent send = convertShare(android.content.Intent.ACTION_SEND_MULTIPLE)
                 .putParcelableArrayListExtra(android.content.Intent.EXTRA_STREAM, uris);
 
         assertEquals(R.id.navigation_convert, launchedTab(send));
-        assertEquals(20, awaitConvertItems().size());
-        assertTrue(com.doubleangels.redact.ui.Notice.lastShownForTests().contains("20"));
+        assertEquals(cap, awaitConvertItems().size());
+        assertTrue(com.doubleangels.redact.ui.Notice.lastShownForTests().contains(String.valueOf(cap)));
     }
 
     @Test
