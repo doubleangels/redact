@@ -1,6 +1,10 @@
 <b>Your photos can reveal where you live.</b>
 
-<p>Every photo your phone takes can carry hidden metadata: the exact GPS location where it was taken, the date and time, and the make and model of your phone. Anyone you send the original file to can read it. Redact shows you what a photo or video reveals and removes it, entirely on your device. No account, no uploads, no ads and no data collected.</p>
+Every photo and video can carry the exact GPS location, the date and time, and your phone's make and model. Anyone you send the original file to can read it.
+
+Redact is a metadata remover and EXIF remover. It shows what a file reveals and strips it, entirely on your device.
+
+No account, no uploads, no ads and no data collected.
 
 <b>Who it's for</b>
 <ul>
@@ -11,21 +15,38 @@
 <li>Emailing photos or sending them as files, which keeps every hidden detail</li>
 </ul>
 
-<b>See it: Scan</b>
-<p>Open any photo or video and see every hidden field in a clear, searchable list. A Location badge marks anything that shows where it was taken.</p>
+<b>See what a photo reveals with Scan</b>
+<ul>
+<li>Every hidden field in a clear, searchable EXIF viewer</li>
+<li>A Location badge marks anything that shows where it was taken</li>
+</ul>
 
-<b>Remove it: Clean</b>
-<p>Clean up to 100 photos and videos at once. Redact removes GPS, device details, timestamps, XMP, IPTC, comments and video tags, plus data hidden after the picture such as extra preview images and Motion Photo clips, then tells you exactly what it removed. Your originals stay untouched unless you ask Redact to move them to the trash.</p>
+<b>Remove GPS, location and EXIF data with Clean</b>
+<ul>
+<li>Clean up to 100 photos and videos at once</li>
+<li>Removes GPS and geotags, device details and timestamps</li>
+<li>Removes XMP, IPTC, comments and video tags</li>
+<li>Removes hidden extras like preview images and Motion Photo clips</li>
+<li>Tells you exactly what it removed</li>
+<li>Your originals stay untouched unless you ask Redact to trash them</li>
+</ul>
 
 <b>Share safely from any app</b>
-<p>Share a photo or video to Redact from your gallery or any other app. It cleans the file and hands it straight back to the share sheet. Or share it to Scan with Redact to check it first.</p>
+Share a photo or video to Redact from your gallery or any other app. It cleans the file and hands it straight back to the share sheet.
 
-<b>Convert formats</b>
-<p>JPEG, PNG, WebP and HEIC images, and H.264, H.265, VP9 and AV1 video. Every converted file is stripped and checked.</p>
+Or share it to Scan with Redact to check it first.
+
+<b>Convert formats and hide details</b>
+<ul>
+<li>Convert HEIC to JPG, plus PNG and WebP images</li>
+<li>Convert H.264, H.265, VP9 and AV1 video</li>
+<li>Every converted file is stripped and checked</li>
+<li>Censor pixelates, blacks out or blurs faces, plates and addresses</li>
+</ul>
 
 <b>Private by design</b>
 <ul>
-<li>Everything runs on your phone. Cleaning, scanning and converting need no internet connection.</li>
+<li>Everything runs on your phone, no internet needed</li>
 <li>No ads, no analytics, no tracking and no account</li>
 <li>Your photos, videos and personal information are never collected or shared</li>
 <li>Open source under GPL-3.0, so anyone can read the code on GitHub</li>
@@ -34,9 +55,16 @@
 </ul>
 
 <b>Handy extras</b>
-<p>A Quick Settings tile, home screen shortcuts, your own output folders, Keep Original File Names, Strict Clean, hiding Redact from screenshots and recents, and automatic clearing of copied metadata. Statistics shows what Redact has removed, counted only on your phone.</p>
+<ul>
+<li>Quick Settings tile and home screen shortcuts</li>
+<li>Your own output folders and Keep Original File Names</li>
+<li>Strict Clean</li>
+<li>Hide Redact from screenshots and recents</li>
+<li>Automatic clearing of copied metadata</li>
+<li>Statistics counted only on your phone</li>
+</ul>
 
 <b>Pay once, keep it</b>
-<p>No subscription, no ads and no in-app purchases. Your purchase supports an independent developer.</p>
+No subscription, no ads and no in-app purchases. Your purchase supports an independent developer.
 
-<p>Available in English, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean, Chinese (Simplified and Traditional), Hindi and Arabic.</p>
+Available in English, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean, Chinese (Simplified and Traditional), Hindi and Arabic.
