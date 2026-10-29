@@ -132,6 +132,35 @@ public class SentryPrivacyScrubberTest {
         assertNull(scrubbed.getUrl());
     }
 
+    /** Unbounded, the filename patterns took quadratic time on these: minutes, not milliseconds. */
+    @Test(timeout = 2_000)
+    public void scrubIsQuickOnLongRunsThatAlmostLookLikeFilenames() {
+        String[] inputs = {
+                "file" + "file!".repeat(40_000),
+                "x".repeat(200_000),
+                "a.".repeat(100_000),
+        };
+        for (String input : inputs) {
+            assertNotNull(SentryPrivacyScrubber.scrub(input));
+        }
+        // A name of the longest length a file system allows is still redacted whole.
+        String longName = "n".repeat(250) + ".jpg";
+        assertEquals("open failed: [redacted]", SentryPrivacyScrubber.scrub("open failed: " + longName));
+        assertEquals("fileName= [redacted]", SentryPrivacyScrubber.scrub("fileName=" + longName));
+    }
+
+    @Test
+    public void scrubNeverSendsPartOfANameThatALongTextIsCutIn() {
+        // Long URIs shrink to [redacted], which pulls the name across the 4000-character cut
+        // into the 500 characters that are kept; the cut has to drop it whole.
+        String uri = "content://" + "x".repeat(90) + " ";
+        String input = uri.repeat(39) + "b".repeat(56) + " " + "IMG_secret_beach.jpg";
+        String scrubbed = SentryPrivacyScrubber.scrub(input);
+        assertNotNull(scrubbed);
+        assertFalse(scrubbed, scrubbed.contains("IMG"));
+        assertFalse(scrubbed.contains("content://"));
+    }
+
     @Test
     public void scrubFeedbackEventToleratesAnEventWithoutFeedback() {
         SentryPrivacyScrubber.scrubFeedbackEvent(new SentryEvent());

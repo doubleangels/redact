@@ -41,9 +41,14 @@ public final class SentryPrivacyScrubber {
     /** Video location format e.g. +39.6594-104.9620 */
     private static final Pattern GPS_VIDEO_LOCATION =
             Pattern.compile("\\+?[-]?\\d{1,3}\\.\\d+[-+]\\d{1,3}\\.\\d+");
+    /**
+     * A name is at most 255 characters, so the name parts of the two filename patterns stop
+     * there. Unbounded, each failed start rescans the rest of a long run with no extension
+     * ("file!file!file!…"), which is quadratic in the length of the text.
+     */
     private static final Pattern FILENAME_IN_MESSAGE =
             Pattern.compile(
-                    "((?:file(?:Name)?|resolved processed file|item:)\\s*[:=]?)\\s*[^\\s,;]+\\.[a-zA-Z0-9]{1,8}",
+                    "((?:file(?:Name)?|resolved processed file|item:)\\s*[:=]?)\\s*[^\\s,;]{1,255}\\.[a-zA-Z0-9]{1,8}",
                     Pattern.CASE_INSENSITIVE);
     /**
      * Catches a media filename anywhere in text, not just after one of the literal prefixes
@@ -56,10 +61,13 @@ public final class SentryPrivacyScrubber {
      */
     private static final Pattern MEDIA_FILENAME =
             Pattern.compile(
-                    "(?:[\\w.\\-()'\\[\\]]+ ){0,3}[\\w.\\-()'\\[\\]]*"
+                    "(?:[\\w.\\-()'\\[\\]]{1,255} ){0,3}[\\w.\\-()'\\[\\]]{0,255}"
                             + "\\.(?:jpe?g|png|webp|heic|heics|heif|avif|dng|tiff?|jxl|gif|bmp|apng"
                             + "|mp4|mov|m4v|avi|mkv|webm|3gp|vp[89]|bin)\\b",
                     Pattern.CASE_INSENSITIVE);
+
+    /** Eight times the 500 characters a scrubbed text keeps, room for what redaction removes. */
+    private static final int MAX_SCRUBBED_INPUT = 4000;
 
     private static final String[] PII_ATTRIBUTE_KEYS = {
             "user.id", "user.name", "user.email", "user_id", "user_name", "user_email"
@@ -74,6 +82,13 @@ public final class SentryPrivacyScrubber {
             return input;
         }
         String s = input;
+        // At most 500 characters survive, so a longer text is cut before the patterns run on it,
+        // which keeps them quick on text of any length. The cut is at whitespace, so it never
+        // splits a filename and leaves its first part unredacted.
+        if (s.length() > MAX_SCRUBBED_INPUT) {
+            int cut = s.lastIndexOf(' ', MAX_SCRUBBED_INPUT);
+            s = s.substring(0, cut > 0 ? cut : MAX_SCRUBBED_INPUT);
+        }
         s = CONTENT_URI.matcher(s).replaceAll(REDACTED);
         s = FILE_URI.matcher(s).replaceAll(REDACTED);
         s = ABSOLUTE_PATH.matcher(s).replaceAll(REDACTED);
