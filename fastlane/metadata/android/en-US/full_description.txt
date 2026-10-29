@@ -1,6 +1,6 @@
 <b>Your photos can reveal where you live.</b>
 
-<p>Every photo your phone takes can carry hidden metadata: the exact GPS location where it was taken, the date and time, and the make and model of your phone. Anyone you send the original file to can read it. Redact shows you what a photo or video reveals and removes it, entirely on your device. No account, no uploads, no ads and no data collected.</p>
+<p>Every photo and video your phone takes can carry hidden metadata, including the exact GPS location where it was taken, the date and time, and the make and model of your phone. Anyone you send the original file to can read it. Redact is a metadata remover and EXIF remover that shows you what a photo or video reveals and strips it, entirely on your device. No account, no uploads, no ads and no data collected.</p>
 
 <b>Who it's for</b>
 <ul>
@@ -11,17 +11,17 @@
 <li>Emailing photos or sending them as files, which keeps every hidden detail</li>
 </ul>
 
-<b>See it: Scan</b>
-<p>Open any photo or video and see every hidden field in a clear, searchable list. A Location badge marks anything that shows where it was taken.</p>
+<b>See what a photo reveals with Scan</b>
+<p>Open any photo or video and see every hidden field in a clear, searchable EXIF viewer. A Location badge marks anything that shows where it was taken.</p>
 
-<b>Remove it: Clean</b>
-<p>Clean up to 100 photos and videos at once. Redact removes GPS, device details, timestamps, XMP, IPTC, comments and video tags, plus data hidden after the picture such as extra preview images and Motion Photo clips, then tells you exactly what it removed. Your originals stay untouched unless you ask Redact to move them to the trash.</p>
+<b>Remove GPS, location and EXIF data with Clean</b>
+<p>Clean up to 100 photos and videos at once. Redact removes GPS and geotags, device details, timestamps, XMP, IPTC, comments and video tags, plus data hidden after the picture such as extra preview images and Motion Photo clips, then tells you exactly what it removed. Your originals stay untouched unless you ask Redact to move them to the trash.</p>
 
 <b>Share safely from any app</b>
 <p>Share a photo or video to Redact from your gallery or any other app. It cleans the file and hands it straight back to the share sheet. Or share it to Scan with Redact to check it first.</p>
 
-<b>Convert formats</b>
-<p>JPEG, PNG, WebP and HEIC images, and H.264, H.265, VP9 and AV1 video. Every converted file is stripped and checked.</p>
+<b>Convert formats and hide details</b>
+<p>Convert HEIC to JPG, plus PNG and WebP images, and H.264, H.265, VP9 and AV1 video. Every converted file is stripped and checked. Use Censor to cover faces, plates or anything else before you share.</p>
 
 <b>Private by design</b>
 <ul>
