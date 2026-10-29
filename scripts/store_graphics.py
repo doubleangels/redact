@@ -39,7 +39,7 @@ CAPTIONS = {
     "en-US": [
         ("Your photos can reveal where you live.", "Scan shows the hidden GPS location, phone model and time."),
         ("Remove it all in one tap.", "Redact tells you exactly what it removed."),
-        ("Clean 20 photos and videos at once.", "Or share them to Redact from any app."),
+        ("Clean 100 photos and videos at once.", "Or share them to Redact from any app."),
         ("Convert without uploading anything.", "JPEG, PNG, WebP, HEIC and MP4, stripped and checked."),
         ("Check any file before you send it.", "Every hidden field, in a clear, searchable list."),
         ("Nothing leaves your phone.", "No ads, no tracking and no account. Open source."),
@@ -48,7 +48,7 @@ CAPTIONS = {
     "de-DE": [
         ("Deine Fotos können verraten, wo du wohnst.", "Scannen zeigt den versteckten GPS-Standort, das Handymodell und die Uhrzeit."),
         ("Entferne alles mit einem Tipp.", "Redact zeigt dir genau, was entfernt wurde."),
-        ("Bereinige 20 Fotos und Videos auf einmal.", "Oder teile sie aus jeder App mit Redact."),
+        ("Bereinige 100 Fotos und Videos auf einmal.", "Oder teile sie aus jeder App mit Redact."),
         ("Konvertiere, ohne etwas hochzuladen.", "JPEG, PNG, WebP, HEIC und MP4, bereinigt und geprüft."),
         ("Prüfe jede Datei vor dem Senden.", "Jedes versteckte Feld in einer klaren, durchsuchbaren Liste."),
         ("Nichts verlässt dein Handy.", "Keine Werbung, kein Tracking, kein Konto. Open Source."),
@@ -57,7 +57,7 @@ CAPTIONS = {
     "es-ES": [
         ("Tus fotos pueden revelar dónde vives.", "Escanear muestra la ubicación GPS oculta, el modelo del móvil y la hora."),
         ("Elimínalo todo con un toque.", "Redact te dice exactamente qué ha eliminado."),
-        ("Limpia 20 fotos y vídeos a la vez.", "O compártelos con Redact desde cualquier app."),
+        ("Limpia 100 fotos y vídeos a la vez.", "O compártelos con Redact desde cualquier app."),
         ("Convierte sin subir nada.", "JPEG, PNG, WebP, HEIC y MP4, limpios y comprobados."),
         ("Revisa cualquier archivo antes de enviarlo.", "Cada campo oculto, en una lista clara y con búsqueda."),
         ("Nada sale de tu móvil.", "Sin anuncios, sin rastreo y sin cuenta. Código abierto."),
@@ -66,7 +66,7 @@ CAPTIONS = {
     "fr-FR": [
         ("Vos photos peuvent révéler où vous habitez.", "Scanner affiche la position GPS cachée, le modèle du téléphone et l'heure."),
         ("Supprimez tout d'un seul geste.", "Redact vous indique précisément ce qu'il a supprimé."),
-        ("Nettoyez 20 photos et vidéos à la fois.", "Ou partagez-les vers Redact depuis n'importe quelle app."),
+        ("Nettoyez 100 photos et vidéos à la fois.", "Ou partagez-les vers Redact depuis n'importe quelle app."),
         ("Convertissez sans rien envoyer en ligne.", "JPEG, PNG, WebP, HEIC et MP4, nettoyés et vérifiés."),
         ("Vérifiez chaque fichier avant de l'envoyer.", "Chaque champ caché, dans une liste claire avec recherche."),
         ("Rien ne quitte votre téléphone.", "Pas de pub, pas de pistage et pas de compte. Open source."),
@@ -75,7 +75,7 @@ CAPTIONS = {
     "it-IT": [
         ("Le tue foto possono rivelare dove abiti.", "Scansiona mostra la posizione GPS nascosta, il modello del telefono e l'ora."),
         ("Rimuovi tutto con un tocco.", "Redact ti dice esattamente cosa ha rimosso."),
-        ("Pulisci 20 foto e video alla volta.", "Oppure condividili con Redact da qualsiasi app."),
+        ("Pulisci 100 foto e video alla volta.", "Oppure condividili con Redact da qualsiasi app."),
         ("Converti senza caricare nulla.", "JPEG, PNG, WebP, HEIC e MP4, puliti e verificati."),
         ("Controlla ogni file prima di inviarlo.", "Ogni campo nascosto, in un elenco chiaro e ricercabile."),
         ("Niente lascia il tuo telefono.", "Niente pubblicità, tracciamento o account. Open source."),
@@ -84,7 +84,7 @@ CAPTIONS = {
     "pt-BR": [
         ("Suas fotos podem revelar onde você mora.", "Escanear mostra a localização GPS oculta, o modelo do celular e o horário."),
         ("Remova tudo com um toque.", "O Redact mostra exatamente o que removeu."),
-        ("Limpe 20 fotos e vídeos de uma vez.", "Ou compartilhe com o Redact de qualquer app."),
+        ("Limpe 100 fotos e vídeos de uma vez.", "Ou compartilhe com o Redact de qualquer app."),
         ("Converta sem enviar nada.", "JPEG, PNG, WebP, HEIC e MP4, limpos e verificados."),
         ("Confira qualquer arquivo antes de enviar.", "Cada campo oculto, em uma lista clara e pesquisável."),
         ("Nada sai do seu celular.", "Sem anúncios, sem rastreamento e sem conta. Código aberto."),
@@ -93,7 +93,7 @@ CAPTIONS = {
     "ru-RU": [
         ("Ваши фото могут выдать, где вы живёте.", "Сканирование покажет скрытые GPS-координаты, модель телефона и время."),
         ("Удалите всё одним касанием.", "Redact покажет, что именно удалено."),
-        ("Очищайте 20 фото и видео за раз.", "Или отправляйте их в Redact из любого приложения."),
+        ("Очищайте 100 фото и видео за раз.", "Или отправляйте их в Redact из любого приложения."),
         ("Конвертируйте без загрузки в сеть.", "JPEG, PNG, WebP, HEIC и MP4: очищены и проверены."),
         ("Проверьте файл перед отправкой.", "Все скрытые поля в понятном списке с поиском."),
         ("Ничто не покидает ваш телефон.", "Без рекламы, слежки и аккаунта. Открытый код."),
@@ -102,7 +102,7 @@ CAPTIONS = {
     "ja-JP": [
         ("写真から住所がわかってしまうかも。", "スキャンで、隠れた GPS 位置情報・機種・日時を表示します。"),
         ("ワンタップでまとめて削除。", "何を削除したかを正確に表示します。"),
-        ("写真と動画を20件まとめてクリーン。", "どのアプリからでも Redact に共有できます。"),
+        ("写真と動画を100件まとめてクリーン。", "どのアプリからでも Redact に共有できます。"),
         ("アップロードせずに変換。", "JPEG・PNG・WebP・HEIC・MP4 に対応。クリーンして確認済みです。"),
         ("送る前に、どんなファイルもチェック。", "隠れた項目を、見やすく検索できる一覧で表示します。"),
         ("データはスマホから出ません。", "広告・追跡・アカウントなし。オープンソースです。"),
@@ -111,7 +111,7 @@ CAPTIONS = {
     "ko-KR": [
         ("사진이 사는 곳을 드러낼 수 있습니다.", "스캔으로 숨은 GPS 위치, 휴대전화 모델, 시간을 확인하세요."),
         ("한 번에 모두 지우세요.", "무엇을 지웠는지 정확히 알려 드립니다."),
-        ("사진과 동영상 20개를 한 번에 정리하세요.", "어느 앱에서나 Redact로 공유할 수도 있습니다."),
+        ("사진과 동영상 100개를 한 번에 정리하세요.", "어느 앱에서나 Redact로 공유할 수도 있습니다."),
         ("업로드 없이 변환하세요.", "JPEG, PNG, WebP, HEIC, MP4를 지원하며, 정리 후 검사까지 합니다."),
         ("보내기 전에 모든 파일을 확인하세요.", "숨은 항목을 검색 가능한 깔끔한 목록으로 보여 줍니다."),
         ("아무것도 휴대전화를 떠나지 않습니다.", "광고, 추적, 계정이 없습니다. 오픈소스입니다."),
@@ -120,7 +120,7 @@ CAPTIONS = {
     "zh-CN": [
         ("你的照片可能暴露你的住址。", "扫描即可看到隐藏的 GPS 位置、手机型号和拍摄时间。"),
         ("一键全部清除。", "Redact 会准确告诉你移除了什么。"),
-        ("一次清理 20 张照片和视频。", "也可以从任何应用分享给 Redact。"),
+        ("一次清理 100 张照片和视频。", "也可以从任何应用分享给 Redact。"),
         ("无需上传即可转换。", "支持 JPEG、PNG、WebP、HEIC 和 MP4，清理并检查。"),
         ("发送前先检查文件。", "所有隐藏字段，清晰可搜索。"),
         ("数据从不离开你的手机。", "无广告、无跟踪、无需账号。开源。"),
@@ -129,7 +129,7 @@ CAPTIONS = {
     "zh-TW": [
         ("你的照片可能洩露你的住址。", "掃描即可看到隱藏的 GPS 位置、手機型號與拍攝時間。"),
         ("一鍵全部清除。", "Redact 會明確告訴你移除了什麼。"),
-        ("一次清理 20 張照片與影片。", "也可以從任何應用程式分享給 Redact。"),
+        ("一次清理 100 張照片與影片。", "也可以從任何應用程式分享給 Redact。"),
         ("不必上傳就能轉換。", "支援 JPEG、PNG、WebP、HEIC 與 MP4，清理並檢查。"),
         ("傳送前先檢查檔案。", "所有隱藏欄位，清楚又可搜尋。"),
         ("資料從不離開你的手機。", "沒有廣告、追蹤或帳號。開放原始碼。"),
@@ -138,7 +138,7 @@ CAPTIONS = {
     "hi-IN": [
         ("आपकी फ़ोटो बता सकती हैं कि आप कहाँ रहते हैं।", "स्कैन छिपी GPS लोकेशन, फ़ोन मॉडल और समय दिखाता है।"),
         ("एक टैप में सब हटाएँ।", "Redact बताता है कि उसने ठीक-ठीक क्या हटाया।"),
-        ("एक बार में 20 फ़ोटो और वीडियो साफ़ करें।", "या किसी भी ऐप से Redact पर शेयर करें।"),
+        ("एक बार में 100 फ़ोटो और वीडियो साफ़ करें।", "या किसी भी ऐप से Redact पर शेयर करें।"),
         ("बिना अपलोड किए फ़ॉर्मैट बदलें।", "JPEG, PNG, WebP, HEIC और MP4, साफ़ और जाँचे हुए।"),
         ("भेजने से पहले हर फ़ाइल जाँचें।", "हर छिपा फ़ील्ड, साफ़ और खोजने योग्य सूची में।"),
         ("कुछ भी आपके फ़ोन से बाहर नहीं जाता।", "कोई विज्ञापन, ट्रैकिंग या खाता नहीं। ओपन सोर्स।"),
@@ -147,7 +147,7 @@ CAPTIONS = {
     "ar": [
         ("قد تكشف صورك مكان سكنك.", "يعرض المسح موقع GPS المخفي وطراز الهاتف ووقت الالتقاط."),
         ("أزل كل شيء بلمسة واحدة.", "يخبرك Redact بما أزاله بالضبط."),
-        ("نظّف 20 صورة وفيديو دفعة واحدة.", "أو شاركها مع Redact من أي تطبيق."),
+        ("نظّف 100 صورة وفيديو دفعة واحدة.", "أو شاركها مع Redact من أي تطبيق."),
         ("حوّل الصيغ دون رفع أي شيء.", "JPEG وPNG وWebP وHEIC وMP4، منظّفة ومفحوصة."),
         ("افحص أي ملف قبل إرساله.", "كل حقل مخفي في قائمة واضحة قابلة للبحث."),
         ("لا شيء يغادر هاتفك.", "بلا إعلانات ولا تتبّع ولا حساب. مفتوح المصدر."),
