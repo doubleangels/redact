@@ -8,6 +8,8 @@ import static org.junit.Assert.assertFalse;
 
 import org.junit.Test;
 
+import java.util.regex.Pattern;
+
 import io.sentry.SentryAttributeType;
 import io.sentry.SentryEvent;
 import io.sentry.SentryLogEvent;
@@ -147,6 +149,32 @@ public class SentryPrivacyScrubberTest {
         String longName = "n".repeat(250) + ".jpg";
         assertEquals("open failed: [redacted]", SentryPrivacyScrubber.scrub("open failed: " + longName));
         assertEquals("fileName= [redacted]", SentryPrivacyScrubber.scrub("fileName=" + longName));
+    }
+
+    /** The name after "file:" and the like is found without a pattern; it ends where the pattern's did. */
+    @Test
+    public void scrubRedactsNamesAfterAPrefixAsThePatternDid() {
+        Pattern pattern = Pattern.compile(
+                "((?:file(?:Name)?|resolved processed file|item:)\\s*[:=]?)\\s*[^\\s,;]{1,255}\\.[a-zA-Z0-9]{1,8}",
+                Pattern.CASE_INSENSITIVE);
+        String[] inputs = {
+                "fileName=report.txt",
+                "FILE: notes.v2.final.txt; next",
+                "file = a.b, then c",
+                "item: archive.tar.gz!",
+                "fileName.txt",
+                "file=.cfg",
+                "resolved processed file  scan.pdf and file x",
+                "file noext, fileName=data.json9999999999",
+                "profile:thing.cfg",
+                "file\tz.xml\nfile: y.log",
+                "file " + "n".repeat(300) + ".txt",
+                "file!file!file.json",
+        };
+        for (String input : inputs) {
+            String expected = pattern.matcher(input).replaceAll("$1 [redacted]");
+            assertEquals(input, expected, SentryPrivacyScrubber.scrub(input));
+        }
     }
 
     @Test
