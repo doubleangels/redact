@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Windows 600dp wide and up (tablets, an unfolded foldable, a phone in landscape): the tabs move
      into a navigation rail at the start edge, which frees the height and keeps the tabs where a
-     thumb or a mouse reaches them, instead of a bar stretched across the whole window. -->
+     thumb or a mouse reaches them, instead of a bar stretched across the whole window. The rail does
+     not pad itself for the system bars: MainActivity pads the root for them and for a fold, and
+     the rail padding itself as well put a landscape camera cutout's width in twice. -->
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -26,7 +28,10 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:menu="@menu/bottom_navigation_menu"
-            app:menuGravity="center" />
+            app:menuGravity="center"
+            app:paddingBottomSystemWindowInsets="false"
+            app:paddingStartSystemWindowInsets="false"
+            app:paddingTopSystemWindowInsets="false" />
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/fragment_container"

@@ -464,15 +464,14 @@ public class MainActivity extends AppCompatActivity {
      * space they have. Not private so a test can fold the screen without a real fold.
      */
     void onFoldPostureChanged(@NonNull FoldPosture posture) {
+        // Set even when this activity already knew the posture: the view model outlives a
+        // recreated activity, which starts out flat, and must not keep the posture from before.
+        new androidx.lifecycle.ViewModelProvider(this).get(com.doubleangels.redact.ui.MainViewModel.class).setFoldPosture(posture);
         if (posture.equals(foldPosture)) {
             return;
         }
         foldPosture = posture;
-        new androidx.lifecycle.ViewModelProvider(this).get(com.doubleangels.redact.ui.MainViewModel.class).setFoldPosture(posture);
-        View content = findViewById(R.id.main_content);
-        if (content != null) {
-            content.setPadding(posture.leftInset(), 0, posture.rightInset(), posture.bottomInset());
-        }
+        applyRootPadding();
         updateRailLabels();
         View root = findViewById(android.R.id.content);
         if (root != null) {
@@ -491,8 +490,12 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         float density = getResources().getDisplayMetrics().density;
+        // The window height includes the status bar, and the navigation bar unless the lower half
+        // of a tabletop, which the app leaves empty anyway, already covers it.
+        int bottomPx = foldPosture.type() == FoldPosture.Type.TABLETOP
+                ? foldPosture.bottomInset() : systemBars.bottom;
         float usableHeightDp = getResources().getConfiguration().screenHeightDp
-                - foldPosture.bottomInset() / density;
+                - (systemBars.top + bottomPx) / density;
         boolean shortRail = usableHeightDp < 400;
         int mode = shortRail
                 ? NavigationBarView.LABEL_VISIBILITY_UNLABELED
@@ -529,6 +532,27 @@ public class MainActivity extends AppCompatActivity {
     @Nullable
     private int[] railMetrics;
 
+    /** The system bars and cutout as last applied, kept so a fold can be applied without new insets. */
+    @NonNull
+    private androidx.core.graphics.Insets systemBars = androidx.core.graphics.Insets.NONE;
+
+    /**
+     * Pads the root for the system bars and, when folded, for the half the app leaves empty. The
+     * root is the snackbars' parent, so they stay in the used half too. The fold insets are measured
+     * from the window edges like the system bars, so the larger of the two applies on each side.
+     */
+    private void applyRootPadding() {
+        View coordinatorLayout = findViewById(R.id.root_layout);
+        if (coordinatorLayout != null) {
+            coordinatorLayout.setPadding(
+                    Math.max(systemBars.left, foldPosture.leftInset()),
+                    systemBars.top,
+                    Math.max(systemBars.right, foldPosture.rightInset()),
+                    foldPosture.bottomInset()
+            );
+        }
+    }
+
     private void setupEdgeToEdgeInsets() {
         try {
             View rootView = findViewById(android.R.id.content);
@@ -543,14 +567,11 @@ public class MainActivity extends AppCompatActivity {
                     int bottomOverlap = foldPosture.type() == FoldPosture.Type.TABLETOP
                             ? 0 : Math.max(nav.bottom, ime.bottom);
 
-                    View coordinatorLayout = findViewById(R.id.root_layout);
-                    if (coordinatorLayout != null) {
-                        coordinatorLayout.setPadding(
-                                outer.left,
-                                outer.top,
-                                outer.right,
-                                0
-                        );
+                    boolean barsChanged = !outer.equals(systemBars);
+                    systemBars = outer;
+                    applyRootPadding();
+                    if (barsChanged) {
+                        updateRailLabels();
                     }
 
                     NavigationBarView bottomNav = findViewById(R.id.bottomNavigation);

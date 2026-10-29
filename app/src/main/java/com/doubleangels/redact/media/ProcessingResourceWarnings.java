@@ -126,12 +126,12 @@ public final class ProcessingResourceWarnings {
                             ? activity.getString(
                                     criticalStorage.messageResId, criticalStorage.formatArgs)
                             : activity.getString(criticalStorage.messageResId);
-            new MaterialAlertDialogBuilder(activity)
+            com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(activity)
                     .setTitle(R.string.processing_warning_critical_storage_title)
                     .setMessage(message)
                     .setPositiveButton(R.string.processing_warning_continue, (d, w) -> onProceed.run())
                     .setNegativeButton(android.R.string.cancel, null)
-                    .show();
+                    .show());
             return;
         }
         onProceed.run();

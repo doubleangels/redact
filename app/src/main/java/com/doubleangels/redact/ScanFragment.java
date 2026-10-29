@@ -1030,7 +1030,7 @@ public class ScanFragment extends TabFragment {
             openCoordinatesInMaps(latitude, longitude);
             return;
         }
-        new MaterialAlertDialogBuilder(requireContext())
+        com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.scan_maps_consent_title)
                 .setMessage(R.string.scan_maps_consent_message)
                 .setPositiveButton(R.string.scan_maps_consent_continue, (dialog, which) -> {
@@ -1038,7 +1038,7 @@ public class ScanFragment extends TabFragment {
                     openCoordinatesInMaps(latitude, longitude);
                 })
                 .setNegativeButton(R.string.button_cancel, null)
-                .show();
+                .show());
     }
 
     private void openCoordinatesInMaps(double latitude, double longitude) {

@@ -74,5 +74,6 @@ public final class ErrorFeedbackPrompt {
             });
         });
         dialog.show();
+        FoldDialogs.place(dialog);
     }
 }

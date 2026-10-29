@@ -276,13 +276,13 @@ public class SettingsFragment extends TabFragment {
         });
 
         MaterialButton learnMore = view.findViewById(R.id.buttonCrashReportingLearnMore);
-        learnMore.setOnClickListener(v -> new MaterialAlertDialogBuilder(requireContext())
+        learnMore.setOnClickListener(v -> com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.settings_crash_reporting_detail_title)
                 .setMessage(R.string.settings_crash_reporting_detail_message)
                 .setPositiveButton(R.string.settings_crash_reporting_privacy_policy, (d, w) ->
                         openUrl(getString(R.string.url_privacy_policy)))
                 .setNegativeButton(R.string.settings_crash_reporting_dismiss, null)
-                .show());
+                .show()));
     }
 
     private void bindAdvancedSettings() {
@@ -338,7 +338,7 @@ public class SettingsFragment extends TabFragment {
                 suppressPreserveLocationToggleCallback = true;
                 switchPreserveLocation.setChecked(false);
                 suppressPreserveLocationToggleCallback = false;
-                new MaterialAlertDialogBuilder(requireContext())
+                com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
                         .setTitle(R.string.settings_preserve_location_confirm_title)
                         .setMessage(R.string.settings_preserve_location_confirm_message)
                         .setPositiveButton(android.R.string.ok, (d, w) -> {
@@ -348,7 +348,7 @@ public class SettingsFragment extends TabFragment {
                             suppressPreserveLocationToggleCallback = false;
                         })
                         .setNegativeButton(android.R.string.cancel, null)
-                        .show();
+                        .show());
             } else {
                 AppPreferences.setPreserveLocation(requireContext(), false);
             }
@@ -460,12 +460,12 @@ public class SettingsFragment extends TabFragment {
 
     private void bindStorage(@NonNull View view) {
         MaterialButton clearButton = view.findViewById(R.id.buttonClearTempFiles);
-        clearButton.setOnClickListener(v -> new MaterialAlertDialogBuilder(requireContext())
+        clearButton.setOnClickListener(v -> com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.settings_storage_clear_confirm_title)
                 .setMessage(R.string.settings_storage_clear_confirm_message)
                 .setPositiveButton(R.string.settings_storage_clear, (d, w) -> clearTempFiles())
                 .setNegativeButton(android.R.string.cancel, null)
-                .show());
+                .show()));
         refreshStorageSize();
         bindOutputFolder(view);
     }
@@ -494,7 +494,7 @@ public class SettingsFragment extends TabFragment {
 
     /** Asks whether the folder just chosen for {@code video} output should take the other type too. */
     private void offerFolderForOtherType(boolean video, @NonNull Uri tree) {
-        new MaterialAlertDialogBuilder(requireContext())
+        com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(video ? R.string.settings_output_also_images : R.string.settings_output_also_videos)
                 .setMessage(OutputDestination.describe(requireContext(), tree))
                 .setPositiveButton(R.string.settings_output_also_confirm, (d, w) -> {
@@ -502,7 +502,7 @@ public class SettingsFragment extends TabFragment {
                     refreshOutputFolders();
                 })
                 .setNegativeButton(R.string.settings_output_also_decline, null)
-                .show();
+                .show());
     }
 
     /**
@@ -779,12 +779,12 @@ public class SettingsFragment extends TabFragment {
         view.findViewById(R.id.rowAboutDonate).setOnClickListener(v ->
                 openUrl(getString(R.string.url_donate)));
         view.findViewById(R.id.rowResetSettings).setOnClickListener(v ->
-                new MaterialAlertDialogBuilder(requireContext())
+                com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
                         .setTitle(R.string.settings_reset_all_title)
                         .setMessage(R.string.settings_reset_all_message)
                         .setPositiveButton(R.string.settings_reset_all_confirm, (d, w) -> resetAllSettings())
                         .setNegativeButton(android.R.string.cancel, null)
-                        .show());
+                        .show()));
     }
 
     /**
@@ -961,10 +961,12 @@ public class SettingsFragment extends TabFragment {
                 activity.runOnUiThread(() -> {
                     if (isAdded()) {
                         refreshStorageSize();
+                        // The fragment's context, not ctx: from the application context the notice
+                        // can only be a toast, not a snackbar in the screen like every other notice.
                         if (before == 0 || deleted == 0) {
-                            Notice.show(ctx, R.string.settings_storage_clear_empty, false);
+                            Notice.show(requireContext(), R.string.settings_storage_clear_empty, false);
                         } else {
-                            Notice.show(ctx, R.string.settings_storage_clear_success, false);
+                            Notice.show(requireContext(), R.string.settings_storage_clear_success, false);
                         }
                     }
                 });
@@ -987,7 +989,7 @@ public class SettingsFragment extends TabFragment {
             return;
         }
         if (!PermissionStatusHelper.hasMediaReadPrerequisiteForLocation(requireContext())) {
-            new MaterialAlertDialogBuilder(requireContext())
+            com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.settings_location_needs_media_title)
                     .setMessage(R.string.settings_location_needs_media_message)
                     .setPositiveButton(R.string.settings_location_grant_media_first, (d, w) -> {
@@ -996,7 +998,7 @@ public class SettingsFragment extends TabFragment {
                                 requireActivity(), true);
                     })
                     .setNegativeButton(android.R.string.cancel, null)
-                    .show();
+                    .show());
             return;
         }
         locationPermissionLauncher.launch(android.Manifest.permission.ACCESS_MEDIA_LOCATION);
@@ -1105,7 +1107,7 @@ public class SettingsFragment extends TabFragment {
     private void showSentryConsentDialog(
             @NonNull Runnable onAllow,
             @Nullable Runnable onDeny) {
-        com.doubleangels.redact.ui.CrashReportingPrompt.consentDialog(requireContext(), onAllow, () -> {
+        com.doubleangels.redact.ui.FoldDialogs.place(com.doubleangels.redact.ui.CrashReportingPrompt.consentDialog(requireContext(), onAllow, () -> {
                     if (onDeny != null) {
                         onDeny.run();
                     }
@@ -1115,7 +1117,7 @@ public class SettingsFragment extends TabFragment {
                         onDeny.run();
                     }
                 })
-                .show();
+                .show());
     }
 
     private void revertSwitch(@NonNull MaterialSwitch target, boolean checked) {

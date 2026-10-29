@@ -147,7 +147,8 @@ public class AdaptiveWindowTest {
         activity.onFoldPostureChanged(com.doubleangels.redact.ui.FoldPosture.book(
                 new android.graphics.Rect(500, 0, 508, 700), 840, 700));
         shadowOf(Looper.getMainLooper()).idle();
-        android.view.View content = activity.findViewById(R.id.main_content);
+        // The root is padded, not just the content, so snackbars stay in the half too.
+        android.view.View content = activity.findViewById(R.id.root_layout);
         assertEquals(0, content.getPaddingLeft());
         assertEquals(340, content.getPaddingRight());
         assertEquals(0, content.getPaddingBottom());
@@ -156,6 +157,11 @@ public class AdaptiveWindowTest {
         // The tab's side padding is sized for the half, not for the 840dp window.
         assertTrue("padding " + column.getPaddingLeft() + " should shrink from " + flatPadding,
                 column.getPaddingLeft() < flatPadding);
+        // And the grid gets a phone's columns rather than the 840dp window's.
+        androidx.recyclerview.widget.GridLayoutManager grid = (androidx.recyclerview.widget.GridLayoutManager)
+                ((androidx.recyclerview.widget.RecyclerView) activity.findViewById(R.id.selectedItemsGrid))
+                        .getLayoutManager();
+        assertEquals(activity.getResources().getInteger(R.integer.selected_grid_columns_folded), grid.getSpanCount());
 
         // The action button follows the column's end edge instead of the window-sized margin.
         android.view.View button = activity.findViewById(R.id.stripButton);
@@ -168,6 +174,55 @@ public class AdaptiveWindowTest {
         assertEquals(0, content.getPaddingRight());
         assertEquals(flatPadding, column.getPaddingLeft());
         assertTrue(((android.view.ViewGroup.MarginLayoutParams) button.getLayoutParams()).getMarginEnd() > bookMargin);
+        assertEquals(activity.getResources().getInteger(R.integer.selected_grid_columns), grid.getSpanCount());
+    }
+
+    @Test
+    public void recreatedWhileFolded_aFlatReportStillUnfoldsTheTabs() {
+        RuntimeEnvironment.setQualifiers("w840dp-h700dp");
+        controller = Robolectric.buildActivity(MainActivity.class).setup();
+        controller.get().onFoldPostureChanged(com.doubleangels.redact.ui.FoldPosture.book(
+                new android.graphics.Rect(500, 0, 508, 700), 840, 700));
+        // A rotation or theme change recreates the activity, which starts out flat, while the
+        // view model keeps the fold; the first report after that may well be flat.
+        controller.recreate();
+        controller.get().onFoldPostureChanged(com.doubleangels.redact.ui.FoldPosture.NONE);
+        assertEquals(com.doubleangels.redact.ui.FoldPosture.NONE, new ViewModelProvider(controller.get())
+                .get(MainViewModel.class).getFoldPosture().getValue());
+    }
+
+    @Test
+    public void dialogs_stayOffTheHinge() {
+        RuntimeEnvironment.setQualifiers("w840dp-h700dp");
+        controller = Robolectric.buildActivity(MainActivity.class).setup();
+        MainActivity activity = controller.get();
+        activity.onFoldPostureChanged(com.doubleangels.redact.ui.FoldPosture.book(
+                new android.graphics.Rect(500, 0, 508, 700), 840, 700));
+        androidx.appcompat.app.AlertDialog dialog = com.doubleangels.redact.ui.FoldDialogs.place(
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
+                        .setMessage("m").show());
+        android.view.WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+        // In the left half and as wide as it, not centred on the window.
+        assertEquals(android.view.Gravity.LEFT, params.gravity & android.view.Gravity.HORIZONTAL_GRAVITY_MASK);
+        assertEquals(activity.getWindow().getDecorView().getWidth() - 340, params.width);
+        dialog.dismiss();
+
+        activity.onFoldPostureChanged(com.doubleangels.redact.ui.FoldPosture.tabletop(
+                new android.graphics.Rect(0, 340, 840, 348), 840, 700));
+        dialog = com.doubleangels.redact.ui.FoldDialogs.place(
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
+                        .setMessage("m").show());
+        assertEquals(android.view.Gravity.TOP, dialog.getWindow().getAttributes().gravity
+                & android.view.Gravity.VERTICAL_GRAVITY_MASK);
+        dialog.dismiss();
+
+        // Flat: left as Material places it.
+        activity.onFoldPostureChanged(com.doubleangels.redact.ui.FoldPosture.NONE);
+        dialog = com.doubleangels.redact.ui.FoldDialogs.place(
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
+                        .setMessage("m").show());
+        assertTrue((dialog.getWindow().getAttributes().gravity & android.view.Gravity.TOP) != android.view.Gravity.TOP);
+        dialog.dismiss();
     }
 
     @Test
@@ -181,7 +236,7 @@ public class AdaptiveWindowTest {
         activity.onFoldPostureChanged(com.doubleangels.redact.ui.FoldPosture.tabletop(
                 new android.graphics.Rect(0, 340, 840, 348), 840, 700));
         shadowOf(Looper.getMainLooper()).idle();
-        android.view.View content = activity.findViewById(R.id.main_content);
+        android.view.View content = activity.findViewById(R.id.root_layout);
         assertEquals(360, content.getPaddingBottom());
         assertEquals(0, content.getPaddingLeft());
         assertEquals(0, content.getPaddingRight());

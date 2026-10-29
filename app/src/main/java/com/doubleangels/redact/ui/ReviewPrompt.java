@@ -96,7 +96,7 @@ public final class ReviewPrompt {
         // Answered once only: marked done before the dialog shows, so a rotation or process death
         // while it is open never brings it back.
         finish(context);
-        new MaterialAlertDialogBuilder(context)
+        FoldDialogs.place(new MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.review_prompt_title)
                 .setMessage(R.string.review_prompt_message)
                 .setCancelable(false)
@@ -107,7 +107,7 @@ public final class ReviewPrompt {
                         showDeclinedNote(view, R.string.review_prompt_declined);
                     }
                 })
-                .show();
+                .show());
     }
 
     private static void finish(@NonNull Context context) {

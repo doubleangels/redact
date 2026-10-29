@@ -28,6 +28,8 @@ import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.ui.FabScroll;
+import com.doubleangels.redact.ui.FoldDialogs;
+import com.doubleangels.redact.ui.FoldPosture;
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.ui.Notice;
@@ -209,8 +211,13 @@ public class CleanFragment extends TabFragment {
 
             mediaAdapter = new MediaAdapter(new ArrayList<>());
             selectedItemsGrid.setAdapter(mediaAdapter);
-            selectedItemsGrid.setLayoutManager(new GridLayoutManager(
-                    requireContext(), getResources().getInteger(R.integer.selected_grid_columns)));
+            int columns = getResources().getInteger(R.integer.selected_grid_columns);
+            GridLayoutManager gridLayout = new GridLayoutManager(requireContext(), columns);
+            selectedItemsGrid.setLayoutManager(gridLayout);
+            // The column count comes from the window width, too many for half of a folded screen.
+            viewModel.getFoldPosture().observe(getViewLifecycleOwner(), posture -> gridLayout.setSpanCount(
+                    posture.type() == FoldPosture.Type.BOOK
+                            ? getResources().getInteger(R.integer.selected_grid_columns_folded) : columns));
 
             selectButton.setOnClickListener(v -> onSelectMediaClicked());
 
@@ -750,7 +757,7 @@ public class CleanFragment extends TabFragment {
                     .setPositiveButton(R.string.already_clean_skip, (d, w) -> proceed.accept(needCleaning))
                     .setNeutralButton(R.string.already_clean_clean_all, (d, w) -> proceed.accept(items));
         }
-        dialog.show();
+        FoldDialogs.place(dialog.show());
     }
 
     private void runOnUiThreadIfAdded(Runnable action) {

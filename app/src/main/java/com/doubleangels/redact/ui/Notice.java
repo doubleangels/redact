@@ -71,8 +71,15 @@ public final class Notice {
     /** For code that only has a context: the activity's screen when it has one, else a toast. */
     public static void show(@NonNull Context context, @NonNull CharSequence text, boolean longer) {
         Activity activity = activityOf(context);
-        View content = activity != null && !activity.isFinishing()
-                ? activity.findViewById(android.R.id.content) : null;
+        View content = null;
+        if (activity != null && !activity.isFinishing()) {
+            // MainActivity's root is padded off the hinge of a folded screen; the window's content
+            // frame above it is not, and a snackbar made from it would sit across the hinge.
+            content = activity.findViewById(R.id.root_layout);
+            if (content == null) {
+                content = activity.findViewById(android.R.id.content);
+            }
+        }
         if (content != null && content.isAttachedToWindow()) {
             show(content, text, longer);
         } else {
@@ -124,7 +131,7 @@ public final class Notice {
     }
 
     @Nullable
-    private static Activity activityOf(@NonNull Context context) {
+    static Activity activityOf(@NonNull Context context) {
         while (context instanceof ContextWrapper) {
             if (context instanceof Activity) {
                 return (Activity) context;
