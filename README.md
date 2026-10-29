@@ -24,10 +24,10 @@
 </p>
 
 <p align="center">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" alt="Clean tab, light theme" width="190">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" alt="Scan tab, light theme" width="190">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" alt="Convert tab, light theme" width="190">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" alt="Clean tab, dark theme" width="190">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" alt="Scan tab showing a photo's location, light theme" width="190">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" alt="Clean tab after cleaning, dark theme" width="190">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" alt="Clean tab with files selected, light theme" width="190">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" alt="Convert tab, dark theme" width="190">
 </p>
 
 ---
