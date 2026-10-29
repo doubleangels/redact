@@ -13,15 +13,15 @@ on:
   workflow_dispatch:
     inputs:
       screenshots:
-        description: Upload the phone and tablet screenshots
+        description: Upload the phone, 7-inch and 10-inch tablet screenshots to Google Play.
         type: boolean
         default: true
       graphics:
-        description: Upload the icon and feature graphic
+        description: Upload the app icon and the feature graphic to Google Play.
         type: boolean
         default: true
       validate_only:
-        description: Check the upload with Google Play without publishing it
+        description: Only check the upload with Google Play, without publishing anything.
         type: boolean
         default: false
 
