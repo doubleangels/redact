@@ -8,6 +8,8 @@ import static org.junit.Assert.assertFalse;
 
 import org.junit.Test;
 
+import java.util.regex.Pattern;
+
 import io.sentry.SentryAttributeType;
 import io.sentry.SentryEvent;
 import io.sentry.SentryLogEvent;
@@ -130,6 +132,61 @@ public class SentryPrivacyScrubberTest {
         assertNull(scrubbed.getName());
         assertNull(scrubbed.getContactEmail());
         assertNull(scrubbed.getUrl());
+    }
+
+    /** Unbounded, the filename patterns took quadratic time on these: minutes, not milliseconds. */
+    @Test(timeout = 2_000)
+    public void scrubIsQuickOnLongRunsThatAlmostLookLikeFilenames() {
+        String[] inputs = {
+                "file" + "file!".repeat(40_000),
+                "x".repeat(200_000),
+                "a.".repeat(100_000),
+        };
+        for (String input : inputs) {
+            assertNotNull(SentryPrivacyScrubber.scrub(input));
+        }
+        // A name of the longest length a file system allows is still redacted whole.
+        String longName = "n".repeat(250) + ".jpg";
+        assertEquals("open failed: [redacted]", SentryPrivacyScrubber.scrub("open failed: " + longName));
+        assertEquals("fileName= [redacted]", SentryPrivacyScrubber.scrub("fileName=" + longName));
+    }
+
+    /** The name after "file:" and the like is found without a pattern; it ends where the pattern's did. */
+    @Test
+    public void scrubRedactsNamesAfterAPrefixAsThePatternDid() {
+        Pattern pattern = Pattern.compile(
+                "((?:file(?:Name)?|resolved processed file|item:)\\s*[:=]?)\\s*[^\\s,;]{1,255}\\.[a-zA-Z0-9]{1,8}",
+                Pattern.CASE_INSENSITIVE);
+        String[] inputs = {
+                "fileName=report.txt",
+                "FILE: notes.v2.final.txt; next",
+                "file = a.b, then c",
+                "item: archive.tar.gz!",
+                "fileName.txt",
+                "file=.cfg",
+                "resolved processed file  scan.pdf and file x",
+                "file noext, fileName=data.json9999999999",
+                "profile:thing.cfg",
+                "file\tz.xml\nfile: y.log",
+                "file " + "n".repeat(300) + ".txt",
+                "file!file!file.json",
+        };
+        for (String input : inputs) {
+            String expected = pattern.matcher(input).replaceAll("$1 [redacted]");
+            assertEquals(input, expected, SentryPrivacyScrubber.scrub(input));
+        }
+    }
+
+    @Test
+    public void scrubNeverSendsPartOfANameThatALongTextIsCutIn() {
+        // Long URIs shrink to [redacted], which pulls the name across the 4000-character cut
+        // into the 500 characters that are kept; the cut has to drop it whole.
+        String uri = "content://" + "x".repeat(90) + " ";
+        String input = uri.repeat(39) + "b".repeat(56) + " " + "IMG_secret_beach.jpg";
+        String scrubbed = SentryPrivacyScrubber.scrub(input);
+        assertNotNull(scrubbed);
+        assertFalse(scrubbed, scrubbed.contains("IMG"));
+        assertFalse(scrubbed.contains("content://"));
     }
 
     @Test

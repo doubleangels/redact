@@ -4,6 +4,7 @@ import androidx.annotation.Nullable;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.sentry.Breadcrumb;
@@ -41,13 +42,22 @@ public final class SentryPrivacyScrubber {
     /** Video location format e.g. +39.6594-104.9620 */
     private static final Pattern GPS_VIDEO_LOCATION =
             Pattern.compile("\\+?[-]?\\d{1,3}\\.\\d+[-+]\\d{1,3}\\.\\d+");
-    private static final Pattern FILENAME_IN_MESSAGE =
+    /**
+     * The words a logged filename follows ("fileName=IMG_1.jpg", "resolved processed file a.png").
+     * Only these words are a pattern; {@link #redactNamedFiles} finds the name after them. A
+     * pattern for the name as well rescans the rest of a long run with no extension from every
+     * place the words occur ("file!file!file!…"), which is quadratic in the length of the text.
+     */
+    private static final Pattern FILENAME_PREFIX =
             Pattern.compile(
-                    "((?:file(?:Name)?|resolved processed file|item:)\\s*[:=]?)\\s*[^\\s,;]+\\.[a-zA-Z0-9]{1,8}",
+                    "((?:file(?:Name)?|resolved processed file|item:)\\s*[:=]?)\\s*",
                     Pattern.CASE_INSENSITIVE);
+    /** The longest name a file system allows, so the filename patterns look no further. */
+    private static final int MAX_NAME_LENGTH = 255;
+    private static final int MAX_EXTENSION_LENGTH = 8;
     /**
      * Catches a media filename anywhere in text, not just after one of the literal prefixes
-     * {@link #FILENAME_IN_MESSAGE} requires (e.g. a raw filename embedded in a vendor
+     * {@link #FILENAME_PREFIX} requires (e.g. a raw filename embedded in a vendor
      * IOException/FileNotFoundException message). Scoped to this app's own media extensions
      * so it doesn't also redact harmless tokens like source file names in stack traces. A name can
      * hold spaces and brackets ("IMG_1 (1).jpg", "My Trip.jpg") and the text does not show where
@@ -56,10 +66,13 @@ public final class SentryPrivacyScrubber {
      */
     private static final Pattern MEDIA_FILENAME =
             Pattern.compile(
-                    "(?:[\\w.\\-()'\\[\\]]+ ){0,3}[\\w.\\-()'\\[\\]]*"
+                    "(?:[\\w.\\-()'\\[\\]]{1,255} ){0,3}[\\w.\\-()'\\[\\]]{0,255}"
                             + "\\.(?:jpe?g|png|webp|heic|heics|heif|avif|dng|tiff?|jxl|gif|bmp|apng"
                             + "|mp4|mov|m4v|avi|mkv|webm|3gp|vp[89]|bin)\\b",
                     Pattern.CASE_INSENSITIVE);
+
+    /** Eight times the 500 characters a scrubbed text keeps, room for what redaction removes. */
+    private static final int MAX_SCRUBBED_INPUT = 4000;
 
     private static final String[] PII_ATTRIBUTE_KEYS = {
             "user.id", "user.name", "user.email", "user_id", "user_name", "user_email"
@@ -74,6 +87,13 @@ public final class SentryPrivacyScrubber {
             return input;
         }
         String s = input;
+        // At most 500 characters survive, so a longer text is cut before the patterns run on it,
+        // which keeps them quick on text of any length. The cut is at whitespace, so it never
+        // splits a filename and leaves its first part unredacted.
+        if (s.length() > MAX_SCRUBBED_INPUT) {
+            int cut = s.lastIndexOf(' ', MAX_SCRUBBED_INPUT);
+            s = s.substring(0, cut > 0 ? cut : MAX_SCRUBBED_INPUT);
+        }
         s = CONTENT_URI.matcher(s).replaceAll(REDACTED);
         s = FILE_URI.matcher(s).replaceAll(REDACTED);
         s = ABSOLUTE_PATH.matcher(s).replaceAll(REDACTED);
@@ -81,12 +101,95 @@ public final class SentryPrivacyScrubber {
         s = LAT_LON.matcher(s).replaceAll(REDACTED);
         s = GPS_COORD_PAIR.matcher(s).replaceAll(REDACTED);
         s = GPS_VIDEO_LOCATION.matcher(s).replaceAll(REDACTED);
-        s = FILENAME_IN_MESSAGE.matcher(s).replaceAll("$1 " + REDACTED);
+        s = redactNamedFiles(s);
         s = MEDIA_FILENAME.matcher(s).replaceAll(REDACTED);
         if (s.length() > 500) {
             s = s.substring(0, 500) + "…";
         }
         return s;
+    }
+
+    /**
+     * Replaces the name after each {@link #FILENAME_PREFIX} with {@link #REDACTED}: the run up to
+     * whitespace, a comma or a semicolon, through the last extension within
+     * {@link #MAX_NAME_LENGTH} characters. When "fileName" is followed by no such name, the name
+     * may start right after "file" instead ("fileName.txt"), as a pattern would backtrack to.
+     */
+    private static String redactNamedFiles(String s) {
+        Matcher m = FILENAME_PREFIX.matcher(s);
+        StringBuilder out = new StringBuilder(s.length());
+        int copied = 0;
+        int from = 0;
+        while (from < s.length() && m.find(from)) {
+            int nameStart = m.end();
+            int end = nameEnd(s, nameStart);
+            if (end < 0) {
+                int shortest = m.start() + shortestPrefixLength(m.group(1));
+                if (shortest < nameStart && runEnd(s, shortest) >= nameStart) {
+                    nameStart = shortest;
+                    end = nameEnd(s, nameStart);
+                }
+            }
+            if (end < 0) {
+                from = m.start() + 1;
+                continue;
+            }
+            out.append(s, copied, m.start())
+                    .append(s, m.start(), Math.min(m.end(1), nameStart))
+                    .append(' ')
+                    .append(REDACTED);
+            copied = end;
+            from = end;
+        }
+        return copied == 0 ? s : out.append(s, copied, s.length()).toString();
+    }
+
+    private static int shortestPrefixLength(String prefix) {
+        String lower = prefix.toLowerCase(Locale.ROOT);
+        if (lower.startsWith("file")) {
+            return "file".length();
+        }
+        return lower.startsWith("item:") ? "item:".length() : "resolved processed file".length();
+    }
+
+    /** Where a filename starting at {@code start} ends, after its extension, or -1 if it has none. */
+    private static int nameEnd(String s, int start) {
+        int lastDot = -1;
+        int limit = Math.min(s.length(), start + MAX_NAME_LENGTH + 1);
+        for (int i = start; i < limit && !isNameEnd(s.charAt(i)); i++) {
+            if (s.charAt(i) == '.' && i > start && i + 1 < s.length()
+                    && isAsciiLetterOrDigit(s.charAt(i + 1))) {
+                lastDot = i;
+            }
+        }
+        if (lastDot < 0) {
+            return -1;
+        }
+        int end = lastDot + 1;
+        while (end < s.length() && end - lastDot <= MAX_EXTENSION_LENGTH
+                && isAsciiLetterOrDigit(s.charAt(end))) {
+            end++;
+        }
+        return end;
+    }
+
+    /** The end of the run of name characters starting at {@code start}. */
+    private static int runEnd(String s, int start) {
+        int i = start;
+        while (i < s.length() && !isNameEnd(s.charAt(i))) {
+            i++;
+        }
+        return i;
+    }
+
+    /** What ends a name: a comma, a semicolon or whitespace, as {@code [\s,;]} matches it. */
+    private static boolean isNameEnd(char c) {
+        return c == ',' || c == ';' || c == ' ' || c == '\t' || c == '\n' || c == 0x0B
+                || c == '\f' || c == '\r';
+    }
+
+    private static boolean isAsciiLetterOrDigit(char c) {
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
     }
 
     /**

@@ -14,6 +14,9 @@ private const val PACKAGE = "com.doubleangels.redact"
 private val ALLOW_BUTTON: Pattern =
     Pattern.compile("com\\.android\\.permissioncontroller:id/permission_allow(_all|_foreground_only)?_button")
 
+/** The introduction's crash-report page, whose main button would turn crash reports on. */
+private const val CRASH_REPORTS_STEP = 8
+
 /** Cold-starts the app and visits every bottom-nav tab so their code lands in the profile. */
 class BaselineProfileGenerator {
 
@@ -24,13 +27,31 @@ class BaselineProfileGenerator {
     fun generate() = rule.collect(PACKAGE, includeInStartupProfile = true) {
         pressHome()
         startActivityAndWait()
-        // A fresh install asks for media, location and notification access in turn. Answer each
-        // prompt so the first-launch flow lands in the profile and the tabs underneath can be tapped.
+        // A fresh install opens the introduction, which covers the tabs; without going through it
+        // the taps below find nothing and the profile misses every tab but Clean.
+        finishIntroduction(device)
         allowPermissionPrompts(device)
         for (tab in listOf("scan", "convert", "censor", "settings", "clean")) {
             val item = device.wait(Until.findObject(By.res(PACKAGE, "navigation_$tab")), 3_000)
             item?.click()
             device.waitForIdle()
+        }
+    }
+
+    /**
+     * Skips to the introduction's choices, then allows media, location and notification access as
+     * a new user would. Crash reports get Not Now: a profile run must never turn them on.
+     */
+    private fun finishIntroduction(device: UiDevice) {
+        device.wait(Until.findObject(By.res(PACKAGE, "onboardingSkip")), 3_000)?.click() ?: return
+        repeat(12) {
+            device.waitForIdle()
+            allowPermissionPrompts(device)
+            val progress = device.findObject(By.res(PACKAGE, "onboardingProgress")) ?: return
+            // "Step 8 of 9": the step number is the first number in the description.
+            val step = Regex("\\d+").find(progress.contentDescription ?: "")?.value?.toInt()
+            val button = if (step == CRASH_REPORTS_STEP) "onboardingSecondary" else "onboardingPrimary"
+            device.wait(Until.findObject(By.res(PACKAGE, button)), 2_000)?.click()
         }
     }
 
