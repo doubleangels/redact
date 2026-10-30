@@ -757,6 +757,48 @@
         .steps-card > p:last-child {
             margin-bottom: 0;
         }
+
+        /* Large screens: a roomier header and more generous cards. */
+        @media (min-width: 1024px) {
+            .content {
+                padding-top: calc(3.5rem + env(safe-area-inset-top));
+            }
+            header.hero {
+                gap: 1.25rem;
+                margin-bottom: 2rem;
+            }
+            .mark {
+                width: 72px;
+                height: 72px;
+            }
+            header.hero h1 {
+                font-size: 2rem;
+            }
+            header.hero p {
+                font-size: 1rem;
+            }
+            .meta-row {
+                margin-bottom: 2rem;
+            }
+            .card {
+                padding: 2rem;
+            }
+            details.section-card summary {
+                padding: 1.1rem 1.75rem;
+            }
+            .section-body {
+                padding: 0 1.75rem 1.75rem;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .content {
+                max-width: 760px;
+            }
+            .email-address {
+                font-size: 1.6rem;
+            }
+        }
     </style>
 </head>
 <body>
