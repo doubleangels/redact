@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<!--
+    This is the canonical source of Redact's data deletion request page. Edit it here.
+
+    The same GitHub Actions workflow that publishes the privacy policy
+    (.github/workflows/publish-privacy.yml) copies this file to
+    doubleangels/privacypolicy on every change that reaches main, where it is served at
+    https://doubleangels.github.io/privacypolicy/redact-delete-data.html
+
+    Do not hand-edit the copy in the privacypolicy repo, it gets overwritten
+    on the next sync.
+-->
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#faf9fc" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141218" />
+    <title>Redact Data Deletion Request | DoubleAngels</title>
+    <meta name="description" content="How to ask DoubleAngels, the developer of the Redact app, to delete your data. Redact collects no personal data, but we can delete any emails you sent us. See what is deleted, what is kept, and for how long." />
+    <style>
+        :root {
+            /* Neutral grey for interactive accents (links, FAB, focus rings), with the
+               app's own colorAccent green kept for positive/"safe" indicators. */
+            --primary: #5f5f66;
+            --primary-text: #44444a;
+            --accent: #00c853;
+            --accent-text: #00913b;
+            --ink: #1b1b1f;
+            --ink-soft: #49454f;
+            --bg: #faf9fc;
+            --card: #f1eef4;
+            --card-high: #e6e1ea;
+            --border: #e3dfe8;
+            --code-bg: #e6e1ea;
+            /* App's own component_corner_small/medium/large (dimens.xml), deliberately
+               squarer than default Material pills. */
+            --radius-sm: 10px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --shadow: 0 1px 2px rgba(20, 18, 24, 0.08), 0 1px 3px rgba(20, 18, 24, 0.08);
+            --shadow-raised: 0 2px 4px rgba(20, 18, 24, 0.14), 0 4px 10px rgba(20, 18, 24, 0.12);
+            --edge: 20px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #9a9aa2;
+                --primary-text: #c7c7cc;
+                --accent: #00c853;
+                --accent-text: #4cdb8f;
+                --ink: #e6e1e9;
+                --ink-soft: #cac4cf;
+                --bg: #141218;
+                --card: #1d1b20;
+                --card-high: #2b2930;
+                --border: #332f37;
+                --code-bg: #2b2930;
+                --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.25);
+                --shadow-raised: 0 2px 4px rgba(0, 0, 0, 0.4), 0 6px 14px rgba(0, 0, 0, 0.35);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            line-height: 1.7;
+            font-size: 1rem;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        .skip-link {
+            position: absolute;
+            left: 1rem;
+            top: -3rem;
+            background: var(--primary);
+            color: #fff;
+            padding: 0.6rem 1rem;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            z-index: 100;
+            transition: top 0.15s ease;
+        }
+
+        .skip-link:focus {
+            top: 1rem;
+        }
+
+        .content {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: calc(1.5rem + env(safe-area-inset-top)) var(--edge) calc(6rem + env(safe-area-inset-bottom));
+        }
+
+        header.hero {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .mark {
+            flex: 0 0 auto;
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mark img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
+        }
+
+        header.hero h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            line-height: 1.25;
+        }
+
+        header.hero p {
+            margin-top: 0.2rem;
+            color: var(--ink-soft);
+            font-size: 0.92rem;
+        }
+
+        .meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: var(--card-high);
+            color: var(--ink);
+            padding: 0.4rem 0.8rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow);
+        }
+
+        .glance h2 {
+            font-size: 1.05rem;
+            margin-bottom: 1rem;
+        }
+
+        .glance ul {
+            list-style: none;
+            display: grid;
+            gap: 0.9rem;
+        }
+
+        .glance li {
+            display: flex;
+            gap: 0.65rem;
+            align-items: flex-start;
+            font-size: 0.97rem;
+        }
+
+        .glance li .tick {
+            flex: 0 0 auto;
+            width: 22px;
+            height: 22px;
+            border-radius: 7px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 0.78rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 0.1rem;
+        }
+
+        /* Table of contents: a single-column, thumb-friendly list (Material list style),
+           not a dense multi-column index. Each row is a full-width tap target. */
+        nav.toc h2 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--ink-soft);
+            margin-bottom: 0.25rem;
+        }
+
+        nav.toc ol {
+            list-style: none;
+            counter-reset: toc;
+        }
+
+        nav.toc li {
+            counter-increment: toc;
+            border-top: 1px solid var(--border);
+        }
+
+        nav.toc li:first-child {
+            border-top: none;
+        }
+
+        nav.toc a {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            min-height: 48px;
+            padding: 0.6rem 0.1rem;
+            color: var(--ink);
+            text-decoration: none;
+            font-size: 0.97rem;
+            font-weight: 500;
+        }
+
+        nav.toc a::before {
+            content: counter(toc) ".";
+            flex: 0 0 auto;
+            min-width: 1.4em;
+            color: var(--primary-text);
+            font-weight: 700;
+        }
+
+        nav.toc a:hover,
+        nav.toc a:active {
+            color: var(--primary-text);
+        }
+
+        /* Accordion sections (Material expansion-panel pattern): collapsed rows that expand
+           to full content. A fragment link to a section's id auto-opens it in modern browsers. */
+        details.section-card {
+            background: var(--card);
+            border-radius: var(--radius-lg);
+            margin-bottom: 0.75rem;
+            box-shadow: var(--shadow);
+            scroll-margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        details.section-card summary {
+            list-style: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            min-height: 56px;
+            padding: 1rem 1.25rem;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        details.section-card summary::-webkit-details-marker {
+            display: none;
+        }
+
+        details.section-card summary:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: -2px;
+            border-radius: var(--radius-lg);
+        }
+
+        details.section-card summary h2 {
+            margin: 0;
+            font-size: 1.02rem;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: -0.005em;
+        }
+
+        details.section-card .chevron {
+            flex: 0 0 auto;
+            width: 22px;
+            height: 22px;
+            color: var(--ink-soft);
+            transition: transform 0.2s ease;
+        }
+
+        details.section-card[open] .chevron {
+            transform: rotate(180deg);
+        }
+
+        .section-body {
+            padding: 0 1.25rem 1.25rem;
+        }
+
+        .section-body h3 {
+            font-size: 0.98rem;
+            margin: 1.1rem 0 0.5rem;
+            color: var(--ink);
+        }
+
+        .section-body h3:first-child {
+            margin-top: 0;
+        }
+
+        p {
+            margin-bottom: 0.9rem;
+            font-size: 0.97rem;
+            color: var(--ink);
+        }
+
+        .section-body p:last-child,
+        .section-body ul:last-child,
+        .section-body .table-wrap:last-child,
+        .section-body .callout:last-child {
+            margin-bottom: 0;
+        }
+
+        ul {
+            margin: 0 0 0.9rem 1.2rem;
+        }
+
+        li {
+            margin-bottom: 0.4rem;
+            font-size: 0.97rem;
+        }
+
+        a {
+            color: var(--primary-text);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        strong {
+            font-weight: 700;
+        }
+
+        code {
+            background: var(--code-bg);
+            border-radius: 5px;
+            padding: 0.15rem 0.4rem;
+            font-size: 0.85em;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            word-break: break-word;
+        }
+
+        .table-wrap {
+            margin-bottom: 1rem;
+        }
+
+        table {
+            display: block;
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 0.93rem;
+        }
+
+        /* Mobile-first table base: each row renders as its own stacked card, with the
+           column name shown as a small label above each value. No horizontal scrolling. */
+        thead {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        tbody,
+        tr,
+        td {
+            display: block;
+            width: 100%;
+        }
+
+        tr {
+            background: var(--card-high);
+            border-radius: var(--radius-md);
+            padding: 0.9rem 1rem;
+            margin-bottom: 0.65rem;
+        }
+
+        tr:last-child {
+            margin-bottom: 0;
+        }
+
+        td {
+            padding: 0.3rem 0;
+            border: none;
+            color: var(--ink-soft);
+        }
+
+        td[data-label]::before {
+            content: attr(data-label);
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--ink-soft);
+            margin-bottom: 0.15rem;
+        }
+
+        td:first-child {
+            padding-top: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        td:first-child::before {
+            content: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.65rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.78rem;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .badge-off {
+            background: var(--card);
+            background: color-mix(in srgb, var(--accent) 16%, var(--card));
+            color: var(--accent-text);
+        }
+
+        .badge-cond {
+            background: var(--card);
+            background: color-mix(in srgb, var(--primary) 16%, var(--card));
+            color: var(--primary-text);
+        }
+
+        .callout {
+            border-left: 4px solid var(--primary);
+            background: var(--card-high);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            padding: 0.9rem 1.1rem;
+            margin-bottom: 1rem;
+            font-size: 0.93rem;
+        }
+
+        footer {
+            margin-top: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.25rem;
+        }
+
+        footer a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--ink-soft);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        footer svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Material 3 floating action button: back to top, always reachable with a thumb. */
+        .fab {
+            position: fixed;
+            right: 16px;
+            bottom: calc(16px + env(safe-area-inset-bottom));
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: var(--primary);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-raised);
+            text-decoration: none;
+            z-index: 40;
+        }
+
+        .fab svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        /* Desktop / wide-viewport enhancement, layered on top of the mobile-first base. */
+        @media (min-width: 720px) {
+            .content {
+                padding-top: calc(2.5rem + env(safe-area-inset-top));
+            }
+
+            nav.toc ol {
+                columns: 2;
+                column-gap: 2rem;
+            }
+
+            nav.toc li {
+                break-inside: avoid;
+            }
+
+            .table-wrap {
+                overflow-x: auto;
+                border: 1px solid var(--border);
+                border-radius: var(--radius-md);
+            }
+
+            table {
+                display: table;
+                min-width: 560px;
+            }
+
+            thead {
+                position: static;
+                width: auto;
+                height: auto;
+                overflow: visible;
+                clip: auto;
+                white-space: normal;
+            }
+
+            thead th {
+                background: var(--card-high);
+                text-align: left;
+                padding: 0.75rem 1rem;
+                font-weight: 700;
+                color: var(--ink);
+                border-bottom: 1px solid var(--border);
+            }
+
+            tbody {
+                display: table-row-group;
+            }
+
+            tr {
+                display: table-row;
+                background: transparent;
+                border-radius: 0;
+                padding: 0;
+                margin-bottom: 0;
+            }
+
+            td {
+                display: table-cell;
+                padding: 0.85rem 1rem;
+                border-bottom: 1px solid var(--border);
+                vertical-align: top;
+            }
+
+            tr:last-child td {
+                border-bottom: none;
+            }
+
+            td:first-child {
+                padding-top: 0.85rem;
+                font-size: inherit;
+                font-weight: 600;
+            }
+
+            td[data-label]::before {
+                content: none;
+            }
+        }
+
+        /* Request form: same tokens and corner radii as the rest of the page. */
+        .form-card h2 {
+            font-size: 1.05rem;
+            margin-bottom: 0.4rem;
+        }
+        .form-card form {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .field label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 0.35rem;
+        }
+        .field .hint {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 400;
+            color: var(--ink-soft);
+            margin-top: 0.15rem;
+        }
+        .field input[type="email"],
+        .field textarea {
+            width: 100%;
+            font: inherit;
+            font-size: 1rem;
+            color: var(--ink);
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 0.75rem 0.9rem;
+            min-height: 48px;
+        }
+        .field textarea {
+            min-height: 6.5rem;
+            resize: vertical;
+        }
+        .field input:focus-visible,
+        .field textarea:focus-visible,
+        .btn:focus-visible {
+            outline: 3px solid var(--primary);
+            outline-offset: 2px;
+        }
+        .check {
+            display: flex;
+            gap: 0.7rem;
+            align-items: flex-start;
+            font-size: 0.93rem;
+        }
+        .check input {
+            flex: 0 0 auto;
+            width: 22px;
+            height: 22px;
+            margin-top: 0.1rem;
+            accent-color: var(--primary);
+        }
+        .btn {
+            font: inherit;
+            font-weight: 700;
+            font-size: 1rem;
+            min-height: 48px;
+            padding: 0.7rem 1.4rem;
+            border: 0;
+            border-radius: var(--radius-md);
+            background: var(--primary);
+            color: #fff;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+        .btn.secondary {
+            background: var(--card-high);
+            color: var(--ink);
+        }
+        .btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+        .error {
+            color: #b3261e;
+            font-size: 0.88rem;
+            font-weight: 600;
+            margin-top: 0.35rem;
+        }
+        @media (prefers-color-scheme: dark) {
+            .error { color: #f2b8b5; }
+        }
+        .result {
+            margin-top: 1rem;
+        }
+        .result textarea {
+            width: 100%;
+            font: inherit;
+            font-size: 0.93rem;
+            color: var(--ink);
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 0.75rem 0.9rem;
+            min-height: 11rem;
+            margin: 0.6rem 0;
+        }
+        .steps {
+            list-style: none;
+            margin: 0 0 0.9rem;
+            counter-reset: step;
+        }
+        .steps li {
+            counter-increment: step;
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        .steps li::before {
+            content: counter(step);
+            flex: 0 0 auto;
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            background: var(--primary);
+            color: #fff;
+            font-size: 0.82rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 0.1rem;
+        }
+        .steps-card h2,
+        .kept-card h2 {
+            font-size: 1.05rem;
+            margin-bottom: 0.6rem;
+        }
+        .steps-card > p:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="content" id="main">
+        <header class="hero" id="top">
+            <div class="mark">
+                <img src="assets/redact-icon.png" width="300" height="310" alt="Redact app icon" />
+            </div>
+            <div>
+                <h1>Request Data Deletion</h1>
+                <p>Redact by DoubleAngels · <code>com.doubleangels.redact</code></p>
+            </div>
+        </header>
+
+        <div class="meta-row">
+            <span class="chip">Last Updated: October 30, 2026</span>
+            <a class="chip" href="redact.html">Privacy Policy →</a>
+            <a class="chip" href="redact-terms.html">Terms of Use →</a>
+        </div>
+
+        <div class="card steps-card" id="steps">
+            <h2>How to Request Deletion of Your Data</h2>
+            <p>This page explains how to ask <strong>DoubleAngels</strong>, the developer of the <strong>Redact</strong> app on Google Play, to delete data about you.</p>
+            <ol class="steps">
+                <li><span>Use the form below, or write to <a href="mailto:jzgm2llm@addy.io?subject=Privacy%20Request%3A%20Data%20Deletion">jzgm2llm@addy.io</a>. Enter the email address you have used to contact us.</span></li>
+                <li><span>Send the email <strong>from that address</strong>, with <strong>Privacy Request</strong> in the subject line. Sending from that address is how we confirm the request is yours, since Redact has no accounts to log in to.</span></li>
+                <li><span>We delete every email to and from that address in our email account, and reply to confirm. Requests are free and answered within the time the law allows, usually 30 days.</span></li>
+            </ol>
+            <p>If you've never emailed us, we hold no data about you, because Redact doesn't collect any. If we can't be sure a request comes from the address owner, we'll ask a couple of questions first, as the <a href="redact.html#rights">Your Rights</a> section of the Privacy Policy explains.</p>
+        </div>
+
+        <div class="card form-card" id="request">
+            <h2>Request Deletion of Your Emails</h2>
+            <p>Fill this in and your email app will open with the request ready to send. <strong>Nothing is sent from this page.</strong> The request only goes out when you send the email yourself.</p>
+            <form id="delete-form" novalidate>
+                <div class="field">
+                    <label for="email">Email address to delete
+                        <span class="hint">The address you've used to write to us. You'll need to send the request from it.</span>
+                    </label>
+                    <input type="email" id="email" name="email" autocomplete="email" inputmode="email" required aria-describedby="email-error" />
+                    <p class="error" id="email-error" role="alert" hidden>Enter a valid email address.</p>
+                </div>
+                <div class="field">
+                    <label for="notes">Anything else we should know (optional)
+                        <span class="hint">For example, other addresses you've used.</span>
+                    </label>
+                    <textarea id="notes" name="notes"></textarea>
+                </div>
+                <div class="check">
+                    <input type="checkbox" id="confirm" />
+                    <label for="confirm">I understand that deleting our emails is permanent.</label>
+                </div>
+                <p class="error" id="confirm-error" role="alert" hidden>Tick the box to confirm.</p>
+                <div class="btn-row">
+                    <button class="btn" type="submit">Open Email to Send</button>
+                </div>
+            </form>
+            <div class="result" id="result" hidden aria-live="polite">
+                <p><strong>Your email app should be opening.</strong> If it didn't, copy this message and send it to <a href="mailto:jzgm2llm@addy.io">jzgm2llm@addy.io</a> from the address above.</p>
+                <textarea id="message" readonly aria-label="Request message"></textarea>
+                <div class="btn-row">
+                    <button class="btn secondary" type="button" id="copy">Copy Message</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card kept-card" id="what-is-kept">
+            <h2>What Is Deleted and What Is Kept</h2>
+            <p>These are all the types of data about you that could exist, what happens to each when you ask, and how long it is kept if you don't.</p>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>When You Ask for Deletion</th>
+                            <th>How Long It Is Kept Otherwise</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Emails you sent us, with your address and anything you wrote or attached</td>
+                            <td data-label="When you ask for deletion"><span class="badge badge-off">Deleted</span> Every email to and from your address.</td>
+                            <td data-label="How long it is kept otherwise">Until you ask us to delete them.</td>
+                        </tr>
+                        <tr>
+                            <td>Photos, videos, settings and statistics</td>
+                            <td data-label="When you ask for deletion"><span class="badge badge-off">Never collected</span> We never receive them, so there is nothing to delete.</td>
+                            <td data-label="How long it is kept otherwise">Only on your phone, until you delete them, clear Redact's storage or uninstall the app.</td>
+                        </tr>
+                        <tr>
+                            <td>Anonymous crash reports (only if you turn on Send Crash Reports)</td>
+                            <td data-label="When you ask for deletion"><span class="badge badge-cond">Cannot be deleted</span> Nothing in them links them to you. Turn the setting off to stop new ones.</td>
+                            <td data-label="How long it is kept otherwise">Up to 90 days at Sentry, then removed automatically.</td>
+                        </tr>
+                        <tr>
+                            <td>Order details from Google Play</td>
+                            <td data-label="When you ask for deletion"><span class="badge badge-cond">Kept</span> Tax and accounting laws require us to keep sales records.</td>
+                            <td data-label="How long it is kept otherwise">Usually up to 7 years. Google also keeps its own records under its own policies.</td>
+                        </tr>
+                        <tr>
+                            <td>GitHub issues and comments</td>
+                            <td data-label="When you ask for deletion"><span class="badge badge-cond">Not held by us</span> They are public and controlled by GitHub and by you. You can delete your own posts.</td>
+                            <td data-label="How long it is kept otherwise">Until you or GitHub delete them.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <details class="section-card" id="cant-delete">
+            <summary>
+                <h2>1. What We Can't Delete</h2>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="section-body">
+                <h3>Anonymous Crash Reports</h3>
+                <p>Crash reporting is off unless you turn on <strong>Send Crash Reports</strong> yourself. When it's on, the reports carry no name, email, install ID or file contents, so nothing in them tells us which reports came from you. That means we can't find, show or delete any one person's reports. Sentry keeps them for up to 90 days and then removes them on its own.</p>
+                <p>To stop more from being sent, switch <strong>Send Crash Reports</strong> off in Redact's settings. It takes effect right away. The <a href="redact.html#crash-reporting">Optional Crash Reporting</a> section of the Privacy Policy has the full detail.</p>
+                <h3>Google Play Order Records</h3>
+                <p>When you buy Redact, Google handles the payment and shares order details with us. Tax and accounting laws require us to keep sales records, usually for up to 7 years, so we can't delete these on request. Google also keeps its own records under its own policies. To manage or delete your Google account data, use your Google Account settings.</p>
+                <h3>GitHub</h3>
+                <p>Anything you posted on our GitHub page is public and controlled by GitHub and by you. You can edit or delete your own issues and comments there.</p>
+            </div>
+        </details>
+        <details class="section-card" id="on-your-phone">
+            <summary>
+                <h2>2. Data on Your Phone</h2>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="section-body">
+                <p>Everything Redact works with stays on your phone, and you're in charge of it.</p>
+                <ul>
+                    <li><strong>Cleaned and converted files</strong> are ordinary files in <code>Pictures/Redact</code> and <code>Movies/Redact</code>, or in the folders you picked. Delete them like any other photo or video.</li>
+                    <li><strong>Settings and statistics</strong> stay on your phone until you clear Redact's storage in Android's app settings, or uninstall Redact.</li>
+                    <li><strong>Temporary copies</strong> made while sharing are deleted shortly after, and cleared after 24 hours when <strong>Clear Cache on Startup</strong> is on.</li>
+                </ul>
+            </div>
+        </details>
+        <details class="section-card" id="more-help">
+            <summary>
+                <h2>3. More Help</h2>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="section-body">
+                <p>Questions about this page or your rights? Email <a href="mailto:jzgm2llm@addy.io">jzgm2llm@addy.io</a>. The Privacy Policy's <a href="redact.html#rights">Your Rights</a> section covers rights under GDPR and other privacy laws, including how to complain to a regulator.</p>
+            </div>
+        </details>
+
+        <footer>
+            <a href="redact.html"><span>Privacy Policy</span></a>
+            <a href="redact-terms.html"><span>Terms of Use</span></a>
+            <a href="https://github.com/doubleangels/redact" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+                <span>doubleangels/redact</span>
+            </a>
+        </footer>
+    </div>
+
+    <a class="fab" href="#top" aria-label="Back to top">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+
+    <script>
+        (function () {
+            var TO = "jzgm2llm@addy.io";
+            var SUBJECT = "Privacy Request: Data Deletion";
+            var form = document.getElementById("delete-form");
+            var emailEl = document.getElementById("email");
+            var notesEl = document.getElementById("notes");
+            var confirmEl = document.getElementById("confirm");
+            var emailErr = document.getElementById("email-error");
+            var confirmErr = document.getElementById("confirm-error");
+            var result = document.getElementById("result");
+            var message = document.getElementById("message");
+            var copyBtn = document.getElementById("copy");
+
+            function build(email, notes) {
+                var lines = [
+                    "Hello,",
+                    "",
+                    "Please delete every email to and from this address in your email account:",
+                    email,
+                    "",
+                    "I am sending this request from that address.",
+                    "I understand that deleting our emails is permanent."
+                ];
+                if (notes) { lines.push("", "Additional details:", notes); }
+                lines.push("", "Please reply to confirm once it's done.", "", "Thank you");
+                return lines.join("\n");
+            }
+
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                var email = emailEl.value.trim();
+                var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+                emailErr.hidden = emailOk;
+                confirmErr.hidden = confirmEl.checked;
+                if (!emailOk) { emailEl.focus(); return; }
+                if (!confirmEl.checked) { confirmEl.focus(); return; }
+                var body = build(email, notesEl.value.trim());
+                message.value = "To: " + TO + "\nSubject: " + SUBJECT + "\n\n" + body;
+                result.hidden = false;
+                window.location.href = "mailto:" + TO + "?subject=" + encodeURIComponent(SUBJECT) + "&body=" + encodeURIComponent(body);
+            });
+
+            copyBtn.addEventListener("click", function () {
+                function fallback() { message.focus(); message.select(); }
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(message.value).then(function () {
+                        copyBtn.textContent = "Copied";
+                        setTimeout(function () { copyBtn.textContent = "Copy Message"; }, 1500);
+                    }, fallback);
+                } else { fallback(); }
+            });
+
+            // Open the matching accordion section when a link or the URL hash points at it.
+            function openTarget() {
+                var hash = window.location.hash;
+                if (!hash || hash.length < 2) return;
+                var el = document.getElementById(hash.slice(1));
+                if (!el) return;
+                if (el.tagName === "DETAILS") el.open = true;
+                var parent = el.parentElement;
+                while (parent) {
+                    if (parent.tagName === "DETAILS") parent.open = true;
+                    parent = parent.parentElement;
+                }
+            }
+            openTarget();
+            window.addEventListener("hashchange", openTarget);
+        })();
+    </script>
+</body>
+
+</html>
