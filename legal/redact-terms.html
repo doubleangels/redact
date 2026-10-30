@@ -678,6 +678,76 @@
                 text-align: left;
             }
         }
+
+        /* Large screens: a roomier header and more generous cards. */
+        @media (min-width: 1024px) {
+            .content {
+                padding-top: calc(3.5rem + env(safe-area-inset-top));
+            }
+            header.hero {
+                gap: 1.25rem;
+                margin-bottom: 2rem;
+            }
+            .mark {
+                width: 72px;
+                height: 72px;
+            }
+            header.hero h1 {
+                font-size: 2rem;
+            }
+            header.hero p {
+                font-size: 1rem;
+            }
+            .meta-row {
+                margin-bottom: 2rem;
+            }
+            .card {
+                padding: 2rem;
+            }
+            details.section-card summary {
+                padding: 1.1rem 1.75rem;
+            }
+            .section-body {
+                padding: 0 1.75rem 1.75rem;
+            }
+        }
+
+        /* Wide screens: the table of contents moves to a sticky sidebar beside the text. */
+        @media (min-width: 1100px) {
+            .content {
+                max-width: 1040px;
+                display: grid;
+                grid-template-columns: 240px minmax(0, 1fr);
+                column-gap: 2.5rem;
+            }
+            .content > * {
+                grid-column: 2;
+            }
+            .content > header.hero,
+            .content > .meta-row {
+                grid-column: 1 / -1;
+            }
+            .content > nav.toc {
+                grid-column: 1;
+                grid-row: 3 / span 60;
+                align-self: start;
+                position: sticky;
+                top: 1.5rem;
+                max-height: calc(100vh - 3rem);
+                overflow-y: auto;
+                padding: 1.1rem 1rem;
+                margin-bottom: 0;
+            }
+            nav.toc ol {
+                columns: 1;
+            }
+            nav.toc a {
+                min-height: 32px;
+                padding: 0.2rem 0.1rem;
+                font-size: 0.88rem;
+                line-height: 1.4;
+            }
+        }
     </style>
 </head>
 
