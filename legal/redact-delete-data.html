@@ -18,6 +18,7 @@
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#faf9fc" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141218" />
+    <link rel="icon" type="image/png" href="assets/redact-icon.png" />
     <title>Redact Data Deletion Request | DoubleAngels</title>
     <meta name="description" content="How to ask DoubleAngels, the developer of the Redact app, to delete your data. Redact collects no personal data, but we can delete any emails you sent us. See what is deleted, what is kept, and for how long." />
     <style>
@@ -584,109 +585,43 @@
             }
         }
 
-        /* Request form: same tokens and corner radii as the rest of the page. */
-        .form-card h2 {
-            font-size: 1.05rem;
-            margin-bottom: 0.4rem;
-        }
-        .form-card form {
-            display: grid;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        .field label {
-            display: block;
-            font-size: 0.9rem;
-            font-weight: 700;
-            margin-bottom: 0.35rem;
-        }
-        .field .hint {
-            display: block;
-            font-size: 0.82rem;
-            font-weight: 400;
-            color: var(--ink-soft);
-            margin-top: 0.15rem;
-        }
-        .field input[type="email"],
-        .field textarea {
-            width: 100%;
-            font: inherit;
-            font-size: 1rem;
-            color: var(--ink);
-            background: var(--bg);
-            border: 1.5px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 0.75rem 0.9rem;
-            min-height: 48px;
-        }
-        .field textarea {
-            min-height: 6.5rem;
-            resize: vertical;
-        }
-        .field input:focus-visible,
-        .field textarea:focus-visible,
-        .btn:focus-visible {
-            outline: 3px solid var(--primary);
-            outline-offset: 2px;
-        }
-        .check {
-            display: flex;
-            gap: 0.7rem;
-            align-items: flex-start;
-            font-size: 0.93rem;
-        }
-        .check input {
-            flex: 0 0 auto;
-            width: 22px;
-            height: 22px;
-            margin-top: 0.1rem;
-            accent-color: var(--primary);
-        }
-        .btn {
-            font: inherit;
-            font-weight: 700;
-            font-size: 1rem;
-            min-height: 48px;
-            padding: 0.7rem 1.4rem;
-            border: 0;
-            border-radius: var(--radius-md);
-            background: var(--primary);
-            color: #fff;
-            cursor: pointer;
-            box-shadow: var(--shadow);
-        }
-        .btn.secondary {
+        .email-box {
             background: var(--card-high);
-            color: var(--ink);
-        }
-        .btn-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.6rem;
-        }
-        .error {
-            color: #b3261e;
-            font-size: 0.88rem;
-            font-weight: 600;
-            margin-top: 0.35rem;
-        }
-        @media (prefers-color-scheme: dark) {
-            .error { color: #f2b8b5; }
-        }
-        .result {
-            margin-top: 1rem;
-        }
-        .result textarea {
-            width: 100%;
-            font: inherit;
-            font-size: 0.93rem;
-            color: var(--ink);
-            background: var(--bg);
-            border: 1.5px solid var(--border);
             border-radius: var(--radius-md);
-            padding: 0.75rem 0.9rem;
-            min-height: 11rem;
-            margin: 0.6rem 0;
+            padding: 1rem 1.1rem;
+            margin: 1rem 0 1.25rem;
+            text-align: center;
+        }
+        .email-label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--ink-soft);
+            margin-bottom: 0.3rem;
+        }
+        .email-address {
+            font-size: 1.3rem;
+            font-weight: 800;
+            word-break: break-all;
+            user-select: all;
+        }
+        pre.message {
+            background: var(--code-bg);
+            border-radius: var(--radius-md);
+            padding: 0.9rem 1rem;
+            margin-bottom: 1rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.85rem;
+            line-height: 1.55;
+            white-space: pre-wrap;
+            word-break: break-word;
+            user-select: all;
+        }
+        .steps-card h3 {
+            font-size: 0.98rem;
+            margin: 1.1rem 0 0.5rem;
         }
         .steps {
             list-style: none;
@@ -745,48 +680,26 @@
 
         <div class="card steps-card" id="steps">
             <h2>How to Request Deletion of Your Data</h2>
-            <p>This page explains how to ask <strong>DoubleAngels</strong>, the developer of the <strong>Redact</strong> app on Google Play, to delete data about you.</p>
-            <ol class="steps">
-                <li><span>Use the form below, or write to <a href="mailto:jzgm2llm@addy.io?subject=Privacy%20Request%3A%20Data%20Deletion">jzgm2llm@addy.io</a>. Enter the email address you have used to contact us.</span></li>
-                <li><span>Send the email <strong>from that address</strong>, with <strong>Privacy Request</strong> in the subject line. Sending from that address is how we confirm the request is yours, since Redact has no accounts to log in to.</span></li>
-                <li><span>We delete every email to and from that address in our email account, and reply to confirm. Requests are free and answered within the time the law allows, usually 30 days.</span></li>
-            </ol>
-            <p>If you've never emailed us, we hold no data about you, because Redact doesn't collect any. If we can't be sure a request comes from the address owner, we'll ask a couple of questions first, as the <a href="redact.html#rights">Your Rights</a> section of the Privacy Policy explains.</p>
-        </div>
-
-        <div class="card form-card" id="request">
-            <h2>Request Deletion of Your Emails</h2>
-            <p>Fill this in and your email app will open with the request ready to send. <strong>Nothing is sent from this page.</strong> The request only goes out when you send the email yourself.</p>
-            <form id="delete-form" novalidate>
-                <div class="field">
-                    <label for="email">Email address to delete
-                        <span class="hint">The address you've used to write to us. You'll need to send the request from it.</span>
-                    </label>
-                    <input type="email" id="email" name="email" autocomplete="email" inputmode="email" required aria-describedby="email-error" />
-                    <p class="error" id="email-error" role="alert" hidden>Enter a valid email address.</p>
-                </div>
-                <div class="field">
-                    <label for="notes">Anything else we should know (optional)
-                        <span class="hint">For example, other addresses you've used.</span>
-                    </label>
-                    <textarea id="notes" name="notes"></textarea>
-                </div>
-                <div class="check">
-                    <input type="checkbox" id="confirm" />
-                    <label for="confirm">I understand that deleting our emails is permanent.</label>
-                </div>
-                <p class="error" id="confirm-error" role="alert" hidden>Tick the box to confirm.</p>
-                <div class="btn-row">
-                    <button class="btn" type="submit">Open Email to Send</button>
-                </div>
-            </form>
-            <div class="result" id="result" hidden aria-live="polite">
-                <p><strong>Your email app should be opening.</strong> If it didn't, copy this message and send it to <a href="mailto:jzgm2llm@addy.io">jzgm2llm@addy.io</a> from the address above.</p>
-                <textarea id="message" readonly aria-label="Request message"></textarea>
-                <div class="btn-row">
-                    <button class="btn secondary" type="button" id="copy">Copy Message</button>
-                </div>
+            <p>This page explains how to ask <strong>DoubleAngels</strong>, the developer of the <strong>Redact</strong> app on Google Play, to delete data about you. Just send us an email.</p>
+            <div class="email-box">
+                <span class="email-label">Send your request to</span>
+                <a class="email-address" href="mailto:jzgm2llm@addy.io?subject=Privacy%20Request%3A%20Data%20Deletion">jzgm2llm@addy.io</a>
             </div>
+            <ol class="steps">
+                <li><span><strong>Write from the email address you want deleted.</strong> That is how we confirm the request is yours, since Redact has no accounts to log in to.</span></li>
+                <li><span><strong>Use this subject line.</strong> <code>Privacy Request: Data Deletion</code></span></li>
+                <li><span><strong>Tell us what to delete.</strong> Send something like the message below. If you've used other email addresses to write to us, list them too.</span></li>
+                <li><span><strong>We delete and confirm.</strong> We delete the emails and reply to say it's done. Requests are free and answered within the time the law allows, usually 30 days.</span></li>
+            </ol>
+            <pre class="message">Please delete every email to and from this address in your email account.
+I understand that deleting our emails is permanent.</pre>
+            <h3>What we will and won't delete</h3>
+            <ul>
+                <li><strong>Deleted when you ask.</strong> Every email to and from your address, including anything you wrote or attached.</li>
+                <li><strong>Nothing to delete.</strong> Redact has no accounts and never receives your photos, videos, settings or statistics, so we hold none of them.</li>
+                <li><strong>Can't be deleted.</strong> Anonymous crash reports can't be traced to you, and Google Play order records are kept because tax and accounting laws require it. The table below has the details and how long each is kept.</li>
+            </ul>
+            <p>If you've never emailed us, we hold no data about you. If we can't be sure a request comes from the address owner, we'll ask a couple of questions first, as the <a href="redact.html#rights">Your Rights</a> section of the Privacy Policy explains.</p>
         </div>
 
         <div class="card kept-card" id="what-is-kept">
@@ -886,59 +799,9 @@
     </a>
 
     <script>
+        // Progressive enhancement: open the matching accordion section when a link or the URL
+        // hash points at it. The page works fine without this script too.
         (function () {
-            var TO = "jzgm2llm@addy.io";
-            var SUBJECT = "Privacy Request: Data Deletion";
-            var form = document.getElementById("delete-form");
-            var emailEl = document.getElementById("email");
-            var notesEl = document.getElementById("notes");
-            var confirmEl = document.getElementById("confirm");
-            var emailErr = document.getElementById("email-error");
-            var confirmErr = document.getElementById("confirm-error");
-            var result = document.getElementById("result");
-            var message = document.getElementById("message");
-            var copyBtn = document.getElementById("copy");
-
-            function build(email, notes) {
-                var lines = [
-                    "Hello,",
-                    "",
-                    "Please delete every email to and from this address in your email account:",
-                    email,
-                    "",
-                    "I am sending this request from that address.",
-                    "I understand that deleting our emails is permanent."
-                ];
-                if (notes) { lines.push("", "Additional details:", notes); }
-                lines.push("", "Please reply to confirm once it's done.", "", "Thank you");
-                return lines.join("\n");
-            }
-
-            form.addEventListener("submit", function (e) {
-                e.preventDefault();
-                var email = emailEl.value.trim();
-                var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-                emailErr.hidden = emailOk;
-                confirmErr.hidden = confirmEl.checked;
-                if (!emailOk) { emailEl.focus(); return; }
-                if (!confirmEl.checked) { confirmEl.focus(); return; }
-                var body = build(email, notesEl.value.trim());
-                message.value = "To: " + TO + "\nSubject: " + SUBJECT + "\n\n" + body;
-                result.hidden = false;
-                window.location.href = "mailto:" + TO + "?subject=" + encodeURIComponent(SUBJECT) + "&body=" + encodeURIComponent(body);
-            });
-
-            copyBtn.addEventListener("click", function () {
-                function fallback() { message.focus(); message.select(); }
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(message.value).then(function () {
-                        copyBtn.textContent = "Copied";
-                        setTimeout(function () { copyBtn.textContent = "Copy Message"; }, 1500);
-                    }, fallback);
-                } else { fallback(); }
-            });
-
-            // Open the matching accordion section when a link or the URL hash points at it.
             function openTarget() {
                 var hash = window.location.hash;
                 if (!hash || hash.length < 2) return;
