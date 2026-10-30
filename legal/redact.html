@@ -509,6 +509,69 @@
             height: 22px;
         }
 
+        /* Mobile table polish. Rows stay stacked cards, but with a lighter surface so they don't
+           look like cards inside cards, a divider between fields, a badge on its own line above
+           its explanation, and compact rows when a field is only a badge. */
+        tr {
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+        td:not(:first-child) {
+            padding: 0.6rem 0 0.1rem;
+        }
+        td:not(:first-child) + td:not(:first-child) {
+            margin-top: 0.4rem;
+            border-top: 1px solid var(--border);
+        }
+        td.badge-lead > .badge {
+            display: block;
+            width: fit-content;
+            margin-bottom: 0.45rem;
+        }
+        /* Long permission and tag names (READ_MEDIA_VISUAL_USER_SELECTED) wrap instead of overflowing. */
+        @media (max-width: 719px) {
+            td:first-child {
+                overflow-wrap: anywhere;
+            }
+        }
+        /* A field that holds only a badge shares a line with its label. */
+        td.badge-cell[data-label] {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+        td.badge-cell[data-label]::before {
+            margin-bottom: 0;
+        }
+        /* Two-column rows (a name and a badge) become one compact line. */
+        tr:has(> td:nth-child(2):last-child) {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+        }
+        tr:has(> td:nth-child(2):last-child) > td {
+            width: auto;
+            padding: 0;
+            margin: 0;
+            border: none;
+        }
+        tr:has(> td:nth-child(2):last-child) > td:first-child {
+            flex: 1 1 11rem;
+            min-width: 0;
+            font-size: 0.97rem;
+        }
+        tr:has(> td:nth-child(2):last-child) > td:last-child {
+            flex: 0 0 auto;
+            text-align: right;
+        }
+        tr:has(> td:nth-child(2):last-child) > td:last-child::before {
+            content: none;
+        }
+
         /* Desktop / wide-viewport enhancement, layered on top of the mobile-first base. */
         @media (min-width: 720px) {
             .content {
@@ -584,6 +647,37 @@
 
             td[data-label]::before {
                 content: none;
+            }
+            tr {
+                border: none;
+            }
+            td:not(:first-child) {
+                padding: 0.85rem 1rem;
+            }
+            td:not(:first-child) + td:not(:first-child) {
+                margin-top: 0;
+                border-top: none;
+            }
+            td.badge-lead > .badge {
+                display: inline-block;
+                width: auto;
+                margin-bottom: 0;
+            }
+            td.badge-cell[data-label] {
+                display: table-cell;
+            }
+            tr:has(> td:nth-child(2):last-child) {
+                display: table-row;
+                padding: 0;
+            }
+            tr:has(> td:nth-child(2):last-child) > td {
+                display: table-cell;
+                width: auto;
+                padding: 0.85rem 1rem;
+                border-bottom: 1px solid var(--border);
+            }
+            tr:has(> td:nth-child(2):last-child) > td:last-child {
+                text-align: left;
             }
         }
     </style>
@@ -701,43 +795,43 @@
                         <tbody>
                             <tr>
                                 <td>Name, email address, phone number, or account identifiers</td>
-                                <td data-label="Collected"><span class="badge badge-off">Never</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">Never</span></td>
                             </tr>
                             <tr>
                                 <td>Precise real-time location (device GPS, Wi-Fi, or cell positioning)</td>
-                                <td data-label="Collected"><span class="badge badge-off">Never (See Note Below)</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">Never (See Note Below)</span></td>
                             </tr>
                             <tr>
                                 <td>Payment or financial information</td>
-                                <td data-label="Collected"><span class="badge badge-off">Never (Google Play Handles It)</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">Never (Google Play Handles It)</span></td>
                             </tr>
                             <tr>
                                 <td>Biometric data (face, fingerprint, voice)</td>
-                                <td data-label="Collected"><span class="badge badge-off">Never</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">Never</span></td>
                             </tr>
                             <tr>
                                 <td>Camera or microphone input</td>
-                                <td data-label="Collected"><span class="badge badge-off">Never (Not Requested)</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">Never (Not Requested)</span></td>
                             </tr>
                             <tr>
                                 <td>Contacts, calendar, or call log</td>
-                                <td data-label="Collected"><span class="badge badge-off">Never</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">Never</span></td>
                             </tr>
                             <tr>
                                 <td>Health or fitness data</td>
-                                <td data-label="Collected"><span class="badge badge-off">Never</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">Never</span></td>
                             </tr>
                             <tr>
                                 <td>Browsing or search history</td>
-                                <td data-label="Collected"><span class="badge badge-off">Never</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">Never</span></td>
                             </tr>
                             <tr>
                                 <td>Advertising identifiers (Android Advertising ID)</td>
-                                <td data-label="Collected"><span class="badge badge-off">Never</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">Never</span></td>
                             </tr>
                             <tr>
                                 <td>Device identifiers such as IMEI or serial number</td>
-                                <td data-label="Collected"><span class="badge badge-off">Never</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">Never</span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -768,37 +862,37 @@
                             <tr>
                                 <td>READ_EXTERNAL_STORAGE</td>
                                 <td data-label="Used For">Lets the system gallery picker show your photos/videos on Android 12 and earlier, where the modern document picker isn't available.</td>
-                                <td data-label="Status"><span class="badge badge-cond">Android 12 and Earlier</span></td>
+                                <td class="badge-cell" data-label="Status"><span class="badge badge-cond">Android 12 and Earlier</span></td>
                             </tr>
                             <tr>
                                 <td>READ_MEDIA_IMAGES / READ_MEDIA_VIDEO</td>
                                 <td data-label="Used For">Optional alternative to Android's system document picker, which Redact uses by default on Android 13+ and which needs no media permission at all.</td>
-                                <td data-label="Status"><span class="badge badge-off">Optional</span></td>
+                                <td class="badge-cell" data-label="Status"><span class="badge badge-off">Optional</span></td>
                             </tr>
                             <tr>
                                 <td>READ_MEDIA_VISUAL_USER_SELECTED</td>
                                 <td data-label="Used For">Lets you (on Android 14+) grant Redact access to only specific photos/videos you choose, instead of your entire library.</td>
-                                <td data-label="Status"><span class="badge badge-off">Optional</span></td>
+                                <td class="badge-cell" data-label="Status"><span class="badge badge-off">Optional</span></td>
                             </tr>
                             <tr>
                                 <td>ACCESS_MEDIA_LOCATION</td>
                                 <td data-label="Used For">Lets the Scan screen display the exact GPS coordinates embedded in a file, so you can see what's there. Not required to remove that same GPS data in Clean.</td>
-                                <td data-label="Status"><span class="badge badge-off">Optional</span></td>
+                                <td class="badge-cell" data-label="Status"><span class="badge badge-off">Optional</span></td>
                             </tr>
                             <tr>
                                 <td>POST_NOTIFICATIONS</td>
                                 <td data-label="Used For">Shows progress and completion notifications for Clean/Convert jobs.</td>
-                                <td data-label="Status"><span class="badge badge-off">Optional (Off by Default)</span></td>
+                                <td class="badge-cell" data-label="Status"><span class="badge badge-off">Optional (Off by Default)</span></td>
                             </tr>
                             <tr>
                                 <td>FOREGROUND_SERVICE / FOREGROUND_SERVICE_MEDIA_PROCESSING / FOREGROUND_SERVICE_DATA_SYNC</td>
                                 <td data-label="Used For">Keeps a long-running Clean or Convert batch job alive and shows its progress notification when notifications are enabled. Android 14 has no media-processing service type, so the same job runs under the data-sync type there. Despite the name, nothing is synced anywhere, the job works only on files on your phone.</td>
-                                <td data-label="Status"><span class="badge badge-cond">Conditional (Notifications)</span></td>
+                                <td class="badge-cell" data-label="Status"><span class="badge badge-cond">Conditional (Notifications)</span></td>
                             </tr>
                             <tr>
                                 <td>INTERNET</td>
                                 <td data-label="Used For">The only permission that allows network access at all. Used exclusively to send scrubbed, anonymous diagnostics (and an optional note you write) to Sentry, and only when you turn on Send Crash Reports in Settings.</td>
-                                <td data-label="Status"><span class="badge badge-cond">Conditional (Crash Reporting)</span></td>
+                                <td class="badge-cell" data-label="Status"><span class="badge badge-cond">Conditional (Crash Reporting)</span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -1086,53 +1180,53 @@
                         <tbody>
                             <tr>
                                 <td>Identifiers</td>
-                                <td data-label="Collected"><span class="badge badge-off">No</span></td>
-                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">No</span></td>
+                                <td class="badge-cell" data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
                                 <td>Customer records (name, address, and similar)</td>
-                                <td data-label="Collected"><span class="badge badge-off">No</span></td>
-                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">No</span></td>
+                                <td class="badge-cell" data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
                                 <td>Protected classification characteristics</td>
-                                <td data-label="Collected"><span class="badge badge-off">No</span></td>
-                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">No</span></td>
+                                <td class="badge-cell" data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
                                 <td>Commercial information</td>
-                                <td data-label="Collected"><span class="badge badge-cond">Order Details From Google Play</span></td>
-                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-cond">Order Details From Google Play</span></td>
+                                <td class="badge-cell" data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
                                 <td>Biometric information</td>
-                                <td data-label="Collected"><span class="badge badge-off">No</span></td>
-                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">No</span></td>
+                                <td class="badge-cell" data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
                                 <td>Internet or network activity</td>
-                                <td data-label="Collected"><span class="badge badge-off">No</span></td>
-                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">No</span></td>
+                                <td class="badge-cell" data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
                                 <td>Geolocation data</td>
-                                <td data-label="Collected"><span class="badge badge-off">No</span></td>
-                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">No</span></td>
+                                <td class="badge-cell" data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
                                 <td>Audio, electronic, or visual information</td>
-                                <td data-label="Collected"><span class="badge badge-cond">Only Files You Choose</span></td>
-                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-cond">Only Files You Choose</span></td>
+                                <td class="badge-cell" data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
                                 <td>Professional or employment information</td>
-                                <td data-label="Collected"><span class="badge badge-off">No</span></td>
-                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">No</span></td>
+                                <td class="badge-cell" data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
                                 <td>Inferences about preferences or characteristics</td>
-                                <td data-label="Collected"><span class="badge badge-off">No</span></td>
-                                <td data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">No</span></td>
+                                <td class="badge-cell" data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                         </tbody>
                     </table>

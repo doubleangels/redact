@@ -507,6 +507,69 @@
             height: 22px;
         }
 
+        /* Mobile table polish. Rows stay stacked cards, but with a lighter surface so they don't
+           look like cards inside cards, a divider between fields, a badge on its own line above
+           its explanation, and compact rows when a field is only a badge. */
+        tr {
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+        td:not(:first-child) {
+            padding: 0.6rem 0 0.1rem;
+        }
+        td:not(:first-child) + td:not(:first-child) {
+            margin-top: 0.4rem;
+            border-top: 1px solid var(--border);
+        }
+        td.badge-lead > .badge {
+            display: block;
+            width: fit-content;
+            margin-bottom: 0.45rem;
+        }
+        /* Long permission and tag names (READ_MEDIA_VISUAL_USER_SELECTED) wrap instead of overflowing. */
+        @media (max-width: 719px) {
+            td:first-child {
+                overflow-wrap: anywhere;
+            }
+        }
+        /* A field that holds only a badge shares a line with its label. */
+        td.badge-cell[data-label] {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+        td.badge-cell[data-label]::before {
+            margin-bottom: 0;
+        }
+        /* Two-column rows (a name and a badge) become one compact line. */
+        tr:has(> td:nth-child(2):last-child) {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+        }
+        tr:has(> td:nth-child(2):last-child) > td {
+            width: auto;
+            padding: 0;
+            margin: 0;
+            border: none;
+        }
+        tr:has(> td:nth-child(2):last-child) > td:first-child {
+            flex: 1 1 11rem;
+            min-width: 0;
+            font-size: 0.97rem;
+        }
+        tr:has(> td:nth-child(2):last-child) > td:last-child {
+            flex: 0 0 auto;
+            text-align: right;
+        }
+        tr:has(> td:nth-child(2):last-child) > td:last-child::before {
+            content: none;
+        }
+
         /* Desktop / wide-viewport enhancement, layered on top of the mobile-first base. */
         @media (min-width: 720px) {
             .content {
@@ -582,6 +645,43 @@
 
             td[data-label]::before {
                 content: none;
+            }
+            tr {
+                border: none;
+            }
+            td:not(:first-child) {
+                padding: 0.85rem 1rem;
+            }
+            td:not(:first-child) + td:not(:first-child) {
+                margin-top: 0;
+                border-top: none;
+            }
+            td.badge-lead > .badge {
+                display: inline-block;
+                width: auto;
+                margin-bottom: 0;
+            }
+            td.badge-cell[data-label] {
+                display: table-cell;
+            }
+            tr:has(> td:nth-child(2):last-child) {
+                display: table-row;
+                padding: 0;
+            }
+            tr:has(> td:nth-child(2):last-child) > td {
+                display: table-cell;
+                width: auto;
+                padding: 0.85rem 1rem;
+                border-bottom: 1px solid var(--border);
+            }
+            tr:has(> td:nth-child(2):last-child) > td:last-child {
+                text-align: left;
+            }
+            .kept-card td:first-child {
+                width: 26%;
+            }
+            .kept-card td:nth-child(2) {
+                width: 40%;
             }
         }
 
@@ -726,27 +826,27 @@ I understand that deleting our emails is permanent.</pre>
                     <tbody>
                         <tr>
                             <td>Emails you sent us for support</td>
-                            <td data-label="When you ask for deletion"><span class="badge badge-off">Deleted</span> Every email to and from your address. These only exist if you wrote to us.</td>
+                            <td class="badge-lead" data-label="When you ask for deletion"><span class="badge badge-off">Deleted</span> Every email to and from your address. These only exist if you wrote to us.</td>
                             <td data-label="How long it's kept otherwise">Until you ask us to delete them.</td>
                         </tr>
                         <tr>
                             <td>Photos, videos, settings and statistics</td>
-                            <td data-label="When you ask for deletion"><span class="badge badge-off">Never collected</span> We never receive them, so there's nothing to delete.</td>
+                            <td class="badge-lead" data-label="When you ask for deletion"><span class="badge badge-off">Never collected</span> We never receive them, so there's nothing to delete.</td>
                             <td data-label="How long it's kept otherwise">Only on your phone, until you delete them, clear Redact's storage, or uninstall the app.</td>
                         </tr>
                         <tr>
                             <td>Anonymous crash reports (only if you turn on Send Crash Reports)</td>
-                            <td data-label="When you ask for deletion"><span class="badge badge-cond">Can't be deleted</span> Nothing in them tells us which reports are yours. Turn the setting off to stop new ones.</td>
+                            <td class="badge-lead" data-label="When you ask for deletion"><span class="badge badge-cond">Can't be deleted</span> Nothing in them tells us which reports are yours. Turn the setting off to stop new ones.</td>
                             <td data-label="How long it's kept otherwise">Sentry's retention period for our plan, currently 90 days for crash and error reports and 30 days for performance data and logs. See Sentry's <a href="https://docs.sentry.io/security-legal-pii/security/data-retention-periods/" target="_blank" rel="noopener noreferrer">data retention periods</a>.</td>
                         </tr>
                         <tr>
                             <td>Order details from Google Play</td>
-                            <td data-label="When you ask for deletion"><span class="badge badge-cond">Kept</span> Tax and accounting laws require us to keep sales records.</td>
+                            <td class="badge-lead" data-label="When you ask for deletion"><span class="badge badge-cond">Kept</span> Tax and accounting laws require us to keep sales records.</td>
                             <td data-label="How long it's kept otherwise">As long as those laws require, usually up to 7 years, plus Google's own retention for its records.</td>
                         </tr>
                         <tr>
                             <td>GitHub issues and comments</td>
-                            <td data-label="When you ask for deletion"><span class="badge badge-cond">Not held by us</span> They're public and controlled by GitHub and by you. You can delete your own posts there.</td>
+                            <td class="badge-lead" data-label="When you ask for deletion"><span class="badge badge-cond">Not held by us</span> They're public and controlled by GitHub and by you. You can delete your own posts there.</td>
                             <td data-label="How long it's kept otherwise">Until you or GitHub delete them.</td>
                         </tr>
                     </tbody>

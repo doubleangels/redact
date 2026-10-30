@@ -507,6 +507,69 @@
             height: 22px;
         }
 
+        /* Mobile table polish. Rows stay stacked cards, but with a lighter surface so they don't
+           look like cards inside cards, a divider between fields, a badge on its own line above
+           its explanation, and compact rows when a field is only a badge. */
+        tr {
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+        td:not(:first-child) {
+            padding: 0.6rem 0 0.1rem;
+        }
+        td:not(:first-child) + td:not(:first-child) {
+            margin-top: 0.4rem;
+            border-top: 1px solid var(--border);
+        }
+        td.badge-lead > .badge {
+            display: block;
+            width: fit-content;
+            margin-bottom: 0.45rem;
+        }
+        /* Long permission and tag names (READ_MEDIA_VISUAL_USER_SELECTED) wrap instead of overflowing. */
+        @media (max-width: 719px) {
+            td:first-child {
+                overflow-wrap: anywhere;
+            }
+        }
+        /* A field that holds only a badge shares a line with its label. */
+        td.badge-cell[data-label] {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+        td.badge-cell[data-label]::before {
+            margin-bottom: 0;
+        }
+        /* Two-column rows (a name and a badge) become one compact line. */
+        tr:has(> td:nth-child(2):last-child) {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+        }
+        tr:has(> td:nth-child(2):last-child) > td {
+            width: auto;
+            padding: 0;
+            margin: 0;
+            border: none;
+        }
+        tr:has(> td:nth-child(2):last-child) > td:first-child {
+            flex: 1 1 11rem;
+            min-width: 0;
+            font-size: 0.97rem;
+        }
+        tr:has(> td:nth-child(2):last-child) > td:last-child {
+            flex: 0 0 auto;
+            text-align: right;
+        }
+        tr:has(> td:nth-child(2):last-child) > td:last-child::before {
+            content: none;
+        }
+
         /* Desktop / wide-viewport enhancement, layered on top of the mobile-first base. */
         @media (min-width: 720px) {
             .content {
@@ -582,6 +645,37 @@
 
             td[data-label]::before {
                 content: none;
+            }
+            tr {
+                border: none;
+            }
+            td:not(:first-child) {
+                padding: 0.85rem 1rem;
+            }
+            td:not(:first-child) + td:not(:first-child) {
+                margin-top: 0;
+                border-top: none;
+            }
+            td.badge-lead > .badge {
+                display: inline-block;
+                width: auto;
+                margin-bottom: 0;
+            }
+            td.badge-cell[data-label] {
+                display: table-cell;
+            }
+            tr:has(> td:nth-child(2):last-child) {
+                display: table-row;
+                padding: 0;
+            }
+            tr:has(> td:nth-child(2):last-child) > td {
+                display: table-cell;
+                width: auto;
+                padding: 0.85rem 1rem;
+                border-bottom: 1px solid var(--border);
+            }
+            tr:has(> td:nth-child(2):last-child) > td:last-child {
+                text-align: left;
             }
         }
     </style>
@@ -719,37 +813,37 @@
                             <tr>
                                 <td>Clean</td>
                                 <td data-label="Does">Removes hidden metadata like GPS location, device details, and timestamps, and saves a cleaned copy.</td>
-                                <td data-label="Runs"><span class="badge badge-off">On Your Phone</span></td>
+                                <td class="badge-cell" data-label="Runs"><span class="badge badge-off">On Your Phone</span></td>
                             </tr>
                             <tr>
                                 <td>Scan</td>
                                 <td data-label="Does">Shows you the metadata inside a photo or video, so you can see what it would reveal.</td>
-                                <td data-label="Runs"><span class="badge badge-off">On Your Phone</span></td>
+                                <td class="badge-cell" data-label="Runs"><span class="badge badge-off">On Your Phone</span></td>
                             </tr>
                             <tr>
                                 <td>Convert</td>
                                 <td data-label="Does">Converts photos and videos between formats, without carrying the metadata across.</td>
-                                <td data-label="Runs"><span class="badge badge-off">On Your Phone</span></td>
+                                <td class="badge-cell" data-label="Runs"><span class="badge badge-off">On Your Phone</span></td>
                             </tr>
                             <tr>
                                 <td>Censor</td>
                                 <td data-label="Does">Lets you cover parts of a photo, like faces or license plates, before you share it.</td>
-                                <td data-label="Runs"><span class="badge badge-off">On Your Phone</span></td>
+                                <td class="badge-cell" data-label="Runs"><span class="badge badge-off">On Your Phone</span></td>
                             </tr>
                             <tr>
                                 <td>Share to Redact</td>
                                 <td data-label="Does">Cleans, scans, converts, or censors files you share into Redact from other apps.</td>
-                                <td data-label="Runs"><span class="badge badge-off">On Your Phone</span></td>
+                                <td class="badge-cell" data-label="Runs"><span class="badge badge-off">On Your Phone</span></td>
                             </tr>
                             <tr>
                                 <td>Quick Settings tiles and shortcuts</td>
                                 <td data-label="Does">Open Clean, Scan, or Censor straight from your phone's quick settings or home screen.</td>
-                                <td data-label="Runs"><span class="badge badge-off">On Your Phone</span></td>
+                                <td class="badge-cell" data-label="Runs"><span class="badge badge-off">On Your Phone</span></td>
                             </tr>
                             <tr>
                                 <td>Privacy Stats</td>
                                 <td data-label="Does">Counts how many files you've cleaned and what was removed, as plain numbers.</td>
-                                <td data-label="Runs"><span class="badge badge-off">On Your Phone</span></td>
+                                <td class="badge-cell" data-label="Runs"><span class="badge badge-off">On Your Phone</span></td>
                             </tr>
                         </tbody>
                     </table>
