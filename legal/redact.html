@@ -658,11 +658,6 @@
                 margin-top: 0;
                 border-top: none;
             }
-            td.badge-lead > .badge {
-                display: inline-block;
-                width: auto;
-                margin-bottom: 0;
-            }
             td.badge-cell[data-label] {
                 display: table-cell;
             }
@@ -869,11 +864,11 @@
                             </tr>
                             <tr>
                                 <td>Precise real-time location (device GPS, Wi-Fi, or cell positioning)</td>
-                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">Never (See Note Below)</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">Never (see note below)</span></td>
                             </tr>
                             <tr>
                                 <td>Payment or financial information</td>
-                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">Never (Google Play Handles It)</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">Never (Google Play handles it)</span></td>
                             </tr>
                             <tr>
                                 <td>Biometric data (face, fingerprint, voice)</td>
@@ -881,7 +876,7 @@
                             </tr>
                             <tr>
                                 <td>Camera or microphone input</td>
-                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">Never (Not Requested)</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-off">Never (not requested)</span></td>
                             </tr>
                             <tr>
                                 <td>Contacts, calendar, or call log</td>
@@ -932,7 +927,7 @@
                             <tr>
                                 <td>READ_EXTERNAL_STORAGE</td>
                                 <td data-label="Used For">Lets the system gallery picker show your photos/videos on Android 12 and earlier, where the modern document picker isn't available.</td>
-                                <td class="badge-cell" data-label="Status"><span class="badge badge-cond">Android 12 and Earlier</span></td>
+                                <td class="badge-cell" data-label="Status"><span class="badge badge-cond">Android 12 and earlier</span></td>
                             </tr>
                             <tr>
                                 <td>READ_MEDIA_IMAGES / READ_MEDIA_VIDEO</td>
@@ -952,17 +947,17 @@
                             <tr>
                                 <td>POST_NOTIFICATIONS</td>
                                 <td data-label="Used For">Shows progress and completion notifications for Clean/Convert jobs.</td>
-                                <td class="badge-cell" data-label="Status"><span class="badge badge-off">Optional (Off by Default)</span></td>
+                                <td class="badge-cell" data-label="Status"><span class="badge badge-off">Optional (off by default)</span></td>
                             </tr>
                             <tr>
                                 <td>FOREGROUND_SERVICE / FOREGROUND_SERVICE_MEDIA_PROCESSING / FOREGROUND_SERVICE_DATA_SYNC</td>
                                 <td data-label="Used For">Keeps a long-running Clean or Convert batch job alive and shows its progress notification when notifications are enabled. Android 14 has no media-processing service type, so the same job runs under the data-sync type there. Despite the name, nothing is synced anywhere, the job works only on files on your phone.</td>
-                                <td class="badge-cell" data-label="Status"><span class="badge badge-cond">Conditional (Notifications)</span></td>
+                                <td class="badge-cell" data-label="Status"><span class="badge badge-cond">Conditional (notifications)</span></td>
                             </tr>
                             <tr>
                                 <td>INTERNET</td>
                                 <td data-label="Used For">The only permission that allows network access at all. Used exclusively to send scrubbed, anonymous diagnostics (and an optional note you write) to Sentry, and only when you turn on Send Crash Reports in Settings.</td>
-                                <td class="badge-cell" data-label="Status"><span class="badge badge-cond">Conditional (Crash Reporting)</span></td>
+                                <td class="badge-cell" data-label="Status"><span class="badge badge-cond">Conditional (crash reporting)</span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -1265,7 +1260,7 @@
                             </tr>
                             <tr>
                                 <td>Commercial information</td>
-                                <td class="badge-cell" data-label="Collected"><span class="badge badge-cond">Order Details From Google Play</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-cond">Order details from Google Play</span></td>
                                 <td class="badge-cell" data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
@@ -1285,7 +1280,7 @@
                             </tr>
                             <tr>
                                 <td>Audio, electronic, or visual information</td>
-                                <td class="badge-cell" data-label="Collected"><span class="badge badge-cond">Only Files You Choose</span></td>
+                                <td class="badge-cell" data-label="Collected"><span class="badge badge-cond">Only files you choose</span></td>
                                 <td class="badge-cell" data-label="Sold or Shared"><span class="badge badge-off">No</span></td>
                             </tr>
                             <tr>
