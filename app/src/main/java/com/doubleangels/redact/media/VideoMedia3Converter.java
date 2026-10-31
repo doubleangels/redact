@@ -236,15 +236,28 @@ public final class VideoMedia3Converter {
     @VisibleForTesting
     static final class MetadataDroppingMuxerFactory implements Muxer.Factory {
         private final Muxer.Factory delegate;
+        /** {latitude, longitude} to write, for Keep Location; null writes none. */
+        @Nullable private final double[] keepLocation;
 
         MetadataDroppingMuxerFactory(@NonNull Muxer.Factory delegate) {
+            this(delegate, null);
+        }
+
+        MetadataDroppingMuxerFactory(@NonNull Muxer.Factory delegate, @Nullable double[] keepLocation) {
             this.delegate = delegate;
+            this.keepLocation = keepLocation;
         }
 
         @NonNull
         @Override
         public Muxer create(@NonNull String path) throws MuxerException {
             Muxer muxer = delegate.create(path);
+            if (keepLocation != null && keepLocation.length >= 2) {
+                // Written from the value the clean was asked to keep, not passed through from the
+                // source, so nothing else can ride along with it.
+                muxer.addMetadataEntry(new androidx.media3.container.Mp4LocationData(
+                        (float) keepLocation[0], (float) keepLocation[1]));
+            }
             return new Muxer() {
                 @Override
                 public int addTrack(@NonNull Format format) throws MuxerException {
@@ -349,6 +362,23 @@ public final class VideoMedia3Converter {
             @Nullable TranscodeProgressListener progressListener,
             long ownerId)
             throws IOException, InterruptedException {
+        return transcodeToPath(context, sourceUri, outputPath, formatIndex, progressListener, ownerId, null);
+    }
+
+    /**
+     * {@link #transcodeToPath(Context, Uri, String, int, TranscodeProgressListener, long)}, writing
+     * {@code keepLocation} ({latitude, longitude}) into the output when it is not null: Keep
+     * Location on the Clean tab. Every other piece of metadata is still dropped.
+     */
+    public static int transcodeToPath(
+            @NonNull Context context,
+            @NonNull Uri sourceUri,
+            @NonNull String outputPath,
+            int formatIndex,
+            @Nullable TranscodeProgressListener progressListener,
+            long ownerId,
+            @Nullable double[] keepLocation)
+            throws IOException, InterruptedException {
 
         File outFile = new File(outputPath);
         Context app = context.getApplicationContext();
@@ -372,7 +402,8 @@ public final class VideoMedia3Converter {
                         progressListener,
                         ownerId,
                         hasAudio,
-                        source);
+                        source,
+                        keepLocation);
                 return attemptIndex;
             } catch (UnsupportedMediaException e) {
                 // The source itself can't be read; another output codec won't change that.
@@ -407,7 +438,8 @@ public final class VideoMedia3Converter {
             @Nullable TranscodeProgressListener progressListener,
             long ownerId,
             boolean hasAudio,
-            @NonNull SourceVideo source)
+            @NonNull SourceVideo source,
+            @Nullable double[] keepLocation)
             throws IOException, InterruptedException {
         @Nullable SizeRateSupport support = hardwareEncoderSupport(videoMimeType);
         int[] plan = support != null
@@ -423,7 +455,7 @@ public final class VideoMedia3Converter {
         try {
             transcodeToPathOnce(
                     app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, ownerId,
-                    plan[0], plan[1], hasAudio, source);
+                    plan[0], plan[1], hasAudio, source, keepLocation);
             if (plan[0] > 0) {
                 warnDownscaled(app, plan[0]);
             }
@@ -447,7 +479,8 @@ public final class VideoMedia3Converter {
                             shortSide,
                             frameRate,
                             hasAudio,
-                            source);
+                            source,
+                            keepLocation);
                     warnDownscaled(app, shortSide);
                     return;
                 } catch (RetryAtSmallerSizeException retryFailure) {
@@ -843,7 +876,8 @@ public final class VideoMedia3Converter {
             int outputShortSide,
             int outputFrameRate,
             boolean hasAudio,
-            @NonNull SourceVideo source)
+            @NonNull SourceVideo source,
+            @Nullable double[] keepLocation)
             throws IOException, InterruptedException {
 
         File outFile = new File(outputPath);
@@ -876,7 +910,8 @@ public final class VideoMedia3Converter {
                     outputShortSide,
                     outputFrameRate,
                     hasAudio,
-                    source);
+                    source,
+                    keepLocation);
         } finally {
             WAITERS.remove(waiter);
             if (locked) {
@@ -897,7 +932,8 @@ public final class VideoMedia3Converter {
             int outputShortSide,
             int outputFrameRate,
             boolean hasAudio,
-            @NonNull SourceVideo source)
+            @NonNull SourceVideo source,
+            @Nullable double[] keepLocation)
             throws IOException, InterruptedException {
 
         activeTranscodeOwner.set(ownerId);
@@ -997,7 +1033,7 @@ public final class VideoMedia3Converter {
                                 new Transformer.Builder(app)
                                         .setAssetLoaderFactory(decoderFallbackAssetLoaderFactory(app))
                                         .setMuxerFactory(new MetadataDroppingMuxerFactory(
-                                                new DefaultMuxer.Factory()))
+                                                new DefaultMuxer.Factory(), keepLocation))
                                         .setEncoderFactory(new AlwaysEncodeFactory(
                                                 encoderFactory(app, videoBitrate, audioBitrate),
                                                 outputFrameRate))

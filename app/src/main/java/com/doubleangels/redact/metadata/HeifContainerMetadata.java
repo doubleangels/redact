@@ -120,6 +120,30 @@ public final class HeifContainerMetadata {
      *     protected items, an unknown layout), so the caller re-encodes it instead
      */
     public static void sanitize(@NonNull File source, @NonNull File target) throws IOException {
+        sanitize(source, target, null);
+    }
+
+    /**
+     * Adds an EXIF item holding {@code tiff} (a TIFF header and its tags, as in a JPEG's APP1
+     * after "Exif\0\0") to an already clean HEIF {@code file}, describing its primary picture.
+     * This is how the tags Keep Camera Settings, Keep Location and Keep Date Taken keep go back
+     * into a HEIC or AVIF, which carries no other EXIF.
+     */
+    public static void addExif(@NonNull File file, @NonNull byte[] tiff) throws IOException {
+        File rebuilt = File.createTempFile("heif_exif_", ".heic", file.getAbsoluteFile().getParentFile());
+        try {
+            sanitize(file, rebuilt, tiff);
+            java.nio.file.Files.copy(rebuilt.toPath(), file.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            if (!rebuilt.delete()) {
+                rebuilt.deleteOnExit();
+            }
+        }
+    }
+
+    private static void sanitize(@NonNull File source, @NonNull File target, @Nullable byte[] exifTiff)
+            throws IOException {
         if (source.getCanonicalPath().equals(target.getCanonicalPath())) {
             throw new IOException("Source and target must differ");
         }
@@ -183,6 +207,12 @@ public final class HeifContainerMetadata {
                     rebuild = null;
                     noStill = e;
                 }
+            }
+            if (exifTiff != null) {
+                if (rebuild == null) {
+                    throw new IOException("No still picture to describe");
+                }
+                rebuild.addExif(exifTiff);
             }
             // A burst's or animation's frames are kept when their tracks can be followed;
             // otherwise only the still image is, and ftyp stops promising the sequence.
@@ -301,6 +331,8 @@ public final class HeifContainerMetadata {
         long newOffset;
         long newLength;
         boolean hasLocation;
+        /** Data written by this class rather than copied from the source: the kept EXIF. */
+        @Nullable byte[] data;
 
         Item(long id, String type, int infeVersion, int infeFlags) {
             this.id = id;
@@ -594,6 +626,29 @@ public final class HeifContainerMetadata {
             }
         }
 
+        /** The EXIF item {@link #addExif} added, describing the primary picture; -1 when none. */
+        private long exifId = -1;
+
+        /** Adds an EXIF item holding {@code tiff}, the way cameras store it in a HEIF. */
+        void addExif(@NonNull byte[] tiff) throws IOException {
+            long id = 0;
+            for (long existing : items.keySet()) {
+                id = Math.max(id, existing);
+            }
+            id++;
+            if (id > 0xFFFF) {
+                throw new IOException("No room for another item");
+            }
+            Item exif = new Item(id, "Exif", 2, 0);
+            exif.hasLocation = true;
+            // The item starts with where the TIFF header is, counted after these four bytes.
+            exif.data = new byte[4 + tiff.length];
+            System.arraycopy(tiff, 0, exif.data, 4, tiff.length);
+            items.put(id, exif);
+            kept.add(id);
+            exifId = id;
+        }
+
         /** Writes each kept item's data, cleaned, to the new mdat body or the new idat. */
         long writeItemData(@NonNull OutputStream body) throws IOException {
             long bodyOffset = 0;
@@ -601,7 +656,7 @@ public final class HeifContainerMetadata {
                 if (!kept.contains(item.id) || !item.hasLocation) {
                     continue;
                 }
-                byte[] data = cleanItemData(item, readItem(item));
+                byte[] data = item.data != null ? item.data : cleanItemData(item, readItem(item));
                 if (item.constructionMethod == 1) {
                     item.newOffset = newIdat.size();
                     newIdat.write(data);
@@ -698,6 +753,7 @@ public final class HeifContainerMetadata {
         private byte[] buildMeta(long dataStart) throws IOException {
             ByteArrayOutputStream body = new ByteArrayOutputStream();
             writeU32(body, metaVersionFlags);
+            boolean wroteIref = false;
             for (Object[] child : children) {
                 String type = (String) child[0];
                 int start = (int) child[1];
@@ -718,6 +774,7 @@ public final class HeifContainerMetadata {
                         break;
                     case "iref":
                         body.write(iref());
+                        wroteIref = true;
                         break;
                     case "iprp":
                         body.write(iprp());
@@ -732,6 +789,9 @@ public final class HeifContainerMetadata {
                         // xml, bxml and anything unknown: not the picture.
                         break;
                 }
+            }
+            if (exifId >= 0 && !wroteIref) {
+                body.write(iref());
             }
             return box("meta", body.toByteArray());
         }
@@ -860,6 +920,14 @@ public final class HeifContainerMetadata {
                     b.write(box(type, r.toByteArray()));
                 }
                 pos += size;
+            }
+            if (exifId >= 0) {
+                // The EXIF describes ("cdsc") the primary picture.
+                ByteArrayOutputStream r = new ByteArrayOutputStream();
+                writeId(r, exifId, wide);
+                writeU16(r, 1);
+                writeId(r, primaryId, wide);
+                b.write(box("cdsc", r.toByteArray()));
             }
             return box("iref", b.toByteArray());
         }

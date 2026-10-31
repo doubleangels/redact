@@ -354,7 +354,7 @@
     <string name="settings_preserve_location">Keep Location</string>
     <string name="settings_preserve_location_subtitle">Retain GPS coordinates on the Clean tab. Ignored when Strict Clean is on or when sharing from other apps.</string>
     <string name="settings_preserve_date">Keep Date Taken</string>
-    <string name="settings_preserve_date_subtitle">Retain when each photo was taken on the Clean tab, so it stays in its place in your gallery. Ignored when Strict Clean is on or when sharing from other apps.</string>
+    <string name="settings_preserve_date_subtitle">Retain when each photo or video was taken on the Clean tab, so it stays in its place in your gallery. Ignored when Strict Clean is on or when sharing from other apps.</string>
     <string name="settings_preserve_location_confirm_title">Keep GPS on Cleaned Photos</string>
     <string name="settings_preserve_location_confirm_message">Cleaned files on the Clean tab may still contain GPS coordinates. Sharing from other apps always strips location.\n\nTurn this on only if you intentionally want location kept.</string>
     <string name="settings_location_permission_granted">Photo location permission granted.</string>

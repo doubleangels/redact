@@ -77,6 +77,39 @@ public class HeifContainerMetadataTest {
         assertTrue(after.length < before.length);
     }
 
+    /** A little-endian TIFF block with one ASCII tag (Make), standing in for kept EXIF. */
+    private static byte[] tiff(String make) {
+        byte[] text = (make + "\0").getBytes(StandardCharsets.US_ASCII);
+        java.nio.ByteBuffer b = java.nio.ByteBuffer.allocate(8 + 2 + 12 + 4 + text.length)
+                .order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        b.put((byte) 'I').put((byte) 'I').putShort((short) 42).putInt(8);
+        b.putShort((short) 1);
+        b.putShort((short) 0x010F).putShort((short) 2).putInt(text.length).putInt(26);
+        b.putInt(0);
+        b.put(text);
+        return b.array();
+    }
+
+    @Test
+    public void addExif_describesThePrimaryPicture_andACleanRemovesItAgain() throws Exception {
+        File clean = new File(temp.getRoot(), "clean.heic");
+        HeifContainerMetadata.sanitize(fixture(), clean);
+        byte[] before = Files.readAllBytes(clean.toPath());
+
+        HeifContainerMetadata.addExif(clean, tiff("KeptMake"));
+
+        byte[] withExif = Files.readAllBytes(clean.toPath());
+        assertTrue(contains(withExif, "KeptMake"));
+        assertTrue("an Exif item", contains(withExif, "Exif"));
+        assertTrue("that describes the primary picture", contains(withExif, "cdsc"));
+        assertTrue("the picture is still there", contains(withExif, "hvcC"));
+        assertFalse("nothing from the source comes back", contains(withExif, "SecretMaker"));
+
+        File again = new File(temp.getRoot(), "again.heic");
+        HeifContainerMetadata.sanitize(clean, again);
+        assertArrayEquals(before, Files.readAllBytes(again.toPath()));
+    }
+
     @Test
     public void sanitize_isStableOnItsOwnOutput() throws Exception {
         File once = new File(temp.getRoot(), "once.heic");

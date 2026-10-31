@@ -177,7 +177,7 @@
     <string name="settings_preserve_location">Mantieni Posizione</string>
     <string name="settings_preserve_location_subtitle">Mantieni coordinate GPS in Pulisci. Ignorato con Pulizia Rigorosa o condivisione da altre app.</string>
     <string name="settings_preserve_date">Mantieni Data di Scatto</string>
-    <string name="settings_preserve_date_subtitle">Mantieni quando è stata scattata ogni foto in Pulisci, così resta al suo posto nella galleria. Ignorato con Pulizia Rigorosa o condivisione da altre app.</string>
+    <string name="settings_preserve_date_subtitle">Mantieni quando è stata scattata ogni foto o girato ogni video in Pulisci, così resta al suo posto nella galleria. Ignorato con Pulizia Rigorosa o condivisione da altre app.</string>
         <string name="settings_sentry_consent_allow">Attiva</string>
     <string name="settings_sentry_consent_cancel">Non Ora</string>
     <string name="settings_sentry_consent_title">Attiva Segnalazioni Crash</string>

@@ -33,6 +33,7 @@ glide-compiler = { module = "com.github.bumptech.glide:compiler", version.ref = 
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 media3-common = { module = "androidx.media3:media3-common", version.ref = "media3" }
+media3-container = { module = "androidx.media3:media3-container", version.ref = "media3" }
 media3-effect = { module = "androidx.media3:media3-effect", version.ref = "media3" }
 media3-transformer = { module = "androidx.media3:media3-transformer", version.ref = "media3" }
 lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }

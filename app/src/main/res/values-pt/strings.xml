@@ -177,7 +177,7 @@
     <string name="settings_preserve_location">Manter Localização</string>
     <string name="settings_preserve_location_subtitle">Manter coordenadas GPS em Limpar. Ignorado com Limpeza Rigorosa ou ao compartilhar de outros apps.</string>
     <string name="settings_preserve_date">Manter Data da Foto</string>
-    <string name="settings_preserve_date_subtitle">Manter quando cada foto foi tirada em Limpar, para que continue no lugar certo na galeria. Ignorado com Limpeza Rigorosa ou ao compartilhar de outros apps.</string>
+    <string name="settings_preserve_date_subtitle">Manter quando cada foto ou vídeo foi feito em Limpar, para que continue no lugar certo na galeria. Ignorado com Limpeza Rigorosa ou ao compartilhar de outros apps.</string>
         <string name="settings_sentry_consent_allow">Ativar</string>
     <string name="settings_sentry_consent_cancel">Agora Não</string>
     <string name="settings_sentry_consent_title">Ativar Relatórios de Falha</string>

@@ -123,6 +123,7 @@ dependencies {
     annotationProcessor libs.glide.compiler
     implementation libs.material
     implementation libs.media3.common
+    implementation libs.media3.container
     implementation libs.media3.effect
     implementation libs.media3.transformer
     implementation libs.lifecycle.viewmodel.ktx

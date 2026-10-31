@@ -65,6 +65,62 @@ public class VideoContainerMetadataTest {
 
     // ---- MP4: finding metadata ----------------------------------------------------------------
 
+    /** A ©xyz atom as Media3 and MediaMuxer write it: length, language, the ISO 6709 text. */
+    private static byte[] xyz(String location) {
+        byte[] text = bytes(location);
+        java.nio.ByteBuffer b = java.nio.ByteBuffer.allocate(4 + text.length);
+        b.putShort((short) text.length).putShort((short) 0x15C7).put(text);
+        return box("\u00A9xyz", b.array());
+    }
+
+    @Test
+    public void keepLocation_keepsAUserDataBoxHoldingOnlyALocation() throws Exception {
+        File f = file("xyz.mp4", mp4(0, box("udta", xyz(LOCATION))));
+        assertFalse(VideoContainerMetadata.scan(f, false).isClean());
+        assertTrue(VideoContainerMetadata.scan(f, true).isClean());
+
+        VideoContainerMetadata.scrub(f, true);
+
+        assertTrue("the location is kept", contains(f, bytes(LOCATION)));
+        assertTrue(VideoContainerMetadata.scan(f, true).isClean());
+        VideoContainerMetadata.scrub(f, false);
+        assertFalse("without Keep Location it goes", contains(f, bytes(LOCATION)));
+    }
+
+    @Test
+    public void keepLocation_stillRemovesALocationThatCarriesAnythingElse() throws Exception {
+        File f = file("xyz_title.mp4", mp4(0, box("udta", xyz(LOCATION), itunesMeta("\u00A9nam", "secret"))));
+        assertFalse(VideoContainerMetadata.scan(f, true).isClean());
+
+        VideoContainerMetadata.scrub(f, true);
+
+        assertFalse(contains(f, bytes(LOCATION)));
+        assertFalse(contains(f, bytes("secret")));
+        assertTrue(VideoContainerMetadata.scan(f, true).isClean());
+    }
+
+    @Test
+    public void writeMovieTimes_putsTheRecordingTimeIntoEveryHeader() throws Exception {
+        File f = file("times.mp4", TestVideos.cleanMp4());
+        long length = f.length();
+
+        VideoContainerMetadata.writeMovieTimes(f, new long[] {RECORDED_1904, RECORDED_1904});
+
+        assertEquals(length, f.length());
+        assertTrue(contains(f, SAMPLES));
+        VideoContainerMetadata.Report r = VideoContainerMetadata.scan(f);
+        assertEquals(Arrays.asList("date"), r.fields);
+        org.junit.Assert.assertArrayEquals(new long[] {RECORDED_1904, RECORDED_1904},
+                VideoContainerMetadata.movieTimes(app, Uri.fromFile(f)));
+    }
+
+    @Test
+    public void writeMovieTimes_refusesAFileWithoutAMovieHeader() throws Exception {
+        File f = file("not.webm", TestVideos.webm(false, false));
+        assertThrows(IOException.class,
+                () -> VideoContainerMetadata.writeMovieTimes(f, new long[] {RECORDED_1904, RECORDED_1904}));
+    }
+
     @Test
     public void aCleanMp4_isClean() throws Exception {
         VideoContainerMetadata.Report r = scan(file("clean.mp4", TestVideos.cleanMp4()));

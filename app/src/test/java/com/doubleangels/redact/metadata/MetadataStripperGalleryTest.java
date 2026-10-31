@@ -195,6 +195,16 @@ public class MetadataStripperGalleryTest {
     }
 
     @Test
+    public void exifTiff_findsTheTiffBlockOfAJpegsExif() {
+        byte[] jpeg = {(byte) 0xFF, (byte) 0xD8,
+                (byte) 0xFF, (byte) 0xE0, 0, 4, 1, 2,
+                (byte) 0xFF, (byte) 0xE1, 0, 12, 'E', 'x', 'i', 'f', 0, 0, 'I', 'I', 42, 0,
+                (byte) 0xFF, (byte) 0xDA, 0, 2};
+        assertTrue(java.util.Arrays.equals(new byte[] {'I', 'I', 42, 0}, MetadataStripper.exifTiff(jpeg)));
+        assertNull(MetadataStripper.exifTiff(new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xDA, 0, 2}));
+    }
+
+    @Test
     public void jpeg_strict_keepsTheColourSpace_butNotTheDate() throws Exception {
         AppPreferences.setStrictClean(app, true);
         AppPreferences.setPreserveDateTaken(app, true); // ignored by Strict Clean

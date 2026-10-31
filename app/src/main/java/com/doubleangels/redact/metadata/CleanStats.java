@@ -64,6 +64,17 @@ public final class CleanStats {
      * the container scan itself.
      */
     @NonNull
+    /**
+     * These stats without the location and date when a clean kept them (Keep Location, Keep Date
+     * Taken), so the summary does not say they were removed.
+     */
+    @NonNull
+    CleanStats keeping(boolean location, boolean date) {
+        int kept = (location && hadLocation ? 1 : 0) + (date && hadDate ? 1 : 0);
+        return new CleanStats(Math.max(0, removedFields - kept), hadLocation && !location,
+                hadDate && !date, hadDevice, hadName);
+    }
+
     static CleanStats withVideoFields(int removedFields, boolean hadLocation, boolean retrieverDate,
                                       boolean retrieverName, @NonNull Iterable<String> containerFields) {
         boolean date = retrieverDate;
