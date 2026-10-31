@@ -233,6 +233,21 @@ public class AlreadyCleanCheckTest {
     }
 
     @Test
+    public void video_withOnlyARecordingDate_isAlreadyCleanWhenTheDateIsKept() throws IOException {
+        AppPreferences.setStrictClean(app, false);
+        AppPreferences.setPreserveDateTaken(app, true);
+        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app,
+                video(TestVideos.mp4(TestVideos.RECORDED_1904),
+                        android.media.MediaMetadataRetriever.METADATA_KEY_DURATION, "1000")));
+
+        // Strict Clean keeps nothing, so the date still has to go.
+        AppPreferences.setStrictClean(app, true);
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app,
+                video(TestVideos.mp4(TestVideos.RECORDED_1904),
+                        android.media.MediaMetadataRetriever.METADATA_KEY_DURATION, "1000")));
+    }
+
+    @Test
     public void aRealVideoWithQuickTimeLocationKeys_isNeverCalledClean() throws IOException {
         File f = TestVideos.resource(app.getCacheDir(), "video/ffmpeg_location_keys.mp4");
 

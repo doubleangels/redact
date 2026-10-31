@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.exifinterface.media.ExifInterface;
 
+import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.media.MediaItem;
 import com.doubleangels.redact.sentry.SentryManager;
 
@@ -216,15 +217,22 @@ public final class AlreadyCleanCheck {
         if (!container.recognized) {
             return Status.UNKNOWN;
         }
-        if (!container.fields.isEmpty()) {
-            return Status.NEEDS_CLEANING;
+        // What Keep Location and Keep Date Taken keep is not something a clean would remove.
+        boolean keepLocation = !AppPreferences.isStrictClean(context) && AppPreferences.isPreserveLocation(context);
+        boolean keepDate = !AppPreferences.isStrictClean(context) && AppPreferences.isPreserveDateTaken(context);
+        for (String field : container.fields) {
+            boolean kept = (keepLocation && container.isLocationField(field))
+                    || (keepDate && field.equals("date"));
+            if (!kept) {
+                return Status.NEEDS_CLEANING;
+            }
         }
         try (MediaMetadataRetriever retriever = new MediaMetadataRetriever()) {
             retriever.setDataSource(context, uri);
-            if (MetadataStripper.normalizeMetadataValue(
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_LOCATION)) != null
-                    || MetadataStripper.normalizeMetadataValue(
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE)) != null) {
+            if ((!keepLocation && MetadataStripper.normalizeMetadataValue(
+                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_LOCATION)) != null)
+                    || (!keepDate && MetadataStripper.normalizeMetadataValue(
+                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE)) != null)) {
                 return Status.NEEDS_CLEANING;
             }
             for (int key : MetadataStripper.ADDITIONAL_VIDEO_PRIVACY_KEYS) {
