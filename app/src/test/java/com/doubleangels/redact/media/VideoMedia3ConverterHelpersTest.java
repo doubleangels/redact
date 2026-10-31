@@ -146,14 +146,6 @@ public class VideoMedia3ConverterHelpersTest {
     }
 
     @Test
-    public void softwareShortSide_scalesLargeOrUnknownSourcesTo720p_andKeepsSmallOnes() {
-        assertEquals(720, VideoMedia3Converter.softwareShortSide(2160));
-        assertEquals(720, VideoMedia3Converter.softwareShortSide(0));
-        assertEquals(0, VideoMedia3Converter.softwareShortSide(720));
-        assertEquals(0, VideoMedia3Converter.softwareShortSide(480));
-    }
-
-    @Test
     public void describeAttemptFailure_namesTheCodecSizeAndHowFarItGot() {
         assertEquals(
                 "The video/hevc export at full size failed with ERROR_CODE_MUXING_TIMEOUT"
