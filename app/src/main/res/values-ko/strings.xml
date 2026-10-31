@@ -170,6 +170,8 @@
     <string name="settings_preserve_location_subtitle">정리 탭에서 GPS 좌표 유지. 엄격 정리 또는 다른 앱에서 공유 시 무시됩니다.</string>
     <string name="settings_preserve_date">촬영 날짜 유지</string>
     <string name="settings_preserve_date_subtitle">정리 탭에서 각 사진과 동영상의 촬영 시각을 유지해 갤러리에서 제자리에 남게 합니다. 엄격 정리 또는 다른 앱에서 공유 시 무시됩니다.</string>
+    <string name="settings_preserve_motion">모션 포토 유지</string>
+    <string name="settings_preserve_motion_subtitle">정리 탭에서 JPEG 모션 포토의 짧은 동영상을 메타데이터를 제거한 채 유지합니다. 함께 녹음된 소리도 포함됩니다. 엄격 정리 또는 다른 앱에서 공유 시 무시됩니다.</string>
         <string name="settings_sentry_consent_allow">사용</string>
     <string name="settings_sentry_consent_cancel">나중에</string>
     <string name="settings_sentry_consent_title">크래시 보고 사용</string>

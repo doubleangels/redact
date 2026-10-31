@@ -170,6 +170,8 @@
     <string name="settings_preserve_location_subtitle">在清理分頁保留 GPS 座標。嚴格清理開啟或從其他 App 分享時忽略。</string>
     <string name="settings_preserve_date">保留拍攝日期</string>
     <string name="settings_preserve_date_subtitle">在清理分頁保留每張相片與每段影片的拍攝時間，讓它在相簿中維持原本的位置。嚴格清理開啟或從其他 App 分享時忽略。</string>
+    <string name="settings_preserve_motion">保留動態相片</string>
+    <string name="settings_preserve_motion_subtitle">在清理分頁保留 JPEG 動態相片的短片，並移除其中繼資料。其中包含一同錄下的聲音。嚴格清理開啟或從其他 App 分享時忽略。</string>
         <string name="settings_sentry_consent_allow">啟用</string>
     <string name="settings_sentry_consent_cancel">暫不</string>
     <string name="settings_sentry_consent_title">啟用當機報告</string>

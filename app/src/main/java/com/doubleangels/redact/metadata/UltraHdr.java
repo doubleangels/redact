@@ -47,8 +47,10 @@ final class UltraHdr {
     private static final String ITEM_NS = "http://ns.google.com/photos/1.0/container/item/";
     private static final String RDF_NS = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 
+    private static final String GCAMERA_NS = MotionPhoto.GCAMERA_NS;
+
     private static final Set<String> NAMESPACES = Set.of(
-            "adobe:ns:meta/", RDF_NS, HDRGM_NS, CONTAINER_NS, ITEM_NS);
+            "adobe:ns:meta/", RDF_NS, HDRGM_NS, CONTAINER_NS, ITEM_NS, GCAMERA_NS);
 
     /** The gain map's own numbers, in the order the Ultra HDR format lists them. */
     private static final List<String> HDRGM_FIELDS = List.of(
@@ -75,14 +77,21 @@ final class UltraHdr {
         return xmp.contains(HDRGM_NS) && xmp.contains("Version");
     }
 
+    /** Whether XMP says a Motion Photo's video follows the picture. */
+    static boolean declaresMotionPhoto(@NonNull String xmp) {
+        return xmp.contains(GCAMERA_NS) && xmp.contains("MotionPhoto");
+    }
+
     /**
-     * Whether XMP holds nothing but what an Ultra HDR file needs: the gain map namespace's numbers
-     * and the directory naming the primary picture and gain map, with no other namespace, no
-     * text, and no value that is not a number, a flag or one of the directory's fixed words.
+     * Whether XMP holds nothing but what an Ultra HDR file or a Motion Photo needs: the gain map
+     * namespace's numbers, the Motion Photo flag, version and still moment, and the directory
+     * naming the primary picture, gain map and video, with no other namespace, no text, and no
+     * value that is not a number, a flag or one of the directory's fixed words.
      */
-    static boolean isGainMapOnlyXmp(@NonNull String xmp) {
+    static boolean isPictureOnlyXmp(@NonNull String xmp) {
         String body = xmp.replaceAll("<\\?xpacket[^>]*\\?>", "").trim();
-        if (!body.contains(HDRGM_NS) || body.contains("<!") || body.contains("<?")) {
+        if (!(body.contains(HDRGM_NS) || body.contains(GCAMERA_NS))
+                || body.contains("<!") || body.contains("<?")) {
             return false;
         }
         Map<String, String> prefixes = new LinkedHashMap<>();
@@ -137,15 +146,27 @@ final class UltraHdr {
         switch (namespace) {
             case HDRGM_NS:
                 return HDRGM_FIELDS.contains(name) && NUMBER_OR_FLAG.matcher(value).matches();
+            case GCAMERA_NS:
+                switch (name) {
+                    case "MotionPhoto":
+                        return "0".equals(value) || "1".equals(value);
+                    case "MotionPhotoVersion":
+                        return value.matches("\\d{1,3}");
+                    case "MotionPhotoPresentationTimestampUs":
+                        return value.matches("-?\\d{1,19}");
+                    default:
+                        return false;
+                }
             case RDF_NS:
                 return ("about".equals(name) && value.isEmpty())
                         || ("parseType".equals(name) && "Resource".equals(value));
             case ITEM_NS:
                 switch (name) {
                     case "Semantic":
-                        return "Primary".equals(value) || "GainMap".equals(value);
+                        return "Primary".equals(value) || "GainMap".equals(value)
+                                || "MotionPhoto".equals(value);
                     case "Mime":
-                        return "image/jpeg".equals(value);
+                        return "image/jpeg".equals(value) || "video/mp4".equals(value);
                     case "Length":
                     case "Padding":
                         return value.matches("\\d{1,12}");
@@ -232,14 +253,74 @@ final class UltraHdr {
     @VisibleForTesting
     @NonNull
     static String primaryXmp(@NonNull String version, long gainMapLength) {
-        return "<x:xmpmeta xmlns:x=\"adobe:ns:meta/\"><rdf:RDF xmlns:rdf=\"" + RDF_NS + "\">"
-                + "<rdf:Description rdf:about=\"\" xmlns:hdrgm=\"" + HDRGM_NS + "\" xmlns:Container=\""
-                + CONTAINER_NS + "\" xmlns:Item=\"" + ITEM_NS + "\" hdrgm:Version=\"" + version + "\">"
-                + "<Container:Directory><rdf:Seq>"
-                + "<rdf:li rdf:parseType=\"Resource\"><Container:Item Item:Semantic=\"Primary\" Item:Mime=\"image/jpeg\"/></rdf:li>"
-                + "<rdf:li rdf:parseType=\"Resource\"><Container:Item Item:Semantic=\"GainMap\" Item:Mime=\"image/jpeg\" Item:Length=\""
-                + gainMapLength + "\"/></rdf:li>"
-                + "</rdf:Seq></Container:Directory></rdf:Description></rdf:RDF></x:xmpmeta>";
+        return primaryXmp(version, gainMapLength, null);
+    }
+
+    /**
+     * XMP for the primary picture: the gain map version when {@code version} is not null, the
+     * Motion Photo fields when {@code motion} is not null, and the directory of what follows the
+     * picture, in the order it follows: the gain map ({@code gainMapLength} bytes, none when
+     * negative), then the video, which ends the file.
+     */
+    @VisibleForTesting
+    @NonNull
+    static String primaryXmp(@Nullable String version, long gainMapLength, @Nullable MotionPhoto.Clip motion) {
+        StringBuilder xmp = new StringBuilder("<x:xmpmeta xmlns:x=\"adobe:ns:meta/\"><rdf:RDF xmlns:rdf=\"")
+                .append(RDF_NS).append("\"><rdf:Description rdf:about=\"\"");
+        if (version != null) {
+            xmp.append(" xmlns:hdrgm=\"").append(HDRGM_NS).append('"');
+        }
+        if (motion != null) {
+            xmp.append(" xmlns:GCamera=\"").append(GCAMERA_NS).append('"');
+        }
+        xmp.append(" xmlns:Container=\"").append(CONTAINER_NS).append("\" xmlns:Item=\"").append(ITEM_NS).append('"');
+        if (version != null) {
+            xmp.append(" hdrgm:Version=\"").append(version).append('"');
+        }
+        if (motion != null) {
+            xmp.append(" GCamera:MotionPhoto=\"1\" GCamera:MotionPhotoVersion=\"1\"");
+            if (motion.presentationTimestampUs >= 0) {
+                xmp.append(" GCamera:MotionPhotoPresentationTimestampUs=\"")
+                        .append(motion.presentationTimestampUs).append('"');
+            }
+        }
+        xmp.append("><Container:Directory><rdf:Seq>")
+                .append("<rdf:li rdf:parseType=\"Resource\"><Container:Item Item:Semantic=\"Primary\" Item:Mime=\"image/jpeg\"/></rdf:li>");
+        if (gainMapLength >= 0) {
+            xmp.append("<rdf:li rdf:parseType=\"Resource\"><Container:Item Item:Semantic=\"GainMap\" Item:Mime=\"image/jpeg\" Item:Length=\"")
+                    .append(gainMapLength).append("\"/></rdf:li>");
+        }
+        if (motion != null) {
+            xmp.append("<rdf:li rdf:parseType=\"Resource\"><Container:Item Item:Semantic=\"MotionPhoto\" Item:Mime=\"video/mp4\" Item:Length=\"")
+                    .append(motion.length()).append("\" Item:Padding=\"0\"/></rdf:li>");
+        }
+        return xmp.append("</rdf:Seq></Container:Directory></rdf:Description></rdf:RDF></x:xmpmeta>").toString();
+    }
+
+    /**
+     * Puts {@code xmp} into the clean JPEG {@code target}, after its JFIF header: for a Motion
+     * Photo without a gain map, whose directory {@link #rebuild} did not write.
+     */
+    static void insertPrimaryXmp(@NonNull File target, @NonNull String xmp) throws IOException {
+        byte[] primary = Files.readAllBytes(target.toPath());
+        if (primary.length < 4 || (primary[0] & 0xFF) != 0xFF || (primary[1] & 0xFF) != 0xD8) {
+            throw new IOException("Not a JPEG");
+        }
+        int insertAt = afterJfif(primary);
+        byte[] segment = segment(0xE1, concat(XMP_ID, xmp.getBytes(StandardCharsets.UTF_8)));
+        try (OutputStream out = new java.io.BufferedOutputStream(new FileOutputStream(target), 64 * 1024)) {
+            out.write(primary, 0, insertAt);
+            out.write(segment);
+            out.write(primary, insertAt, primary.length - insertAt);
+        }
+    }
+
+    /** Where new APP segments go in a JPEG: after its JFIF header, or after SOI without one. */
+    private static int afterJfif(@NonNull byte[] jpeg) {
+        if (jpeg.length >= 6 && (jpeg[2] & 0xFF) == 0xFF && (jpeg[3] & 0xFF) == 0xE0) {
+            return 4 + (((jpeg[4] & 0xFF) << 8) | (jpeg[5] & 0xFF));
+        }
+        return 2;
     }
 
     /**
@@ -293,6 +374,16 @@ final class UltraHdr {
      */
     static void rebuild(@NonNull File source, long gainMapStart, long gainMapEnd,
             @Nullable byte[] primaryIso, @NonNull File target) throws IOException {
+        rebuild(source, gainMapStart, gainMapEnd, primaryIso, target, null);
+    }
+
+    /**
+     * {@link #rebuild(File, long, long, byte[], File)}, with the Motion Photo fields and video in
+     * the directory when {@code motion} is not null. The video itself is appended by the caller.
+     */
+    static void rebuild(@NonNull File source, long gainMapStart, long gainMapEnd,
+            @Nullable byte[] primaryIso, @NonNull File target, @Nullable MotionPhoto.Clip motion)
+            throws IOException {
         long length = gainMapEnd - gainMapStart;
         if (length <= 4 || length > MAX_GAIN_MAP_BYTES) {
             throw new IOException("Gain map out of range");
@@ -349,14 +440,11 @@ final class UltraHdr {
         if (primary.length < 4 || (primary[0] & 0xFF) != 0xFF || (primary[1] & 0xFF) != 0xD8) {
             throw new IOException("Not a JPEG");
         }
-        int insertAt = 2;
-        if ((primary[2] & 0xFF) == 0xFF && (primary[3] & 0xFF) == 0xE0 && primary.length >= 6) {
-            insertAt = 4 + (((primary[4] & 0xFF) << 8) | (primary[5] & 0xFF)); // after JFIF
-        }
+        int insertAt = afterJfif(primary);
         String version = fields.containsKey("Version") ? fields.get("Version").get(0) : "1.0";
-        byte[] directory = hasXmpNumbers
-                ? segment(0xE1, concat(XMP_ID, primaryXmp(version, gainMapBytes.length)
-                        .getBytes(StandardCharsets.UTF_8)))
+        byte[] directory = hasXmpNumbers || motion != null
+                ? segment(0xE1, concat(XMP_ID, primaryXmp(hasXmpNumbers ? version : null,
+                        gainMapBytes.length, motion).getBytes(StandardCharsets.UTF_8)))
                 : new byte[0];
         byte[] isoVersion = primaryIso != null && primaryIso.length <= MAX_PRIMARY_ISO
                 ? segment(0xE2, primaryIso) : new byte[0];

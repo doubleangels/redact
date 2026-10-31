@@ -59,12 +59,6 @@ public final class CleanStats {
     }
 
     /**
-     * Sorts the identifying fields a video container carried, by their name as {@link
-     * VideoContainerMetadata} reports it, into dates, devices and names. Location is reported by
-     * the container scan itself.
-     */
-    @NonNull
-    /**
      * These stats without the location and date when a clean kept them (Keep Location, Keep Date
      * Taken), so the summary does not say they were removed.
      */
@@ -75,6 +69,12 @@ public final class CleanStats {
                 hadDate && !date, hadDevice, hadName);
     }
 
+    /**
+     * Sorts the identifying fields a video container carried, by their name as {@link
+     * VideoContainerMetadata} reports it, into dates, devices and names. Location is reported by
+     * the container scan itself.
+     */
+    @NonNull
     static CleanStats withVideoFields(int removedFields, boolean hadLocation, boolean retrieverDate,
                                       boolean retrieverName, @NonNull Iterable<String> containerFields) {
         boolean date = retrieverDate;

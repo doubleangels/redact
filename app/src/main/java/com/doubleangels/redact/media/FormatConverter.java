@@ -48,14 +48,8 @@ public final class FormatConverter {
     @NonNull
     private static Bitmap applyExifOrientation(
             @NonNull Context context, @NonNull Uri sourceUri, @NonNull Bitmap bitmap) {
-        int orientation = androidx.exifinterface.media.ExifInterface.ORIENTATION_NORMAL;
-        try (InputStream in = context.getContentResolver().openInputStream(sourceUri)) {
-            if (in != null) {
-                orientation = new androidx.exifinterface.media.ExifInterface(in).getAttributeInt(
-                        androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION,
-                        androidx.exifinterface.media.ExifInterface.ORIENTATION_NORMAL);
-            }
-        } catch (Exception e) {
+        int orientation = exifOrientation(context, sourceUri);
+        if (orientation < 0) {
             return bitmap;
         }
         android.graphics.Matrix m = new android.graphics.Matrix();
@@ -547,8 +541,7 @@ public final class FormatConverter {
      * Whether an image's encoding keeps every pixel exactly: PNG, GIF, BMP and lossless WebP.
      * Read from its first bytes; false when unknown.
      */
-    @androidx.annotation.VisibleForTesting
-    static boolean isLosslessImage(@NonNull InputStream in) {
+    public static boolean isLosslessImage(@NonNull InputStream in) {
         try {
             byte[] head = new byte[64 * 1024];
             int n = 0;
@@ -651,6 +644,97 @@ public final class FormatConverter {
         return new ImageFormatSpec(".heic", "image/heic", heic, true);
     }
 
+    /** The EXIF orientation of {@code sourceUri}, normal when it has none, or -1 when unreadable. */
+    private static int exifOrientation(@NonNull Context context, @NonNull Uri sourceUri) {
+        try (InputStream in = context.getContentResolver().openInputStream(sourceUri)) {
+            if (in == null) {
+                return -1;
+            }
+            return new androidx.exifinterface.media.ExifInterface(in).getAttributeInt(
+                    androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION,
+                    androidx.exifinterface.media.ExifInterface.ORIENTATION_NORMAL);
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    /**
+     * The header of {@code sourceUri} when it is a 16-bit PNG that {@link Png16} can write back
+     * as it is: one shown the way it is stored, with no EXIF rotation to bake in. Null otherwise.
+     */
+    @Nullable
+    public static Png16.Header sixteenBitPng(@NonNull Context context, @NonNull Uri sourceUri) {
+        Png16.Header header;
+        try (InputStream in = context.getContentResolver().openInputStream(sourceUri)) {
+            header = in != null ? Png16.readHeader(in) : null;
+        } catch (IOException | RuntimeException e) {
+            return null;
+        }
+        if (header == null) {
+            return null;
+        }
+        int orientation = exifOrientation(context, sourceUri);
+        return orientation == androidx.exifinterface.media.ExifInterface.ORIENTATION_NORMAL
+                || orientation == androidx.exifinterface.media.ExifInterface.ORIENTATION_UNDEFINED
+                ? header : null;
+    }
+
+    /**
+     * Converts a 16-bit PNG to PNG at 16 bits, which {@link Bitmap#compress} can't write: its
+     * samples are copied as they are and the result is cleaned like any PNG. Null when the
+     * source isn't one, so the caller converts it from its pixels.
+     */
+    @Nullable
+    private static Uri convertSixteenBitPng(
+            @NonNull Context context, @NonNull Uri sourceUri, @NonNull String baseDisplayName) {
+        if (sixteenBitPng(context, sourceUri) == null) {
+            return null;
+        }
+        ContentResolver resolver = context.getContentResolver();
+        File raw = null;
+        File clean = null;
+        Uri outUri = null;
+        try {
+            raw = File.createTempFile("png16_", ".png", context.getCacheDir());
+            clean = File.createTempFile("png16_clean_", ".png", context.getCacheDir());
+            try (InputStream in = resolver.openInputStream(sourceUri);
+                    OutputStream out = new java.io.BufferedOutputStream(new java.io.FileOutputStream(raw), 64 * 1024)) {
+                if (in == null) {
+                    throw new IOException("Cannot open source");
+                }
+                Png16.rewrite(in, out, null);
+            }
+            // Clears the fields of a colour profile that can name a device or a date.
+            com.doubleangels.redact.metadata.ImageContainerMetadata.sanitize(raw, clean);
+            outUri = OutputDestination.create(context, false,
+                    MediaFileNames.outputBaseName(context, baseDisplayName) + ".png", "image/png");
+            try (InputStream in = new java.io.FileInputStream(clean);
+                    OutputStream os = resolver.openOutputStream(outUri)) {
+                if (os == null) {
+                    throw new IOException("Cannot open output stream");
+                }
+                MediaSizeLimits.copyStream(in, os);
+            }
+            OutputDestination.publish(resolver, outUri);
+            return outUri;
+        } catch (IOException | RuntimeException e) {
+            com.doubleangels.redact.sentry.SentryManager.log(
+                    "The 16-bit PNG could not be kept at 16 bits, so the app is converting it at 8: "
+                            + e.getMessage() + ".");
+            if (outUri != null) {
+                OutputDestination.discard(resolver, outUri);
+            }
+            return null;
+        } finally {
+            if (raw != null) {
+                SecureDelete.secureDelete(context, raw);
+            }
+            if (clean != null) {
+                SecureDelete.secureDelete(context, clean);
+            }
+        }
+    }
+
     /**
      * Decodes the image at {@code sourceUri}, re-encodes as {@code format}, and inserts into
      * the user's gallery. Caller must have read access to the source URI.
@@ -680,6 +764,13 @@ public final class FormatConverter {
 
         String mime = mimeForFormat(format);
         String ext = extensionForFormat(format);
+
+        if (format == Bitmap.CompressFormat.PNG) {
+            Uri sixteenBit = convertSixteenBitPng(context, sourceUri, baseDisplayName);
+            if (sixteenBit != null) {
+                return sixteenBit;
+            }
+        }
 
         Bitmap bitmap = decodeUpright(context, sourceUri, FULL_RESOLUTION);
 

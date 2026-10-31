@@ -512,6 +512,9 @@ public final class VideoMedia3Converter {
         if (width <= 0 || height <= 0 || frameRate <= 0) {
             return keep;
         }
+        // Encoders take sizes in steps of two, and Media3 rounds an odd one for them.
+        width += width & 1;
+        height += height & 1;
         int longSide = Math.max(width, height);
         int shortSide = Math.min(width, height);
         if (support.supports(longSide, shortSide, frameRate)) {
@@ -550,6 +553,8 @@ public final class VideoMedia3Converter {
         if (width <= 0 || height <= 0 || frameRate <= 0) {
             return 0;
         }
+        width += width & 1;
+        height += height & 1;
         int longSide = scaledLongSide(Math.max(width, height), Math.min(width, height), targetShortSide);
         if (support.supports(longSide, targetShortSide, frameRate)) {
             return 0;
@@ -1419,9 +1424,57 @@ public final class VideoMedia3Converter {
     private static AssetLoader.Factory decoderFallbackAssetLoaderFactory(@NonNull Context app) {
         return new DefaultAssetLoaderFactory(
                 app,
-                new DefaultDecoderFactory.Builder(app).setEnableDecoderFallback(true).build(),
+                new EvenSizeDecoderFactory(
+                        new DefaultDecoderFactory.Builder(app).setEnableDecoderFallback(true).build()),
                 Clock.DEFAULT,
                 /* logSessionId= */ null);
+    }
+
+    /**
+     * Configures a video decoder for an odd width or height rounded up to even. Android's decoders
+     * declare sizes in steps of two, and Codec2 rejects a configuration between the steps, so an
+     * MPEG-4 Part 2 video of 1920x1047 from an old phone could not be opened by any of them. The
+     * decoder takes the real size from the stream itself, so the size it is configured with only
+     * has to be one it accepts. Even sizes are passed on unchanged.
+     */
+    @VisibleForTesting
+    static final class EvenSizeDecoderFactory implements Codec.DecoderFactory {
+        private final Codec.DecoderFactory delegate;
+
+        EvenSizeDecoderFactory(@NonNull Codec.DecoderFactory delegate) {
+            this.delegate = delegate;
+        }
+
+        @NonNull
+        @Override
+        public Codec createForAudioDecoding(@NonNull Format format, @Nullable LogSessionId logSessionId)
+                throws ExportException {
+            return delegate.createForAudioDecoding(format, logSessionId);
+        }
+
+        @NonNull
+        @Override
+        public Codec createForVideoDecoding(@NonNull Format format, @NonNull android.view.Surface outputSurface,
+                boolean requestSdrToneMapping, @Nullable LogSessionId logSessionId) throws ExportException {
+            return delegate.createForVideoDecoding(
+                    evenSize(format), outputSurface, requestSdrToneMapping, logSessionId);
+        }
+
+        @VisibleForTesting
+        @NonNull
+        static Format evenSize(@NonNull Format format) {
+            int width = format.width;
+            int height = format.height;
+            boolean oddWidth = width != Format.NO_VALUE && (width & 1) == 1;
+            boolean oddHeight = height != Format.NO_VALUE && (height & 1) == 1;
+            if (!oddWidth && !oddHeight) {
+                return format;
+            }
+            return format.buildUpon()
+                    .setWidth(oddWidth ? width + 1 : width)
+                    .setHeight(oddHeight ? height + 1 : height)
+                    .build();
+        }
     }
 
     private static void stopPolling(

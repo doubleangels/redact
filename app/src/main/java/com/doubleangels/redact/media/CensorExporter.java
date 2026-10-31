@@ -74,11 +74,15 @@ public final class CensorExporter {
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                     censorGainMap(bitmap, regions);
                 }
-                try (OutputStream os = new FileOutputStream(censored)) {
-                    if (!FormatConverter.compressBitmapToStream(context, bitmap, spec.compressFormat, os,
-                            FormatConverter.estimateJpegQuality(context, source),
-                            FormatConverter.isLosslessImage(context, source))) {
-                        throw new IOException("Compress failed");
+                boolean sixteenBit = spec.compressFormat == android.graphics.Bitmap.CompressFormat.PNG
+                        && writeSixteenBitPng(context, source, bitmap, regions, censored);
+                if (!sixteenBit) {
+                    try (OutputStream os = new FileOutputStream(censored)) {
+                        if (!FormatConverter.compressBitmapToStream(context, bitmap, spec.compressFormat, os,
+                                FormatConverter.estimateJpegQuality(context, source),
+                                FormatConverter.isLosslessImage(context, source))) {
+                            throw new IOException("Compress failed");
+                        }
                     }
                 }
             } finally {
@@ -133,6 +137,71 @@ public final class CensorExporter {
         if (editable != contents) {
             gainmap.setGainmapContents(editable);
             bitmap.setGainmap(gainmap);
+        }
+    }
+
+    /**
+     * Writes a censored 16-bit PNG at 16 bits: the source's own samples everywhere but the
+     * censored regions, which come from {@code censored}, the 8-bit picture the effects were drawn
+     * on. {@link Bitmap#compress} would write the whole picture at 8 bits. The regions are padded
+     * as for the gain map, so no edge pixel of an effect keeps its uncensored 16-bit value. False
+     * when the source is not a 16-bit PNG shown as stored at full size, or the write fails, and
+     * the caller encodes {@code censored} instead.
+     */
+    @androidx.annotation.VisibleForTesting
+    static boolean writeSixteenBitPng(@NonNull Context context, @NonNull Uri source,
+            @NonNull Bitmap censored, @NonNull List<CensorRegion> regions, @NonNull File target) {
+        Png16.Header header = FormatConverter.sixteenBitPng(context, source);
+        int width = censored.getWidth();
+        int height = censored.getHeight();
+        if (header == null || header.width != width || header.height != height) {
+            return false;
+        }
+        Bitmap mask = null;
+        try {
+            mask = Bitmap.createBitmap(width, height, Bitmap.Config.ALPHA_8);
+            android.graphics.Canvas canvas = new android.graphics.Canvas(mask);
+            android.graphics.Paint paint = new android.graphics.Paint();
+            paint.setStyle(android.graphics.Paint.Style.FILL_AND_STROKE);
+            paint.setStrokeWidth(2f);
+            paint.setColor(android.graphics.Color.BLACK);
+            for (CensorRegion region : regions) {
+                if (!region.isEmpty()) {
+                    canvas.drawPath(region.toPath(width, height), paint);
+                }
+            }
+            Bitmap covered = mask;
+            int[] maskRow = new int[width];
+            try (InputStream in = context.getContentResolver().openInputStream(source);
+                    OutputStream out = new java.io.BufferedOutputStream(new FileOutputStream(target), 64 * 1024)) {
+                if (in == null) {
+                    return false;
+                }
+                Png16.rewrite(in, out, (y, argb, replace) -> {
+                    covered.getPixels(maskRow, 0, width, 0, y, width, 1);
+                    boolean any = false;
+                    for (int x = 0; x < width; x++) {
+                        if ((maskRow[x] >>> 24) != 0) {
+                            replace[x] = true;
+                            any = true;
+                        }
+                    }
+                    if (any) {
+                        censored.getPixels(argb, 0, width, 0, y, width, 1);
+                    }
+                    return any;
+                });
+            }
+            return true;
+        } catch (IOException | RuntimeException | OutOfMemoryError e) {
+            com.doubleangels.redact.sentry.SentryManager.log(
+                    "The censored 16-bit PNG could not be kept at 16 bits, so the app is saving it at 8: "
+                            + e.getMessage() + ".");
+            return false;
+        } finally {
+            if (mask != null) {
+                mask.recycle();
+            }
         }
     }
 

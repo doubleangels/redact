@@ -182,6 +182,8 @@
     <string name="settings_preserve_location_subtitle">Сохранять GPS-координаты на Очистке. Игнорируется при Строгой Очистке или при отправке из других приложений.</string>
     <string name="settings_preserve_date">Сохранять Дату Съёмки</string>
     <string name="settings_preserve_date_subtitle">Сохранять время съёмки каждого фото и видео на Очистке, чтобы оно оставалось на своём месте в галерее. Игнорируется при Строгой Очистке или при отправке из других приложений.</string>
+    <string name="settings_preserve_motion">Сохранять Живые Фото</string>
+    <string name="settings_preserve_motion_subtitle">Сохранять короткое видео живого фото JPEG на Очистке, удалив его метаданные. В нём есть записанный звук. Игнорируется при Строгой Очистке или при отправке из других приложений.</string>
         <string name="settings_sentry_consent_allow">Включить</string>
     <string name="settings_sentry_consent_cancel">Не Сейчас</string>
     <string name="settings_sentry_consent_title">Включить Отчёты о Сбоях</string>

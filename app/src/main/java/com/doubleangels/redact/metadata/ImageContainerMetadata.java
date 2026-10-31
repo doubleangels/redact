@@ -227,6 +227,16 @@ public final class ImageContainerMetadata {
      *     caller re-encodes it from its pixels instead
      */
     public static void sanitize(@NonNull File source, @NonNull File target) throws IOException {
+        sanitize(source, target, null);
+    }
+
+    /**
+     * {@link #sanitize(File, File)}, putting {@code motion}, a Motion Photo's video that has been
+     * cleaned already, back after a JPEG's picture with the XMP that tells a gallery it is there.
+     * It is left out of any other format.
+     */
+    public static void sanitize(@NonNull File source, @NonNull File target, @Nullable MotionPhoto.Clip motion)
+            throws IOException {
         if (source.getCanonicalPath().equals(target.getCanonicalPath())) {
             throw new IOException("Source and target must differ");
         }
@@ -240,12 +250,31 @@ public final class ImageContainerMetadata {
             }
             out.flush();
         }
+        if (walker.format != Format.JPEG) {
+            motion = null;
+        }
+        boolean directoryWritten = false;
         if (walker.gainMapStart >= 0) {
             try {
-                UltraHdr.rebuild(source, walker.gainMapStart, walker.gainMapEnd, walker.primaryIso, target);
+                UltraHdr.rebuild(source, walker.gainMapStart, walker.gainMapEnd, walker.primaryIso, target, motion);
+                directoryWritten = true;
             } catch (IOException | RuntimeException e) {
                 // The picture written above is complete; it is only without its HDR.
                 SentryManager.log("The Ultra HDR gain map could not be kept: " + e.getMessage() + ".");
+            }
+        }
+        if (motion != null) {
+            if (!directoryWritten) {
+                UltraHdr.insertPrimaryXmp(target, UltraHdr.primaryXmp(null, -1, motion));
+            }
+            // Last in the file, where the directory says it is.
+            try (FileInputStream in = new FileInputStream(motion.video);
+                    OutputStream out = new BufferedOutputStream(new FileOutputStream(target, true), 64 * 1024)) {
+                byte[] buffer = new byte[64 * 1024];
+                int n;
+                while ((n = in.read(buffer)) > 0) {
+                    out.write(buffer, 0, n);
+                }
             }
         }
     }
@@ -284,6 +313,8 @@ public final class ImageContainerMetadata {
         @Nullable File workDir;
         /** The picture says an Ultra HDR gain map follows it. */
         boolean ultraHdr;
+        /** XMP with nothing but the picture's directory says a Motion Photo's video ends the file. */
+        boolean motionPhoto;
         /** The primary picture's ISO 21496-1 version block, put back with the gain map. */
         @Nullable byte[] primaryIso;
         /** Where the multi-picture index is in the findings: withdrawn if it leads to a clean gain map. */
@@ -510,8 +541,11 @@ public final class ImageContainerMetadata {
                 if (UltraHdr.declaresGainMap(xmp)) {
                     ultraHdr = true;
                 }
-                if (UltraHdr.isGainMapOnlyXmp(xmp)) {
-                    kept.add(new Finding("ULTRA_HDR", null, size, Kind.OTHER));
+                if (UltraHdr.isPictureOnlyXmp(xmp)) {
+                    boolean motion = UltraHdr.declaresMotionPhoto(xmp);
+                    motionPhoto |= motion;
+                    kept.add(new Finding(UltraHdr.declaresGainMap(xmp) || !motion ? "ULTRA_HDR" : "MOTION_PHOTO",
+                            null, size, Kind.OTHER));
                 } else {
                     find("XMP", xmp, size, xmpKind(xmp));
                 }
@@ -714,6 +748,19 @@ public final class ImageContainerMetadata {
             if (gainMapCleanEnd >= 0) {
                 start = gainMapCleanEnd; // whatever follows the gain map is still looked at
             }
+            if (motionPhoto && out == null && start < end) {
+                // A clean Motion Photo's video, which ends the file: kept when it holds nothing
+                // about the recording, and whatever is in front of it is still looked at.
+                MotionPhoto.Found clip = MotionPhoto.find(src.channel());
+                if (clip != null && clip.end == end && clip.start >= start) {
+                    VideoContainerMetadata.Report video =
+                            VideoContainerMetadata.scan(src.channel(), clip.start, clip.end);
+                    if (video.recognized && video.fields.isEmpty()) {
+                        kept.add(new Finding("MOTION_PHOTO_VIDEO", null, clip.end - clip.start, Kind.OTHER));
+                        end = clip.start;
+                    }
+                }
+            }
             if (start >= end || out != null) {
                 return; // a clean writes nothing past the end of the picture, so needs no description
             }
@@ -819,7 +866,7 @@ public final class ImageContainerMetadata {
                             || (marker == 0xE2 && (startsWith(data, ascii("ICC_PROFILE\0"))
                                     || startsWith(data, UltraHdr.ISO_ID)))
                             || (marker == 0xE1 && startsWith(data, ascii("http://ns.adobe.com/xap/1.0/\0"))
-                                    && UltraHdr.isGainMapOnlyXmp(
+                                    && UltraHdr.isPictureOnlyXmp(
                                             new String(data, 29, data.length - 29, StandardCharsets.UTF_8)))
                             || (marker == 0xEE && startsWith(data, ascii("Adobe")) && data.length == 12);
                     if (!describesPicture) {
@@ -1620,6 +1667,11 @@ public final class ImageContainerMetadata {
         Source(@NonNull FileChannel ch) throws IOException {
             this.ch = ch;
             this.length = ch.size();
+        }
+
+        @NonNull
+        FileChannel channel() {
+            return ch;
         }
 
         void require(long end) throws IOException {

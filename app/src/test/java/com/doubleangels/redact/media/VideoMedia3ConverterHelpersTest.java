@@ -149,6 +149,15 @@ public class VideoMedia3ConverterHelpersTest {
     }
 
     @Test
+    public void planOutput_checksAnOddSizeAsTheEvenSizeTheEncoderGets() {
+        // An encoder that, like most, takes even sizes only.
+        VideoMedia3Converter.SizeRateSupport evenOnly = (width, height, frameRate) ->
+                width % 2 == 0 && height % 2 == 0 && (long) width * height <= 1920L * 1088;
+        assertArrayEquals(new int[] {0, 0},
+                VideoMedia3Converter.planOutput(1920, 1047, 30, evenOnly));
+    }
+
+    @Test
     public void planOutput_forAnUnsupported4K60Source_keepsTheMostPixelsPerSecond() {
         // 4K at 30fps keeps 249M pixels a second, 1440p at 60fps 221M.
         assertArrayEquals(new int[] {0, 30},
@@ -489,5 +498,22 @@ public class VideoMedia3ConverterHelpersTest {
         assertEquals(java.util.Arrays.asList("create /out.mp4", "track video/avc", "sample 7", "close"), calls);
         assertEquals(com.google.common.collect.ImmutableList.of("video/avc"),
                 factory.getSupportedSampleMimeTypes(androidx.media3.common.C.TRACK_TYPE_VIDEO));
+    }
+
+    @Test
+    public void evenSizeDecoderFactory_roundsAnOddSizeUpForTheDecoderOnly() {
+        androidx.media3.common.Format odd = new androidx.media3.common.Format.Builder()
+                .setSampleMimeType(MimeTypes.VIDEO_MP4V).setWidth(1920).setHeight(1047).build();
+        androidx.media3.common.Format configured =
+                VideoMedia3Converter.EvenSizeDecoderFactory.evenSize(odd);
+        assertEquals(1920, configured.width);
+        assertEquals(1048, configured.height);
+        assertEquals(MimeTypes.VIDEO_MP4V, configured.sampleMimeType);
+
+        androidx.media3.common.Format even = odd.buildUpon().setHeight(1080).build();
+        assertTrue(even == VideoMedia3Converter.EvenSizeDecoderFactory.evenSize(even));
+        androidx.media3.common.Format unknown = new androidx.media3.common.Format.Builder()
+                .setSampleMimeType(MimeTypes.VIDEO_MP4V).build();
+        assertTrue(unknown == VideoMedia3Converter.EvenSizeDecoderFactory.evenSize(unknown));
     }
 }

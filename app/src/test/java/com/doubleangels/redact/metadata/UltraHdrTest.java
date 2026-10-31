@@ -74,29 +74,29 @@ public class UltraHdrTest {
 
     @Test
     public void gainMapOnlyXmp_acceptsTheNumbersAndDirectory() {
-        assertTrue(UltraHdr.isGainMapOnlyXmp(GAIN_MAP_XMP));
-        assertTrue(UltraHdr.isGainMapOnlyXmp(UltraHdr.primaryXmp("1.0", 62570)));
+        assertTrue(UltraHdr.isPictureOnlyXmp(GAIN_MAP_XMP));
+        assertTrue(UltraHdr.isPictureOnlyXmp(UltraHdr.primaryXmp("1.0", 62570)));
         Map<String, List<String>> fields = UltraHdr.gainMapFields(GAIN_MAP_XMP);
-        assertTrue(UltraHdr.isGainMapOnlyXmp(UltraHdr.gainMapXmp(fields)));
+        assertTrue(UltraHdr.isPictureOnlyXmp(UltraHdr.gainMapXmp(fields)));
     }
 
     @Test
     public void gainMapOnlyXmp_refusesAnythingElse() {
         // Another namespace, even next to the gain map's.
-        assertFalse(UltraHdr.isGainMapOnlyXmp(GAIN_MAP_XMP.replace("hdrgm:Version=\"1.0\"",
+        assertFalse(UltraHdr.isPictureOnlyXmp(GAIN_MAP_XMP.replace("hdrgm:Version=\"1.0\"",
                 "hdrgm:Version=\"1.0\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" dc:creator=\"Someone\"")));
         // Text where a number belongs.
-        assertFalse(UltraHdr.isGainMapOnlyXmp(GAIN_MAP_XMP.replace("2.656715\" hdrgm:HDRCapacityMin",
+        assertFalse(UltraHdr.isPictureOnlyXmp(GAIN_MAP_XMP.replace("2.656715\" hdrgm:HDRCapacityMin",
                 "Someone\" hdrgm:HDRCapacityMin")));
         // A field the format does not have.
-        assertFalse(UltraHdr.isGainMapOnlyXmp(GAIN_MAP_XMP.replace("hdrgm:Version",
+        assertFalse(UltraHdr.isPictureOnlyXmp(GAIN_MAP_XMP.replace("hdrgm:Version",
                 "hdrgm:Owner=\"1\" hdrgm:Version")));
         // Text between tags.
-        assertFalse(UltraHdr.isGainMapOnlyXmp(GAIN_MAP_XMP.replace("</rdf:RDF>", "Someone</rdf:RDF>")));
+        assertFalse(UltraHdr.isPictureOnlyXmp(GAIN_MAP_XMP.replace("</rdf:RDF>", "Someone</rdf:RDF>")));
         // No gain map at all.
-        assertFalse(UltraHdr.isGainMapOnlyXmp("<x:xmpmeta xmlns:x=\"adobe:ns:meta/\"/>"));
+        assertFalse(UltraHdr.isPictureOnlyXmp("<x:xmpmeta xmlns:x=\"adobe:ns:meta/\"/>"));
         // A directory naming something other than the primary picture and gain map.
-        assertFalse(UltraHdr.isGainMapOnlyXmp(UltraHdr.primaryXmp("1.0", 1).replace("Primary", "Depth")));
+        assertFalse(UltraHdr.isPictureOnlyXmp(UltraHdr.primaryXmp("1.0", 1).replace("Primary", "Depth")));
     }
 
     @Test
@@ -113,7 +113,7 @@ public class UltraHdrTest {
         assertFalse(fields.containsKey("Gamma"));
         String rebuilt = UltraHdr.gainMapXmp(fields);
         assertTrue(rebuilt.contains("<rdf:li>2.4</rdf:li>"));
-        assertTrue(UltraHdr.isGainMapOnlyXmp(rebuilt));
+        assertTrue(UltraHdr.isPictureOnlyXmp(rebuilt));
     }
 
     @Test

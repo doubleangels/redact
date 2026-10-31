@@ -31,6 +31,7 @@ public final class AppPreferences {
     private static final String KEY_PRESERVE_CAMERA_SETTINGS = "preserve_camera_settings";
     private static final String KEY_PRESERVE_LOCATION = "preserve_location";
     private static final String KEY_PRESERVE_DATE_TAKEN = "preserve_date_taken";
+    private static final String KEY_PRESERVE_MOTION_PHOTO = "preserve_motion_photo";
     private static final String KEY_STRICT_CLEAN = "strict_clean";
     private static final String KEY_WARN_ALREADY_CLEAN = "warn_already_clean";
     private static final String KEY_SECURE_WINDOW = "secure_window";
@@ -241,6 +242,15 @@ public final class AppPreferences {
 
     public static void setPreserveDateTaken(@NonNull Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_PRESERVE_DATE_TAKEN, enabled).apply();
+    }
+
+    /** Whether a clean keeps a Motion Photo's video, cleaned, instead of making it a still. */
+    public static boolean isPreserveMotionPhoto(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_PRESERVE_MOTION_PHOTO, false);
+    }
+
+    public static void setPreserveMotionPhoto(@NonNull Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_PRESERVE_MOTION_PHOTO, enabled).apply();
     }
 
     public static boolean isPreserveLocation(@NonNull Context context) {

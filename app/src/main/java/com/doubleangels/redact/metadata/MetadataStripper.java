@@ -336,7 +336,7 @@ public class MetadataStripper {
             File tempCleanFile = null;
             if (mayKeepTransmux()) {
                 updateProgress(2, 4, context.getString(R.string.strip_progress_transmuxing));
-                tempCleanFile = fastStripVideoMetadata(sourceUri, keptLocation);
+                tempCleanFile = fastStripVideoMetadata(sourceUri, keptLocation, keptTimes != null);
             }
             Uri cleanSourceUri = tempCleanFile != null ? Uri.fromFile(tempCleanFile) : sourceUri;
 
@@ -571,8 +571,12 @@ public class MetadataStripper {
             throws IOException {
         Uri newUri = null;
         File cleanFile = null;
+        MotionPhoto.Clip motion = null;
         try {
             updateProgress(3, 5, context.getString(R.string.strip_progress_removing_metadata));
+            if (!fromPixels) {
+                motion = cleanMotionClip(picture);
+            }
 
             // Every attempt writes to a private file, and only the finished result is copied to
             // the output. Rewriting the output itself between attempts is unsafe: a provider that
@@ -580,7 +584,7 @@ public class MetadataStripper {
             // can be a full copy of the original with its metadata.
             cleanFile = File.createTempFile("temp_clean_", outputFormat.extension, context.getCacheDir());
             FormatConverter.ImageFormatSpec cleanFormat =
-                    writePictureOnly(picture, pictureUri, cleanFile, outputFormat, fromPixels);
+                    writePictureOnly(picture, pictureUri, cleanFile, outputFormat, fromPixels, motion);
             if (!cleanFormat.extension.equals(outputFormat.extension)) {
                 newFilename = withExtension(newFilename, cleanFormat.extension);
             }
@@ -624,6 +628,63 @@ public class MetadataStripper {
             if (cleanFile != null && cleanFile.exists()) {
                 secureDeleteFile(cleanFile);
             }
+            if (motion != null && motion.video.exists()) {
+                secureDeleteFile(motion.video);
+            }
+        }
+    }
+
+    /**
+     * A Motion Photo's video, copied out of {@code picture} and cleaned, to put back after the
+     * clean picture: when Keep Motion Photos is on and Strict Clean is off. Its container is
+     * scrubbed and checked like any video's, and a video whose stream carries data of its own
+     * (a camera's date or location in its SEI) is left out, as a copy can't remove that. Null
+     * when there is none or it can't be kept, and the photo becomes a still as before. The
+     * caller deletes the clip's file.
+     */
+    @Nullable
+    private MotionPhoto.Clip cleanMotionClip(@NonNull File picture) {
+        if (AppPreferences.isStrictClean(context) || !AppPreferences.isPreserveMotionPhoto(context)) {
+            return null;
+        }
+        MotionPhoto.Found found = MotionPhoto.find(picture);
+        if (found == null) {
+            return null;
+        }
+        File video = null;
+        try {
+            video = File.createTempFile("motion_", ".mp4", context.getCacheDir());
+            try (java.io.RandomAccessFile in = new java.io.RandomAccessFile(picture, "r");
+                    OutputStream out = new java.io.BufferedOutputStream(new FileOutputStream(video), 64 * 1024)) {
+                in.seek(found.start);
+                byte[] buffer = new byte[64 * 1024];
+                long left = found.end - found.start;
+                while (left > 0) {
+                    int n = in.read(buffer, 0, (int) Math.min(buffer.length, left));
+                    if (n < 0) {
+                        throw new IOException("The video ends early");
+                    }
+                    out.write(buffer, 0, n);
+                    left -= n;
+                }
+            }
+            VideoContainerMetadata.scrub(video);
+            VideoContainerMetadata.Report container = VideoContainerMetadata.scan(video);
+            if (!container.recognized || !container.fields.isEmpty()) {
+                throw new IOException("its container still holds metadata");
+            }
+            VideoStreamMetadata.Report stream = VideoStreamMetadata.scan(context, Uri.fromFile(video));
+            if (stream == null || stream.userDataMessages > 0) {
+                throw new IOException("its stream carries data of its own");
+            }
+            return new MotionPhoto.Clip(video, found.presentationTimestampUs);
+        } catch (IOException | RuntimeException e) {
+            SentryManager.log("The Motion Photo's video could not be kept, so the photo becomes a still: "
+                    + e.getMessage() + ".");
+            if (video != null && video.exists()) {
+                secureDeleteFile(video);
+            }
+            return null;
         }
     }
 
@@ -677,7 +738,7 @@ public class MetadataStripper {
 
             updateProgress(3, 5, context.getString(R.string.strip_progress_removing_metadata));
             FormatConverter.ImageFormatSpec cleanFormat =
-                    writePictureOnly(tempFile, Uri.fromFile(tempFile), outputFile, outputFormat, false);
+                    writePictureOnly(tempFile, Uri.fromFile(tempFile), outputFile, outputFormat, false, null);
             if (!cleanFormat.extension.equals(extension)) {
                 // Shared under the name of what it really is, so the app it goes to opens it.
                 File renamed = new File(outputDir, generateShortRandomName() + cleanFormat.extension);
@@ -882,7 +943,7 @@ public class MetadataStripper {
     private void remuxTracks(
             android.media.MediaExtractor extractor,
             java.util.Map<Integer, Integer> muxerTracks,
-            android.media.MediaMuxer muxer) {
+            @NonNull SampleSink muxer) throws IOException {
         for (int i = 0; i < extractor.getTrackCount(); i++) {
             extractor.unselectTrack(i);
         }
@@ -923,7 +984,7 @@ public class MetadataStripper {
                 info.flags |= android.media.MediaCodec.BUFFER_FLAG_PARTIAL_FRAME;
             }
             info.offset = 0;
-            muxer.writeSampleData(muxerTrackIndex, buffer, info);
+            muxer.write(muxerTrackIndex, buffer, info);
             extractor.advance();
         }
     }
@@ -936,7 +997,7 @@ public class MetadataStripper {
     @VisibleForTesting
     @Nullable
     public File transmuxVideoWithoutMetadata(@NonNull Uri sourceUri) {
-        return fastStripVideoMetadata(sourceUri, null);
+        return fastStripVideoMetadata(sourceUri, null, false);
     }
 
     /**
@@ -1004,9 +1065,30 @@ public class MetadataStripper {
         secureDeleteFile(file);
     }
 
-    private File fastStripVideoMetadata(Uri sourceUri, @Nullable double[] keepLocation) {
+    /** Where {@link #remuxTracks} writes each sample. */
+    private interface SampleSink {
+        void write(int track, @NonNull java.nio.ByteBuffer buffer,
+                @NonNull android.media.MediaCodec.BufferInfo info) throws IOException;
+    }
+
+    /** The name a {@link #remuxWebmToMp4} copy starts with, so it is saved even though the source was WebM. */
+    private static final String KEEP_REMUX_PREFIX = "vid_keep_";
+
+    /**
+     * @param keepDate whether Keep Date Taken will put the recording date back, which a WebM
+     *     cannot hold
+     */
+    private File fastStripVideoMetadata(Uri sourceUri, @Nullable double[] keepLocation, boolean keepDate) {
         if (testFastStripVideoMetadataOverride != null) {
             return testFastStripVideoMetadataOverride;
+        }
+        if (keepLocation != null || keepDate) {
+            // A WebM has no field for a location, and Android reads no recording date from one,
+            // so a VP9 video whose location or date is kept is copied into an MP4 instead.
+            File mp4 = remuxWebmToMp4(sourceUri, keepLocation);
+            if (mp4 != null) {
+                return mp4;
+            }
         }
         android.media.MediaExtractor extractor = new android.media.MediaExtractor();
         android.media.MediaMuxer muxer = null;
@@ -1096,7 +1178,7 @@ public class MetadataStripper {
             if (audioTrackIndex != -1 && muxerAudioTrackIndex != -1) {
                 muxerTracks.put(audioTrackIndex, muxerAudioTrackIndex);
             }
-            remuxTracks(extractor, muxerTracks, muxer);
+            remuxTracks(extractor, muxerTracks, muxer::writeSampleData);
 
             muxer.stop();
             succeeded = true;
@@ -1124,6 +1206,151 @@ public class MetadataStripper {
                 secureDeleteFile(outputFile);
             }
         }
+    }
+
+    /**
+     * Copies a VP9 WebM's video and Opus audio into an MP4 sample for sample, so a kept location
+     * and recording date have somewhere to go. Media3's MP4 muxer holds both codecs, which the
+     * platform's does not, and the VP9 configuration an MP4 needs is read from the first key
+     * frame ({@link Vp9CodecConfig}). Returns null for anything else, which a WebM keeps holding:
+     * a source that is not VP9 in WebM, VP8, Vorbis audio, or a copy that fails.
+     */
+    @Nullable
+    private File remuxWebmToMp4(@NonNull Uri sourceUri, @Nullable double[] keepLocation) {
+        android.media.MediaExtractor extractor = new android.media.MediaExtractor();
+        File outputFile = null;
+        boolean succeeded = false;
+        androidx.media3.muxer.Mp4Muxer muxer = null;
+        try {
+            extractor.setDataSource(context, sourceUri, null);
+            if (!useWebmContainer(extractor)) {
+                return null;
+            }
+            int videoTrack = -1;
+            int audioTrack = -1;
+            for (int i = 0; i < extractor.getTrackCount(); i++) {
+                String mime = extractor.getTrackFormat(i).getString(android.media.MediaFormat.KEY_MIME);
+                if (mime == null) {
+                    continue;
+                }
+                if (mime.startsWith("video/") && videoTrack == -1) {
+                    if (!mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP9)) {
+                        return null;
+                    }
+                    videoTrack = i;
+                } else if (mime.startsWith("audio/") && audioTrack == -1) {
+                    if (!mime.equals(android.media.MediaFormat.MIMETYPE_AUDIO_OPUS)) {
+                        return null;
+                    }
+                    audioTrack = i;
+                }
+            }
+            if (videoTrack == -1) {
+                return null;
+            }
+            android.media.MediaFormat videoFormat = extractor.getTrackFormat(videoTrack);
+            byte[] vpcC = Vp9CodecConfig.vpcC(
+                    firstSample(sourceUri, videoTrack),
+                    videoFormat.getInteger(android.media.MediaFormat.KEY_WIDTH, 0),
+                    videoFormat.getInteger(android.media.MediaFormat.KEY_HEIGHT, 0),
+                    frameRateOf(videoFormat),
+                    videoFormat.getInteger(android.media.MediaFormat.KEY_COLOR_STANDARD, 0),
+                    videoFormat.getInteger(android.media.MediaFormat.KEY_COLOR_TRANSFER, 0),
+                    videoFormat.getInteger(android.media.MediaFormat.KEY_COLOR_RANGE, 0));
+            if (vpcC == null) {
+                SentryManager.log("The WebM video does not start with a VP9 key frame, so it stays WebM.");
+                return null;
+            }
+
+            outputFile = File.createTempFile(KEEP_REMUX_PREFIX, ".mp4", context.getCacheDir());
+            muxer = new androidx.media3.muxer.Mp4Muxer.Builder(new java.io.FileOutputStream(outputFile)).build();
+            if (keepLocation != null) {
+                // Written from the value asked for, nothing copied from the source.
+                muxer.addMetadataEntry(new androidx.media3.container.Mp4LocationData(
+                        (float) keepLocation[0], (float) keepLocation[1]));
+            }
+            java.util.Map<Integer, Integer> tracks = new java.util.LinkedHashMap<>();
+            tracks.put(videoTrack, muxer.addTrack(media3Format(videoFormat)
+                    .buildUpon()
+                    .setInitializationData(java.util.Collections.singletonList(vpcC))
+                    .build()));
+            if (audioTrack != -1) {
+                tracks.put(audioTrack, muxer.addTrack(media3Format(extractor.getTrackFormat(audioTrack))));
+            }
+            androidx.media3.muxer.Mp4Muxer sink = muxer;
+            remuxTracks(extractor, tracks, (track, buffer, info) -> {
+                buffer.position(0);
+                buffer.limit(info.size);
+                try {
+                    sink.writeSampleData(track, buffer, new androidx.media3.muxer.BufferInfo(
+                            info.presentationTimeUs, info.size,
+                            (info.flags & android.media.MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0
+                                    ? androidx.media3.common.C.BUFFER_FLAG_KEY_FRAME : 0));
+                } catch (androidx.media3.muxer.MuxerException e) {
+                    throw new IOException(e);
+                }
+            });
+            muxer.close();
+            muxer = null;
+            succeeded = true;
+            return outputFile;
+        } catch (Exception e) {
+            if (shouldPropagateCancellation(e)) {
+                throw asCancellationException(e);
+            }
+            SentryManager.log("The WebM could not be copied into an MP4, so it stays WebM: "
+                    + e.getMessage() + ".");
+            return null;
+        } finally {
+            try { extractor.release(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored + "."); }
+            if (muxer != null) {
+                try { muxer.close(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored + "."); }
+            }
+            if (!succeeded && outputFile != null && outputFile.exists()) {
+                secureDeleteFile(outputFile);
+            }
+        }
+    }
+
+    /** The first sample of {@code track}, read with an extractor of its own. */
+    @NonNull
+    private byte[] firstSample(@NonNull Uri sourceUri, int track) throws IOException {
+        android.media.MediaExtractor extractor = new android.media.MediaExtractor();
+        try {
+            extractor.setDataSource(context, sourceUri, null);
+            extractor.selectTrack(track);
+            java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(2 * 1024 * 1024);
+            int size = extractor.readSampleData(buffer, 0);
+            if (size <= 0) {
+                throw new IOException("The video has no samples");
+            }
+            byte[] sample = new byte[size];
+            buffer.position(0);
+            buffer.get(sample);
+            return sample;
+        } finally {
+            extractor.release();
+        }
+    }
+
+    private static float frameRateOf(@NonNull android.media.MediaFormat format) {
+        try {
+            return format.getInteger(android.media.MediaFormat.KEY_FRAME_RATE, 0);
+        } catch (ClassCastException isFloat) {
+            return format.getFloat(android.media.MediaFormat.KEY_FRAME_RATE, 0f);
+        }
+    }
+
+    /** The platform's track format as Media3's, keeping nothing but how to decode it. */
+    @NonNull
+    private static androidx.media3.common.Format media3Format(@NonNull android.media.MediaFormat format) {
+        return androidx.media3.common.util.MediaFormatUtil.createFormatFromMediaFormat(format)
+                .buildUpon()
+                .setLanguage(null)
+                .setLabel(null)
+                .setLabels(com.google.common.collect.ImmutableList.of())
+                .setMetadata(null)
+                .build();
     }
 
     /**
@@ -1430,7 +1657,7 @@ public class MetadataStripper {
                             // Try to get the attribute to see if it exists
                             String value = exif.getAttribute(tagName);
                             if (ExifInterface.TAG_XMP.equals(tagName) && value != null
-                                    && UltraHdr.isGainMapOnlyXmp(value)) {
+                                    && UltraHdr.isPictureOnlyXmp(value)) {
                                 // The Ultra HDR directory a clean wrote: removing it loses the HDR.
                                 continue;
                             }
@@ -1555,7 +1782,10 @@ public class MetadataStripper {
             return false;
         }
         String expectedExtension = VideoMedia3Converter.extensionForFormatIndex(formatIndex);
-        if (!tempCleanFile.getName().endsWith(expectedExtension)) {
+        // A WebM copied into an MP4 to keep its location or date is the source's own picture.
+        boolean keptInMp4 = tempCleanFile.getName().startsWith(KEEP_REMUX_PREFIX)
+                && tempCleanFile.getName().endsWith(".mp4");
+        if (!keptInMp4 && !tempCleanFile.getName().endsWith(expectedExtension)) {
             return false;
         }
         // Sharing always re-encodes: transmux does not strip container metadata (GPS, udta, etc.).
@@ -1998,7 +2228,7 @@ public class MetadataStripper {
                     continue;
                 }
                 String value = exif.getAttribute(tag);
-                if (ExifInterface.TAG_XMP.equals(tag) && value != null && UltraHdr.isGainMapOnlyXmp(value)) {
+                if (ExifInterface.TAG_XMP.equals(tag) && value != null && UltraHdr.isPictureOnlyXmp(value)) {
                     continue; // only the Ultra HDR gain map's numbers and directory
                 }
                 if (value != null && !value.isEmpty()) {
@@ -2095,7 +2325,8 @@ public class MetadataStripper {
     @NonNull
     private FormatConverter.ImageFormatSpec writePictureOnly(@NonNull File source, @NonNull Uri sourceUri,
                                   @NonNull File target,
-                                  @NonNull FormatConverter.ImageFormatSpec outputFormat, boolean fromPixels)
+                                  @NonNull FormatConverter.ImageFormatSpec outputFormat, boolean fromPixels,
+                                  @Nullable MotionPhoto.Clip motion)
             throws IOException {
         ImageContainerMetadata.Format expected = containerFormat(outputFormat.extension);
         if (fromPixels && expected == ImageContainerMetadata.Format.OTHER) {
@@ -2132,7 +2363,7 @@ public class MetadataStripper {
         if (expected != ImageContainerMetadata.Format.OTHER
                 && ImageContainerMetadata.sniff(source) == expected) {
             try {
-                ImageContainerMetadata.sanitize(source, target);
+                ImageContainerMetadata.sanitize(source, target, motion);
                 return outputFormat;
             } catch (IOException | RuntimeException e) {
                 // A structure the walker could not follow, however it failed: the pixels are
@@ -2151,7 +2382,7 @@ public class MetadataStripper {
             reEncode(source, sourceUri, encoded, outputFormat);
             if (writtenFormat != ImageContainerMetadata.Format.OTHER
                     && ImageContainerMetadata.sniff(encoded) == writtenFormat) {
-                ImageContainerMetadata.sanitize(encoded, target);
+                ImageContainerMetadata.sanitize(encoded, target, motion);
             } else {
                 try (InputStream in = new FileInputStream(encoded);
                         OutputStream out = new FileOutputStream(target)) {

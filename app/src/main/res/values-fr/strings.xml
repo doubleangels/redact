@@ -178,6 +178,8 @@
     <string name="settings_preserve_location_subtitle">Conserver les coordonnées GPS dans Nettoyer. Ignoré avec Nettoyage Strict ou lors d\'un partage depuis d\'autres apps.</string>
     <string name="settings_preserve_date">Conserver la Date de Prise de Vue</string>
     <string name="settings_preserve_date_subtitle">Conserver la date de prise de vue de chaque photo et vidéo dans Nettoyer, pour qu\'elle reste à sa place dans la galerie. Ignoré avec Nettoyage Strict ou lors d\'un partage depuis d\'autres apps.</string>
+    <string name="settings_preserve_motion">Conserver les Photos Animées</string>
+    <string name="settings_preserve_motion_subtitle">Conserver la courte vidéo d\'une photo animée JPEG dans Nettoyer, sans ses métadonnées. Elle contient le son enregistré avec. Ignoré avec Nettoyage Strict ou lors d\'un partage depuis d\'autres apps.</string>
         <string name="settings_sentry_consent_allow">Activer</string>
     <string name="settings_sentry_consent_cancel">Pas Maintenant</string>
     <string name="settings_sentry_consent_title">Activer les Rapports de Plantage</string>

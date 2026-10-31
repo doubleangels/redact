@@ -307,12 +307,32 @@ public final class VideoContainerMetadata {
                 walker.locationFields);
     }
 
+    /**
+     * Scans the video in {@code [start, end)} of {@code channel}, such as a Motion Photo's after
+     * its picture; never throws.
+     */
+    @NonNull
+    static Report scan(@NonNull FileChannel channel, long start, long end) {
+        try {
+            Walker walker = new Walker(channel, false, start, end - start);
+            if (!walker.run()) {
+                return Report.unrecognized();
+            }
+            return new Report(true, walker.fields, walker.location, walker.values, walker.sizes,
+                    walker.coordinates, walker.locationFields);
+        } catch (IOException | RuntimeException e) {
+            return Report.unrecognized();
+        }
+    }
+
     // ---- the walk -----------------------------------------------------------------------------
 
     private static final class Walker {
         private final FileChannel ch;
         private final boolean scrub;
         private final long length;
+        /** Where the video starts in the channel; positions in the walk are counted from it. */
+        private final long offset;
         final List<String> fields = new ArrayList<>();
         final Map<String, String> values = new LinkedHashMap<>();
         final Map<String, Long> sizes = new LinkedHashMap<>();
@@ -327,9 +347,17 @@ public final class VideoContainerMetadata {
         private int simpleTags;
 
         Walker(FileChannel ch, boolean scrub) throws IOException {
+            this(ch, scrub, 0, ch.size());
+        }
+
+        Walker(FileChannel ch, boolean scrub, long offset, long length) throws IOException {
+            if (offset < 0 || length < 0 || offset + length > ch.size()) {
+                throw new IOException("Region outside the file");
+            }
             this.ch = ch;
             this.scrub = scrub;
-            this.length = ch.size();
+            this.offset = offset;
+            this.length = length;
         }
 
         boolean run() throws IOException {
@@ -1202,7 +1230,7 @@ public final class VideoContainerMetadata {
             }
             ByteBuffer buffer = ByteBuffer.allocate(n);
             while (buffer.hasRemaining()) {
-                if (ch.read(buffer, pos + buffer.position()) < 0) {
+                if (ch.read(buffer, offset + pos + buffer.position()) < 0) {
                     throw new IOException("Unexpected end of file");
                 }
             }
@@ -1212,7 +1240,7 @@ public final class VideoContainerMetadata {
         private void write(long pos, @NonNull byte[] bytes) throws IOException {
             ByteBuffer buffer = ByteBuffer.wrap(bytes);
             while (buffer.hasRemaining()) {
-                ch.write(buffer, pos + buffer.position());
+                ch.write(buffer, offset + pos + buffer.position());
             }
         }
 
