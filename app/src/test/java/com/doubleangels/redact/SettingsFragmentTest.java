@@ -323,9 +323,8 @@ public class SettingsFragmentTest {
     }
 
     @Test
-    public void secureDeleteAndBitmapSizeDropdowns_mapIndexesToValues() {
+    public void secureDeleteDropdown_mapsIndexesToValues() {
         MaterialAutoCompleteTextView secure = settings.findViewById(R.id.dropdownSecureDelete);
-        MaterialAutoCompleteTextView bitmap = settings.findViewById(R.id.dropdownMaxBitmapSize);
 
         pickDropdownItem(secure, 0);
         assertEquals(1, AppPreferences.getSecureDeletePasses(activity));
@@ -333,22 +332,12 @@ public class SettingsFragmentTest {
         assertEquals(3, AppPreferences.getSecureDeletePasses(activity));
         pickDropdownItem(secure, 2);
         assertEquals(7, AppPreferences.getSecureDeletePasses(activity));
-
-        pickDropdownItem(bitmap, 1);
-        assertEquals(2048, AppPreferences.getMaxBitmapSize(activity));
-        pickDropdownItem(bitmap, 2);
-        assertEquals(4096, AppPreferences.getMaxBitmapSize(activity));
-        pickDropdownItem(bitmap, 3);
-        assertEquals(8192, AppPreferences.getMaxBitmapSize(activity));
-        pickDropdownItem(bitmap, 0);
-        assertEquals(AppPreferences.MAX_BITMAP_SIZE_FULL, AppPreferences.getMaxBitmapSize(activity));
     }
 
     @Test
     public void savedDropdownValues_areShownWhenTheTabIsCreated() {
         controller.pause().stop().destroy();
         AppPreferences.setSecureDeletePasses(activity, 7);
-        AppPreferences.setMaxBitmapSize(activity, 2048);
         AppPreferences.setDefaultImageFormatIndex(activity, 2);
 
         controller = Robolectric.buildActivity(MainActivity.class).setup();
@@ -360,9 +349,6 @@ public class SettingsFragmentTest {
         MaterialAutoCompleteTextView secure = settings.findViewById(R.id.dropdownSecureDelete);
         String[] labels = activity.getResources().getStringArray(R.array.settings_secure_delete_labels);
         assertEquals(labels[2], secure.getText().toString());
-        MaterialAutoCompleteTextView bitmap = settings.findViewById(R.id.dropdownMaxBitmapSize);
-        String[] sizes = activity.getResources().getStringArray(R.array.settings_max_bitmap_size_labels);
-        assertEquals(sizes[0], bitmap.getText().toString());
     }
 
     // ---- crash reporting ---------------------------------------------------------------------
@@ -623,7 +609,6 @@ public class SettingsFragmentTest {
     @Test
     public void dropdowns_showTheLeastAndMostThoroughChoices() {
         AppPreferences.setSecureDeletePasses(activity, 1);
-        AppPreferences.setMaxBitmapSize(activity, 8192);
         // Settings reads its values when its view is made, so start over with a new activity.
         controller.pause().stop().destroy();
         controller = Robolectric.buildActivity(MainActivity.class).setup();
@@ -635,9 +620,6 @@ public class SettingsFragmentTest {
         String[] passes = activity.getResources().getStringArray(R.array.settings_secure_delete_labels);
         assertEquals(passes[0],
                 ((MaterialAutoCompleteTextView) settings.findViewById(R.id.dropdownSecureDelete)).getText().toString());
-        String[] sizes = activity.getResources().getStringArray(R.array.settings_max_bitmap_size_labels);
-        assertEquals(sizes[2],
-                ((MaterialAutoCompleteTextView) settings.findViewById(R.id.dropdownMaxBitmapSize)).getText().toString());
     }
 
     @Test

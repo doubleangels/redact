@@ -175,10 +175,6 @@
     <string name="settings_strict_clean">严格清理</string>
     <string name="settings_strict_clean_subtitle">移除所有元数据痕迹，甚至包括方向标签，因此旋转过的照片之后可能会显示为歪斜。关闭下方的保留选项，并始终完全重新编码视频以实现最彻底的清理。</string>
     
-    <string name="settings_section_advanced_processing">大文件与内存</string>
-    <string name="settings_advanced_processing_subtitle">控制清理和转换时解码大图像的内存使用。</string>
-    <string name="settings_max_bitmap_size">最大处理分辨率</string>
-    <string name="settings_max_bitmap_size_subtitle">在内存中解码图像时的最长边像素数。较低值使用更少 RAM。</string>
     <string name="settings_video_fallback">更快的视频清理</string>
     <string name="settings_video_fallback_subtitle">当视频已经是兼容格式时，Redact 会用快速处理来移除其元数据，而不是完全重新编码，速度更快、更省电，不过完全重新编码能多移除一点。在开启严格清理或清理从其他应用分享的文件时会自动关闭此功能。</string>
 
@@ -186,13 +182,6 @@
         <item>1 遍（快速）</item>
         <item>3 遍（安全）</item>
         <item>7 遍（超安全）</item>
-    </string-array>
-
-    <string-array name="settings_max_bitmap_size_labels">
-        <item>原始分辨率</item>
-        <item>2048px（低内存）</item>
-        <item>4096px（标准）</item>
-        <item>8192px（高性能）</item>
     </string-array>
 
     

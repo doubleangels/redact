@@ -179,10 +179,6 @@
     <string name="settings_strict_clean">Strikte Bereinigung</string>
     <string name="settings_strict_clean_subtitle">Entfernt jede Spur von Metadaten, sogar den Orientierungs-Tag, ein gedrehtes Foto kann danach also schräg aussehen. Schaltet die Behalten-Optionen unten aus und kodiert Videos für die gründlichste Bereinigung immer vollständig neu.</string>
     
-    <string name="settings_section_advanced_processing">Große Dateien &amp; Speicher</string>
-    <string name="settings_advanced_processing_subtitle">Steuert den RAM-Verbrauch beim Dekodieren großer Bilder beim Bereinigen und Konvertieren.</string>
-    <string name="settings_max_bitmap_size">Max. Verarbeitungsauflösung</string>
-    <string name="settings_max_bitmap_size_subtitle">Längste Kante in Pixeln beim Dekodieren im Speicher. Niedrigere Werte nutzen weniger RAM.</string>
     <string name="settings_video_fallback">Schnellere Videobereinigung</string>
     <string name="settings_video_fallback_subtitle">Wenn Ihr Video bereits in einem kompatiblen Format vorliegt, entfernt Redact dessen Metadaten mit einem schnellen Durchgang statt einer vollständigen Neukodierung, schneller und akkuschonender, auch wenn eine vollständige Neukodierung etwas gründlicher ist. Wird automatisch deaktiviert, wenn Strikte Bereinigung aktiv ist oder Dateien aus anderen Apps bereinigt werden.</string>
 
@@ -190,13 +186,6 @@
         <item>1 Durchlauf (Schnell)</item>
         <item>3 Durchläufe (Sicher)</item>
         <item>7 Durchläufe (Ultra-Sicher)</item>
-    </string-array>
-
-    <string-array name="settings_max_bitmap_size_labels">
-        <item>Volle Auflösung</item>
-        <item>2048px (Wenig RAM)</item>
-        <item>4096px (Standard)</item>
-        <item>8192px (Hohe Leistung)</item>
     </string-array>
 
     

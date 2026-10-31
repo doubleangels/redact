@@ -1979,7 +1979,7 @@ public class MetadataStripper {
             // No tags can be written back into this format (HEIC), so the orientation has to be
             // in the pixels: ImageDecoder applies it, BitmapFactory does not.
             Bitmap upright = FormatConverter.decodeUpright(context, Uri.fromFile(source),
-                    AppPreferences.getMaxBitmapSize(context));
+                    FormatConverter.FULL_RESOLUTION);
             preservedExifValues.remove(ExifInterface.TAG_ORIENTATION);
             compressTo(upright, bitmapOutput, target, 0);
             return;

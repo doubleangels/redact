@@ -468,7 +468,7 @@ public final class FormatConverter {
         String mime = mimeForFormat(format);
         String ext = extensionForFormat(format);
 
-        Bitmap bitmap = decodeUpright(context, sourceUri, AppPreferences.getMaxBitmapSize(context));
+        Bitmap bitmap = decodeUpright(context, sourceUri, FULL_RESOLUTION);
 
         String outName = MediaFileNames.outputBaseName(context, baseDisplayName) + ext;
 
@@ -569,7 +569,7 @@ public final class FormatConverter {
     @Nullable
     public static Bitmap decodeBitmapFromUri(@NonNull Context context, @NonNull Uri sourceUri)
             throws IOException {
-        return decodeBitmapFromUri(context, sourceUri, AppPreferences.getMaxBitmapSize(context));
+        return decodeBitmapFromUri(context, sourceUri, FULL_RESOLUTION);
     }
 
     @Nullable
@@ -678,6 +678,12 @@ public final class FormatConverter {
 
     private static final int MAX_ENCODER_DIMENSION = 16383;
 
+    /**
+     * The size limit for a picture that is saved: none but the device's free memory, so every
+     * pixel is kept that can be. Only on-screen previews pass a size.
+     */
+    public static final int FULL_RESOLUTION = 0;
+
     /** Bytes a decoded pixel takes (ARGB_8888). */
     private static final int BYTES_PER_PIXEL = 4;
     /** The least a full-resolution decode is allowed, whatever the memory reading says: 24 MP. */
@@ -706,8 +712,7 @@ public final class FormatConverter {
     }
 
     public static int calculateInSampleSize(Context context, BitmapFactory.Options options) {
-        return calculateInSampleSize(
-                AppPreferences.getMaxBitmapSize(context), fullResolutionPixelBudget(context), options);
+        return calculateInSampleSize(FULL_RESOLUTION, fullResolutionPixelBudget(context), options);
     }
 
     static int calculateInSampleSize(int maxDimension, BitmapFactory.Options options) {

@@ -123,19 +123,6 @@ public class AppPreferencesTest {
     }
 
     @Test
-    public void maxBitmapSize_defaultsAndClampsOnWrite() {
-        assertEquals(AppPreferences.MAX_BITMAP_SIZE_FULL, AppPreferences.getMaxBitmapSize(context));
-        AppPreferences.setMaxBitmapSize(context, AppPreferences.MAX_BITMAP_SIZE_FULL);
-        assertEquals(AppPreferences.MAX_BITMAP_SIZE_FULL, AppPreferences.getMaxBitmapSize(context));
-        AppPreferences.setMaxBitmapSize(context, 2048);
-        assertEquals(2048, AppPreferences.getMaxBitmapSize(context));
-        AppPreferences.setMaxBitmapSize(context, 8192);
-        assertEquals(8192, AppPreferences.getMaxBitmapSize(context));
-        AppPreferences.setMaxBitmapSize(context, 1000);
-        assertEquals(4096, AppPreferences.getMaxBitmapSize(context));
-    }
-
-    @Test
     public void defaultImageFormatIndex_defaultsToJpegAndClamps() {
         assertEquals(AppPreferences.FORMAT_INDEX_JPEG_H264, AppPreferences.getDefaultImageFormatIndex(context));
         AppPreferences.setDefaultImageFormatIndex(context, AppPreferences.FORMAT_INDEX_PNG_H265);

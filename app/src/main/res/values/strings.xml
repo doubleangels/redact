@@ -368,22 +368,11 @@
     <string name="settings_video_fallback">Faster Video Cleaning</string>
     <string name="settings_video_fallback_subtitle">When your video is already in a compatible format, Redact strips its metadata with a quick pass instead of fully re-encoding it. That\'s faster and lighter on battery, though a full re-encode removes a touch more. Automatically turned off when Strict Clean is on or when cleaning files shared in from other apps.</string>
     
-    <string name="settings_section_advanced_processing">Large Files &amp; Memory</string>
-    <string name="settings_advanced_processing_subtitle">Controls RAM use when decoding large images during clean and convert.</string>
-    <string name="settings_max_bitmap_size">Max Processing Resolution</string>
-    <string name="settings_max_bitmap_size_subtitle">Largest edge in pixels when decoding images in memory. Lower values use less RAM.</string>
 
     <string-array name="settings_secure_delete_labels">
         <item>1 Pass (Fast)</item>
         <item>3 Passes (Secure)</item>
         <item>7 Passes (Ultra-Secure)</item>
-    </string-array>
-
-    <string-array name="settings_max_bitmap_size_labels">
-        <item>Full Resolution</item>
-        <item>2048px (Low RAM)</item>
-        <item>4096px (Standard)</item>
-        <item>8192px (High Perf)</item>
     </string-array>
 
     <plurals name="convert_hero_files_count">

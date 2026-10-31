@@ -186,23 +186,29 @@ public class FormatConverterTest {
     }
 
     @Test
-    public void calculateInSampleSize_respectsConfiguredMaxBitmapSize() {
-        AppPreferences.setMaxBitmapSize(context, 2048);
-
+    public void calculateInSampleSize_forAPreviewSize_samplesDownToIt() {
         BitmapFactory.Options small = new BitmapFactory.Options();
         small.outWidth = 1000;
         small.outHeight = 1000;
-        assertEquals(1, FormatConverter.calculateInSampleSize(context, small));
+        assertEquals(1, FormatConverter.calculateInSampleSize(2048, small));
 
         BitmapFactory.Options large = new BitmapFactory.Options();
         large.outWidth = 5000;
         large.outHeight = 5000;
-        assertEquals(2, FormatConverter.calculateInSampleSize(context, large));
+        assertEquals(2, FormatConverter.calculateInSampleSize(2048, large));
 
         BitmapFactory.Options huge = new BitmapFactory.Options();
         huge.outWidth = 10000;
         huge.outHeight = 10000;
-        assertEquals(4, FormatConverter.calculateInSampleSize(context, huge));
+        assertEquals(4, FormatConverter.calculateInSampleSize(2048, huge));
+    }
+
+    @Test
+    public void calculateInSampleSize_forASavedPicture_keepsItWhole() {
+        BitmapFactory.Options twelveMegapixels = new BitmapFactory.Options();
+        twelveMegapixels.outWidth = 4000;
+        twelveMegapixels.outHeight = 3000;
+        assertEquals(1, FormatConverter.calculateInSampleSize(context, twelveMegapixels));
     }
 
     @Test
@@ -211,12 +217,12 @@ public class FormatConverterTest {
         fiftyMegapixels.outWidth = 8160;
         fiftyMegapixels.outHeight = 6120;
         assertEquals(1, FormatConverter.calculateInSampleSize(
-                AppPreferences.MAX_BITMAP_SIZE_FULL, 100_000_000L, fiftyMegapixels));
+                FormatConverter.FULL_RESOLUTION, 100_000_000L, fiftyMegapixels));
         // Only when it would not fit in memory is it sampled, by as little as will do.
         assertEquals(2, FormatConverter.calculateInSampleSize(
-                AppPreferences.MAX_BITMAP_SIZE_FULL, 40_000_000L, fiftyMegapixels));
+                FormatConverter.FULL_RESOLUTION, 40_000_000L, fiftyMegapixels));
         assertEquals(4, FormatConverter.calculateInSampleSize(
-                AppPreferences.MAX_BITMAP_SIZE_FULL, 10_000_000L, fiftyMegapixels));
+                FormatConverter.FULL_RESOLUTION, 10_000_000L, fiftyMegapixels));
     }
 
     /** A JPEG header with libjpeg's luminance table for {@code quality}, then the start of scan. */
@@ -298,8 +304,6 @@ public class FormatConverterTest {
 
     @Test
     public void calculateInSampleSize_keepsLongScreenshotsWithinTheEncoderLimit() {
-        AppPreferences.setMaxBitmapSize(context, 2048);
-
         BitmapFactory.Options fits = new BitmapFactory.Options();
         fits.outWidth = 1080;
         fits.outHeight = 16383;

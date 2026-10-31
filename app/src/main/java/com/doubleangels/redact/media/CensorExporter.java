@@ -9,7 +9,6 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.metadata.CleanStats;
 import com.doubleangels.redact.metadata.MetadataStripper;
 
@@ -63,7 +62,7 @@ public final class CensorExporter {
         int sourceLongSide = longSideOf(resolver, source);
 
         Bitmap bitmap = editable(FormatConverter.decodeUpright(
-                context, source, AppPreferences.getMaxBitmapSize(context)));
+                context, source, FormatConverter.FULL_RESOLUTION));
         boolean downscaled = sourceLongSide > 0
                 && Math.max(bitmap.getWidth(), bitmap.getHeight()) < sourceLongSide;
 

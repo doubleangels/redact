@@ -175,10 +175,6 @@
     <string name="settings_strict_clean">엄격한 정리</string>
     <string name="settings_strict_clean_subtitle">방향 태그를 포함해 메타데이터의 모든 흔적을 제거합니다. 따라서 회전된 사진은 이후 옆으로 누워 보일 수 있습니다. 아래의 유지 옵션을 끄고, 가장 철저한 정리를 위해 동영상을 항상 완전히 재인코딩합니다.</string>
     
-    <string name="settings_section_advanced_processing">대용량 파일 및 메모리</string>
-    <string name="settings_advanced_processing_subtitle">정리 및 변환 시 큰 이미지를 디코딩할 때 RAM 사용량을 제어합니다.</string>
-    <string name="settings_max_bitmap_size">최대 처리 해상도</string>
-    <string name="settings_max_bitmap_size_subtitle">메모리에서 이미지를 디코딩할 때 긴 변 픽셀 수. 낮을수록 RAM 사용량 감소.</string>
     <string name="settings_video_fallback">더 빠른 동영상 정리</string>
     <string name="settings_video_fallback_subtitle">동영상이 이미 호환 형식인 경우, Redact는 완전히 재인코딩하는 대신 빠른 처리로 메타데이터를 제거합니다. 더 빠르고 배터리 소모도 적지만, 완전 재인코딩이 조금 더 많이 제거합니다. 엄격 정리가 켜져 있거나 다른 앱에서 공유된 파일을 정리할 때는 자동으로 꺼집니다.</string>
 
@@ -186,13 +182,6 @@
         <item>1회(빠름)</item>
         <item>3회(보안)</item>
         <item>7회(초보안)</item>
-    </string-array>
-
-    <string-array name="settings_max_bitmap_size_labels">
-        <item>원본 해상도</item>
-        <item>2048px(낮은 RAM)</item>
-        <item>4096px(표준)</item>
-        <item>8192px(고성능)</item>
     </string-array>
 
     

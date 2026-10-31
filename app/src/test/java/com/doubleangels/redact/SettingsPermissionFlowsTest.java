@@ -274,7 +274,7 @@ public class SettingsPermissionFlowsTest {
     @Test
     public void dropdownAdapters_alwaysShowEveryOption() {
         int[] ids = {R.id.dropdownDefaultImageFormat, R.id.dropdownDefaultVideoFormat, R.id.dropdownImageQuality,
-                R.id.dropdownSecureDelete, R.id.dropdownMaxBitmapSize};
+                R.id.dropdownSecureDelete};
         for (int id : ids) {
             MaterialAutoCompleteTextView dropdown = settings.findViewById(id);
             android.widget.ListAdapter adapter = dropdown.getAdapter();

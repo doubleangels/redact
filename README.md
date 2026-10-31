@@ -234,12 +234,6 @@ The Settings tab puts the settings you use every day first: cleaning, sharing, C
 
 **Permissions** shows what Redact can access and lets you grant the optional photo-location permission.
 
-**Large Files & Memory**
-
-| Setting | What it does |
-|---|---|
-| **Max Processing Resolution** | Largest image edge, in pixels, used when decoding. Lower values use less memory. |
-
 **Storage & Cache**
 
 | Setting | What it does |
@@ -320,7 +314,7 @@ In `Pictures/Redact` and `Movies/Redact`. See [Where files go](#where-files-go).
 <details>
 <summary><b>Are there file size limits?</b></summary>
 
-No hard limit. Very large files can still strain a device that is low on storage or memory, so Redact warns you before it starts. Lowering **Max Processing Resolution** reduces memory use for large images.
+No hard limit. Very large files can still strain a device that is low on storage or memory, so Redact warns you before it starts. Images are always processed at full resolution, and only scaled down if the device does not have the free memory to hold one.
 </details>
 
 <details>

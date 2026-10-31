@@ -158,12 +158,13 @@ public class FormatConverterConversionTest {
     }
 
     @Test
-    public void convert_largeImages_areDownsampledToTheConfiguredMaximum() throws Exception {
-        AppPreferences.setMaxBitmapSize(context, 2048);
+    public void convert_largeImages_keepTheirFullSize() throws Exception {
         FormatConverter.convertImageToPictures(
                 context, Uri.fromFile(image(4500, 100, ExifInterface.ORIENTATION_NORMAL)),
                 Bitmap.CompressFormat.PNG, "a");
-        assertNotNull(decodeOutput());
+        Bitmap out = decodeOutput();
+        assertNotNull(out);
+        assertEquals(4500, out.getWidth());
     }
 
     @Test

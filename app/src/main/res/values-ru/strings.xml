@@ -187,10 +187,6 @@
     <string name="settings_strict_clean">Строгая Очистка</string>
     <string name="settings_strict_clean_subtitle">Удаляет все следы метаданных, включая тег ориентации, поэтому повёрнутое фото может выглядеть боком после очистки. Отключает опции сохранения ниже и всегда полностью перекодирует видео для максимально тщательной очистки.</string>
     
-    <string name="settings_section_advanced_processing">Большие Файлы и Память</string>
-    <string name="settings_advanced_processing_subtitle">Управляет использованием ОЗУ при декодировании больших изображений при очистке и конвертации.</string>
-    <string name="settings_max_bitmap_size">Макс. Разрешение Обработки</string>
-    <string name="settings_max_bitmap_size_subtitle">Длинная сторона в пикселях при декодировании в памяти. Меньшие значения используют меньше ОЗУ.</string>
     <string name="settings_video_fallback">Более Быстрая Очистка Видео</string>
     <string name="settings_video_fallback_subtitle">Если видео уже в совместимом формате, Redact удаляет его метаданные быстрым проходом вместо полного перекодирования. Это быстрее и бережнее к батарее, хотя полное перекодирование удаляет чуть больше. Автоматически отключается при включённой Строгой Очистке или при очистке файлов, отправленных из других приложений.</string>
 
@@ -198,13 +194,6 @@
         <item>1 Проход (Быстро)</item>
         <item>3 Прохода (Безопасно)</item>
         <item>7 Проходов (Ультрабезопасно)</item>
-    </string-array>
-
-    <string-array name="settings_max_bitmap_size_labels">
-        <item>Полное разрешение</item>
-        <item>2048px (мало ОЗУ)</item>
-        <item>4096px (стандарт)</item>
-        <item>8192px (высокая производительность)</item>
     </string-array>
 
     

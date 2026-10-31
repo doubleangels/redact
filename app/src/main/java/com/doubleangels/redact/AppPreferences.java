@@ -28,7 +28,6 @@ public final class AppPreferences {
     private static final String KEY_SHARE_CONFIRM_BEFORE_STRIP = "share_confirm_before_strip";
     private static final String KEY_SECURE_DELETE_PASSES = "secure_delete_passes";
     private static final String KEY_AUTO_CLEAR_TEMP_FILES = "auto_clear_temp_files";
-    private static final String KEY_MAX_BITMAP_SIZE = "max_bitmap_size";
     private static final String KEY_PRESERVE_CAMERA_SETTINGS = "preserve_camera_settings";
     private static final String KEY_PRESERVE_LOCATION = "preserve_location";
     private static final String KEY_STRICT_CLEAN = "strict_clean";
@@ -52,9 +51,6 @@ public final class AppPreferences {
     public static final String HINT_CLEAN = "clean";
     public static final String HINT_CONVERT = "convert";
     public static final String HINT_CENSOR = "censor";
-
-    /** {@link #getMaxBitmapSize} for full resolution, limited only by free memory. */
-    public static final int MAX_BITMAP_SIZE_FULL = 0;
 
     /** High quality, which matches the legacy defaults. */
     public static final int QUALITY_PRESET_HIGH = 0;
@@ -205,26 +201,6 @@ public final class AppPreferences {
 
     public static void setAutoClearTempFiles(@NonNull Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_AUTO_CLEAR_TEMP_FILES, enabled).apply();
-    }
-
-    /**
-     * The Max Processing Resolution setting: the size, in pixels per side, an image is scaled
-     * down toward before it is re-encoded, or {@link #MAX_BITMAP_SIZE_FULL} (the default) to keep
-     * every pixel the device has the memory for. The default used to follow the app's Java heap, but pixels
-     * have lived in native memory since Android 8, so it shrank photos for no reason.
-     */
-    public static int getMaxBitmapSize(@NonNull Context context) {
-        return prefs(context).getInt(KEY_MAX_BITMAP_SIZE, MAX_BITMAP_SIZE_FULL);
-    }
-
-    public static void setMaxBitmapSize(@NonNull Context context, int size) {
-        int clamped = switch (size) {
-            case MAX_BITMAP_SIZE_FULL -> MAX_BITMAP_SIZE_FULL;
-            case 2048 -> 2048;
-            case 8192 -> 8192;
-            default -> 4096;
-        };
-        prefs(context).edit().putInt(KEY_MAX_BITMAP_SIZE, clamped).apply();
     }
 
     /**

@@ -84,14 +84,12 @@ public class SettingsFragment extends TabFragment {
     private MaterialSwitch switchAutoClearTemp;
     private MaterialSwitch switchVideoFallback;
     private MaterialAutoCompleteTextView dropdownSecureDelete;
-    private MaterialAutoCompleteTextView dropdownMaxBitmapSize;
     private MaterialAutoCompleteTextView dropdownClipboardClear;
 
     private String[] imageFormatLabels;
     private String[] videoFormatLabels;
     private String[] qualityLabels;
     private String[] secureDeleteLabels;
-    private String[] maxBitmapSizeLabels;
     private String[] clipboardClearLabels;
 
     @Nullable
@@ -117,7 +115,6 @@ public class SettingsFragment extends TabFragment {
             qualityLabels = getResources().getStringArray(R.array.settings_quality_labels);
             secureDeleteLabels = getResources().getStringArray(R.array.settings_secure_delete_labels);
             clipboardClearLabels = getResources().getStringArray(R.array.settings_clipboard_clear_labels);
-            maxBitmapSizeLabels = getResources().getStringArray(R.array.settings_max_bitmap_size_labels);
 
             bindStatistics(view);
             bindPermissions(view);
@@ -193,7 +190,6 @@ public class SettingsFragment extends TabFragment {
         switchAutoClearTemp = view.findViewById(R.id.switchAutoClearTemp);
         switchVideoFallback = view.findViewById(R.id.switchVideoFallback);
         dropdownSecureDelete = view.findViewById(R.id.dropdownSecureDelete);
-        dropdownMaxBitmapSize = view.findViewById(R.id.dropdownMaxBitmapSize);
         dropdownClipboardClear = view.findViewById(R.id.dropdownClipboardClear);
     }
 
@@ -372,22 +368,6 @@ public class SettingsFragment extends TabFragment {
                 default -> 3;
             };
             AppPreferences.setSecureDeletePasses(requireContext(), passes);
-        });
-
-        int maxBitmapSizeIndex = switch (AppPreferences.getMaxBitmapSize(requireContext())) {
-            case AppPreferences.MAX_BITMAP_SIZE_FULL -> 0;
-            case 2048 -> 1;
-            case 8192 -> 3;
-            default -> 2;
-        };
-        setupDropdown(dropdownMaxBitmapSize, maxBitmapSizeLabels, maxBitmapSizeIndex, index -> {
-            int size = switch (index) {
-                case 0 -> AppPreferences.MAX_BITMAP_SIZE_FULL;
-                case 1 -> 2048;
-                case 3 -> 8192;
-                default -> 4096;
-            };
-            AppPreferences.setMaxBitmapSize(requireContext(), size);
         });
     }
 

@@ -183,10 +183,6 @@
     <string name="settings_strict_clean">Limpieza Estricta</string>
     <string name="settings_strict_clean_subtitle">Elimina todo rastro de metadatos, incluso la etiqueta de orientación, por lo que una foto girada puede verse torcida después. Desactiva las opciones de conservar de abajo y siempre recodifica el video por completo para la limpieza más profunda.</string>
     
-    <string name="settings_section_advanced_processing">Archivos Grandes y Memoria</string>
-    <string name="settings_advanced_processing_subtitle">Controla el uso de RAM al decodificar imágenes grandes durante la limpieza y conversión.</string>
-    <string name="settings_max_bitmap_size">Resolución Máxima de Procesamiento</string>
-    <string name="settings_max_bitmap_size_subtitle">Lado más largo en píxeles al decodificar en memoria. Valores más bajos usan menos RAM.</string>
     <string name="settings_video_fallback">Limpieza de Video Más Rápida</string>
     <string name="settings_video_fallback_subtitle">Cuando tu video ya está en un formato compatible, Redact elimina sus metadatos con un paso rápido en lugar de recodificarlo por completo, más rápido y más suave con la batería, aunque una recodificación completa elimina un poco más. Se desactiva automáticamente con Limpieza Estricta o al limpiar archivos compartidos desde otras apps.</string>
 
@@ -194,13 +190,6 @@
         <item>1 Pasada (Rápida)</item>
         <item>3 Pasadas (Segura)</item>
         <item>7 Pasadas (Ultrasegura)</item>
-    </string-array>
-
-    <string-array name="settings_max_bitmap_size_labels">
-        <item>Resolución Completa</item>
-        <item>2048px (Poca RAM)</item>
-        <item>4096px (Estándar)</item>
-        <item>8192px (Alto Rendimiento)</item>
     </string-array>
 
     

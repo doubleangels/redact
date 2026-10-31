@@ -176,10 +176,6 @@
     <string name="settings_strict_clean">厳格クリーン</string>
     <string name="settings_strict_clean_subtitle">向きのタグを含む、メタデータのあらゆる痕跡を削除します。そのため、回転させた写真は後で横向きに表示されることがあります。下の保持オプションをオフにし、最も徹底したクリーンのために動画を常に完全に再エンコードします。</string>
     
-    <string name="settings_section_advanced_processing">大きなファイルとメモリ</string>
-    <string name="settings_advanced_processing_subtitle">クリーンと変換時に大きな画像をデコードする際のRAM使用量を制御します。</string>
-    <string name="settings_max_bitmap_size">最大処理解像度</string>
-    <string name="settings_max_bitmap_size_subtitle">メモリで画像をデコードするときの長辺ピクセル数。低いほどRAM使用量が少ない。</string>
     <string name="settings_video_fallback">高速な動画クリーン</string>
     <string name="settings_video_fallback_subtitle">動画がすでに互換性のある形式である場合、Redact は完全に再エンコードする代わりに、クイック処理でメタデータを削除します。より速くバッテリーにも優しくなりますが、完全な再エンコードの方がわずかに多く削除できます。厳密クリーンがオンの場合や、他アプリから共有されたファイルをクリーンする場合は自動的にオフになります。</string>
 
@@ -187,13 +183,6 @@
         <item>1回（高速）</item>
         <item>3回（安全）</item>
         <item>7回（超安全）</item>
-    </string-array>
-
-    <string-array name="settings_max_bitmap_size_labels">
-        <item>フル解像度</item>
-        <item>2048px（低RAM）</item>
-        <item>4096px（標準）</item>
-        <item>8192px（高性能）</item>
     </string-array>
 
     

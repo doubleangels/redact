@@ -175,10 +175,6 @@
     <string name="settings_strict_clean">嚴格清理</string>
     <string name="settings_strict_clean_subtitle">移除所有中繼資料痕跡，甚至包括方向標籤，因此旋轉過的相片之後可能會顯示為歪斜。關閉下方的保留選項，並一律完整重新編碼影片，以達到最徹底的清理。</string>
     
-    <string name="settings_section_advanced_processing">大型檔案與記憶體</string>
-    <string name="settings_advanced_processing_subtitle">控制清理和轉換時解碼大型影像的記憶體使用。</string>
-    <string name="settings_max_bitmap_size">最大處理解析度</string>
-    <string name="settings_max_bitmap_size_subtitle">在記憶體中解碼影像時的最長邊像素數。較低值使用較少 RAM。</string>
     <string name="settings_video_fallback">更快的影片清理</string>
     <string name="settings_video_fallback_subtitle">當影片已是相容格式時，Redact 會以快速處理移除其中繼資料，而非完整重新編碼，速度更快、更省電，不過完整重新編碼能多移除一些。在開啟嚴格清理或清理從其他 App 分享的檔案時，會自動關閉此功能。</string>
 
@@ -186,13 +182,6 @@
         <item>1 次（快速）</item>
         <item>3 次（安全）</item>
         <item>7 次（超安全）</item>
-    </string-array>
-
-    <string-array name="settings_max_bitmap_size_labels">
-        <item>原始解析度</item>
-        <item>2048px（低記憶體）</item>
-        <item>4096px（標準）</item>
-        <item>8192px（高效能）</item>
     </string-array>
 
     
