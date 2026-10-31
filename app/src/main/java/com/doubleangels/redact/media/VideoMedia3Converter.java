@@ -328,6 +328,8 @@ public final class VideoMedia3Converter {
         Context app = context.getApplicationContext();
         // Read once: every codec and size attempt below would otherwise open the source again.
         boolean hasAudio = sourceHasAudio(app, sourceUri);
+        com.doubleangels.redact.sentry.SentryManager.log(
+                "The app is transcoding a " + describeVideoTrack(app, sourceUri) + " video.");
 
         IOException lastFailure = null;
         for (int attemptIndex : encoderFallbackOrder(formatIndex)) {
@@ -619,6 +621,7 @@ public final class VideoMedia3Converter {
         AtomicReference<Transformer> transformerRef = new AtomicReference<>();
         // The last progress Media3 reported, for the stall check; -1 before the first.
         AtomicInteger progressSeen = new AtomicInteger(-1);
+        long startedAt = android.os.SystemClock.elapsedRealtime();
 
         Handler mainHandler = new Handler(Looper.getMainLooper());
         // Polled with or without a listener: the stall check needs the progress too.
@@ -752,12 +755,15 @@ public final class VideoMedia3Converter {
                     });
             cancelDone.await(5, TimeUnit.SECONDS);
             deleteQuietly(app, outFile);
+            logAttemptFailure(videoMimeType, outputShortSide, "STALLED", progressSeen.get(), startedAt);
             throw new IOException("Video conversion stalled");
         }
 
         ExportException exportException = errorRef.get();
         if (exportException != null) {
             deleteQuietly(app, outFile);
+            logAttemptFailure(videoMimeType, outputShortSide, exportException.getErrorCodeName(),
+                    progressSeen.get(), startedAt);
             if (isUnsupportedInput(exportException)) {
                 throw new UnsupportedMediaException(
                         "Unsupported video format: " + exportException.getMessage(), exportException);
@@ -773,6 +779,8 @@ public final class VideoMedia3Converter {
         Throwable syncFailure = syncFailureRef.get();
         if (syncFailure != null) {
             deleteQuietly(app, outFile);
+            logAttemptFailure(videoMimeType, outputShortSide, syncFailure.getClass().getSimpleName(),
+                    progressSeen.get(), startedAt);
             throw new IOException(
                     "Video conversion failed: " + syncFailure.getMessage(), syncFailure);
         }
@@ -780,6 +788,91 @@ public final class VideoMedia3Converter {
         if (!outFile.exists() || outFile.length() == 0) {
             deleteQuietly(app, outFile);
             throw new IOException("Video conversion produced no output");
+        }
+    }
+
+    private static void logAttemptFailure(
+            @NonNull String videoMimeType, int outputShortSide, @NonNull String reason,
+            int progress, long startedAt) {
+        com.doubleangels.redact.sentry.SentryManager.log(describeAttemptFailure(
+                videoMimeType, outputShortSide, reason, progress,
+                android.os.SystemClock.elapsedRealtime() - startedAt));
+    }
+
+    /**
+     * One line per failed export, so an event whose retries all failed shows each codec and size
+     * tried, how far it got and how long it ran, not only the last failure (REDACT-28).
+     */
+    @VisibleForTesting
+    @NonNull
+    static String describeAttemptFailure(
+            @NonNull String videoMimeType, int outputShortSide, @NonNull String reason,
+            int progress, long elapsedMs) {
+        String size = outputShortSide > 0 ? outputShortSide + "p" : "full size";
+        String reached = progress >= 0 ? "at " + progress + "%" : "before any progress";
+        return "The " + videoMimeType + " export at " + size + " failed with " + reason + " "
+                + reached + " after " + (elapsedMs / 1000) + " s.";
+    }
+
+    /**
+     * The source's video track as "video/hevc 3840x2160 60fps 70Mbps", leaving out what the
+     * container doesn't declare, or "unreadable" when it can't be opened.
+     */
+    @NonNull
+    private static String describeVideoTrack(@NonNull Context app, @NonNull Uri sourceUri) {
+        android.media.MediaExtractor extractor = new android.media.MediaExtractor();
+        try {
+            extractor.setDataSource(app, sourceUri, null);
+            for (int i = 0; i < extractor.getTrackCount(); i++) {
+                android.media.MediaFormat format = extractor.getTrackFormat(i);
+                String mime = format.getString(android.media.MediaFormat.KEY_MIME);
+                if (mime != null && mime.startsWith("video/")) {
+                    return describeVideoFormat(
+                            mime,
+                            intOrZero(format, android.media.MediaFormat.KEY_WIDTH),
+                            intOrZero(format, android.media.MediaFormat.KEY_HEIGHT),
+                            intOrZero(format, android.media.MediaFormat.KEY_FRAME_RATE),
+                            intOrZero(format, android.media.MediaFormat.KEY_BIT_RATE));
+                }
+            }
+            return "trackless";
+        } catch (Exception e) {
+            return "unreadable";
+        } finally {
+            extractor.release();
+        }
+    }
+
+    @VisibleForTesting
+    @NonNull
+    static String describeVideoFormat(
+            @NonNull String mime, int width, int height, int frameRate, int bitrate) {
+        StringBuilder sb = new StringBuilder(mime);
+        if (width > 0 && height > 0) {
+            sb.append(' ').append(width).append('x').append(height);
+        }
+        if (frameRate > 0) {
+            sb.append(' ').append(frameRate).append("fps");
+        }
+        if (bitrate > 0) {
+            sb.append(' ').append(Math.round(bitrate / 1_000_000.0)).append("Mbps");
+        }
+        return sb.toString();
+    }
+
+    /** Frame rate is a float in some containers and an int in others. */
+    private static int intOrZero(@NonNull android.media.MediaFormat format, @NonNull String key) {
+        if (!format.containsKey(key)) {
+            return 0;
+        }
+        try {
+            return format.getInteger(key);
+        } catch (ClassCastException e) {
+            try {
+                return Math.round(format.getFloat(key));
+            } catch (ClassCastException ignored) {
+                return 0;
+            }
         }
     }
 

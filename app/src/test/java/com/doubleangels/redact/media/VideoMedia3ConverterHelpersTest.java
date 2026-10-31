@@ -146,6 +146,28 @@ public class VideoMedia3ConverterHelpersTest {
     }
 
     @Test
+    public void describeAttemptFailure_namesTheCodecSizeAndHowFarItGot() {
+        assertEquals(
+                "The video/hevc export at full size failed with ERROR_CODE_MUXING_TIMEOUT"
+                        + " before any progress after 21 s.",
+                VideoMedia3Converter.describeAttemptFailure(
+                        MimeTypes.VIDEO_H265, 0, "ERROR_CODE_MUXING_TIMEOUT", -1, 21_400));
+        assertEquals(
+                "The video/avc export at 720p failed with STALLED at 42% after 600 s.",
+                VideoMedia3Converter.describeAttemptFailure(
+                        MimeTypes.VIDEO_H264, 720, "STALLED", 42, 600_000));
+    }
+
+    @Test
+    public void describeVideoFormat_leavesOutWhatTheContainerDoesNotDeclare() {
+        assertEquals("video/hevc 3840x2160 60fps 70Mbps",
+                VideoMedia3Converter.describeVideoFormat(
+                        MimeTypes.VIDEO_H265, 3840, 2160, 60, 69_671_571));
+        assertEquals("video/avc",
+                VideoMedia3Converter.describeVideoFormat(MimeTypes.VIDEO_H264, 0, 0, 0, 0));
+    }
+
+    @Test
     public void transcodeToFile_whenItsFolderCannotBeMade_fails() throws Exception {
         Application app = RuntimeEnvironment.getApplication();
         File blocker = File.createTempFile("blocker_", ".tmp", app.getCacheDir());
