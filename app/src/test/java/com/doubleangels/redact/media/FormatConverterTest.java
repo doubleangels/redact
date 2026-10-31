@@ -225,6 +225,20 @@ public class FormatConverterTest {
                 FormatConverter.FULL_RESOLUTION, 10_000_000L, fiftyMegapixels));
     }
 
+    @Test
+    public void resolveCleanFormat_keepsHeicAndAvifAsTheyAre() throws Exception {
+        FormatConverter.ImageFormatSpec heic = FormatConverter.resolveCleanFormat(".heic", "image/heic");
+        assertEquals(".heic", heic.extension);
+        assertEquals("image/heic", heic.mimeType);
+
+        FormatConverter.ImageFormatSpec avif = FormatConverter.resolveCleanFormat(".avif", "image/avif");
+        assertEquals(".avif", avif.extension);
+        assertEquals("image/avif", avif.mimeType);
+        assertFalse("no AVIF encoder to fall back on", avif.bitmapFallbackSupported);
+
+        assertEquals(".png", FormatConverter.resolveCleanFormat(".png", "image/png").extension);
+    }
+
     /** A JPEG header with libjpeg's luminance table for {@code quality}, then the start of scan. */
     private static byte[] jpegWithQuality(int quality) {
         int[] zigzag = {16, 11, 12, 14, 12, 10, 16, 14, 13, 14, 18, 17, 16, 19, 24, 40, 26, 24, 22, 22,

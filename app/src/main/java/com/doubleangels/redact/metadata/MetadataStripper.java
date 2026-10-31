@@ -572,7 +572,11 @@ public class MetadataStripper {
             // does not truncate on "w" would keep the tail of an earlier, longer attempt, which
             // can be a full copy of the original with its metadata.
             cleanFile = File.createTempFile("temp_clean_", outputFormat.extension, context.getCacheDir());
-            writePictureOnly(picture, pictureUri, cleanFile, outputFormat, fromPixels);
+            FormatConverter.ImageFormatSpec cleanFormat =
+                    writePictureOnly(picture, pictureUri, cleanFile, outputFormat, fromPixels);
+            if (!cleanFormat.extension.equals(outputFormat.extension)) {
+                newFilename = withExtension(newFilename, cleanFormat.extension);
+            }
 
             // Restore only essential EXIF data (like orientation)
             updateProgress(4, 5, context.getString(R.string.strip_progress_restoring_essential_metadata));
@@ -590,7 +594,7 @@ public class MetadataStripper {
             // Create the output (a pending MediaStore entry, or a file in the chosen folder) and
             // write the verified file to it once, then check that the output holds exactly those
             // bytes: a provider that keeps the tail of an older file would add to them.
-            newUri = OutputDestination.create(context, false, newFilename, outputFormat.mimeType);
+            newUri = OutputDestination.create(context, false, newFilename, cleanFormat.mimeType);
             byte[] written;
             try (InputStream in = new FileInputStream(cleanFile);
                     OutputStream os = contentResolver.openOutputStream(newUri)) {
@@ -665,7 +669,16 @@ public class MetadataStripper {
             outputFile = new File(outputDir, newFilename);
 
             updateProgress(3, 5, context.getString(R.string.strip_progress_removing_metadata));
-            writePictureOnly(tempFile, Uri.fromFile(tempFile), outputFile, outputFormat, false);
+            FormatConverter.ImageFormatSpec cleanFormat =
+                    writePictureOnly(tempFile, Uri.fromFile(tempFile), outputFile, outputFormat, false);
+            if (!cleanFormat.extension.equals(extension)) {
+                // Shared under the name of what it really is, so the app it goes to opens it.
+                File renamed = new File(outputDir, generateShortRandomName() + cleanFormat.extension);
+                if (!outputFile.renameTo(renamed)) {
+                    throw new IOException("Failed to rename the shared image");
+                }
+                outputFile = renamed;
+            }
 
             // Put back only the essential tags (orientation)
             updateProgress(4, 5, context.getString(R.string.strip_progress_removing_all_metadata));
@@ -1166,7 +1179,7 @@ public class MetadataStripper {
         } catch (Exception e) {
             SentryManager.logEvent("metadata", "The MIME type for the source could not be read.");
         }
-        return FormatConverter.resolveImageFormat(extension, mimeType);
+        return FormatConverter.resolveCleanFormat(extension, mimeType);
     }
 
     /**
@@ -1901,7 +1914,9 @@ public class MetadataStripper {
      * a re-encoded JPEG, PNG or WebP is then rebuilt the same way, so whatever the encoder added
      * goes too. EXIF is gone either way; the caller puts back the tags the settings keep.
      */
-    private void writePictureOnly(@NonNull File source, @NonNull Uri sourceUri, @NonNull File target,
+    @NonNull
+    private FormatConverter.ImageFormatSpec writePictureOnly(@NonNull File source, @NonNull Uri sourceUri,
+                                  @NonNull File target,
                                   @NonNull FormatConverter.ImageFormatSpec outputFormat, boolean fromPixels)
             throws IOException {
         ImageContainerMetadata.Format expected = containerFormat(outputFormat.extension);
@@ -1912,16 +1927,17 @@ public class MetadataStripper {
                     OutputStream out = new FileOutputStream(target)) {
                 MediaSizeLimits.copyStream(in, out);
             }
-            return;
+            return outputFormat;
         }
-        if (".heic".equalsIgnoreCase(outputFormat.extension) && HeifContainerMetadata.isHeif(source)) {
+        if ((".heic".equalsIgnoreCase(outputFormat.extension) || ".avif".equalsIgnoreCase(outputFormat.extension))
+                && HeifContainerMetadata.isHeif(source)) {
             // Rebuilt around its coded pictures, which keeps the full resolution, 10-bit colour
             // and any HDR gain map that a decode and encode would lose.
             try {
                 HeifContainerMetadata.sanitize(source, target);
-                return;
+                return outputFormat;
             } catch (IOException | RuntimeException e) {
-                SentryManager.log("The HEIC could not be rebuilt without its metadata, so the app is re-encoding it: "
+                SentryManager.log("The HEIC or AVIF could not be rebuilt without its metadata, so the app is re-encoding it: "
                         + e.getMessage() + ".");
             }
         }
@@ -1929,7 +1945,7 @@ public class MetadataStripper {
                 && ImageContainerMetadata.sniff(source) == expected) {
             try {
                 ImageContainerMetadata.sanitize(source, target);
-                return;
+                return outputFormat;
             } catch (IOException | RuntimeException e) {
                 // A structure the walker could not follow, however it failed: the pixels are
                 // re-encoded instead, which carries no metadata either.
@@ -1938,11 +1954,16 @@ public class MetadataStripper {
             }
         }
         checkCancelled();
-        File encoded = File.createTempFile("temp_encoded_", outputFormat.extension, context.getCacheDir());
+        // Where this device can't encode the format (AVIF, or HEIC before Android 14), the pixels
+        // go to a JPEG, and the caller names the file for that.
+        FormatConverter.ImageFormatSpec written = outputFormat.bitmapFallbackSupported
+                ? outputFormat : FormatConverter.jpegFormatSpec();
+        ImageContainerMetadata.Format writtenFormat = containerFormat(written.extension);
+        File encoded = File.createTempFile("temp_encoded_", written.extension, context.getCacheDir());
         try {
             reEncode(source, sourceUri, encoded, outputFormat);
-            if (expected != ImageContainerMetadata.Format.OTHER
-                    && ImageContainerMetadata.sniff(encoded) == expected) {
+            if (writtenFormat != ImageContainerMetadata.Format.OTHER
+                    && ImageContainerMetadata.sniff(encoded) == writtenFormat) {
                 ImageContainerMetadata.sanitize(encoded, target);
             } else {
                 try (InputStream in = new FileInputStream(encoded);
@@ -1953,6 +1974,14 @@ public class MetadataStripper {
         } finally {
             secureDeleteFile(encoded);
         }
+        return written;
+    }
+
+    /** {@code name} with its extension replaced by {@code extension} (which starts with a dot). */
+    @NonNull
+    static String withExtension(@NonNull String name, @NonNull String extension) {
+        int dot = name.lastIndexOf('.');
+        return (dot > 0 ? name.substring(0, dot) : name) + extension;
     }
 
     @NonNull

@@ -108,6 +108,29 @@ public class MetadataStripperGalleryTest {
     }
 
     @Test
+    @org.robolectric.annotation.Config(sdk = 31)
+    public void heic_onAndroid12_staysAHeic_withItsPictureAndWithoutItsMetadata() throws Exception {
+        File heic = File.createTempFile("gallery_", ".heic", app.getFilesDir());
+        files.add(heic);
+        try (java.io.InputStream in = getClass().getClassLoader().getResourceAsStream("image/heic_tagged.heic");
+                FileOutputStream out = new FileOutputStream(heic)) {
+            out.write(in.readAllBytes());
+        }
+
+        Uri out = stripper.stripExifData(Uri.fromFile(heic), "photo.heic");
+
+        assertNotNull(out);
+        FakeMediaStoreProvider.Entry entry = FakeMediaStoreProvider.only();
+        assertEquals("image/heic", entry.mimeType());
+        assertTrue(entry.displayName().endsWith(".heic"));
+        String written = new String(java.nio.file.Files.readAllBytes(entry.file.toPath()),
+                java.nio.charset.StandardCharsets.ISO_8859_1);
+        assertTrue("the coded picture is kept", written.contains("hvcC"));
+        assertFalse(written.contains("SecretMaker"));
+        assertFalse(written.contains("SecretPerson"));
+    }
+
+    @Test
     public void jpeg_nonStrict_keepsOnlyAllowedTagsAndStillRemovesLocation() throws Exception {
         AppPreferences.setStrictClean(app, false);
         AppPreferences.setPreserveCameraSettings(app, true);

@@ -337,6 +337,36 @@ public final class FormatConverter {
         return jpegSpec();
     }
 
+    /**
+     * The output format for a clean or a share, which rebuild a HEIC or AVIF around its coded
+     * pictures instead of encoding it again: the source's own type, even where this device has
+     * no encoder for it. Should the rebuild fail there, the clean falls back to a JPEG and names
+     * it so ({@code MetadataStripper#writePictureOnly}). Other types are as
+     * {@link #resolveImageFormat}.
+     */
+    @NonNull
+    public static ImageFormatSpec resolveCleanFormat(
+            @Nullable String extensionWithDot, @Nullable String mimeType) throws IOException {
+        if (isHeicSource(extensionWithDot, mimeType)) {
+            return isHeicProcessingSupported()
+                    ? heicSpec()
+                    : new ImageFormatSpec(".heic", "image/heic", Bitmap.CompressFormat.JPEG, false);
+        }
+        if (isAvifSource(extensionWithDot, mimeType)) {
+            // Bitmap has no AVIF encoder, so only the rebuild keeps it AVIF.
+            return new ImageFormatSpec(".avif", "image/avif", Bitmap.CompressFormat.JPEG, false);
+        }
+        return resolveImageFormat(extensionWithDot, mimeType);
+    }
+
+    private static boolean isAvifSource(
+            @Nullable String extensionWithDot, @Nullable String mimeType) {
+        if (extensionWithDot != null && ".avif".equalsIgnoreCase(extensionWithDot)) {
+            return true;
+        }
+        return mimeType != null && "image/avif".equalsIgnoreCase(mimeType);
+    }
+
     private static boolean isHeicSource(
             @Nullable String extensionWithDot, @Nullable String mimeType) {
         if (extensionWithDot != null) {

@@ -152,24 +152,37 @@ public class HeifContainerMetadataTest {
         assertArrayEquals(expected.toByteArray(), filtered);
     }
 
-    @Test
-    public void stillImageFtyp_dropsSequenceBrands() throws Exception {
+    private static byte[] ftyp(String major, String compatible) throws IOException {
         ByteArrayOutputStream body = new ByteArrayOutputStream();
-        body.write("msf1".getBytes(StandardCharsets.US_ASCII));
+        body.write(major.getBytes(StandardCharsets.US_ASCII));
         body.write(new byte[4]);
-        body.write("msf1heicisom".getBytes(StandardCharsets.US_ASCII));
+        body.write(compatible.getBytes(StandardCharsets.US_ASCII));
         byte[] payload = body.toByteArray();
         ByteArrayOutputStream box = new ByteArrayOutputStream();
         int size = payload.length + 8;
         box.write(new byte[] {0, 0, 0, (byte) size});
         box.write("ftyp".getBytes(StandardCharsets.US_ASCII));
         box.write(payload);
+        return box.toByteArray();
+    }
 
-        byte[] still = HeifContainerMetadata.stillImageFtyp(box.toByteArray());
+    @Test
+    public void stillImageFtyp_dropsSequenceBrands() throws Exception {
+        byte[] still = HeifContainerMetadata.stillImageFtyp(ftyp("msf1", "msf1heicisom"));
 
-        assertEquals("heic", new String(still, 8, 4, StandardCharsets.US_ASCII));
+        assertEquals("mif1", new String(still, 8, 4, StandardCharsets.US_ASCII));
         assertFalse(contains(still, "msf1"));
         assertFalse(contains(still, "isom"));
+        assertTrue(contains(still, "heic"));
+    }
+
+    @Test
+    public void stillImageFtyp_turnsAnAnimatedAvifIntoAStillOne() throws Exception {
+        byte[] still = HeifContainerMetadata.stillImageFtyp(ftyp("avis", "avismsf1miafMA1B"));
+
+        assertEquals("avif", new String(still, 8, 4, StandardCharsets.US_ASCII));
+        assertFalse(contains(still, "avis"));
         assertTrue(contains(still, "mif1"));
+        assertTrue(contains(still, "miaf"));
     }
 }

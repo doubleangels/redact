@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Rebuilds a HEIF image (HEIC) with nothing but its pictures, without re-encoding them.
+ * Rebuilds a HEIF image (HEIC or AVIF) with nothing but its pictures, without re-encoding them.
  *
  * <p>Decoding and encoding a HEIC again costs quality, its 10-bit colour and its HDR gain map,
  * and the decode is capped at the processing resolution, so a 50 MP photo came out at about
@@ -40,7 +40,8 @@ public final class HeifContainerMetadata {
 
     /** {@code ftyp} brands of HEIF still images. */
     private static final Set<String> BRANDS = Set.of(
-            "heic", "heix", "heim", "heis", "hevc", "hevx", "hevm", "hevs", "mif1", "mif2", "msf1");
+            "heic", "heix", "heim", "heis", "hevc", "hevx", "hevm", "hevs", "mif1", "mif2", "msf1",
+            "avif", "avis");
 
     /** Items that are pictures or are built from them. */
     private static final Set<String> IMAGE_ITEM_TYPES = Set.of(
@@ -55,6 +56,10 @@ public final class HeifContainerMetadata {
      * Brands that promise a {@code moov} track (image sequences, and MP4 audio or video next to
      * the image), which is not kept.
      */
+    /** The still-image brand that stands for a sequence brand that is dropped. */
+    private static final java.util.Map<String, String> STILL_BRANDS = java.util.Map.of(
+            "msf1", "mif1", "hevc", "heic", "hevx", "heix", "hevm", "heim", "hevs", "heis", "avis", "avif");
+
     private static final Set<String> SEQUENCE_BRANDS = Set.of(
             "msf1", "hevc", "hevx", "hevm", "hevs", "avis", "isom", "iso2", "iso4", "iso5", "iso6",
             "mp41", "mp42", "M4A ", "M4V ", "qt  ", "avc1", "3gp4", "3gp5", "3gp6", "dash");
@@ -71,6 +76,7 @@ public final class HeifContainerMetadata {
 
     private static final int MAX_META_BYTES = 16 * 1024 * 1024;
     private static final int MAX_ITEM_BYTES = 512 * 1024 * 1024;
+    private static final int MAX_MOOV_BYTES = 64 * 1024 * 1024;
 
     private HeifContainerMetadata() {
     }
@@ -121,6 +127,7 @@ public final class HeifContainerMetadata {
         try (RandomAccessFile in = new RandomAccessFile(source, "r")) {
             byte[] ftyp = null;
             byte[] meta = null;
+            byte[] moov = null;
             long pos = 0;
             long length = in.length();
             while (pos + 8 <= length) {
@@ -139,7 +146,11 @@ public final class HeifContainerMetadata {
                 if (size < header || pos + size > length) {
                     throw new IOException("Damaged box " + type);
                 }
-                if ("ftyp".equals(type) || "meta".equals(type)) {
+                if ("moov".equals(type) && moov == null && size <= MAX_MOOV_BYTES) {
+                    moov = new byte[(int) size];
+                    in.seek(pos);
+                    in.readFully(moov);
+                } else if ("ftyp".equals(type) || "meta".equals(type)) {
                     if (size > MAX_META_BYTES) {
                         throw new IOException("Box too large: " + type);
                     }
@@ -157,27 +168,61 @@ public final class HeifContainerMetadata {
                 }
                 pos += size;
             }
-            if (ftyp == null || meta == null) {
+            if (ftyp == null || (meta == null && moov == null)) {
                 throw new IOException("Not a HEIF image");
             }
-            ftyp = stillImageFtyp(ftyp);
-            Rebuild rebuild = new Rebuild(in, meta);
-            rebuild.parse();
+            // A sequence may come without a still image; then its meta, if any, holds nothing
+            // that is kept, and only the tracks are written.
+            Rebuild rebuild = null;
+            IOException noStill = null;
+            if (meta != null) {
+                rebuild = new Rebuild(in, meta);
+                try {
+                    rebuild.parse();
+                } catch (IOException e) {
+                    rebuild = null;
+                    noStill = e;
+                }
+            }
+            // A burst's or animation's frames are kept when their tracks can be followed;
+            // otherwise only the still image is, and ftyp stops promising the sequence.
+            HeifTracks tracks = null;
+            if (moov != null) {
+                try {
+                    tracks = HeifTracks.parse(in, moov);
+                } catch (IOException | RuntimeException e) {
+                    tracks = null;
+                }
+            }
+            if (rebuild == null && tracks == null) {
+                throw noStill != null ? noStill : new IOException("Nothing to keep");
+            }
+            if (tracks == null) {
+                ftyp = stillImageFtyp(ftyp);
+            }
             try (OutputStream bodyOut = new BufferedOutputStream(new FileOutputStream(body), 64 * 1024)) {
-                rebuild.writeItemData(bodyOut);
+                long itemBytes = rebuild != null ? rebuild.writeItemData(bodyOut) : 0;
+                if (tracks != null) {
+                    tracks.writeSamples(bodyOut, itemBytes);
+                }
             }
             long bodyLength = body.length();
-            // The pictures follow ftyp, meta and the mdat header; iloc points at them there.
+            // The pictures follow ftyp, meta, moov and the mdat header; iloc and stco point at
+            // them there. Neither box changes size with the offsets written into it.
             long mdatHeader = bodyLength + 8 > 0xFFFFFFFFL ? 16 : 8;
-            byte[] newMeta = rebuild.writeMeta(ftyp.length, mdatHeader);
-            long dataStart = ftyp.length + newMeta.length + mdatHeader;
+            int moovLength = tracks != null ? tracks.build(0).length : 0;
+            byte[] newMeta = rebuild != null
+                    ? rebuild.writeMeta(ftyp.length, moovLength + mdatHeader) : new byte[0];
+            long dataStart = ftyp.length + newMeta.length + moovLength + mdatHeader;
             if (dataStart + bodyLength > 0xFFFFFFFFL) {
                 throw new IOException("Too large for 32-bit item offsets");
             }
+            byte[] newMoov = tracks != null ? tracks.build(dataStart) : new byte[0];
             try (OutputStream out = new BufferedOutputStream(new FileOutputStream(target), 64 * 1024);
                     InputStream bodyIn = new FileInputStream(body)) {
                 out.write(ftyp);
                 out.write(newMeta);
+                out.write(newMoov);
                 if (mdatHeader == 16) {
                     writeU32(out, 1);
                     out.write(ascii("mdat"));
@@ -215,7 +260,10 @@ public final class HeifContainerMetadata {
         List<String> compatible = new ArrayList<>();
         for (int at = header + 8; at + 4 <= ftyp.length; at += 4) {
             String brand = fourCc(ftyp, at);
-            if (!SEQUENCE_BRANDS.contains(brand) && !compatible.contains(brand)) {
+            if (SEQUENCE_BRANDS.contains(brand)) {
+                brand = STILL_BRANDS.get(brand);
+            }
+            if (brand != null && !compatible.contains(brand)) {
                 compatible.add(brand);
             }
         }
@@ -226,7 +274,10 @@ public final class HeifContainerMetadata {
             compatible.add("mif1");
         }
         if (SEQUENCE_BRANDS.contains(major)) {
-            major = compatible.contains("heic") ? "heic" : "mif1";
+            major = STILL_BRANDS.getOrDefault(major, "mif1");
+            if (!compatible.contains(major)) {
+                compatible.add(major);
+            }
         }
         ByteArrayOutputStream b = new ByteArrayOutputStream();
         b.write(ascii(major));
@@ -544,7 +595,7 @@ public final class HeifContainerMetadata {
         }
 
         /** Writes each kept item's data, cleaned, to the new mdat body or the new idat. */
-        void writeItemData(@NonNull OutputStream body) throws IOException {
+        long writeItemData(@NonNull OutputStream body) throws IOException {
             long bodyOffset = 0;
             for (Item item : items.values()) {
                 if (!kept.contains(item.id) || !item.hasLocation) {
@@ -561,6 +612,7 @@ public final class HeifContainerMetadata {
                 }
                 item.newLength = data.length;
             }
+            return bodyOffset;
         }
 
         @NonNull
@@ -630,11 +682,11 @@ public final class HeifContainerMetadata {
 
         /** The new meta box, with item locations pointing past {@code ftypLength}, meta and mdat's header. */
         @NonNull
-        byte[] writeMeta(int ftypLength, long mdatHeader) throws IOException {
+        byte[] writeMeta(int ftypLength, long afterMeta) throws IOException {
             // iloc's size depends only on how many items there are, so meta's size is known
             // before the offsets that depend on it are written.
             byte[] probe = buildMeta(0);
-            long dataStart = ftypLength + probe.length + mdatHeader;
+            long dataStart = ftypLength + probe.length + afterMeta;
             byte[] built = buildMeta(dataStart);
             if (built.length != probe.length) {
                 throw new IOException("meta size changed");
@@ -1013,7 +1065,7 @@ public final class HeifContainerMetadata {
 
     /** hvcC with its SEI arrays filtered the same way as the coded data. */
     @NonNull
-    private static byte[] filterHvcC(@NonNull byte[] box) throws IOException {
+    static byte[] filterHvcC(@NonNull byte[] box) throws IOException {
         int header = headerSize(box, 0);
         int pos = header + 22;
         if (pos >= box.length) {
@@ -1093,7 +1145,7 @@ public final class HeifContainerMetadata {
     }
 
     @NonNull
-    private static byte[] filterAv1C(@NonNull byte[] box) throws IOException {
+    static byte[] filterAv1C(@NonNull byte[] box) throws IOException {
         int header = headerSize(box, 0);
         if (box.length < header + 4) {
             throw new IOException("Damaged av1C");
@@ -1125,7 +1177,7 @@ public final class HeifContainerMetadata {
     // ---- bytes ----------------------------------------------------------------------------------
 
     @NonNull
-    private static byte[] box(@NonNull String type, @NonNull byte[] payload) throws IOException {
+    static byte[] box(@NonNull String type, @NonNull byte[] payload) throws IOException {
         ByteArrayOutputStream b = new ByteArrayOutputStream(payload.length + 8);
         writeU32(b, payload.length + 8L);
         b.write(ascii(type));
@@ -1133,7 +1185,7 @@ public final class HeifContainerMetadata {
         return b.toByteArray();
     }
 
-    private static int boxSize(@NonNull byte[] data, int pos) throws IOException {
+    static int boxSize(@NonNull byte[] data, int pos) throws IOException {
         if (pos + 8 > data.length) {
             throw new IOException("Damaged box");
         }
@@ -1152,7 +1204,7 @@ public final class HeifContainerMetadata {
         return (int) size;
     }
 
-    private static int headerSize(@NonNull byte[] data, int pos) {
+    static int headerSize(@NonNull byte[] data, int pos) {
         return u32(data, pos) == 1 ? 16 : 8;
     }
 
@@ -1164,12 +1216,12 @@ public final class HeifContainerMetadata {
         }
     }
 
-    private static void writeU16(@NonNull OutputStream out, int value) throws IOException {
+    static void writeU16(@NonNull OutputStream out, int value) throws IOException {
         out.write((value >> 8) & 0xFF);
         out.write(value & 0xFF);
     }
 
-    private static void writeU32(@NonNull OutputStream out, long value) throws IOException {
+    static void writeU32(@NonNull OutputStream out, long value) throws IOException {
         out.write((int) (value >> 24) & 0xFF);
         out.write((int) (value >> 16) & 0xFF);
         out.write((int) (value >> 8) & 0xFF);
@@ -1181,16 +1233,16 @@ public final class HeifContainerMetadata {
         writeU32(out, value & 0xFFFFFFFFL);
     }
 
-    private static int u16(@NonNull byte[] data, int pos) {
+    static int u16(@NonNull byte[] data, int pos) {
         return ((data[pos] & 0xFF) << 8) | (data[pos + 1] & 0xFF);
     }
 
-    private static long u32(@NonNull byte[] data, int pos) {
+    static long u32(@NonNull byte[] data, int pos) {
         return ((long) (data[pos] & 0xFF) << 24) | ((data[pos + 1] & 0xFF) << 16)
                 | ((data[pos + 2] & 0xFF) << 8) | (data[pos + 3] & 0xFF);
     }
 
-    private static long uN(@NonNull byte[] data, int pos, int size) {
+    static long uN(@NonNull byte[] data, int pos, int size) {
         long value = 0;
         for (int i = 0; i < size; i++) {
             value = (value << 8) | (data[pos + i] & 0xFF);
@@ -1199,12 +1251,12 @@ public final class HeifContainerMetadata {
     }
 
     @NonNull
-    private static String fourCc(@NonNull byte[] data, int pos) {
+    static String fourCc(@NonNull byte[] data, int pos) {
         return new String(data, pos, 4, StandardCharsets.ISO_8859_1);
     }
 
     @NonNull
-    private static byte[] ascii(@NonNull String text) {
+    static byte[] ascii(@NonNull String text) {
         return text.getBytes(StandardCharsets.ISO_8859_1);
     }
 }
