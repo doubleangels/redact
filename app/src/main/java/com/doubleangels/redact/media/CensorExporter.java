@@ -71,9 +71,13 @@ public final class CensorExporter {
         try {
             try {
                 CensorEffects.apply(bitmap, regions, effect);
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    censorGainMap(bitmap, regions);
+                }
                 try (OutputStream os = new FileOutputStream(censored)) {
                     if (!FormatConverter.compressBitmapToStream(context, bitmap, spec.compressFormat, os,
-                            FormatConverter.estimateJpegQuality(context, source))) {
+                            FormatConverter.estimateJpegQuality(context, source),
+                            FormatConverter.isLosslessImage(context, source))) {
                         throw new IOException("Compress failed");
                     }
                 }
@@ -89,6 +93,46 @@ public final class CensorExporter {
             if (!SecureDelete.secureDelete(context, censored)) {
                 censored.deleteOnExit();
             }
+        }
+    }
+
+    /**
+     * Blanks the censored regions in an Ultra HDR photo's gain map too. The gain map is a smaller
+     * picture of where the scene is bright, so left alone it would still show the outline of a
+     * censored face or the shape of censored text on an HDR screen. Zero there means no extra
+     * brightness, so those regions just show at their SDR level. The edge is padded, so gain map
+     * pixels that only partly overlap a region are covered.
+     */
+    @androidx.annotation.RequiresApi(android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    @androidx.annotation.VisibleForTesting
+    static void censorGainMap(@NonNull Bitmap bitmap, @NonNull List<CensorRegion> regions) {
+        if (!bitmap.hasGainmap()) {
+            return;
+        }
+        android.graphics.Gainmap gainmap = bitmap.getGainmap();
+        Bitmap contents = gainmap.getGainmapContents();
+        Bitmap editable = contents.isMutable() && contents.getConfig() != Bitmap.Config.HARDWARE
+                ? contents
+                : contents.copy(contents.getConfig() == Bitmap.Config.ALPHA_8
+                        ? Bitmap.Config.ALPHA_8 : Bitmap.Config.ARGB_8888, true);
+        if (editable == null) {
+            // Rather than keep what could show the censored content, keep no HDR at all.
+            bitmap.setGainmap(null);
+            return;
+        }
+        android.graphics.Canvas canvas = new android.graphics.Canvas(editable);
+        android.graphics.Paint clear = new android.graphics.Paint();
+        clear.setXfermode(new android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.CLEAR));
+        clear.setStyle(android.graphics.Paint.Style.FILL_AND_STROKE);
+        clear.setStrokeWidth(2f);
+        for (CensorRegion region : regions) {
+            if (!region.isEmpty()) {
+                canvas.drawPath(region.toPath(editable.getWidth(), editable.getHeight()), clear);
+            }
+        }
+        if (editable != contents) {
+            gainmap.setGainmapContents(editable);
+            bitmap.setGainmap(gainmap);
         }
     }
 

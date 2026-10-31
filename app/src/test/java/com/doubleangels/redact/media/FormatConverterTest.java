@@ -239,6 +239,85 @@ public class FormatConverterTest {
         assertEquals(".png", FormatConverter.resolveCleanFormat(".png", "image/png").extension);
     }
 
+    private java.io.File bytesFile(byte[] bytes) throws IOException {
+        java.io.File f = java.io.File.createTempFile("sniff_", ".bin", context.getCacheDir());
+        f.deleteOnExit();
+        java.nio.file.Files.write(f.toPath(), bytes);
+        return f;
+    }
+
+    private static byte[] ascii(String text) {
+        return text.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1);
+    }
+
+    @Test
+    public void resolveCleanFormat_goesByWhatTheFileIs_notWhatItIsCalled() throws Exception {
+        byte[] png = {(byte) 0x89, 'P', 'N', 'G', '\r', '\n', 0x1A, '\n', 0, 0, 0, 13, 'I', 'H', 'D', 'R'};
+        assertEquals(".png", FormatConverter.resolveCleanFormat(bytesFile(png), ".jpg", "image/jpeg").extension);
+
+        byte[] gif = ascii("GIF89a\0\0\0\0\0\0\0");
+        assertEquals(".gif", FormatConverter.resolveCleanFormat(bytesFile(gif), ".jpg", null).extension);
+
+        byte[] avif = new byte[32];
+        System.arraycopy(new byte[] {0, 0, 0, 28}, 0, avif, 0, 4);
+        System.arraycopy(ascii("ftypavif\0\0\0\0mif1miafMA1B"), 0, avif, 4, 24);
+        assertEquals(".avif", FormatConverter.resolveCleanFormat(bytesFile(avif), ".jpg", null).extension);
+
+        byte[] heic = new byte[32];
+        System.arraycopy(new byte[] {0, 0, 0, 24}, 0, heic, 0, 4);
+        System.arraycopy(ascii("ftypheic\0\0\0\0mif1heic"), 0, heic, 4, 20);
+        assertEquals(".heic", FormatConverter.resolveCleanFormat(bytesFile(heic), ".jpg", null).extension);
+
+        byte[] bmp = new byte[32];
+        bmp[0] = 'B';
+        bmp[1] = 'M';
+        assertEquals(".png", FormatConverter.resolveCleanFormat(bytesFile(bmp), ".bmp", "image/bmp").extension);
+
+        // Bytes that say nothing known: the name decides.
+        assertEquals(".webp", FormatConverter.resolveCleanFormat(bytesFile(new byte[32]), ".webp", null).extension);
+    }
+
+    @Test
+    public void encodableSpecFor_fallsBackToPngForAGifAndJpegOtherwise() throws Exception {
+        assertEquals(".png", FormatConverter.encodableSpecFor(
+                FormatConverter.resolveCleanFormat(".gif", "image/gif")).extension);
+        assertEquals(".jpg", FormatConverter.encodableSpecFor(
+                FormatConverter.resolveCleanFormat(".avif", "image/avif")).extension);
+        assertEquals(".png", FormatConverter.encodableSpecFor(FormatConverter.pngSpec()).extension);
+    }
+
+    @Test
+    public void isLosslessImage_tellsLosslessEncodingsFromLossyOnes() {
+        byte[] png = {(byte) 0x89, 'P', 'N', 'G', '\r', '\n', 0x1A, '\n'};
+        assertTrue(FormatConverter.isLosslessImage(new java.io.ByteArrayInputStream(png)));
+        assertTrue(FormatConverter.isLosslessImage(new java.io.ByteArrayInputStream(ascii("GIF89a"))));
+        assertTrue(FormatConverter.isLosslessImage(
+                new java.io.ByteArrayInputStream(ascii("RIFF\0\0\0\0WEBPVP8L\0\0\0\0"))));
+        assertFalse(FormatConverter.isLosslessImage(
+                new java.io.ByteArrayInputStream(ascii("RIFF\0\0\0\0WEBPVP8 \0\0\0\0"))));
+        // An extended WebP decides by its first picture chunk.
+        assertTrue(FormatConverter.isLosslessImage(new java.io.ByteArrayInputStream(
+                ascii("RIFF\0\0\0\0WEBPVP8X\0\0\0\0\0\0\0\0\0\0\0\0\0\0VP8L\0\0\0\0"))));
+        assertFalse(FormatConverter.isLosslessImage(new java.io.ByteArrayInputStream(
+                new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0})));
+    }
+
+    @Test
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    public void onWhite_laysATransparentPictureOnWhite_andLeavesAnOpaqueOneAlone() {
+        Bitmap clear = Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888);
+        clear.eraseColor(android.graphics.Color.TRANSPARENT);
+        clear.setHasAlpha(true);
+        Bitmap flat = FormatConverter.onWhite(clear);
+        assertEquals(android.graphics.Color.WHITE, flat.getPixel(0, 0));
+        assertFalse(flat.hasAlpha());
+
+        Bitmap opaque = Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888);
+        opaque.eraseColor(android.graphics.Color.RED);
+        opaque.setHasAlpha(false);
+        assertTrue(FormatConverter.onWhite(opaque) == opaque);
+    }
+
     /** A JPEG header with libjpeg's luminance table for {@code quality}, then the start of scan. */
     private static byte[] jpegWithQuality(int quality) {
         int[] zigzag = {16, 11, 12, 14, 12, 10, 16, 14, 13, 14, 18, 17, 16, 19, 24, 40, 26, 24, 22, 22,

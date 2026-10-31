@@ -356,7 +356,96 @@ public final class FormatConverter {
             // Bitmap has no AVIF encoder, so only the rebuild keeps it AVIF.
             return new ImageFormatSpec(".avif", "image/avif", Bitmap.CompressFormat.JPEG, false);
         }
+        if (".gif".equalsIgnoreCase(extensionWithDot) || "image/gif".equalsIgnoreCase(mimeType)) {
+            // Rebuilt block by block, which keeps every frame (GifContainerMetadata).
+            return new ImageFormatSpec(".gif", "image/gif", Bitmap.CompressFormat.PNG, false);
+        }
         return resolveImageFormat(extensionWithDot, mimeType);
+    }
+
+    /**
+     * {@link #resolveCleanFormat(String, String)} for a file whose bytes are at hand: what the
+     * file is, by its first bytes, wins over what its name or type say, so a PNG named .jpg is
+     * not re-encoded as a JPEG, and a share's snapshot, named by its type, is not misread.
+     */
+    @NonNull
+    public static ImageFormatSpec resolveCleanFormat(
+            @NonNull java.io.File content, @Nullable String extensionWithDot, @Nullable String mimeType)
+            throws IOException {
+        String sniffed = sniffImageType(content);
+        if (sniffed != null) {
+            return resolveCleanFormat(null, sniffed);
+        }
+        return resolveCleanFormat(extensionWithDot, mimeType);
+    }
+
+    /** The image type a file's first bytes say it is, or null when they say nothing known. */
+    @androidx.annotation.VisibleForTesting
+    @Nullable
+    static String sniffImageType(@NonNull java.io.File file) {
+        byte[] head = new byte[64];
+        int n = 0;
+        try (InputStream in = new java.io.FileInputStream(file)) {
+            int r;
+            while (n < head.length && (r = in.read(head, n, head.length - n)) > 0) {
+                n += r;
+            }
+        } catch (IOException e) {
+            return null;
+        }
+        if (n >= 3 && (head[0] & 0xFF) == 0xFF && (head[1] & 0xFF) == 0xD8 && (head[2] & 0xFF) == 0xFF) {
+            return "image/jpeg";
+        }
+        if (n >= 8 && (head[0] & 0xFF) == 0x89 && head[1] == 'P' && head[2] == 'N' && head[3] == 'G') {
+            return "image/png";
+        }
+        if (n >= 12 && head[0] == 'R' && head[1] == 'I' && head[2] == 'F' && head[3] == 'F'
+                && head[8] == 'W' && head[9] == 'E' && head[10] == 'B' && head[11] == 'P') {
+            return "image/webp";
+        }
+        if (n >= 6 && head[0] == 'G' && head[1] == 'I' && head[2] == 'F' && head[3] == '8') {
+            return "image/gif";
+        }
+        if (n >= 14 && head[0] == 'B' && head[1] == 'M') {
+            return "image/bmp";
+        }
+        if (n >= 16 && head[4] == 'f' && head[5] == 't' && head[6] == 'y' && head[7] == 'p') {
+            int size = Math.min(n, (int) (((head[0] & 0xFFL) << 24) | ((head[1] & 0xFF) << 16)
+                    | ((head[2] & 0xFF) << 8) | (head[3] & 0xFF)));
+            boolean avif = false;
+            boolean heif = false;
+            for (int at = 8; at + 4 <= size; at += at == 8 ? 8 : 4) {
+                String brand = new String(head, at, 4, java.nio.charset.StandardCharsets.ISO_8859_1);
+                avif |= brand.equals("avif") || brand.equals("avis");
+                heif |= brand.equals("heic") || brand.equals("heix") || brand.equals("mif1")
+                        || brand.equals("msf1") || brand.startsWith("hev");
+            }
+            String major = new String(head, 8, 4, java.nio.charset.StandardCharsets.ISO_8859_1);
+            if (major.equals("avif") || major.equals("avis") || (avif && !major.startsWith("he"))) {
+                return "image/avif";
+            }
+            if (heif) {
+                return "image/heic";
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The format a re-encode writes when the clean's own format has no encoder here: a GIF
+     * becomes a PNG, which keeps every colour and its transparency, and anything else a JPEG.
+     */
+    @NonNull
+    public static ImageFormatSpec encodableSpecFor(@NonNull ImageFormatSpec spec) {
+        if (spec.bitmapFallbackSupported) {
+            return spec;
+        }
+        return ".gif".equals(spec.extension) ? pngSpec() : jpegSpec();
+    }
+
+    @NonNull
+    public static ImageFormatSpec pngSpec() {
+        return new ImageFormatSpec(".png", "image/png", Bitmap.CompressFormat.PNG, true);
     }
 
     private static boolean isAvifSource(
@@ -390,28 +479,119 @@ public final class FormatConverter {
             @NonNull Bitmap bitmap,
             @NonNull Bitmap.CompressFormat format,
             @NonNull OutputStream os) {
-        return compressBitmapToStream(context, bitmap, format, os, 0);
+        return compressBitmapToStream(context, bitmap, format, os, 0, false);
     }
 
     /**
      * Like {@link #compressBitmapToStream(Context, Bitmap, Bitmap.CompressFormat, OutputStream)},
-     * for a picture decoded from a JPEG of {@code sourceJpegQuality} (0 when unknown or not a JPEG).
+     * for a picture decoded from a JPEG of {@code sourceJpegQuality} (0 when unknown or not a
+     * JPEG), or from a lossless source ({@code losslessSource}: PNG, GIF, BMP or lossless WebP).
+     *
+     * <ul>
+     *   <li>A JPEG made from a JPEG is never encoded below the source's own quality on High.
+     *   <li>A WebP made from a lossless source is lossless too, so no pixel changes.
+     *   <li>JPEG and HEIC hold no transparency, so a transparent picture is laid on white, as
+     *       image editors do, instead of its clear pixels turning black.
+     * </ul>
      */
     public static boolean compressBitmapToStream(
             @NonNull Context context,
             @NonNull Bitmap bitmap,
             @NonNull Bitmap.CompressFormat format,
             @NonNull OutputStream os,
-            int sourceJpegQuality) {
+            int sourceJpegQuality,
+            boolean losslessSource) {
         int q = matchSourceQuality(format, AppPreferences.getImageQualityPreset(context),
                 qualityForFormat(format, context), sourceJpegQuality);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && isHeicFormat(format)) {
-            return bitmap.compress(format, q, os);
+        boolean opaqueFormat = format == Bitmap.CompressFormat.JPEG || isHeicFormat(format);
+        Bitmap toWrite = opaqueFormat ? onWhite(bitmap) : bitmap;
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && isHeicFormat(format)) {
+                return toWrite.compress(format, q, os);
+            }
+            if (format == Bitmap.CompressFormat.WEBP) {
+                return losslessSource
+                        ? toWrite.compress(Bitmap.CompressFormat.WEBP_LOSSLESS, LOSSLESS_WEBP_EFFORT, os)
+                        : toWrite.compress(Bitmap.CompressFormat.WEBP_LOSSY, q, os);
+            }
+            return toWrite.compress(format, q, os);
+        } finally {
+            if (toWrite != bitmap) {
+                toWrite.recycle();
+            }
         }
-        if (format == Bitmap.CompressFormat.WEBP) {
-            return bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, q, os);
+    }
+
+    /** For lossless WebP the quality is how hard the encoder works on size, not what it keeps. */
+    private static final int LOSSLESS_WEBP_EFFORT = 75;
+
+    /** {@code bitmap} laid on white when it has transparency; {@code bitmap} itself otherwise. */
+    @androidx.annotation.VisibleForTesting
+    @NonNull
+    static Bitmap onWhite(@NonNull Bitmap bitmap) {
+        if (!bitmap.hasAlpha()) {
+            return bitmap;
         }
-        return bitmap.compress(format, q, os);
+        android.graphics.ColorSpace colorSpace = bitmap.getColorSpace();
+        Bitmap flat = colorSpace != null
+                ? Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888,
+                        false, colorSpace)
+                : Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        android.graphics.Canvas canvas = new android.graphics.Canvas(flat);
+        canvas.drawColor(android.graphics.Color.WHITE);
+        canvas.drawBitmap(bitmap, 0f, 0f, null);
+        return flat;
+    }
+
+    /**
+     * Whether an image's encoding keeps every pixel exactly: PNG, GIF, BMP and lossless WebP.
+     * Read from its first bytes; false when unknown.
+     */
+    @androidx.annotation.VisibleForTesting
+    static boolean isLosslessImage(@NonNull InputStream in) {
+        try {
+            byte[] head = new byte[64 * 1024];
+            int n = 0;
+            int r;
+            while (n < head.length && (r = in.read(head, n, head.length - n)) > 0) {
+                n += r;
+            }
+            if (n >= 8 && (head[0] & 0xFF) == 0x89 && head[1] == 'P' && head[2] == 'N' && head[3] == 'G') {
+                return true;
+            }
+            if (n >= 6 && head[0] == 'G' && head[1] == 'I' && head[2] == 'F') {
+                return true;
+            }
+            if (n >= 2 && head[0] == 'B' && head[1] == 'M') {
+                return true;
+            }
+            if (n >= 16 && head[0] == 'R' && head[1] == 'I' && head[2] == 'F' && head[3] == 'F'
+                    && head[8] == 'W' && head[9] == 'E' && head[10] == 'B' && head[11] == 'P') {
+                // The first picture chunk says which: VP8L is lossless, VP8 (with ALPH) is not.
+                for (int at = 12; at + 4 <= n; at++) {
+                    if (head[at] == 'V' && head[at + 1] == 'P' && head[at + 2] == '8') {
+                        if (head[at + 3] == 'L') {
+                            return true;
+                        }
+                        if (head[at + 3] == ' ') {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return false;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    /** {@link #isLosslessImage(InputStream)} for a URI; false when it cannot be read. */
+    public static boolean isLosslessImage(@NonNull Context context, @NonNull Uri uri) {
+        try (InputStream in = context.getContentResolver().openInputStream(uri)) {
+            return in != null && isLosslessImage(in);
+        } catch (IOException | RuntimeException e) {
+            return false;
+        }
     }
 
     @NonNull
@@ -438,6 +618,8 @@ public final class FormatConverter {
             case ".webp" -> new ImageFormatSpec(
                     ".webp", "image/webp", Bitmap.CompressFormat.WEBP, true);
             case ".heic", ".heif" -> heicSpec();
+            // Lossless sources Bitmap can't write back: PNG keeps every pixel.
+            case ".gif", ".bmp" -> pngSpec();
             default -> null;
         };
     }
@@ -455,6 +637,7 @@ public final class FormatConverter {
             case "image/webp" -> new ImageFormatSpec(
                     ".webp", "image/webp", Bitmap.CompressFormat.WEBP, true);
             case "image/heic", "image/heif" -> heicSpec();
+            case "image/gif", "image/bmp", "image/x-ms-bmp" -> pngSpec();
             default -> null;
         };
     }
@@ -515,16 +698,8 @@ public final class FormatConverter {
             if (os == null) {
                 throw new IOException("Cannot open output stream");
             }
-            int q = matchSourceQuality(format, AppPreferences.getImageQualityPreset(context),
-                    qualityForFormat(format, context), estimateJpegQuality(context, sourceUri));
-            boolean ok;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && isHeicFormat(format)) {
-                ok = bitmap.compress(format, q, os);
-            } else if (format == Bitmap.CompressFormat.WEBP) {
-                ok = bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, q, os);
-            } else {
-                ok = bitmap.compress(format, q, os);
-            }
+            boolean ok = compressBitmapToStream(context, bitmap, format, os,
+                    estimateJpegQuality(context, sourceUri), isLosslessImage(context, sourceUri));
             if (!ok) {
                 throw new IOException("Compress failed");
             }

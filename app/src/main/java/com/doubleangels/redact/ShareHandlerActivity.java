@@ -507,6 +507,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     return ".heic";
                 case "image/heif":
                     return ".heif";
+                case "image/avif":
+                    return ".avif";
                 case "image/gif":
                     return ".gif";
                 case "image/bmp":
@@ -536,6 +538,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             case ".webp":
             case ".heic":
             case ".heif":
+            case ".avif":
             case ".gif":
             case ".bmp":
             case ".mp4":

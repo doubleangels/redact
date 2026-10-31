@@ -450,19 +450,19 @@ public class MetadataStripper {
         File tempFile = null;
 
         try {
-            FormatConverter.ImageFormatSpec outputFormat = resolveImageOutputFormat(sourceUri, originalFilename);
-            String extension = outputFormat.extension;
-
-            String newFilename =
-                    com.doubleangels.redact.media.MediaFileNames.outputBaseName(context, originalFilename)
-                            + extension;
             updateProgress(1, 5, context.getString(R.string.strip_progress_reading_image));
 
             // Create temporary file to hold the image during processing. createTempFile gives a
             // unique name: a clean and a share starting in the same millisecond used to share one.
-            tempFile = File.createTempFile("temp_", extension, context.getCacheDir());
+            tempFile = File.createTempFile("temp_", ".img", context.getCacheDir());
 
             copySourceToTempFile(sourceUri, tempFile);
+            FormatConverter.ImageFormatSpec outputFormat =
+                    resolveImageOutputFormat(sourceUri, originalFilename, tempFile);
+            String extension = outputFormat.extension;
+            String newFilename =
+                    com.doubleangels.redact.media.MediaFileNames.outputBaseName(context, originalFilename)
+                            + extension;
 
             // Extract essential EXIF data to preserve (like orientation)
             updateProgress(2, 5, context.getString(R.string.strip_progress_reading_essential_metadata));
@@ -646,14 +646,14 @@ public class MetadataStripper {
         File outputFile = null;
 
         try {
-            FormatConverter.ImageFormatSpec outputFormat = resolveImageOutputFormat(sourceUri, originalFilename);
-            String extension = outputFormat.extension;
-
             updateProgress(1, 4, context.getString(R.string.strip_progress_reading_image));
 
-            tempFile = File.createTempFile("temp_", extension, context.getCacheDir());
+            tempFile = File.createTempFile("temp_", ".img", context.getCacheDir());
 
             copySourceToTempFile(sourceUri, tempFile);
+            FormatConverter.ImageFormatSpec outputFormat =
+                    resolveImageOutputFormat(sourceUri, originalFilename, tempFile);
+            String extension = outputFormat.extension;
 
             updateProgress(2, 4, context.getString(R.string.strip_progress_reading_essential_metadata));
             lastCleanStats = readEssentialTagsAndStats(tempFile, true);
@@ -1169,17 +1169,20 @@ public class MetadataStripper {
         return originalFilename.substring(lastDotIndex).toLowerCase(Locale.US);
     }
 
+    /**
+     * The output format for cleaning or sharing an image: what {@code content} really is, by its
+     * first bytes, or what its name and type say when its bytes are not a known image.
+     */
     @NonNull
     FormatConverter.ImageFormatSpec resolveImageOutputFormat(
-            @NonNull Uri sourceUri, @NonNull String originalFilename) throws IOException {
-        String extension = extensionFromFilename(originalFilename);
+            @NonNull Uri sourceUri, @NonNull String originalFilename, @NonNull File content) throws IOException {
         String mimeType = null;
         try {
             mimeType = contentResolver.getType(sourceUri);
         } catch (Exception e) {
             SentryManager.logEvent("metadata", "The MIME type for the source could not be read.");
         }
-        return FormatConverter.resolveCleanFormat(extension, mimeType);
+        return FormatConverter.resolveCleanFormat(content, extensionFromFilename(originalFilename), mimeType);
     }
 
     /**
@@ -1941,6 +1944,16 @@ public class MetadataStripper {
                         + e.getMessage() + ".");
             }
         }
+        if (".gif".equalsIgnoreCase(outputFormat.extension) && GifContainerMetadata.isGif(source)) {
+            // Rebuilt block by block, which keeps every frame, its timing and transparency.
+            try {
+                GifContainerMetadata.sanitize(source, target);
+                return outputFormat;
+            } catch (IOException | RuntimeException e) {
+                SentryManager.log("The GIF could not be rebuilt without its metadata, so the app is re-encoding it: "
+                        + e.getMessage() + ".");
+            }
+        }
         if (expected != ImageContainerMetadata.Format.OTHER
                 && ImageContainerMetadata.sniff(source) == expected) {
             try {
@@ -1954,10 +1967,9 @@ public class MetadataStripper {
             }
         }
         checkCancelled();
-        // Where this device can't encode the format (AVIF, or HEIC before Android 14), the pixels
-        // go to a JPEG, and the caller names the file for that.
-        FormatConverter.ImageFormatSpec written = outputFormat.bitmapFallbackSupported
-                ? outputFormat : FormatConverter.jpegFormatSpec();
+        // Where this device can't encode the format (AVIF, GIF, or HEIC before Android 14), the
+        // pixels go to a JPEG, or a PNG for a GIF, and the caller names the file for that.
+        FormatConverter.ImageFormatSpec written = FormatConverter.encodableSpecFor(outputFormat);
         ImageContainerMetadata.Format writtenFormat = containerFormat(written.extension);
         File encoded = File.createTempFile("temp_encoded_", written.extension, context.getCacheDir());
         try {
@@ -2002,15 +2014,14 @@ public class MetadataStripper {
     /** Decodes {@code source} and encodes its pixels, which carry no metadata, to {@code target}. */
     private void reEncode(@NonNull File source, @NonNull Uri sourceUri, @NonNull File target,
                           @NonNull FormatConverter.ImageFormatSpec outputFormat) throws IOException {
-        FormatConverter.ImageFormatSpec bitmapOutput = outputFormat.bitmapFallbackSupported
-                ? outputFormat : FormatConverter.jpegFormatSpec();
+        FormatConverter.ImageFormatSpec bitmapOutput = FormatConverter.encodableSpecFor(outputFormat);
         if (containerFormat(bitmapOutput.extension) == ImageContainerMetadata.Format.OTHER) {
             // No tags can be written back into this format (HEIC), so the orientation has to be
             // in the pixels: ImageDecoder applies it, BitmapFactory does not.
             Bitmap upright = FormatConverter.decodeUpright(context, Uri.fromFile(source),
                     FormatConverter.FULL_RESOLUTION);
             preservedExifValues.remove(ExifInterface.TAG_ORIENTATION);
-            compressTo(upright, bitmapOutput, target, 0);
+            compressTo(upright, bitmapOutput, target, 0, false);
             return;
         }
         BitmapFactory.Options optionsJustBounds = new BitmapFactory.Options();
@@ -2032,15 +2043,20 @@ public class MetadataStripper {
         try (InputStream in = new FileInputStream(source)) {
             sourceQuality = FormatConverter.estimateJpegQuality(in);
         }
-        compressTo(bitmap, bitmapOutput, target, sourceQuality);
+        boolean lossless;
+        try (InputStream in = new FileInputStream(source)) {
+            lossless = FormatConverter.isLosslessImage(in);
+        }
+        compressTo(bitmap, bitmapOutput, target, sourceQuality, lossless);
     }
 
     /** Encodes {@code bitmap} to {@code target} and recycles it. */
     private void compressTo(@NonNull Bitmap bitmap, @NonNull FormatConverter.ImageFormatSpec bitmapOutput,
-                            @NonNull File target, int sourceJpegQuality) throws IOException {
+                            @NonNull File target, int sourceJpegQuality, boolean losslessSource)
+            throws IOException {
         try (FileOutputStream out = new FileOutputStream(target)) {
             if (!FormatConverter.compressBitmapToStream(
-                    context, bitmap, bitmapOutput.compressFormat, out, sourceJpegQuality)) {
+                    context, bitmap, bitmapOutput.compressFormat, out, sourceJpegQuality, losslessSource)) {
                 throw new IOException("Failed to compress bitmap");
             }
             out.flush();

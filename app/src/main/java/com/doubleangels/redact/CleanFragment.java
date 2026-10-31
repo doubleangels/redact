@@ -241,7 +241,6 @@ public class CleanFragment extends TabFragment {
                         Context appContext = requireContext().getApplicationContext();
                         new Thread(() -> {
                             try {
-                                boolean hasAnimatedImage = containsAnimatedImage(items);
                                 List<ProcessingResourceWarnings.Warning> warnings =
                                         ProcessingResourceWarnings.assess(appContext, items);
                                 // Reads each file's metadata, so it also runs off the main thread.
@@ -251,11 +250,6 @@ public class CleanFragment extends TabFragment {
                                                         appContext, items, ALREADY_CLEAN_BUDGET_MS)
                                                 : null;
                                 runOnUiThreadIfAdded(() -> {
-                                    if (hasAnimatedImage) {
-                                        Notice.show(requireContext(),
-                                                R.string.animated_image_warning,
-                                                true);
-                                    }
                                     confirmAlreadyClean(items, cleanStatuses, chosen ->
                                             ProcessingResourceWarnings.runWithWarnings(
                                                     requireActivity(),
@@ -681,18 +675,6 @@ public class CleanFragment extends TabFragment {
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
-    }
-
-    private boolean containsAnimatedImage(@NonNull List<MediaItem> items) {
-        if (mediaSelector == null) {
-            return false;
-        }
-        for (MediaItem item : items) {
-            if (mediaSelector.isAnimatedImage(item)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void onSelectMediaClicked() {
