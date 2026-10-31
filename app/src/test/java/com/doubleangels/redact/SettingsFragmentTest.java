@@ -334,12 +334,14 @@ public class SettingsFragmentTest {
         pickDropdownItem(secure, 2);
         assertEquals(7, AppPreferences.getSecureDeletePasses(activity));
 
-        pickDropdownItem(bitmap, 0);
-        assertEquals(2048, AppPreferences.getMaxBitmapSize(activity));
         pickDropdownItem(bitmap, 1);
-        assertEquals(4096, AppPreferences.getMaxBitmapSize(activity));
+        assertEquals(2048, AppPreferences.getMaxBitmapSize(activity));
         pickDropdownItem(bitmap, 2);
+        assertEquals(4096, AppPreferences.getMaxBitmapSize(activity));
+        pickDropdownItem(bitmap, 3);
         assertEquals(8192, AppPreferences.getMaxBitmapSize(activity));
+        pickDropdownItem(bitmap, 0);
+        assertEquals(AppPreferences.MAX_BITMAP_SIZE_FULL, AppPreferences.getMaxBitmapSize(activity));
     }
 
     @Test

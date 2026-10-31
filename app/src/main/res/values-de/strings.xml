@@ -193,6 +193,7 @@
     </string-array>
 
     <string-array name="settings_max_bitmap_size_labels">
+        <item>Volle Auflösung</item>
         <item>2048px (Wenig RAM)</item>
         <item>4096px (Standard)</item>
         <item>8192px (Hohe Leistung)</item>

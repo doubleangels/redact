@@ -189,6 +189,7 @@
     </string-array>
 
     <string-array name="settings_max_bitmap_size_labels">
+        <item>原始分辨率</item>
         <item>2048px（低内存）</item>
         <item>4096px（标准）</item>
         <item>8192px（高性能）</item>

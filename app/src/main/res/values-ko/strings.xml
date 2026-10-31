@@ -189,6 +189,7 @@
     </string-array>
 
     <string-array name="settings_max_bitmap_size_labels">
+        <item>원본 해상도</item>
         <item>2048px(낮은 RAM)</item>
         <item>4096px(표준)</item>
         <item>8192px(고성능)</item>

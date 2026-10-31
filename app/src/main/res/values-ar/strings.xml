@@ -209,6 +209,7 @@
     </string-array>
 
     <string-array name="settings_max_bitmap_size_labels">
+        <item>الدقة الكاملة</item>
         <item>2048 بكسل (ذاكرة منخفضة)</item>
         <item>4096 بكسل (قياسي)</item>
         <item>8192 بكسل (أداء عالٍ)</item>

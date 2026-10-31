@@ -380,6 +380,7 @@
     </string-array>
 
     <string-array name="settings_max_bitmap_size_labels">
+        <item>Full Resolution</item>
         <item>2048px (Low RAM)</item>
         <item>4096px (Standard)</item>
         <item>8192px (High Perf)</item>

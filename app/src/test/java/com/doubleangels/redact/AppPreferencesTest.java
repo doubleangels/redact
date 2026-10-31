@@ -124,6 +124,9 @@ public class AppPreferencesTest {
 
     @Test
     public void maxBitmapSize_defaultsAndClampsOnWrite() {
+        assertEquals(AppPreferences.MAX_BITMAP_SIZE_FULL, AppPreferences.getMaxBitmapSize(context));
+        AppPreferences.setMaxBitmapSize(context, AppPreferences.MAX_BITMAP_SIZE_FULL);
+        assertEquals(AppPreferences.MAX_BITMAP_SIZE_FULL, AppPreferences.getMaxBitmapSize(context));
         AppPreferences.setMaxBitmapSize(context, 2048);
         assertEquals(2048, AppPreferences.getMaxBitmapSize(context));
         AppPreferences.setMaxBitmapSize(context, 8192);

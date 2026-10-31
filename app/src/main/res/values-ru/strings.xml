@@ -201,6 +201,7 @@
     </string-array>
 
     <string-array name="settings_max_bitmap_size_labels">
+        <item>Полное разрешение</item>
         <item>2048px (мало ОЗУ)</item>
         <item>4096px (стандарт)</item>
         <item>8192px (высокая производительность)</item>

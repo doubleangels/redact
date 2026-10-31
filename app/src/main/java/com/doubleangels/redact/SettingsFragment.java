@@ -375,14 +375,16 @@ public class SettingsFragment extends TabFragment {
         });
 
         int maxBitmapSizeIndex = switch (AppPreferences.getMaxBitmapSize(requireContext())) {
-            case 2048 -> 0;
-            case 8192 -> 2;
-            default -> 1;
+            case AppPreferences.MAX_BITMAP_SIZE_FULL -> 0;
+            case 2048 -> 1;
+            case 8192 -> 3;
+            default -> 2;
         };
         setupDropdown(dropdownMaxBitmapSize, maxBitmapSizeLabels, maxBitmapSizeIndex, index -> {
             int size = switch (index) {
-                case 0 -> 2048;
-                case 2 -> 8192;
+                case 0 -> AppPreferences.MAX_BITMAP_SIZE_FULL;
+                case 1 -> 2048;
+                case 3 -> 8192;
                 default -> 4096;
             };
             AppPreferences.setMaxBitmapSize(requireContext(), size);

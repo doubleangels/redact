@@ -424,7 +424,7 @@ public final class FormatConverter {
         Bitmap bitmap;
         boolean needsOrientationFix = false;
         if (bounds.outWidth > 0 && bounds.outHeight > 0) {
-            bitmap = decodeSampled(calculateInSampleSize(maxDimension, bounds), opts -> {
+            bitmap = decodeSampled(calculateInSampleSize(maxDimension, fullResolutionPixelBudget(context), bounds), opts -> {
                 try (InputStream in = resolver.openInputStream(sourceUri)) {
                     if (in == null) {
                         throw new IOException("Cannot open source");
@@ -464,7 +464,7 @@ public final class FormatConverter {
     private static Bitmap decodeBitmapFromUri(
             @NonNull Context context, @NonNull Uri sourceUri, int maxDimension) throws IOException {
         try {
-            return decodeWithImageDecoder(context, sourceUri, maxDimension);
+            return decodeWithImageDecoder(context, sourceUri, maxDimension, fullResolutionPixelBudget(context));
         } catch (OutOfMemoryError e) {
             // Already scaled to the max bitmap size; fail this file rather than the app.
             throw new IOException("Not enough memory to decode the image", e);
@@ -478,8 +478,8 @@ public final class FormatConverter {
         }
     }
 
-    private static Bitmap decodeWithImageDecoder(Context context, Uri sourceUri, int maxDimension)
-            throws IOException {
+    private static Bitmap decodeWithImageDecoder(
+            Context context, Uri sourceUri, int maxDimension, long maxPixels) throws IOException {
         ImageDecoder.Source source = ImageDecoder.createSource(context.getContentResolver(), sourceUri);
         return ImageDecoder.decodeBitmap(
                 source,
@@ -490,8 +490,14 @@ public final class FormatConverter {
                     int w = info.getSize().getWidth();
                     int h = info.getSize().getHeight();
                     int maxSide = Math.max(w, h);
-                    if (maxSide > maxDimension) {
-                        float scale = maxDimension / (float) maxSide;
+                    float scale = 1f;
+                    if (maxDimension > 0 && maxSide > maxDimension) {
+                        scale = maxDimension / (float) maxSide;
+                    } else if (maxDimension <= 0 && (long) w * h > maxPixels) {
+                        // Full resolution that won't fit: the largest size that does, exactly.
+                        scale = (float) Math.sqrt((double) maxPixels / ((long) w * h));
+                    }
+                    if (scale < 1f) {
                         decoder.setTargetSize(
                                 Math.max(1, Math.round(w * scale)),
                                 Math.max(1, Math.round(h * scale)));
@@ -560,15 +566,57 @@ public final class FormatConverter {
 
     private static final int MAX_ENCODER_DIMENSION = 16383;
 
+    /** Bytes a decoded pixel takes (ARGB_8888). */
+    private static final int BYTES_PER_PIXEL = 4;
+    /** The least a full-resolution decode is allowed, whatever the memory reading says: 24 MP. */
+    private static final long MIN_FULL_RESOLUTION_PIXELS = 24_000_000L;
+
+    /**
+     * How many pixels a full-resolution decode may hold: a quarter of the memory the system says
+     * is free, as the picture may be copied once while it is edited and encoded. Bitmaps live in
+     * native memory, so this, not the Java heap, is the limit. A decode that still runs out is
+     * retried smaller ({@link #decodeSampled}).
+     */
+    public static long fullResolutionPixelBudget(@NonNull Context context) {
+        long budget = MIN_FULL_RESOLUTION_PIXELS;
+        try {
+            android.app.ActivityManager am =
+                    (android.app.ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            if (am != null) {
+                android.app.ActivityManager.MemoryInfo info = new android.app.ActivityManager.MemoryInfo();
+                am.getMemoryInfo(info);
+                budget = Math.max(budget, info.availMem / 4 / BYTES_PER_PIXEL);
+            }
+        } catch (RuntimeException e) {
+            // The floor above still applies.
+        }
+        return budget;
+    }
+
     public static int calculateInSampleSize(Context context, BitmapFactory.Options options) {
-        return calculateInSampleSize(AppPreferences.getMaxBitmapSize(context), options);
+        return calculateInSampleSize(
+                AppPreferences.getMaxBitmapSize(context), fullResolutionPixelBudget(context), options);
     }
 
     static int calculateInSampleSize(int maxDimension, BitmapFactory.Options options) {
+        return calculateInSampleSize(maxDimension, Long.MAX_VALUE, options);
+    }
+
+    /**
+     * The sample size to decode at. With a resolution set, both sides stay at least that large;
+     * at full resolution ({@code maxDimension <= 0}) the picture is decoded whole unless it would
+     * not fit in {@code maxPixels}.
+     */
+    static int calculateInSampleSize(int maxDimension, long maxPixels, BitmapFactory.Options options) {
         int height = options.outHeight;
         int width = options.outWidth;
         int inSampleSize = 1;
-        if (height > maxDimension || width > maxDimension) {
+        if (maxDimension <= 0) {
+            while ((long) ((width + inSampleSize - 1) / inSampleSize)
+                    * ((height + inSampleSize - 1) / inSampleSize) > maxPixels) {
+                inSampleSize *= 2;
+            }
+        } else if (height > maxDimension || width > maxDimension) {
             int halfHeight = height / 2;
             int halfWidth = width / 2;
             while ((halfHeight / inSampleSize) >= maxDimension

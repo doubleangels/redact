@@ -206,6 +206,25 @@ public class FormatConverterTest {
     }
 
     @Test
+    public void calculateInSampleSize_atFullResolution_keepsEveryPixelThatFits() {
+        BitmapFactory.Options fiftyMegapixels = new BitmapFactory.Options();
+        fiftyMegapixels.outWidth = 8160;
+        fiftyMegapixels.outHeight = 6120;
+        assertEquals(1, FormatConverter.calculateInSampleSize(
+                AppPreferences.MAX_BITMAP_SIZE_FULL, 100_000_000L, fiftyMegapixels));
+        // Only when it would not fit in memory is it sampled, by as little as will do.
+        assertEquals(2, FormatConverter.calculateInSampleSize(
+                AppPreferences.MAX_BITMAP_SIZE_FULL, 40_000_000L, fiftyMegapixels));
+        assertEquals(4, FormatConverter.calculateInSampleSize(
+                AppPreferences.MAX_BITMAP_SIZE_FULL, 10_000_000L, fiftyMegapixels));
+    }
+
+    @Test
+    public void fullResolutionPixelBudget_isNeverBelowTwentyFourMegapixels() {
+        assertTrue(FormatConverter.fullResolutionPixelBudget(context) >= 24_000_000L);
+    }
+
+    @Test
     public void decodeSampled_halvesTheSizeWhenADecodeRunsOutOfMemory() throws Exception {
         java.util.List<Integer> tried = new java.util.ArrayList<>();
         Bitmap decoded = FormatConverter.decodeSampled(2, options -> {

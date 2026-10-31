@@ -193,6 +193,7 @@
     </string-array>
 
     <string-array name="settings_max_bitmap_size_labels">
+        <item>पूर्ण रिज़ॉल्यूशन</item>
         <item>2048px (कम RAM)</item>
         <item>4096px (मानक)</item>
         <item>8192px (उच्च प्रदर्शन)</item>

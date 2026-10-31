@@ -53,6 +53,9 @@ public final class AppPreferences {
     public static final String HINT_CONVERT = "convert";
     public static final String HINT_CENSOR = "censor";
 
+    /** {@link #getMaxBitmapSize} for full resolution, limited only by free memory. */
+    public static final int MAX_BITMAP_SIZE_FULL = 0;
+
     /** High quality, which matches the legacy defaults. */
     public static final int QUALITY_PRESET_HIGH = 0;
     public static final int QUALITY_PRESET_BALANCED = 1;
@@ -204,28 +207,19 @@ public final class AppPreferences {
         prefs(context).edit().putBoolean(KEY_AUTO_CLEAR_TEMP_FILES, enabled).apply();
     }
 
+    /**
+     * The Max Processing Resolution setting: the size, in pixels per side, an image is scaled
+     * down toward before it is re-encoded, or {@link #MAX_BITMAP_SIZE_FULL} (the default) to keep
+     * every pixel the device has the memory for. The default used to follow the app's Java heap, but pixels
+     * have lived in native memory since Android 8, so it shrank photos for no reason.
+     */
     public static int getMaxBitmapSize(@NonNull Context context) {
-        int defaultSize = 4096;
-        try {
-            android.app.ActivityManager am = (android.app.ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-            if (am != null) {
-                int memoryClass = am.getMemoryClass();
-                if (memoryClass < 128) {
-                    defaultSize = 1024;
-                } else if (memoryClass < 256) {
-                    defaultSize = 2048;
-                } else {
-                    defaultSize = 4096;
-                }
-            }
-        } catch (Exception e) {
-            com.doubleangels.redact.sentry.SentryManager.recordException(e);
-        }
-        return prefs(context).getInt(KEY_MAX_BITMAP_SIZE, defaultSize);
+        return prefs(context).getInt(KEY_MAX_BITMAP_SIZE, MAX_BITMAP_SIZE_FULL);
     }
 
     public static void setMaxBitmapSize(@NonNull Context context, int size) {
         int clamped = switch (size) {
+            case MAX_BITMAP_SIZE_FULL -> MAX_BITMAP_SIZE_FULL;
             case 2048 -> 2048;
             case 8192 -> 8192;
             default -> 4096;
