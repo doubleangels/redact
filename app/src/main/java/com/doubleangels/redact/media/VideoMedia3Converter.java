@@ -18,7 +18,10 @@ import androidx.media3.common.MediaItem;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.util.Clock;
+import androidx.media3.effect.FrameDropEffect;
 import androidx.media3.effect.Presentation;
+import androidx.media3.exoplayer.mediacodec.MediaCodecSelector;
+import androidx.media3.exoplayer.mediacodec.MediaCodecUtil;
 import androidx.media3.muxer.BufferInfo;
 import androidx.media3.muxer.Muxer;
 import androidx.media3.muxer.MuxerException;
@@ -32,6 +35,7 @@ import androidx.media3.transformer.DefaultMuxer;
 import androidx.media3.transformer.EditedMediaItem;
 import androidx.media3.transformer.EditedMediaItemSequence;
 import androidx.media3.transformer.Effects;
+import androidx.media3.transformer.EncoderUtil;
 import androidx.media3.transformer.ExportException;
 import androidx.media3.transformer.ExportResult;
 import androidx.media3.transformer.ProgressHolder;
@@ -45,7 +49,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -99,6 +105,13 @@ public final class VideoMedia3Converter {
 
     /** Output short sides tried, largest first, when the encoder rejects the source resolution. */
     private static final int[] FALLBACK_SHORT_SIDES = {1080, 720, 480};
+
+    /**
+     * The last resort when every hardware attempt fails: H.264 through the software decoder and
+     * encoder, at most this short side and frame rate so the CPU can keep up.
+     */
+    private static final int SOFTWARE_SHORT_SIDE = 720;
+    private static final float SOFTWARE_FRAME_RATE = 30f;
 
     private static final AtomicReference<Transformer> activeTransformer = new AtomicReference<>();
     /** Owner id of the flow that started the active export; -1 when idle. */
@@ -357,6 +370,36 @@ public final class VideoMedia3Converter {
         if (lastFailure == null) {
             lastFailure = new IOException("Video conversion failed");
         }
+        // Some hardware codecs hang on a source at every codec and size (REDACT-28, REDACT-29: a
+        // 4K60 video on a Snapdragon 778G+), and the decoder is the one part a smaller output
+        // doesn't relieve. The software codecs are slow but share nothing with the hardware.
+        if (formatIndex != -1) {
+            deleteQuietly(app, outFile);
+            try {
+                int shortSide = softwareShortSide(readSourceShortSide(app, sourceUri));
+                transcodeToPathOnce(
+                        app,
+                        sourceUri,
+                        outputPath,
+                        MimeTypes.VIDEO_H264,
+                        Composition.HDR_MODE_TONE_MAP_HDR_TO_SDR_USING_OPEN_GL,
+                        progressListener,
+                        ownerId,
+                        shortSide,
+                        hasAudio,
+                        true);
+                com.doubleangels.redact.sentry.SentryManager.log(
+                        "The video was saved with the software codecs after the hardware ones failed.");
+                if (shortSide > 0) {
+                    warnDownscaled(app, shortSide);
+                }
+                return FORMAT_STRIP_METADATA;
+            } catch (IOException e) {
+                deleteQuietly(app, outFile);
+                // The hardware failure says more about why the video can't be converted.
+                lastFailure.addSuppressed(e);
+            }
+        }
         throw lastFailure;
     }
 
@@ -379,7 +422,7 @@ public final class VideoMedia3Converter {
         try {
             transcodeToPathOnce(
                     app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, ownerId, 0,
-                    hasAudio);
+                    hasAudio, false);
         } catch (RetryAtSmallerSizeException e) {
             IOException lastFailure = e;
             for (int shortSide : fallbackShortSides(readSourceShortSide(app, sourceUri))) {
@@ -393,7 +436,8 @@ public final class VideoMedia3Converter {
                             progressListener,
                             ownerId,
                             shortSide,
-                            hasAudio);
+                            hasAudio,
+                            false);
                     warnDownscaled(app, shortSide);
                     return;
                 } catch (RetryAtSmallerSizeException retryFailure) {
@@ -431,6 +475,15 @@ public final class VideoMedia3Converter {
             }
         }
         return Arrays.copyOf(sides, count);
+    }
+
+    /**
+     * The short side for the software attempt: {@link #SOFTWARE_SHORT_SIDE}, or 0 (keep the
+     * source size) when the source is no larger. An unknown source size ({@code <= 0}) is scaled.
+     */
+    @VisibleForTesting
+    static int softwareShortSide(int sourceShortSide) {
+        return sourceShortSide > 0 && sourceShortSide <= SOFTWARE_SHORT_SIDE ? 0 : SOFTWARE_SHORT_SIDE;
     }
 
     private static int readSourceShortSide(@NonNull Context app, @NonNull Uri sourceUri) {
@@ -543,7 +596,8 @@ public final class VideoMedia3Converter {
             @Nullable TranscodeProgressListener progressListener,
             long ownerId,
             int outputShortSide,
-            boolean hasAudio)
+            boolean hasAudio,
+            boolean softwareCodecs)
             throws IOException, InterruptedException {
 
         File outFile = new File(outputPath);
@@ -574,7 +628,8 @@ public final class VideoMedia3Converter {
                     outFile,
                     ownerId,
                     outputShortSide,
-                    hasAudio);
+                    hasAudio,
+                    softwareCodecs);
         } finally {
             WAITERS.remove(waiter);
             if (locked) {
@@ -593,17 +648,25 @@ public final class VideoMedia3Converter {
             @NonNull File outFile,
             long ownerId,
             int outputShortSide,
-            boolean hasAudio)
+            boolean hasAudio,
+            boolean softwareCodecs)
             throws IOException, InterruptedException {
 
         activeTranscodeOwner.set(ownerId);
         MediaItem mediaItem = MediaItem.fromUri(sourceUri);
         EditedMediaItem.Builder editedMediaItemBuilder =
                 new EditedMediaItem.Builder(mediaItem).setRemoveAudio(false);
+        ImmutableList.Builder<androidx.media3.common.Effect> videoEffects = ImmutableList.builder();
+        if (softwareCodecs) {
+            // Drops frames only above the target; a 30fps or slower source keeps every frame.
+            videoEffects.add(FrameDropEffect.createDefaultFrameDropEffect(SOFTWARE_FRAME_RATE));
+        }
         if (outputShortSide > 0) {
-            editedMediaItemBuilder.setEffects(new Effects(
-                    ImmutableList.of(),
-                    ImmutableList.of(Presentation.createForShortSide(outputShortSide))));
+            videoEffects.add(Presentation.createForShortSide(outputShortSide));
+        }
+        ImmutableList<androidx.media3.common.Effect> effects = videoEffects.build();
+        if (!effects.isEmpty()) {
+            editedMediaItemBuilder.setEffects(new Effects(ImmutableList.of(), effects));
         }
         EditedMediaItem editedMediaItem = editedMediaItemBuilder.build();
 
@@ -622,6 +685,7 @@ public final class VideoMedia3Converter {
         // The last progress Media3 reported, for the stall check; -1 before the first.
         AtomicInteger progressSeen = new AtomicInteger(-1);
         long startedAt = android.os.SystemClock.elapsedRealtime();
+        String attemptLabel = softwareCodecs ? videoMimeType + " software" : videoMimeType;
 
         Handler mainHandler = new Handler(Looper.getMainLooper());
         // Polled with or without a listener: the stall check needs the progress too.
@@ -679,11 +743,12 @@ public final class VideoMedia3Converter {
                     try {
                         Transformer transformer =
                                 new Transformer.Builder(app)
-                                        .setAssetLoaderFactory(decoderFallbackAssetLoaderFactory(app))
+                                        .setAssetLoaderFactory(
+                                                decoderFallbackAssetLoaderFactory(app, softwareCodecs))
                                         .setMuxerFactory(new MetadataDroppingMuxerFactory(
                                                 new DefaultMuxer.Factory()))
                                         .setEncoderFactory(new AlwaysEncodeFactory(
-                                                new DefaultEncoderFactory.Builder(app).build()))
+                                                encoderFactory(app, softwareCodecs)))
                                         .setVideoMimeType(videoMimeType)
                                         .setAudioMimeType(audioMimeTypeForVideoMime(videoMimeType))
                                         .setMaxDelayBetweenMuxerSamplesMs(
@@ -755,14 +820,14 @@ public final class VideoMedia3Converter {
                     });
             cancelDone.await(5, TimeUnit.SECONDS);
             deleteQuietly(app, outFile);
-            logAttemptFailure(videoMimeType, outputShortSide, "STALLED", progressSeen.get(), startedAt);
+            logAttemptFailure(attemptLabel, outputShortSide, "STALLED", progressSeen.get(), startedAt);
             throw new IOException("Video conversion stalled");
         }
 
         ExportException exportException = errorRef.get();
         if (exportException != null) {
             deleteQuietly(app, outFile);
-            logAttemptFailure(videoMimeType, outputShortSide, exportException.getErrorCodeName(),
+            logAttemptFailure(attemptLabel, outputShortSide, exportException.getErrorCodeName(),
                     progressSeen.get(), startedAt);
             if (isUnsupportedInput(exportException)) {
                 throw new UnsupportedMediaException(
@@ -779,7 +844,7 @@ public final class VideoMedia3Converter {
         Throwable syncFailure = syncFailureRef.get();
         if (syncFailure != null) {
             deleteQuietly(app, outFile);
-            logAttemptFailure(videoMimeType, outputShortSide, syncFailure.getClass().getSimpleName(),
+            logAttemptFailure(attemptLabel, outputShortSide, syncFailure.getClass().getSimpleName(),
                     progressSeen.get(), startedAt);
             throw new IOException(
                     "Video conversion failed: " + syncFailure.getMessage(), syncFailure);
@@ -990,12 +1055,59 @@ public final class VideoMedia3Converter {
      * without fallback the whole export fails even though a lower-priority decoder could handle it.
      */
     @NonNull
-    private static AssetLoader.Factory decoderFallbackAssetLoaderFactory(@NonNull Context app) {
+    private static AssetLoader.Factory decoderFallbackAssetLoaderFactory(
+            @NonNull Context app, boolean softwareCodecs) {
+        DefaultDecoderFactory.Builder decoders =
+                new DefaultDecoderFactory.Builder(app).setEnableDecoderFallback(true);
+        if (softwareCodecs) {
+            decoders.setMediaCodecSelector(VideoMedia3Converter::softwareDecoderInfos);
+        }
         return new DefaultAssetLoaderFactory(
-                app,
-                new DefaultDecoderFactory.Builder(app).setEnableDecoderFallback(true).build(),
-                Clock.DEFAULT,
-                /* logSessionId= */ null);
+                app, decoders.build(), Clock.DEFAULT, /* logSessionId= */ null);
+    }
+
+    /**
+     * The device's software decoders for a format. Falls back to every decoder when there is no
+     * software one, so the attempt still runs rather than failing on an empty list.
+     */
+    @NonNull
+    private static List<androidx.media3.exoplayer.mediacodec.MediaCodecInfo> softwareDecoderInfos(
+            @NonNull String mimeType, boolean requiresSecureDecoder, boolean requiresTunnelingDecoder)
+            throws MediaCodecUtil.DecoderQueryException {
+        List<androidx.media3.exoplayer.mediacodec.MediaCodecInfo> all =
+                MediaCodecSelector.DEFAULT.getDecoderInfos(
+                        mimeType, requiresSecureDecoder, requiresTunnelingDecoder);
+        List<androidx.media3.exoplayer.mediacodec.MediaCodecInfo> software = new ArrayList<>();
+        for (androidx.media3.exoplayer.mediacodec.MediaCodecInfo info : all) {
+            if (info.softwareOnly) {
+                software.add(info);
+            }
+        }
+        return software.isEmpty() ? all : software;
+    }
+
+    @NonNull
+    private static Codec.EncoderFactory encoderFactory(@NonNull Context app, boolean softwareCodecs) {
+        DefaultEncoderFactory.Builder encoders = new DefaultEncoderFactory.Builder(app);
+        if (softwareCodecs) {
+            encoders.setVideoEncoderSelector(VideoMedia3Converter::softwareEncoderInfos);
+        }
+        return encoders.build();
+    }
+
+    /** The device's software encoders for a format, or every encoder when it has none. */
+    @NonNull
+    private static ImmutableList<android.media.MediaCodecInfo> softwareEncoderInfos(
+            @NonNull String mimeType) {
+        ImmutableList<android.media.MediaCodecInfo> all = EncoderUtil.getSupportedEncoders(mimeType);
+        ImmutableList.Builder<android.media.MediaCodecInfo> software = ImmutableList.builder();
+        for (android.media.MediaCodecInfo info : all) {
+            if (info.isSoftwareOnly()) {
+                software.add(info);
+            }
+        }
+        ImmutableList<android.media.MediaCodecInfo> picked = software.build();
+        return picked.isEmpty() ? all : picked;
     }
 
     private static void stopPolling(
