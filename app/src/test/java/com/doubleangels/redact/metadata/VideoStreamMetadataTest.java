@@ -188,4 +188,43 @@ public class VideoStreamMetadataTest {
         assertTrue(VideoStreamMetadata.nalUnits(new byte[] {(byte) 0x80, 0, 0, 0, 0x06}).isEmpty());
         assertEquals(1, VideoStreamMetadata.nalUnits(new byte[] {0, 0, 0, 2, 0x06, 0x07, 0x7F, 0x7F, 0x7F, 0x7F, 9}).size());
     }
+
+    /** An SEI user_data_registered_itu_t_t35 message. */
+    private static byte[] registered(int country, int provider, String payload) {
+        byte[] text = payload.getBytes(StandardCharsets.ISO_8859_1);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        out.write(0x06); // H.264 SEI
+        out.write(4);
+        out.write(3 + text.length);
+        out.write(country);
+        out.write(provider >> 8);
+        out.write(provider);
+        out.write(text, 0, text.length);
+        out.write(0x80);
+        return out.toByteArray();
+    }
+
+    @Test
+    public void t35_countsVendorData_butNotHdrOrCaptions() {
+        assertEquals(1, VideoStreamMetadata.scanBuffer(
+                stream(registered(0x26, 0x0042, "CamModel GPS")), false).userDataMessages);
+        assertEquals(0, VideoStreamMetadata.scanBuffer(
+                stream(registered(0xB5, 0x003C, "hdr10+")), false).userDataMessages);
+        assertEquals(0, VideoStreamMetadata.scanBuffer(
+                stream(registered(0xB5, 0x003B, "dovi")), false).userDataMessages);
+        assertEquals(0, VideoStreamMetadata.scanBuffer(
+                stream(registered(0xB5, 0x0031, "GA94")), false).userDataMessages);
+    }
+
+    @Test
+    public void mpeg4Part2_findsUserData() {
+        byte[] vol = {0x20, 0x08, 0x10};
+        byte[] userData = withHeader(new byte[] {(byte) 0xB2}, "DivX503b1393p".getBytes(StandardCharsets.ISO_8859_1));
+        byte[] vop = {(byte) 0xB6, 0x10, 0x20};
+        VideoStreamMetadata.Report r = VideoStreamMetadata.scanBuffer(stream(vol, userData, vop), false, true);
+
+        assertEquals(1, r.userDataMessages);
+        assertTrue(r.text.contains("DivX"));
+        assertEquals(0, VideoStreamMetadata.scanBuffer(stream(vol, vop), false, true).userDataMessages);
+    }
 }

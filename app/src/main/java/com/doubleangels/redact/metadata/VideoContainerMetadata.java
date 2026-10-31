@@ -187,13 +187,43 @@ public final class VideoContainerMetadata {
             }
             try (FileInputStream in = new FileInputStream(pfd.getFileDescriptor())) {
                 FileChannel ch = in.getChannel();
+                ByteBuffer magic = ByteBuffer.allocate(4);
+                ch.read(magic, 0);
+                if (magic.getInt(0) == 0x1A45DFA3) {
+                    return matroskaTimes(ch); // EBML: a WebM or Matroska file
+                }
                 List<long[]> mvhd = HeaderTimes.find(ch, true);
                 if (mvhd.isEmpty()) {
-                    return null;
+                    return matroskaTimes(ch);
                 }
                 long[] times = HeaderTimes.read(ch, mvhd.get(0));
                 return times[0] == 0 && times[1] == 0 ? null : times;
             }
+        } catch (IOException | RuntimeException e) {
+            return null;
+        }
+    }
+
+    /**
+     * A WebM's or Matroska file's recording date as {creation, modification} in seconds since
+     * 1904, the way an MP4 counts it, for a WebM that is saved as an MP4. Null when it has none.
+     */
+    @Nullable
+    private static long[] matroskaTimes(@NonNull FileChannel ch) throws IOException {
+        Walker walker = new Walker(ch, false);
+        if (!walker.run() || walker.matroskaDateNanos == Long.MIN_VALUE) {
+            return null;
+        }
+        long seconds = Math.floorDiv(MILLIS_1970_TO_2001 + walker.matroskaDateNanos / 1_000_000, 1000)
+                + SECONDS_1904_TO_1970;
+        return seconds > 0 ? new long[] {seconds, seconds} : null;
+    }
+
+    @VisibleForTesting
+    @Nullable
+    static long[] matroskaTimes(@NonNull File file) {
+        try (FileInputStream in = new FileInputStream(file)) {
+            return matroskaTimes(in.getChannel());
         } catch (IOException | RuntimeException e) {
             return null;
         }
@@ -343,6 +373,8 @@ public final class VideoContainerMetadata {
         private int elements;
         /** A user data box holding a location atom and nothing else is left alone. */
         boolean keepLocation;
+        /** A WebM's or Matroska file's DateUTC, nanoseconds since 2001; MIN_VALUE when none. */
+        long matroskaDateNanos = Long.MIN_VALUE;
         private boolean dateCounted;
         private int simpleTags;
 
@@ -781,12 +813,16 @@ public final class VideoContainerMetadata {
             if (scrub || size < 1 || size > 8) {
                 return null;
             }
-            byte[] b = read(start, (int) size);
-            long nanos = b[0];
+            return ReadableText.utc(MILLIS_1970_TO_2001 + signed(read(start, (int) size)) / 1_000_000);
+        }
+
+        /** A big-endian signed integer of up to eight bytes. */
+        private static long signed(@NonNull byte[] b) {
+            long value = b[0];
             for (int i = 1; i < b.length; i++) {
-                nanos = (nanos << 8) | (b[i] & 0xFF);
+                value = (value << 8) | (b[i] & 0xFF);
             }
-            return ReadableText.utc(MILLIS_1970_TO_2001 + nanos / 1_000_000);
+            return value;
         }
 
         /**
@@ -1129,6 +1165,9 @@ public final class VideoContainerMetadata {
                     if (!dateCounted) {
                         dateCounted = true;
                         field("date", false, matroskaDate(e.dataStart, e.dataSize), -1);
+                        if (!scrub && e.dataSize >= 1 && e.dataSize <= 8) {
+                            matroskaDateNanos = signed(read(e.dataStart, (int) e.dataSize));
+                        }
                     }
                     voidOut(pos, elementEnd);
                 }

@@ -668,6 +668,15 @@ public class MetadataStripper {
                     left -= n;
                 }
             }
+            // Copied again sample for sample with only its picture and sound: a Pixel's clip has a
+            // timed metadata track as well, which no scrub can empty and no check passes.
+            File remuxed = fastStripVideoMetadata(Uri.fromFile(video), null, false);
+            if (remuxed != null && remuxed.getName().endsWith(".mp4")) {
+                secureDeleteFile(video);
+                video = remuxed;
+            } else if (remuxed != null) {
+                secureDeleteFile(remuxed);
+            }
             VideoContainerMetadata.scrub(video);
             VideoContainerMetadata.Report container = VideoContainerMetadata.scan(video);
             if (!container.recognized || !container.fields.isEmpty()) {
@@ -1542,6 +1551,9 @@ public class MetadataStripper {
             removeAllExifMetadata(newExif);
             restoreEssentialExifValues(newExif);
             newExif.saveAttributes();
+            if (ImageContainerMetadata.sniff(imageFile) == ImageContainerMetadata.Format.JPEG) {
+                UltraHdr.fixPrimarySize(imageFile);
+            }
         } catch (Exception e) {
             SentryManager.log("The EXIF failed to restore: " + e.getMessage() + ".");
             SentryManager.recordException(e);

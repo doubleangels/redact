@@ -14,9 +14,11 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Finds metadata carried inside an H.264 or H.265 video stream rather than its container: SEI
- * "user data unregistered" messages, where camcorders keep the recording date and GPS (AVCHD's
- * MDPM), drones their telemetry, and encoders their settings. A clean re-encodes the video, so
+ * Finds metadata carried inside an H.264, H.265 or MPEG-4 Part 2 video stream rather than its
+ * container: SEI "user data unregistered" messages, where camcorders keep the recording date and
+ * GPS (AVCHD's MDPM), drones their telemetry, and encoders their settings; SEI registered under
+ * ITU-T T.35 by anyone but HDR10+, Dolby Vision and broadcast captions, which describe the
+ * picture; and MPEG-4 Part 2's user data, where encoders and cameras write their names. A clean re-encodes the video, so
  * none of it survives: Scan uses this to show that it is there, and the stripper to skip the
  * quick transmux of Faster Video Cleaning, which would copy it, for a file that carries any.
  */
@@ -37,7 +39,10 @@ public final class VideoStreamMetadata {
 
     private static final int MAX_SAMPLES = 90;
     private static final long MAX_SAMPLE_BYTES = 32L * 1024 * 1024;
+    private static final int SEI_USER_DATA_REGISTERED = 4;
     private static final int SEI_USER_DATA_UNREGISTERED = 5;
+    /** MPEG-4 Part 2's user_data start code value. */
+    private static final int MPEG4_USER_DATA = 0xB2;
 
     private VideoStreamMetadata() {
     }
@@ -52,10 +57,12 @@ public final class VideoStreamMetadata {
                 MediaFormat format = extractor.getTrackFormat(i);
                 String mime = format.getString(MediaFormat.KEY_MIME);
                 boolean hevc = MediaFormat.MIMETYPE_VIDEO_HEVC.equals(mime);
-                if (!hevc && !MediaFormat.MIMETYPE_VIDEO_AVC.equals(mime)) {
+                boolean mpeg4 = MediaFormat.MIMETYPE_VIDEO_MPEG4.equals(mime);
+                if (!hevc && !mpeg4 && !MediaFormat.MIMETYPE_VIDEO_AVC.equals(mime)) {
                     continue;
                 }
                 Counter counter = new Counter();
+                counter.mpeg4 = mpeg4;
                 for (String key : new String[] {"csd-0", "csd-1"}) {
                     ByteBuffer csd = format.containsKey(key) ? format.getByteBuffer(key) : null;
                     if (csd != null) {
@@ -102,10 +109,24 @@ public final class VideoStreamMetadata {
         int messages;
         long bytes;
         @Nullable String text;
+        /** MPEG-4 Part 2, whose stream is split by start codes rather than into NAL units. */
+        boolean mpeg4;
 
         void add(@NonNull ByteBuffer buffer, boolean hevc) {
             byte[] data = new byte[buffer.remaining()];
             buffer.duplicate().get(data);
+            if (mpeg4) {
+                for (byte[] unit : nalUnits(data)) {
+                    if (unit.length > 1 && (unit[0] & 0xFF) == MPEG4_USER_DATA) {
+                        messages++;
+                        bytes += unit.length - 1;
+                        if (text == null) {
+                            text = readableText(unit, 1, unit.length - 1);
+                        }
+                    }
+                }
+                return;
+            }
             for (byte[] nal : nalUnits(data)) {
                 if (isSei(nal, hevc)) {
                     seiMessages(unescape(nal, hevc ? 2 : 1), this);
@@ -116,7 +137,13 @@ public final class VideoStreamMetadata {
 
     @VisibleForTesting
     static Report scanBuffer(@NonNull byte[] data, boolean hevc) {
+        return scanBuffer(data, hevc, false);
+    }
+
+    @VisibleForTesting
+    static Report scanBuffer(@NonNull byte[] data, boolean hevc, boolean mpeg4) {
         Counter counter = new Counter();
+        counter.mpeg4 = mpeg4;
         counter.add(ByteBuffer.wrap(data), hevc);
         return new Report(counter.messages, counter.bytes, counter.text);
     }
@@ -226,9 +253,29 @@ public final class VideoStreamMetadata {
                 if (counter.text == null) {
                     counter.text = readableText(rbsp, pos + 16, size - 16);
                 }
+            } else if (type == SEI_USER_DATA_REGISTERED && size >= 1 && !describesPicture(rbsp, pos, size)) {
+                counter.messages++;
+                counter.bytes += size;
+                if (counter.text == null) {
+                    counter.text = readableText(rbsp, pos, size);
+                }
             }
             pos += size;
         }
+    }
+
+    /**
+     * Whether a T.35 message is one that only says how to show the picture: HDR10+ (Samsung's
+     * provider code), Dolby Vision, or ATSC captions and bar data ({@code GA94}), all registered
+     * in the United States (0xB5).
+     */
+    @VisibleForTesting
+    static boolean describesPicture(@NonNull byte[] rbsp, int pos, int size) {
+        if (size < 3 || (rbsp[pos] & 0xFF) != 0xB5) {
+            return false;
+        }
+        int provider = ((rbsp[pos + 1] & 0xFF) << 8) | (rbsp[pos + 2] & 0xFF);
+        return provider == 0x003C || provider == 0x003B || provider == 0x0031;
     }
 
     /**

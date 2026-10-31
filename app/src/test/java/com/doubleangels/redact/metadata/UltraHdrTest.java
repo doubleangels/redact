@@ -184,4 +184,46 @@ public class UltraHdrTest {
         return ((long) (data[pos] & 0xFF) << 24) | ((data[pos + 1] & 0xFF) << 16)
                 | ((data[pos + 2] & 0xFF) << 8) | (data[pos + 3] & 0xFF);
     }
+
+    /** The primary picture's size in the clean file's multi-picture index. */
+    private static long primarySize(byte[] jpeg) {
+        int mpf = indexOf(jpeg, "MPF\0".getBytes(StandardCharsets.ISO_8859_1), 0);
+        int tiff = mpf + 4;
+        java.nio.ByteBuffer b = java.nio.ByteBuffer.wrap(jpeg);
+        int ifd = tiff + b.getInt(tiff + 4);
+        int count = b.getShort(ifd);
+        for (int i = 0; i < count; i++) {
+            int at = ifd + 2 + 12 * i;
+            if ((b.getShort(at) & 0xFFFF) == 0xB002) {
+                return b.getInt(tiff + b.getInt(at + 8) + 4) & 0xFFFFFFFFL;
+            }
+        }
+        return -1;
+    }
+
+    @Test
+    public void fixPrimarySize_followsSegmentsPutInFrontOfTheIndex() throws Exception {
+        File clean = new File(temp.getRoot(), "clean.jpg");
+        ImageContainerMetadata.sanitize(fixture(), clean);
+        byte[] before = Files.readAllBytes(clean.toPath());
+        long size = primarySize(before);
+        assertEquals("the gain map starts where the primary ends", (byte) 0xD8, before[(int) size + 1]);
+
+        // What ExifInterface does with the kept tags: a new segment right after SOI.
+        byte[] exif = new byte[104];
+        exif[0] = (byte) 0xFF;
+        exif[1] = (byte) 0xE1;
+        exif[3] = 102;
+        byte[] shifted = new byte[before.length + exif.length];
+        System.arraycopy(before, 0, shifted, 0, 2);
+        System.arraycopy(exif, 0, shifted, 2, exif.length);
+        System.arraycopy(before, 2, shifted, 2 + exif.length, before.length - 2);
+        Files.write(clean.toPath(), shifted);
+
+        UltraHdr.fixPrimarySize(clean);
+
+        assertEquals(size + exif.length, primarySize(Files.readAllBytes(clean.toPath())));
+        UltraHdr.fixPrimarySize(clean); // and again changes nothing
+        assertEquals(size + exif.length, primarySize(Files.readAllBytes(clean.toPath())));
+    }
 }

@@ -464,6 +464,76 @@ final class UltraHdr {
         }
     }
 
+    /**
+     * Corrects the primary picture's size in a JPEG's multi-picture index after segments were
+     * put in front of it, as ExifInterface does when it writes the kept tags back right after
+     * SOI. The pictures after the primary are counted from the index itself, so they still line
+     * up; only the primary's own size goes stale. It ends where the next picture starts. Does
+     * nothing to a file without an index.
+     */
+    static void fixPrimarySize(@NonNull File jpeg) throws IOException {
+        try (RandomAccessFile f = new RandomAccessFile(jpeg, "rw")) {
+            byte[] head = new byte[(int) Math.min(f.length(), 256 * 1024)];
+            f.readFully(head);
+            int pos = 2;
+            while (pos + 4 <= head.length && (head[pos] & 0xFF) == 0xFF) {
+                int marker = head[pos + 1] & 0xFF;
+                if (marker == 0xDA || marker == 0xD9) {
+                    return;
+                }
+                int length = ((head[pos + 2] & 0xFF) << 8) | (head[pos + 3] & 0xFF);
+                if (length < 2 || pos + 2 + length > head.length) {
+                    return;
+                }
+                if (marker == 0xE2 && length >= 2 + 4 + 8 && head[pos + 4] == 'M' && head[pos + 5] == 'P'
+                        && head[pos + 6] == 'F' && head[pos + 7] == 0) {
+                    fixMpf(f, head, pos + 8, pos + 2 + length);
+                    return;
+                }
+                pos += 2 + length;
+            }
+        }
+    }
+
+    private static void fixMpf(@NonNull RandomAccessFile f, @NonNull byte[] head, int tiff, int end)
+            throws IOException {
+        boolean big = head[tiff] == 'M';
+        java.nio.ByteBuffer b = java.nio.ByteBuffer.wrap(head, 0, end)
+                .order(big ? java.nio.ByteOrder.BIG_ENDIAN : java.nio.ByteOrder.LITTLE_ENDIAN);
+        long ifd = tiff + (b.getInt(tiff + 4) & 0xFFFFFFFFL);
+        if (ifd + 2 > end) {
+            return;
+        }
+        int count = b.getShort((int) ifd) & 0xFFFF;
+        long entries = -1;
+        long images = 0;
+        for (int i = 0; i < count; i++) {
+            int at = (int) ifd + 2 + 12 * i;
+            if (at + 12 > end) {
+                return;
+            }
+            int tag = b.getShort(at) & 0xFFFF;
+            if (tag == 0xB002) {
+                entries = tiff + (b.getInt(at + 8) & 0xFFFFFFFFL);
+                images = (b.getInt(at + 4) & 0xFFFFFFFFL) / 16;
+            }
+        }
+        if (entries < 0 || images < 2 || entries + 32 > end) {
+            return;
+        }
+        long second = b.getInt((int) entries + 16 + 8) & 0xFFFFFFFFL;
+        if (second == 0) {
+            return;
+        }
+        long primarySize = tiff + second;
+        if ((b.getInt((int) entries + 4) & 0xFFFFFFFFL) == primarySize) {
+            return;
+        }
+        b.putInt((int) entries + 4, (int) primarySize);
+        f.seek(entries + 4);
+        f.write(head, (int) entries + 4, 4);
+    }
+
     /** The APP segments before a JPEG's first scan, each as its marker byte and then its data. */
     @NonNull
     private static List<byte[]> appSegments(@NonNull byte[] jpeg) {
