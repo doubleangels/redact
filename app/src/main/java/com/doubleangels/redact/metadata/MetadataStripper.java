@@ -1983,7 +1983,7 @@ public class MetadataStripper {
             Bitmap upright = FormatConverter.decodeUpright(context, Uri.fromFile(source),
                     AppPreferences.getMaxBitmapSize(context));
             preservedExifValues.remove(ExifInterface.TAG_ORIENTATION);
-            compressTo(upright, bitmapOutput, target);
+            compressTo(upright, bitmapOutput, target, 0);
             return;
         }
         BitmapFactory.Options optionsJustBounds = new BitmapFactory.Options();
@@ -2001,14 +2001,19 @@ public class MetadataStripper {
         if (bitmap == null) {
             throw new UnsupportedMediaException("Failed to decode bitmap", null);
         }
-        compressTo(bitmap, bitmapOutput, target);
+        int sourceQuality;
+        try (InputStream in = new FileInputStream(source)) {
+            sourceQuality = FormatConverter.estimateJpegQuality(in);
+        }
+        compressTo(bitmap, bitmapOutput, target, sourceQuality);
     }
 
     /** Encodes {@code bitmap} to {@code target} and recycles it. */
     private void compressTo(@NonNull Bitmap bitmap, @NonNull FormatConverter.ImageFormatSpec bitmapOutput,
-                            @NonNull File target) throws IOException {
+                            @NonNull File target, int sourceJpegQuality) throws IOException {
         try (FileOutputStream out = new FileOutputStream(target)) {
-            if (!FormatConverter.compressBitmapToStream(context, bitmap, bitmapOutput.compressFormat, out)) {
+            if (!FormatConverter.compressBitmapToStream(
+                    context, bitmap, bitmapOutput.compressFormat, out, sourceJpegQuality)) {
                 throw new IOException("Failed to compress bitmap");
             }
             out.flush();

@@ -219,6 +219,51 @@ public class FormatConverterTest {
                 AppPreferences.MAX_BITMAP_SIZE_FULL, 10_000_000L, fiftyMegapixels));
     }
 
+    /** A JPEG header with libjpeg's luminance table for {@code quality}, then the start of scan. */
+    private static byte[] jpegWithQuality(int quality) {
+        int[] zigzag = {16, 11, 12, 14, 12, 10, 16, 14, 13, 14, 18, 17, 16, 19, 24, 40, 26, 24, 22, 22,
+                24, 49, 35, 37, 29, 40, 58, 51, 61, 60, 57, 51, 56, 55, 64, 72, 92, 78, 64, 68, 87, 69,
+                55, 56, 80, 109, 81, 87, 95, 98, 103, 104, 103, 62, 77, 113, 121, 112, 100, 120, 92,
+                101, 103, 99};
+        int scale = quality < 50 ? 5000 / quality : 200 - quality * 2;
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        out.write(0xFF);
+        out.write(0xD8);
+        out.write(0xFF);
+        out.write(0xDB);
+        out.write(0);
+        out.write(67);
+        out.write(0); // 8-bit table 0
+        for (int value : zigzag) {
+            out.write(Math.max(1, Math.min(255, (value * scale + 50) / 100)));
+        }
+        out.write(0xFF);
+        out.write(0xDA);
+        return out.toByteArray();
+    }
+
+    @Test
+    public void estimateJpegQuality_readsTheQualityTheJpegWasSavedAt() {
+        for (int quality : new int[] {50, 75, 92, 95, 97, 100}) {
+            assertEquals(quality, FormatConverter.estimateJpegQuality(
+                    new java.io.ByteArrayInputStream(jpegWithQuality(quality))));
+        }
+        assertEquals(0, FormatConverter.estimateJpegQuality(
+                new java.io.ByteArrayInputStream(new byte[] {'n', 'o', 't'})));
+    }
+
+    @Test
+    public void matchSourceQuality_neverEncodesAJpegBelowItsSourceOnHigh() {
+        int high = AppPreferences.QUALITY_PRESET_HIGH;
+        assertEquals(96, FormatConverter.matchSourceQuality(Bitmap.CompressFormat.JPEG, high, 92, 96));
+        assertEquals(92, FormatConverter.matchSourceQuality(Bitmap.CompressFormat.JPEG, high, 92, 80));
+        assertEquals(92, FormatConverter.matchSourceQuality(Bitmap.CompressFormat.JPEG, high, 92, 0));
+        // Smaller presets and other formats keep their own quality.
+        assertEquals(75, FormatConverter.matchSourceQuality(
+                Bitmap.CompressFormat.JPEG, AppPreferences.QUALITY_PRESET_SMALLER, 75, 96));
+        assertEquals(90, FormatConverter.matchSourceQuality(Bitmap.CompressFormat.WEBP, high, 90, 96));
+    }
+
     @Test
     public void fullResolutionPixelBudget_isNeverBelowTwentyFourMegapixels() {
         assertTrue(FormatConverter.fullResolutionPixelBudget(context) >= 24_000_000L);

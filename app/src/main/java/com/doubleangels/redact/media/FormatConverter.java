@@ -199,6 +199,103 @@ public final class FormatConverter {
         return AppPreferences.qualityForLossyFormat(qualityPreset, webpOrHeic);
     }
 
+    /**
+     * The quality for a JPEG made from a JPEG: on the High preset, never less than the source's
+     * own, so a re-encode spends at least the bits the camera did (phones save at 95 to 97, the
+     * preset is 92). Balanced and Smaller mean what they say, and other formats are unchanged.
+     */
+    @androidx.annotation.VisibleForTesting
+    static int matchSourceQuality(@NonNull Bitmap.CompressFormat format, int preset, int presetQuality,
+            int sourceJpegQuality) {
+        if (format != Bitmap.CompressFormat.JPEG || preset != AppPreferences.QUALITY_PRESET_HIGH) {
+            return presetQuality;
+        }
+        return Math.min(100, Math.max(presetQuality, sourceJpegQuality));
+    }
+
+    /** The IJG luminance quantization table that libjpeg's quality setting scales, in zigzag order. */
+    private static final int[] STANDARD_LUMINANCE_ZIGZAG = {
+            16, 11, 12, 14, 12, 10, 16, 14, 13, 14, 18, 17, 16, 19, 24, 40, 26, 24, 22, 22, 24, 49,
+            35, 37, 29, 40, 58, 51, 61, 60, 57, 51, 56, 55, 64, 72, 92, 78, 64, 68, 87, 69, 55, 56,
+            80, 109, 81, 87, 95, 98, 103, 104, 103, 62, 77, 113, 121, 112, 100, 120, 92, 101, 103, 99};
+
+    /**
+     * The quality a JPEG was saved at, estimated from its luminance quantization table the way
+     * ImageMagick does: the libjpeg quality whose scaled standard table is closest. 0 when the
+     * stream is not a JPEG or has no such table.
+     */
+    public static int estimateJpegQuality(@NonNull InputStream in) {
+        try {
+            java.io.DataInputStream data = new java.io.DataInputStream(new java.io.BufferedInputStream(in));
+            if (data.readUnsignedByte() != 0xFF || data.readUnsignedByte() != 0xD8) {
+                return 0;
+            }
+            while (true) {
+                int b = data.readUnsignedByte();
+                if (b != 0xFF) {
+                    return 0;
+                }
+                int marker;
+                do {
+                    marker = data.readUnsignedByte();
+                } while (marker == 0xFF);
+                if (marker == 0xDA || marker == 0xD9) {
+                    return 0;
+                }
+                int length = data.readUnsignedShort() - 2;
+                if (length < 0) {
+                    return 0;
+                }
+                if (marker != 0xDB) {
+                    data.skipBytes(length);
+                    continue;
+                }
+                while (length > 0) {
+                    int info = data.readUnsignedByte();
+                    boolean sixteenBit = (info >> 4) != 0;
+                    int[] table = new int[64];
+                    for (int i = 0; i < 64; i++) {
+                        table[i] = sixteenBit ? data.readUnsignedShort() : data.readUnsignedByte();
+                    }
+                    length -= 1 + (sixteenBit ? 128 : 64);
+                    if ((info & 0x0F) == 0) {
+                        return closestQuality(table);
+                    }
+                }
+            }
+        } catch (IOException | RuntimeException e) {
+            return 0;
+        }
+    }
+
+    @androidx.annotation.VisibleForTesting
+    static int closestQuality(@NonNull int[] luminance) {
+        int best = 0;
+        long bestError = Long.MAX_VALUE;
+        for (int quality = 1; quality <= 100; quality++) {
+            int scale = quality < 50 ? 5000 / quality : 200 - quality * 2;
+            long error = 0;
+            for (int i = 0; i < 64; i++) {
+                int expected = Math.max(1, Math.min(255, (STANDARD_LUMINANCE_ZIGZAG[i] * scale + 50) / 100));
+                error += Math.abs(expected - luminance[i]);
+            }
+            if (error <= bestError) {
+                bestError = error;
+                best = quality;
+            }
+        }
+        return best;
+    }
+
+    /** {@link #estimateJpegQuality(InputStream)} for a URI; 0 when it cannot be read. */
+    public static int estimateJpegQuality(@NonNull Context context, @NonNull Uri uri) {
+        try (InputStream in = context.getContentResolver().openInputStream(uri)) {
+            return in != null ? estimateJpegQuality(in) : 0;
+        } catch (IOException | RuntimeException e) {
+            return 0;
+        }
+    }
+
     /** Resolved output format for metadata stripping (preserves source type when possible). */
     public static final class ImageFormatSpec {
         public final String extension;
@@ -263,7 +360,21 @@ public final class FormatConverter {
             @NonNull Bitmap bitmap,
             @NonNull Bitmap.CompressFormat format,
             @NonNull OutputStream os) {
-        int q = qualityForFormat(format, context);
+        return compressBitmapToStream(context, bitmap, format, os, 0);
+    }
+
+    /**
+     * Like {@link #compressBitmapToStream(Context, Bitmap, Bitmap.CompressFormat, OutputStream)},
+     * for a picture decoded from a JPEG of {@code sourceJpegQuality} (0 when unknown or not a JPEG).
+     */
+    public static boolean compressBitmapToStream(
+            @NonNull Context context,
+            @NonNull Bitmap bitmap,
+            @NonNull Bitmap.CompressFormat format,
+            @NonNull OutputStream os,
+            int sourceJpegQuality) {
+        int q = matchSourceQuality(format, AppPreferences.getImageQualityPreset(context),
+                qualityForFormat(format, context), sourceJpegQuality);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && isHeicFormat(format)) {
             return bitmap.compress(format, q, os);
         }
@@ -374,7 +485,8 @@ public final class FormatConverter {
             if (os == null) {
                 throw new IOException("Cannot open output stream");
             }
-            int q = qualityForFormat(format, context);
+            int q = matchSourceQuality(format, AppPreferences.getImageQualityPreset(context),
+                    qualityForFormat(format, context), estimateJpegQuality(context, sourceUri));
             boolean ok;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && isHeicFormat(format)) {
                 ok = bitmap.compress(format, q, os);

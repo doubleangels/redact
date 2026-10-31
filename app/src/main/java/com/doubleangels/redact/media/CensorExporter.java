@@ -73,7 +73,8 @@ public final class CensorExporter {
             try {
                 CensorEffects.apply(bitmap, regions, effect);
                 try (OutputStream os = new FileOutputStream(censored)) {
-                    if (!FormatConverter.compressBitmapToStream(context, bitmap, spec.compressFormat, os)) {
+                    if (!FormatConverter.compressBitmapToStream(context, bitmap, spec.compressFormat, os,
+                            FormatConverter.estimateJpegQuality(context, source))) {
                         throw new IOException("Compress failed");
                     }
                 }
