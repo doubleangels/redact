@@ -230,14 +230,23 @@ public final class ImageContainerMetadata {
         if (source.getCanonicalPath().equals(target.getCanonicalPath())) {
             throw new IOException("Source and target must differ");
         }
+        Walker walker;
         try (FileInputStream in = new FileInputStream(source);
              OutputStream out = new BufferedOutputStream(new FileOutputStream(target), 64 * 1024)) {
-            Walker walker = new Walker(in.getChannel(), out);
+            walker = new Walker(in.getChannel(), out);
             walker.workDir = target.getAbsoluteFile().getParentFile();
             if (!walker.run()) {
                 throw new IOException("Not a JPEG, PNG or WebP file");
             }
             out.flush();
+        }
+        if (walker.gainMapStart >= 0) {
+            try {
+                UltraHdr.rebuild(source, walker.gainMapStart, walker.gainMapEnd, walker.primaryIso, target);
+            } catch (IOException | RuntimeException e) {
+                // The picture written above is complete; it is only without its HDR.
+                SentryManager.log("The Ultra HDR gain map could not be kept: " + e.getMessage() + ".");
+            }
         }
     }
 
@@ -273,6 +282,15 @@ public final class ImageContainerMetadata {
         @Nullable private final OutputStream out;
         /** Where a WebP's chunks are gathered before its size is known; the system's when null. */
         @Nullable File workDir;
+        /** The picture says an Ultra HDR gain map follows it. */
+        boolean ultraHdr;
+        /** The primary picture's ISO 21496-1 version block, put back with the gain map. */
+        @Nullable byte[] primaryIso;
+        /** Where the multi-picture index is in the findings: withdrawn if it leads to a clean gain map. */
+        int mpfFinding = -1;
+        /** Where the gain map is in the source, for a clean; -1 when there is none. */
+        long gainMapStart = -1;
+        long gainMapEnd = -1;
         Format format = Format.OTHER;
         final List<Finding> findings = new ArrayList<>();
         final List<Finding> kept = new ArrayList<>();
@@ -489,7 +507,14 @@ public final class ImageContainerMetadata {
             }
             if (startsWith(data, ascii("http://ns.adobe.com/xap/1.0/\0"))) {
                 String xmp = new String(data, 29, data.length - 29, StandardCharsets.UTF_8);
-                find("XMP", xmp, size, xmpKind(xmp));
+                if (UltraHdr.declaresGainMap(xmp)) {
+                    ultraHdr = true;
+                }
+                if (UltraHdr.isGainMapOnlyXmp(xmp)) {
+                    kept.add(new Finding("ULTRA_HDR", null, size, Kind.OTHER));
+                } else {
+                    find("XMP", xmp, size, xmpKind(xmp));
+                }
             } else if (startsWith(data, ascii("http://ns.adobe.com/xmp/extension/\0"))) {
                 int start = Math.min(data.length, 35 + 32 + 8);
                 String xmp = new String(data, start, data.length - start, StandardCharsets.UTF_8);
@@ -565,7 +590,18 @@ public final class ImageContainerMetadata {
                 writeSegment(0xE2, chunk);
                 return;
             }
-            if (startsWith(data, ascii("MPF\0"))) {
+            if (startsWith(data, UltraHdr.ISO_ID)) {
+                // ISO 21496-1 gain map metadata: version numbers and curves, nothing else.
+                ultraHdr = true;
+                if (primaryIso == null && data.length <= UltraHdr.MAX_PRIMARY_ISO) {
+                    primaryIso = data.clone();
+                }
+                kept.add(new Finding("ULTRA_HDR", null, size, Kind.OTHER));
+            } else if (startsWith(data, ascii("MPF\0"))) {
+                // Withdrawn at the end of the picture if it only leads to a clean gain map.
+                if (findings.size() < MAX_FINDINGS) {
+                    mpfFinding = findings.size();
+                }
                 find("MULTI_PICTURE_INDEX", readable(data), size, Kind.OTHER);
             } else if (startsWith(data, ascii("FPXR\0"))) {
                 find("FLASHPIX_DATA", readable(data), size, Kind.OTHER);
@@ -653,6 +689,31 @@ public final class ImageContainerMetadata {
         /** Data after the end of the picture: extra images, videos, vendor trailers. */
         private void trailer(long start) throws IOException {
             long end = src.length;
+            long gainMapCleanEnd = -1;
+            if (ultraHdr && start + 3 <= end && src.at(start) == 0xFF && src.at(start + 1) == 0xD8
+                    && src.at(start + 2) == 0xFF) {
+                long gainMapEndAt = endOfEmbeddedJpeg(start, Math.min(end, start + TRAILER_PEEK));
+                if (out != null) {
+                    gainMapStart = start;
+                    gainMapEnd = gainMapEndAt;
+                } else if (gainMapIsClean(start, gainMapEndAt)) {
+                    kept.add(new Finding("ULTRA_HDR_GAIN_MAP", null, gainMapEndAt - start, Kind.OTHER));
+                    gainMapCleanEnd = gainMapEndAt;
+                }
+            }
+            if (gainMapCleanEnd >= 0 && mpfFinding >= 0) {
+                Finding index = findings.remove(mpfFinding);
+                kept.add(new Finding("ULTRA_HDR", null, index.bytes, Kind.OTHER));
+                // Extended XMP holds its place by index; those after the index move up one.
+                for (Map.Entry<String, Integer> entry : extendedXmpAt.entrySet()) {
+                    if (entry.getValue() > mpfFinding) {
+                        entry.setValue(entry.getValue() - 1);
+                    }
+                }
+            }
+            if (gainMapCleanEnd >= 0) {
+                start = gainMapCleanEnd; // whatever follows the gain map is still looked at
+            }
             if (start >= end || out != null) {
                 return; // a clean writes nothing past the end of the picture, so needs no description
             }
@@ -718,6 +779,56 @@ public final class ImageContainerMetadata {
                 find("DATA_AFTER_IMAGE", readableAt(start, Math.min(end - start, 64 * 1024)), end - start,
                         Kind.OTHER);
             }
+        }
+
+        /**
+         * Whether the Ultra HDR gain map between {@code start} and {@code end} holds nothing but its
+         * picture and what describes it: a JFIF header without a thumbnail, a colour profile, gain
+         * map XMP or ISO 21496-1 numbers, Adobe colour flags, and the coded picture.
+         */
+        private boolean gainMapIsClean(long start, long end) throws IOException {
+            long pos = start + 2;
+            while (pos + 2 <= end) {
+                if (src.at(pos) != 0xFF) {
+                    return false;
+                }
+                while (src.at(pos) == 0xFF) {
+                    pos++;
+                }
+                int marker = src.at(pos++);
+                if (marker == 0xD9) {
+                    return true;
+                }
+                if (marker == 0x00 || marker == 0x01 || marker == 0xD8 || (marker >= 0xD0 && marker <= 0xD7)) {
+                    return false;
+                }
+                int length = src.u16(pos);
+                long body = pos + 2;
+                long segmentEnd = pos + length;
+                if (length < 2 || segmentEnd > end) {
+                    return false;
+                }
+                boolean structural = (marker >= 0xC0 && marker <= 0xCF && marker != 0xC8)
+                        || marker == 0xDB || marker == 0xDD || marker == 0xDC || marker == 0xDE
+                        || marker == 0xDF || marker == 0xDA;
+                if (!structural) {
+                    byte[] data = src.read(body, Math.min(length - 2, 70_000));
+                    boolean describesPicture =
+                            (marker == 0xE0 && startsWith(data, ascii("JFIF\0")) && data.length >= 14
+                                    && (data[12] & 0xFF) * (data[13] & 0xFF) == 0)
+                            || (marker == 0xE2 && (startsWith(data, ascii("ICC_PROFILE\0"))
+                                    || startsWith(data, UltraHdr.ISO_ID)))
+                            || (marker == 0xE1 && startsWith(data, ascii("http://ns.adobe.com/xap/1.0/\0"))
+                                    && UltraHdr.isGainMapOnlyXmp(
+                                            new String(data, 29, data.length - 29, StandardCharsets.UTF_8)))
+                            || (marker == 0xEE && startsWith(data, ascii("Adobe")) && data.length == 12);
+                    if (!describesPicture) {
+                        return false;
+                    }
+                }
+                pos = marker == 0xDA ? entropyEnd(segmentEnd) : segmentEnd;
+            }
+            return false;
         }
 
         /**

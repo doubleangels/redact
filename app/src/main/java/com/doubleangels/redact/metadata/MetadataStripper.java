@@ -1284,6 +1284,11 @@ public class MetadataStripper {
                         if (tagName != null && !tagsToPreserve.contains(tagName)) {
                             // Try to get the attribute to see if it exists
                             String value = exif.getAttribute(tagName);
+                            if (ExifInterface.TAG_XMP.equals(tagName) && value != null
+                                    && UltraHdr.isGainMapOnlyXmp(value)) {
+                                // The Ultra HDR directory a clean wrote: removing it loses the HDR.
+                                continue;
+                            }
                             if (value != null) {
                                 // Remove the attribute by setting it to null
                                 exif.setAttribute(tagName, null);
@@ -1804,6 +1809,9 @@ public class MetadataStripper {
                     continue;
                 }
                 String value = exif.getAttribute(tag);
+                if (ExifInterface.TAG_XMP.equals(tag) && value != null && UltraHdr.isGainMapOnlyXmp(value)) {
+                    continue; // only the Ultra HDR gain map's numbers and directory
+                }
                 if (value != null && !value.isEmpty()) {
                     SentryManager.log("The app found a remaining metadata tag: " + tag + ".");
                     return false;
