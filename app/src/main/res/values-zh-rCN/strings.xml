@@ -165,9 +165,11 @@
     <string name="settings_auto_clear_temp">启动时清除缓存</string>
     <string name="settings_auto_clear_temp_subtitle">打开应用时删除超过 24 小时的处理缓存文件。</string>
     <string name="settings_preserve_camera">保留相机设置</string>
-    <string name="settings_preserve_camera_subtitle">在清理标签页保留光圈、快门速度、ISO 和相机品牌/型号。严格清理开启或从其他应用分享时忽略。</string>
+    <string name="settings_preserve_camera_subtitle">在清理标签页保留相机品牌/型号、光圈、快门速度、ISO、焦距、曝光、闪光灯和白平衡。严格清理开启或从其他应用分享时忽略。</string>
     <string name="settings_preserve_location">保留位置</string>
     <string name="settings_preserve_location_subtitle">在清理标签页保留 GPS 坐标。严格清理开启或从其他应用分享时忽略。</string>
+    <string name="settings_preserve_date">保留拍摄日期</string>
+    <string name="settings_preserve_date_subtitle">在清理标签页保留每张照片的拍摄时间，使其在相册中保持原有位置。严格清理开启或从其他应用分享时忽略。</string>
         <string name="settings_sentry_consent_allow">启用</string>
     <string name="settings_sentry_consent_cancel">暂不</string>
     <string name="settings_sentry_consent_title">启用崩溃报告</string>

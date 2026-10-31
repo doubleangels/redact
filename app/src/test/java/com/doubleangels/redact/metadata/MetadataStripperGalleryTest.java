@@ -144,6 +144,69 @@ public class MetadataStripperGalleryTest {
         assertNull(exif.getAttribute(ExifInterface.TAG_BODY_SERIAL_NUMBER));
     }
 
+    /** A photo with what phones write about exposure, colour and time. */
+    private File photoWithSettings() throws IOException {
+        File f = image(".jpg", Bitmap.CompressFormat.JPEG, true);
+        ExifInterface e = new ExifInterface(f.getAbsolutePath());
+        e.setAttribute(ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY, "41");
+        e.setAttribute(ExifInterface.TAG_FOCAL_LENGTH, "681/100");
+        e.setAttribute(ExifInterface.TAG_EXPOSURE_BIAS_VALUE, "0/1");
+        e.setAttribute(ExifInterface.TAG_FLASH, "16");
+        e.setAttribute(ExifInterface.TAG_WHITE_BALANCE, "0");
+        e.setAttribute(ExifInterface.TAG_COLOR_SPACE, "65535");
+        e.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, "2023:10:06 19:25:15");
+        e.setAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL, "+02:00");
+        e.saveAttributes();
+        return f;
+    }
+
+    @Test
+    public void jpeg_keepCameraSettings_keepsIsoFocalLengthAndTheRest() throws Exception {
+        AppPreferences.setStrictClean(app, false);
+        AppPreferences.setPreserveCameraSettings(app, true);
+        AppPreferences.setPreserveDateTaken(app, false);
+
+        assertNotNull(stripper.stripExifData(Uri.fromFile(photoWithSettings()), "trip.jpg"));
+
+        ExifInterface exif = new ExifInterface(FakeMediaStoreProvider.only().file.getAbsolutePath());
+        assertEquals("41", exif.getAttribute(ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY));
+        assertNotNull(exif.getAttribute(ExifInterface.TAG_FOCAL_LENGTH));
+        assertEquals("16", exif.getAttribute(ExifInterface.TAG_FLASH));
+        assertEquals("0", exif.getAttribute(ExifInterface.TAG_WHITE_BALANCE));
+        assertNull(exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL));
+        assertNull(exif.getAttribute(ExifInterface.TAG_BODY_SERIAL_NUMBER));
+        assertNull(exif.getLatLong());
+    }
+
+    @Test
+    public void jpeg_keepDateTaken_keepsWhenItWasTaken_andNothingElse() throws Exception {
+        AppPreferences.setStrictClean(app, false);
+        AppPreferences.setPreserveCameraSettings(app, false);
+        AppPreferences.setPreserveDateTaken(app, true);
+
+        assertNotNull(stripper.stripExifData(Uri.fromFile(photoWithSettings()), "trip.jpg"));
+
+        ExifInterface exif = new ExifInterface(FakeMediaStoreProvider.only().file.getAbsolutePath());
+        assertEquals("2023:10:06 19:25:15", exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL));
+        assertEquals("+02:00", exif.getAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL));
+        assertNull(exif.getAttribute(ExifInterface.TAG_MAKE));
+        assertNull(exif.getAttribute(ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY));
+        assertNull(exif.getLatLong());
+    }
+
+    @Test
+    public void jpeg_strict_keepsTheColourSpace_butNotTheDate() throws Exception {
+        AppPreferences.setStrictClean(app, true);
+        AppPreferences.setPreserveDateTaken(app, true); // ignored by Strict Clean
+
+        assertNotNull(stripper.stripExifData(Uri.fromFile(photoWithSettings()), "trip.jpg"));
+
+        ExifInterface exif = new ExifInterface(FakeMediaStoreProvider.only().file.getAbsolutePath());
+        assertEquals("65535", exif.getAttribute(ExifInterface.TAG_COLOR_SPACE));
+        assertNull(exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL));
+        assertNull(exif.getAttribute(ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY));
+    }
+
     @Test
     public void jpeg_strict_reportsEveryIdentifyingFieldAndTheLocation() throws Exception {
         AppPreferences.setStrictClean(app, true);

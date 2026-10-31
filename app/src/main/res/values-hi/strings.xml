@@ -169,9 +169,11 @@
     <string name="settings_auto_clear_temp">शुरू पर कैश साफ़ करें</string>
     <string name="settings_auto_clear_temp_subtitle">ऐप खोलने पर 24 घंटे से पुरानी प्रोसेसिंग कैश फ़ाइलें हटाता है।</string>
     <string name="settings_preserve_camera">कैमरा सेटिंग्स रखें</string>
-    <string name="settings_preserve_camera_subtitle">साफ़ करें टैब पर एपर्चर, शटर स्पीड, ISO और कैमरा मेक/मॉडल रखें। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर अनदेखा।</string>
+    <string name="settings_preserve_camera_subtitle">साफ़ करें टैब पर कैमरा मेक/मॉडल, एपर्चर, शटर स्पीड, ISO, फ़ोकल लंबाई, एक्सपोज़र, फ़्लैश और व्हाइट बैलेंस रखें। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर अनदेखा।</string>
     <string name="settings_preserve_location">स्थान रखें</string>
     <string name="settings_preserve_location_subtitle">साफ़ करें टैब पर GPS निर्देशांक रखें। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर अनदेखा।</string>
+    <string name="settings_preserve_date">खींचने की तारीख रखें</string>
+    <string name="settings_preserve_date_subtitle">साफ़ करें टैब पर हर फ़ोटो खींचने का समय रखें, ताकि वह गैलरी में अपनी जगह पर रहे। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर अनदेखा।</string>
         <string name="settings_sentry_consent_allow">सक्षम करें</string>
     <string name="settings_sentry_consent_cancel">अभी नहीं</string>
     <string name="settings_sentry_consent_title">क्रैश रिपोर्टिंग सक्षम करें</string>

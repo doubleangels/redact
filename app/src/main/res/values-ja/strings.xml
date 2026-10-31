@@ -166,9 +166,11 @@
     <string name="settings_auto_clear_temp">起動時にキャッシュをクリア</string>
     <string name="settings_auto_clear_temp_subtitle">アプリ起動時に24時間より古い処理キャッシュを削除します。</string>
     <string name="settings_preserve_camera">カメラ設定を保持</string>
-    <string name="settings_preserve_camera_subtitle">クリーンタブで絞り値、シャッター速度、ISO、カメラのメーカー/モデルを保持。厳密クリーン時や他アプリからの共有時は無視されます。</string>
+    <string name="settings_preserve_camera_subtitle">クリーンタブでカメラのメーカー/モデル、絞り値、シャッター速度、ISO、焦点距離、露出、フラッシュ、ホワイトバランスを保持。厳密クリーン時や他アプリからの共有時は無視されます。</string>
     <string name="settings_preserve_location">位置情報を保持</string>
     <string name="settings_preserve_location_subtitle">クリーンタブで GPS 座標を保持。厳密クリーン時や他アプリからの共有時は無視されます。</string>
+    <string name="settings_preserve_date">撮影日時を保持</string>
+    <string name="settings_preserve_date_subtitle">クリーンタブで各写真の撮影日時を保持し、ギャラリーでの並び順を保ちます。厳密クリーン時や他アプリからの共有時は無視されます。</string>
         <string name="settings_sentry_consent_allow">有効にする</string>
     <string name="settings_sentry_consent_cancel">後で</string>
     <string name="settings_sentry_consent_title">クラッシュレポートを有効にする</string>

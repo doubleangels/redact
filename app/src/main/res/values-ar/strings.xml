@@ -185,9 +185,11 @@
     <string name="settings_auto_clear_temp">مسح الذاكرة عند البدء</string>
     <string name="settings_auto_clear_temp_subtitle">يزيل ملفات ذاكرة المعالجة الأقدم من 24 ساعة عند فتح التطبيق.</string>
     <string name="settings_preserve_camera">الاحتفاظ بإعدادات الكاميرا</string>
-    <string name="settings_preserve_camera_subtitle">الاحتفاظ بالفتحة وسرعة الغالق وISO وماركة/طراز الكاميرا في تبويب التنظيف. يُتجاهل عند التنظيف الصارم أو عند المشاركة من تطبيقات أخرى.</string>
+    <string name="settings_preserve_camera_subtitle">الاحتفاظ بماركة/طراز الكاميرا والفتحة وسرعة الغالق وISO والبعد البؤري والتعريض والفلاش وتوازن الأبيض في تبويب التنظيف. يُتجاهل عند التنظيف الصارم أو عند المشاركة من تطبيقات أخرى.</string>
     <string name="settings_preserve_location">الاحتفاظ بالموقع</string>
     <string name="settings_preserve_location_subtitle">الاحتفاظ بإحداثيات GPS في تبويب التنظيف. يُتجاهل عند التنظيف الصارم أو عند المشاركة من تطبيقات أخرى.</string>
+    <string name="settings_preserve_date">الاحتفاظ بتاريخ الالتقاط</string>
+    <string name="settings_preserve_date_subtitle">الاحتفاظ بوقت التقاط كل صورة في تبويب التنظيف، لتبقى في مكانها في معرض الصور. يُتجاهل عند التنظيف الصارم أو عند المشاركة من تطبيقات أخرى.</string>
         <string name="settings_sentry_consent_allow">تفعيل</string>
     <string name="settings_sentry_consent_cancel">ليس الآن</string>
     <string name="settings_sentry_consent_title">تفعيل تقارير الأعطال</string>

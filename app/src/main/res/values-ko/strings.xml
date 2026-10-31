@@ -165,9 +165,11 @@
     <string name="settings_auto_clear_temp">시작 시 캐시 지우기</string>
     <string name="settings_auto_clear_temp_subtitle">앱을 열 때 24시간보다 오래된 처리 캐시 파일을 제거합니다.</string>
     <string name="settings_preserve_camera">카메라 설정 유지</string>
-    <string name="settings_preserve_camera_subtitle">정리 탭에서 조리개, 셔터 속도, ISO, 카메라 제조사/모델 유지. 엄격 정리 또는 다른 앱에서 공유 시 무시됩니다.</string>
+    <string name="settings_preserve_camera_subtitle">정리 탭에서 카메라 제조사/모델, 조리개, 셔터 속도, ISO, 초점 거리, 노출, 플래시, 화이트 밸런스 유지. 엄격 정리 또는 다른 앱에서 공유 시 무시됩니다.</string>
     <string name="settings_preserve_location">위치 정보 유지</string>
     <string name="settings_preserve_location_subtitle">정리 탭에서 GPS 좌표 유지. 엄격 정리 또는 다른 앱에서 공유 시 무시됩니다.</string>
+    <string name="settings_preserve_date">촬영 날짜 유지</string>
+    <string name="settings_preserve_date_subtitle">정리 탭에서 각 사진의 촬영 시각을 유지해 갤러리에서 제자리에 남게 합니다. 엄격 정리 또는 다른 앱에서 공유 시 무시됩니다.</string>
         <string name="settings_sentry_consent_allow">사용</string>
     <string name="settings_sentry_consent_cancel">나중에</string>
     <string name="settings_sentry_consent_title">크래시 보고 사용</string>

@@ -205,17 +205,23 @@ public class SettingsFragmentTest {
         assertFalse(AppPreferences.isStrictClean(activity));
         assertTrue(sw(R.id.switchPreserveCamera).isEnabled());
         assertTrue(sw(R.id.switchPreserveLocation).isEnabled());
+        assertTrue(sw(R.id.switchPreserveDate).isEnabled());
 
         sw(R.id.switchPreserveCamera).setChecked(true);
         assertTrue(AppPreferences.isPreserveCameraSettings(activity));
+        sw(R.id.switchPreserveDate).setChecked(true);
+        assertTrue(AppPreferences.isPreserveDateTaken(activity));
 
         strict.setChecked(true);
         idle();
         assertTrue(AppPreferences.isStrictClean(activity));
         assertFalse(AppPreferences.isPreserveCameraSettings(activity));
         assertFalse(AppPreferences.isPreserveLocation(activity));
+        assertFalse(AppPreferences.isPreserveDateTaken(activity));
         assertFalse(sw(R.id.switchPreserveCamera).isEnabled());
         assertFalse(sw(R.id.switchPreserveLocation).isEnabled());
+        assertFalse(sw(R.id.switchPreserveDate).isEnabled());
+        assertFalse(sw(R.id.switchPreserveDate).isChecked());
         assertEquals(0.38f, settings.findViewById(R.id.rowPreserveCamera).getAlpha(), 0.001f);
     }
 

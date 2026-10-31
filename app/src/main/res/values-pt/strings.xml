@@ -173,9 +173,11 @@
     <string name="settings_auto_clear_temp">Limpar Cache ao Iniciar</string>
     <string name="settings_auto_clear_temp_subtitle">Remove arquivos de cache de processamento com mais de 24 horas ao abrir o app.</string>
     <string name="settings_preserve_camera">Manter Configurações da Câmera</string>
-    <string name="settings_preserve_camera_subtitle">Manter abertura, velocidade do obturador, ISO e marca/modelo da câmera em Limpar. Ignorado com Limpeza Rigorosa ou ao compartilhar de outros apps.</string>
+    <string name="settings_preserve_camera_subtitle">Manter marca/modelo da câmera, abertura, velocidade do obturador, ISO, distância focal, exposição, flash e balanço de branco em Limpar. Ignorado com Limpeza Rigorosa ou ao compartilhar de outros apps.</string>
     <string name="settings_preserve_location">Manter Localização</string>
     <string name="settings_preserve_location_subtitle">Manter coordenadas GPS em Limpar. Ignorado com Limpeza Rigorosa ou ao compartilhar de outros apps.</string>
+    <string name="settings_preserve_date">Manter Data da Foto</string>
+    <string name="settings_preserve_date_subtitle">Manter quando cada foto foi tirada em Limpar, para que continue no lugar certo na galeria. Ignorado com Limpeza Rigorosa ou ao compartilhar de outros apps.</string>
         <string name="settings_sentry_consent_allow">Ativar</string>
     <string name="settings_sentry_consent_cancel">Agora Não</string>
     <string name="settings_sentry_consent_title">Ativar Relatórios de Falha</string>

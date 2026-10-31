@@ -173,9 +173,11 @@
     <string name="settings_auto_clear_temp">Vider le Cache au Démarrage</string>
     <string name="settings_auto_clear_temp_subtitle">Supprime les fichiers cache de traitement de plus de 24 heures à l\'ouverture de l\'app.</string>
     <string name="settings_preserve_camera">Conserver les Réglages Photo</string>
-    <string name="settings_preserve_camera_subtitle">Conserver ouverture, vitesse d\'obturation, ISO et marque/modèle appareil photo dans Nettoyer. Ignoré avec Nettoyage Strict ou lors d\'un partage depuis d\'autres apps.</string>
+    <string name="settings_preserve_camera_subtitle">Conserver marque/modèle appareil photo, ouverture, vitesse d\'obturation, ISO, focale, exposition, flash et balance des blancs dans Nettoyer. Ignoré avec Nettoyage Strict ou lors d\'un partage depuis d\'autres apps.</string>
     <string name="settings_preserve_location">Conserver la Position</string>
     <string name="settings_preserve_location_subtitle">Conserver les coordonnées GPS dans Nettoyer. Ignoré avec Nettoyage Strict ou lors d\'un partage depuis d\'autres apps.</string>
+    <string name="settings_preserve_date">Conserver la Date de Prise de Vue</string>
+    <string name="settings_preserve_date_subtitle">Conserver la date de prise de vue de chaque photo dans Nettoyer, pour qu\'elle reste à sa place dans la galerie. Ignoré avec Nettoyage Strict ou lors d\'un partage depuis d\'autres apps.</string>
         <string name="settings_sentry_consent_allow">Activer</string>
     <string name="settings_sentry_consent_cancel">Pas Maintenant</string>
     <string name="settings_sentry_consent_title">Activer les Rapports de Plantage</string>

@@ -169,9 +169,11 @@
     <string name="settings_auto_clear_temp">Cache beim Start Leeren</string>
     <string name="settings_auto_clear_temp_subtitle">Entfernt Verarbeitungs-Cache-Dateien älter als 24 Stunden beim App-Start.</string>
     <string name="settings_preserve_camera">Kameraeinstellungen Behalten</string>
-    <string name="settings_preserve_camera_subtitle">Blende, Verschlusszeit, ISO und Kameramarke/-modell auf Bereinigen behalten. Ignoriert bei Strikter Bereinigung oder beim Teilen aus anderen Apps.</string>
+    <string name="settings_preserve_camera_subtitle">Kameramarke/-modell, Blende, Verschlusszeit, ISO, Brennweite, Belichtung, Blitz und Weißabgleich auf Bereinigen behalten. Ignoriert bei Strikter Bereinigung oder beim Teilen aus anderen Apps.</string>
     <string name="settings_preserve_location">Standort Behalten</string>
     <string name="settings_preserve_location_subtitle">GPS-Koordinaten auf Bereinigen behalten. Ignoriert bei Strikter Bereinigung oder beim Teilen aus anderen Apps.</string>
+    <string name="settings_preserve_date">Aufnahmedatum Behalten</string>
+    <string name="settings_preserve_date_subtitle">Aufnahmezeitpunkt jedes Fotos auf Bereinigen behalten, damit es in der Galerie an seiner Stelle bleibt. Ignoriert bei Strikter Bereinigung oder beim Teilen aus anderen Apps.</string>
         <string name="settings_sentry_consent_allow">Aktivieren</string>
     <string name="settings_sentry_consent_cancel">Nicht Jetzt</string>
     <string name="settings_sentry_consent_title">Absturzberichte Aktivieren</string>

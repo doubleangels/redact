@@ -208,7 +208,7 @@ Redact always keeps as much of the original as it can. Where it can, it rebuilds
 
 **Faster Video Cleaning.** When this setting is on and Strict Clean is off, an H.264 or H.265 video is copied into a new MP4, and a VP8 or VP9 video into a new WebM, without encoding it again, so the picture and sound are identical. Shared videos never use this. Redact only does this when the video stream has no data hidden inside it, and otherwise encodes it as above.
 
-**What is kept from EXIF.** Orientation is always kept. With Strict Clean off, camera settings and location can be kept too (see Settings). This only works for JPEG, PNG and WebP. HEIC, AVIF and GIF can't take tags back, so they keep no EXIF at all, and HEIC and AVIF keep their orientation in their own rotation box instead. Shared files always keep only their orientation.
+**What is kept from EXIF.** Orientation and color space are always kept, because they only say how to show the picture. Color space matters for cameras that mark Adobe RGB photos with tags instead of an embedded color profile, which would otherwise look washed out. With Strict Clean off, camera settings, location and the date taken can be kept too (see Settings). This only works for JPEG, PNG and WebP. HEIC, AVIF and GIF can't take tags back, so they keep no EXIF at all, and HEIC and AVIF keep their orientation in their own rotation box instead. Shared files always keep only their orientation and color space.
 
 **When a rebuild can't be done.** A damaged file or an unusual layout can't always be rebuilt. Then the picture is decoded at full resolution and saved again in the same format if Android can save it, as PNG for a GIF, and as a high-quality JPEG otherwise. The new file is named for what it really is.
 
@@ -226,9 +226,10 @@ The Settings tab puts the settings you use every day first: cleaning, sharing, C
 
 | Setting | What it does |
 |---|---|
-| **Strict Clean** | Removes every trace of metadata, even the orientation tag (a rotated photo may look sideways afterward), turns off the keep options, and always fully re-encodes video for the most thorough clean. |
-| **Keep Camera Settings** | Keeps aperture, shutter speed, ISO and camera make/model on the Clean tab. Ignored with Strict Clean and for shared-in files. |
-| **Keep Location** | Keeps GPS coordinates on the Clean tab (confirmation required; off by default). Ignored with Strict Clean and for shared-in files, which always lose location. |
+| **Strict Clean** | Removes all metadata except the few tags that only say how to show the picture (orientation and color space), turns off the keep options, and always fully re-encodes video for the most thorough clean. |
+| **Keep Camera Settings** | Keeps camera make and model, aperture, shutter speed, ISO, focal length, exposure compensation, exposure program and mode, metering mode, flash and white balance on the Clean tab. Ignored with Strict Clean and for shared-in files. |
+| **Keep Location** | Keeps GPS coordinates on the Clean tab (confirmation required, off by default). Ignored with Strict Clean and for shared-in files, which always lose location. |
+| **Keep Date Taken** | Keeps when each photo was taken, with its time zone, on the Clean tab, so cleaned photos stay in their place in your gallery instead of showing up as taken today. Off by default. Ignored with Strict Clean and for shared-in files. |
 | **Faster Video Cleaning** | When a video is already in a compatible format, strips its metadata with a quick pass instead of re-encoding. Faster and lighter on battery; a full re-encode removes a touch more. Turned off automatically with Strict Clean and for shared-in files. |
 
 **Before & After Cleaning**

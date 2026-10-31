@@ -81,6 +81,7 @@ public class SettingsFragment extends TabFragment {
     private MaterialSwitch switchSecureWindow;
     private MaterialSwitch switchPreserveCamera;
     private MaterialSwitch switchPreserveLocation;
+    private MaterialSwitch switchPreserveDate;
     private MaterialSwitch switchAutoClearTemp;
     private MaterialSwitch switchVideoFallback;
     private MaterialAutoCompleteTextView dropdownSecureDelete;
@@ -187,6 +188,7 @@ public class SettingsFragment extends TabFragment {
         switchSecureWindow = view.findViewById(R.id.switchSecureWindow);
         switchPreserveCamera = view.findViewById(R.id.switchPreserveCamera);
         switchPreserveLocation = view.findViewById(R.id.switchPreserveLocation);
+        switchPreserveDate = view.findViewById(R.id.switchPreserveDate);
         switchAutoClearTemp = view.findViewById(R.id.switchAutoClearTemp);
         switchVideoFallback = view.findViewById(R.id.switchVideoFallback);
         dropdownSecureDelete = view.findViewById(R.id.dropdownSecureDelete);
@@ -309,6 +311,7 @@ public class SettingsFragment extends TabFragment {
                 index -> AppPreferences.setClipboardClearSeconds(requireContext(), clearOptions[index]));
         switchPreserveCamera.setChecked(AppPreferences.isPreserveCameraSettings(requireContext()));
         switchPreserveLocation.setChecked(AppPreferences.isPreserveLocation(requireContext()));
+        switchPreserveDate.setChecked(AppPreferences.isPreserveDateTaken(requireContext()));
         switchAutoClearTemp.setChecked(AppPreferences.isAutoClearTempFiles(requireContext()));
         switchVideoFallback.setChecked(AppPreferences.isVideoFallbackCopy(requireContext()));
 
@@ -319,12 +322,16 @@ public class SettingsFragment extends TabFragment {
             if (isChecked) {
                 AppPreferences.setPreserveCameraSettings(requireContext(), false);
                 AppPreferences.setPreserveLocation(requireContext(), false);
+                AppPreferences.setPreserveDateTaken(requireContext(), false);
             }
             updatePreservationTogglesState(isChecked);
         });
 
         switchPreserveCamera.setOnCheckedChangeListener((btn, isChecked) ->
                 AppPreferences.setPreserveCameraSettings(requireContext(), isChecked));
+
+        switchPreserveDate.setOnCheckedChangeListener((btn, isChecked) ->
+                AppPreferences.setPreserveDateTaken(requireContext(), isChecked));
 
         switchPreserveLocation.setOnCheckedChangeListener((btn, isChecked) -> {
             if (suppressPreserveLocationToggleCallback) {
@@ -377,6 +384,7 @@ public class SettingsFragment extends TabFragment {
         
         switchPreserveCamera.setEnabled(enabled);
         switchPreserveLocation.setEnabled(enabled);
+        switchPreserveDate.setEnabled(enabled);
         
         // A disabled row shows no ripple when tapped, as its switch does nothing.
         View rowCamera = getView().findViewById(R.id.rowPreserveCamera);
@@ -390,10 +398,17 @@ public class SettingsFragment extends TabFragment {
             rowLocation.setAlpha(alpha);
             rowLocation.setEnabled(enabled);
         }
+
+        View rowDate = getView().findViewById(R.id.rowPreserveDate);
+        if (rowDate != null) {
+            rowDate.setAlpha(alpha);
+            rowDate.setEnabled(enabled);
+        }
         
         if (strictClean) {
             switchPreserveCamera.setChecked(false);
             switchPreserveLocation.setChecked(false);
+            switchPreserveDate.setChecked(false);
         }
     }
 

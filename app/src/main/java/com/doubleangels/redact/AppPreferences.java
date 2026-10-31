@@ -30,6 +30,7 @@ public final class AppPreferences {
     private static final String KEY_AUTO_CLEAR_TEMP_FILES = "auto_clear_temp_files";
     private static final String KEY_PRESERVE_CAMERA_SETTINGS = "preserve_camera_settings";
     private static final String KEY_PRESERVE_LOCATION = "preserve_location";
+    private static final String KEY_PRESERVE_DATE_TAKEN = "preserve_date_taken";
     private static final String KEY_STRICT_CLEAN = "strict_clean";
     private static final String KEY_WARN_ALREADY_CLEAN = "warn_already_clean";
     private static final String KEY_SECURE_WINDOW = "secure_window";
@@ -231,6 +232,15 @@ public final class AppPreferences {
 
     public static void setPreserveCameraSettings(@NonNull Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_PRESERVE_CAMERA_SETTINGS, enabled).apply();
+    }
+
+    /** Whether a clean keeps when a photo was taken, so galleries still sort it by that date. */
+    public static boolean isPreserveDateTaken(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_PRESERVE_DATE_TAKEN, false);
+    }
+
+    public static void setPreserveDateTaken(@NonNull Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_PRESERVE_DATE_TAKEN, enabled).apply();
     }
 
     public static boolean isPreserveLocation(@NonNull Context context) {

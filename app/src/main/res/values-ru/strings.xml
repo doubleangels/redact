@@ -177,9 +177,11 @@
     <string name="settings_auto_clear_temp">Очищать Кэш при Запуске</string>
     <string name="settings_auto_clear_temp_subtitle">Удаляет файлы кэша обработки старше 24 часов при запуске приложения.</string>
     <string name="settings_preserve_camera">Сохранять Настройки Камеры</string>
-    <string name="settings_preserve_camera_subtitle">Сохранять диафрагму, выдержку, ISO и марку/модель камеры на Очистке. Игнорируется при Строгой Очистке или при отправке из других приложений.</string>
+    <string name="settings_preserve_camera_subtitle">Сохранять марку/модель камеры, диафрагму, выдержку, ISO, фокусное расстояние, экспозицию, вспышку и баланс белого на Очистке. Игнорируется при Строгой Очистке или при отправке из других приложений.</string>
     <string name="settings_preserve_location">Сохранять Местоположение</string>
     <string name="settings_preserve_location_subtitle">Сохранять GPS-координаты на Очистке. Игнорируется при Строгой Очистке или при отправке из других приложений.</string>
+    <string name="settings_preserve_date">Сохранять Дату Съёмки</string>
+    <string name="settings_preserve_date_subtitle">Сохранять время съёмки каждого фото на Очистке, чтобы оно оставалось на своём месте в галерее. Игнорируется при Строгой Очистке или при отправке из других приложений.</string>
         <string name="settings_sentry_consent_allow">Включить</string>
     <string name="settings_sentry_consent_cancel">Не Сейчас</string>
     <string name="settings_sentry_consent_title">Включить Отчёты о Сбоях</string>

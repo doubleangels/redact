@@ -1451,14 +1451,8 @@ public class MetadataStripper {
 
     /** EXIF tags a clean keeps for the current settings; shared with {@link AlreadyCleanCheck}. */
     static List<String> tagsToPreserve(@NonNull Context context, boolean forSharing) {
-        if (forSharing) {
-            return List.of(ExifInterface.TAG_ORIENTATION);
-        }
-
-        List<String> tags = new java.util.ArrayList<>();
-        tags.add(ExifInterface.TAG_ORIENTATION);
-
-        if (AppPreferences.isStrictClean(context)) {
+        List<String> tags = new java.util.ArrayList<>(ALWAYS_KEPT_TAGS);
+        if (forSharing || AppPreferences.isStrictClean(context)) {
             return tags;
         }
 
@@ -1470,7 +1464,31 @@ public class MetadataStripper {
                     ExifInterface.TAG_F_NUMBER,
                     ExifInterface.TAG_SHUTTER_SPEED_VALUE,
                     ExifInterface.TAG_EXPOSURE_TIME,
-                    ExifInterface.TAG_ISO_SPEED
+                    // Phones write ISO here; ISOSpeed (0x8833) is a rarely used refinement.
+                    ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY,
+                    ExifInterface.TAG_ISO_SPEED,
+                    // The same tag under its old name, which reads back the same value, so the
+                    // check after a clean would otherwise count the kept ISO as left behind.
+                    ExifInterface.TAG_ISO_SPEED_RATINGS,
+                    ExifInterface.TAG_FOCAL_LENGTH,
+                    ExifInterface.TAG_FOCAL_LENGTH_IN_35MM_FILM,
+                    ExifInterface.TAG_EXPOSURE_BIAS_VALUE,
+                    ExifInterface.TAG_EXPOSURE_PROGRAM,
+                    ExifInterface.TAG_EXPOSURE_MODE,
+                    ExifInterface.TAG_METERING_MODE,
+                    ExifInterface.TAG_FLASH,
+                    ExifInterface.TAG_WHITE_BALANCE
+            ));
+        }
+
+        if (AppPreferences.isPreserveDateTaken(context)) {
+            tags.addAll(List.of(
+                    ExifInterface.TAG_DATETIME_ORIGINAL,
+                    ExifInterface.TAG_OFFSET_TIME_ORIGINAL,
+                    ExifInterface.TAG_SUBSEC_TIME_ORIGINAL,
+                    // ExifInterface writes DateTime from DateTimeOriginal when it saves.
+                    ExifInterface.TAG_DATETIME,
+                    ExifInterface.TAG_OFFSET_TIME
             ));
         }
 
@@ -1489,6 +1507,17 @@ public class MetadataStripper {
 
         return tags;
     }
+
+    /**
+     * Tags every clean keeps, shares and Strict Clean included: they describe how to show the
+     * picture and say nothing about who took it or where. Orientation turns it upright, and
+     * ColorSpace with the interoperability index ("R03") is how cameras without an embedded
+     * profile say a photo is in Adobe RGB; without them it is shown as sRGB, washed out.
+     */
+    static final List<String> ALWAYS_KEPT_TAGS = List.of(
+            ExifInterface.TAG_ORIENTATION,
+            ExifInterface.TAG_COLOR_SPACE,
+            ExifInterface.TAG_INTEROPERABILITY_INDEX);
 
     /** Source location/date used to detect preserved privacy metadata after cleaning. */
     @androidx.annotation.VisibleForTesting

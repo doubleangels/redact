@@ -165,9 +165,11 @@
     <string name="settings_auto_clear_temp">啟動時清除快取</string>
     <string name="settings_auto_clear_temp_subtitle">開啟應用程式時刪除超過 24 小時的處理快取檔案。</string>
     <string name="settings_preserve_camera">保留相機設定</string>
-    <string name="settings_preserve_camera_subtitle">在清理分頁保留光圈、快門速度、ISO 與相機品牌/型號。嚴格清理開啟或從其他 App 分享時忽略。</string>
+    <string name="settings_preserve_camera_subtitle">在清理分頁保留相機品牌/型號、光圈、快門速度、ISO、焦距、曝光、閃光燈與白平衡。嚴格清理開啟或從其他 App 分享時忽略。</string>
     <string name="settings_preserve_location">保留位置</string>
     <string name="settings_preserve_location_subtitle">在清理分頁保留 GPS 座標。嚴格清理開啟或從其他 App 分享時忽略。</string>
+    <string name="settings_preserve_date">保留拍攝日期</string>
+    <string name="settings_preserve_date_subtitle">在清理分頁保留每張相片的拍攝時間，讓它在相簿中維持原本的位置。嚴格清理開啟或從其他 App 分享時忽略。</string>
         <string name="settings_sentry_consent_allow">啟用</string>
     <string name="settings_sentry_consent_cancel">暫不</string>
     <string name="settings_sentry_consent_title">啟用當機報告</string>
