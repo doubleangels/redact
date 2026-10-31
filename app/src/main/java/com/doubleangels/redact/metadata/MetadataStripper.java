@@ -1889,7 +1889,8 @@ public class MetadataStripper {
     /**
      * Writes {@code source}'s picture to {@code target} and nothing else. A JPEG, PNG or WebP in
      * the expected format is rebuilt from its own segments without anything that is not the
-     * picture, which keeps its quality ({@link ImageContainerMetadata#sanitize}). Anything else,
+     * picture, which keeps its quality ({@link ImageContainerMetadata#sanitize}), and a HEIC is
+     * rebuilt around its coded pictures the same way ({@link HeifContainerMetadata#sanitize}). Anything else,
      * or a file whose structure cannot be followed, is decoded and re-encoded from its pixels, and
      * a re-encoded JPEG, PNG or WebP is then rebuilt the same way, so whatever the encoder added
      * goes too. EXIF is gone either way; the caller puts back the tags the settings keep.
@@ -1906,6 +1907,17 @@ public class MetadataStripper {
                 MediaSizeLimits.copyStream(in, out);
             }
             return;
+        }
+        if (".heic".equalsIgnoreCase(outputFormat.extension) && HeifContainerMetadata.isHeif(source)) {
+            // Rebuilt around its coded pictures, which keeps the full resolution, 10-bit colour
+            // and any HDR gain map that a decode and encode would lose.
+            try {
+                HeifContainerMetadata.sanitize(source, target);
+                return;
+            } catch (IOException | RuntimeException e) {
+                SentryManager.log("The HEIC could not be rebuilt without its metadata, so the app is re-encoding it: "
+                        + e.getMessage() + ".");
+            }
         }
         if (expected != ImageContainerMetadata.Format.OTHER
                 && ImageContainerMetadata.sniff(source) == expected) {
