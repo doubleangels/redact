@@ -720,7 +720,7 @@ public class MetadataStripper {
      * sharing.
      *
      * This method:
-     * 1. Transcodes to H.264/AAC MP4 in cache (or direct copy if transcoding fails)
+     * 1. Transcodes to an MP4 in the source's own codec in cache
      * 2. Reports progress during processing
      * 3. Returns a FileProvider URI for sharing the processed video
      *
@@ -754,9 +754,11 @@ public class MetadataStripper {
                 }
             }
 
-            // Shared videos are always H.264, which every app they go to can play. A share always
-            // re-encodes (a transmux keeps what is inside the stream), straight from the source.
-            int formatIndex = VideoMedia3Converter.FORMAT_STRIP_METADATA;
+            // Shared videos keep the source's codec, as Clean does, so HEVC keeps its quality and
+            // HDR rather than being squeezed into H.264. VideoMedia3Converter still falls back to
+            // H.264 when the device can't encode it. A share always re-encodes (a transmux keeps
+            // what is inside the stream), straight from the source.
+            int formatIndex = detectVideoFormatIndex(sourceUri, originalFilename);
             String newFilename = generateShortRandomName() + VideoMedia3Converter.TRANSCODE_EXTENSION;
             outputFile = new File(outputDir, newFilename);
 
