@@ -18,6 +18,7 @@ import androidx.media3.common.MediaItem;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.util.Clock;
+import androidx.media3.effect.FrameDropEffect;
 import androidx.media3.effect.Presentation;
 import androidx.media3.muxer.BufferInfo;
 import androidx.media3.muxer.Muxer;
@@ -46,6 +47,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -98,7 +100,14 @@ public final class VideoMedia3Converter {
     private static final long MAX_SAMPLE_GAP_UNRATED_MS = Math.max(MAX_SAMPLE_GAP_MS, 20_000L);
 
     /** Output short sides tried, largest first, when the encoder rejects the source resolution. */
-    private static final int[] FALLBACK_SHORT_SIDES = {1080, 720, 480};
+    private static final int[] FALLBACK_SHORT_SIDES = {1440, 1080, 720, 480};
+
+    /**
+     * Frame rates an export may be capped to, highest first, when the hardware encoder declares no
+     * support for the source's. Nothing below 24 is used: a video that slow is worse than a smaller
+     * one.
+     */
+    private static final int[] FRAME_RATE_STEPS = {60, 50, 48, 30, 25, 24};
 
     private static final AtomicReference<Transformer> activeTransformer = new AtomicReference<>();
     /** Owner id of the flow that started the active export; -1 when idle. */
@@ -164,9 +173,16 @@ public final class VideoMedia3Converter {
     @VisibleForTesting
     static final class AlwaysEncodeFactory implements Codec.EncoderFactory {
         private final Codec.EncoderFactory delegate;
+        /** The frame rate the video encoder is configured for at most; 0 for the source's. */
+        private final int maxFrameRate;
 
         AlwaysEncodeFactory(@NonNull Codec.EncoderFactory delegate) {
+            this(delegate, 0);
+        }
+
+        AlwaysEncodeFactory(@NonNull Codec.EncoderFactory delegate, int maxFrameRate) {
             this.delegate = delegate;
+            this.maxFrameRate = maxFrameRate;
         }
 
         @Override
@@ -178,6 +194,11 @@ public final class VideoMedia3Converter {
         @Override
         public Codec createForVideoEncoding(Format format, @Nullable LogSessionId logSessionId)
                 throws ExportException {
+            // Media3 configures the encoder for the source's frame rate even when frames are
+            // dropped before it, which would ask the hardware for the rate it can't sustain.
+            if (maxFrameRate > 0 && format.frameRate > maxFrameRate) {
+                format = format.buildUpon().setFrameRate(maxFrameRate).build();
+            }
             return delegate.createForVideoEncoding(format, logSessionId);
         }
 
@@ -328,8 +349,9 @@ public final class VideoMedia3Converter {
         Context app = context.getApplicationContext();
         // Read once: every codec and size attempt below would otherwise open the source again.
         boolean hasAudio = sourceHasAudio(app, sourceUri);
+        SourceVideo source = readSourceVideo(app, sourceUri);
         com.doubleangels.redact.sentry.SentryManager.log(
-                "The app is transcoding a " + describeVideoTrack(app, sourceUri) + " video.");
+                "The app is transcoding a " + source.describe() + " video.");
 
         IOException lastFailure = null;
         for (int attemptIndex : encoderFallbackOrder(formatIndex)) {
@@ -344,7 +366,8 @@ public final class VideoMedia3Converter {
                         hdrModeForMp4VideoMime(videoMime),
                         progressListener,
                         ownerId,
-                        hasAudio);
+                        hasAudio,
+                        source);
                 return attemptIndex;
             } catch (UnsupportedMediaException e) {
                 // The source itself can't be read; another output codec won't change that.
@@ -361,10 +384,14 @@ public final class VideoMedia3Converter {
     }
 
     /**
-     * Runs one export at the source resolution and, if the encoder can't be configured for that
-     * size or the codecs stall on it, retries at progressively smaller standard sizes. Media3 sizes
-     * the encoder itself, but for some uncommon resolutions its fallback search throws instead of
-     * picking a smaller size ("unsupported width" from {@code MediaCodecInfo.VideoCapabilities}).
+     * Runs one export at the size and frame rate the hardware encoder declares it supports, as
+     * close to the source's as it allows, and if the encoder can't be configured for that size or
+     * the codecs stall on it, retries at progressively smaller standard sizes. Media3 sizes the
+     * encoder itself, but for some uncommon resolutions its fallback search throws instead of
+     * picking a smaller size ("unsupported width" from {@code MediaCodecInfo.VideoCapabilities}),
+     * and it never checks the frame rate: a 4K60 source was sent to a Snapdragon 778G+ encoder
+     * as 4K60, which hung it or got it released mid-export (REDACT-25, REDACT-26, REDACT-28,
+     * REDACT-29).
      */
     private static void transcodeWithResolutionFallback(
             @NonNull Context app,
@@ -374,15 +401,35 @@ public final class VideoMedia3Converter {
             int hdrMode,
             @Nullable TranscodeProgressListener progressListener,
             long ownerId,
-            boolean hasAudio)
+            boolean hasAudio,
+            @NonNull SourceVideo source)
             throws IOException, InterruptedException {
+        @Nullable SizeRateSupport support = hardwareEncoderSupport(videoMimeType);
+        int[] plan = support != null
+                ? planOutput(source.width, source.height, source.frameRate, support)
+                : new int[] {0, 0};
+        if (plan[0] > 0 || plan[1] > 0) {
+            com.doubleangels.redact.sentry.SentryManager.log(
+                    "The hardware " + videoMimeType + " encoder doesn't support " + source.describe()
+                            + ", so the app is exporting at "
+                            + (plan[0] > 0 ? plan[0] + "p" : "full size")
+                            + (plan[1] > 0 ? " and " + plan[1] + "fps." : "."));
+        }
         try {
             transcodeToPathOnce(
-                    app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, ownerId, 0,
-                    hasAudio);
+                    app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, ownerId,
+                    plan[0], plan[1], hasAudio);
+            if (plan[0] > 0) {
+                warnDownscaled(app, plan[0]);
+            }
         } catch (RetryAtSmallerSizeException e) {
             IOException lastFailure = e;
-            for (int shortSide : fallbackShortSides(readSourceShortSide(app, sourceUri))) {
+            int triedShortSide = plan[0] > 0 ? plan[0] : source.shortSide();
+            for (int shortSide : fallbackShortSides(triedShortSide)) {
+                int frameRate = support != null
+                        ? frameRateAtShortSide(
+                                source.width, source.height, source.frameRate, shortSide, support)
+                        : 0;
                 try {
                     transcodeToPathOnce(
                             app,
@@ -393,6 +440,7 @@ public final class VideoMedia3Converter {
                             progressListener,
                             ownerId,
                             shortSide,
+                            frameRate,
                             hasAudio);
                     warnDownscaled(app, shortSide);
                     return;
@@ -404,6 +452,136 @@ public final class VideoMedia3Converter {
         }
     }
 
+    /** Whether an encoder supports a landscape output size at a frame rate. */
+    @VisibleForTesting
+    interface SizeRateSupport {
+        boolean supports(int width, int height, int frameRate);
+    }
+
+    /**
+     * The output for a {@code width}x{@code height} source at {@code frameRate}, as
+     * {@code {shortSide, frameRate}} where 0 keeps the source's. When the encoder supports the
+     * source as it is, nothing changes. Otherwise it is whichever keeps more of the source's pixels
+     * per second: the source size at the highest frame rate the encoder supports there, or the
+     * source frame rate at the largest standard size it supports. When the source is unknown or
+     * neither fits, nothing changes and the export runs as before.
+     */
+    @VisibleForTesting
+    @NonNull
+    static int[] planOutput(int width, int height, int frameRate, @NonNull SizeRateSupport support) {
+        int[] keep = {0, 0};
+        if (width <= 0 || height <= 0 || frameRate <= 0) {
+            return keep;
+        }
+        int longSide = Math.max(width, height);
+        int shortSide = Math.min(width, height);
+        if (support.supports(longSide, shortSide, frameRate)) {
+            return keep;
+        }
+        int cappedRate = highestSupportedFrameRate(longSide, shortSide, frameRate, support);
+        long keepSizePixelRate = (long) longSide * shortSide * cappedRate;
+
+        int keepRateSide = 0;
+        long keepRatePixelRate = 0;
+        for (int side : fallbackShortSides(shortSide)) {
+            int scaledLong = scaledLongSide(longSide, shortSide, side);
+            if (support.supports(scaledLong, side, frameRate)) {
+                keepRateSide = side;
+                keepRatePixelRate = (long) scaledLong * side * frameRate;
+                break;
+            }
+        }
+        if (keepSizePixelRate == 0 && keepRatePixelRate == 0) {
+            return keep;
+        }
+        return keepSizePixelRate >= keepRatePixelRate
+                ? new int[] {0, cappedRate}
+                : new int[] {keepRateSide, 0};
+    }
+
+    /**
+     * The frame rate for an export scaled to {@code targetShortSide}: 0 (the source's) when the
+     * encoder supports it at that size, else the highest supported step below it, else 0 to let
+     * the export try anyway.
+     */
+    @VisibleForTesting
+    static int frameRateAtShortSide(
+            int width, int height, int frameRate, int targetShortSide,
+            @NonNull SizeRateSupport support) {
+        if (width <= 0 || height <= 0 || frameRate <= 0) {
+            return 0;
+        }
+        int longSide = scaledLongSide(Math.max(width, height), Math.min(width, height), targetShortSide);
+        if (support.supports(longSide, targetShortSide, frameRate)) {
+            return 0;
+        }
+        return highestSupportedFrameRate(longSide, targetShortSide, frameRate, support);
+    }
+
+    /** The highest of {@link #FRAME_RATE_STEPS} below {@code frameRate} supported, or 0. */
+    private static int highestSupportedFrameRate(
+            int longSide, int shortSide, int frameRate, @NonNull SizeRateSupport support) {
+        for (int step : FRAME_RATE_STEPS) {
+            if (step < frameRate && support.supports(longSide, shortSide, step)) {
+                return step;
+            }
+        }
+        return 0;
+    }
+
+    /** The long side after scaling the short side to {@code targetShortSide}, kept even. */
+    private static int scaledLongSide(int longSide, int shortSide, int targetShortSide) {
+        int scaled = (int) Math.round((double) longSide * targetShortSide / shortSide);
+        return scaled + (scaled & 1);
+    }
+
+    /**
+     * What the hardware encoder Media3 picks for {@code mimeType} supports, or null when there is
+     * none or it can't be read. Media3 uses the device's first hardware encoder for a type; the
+     * vendor's performance points are what it guarantees, and the plain size and rate limits are
+     * the fallback for codecs that declare none.
+     */
+    @Nullable
+    private static SizeRateSupport hardwareEncoderSupport(@NonNull String mimeType) {
+        try {
+            for (android.media.MediaCodecInfo info :
+                    new android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS)
+                            .getCodecInfos()) {
+                if (!info.isEncoder() || !info.isHardwareAccelerated()
+                        || !Arrays.asList(info.getSupportedTypes()).contains(mimeType)) {
+                    continue;
+                }
+                android.media.MediaCodecInfo.VideoCapabilities caps =
+                        info.getCapabilitiesForType(mimeType).getVideoCapabilities();
+                if (caps == null) {
+                    return null;
+                }
+                List<android.media.MediaCodecInfo.VideoCapabilities.PerformancePoint> points =
+                        caps.getSupportedPerformancePoints();
+                if (points != null && !points.isEmpty()) {
+                    return (width, height, frameRate) -> {
+                        android.media.MediaCodecInfo.VideoCapabilities.PerformancePoint wanted =
+                                new android.media.MediaCodecInfo.VideoCapabilities.PerformancePoint(
+                                        width, height, frameRate);
+                        for (android.media.MediaCodecInfo.VideoCapabilities.PerformancePoint point
+                                : points) {
+                            if (point.covers(wanted)) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    };
+                }
+                return (width, height, frameRate) ->
+                        caps.areSizeAndRateSupported(width, height, frameRate)
+                                || caps.areSizeAndRateSupported(height, width, frameRate);
+            }
+        } catch (RuntimeException e) {
+            // A codec list that can't be read leaves the export to Media3, as before.
+        }
+        return null;
+    }
+
     /**
      * Tells the user a video was saved smaller than its source, since nothing else on screen
      * shows it. Clean, Share and Convert all come through here.
@@ -411,7 +589,7 @@ public final class VideoMedia3Converter {
     @VisibleForTesting
     static void warnDownscaled(@NonNull Context app, int shortSide) {
         com.doubleangels.redact.sentry.SentryManager.log(
-                "The video was saved at " + shortSide + "p after the full size failed.");
+                "The video was saved at " + shortSide + "p, smaller than its source.");
         String message = app.getString(com.doubleangels.redact.R.string.video_downscaled, shortSide);
         new Handler(Looper.getMainLooper()).post(
                 () -> android.widget.Toast.makeText(app, message, android.widget.Toast.LENGTH_LONG).show());
@@ -431,19 +609,6 @@ public final class VideoMedia3Converter {
             }
         }
         return Arrays.copyOf(sides, count);
-    }
-
-    private static int readSourceShortSide(@NonNull Context app, @NonNull Uri sourceUri) {
-        try (MediaMetadataRetriever retriever = new MediaMetadataRetriever()) {
-            retriever.setDataSource(app, sourceUri);
-            int width = parseIntOrZero(
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
-            int height = parseIntOrZero(
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
-            return width > 0 && height > 0 ? Math.min(width, height) : 0;
-        } catch (Exception e) {
-            return 0;
-        }
     }
 
     /**
@@ -543,6 +708,7 @@ public final class VideoMedia3Converter {
             @Nullable TranscodeProgressListener progressListener,
             long ownerId,
             int outputShortSide,
+            int outputFrameRate,
             boolean hasAudio)
             throws IOException, InterruptedException {
 
@@ -574,6 +740,7 @@ public final class VideoMedia3Converter {
                     outFile,
                     ownerId,
                     outputShortSide,
+                    outputFrameRate,
                     hasAudio);
         } finally {
             WAITERS.remove(waiter);
@@ -593,6 +760,7 @@ public final class VideoMedia3Converter {
             @NonNull File outFile,
             long ownerId,
             int outputShortSide,
+            int outputFrameRate,
             boolean hasAudio)
             throws IOException, InterruptedException {
 
@@ -600,10 +768,17 @@ public final class VideoMedia3Converter {
         MediaItem mediaItem = MediaItem.fromUri(sourceUri);
         EditedMediaItem.Builder editedMediaItemBuilder =
                 new EditedMediaItem.Builder(mediaItem).setRemoveAudio(false);
+        ImmutableList.Builder<androidx.media3.common.Effect> videoEffects = ImmutableList.builder();
+        if (outputFrameRate > 0) {
+            // Dropped on the GPU before the encoder, which is configured for this rate too.
+            videoEffects.add(FrameDropEffect.createDefaultFrameDropEffect(outputFrameRate));
+        }
         if (outputShortSide > 0) {
-            editedMediaItemBuilder.setEffects(new Effects(
-                    ImmutableList.of(),
-                    ImmutableList.of(Presentation.createForShortSide(outputShortSide))));
+            videoEffects.add(Presentation.createForShortSide(outputShortSide));
+        }
+        ImmutableList<androidx.media3.common.Effect> effects = videoEffects.build();
+        if (!effects.isEmpty()) {
+            editedMediaItemBuilder.setEffects(new Effects(ImmutableList.of(), effects));
         }
         EditedMediaItem editedMediaItem = editedMediaItemBuilder.build();
 
@@ -622,6 +797,9 @@ public final class VideoMedia3Converter {
         // The last progress Media3 reported, for the stall check; -1 before the first.
         AtomicInteger progressSeen = new AtomicInteger(-1);
         long startedAt = android.os.SystemClock.elapsedRealtime();
+        String attemptLabel = outputFrameRate > 0
+                ? videoMimeType + " " + outputFrameRate + "fps"
+                : videoMimeType;
 
         Handler mainHandler = new Handler(Looper.getMainLooper());
         // Polled with or without a listener: the stall check needs the progress too.
@@ -683,7 +861,8 @@ public final class VideoMedia3Converter {
                                         .setMuxerFactory(new MetadataDroppingMuxerFactory(
                                                 new DefaultMuxer.Factory()))
                                         .setEncoderFactory(new AlwaysEncodeFactory(
-                                                new DefaultEncoderFactory.Builder(app).build()))
+                                                new DefaultEncoderFactory.Builder(app).build(),
+                                                outputFrameRate))
                                         .setVideoMimeType(videoMimeType)
                                         .setAudioMimeType(audioMimeTypeForVideoMime(videoMimeType))
                                         .setMaxDelayBetweenMuxerSamplesMs(
@@ -755,14 +934,14 @@ public final class VideoMedia3Converter {
                     });
             cancelDone.await(5, TimeUnit.SECONDS);
             deleteQuietly(app, outFile);
-            logAttemptFailure(videoMimeType, outputShortSide, "STALLED", progressSeen.get(), startedAt);
+            logAttemptFailure(attemptLabel, outputShortSide, "STALLED", progressSeen.get(), startedAt);
             throw new IOException("Video conversion stalled");
         }
 
         ExportException exportException = errorRef.get();
         if (exportException != null) {
             deleteQuietly(app, outFile);
-            logAttemptFailure(videoMimeType, outputShortSide, exportException.getErrorCodeName(),
+            logAttemptFailure(attemptLabel, outputShortSide, exportException.getErrorCodeName(),
                     progressSeen.get(), startedAt);
             if (isUnsupportedInput(exportException)) {
                 throw new UnsupportedMediaException(
@@ -779,7 +958,7 @@ public final class VideoMedia3Converter {
         Throwable syncFailure = syncFailureRef.get();
         if (syncFailure != null) {
             deleteQuietly(app, outFile);
-            logAttemptFailure(videoMimeType, outputShortSide, syncFailure.getClass().getSimpleName(),
+            logAttemptFailure(attemptLabel, outputShortSide, syncFailure.getClass().getSimpleName(),
                     progressSeen.get(), startedAt);
             throw new IOException(
                     "Video conversion failed: " + syncFailure.getMessage(), syncFailure);
@@ -814,33 +993,88 @@ public final class VideoMedia3Converter {
                 + reached + " after " + (elapsedMs / 1000) + " s.";
     }
 
+    /** The source's video track, with 0 for anything its container doesn't declare. */
+    static final class SourceVideo {
+        @Nullable final String mime;
+        final int width;
+        final int height;
+        final int frameRate;
+        final int bitrate;
+
+        SourceVideo(@Nullable String mime, int width, int height, int frameRate, int bitrate) {
+            this.mime = mime;
+            this.width = width;
+            this.height = height;
+            this.frameRate = frameRate;
+            this.bitrate = bitrate;
+        }
+
+        int shortSide() {
+            return width > 0 && height > 0 ? Math.min(width, height) : 0;
+        }
+
+        /** Like "video/hevc 3840x2160 60fps 70Mbps", or "unreadable". */
+        @NonNull
+        String describe() {
+            return mime != null ? describeVideoFormat(mime, width, height, frameRate, bitrate) : "unreadable";
+        }
+    }
+
     /**
-     * The source's video track as "video/hevc 3840x2160 60fps 70Mbps", leaving out what the
-     * container doesn't declare, or "unreadable" when it can't be opened.
+     * Reads the source's video track. Its size falls back to {@link MediaMetadataRetriever} and
+     * its frame rate to the frame count over the duration when the track format leaves them out.
      */
+    @VisibleForTesting
     @NonNull
-    private static String describeVideoTrack(@NonNull Context app, @NonNull Uri sourceUri) {
+    static SourceVideo readSourceVideo(@NonNull Context app, @NonNull Uri sourceUri) {
+        String mime = null;
+        int width = 0;
+        int height = 0;
+        int frameRate = 0;
+        int bitrate = 0;
         android.media.MediaExtractor extractor = new android.media.MediaExtractor();
         try {
             extractor.setDataSource(app, sourceUri, null);
             for (int i = 0; i < extractor.getTrackCount(); i++) {
                 android.media.MediaFormat format = extractor.getTrackFormat(i);
-                String mime = format.getString(android.media.MediaFormat.KEY_MIME);
-                if (mime != null && mime.startsWith("video/")) {
-                    return describeVideoFormat(
-                            mime,
-                            intOrZero(format, android.media.MediaFormat.KEY_WIDTH),
-                            intOrZero(format, android.media.MediaFormat.KEY_HEIGHT),
-                            intOrZero(format, android.media.MediaFormat.KEY_FRAME_RATE),
-                            intOrZero(format, android.media.MediaFormat.KEY_BIT_RATE));
+                String trackMime = format.getString(android.media.MediaFormat.KEY_MIME);
+                if (trackMime != null && trackMime.startsWith("video/")) {
+                    mime = trackMime;
+                    width = intOrZero(format, android.media.MediaFormat.KEY_WIDTH);
+                    height = intOrZero(format, android.media.MediaFormat.KEY_HEIGHT);
+                    frameRate = intOrZero(format, android.media.MediaFormat.KEY_FRAME_RATE);
+                    bitrate = intOrZero(format, android.media.MediaFormat.KEY_BIT_RATE);
+                    break;
                 }
             }
-            return "trackless";
         } catch (Exception e) {
-            return "unreadable";
+            // Whatever was read is kept; the retriever below fills in what it can.
         } finally {
             extractor.release();
         }
+        if (width <= 0 || height <= 0 || frameRate <= 0) {
+            try (MediaMetadataRetriever retriever = new MediaMetadataRetriever()) {
+                retriever.setDataSource(app, sourceUri);
+                if (width <= 0 || height <= 0) {
+                    width = parseIntOrZero(
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
+                    height = parseIntOrZero(
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
+                }
+                if (frameRate <= 0) {
+                    int frames = parseIntOrZero(retriever.extractMetadata(
+                            MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT));
+                    int durationMs = parseIntOrZero(
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
+                    if (frames > 0 && durationMs > 0) {
+                        frameRate = Math.round(frames * 1000f / durationMs);
+                    }
+                }
+            } catch (Exception e) {
+                // Left unknown: the export then runs at the source's size and rate, as before.
+            }
+        }
+        return new SourceVideo(mime, width, height, frameRate, bitrate);
     }
 
     @VisibleForTesting

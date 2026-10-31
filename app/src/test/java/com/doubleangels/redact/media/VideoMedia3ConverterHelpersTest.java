@@ -104,27 +104,121 @@ public class VideoMedia3ConverterHelpersTest {
     }
 
     @Test
-    public void readSourceShortSide_usesTheSmallerKnownDimension() throws Exception {
+    public void readSourceVideo_fallsBackToTheRetrieverForItsSize() throws Exception {
         Application app = RuntimeEnvironment.getApplication();
         File file = File.createTempFile("side_", ".mp4", app.getCacheDir());
         file.deleteOnExit();
         Uri uri = Uri.fromFile(file);
-        Class<?>[] types = {android.content.Context.class, Uri.class};
 
         ShadowMediaMetadataRetriever.addMetadata(DataSource.toDataSource(app, uri),
                 MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH, "3840");
         ShadowMediaMetadataRetriever.addMetadata(DataSource.toDataSource(app, uri),
                 MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT, "2160");
-        assertEquals(2160, call("readSourceShortSide", types, app, uri));
+        ShadowMediaMetadataRetriever.addMetadata(DataSource.toDataSource(app, uri),
+                MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT, "600");
+        ShadowMediaMetadataRetriever.addMetadata(DataSource.toDataSource(app, uri),
+                MediaMetadataRetriever.METADATA_KEY_DURATION, "10000");
+        VideoMedia3Converter.SourceVideo video = VideoMedia3Converter.readSourceVideo(app, uri);
+        assertEquals(2160, video.shortSide());
+        assertEquals(60, video.frameRate);
 
         File unknown = File.createTempFile("side_", ".mp4", app.getCacheDir());
         unknown.deleteOnExit();
-        assertEquals(0, call("readSourceShortSide", types, app, Uri.fromFile(unknown)));
+        assertEquals(0, VideoMedia3Converter.readSourceVideo(app, Uri.fromFile(unknown)).shortSide());
 
         Uri broken = Uri.fromFile(new File(app.getCacheDir(), "missing.mp4"));
         ShadowMediaMetadataRetriever.addException(DataSource.toDataSource(app, broken),
                 new IllegalArgumentException("unreadable"));
-        assertEquals(0, call("readSourceShortSide", types, app, broken));
+        VideoMedia3Converter.SourceVideo unreadable = VideoMedia3Converter.readSourceVideo(app, broken);
+        assertEquals(0, unreadable.shortSide());
+        assertEquals("unreadable", unreadable.describe());
+    }
+
+    /** An encoder like a Snapdragon 778G+'s: 4K only at 30fps, 1440p and below at 60. */
+    private static final VideoMedia3Converter.SizeRateSupport UP_TO_4K30_OR_1440P60 =
+            (width, height, frameRate) ->
+                    (long) width * height <= 3840L * 2160 && frameRate <= 30
+                            || (long) width * height <= 2560L * 1440 && frameRate <= 60;
+
+    @Test
+    public void planOutput_keepsASourceTheEncoderSupports() {
+        assertArrayEquals(new int[] {0, 0},
+                VideoMedia3Converter.planOutput(3840, 2160, 30, UP_TO_4K30_OR_1440P60));
+        assertArrayEquals(new int[] {0, 0},
+                VideoMedia3Converter.planOutput(1920, 1080, 60, UP_TO_4K30_OR_1440P60));
+    }
+
+    @Test
+    public void planOutput_forAnUnsupported4K60Source_keepsTheMostPixelsPerSecond() {
+        // 4K at 30fps keeps 249M pixels a second, 1440p at 60fps 221M.
+        assertArrayEquals(new int[] {0, 30},
+                VideoMedia3Converter.planOutput(3840, 2160, 60, UP_TO_4K30_OR_1440P60));
+        // Portrait sources plan the same as landscape ones.
+        assertArrayEquals(new int[] {0, 30},
+                VideoMedia3Converter.planOutput(2160, 3840, 60, UP_TO_4K30_OR_1440P60));
+    }
+
+    @Test
+    public void planOutput_prefersASmallerSizeWhenTheFrameRateWouldDropFurther() {
+        VideoMedia3Converter.SizeRateSupport upTo4K24Or1080p120 = (width, height, frameRate) ->
+                (long) width * height <= 3840L * 2160 && frameRate <= 24
+                        || (long) width * height <= 1920L * 1080 && frameRate <= 120;
+        // 4K at 24fps keeps 199M pixels a second, 1080p at 120fps 249M.
+        assertArrayEquals(new int[] {1080, 0},
+                VideoMedia3Converter.planOutput(3840, 2160, 120, upTo4K24Or1080p120));
+    }
+
+    @Test
+    public void planOutput_leavesUnknownOrUnfittableSourcesAlone() {
+        assertArrayEquals(new int[] {0, 0},
+                VideoMedia3Converter.planOutput(0, 0, 60, UP_TO_4K30_OR_1440P60));
+        assertArrayEquals(new int[] {0, 0},
+                VideoMedia3Converter.planOutput(3840, 2160, 0, UP_TO_4K30_OR_1440P60));
+        assertArrayEquals(new int[] {0, 0},
+                VideoMedia3Converter.planOutput(3840, 2160, 60, (width, height, frameRate) -> false));
+    }
+
+    @Test
+    public void frameRateAtShortSide_keepsTheSourceRateWhereTheEncoderAllowsIt() {
+        assertEquals(0, VideoMedia3Converter.frameRateAtShortSide(
+                3840, 2160, 60, 1440, UP_TO_4K30_OR_1440P60));
+        assertEquals(0, VideoMedia3Converter.frameRateAtShortSide(
+                3840, 2160, 60, 1080, UP_TO_4K30_OR_1440P60));
+        VideoMedia3Converter.SizeRateSupport only30 = (width, height, frameRate) -> frameRate <= 30;
+        assertEquals(30, VideoMedia3Converter.frameRateAtShortSide(3840, 2160, 60, 1080, only30));
+        assertEquals(0, VideoMedia3Converter.frameRateAtShortSide(
+                3840, 2160, 60, 1080, (width, height, frameRate) -> false));
+    }
+
+    @Test
+    public void alwaysEncodeFactory_configuresTheVideoEncoderForTheCappedFrameRate() throws Exception {
+        java.util.List<Float> videoRates = new java.util.ArrayList<>();
+        androidx.media3.transformer.Codec.EncoderFactory recording =
+                new androidx.media3.transformer.Codec.EncoderFactory() {
+                    @Override
+                    public androidx.media3.transformer.Codec createForAudioEncoding(
+                            androidx.media3.common.Format format,
+                            android.media.metrics.LogSessionId logSessionId) {
+                        return null;
+                    }
+
+                    @Override
+                    public androidx.media3.transformer.Codec createForVideoEncoding(
+                            androidx.media3.common.Format format,
+                            android.media.metrics.LogSessionId logSessionId) {
+                        videoRates.add(format.frameRate);
+                        return null;
+                    }
+                };
+        androidx.media3.common.Format sixty = new androidx.media3.common.Format.Builder()
+                .setSampleMimeType(MimeTypes.VIDEO_H264).setFrameRate(60).build();
+        androidx.media3.common.Format twentyFour = sixty.buildUpon().setFrameRate(24).build();
+
+        new VideoMedia3Converter.AlwaysEncodeFactory(recording, 30).createForVideoEncoding(sixty, null);
+        new VideoMedia3Converter.AlwaysEncodeFactory(recording, 30).createForVideoEncoding(twentyFour, null);
+        new VideoMedia3Converter.AlwaysEncodeFactory(recording).createForVideoEncoding(sixty, null);
+
+        assertEquals(java.util.Arrays.asList(30f, 24f, 60f), videoRates);
     }
 
     @Test
