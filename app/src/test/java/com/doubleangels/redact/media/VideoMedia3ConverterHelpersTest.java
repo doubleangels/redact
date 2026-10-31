@@ -191,6 +191,45 @@ public class VideoMedia3ConverterHelpersTest {
     }
 
     @Test
+    public void matchedVideoBitrate_keepsTheSourceRateForTheSameSizeAndCodec() {
+        long fourK60 = 3840L * 2160 * 60;
+        assertEquals(50_000_000, VideoMedia3Converter.matchedVideoBitrate(
+                50_000_000, MimeTypes.VIDEO_H264, fourK60, MimeTypes.VIDEO_H264, fourK60));
+    }
+
+    @Test
+    public void matchedVideoBitrate_scalesForSizeFrameRateAndCodec() {
+        long fourK60 = 3840L * 2160 * 60;
+        long fourK30 = 3840L * 2160 * 30;
+        // Half the frames: 0.5^0.75 of the bits.
+        assertEquals(Math.round(40_000_000 * Math.pow(0.5, 0.75)),
+                VideoMedia3Converter.matchedVideoBitrate(
+                        40_000_000, MimeTypes.VIDEO_H264, fourK60, MimeTypes.VIDEO_H264, fourK30));
+        // HEVC into H.264 needs more bits, H.264 into HEVC fewer.
+        assertTrue(VideoMedia3Converter.matchedVideoBitrate(
+                20_000_000, MimeTypes.VIDEO_H265, fourK30, MimeTypes.VIDEO_H264, fourK30) > 20_000_000);
+        assertTrue(VideoMedia3Converter.matchedVideoBitrate(
+                20_000_000, MimeTypes.VIDEO_H264, fourK30, MimeTypes.VIDEO_H265, fourK30) < 20_000_000);
+    }
+
+    @Test
+    public void matchedVideoBitrate_leavesUnknownSourcesToMedia3() {
+        assertEquals(0, VideoMedia3Converter.matchedVideoBitrate(
+                0, MimeTypes.VIDEO_H264, 1, MimeTypes.VIDEO_H264, 1));
+        assertEquals(0, VideoMedia3Converter.matchedVideoBitrate(
+                1_000_000, MimeTypes.VIDEO_H264, 0, MimeTypes.VIDEO_H264, 1));
+    }
+
+    @Test
+    public void codecBitrateFactor_ranksNewerCodecsAsMoreEfficient() {
+        assertEquals(1.0, VideoMedia3Converter.codecBitrateFactor(MimeTypes.VIDEO_H264), 0);
+        assertTrue(VideoMedia3Converter.codecBitrateFactor(MimeTypes.VIDEO_AV1)
+                < VideoMedia3Converter.codecBitrateFactor(MimeTypes.VIDEO_H265));
+        assertTrue(VideoMedia3Converter.codecBitrateFactor(MimeTypes.VIDEO_MP4V)
+                > VideoMedia3Converter.codecBitrateFactor(MimeTypes.VIDEO_H264));
+    }
+
+    @Test
     public void alwaysEncodeFactory_configuresTheVideoEncoderForTheCappedFrameRate() throws Exception {
         java.util.List<Float> videoRates = new java.util.ArrayList<>();
         androidx.media3.transformer.Codec.EncoderFactory recording =

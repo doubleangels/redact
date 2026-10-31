@@ -24,6 +24,7 @@ import androidx.media3.muxer.BufferInfo;
 import androidx.media3.muxer.Muxer;
 import androidx.media3.muxer.MuxerException;
 import androidx.media3.transformer.AssetLoader;
+import androidx.media3.transformer.AudioEncoderSettings;
 import androidx.media3.transformer.Codec;
 import androidx.media3.transformer.Composition;
 import androidx.media3.transformer.DefaultAssetLoaderFactory;
@@ -37,6 +38,7 @@ import androidx.media3.transformer.ExportException;
 import androidx.media3.transformer.ExportResult;
 import androidx.media3.transformer.ProgressHolder;
 import androidx.media3.transformer.Transformer;
+import androidx.media3.transformer.VideoEncoderSettings;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -108,6 +110,9 @@ public final class VideoMedia3Converter {
      * one.
      */
     private static final int[] FRAME_RATE_STEPS = {60, 50, 48, 30, 25, 24};
+
+    /** The AAC bitrate Media3 uses when none is asked for (DefaultEncoderFactory). */
+    private static final int MEDIA3_DEFAULT_AUDIO_BITRATE = 128 * 1024;
 
     private static final AtomicReference<Transformer> activeTransformer = new AtomicReference<>();
     /** Owner id of the flow that started the active export; -1 when idle. */
@@ -418,7 +423,7 @@ public final class VideoMedia3Converter {
         try {
             transcodeToPathOnce(
                     app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, ownerId,
-                    plan[0], plan[1], hasAudio);
+                    plan[0], plan[1], hasAudio, source);
             if (plan[0] > 0) {
                 warnDownscaled(app, plan[0]);
             }
@@ -441,7 +446,8 @@ public final class VideoMedia3Converter {
                             ownerId,
                             shortSide,
                             frameRate,
-                            hasAudio);
+                            hasAudio,
+                            source);
                     warnDownscaled(app, shortSide);
                     return;
                 } catch (RetryAtSmallerSizeException retryFailure) {
@@ -537,49 +543,176 @@ public final class VideoMedia3Converter {
 
     /**
      * What the hardware encoder Media3 picks for {@code mimeType} supports, or null when there is
-     * none or it can't be read. Media3 uses the device's first hardware encoder for a type; the
-     * vendor's performance points are what it guarantees, and the plain size and rate limits are
-     * the fallback for codecs that declare none.
+     * none or it can't be read. The vendor's performance points are what it guarantees, and the
+     * plain size and rate limits are the fallback for codecs that declare none.
      */
     @Nullable
     private static SizeRateSupport hardwareEncoderSupport(@NonNull String mimeType) {
+        android.media.MediaCodecInfo.VideoCapabilities caps = hardwareEncoderCapabilities(mimeType);
+        if (caps == null) {
+            return null;
+        }
+        List<android.media.MediaCodecInfo.VideoCapabilities.PerformancePoint> points =
+                caps.getSupportedPerformancePoints();
+        if (points != null && !points.isEmpty()) {
+            return (width, height, frameRate) -> {
+                android.media.MediaCodecInfo.VideoCapabilities.PerformancePoint wanted =
+                        new android.media.MediaCodecInfo.VideoCapabilities.PerformancePoint(
+                                width, height, frameRate);
+                for (android.media.MediaCodecInfo.VideoCapabilities.PerformancePoint point : points) {
+                    if (point.covers(wanted)) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+        }
+        return (width, height, frameRate) ->
+                caps.areSizeAndRateSupported(width, height, frameRate)
+                        || caps.areSizeAndRateSupported(height, width, frameRate);
+    }
+
+    /**
+     * The video capabilities of the device's first hardware encoder for {@code mimeType}, the one
+     * Media3 picks, or null when there is none or the codec list can't be read.
+     */
+    @Nullable
+    private static android.media.MediaCodecInfo.VideoCapabilities hardwareEncoderCapabilities(
+            @NonNull String mimeType) {
         try {
             for (android.media.MediaCodecInfo info :
                     new android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS)
                             .getCodecInfos()) {
-                if (!info.isEncoder() || !info.isHardwareAccelerated()
-                        || !Arrays.asList(info.getSupportedTypes()).contains(mimeType)) {
-                    continue;
+                if (info.isEncoder() && info.isHardwareAccelerated()
+                        && Arrays.asList(info.getSupportedTypes()).contains(mimeType)) {
+                    return info.getCapabilitiesForType(mimeType).getVideoCapabilities();
                 }
-                android.media.MediaCodecInfo.VideoCapabilities caps =
-                        info.getCapabilitiesForType(mimeType).getVideoCapabilities();
-                if (caps == null) {
-                    return null;
-                }
-                List<android.media.MediaCodecInfo.VideoCapabilities.PerformancePoint> points =
-                        caps.getSupportedPerformancePoints();
-                if (points != null && !points.isEmpty()) {
-                    return (width, height, frameRate) -> {
-                        android.media.MediaCodecInfo.VideoCapabilities.PerformancePoint wanted =
-                                new android.media.MediaCodecInfo.VideoCapabilities.PerformancePoint(
-                                        width, height, frameRate);
-                        for (android.media.MediaCodecInfo.VideoCapabilities.PerformancePoint point
-                                : points) {
-                            if (point.covers(wanted)) {
-                                return true;
-                            }
-                        }
-                        return false;
-                    };
-                }
-                return (width, height, frameRate) ->
-                        caps.areSizeAndRateSupported(width, height, frameRate)
-                                || caps.areSizeAndRateSupported(height, width, frameRate);
             }
         } catch (RuntimeException e) {
             // A codec list that can't be read leaves the export to Media3, as before.
         }
         return null;
+    }
+
+    /**
+     * The highest bitrate any encoder for the audio {@code mimeType} accepts, or 0 when none can
+     * be read.
+     */
+    private static int audioEncoderMaxBitrate(@NonNull String mimeType) {
+        int max = 0;
+        try {
+            for (android.media.MediaCodecInfo info :
+                    new android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS)
+                            .getCodecInfos()) {
+                if (!info.isEncoder() || !Arrays.asList(info.getSupportedTypes()).contains(mimeType)) {
+                    continue;
+                }
+                android.media.MediaCodecInfo.AudioCapabilities caps =
+                        info.getCapabilitiesForType(mimeType).getAudioCapabilities();
+                if (caps != null) {
+                    max = Math.max(max, caps.getBitrateRange().getUpper());
+                }
+            }
+        } catch (RuntimeException e) {
+            // Unknown: the caller keeps the source's bitrate unclamped.
+        }
+        return max;
+    }
+
+    /**
+     * The video bitrate that keeps the source's quality: its own bitrate, scaled for a smaller
+     * output or a lower frame rate and for the output codec's efficiency, within what the hardware
+     * encoder accepts. 0 leaves it to Media3, which sizes it from the frame alone and lands well
+     * below what phone cameras record (8.7 Mbps for 1080p30 against their 17 to 20).
+     */
+    private static int targetVideoBitrate(
+            @NonNull SourceVideo source, @NonNull String outputMime, int outputShortSide,
+            int outputFrameRate) {
+        int sourceShort = source.shortSide();
+        if (source.mime == null || source.bitrate <= 0 || sourceShort <= 0 || source.frameRate <= 0) {
+            return 0;
+        }
+        int sourceLong = Math.max(source.width, source.height);
+        int outShort = outputShortSide > 0 && outputShortSide < sourceShort ? outputShortSide : sourceShort;
+        int outLong = outShort == sourceShort
+                ? sourceLong : scaledLongSide(sourceLong, sourceShort, outShort);
+        int outFrameRate = outputFrameRate > 0 ? outputFrameRate : source.frameRate;
+        int target = matchedVideoBitrate(
+                source.bitrate, source.mime, (long) sourceLong * sourceShort * source.frameRate,
+                outputMime, (long) outLong * outShort * outFrameRate);
+        android.media.MediaCodecInfo.VideoCapabilities caps = hardwareEncoderCapabilities(outputMime);
+        if (target > 0 && caps != null) {
+            target = caps.getBitrateRange().clamp(target);
+        }
+        return target;
+    }
+
+    /**
+     * {@code sourceBitrate} carried over to the output: scaled by the change in pixels per second
+     * to the power 0.75, as bitrate grows slower than picture size at the same quality, and by how
+     * many bits the output codec needs against the source's ({@link #codecBitrateFactor}).
+     */
+    @VisibleForTesting
+    static int matchedVideoBitrate(
+            int sourceBitrate, @NonNull String sourceMime, long sourcePixelRate,
+            @NonNull String outputMime, long outputPixelRate) {
+        if (sourceBitrate <= 0 || sourcePixelRate <= 0 || outputPixelRate <= 0) {
+            return 0;
+        }
+        double size = Math.pow((double) outputPixelRate / sourcePixelRate, 0.75);
+        double codec = codecBitrateFactor(outputMime) / codecBitrateFactor(sourceMime);
+        return (int) Math.min(Integer.MAX_VALUE, Math.round(sourceBitrate * size * codec));
+    }
+
+    /**
+     * Bits a codec needs for the same quality, against H.264. Conservative against the published
+     * savings (about half for HEVC, a further third for AV1), since a re-encode starts from a
+     * picture that was already compressed once.
+     */
+    @VisibleForTesting
+    static double codecBitrateFactor(@NonNull String mime) {
+        switch (mime) {
+            case MimeTypes.VIDEO_H265:
+                return 0.7;
+            case MimeTypes.VIDEO_VP9:
+                return 0.75;
+            case MimeTypes.VIDEO_AV1:
+                return 0.6;
+            case MimeTypes.VIDEO_MP4V:
+                return 1.5;
+            case MimeTypes.VIDEO_H263:
+                return 1.7;
+            default:
+                return 1.0;
+        }
+    }
+
+    /**
+     * The audio bitrate: the source's when it is above Media3's 128 kbps default, within what the
+     * encoder accepts, so music and multichannel tracks keep their quality. 0 keeps the default,
+     * which is already at least the source's.
+     */
+    private static int targetAudioBitrate(@NonNull SourceVideo source, @NonNull String audioMime) {
+        if (source.audioBitrate <= MEDIA3_DEFAULT_AUDIO_BITRATE) {
+            return 0;
+        }
+        int max = audioEncoderMaxBitrate(audioMime);
+        return max > 0 ? Math.min(source.audioBitrate, max) : source.audioBitrate;
+    }
+
+    @NonNull
+    private static Codec.EncoderFactory encoderFactory(
+            @NonNull Context app, int videoBitrate, int audioBitrate) {
+        DefaultEncoderFactory.Builder builder = new DefaultEncoderFactory.Builder(app);
+        if (videoBitrate > 0) {
+            builder.setRequestedVideoEncoderSettings(
+                    new VideoEncoderSettings.Builder().setBitrate(videoBitrate).build());
+        }
+        if (audioBitrate > 0) {
+            builder.setRequestedAudioEncoderSettings(
+                    new AudioEncoderSettings.Builder().setBitrate(audioBitrate).build());
+        }
+        return builder.build();
     }
 
     /**
@@ -709,7 +842,8 @@ public final class VideoMedia3Converter {
             long ownerId,
             int outputShortSide,
             int outputFrameRate,
-            boolean hasAudio)
+            boolean hasAudio,
+            @NonNull SourceVideo source)
             throws IOException, InterruptedException {
 
         File outFile = new File(outputPath);
@@ -741,7 +875,8 @@ public final class VideoMedia3Converter {
                     ownerId,
                     outputShortSide,
                     outputFrameRate,
-                    hasAudio);
+                    hasAudio,
+                    source);
         } finally {
             WAITERS.remove(waiter);
             if (locked) {
@@ -761,10 +896,13 @@ public final class VideoMedia3Converter {
             long ownerId,
             int outputShortSide,
             int outputFrameRate,
-            boolean hasAudio)
+            boolean hasAudio,
+            @NonNull SourceVideo source)
             throws IOException, InterruptedException {
 
         activeTranscodeOwner.set(ownerId);
+        int videoBitrate = targetVideoBitrate(source, videoMimeType, outputShortSide, outputFrameRate);
+        int audioBitrate = targetAudioBitrate(source, audioMimeTypeForVideoMime(videoMimeType));
         MediaItem mediaItem = MediaItem.fromUri(sourceUri);
         EditedMediaItem.Builder editedMediaItemBuilder =
                 new EditedMediaItem.Builder(mediaItem).setRemoveAudio(false);
@@ -861,7 +999,7 @@ public final class VideoMedia3Converter {
                                         .setMuxerFactory(new MetadataDroppingMuxerFactory(
                                                 new DefaultMuxer.Factory()))
                                         .setEncoderFactory(new AlwaysEncodeFactory(
-                                                new DefaultEncoderFactory.Builder(app).build(),
+                                                encoderFactory(app, videoBitrate, audioBitrate),
                                                 outputFrameRate))
                                         .setVideoMimeType(videoMimeType)
                                         .setAudioMimeType(audioMimeTypeForVideoMime(videoMimeType))
@@ -1000,13 +1138,16 @@ public final class VideoMedia3Converter {
         final int height;
         final int frameRate;
         final int bitrate;
+        final int audioBitrate;
 
-        SourceVideo(@Nullable String mime, int width, int height, int frameRate, int bitrate) {
+        SourceVideo(@Nullable String mime, int width, int height, int frameRate, int bitrate,
+                int audioBitrate) {
             this.mime = mime;
             this.width = width;
             this.height = height;
             this.frameRate = frameRate;
             this.bitrate = bitrate;
+            this.audioBitrate = audioBitrate;
         }
 
         int shortSide() {
@@ -1032,19 +1173,27 @@ public final class VideoMedia3Converter {
         int height = 0;
         int frameRate = 0;
         int bitrate = 0;
+        int audioBitrate = 0;
+        boolean audioSeen = false;
         android.media.MediaExtractor extractor = new android.media.MediaExtractor();
         try {
             extractor.setDataSource(app, sourceUri, null);
             for (int i = 0; i < extractor.getTrackCount(); i++) {
                 android.media.MediaFormat format = extractor.getTrackFormat(i);
                 String trackMime = format.getString(android.media.MediaFormat.KEY_MIME);
-                if (trackMime != null && trackMime.startsWith("video/")) {
+                if (trackMime == null) {
+                    continue;
+                }
+                if (mime == null && trackMime.startsWith("video/")) {
                     mime = trackMime;
                     width = intOrZero(format, android.media.MediaFormat.KEY_WIDTH);
                     height = intOrZero(format, android.media.MediaFormat.KEY_HEIGHT);
                     frameRate = intOrZero(format, android.media.MediaFormat.KEY_FRAME_RATE);
                     bitrate = intOrZero(format, android.media.MediaFormat.KEY_BIT_RATE);
-                    break;
+                } else if (!audioSeen && trackMime.startsWith("audio/")) {
+                    // Only the first audio track is kept by the export, so only its rate counts.
+                    audioSeen = true;
+                    audioBitrate = intOrZero(format, android.media.MediaFormat.KEY_BIT_RATE);
                 }
             }
         } catch (Exception e) {
@@ -1052,7 +1201,7 @@ public final class VideoMedia3Converter {
         } finally {
             extractor.release();
         }
-        if (width <= 0 || height <= 0 || frameRate <= 0) {
+        if (width <= 0 || height <= 0 || frameRate <= 0 || bitrate <= 0) {
             try (MediaMetadataRetriever retriever = new MediaMetadataRetriever()) {
                 retriever.setDataSource(app, sourceUri);
                 if (width <= 0 || height <= 0) {
@@ -1070,11 +1219,18 @@ public final class VideoMedia3Converter {
                         frameRate = Math.round(frames * 1000f / durationMs);
                     }
                 }
+                if (bitrate <= 0) {
+                    // The whole file's rate, less the audio's: near enough for the video's.
+                    int total = parseIntOrZero(
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE));
+                    int video = total - Math.max(audioBitrate, 0);
+                    bitrate = video > 0 ? video : 0;
+                }
             } catch (Exception e) {
                 // Left unknown: the export then runs at the source's size and rate, as before.
             }
         }
-        return new SourceVideo(mime, width, height, frameRate, bitrate);
+        return new SourceVideo(mime, width, height, frameRate, bitrate, audioBitrate);
     }
 
     @VisibleForTesting
