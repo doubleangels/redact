@@ -40,6 +40,7 @@
 - [Features](#features)
 - [Getting started](#getting-started)
 - [Using Redact](#using-redact)
+- [What happens to your files](#what-happens-to-your-files)
 - [Settings](#settings)
 - [Privacy and security](#privacy-and-security)
 - [FAQ](#faq)
@@ -174,6 +175,45 @@ You can also reach Censor from Scan (**Censor This Photo**), from the icon that 
 
 Cleaned and converted files are saved through Android's MediaStore into `Pictures/Redact` or `Movies/Redact` by default. In Settings under **Output Folders** you can open the file browser to pick or create a different folder for images and for videos, on device storage or an SD card. The browser starts in `Pictures` or `Movies` (or in the folder you chose before), Settings shows the folder you picked, such as `Pictures/Private`, and **Reset to Default** (or picking the `Redact` folder itself) switches back. If a chosen folder is deleted or its SD card is removed, Redact saves to the default folder instead, says so once, and Settings shows a warning until you choose a folder again. Files you share in are held in the app's temporary cache and deleted once sharing finishes, with a short delay so the receiving app can finish reading them.
 
+## What happens to your files
+
+Redact always keeps as much of the original as it can. Where it can, it rebuilds a file from its own picture or video data and leaves out everything else, so nothing is recompressed. Where it has to decode and save again, it keeps the full resolution, frame rate and quality of the source. Every result is checked for leftover metadata before it is saved, and if anything is found, nothing is saved.
+
+| What you do | What you start with | What you get | What is kept | Why |
+|---|---|---|---|---|
+| **Clean or share** | JPEG | JPEG | Every pixel, unchanged. Color profile, orientation and the HDR layer of an Ultra HDR photo | The file is rebuilt from its own picture data, so nothing is recompressed. Only the parts a viewer needs are copied, so metadata Redact has never heard of can't slip through. The HDR layer is cleaned too and keeps only its brightness numbers. |
+| | PNG, including animated PNG | PNG | Every pixel, every frame, transparency, color profile and HDR color info | Rebuilt the same way. |
+| | WebP, including animated WebP | WebP | Every pixel and every frame, transparency and color profile | Rebuilt the same way. |
+| | HEIC or HEIF, including bursts and animations | HEIC | The compressed pictures byte for byte, so full resolution, 10-bit color, the HDR layer, depth and transparency layers and every frame | Rebuilt around its pictures on every Android version, so no HEIC encoder is needed. In bursts and animations, dates, the encoder's name and location boxes are removed and sound tracks are left out. |
+| | AVIF, including animated AVIF | AVIF | The same as HEIC | Rebuilt the same way. Android can't save AVIF any other way. |
+| | GIF, including animated GIF | GIF | Every frame, its timing and transparency, and the loop count | Rebuilt block by block. Comments, XMP and other text inside the GIF are removed. |
+| | BMP | PNG | Every pixel | Android can't save BMP, and PNG is just as exact. |
+| | Other images Android can open, such as DNG | JPEG at High quality | Full resolution | These formats can't be rebuilt, so the picture is decoded and saved as a JPEG. |
+| | Images Android can't open, such as SVG and TIFF | Nothing | | Redact says the format isn't supported instead of guessing. |
+| | Motion Photo (a photo with a short video inside) | The photo | The photo as above | The clip is a separate video with its own metadata, so it is removed and the photo becomes an ordinary still. |
+| **Clean** a video | H.264 | MP4, H.264 | The source's size, frame rate and bitrate | The video is encoded again, because that is the only way to remove data hidden inside the video stream itself, such as a camera's GPS or a drone's flight log. |
+| | H.265 (HEVC) | MP4, H.265 | The same, and HDR where the phone can encode it | Same reason. HDR becomes SDR only on phones that can't encode HDR. |
+| | AV1 | MP4, AV1 | The same as H.265 | If the phone has no AV1 encoder, Redact uses H.265, then H.264. |
+| | VP8 or VP9 | MP4, VP9 | The same, in SDR | If the phone has no VP9 encoder, Redact uses H.265, then H.264. |
+| | Any other codec, such as MPEG-4 or H.263 | MP4, H.264 | The same | Older codecs are saved in the most widely played one. |
+| **Share** a video | Any video | MP4, H.264 | The source's size, frame rate and bitrate. HDR becomes SDR on most phones | Every app you might share to can play H.264. |
+| **Convert** an image | Any image Android can open | JPEG, PNG, WebP or HEIC, as you choose | Full resolution. A JPEG made from a JPEG is never saved below the original's quality on High. WebP made from PNG, GIF, BMP or lossless WebP is lossless | Converting decodes the picture and saves it in the new format. Transparent areas become white in JPEG and HEIC, which can't store transparency. Animations keep their first frame. HEIC needs Android 14, and JPEG is used before that. |
+| **Convert** a video | Any video Android can play | MP4 in H.264, H.265, VP9 or AV1, as you choose | The same as Clean | If the phone can't encode the codec you chose, Redact uses H.265, then H.264. |
+| **Censor** a photo | JPEG, PNG, WebP | The same format | Full resolution. WebP stays lossless if it was. On Android 14 and newer an Ultra HDR photo can keep its HDR layer, with the censored areas blanked in it too | The censored picture has to be encoded again. The HDR layer is a small picture of where the scene is bright, so Redact censors it as well, or it could still show the outline of what you covered. |
+| | HEIC | HEIC on Android 14 and newer, JPEG before | Full resolution | HEIC can only be saved on Android 14 and newer. |
+| | GIF or BMP | PNG | Full resolution, first frame | PNG keeps every pixel exactly. |
+| | AVIF and anything else | JPEG at High quality | Full resolution | Android can't save AVIF. |
+
+**Video details.** Audio is saved as AAC (Opus alongside VP9) at the source's bitrate or 128 kbps, whichever is higher, with every channel. If the phone's hardware encoder can't handle the source's size and frame rate, Redact uses the closest it can, such as 4K at 30 fps for a 4K 60 fps video on a phone that only encodes 4K at 30 fps, and keeps the bitrate in proportion. Only the first video and audio track are kept, so extra audio tracks, subtitles, chapters, timed data tracks (such as GPS or sensor logs) and slow-motion markers are left out.
+
+**Faster Video Cleaning.** When this setting is on and Strict Clean is off, an H.264 or H.265 video is copied into a new MP4, and a VP8 or VP9 video into a new WebM, without encoding it again, so the picture and sound are identical. Shared videos never use this. Redact only does this when the video stream has no data hidden inside it, and otherwise encodes it as above.
+
+**What is kept from EXIF.** Orientation is always kept. With Strict Clean off, camera settings and location can be kept too (see Settings). This only works for JPEG, PNG and WebP. HEIC, AVIF and GIF can't take tags back, so they keep no EXIF at all, and HEIC and AVIF keep their orientation in their own rotation box instead. Shared files always keep only their orientation.
+
+**When a rebuild can't be done.** A damaged file or an unusual layout can't always be rebuilt. Then the picture is decoded at full resolution and saved again in the same format if Android can save it, as PNG for a GIF, and as a high-quality JPEG otherwise. The new file is named for what it really is.
+
+**Resolution.** Images are always processed at full resolution. They are only scaled down when the phone doesn't have enough free memory to hold the whole picture, and then only as far as needed.
+
 ---
 
 ## Settings
@@ -290,7 +330,7 @@ EXIF (Exchangeable Image File Format) is the metadata block cameras and phones w
 <details>
 <summary><b>Does Redact change the quality of my photos or videos?</b></summary>
 
-Cleaning keeps the picture looking the same while removing hidden metadata. JPEG, PNG and WebP photos are rebuilt from their own picture data without re-compressing, and orientation is kept whenever possible. Anything that is not the picture is removed, including the moving part of a Motion Photo and the HDR boost layer of an Ultra HDR photo, so those become ordinary still photos. Other formats, and videos (unless Faster Video Cleaning applies), are re-encoded, which can change some encoding details.
+Cleaning keeps photos exactly as they are. JPEG, PNG, WebP, HEIC, AVIF and GIF files are rebuilt from their own picture data without recompressing, so every pixel, every frame of an animation, and the HDR layer of an Ultra HDR photo are kept. The moving part of a Motion Photo is removed, so it becomes an ordinary still photo. Videos are encoded again at the source's size, frame rate and bitrate (unless Faster Video Cleaning applies). See [What happens to your files](#what-happens-to-your-files) for every case.
 </details>
 
 <details>
