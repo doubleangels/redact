@@ -98,16 +98,9 @@ public final class CleanStats {
      */
     @NonNull
     CleanStats plus(@NonNull ImageContainerMetadata.Report container, boolean exifCountedXmp) {
-        return plus(container, exifCountedXmp, java.util.Collections.emptySet());
-    }
-
-    /** {@link #plus(ImageContainerMetadata.Report, boolean)}, not counting findings a clean keeps. */
-    @NonNull
-    CleanStats plus(@NonNull ImageContainerMetadata.Report container, boolean exifCountedXmp,
-            @NonNull Set<String> keptKeys) {
         int added = 0;
         for (ImageContainerMetadata.Finding finding : container.findings) {
-            if (!(exifCountedXmp && finding.key.equals("XMP")) && !keptKeys.contains(finding.key)) {
+            if (!(exifCountedXmp && finding.key.equals("XMP"))) {
                 added++;
             }
         }
@@ -116,6 +109,12 @@ public final class CleanStats {
                 hadDate || container.has(ImageContainerMetadata.Kind.DATE),
                 hadDevice || container.has(ImageContainerMetadata.Kind.DEVICE),
                 hadName || container.has(ImageContainerMetadata.Kind.NAME));
+    }
+
+    /** These stats with one item fewer removed: a Motion Photo's video the clean put back. */
+    @NonNull
+    CleanStats keepingOne() {
+        return new CleanStats(Math.max(0, removedFields - 1), hadLocation, hadDate, hadDevice, hadName);
     }
 
     /**

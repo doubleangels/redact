@@ -576,6 +576,12 @@ public class MetadataStripper {
             updateProgress(3, 5, context.getString(R.string.strip_progress_removing_metadata));
             if (!fromPixels) {
                 motion = cleanMotionClip(picture);
+                if (motion != null && lastCleanStats != null
+                        && ImageContainerMetadata.sniff(picture) == ImageContainerMetadata.Format.JPEG) {
+                    // Counted among the removed (EMBEDDED_VIDEO) when the JPEG was read.
+                    // The video goes back, cleaned, so the summary doesn't count it as removed.
+                    lastCleanStats = lastCleanStats.keepingOne();
+                }
             }
 
             // Every attempt writes to a private file, and only the finished result is copied to
@@ -2025,11 +2031,7 @@ public class MetadataStripper {
         } catch (Exception e) {
             exif = new CleanStats(0, false);
         }
-        // Keep Motion Photos puts the video back (cleaned), so the summary doesn't call it removed.
-        boolean keepsMotion = !forSharing && !AppPreferences.isStrictClean(context)
-                && AppPreferences.isPreserveMotionPhoto(context) && MotionPhoto.find(imageFile) != null;
-        return exif.plus(ImageContainerMetadata.scan(imageFile), exifCountedXmp,
-                keepsMotion ? java.util.Set.of("EMBEDDED_VIDEO") : java.util.Set.of());
+        return exif.plus(ImageContainerMetadata.scan(imageFile), exifCountedXmp);
     }
 
     /**

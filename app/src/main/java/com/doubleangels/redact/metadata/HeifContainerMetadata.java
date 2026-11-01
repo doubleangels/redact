@@ -588,7 +588,7 @@ public final class HeifContainerMetadata {
                 }
             }
             for (Item item : items.values()) {
-                if (IMAGE_ITEM_TYPES.contains(item.type)) {
+                if (IMAGE_ITEM_TYPES.contains(item.type) && !isDepthOrMatte(item.id)) {
                     kept.add(item.id);
                 }
             }
@@ -939,6 +939,26 @@ public final class HeifContainerMetadata {
                 default:
                     return data;
             }
+        }
+
+        /**
+         * Whether an item is an auxiliary picture of the scene's depth, or a matte outlining a
+         * person, their skin, hair or teeth: a JPEG's depth map is left out too, and an outline
+         * can show the shape of a face or body. Alpha and HDR gain maps are kept, as the picture
+         * needs them.
+         */
+        private boolean isDepthOrMatte(long itemId) {
+            byte[] auxC = property(itemId, "auxC");
+            if (auxC == null || auxC.length <= 12) {
+                return false;
+            }
+            int end = 12;
+            while (end < auxC.length && auxC[end] != 0) {
+                end++;
+            }
+            String urn = new String(auxC, 12, end - 12, StandardCharsets.ISO_8859_1);
+            return urn.contains("depth") || urn.equals("urn:mpeg:hevc:2015:auxid:2")
+                    || urn.contains("matte") || urn.contains("disparity");
         }
 
         @Nullable
