@@ -27,6 +27,8 @@ No account, no uploads, no ads and no data collected.
 <li>Removes GPS and geotags, device details and timestamps</li>
 <li>Removes XMP, IPTC, comments and video tags</li>
 <li>Removes hidden extras like preview images and Motion Photo clips</li>
+<li>Keeps full quality: photos are never recompressed</li>
+<li>Optionally keep the date taken, location, camera settings or Motion Photo video</li>
 <li>Tells you exactly what it removed</li>
 <li>Your originals stay untouched unless you ask Redact to trash them</li>
 </ul>
