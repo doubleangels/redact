@@ -81,8 +81,9 @@ public final class FormatConverter {
                 return bitmap;
         }
         try {
-            Bitmap out = Bitmap.createBitmap(
-                    bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, true);
+            Bitmap out = HighPrecisionPng.isHighPrecision(bitmap)
+                    ? transformKeepingPrecision(bitmap, m)
+                    : Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, true);
             if (out != bitmap) {
                 bitmap.recycle();
             }
@@ -90,6 +91,28 @@ public final class FormatConverter {
         } catch (OutOfMemoryError e) {
             return bitmap;
         }
+    }
+
+    /**
+     * {@code bitmap} turned by {@code m}, a quarter turn or flip, into a bitmap of the same type
+     * and colour space. {@link Bitmap#createBitmap(Bitmap, int, int, int, int, android.graphics.Matrix,
+     * boolean)} makes a 10-bit picture an 8-bit one.
+     */
+    @NonNull
+    private static Bitmap transformKeepingPrecision(@NonNull Bitmap bitmap, @NonNull android.graphics.Matrix m) {
+        android.graphics.RectF bounds = new android.graphics.RectF(0, 0, bitmap.getWidth(), bitmap.getHeight());
+        m.mapRect(bounds);
+        android.graphics.Matrix placed = new android.graphics.Matrix(m);
+        placed.postTranslate(-bounds.left, -bounds.top);
+        Bitmap out = Bitmap.createBitmap(Math.round(bounds.width()), Math.round(bounds.height()),
+                bitmap.getConfig(), bitmap.hasAlpha(),
+                bitmap.getColorSpace() != null ? bitmap.getColorSpace()
+                        : android.graphics.ColorSpace.get(android.graphics.ColorSpace.Named.SRGB));
+        android.graphics.Paint copy = new android.graphics.Paint();
+        copy.setFilterBitmap(false);
+        copy.setBlendMode(android.graphics.BlendMode.SRC);
+        new android.graphics.Canvas(out).drawBitmap(bitmap, placed, copy);
+        return out;
     }
 
     private FormatConverter() {
@@ -789,8 +812,18 @@ public final class FormatConverter {
             if (os == null) {
                 throw new IOException("Cannot open output stream");
             }
-            boolean ok = compressBitmapToStream(context, bitmap, format, os,
-                    estimateJpegQuality(context, sourceUri), isLosslessImage(context, sourceUri));
+            boolean ok;
+            if (format == Bitmap.CompressFormat.PNG && HighPrecisionPng.isHighPrecision(bitmap)) {
+                // Decoded at more than 8 bits (a 10-bit HEIC or AVIF, a turned 16-bit PNG), which
+                // compress() would save at 8.
+                java.io.BufferedOutputStream buffered = new java.io.BufferedOutputStream(os, 64 * 1024);
+                HighPrecisionPng.write(bitmap, buffered);
+                buffered.flush();
+                ok = true;
+            } else {
+                ok = compressBitmapToStream(context, bitmap, format, os,
+                        estimateJpegQuality(context, sourceUri), isLosslessImage(context, sourceUri));
+            }
             if (!ok) {
                 throw new IOException("Compress failed");
             }

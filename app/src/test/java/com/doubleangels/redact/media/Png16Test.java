@@ -147,4 +147,29 @@ public class Png16Test {
         Png16.applyPatch(grey, row, new int[] {0xFF000000}, new boolean[] {false});
         assertFalse("a pixel not replaced stays", row[0] == 0);
     }
+
+    @Test
+    public void write_savesEvery16BitSample_withTheColourChunksGiven() throws Exception {
+        int width = 7;
+        int height = 5;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Png16.write(width, height, true,
+                java.util.List.of(Png16.colourChunk("cICP", new byte[] {12, 13, 0, 1})),
+                (y, samples) -> {
+                    for (int i = 0; i < samples.length; i++) {
+                        samples[i] = (y * 9973 + i * 131) & 0xFFFF;
+                    }
+                }, out);
+
+        StringBuilder types = new StringBuilder();
+        byte[] written = samples(out.toByteArray(), types);
+        assertEquals("IHDR cICP IDAT IEND ", types.toString());
+        for (int y = 0; y < height; y++) {
+            for (int i = 0; i < width * 4; i++) {
+                int at = (y * width * 4 + i) * 2;
+                int v = ((written[at] & 0xFF) << 8) | (written[at + 1] & 0xFF);
+                assertEquals((y * 9973 + i * 131) & 0xFFFF, v);
+            }
+        }
+    }
 }

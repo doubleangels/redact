@@ -74,8 +74,17 @@ public final class CensorExporter {
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                     censorGainMap(bitmap, regions);
                 }
-                boolean sixteenBit = spec.compressFormat == android.graphics.Bitmap.CompressFormat.PNG
-                        && writeSixteenBitPng(context, source, bitmap, regions, censored);
+                boolean png = spec.compressFormat == android.graphics.Bitmap.CompressFormat.PNG;
+                boolean sixteenBit = png && writeSixteenBitPng(context, source, bitmap, regions, censored);
+                if (!sixteenBit && png && HighPrecisionPng.isHighPrecision(bitmap)) {
+                    // A turned 16-bit PNG, or a picture decoded at more than 8 bits some other
+                    // way: its own samples can't be lined up with the picture, but the censored
+                    // bitmap still holds them at full precision.
+                    try (OutputStream os = new java.io.BufferedOutputStream(new FileOutputStream(censored), 64 * 1024)) {
+                        HighPrecisionPng.write(bitmap, os);
+                    }
+                    sixteenBit = true;
+                }
                 if (!sixteenBit) {
                     try (OutputStream os = new FileOutputStream(censored)) {
                         if (!FormatConverter.compressBitmapToStream(context, bitmap, spec.compressFormat, os,
@@ -212,7 +221,9 @@ public final class CensorExporter {
             return bitmap;
         }
         try {
-            Bitmap copy = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+            // A picture decoded at more than 8 bits is edited at that precision.
+            Bitmap copy = bitmap.copy(HighPrecisionPng.isHighPrecision(bitmap)
+                    ? bitmap.getConfig() : Bitmap.Config.ARGB_8888, true);
             if (copy == null) {
                 throw new IOException("Cannot copy the image for editing");
             }

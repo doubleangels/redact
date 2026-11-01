@@ -210,6 +210,72 @@ public final class Png16 {
         target.write(chunk("IEND", new byte[0]));
     }
 
+    /** 16-bit samples for one row of a picture {@link #write} saves. */
+    public interface SampleRows {
+        /**
+         * Fills {@code samples} with row {@code y}: for each pixel red, green and blue, and alpha
+         * when the picture has it, each 0 to 65535.
+         */
+        void row(int y, @NonNull int[] samples) throws IOException;
+    }
+
+    /** A PNG chunk, for the colour chunks {@link #write} is given. */
+    @NonNull
+    public static byte[] colourChunk(@NonNull String type, @NonNull byte[] body) throws IOException {
+        return chunk(type, body);
+    }
+
+    /**
+     * Writes a 16-bit RGB or RGBA PNG from {@code rows}: for a picture decoded at more than 8 bits,
+     * which {@code Bitmap.compress} would save at 8. {@code colourChunks} say what colour space
+     * the samples are in.
+     */
+    public static void write(int width, int height, boolean alpha, @NonNull List<byte[]> colourChunks,
+            @NonNull SampleRows rows, @NonNull OutputStream target) throws IOException {
+        if (width <= 0 || height <= 0) {
+            throw new IOException("Empty picture");
+        }
+        Header header = new Header(width, height, alpha ? 6 : 2, false);
+        int channels = header.channels();
+        long rowBytes = (long) width * channels * 2;
+        if (rowBytes > Integer.MAX_VALUE - 1) {
+            throw new IOException("PNG too wide");
+        }
+        target.write(SIGNATURE);
+        ByteArrayOutputStream ihdr = new ByteArrayOutputStream(13);
+        writeInt(ihdr, width);
+        writeInt(ihdr, height);
+        ihdr.write(16);
+        ihdr.write(header.colorType);
+        ihdr.write(0);
+        ihdr.write(0);
+        ihdr.write(0);
+        target.write(chunk("IHDR", ihdr.toByteArray()));
+        for (byte[] c : colourChunks) {
+            target.write(c);
+        }
+        int[] samples = new int[width * channels];
+        byte[] row = new byte[(int) rowBytes];
+        Deflater deflater = new Deflater(Deflater.DEFAULT_COMPRESSION);
+        try (IdatWriter idat = new IdatWriter(target);
+                DeflaterOutputStream z = new DeflaterOutputStream(idat, deflater, 64 * 1024)) {
+            RowWriter writer = new RowWriter(header, (int) rowBytes, z, null);
+            for (int y = 0; y < height; y++) {
+                rows.row(y, samples);
+                for (int i = 0; i < samples.length; i++) {
+                    int v = Math.max(0, Math.min(65535, samples[i]));
+                    row[2 * i] = (byte) (v >>> 8);
+                    row[2 * i + 1] = (byte) v;
+                }
+                writer.write(y, row, 0);
+            }
+            z.finish();
+        } finally {
+            deflater.end();
+        }
+        target.write(chunk("IEND", new byte[0]));
+    }
+
     /** Writes rows, with the patch applied and the filter that compresses each best. */
     private static final class RowWriter {
         private final Header header;
