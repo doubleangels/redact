@@ -218,4 +218,33 @@ public class HeifContainerMetadataTest {
         assertTrue(contains(still, "mif1"));
         assertTrue(contains(still, "miaf"));
     }
+
+    private static boolean onlyPictures(File file) throws IOException {
+        try (java.io.FileInputStream in = new java.io.FileInputStream(file)) {
+            return HeifContainerMetadata.holdsOnlyPictures(in.getChannel());
+        }
+    }
+
+    @Test
+    public void holdsOnlyPictures_isTrueOnlyForWhatACleanLeaves() throws Exception {
+        File source = fixture();
+        assertFalse("the source has an XMP item", onlyPictures(source));
+        File clean = new File(temp.getRoot(), "clean.heic");
+        HeifContainerMetadata.sanitize(source, clean);
+        assertTrue(onlyPictures(clean));
+
+        byte[] cleanBytes = Files.readAllBytes(clean.toPath());
+        // A Motion Photo's video, a vendor trailer, or anything else after the picture.
+        java.io.ByteArrayOutputStream withVideo = new java.io.ByteArrayOutputStream();
+        withVideo.write(cleanBytes);
+        withVideo.write(new byte[] {0, 0, 0, 16, 'm', 'p', 'v', 'd', 1, 2, 3, 4, 5, 6, 7, 8});
+        File motion = temp.newFile("motion.heic");
+        Files.write(motion.toPath(), withVideo.toByteArray());
+        assertFalse(onlyPictures(motion));
+
+        File trailer = temp.newFile("trailer.heic");
+        byte[] withTrailer = java.util.Arrays.copyOf(cleanBytes, cleanBytes.length + 5);
+        Files.write(trailer.toPath(), withTrailer);
+        assertFalse(onlyPictures(trailer));
+    }
 }

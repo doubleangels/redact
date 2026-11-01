@@ -2025,7 +2025,11 @@ public class MetadataStripper {
         } catch (Exception e) {
             exif = new CleanStats(0, false);
         }
-        return exif.plus(ImageContainerMetadata.scan(imageFile), exifCountedXmp);
+        // Keep Motion Photos puts the video back (cleaned), so the summary doesn't call it removed.
+        boolean keepsMotion = !forSharing && !AppPreferences.isStrictClean(context)
+                && AppPreferences.isPreserveMotionPhoto(context) && MotionPhoto.find(imageFile) != null;
+        return exif.plus(ImageContainerMetadata.scan(imageFile), exifCountedXmp,
+                keepsMotion ? java.util.Set.of("EMBEDDED_VIDEO") : java.util.Set.of());
     }
 
     /**
@@ -2357,7 +2361,9 @@ public class MetadataStripper {
                                   @Nullable MotionPhoto.Clip motion)
             throws IOException {
         ImageContainerMetadata.Format expected = containerFormat(outputFormat.extension);
-        if (fromPixels && expected == ImageContainerMetadata.Format.OTHER) {
+        // A HEIC the encoder just wrote is still rebuilt below: losslessly, so whatever the
+        // encoder put beside the picture goes too.
+        if (fromPixels && expected == ImageContainerMetadata.Format.OTHER && !HeifContainerMetadata.isHeif(source)) {
             // Encoding it again (HEIC, say) would only cost time and quality; the check before
             // publishing still makes sure nothing identifying is in it.
             try (InputStream in = new FileInputStream(source);
@@ -2374,6 +2380,15 @@ public class MetadataStripper {
                 HeifContainerMetadata.sanitize(source, target, motion);
                 return outputFormat;
             } catch (IOException | RuntimeException e) {
+                if (fromPixels) {
+                    // The encoder's own file, which holds nothing of the source's: kept as it
+                    // was, and still checked before it is published.
+                    try (InputStream in = new FileInputStream(source);
+                            OutputStream out = new FileOutputStream(target)) {
+                        MediaSizeLimits.copyStream(in, out);
+                    }
+                    return outputFormat;
+                }
                 SentryManager.log("The HEIC or AVIF could not be rebuilt without its metadata, so the app is re-encoding it: "
                         + e.getMessage() + ".");
             }

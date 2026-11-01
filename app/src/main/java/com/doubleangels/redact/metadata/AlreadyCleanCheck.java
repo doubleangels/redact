@@ -193,8 +193,21 @@ public final class AlreadyCleanCheck {
                 return Status.UNKNOWN;
             }
             // HEIC keeps its XMP near the start.
-            return ImageContainerMetadata.containsXmpPacket(in, XMP_SCAN_LIMIT)
-                    ? Status.NEEDS_CLEANING : Status.ALREADY_CLEAN;
+            if (ImageContainerMetadata.containsXmpPacket(in, XMP_SCAN_LIMIT)) {
+                return Status.NEEDS_CLEANING;
+            }
+        } catch (IOException | RuntimeException e) {
+            return Status.UNKNOWN;
+        }
+        // A burst, a Motion Photo's video, a vendor trailer or any item a clean leaves out.
+        try (android.os.ParcelFileDescriptor pfd = resolver.openFileDescriptor(uri, "r")) {
+            if (pfd == null) {
+                return Status.UNKNOWN;
+            }
+            try (java.io.FileInputStream file = new java.io.FileInputStream(pfd.getFileDescriptor())) {
+                return HeifContainerMetadata.holdsOnlyPictures(file.getChannel())
+                        ? Status.ALREADY_CLEAN : Status.NEEDS_CLEANING;
+            }
         } catch (IOException | RuntimeException e) {
             return Status.UNKNOWN;
         }

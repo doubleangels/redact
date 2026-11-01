@@ -114,6 +114,106 @@ public final class HeifContainerMetadata {
     }
 
     /**
+     * Whether a HEIF holds nothing a clean would remove besides EXIF and XMP, which the caller
+     * reads on its own: only {@code ftyp}, {@code meta} and {@code mdat} (and padding) at the top
+     * level, nothing after them, and no items but pictures and EXIF. A burst's or animation's
+     * {@code moov}, a Motion Photo's {@code mpvd}, a {@code uuid} box, a vendor trailer or any
+     * other item makes it false, and so does a file this can't follow.
+     */
+    public static boolean holdsOnlyPictures(@NonNull java.nio.channels.FileChannel ch) {
+        try {
+            long length = ch.size();
+            long pos = 0;
+            boolean sawMeta = false;
+            while (pos < length) {
+                if (pos + 8 > length) {
+                    return false; // bytes after the last box
+                }
+                java.nio.ByteBuffer h = java.nio.ByteBuffer.allocate(16);
+                ch.read(h, pos);
+                long size = h.getInt(0) & 0xFFFFFFFFL;
+                String type = fourCc(h.array(), 4);
+                int header = 8;
+                if (size == 1) {
+                    size = h.getLong(8);
+                    header = 16;
+                } else if (size == 0) {
+                    size = length - pos;
+                }
+                if (size < header || pos + size > length) {
+                    return false;
+                }
+                switch (type) {
+                    case "ftyp":
+                    case "mdat":
+                    case "free":
+                    case "skip":
+                        break;
+                    case "meta":
+                        if (sawMeta || size > MAX_META_BYTES) {
+                            return false;
+                        }
+                        sawMeta = true;
+                        java.nio.ByteBuffer meta = java.nio.ByteBuffer.allocate((int) size);
+                        while (meta.hasRemaining()) {
+                            if (ch.read(meta, pos + meta.position()) < 0) {
+                                return false;
+                            }
+                        }
+                        if (!onlyPictureItems(meta.array())) {
+                            return false;
+                        }
+                        break;
+                    default:
+                        return false;
+                }
+                pos += size;
+            }
+            return sawMeta;
+        } catch (IOException | RuntimeException e) {
+            return false;
+        }
+    }
+
+    /** Whether a meta box's items are all pictures or EXIF. */
+    private static boolean onlyPictureItems(@NonNull byte[] meta) throws IOException {
+        int pos = headerSize(meta, 0) + 4;
+        while (pos + 8 <= meta.length) {
+            int size = boxSize(meta, pos);
+            if (size < 8 || pos + size > meta.length) {
+                return false;
+            }
+            if ("iinf".equals(fourCc(meta, pos + 4))) {
+                int payload = pos + headerSize(meta, pos);
+                int version = meta[payload] & 0xFF;
+                int p = payload + 4 + (version == 0 ? 2 : 4);
+                int end = pos + size;
+                while (p + 8 <= end) {
+                    int entrySize = boxSize(meta, p);
+                    if (entrySize < 8 || p + entrySize > end) {
+                        return false;
+                    }
+                    if ("infe".equals(fourCc(meta, p + 4))) {
+                        int q = p + headerSize(meta, p);
+                        int infeVersion = meta[q] & 0xFF;
+                        if (infeVersion < 2) {
+                            return false;
+                        }
+                        q += 4 + (infeVersion == 2 ? 2 : 4) + 2;
+                        String type = fourCc(meta, q);
+                        if (!IMAGE_ITEM_TYPES.contains(type) && !"Exif".equals(type)) {
+                            return false;
+                        }
+                    }
+                    p += entrySize;
+                }
+            }
+            pos += size;
+        }
+        return true;
+    }
+
+    /**
      * Writes {@code source}'s pictures to {@code target} and nothing else.
      *
      * @throws IOException when the file is not a HEIF this class can follow (external data,

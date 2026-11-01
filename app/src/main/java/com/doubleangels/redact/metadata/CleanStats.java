@@ -98,9 +98,16 @@ public final class CleanStats {
      */
     @NonNull
     CleanStats plus(@NonNull ImageContainerMetadata.Report container, boolean exifCountedXmp) {
+        return plus(container, exifCountedXmp, java.util.Collections.emptySet());
+    }
+
+    /** {@link #plus(ImageContainerMetadata.Report, boolean)}, not counting findings a clean keeps. */
+    @NonNull
+    CleanStats plus(@NonNull ImageContainerMetadata.Report container, boolean exifCountedXmp,
+            @NonNull Set<String> keptKeys) {
         int added = 0;
         for (ImageContainerMetadata.Finding finding : container.findings) {
-            if (!(exifCountedXmp && finding.key.equals("XMP"))) {
+            if (!(exifCountedXmp && finding.key.equals("XMP")) && !keptKeys.contains(finding.key)) {
                 added++;
             }
         }
