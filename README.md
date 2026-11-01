@@ -123,7 +123,7 @@ Your originals are never modified.
 
 ### Clean
 
-Removes metadata and saves a new copy to `Pictures/Redact` (images) or `Movies/Redact` (videos). Choose up to 100 files. Location data is removed unless you explicitly turn on **Keep Location** in Settings (this asks for confirmation and is ignored by Strict Clean).
+Removes metadata and saves a new copy to `Pictures/Redact` (images) or `Movies/Redact` (videos). Choose up to 100 files. Location data is removed unless you explicitly turn on **Keep Location** in Settings (this asks for confirmation and is ignored by Strict Clean). Settings can also keep the camera settings, the date taken and a Motion Photo's video; see [Settings](#settings).
 
 When the clean finishes, Redact sums up what it removed, for example *"Removed 24 metadata fields, including location"* for one file, or the total and how many files had a location for a batch. Fields you chose to keep in Settings are not counted. The same summary appears in the completion notification if notifications are on. A **Share** icon button then appears above **Clean Metadata** to send the clean copies to another app. Convert shows a **Share** button when it finishes. After cleaning a single file, a **Scan Result** icon button also appears beside Share and opens the clean copy in Scan, so you can see exactly what is left. Long-press either icon to see its name.
 
@@ -132,7 +132,7 @@ When the clean finishes, Redact sums up what it removed, for example *"Removed 2
 Pick **one** file to see everything embedded in it, grouped into sections such as image properties and technical details.
 
 - **Location** badge: marks rows that reveal where the file was taken, such as GPS coordinates.
-- **Hidden & embedded data:** a section for what lives outside the usual tags, such as IPTC captions and credits, comments, extra images or a Motion Photo clip stored after the picture, phone makers' own records, video container tags and data inside the video stream. Clean removes all of it.
+- **Hidden & embedded data:** a section for what lives outside the usual tags, such as IPTC captions and credits, comments, extra images or a Motion Photo clip stored after the picture, phone makers' own records, video container tags and data inside the video stream. Clean removes all of it, except a Motion Photo's clip with **Keep Motion Photos** on, which it keeps with the clip's own metadata removed.
 - **Search:** type in the box above the list to filter it. Matches field names and values, ignoring case, and treats spaces and underscores alike, so `gps altitude` finds `GPS_ALTITUDE`. Typing a section's name, such as `camera` or `location`, shows that whole section. The search clears when you scan another file.
 - **Copy:** copy a single value or the whole list. Copied values are flagged as sensitive on the clipboard on Android 13 and newer.
 - **Open in Clean / Convert:** send the file on without picking it again.
@@ -149,7 +149,7 @@ Pick **one** file to see everything embedded in it, grouped into sections such a
 
 ### Convert
 
-Choose a target format (images: JPEG, PNG, WebP, HEIC where supported; video: H.264, H.265, VP9, AV1) and Redact writes the converted copy with metadata stripped and verified. The format you pick is kept when you change the selection.
+Choose a target format (images: JPEG, PNG, WebP, HEIC where supported; video: H.264, H.265, VP9, AV1) and Redact writes the converted copy with metadata stripped and verified. Converting to PNG keeps 16 bits per channel from a 16-bit PNG or a 10-bit HEIC or AVIF. The format you pick is kept when you change the selection.
 
 ### Censor
 
@@ -160,7 +160,7 @@ Pick one photo and cover anything that should stay private.
 - **Move:** pinch to zoom and drag to pan. **Full Screen** gives the photo the whole screen.
 - **Effect:** Pixelate, Black or Blur. Your tool, effect and brush size are remembered.
 - **Undo / Redo**, and a prompt before discarding unsaved changes.
-- **Save Copy** writes a censored copy with no metadata to your output folder, and a **Share** button sends it on. With **Delete Originals After Cleaning** on, Redact also asks Android to move the original to trash.
+- **Save Copy** writes a censored copy to your output folder at full resolution and in the photo's own format, keeping only the tags your Clean settings keep (never the original's small preview image, depth map or Motion Photo clip, which could still show what you covered), and a **Share** button sends it on. With **Delete Originals After Cleaning** on, Redact also asks Android to move the original to trash.
 
 You can also reach Censor from Scan (**Censor This Photo**), from the icon that appears after cleaning a single photo, or by sharing a photo to **Censor with Redact**.
 
@@ -231,7 +231,7 @@ The Settings tab puts the settings you use every day first: cleaning, sharing, C
 | **Keep Location** | Keeps GPS coordinates in photos and videos on the Clean tab (confirmation required, off by default). Ignored with Strict Clean and for shared-in files, which always lose location. |
 | **Keep Date Taken** | Keeps when each photo or video was taken, with its time zone, on the Clean tab, so cleaned files stay in their place in your gallery instead of showing up as taken today. Off by default. Ignored with Strict Clean and for shared-in files. |
 | **Keep Motion Photos** | Keeps the short video of a JPEG or HEIC Motion Photo on the Clean tab, with its location, dates and other tags removed and its frames unchanged. The clip includes the sound recorded with it. Off by default, so Motion Photos become stills. Ignored with Strict Clean and for shared-in files. |
-| **Faster Video Cleaning** | When a video is already in a compatible format, strips its metadata with a quick pass instead of re-encoding. Faster and lighter on battery; a full re-encode removes a touch more. Turned off automatically with Strict Clean and for shared-in files. |
+| **Faster Video Cleaning** | When a video is already in a compatible format, strips its metadata with a quick pass instead of re-encoding. Faster and lighter on battery; a full re-encode removes a touch more. Every frame is checked first, and a video with data hidden in its stream is re-encoded instead. A WebM whose location or date is kept is saved as MP4. Turned off automatically with Strict Clean and for shared-in files. |
 
 **Before & After Cleaning**
 
@@ -332,13 +332,13 @@ EXIF (Exchangeable Image File Format) is the metadata block cameras and phones w
 <details>
 <summary><b>Does Redact change the quality of my photos or videos?</b></summary>
 
-Cleaning keeps photos exactly as they are. JPEG, PNG, WebP, HEIC, AVIF and GIF files are rebuilt from their own picture data without recompressing, so every pixel, every frame of an animation, and the HDR layer of an Ultra HDR photo are kept. The moving part of a Motion Photo is removed, so it becomes an ordinary still photo, unless **Keep Motion Photos** is on. Videos are encoded again at the source's size, frame rate and bitrate (unless Faster Video Cleaning applies). See [What happens to your files](#what-happens-to-your-files) for every case.
+Cleaning keeps photos exactly as they are. JPEG, PNG, WebP, HEIC, AVIF and GIF files are rebuilt from their own picture data without recompressing, so every pixel, every frame of an animation, and the HDR layer of an Ultra HDR photo are kept. The moving part of a Motion Photo is removed, so it becomes an ordinary still photo, unless **Keep Motion Photos** is on. Depth maps and portrait mattes are left out, as they map the scene and outline the people in it. Videos are encoded again at the source's size, frame rate and bitrate (unless Faster Video Cleaning applies). See [What happens to your files](#what-happens-to-your-files) for every case.
 </details>
 
 <details>
 <summary><b>Does Convert remove metadata too?</b></summary>
 
-Yes. Images are re-encoded without their EXIF data. Videos have metadata removed before transcoding and are checked afterward. The original file is never modified.
+Yes. Images are decoded and saved in the new format, which carries none of the original's metadata. Videos are encoded without writing any of the source's metadata and are checked afterward. The original file is never modified.
 </details>
 
 <details>
