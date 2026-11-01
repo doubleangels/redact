@@ -179,7 +179,7 @@
     <string name="settings_preserve_date">Mantieni Data di Scatto</string>
     <string name="settings_preserve_date_subtitle">Mantieni quando è stata scattata ogni foto o girato ogni video in Pulisci, così resta al suo posto nella galleria. Ignorato con Pulizia Rigorosa o condivisione da altre app.</string>
     <string name="settings_preserve_motion">Mantieni Foto in Movimento</string>
-    <string name="settings_preserve_motion_subtitle">Mantieni il breve video di una foto in movimento JPEG in Pulisci, senza i suoi metadati. Include l\'audio registrato con esso. Ignorato con Pulizia Rigorosa o condivisione da altre app.</string>
+    <string name="settings_preserve_motion_subtitle">Mantieni il breve video di una foto in movimento JPEG o HEIC in Pulisci, senza i suoi metadati. Include l\'audio registrato con esso. Ignorato con Pulizia Rigorosa o condivisione da altre app.</string>
         <string name="settings_sentry_consent_allow">Attiva</string>
     <string name="settings_sentry_consent_cancel">Non Ora</string>
     <string name="settings_sentry_consent_title">Attiva Segnalazioni Crash</string>

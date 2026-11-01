@@ -172,7 +172,7 @@
     <string name="settings_preserve_date">撮影日時を保持</string>
     <string name="settings_preserve_date_subtitle">クリーンタブで各写真や動画の撮影日時を保持し、ギャラリーでの並び順を保ちます。厳密クリーン時や他アプリからの共有時は無視されます。</string>
     <string name="settings_preserve_motion">モーションフォトを保持</string>
-    <string name="settings_preserve_motion_subtitle">クリーンタブでJPEGモーションフォトの短い動画を、メタデータを削除して保持します。一緒に録音された音声も含まれます。厳密クリーン時や他アプリからの共有時は無視されます。</string>
+    <string name="settings_preserve_motion_subtitle">クリーンタブでJPEGまたはHEICのモーションフォトの短い動画を、メタデータを削除して保持します。一緒に録音された音声も含まれます。厳密クリーン時や他アプリからの共有時は無視されます。</string>
         <string name="settings_sentry_consent_allow">有効にする</string>
     <string name="settings_sentry_consent_cancel">後で</string>
     <string name="settings_sentry_consent_title">クラッシュレポートを有効にする</string>

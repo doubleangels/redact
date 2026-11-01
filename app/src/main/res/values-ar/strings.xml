@@ -191,7 +191,7 @@
     <string name="settings_preserve_date">الاحتفاظ بتاريخ الالتقاط</string>
     <string name="settings_preserve_date_subtitle">الاحتفاظ بوقت التقاط كل صورة أو فيديو في تبويب التنظيف، ليبقى في مكانه في معرض الصور. يُتجاهل عند التنظيف الصارم أو عند المشاركة من تطبيقات أخرى.</string>
     <string name="settings_preserve_motion">الاحتفاظ بالصور المتحركة</string>
-    <string name="settings_preserve_motion_subtitle">الاحتفاظ بالفيديو القصير لصورة JPEG المتحركة في تبويب التنظيف، مع إزالة بياناتها الوصفية. يتضمن الصوت المسجل معها. يُتجاهل عند التنظيف الصارم أو عند المشاركة من تطبيقات أخرى.</string>
+    <string name="settings_preserve_motion_subtitle">الاحتفاظ بالفيديو القصير لصورة JPEG أو HEIC المتحركة في تبويب التنظيف، مع إزالة بياناتها الوصفية. يتضمن الصوت المسجل معها. يُتجاهل عند التنظيف الصارم أو عند المشاركة من تطبيقات أخرى.</string>
         <string name="settings_sentry_consent_allow">تفعيل</string>
     <string name="settings_sentry_consent_cancel">ليس الآن</string>
     <string name="settings_sentry_consent_title">تفعيل تقارير الأعطال</string>

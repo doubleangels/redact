@@ -179,7 +179,7 @@
     <string name="settings_preserve_date">Conservar Fecha de Captura</string>
     <string name="settings_preserve_date_subtitle">Conservar cuándo se tomó cada foto o video en Limpiar, para que siga en su sitio en la galería. Ignorado con Limpieza Estricta o al compartir desde otras apps.</string>
     <string name="settings_preserve_motion">Conservar Fotos en Movimiento</string>
-    <string name="settings_preserve_motion_subtitle">Conservar el video corto de una foto en movimiento JPEG en Limpiar, sin sus metadatos. Incluye el sonido grabado con él. Ignorado con Limpieza Estricta o al compartir desde otras apps.</string>
+    <string name="settings_preserve_motion_subtitle">Conservar el video corto de una foto en movimiento JPEG o HEIC en Limpiar, sin sus metadatos. Incluye el sonido grabado con él. Ignorado con Limpieza Estricta o al compartir desde otras apps.</string>
         <string name="settings_sentry_consent_allow">Activar</string>
     <string name="settings_sentry_consent_cancel">Ahora No</string>
     <string name="settings_sentry_consent_title">Activar Informes de Fallos</string>

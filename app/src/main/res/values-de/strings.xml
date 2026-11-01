@@ -175,7 +175,7 @@
     <string name="settings_preserve_date">Aufnahmedatum Behalten</string>
     <string name="settings_preserve_date_subtitle">Aufnahmezeitpunkt jedes Fotos und Videos auf Bereinigen behalten, damit es in der Galerie an seiner Stelle bleibt. Ignoriert bei Strikter Bereinigung oder beim Teilen aus anderen Apps.</string>
     <string name="settings_preserve_motion">Bewegte Fotos Behalten</string>
-    <string name="settings_preserve_motion_subtitle">Das kurze Video eines JPEG-Bewegungsfotos auf Bereinigen behalten, ohne seine Metadaten. Es enthält den mit aufgenommenen Ton. Ignoriert bei Strikter Bereinigung oder beim Teilen aus anderen Apps.</string>
+    <string name="settings_preserve_motion_subtitle">Das kurze Video eines JPEG- oder HEIC-Bewegungsfotos auf Bereinigen behalten, ohne seine Metadaten. Es enthält den mit aufgenommenen Ton. Ignoriert bei Strikter Bereinigung oder beim Teilen aus anderen Apps.</string>
         <string name="settings_sentry_consent_allow">Aktivieren</string>
     <string name="settings_sentry_consent_cancel">Nicht Jetzt</string>
     <string name="settings_sentry_consent_title">Absturzberichte Aktivieren</string>

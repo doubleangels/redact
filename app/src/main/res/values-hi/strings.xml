@@ -175,7 +175,7 @@
     <string name="settings_preserve_date">खींचने की तारीख रखें</string>
     <string name="settings_preserve_date_subtitle">साफ़ करें टैब पर हर फ़ोटो या वीडियो का समय रखें, ताकि वह गैलरी में अपनी जगह पर रहे। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर अनदेखा।</string>
     <string name="settings_preserve_motion">मोशन फ़ोटो रखें</string>
-    <string name="settings_preserve_motion_subtitle">साफ़ करें टैब पर JPEG मोशन फ़ोटो का छोटा वीडियो उसका मेटाडेटा हटाकर रखें। इसमें साथ रिकॉर्ड हुई आवाज़ भी होती है। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर अनदेखा।</string>
+    <string name="settings_preserve_motion_subtitle">साफ़ करें टैब पर JPEG या HEIC मोशन फ़ोटो का छोटा वीडियो उसका मेटाडेटा हटाकर रखें। इसमें साथ रिकॉर्ड हुई आवाज़ भी होती है। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर अनदेखा।</string>
         <string name="settings_sentry_consent_allow">सक्षम करें</string>
     <string name="settings_sentry_consent_cancel">अभी नहीं</string>
     <string name="settings_sentry_consent_title">क्रैश रिपोर्टिंग सक्षम करें</string>
