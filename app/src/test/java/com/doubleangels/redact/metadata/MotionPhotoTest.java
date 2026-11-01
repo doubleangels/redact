@@ -162,4 +162,62 @@ public class MotionPhotoTest {
         assertFalse(contains(clean, "MotionPhoto"));
         assertNull(MotionPhoto.find(out));
     }
+
+    /** The fixture HEIC with the tagged clip of the JPEG fixture in an mpvd box after it. */
+    private File heicMotionPhoto() throws IOException {
+        File jpeg = fixture("motion_photo_tagged.jpg");
+        MotionPhoto.Found inJpeg = MotionPhoto.find(jpeg);
+        byte[] all = Files.readAllBytes(jpeg.toPath());
+        byte[] clip = Arrays.copyOfRange(all, (int) inJpeg.start, (int) inJpeg.end);
+        byte[] heic = fixture("heic_tagged.heic").exists()
+                ? Files.readAllBytes(new File(temp.getRoot(), "heic_tagged.heic").toPath()) : null;
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        out.write(heic);
+        int size = clip.length + 8;
+        out.write(new byte[] {(byte) (size >>> 24), (byte) (size >>> 16), (byte) (size >>> 8), (byte) size});
+        out.write("mpvd".getBytes(StandardCharsets.ISO_8859_1));
+        out.write(clip);
+        File file = new File(temp.getRoot(), "motion.heic");
+        Files.write(file.toPath(), out.toByteArray());
+        return file;
+    }
+
+    @Test
+    public void heic_keepsItsVideoInAnMpvdBox_throughAnExifRebuildToo() throws Exception {
+        File source = heicMotionPhoto();
+        MotionPhoto.Found found = MotionPhoto.find(source);
+        assertNotNull(found);
+        assertEquals(source.length(), found.end);
+
+        MotionPhoto.Clip clip = cleanClip(source, found);
+        File out = new File(temp.getRoot(), "clean.heic");
+        HeifContainerMetadata.sanitize(source, out, clip);
+
+        byte[] clean = Files.readAllBytes(out.toPath());
+        assertFalse(contains(clean, "SecretTitle"));
+        assertFalse(contains(clean, "SecretMaker"));
+        assertTrue(contains(clean, "GCamera:MotionPhoto=\"1\""));
+        assertTrue(contains(clean, "Item:Mime=\"image/heic\" Item:Padding=\"8\""));
+        assertTrue(contains(clean, "application/rdf+xml"));
+        assertTrue("the clean video ends the file", Arrays.equals(Files.readAllBytes(clip.video.toPath()),
+                Arrays.copyOfRange(clean, clean.length - (int) clip.video.length(), clean.length)));
+        MotionPhoto.Found again = MotionPhoto.find(out);
+        assertNotNull(again);
+        assertEquals(out.length(), again.end);
+        assertTrue(HeifContainerMetadata.isHeif(out));
+
+        // Putting kept EXIF in rebuilds the file again; the video and its directory stay.
+        byte[] tiff = {'I', 'I', 42, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        HeifContainerMetadata.addExif(out, tiff);
+        byte[] withExif = Files.readAllBytes(out.toPath());
+        assertTrue(contains(withExif, "GCamera:MotionPhoto=\"1\""));
+        assertTrue(Arrays.equals(Files.readAllBytes(clip.video.toPath()),
+                Arrays.copyOfRange(withExif, withExif.length - (int) clip.video.length(), withExif.length)));
+
+        // A plain clean of the source still drops it.
+        File still = new File(temp.getRoot(), "still.heic");
+        HeifContainerMetadata.sanitize(source, still);
+        assertNull(MotionPhoto.find(still));
+        assertFalse(contains(Files.readAllBytes(still.toPath()), "mpvd"));
+    }
 }

@@ -682,7 +682,7 @@ public class MetadataStripper {
             if (!container.recognized || !container.fields.isEmpty()) {
                 throw new IOException("its container still holds metadata");
             }
-            VideoStreamMetadata.Report stream = VideoStreamMetadata.scan(context, Uri.fromFile(video));
+            VideoStreamMetadata.Report stream = VideoStreamMetadata.scan(context, Uri.fromFile(video), true);
             if (stream == null || stream.userDataMessages > 0) {
                 throw new IOException("its stream carries data of its own");
             }
@@ -1115,6 +1115,12 @@ public class MetadataStripper {
             }
 
             boolean useWebm = useWebmContainer(extractor);
+            if (useWebm && (keepLocation != null || keepDate)) {
+                // Not a WebM an MP4 can take as it is (VP8, say): a WebM keeps no location and
+                // Android reads no date from one, so it is encoded again into an MP4 that does.
+                SentryManager.log("The WebM can't be copied into an MP4, so it is re-encoded to keep its location or date.");
+                return null;
+            }
             
             outputFile = File.createTempFile(
                     "vid_transmux_", useWebm ? ".webm" : ".mp4", context.getCacheDir());
@@ -1237,6 +1243,7 @@ public class MetadataStripper {
             }
             int videoTrack = -1;
             int audioTrack = -1;
+            boolean vorbis = false;
             for (int i = 0; i < extractor.getTrackCount(); i++) {
                 String mime = extractor.getTrackFormat(i).getString(android.media.MediaFormat.KEY_MIME);
                 if (mime == null) {
@@ -1248,7 +1255,8 @@ public class MetadataStripper {
                     }
                     videoTrack = i;
                 } else if (mime.startsWith("audio/") && audioTrack == -1) {
-                    if (!mime.equals(android.media.MediaFormat.MIMETYPE_AUDIO_OPUS)) {
+                    vorbis = mime.equals(android.media.MediaFormat.MIMETYPE_AUDIO_VORBIS);
+                    if (!vorbis && !mime.equals(android.media.MediaFormat.MIMETYPE_AUDIO_OPUS)) {
                         return null;
                     }
                     audioTrack = i;
@@ -1272,6 +1280,14 @@ public class MetadataStripper {
             }
 
             outputFile = File.createTempFile(KEEP_REMUX_PREFIX, ".mp4", context.getCacheDir());
+            if (vorbis) {
+                // An MP4 can't hold Vorbis: the video is copied as it is and only the sound is
+                // encoded again, to Opus.
+                VideoMedia3Converter.copyVideoToMp4(context.getApplicationContext(), sourceUri,
+                        outputFile.getAbsolutePath(), transcodeOwnerId, keepLocation, vpcC);
+                succeeded = true;
+                return outputFile;
+            }
             muxer = new androidx.media3.muxer.Mp4Muxer.Builder(new java.io.FileOutputStream(outputFile)).build();
             if (keepLocation != null) {
                 // Written from the value asked for, nothing copied from the source.
@@ -1810,7 +1826,7 @@ public class MetadataStripper {
         // A transmux copies every sample as is, so user data inside the video stream (a
         // camcorder's date and GPS, a drone's telemetry) would survive it; only a re-encode
         // removes that, as Scan promises.
-        VideoStreamMetadata.Report stream = VideoStreamMetadata.scan(context, Uri.fromFile(tempCleanFile));
+        VideoStreamMetadata.Report stream = VideoStreamMetadata.scan(context, Uri.fromFile(tempCleanFile), true);
         if (stream == null || stream.userDataMessages > 0) {
             SentryManager.log("The video stream carries user data, so the app is re-encoding it.");
             return false;
@@ -2355,7 +2371,7 @@ public class MetadataStripper {
             // Rebuilt around its coded pictures, which keeps the full resolution, 10-bit colour
             // and any HDR gain map that a decode and encode would lose.
             try {
-                HeifContainerMetadata.sanitize(source, target);
+                HeifContainerMetadata.sanitize(source, target, motion);
                 return outputFormat;
             } catch (IOException | RuntimeException e) {
                 SentryManager.log("The HEIC or AVIF could not be rebuilt without its metadata, so the app is re-encoding it: "

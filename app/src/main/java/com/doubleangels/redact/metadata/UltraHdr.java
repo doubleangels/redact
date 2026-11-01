@@ -166,7 +166,8 @@ final class UltraHdr {
                         return "Primary".equals(value) || "GainMap".equals(value)
                                 || "MotionPhoto".equals(value);
                     case "Mime":
-                        return "image/jpeg".equals(value) || "video/mp4".equals(value);
+                        return "image/jpeg".equals(value) || "image/heic".equals(value)
+                                || "image/avif".equals(value) || "video/mp4".equals(value);
                     case "Length":
                     case "Padding":
                         return value.matches("\\d{1,12}");
@@ -265,6 +266,17 @@ final class UltraHdr {
     @VisibleForTesting
     @NonNull
     static String primaryXmp(@Nullable String version, long gainMapLength, @Nullable MotionPhoto.Clip motion) {
+        return primaryXmp(version, gainMapLength, motion, "image/jpeg", -1);
+    }
+
+    /**
+     * {@link #primaryXmp(String, long, MotionPhoto.Clip)} for a primary picture of
+     * {@code primaryMime}, followed by {@code primaryPadding} bytes before the next item (none
+     * when negative): a HEIF's video is in a box whose header comes first.
+     */
+    @NonNull
+    static String primaryXmp(@Nullable String version, long gainMapLength, @Nullable MotionPhoto.Clip motion,
+            @NonNull String primaryMime, int primaryPadding) {
         StringBuilder xmp = new StringBuilder("<x:xmpmeta xmlns:x=\"adobe:ns:meta/\"><rdf:RDF xmlns:rdf=\"")
                 .append(RDF_NS).append("\"><rdf:Description rdf:about=\"\"");
         if (version != null) {
@@ -285,7 +297,10 @@ final class UltraHdr {
             }
         }
         xmp.append("><Container:Directory><rdf:Seq>")
-                .append("<rdf:li rdf:parseType=\"Resource\"><Container:Item Item:Semantic=\"Primary\" Item:Mime=\"image/jpeg\"/></rdf:li>");
+                .append("<rdf:li rdf:parseType=\"Resource\"><Container:Item Item:Semantic=\"Primary\" Item:Mime=\"")
+                .append(primaryMime).append('"')
+                .append(primaryPadding >= 0 ? " Item:Padding=\"" + primaryPadding + "\"" : "")
+                .append("/></rdf:li>");
         if (gainMapLength >= 0) {
             xmp.append("<rdf:li rdf:parseType=\"Resource\"><Container:Item Item:Semantic=\"GainMap\" Item:Mime=\"image/jpeg\" Item:Length=\"")
                     .append(gainMapLength).append("\"/></rdf:li>");

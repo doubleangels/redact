@@ -95,7 +95,14 @@ public final class MotionPhoto {
     @Nullable
     static Found find(@NonNull FileChannel ch) throws IOException {
         long length = ch.size();
-        if (length < 16 || read(ch, 0, 2)[0] != (byte) 0xFF || read(ch, 1, 1)[0] != (byte) 0xD8) {
+        if (length < 16) {
+            return null;
+        }
+        byte[] head = read(ch, 0, 8);
+        if ("ftyp".equals(new String(head, 4, 4, StandardCharsets.ISO_8859_1))) {
+            return findInHeif(ch, length);
+        }
+        if (head[0] != (byte) 0xFF || head[1] != (byte) 0xD8) {
             return null;
         }
         String xmp = String.join("", primaryXmp(ch, length));
@@ -145,6 +152,73 @@ public final class MotionPhoto {
             }
         }
         return null;
+    }
+
+    /**
+     * The video of a HEIC or AVIF Motion Photo: in the {@code mpvd} box that ends the HEIF, as the
+     * Motion Photo format puts it, or after a {@code MotionPhoto_Data} marker in a Samsung trailer.
+     */
+    @Nullable
+    private static Found findInHeif(@NonNull FileChannel ch, long length) throws IOException {
+        long pos = 0;
+        long mpvd = -1;
+        long mpvdEnd = -1;
+        long heifEnd = 0;
+        for (int boxes = 0; pos + 8 <= length && boxes < 10_000; boxes++) {
+            byte[] h = read(ch, pos, 8);
+            long size = ByteBuffer.wrap(h, 0, 4).getInt() & 0xFFFFFFFFL;
+            String type = new String(h, 4, 4, StandardCharsets.ISO_8859_1);
+            int header = 8;
+            if (size == 1) {
+                if (pos + 16 > length) {
+                    break;
+                }
+                size = ByteBuffer.wrap(read(ch, pos + 8, 8)).getLong();
+                header = 16;
+            } else if (size == 0) {
+                size = length - pos;
+            }
+            if (size < header || pos + size > length || !type.matches("[a-z0-9 ]{4}")) {
+                break;
+            }
+            if ("mpvd".equals(type)) {
+                mpvd = pos + header;
+                mpvdEnd = pos + size;
+            }
+            pos += size;
+            heifEnd = pos;
+        }
+        long timestamp = heifTimestamp(ch, mpvd >= 0 ? mpvd : heifEnd);
+        if (mpvd >= 0) {
+            long end = mp4End(ch, mpvd, mpvdEnd);
+            if (end == mpvdEnd) {
+                return new Found(mpvd, end, timestamp);
+            }
+        }
+        if (length >= 8 && "SEFT".equals(new String(read(ch, length - 4, 4), StandardCharsets.ISO_8859_1))) {
+            long marker = lastIndexOf(ch, SAMSUNG_MARKER, heifEnd, length);
+            if (marker >= 0) {
+                long start = marker + SAMSUNG_MARKER.length;
+                long end = mp4End(ch, start, length);
+                if (end > start) {
+                    return new Found(start, end, timestamp);
+                }
+            }
+        }
+        return null;
+    }
+
+    /** The still's moment from a HEIF's XMP, found as text in front of the video; -1 when none. */
+    private static long heifTimestamp(@NonNull FileChannel ch, long before) throws IOException {
+        int n = (int) Math.min(before, MAX_HEADER_BYTES);
+        String text = new String(read(ch, 0, n), StandardCharsets.ISO_8859_1);
+        int start = text.indexOf("<x:xmpmeta");
+        int end = start >= 0 ? text.indexOf("</x:xmpmeta>", start) : -1;
+        if (end < 0) {
+            return -1;
+        }
+        Matcher ts = TIMESTAMP.matcher(text.substring(start, end));
+        return ts.find() ? parse(ts.group(1)) : -1;
     }
 
     private static long parse(@NonNull String digits) {

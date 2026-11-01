@@ -120,7 +120,17 @@ public final class HeifContainerMetadata {
      *     protected items, an unknown layout), so the caller re-encodes it instead
      */
     public static void sanitize(@NonNull File source, @NonNull File target) throws IOException {
-        sanitize(source, target, null);
+        sanitize(source, target, null, null, false);
+    }
+
+    /**
+     * {@link #sanitize(File, File)}, keeping {@code motion}, a Motion Photo's video that has been
+     * cleaned already, the way the Motion Photo format puts it in a HEIF: an XMP item with the
+     * directory that finds it, and the video in a {@code mpvd} box that ends the file.
+     */
+    public static void sanitize(@NonNull File source, @NonNull File target, @Nullable MotionPhoto.Clip motion)
+            throws IOException {
+        sanitize(source, target, null, motion, false);
     }
 
     /**
@@ -132,7 +142,7 @@ public final class HeifContainerMetadata {
     public static void addExif(@NonNull File file, @NonNull byte[] tiff) throws IOException {
         File rebuilt = File.createTempFile("heif_exif_", ".heic", file.getAbsoluteFile().getParentFile());
         try {
-            sanitize(file, rebuilt, tiff);
+            sanitize(file, rebuilt, tiff, null, true);
             java.nio.file.Files.copy(rebuilt.toPath(), file.toPath(),
                     java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         } finally {
@@ -142,8 +152,12 @@ public final class HeifContainerMetadata {
         }
     }
 
-    private static void sanitize(@NonNull File source, @NonNull File target, @Nullable byte[] exifTiff)
-            throws IOException {
+    /**
+     * @param keepOwnMotion a rebuild of a file this class already cleaned, which keeps the Motion
+     *     Photo XMP and video it wrote
+     */
+    private static void sanitize(@NonNull File source, @NonNull File target, @Nullable byte[] exifTiff,
+            @Nullable MotionPhoto.Clip motion, boolean keepOwnMotion) throws IOException {
         if (source.getCanonicalPath().equals(target.getCanonicalPath())) {
             throw new IOException("Source and target must differ");
         }
@@ -152,6 +166,8 @@ public final class HeifContainerMetadata {
             byte[] ftyp = null;
             byte[] meta = null;
             byte[] moov = null;
+            long mpvdStart = -1;
+            long mpvdEnd = -1;
             long pos = 0;
             long length = in.length();
             while (pos + 8 <= length) {
@@ -170,7 +186,10 @@ public final class HeifContainerMetadata {
                 if (size < header || pos + size > length) {
                     throw new IOException("Damaged box " + type);
                 }
-                if ("moov".equals(type) && moov == null && size <= MAX_MOOV_BYTES) {
+                if ("mpvd".equals(type)) {
+                    mpvdStart = pos + header;
+                    mpvdEnd = pos + size;
+                } else if ("moov".equals(type) && moov == null && size <= MAX_MOOV_BYTES) {
                     moov = new byte[(int) size];
                     in.seek(pos);
                     in.readFully(moov);
@@ -213,6 +232,28 @@ public final class HeifContainerMetadata {
                     throw new IOException("No still picture to describe");
                 }
                 rebuild.addExif(exifTiff);
+            }
+            // The Motion Photo's video to end the file with: a clean clip, or the one an earlier
+            // clean of this file wrote, as [source file, start, end].
+            File videoFile = null;
+            long videoStart = 0;
+            long videoEnd = 0;
+            if (rebuild != null && motion != null) {
+                videoFile = motion.video;
+                videoEnd = motion.video.length();
+                rebuild.addXmp(UltraHdr.primaryXmp(null, -1, motion, primaryMime(ftyp), MPVD_HEADER)
+                        .getBytes(StandardCharsets.UTF_8));
+            } else if (rebuild != null && keepOwnMotion && mpvdStart >= 0) {
+                byte[] own = rebuild.ownMotionXmp();
+                if (own != null) {
+                    videoFile = source;
+                    videoStart = mpvdStart;
+                    videoEnd = mpvdEnd;
+                    rebuild.addXmp(own);
+                }
+            }
+            if (videoEnd - videoStart + MPVD_HEADER > 0xFFFFFFFFL) {
+                throw new IOException("Motion Photo video too large");
             }
             // A burst's or animation's frames are kept when their tracks can be followed;
             // otherwise only the still image is, and ftyp stops promising the sequence.
@@ -266,6 +307,23 @@ public final class HeifContainerMetadata {
                 while ((read = bodyIn.read(buffer)) > 0) {
                     out.write(buffer, 0, read);
                 }
+                if (videoFile != null) {
+                    // After every other box, as the Motion Photo format asks.
+                    writeU32(out, videoEnd - videoStart + MPVD_HEADER);
+                    out.write(ascii("mpvd"));
+                    try (RandomAccessFile video = new RandomAccessFile(videoFile, "r")) {
+                        video.seek(videoStart);
+                        long left = videoEnd - videoStart;
+                        while (left > 0) {
+                            int n = video.read(buffer, 0, (int) Math.min(buffer.length, left));
+                            if (n < 0) {
+                                throw new IOException("The Motion Photo video ends early");
+                            }
+                            out.write(buffer, 0, n);
+                            left -= n;
+                        }
+                    }
+                }
                 out.flush();
             }
         } finally {
@@ -273,6 +331,16 @@ public final class HeifContainerMetadata {
                 body.deleteOnExit();
             }
         }
+    }
+
+    /** The size of the {@code mpvd} box header, which the directory gives as the primary's padding. */
+    static final int MPVD_HEADER = 8;
+
+    /** The primary picture's type for the Motion Photo directory: AVIF or HEIC, by the file's brand. */
+    @NonNull
+    private static String primaryMime(@NonNull byte[] ftyp) {
+        String major = fourCc(ftyp, headerSize(ftyp, 0));
+        return major.startsWith("avi") ? "image/avif" : "image/heic";
     }
 
     /**
@@ -331,8 +399,10 @@ public final class HeifContainerMetadata {
         long newOffset;
         long newLength;
         boolean hasLocation;
-        /** Data written by this class rather than copied from the source: the kept EXIF. */
+        /** Data written by this class rather than copied from the source: the kept EXIF or XMP. */
         @Nullable byte[] data;
+        /** A {@code mime} item's content type, such as XMP's {@code application/rdf+xml}. */
+        @Nullable String contentType;
 
         Item(long id, String type, int infeVersion, int infeFlags) {
             this.id = id;
@@ -479,7 +549,23 @@ public final class HeifContainerMetadata {
                     if (protection != 0 && IMAGE_ITEM_TYPES.contains(type)) {
                         throw new IOException("Protected image item");
                     }
-                    items.put(id, new Item(id, type, infeVersion, infeFlags));
+                    Item item = new Item(id, type, infeVersion, infeFlags);
+                    if ("mime".equals(type)) {
+                        p += 4;
+                        int name = p;
+                        while (name < boxEnd && meta[name] != 0) {
+                            name++;
+                        }
+                        int typeEnd = name + 1;
+                        while (typeEnd < boxEnd && meta[typeEnd] != 0) {
+                            typeEnd++;
+                        }
+                        if (name + 1 < boxEnd) {
+                            item.contentType = new String(meta, name + 1, typeEnd - name - 1,
+                                    StandardCharsets.ISO_8859_1);
+                        }
+                    }
+                    items.put(id, item);
                 }
                 pos = boxEnd;
             }
@@ -535,6 +621,13 @@ public final class HeifContainerMetadata {
                 }
                 if (pos > end) {
                     throw new IOException("Damaged iloc");
+                }
+                if (item != null && "mime".equals(item.type) && dataReference == 0 && method <= 1) {
+                    // Read only to find XMP this class wrote ({@link Rebuild#ownMotionXmp});
+                    // it is not kept from here.
+                    item.constructionMethod = method;
+                    item.extents.addAll(extents);
+                    continue;
                 }
                 if (item == null || !IMAGE_ITEM_TYPES.contains(item.type)) {
                     continue;
@@ -626,11 +719,24 @@ public final class HeifContainerMetadata {
             }
         }
 
-        /** The EXIF item {@link #addExif} added, describing the primary picture; -1 when none. */
-        private long exifId = -1;
+        /** Items this class added or kept that describe ("cdsc") the primary picture. */
+        private final List<Long> describing = new ArrayList<>();
 
         /** Adds an EXIF item holding {@code tiff}, the way cameras store it in a HEIF. */
         void addExif(@NonNull byte[] tiff) throws IOException {
+            // The item starts with where the TIFF header is, counted after these four bytes.
+            byte[] data = new byte[4 + tiff.length];
+            System.arraycopy(tiff, 0, data, 4, tiff.length);
+            addDescription("Exif", null, data);
+        }
+
+        /** Adds an XMP item holding {@code xmp}, the way a HEIF carries it. */
+        void addXmp(@NonNull byte[] xmp) throws IOException {
+            addDescription("mime", "application/rdf+xml", xmp);
+        }
+
+        private void addDescription(@NonNull String type, @Nullable String contentType, @NonNull byte[] data)
+                throws IOException {
             long id = 0;
             for (long existing : items.keySet()) {
                 id = Math.max(id, existing);
@@ -639,14 +745,31 @@ public final class HeifContainerMetadata {
             if (id > 0xFFFF) {
                 throw new IOException("No room for another item");
             }
-            Item exif = new Item(id, "Exif", 2, 0);
-            exif.hasLocation = true;
-            // The item starts with where the TIFF header is, counted after these four bytes.
-            exif.data = new byte[4 + tiff.length];
-            System.arraycopy(tiff, 0, exif.data, 4, tiff.length);
-            items.put(id, exif);
+            Item item = new Item(id, type, 2, 0);
+            item.hasLocation = true;
+            item.contentType = contentType;
+            item.data = data;
+            items.put(id, item);
             kept.add(id);
-            exifId = id;
+            describing.add(id);
+        }
+
+        /**
+         * The XMP this class wrote into an earlier clean of the file, which holds only a Motion
+         * Photo's directory, so a rebuild that adds the kept EXIF keeps it; null when none.
+         */
+        @Nullable
+        byte[] ownMotionXmp() throws IOException {
+            for (Item item : items.values()) {
+                if ("mime".equals(item.type) && "application/rdf+xml".equals(item.contentType)) {
+                    byte[] xmp = readItem(item);
+                    String text = new String(xmp, StandardCharsets.UTF_8);
+                    if (UltraHdr.isPictureOnlyXmp(text) && UltraHdr.declaresMotionPhoto(text)) {
+                        return xmp;
+                    }
+                }
+            }
+            return null;
         }
 
         /** Writes each kept item's data, cleaned, to the new mdat body or the new idat. */
@@ -790,7 +913,7 @@ public final class HeifContainerMetadata {
                         break;
                 }
             }
-            if (exifId >= 0 && !wroteIref) {
+            if (!describing.isEmpty() && !wroteIref) {
                 body.write(iref());
             }
             return box("meta", body.toByteArray());
@@ -842,6 +965,10 @@ public final class HeifContainerMetadata {
                 writeU16(e, 0); // protection index
                 e.write(ascii(item.type));
                 e.write(0); // empty name
+                if ("mime".equals(item.type) && item.contentType != null) {
+                    e.write(item.contentType.getBytes(StandardCharsets.ISO_8859_1));
+                    e.write(0);
+                }
                 b.write(box("infe", e.toByteArray()));
             }
             return box("iinf", b.toByteArray());
@@ -921,10 +1048,10 @@ public final class HeifContainerMetadata {
                 }
                 pos += size;
             }
-            if (exifId >= 0) {
-                // The EXIF describes ("cdsc") the primary picture.
+            for (long id : describing) {
+                // The EXIF or XMP describes ("cdsc") the primary picture.
                 ByteArrayOutputStream r = new ByteArrayOutputStream();
-                writeId(r, exifId, wide);
+                writeId(r, id, wide);
                 writeU16(r, 1);
                 writeId(r, primaryId, wide);
                 b.write(box("cdsc", r.toByteArray()));

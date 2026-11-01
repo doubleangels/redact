@@ -180,14 +180,21 @@ public final class VideoMedia3Converter {
         private final Codec.EncoderFactory delegate;
         /** The frame rate the video encoder is configured for at most; 0 for the source's. */
         private final int maxFrameRate;
+        private final boolean encodeVideo;
 
         AlwaysEncodeFactory(@NonNull Codec.EncoderFactory delegate) {
             this(delegate, 0);
         }
 
         AlwaysEncodeFactory(@NonNull Codec.EncoderFactory delegate, int maxFrameRate) {
+            this(delegate, maxFrameRate, true);
+        }
+
+        /** @param encodeVideo false to let Media3 copy a video it can mux as it is */
+        AlwaysEncodeFactory(@NonNull Codec.EncoderFactory delegate, int maxFrameRate, boolean encodeVideo) {
             this.delegate = delegate;
             this.maxFrameRate = maxFrameRate;
+            this.encodeVideo = encodeVideo;
         }
 
         @Override
@@ -221,7 +228,7 @@ public final class VideoMedia3Converter {
 
         @Override
         public boolean videoNeedsEncoding() {
-            return true;
+            return encodeVideo;
         }
     }
 
@@ -238,14 +245,25 @@ public final class VideoMedia3Converter {
         private final Muxer.Factory delegate;
         /** {latitude, longitude} to write, for Keep Location; null writes none. */
         @Nullable private final double[] keepLocation;
+        @Nullable private final byte[] vp9Config;
 
         MetadataDroppingMuxerFactory(@NonNull Muxer.Factory delegate) {
             this(delegate, null);
         }
 
         MetadataDroppingMuxerFactory(@NonNull Muxer.Factory delegate, @Nullable double[] keepLocation) {
+            this(delegate, keepLocation, null);
+        }
+
+        /**
+         * @param vp9Config a VP9 track's vpcC, for a copied WebM track that has none: an MP4
+         *     needs it, and a WebM rarely stores it
+         */
+        MetadataDroppingMuxerFactory(@NonNull Muxer.Factory delegate, @Nullable double[] keepLocation,
+                @Nullable byte[] vp9Config) {
             this.delegate = delegate;
             this.keepLocation = keepLocation;
+            this.vp9Config = vp9Config;
         }
 
         @NonNull
@@ -261,6 +279,12 @@ public final class VideoMedia3Converter {
             return new Muxer() {
                 @Override
                 public int addTrack(@NonNull Format format) throws MuxerException {
+                    if (vp9Config != null && MimeTypes.VIDEO_VP9.equals(format.sampleMimeType)
+                            && format.initializationData.isEmpty()) {
+                        format = format.buildUpon()
+                                .setInitializationData(java.util.Collections.singletonList(vp9Config))
+                                .build();
+                    }
                     return muxer.addTrack(format);
                 }
 
@@ -420,6 +444,25 @@ public final class VideoMedia3Converter {
     }
 
     /**
+     * Copies a VP9 video into an MP4 as it is and encodes only its sound, to Opus: for a WebM with
+     * Vorbis sound, which an MP4 can't hold, whose location or date is kept. {@code keepLocation}
+     * is written as in {@link #transcodeToPath}; nothing else of the source's metadata is.
+     */
+    public static void copyVideoToMp4(
+            @NonNull Context context,
+            @NonNull Uri sourceUri,
+            @NonNull String outputPath,
+            long ownerId,
+            @Nullable double[] keepLocation,
+            @NonNull byte[] vp9Config)
+            throws IOException, InterruptedException {
+        Context app = context.getApplicationContext();
+        transcodeToPathOnce(app, sourceUri, outputPath, null, Composition.HDR_MODE_KEEP_HDR, null, ownerId,
+                0, 0, sourceHasAudio(app, sourceUri), readSourceVideo(app, sourceUri), keepLocation,
+                vp9Config);
+    }
+
+    /**
      * Runs one export at the size and frame rate the hardware encoder declares it supports, as
      * close to the source's as it allows, and if the encoder can't be configured for that size or
      * the codecs stall on it, retries at progressively smaller standard sizes. Media3 sizes the
@@ -455,7 +498,7 @@ public final class VideoMedia3Converter {
         try {
             transcodeToPathOnce(
                     app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, ownerId,
-                    plan[0], plan[1], hasAudio, source, keepLocation);
+                    plan[0], plan[1], hasAudio, source, keepLocation, null);
             if (plan[0] > 0) {
                 warnDownscaled(app, plan[0]);
             }
@@ -480,7 +523,8 @@ public final class VideoMedia3Converter {
                             frameRate,
                             hasAudio,
                             source,
-                            keepLocation);
+                            keepLocation,
+                            null);
                     warnDownscaled(app, shortSide);
                     return;
                 } catch (RetryAtSmallerSizeException retryFailure) {
@@ -874,7 +918,7 @@ public final class VideoMedia3Converter {
             @NonNull Context app,
             @NonNull Uri sourceUri,
             @NonNull String outputPath,
-            @NonNull String videoMimeType,
+            @Nullable String videoMimeType,
             int hdrMode,
             @Nullable TranscodeProgressListener progressListener,
             long ownerId,
@@ -882,7 +926,8 @@ public final class VideoMedia3Converter {
             int outputFrameRate,
             boolean hasAudio,
             @NonNull SourceVideo source,
-            @Nullable double[] keepLocation)
+            @Nullable double[] keepLocation,
+            @Nullable byte[] vp9Config)
             throws IOException, InterruptedException {
 
         File outFile = new File(outputPath);
@@ -916,7 +961,8 @@ public final class VideoMedia3Converter {
                     outputFrameRate,
                     hasAudio,
                     source,
-                    keepLocation);
+                    keepLocation,
+                    vp9Config);
         } finally {
             WAITERS.remove(waiter);
             if (locked) {
@@ -929,7 +975,7 @@ public final class VideoMedia3Converter {
             @NonNull Context app,
             @NonNull Uri sourceUri,
             @NonNull String outputPath,
-            @NonNull String videoMimeType,
+            @Nullable String videoMimeType,
             int hdrMode,
             @Nullable TranscodeProgressListener progressListener,
             @NonNull File outFile,
@@ -938,12 +984,16 @@ public final class VideoMedia3Converter {
             int outputFrameRate,
             boolean hasAudio,
             @NonNull SourceVideo source,
-            @Nullable double[] keepLocation)
+            @Nullable double[] keepLocation,
+            @Nullable byte[] vp9Config)
             throws IOException, InterruptedException {
 
         activeTranscodeOwner.set(ownerId);
-        int videoBitrate = targetVideoBitrate(source, videoMimeType, outputShortSide, outputFrameRate);
-        int audioBitrate = targetAudioBitrate(source, audioMimeTypeForVideoMime(videoMimeType));
+        // No video type: the video is copied as it is, and only the sound is encoded, to Opus.
+        boolean copyVideo = videoMimeType == null;
+        String audioMimeType = copyVideo ? MimeTypes.AUDIO_OPUS : audioMimeTypeForVideoMime(videoMimeType);
+        int videoBitrate = copyVideo ? 0 : targetVideoBitrate(source, videoMimeType, outputShortSide, outputFrameRate);
+        int audioBitrate = targetAudioBitrate(source, audioMimeType);
         MediaItem mediaItem = MediaItem.fromUri(sourceUri);
         EditedMediaItem.Builder editedMediaItemBuilder =
                 new EditedMediaItem.Builder(mediaItem).setRemoveAudio(false);
@@ -976,9 +1026,9 @@ public final class VideoMedia3Converter {
         // The last progress Media3 reported, for the stall check; -1 before the first.
         AtomicInteger progressSeen = new AtomicInteger(-1);
         long startedAt = android.os.SystemClock.elapsedRealtime();
-        String attemptLabel = outputFrameRate > 0
-                ? videoMimeType + " " + outputFrameRate + "fps"
-                : videoMimeType;
+        String attemptLabel = copyVideo
+                ? "video copy"
+                : outputFrameRate > 0 ? videoMimeType + " " + outputFrameRate + "fps" : videoMimeType;
 
         Handler mainHandler = new Handler(Looper.getMainLooper());
         // Polled with or without a listener: the stall check needs the progress too.
@@ -1034,16 +1084,20 @@ public final class VideoMedia3Converter {
                         return; // cancelled before it started; the hook already ended the wait
                     }
                     try {
-                        Transformer transformer =
+                        Transformer.Builder builder =
                                 new Transformer.Builder(app)
                                         .setAssetLoaderFactory(decoderFallbackAssetLoaderFactory(app))
                                         .setMuxerFactory(new MetadataDroppingMuxerFactory(
-                                                new DefaultMuxer.Factory(), keepLocation))
+                                                new DefaultMuxer.Factory(), keepLocation, vp9Config))
                                         .setEncoderFactory(new AlwaysEncodeFactory(
                                                 encoderFactory(app, videoBitrate, audioBitrate),
-                                                outputFrameRate))
-                                        .setVideoMimeType(videoMimeType)
-                                        .setAudioMimeType(audioMimeTypeForVideoMime(videoMimeType))
+                                                outputFrameRate, !copyVideo))
+                                        .setAudioMimeType(audioMimeType);
+                        if (!copyVideo) {
+                            builder.setVideoMimeType(videoMimeType);
+                        }
+                        Transformer transformer =
+                                builder
                                         .setMaxDelayBetweenMuxerSamplesMs(
                                                 maxSampleGapMs(Build.VERSION.MEDIA_PERFORMANCE_CLASS))
                                         .addListener(

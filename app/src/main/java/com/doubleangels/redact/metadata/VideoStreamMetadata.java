@@ -50,6 +50,15 @@ public final class VideoStreamMetadata {
     /** Reads the codec configuration and the first samples of the video track; null when it cannot. */
     @Nullable
     public static Report scan(@NonNull Context context, @NonNull Uri uri) {
+        return scan(context, uri, false);
+    }
+
+    /**
+     * {@link #scan(Context, Uri)}, reading every sample when {@code everySample} is set: what a
+     * clean that copies the stream as it is checks, since data could start partway through.
+     */
+    @Nullable
+    public static Report scan(@NonNull Context context, @NonNull Uri uri, boolean everySample) {
         MediaExtractor extractor = new MediaExtractor();
         try {
             extractor.setDataSource(context, uri, null);
@@ -71,7 +80,7 @@ public final class VideoStreamMetadata {
                 }
                 extractor.selectTrack(i);
                 ByteBuffer sample = null;
-                for (int n = 0; n < MAX_SAMPLES; n++) {
+                for (int n = 0; everySample || n < MAX_SAMPLES; n++) {
                     long next = extractor.getSampleSize();
                     if (next < 0) {
                         break;
@@ -116,8 +125,8 @@ public final class VideoStreamMetadata {
             byte[] data = new byte[buffer.remaining()];
             buffer.duplicate().get(data);
             if (mpeg4) {
-                for (byte[] unit : nalUnits(data)) {
-                    if (unit.length > 1 && (unit[0] & 0xFF) == MPEG4_USER_DATA) {
+                for (byte[] unit : units(data, first -> first == MPEG4_USER_DATA)) {
+                    if (unit.length > 1) {
                         messages++;
                         bytes += unit.length - 1;
                         if (text == null) {
@@ -127,7 +136,10 @@ public final class VideoStreamMetadata {
                 }
                 return;
             }
-            for (byte[] nal : nalUnits(data)) {
+            java.util.function.IntPredicate sei = hevc
+                    ? first -> ((first >> 1) & 0x3F) == 39 || ((first >> 1) & 0x3F) == 40
+                    : first -> (first & 0x1F) == 6;
+            for (byte[] nal : units(data, sei)) {
                 if (isSei(nal, hevc)) {
                     seiMessages(unescape(nal, hevc ? 2 : 1), this);
                 }
@@ -157,6 +169,48 @@ public final class VideoStreamMetadata {
             return type == 39 || type == 40;
         }
         return (nal[0] & 0x1F) == 6;
+    }
+
+    /**
+     * The units of {@code d} whose first byte {@code wanted} accepts, as {@link #nalUnits} splits
+     * them. The rest, the picture data that is nearly all of a sample, is never copied, so every
+     * frame of a long video can be read.
+     */
+    @NonNull
+    static java.util.List<byte[]> units(@NonNull byte[] d, @NonNull java.util.function.IntPredicate wanted) {
+        java.util.List<byte[]> units = new java.util.ArrayList<>();
+        int start = nextStartCode(d, 0);
+        if (start >= 0) {
+            while (start >= 0) {
+                int payload = start + (d[start + 2] == 1 ? 3 : 4);
+                boolean keep = payload < d.length && wanted.test(d[payload] & 0xFF);
+                int next = nextStartCode(d, payload);
+                if (keep) {
+                    int end = next < 0 ? d.length : next;
+                    while (end > payload && d[end - 1] == 0) {
+                        end--;
+                    }
+                    if (end > payload) {
+                        units.add(java.util.Arrays.copyOfRange(d, payload, end));
+                    }
+                }
+                start = next;
+            }
+            return units;
+        }
+        int pos = 0;
+        while (pos + 4 <= d.length) {
+            int length = ((d[pos] & 0xFF) << 24) | ((d[pos + 1] & 0xFF) << 16)
+                    | ((d[pos + 2] & 0xFF) << 8) | (d[pos + 3] & 0xFF);
+            if (length <= 0 || pos + 4L + length > d.length) {
+                break;
+            }
+            if (wanted.test(d[pos + 4] & 0xFF)) {
+                units.add(java.util.Arrays.copyOfRange(d, pos + 4, pos + 4 + length));
+            }
+            pos += 4 + length;
+        }
+        return units;
     }
 
     /** Splits Annex B (start codes) or, failing that, 4-byte length-prefixed data into NAL units. */
