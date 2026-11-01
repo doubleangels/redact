@@ -181,7 +181,7 @@
     <string name="settings_sentry_consent_title">Absturzberichte Aktivieren</string>
     <string name="settings_sentry_consent_message">Absturzberichte senden lädt anonymisierte Diagnosedaten über Sentry ins Internet hoch.\n\nKeine Fotos, Videos, Dateinamen oder GPS-Koordinaten werden hochgeladen.</string>
     <string name="settings_strict_clean">Strikte Bereinigung</string>
-    <string name="settings_strict_clean_subtitle">Entfernt jede Spur von Metadaten, sogar den Orientierungs-Tag, ein gedrehtes Foto kann danach also schräg aussehen. Schaltet die Behalten-Optionen unten aus und kodiert Videos für die gründlichste Bereinigung immer vollständig neu.</string>
+    <string name="settings_strict_clean_subtitle">Entfernt alle Metadaten außer den Tags, die nur angeben, wie das Bild angezeigt wird, etwa Ausrichtung und Farbraum. Schaltet die Behalten-Optionen unten aus und kodiert Videos für die gründlichste Bereinigung immer vollständig neu.</string>
     
     <string name="settings_video_fallback">Schnellere Videobereinigung</string>
     <string name="settings_video_fallback_subtitle">Wenn Ihr Video bereits in einem kompatiblen Format vorliegt, entfernt Redact dessen Metadaten mit einem schnellen Durchgang statt einer vollständigen Neukodierung, schneller und akkuschonender, auch wenn eine vollständige Neukodierung etwas gründlicher ist. Wird automatisch deaktiviert, wenn Strikte Bereinigung aktiv ist oder Dateien aus anderen Apps bereinigt werden.</string>

@@ -185,7 +185,7 @@
     <string name="settings_sentry_consent_title">Ativar Relatórios de Falha</string>
     <string name="settings_sentry_consent_message">Enviar Relatórios de Falha envia diagnósticos anonimizados ao Sentry pela internet.\n\nFotos, vídeos, nomes de arquivo e coordenadas GPS não são enviados.</string>
     <string name="settings_strict_clean">Limpeza Rigorosa</string>
-    <string name="settings_strict_clean_subtitle">Remove todo vestígio de metadados, até a tag de orientação, por isso uma foto girada pode parecer torta depois. Desativa as opções de manter abaixo e sempre recodifica o vídeo por completo para a limpeza mais completa.</string>
+    <string name="settings_strict_clean_subtitle">Remove todos os metadados, exceto as tags que só dizem como exibir a imagem, como a orientação e o espaço de cor. Desativa as opções de manter abaixo e sempre recodifica o vídeo por completo para a limpeza mais completa.</string>
     
     <string name="settings_video_fallback">Limpeza de Vídeo Mais Rápida</string>
     <string name="settings_video_fallback_subtitle">Quando seu vídeo já está em um formato compatível, o Redact remove seus metadados com uma passagem rápida em vez de recodificá-lo por completo, mais rápido e mais leve para a bateria, embora uma recodificação completa remova um pouco mais. Desativado automaticamente quando a Limpeza Rigorosa está ativa ou ao limpar arquivos compartilhados de outros apps.</string>

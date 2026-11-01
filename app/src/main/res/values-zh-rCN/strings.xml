@@ -177,7 +177,7 @@
     <string name="settings_sentry_consent_title">启用崩溃报告</string>
     <string name="settings_sentry_consent_message">发送崩溃报告会通过互联网向 Sentry 上传匿名诊断信息。\n\n不会上传照片、视频、文件名或 GPS 坐标。</string>
     <string name="settings_strict_clean">严格清理</string>
-    <string name="settings_strict_clean_subtitle">移除所有元数据痕迹，甚至包括方向标签，因此旋转过的照片之后可能会显示为歪斜。关闭下方的保留选项，并始终完全重新编码视频以实现最彻底的清理。</string>
+    <string name="settings_strict_clean_subtitle">移除所有元数据，只保留说明如何显示图片的标签，例如方向和色彩空间。关闭下方的保留选项，并始终完整重新编码视频，以实现最彻底的清理。</string>
     
     <string name="settings_video_fallback">更快的视频清理</string>
     <string name="settings_video_fallback_subtitle">当视频已经是兼容格式时，Redact 会用快速处理来移除其元数据，而不是完全重新编码，速度更快、更省电，不过完全重新编码能多移除一点。在开启严格清理或清理从其他应用分享的文件时会自动关闭此功能。</string>

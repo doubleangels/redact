@@ -185,7 +185,7 @@
     <string name="settings_sentry_consent_title">Activer les Rapports de Plantage</string>
     <string name="settings_sentry_consent_message">Envoyer les Rapports de Plantage envoie des diagnostics anonymisés à Sentry via Internet.\n\nAucune photo, vidéo, nom de fichier ni coordonnée GPS n\'est téléversé.</string>
     <string name="settings_strict_clean">Nettoyage Strict</string>
-    <string name="settings_strict_clean_subtitle">Supprime toute trace de métadonnées, y compris la balise d\'orientation, une photo pivotée peut donc apparaître de travers ensuite. Désactive les options de conservation ci-dessous et réencode toujours entièrement la vidéo pour le nettoyage le plus complet.</string>
+    <string name="settings_strict_clean_subtitle">Supprime toutes les métadonnées sauf les balises qui indiquent seulement comment afficher l\'image, comme son orientation et son espace colorimétrique. Désactive les options de conservation ci-dessous et réencode toujours entièrement la vidéo pour le nettoyage le plus complet.</string>
     
     <string name="settings_video_fallback">Nettoyage Vidéo Plus Rapide</string>
     <string name="settings_video_fallback_subtitle">Lorsque votre vidéo est déjà dans un format compatible, Redact supprime ses métadonnées en une passe rapide plutôt qu\'en la réencodant entièrement, plus rapide et plus économe en batterie, même si un réencodage complet en supprime un peu plus. Désactivé automatiquement avec Nettoyage Strict ou lors du nettoyage de fichiers partagés depuis d\'autres apps.</string>

@@ -178,7 +178,7 @@
     <string name="settings_sentry_consent_title">クラッシュレポートを有効にする</string>
     <string name="settings_sentry_consent_message">クラッシュレポートの送信は、匿名化された診断情報をインターネット経由で Sentry にアップロードします。\n\n写真、動画、ファイル名、GPS 座標はアップロードされません。</string>
     <string name="settings_strict_clean">厳格クリーン</string>
-    <string name="settings_strict_clean_subtitle">向きのタグを含む、メタデータのあらゆる痕跡を削除します。そのため、回転させた写真は後で横向きに表示されることがあります。下の保持オプションをオフにし、最も徹底したクリーンのために動画を常に完全に再エンコードします。</string>
+    <string name="settings_strict_clean_subtitle">画像の表示方法だけを示すタグ（向きや色空間など）を除き、すべてのメタデータを削除します。下の保持オプションをオフにし、最も徹底したクリーンのために動画を常に完全に再エンコードします。</string>
     
     <string name="settings_video_fallback">高速な動画クリーン</string>
     <string name="settings_video_fallback_subtitle">動画がすでに互換性のある形式である場合、Redact は完全に再エンコードする代わりに、クイック処理でメタデータを削除します。より速くバッテリーにも優しくなりますが、完全な再エンコードの方がわずかに多く削除できます。厳密クリーンがオンの場合や、他アプリから共有されたファイルをクリーンする場合は自動的にオフになります。</string>

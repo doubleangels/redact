@@ -368,7 +368,7 @@
     <string name="settings_sentry_consent_title">Enable Crash Reporting</string>
     <string name="settings_sentry_consent_message">Send Crash Reports uploads anonymized diagnostics to Sentry over the internet.\n\nNo photos, videos, filenames, or GPS coordinates are uploaded.</string>
     <string name="settings_strict_clean">Strict Clean</string>
-    <string name="settings_strict_clean_subtitle">Removes every trace of metadata, even the orientation tag, so a rotated photo may look sideways afterward. Turns off the keep options below and always fully re-encodes video for the most thorough clean.</string>
+    <string name="settings_strict_clean_subtitle">Removes all metadata except the tags that only say how to show the picture, such as its orientation and color space. Turns off the keep options below and always fully re-encodes video for the most thorough clean.</string>
     <string name="settings_video_fallback">Faster Video Cleaning</string>
     <string name="settings_video_fallback_subtitle">When your video is already in a compatible format, Redact strips its metadata with a quick pass instead of fully re-encoding it. That\'s faster and lighter on battery, though a full re-encode removes a touch more. Automatically turned off when Strict Clean is on or when cleaning files shared in from other apps.</string>
     

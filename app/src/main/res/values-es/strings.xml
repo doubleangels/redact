@@ -185,7 +185,7 @@
     <string name="settings_sentry_consent_title">Activar Informes de Fallos</string>
     <string name="settings_sentry_consent_message">Enviar Informes de Fallos sube diagnósticos anonimizados a Sentry por internet.\n\nNo se suben fotos, videos, nombres de archivo ni coordenadas GPS.</string>
     <string name="settings_strict_clean">Limpieza Estricta</string>
-    <string name="settings_strict_clean_subtitle">Elimina todo rastro de metadatos, incluso la etiqueta de orientación, por lo que una foto girada puede verse torcida después. Desactiva las opciones de conservar de abajo y siempre recodifica el video por completo para la limpieza más profunda.</string>
+    <string name="settings_strict_clean_subtitle">Elimina todos los metadatos salvo las etiquetas que solo indican cómo mostrar la imagen, como su orientación y su espacio de color. Desactiva las opciones de conservar de abajo y siempre vuelve a codificar el video por completo para la limpieza más a fondo.</string>
     
     <string name="settings_video_fallback">Limpieza de Video Más Rápida</string>
     <string name="settings_video_fallback_subtitle">Cuando tu video ya está en un formato compatible, Redact elimina sus metadatos con un paso rápido en lugar de recodificarlo por completo, más rápido y más suave con la batería, aunque una recodificación completa elimina un poco más. Se desactiva automáticamente con Limpieza Estricta o al limpiar archivos compartidos desde otras apps.</string>

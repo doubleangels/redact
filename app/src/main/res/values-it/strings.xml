@@ -185,7 +185,7 @@
     <string name="settings_sentry_consent_title">Attiva Segnalazioni Crash</string>
     <string name="settings_sentry_consent_message">Invia Segnalazioni Crash carica diagnostica anonima su Sentry via internet.\n\nFoto, video, nomi file e coordinate GPS non vengono caricati.</string>
     <string name="settings_strict_clean">Pulizia Rigorosa</string>
-    <string name="settings_strict_clean_subtitle">Rimuove ogni traccia di metadati, persino il tag di orientamento, quindi una foto ruotata potrebbe apparire storta in seguito. Disattiva le opzioni di mantenimento sotto e ricodifica sempre completamente il video per la pulizia più approfondita.</string>
+    <string name="settings_strict_clean_subtitle">Rimuove tutti i metadati tranne i tag che indicano solo come mostrare l\'immagine, come l\'orientamento e lo spazio colore. Disattiva le opzioni di mantenimento qui sotto e ricodifica sempre completamente il video per la pulizia più accurata.</string>
     
     <string name="settings_video_fallback">Pulizia Video Più Veloce</string>
     <string name="settings_video_fallback_subtitle">Quando il video è già in un formato compatibile, Redact ne rimuove i metadati con un passaggio rapido invece di ricodificarlo completamente, più veloce e più leggero per la batteria, anche se una ricodifica completa ne rimuove un po\' di più. Disattivato automaticamente quando Pulizia Rigorosa è attiva o durante la pulizia di file condivisi da altre app.</string>
