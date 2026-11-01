@@ -444,6 +444,23 @@ site/                          the website: landing page and guides
 .github/workflows/             CI, release and privacy-policy publishing
 ```
 
+### How a clean works
+
+`metadata/MetadataStripper` runs every clean. Each format is rebuilt from an allowlist of what a viewer needs, so data nobody has documented yet is left behind too, and every result is scanned again before it is saved:
+
+| Class | Does |
+|---|---|
+| `ImageContainerMetadata` | JPEG, PNG and WebP: rebuilds them segment by segment or chunk by chunk, and scans them for Scan and the checks |
+| `UltraHdr` | the Ultra HDR gain map, its XMP and multi-picture index, and the Motion Photo directory |
+| `HeifContainerMetadata`, `HeifTracks` | HEIC and AVIF, still and sequence, rebuilt around their coded pictures |
+| `GifContainerMetadata` | GIF, block by block |
+| `MotionPhoto` | finds a Motion Photo's video in Google's, MicroVideo's and Samsung's layouts, JPEG and HEIC |
+| `VideoContainerMetadata` | MP4, MOV and WebM: scans, blanks in place, and reads and writes recording dates |
+| `VideoStreamMetadata` | data inside an H.264, H.265 or MPEG-4 video stream, which only a re-encode removes |
+| `Vp9CodecConfig` | the VP9 configuration an MP4 needs, for a WebM copied into one |
+| `media/VideoMedia3Converter` | every video re-encode: hardware-supported size and frame rate, matched bitrate, no source metadata |
+| `media/Png16`, `media/HighPrecisionPng` | 16-bit PNG output, which Android's encoder can't write |
+
 ### Baseline profile
 
 Startup performance comes from a generated baseline and startup profile in `app/src/release/generated/baselineProfiles/`. Regenerate it on a connected device or emulator after meaningful startup-path changes:
