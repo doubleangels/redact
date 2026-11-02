@@ -727,8 +727,9 @@ public final class FormatConverter {
                 }
                 Png16.rewrite(in, out, null);
             }
-            // Clears the fields of a colour profile that can name a device or a date.
-            com.doubleangels.redact.metadata.ImageContainerMetadata.sanitize(raw, clean);
+            // Rebuilt and checked like any converted image; this also clears the fields of a
+            // colour profile that can name a device or a date.
+            new MetadataStripper(context).requireConvertedImageClean(raw, clean);
             outUri = OutputDestination.create(context, false,
                     MediaFileNames.outputBaseName(context, baseDisplayName) + ".png", "image/png");
             try (InputStream in = new java.io.FileInputStream(clean);
@@ -799,47 +800,59 @@ public final class FormatConverter {
 
         String outName = MediaFileNames.outputBaseName(context, baseDisplayName) + ext;
 
-        Uri outUri;
+        // Encoded into a private file, rebuilt with nothing but its picture and checked there:
+        // only a file that passes reaches the output folder, where another app could see it.
+        File encoded = null;
+        File clean = null;
+        Uri outUri = null;
         try {
-            outUri = OutputDestination.create(context, false, outName, mime);
-        } catch (IOException e) {
+            encoded = File.createTempFile("temp_convert_", ext, context.getCacheDir());
+            clean = File.createTempFile("temp_convert_clean_", ext, context.getCacheDir());
+            try (OutputStream os = new java.io.BufferedOutputStream(new java.io.FileOutputStream(encoded), 64 * 1024)) {
+                boolean ok;
+                if (format == Bitmap.CompressFormat.PNG && HighPrecisionPng.isHighPrecision(bitmap)) {
+                    // Decoded at more than 8 bits (a 10-bit HEIC or AVIF, a turned 16-bit PNG),
+                    // which compress() would save at 8.
+                    HighPrecisionPng.write(bitmap, os);
+                    ok = true;
+                } else {
+                    ok = compressBitmapToStream(context, bitmap, format, os,
+                            estimateJpegQuality(context, sourceUri), isLosslessImage(context, sourceUri));
+                }
+                if (!ok) {
+                    throw new IOException("Compress failed");
+                }
+            }
             bitmap.recycle();
-            throw e;
-        }
+            new MetadataStripper(context).requireConvertedImageClean(encoded, clean);
 
-        boolean written = false;
-        try (OutputStream os = resolver.openOutputStream(outUri)) {
-            if (os == null) {
-                throw new IOException("Cannot open output stream");
+            outUri = OutputDestination.create(context, false, outName, mime);
+            try (InputStream in = new java.io.FileInputStream(clean);
+                    OutputStream os = resolver.openOutputStream(outUri)) {
+                if (os == null) {
+                    throw new IOException("Cannot open output stream");
+                }
+                MediaSizeLimits.copyStream(in, os);
             }
-            boolean ok;
-            if (format == Bitmap.CompressFormat.PNG && HighPrecisionPng.isHighPrecision(bitmap)) {
-                // Decoded at more than 8 bits (a 10-bit HEIC or AVIF, a turned 16-bit PNG), which
-                // compress() would save at 8.
-                java.io.BufferedOutputStream buffered = new java.io.BufferedOutputStream(os, 64 * 1024);
-                HighPrecisionPng.write(bitmap, buffered);
-                buffered.flush();
-                ok = true;
-            } else {
-                ok = compressBitmapToStream(context, bitmap, format, os,
-                        estimateJpegQuality(context, sourceUri), isLosslessImage(context, sourceUri));
-            }
-            if (!ok) {
-                throw new IOException("Compress failed");
-            }
-            os.flush();
-            written = true;
-        } finally {
-            bitmap.recycle();
-            if (!written) {
-                // Whatever went wrong (including the stream throwing), leave no partial file.
+            OutputDestination.publish(resolver, outUri);
+            return outUri;
+        } catch (IOException | RuntimeException e) {
+            // Whatever went wrong, leave no partial file.
+            if (outUri != null) {
                 OutputDestination.discard(resolver, outUri);
             }
+            throw e;
+        } finally {
+            if (!bitmap.isRecycled()) {
+                bitmap.recycle();
+            }
+            if (encoded != null) {
+                SecureDelete.secureDelete(context, encoded);
+            }
+            if (clean != null) {
+                SecureDelete.secureDelete(context, clean);
+            }
         }
-        // Re-encoding from decoded pixels drops all source metadata (EXIF, XMP, IPTC, ICC
-        // thumbnails); intentionally nothing is copied back.
-        OutputDestination.publish(resolver, outUri);
-        return outUri;
     }
 
     /**

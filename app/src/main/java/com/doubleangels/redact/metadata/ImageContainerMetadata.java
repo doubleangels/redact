@@ -53,7 +53,7 @@ import java.util.zip.Inflater;
  */
 public final class ImageContainerMetadata {
 
-    public enum Format { JPEG, PNG, WEBP, OTHER }
+    public enum Format { JPEG, PNG, WEBP, HEIF, GIF, OTHER }
 
     /** What a finding says about the file, for the clean summary. */
     public enum Kind { LOCATION, DATE, NAME, DEVICE, OTHER }
@@ -282,6 +282,17 @@ public final class ImageContainerMetadata {
     @VisibleForTesting
     @NonNull
     static Report scan(@NonNull FileChannel channel) throws IOException {
+        java.nio.ByteBuffer head = java.nio.ByteBuffer.allocate(64);
+        while (head.hasRemaining() && channel.read(head, head.position()) > 0) {
+            // filled below
+        }
+        byte[] first = java.util.Arrays.copyOf(head.array(), head.position());
+        if (HeifContainerMetadata.isHeif(first, first.length)) {
+            return HeifContainerMetadata.scan(channel);
+        }
+        if (first.length >= 6 && first[0] == 'G' && first[1] == 'I' && first[2] == 'F' && first[3] == '8') {
+            return GifContainerMetadata.scan(channel);
+        }
         Walker walker = new Walker(channel, null);
         try {
             if (!walker.run()) {
@@ -1294,7 +1305,6 @@ public final class ImageContainerMetadata {
      * device, a person's software or a date: the CMM, creation date and time, device maker, model
      * and attributes, the creator and the profile ID (zero means "not computed").
      */
-    @VisibleForTesting
     static void clearIccHeader(@NonNull byte[] buffer, int offset) {
         if (buffer.length < offset + 128) {
             return;
@@ -1418,7 +1428,6 @@ public final class ImageContainerMetadata {
                     + "|exif:datetimeoriginal|exif:datetimedigitized)[\\s>=]");
 
     @NonNull
-    @VisibleForTesting
     static Kind xmpKind(@NonNull String xmp) {
         String lower = xmp.toLowerCase(Locale.ROOT);
         if (XMP_LOCATION.matcher(lower).find()) {

@@ -96,7 +96,6 @@ public final class HeifContainerMetadata {
         }
     }
 
-    @VisibleForTesting
     static boolean isHeif(@NonNull byte[] head, int length) {
         if (length < 16 || !"ftyp".equals(fourCc(head, 4))) {
             return false;
@@ -113,102 +112,140 @@ public final class HeifContainerMetadata {
         return false;
     }
 
+    /** Most bytes of one box or item read to describe it in Scan. */
+    private static final int MAX_DESCRIBED = 1024 * 1024;
+    /** Most coded picture data read to look for SEI or metadata OBUs a clean would drop. */
+    private static final long MAX_PICTURE_BYTES_CHECKED = 256L * 1024 * 1024;
+
     /**
-     * Whether a HEIF holds nothing a clean would remove besides EXIF and XMP, which the caller
-     * reads on its own: only {@code ftyp}, {@code meta} and {@code mdat} (and padding) at the top
-     * level, nothing after them, and no items but pictures and EXIF. A burst's or animation's
-     * {@code moov}, a Motion Photo's {@code mpvd}, a {@code uuid} box, a vendor trailer or any
-     * other item makes it false, and so does a file this can't follow.
+     * What a clean would leave out of a HEIF, as {@link ImageContainerMetadata#scan} reports it
+     * for other formats: XMP and other metadata items, item and handler names, item properties
+     * outside the allowlist, depth maps and mattes, user data in the coded pictures, top-level
+     * boxes a clean drops, data after the last box, and a Motion Photo's video or an image
+     * sequence that carries metadata of its own. What a clean keeps because it is the picture's
+     * (a Motion Photo's clean video and its directory, an Ultra HDR directory, a colour profile's
+     * name) is in {@code kept}. EXIF is left to ExifInterface, as for the other formats.
+     *
+     * <p>Never throws. A file whose structure cannot be followed is not recognized, so never
+     * called clean, but what was found before that is still reported.
      */
-    public static boolean holdsOnlyPictures(@NonNull java.nio.channels.FileChannel ch) {
+    @NonNull
+    static ImageContainerMetadata.Report scan(@NonNull java.nio.channels.FileChannel ch) {
+        List<ImageContainerMetadata.Finding> findings = new ArrayList<>();
+        List<ImageContainerMetadata.Finding> kept = new ArrayList<>();
+        boolean recognized = false;
         try {
             long length = ch.size();
             long pos = 0;
-            boolean sawMeta = false;
+            byte[] meta = null;
+            boolean heif = false;
             while (pos < length) {
                 if (pos + 8 > length) {
-                    return false; // bytes after the last box
+                    findings.add(new ImageContainerMetadata.Finding("DATA_AFTER_IMAGE",
+                            null, length - pos, ImageContainerMetadata.Kind.OTHER));
+                    break;
                 }
-                java.nio.ByteBuffer h = java.nio.ByteBuffer.allocate(16);
-                ch.read(h, pos);
-                long size = h.getInt(0) & 0xFFFFFFFFL;
-                String type = fourCc(h.array(), 4);
+                byte[] h = readAt(ch, pos, (int) Math.min(16, length - pos));
+                long size = u32(h, 0);
+                String type = fourCc(h, 4);
                 int header = 8;
-                if (size == 1) {
-                    size = h.getLong(8);
+                if (size == 1 && h.length >= 16) {
+                    size = java.nio.ByteBuffer.wrap(h, 8, 8).getLong();
                     header = 16;
                 } else if (size == 0) {
                     size = length - pos;
                 }
                 if (size < header || pos + size > length) {
-                    return false;
+                    if (!heif) {
+                        return ImageContainerMetadata.Report.unrecognized(ImageContainerMetadata.Format.OTHER);
+                    }
+                    // Not a box: data appended after the last one, which a clean leaves out.
+                    findings.add(new ImageContainerMetadata.Finding("DATA_AFTER_IMAGE",
+                            ReadableText.strings(readAt(ch, pos, (int) Math.min(MAX_DESCRIBED, length - pos))),
+                            length - pos, ImageContainerMetadata.Kind.OTHER));
+                    break;
+                }
+                if (pos == 0) {
+                    byte[] head = readAt(ch, 0, (int) Math.min(64, size));
+                    if (!"ftyp".equals(type) || !isHeif(head, head.length)) {
+                        return ImageContainerMetadata.Report.unrecognized(ImageContainerMetadata.Format.OTHER);
+                    }
+                    heif = true;
                 }
                 switch (type) {
                     case "ftyp":
                     case "mdat":
+                        break;
                     case "free":
-                    case "skip":
+                    case "skip": {
+                        byte[] body = readAt(ch, pos + header, (int) Math.min(MAX_DESCRIBED, size - header));
+                        if (!allZero(body)) {
+                            findings.add(new ImageContainerMetadata.Finding("HEIF_BOX_" + ImageContainerMetadata.keyOf(type),
+                                    ReadableText.strings(body), size - header, ImageContainerMetadata.Kind.OTHER));
+                        }
                         break;
+                    }
                     case "meta":
-                        if (sawMeta || size > MAX_META_BYTES) {
-                            return false;
+                        if (meta != null || size > MAX_META_BYTES) {
+                            throw new IOException("A second or oversized meta box");
                         }
-                        sawMeta = true;
-                        java.nio.ByteBuffer meta = java.nio.ByteBuffer.allocate((int) size);
-                        while (meta.hasRemaining()) {
-                            if (ch.read(meta, pos + meta.position()) < 0) {
-                                return false;
-                            }
-                        }
-                        if (!onlyPictureItems(meta.array())) {
-                            return false;
+                        meta = readAt(ch, pos, (int) size);
+                        break;
+                    case "moov":
+                    case "mpvd": {
+                        boolean motion = "mpvd".equals(type);
+                        // A burst's or animation's tracks are kept; a Motion Photo's clean video too.
+                        VideoContainerMetadata.Report video = motion
+                                ? VideoContainerMetadata.scan(ch, pos + header, pos + size)
+                                : VideoContainerMetadata.scan(ch, pos, pos + size);
+                        String key = motion ? "MOTION_PHOTO_VIDEO" : "IMAGE_SEQUENCE";
+                        if (video.recognized && video.fields.isEmpty()) {
+                            kept.add(new ImageContainerMetadata.Finding(key, null, size, ImageContainerMetadata.Kind.OTHER));
+                        } else {
+                            findings.add(new ImageContainerMetadata.Finding(key,
+                                    video.fields.isEmpty() ? null : String.join(", ", video.fields), size,
+                                    video.hasLocation ? ImageContainerMetadata.Kind.LOCATION : ImageContainerMetadata.Kind.OTHER));
                         }
                         break;
+                    }
                     default:
-                        return false;
+                        findings.add(new ImageContainerMetadata.Finding("HEIF_BOX_" + ImageContainerMetadata.keyOf(type),
+                                ReadableText.strings(readAt(ch, pos + header, (int) Math.min(MAX_DESCRIBED, size - header))),
+                                size - header, ImageContainerMetadata.Kind.OTHER));
                 }
                 pos += size;
             }
-            return sawMeta;
+            if (meta == null) {
+                // A sequence without a still picture: its tracks were looked at above.
+                recognized = true;
+            } else {
+                Rebuild rebuild = new Rebuild(ch, meta);
+                rebuild.parse();
+                rebuild.describe(findings, kept);
+                recognized = true;
+            }
         } catch (IOException | RuntimeException e) {
-            return false;
+            recognized = false;
         }
+        return new ImageContainerMetadata.Report(ImageContainerMetadata.Format.HEIF, recognized, findings, kept);
     }
 
-    /** Whether a meta box's items are all pictures or EXIF. */
-    private static boolean onlyPictureItems(@NonNull byte[] meta) throws IOException {
-        int pos = headerSize(meta, 0) + 4;
-        while (pos + 8 <= meta.length) {
-            int size = boxSize(meta, pos);
-            if (size < 8 || pos + size > meta.length) {
+    @NonNull
+    private static byte[] readAt(@NonNull java.nio.channels.FileChannel ch, long pos, int length) throws IOException {
+        java.nio.ByteBuffer b = java.nio.ByteBuffer.allocate(Math.max(0, length));
+        while (b.hasRemaining()) {
+            if (ch.read(b, pos + b.position()) < 0) {
+                throw new IOException("Unexpected end of file");
+            }
+        }
+        return b.array();
+    }
+
+    private static boolean allZero(@NonNull byte[] data) {
+        for (byte b : data) {
+            if (b != 0) {
                 return false;
             }
-            if ("iinf".equals(fourCc(meta, pos + 4))) {
-                int payload = pos + headerSize(meta, pos);
-                int version = meta[payload] & 0xFF;
-                int p = payload + 4 + (version == 0 ? 2 : 4);
-                int end = pos + size;
-                while (p + 8 <= end) {
-                    int entrySize = boxSize(meta, p);
-                    if (entrySize < 8 || p + entrySize > end) {
-                        return false;
-                    }
-                    if ("infe".equals(fourCc(meta, p + 4))) {
-                        int q = p + headerSize(meta, p);
-                        int infeVersion = meta[q] & 0xFF;
-                        if (infeVersion < 2) {
-                            return false;
-                        }
-                        q += 4 + (infeVersion == 2 ? 2 : 4) + 2;
-                        String type = fourCc(meta, q);
-                        if (!IMAGE_ITEM_TYPES.contains(type) && !"Exif".equals(type)) {
-                            return false;
-                        }
-                    }
-                    p += entrySize;
-                }
-            }
-            pos += size;
         }
         return true;
     }
@@ -243,7 +280,7 @@ public final class HeifContainerMetadata {
         File rebuilt = File.createTempFile("heif_exif_", ".heic", file.getAbsoluteFile().getParentFile());
         try {
             sanitize(file, rebuilt, tiff, null, true);
-            java.nio.file.Files.copy(rebuilt.toPath(), file.toPath(),
+            java.nio.file.Files.move(rebuilt.toPath(), file.toPath(),
                     java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         } finally {
             if (!rebuilt.delete()) {
@@ -319,7 +356,7 @@ public final class HeifContainerMetadata {
             Rebuild rebuild = null;
             IOException noStill = null;
             if (meta != null) {
-                rebuild = new Rebuild(in, meta);
+                rebuild = new Rebuild(in.getChannel(), meta);
                 try {
                     rebuild.parse();
                 } catch (IOException e) {
@@ -503,6 +540,8 @@ public final class HeifContainerMetadata {
         @Nullable byte[] data;
         /** A {@code mime} item's content type, such as XMP's {@code application/rdf+xml}. */
         @Nullable String contentType;
+        /** The item's name in the source, which a clean empties. */
+        @Nullable String name;
 
         Item(long id, String type, int infeVersion, int infeFlags) {
             this.id = id;
@@ -513,7 +552,7 @@ public final class HeifContainerMetadata {
     }
 
     private static final class Rebuild {
-        private final RandomAccessFile in;
+        private final java.nio.channels.FileChannel in;
         private final byte[] meta;
         private final Map<Long, Item> items = new LinkedHashMap<>();
         private final Set<Long> kept = new HashSet<>();
@@ -536,7 +575,7 @@ public final class HeifContainerMetadata {
         private long primaryId = -1;
         private final ByteArrayOutputStream newIdat = new ByteArrayOutputStream();
 
-        Rebuild(@NonNull RandomAccessFile in, @NonNull byte[] meta) {
+        Rebuild(@NonNull java.nio.channels.FileChannel in, @NonNull byte[] meta) {
             this.in = in;
             this.meta = meta;
         }
@@ -650,6 +689,14 @@ public final class HeifContainerMetadata {
                         throw new IOException("Protected image item");
                     }
                     Item item = new Item(id, type, infeVersion, infeFlags);
+                    int nameStart = p + 4;
+                    int nameEnd = nameStart;
+                    while (nameEnd < boxEnd && meta[nameEnd] != 0) {
+                        nameEnd++;
+                    }
+                    if (nameEnd > nameStart) {
+                        item.name = new String(meta, nameStart, nameEnd - nameStart, StandardCharsets.UTF_8);
+                    }
                     if ("mime".equals(type)) {
                         p += 4;
                         int name = p;
@@ -722,11 +769,13 @@ public final class HeifContainerMetadata {
                 if (pos > end) {
                     throw new IOException("Damaged iloc");
                 }
-                if (item != null && "mime".equals(item.type) && dataReference == 0 && method <= 1) {
-                    // Read only to find XMP this class wrote ({@link Rebuild#ownMotionXmp});
-                    // it is not kept from here.
-                    item.constructionMethod = method;
-                    item.extents.addAll(extents);
+                if (item != null && !IMAGE_ITEM_TYPES.contains(item.type)) {
+                    if (dataReference == 0 && method <= 1) {
+                        // Read only to describe it in Scan, or to find XMP this class wrote
+                        // ({@link Rebuild#ownMotionXmp}); it is not kept from here.
+                        item.constructionMethod = method;
+                        item.extents.addAll(extents);
+                    }
                     continue;
                 }
                 if (item == null || !IMAGE_ITEM_TYPES.contains(item.type)) {
@@ -817,6 +866,156 @@ public final class HeifContainerMetadata {
                 }
                 pos += size;
             }
+        }
+
+        /**
+         * Adds to {@code findings} what a rebuild leaves out of meta, and to {@code kept} what it
+         * keeps that Scan should still show: see {@link HeifContainerMetadata#scan}.
+         */
+        void describe(@NonNull List<ImageContainerMetadata.Finding> findings,
+                @NonNull List<ImageContainerMetadata.Finding> keptRows) throws IOException {
+            for (Object[] child : children) {
+                String type = (String) child[0];
+                int start = (int) child[1];
+                int end = (int) child[2];
+                switch (type) {
+                    case "hdlr": {
+                        // version/flags, pre_defined, handler type, three reserved words, then the name.
+                        int name = start + headerSize(meta, start) + 24;
+                        int nameEnd = name;
+                        while (nameEnd < end && meta[nameEnd] != 0) {
+                            nameEnd++;
+                        }
+                        if (nameEnd > name) {
+                            findings.add(new ImageContainerMetadata.Finding("HEIF_HANDLER_NAME",
+                                    new String(meta, name, nameEnd - name, StandardCharsets.UTF_8),
+                                    nameEnd - name, ImageContainerMetadata.Kind.OTHER));
+                        }
+                        break;
+                    }
+                    case "pitm":
+                    case "dinf":
+                    case "iinf":
+                    case "iloc":
+                    case "iref":
+                    case "iprp":
+                    case "idat":
+                    case "grpl":
+                    case "free":
+                    case "skip":
+                        break;
+                    case "xml ": {
+                        int body = start + headerSize(meta, start) + 4;
+                        String xml = new String(meta, body, Math.max(0, end - body), StandardCharsets.UTF_8);
+                        findings.add(new ImageContainerMetadata.Finding("XMP", xml, end - body,
+                                ImageContainerMetadata.xmpKind(xml)));
+                        break;
+                    }
+                    default:
+                        findings.add(new ImageContainerMetadata.Finding("HEIF_META_" + ImageContainerMetadata.keyOf(type),
+                                ReadableText.strings(meta, start + 8, end - start - 8), end - start,
+                                ImageContainerMetadata.Kind.OTHER));
+                }
+            }
+            long pictureBytes = 0;
+            boolean sawExif = false;
+            for (Item item : items.values()) {
+                if (item.name != null && !item.name.trim().isEmpty()) {
+                    findings.add(new ImageContainerMetadata.Finding("HEIF_ITEM_NAME", item.name,
+                            item.name.length(), ImageContainerMetadata.Kind.OTHER));
+                }
+                if (IMAGE_ITEM_TYPES.contains(item.type)) {
+                    if (!kept.contains(item.id)) {
+                        byte[] auxC = property(item.id, "auxC");
+                        String urn = auxC != null && auxC.length > 12
+                                ? ReadableText.strings(auxC, 12, auxC.length - 12) : null;
+                        findings.add(new ImageContainerMetadata.Finding("HEIF_DEPTH_OR_MATTE", urn,
+                                itemLength(item), ImageContainerMetadata.Kind.OTHER));
+                        continue;
+                    }
+                    long itemBytes = itemLength(item);
+                    if (item.hasLocation && pictureBytes + itemBytes <= MAX_PICTURE_BYTES_CHECKED) {
+                        pictureBytes += itemBytes;
+                        byte[] data = readItem(item);
+                        byte[] clean = cleanItemData(item, data);
+                        if (clean.length != data.length) {
+                            findings.add(new ImageContainerMetadata.Finding("HEIF_PICTURE_USER_DATA",
+                                    null, data.length - clean.length, ImageContainerMetadata.Kind.OTHER));
+                        }
+                    }
+                    continue;
+                }
+                if ("Exif".equals(item.type)) {
+                    // The first is what ExifInterface reads and Scan lists tag by tag.
+                    if (sawExif) {
+                        findings.add(new ImageContainerMetadata.Finding("HEIF_EXTRA_EXIF", null,
+                                itemLength(item), ImageContainerMetadata.Kind.OTHER));
+                    }
+                    sawExif = true;
+                    continue;
+                }
+                byte[] data = item.extents.isEmpty() || itemLength(item) > MAX_DESCRIBED ? null : readItem(item);
+                if ("mime".equals(item.type) && "application/rdf+xml".equals(item.contentType) && data != null) {
+                    String xmp = new String(data, StandardCharsets.UTF_8);
+                    if (UltraHdr.isPictureOnlyXmp(xmp)) {
+                        keptRows.add(new ImageContainerMetadata.Finding(
+                                UltraHdr.declaresMotionPhoto(xmp) ? "MOTION_PHOTO" : "ULTRA_HDR",
+                                null, data.length, ImageContainerMetadata.Kind.OTHER));
+                    } else {
+                        findings.add(new ImageContainerMetadata.Finding("XMP", xmp, data.length,
+                                ImageContainerMetadata.xmpKind(xmp)));
+                    }
+                    continue;
+                }
+                String what = "mime".equals(item.type) && item.contentType != null ? item.contentType : item.type;
+                findings.add(new ImageContainerMetadata.Finding("HEIF_ITEM_" + ImageContainerMetadata.keyOf(what),
+                        data != null ? ReadableText.strings(data) : null, itemLength(item),
+                        ImageContainerMetadata.Kind.OTHER));
+            }
+            for (int[] property : properties) {
+                String type = fourCc(meta, property[0] + 4);
+                int body = property[0] + headerSize(meta, property[0]);
+                if ("colr".equals(type)) {
+                    String colourType = fourCc(meta, body);
+                    if ("prof".equals(colourType) || "rICC".equals(colourType)) {
+                        byte[] profile = java.util.Arrays.copyOfRange(meta, body + 4, property[1]);
+                        String description = ImageContainerMetadata.IccText.read(profile, "desc");
+                        if (description != null) {
+                            keptRows.add(new ImageContainerMetadata.Finding("ICC_PROFILE", description,
+                                    profile.length, ImageContainerMetadata.Kind.OTHER));
+                        }
+                        String device = ((nonNull(ImageContainerMetadata.IccText.read(profile, "dmnd")) + " "
+                                + nonNull(ImageContainerMetadata.IccText.read(profile, "dmdd")))).trim();
+                        if (!device.isEmpty()) {
+                            keptRows.add(new ImageContainerMetadata.Finding("ICC_PROFILE_DEVICE", device, 8,
+                                    ImageContainerMetadata.Kind.DEVICE));
+                        }
+                    }
+                } else if (("hvcC".equals(type) || "av1C".equals(type))) {
+                    byte[] box = java.util.Arrays.copyOfRange(meta, property[0], property[1]);
+                    byte[] clean = "hvcC".equals(type) ? filterHvcC(box) : filterAv1C(box);
+                    if (clean.length != box.length) {
+                        findings.add(new ImageContainerMetadata.Finding("HEIF_PICTURE_USER_DATA", null,
+                                box.length - clean.length, ImageContainerMetadata.Kind.OTHER));
+                    }
+                } else if (!PROPERTY_KEEP.contains(type) && !"free".equals(type) && !"skip".equals(type)) {
+                    findings.add(new ImageContainerMetadata.Finding("HEIF_PROPERTY_" + ImageContainerMetadata.keyOf(type),
+                            ReadableText.strings(meta, body, property[1] - body), property[1] - property[0],
+                            ImageContainerMetadata.Kind.OTHER));
+                }
+            }
+        }
+
+        private static String nonNull(@Nullable String s) {
+            return s != null ? s : "";
+        }
+
+        private static long itemLength(@NonNull Item item) {
+            long total = 0;
+            for (long[] extent : item.extents) {
+                total += extent[1];
+            }
+            return total;
         }
 
         /** Items this class added or kept that describe ("cdsc") the primary picture. */
@@ -912,11 +1111,17 @@ public final class HeifContainerMetadata {
                     }
                     System.arraycopy(meta, idatPayload + (int) extent[0], data, at, length);
                 } else {
-                    if (extent[0] + length > in.length()) {
+                    if (extent[0] + length > in.size()) {
                         throw new IOException("Item outside the file");
                     }
-                    in.seek(extent[0]);
-                    in.readFully(data, at, length);
+                    java.nio.ByteBuffer into = java.nio.ByteBuffer.wrap(data, at, length);
+                    long from = extent[0];
+                    while (into.hasRemaining()) {
+                        int n = in.read(into, from + (into.position() - at));
+                        if (n < 0) {
+                            throw new IOException("Item outside the file");
+                        }
+                    }
                 }
                 at += length;
             }
@@ -1302,7 +1507,6 @@ public final class HeifContainerMetadata {
     // ---- coded data -----------------------------------------------------------------------------
 
     /** Drops SEI NAL units that carry anything but how to show the picture. */
-    @VisibleForTesting
     @NonNull
     static byte[] filterHevcNalUnits(@NonNull byte[] data, int lengthSize) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream(data.length);
@@ -1422,7 +1626,6 @@ public final class HeifContainerMetadata {
     }
 
     /** Drops AV1 metadata OBUs other than HDR and scalability information. */
-    @VisibleForTesting
     @NonNull
     static byte[] filterAv1Obus(@NonNull byte[] data) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream(data.length);

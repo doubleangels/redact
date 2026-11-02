@@ -1,6 +1,7 @@
 package com.doubleangels.redact.metadata;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -110,5 +111,74 @@ public class GifContainerMetadataTest {
         } catch (IOException expected) {
             // the caller falls back to re-encoding
         }
+    }
+
+    private static java.util.Map<String, ImageContainerMetadata.Finding> findings(File file) throws IOException {
+        ImageContainerMetadata.Report r = ImageContainerMetadata.scan(file);
+        assertTrue(r.recognized);
+        java.util.Map<String, ImageContainerMetadata.Finding> byKey = new java.util.HashMap<>();
+        for (ImageContainerMetadata.Finding f : r.findings) {
+            byKey.put(f.key, f);
+        }
+        return byKey;
+    }
+
+    @Test
+    public void scan_showsEverythingAClean_leavesOut() throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        header(out);
+        write(out, 0x21, 0xFE, 15);
+        write(out, "Taken by Alice!");
+        write(out, 0);
+        write(out, 0x21, 0xFF, 11);
+        write(out, "XMP DataXMP");
+        byte[] xmp = "<x:xmpmeta><exif:GPSLatitude>52,22N</exif:GPSLatitude></x:xmpmeta>".getBytes(StandardCharsets.UTF_8);
+        byte[] raw = new byte[xmp.length + 258];
+        System.arraycopy(xmp, 0, raw, 0, xmp.length);
+        for (int i = 0; i < 256; i++) {
+            raw[xmp.length + 1 + i] = (byte) (0xFF - i); // the magic trailer
+        }
+        for (int at = 0; at < raw.length; at += 255) {
+            int n = Math.min(255, raw.length - at);
+            out.write(n);
+            out.write(raw, at, n);
+        }
+        write(out, 0);
+        write(out, 0x21, 0xFF, 11);
+        write(out, "ACMECAM1.0 ");
+        write(out, 6);
+        write(out, "SN-123");
+        write(out, 0);
+        picture(out);
+        write(out, 0x3B);
+        write(out, "TRAILING SECRET");
+
+        java.util.Map<String, ImageContainerMetadata.Finding> found = findings(file(out.toByteArray()));
+
+        assertEquals("Taken by Alice!", found.get("GIF_COMMENT").text);
+        assertEquals(ImageContainerMetadata.Kind.LOCATION, found.get("XMP").kind);
+        assertTrue(found.get("XMP").text.contains("GPSLatitude"));
+        assertTrue(found.get("GIF_APP_ACMECAM1_0").text.contains("SN-123"));
+        assertTrue(found.get("DATA_AFTER_IMAGE").text.contains("TRAILING SECRET"));
+        assertEquals(4, found.size());
+    }
+
+    @Test
+    public void scan_ofACleanedGif_findsNothing_andAVerifiedCleanNeedsTheTrailer() throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        header(out);
+        write(out, 0x21, 0xFE, 3);
+        write(out, "abc");
+        write(out, 0);
+        picture(out);
+        write(out, 0x3B);
+        File clean = temp.newFile();
+        GifContainerMetadata.sanitize(file(out.toByteArray()), clean);
+
+        assertTrue(ImageContainerMetadata.scan(clean).isClean());
+        assertEquals(ImageContainerMetadata.Format.GIF, ImageContainerMetadata.scan(clean).format);
+
+        byte[] cut = java.util.Arrays.copyOf(Files.readAllBytes(clean.toPath()), (int) clean.length() - 1);
+        assertFalse("a GIF without its trailer is not called clean", ImageContainerMetadata.scan(file(cut)).recognized);
     }
 }

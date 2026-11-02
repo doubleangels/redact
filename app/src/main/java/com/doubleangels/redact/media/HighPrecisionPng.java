@@ -44,6 +44,9 @@ public final class HighPrecisionPng {
     }
 
     /** Writes {@code bitmap} to {@code out} as a 16-bit PNG. */
+    // The shorts read from the RGBA_F16 pixels are half floats, which Half.toFloat converts; lint
+    // can't tell a short read from a buffer is one.
+    @android.annotation.SuppressLint("HalfFloat")
     public static void write(@NonNull Bitmap bitmap, @NonNull OutputStream out) throws IOException {
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();

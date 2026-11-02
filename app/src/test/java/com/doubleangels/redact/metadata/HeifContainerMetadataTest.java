@@ -219,14 +219,12 @@ public class HeifContainerMetadataTest {
         assertTrue(contains(still, "miaf"));
     }
 
-    private static boolean onlyPictures(File file) throws IOException {
-        try (java.io.FileInputStream in = new java.io.FileInputStream(file)) {
-            return HeifContainerMetadata.holdsOnlyPictures(in.getChannel());
-        }
+    private static boolean onlyPictures(File file) {
+        return ImageContainerMetadata.scan(file).isClean();
     }
 
     @Test
-    public void holdsOnlyPictures_isTrueOnlyForWhatACleanLeaves() throws Exception {
+    public void scan_isCleanOnlyForWhatACleanLeaves() throws Exception {
         File source = fixture();
         assertFalse("the source has an XMP item", onlyPictures(source));
         File clean = new File(temp.getRoot(), "clean.heic");
@@ -246,5 +244,56 @@ public class HeifContainerMetadataTest {
         byte[] withTrailer = java.util.Arrays.copyOf(cleanBytes, cleanBytes.length + 5);
         Files.write(trailer.toPath(), withTrailer);
         assertFalse(onlyPictures(trailer));
+    }
+
+    private static java.util.List<String> keys(java.util.List<ImageContainerMetadata.Finding> findings) {
+        java.util.List<String> keys = new java.util.ArrayList<>();
+        for (ImageContainerMetadata.Finding f : findings) {
+            keys.add(f.key);
+        }
+        return keys;
+    }
+
+    @Test
+    public void scan_showsTheXmpItem_andFindsNothingInTheCleanCopy() throws Exception {
+        File source = fixture();
+        ImageContainerMetadata.Report tagged = ImageContainerMetadata.scan(source);
+        assertTrue(tagged.recognized);
+        assertEquals(ImageContainerMetadata.Format.HEIF, tagged.format);
+        assertTrue(keys(tagged.findings).contains("XMP"));
+        assertFalse(tagged.isClean());
+
+        File clean = temp.newFile("clean.heic");
+        HeifContainerMetadata.sanitize(source, clean);
+        ImageContainerMetadata.Report after = ImageContainerMetadata.scan(clean);
+        assertTrue(after.recognized);
+        assertTrue(keys(after.findings).toString(), after.isClean());
+    }
+
+    @Test
+    public void scan_showsBoxesAClean_dropsAndDataAfterTheLastBox() throws Exception {
+        File clean = temp.newFile("clean.heic");
+        HeifContainerMetadata.sanitize(fixture(), clean);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        out.write(Files.readAllBytes(clean.toPath()));
+        byte[] uuid = "0123456789abcdefCamera serial SN-42".getBytes(StandardCharsets.ISO_8859_1);
+        int size = 8 + uuid.length;
+        out.write(new byte[] {0, 0, 0, (byte) size});
+        out.write("uuid".getBytes(StandardCharsets.ISO_8859_1));
+        out.write(uuid);
+        out.write("appended".getBytes(StandardCharsets.ISO_8859_1));
+        File tampered = temp.newFile("tampered.heic");
+        Files.write(tampered.toPath(), out.toByteArray());
+
+        ImageContainerMetadata.Report r = ImageContainerMetadata.scan(tampered);
+
+        assertTrue("the picture can still be followed", r.recognized);
+        assertTrue(keys(r.findings).contains("HEIF_BOX_UUID"));
+        assertTrue(keys(r.findings).contains("DATA_AFTER_IMAGE"));
+        boolean serialShown = false;
+        for (ImageContainerMetadata.Finding f : r.findings) {
+            serialShown |= f.text != null && f.text.contains("SN-42");
+        }
+        assertTrue(serialShown);
     }
 }

@@ -1585,35 +1585,6 @@ public final class VideoMedia3Converter {
                 context, sourceUri, outputFile.getAbsolutePath(), formatIndex, progressListener, ownerId);
     }
 
-    @NonNull
-    public static Uri transcodeToGallery(
-            @NonNull Context context,
-            @NonNull Uri sourceUri,
-            @NonNull String baseDisplayName,
-            int formatIndex) throws IOException, InterruptedException {
-        return transcodeToGallery(context, sourceUri, baseDisplayName, formatIndex, null);
-    }
-
-    @NonNull
-    public static Uri transcodeToGallery(
-            @NonNull Context context,
-            @NonNull Uri sourceUri,
-            @NonNull String baseDisplayName,
-            int formatIndex,
-            @Nullable TranscodeProgressListener progressListener)
-            throws IOException, InterruptedException {
-
-        Context app = context.getApplicationContext();
-        File outFile = File.createTempFile("vid_transform_", TRANSCODE_EXTENSION, app.getCacheDir());
-        transcodeToPath(app, sourceUri, outFile.getAbsolutePath(), formatIndex, progressListener);
-
-        try {
-            return copyToMoviesRedact(app, outFile, baseDisplayName);
-        } finally {
-            deleteQuietly(app, outFile);
-        }
-    }
-
     private static void deleteQuietly(@NonNull Context context, @Nullable File file) {
         if (file != null && file.exists()) {
             SecureDelete.secureDelete(context, file);

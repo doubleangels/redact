@@ -1075,6 +1075,40 @@ public class MetadataStripper {
         requireVideoMetadataClean(convertedFile, extractVideoPrivacyMetadata(sourceUri));
     }
 
+    /**
+     * Makes an image Convert encoded into {@code target}, the file it saves: rebuilt with nothing
+     * but its picture, as a clean rebuilds pixels it encoded, so whatever the encoder put beside
+     * them goes too, and then checked like a clean's result. A file the rebuild can't follow is
+     * copied as it is and still has to pass the check.
+     *
+     * @throws IOException when anything identifying is left, so nothing is saved
+     */
+    public void requireConvertedImageClean(@NonNull File encoded, @NonNull File target) throws IOException {
+        boolean rebuilt = false;
+        try {
+            if (ImageContainerMetadata.sniff(encoded) != ImageContainerMetadata.Format.OTHER) {
+                ImageContainerMetadata.sanitize(encoded, target);
+                rebuilt = true;
+            } else if (HeifContainerMetadata.isHeif(encoded)) {
+                HeifContainerMetadata.sanitize(encoded, target);
+                rebuilt = true;
+            }
+        } catch (IOException | RuntimeException e) {
+            SentryManager.log("The converted image could not be rebuilt, so it is checked as it is: "
+                    + e.getMessage() + ".");
+        }
+        if (!rebuilt) {
+            try (InputStream in = new FileInputStream(encoded);
+                    OutputStream out = new FileOutputStream(target)) {
+                MediaSizeLimits.copyStream(in, out);
+            }
+        }
+        // Checked as a share is: nothing kept but how to show the picture.
+        if (!verifyMetadataRemoval(target, true)) {
+            throw new IOException("Converted image verification failed");
+        }
+    }
+
     /** Securely deletes a temp file created for conversion. */
     public void deleteTempFile(@NonNull File file) {
         secureDeleteFile(file);
@@ -1236,6 +1270,8 @@ public class MetadataStripper {
      * frame ({@link Vp9CodecConfig}). Returns null for anything else, which a WebM keeps holding:
      * a source that is not VP9 in WebM, VP8, Vorbis audio, or a copy that fails.
      */
+    // The Media3 muxer it writes with is not yet a stable API.
+    @androidx.annotation.OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)
     @Nullable
     private File remuxWebmToMp4(@NonNull Uri sourceUri, @Nullable double[] keepLocation) {
         android.media.MediaExtractor extractor = new android.media.MediaExtractor();
@@ -1373,6 +1409,8 @@ public class MetadataStripper {
     }
 
     /** The platform's track format as Media3's, keeping nothing but how to decode it. */
+    // Building a Media3 Format for its muxer is not yet a stable API.
+    @androidx.annotation.OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)
     @NonNull
     private static androidx.media3.common.Format media3Format(@NonNull android.media.MediaFormat format) {
         return androidx.media3.common.util.MediaFormatUtil.createFormatFromMediaFormat(format)
@@ -2293,9 +2331,28 @@ public class MetadataStripper {
                             + (container.findings.isEmpty() ? "UNREADABLE" : container.findings.get(0).key) + ".");
                     return false;
                 }
-            } else if (containsXmpPacket(imageFile)) {
-                SentryManager.log("The app found XMP metadata in the file.");
-                return false;
+            } else {
+                // A HEIF or GIF is read box by box or block by block like the formats above. A
+                // kept Motion Photo or Ultra HDR directory is XMP too, so a packet is allowed only
+                // when the walk found that directory and nothing else; one it could not account
+                // for, or any packet in a file it could not follow, fails the check.
+                ImageContainerMetadata.Report container = ImageContainerMetadata.scan(imageFile);
+                boolean structured = container.recognized
+                        && (container.format == ImageContainerMetadata.Format.HEIF
+                        || container.format == ImageContainerMetadata.Format.GIF);
+                if (structured && !container.isClean()) {
+                    SentryManager.log("The app found remaining metadata outside EXIF: "
+                            + container.findings.get(0).key + ".");
+                    return false;
+                }
+                boolean keptDirectory = false;
+                for (ImageContainerMetadata.Finding kept : container.kept) {
+                    keptDirectory |= kept.key.equals("MOTION_PHOTO") || kept.key.equals("ULTRA_HDR");
+                }
+                if (!(structured && keptDirectory) && containsXmpPacket(imageFile)) {
+                    SentryManager.log("The app found XMP metadata in the file.");
+                    return false;
+                }
             }
 
             return true;

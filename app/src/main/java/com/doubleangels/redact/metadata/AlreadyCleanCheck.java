@@ -50,7 +50,6 @@ public final class AlreadyCleanCheck {
     }
 
     private static final String[] REDACT_OUTPUT_DIRS = {"Pictures/Redact", "Movies/Redact"};
-    private static final int XMP_SCAN_LIMIT = 256 * 1024;
 
     private AlreadyCleanCheck() {
     }
@@ -171,6 +170,9 @@ public final class AlreadyCleanCheck {
                     continue;
                 }
                 String value = exif.getAttribute(tag);
+                if (ExifInterface.TAG_XMP.equals(tag) && value != null && UltraHdr.isPictureOnlyXmp(value)) {
+                    continue; // the Ultra HDR or Motion Photo directory a clean keeps
+                }
                 if (value != null && !value.isEmpty()) {
                     return Status.NEEDS_CLEANING;
                 }
@@ -178,39 +180,14 @@ public final class AlreadyCleanCheck {
         } catch (IOException | RuntimeException e) {
             return Status.UNKNOWN;
         }
-        String lower = mime.toLowerCase(Locale.ROOT);
-        if (!lower.equals("image/heic") && !lower.equals("image/heif")) {
-            // IPTC, comments, text chunks, appended images and videos: everything a clean removes
-            // outside EXIF. A file whose structure cannot be followed is cleaned as usual.
-            ImageContainerMetadata.Report container = ImageContainerMetadata.scan(context, uri);
-            if (!container.recognized) {
-                return Status.UNKNOWN;
-            }
-            return container.findings.isEmpty() ? Status.ALREADY_CLEAN : Status.NEEDS_CLEANING;
-        }
-        try (InputStream in = resolver.openInputStream(uri)) {
-            if (in == null) {
-                return Status.UNKNOWN;
-            }
-            // HEIC keeps its XMP near the start.
-            if (ImageContainerMetadata.containsXmpPacket(in, XMP_SCAN_LIMIT)) {
-                return Status.NEEDS_CLEANING;
-            }
-        } catch (IOException | RuntimeException e) {
+        // IPTC, comments, text chunks, appended images and videos, a HEIF's metadata items, boxes
+        // and coded user data: everything a clean removes outside EXIF, read by what the file is
+        // rather than its type. A file whose structure cannot be followed is cleaned as usual.
+        ImageContainerMetadata.Report container = ImageContainerMetadata.scan(context, uri);
+        if (!container.recognized) {
             return Status.UNKNOWN;
         }
-        // A burst, a Motion Photo's video, a vendor trailer or any item a clean leaves out.
-        try (android.os.ParcelFileDescriptor pfd = resolver.openFileDescriptor(uri, "r")) {
-            if (pfd == null) {
-                return Status.UNKNOWN;
-            }
-            try (java.io.FileInputStream file = new java.io.FileInputStream(pfd.getFileDescriptor())) {
-                return HeifContainerMetadata.holdsOnlyPictures(file.getChannel())
-                        ? Status.ALREADY_CLEAN : Status.NEEDS_CLEANING;
-            }
-        } catch (IOException | RuntimeException e) {
-            return Status.UNKNOWN;
-        }
+        return container.findings.isEmpty() ? Status.ALREADY_CLEAN : Status.NEEDS_CLEANING;
     }
 
     private static boolean isExifReadableMime(@Nullable String mime) {

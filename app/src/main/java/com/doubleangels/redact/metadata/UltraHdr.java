@@ -263,7 +263,6 @@ final class UltraHdr {
      * picture, in the order it follows: the gain map ({@code gainMapLength} bytes, none when
      * negative), then the video, which ends the file.
      */
-    @VisibleForTesting
     @NonNull
     static String primaryXmp(@Nullable String version, long gainMapLength, @Nullable MotionPhoto.Clip motion) {
         return primaryXmp(version, gainMapLength, motion, "image/jpeg", -1);
@@ -317,16 +316,65 @@ final class UltraHdr {
      * Photo without a gain map, whose directory {@link #rebuild} did not write.
      */
     static void insertPrimaryXmp(@NonNull File target, @NonNull String xmp) throws IOException {
-        byte[] primary = Files.readAllBytes(target.toPath());
-        if (primary.length < 4 || (primary[0] & 0xFF) != 0xFF || (primary[1] & 0xFF) != 0xD8) {
+        // Only the head is read to find where the segment goes; the rest is streamed, so a large
+        // photo is never held in memory whole.
+        byte[] head;
+        try (java.io.RandomAccessFile in = new java.io.RandomAccessFile(target, "r")) {
+            head = new byte[(int) Math.min(in.length(), 64 * 1024 + 6)];
+            in.readFully(head);
+        }
+        if (head.length < 4 || (head[0] & 0xFF) != 0xFF || (head[1] & 0xFF) != 0xD8) {
             throw new IOException("Not a JPEG");
         }
-        int insertAt = afterJfif(primary);
+        int insertAt = afterJfif(head);
+        if (insertAt > head.length) {
+            throw new IOException("Damaged JFIF header");
+        }
         byte[] segment = segment(0xE1, concat(XMP_ID, xmp.getBytes(StandardCharsets.UTF_8)));
-        try (OutputStream out = new java.io.BufferedOutputStream(new FileOutputStream(target), 64 * 1024)) {
-            out.write(primary, 0, insertAt);
-            out.write(segment);
-            out.write(primary, insertAt, primary.length - insertAt);
+        File rewritten = File.createTempFile("xmp_", ".jpg", target.getAbsoluteFile().getParentFile());
+        try {
+            try (java.io.InputStream in = new java.io.BufferedInputStream(new java.io.FileInputStream(target), 64 * 1024);
+                    OutputStream out = new java.io.BufferedOutputStream(new FileOutputStream(rewritten), 64 * 1024)) {
+                byte[] buffer = new byte[64 * 1024];
+                int left = insertAt;
+                while (left > 0) {
+                    int n = in.read(buffer, 0, Math.min(buffer.length, left));
+                    if (n < 0) {
+                        throw new IOException("Not a JPEG");
+                    }
+                    out.write(buffer, 0, n);
+                    left -= n;
+                }
+                out.write(segment);
+                int n;
+                while ((n = in.read(buffer)) > 0) {
+                    out.write(buffer, 0, n);
+                }
+            }
+            Files.move(rewritten.toPath(), target.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            if (rewritten.exists() && !rewritten.delete()) {
+                rewritten.deleteOnExit();
+            }
+        }
+    }
+
+    /** Overwrites {@code file} with zeros, then deletes it. */
+    private static void wipe(@NonNull File file) {
+        try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+            byte[] zeros = new byte[64 * 1024];
+            long left = raf.length();
+            while (left > 0) {
+                int n = (int) Math.min(zeros.length, left);
+                raf.write(zeros, 0, n);
+                left -= n;
+            }
+            raf.getFD().sync();
+        } catch (IOException ignored) {
+            // Deleted below either way.
+        }
+        if (!file.delete()) {
+            file.deleteOnExit();
         }
     }
 
@@ -436,7 +484,9 @@ final class UltraHdr {
             ImageContainerMetadata.sanitize(rawGainMap, cleanGainMap);
             clean = Files.readAllBytes(cleanGainMap.toPath());
         } finally {
-            rawGainMap.delete();
+            // The raw gain map is the source's, EXIF and all: overwritten before it goes, like
+            // every other temporary copy of a source.
+            wipe(rawGainMap);
             cleanGainMap.delete();
         }
         ByteArrayOutputStream finalGainMap = new ByteArrayOutputStream(clean.length + 1024);

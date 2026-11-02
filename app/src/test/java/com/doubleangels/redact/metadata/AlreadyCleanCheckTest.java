@@ -296,8 +296,8 @@ public class AlreadyCleanCheckTest {
         }
         assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(withXmp, "image/heif")));
 
-        // Labelled HEIC but not one: its structure says nothing about it, so it is not called clean.
-        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(jpeg(), "image/heic")));
+        // Labelled HEIC but a plain JPEG: read as what it is, which a clean would leave as it is.
+        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item(jpeg(), "image/heic")));
     }
 
     @Test
