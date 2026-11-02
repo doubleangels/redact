@@ -1540,6 +1540,9 @@ public class MetadataStripper {
                 SentryManager.log("The app is preserving the EXIF tag: " + tag + ".");
             }
         }
+        if (!preservedExifValues.containsKey(ExifInterface.TAG_COLOR_SPACE)) {
+            preservedExifValues.remove(ExifInterface.TAG_INTEROPERABILITY_INDEX);
+        }
 
         SentryManager.setCustomKey("preserved_exif_count", preservedExifValues.size());
     }
@@ -1705,6 +1708,11 @@ public class MetadataStripper {
                         // Skip fields we can't access
                     }
                 }
+            }
+            if (exif.getAttribute(ExifInterface.TAG_COLOR_SPACE) == null
+                    && exif.getAttribute(ExifInterface.TAG_INTEROPERABILITY_INDEX) != null) {
+                exif.setAttribute(ExifInterface.TAG_INTEROPERABILITY_INDEX, null);
+                removedCount++;
             }
 
             SentryManager.log("The app removed " + removedCount + " EXIF metadata tags.");
@@ -1908,6 +1916,11 @@ public class MetadataStripper {
      * picture and say nothing about who took it or where. Orientation turns it upright, and
      * ColorSpace with the interoperability index ("R03") is how cameras without an embedded
      * profile say a photo is in Adobe RGB; without them it is shown as sRGB, washed out.
+     *
+     * <p>The interoperability index is kept only with ColorSpace, as it means nothing alone.
+     * Kept alone it is also all the EXIF IFD leads to, which ExifInterface sizes without the
+     * pointer to that IFD and then writes with it: the APP1 segment comes out 12 bytes shorter
+     * than what is in it, and the JPEG cannot be read past it.
      */
     static final List<String> ALWAYS_KEPT_TAGS = List.of(
             ExifInterface.TAG_ORIENTATION,

@@ -279,14 +279,25 @@ public class AlreadyCleanCheckTest {
     }
 
     @Test
-    public void heic_isCheckedForXmpNearItsStart() throws IOException {
-        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item(jpeg(), "image/heic")));
+    public void heic_isCalledCleanOnlyWhenItHoldsNothingButPictures() throws IOException {
+        File tagged = TestVideos.resource(app.getCacheDir(), "image/heic_tagged.heic");
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(tagged, "image/heic")));
 
-        File withXmp = jpeg();
+        File clean = File.createTempFile("check_", ".heic", app.getCacheDir());
+        clean.deleteOnExit();
+        HeifContainerMetadata.sanitize(tagged, clean);
+        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item(clean, "image/heic")));
+
+        File withXmp = File.createTempFile("check_", ".heic", app.getCacheDir());
+        withXmp.deleteOnExit();
+        java.nio.file.Files.copy(clean.toPath(), withXmp.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         try (FileOutputStream out = new FileOutputStream(withXmp, true)) {
             out.write("<x:xmpmeta xmlns:x=\"adobe:ns:meta/\"></x:xmpmeta>".getBytes());
         }
         assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(withXmp, "image/heif")));
+
+        // Labelled HEIC but not one: its structure says nothing about it, so it is not called clean.
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(jpeg(), "image/heic")));
     }
 
     @Test

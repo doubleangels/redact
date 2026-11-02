@@ -268,6 +268,9 @@ public class MetadataStripperGalleryTest {
     }
 
     @Test
+    // Legacy graphics write a PNG whatever format is asked for, and a clean goes by what a file
+    // is, not its name, so the WebP has to be a real one.
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
     public void png_andWebp_areCleanedInTheirOwnFormat() throws Exception {
         AppPreferences.setStrictClean(app, true);
 
