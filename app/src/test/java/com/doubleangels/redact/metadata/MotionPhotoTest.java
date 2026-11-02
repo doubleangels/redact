@@ -220,4 +220,50 @@ public class MotionPhotoTest {
         assertNull(MotionPhoto.find(still));
         assertFalse(contains(Files.readAllBytes(still.toPath()), "mpvd"));
     }
+
+    @Test
+    public void heic_findsItsVideoInAnMpvdBoxWithA64BitSize() throws Exception {
+        File jpeg = fixture("motion_photo_tagged.jpg");
+        MotionPhoto.Found inJpeg = MotionPhoto.find(jpeg);
+        byte[] all = Files.readAllBytes(jpeg.toPath());
+        byte[] clip = Arrays.copyOfRange(all, (int) inJpeg.start, (int) inJpeg.end);
+        byte[] heic = Files.readAllBytes(fixture("heic_tagged.heic").toPath());
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        out.write(heic);
+        out.write(new byte[] {0, 0, 0, 1});
+        out.write("mpvd".getBytes(StandardCharsets.ISO_8859_1));
+        out.write(java.nio.ByteBuffer.allocate(8).putLong(clip.length + 16L).array());
+        out.write(clip);
+        File file = new File(temp.getRoot(), "large.heic");
+        Files.write(file.toPath(), out.toByteArray());
+
+        MotionPhoto.Found found = MotionPhoto.find(file);
+
+        assertNotNull(found);
+        assertEquals(file.length(), found.end);
+        assertEquals(heic.length + 16, found.start);
+    }
+
+    @Test
+    public void heic_findsASamsungVideoAppendedAfterItsBoxes() throws Exception {
+        File jpeg = fixture("motion_photo_tagged.jpg");
+        MotionPhoto.Found inJpeg = MotionPhoto.find(jpeg);
+        byte[] all = Files.readAllBytes(jpeg.toPath());
+        byte[] clip = Arrays.copyOfRange(all, (int) inJpeg.start, (int) inJpeg.end);
+        byte[] heic = Files.readAllBytes(fixture("heic_tagged.heic").toPath());
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        out.write(heic);
+        out.write("MotionPhoto_Data".getBytes(StandardCharsets.ISO_8859_1));
+        out.write(clip);
+        // Samsung's trailer index, which ends with "SEFT".
+        out.write(new byte[] {0, 0, 0, 0, 'S', 'E', 'F', 'H', 0, 0, 0, 0});
+        out.write("SEFT".getBytes(StandardCharsets.ISO_8859_1));
+        File file = new File(temp.getRoot(), "samsung.heic");
+        Files.write(file.toPath(), out.toByteArray());
+
+        MotionPhoto.Found found = MotionPhoto.find(file);
+
+        assertNotNull(found);
+        assertEquals(heic.length + "MotionPhoto_Data".length(), found.start);
+    }
 }

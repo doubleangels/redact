@@ -172,4 +172,13 @@ public class Png16Test {
             }
         }
     }
+
+    @Test
+    public void rewrite_readsImageDataSplitOverSeveralChunks() throws Exception {
+        StringBuilder oneTypes = new StringBuilder();
+        StringBuilder splitTypes = new StringBuilder();
+        byte[] one = samples(rewrite(resource("rgba16.png"), null), oneTypes);
+        byte[] split = samples(rewrite(resource("rgba16_split.png"), null), splitTypes);
+        org.junit.Assert.assertArrayEquals("the same samples, however the data was split", one, split);
+    }
 }

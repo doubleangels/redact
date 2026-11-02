@@ -335,6 +335,11 @@ public final class HeifContainerMetadata {
                     size = length - pos;
                 }
                 if (size < header || pos + size > length) {
+                    if (ftyp != null && (meta != null || moov != null)) {
+                        // Data after the last box, such as a vendor trailer: never copied, so it
+                        // need not stop a lossless clean.
+                        break;
+                    }
                     throw new IOException("Damaged box " + type);
                 }
                 if ("mpvd".equals(type)) {

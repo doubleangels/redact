@@ -151,6 +151,57 @@ public class MetadataStripperGalleryTest {
         assertFalse(written.contains("SecretMaker"));
     }
 
+    private File fixtureFile(String name, String suffix) throws IOException {
+        File f = File.createTempFile("gallery_", suffix, app.getFilesDir());
+        files.add(f);
+        try (java.io.InputStream in = getClass().getClassLoader().getResourceAsStream("image/" + name);
+                FileOutputStream out = new FileOutputStream(f)) {
+            out.write(in.readAllBytes());
+        }
+        return f;
+    }
+
+    @Test
+    @org.robolectric.annotation.Config(sdk = 34)
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    @SuppressWarnings("unchecked")
+    public void heic_keptTags_goBackInANewExifItem_withoutOrientation() throws Exception {
+        // ExifInterface can't read a HEIC's EXIF on the JVM, so the kept values are set directly.
+        File clean = File.createTempFile("gallery_", ".heic", app.getFilesDir());
+        files.add(clean);
+        HeifContainerMetadata.sanitize(fixtureFile("heic_tagged.heic", ".heic"), clean);
+        java.lang.reflect.Field values = MetadataStripper.class.getDeclaredField("preservedExifValues");
+        values.setAccessible(true);
+        java.util.Map<String, String> kept = (java.util.Map<String, String>) values.get(stripper);
+        kept.put(androidx.exifinterface.media.ExifInterface.TAG_MAKE, "KeptMaker");
+        kept.put(androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION, "6");
+        java.lang.reflect.Method restore = MetadataStripper.class.getDeclaredMethod("restoreHeifExif", File.class);
+        restore.setAccessible(true);
+
+        restore.invoke(stripper, clean);
+
+        String written = new String(java.nio.file.Files.readAllBytes(clean.toPath()),
+                java.nio.charset.StandardCharsets.ISO_8859_1);
+        assertTrue("the kept make is in a new EXIF item", written.contains("KeptMaker"));
+        assertFalse(written.contains("SecretMaker"));
+        assertTrue(HeifContainerMetadata.isHeif(clean));
+        assertTrue("still a clean HEIF", ImageContainerMetadata.scan(clean).isClean());
+    }
+
+    @Test
+    public void motionPhoto_withKeepMotionPhotos_isCleaned_andNeverKeepsTheRecording() throws Exception {
+        AppPreferences.setStrictClean(app, false);
+        AppPreferences.setPreserveMotionPhoto(app, true);
+
+        assertNotNull(stripper.stripExifData(
+                Uri.fromFile(fixtureFile("motion_photo_tagged.jpg", ".jpg")), "motion.jpg"));
+
+        byte[] written = java.nio.file.Files.readAllBytes(FakeMediaStoreProvider.only().file.toPath());
+        String text = new String(written, java.nio.charset.StandardCharsets.ISO_8859_1);
+        assertFalse(text.contains("SecretTitle"));
+        assertFalse(text.contains("SecretMaker"));
+    }
+
     @Test
     public void jpeg_nonStrict_keepsOnlyAllowedTagsAndStillRemovesLocation() throws Exception {
         AppPreferences.setStrictClean(app, false);

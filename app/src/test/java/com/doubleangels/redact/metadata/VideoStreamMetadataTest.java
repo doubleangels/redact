@@ -312,4 +312,22 @@ public class VideoStreamMetadataTest {
 
         assertEquals(0, VideoStreamMetadata.scanAv1Buffer(cut).userDataMessages);
     }
+
+    @Test
+    public void av1_followsExtensionHeaders_andStopsAtWhatIsNotAnObu() {
+        // A metadata OBU with an extension byte (temporal and spatial ids): T.35 from a camera maker.
+        byte[] withExtension = {(byte) (5 << 3 | 0x04 | 0x02), 0x00, 5, 4, 0x26, 0x00, 'a', 'b'};
+        assertEquals(1, VideoStreamMetadata.scanAv1Buffer(withExtension).userDataMessages);
+        // The forbidden bit set: not an OBU stream.
+        assertEquals(0, VideoStreamMetadata.scanAv1Buffer(new byte[] {(byte) 0x80, 0, 0}).userDataMessages);
+        // A size field longer than LEB128 allows.
+        byte[] longLeb = {(byte) (5 << 3 | 0x02), (byte) 0x80, (byte) 0x80, (byte) 0x80, (byte) 0x80,
+                (byte) 0x80, (byte) 0x80, (byte) 0x80, (byte) 0x80, 1};
+        assertEquals(0, VideoStreamMetadata.scanAv1Buffer(longLeb).userDataMessages);
+        // A metadata OBU whose type field is cut off.
+        assertEquals(0, VideoStreamMetadata.scanAv1Buffer(new byte[] {(byte) (5 << 3 | 0x02), 1, (byte) 0x80})
+                .userDataMessages);
+        // An extension byte that isn't there.
+        assertEquals(0, VideoStreamMetadata.scanAv1Buffer(new byte[] {(byte) (5 << 3 | 0x04)}).userDataMessages);
+    }
 }

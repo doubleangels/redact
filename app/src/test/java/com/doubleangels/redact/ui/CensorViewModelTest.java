@@ -200,4 +200,17 @@ public class CensorViewModelTest {
         assertEquals(CensorEffects.Effect.PIXELATE,
                 CensorViewModel.savedEffect(RuntimeEnvironment.getApplication()));
     }
+
+    @Test
+    public void fitPreview_scalesALargePhotoDown_andLeavesASmallOneAlone() throws Exception {
+        java.lang.reflect.Method fit = CensorViewModel.class.getDeclaredMethod("fitPreview", android.graphics.Bitmap.class);
+        fit.setAccessible(true);
+        android.graphics.Bitmap small = android.graphics.Bitmap.createBitmap(100, 50, android.graphics.Bitmap.Config.ARGB_8888);
+        org.junit.Assert.assertSame(small, fit.invoke(null, small));
+
+        android.graphics.Bitmap large = android.graphics.Bitmap.createBitmap(6000, 10, android.graphics.Bitmap.Config.ARGB_8888);
+        android.graphics.Bitmap scaled = (android.graphics.Bitmap) fit.invoke(null, large);
+        org.junit.Assert.assertEquals(CensorViewModel.PREVIEW_MAX_DIMENSION, scaled.getWidth());
+        org.junit.Assert.assertEquals(5, scaled.getHeight());
+    }
 }

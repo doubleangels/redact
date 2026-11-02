@@ -742,4 +742,18 @@ public class ImageContainerWalkerTest {
             assertTrue(expected.getMessage().contains("differ"));
         }
     }
+
+    @Test
+    public void isoOnlyUltraHdr_keepsItsVersionBlock_asPartOfThePicture() throws Exception {
+        byte[] iso = cat(a("urn:iso:std:iso:ts:21496:-1\0"), new byte[] {0, 0, 0, 0});
+        ImageContainerMetadata.Report r = scan(jpeg(seg(0xE2, iso)));
+
+        assertTrue(r.recognized);
+        assertTrue(r.isClean());
+        boolean keptAsUltraHdr = false;
+        for (ImageContainerMetadata.Finding f : r.kept) {
+            keptAsUltraHdr |= f.key.equals("ULTRA_HDR");
+        }
+        assertTrue(keptAsUltraHdr);
+    }
 }

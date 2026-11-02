@@ -343,4 +343,50 @@ public class MetadataDisplayerEdgeCasesTest {
         assertFalse(MetadataDisplayer.isUsableMapCoordinate(0, 0));
         assertTrue(MetadataDisplayer.isUsableMapCoordinate(-33.8, 151.2));
     }
+
+    @Test
+    public void containerDisplayKey_namesQuickTimeAndVendorTags() {
+        String[][] cases = {
+                {"©mak", "MAKE"}, {"©mod", "MODEL"}, {"©nam", "TITLE"}, {"©cmt", "COMMENT"},
+                {"©ART", "ARTIST"}, {"©aut", "AUTHOR"}, {"©swr", "SOFTWARE"}, {"©too", "SOFTWARE"},
+                {"©des", "DESCRIPTION"}, {"©inf", "INFORMATION"},
+        };
+        for (String[] c : cases) {
+            org.junit.Assert.assertEquals(c[0], c[1], MetadataDisplayer.containerDisplayKey(c[0]));
+        }
+        org.junit.Assert.assertTrue(MetadataDisplayer.containerDisplayKey("com.apple.quicktime.model")
+                .toUpperCase(java.util.Locale.ROOT).contains("MODEL"));
+    }
+
+    @Test
+    public void addImageContainerFindings_placesEachKindOfFinding() {
+        java.util.List<ImageContainerMetadata.Finding> findings = new java.util.ArrayList<>();
+        findings.add(new ImageContainerMetadata.Finding("XMP",
+                "<x:xmpmeta xmlns:x=\"adobe:ns:meta/\"><rdf:RDF><rdf:Description/></rdf:RDF></x:xmpmeta>", 80,
+                ImageContainerMetadata.Kind.OTHER));
+        findings.add(new ImageContainerMetadata.Finding("LOCATION_CITY", "Amsterdam", 9, ImageContainerMetadata.Kind.LOCATION));
+        findings.add(new ImageContainerMetadata.Finding("EMBEDDED_IMAGES", "several", 4096, ImageContainerMetadata.Kind.OTHER));
+        java.util.List<ImageContainerMetadata.Finding> kept = new java.util.ArrayList<>();
+        kept.add(new ImageContainerMetadata.Finding("ULTRA_HDR_GAIN_MAP", null, 2048, ImageContainerMetadata.Kind.OTHER));
+        ImageContainerMetadata.Report report = new ImageContainerMetadata.Report(
+                ImageContainerMetadata.Format.JPEG, true, findings, kept);
+        android.content.Context context = org.robolectric.RuntimeEnvironment.getApplication();
+
+        // Without the media location permission a place is left out; XMP read as EXIF is shown once.
+        java.util.Map<String, String> map = new java.util.LinkedHashMap<>();
+        map.put("XMP", "from EXIF");
+        java.util.Map<String, String> embedded = new java.util.LinkedHashMap<>();
+        MetadataDisplayer.addImageContainerFindings(context, report, false, map, embedded);
+        assertFalse(map.containsKey("LOCATION_CITY"));
+        assertFalse(embedded.containsKey("XMP"));
+        assertEquals("several", embedded.get("EMBEDDED_IMAGES"));
+        assertNotNull("a kept part with no text shows its size", map.get("ULTRA_HDR_GAIN_MAP"));
+
+        // With it, the place is listed, and XMP not read as EXIF is shown formatted.
+        java.util.Map<String, String> withPermission = new java.util.LinkedHashMap<>();
+        java.util.Map<String, String> embedded2 = new java.util.LinkedHashMap<>();
+        MetadataDisplayer.addImageContainerFindings(context, report, true, withPermission, embedded2);
+        assertEquals("Amsterdam", withPermission.get("LOCATION_CITY"));
+        assertNotNull(embedded2.get("XMP"));
+    }
 }

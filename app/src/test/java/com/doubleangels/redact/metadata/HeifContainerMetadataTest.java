@@ -365,4 +365,166 @@ public class HeifContainerMetadataTest {
         assertFalse(contains(out, "avis"));
         assertTrue(contains(out, "avif"));
     }
+
+    // ---- a HEIF built item by item, with every kind of extra a camera or app can add ----------
+
+    private static byte[] cat(byte[]... parts) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        for (byte[] p : parts) {
+            out.write(p);
+        }
+        return out.toByteArray();
+    }
+
+    private static byte[] u8(int... v) {
+        byte[] b = new byte[v.length];
+        for (int i = 0; i < v.length; i++) {
+            b[i] = (byte) v[i];
+        }
+        return b;
+    }
+
+    private static byte[] u16(int v) {
+        return u8(v >> 8, v);
+    }
+
+    private static byte[] u32(long v) {
+        return u8((int) (v >> 24), (int) (v >> 16), (int) (v >> 8), (int) v);
+    }
+
+    private static byte[] ascii(String s) {
+        return s.getBytes(StandardCharsets.ISO_8859_1);
+    }
+
+    private static byte[] box(String type, byte[]... body) throws IOException {
+        byte[] b = cat(body);
+        return cat(u32(8 + b.length), ascii(type), b);
+    }
+
+    private static byte[] fullBox(String type, int version, int flags, byte[]... body) throws IOException {
+        return box(type, cat(u8(version, flags >> 16, flags >> 8, flags)), cat(body));
+    }
+
+    private static byte[] infe(int id, String type, String name, String contentType) throws IOException {
+        byte[] body = cat(u16(id), u16(0), ascii(type), ascii(name), u8(0));
+        if (contentType != null) {
+            body = cat(body, ascii(contentType), u8(0));
+        }
+        return fullBox("infe", 2, 0, body);
+    }
+
+    /** An HEVC picture: an SEI with user data, then a slice. Length-prefixed NAL units. */
+    private static byte[] hevcPicture() throws IOException {
+        byte[] uuid = new byte[16];
+        byte[] text = ascii("SecretSEI");
+        byte[] sei = cat(u8(39 << 1, 1), u8(5, 16 + text.length), uuid, text, u8(0x80));
+        byte[] slice = u8(1 << 1, 1, 0xAF, 0x12, 0x34);
+        return cat(u32(sei.length), sei, u32(slice.length), slice);
+    }
+
+    /** A HEIF with item names, a depth map, XMP in idat and in an xml box, unknown items, properties and boxes. */
+    private File syntheticHeif() throws IOException {
+        byte[] picture = hevcPicture();
+        byte[] depth = hevcPicture();
+        byte[] exif = cat(u32(0), ascii("MM"), u8(0, 42), u32(8), u16(0), u32(0));
+        byte[] note = ascii("SecretNote in a text item");
+        byte[] unknown = ascii("SecretUnknownItem");
+        byte[] xmp = ascii("<x:xmpmeta xmlns:x=\"adobe:ns:meta/\"><dc:creator>SecretCreator</dc:creator></x:xmpmeta>");
+
+        byte[] hvcC = box("hvcC", u8(1), new byte[20], u8(0xFF & (0xFC | 3)), u8(0));
+        byte[] ispe = fullBox("ispe", 0, 0, u32(64), u32(48));
+        byte[] auxC = fullBox("auxC", 0, 0, ascii("urn:mpeg:hevc:2015:auxid:2"), u8(0));
+        byte[] udes = box("udes", ascii("SecretDescription"));
+        byte[] ipco = box("ipco", hvcC, ispe, auxC, udes);
+        byte[] ipma = fullBox("ipma", 0, 0, u32(2),
+                u16(1), u8(3, 0x80 | 1, 2, 4),
+                u16(4), u8(3, 0x80 | 1, 2, 3));
+
+        byte[] iinf = fullBox("iinf", 0, 0, u16(6),
+                infe(1, "hvc1", "SecretName", null),
+                infe(2, "Exif", "", null),
+                infe(3, "mime", "", "application/rdf+xml"),
+                infe(4, "hvc1", "", null),
+                infe(5, "mime", "", "text/plain"),
+                infe(6, "abcd", "", null));
+        byte[] iref = fullBox("iref", 0, 0,
+                box("auxl", u16(4), u16(1), u16(1)),
+                box("cdsc", u16(2), u16(1), u16(1)),
+                box("cdsc", u16(3), u16(1), u16(1)));
+        byte[] grpl = box("grpl", fullBox("altr", 0, 0, u32(100), u32(2), u32(1), u32(4)));
+        byte[] dinf = box("dinf", fullBox("dref", 0, 0, u32(1), fullBox("url ", 0, 1)));
+        byte[] hdlr = fullBox("hdlr", 0, 0, u32(0), ascii("pict"), new byte[12], ascii("SecretHandler"), u8(0));
+        byte[] xmlBox = fullBox("xml ", 0, 0, ascii("<x:xmpmeta><dc:title>SecretXmlBox</dc:title></x:xmpmeta>"));
+        byte[] idat = box("idat", xmp);
+
+        byte[][] mdatItems = {picture, exif, depth, note, unknown};
+        int[] mdatIds = {1, 2, 4, 5, 6};
+        byte[] ftyp = box("ftyp", ascii("heic"), u32(0), ascii("mif1"), ascii("heic"));
+        byte[] meta = null;
+        long mdatData = 0;
+        for (int pass = 0; pass < 2; pass++) {
+            ByteArrayOutputStream iloc = new ByteArrayOutputStream();
+            iloc.write(u8(0x44, 0x00));
+            iloc.write(u16(6));
+            long at = mdatData;
+            for (int i = 0; i < mdatItems.length; i++) {
+                iloc.write(cat(u16(mdatIds[i]), u16(0), u16(0), u16(1), u32(at), u32(mdatItems[i].length)));
+                at += mdatItems[i].length;
+            }
+            iloc.write(cat(u16(3), u16(1), u16(0), u16(1), u32(0), u32(xmp.length)));
+            meta = fullBox("meta", 0, 0, hdlr, dinf, fullBox("pitm", 0, 0, u16(1)),
+                    fullBox("iloc", 1, 0, iloc.toByteArray()), iinf, iref,
+                    box("iprp", ipco, ipma), idat, grpl, xmlBox);
+            mdatData = ftyp.length + meta.length + 8;
+        }
+        byte[] mdat = box("mdat", cat(mdatItems));
+        byte[] uuid = box("uuid", new byte[16], ascii("SecretUuid"));
+        File f = temp.newFile("synthetic.heic");
+        Files.write(f.toPath(), cat(ftyp, meta, mdat, uuid, ascii("SecretTail")));
+        return f;
+    }
+
+    @Test
+    public void scan_findsEveryExtraOfASyntheticHeif() throws Exception {
+        ImageContainerMetadata.Report r = ImageContainerMetadata.scan(syntheticHeif());
+
+        assertTrue(r.recognized);
+        java.util.List<String> keys = keys(r.findings);
+        for (String key : new String[] {"HEIF_HANDLER_NAME", "HEIF_ITEM_NAME", "HEIF_DEPTH_OR_MATTE", "XMP",
+                "HEIF_ITEM_TEXT_PLAIN", "HEIF_ITEM_ABCD", "HEIF_PROPERTY_UDES", "HEIF_PICTURE_USER_DATA",
+                "HEIF_BOX_UUID", "DATA_AFTER_IMAGE"}) {
+            assertTrue(key + " in " + keys, keys.contains(key));
+        }
+    }
+
+    @Test
+    public void sanitize_ofASyntheticHeif_keepsOnlyThePicture() throws Exception {
+        File clean = new File(temp.getRoot(), "synthetic-clean.heic");
+        HeifContainerMetadata.sanitize(syntheticHeif(), clean);
+
+        byte[] out = Files.readAllBytes(clean.toPath());
+        assertFalse(contains(out, "Secret"));
+        assertTrue(contains(out, "hvcC"));
+        ImageContainerMetadata.Report r = ImageContainerMetadata.scan(clean);
+        assertTrue(keys(r.findings).toString(), r.isClean());
+    }
+
+    @Test
+    public void animatedAvif_withASecondTrackReferringToTheFirst_keepsBothAndTheReference() throws Exception {
+        // Built from animated.avif: an auxv track with a tref to track 1, co64 offsets and stz2 sizes.
+        File clean = new File(temp.getRoot(), "two-clean.avif");
+        HeifContainerMetadata.sanitize(resource("animated_two_tracks.avif"), clean);
+
+        byte[] out = Files.readAllBytes(clean.toPath());
+        String text = new String(out, StandardCharsets.ISO_8859_1);
+        assertEquals("both tracks", 2, text.split("trak", -1).length - 1);
+        assertTrue(contains(out, "tref"));
+        assertTrue(contains(out, "auxl"));
+        assertTrue(contains(out, "auxv"));
+
+        File again = new File(temp.getRoot(), "two-again.avif");
+        HeifContainerMetadata.sanitize(clean, again);
+        assertArrayEquals("the rebuilt tracks point at the right samples", out, Files.readAllBytes(again.toPath()));
+        assertTrue(ImageContainerMetadata.scan(clean).isClean());
+    }
 }

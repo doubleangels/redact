@@ -17,6 +17,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 /** A GIF keeps every frame through a clean, and nothing else. */
+@org.junit.runner.RunWith(org.robolectric.RobolectricTestRunner.class)
+@org.robolectric.annotation.Config(sdk = 31)
 public class GifContainerMetadataTest {
 
     @Rule
@@ -180,5 +182,83 @@ public class GifContainerMetadataTest {
 
         byte[] cut = java.util.Arrays.copyOf(Files.readAllBytes(clean.toPath()), (int) clean.length() - 1);
         assertFalse("a GIF without its trailer is not called clean", ImageContainerMetadata.scan(file(cut)).recognized);
+    }
+
+    @Test
+    public void scan_namesProfilesTextBlocksAndUnknownExtensions() throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        header(out);
+        write(out, 0x21, 0xFF, 11);
+        write(out, "ICCRGBG1012");
+        write(out, 4);
+        write(out, "icc!");
+        write(out, 0);
+        write(out, 0x21, 0x01, 12);
+        out.write(new byte[12], 0, 12);
+        write(out, 9);
+        write(out, "Hello Bob");
+        write(out, 0);
+        write(out, 0x21, 0x99, 3);
+        write(out, "odd");
+        write(out, 0);
+        picture(out);
+        write(out, 0x3B);
+
+        java.util.Map<String, ImageContainerMetadata.Finding> found = findings(file(out.toByteArray()));
+
+        assertTrue(found.containsKey("ICC_PROFILE"));
+        assertTrue(found.get("GIF_PLAIN_TEXT").text.contains("Hello Bob"));
+        assertTrue(found.containsKey("GIF_EXTENSION_99"));
+    }
+
+    @Test
+    public void scan_andSanitize_refuseWhatTheyCannotFollow() throws Exception {
+        ByteArrayOutputStream noPicture = new ByteArrayOutputStream();
+        header(noPicture);
+        write(noPicture, 0x3B);
+        assertFalse(ImageContainerMetadata.scan(file(noPicture.toByteArray())).recognized);
+
+        ByteArrayOutputStream badBlock = new ByteArrayOutputStream();
+        header(badBlock);
+        write(badBlock, 0x42);
+        File bad = file(badBlock.toByteArray());
+        assertFalse(ImageContainerMetadata.scan(bad).recognized);
+        try {
+            GifContainerMetadata.sanitize(bad, temp.newFile());
+            fail();
+        } catch (IOException expected) {
+            assertTrue(expected.getMessage().contains("Unexpected GIF block"));
+        }
+        try {
+            GifContainerMetadata.sanitize(bad, bad);
+            fail();
+        } catch (IOException expected) {
+            assertTrue(expected.getMessage().contains("differ"));
+        }
+        assertFalse(GifContainerMetadata.isGif(new File(temp.getRoot(), "missing.gif")));
+    }
+
+    @Test
+    public void scan_cutsAVeryLongCommentForDisplay() throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        header(out);
+        write(out, 0x21, 0xFE);
+        for (int block = 0; block < 80; block++) {
+            write(out, 255);
+            out.write(new byte[255], 0, 255);
+        }
+        write(out, 0);
+        picture(out);
+        write(out, 0x3B);
+        byte[] gif = out.toByteArray();
+        for (int i = 0; i < gif.length; i++) {
+            if (gif[i] == 0 && i > 20 && i < 80 * 256) {
+                gif[i] = 'x';
+            }
+        }
+
+        java.util.Map<String, ImageContainerMetadata.Finding> found = findings(file(gif));
+
+        assertTrue(found.get("GIF_COMMENT").text.length() <= 16 * 1024);
     }
 }

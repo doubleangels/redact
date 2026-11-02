@@ -614,4 +614,128 @@ public class MetadataStripperVideoTest {
         assertTrue(r.userDataMessages >= 1);
         assertEquals("hevc encoder", r.text);
     }
+
+    // ---- remuxWebmToMp4 ---------------------------------------------------------------------------
+
+    /** A VP9 key frame header from libvpx (1280x720, 8-bit 4:2:0), as Vp9CodecConfigTest uses. */
+    private static final byte[] VP9_KEY_FRAME = {
+            (byte) 0x82, 0x49, (byte) 0x83, 0x42, 0x40, 0x4f, (byte) 0xf0, 0x2c, (byte) 0xf6, 0x0e, 0x38, 0x24};
+
+    private Uri webm(MediaFormat video, byte[] videoSample, MediaFormat audio) throws IOException {
+        Uri uri = Uri.fromFile(videoFile(".webm"));
+        ShadowMediaExtractor.addTrack(source(uri), video, videoSample);
+        if (audio != null) {
+            ShadowMediaExtractor.addTrack(source(uri), audio, new byte[] {1, 2, 3, 4});
+        }
+        return uri;
+    }
+
+    private File remux(Uri uri, double[] location) throws Exception {
+        return (File) call(stripper, "remuxWebmToMp4", new Class<?>[] {Uri.class, double[].class}, uri, location);
+    }
+
+    @Test
+    public void remuxWebmToMp4_copiesVp9IntoAnMp4_withOnlyTheKeptLocation() throws Exception {
+        MediaFormat vp9 = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_VP9, 1280, 720);
+        vp9.setInteger(MediaFormat.KEY_FRAME_RATE, 30);
+        Uri uri = webm(vp9, VP9_KEY_FRAME, null);
+
+        File out = remux(uri, new double[] {52.37, 4.89});
+
+        assertNotNull(out);
+        files.add(out);
+        // Robolectric's extractor hands out no samples, so the MP4 holds nothing to check here;
+        // what this covers is that a VP9 WebM with a key frame goes the whole way to an MP4.
+        assertTrue(out.getName().endsWith(".mp4"));
+        assertTrue(out.exists());
+    }
+
+    @Test
+    public void remuxWebmToMp4_leavesEverythingElseAsWebm() throws Exception {
+        MediaFormat vp9 = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_VP9, 1280, 720);
+        // Not a WebM at all.
+        assertNull(remux(withTracks(videoFile(".mp4"), videoFormat(MediaFormat.MIMETYPE_VIDEO_AVC)), null));
+        // VP8, which an MP4 can't hold.
+        assertNull(remux(webm(MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_VP8, 320, 240),
+                new byte[] {1, 2, 3, 4}, audioFormat(MediaFormat.MIMETYPE_AUDIO_OPUS)), null));
+        // Sound in neither Opus nor Vorbis.
+        assertNull(remux(webm(vp9, VP9_KEY_FRAME, audioFormat(MediaFormat.MIMETYPE_AUDIO_AAC)), null));
+        // A first frame that is not a key frame gives no configuration to write.
+        assertNull(remux(webm(vp9, new byte[] {(byte) 0x86, 0, 0, 0}, null), null));
+    }
+
+    @Test
+    public void keptVideoLocation_onlyWithKeepLocation_andOnlyAValidOne() throws Exception {
+        Class<?>[] types = {MetadataStripper.VideoPrivacySnapshot.class, Uri.class};
+        Uri uri = Uri.fromFile(videoFile(".mp4"));
+        AppPreferences.setStrictClean(app, false);
+        AppPreferences.setPreserveLocation(app, true);
+
+        double[] kept = (double[]) call(stripper, "keptVideoLocation", types, snapshot("+52.3700+004.8900/", null), uri);
+        assertNotNull(kept);
+        assertEquals(52.37, kept[0], 1e-6);
+        assertEquals(4.89, kept[1], 1e-6);
+        assertNull(call(stripper, "keptVideoLocation", types, snapshot(null, null), uri));
+        assertNull("out of range", call(stripper, "keptVideoLocation", types, snapshot("+95.0000+195.0000/", null), uri));
+
+        AppPreferences.setStrictClean(app, true);
+        assertNull(call(stripper, "keptVideoLocation", types, snapshot("+52.3700+004.8900/", null), uri));
+    }
+
+    // ---- movie times with 64-bit fields -----------------------------------------------------------
+
+    private static byte[] u32(long v) {
+        return java.nio.ByteBuffer.allocate(4).putInt((int) v).array();
+    }
+
+    private static byte[] u64(long v) {
+        return java.nio.ByteBuffer.allocate(8).putLong(v).array();
+    }
+
+    private static byte[] cat(byte[]... parts) {
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        for (byte[] p : parts) {
+            out.write(p, 0, p.length);
+        }
+        return out.toByteArray();
+    }
+
+    private static byte[] box(String type, byte[] body) {
+        return cat(u32(8 + body.length), type.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1), body);
+    }
+
+    @Test
+    public void movieTimes_readsAndWritesVersionOneHeaders_pastLargeAndOpenEndedBoxes() throws Exception {
+        long created = 3_900_000_000L;
+        // mvhd version 1: 64-bit creation and modification times, then the rest of the header.
+        byte[] mvhd = box("mvhd", cat(new byte[] {1, 0, 0, 0}, u64(created), u64(created + 60), new byte[96]));
+        // An mdat with a 64-bit size, and a free box with size 0, which runs to the end of the file.
+        byte[] mdat = cat(u32(1), "mdat".getBytes(java.nio.charset.StandardCharsets.ISO_8859_1), u64(16 + 4), new byte[4]);
+        byte[] open = cat(u32(0), "free".getBytes(java.nio.charset.StandardCharsets.ISO_8859_1), new byte[6]);
+        byte[] ftyp = box("ftyp", cat("isom".getBytes(java.nio.charset.StandardCharsets.ISO_8859_1), u32(0)));
+        File f = File.createTempFile("vid_", ".mp4", app.getFilesDir());
+        files.add(f);
+        java.nio.file.Files.write(f.toPath(), cat(ftyp, mdat, box("moov", mvhd), open));
+
+        long[] times = VideoContainerMetadata.movieTimes(app, Uri.fromFile(f));
+        assertNotNull(times);
+        assertEquals(created, times[0]);
+        assertEquals(created + 60, times[1]);
+
+        VideoContainerMetadata.writeMovieTimes(f, new long[] {created + 1, created + 2});
+        long[] after = VideoContainerMetadata.movieTimes(app, Uri.fromFile(f));
+        assertEquals(created + 1, after[0]);
+        assertEquals(created + 2, after[1]);
+    }
+
+    @Test
+    public void movieTimes_ofAWebm_comeFromItsMatroskaDate() throws Exception {
+        File webm = File.createTempFile("vid_", ".webm", app.getFilesDir());
+        files.add(webm);
+        try (java.io.InputStream in = getClass().getClassLoader().getResourceAsStream("video/dated.webm")) {
+            java.nio.file.Files.write(webm.toPath(), in.readAllBytes());
+        }
+        assertNotNull(VideoContainerMetadata.movieTimes(app, Uri.fromFile(webm)));
+        assertNull(VideoContainerMetadata.movieTimes(app, Uri.fromFile(new File("/no/such/file.mp4"))));
+    }
 }

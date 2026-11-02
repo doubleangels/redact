@@ -325,4 +325,15 @@ public class AlreadyCleanCheckTest {
                 Arrays.asList(Status.UNKNOWN, Status.UNKNOWN),
                 AlreadyCleanCheck.assess(app, items, -1L));
     }
+
+    @Test
+    public void ultraHdr_cleanedByRedact_isAlreadyClean_despiteItsKeptDirectory() throws IOException {
+        File tagged = TestVideos.resource(app.getCacheDir(), "image/ultra_hdr_tagged.jpg");
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(tagged, "image/jpeg")));
+
+        File clean = File.createTempFile("check_", ".jpg", app.getCacheDir());
+        clean.deleteOnExit();
+        ImageContainerMetadata.sanitize(tagged, clean);
+        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item(clean, "image/jpeg")));
+    }
 }

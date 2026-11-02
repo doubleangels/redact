@@ -226,4 +226,56 @@ public class UltraHdrTest {
         UltraHdr.fixPrimarySize(clean); // and again changes nothing
         assertEquals(size + exif.length, primarySize(Files.readAllBytes(clean.toPath())));
     }
+
+    private static String directory(String inner) {
+        return "<x:xmpmeta xmlns:x=\"adobe:ns:meta/\" x:xmptk=\"XMP Core 5.5.0\"><rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">"
+                + "<rdf:Description rdf:about=\"\" xmlns:GCamera=\"http://ns.google.com/photos/1.0/camera/\""
+                + " xmlns:Container=\"http://ns.google.com/photos/1.0/container/\""
+                + " xmlns:Item=\"http://ns.google.com/photos/1.0/container/item/\" " + inner
+                + "</rdf:Description></rdf:RDF></x:xmpmeta>";
+    }
+
+    @Test
+    public void isPictureOnlyXmp_acceptsTheMotionPhotoDirectory_andNothingMore() {
+        String ok = directory("GCamera:MotionPhoto=\"1\" GCamera:MotionPhotoVersion=\"1\">"
+                + "<Container:Directory><rdf:Seq><rdf:li rdf:parseType=\"Resource\">"
+                + "<Container:Item Item:Semantic=\"MotionPhoto\" Item:Mime=\"video/mp4\" Item:Length=\"123\"/>"
+                + "</rdf:li></rdf:Seq></Container:Directory>");
+        assertTrue(UltraHdr.isPictureOnlyXmp(ok));
+
+        assertFalse("a flag that is not 0 or 1", UltraHdr.isPictureOnlyXmp(ok.replace("MotionPhoto=\"1\"", "MotionPhoto=\"2\"")));
+        assertFalse("a type the format doesn't use", UltraHdr.isPictureOnlyXmp(ok.replace("video/mp4", "image/png")));
+        assertFalse("rdf:about naming something", UltraHdr.isPictureOnlyXmp(ok.replace("rdf:about=\"\"", "rdf:about=\"Alice\"")));
+        assertFalse("text between tags", UltraHdr.isPictureOnlyXmp(ok.replace("<rdf:Seq>", "<rdf:Seq>Alice")));
+        assertFalse("a tag without a prefix", UltraHdr.isPictureOnlyXmp(ok.replace("<rdf:Seq>", "<rdf:Seq><Seq/>")));
+        assertFalse("an attribute without a prefix", UltraHdr.isPictureOnlyXmp(ok.replace("Item:Length", "Length")));
+        assertFalse("an unknown field", UltraHdr.isPictureOnlyXmp(ok.replace("GCamera:MotionPhotoVersion", "GCamera:Owner")));
+        assertFalse("another namespace", UltraHdr.isPictureOnlyXmp(ok.replace(
+                "xmlns:GCamera", "xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:GCamera")));
+        assertFalse("a comment", UltraHdr.isPictureOnlyXmp(ok.replace("<rdf:Seq>", "<rdf:Seq><!-- Alice -->")));
+        assertFalse("a toolkit name with odd characters", UltraHdr.isPictureOnlyXmp(ok.replace("XMP Core 5.5.0", "<Alice>")));
+    }
+
+    @Test
+    public void insertPrimaryXmp_refusesWhatIsNotAWholeJpeg() throws Exception {
+        java.io.File png = java.io.File.createTempFile("ultra_", ".png");
+        png.deleteOnExit();
+        java.nio.file.Files.write(png.toPath(), new byte[] {(byte) 0x89, 'P', 'N', 'G', 0, 0, 0, 0});
+        try {
+            UltraHdr.insertPrimaryXmp(png, "<x:xmpmeta/>");
+            org.junit.Assert.fail();
+        } catch (java.io.IOException expected) {
+            assertTrue(expected.getMessage().contains("Not a JPEG"));
+        }
+        java.io.File cut = java.io.File.createTempFile("ultra_", ".jpg");
+        cut.deleteOnExit();
+        // SOI, then a JFIF header that says it runs far past the end of the file.
+        java.nio.file.Files.write(cut.toPath(), new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0x7F, 0x7F, 'J'});
+        try {
+            UltraHdr.insertPrimaryXmp(cut, "<x:xmpmeta/>");
+            org.junit.Assert.fail();
+        } catch (java.io.IOException expected) {
+            assertTrue(expected.getMessage().contains("JFIF"));
+        }
+    }
 }

@@ -346,4 +346,25 @@ public class FormatConverterConversionTest {
         }
         assertTrue(FakeMediaStoreProvider.entries().isEmpty());
     }
+
+    @Test
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    public void sixteenBitPng_toPng_staysSixteenBits_andIsChecked() throws Exception {
+        File source = File.createTempFile("conv_", ".png", context.getFilesDir());
+        files.add(source);
+        try (java.io.InputStream in = getClass().getClassLoader().getResourceAsStream("image/rgba16.png");
+                java.io.FileOutputStream out = new java.io.FileOutputStream(source)) {
+            out.write(in.readAllBytes());
+        }
+
+        Uri out = FormatConverter.convertImageToPictures(context, Uri.fromFile(source),
+                Bitmap.CompressFormat.PNG, "deep.png");
+
+        assertNotNull(out);
+        byte[] png = java.nio.file.Files.readAllBytes(FakeMediaStoreProvider.only().file.toPath());
+        assertEquals("written at 16 bits", 16, png[24] & 0xFF);
+        assertEquals(40, Png16.readHeader(new java.io.ByteArrayInputStream(png)).width);
+        assertTrue(com.doubleangels.redact.metadata.ImageContainerMetadata.scan(
+                FakeMediaStoreProvider.only().file).isClean());
+    }
 }
