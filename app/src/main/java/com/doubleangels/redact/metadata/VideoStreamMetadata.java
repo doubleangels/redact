@@ -18,9 +18,15 @@ import java.nio.charset.StandardCharsets;
  * container: SEI "user data unregistered" messages, where camcorders keep the recording date and
  * GPS (AVCHD's MDPM), drones their telemetry, and encoders their settings; SEI registered under
  * ITU-T T.35 by anyone but HDR10+, Dolby Vision and broadcast captions, which describe the
- * picture; and MPEG-4 Part 2's user data, where encoders and cameras write their names. A clean re-encodes the video, so
+ * picture; MPEG-4 Part 2's user data, where encoders and cameras write their names; and AV1's
+ * metadata OBUs (T.35 by anyone but those same picture formats, timecodes, and the types left for
+ * private use) and padding OBUs that hold anything but zeros. A clean re-encodes the video, so
  * none of it survives: Scan uses this to show that it is there, and the stripper to skip the
  * quick transmux of Faster Video Cleaning, which would copy it, for a file that carries any.
+ *
+ * <p>VP8 and VP9 have no syntax for data beside the picture, so there is nothing to read in them.
+ * Any other video codec cannot be read here, and the scan answers null for it, as it does when it
+ * fails: the stripper re-encodes rather than copy a stream it could not check.
  */
 public final class VideoStreamMetadata {
 
@@ -43,11 +49,19 @@ public final class VideoStreamMetadata {
     private static final int SEI_USER_DATA_UNREGISTERED = 5;
     /** MPEG-4 Part 2's user_data start code value. */
     private static final int MPEG4_USER_DATA = 0xB2;
+    private static final int OBU_METADATA = 5;
+    private static final int OBU_PADDING = 15;
+    /** AV1 metadata_type values: HDR content light level, mastering display, scalability. */
+    private static final int AV1_METADATA_SCALABILITY = 3;
+    private static final int AV1_METADATA_ITUT_T35 = 4;
 
     private VideoStreamMetadata() {
     }
 
-    /** Reads the codec configuration and the first samples of the video track; null when it cannot. */
+    /**
+     * Reads the codec configuration and the first samples of the video track; null when it cannot,
+     * or when the track's codec is not one this can read.
+     */
     @Nullable
     public static Report scan(@NonNull Context context, @NonNull Uri uri) {
         return scan(context, uri, false);
@@ -65,13 +79,22 @@ public final class VideoStreamMetadata {
             for (int i = 0; i < extractor.getTrackCount(); i++) {
                 MediaFormat format = extractor.getTrackFormat(i);
                 String mime = format.getString(MediaFormat.KEY_MIME);
+                if (mime == null || !mime.startsWith("video/")) {
+                    continue;
+                }
                 boolean hevc = MediaFormat.MIMETYPE_VIDEO_HEVC.equals(mime);
                 boolean mpeg4 = MediaFormat.MIMETYPE_VIDEO_MPEG4.equals(mime);
-                if (!hevc && !mpeg4 && !MediaFormat.MIMETYPE_VIDEO_AVC.equals(mime)) {
-                    continue;
+                boolean av1 = MediaFormat.MIMETYPE_VIDEO_AV1.equals(mime);
+                if (MediaFormat.MIMETYPE_VIDEO_VP8.equals(mime) || MediaFormat.MIMETYPE_VIDEO_VP9.equals(mime)) {
+                    return new Report(0, 0, null);
+                }
+                if (!hevc && !mpeg4 && !av1 && !MediaFormat.MIMETYPE_VIDEO_AVC.equals(mime)) {
+                    // A codec whose stream this cannot read, so it cannot say the stream is clean.
+                    return null;
                 }
                 Counter counter = new Counter();
                 counter.mpeg4 = mpeg4;
+                counter.av1 = av1;
                 for (String key : new String[] {"csd-0", "csd-1"}) {
                     ByteBuffer csd = format.containsKey(key) ? format.getByteBuffer(key) : null;
                     if (csd != null) {
@@ -120,10 +143,16 @@ public final class VideoStreamMetadata {
         @Nullable String text;
         /** MPEG-4 Part 2, whose stream is split by start codes rather than into NAL units. */
         boolean mpeg4;
+        /** AV1, whose stream is a sequence of OBUs. */
+        boolean av1;
 
         void add(@NonNull ByteBuffer buffer, boolean hevc) {
             byte[] data = new byte[buffer.remaining()];
             buffer.duplicate().get(data);
+            if (av1) {
+                av1Obus(data, this);
+                return;
+            }
             if (mpeg4) {
                 for (byte[] unit : units(data, first -> first == MPEG4_USER_DATA)) {
                     if (unit.length > 1) {
@@ -158,6 +187,110 @@ public final class VideoStreamMetadata {
         counter.mpeg4 = mpeg4;
         counter.add(ByteBuffer.wrap(data), hevc);
         return new Report(counter.messages, counter.bytes, counter.text);
+    }
+
+    @VisibleForTesting
+    static Report scanAv1Buffer(@NonNull byte[] data) {
+        Counter counter = new Counter();
+        counter.av1 = true;
+        counter.add(ByteBuffer.wrap(data), false);
+        return new Report(counter.messages, counter.bytes, counter.text);
+    }
+
+    /**
+     * Counts the AV1 OBUs in {@code d} that carry data of their own. {@code d} is a sample in the
+     * low overhead format MP4 and Matroska use, or a codec configuration: an AV1CodecConfiguration
+     * record, whose four-byte header (marker and version, 0x81) is skipped to reach its OBUs.
+     */
+    private static void av1Obus(@NonNull byte[] d, @NonNull Counter counter) {
+        int pos = d.length >= 4 && (d[0] & 0xFF) == 0x81 ? 4 : 0;
+        while (pos < d.length) {
+            int header = d[pos] & 0xFF;
+            if ((header & 0x80) != 0) {
+                return; // the forbidden bit: not an OBU, so not a stream this can follow
+            }
+            int type = (header >> 3) & 0x0F;
+            boolean extension = (header & 0x04) != 0;
+            boolean hasSize = (header & 0x02) != 0;
+            int payload = pos + (extension ? 2 : 1);
+            if (payload > d.length) {
+                return;
+            }
+            long size;
+            if (hasSize) {
+                long[] leb = leb128(d, payload);
+                if (leb == null) {
+                    return;
+                }
+                size = leb[0];
+                payload = (int) leb[1];
+            } else {
+                size = d.length - payload; // the last OBU runs to the end of the sample
+            }
+            if (size < 0 || payload + size > d.length) {
+                return;
+            }
+            int length = (int) size;
+            if (type == OBU_METADATA) {
+                av1Metadata(d, payload, length, counter);
+            } else if (type == OBU_PADDING && !allZero(d, payload, length)) {
+                count(counter, d, payload, length);
+            }
+            pos = payload + length;
+        }
+    }
+
+    private static void av1Metadata(@NonNull byte[] d, int pos, int length, @NonNull Counter counter) {
+        long[] leb = leb128(d, pos);
+        if (leb == null || leb[1] > pos + length) {
+            return;
+        }
+        long metadataType = leb[0];
+        int body = (int) leb[1];
+        int bodyLength = pos + length - body;
+        if (metadataType >= 1 && metadataType <= AV1_METADATA_SCALABILITY) {
+            return; // HDR light levels, mastering display and scalability only describe the picture
+        }
+        if (metadataType == AV1_METADATA_ITUT_T35 && describesPicture(d, body, bodyLength)) {
+            return;
+        }
+        // T.35 from anyone else, a timecode (which can hold the time of day), and the types left
+        // for private use or not yet defined, which a decoder skips and so could hold anything.
+        count(counter, d, body, Math.max(bodyLength, 0));
+    }
+
+    private static void count(@NonNull Counter counter, @NonNull byte[] d, int pos, int length) {
+        counter.messages++;
+        counter.bytes += length;
+        if (counter.text == null) {
+            counter.text = readableText(d, pos, length);
+        }
+    }
+
+    private static boolean allZero(@NonNull byte[] d, int pos, int length) {
+        for (int i = pos; i < pos + length; i++) {
+            if (d[i] != 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** An unsigned LEB128 value at {@code pos} and the position after it, or null when cut off. */
+    @Nullable
+    private static long[] leb128(@NonNull byte[] d, int pos) {
+        long value = 0;
+        for (int i = 0; i < 8; i++) {
+            if (pos + i >= d.length) {
+                return null;
+            }
+            int b = d[pos + i] & 0xFF;
+            value |= (long) (b & 0x7F) << (i * 7);
+            if ((b & 0x80) == 0) {
+                return new long[] {value, pos + i + 1};
+            }
+        }
+        return null;
     }
 
     private static boolean isSei(@NonNull byte[] nal, boolean hevc) {

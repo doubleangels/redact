@@ -570,6 +570,34 @@ public class MetadataStripperVideoTest {
     }
 
     @Test
+    public void streamScan_ofAnAv1Track_findsItsUserData() throws Exception {
+        Uri uri = Uri.fromFile(videoFile(".mp4"));
+        // A metadata OBU with a size field: ITU-T T.35, country code 0x26, then the payload.
+        byte[] text = "drone telemetry".getBytes(java.nio.charset.StandardCharsets.ISO_8859_1);
+        byte[] obu = new byte[3 + 2 + text.length];
+        obu[0] = (byte) (5 << 3 | 0x02);
+        obu[1] = (byte) (2 + text.length);
+        obu[2] = 4;
+        obu[3] = 0x26;
+        obu[4] = 0x00;
+        System.arraycopy(text, 0, obu, 5, text.length);
+        ShadowMediaExtractor.addTrack(source(uri), videoFormat(MediaFormat.MIMETYPE_VIDEO_AV1), obu);
+
+        VideoStreamMetadata.Report r = VideoStreamMetadata.scan(app, uri);
+
+        assertNotNull(r);
+        assertEquals(1, r.userDataMessages);
+    }
+
+    @Test
+    public void streamScan_ofACodecItCannotRead_answersNull() throws Exception {
+        Uri uri = withTracks(videoFile(".3gp"), videoFormat(MediaFormat.MIMETYPE_VIDEO_H263),
+                audioFormat(MediaFormat.MIMETYPE_AUDIO_AAC));
+
+        assertNull(VideoStreamMetadata.scan(app, uri));
+    }
+
+    @Test
     public void streamScan_ofAnHevcTrackWithoutCodecConfig_readsItsSamples() throws Exception {
         Uri uri = Uri.fromFile(videoFile(".mp4"));
         byte[] sei = seiNal("hevc encoder");
