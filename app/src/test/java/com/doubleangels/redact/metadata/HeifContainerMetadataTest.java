@@ -18,6 +18,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 /** Lossless HEIC cleaning: the pictures are copied as they are, everything else is left out. */
+@org.junit.runner.RunWith(org.robolectric.RobolectricTestRunner.class)
+@org.robolectric.annotation.Config(sdk = 31)
 public class HeifContainerMetadataTest {
 
     @Rule
@@ -295,5 +297,72 @@ public class HeifContainerMetadataTest {
             serialShown |= f.text != null && f.text.contains("SN-42");
         }
         assertTrue(serialShown);
+    }
+
+    private File resource(String name) throws IOException {
+        File file = temp.newFile(name);
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream("image/" + name)) {
+            Files.write(file.toPath(), in.readAllBytes());
+        }
+        return file;
+    }
+
+    /** Top-level box types in order. */
+    private static java.util.List<String> boxes(byte[] d) {
+        java.util.List<String> types = new java.util.ArrayList<>();
+        int p = 0;
+        while (p + 8 <= d.length) {
+            long size = ((d[p] & 0xFFL) << 24) | ((d[p + 1] & 0xFF) << 16) | ((d[p + 2] & 0xFF) << 8) | (d[p + 3] & 0xFF);
+            types.add(new String(d, p + 4, 4, StandardCharsets.ISO_8859_1));
+            if (size < 8) {
+                break;
+            }
+            p += (int) size;
+        }
+        return types;
+    }
+
+    @Test
+    public void animatedAvif_keepsItsFramesAndStillThroughAClean() throws Exception {
+        File source = resource("animated.avif");
+        File clean = new File(temp.getRoot(), "clean.avif");
+        HeifContainerMetadata.sanitize(source, clean);
+
+        byte[] out = Files.readAllBytes(clean.toPath());
+        assertEquals(java.util.Arrays.asList("ftyp", "meta", "moov", "mdat"), boxes(out));
+        assertTrue("still a sequence", contains(out, "avis"));
+        assertTrue(HeifContainerMetadata.isHeif(clean));
+
+        // The rebuilt tracks point at the right samples: a second clean reads them and gives the
+        // same file back.
+        File again = new File(temp.getRoot(), "again.avif");
+        HeifContainerMetadata.sanitize(clean, again);
+        assertArrayEquals(out, Files.readAllBytes(again.toPath()));
+
+        ImageContainerMetadata.Report report = ImageContainerMetadata.scan(clean);
+        assertTrue(report.recognized);
+        assertTrue(keys(report.findings).toString(), report.isClean());
+        assertTrue(keys(report.kept).contains("IMAGE_SEQUENCE"));
+    }
+
+    @Test
+    public void animatedAvif_withATrackThatCannotBeFollowed_keepsOnlyTheStill() throws Exception {
+        byte[] source = Files.readAllBytes(resource("animated.avif").toPath());
+        // A fragmented movie (mvex) is not followed: the frames go and ftyp stops promising them.
+        int moov = new String(source, StandardCharsets.ISO_8859_1).indexOf("moov") - 4;
+        int mvhd = new String(source, StandardCharsets.ISO_8859_1).indexOf("mvhd", moov);
+        source[mvhd] = 'm';
+        source[mvhd + 1] = 'v';
+        source[mvhd + 2] = 'e';
+        source[mvhd + 3] = 'x';
+        File broken = temp.newFile("broken.avif");
+        Files.write(broken.toPath(), source);
+        File clean = new File(temp.getRoot(), "still.avif");
+        HeifContainerMetadata.sanitize(broken, clean);
+
+        byte[] out = Files.readAllBytes(clean.toPath());
+        assertEquals(java.util.Arrays.asList("ftyp", "meta", "mdat"), boxes(out));
+        assertFalse(contains(out, "avis"));
+        assertTrue(contains(out, "avif"));
     }
 }

@@ -2328,7 +2328,7 @@ public class MetadataStripper {
                 ImageContainerMetadata.Report container = ImageContainerMetadata.scan(imageFile);
                 if (!container.isClean()) {
                     SentryManager.log("The app found remaining metadata outside EXIF: "
-                            + (container.findings.isEmpty() ? "UNREADABLE" : container.findings.get(0).key) + ".");
+                            + (container.findings.isEmpty() ? "UNREADABLE" : ImageContainerMetadata.logKey(container.findings.get(0).key)) + ".");
                     return false;
                 }
             } else {
@@ -2342,7 +2342,7 @@ public class MetadataStripper {
                         || container.format == ImageContainerMetadata.Format.GIF);
                 if (structured && !container.isClean()) {
                     SentryManager.log("The app found remaining metadata outside EXIF: "
-                            + container.findings.get(0).key + ".");
+                            + ImageContainerMetadata.logKey(container.findings.get(0).key) + ".");
                     return false;
                 }
                 boolean keptDirectory = false;

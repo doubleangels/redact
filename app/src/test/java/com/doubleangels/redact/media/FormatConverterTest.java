@@ -226,6 +226,15 @@ public class FormatConverterTest {
     }
 
     @Test
+    @Config(sdk = 34)
+    public void resolveCleanFormat_onAndroid14_keepsHeicWithoutAnEncoder() throws Exception {
+        // Bitmap has no HEIC encoder here, which used to make every HEIC clean a JPEG.
+        FormatConverter.ImageFormatSpec heic = FormatConverter.resolveCleanFormat(".heic", "image/heic");
+        assertEquals(".heic", heic.extension);
+        assertEquals("image/heic", heic.mimeType);
+    }
+
+    @Test
     public void resolveCleanFormat_keepsHeicAndAvifAsTheyAre() throws Exception {
         FormatConverter.ImageFormatSpec heic = FormatConverter.resolveCleanFormat(".heic", "image/heic");
         assertEquals(".heic", heic.extension);

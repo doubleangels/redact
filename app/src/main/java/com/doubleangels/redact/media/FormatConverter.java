@@ -365,8 +365,11 @@ public final class FormatConverter {
     public static ImageFormatSpec resolveCleanFormat(
             @Nullable String extensionWithDot, @Nullable String mimeType) throws IOException {
         if (isHeicSource(extensionWithDot, mimeType)) {
-            return isHeicProcessingSupported()
-                    ? heicSpec()
+            // heicSpec() is a JPEG wherever Bitmap has no HEIC encoder, Android 14 and newer
+            // included, which skipped the rebuild and saved every HEIC as a JPEG.
+            ImageFormatSpec heic = isHeicProcessingSupported() ? heicSpec() : null;
+            return heic != null && ".heic".equals(heic.extension)
+                    ? heic
                     : new ImageFormatSpec(".heic", "image/heic", Bitmap.CompressFormat.JPEG, false);
         }
         if (isAvifSource(extensionWithDot, mimeType)) {

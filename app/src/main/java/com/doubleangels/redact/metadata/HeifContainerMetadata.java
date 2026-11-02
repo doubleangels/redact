@@ -112,6 +112,9 @@ public final class HeifContainerMetadata {
         return false;
     }
 
+    /** How the video scan names the picture tracks of an image sequence (HeifTracks keeps these). */
+    private static final Set<String> SEQUENCE_PICTURE_TRACKS = Set.of("track:pict", "track:vide", "track:auxv");
+
     /** Most bytes of one box or item read to describe it in Scan. */
     private static final int MAX_DESCRIBED = 1024 * 1024;
     /** Most coded picture data read to look for SEI or metadata OBUs a clean would drop. */
@@ -199,11 +202,17 @@ public final class HeifContainerMetadata {
                                 ? VideoContainerMetadata.scan(ch, pos + header, pos + size)
                                 : VideoContainerMetadata.scan(ch, pos, pos + size);
                         String key = motion ? "MOTION_PHOTO_VIDEO" : "IMAGE_SEQUENCE";
-                        if (video.recognized && video.fields.isEmpty()) {
+                        // A sequence's frames are in picture tracks, which the video scan counts
+                        // as tracks of an unknown kind; they are the picture, kept by a clean.
+                        List<String> fields = new ArrayList<>(video.fields);
+                        if (!motion) {
+                            fields.removeAll(SEQUENCE_PICTURE_TRACKS);
+                        }
+                        if (video.recognized && fields.isEmpty()) {
                             kept.add(new ImageContainerMetadata.Finding(key, null, size, ImageContainerMetadata.Kind.OTHER));
                         } else {
                             findings.add(new ImageContainerMetadata.Finding(key,
-                                    video.fields.isEmpty() ? null : String.join(", ", video.fields), size,
+                                    fields.isEmpty() ? null : String.join(", ", fields), size,
                                     video.hasLocation ? ImageContainerMetadata.Kind.LOCATION : ImageContainerMetadata.Kind.OTHER));
                         }
                         break;
@@ -225,6 +234,11 @@ public final class HeifContainerMetadata {
                 recognized = true;
             }
         } catch (IOException | RuntimeException e) {
+            // A damaged file is never called clean; a RuntimeException is a gap in this parser,
+            // so report it, as ImageContainerMetadata.scan does.
+            if (e instanceof RuntimeException) {
+                com.doubleangels.redact.sentry.SentryManager.recordException(e);
+            }
             recognized = false;
         }
         return new ImageContainerMetadata.Report(ImageContainerMetadata.Format.HEIF, recognized, findings, kept);
@@ -399,6 +413,10 @@ public final class HeifContainerMetadata {
                 try {
                     tracks = HeifTracks.parse(in, moov);
                 } catch (IOException | RuntimeException e) {
+                    // Only the still picture is kept; the frames are dropped, never copied as they are.
+                    com.doubleangels.redact.sentry.SentryManager.log(
+                            "The image sequence's tracks could not be followed, so only the still picture is kept: "
+                                    + e.getClass().getSimpleName() + ".");
                     tracks = null;
                 }
             }

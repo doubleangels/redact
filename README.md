@@ -297,7 +297,7 @@ The Settings tab puts the settings you use every day first: cleaning, sharing, C
 | Setting | What it does |
 |---|---|
 | **Hide Content in Screenshots and Recents** | Blocks screenshots and screen recording inside Redact and blanks its preview on the recent apps screen, so metadata and thumbnails of private photos are not captured. Off by default; takes effect immediately. |
-| **Clear Copied Metadata** | Clears metadata you copied from Scan off the clipboard after 15 seconds, 30 seconds, 1 minute or 5 minutes, unless you have copied something else since. Off by default. |
+| **Clear Copied Metadata** | Clears metadata you copied from Scan off the clipboard after 15 seconds, 30 seconds, 1 minute or 5 minutes, unless you have copied something else since. Set to 1 minute by default; choose Off to keep it. |
 
 **Notifications**
 

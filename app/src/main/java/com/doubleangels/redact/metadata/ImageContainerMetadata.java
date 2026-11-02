@@ -1509,6 +1509,20 @@ public final class ImageContainerMetadata {
         return sb.length() >= 3 ? sb.toString().trim() : "";
     }
 
+    /** Keys whose end is text read from the file: a PNG text keyword, a chunk, box, item or app name. */
+    private static final java.util.regex.Pattern FILE_NAMED_KEY = java.util.regex.Pattern.compile(
+            "^(PNG_TEXT|PNG_CHUNK|WEBP_CHUNK|HEIF_BOX|HEIF_ITEM|HEIF_META|HEIF_PROPERTY|GIF_APP|APP\\d+)_.+");
+
+    /**
+     * A finding's key as it may be logged: a key that ends in text from the file, which can be
+     * anything its author typed (a PNG text keyword, say), keeps only its fixed start.
+     */
+    @NonNull
+    static String logKey(@NonNull String key) {
+        java.util.regex.Matcher m = FILE_NAMED_KEY.matcher(key);
+        return m.matches() ? m.group(1) + "_*" : key;
+    }
+
     /** {@code "Ducky"} becomes {@code DUCKY}, {@code "Raw profile type exif"} RAW_PROFILE_TYPE_EXIF. */
     @NonNull
     static String keyOf(@NonNull String name) {

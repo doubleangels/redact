@@ -223,6 +223,11 @@ public final class GifContainerMetadata {
                 }
             }
         } catch (IOException | RuntimeException e) {
+            // A damaged file is never called clean; a RuntimeException is a gap in this parser,
+            // so report it, as ImageContainerMetadata.scan does.
+            if (e instanceof RuntimeException) {
+                com.doubleangels.redact.sentry.SentryManager.recordException(e);
+            }
             recognized = false;
         }
         return new ImageContainerMetadata.Report(ImageContainerMetadata.Format.GIF, recognized, findings,
