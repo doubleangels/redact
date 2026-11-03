@@ -40,4 +40,4 @@ Using `git diff` on the two profile files (compare to HEAD), report:
 
 ## 6. Wrap up
 
-Finish with a short report: emulator used, profile counts and verdict, screenshot verdict, and the profile commit. Unless the profile run failed, commit `baseline-prof.txt` and `startup-prof.txt` (only those two files) to the current branch without asking, as `generateprofiles.md` describes. Offer to copy the store images into fastlane as step 4 of `generatescreenshots.md` describes, but do not copy without being asked; once copied, commit them automatically too.
+Finish with a short report: emulator used, profile counts and verdict, screenshot verdict, and the profile commit (or that it was skipped as noise). Unless the profile run failed, commit `baseline-prof.txt` and `startup-prof.txt` (only those two files) to the current branch without asking when the change is meaningful, and skip the commit and restore the two files when it is only noise, exactly as step 4 of `generateprofiles.md` describes. Offer to copy the store images into fastlane as step 4 of `generatescreenshots.md` describes, but do not copy without being asked; once copied, commit them automatically too.

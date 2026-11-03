@@ -31,6 +31,11 @@ Using `git diff` on the two profile files (compare to HEAD), report:
 
 ## 4. Wrap up
 
-Unless the profile run failed, commit `baseline-prof.txt` and `startup-prof.txt` (only those two files) to the current branch without asking, with a message like `Refresh the baseline and startup profiles`. Skip the commit if neither file changed.
+Unless the profile run failed, commit `baseline-prof.txt` and `startup-prof.txt` (only those two files) to the current branch without asking, with a message like `Refresh the baseline and startup profiles`, **but only when the change is meaningful**:
 
-Finish with a short report: emulator used, profile counts and verdict, the commit, and any uncommitted source changes that were part of the build.
+- **Meaningful:** any `com.doubleangels.redact` rule added or removed, or library rules added or removed in more than a handful of classes (roughly 1% of the rules or more), as happens after a dependency upgrade or new code on a startup path.
+- **Noise:** everything else. That means only flag changes on existing rules (`HSPL` ↔ `SPL` ↔ `PL`), the same rules in a different order, renumbered synthetic lambdas, or a few library methods coming and going.
+
+For noise, skip the commit and restore the two files (`git checkout -- app/src/release/generated/baselineProfiles/baseline-prof.txt app/src/release/generated/baselineProfiles/startup-prof.txt`) so they do not linger in the working tree. Skip the commit too if neither file changed.
+
+Finish with a short report: emulator used, profile counts and verdict, the commit (or that it was skipped as noise and the files restored), and any uncommitted source changes that were part of the build.
