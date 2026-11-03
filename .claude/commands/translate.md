@@ -3,7 +3,7 @@ description: Check every string in all 12 locales, translate anything missing or
 allowed-tools: Bash, PowerShell, Read, Edit, Write, Grep, Glob
 ---
 
-Make sure every user-visible string is translated into all 12 locales (`ar de es fr hi it ja ko pt ru zh-rCN zh-rTW`), fix any gaps, then show me a summary. Do not push. Only commit if I ask (or if I invoked this with the word "commit").
+Make sure every user-visible string is translated into all 12 locales (`ar de es fr hi it ja ko pt ru zh-rCN zh-rTW`), fix any gaps, then show me a summary. When the task is done, commit its changes to the current branch automatically, as the last step describes. Do not push.
 
 ## 1. Check
 
@@ -50,4 +50,4 @@ End with:
 - every string you translated, grouped by name, with the English and a short back-translation for anything you were unsure of,
 - anything that needs a native speaker or a human decision.
 
-Only if I asked to commit: stage only the resource files (and the checker script, if you edited its allowlist), then commit with a message like "Translate <what> into all locales". Never push.
+Then commit to the current branch without asking (skip it if nothing changed or a check is still failing, and say so): stage only the resource files (and the checker script, if you edited its allowlist), then commit with a message like "Translate <what> into all locales". Never push.

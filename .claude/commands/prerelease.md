@@ -5,7 +5,7 @@ allowed-tools: Bash, PowerShell, Read, Edit, Write, Grep, Glob, WebFetch
 
 > These commands drive the Pixel_10_Pro emulator and Gradle with Windows paths, so they only work on my own machine. If you are running in a cloud session without the Android SDK and the emulator, say so and stop instead of trying.
 
-Get the app ready for a release on the **Pixel_10_Pro emulator and never on a physical device**, then give one combined summary. Every step that changes the code (translations, dependency upgrades, Sentry fixes) runs first, then the profiles and screenshots are generated from that code, and the full test run comes **last**, so its results cover exactly what will be released. Each step follows another command's file: read that file and do what it says, with the changes listed here. Do not commit or push anything, and do not copy screenshots into `fastlane/`, unless I ask (or I invoked this with the word "commit", which allows commits but never a push).
+Get the app ready for a release on the **Pixel_10_Pro emulator and never on a physical device**, then give one combined summary. Every step that changes the code (translations, dependency upgrades, Sentry fixes) runs first, then the profiles and screenshots are generated from that code, and the full test run comes **last**, so its results cover exactly what will be released. Each step follows another command's file: read that file and do what it says, with the changes listed here. Each step commits its own changes to the current branch automatically when it finishes (translations, dependency upgrades, Sentry fixes, profiles), as the command it follows describes, so the final test run covers committed code. Never push, and do not copy screenshots into `fastlane/` unless I ask.
 
 If a step fails, record why and carry on with the next one, except that a missing `Pixel_10_Pro` AVD stops everything.
 
@@ -23,7 +23,7 @@ Follow `.claude/commands/dependencies.md` with these changes:
 
 - Apply **every update**: upgrade everything outdated to its latest stable version, ignoring step 3's groups. That includes the "Needs care" items (Media3, Glide, AGP, the Gradle wrapper, the Java toolchain, `compileSdk` and `targetSdk`, moving together where they must), versions pinned on purpose with a comment, and SHA-pinned actions (keep the SHA style). Read the release notes of each major upgrade and make the smallest code or workflow change it needs. The only exceptions are pre-releases (alpha, beta, rc), and a version that needs a higher `minSdk` than the app has, since raising `minSdk` drops devices; list each exception for me instead of applying it.
 - Skip its step 5 checks except two the final test run cannot cover: `./gradlew :app:bundleRelease -q` (R8 can fail on a new library while everything else passes) and the workflow YAML parse. If the bundle fails, find the upgrade that broke it and fix or roll back just that one. Step 6 tests everything else.
-- Do not commit unless commits are allowed.
+- Commit the upgrades as `dependencies.md` describes once `bundleRelease` passes.
 
 ## 2b. Sentry coverage
 
@@ -37,7 +37,7 @@ Check that the code added or changed for this release reports to Sentry like the
    - **Everything goes through `SentryManager`.** No direct `Sentry.*`, `io.sentry` capture or breadcrumb calls outside `app/src/main/java/com/doubleangels/redact/sentry/`, because those calls would skip the consent check (`SentryManager.isEnabled()`) and the scrubbing.
    - **Nothing private is sent.** No string passed to Sentry (log messages, breadcrumbs, tags, metric attributes, exception messages from our own `throw`s) contains a URI, path, file name, coordinate, metadata value or text the user typed. Do not rely on `SentryPrivacyScrubber` alone: check each value against its patterns, and keep in mind that it currently misses `.heic` names, names with spaces or parentheses (such as `IMG_1 (1).jpg`), and `/sdcard/` and `/mnt/` paths.
 3. Fix each gap with the smallest change, written like the surrounding code: add the missing `recordException`, breadcrumb, operation or failure tag; route a direct Sentry call through `SentryManager`; drop or reword a private value so it never reaches Sentry. When the scrubber misses something, fix the pattern in `SentryPrivacyScrubber` and add a case to its test (`SentryPrivacyScrubberTest`) for the value it missed. Do not change behaviour beyond reporting, and do not report user cancellations or expected cases such as an unsupported format, which would only add noise.
-4. If anything changed, run `./gradlew :app:compileDebugUnitTestJavaWithJavac -q` to make sure it builds; step 6 runs the full suite on the final code. If a test there fails because of a Sentry fix, roll that fix back and list it as a gap. Leave the fixes uncommitted unless commits are allowed.
+4. If anything changed, run `./gradlew :app:compileDebugUnitTestJavaWithJavac -q` to make sure it builds; step 6 runs the full suite on the final code. If a test there fails because of a Sentry fix, roll that fix back and list it as a gap. Then commit the fixes to the current branch without asking, with a message that lists them.
 5. Keep for the summary: each gap with its `file:line`, what was missing and how it was fixed (or why it was left), and one line per file of new code that was already covered, so I can see the scope was complete.
 
 A gap that could not be fixed does not on its own make the release not ready, but anything that still sends private data to Sentry does.
@@ -87,6 +87,6 @@ Finish with one report:
 6. **Profiles:** rule counts before and after, and whether the change is meaningful or noise.
 7. **Screenshots:** regenerated or skipped, the reason (the files that count as a visual change, or the baseline commit), and the review of the new images.
 8. **Release notes:** the previewed English text with its character count, and whether CI will generate it or keep a hand-written one.
-9. **Left uncommitted:** every changed file (translations, dependency upgrades, Sentry fixes, profiles), plus the screenshots in `build/screenshots/` and `build/store/`.
+9. **Commits:** each commit this run made (short sha and subject), anything left uncommitted and why, and where the screenshots are (`build/screenshots/` and `build/store/`).
 
-Offer to commit the translations, dependency upgrades, Sentry fixes and profiles, to copy every locale's store images into fastlane (as step 4 of `generatescreenshots.md` describes), and to fix any failures, but do none of these without being asked.
+Offer to copy every locale's store images into fastlane (as step 4 of `generatescreenshots.md` describes), and to fix any failures, but do none of these without being asked.

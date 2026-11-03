@@ -3,7 +3,7 @@ description: Run Android Lint, list every issue from the report, fix each one, a
 allowed-tools: Bash, PowerShell, Read, Edit, Write, Grep, Glob
 ---
 
-Run lint on the app, list every issue it reports, fix each one, then prove lint is clean. Do not push. Only commit if I ask (or if I invoked this with the word "commit").
+Run lint on the app, list every issue it reports, fix each one, then prove lint is clean. When the task is done, commit its changes to the current branch automatically, as the last step describes. Do not push.
 
 ## 1. Run lint and list every issue
 
@@ -54,4 +54,4 @@ Finish with a short report:
 - anything that deserves a human decision or device testing,
 - test results, and any uncommitted changes that were not mine.
 
-Only if I asked to commit: stage just the files this task changed (leave my other uncommitted files out), and commit with a message that lists the fixes. Never push.
+Then commit to the current branch without asking (skip it if nothing changed or a check is still failing, and say so): stage just the files this task changed (leave my other uncommitted files out), and commit with a message that lists the fixes. Never push.

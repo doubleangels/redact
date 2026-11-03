@@ -5,7 +5,7 @@ allowed-tools: Bash, PowerShell, Read, Grep, Glob
 
 > These commands drive the Pixel_10_Pro emulator and Gradle with Windows paths, so they only work on my own machine. If you are running in a cloud session without the Android SDK and the emulator, say so and stop instead of trying.
 
-Regenerate the baseline and startup profiles on the **Pixel_10_Pro emulator and never on a physical device**, then summarize what changed. This does only the profiles; use `/generatescreenshots` for screenshots or `/generateall` for both. Do not commit or push anything unless I ask.
+Regenerate the baseline and startup profiles on the **Pixel_10_Pro emulator and never on a physical device**, then summarize what changed. This does only the profiles; use `/generatescreenshots` for screenshots or `/generateall` for both. When it is done, commit the two profile files to the current branch automatically. Do not push.
 
 ## 1. Find or start the emulator
 
@@ -31,4 +31,6 @@ Using `git diff` on the two profile files (compare to HEAD), report:
 
 ## 4. Wrap up
 
-Finish with a short report: emulator used, profile counts and verdict, and what is left uncommitted. Mention any uncommitted source changes that were part of the build. Offer to commit the profiles, but do not do it without being asked.
+Unless the profile run failed, commit `baseline-prof.txt` and `startup-prof.txt` (only those two files) to the current branch without asking, with a message like `Refresh the baseline and startup profiles`. Skip the commit if neither file changed.
+
+Finish with a short report: emulator used, profile counts and verdict, the commit, and any uncommitted source changes that were part of the build.
