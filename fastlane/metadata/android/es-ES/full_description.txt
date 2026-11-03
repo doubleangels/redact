@@ -1,42 +1,56 @@
 <b>Tus fotos pueden revelar dónde vives.</b>
-
-<p>Cada foto que hace tu móvil puede llevar metadatos ocultos: la ubicación GPS exacta donde se tomó, la fecha y la hora, y la marca y el modelo de tu teléfono. Cualquiera que reciba el archivo original puede leerlos. Redact te muestra lo que revela una foto o un vídeo y lo elimina, todo en tu dispositivo. Sin cuenta, sin subidas, sin anuncios y sin recopilar datos.</p>
+Cada foto y vídeo puede llevar la ubicación GPS exacta, la fecha y la hora, y la marca y el modelo de tu móvil. Cualquiera que reciba el archivo original puede leerlo.
+Redact es un eliminador de metadatos y datos EXIF. Te muestra lo que revela un archivo y lo elimina, todo en tu dispositivo.
+Sin cuenta, sin subidas, sin anuncios y sin recopilar datos.
 
 <b>Para quién es</b>
-<ul>
-<li>Vender en Wallapop, eBay o Marketplace sin revelar la dirección de tu casa</li>
-<li>Enviar fotos a una cita, a un casero o a alguien que acabas de conocer</li>
-<li>Compartir fotos de tus hijos, tu casa o tu coche</li>
-<li>Periodistas, activistas y cualquiera que proteja a una fuente</li>
-<li>Enviar fotos por correo o como archivo, lo que conserva todos los detalles ocultos</li>
-</ul>
+• Vender en Wallapop, eBay o Marketplace sin revelar la dirección de tu casa
+• Enviar fotos a una cita, a un casero o a alguien que acabas de conocer
+• Compartir fotos de tus hijos, tu casa o tu coche
+• Periodistas, activistas y cualquiera que proteja a una fuente
+• Enviar fotos por correo o como archivo, lo que conserva todos los detalles ocultos
 
-<b>Míralo: Escanear</b>
-<p>Abre cualquier foto o vídeo y ve cada campo oculto en una lista clara y con búsqueda. Una etiqueta de Ubicación marca todo lo que muestra dónde se tomó.</p>
+<b>Mira lo que revela una foto con Escanear</b>
+• Cada campo oculto en un visor EXIF claro y con búsqueda
+• Una etiqueta de Ubicación marca todo lo que muestra dónde se tomó
 
-<b>Elimínalo: Limpiar</b>
-<p>Limpia hasta 100 fotos y vídeos a la vez. Redact elimina el GPS, los datos del dispositivo, las fechas, XMP, IPTC, los comentarios y las etiquetas de vídeo, además de los datos ocultos tras la imagen, como vistas previas adicionales y clips de Motion Photo, y te dice exactamente qué ha eliminado. Tus originales no se tocan, salvo que pidas a Redact que los mueva a la papelera.</p>
+<b>Elimina el GPS, la ubicación y los datos EXIF con Limpiar</b>
+• Limpia hasta 100 fotos y vídeos a la vez
+• Elimina el GPS y la geolocalización, los datos del dispositivo y las fechas
+• Elimina XMP, IPTC, comentarios y etiquetas de vídeo
+• Elimina extras ocultos como vistas previas y clips de Motion Photo
+• Calidad intacta: las fotos nunca se vuelven a comprimir
+• Si quieres, conserva la fecha de captura, la ubicación, los ajustes de cámara o el vídeo de una foto en movimiento
+• Te dice exactamente qué ha eliminado
+• Tus originales no se tocan, salvo que pidas a Redact que los mueva a la papelera
 
 <b>Comparte con seguridad desde cualquier app</b>
-<p>Comparte una foto o un vídeo con Redact desde tu galería o cualquier otra app. Lo limpia y lo devuelve directamente al menú de compartir. O compártelo con Escanear con Redact para revisarlo primero.</p>
+Comparte una foto o un vídeo con Redact desde tu galería o cualquier otra app. Lo limpia y lo devuelve directamente al menú de compartir.
+O compártelo con Escanear con Redact para revisarlo primero.
 
-<b>Convierte formatos</b>
-<p>Imágenes JPEG, PNG, WebP y HEIC, y vídeo H.264, H.265, VP9 y AV1. Cada archivo convertido se limpia y se comprueba.</p>
+<b>Convierte formatos y oculta detalles</b>
+• Convierte HEIC a JPG, además de imágenes PNG y WebP
+• Convierte vídeo H.264, H.265, VP9 y AV1
+• Cada archivo convertido se limpia y se comprueba
+• Censurar pixela, tapa en negro o desenfoca caras, matrículas y direcciones
 
 <b>Privado desde el diseño</b>
-<ul>
-<li>Todo funciona en tu móvil. Limpiar, escanear y convertir no necesitan conexión a internet.</li>
-<li>Sin anuncios, sin analíticas, sin rastreo y sin cuenta</li>
-<li>Tus fotos, vídeos y datos personales nunca se recopilan ni se comparten</li>
-<li>Código abierto bajo GPL-3.0: cualquiera puede leerlo en GitHub</li>
-<li>Funciona con el selector de archivos del sistema, así que el acceso a toda tu galería es opcional</li>
-<li>Los informes de errores opcionales están desactivados hasta que tú los actives</li>
-</ul>
+• Todo funciona en tu móvil, sin necesidad de internet
+• Sin anuncios, sin analíticas, sin rastreo y sin cuenta
+• Tus fotos, vídeos y datos personales nunca se recopilan ni se comparten
+• Código abierto bajo GPL-3.0: cualquiera puede leerlo en GitHub
+• Funciona con el selector de archivos del sistema, así que el acceso a toda tu galería es opcional
+• Los informes de errores opcionales están desactivados hasta que tú los actives
 
 <b>Extras útiles</b>
-<p>Un icono en Ajustes rápidos, accesos directos en la pantalla de inicio, carpetas de salida propias, Conservar Nombres Originales, Limpieza Estricta, ocultar Redact en capturas y recientes, y borrado automático de los metadatos copiados. Estadísticas muestra lo que Redact ha eliminado, contado solo en tu teléfono.</p>
+• Icono en Ajustes rápidos y accesos directos en la pantalla de inicio
+• Carpetas de salida propias y Conservar Nombres Originales
+• Limpieza Estricta
+• Ocultar Redact en capturas y recientes
+• Borrado automático de los metadatos copiados
+• Estadísticas contadas solo en tu teléfono
 
 <b>Pagas una vez y es tuyo</b>
-<p>Sin suscripción, sin anuncios y sin compras en la app. Tu compra apoya a un desarrollador independiente.</p>
+Sin suscripción, sin anuncios y sin compras en la app. Tu compra apoya a un desarrollador independiente.
 
-<p>Disponible en español, inglés, francés, alemán, italiano, portugués, ruso, japonés, coreano, chino (simplificado y tradicional), hindi y árabe.</p>
+Disponible en español, inglés, francés, alemán, italiano, portugués, ruso, japonés, coreano, chino (simplificado y tradicional), hindi y árabe.

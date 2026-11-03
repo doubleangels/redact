@@ -27,6 +27,50 @@ IDENTIFYING_EXIF = {0x010F: "Make", 0x0110: "Model", 0x0131: "Software", 0x013B:
 MARKERS = (b"secret", b"SecretSoft", b"TestCam", b"\xa9xyz", b"loci")
 
 
+PICTURE_NAMESPACES = {
+    b"adobe:ns:meta/", b"http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    b"http://ns.adobe.com/hdr-gain-map/1.0/", b"http://ns.google.com/photos/1.0/camera/",
+    b"http://ns.google.com/photos/1.0/container/", b"http://ns.google.com/photos/1.0/container/item/",
+}
+NUMBER = re.compile(rb"^[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?$|^(True|False|true|false)$")
+
+
+def picture_only_xmp(packet):
+    """Whether an XMP packet holds only Ultra HDR numbers and the Motion Photo / gain map directory."""
+    ns = dict(re.findall(rb'xmlns:([\w.-]+)\s*=\s*"([^"]*)"', packet))
+    if any(uri not in PICTURE_NAMESPACES for uri in ns.values()):
+        return False
+    prefix_of = {uri: p for p, uri in ns.items()}
+    item = prefix_of.get(b"http://ns.google.com/photos/1.0/container/item/")
+    camera = prefix_of.get(b"http://ns.google.com/photos/1.0/camera/")
+    hdrgm = prefix_of.get(b"http://ns.adobe.com/hdr-gain-map/1.0/")
+    for prefix, name, value in re.findall(rb'\s([\w.-]+):([\w.-]+)\s*=\s*"([^"]*)"', packet):
+        if prefix == b"xmlns":
+            continue
+        if prefix == item:
+            ok = (name == b"Semantic" and value in (b"Primary", b"GainMap", b"MotionPhoto")) or \
+                 (name == b"Mime" and value in (b"image/jpeg", b"image/heic", b"image/avif", b"video/mp4")) or \
+                 (name in (b"Length", b"Padding") and value.isdigit())
+        elif prefix == camera:
+            ok = name in (b"MotionPhoto", b"MotionPhotoVersion", b"MotionPhotoPresentationTimestampUs") \
+                 and re.fullmatch(rb"-?\d{1,19}", value) is not None
+        elif prefix == hdrgm:
+            ok = NUMBER.match(value) is not None
+        elif ns.get(prefix) == b"http://www.w3.org/1999/02/22-rdf-syntax-ns#":
+            ok = (name == b"about" and value == b"") or (name == b"parseType" and value == b"Resource")
+        elif ns.get(prefix) == b"adobe:ns:meta/":
+            ok = name == b"xmptk"
+        else:
+            ok = False
+        if not ok:
+            return False
+    # No free text between tags: only numbers and flags (hdrgm sequences) may appear.
+    for text in re.findall(rb">([^<]+)<", packet):
+        if text.strip() and not NUMBER.match(text.strip()):
+            return False
+    return True
+
+
 def check_image(path):
     problems = []
     with Image.open(path) as image:
@@ -65,10 +109,12 @@ def check(path):
     with open(path, "rb") as f:
         data = f.read()
     problems += [m.decode("latin-1") for m in MARKERS if m in data]
-    # An Ultra HDR gain map keeps its own small XMP packet (hdrgm only) for display; anything
-    # else in an XMP packet, or an Extended XMP segment, is reported.
+    # A clean keeps XMP that only describes the picture: an Ultra HDR gain map's numbers and the
+    # Google container directory naming the primary picture, gain map and Motion Photo video
+    # (what UltraHdr.isPictureOnlyXmp accepts). Anything else in an XMP packet, or an Extended
+    # XMP segment, is reported.
     for packet in re.findall(rb"<x:xmpmeta.*?</x:xmpmeta>", data, re.S):
-        if set(re.findall(rb"xmlns:(\w+)=", packet)) - {b"x", b"rdf", b"hdrgm"}:
+        if not picture_only_xmp(packet):
             problems.append("XMP")
     if b"http://ns.adobe.com/xmp/extension/" in data:
         problems.append("Extended XMP")

@@ -1,6 +1,6 @@
 [versions]
 activity = "1.13.0"
-agp = "9.4.1"
+agp = "9.5.0"
 constraintlayout = "2.2.2"
 exifinterface = "1.4.2"
 fragment = "1.9.1"
@@ -10,7 +10,7 @@ material = "1.14.0"
 media3 = "1.11.1"
 lifecycleViewmodelKtx = "2.11.0"
 sentry = "8.62.0"
-sentryGradlePlugin = "6.24.0"
+sentryGradlePlugin = "6.25.0"
 leakcanary = "2.14"
 junit = "4.13.2"
 robolectric = "4.17"
@@ -33,6 +33,8 @@ glide-compiler = { module = "com.github.bumptech.glide:compiler", version.ref = 
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 media3-common = { module = "androidx.media3:media3-common", version.ref = "media3" }
+media3-container = { module = "androidx.media3:media3-container", version.ref = "media3" }
+media3-muxer = { module = "androidx.media3:media3-muxer", version.ref = "media3" }
 media3-effect = { module = "androidx.media3:media3-effect", version.ref = "media3" }
 media3-transformer = { module = "androidx.media3:media3-transformer", version.ref = "media3" }
 lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }

@@ -233,6 +233,21 @@ public class AlreadyCleanCheckTest {
     }
 
     @Test
+    public void video_withOnlyARecordingDate_isAlreadyCleanWhenTheDateIsKept() throws IOException {
+        AppPreferences.setStrictClean(app, false);
+        AppPreferences.setPreserveDateTaken(app, true);
+        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app,
+                video(TestVideos.mp4(TestVideos.RECORDED_1904),
+                        android.media.MediaMetadataRetriever.METADATA_KEY_DURATION, "1000")));
+
+        // Strict Clean keeps nothing, so the date still has to go.
+        AppPreferences.setStrictClean(app, true);
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app,
+                video(TestVideos.mp4(TestVideos.RECORDED_1904),
+                        android.media.MediaMetadataRetriever.METADATA_KEY_DURATION, "1000")));
+    }
+
+    @Test
     public void aRealVideoWithQuickTimeLocationKeys_isNeverCalledClean() throws IOException {
         File f = TestVideos.resource(app.getCacheDir(), "video/ffmpeg_location_keys.mp4");
 
@@ -264,14 +279,25 @@ public class AlreadyCleanCheckTest {
     }
 
     @Test
-    public void heic_isCheckedForXmpNearItsStart() throws IOException {
-        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item(jpeg(), "image/heic")));
+    public void heic_isCalledCleanOnlyWhenItHoldsNothingButPictures() throws IOException {
+        File tagged = TestVideos.resource(app.getCacheDir(), "image/heic_tagged.heic");
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(tagged, "image/heic")));
 
-        File withXmp = jpeg();
+        File clean = File.createTempFile("check_", ".heic", app.getCacheDir());
+        clean.deleteOnExit();
+        HeifContainerMetadata.sanitize(tagged, clean);
+        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item(clean, "image/heic")));
+
+        File withXmp = File.createTempFile("check_", ".heic", app.getCacheDir());
+        withXmp.deleteOnExit();
+        java.nio.file.Files.copy(clean.toPath(), withXmp.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         try (FileOutputStream out = new FileOutputStream(withXmp, true)) {
             out.write("<x:xmpmeta xmlns:x=\"adobe:ns:meta/\"></x:xmpmeta>".getBytes());
         }
         assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(withXmp, "image/heif")));
+
+        // Labelled HEIC but a plain JPEG: read as what it is, which a clean would leave as it is.
+        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item(jpeg(), "image/heic")));
     }
 
     @Test
@@ -298,5 +324,16 @@ public class AlreadyCleanCheckTest {
         assertEquals(
                 Arrays.asList(Status.UNKNOWN, Status.UNKNOWN),
                 AlreadyCleanCheck.assess(app, items, -1L));
+    }
+
+    @Test
+    public void ultraHdr_cleanedByRedact_isAlreadyClean_despiteItsKeptDirectory() throws IOException {
+        File tagged = TestVideos.resource(app.getCacheDir(), "image/ultra_hdr_tagged.jpg");
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(tagged, "image/jpeg")));
+
+        File clean = File.createTempFile("check_", ".jpg", app.getCacheDir());
+        clean.deleteOnExit();
+        ImageContainerMetadata.sanitize(tagged, clean);
+        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item(clean, "image/jpeg")));
     }
 }

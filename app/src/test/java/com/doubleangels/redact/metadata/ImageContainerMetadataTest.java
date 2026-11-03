@@ -552,4 +552,15 @@ public class ImageContainerMetadataTest {
         assertFalse(embedded.containsKey("EMBEDDED_IMAGES"));
         assertEquals("SECRET_COMMENT", embedded.get("JPEG_COMMENT"));
     }
+
+    @Test
+    public void logKey_dropsTextReadFromTheFile() {
+        assertEquals("PNG_TEXT_*", ImageContainerMetadata.logKey("PNG_TEXT_ALICE_S_TRIP_TO_PARIS"));
+        assertEquals("HEIF_ITEM_*", ImageContainerMetadata.logKey("HEIF_ITEM_APPLICATION_RDF_XML"));
+        assertEquals("GIF_APP_*", ImageContainerMetadata.logKey("GIF_APP_ACMECAM1_0"));
+        assertEquals("APP11_*", ImageContainerMetadata.logKey("APP11_JP"));
+        assertEquals("XMP", ImageContainerMetadata.logKey("XMP"));
+        assertEquals("DATA_AFTER_IMAGE", ImageContainerMetadata.logKey("DATA_AFTER_IMAGE"));
+        assertEquals("JPEG_SEGMENT_E5", ImageContainerMetadata.logKey("JPEG_SEGMENT_E5"));
+    }
 }

@@ -225,4 +225,68 @@ public class CensorExporterTest {
                 List.of(CensorRegion.rect(0.1f, 0.1f, 0.4f, 0.4f)), CensorEffects.Effect.BLACK);
         assertNotNull(result.uri);
     }
+
+    private File resource(String name) throws IOException {
+        File f = File.createTempFile("censor_", "_" + name, context.getFilesDir());
+        files.add(f);
+        try (java.io.InputStream in = getClass().getClassLoader().getResourceAsStream("image/" + name);
+                FileOutputStream out = new FileOutputStream(f)) {
+            out.write(in.readAllBytes());
+        }
+        return f;
+    }
+
+    @Test
+    public void sixteenBitPng_keepsItsSamples_andReplacesOnlyTheCensoredOnes() throws Exception {
+        File source = resource("rgba16.png");
+        Bitmap original = BitmapFactory.decodeFile(source.getAbsolutePath());
+        Bitmap censored = Bitmap.createBitmap(40, 30, Bitmap.Config.ARGB_8888);
+        censored.eraseColor(Color.BLACK);
+        File target = File.createTempFile("censor_out_", ".png", context.getFilesDir());
+        files.add(target);
+
+        assertTrue(CensorExporter.writeSixteenBitPng(context, android.net.Uri.fromFile(source), censored,
+                List.of(CensorRegion.rect(0.25f, 0.33f, 0.75f, 0.66f)), target));
+
+        byte[] png = java.nio.file.Files.readAllBytes(target.toPath());
+        assertEquals("still 16 bits", 16, png[24] & 0xFF);
+        Bitmap out = BitmapFactory.decodeFile(target.getAbsolutePath());
+        assertTrue("censored inside", isDark(out.getPixel(20, 15)));
+        assertEquals("kept outside", original.getPixel(2, 2), out.getPixel(2, 2));
+        assertEquals("kept outside", original.getPixel(37, 27), out.getPixel(37, 27));
+    }
+
+    @Test
+    public void sixteenBitPng_ofAnotherSize_orNotSixteenBits_isLeftToTheEncoder() throws Exception {
+        File source = resource("rgba16.png");
+        File target = File.createTempFile("censor_out_", ".png", context.getFilesDir());
+        files.add(target);
+        Bitmap wrongSize = Bitmap.createBitmap(20, 15, Bitmap.Config.ARGB_8888);
+        org.junit.Assert.assertFalse(CensorExporter.writeSixteenBitPng(context, android.net.Uri.fromFile(source),
+                wrongSize, List.of(CensorRegion.rect(0.1f, 0.1f, 0.2f, 0.2f)), target));
+
+        File eightBit = photo(".png", Bitmap.CompressFormat.PNG, 40, 30, 1);
+        org.junit.Assert.assertFalse(CensorExporter.writeSixteenBitPng(context, android.net.Uri.fromFile(eightBit),
+                Bitmap.createBitmap(40, 30, Bitmap.Config.ARGB_8888), List.of(CensorRegion.rect(0.1f, 0.1f, 0.2f, 0.2f)), target));
+    }
+
+    @Test
+    @org.robolectric.annotation.Config(sdk = 34)
+    public void gainMap_isBlankedWhereThePhotoIsCensored() {
+        Bitmap photo = Bitmap.createBitmap(40, 30, Bitmap.Config.ARGB_8888);
+        Bitmap contents = Bitmap.createBitmap(20, 15, Bitmap.Config.ARGB_8888);
+        contents.eraseColor(Color.WHITE);
+        photo.setGainmap(new android.graphics.Gainmap(contents));
+
+        CensorExporter.censorGainMap(photo, List.of(CensorRegion.rect(0.25f, 0.25f, 0.75f, 0.75f)));
+
+        Bitmap after = photo.getGainmap().getGainmapContents();
+        assertEquals("no extra brightness where it was censored", 0, Color.alpha(after.getPixel(10, 7)));
+        assertEquals("untouched elsewhere", Color.WHITE, after.getPixel(1, 1));
+
+        // A photo without a gain map is left alone.
+        Bitmap plain = Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888);
+        CensorExporter.censorGainMap(plain, List.of(CensorRegion.rect(0f, 0f, 1f, 1f)));
+        assertFalse(plain.hasGainmap());
+    }
 }

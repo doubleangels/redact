@@ -53,7 +53,7 @@ import java.util.zip.Inflater;
  */
 public final class ImageContainerMetadata {
 
-    public enum Format { JPEG, PNG, WEBP, OTHER }
+    public enum Format { JPEG, PNG, WEBP, HEIF, GIF, OTHER }
 
     /** What a finding says about the file, for the clean summary. */
     public enum Kind { LOCATION, DATE, NAME, DEVICE, OTHER }
@@ -227,23 +227,72 @@ public final class ImageContainerMetadata {
      *     caller re-encodes it from its pixels instead
      */
     public static void sanitize(@NonNull File source, @NonNull File target) throws IOException {
+        sanitize(source, target, null);
+    }
+
+    /**
+     * {@link #sanitize(File, File)}, putting {@code motion}, a Motion Photo's video that has been
+     * cleaned already, back after a JPEG's picture with the XMP that tells a gallery it is there.
+     * It is left out of any other format.
+     */
+    public static void sanitize(@NonNull File source, @NonNull File target, @Nullable MotionPhoto.Clip motion)
+            throws IOException {
         if (source.getCanonicalPath().equals(target.getCanonicalPath())) {
             throw new IOException("Source and target must differ");
         }
+        Walker walker;
         try (FileInputStream in = new FileInputStream(source);
              OutputStream out = new BufferedOutputStream(new FileOutputStream(target), 64 * 1024)) {
-            Walker walker = new Walker(in.getChannel(), out);
+            walker = new Walker(in.getChannel(), out);
             walker.workDir = target.getAbsoluteFile().getParentFile();
             if (!walker.run()) {
                 throw new IOException("Not a JPEG, PNG or WebP file");
             }
             out.flush();
         }
+        if (walker.format != Format.JPEG) {
+            motion = null;
+        }
+        boolean directoryWritten = false;
+        if (walker.gainMapStart >= 0) {
+            try {
+                UltraHdr.rebuild(source, walker.gainMapStart, walker.gainMapEnd, walker.primaryIso, target, motion);
+                directoryWritten = true;
+            } catch (IOException | RuntimeException e) {
+                // The picture written above is complete; it is only without its HDR.
+                SentryManager.log("The Ultra HDR gain map could not be kept: " + e.getMessage() + ".");
+            }
+        }
+        if (motion != null) {
+            if (!directoryWritten) {
+                UltraHdr.insertPrimaryXmp(target, UltraHdr.primaryXmp(null, -1, motion));
+            }
+            // Last in the file, where the directory says it is.
+            try (FileInputStream in = new FileInputStream(motion.video);
+                    OutputStream out = new BufferedOutputStream(new FileOutputStream(target, true), 64 * 1024)) {
+                byte[] buffer = new byte[64 * 1024];
+                int n;
+                while ((n = in.read(buffer)) > 0) {
+                    out.write(buffer, 0, n);
+                }
+            }
+        }
     }
 
     @VisibleForTesting
     @NonNull
     static Report scan(@NonNull FileChannel channel) throws IOException {
+        java.nio.ByteBuffer head = java.nio.ByteBuffer.allocate(64);
+        while (head.hasRemaining() && channel.read(head, head.position()) > 0) {
+            // filled below
+        }
+        byte[] first = java.util.Arrays.copyOf(head.array(), head.position());
+        if (HeifContainerMetadata.isHeif(first, first.length)) {
+            return HeifContainerMetadata.scan(channel);
+        }
+        if (first.length >= 6 && first[0] == 'G' && first[1] == 'I' && first[2] == 'F' && first[3] == '8') {
+            return GifContainerMetadata.scan(channel);
+        }
         Walker walker = new Walker(channel, null);
         try {
             if (!walker.run()) {
@@ -273,6 +322,17 @@ public final class ImageContainerMetadata {
         @Nullable private final OutputStream out;
         /** Where a WebP's chunks are gathered before its size is known; the system's when null. */
         @Nullable File workDir;
+        /** The picture says an Ultra HDR gain map follows it. */
+        boolean ultraHdr;
+        /** XMP with nothing but the picture's directory says a Motion Photo's video ends the file. */
+        boolean motionPhoto;
+        /** The primary picture's ISO 21496-1 version block, put back with the gain map. */
+        @Nullable byte[] primaryIso;
+        /** Where the multi-picture index is in the findings: withdrawn if it leads to a clean gain map. */
+        int mpfFinding = -1;
+        /** Where the gain map is in the source, for a clean; -1 when there is none. */
+        long gainMapStart = -1;
+        long gainMapEnd = -1;
         Format format = Format.OTHER;
         final List<Finding> findings = new ArrayList<>();
         final List<Finding> kept = new ArrayList<>();
@@ -489,7 +549,17 @@ public final class ImageContainerMetadata {
             }
             if (startsWith(data, ascii("http://ns.adobe.com/xap/1.0/\0"))) {
                 String xmp = new String(data, 29, data.length - 29, StandardCharsets.UTF_8);
-                find("XMP", xmp, size, xmpKind(xmp));
+                if (UltraHdr.declaresGainMap(xmp)) {
+                    ultraHdr = true;
+                }
+                if (UltraHdr.isPictureOnlyXmp(xmp)) {
+                    boolean motion = UltraHdr.declaresMotionPhoto(xmp);
+                    motionPhoto |= motion;
+                    kept.add(new Finding(UltraHdr.declaresGainMap(xmp) || !motion ? "ULTRA_HDR" : "MOTION_PHOTO",
+                            null, size, Kind.OTHER));
+                } else {
+                    find("XMP", xmp, size, xmpKind(xmp));
+                }
             } else if (startsWith(data, ascii("http://ns.adobe.com/xmp/extension/\0"))) {
                 int start = Math.min(data.length, 35 + 32 + 8);
                 String xmp = new String(data, start, data.length - start, StandardCharsets.UTF_8);
@@ -565,7 +635,18 @@ public final class ImageContainerMetadata {
                 writeSegment(0xE2, chunk);
                 return;
             }
-            if (startsWith(data, ascii("MPF\0"))) {
+            if (startsWith(data, UltraHdr.ISO_ID)) {
+                // ISO 21496-1 gain map metadata: version numbers and curves, nothing else.
+                ultraHdr = true;
+                if (primaryIso == null && data.length <= UltraHdr.MAX_PRIMARY_ISO) {
+                    primaryIso = data.clone();
+                }
+                kept.add(new Finding("ULTRA_HDR", null, size, Kind.OTHER));
+            } else if (startsWith(data, ascii("MPF\0"))) {
+                // Withdrawn at the end of the picture if it only leads to a clean gain map.
+                if (findings.size() < MAX_FINDINGS) {
+                    mpfFinding = findings.size();
+                }
                 find("MULTI_PICTURE_INDEX", readable(data), size, Kind.OTHER);
             } else if (startsWith(data, ascii("FPXR\0"))) {
                 find("FLASHPIX_DATA", readable(data), size, Kind.OTHER);
@@ -653,6 +734,44 @@ public final class ImageContainerMetadata {
         /** Data after the end of the picture: extra images, videos, vendor trailers. */
         private void trailer(long start) throws IOException {
             long end = src.length;
+            long gainMapCleanEnd = -1;
+            if (ultraHdr && start + 3 <= end && src.at(start) == 0xFF && src.at(start + 1) == 0xD8
+                    && src.at(start + 2) == 0xFF) {
+                long gainMapEndAt = endOfEmbeddedJpeg(start, Math.min(end, start + TRAILER_PEEK));
+                if (out != null) {
+                    gainMapStart = start;
+                    gainMapEnd = gainMapEndAt;
+                } else if (gainMapIsClean(start, gainMapEndAt)) {
+                    kept.add(new Finding("ULTRA_HDR_GAIN_MAP", null, gainMapEndAt - start, Kind.OTHER));
+                    gainMapCleanEnd = gainMapEndAt;
+                }
+            }
+            if (gainMapCleanEnd >= 0 && mpfFinding >= 0) {
+                Finding index = findings.remove(mpfFinding);
+                kept.add(new Finding("ULTRA_HDR", null, index.bytes, Kind.OTHER));
+                // Extended XMP holds its place by index; those after the index move up one.
+                for (Map.Entry<String, Integer> entry : extendedXmpAt.entrySet()) {
+                    if (entry.getValue() > mpfFinding) {
+                        entry.setValue(entry.getValue() - 1);
+                    }
+                }
+            }
+            if (gainMapCleanEnd >= 0) {
+                start = gainMapCleanEnd; // whatever follows the gain map is still looked at
+            }
+            if (motionPhoto && out == null && start < end) {
+                // A clean Motion Photo's video, which ends the file: kept when it holds nothing
+                // about the recording, and whatever is in front of it is still looked at.
+                MotionPhoto.Found clip = MotionPhoto.find(src.channel());
+                if (clip != null && clip.end == end && clip.start >= start) {
+                    VideoContainerMetadata.Report video =
+                            VideoContainerMetadata.scan(src.channel(), clip.start, clip.end);
+                    if (video.recognized && video.fields.isEmpty()) {
+                        kept.add(new Finding("MOTION_PHOTO_VIDEO", null, clip.end - clip.start, Kind.OTHER));
+                        end = clip.start;
+                    }
+                }
+            }
             if (start >= end || out != null) {
                 return; // a clean writes nothing past the end of the picture, so needs no description
             }
@@ -718,6 +837,56 @@ public final class ImageContainerMetadata {
                 find("DATA_AFTER_IMAGE", readableAt(start, Math.min(end - start, 64 * 1024)), end - start,
                         Kind.OTHER);
             }
+        }
+
+        /**
+         * Whether the Ultra HDR gain map between {@code start} and {@code end} holds nothing but its
+         * picture and what describes it: a JFIF header without a thumbnail, a colour profile, gain
+         * map XMP or ISO 21496-1 numbers, Adobe colour flags, and the coded picture.
+         */
+        private boolean gainMapIsClean(long start, long end) throws IOException {
+            long pos = start + 2;
+            while (pos + 2 <= end) {
+                if (src.at(pos) != 0xFF) {
+                    return false;
+                }
+                while (src.at(pos) == 0xFF) {
+                    pos++;
+                }
+                int marker = src.at(pos++);
+                if (marker == 0xD9) {
+                    return true;
+                }
+                if (marker == 0x00 || marker == 0x01 || marker == 0xD8 || (marker >= 0xD0 && marker <= 0xD7)) {
+                    return false;
+                }
+                int length = src.u16(pos);
+                long body = pos + 2;
+                long segmentEnd = pos + length;
+                if (length < 2 || segmentEnd > end) {
+                    return false;
+                }
+                boolean structural = (marker >= 0xC0 && marker <= 0xCF && marker != 0xC8)
+                        || marker == 0xDB || marker == 0xDD || marker == 0xDC || marker == 0xDE
+                        || marker == 0xDF || marker == 0xDA;
+                if (!structural) {
+                    byte[] data = src.read(body, Math.min(length - 2, 70_000));
+                    boolean describesPicture =
+                            (marker == 0xE0 && startsWith(data, ascii("JFIF\0")) && data.length >= 14
+                                    && (data[12] & 0xFF) * (data[13] & 0xFF) == 0)
+                            || (marker == 0xE2 && (startsWith(data, ascii("ICC_PROFILE\0"))
+                                    || startsWith(data, UltraHdr.ISO_ID)))
+                            || (marker == 0xE1 && startsWith(data, ascii("http://ns.adobe.com/xap/1.0/\0"))
+                                    && UltraHdr.isPictureOnlyXmp(
+                                            new String(data, 29, data.length - 29, StandardCharsets.UTF_8)))
+                            || (marker == 0xEE && startsWith(data, ascii("Adobe")) && data.length == 12);
+                    if (!describesPicture) {
+                        return false;
+                    }
+                }
+                pos = marker == 0xDA ? entropyEnd(segmentEnd) : segmentEnd;
+            }
+            return false;
         }
 
         /**
@@ -1136,7 +1305,6 @@ public final class ImageContainerMetadata {
      * device, a person's software or a date: the CMM, creation date and time, device maker, model
      * and attributes, the creator and the profile ID (zero means "not computed").
      */
-    @VisibleForTesting
     static void clearIccHeader(@NonNull byte[] buffer, int offset) {
         if (buffer.length < offset + 128) {
             return;
@@ -1260,7 +1428,6 @@ public final class ImageContainerMetadata {
                     + "|exif:datetimeoriginal|exif:datetimedigitized)[\\s>=]");
 
     @NonNull
-    @VisibleForTesting
     static Kind xmpKind(@NonNull String xmp) {
         String lower = xmp.toLowerCase(Locale.ROOT);
         if (XMP_LOCATION.matcher(lower).find()) {
@@ -1340,6 +1507,20 @@ public final class ImageContainerMetadata {
             }
         }
         return sb.length() >= 3 ? sb.toString().trim() : "";
+    }
+
+    /** Keys whose end is text read from the file: a PNG text keyword, a chunk, box, item or app name. */
+    private static final java.util.regex.Pattern FILE_NAMED_KEY = java.util.regex.Pattern.compile(
+            "^(PNG_TEXT|PNG_CHUNK|WEBP_CHUNK|HEIF_BOX|HEIF_ITEM|HEIF_META|HEIF_PROPERTY|GIF_APP|APP\\d+)_.+");
+
+    /**
+     * A finding's key as it may be logged: a key that ends in text from the file, which can be
+     * anything its author typed (a PNG text keyword, say), keeps only its fixed start.
+     */
+    @NonNull
+    static String logKey(@NonNull String key) {
+        java.util.regex.Matcher m = FILE_NAMED_KEY.matcher(key);
+        return m.matches() ? m.group(1) + "_*" : key;
     }
 
     /** {@code "Ducky"} becomes {@code DUCKY}, {@code "Raw profile type exif"} RAW_PROFILE_TYPE_EXIF. */
@@ -1509,6 +1690,11 @@ public final class ImageContainerMetadata {
         Source(@NonNull FileChannel ch) throws IOException {
             this.ch = ch;
             this.length = ch.size();
+        }
+
+        @NonNull
+        FileChannel channel() {
+            return ch;
         }
 
         void require(long end) throws IOException {

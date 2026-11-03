@@ -167,10 +167,10 @@ public class UnsupportedMediaTest {
 
     @Test
     public void fallbackShortSides_neverUpscale() {
-        assertArrayEquals(new int[] {1080, 720, 480}, VideoMedia3Converter.fallbackShortSides(2160));
+        assertArrayEquals(new int[] {1440, 1080, 720, 480}, VideoMedia3Converter.fallbackShortSides(2160));
         assertArrayEquals(new int[] {720, 480}, VideoMedia3Converter.fallbackShortSides(1080));
         assertArrayEquals(new int[] {}, VideoMedia3Converter.fallbackShortSides(480));
-        assertArrayEquals(new int[] {1080, 720, 480}, VideoMedia3Converter.fallbackShortSides(0));
+        assertArrayEquals(new int[] {1440, 1080, 720, 480}, VideoMedia3Converter.fallbackShortSides(0));
     }
 
     // ---- images -----------------------------------------------------------------------------------

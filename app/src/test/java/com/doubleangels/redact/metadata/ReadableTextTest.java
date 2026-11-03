@@ -109,4 +109,11 @@ public class ReadableTextTest {
         assertEquals("1970-01-01 00:00:00 UTC", ReadableText.utc(0));
         assertEquals("2026-01-01 00:00:00 UTC", ReadableText.utc(1_767_225_600_000L));
     }
+
+    @Test
+    public void strings_keepFourByteCharacters_andIso6709RefusesWhatIsNotANumber() {
+        byte[] text = "Trip 😀 to Rome".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        org.junit.Assert.assertTrue(ReadableText.strings(text).contains("Rome"));
+        org.junit.Assert.assertNull(ReadableText.iso6709("+ab.cd+ef.gh/"));
+    }
 }

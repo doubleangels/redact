@@ -1,42 +1,56 @@
 <b>Deine Fotos können verraten, wo du wohnst.</b>
-
-<p>Jedes Foto, das dein Handy aufnimmt, kann versteckte Metadaten enthalten: den genauen GPS-Standort der Aufnahme, Datum und Uhrzeit sowie Hersteller und Modell deines Handys. Jeder, dem du die Originaldatei schickst, kann sie auslesen. Redact zeigt dir, was ein Foto oder Video verrät, und entfernt es, komplett auf deinem Gerät. Kein Konto, keine Uploads, keine Werbung und keine Datenerfassung.</p>
+Jedes Foto und Video kann den genauen GPS-Standort, Datum und Uhrzeit sowie Hersteller und Modell deines Handys enthalten. Jeder, dem du die Originaldatei schickst, kann das auslesen.
+Redact entfernt Metadaten und EXIF-Daten. Es zeigt, was eine Datei verrät, und entfernt es, komplett auf deinem Gerät.
+Kein Konto, keine Uploads, keine Werbung und keine Datenerfassung.
 
 <b>Für wen ist Redact?</b>
-<ul>
-<li>Verkaufen auf Kleinanzeigen, eBay oder Marketplace, ohne deine Adresse preiszugeben</li>
-<li>Fotos an ein Date, einen Vermieter oder neue Bekannte schicken</li>
-<li>Bilder deiner Kinder, deiner Wohnung oder deines Autos teilen</li>
-<li>Journalisten, Aktivisten und alle, die eine Quelle schützen</li>
-<li>Fotos per E-Mail oder als Datei senden, wobei jedes versteckte Detail erhalten bleibt</li>
-</ul>
+• Verkaufen auf Kleinanzeigen, eBay oder Marketplace, ohne deine Adresse preiszugeben
+• Fotos an ein Date, einen Vermieter oder neue Bekannte schicken
+• Bilder deiner Kinder, deiner Wohnung oder deines Autos teilen
+• Journalisten, Aktivisten und alle, die eine Quelle schützen
+• Fotos per E-Mail oder als Datei senden, wobei jedes versteckte Detail erhalten bleibt
 
-<b>Sehen: Scannen</b>
-<p>Öffne ein beliebiges Foto oder Video und sieh jedes versteckte Feld in einer übersichtlichen, durchsuchbaren Liste. Ein Standort-Badge markiert alles, was zeigt, wo es aufgenommen wurde.</p>
+<b>Mit Scannen sehen, was ein Foto verrät</b>
+• Jedes versteckte Feld in einem übersichtlichen, durchsuchbaren EXIF-Viewer
+• Ein Standort-Badge markiert alles, was zeigt, wo es aufgenommen wurde
 
-<b>Entfernen: Bereinigen</b>
-<p>Bereinige bis zu 100 Fotos und Videos auf einmal. Redact entfernt GPS, Geräteangaben, Zeitstempel, XMP, IPTC, Kommentare und Video-Tags sowie Daten, die hinter dem Bild versteckt sind, etwa zusätzliche Vorschaubilder und Motion-Photo-Clips, und zeigt dir genau, was entfernt wurde. Deine Originale bleiben unverändert, außer du lässt Redact sie in den Papierkorb verschieben.</p>
+<b>GPS-, Standort- und EXIF-Daten mit Bereinigen entfernen</b>
+• Bis zu 100 Fotos und Videos auf einmal bereinigen
+• Entfernt GPS und Geotags, Geräteangaben und Zeitstempel
+• Entfernt XMP, IPTC, Kommentare und Video-Tags
+• Entfernt versteckte Extras wie Vorschaubilder und Motion-Photo-Clips
+• Volle Qualität: Fotos werden nie neu komprimiert
+• Auf Wunsch Aufnahmedatum, Standort, Kameraeinstellungen oder das Video eines Bewegungsfotos behalten
+• Zeigt dir genau, was entfernt wurde
+• Deine Originale bleiben unverändert, außer du lässt Redact sie in den Papierkorb verschieben
 
 <b>Sicher teilen aus jeder App</b>
-<p>Teile ein Foto oder Video aus deiner Galerie oder einer anderen App mit Redact. Die Datei wird bereinigt und direkt wieder ans Teilen-Menü übergeben. Oder teile sie mit „Mit Redact Scannen“, um sie zuerst zu prüfen.</p>
+Teile ein Foto oder Video aus deiner Galerie oder einer anderen App mit Redact. Die Datei wird bereinigt und direkt wieder ans Teilen-Menü übergeben.
+Oder teile sie mit „Mit Redact Scannen“, um sie zuerst zu prüfen.
 
-<b>Formate konvertieren</b>
-<p>JPEG-, PNG-, WebP- und HEIC-Bilder sowie H.264-, H.265-, VP9- und AV1-Videos. Jede konvertierte Datei wird bereinigt und geprüft.</p>
+<b>Formate konvertieren und Details verbergen</b>
+• HEIC in JPG umwandeln, dazu PNG- und WebP-Bilder
+• H.264-, H.265-, VP9- und AV1-Videos konvertieren
+• Jede konvertierte Datei wird bereinigt und geprüft
+• Zensieren verpixelt, schwärzt oder verwischt Gesichter, Kennzeichen und Adressen
 
 <b>Privat von Grund auf</b>
-<ul>
-<li>Alles läuft auf deinem Handy. Bereinigen, Scannen und Konvertieren brauchen keine Internetverbindung.</li>
-<li>Keine Werbung, keine Analysen, kein Tracking und kein Konto</li>
-<li>Deine Fotos, Videos und persönlichen Daten werden nie erfasst oder weitergegeben</li>
-<li>Open Source unter GPL-3.0, jeder kann den Code auf GitHub lesen</li>
-<li>Funktioniert mit der Dateiauswahl des Systems, Zugriff auf deine ganze Mediathek ist daher optional</li>
-<li>Optionale Absturzberichte bleiben aus, bis du sie einschaltest</li>
-</ul>
+• Alles läuft auf deinem Handy, ganz ohne Internet
+• Keine Werbung, keine Analysen, kein Tracking und kein Konto
+• Deine Fotos, Videos und persönlichen Daten werden nie erfasst oder weitergegeben
+• Open Source unter GPL-3.0, jeder kann den Code auf GitHub lesen
+• Funktioniert mit der Dateiauswahl des Systems, Zugriff auf deine ganze Mediathek ist daher optional
+• Optionale Absturzberichte bleiben aus, bis du sie einschaltest
 
 <b>Praktische Extras</b>
-<p>Eine Schnelleinstellungen-Kachel, Verknüpfungen auf dem Startbildschirm, eigene Ausgabeordner, Originale Dateinamen Behalten, Strikte Bereinigung, Ausblenden von Redact in Screenshots und der Übersicht sowie automatisches Löschen kopierter Metadaten. Die Statistik zeigt, was Redact entfernt hat, und wird nur auf deinem Handy gezählt.</p>
+• Schnelleinstellungen-Kachel und Verknüpfungen auf dem Startbildschirm
+• Eigene Ausgabeordner und Originale Dateinamen Behalten
+• Strikte Bereinigung
+• Redact in Screenshots und der Übersicht ausblenden
+• Automatisches Löschen kopierter Metadaten
+• Statistik, die nur auf deinem Handy gezählt wird
 
 <b>Einmal zahlen, für immer nutzen</b>
-<p>Kein Abo, keine Werbung und keine In-App-Käufe. Dein Kauf unterstützt einen unabhängigen Entwickler.</p>
+Kein Abo, keine Werbung und keine In-App-Käufe. Dein Kauf unterstützt einen unabhängigen Entwickler.
 
-<p>Verfügbar auf Deutsch, Englisch, Spanisch, Französisch, Italienisch, Portugiesisch, Russisch, Japanisch, Koreanisch, Chinesisch (vereinfacht und traditionell), Hindi und Arabisch.</p>
+Verfügbar auf Deutsch, Englisch, Spanisch, Französisch, Italienisch, Portugiesisch, Russisch, Japanisch, Koreanisch, Chinesisch (vereinfacht und traditionell), Hindi und Arabisch.

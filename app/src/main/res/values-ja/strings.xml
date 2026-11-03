@@ -166,20 +166,20 @@
     <string name="settings_auto_clear_temp">起動時にキャッシュをクリア</string>
     <string name="settings_auto_clear_temp_subtitle">アプリ起動時に24時間より古い処理キャッシュを削除します。</string>
     <string name="settings_preserve_camera">カメラ設定を保持</string>
-    <string name="settings_preserve_camera_subtitle">クリーンタブで絞り値、シャッター速度、ISO、カメラのメーカー/モデルを保持。厳密クリーン時や他アプリからの共有時は無視されます。</string>
+    <string name="settings_preserve_camera_subtitle">クリーンタブでカメラのメーカー/モデル、絞り値、シャッター速度、ISO、焦点距離、露出、フラッシュ、ホワイトバランスを保持。厳密クリーン時や他アプリからの共有時は無視されます。</string>
     <string name="settings_preserve_location">位置情報を保持</string>
     <string name="settings_preserve_location_subtitle">クリーンタブで GPS 座標を保持。厳密クリーン時や他アプリからの共有時は無視されます。</string>
+    <string name="settings_preserve_date">撮影日時を保持</string>
+    <string name="settings_preserve_date_subtitle">クリーンタブで各写真や動画の撮影日時を保持し、ギャラリーでの並び順を保ちます。厳密クリーン時や他アプリからの共有時は無視されます。</string>
+    <string name="settings_preserve_motion">モーションフォトを保持</string>
+    <string name="settings_preserve_motion_subtitle">クリーンタブでJPEGまたはHEICのモーションフォトの短い動画を、メタデータを削除して保持します。一緒に録音された音声も含まれます。厳密クリーン時や他アプリからの共有時は無視されます。</string>
         <string name="settings_sentry_consent_allow">有効にする</string>
     <string name="settings_sentry_consent_cancel">後で</string>
     <string name="settings_sentry_consent_title">クラッシュレポートを有効にする</string>
     <string name="settings_sentry_consent_message">クラッシュレポートの送信は、匿名化された診断情報をインターネット経由で Sentry にアップロードします。\n\n写真、動画、ファイル名、GPS 座標はアップロードされません。</string>
     <string name="settings_strict_clean">厳格クリーン</string>
-    <string name="settings_strict_clean_subtitle">向きのタグを含む、メタデータのあらゆる痕跡を削除します。そのため、回転させた写真は後で横向きに表示されることがあります。下の保持オプションをオフにし、最も徹底したクリーンのために動画を常に完全に再エンコードします。</string>
+    <string name="settings_strict_clean_subtitle">画像の表示方法だけを示すタグ（向きや色空間など）を除き、すべてのメタデータを削除します。下の保持オプションをオフにし、最も徹底したクリーンのために動画を常に完全に再エンコードします。</string>
     
-    <string name="settings_section_advanced_processing">大きなファイルとメモリ</string>
-    <string name="settings_advanced_processing_subtitle">クリーンと変換時に大きな画像をデコードする際のRAM使用量を制御します。</string>
-    <string name="settings_max_bitmap_size">最大処理解像度</string>
-    <string name="settings_max_bitmap_size_subtitle">メモリで画像をデコードするときの長辺ピクセル数。低いほどRAM使用量が少ない。</string>
     <string name="settings_video_fallback">高速な動画クリーン</string>
     <string name="settings_video_fallback_subtitle">動画がすでに互換性のある形式である場合、Redact は完全に再エンコードする代わりに、クイック処理でメタデータを削除します。より速くバッテリーにも優しくなりますが、完全な再エンコードの方がわずかに多く削除できます。厳密クリーンがオンの場合や、他アプリから共有されたファイルをクリーンする場合は自動的にオフになります。</string>
 
@@ -187,12 +187,6 @@
         <item>1回（高速）</item>
         <item>3回（安全）</item>
         <item>7回（超安全）</item>
-    </string-array>
-
-    <string-array name="settings_max_bitmap_size_labels">
-        <item>2048px（低RAM）</item>
-        <item>4096px（標準）</item>
-        <item>8192px（高性能）</item>
     </string-array>
 
     

@@ -186,23 +186,195 @@ public class FormatConverterTest {
     }
 
     @Test
-    public void calculateInSampleSize_respectsConfiguredMaxBitmapSize() {
-        AppPreferences.setMaxBitmapSize(context, 2048);
-
+    public void calculateInSampleSize_forAPreviewSize_samplesDownToIt() {
         BitmapFactory.Options small = new BitmapFactory.Options();
         small.outWidth = 1000;
         small.outHeight = 1000;
-        assertEquals(1, FormatConverter.calculateInSampleSize(context, small));
+        assertEquals(1, FormatConverter.calculateInSampleSize(2048, small));
 
         BitmapFactory.Options large = new BitmapFactory.Options();
         large.outWidth = 5000;
         large.outHeight = 5000;
-        assertEquals(2, FormatConverter.calculateInSampleSize(context, large));
+        assertEquals(2, FormatConverter.calculateInSampleSize(2048, large));
 
         BitmapFactory.Options huge = new BitmapFactory.Options();
         huge.outWidth = 10000;
         huge.outHeight = 10000;
-        assertEquals(4, FormatConverter.calculateInSampleSize(context, huge));
+        assertEquals(4, FormatConverter.calculateInSampleSize(2048, huge));
+    }
+
+    @Test
+    public void calculateInSampleSize_forASavedPicture_keepsItWhole() {
+        BitmapFactory.Options twelveMegapixels = new BitmapFactory.Options();
+        twelveMegapixels.outWidth = 4000;
+        twelveMegapixels.outHeight = 3000;
+        assertEquals(1, FormatConverter.calculateInSampleSize(context, twelveMegapixels));
+    }
+
+    @Test
+    public void calculateInSampleSize_atFullResolution_keepsEveryPixelThatFits() {
+        BitmapFactory.Options fiftyMegapixels = new BitmapFactory.Options();
+        fiftyMegapixels.outWidth = 8160;
+        fiftyMegapixels.outHeight = 6120;
+        assertEquals(1, FormatConverter.calculateInSampleSize(
+                FormatConverter.FULL_RESOLUTION, 100_000_000L, fiftyMegapixels));
+        // Only when it would not fit in memory is it sampled, by as little as will do.
+        assertEquals(2, FormatConverter.calculateInSampleSize(
+                FormatConverter.FULL_RESOLUTION, 40_000_000L, fiftyMegapixels));
+        assertEquals(4, FormatConverter.calculateInSampleSize(
+                FormatConverter.FULL_RESOLUTION, 10_000_000L, fiftyMegapixels));
+    }
+
+    @Test
+    @Config(sdk = 34)
+    public void resolveCleanFormat_onAndroid14_keepsHeicWithoutAnEncoder() throws Exception {
+        // Bitmap has no HEIC encoder here, which used to make every HEIC clean a JPEG.
+        FormatConverter.ImageFormatSpec heic = FormatConverter.resolveCleanFormat(".heic", "image/heic");
+        assertEquals(".heic", heic.extension);
+        assertEquals("image/heic", heic.mimeType);
+    }
+
+    @Test
+    public void resolveCleanFormat_keepsHeicAndAvifAsTheyAre() throws Exception {
+        FormatConverter.ImageFormatSpec heic = FormatConverter.resolveCleanFormat(".heic", "image/heic");
+        assertEquals(".heic", heic.extension);
+        assertEquals("image/heic", heic.mimeType);
+
+        FormatConverter.ImageFormatSpec avif = FormatConverter.resolveCleanFormat(".avif", "image/avif");
+        assertEquals(".avif", avif.extension);
+        assertEquals("image/avif", avif.mimeType);
+        assertFalse("no AVIF encoder to fall back on", avif.bitmapFallbackSupported);
+
+        assertEquals(".png", FormatConverter.resolveCleanFormat(".png", "image/png").extension);
+    }
+
+    private java.io.File bytesFile(byte[] bytes) throws IOException {
+        java.io.File f = java.io.File.createTempFile("sniff_", ".bin", context.getCacheDir());
+        f.deleteOnExit();
+        java.nio.file.Files.write(f.toPath(), bytes);
+        return f;
+    }
+
+    private static byte[] ascii(String text) {
+        return text.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1);
+    }
+
+    @Test
+    public void resolveCleanFormat_goesByWhatTheFileIs_notWhatItIsCalled() throws Exception {
+        byte[] png = {(byte) 0x89, 'P', 'N', 'G', '\r', '\n', 0x1A, '\n', 0, 0, 0, 13, 'I', 'H', 'D', 'R'};
+        assertEquals(".png", FormatConverter.resolveCleanFormat(bytesFile(png), ".jpg", "image/jpeg").extension);
+
+        byte[] gif = ascii("GIF89a\0\0\0\0\0\0\0");
+        assertEquals(".gif", FormatConverter.resolveCleanFormat(bytesFile(gif), ".jpg", null).extension);
+
+        byte[] avif = new byte[32];
+        System.arraycopy(new byte[] {0, 0, 0, 28}, 0, avif, 0, 4);
+        System.arraycopy(ascii("ftypavif\0\0\0\0mif1miafMA1B"), 0, avif, 4, 24);
+        assertEquals(".avif", FormatConverter.resolveCleanFormat(bytesFile(avif), ".jpg", null).extension);
+
+        byte[] heic = new byte[32];
+        System.arraycopy(new byte[] {0, 0, 0, 24}, 0, heic, 0, 4);
+        System.arraycopy(ascii("ftypheic\0\0\0\0mif1heic"), 0, heic, 4, 20);
+        assertEquals(".heic", FormatConverter.resolveCleanFormat(bytesFile(heic), ".jpg", null).extension);
+
+        byte[] bmp = new byte[32];
+        bmp[0] = 'B';
+        bmp[1] = 'M';
+        assertEquals(".png", FormatConverter.resolveCleanFormat(bytesFile(bmp), ".bmp", "image/bmp").extension);
+
+        // Bytes that say nothing known: the name decides.
+        assertEquals(".webp", FormatConverter.resolveCleanFormat(bytesFile(new byte[32]), ".webp", null).extension);
+    }
+
+    @Test
+    public void encodableSpecFor_fallsBackToPngForAGifAndJpegOtherwise() throws Exception {
+        assertEquals(".png", FormatConverter.encodableSpecFor(
+                FormatConverter.resolveCleanFormat(".gif", "image/gif")).extension);
+        assertEquals(".jpg", FormatConverter.encodableSpecFor(
+                FormatConverter.resolveCleanFormat(".avif", "image/avif")).extension);
+        assertEquals(".png", FormatConverter.encodableSpecFor(FormatConverter.pngSpec()).extension);
+    }
+
+    @Test
+    public void isLosslessImage_tellsLosslessEncodingsFromLossyOnes() {
+        byte[] png = {(byte) 0x89, 'P', 'N', 'G', '\r', '\n', 0x1A, '\n'};
+        assertTrue(FormatConverter.isLosslessImage(new java.io.ByteArrayInputStream(png)));
+        assertTrue(FormatConverter.isLosslessImage(new java.io.ByteArrayInputStream(ascii("GIF89a"))));
+        assertTrue(FormatConverter.isLosslessImage(
+                new java.io.ByteArrayInputStream(ascii("RIFF\0\0\0\0WEBPVP8L\0\0\0\0"))));
+        assertFalse(FormatConverter.isLosslessImage(
+                new java.io.ByteArrayInputStream(ascii("RIFF\0\0\0\0WEBPVP8 \0\0\0\0"))));
+        // An extended WebP decides by its first picture chunk.
+        assertTrue(FormatConverter.isLosslessImage(new java.io.ByteArrayInputStream(
+                ascii("RIFF\0\0\0\0WEBPVP8X\0\0\0\0\0\0\0\0\0\0\0\0\0\0VP8L\0\0\0\0"))));
+        assertFalse(FormatConverter.isLosslessImage(new java.io.ByteArrayInputStream(
+                new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0})));
+    }
+
+    @Test
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    public void onWhite_laysATransparentPictureOnWhite_andLeavesAnOpaqueOneAlone() {
+        Bitmap clear = Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888);
+        clear.eraseColor(android.graphics.Color.TRANSPARENT);
+        clear.setHasAlpha(true);
+        Bitmap flat = FormatConverter.onWhite(clear);
+        assertEquals(android.graphics.Color.WHITE, flat.getPixel(0, 0));
+        assertFalse(flat.hasAlpha());
+
+        Bitmap opaque = Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888);
+        opaque.eraseColor(android.graphics.Color.RED);
+        opaque.setHasAlpha(false);
+        assertTrue(FormatConverter.onWhite(opaque) == opaque);
+    }
+
+    /** A JPEG header with libjpeg's luminance table for {@code quality}, then the start of scan. */
+    private static byte[] jpegWithQuality(int quality) {
+        int[] zigzag = {16, 11, 12, 14, 12, 10, 16, 14, 13, 14, 18, 17, 16, 19, 24, 40, 26, 24, 22, 22,
+                24, 49, 35, 37, 29, 40, 58, 51, 61, 60, 57, 51, 56, 55, 64, 72, 92, 78, 64, 68, 87, 69,
+                55, 56, 80, 109, 81, 87, 95, 98, 103, 104, 103, 62, 77, 113, 121, 112, 100, 120, 92,
+                101, 103, 99};
+        int scale = quality < 50 ? 5000 / quality : 200 - quality * 2;
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        out.write(0xFF);
+        out.write(0xD8);
+        out.write(0xFF);
+        out.write(0xDB);
+        out.write(0);
+        out.write(67);
+        out.write(0); // 8-bit table 0
+        for (int value : zigzag) {
+            out.write(Math.max(1, Math.min(255, (value * scale + 50) / 100)));
+        }
+        out.write(0xFF);
+        out.write(0xDA);
+        return out.toByteArray();
+    }
+
+    @Test
+    public void estimateJpegQuality_readsTheQualityTheJpegWasSavedAt() {
+        for (int quality : new int[] {50, 75, 92, 95, 97, 100}) {
+            assertEquals(quality, FormatConverter.estimateJpegQuality(
+                    new java.io.ByteArrayInputStream(jpegWithQuality(quality))));
+        }
+        assertEquals(0, FormatConverter.estimateJpegQuality(
+                new java.io.ByteArrayInputStream(new byte[] {'n', 'o', 't'})));
+    }
+
+    @Test
+    public void matchSourceQuality_neverEncodesAJpegBelowItsSourceOnHigh() {
+        int high = AppPreferences.QUALITY_PRESET_HIGH;
+        assertEquals(96, FormatConverter.matchSourceQuality(Bitmap.CompressFormat.JPEG, high, 92, 96));
+        assertEquals(92, FormatConverter.matchSourceQuality(Bitmap.CompressFormat.JPEG, high, 92, 80));
+        assertEquals(92, FormatConverter.matchSourceQuality(Bitmap.CompressFormat.JPEG, high, 92, 0));
+        // Smaller presets and other formats keep their own quality.
+        assertEquals(75, FormatConverter.matchSourceQuality(
+                Bitmap.CompressFormat.JPEG, AppPreferences.QUALITY_PRESET_SMALLER, 75, 96));
+        assertEquals(90, FormatConverter.matchSourceQuality(Bitmap.CompressFormat.WEBP, high, 90, 96));
+    }
+
+    @Test
+    public void fullResolutionPixelBudget_isNeverBelowTwentyFourMegapixels() {
+        assertTrue(FormatConverter.fullResolutionPixelBudget(context) >= 24_000_000L);
     }
 
     @Test
@@ -234,8 +406,6 @@ public class FormatConverterTest {
 
     @Test
     public void calculateInSampleSize_keepsLongScreenshotsWithinTheEncoderLimit() {
-        AppPreferences.setMaxBitmapSize(context, 2048);
-
         BitmapFactory.Options fits = new BitmapFactory.Options();
         fits.outWidth = 1080;
         fits.outHeight = 16383;

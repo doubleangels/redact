@@ -169,20 +169,20 @@
     <string name="settings_auto_clear_temp">शुरू पर कैश साफ़ करें</string>
     <string name="settings_auto_clear_temp_subtitle">ऐप खोलने पर 24 घंटे से पुरानी प्रोसेसिंग कैश फ़ाइलें हटाता है।</string>
     <string name="settings_preserve_camera">कैमरा सेटिंग्स रखें</string>
-    <string name="settings_preserve_camera_subtitle">साफ़ करें टैब पर एपर्चर, शटर स्पीड, ISO और कैमरा मेक/मॉडल रखें। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर अनदेखा।</string>
+    <string name="settings_preserve_camera_subtitle">साफ़ करें टैब पर कैमरा मेक/मॉडल, एपर्चर, शटर स्पीड, ISO, फ़ोकल लंबाई, एक्सपोज़र, फ़्लैश और व्हाइट बैलेंस रखें। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर अनदेखा।</string>
     <string name="settings_preserve_location">स्थान रखें</string>
     <string name="settings_preserve_location_subtitle">साफ़ करें टैब पर GPS निर्देशांक रखें। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर अनदेखा।</string>
+    <string name="settings_preserve_date">खींचने की तारीख रखें</string>
+    <string name="settings_preserve_date_subtitle">साफ़ करें टैब पर हर फ़ोटो या वीडियो का समय रखें, ताकि वह गैलरी में अपनी जगह पर रहे। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर अनदेखा।</string>
+    <string name="settings_preserve_motion">मोशन फ़ोटो रखें</string>
+    <string name="settings_preserve_motion_subtitle">साफ़ करें टैब पर JPEG या HEIC मोशन फ़ोटो का छोटा वीडियो उसका मेटाडेटा हटाकर रखें। इसमें साथ रिकॉर्ड हुई आवाज़ भी होती है। सख्त सफ़ाई या अन्य ऐप्स से साझा करने पर अनदेखा।</string>
         <string name="settings_sentry_consent_allow">सक्षम करें</string>
     <string name="settings_sentry_consent_cancel">अभी नहीं</string>
     <string name="settings_sentry_consent_title">क्रैश रिपोर्टिंग सक्षम करें</string>
     <string name="settings_sentry_consent_message">क्रैश रिपोर्ट भेजना इंटरनेट पर Sentry को अनाम निदान अपलोड करता है।\n\nफ़ोटो, वीडियो, फ़ाइल नाम या GPS निर्देशांक अपलोड नहीं होते।</string>
     <string name="settings_strict_clean">सख्त सफ़ाई</string>
-    <string name="settings_strict_clean_subtitle">मेटाडेटा का हर निशान हटाता है, यहाँ तक कि ओरिएंटेशन टैग भी, इसलिए घुमाई गई फ़ोटो बाद में तिरछी दिख सकती है। नीचे के रखने के विकल्प बंद करता है और सबसे गहन सफ़ाई के लिए वीडियो को हमेशा पूरी तरह पुनः-एन्कोड करता है।</string>
+    <string name="settings_strict_clean_subtitle">सभी मेटाडेटा हटाता है, सिवाय उन टैग के जो केवल यह बताते हैं कि तस्वीर कैसे दिखाई जाए, जैसे उसका ओरिएंटेशन और कलर स्पेस। नीचे के रखने वाले विकल्प बंद करता है और सबसे पूरी सफ़ाई के लिए वीडियो को हमेशा पूरी तरह दोबारा एन्कोड करता है।</string>
     
-    <string name="settings_section_advanced_processing">बड़ी फ़ाइलें और मेमोरी</string>
-    <string name="settings_advanced_processing_subtitle">साफ़ और रूपांतरण के दौरान बड़ी छवियों को डिकोड करते समय RAM उपयोग को नियंत्रित करता है।</string>
-    <string name="settings_max_bitmap_size">अधिकतम प्रसंस्करण रिज़ॉल्यूशन</string>
-    <string name="settings_max_bitmap_size_subtitle">मेमोरी में छवियाँ डिकोड करते समय सबसे लंबी धार पिक्सेल में। कम मान कम RAM उपयोग करते हैं।</string>
     <string name="settings_video_fallback">तेज़ वीडियो सफ़ाई</string>
     <string name="settings_video_fallback_subtitle">जब आपका वीडियो पहले से संगत प्रारूप में हो, तो Redact पूरी तरह पुनः-एन्कोड करने के बजाय एक त्वरित पास से उसका मेटाडेटा हटाता है, तेज़ और बैटरी पर हल्का, हालांकि पूर्ण पुनः-एन्कोड थोड़ा अधिक हटाता है। सख्त सफ़ाई चालू होने पर या अन्य ऐप्स से साझा फ़ाइलें साफ़ करते समय यह अपने आप बंद हो जाता है।</string>
 
@@ -190,12 +190,6 @@
         <item>1 पास (तेज़)</item>
         <item>3 पास (सुरक्षित)</item>
         <item>7 पास (अति-सुरक्षित)</item>
-    </string-array>
-
-    <string-array name="settings_max_bitmap_size_labels">
-        <item>2048px (कम RAM)</item>
-        <item>4096px (मानक)</item>
-        <item>8192px (उच्च प्रदर्शन)</item>
     </string-array>
 
     

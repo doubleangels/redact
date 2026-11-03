@@ -116,8 +116,23 @@ public final class VideoContainerMetadata {
     /** Scans a file; never throws. An unreadable file is reported as not recognized. */
     @NonNull
     public static Report scan(@NonNull File file) {
+        return scan(file, false);
+    }
+
+    /**
+     * {@link #scan(File)}, which with {@code keepLocation} passes over a user data box that holds
+     * a location atom and nothing else: the one a clean writes when Keep Location is on.
+     */
+    @NonNull
+    public static Report scan(@NonNull File file, boolean keepLocation) {
         try (FileInputStream in = new FileInputStream(file)) {
-            return scan(in.getChannel());
+            Walker walker = new Walker(in.getChannel(), false);
+            walker.keepLocation = keepLocation;
+            if (!walker.run()) {
+                return Report.unrecognized();
+            }
+            return new Report(true, walker.fields, walker.location, walker.values, walker.sizes,
+                    walker.coordinates, walker.locationFields);
         } catch (IOException | RuntimeException e) {
             return Report.unrecognized();
         }
@@ -145,12 +160,169 @@ public final class VideoContainerMetadata {
      * @throws IOException if the file cannot be read or written, or is not a known container
      */
     public static int scrub(@NonNull File file) throws IOException {
+        return scrub(file, false);
+    }
+
+    /** {@link #scrub(File)}, keeping a user data box that holds only a location when asked. */
+    public static int scrub(@NonNull File file, boolean keepLocation) throws IOException {
         try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
             Walker walker = new Walker(raf.getChannel(), true);
+            walker.keepLocation = keepLocation;
             if (!walker.run()) {
                 throw new IOException("Not a recognized video container");
             }
             return walker.scrubbed;
+        }
+    }
+
+    /**
+     * The creation and modification times of a QuickTime or MP4 file's movie header, in seconds
+     * since 1904, or null when it has none or is another container.
+     */
+    @Nullable
+    public static long[] movieTimes(@NonNull Context context, @NonNull Uri uri) {
+        try (ParcelFileDescriptor pfd = context.getContentResolver().openFileDescriptor(uri, "r")) {
+            if (pfd == null) {
+                return null;
+            }
+            try (FileInputStream in = new FileInputStream(pfd.getFileDescriptor())) {
+                FileChannel ch = in.getChannel();
+                ByteBuffer magic = ByteBuffer.allocate(4);
+                ch.read(magic, 0);
+                if (magic.getInt(0) == 0x1A45DFA3) {
+                    return matroskaTimes(ch); // EBML: a WebM or Matroska file
+                }
+                List<long[]> mvhd = HeaderTimes.find(ch, true);
+                if (mvhd.isEmpty()) {
+                    return matroskaTimes(ch);
+                }
+                long[] times = HeaderTimes.read(ch, mvhd.get(0));
+                return times[0] == 0 && times[1] == 0 ? null : times;
+            }
+        } catch (IOException | RuntimeException e) {
+            return null;
+        }
+    }
+
+    /**
+     * A WebM's or Matroska file's recording date as {creation, modification} in seconds since
+     * 1904, the way an MP4 counts it, for a WebM that is saved as an MP4. Null when it has none.
+     */
+    @Nullable
+    private static long[] matroskaTimes(@NonNull FileChannel ch) throws IOException {
+        Walker walker = new Walker(ch, false);
+        if (!walker.run() || walker.matroskaDateNanos == Long.MIN_VALUE) {
+            return null;
+        }
+        long seconds = Math.floorDiv(MILLIS_1970_TO_2001 + walker.matroskaDateNanos / 1_000_000, 1000)
+                + SECONDS_1904_TO_1970;
+        return seconds > 0 ? new long[] {seconds, seconds} : null;
+    }
+
+    @VisibleForTesting
+    @Nullable
+    static long[] matroskaTimes(@NonNull File file) {
+        try (FileInputStream in = new FileInputStream(file)) {
+            return matroskaTimes(in.getChannel());
+        } catch (IOException | RuntimeException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Writes {@code times} ({creation, modification}, seconds since 1904) into every movie,
+     * track and media header of {@code file}, in place, so a cleaned video keeps when it was
+     * recorded. Nothing else changes.
+     */
+    public static void writeMovieTimes(@NonNull File file, @NonNull long[] times) throws IOException {
+        try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+            FileChannel ch = raf.getChannel();
+            List<long[]> headers = HeaderTimes.find(ch, false);
+            if (headers.isEmpty()) {
+                throw new IOException("No movie header");
+            }
+            for (long[] header : headers) {
+                HeaderTimes.write(ch, header, times);
+            }
+        }
+    }
+
+    /** Finds, reads and writes the times in mvhd, tkhd and mdhd boxes. */
+    private static final class HeaderTimes {
+        private HeaderTimes() {
+        }
+
+        /** Each header as {position of its version byte, version}; only mvhd when asked. */
+        @NonNull
+        static List<long[]> find(@NonNull FileChannel ch, boolean movieOnly) throws IOException {
+            List<long[]> found = new ArrayList<>();
+            walk(ch, 0, ch.size(), 0, movieOnly, found);
+            return found;
+        }
+
+        private static void walk(FileChannel ch, long start, long end, int depth, boolean movieOnly,
+                                 List<long[]> found) throws IOException {
+            long pos = start;
+            while (pos + 8 <= end && depth < 6) {
+                ByteBuffer h = ByteBuffer.allocate(16);
+                ch.read(h, pos);
+                long size = h.getInt(0) & 0xFFFFFFFFL;
+                String type = new String(h.array(), 4, 4, StandardCharsets.ISO_8859_1);
+                int header = 8;
+                if (size == 1) {
+                    size = h.getLong(8);
+                    header = 16;
+                } else if (size == 0) {
+                    size = end - pos;
+                }
+                if (size < header || pos + size > end) {
+                    return;
+                }
+                switch (type) {
+                    case "moov":
+                    case "trak":
+                    case "mdia":
+                        if (!movieOnly || type.equals("moov")) {
+                            walk(ch, pos + header, pos + size, depth + 1, movieOnly, found);
+                        }
+                        break;
+                    case "mvhd":
+                    case "tkhd":
+                    case "mdhd":
+                        if (!movieOnly || type.equals("mvhd")) {
+                            ByteBuffer v = ByteBuffer.allocate(1);
+                            ch.read(v, pos + header);
+                            found.add(new long[] {pos + header, v.get(0) & 0xFF});
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                pos += size;
+            }
+        }
+
+        @NonNull
+        static long[] read(@NonNull FileChannel ch, @NonNull long[] header) throws IOException {
+            boolean wide = header[1] == 1;
+            ByteBuffer b = ByteBuffer.allocate(wide ? 16 : 8);
+            ch.read(b, header[0] + 4);
+            return wide
+                    ? new long[] {b.getLong(0), b.getLong(8)}
+                    : new long[] {b.getInt(0) & 0xFFFFFFFFL, b.getInt(4) & 0xFFFFFFFFL};
+        }
+
+        static void write(@NonNull FileChannel ch, @NonNull long[] header, @NonNull long[] times)
+                throws IOException {
+            boolean wide = header[1] == 1;
+            ByteBuffer b = ByteBuffer.allocate(wide ? 16 : 8);
+            if (wide) {
+                b.putLong(times[0]).putLong(times[1]);
+            } else {
+                b.putInt((int) Math.min(times[0], 0xFFFFFFFFL)).putInt((int) Math.min(times[1], 0xFFFFFFFFL));
+            }
+            b.flip();
+            ch.write(b, header[0] + 4);
         }
     }
 
@@ -165,12 +337,32 @@ public final class VideoContainerMetadata {
                 walker.locationFields);
     }
 
+    /**
+     * Scans the video in {@code [start, end)} of {@code channel}, such as a Motion Photo's after
+     * its picture; never throws.
+     */
+    @NonNull
+    static Report scan(@NonNull FileChannel channel, long start, long end) {
+        try {
+            Walker walker = new Walker(channel, false, start, end - start);
+            if (!walker.run()) {
+                return Report.unrecognized();
+            }
+            return new Report(true, walker.fields, walker.location, walker.values, walker.sizes,
+                    walker.coordinates, walker.locationFields);
+        } catch (IOException | RuntimeException e) {
+            return Report.unrecognized();
+        }
+    }
+
     // ---- the walk -----------------------------------------------------------------------------
 
     private static final class Walker {
         private final FileChannel ch;
         private final boolean scrub;
         private final long length;
+        /** Where the video starts in the channel; positions in the walk are counted from it. */
+        private final long offset;
         final List<String> fields = new ArrayList<>();
         final Map<String, String> values = new LinkedHashMap<>();
         final Map<String, Long> sizes = new LinkedHashMap<>();
@@ -179,13 +371,25 @@ public final class VideoContainerMetadata {
         boolean location;
         int scrubbed;
         private int elements;
+        /** A user data box holding a location atom and nothing else is left alone. */
+        boolean keepLocation;
+        /** A WebM's or Matroska file's DateUTC, nanoseconds since 2001; MIN_VALUE when none. */
+        long matroskaDateNanos = Long.MIN_VALUE;
         private boolean dateCounted;
         private int simpleTags;
 
         Walker(FileChannel ch, boolean scrub) throws IOException {
+            this(ch, scrub, 0, ch.size());
+        }
+
+        Walker(FileChannel ch, boolean scrub, long offset, long length) throws IOException {
+            if (offset < 0 || length < 0 || offset + length > ch.size()) {
+                throw new IOException("Region outside the file");
+            }
             this.ch = ch;
             this.scrub = scrub;
-            this.length = ch.size();
+            this.offset = offset;
+            this.length = length;
         }
 
         boolean run() throws IOException {
@@ -328,6 +532,9 @@ public final class VideoContainerMetadata {
                     timestamps(body, end);
                     return;
                 case "udta":
+                    if (level != Level.OTHER && keepLocation && onlyLocation(body, end)) {
+                        return; // Keep Location: the ©xyz a clean wrote, and nothing else
+                    }
                     if (level != Level.OTHER) {
                         udta(body, end, depth);
                         blank(pos, size, header);
@@ -606,12 +813,43 @@ public final class VideoContainerMetadata {
             if (scrub || size < 1 || size > 8) {
                 return null;
             }
-            byte[] b = read(start, (int) size);
-            long nanos = b[0];
+            return ReadableText.utc(MILLIS_1970_TO_2001 + signed(read(start, (int) size)) / 1_000_000);
+        }
+
+        /** A big-endian signed integer of up to eight bytes. */
+        private static long signed(@NonNull byte[] b) {
+            long value = b[0];
             for (int i = 1; i < b.length; i++) {
-                nanos = (nanos << 8) | (b[i] & 0xFF);
+                value = (value << 8) | (b[i] & 0xFF);
             }
-            return ReadableText.utc(MILLIS_1970_TO_2001 + nanos / 1_000_000);
+            return value;
+        }
+
+        /**
+         * Whether a user data box holds a {@code ©xyz} location and nothing else but padding:
+         * what Media3 and MediaMuxer write for a location, which Keep Location keeps.
+         */
+        private boolean onlyLocation(long body, long end) throws IOException {
+            boolean sawLocation = false;
+            long pos = body;
+            while (pos + 8 <= end) {
+                byte[] h = read(pos, 8);
+                long size = u32(h, 0);
+                if (size == 0 && u32(h, 4) == 0) {
+                    break;
+                }
+                if (size < 8 || pos + size > end) {
+                    return false;
+                }
+                String type = fourCc(h, 4);
+                if (type.equals("\u00A9xyz")) {
+                    sawLocation = true;
+                } else if (!type.equals("free") && !type.equals("skip")) {
+                    return false;
+                }
+                pos += size;
+            }
+            return sawLocation;
         }
 
         private void udta(long body, long end, int depth) throws IOException {
@@ -927,6 +1165,9 @@ public final class VideoContainerMetadata {
                     if (!dateCounted) {
                         dateCounted = true;
                         field("date", false, matroskaDate(e.dataStart, e.dataSize), -1);
+                        if (!scrub && e.dataSize >= 1 && e.dataSize <= 8) {
+                            matroskaDateNanos = signed(read(e.dataStart, (int) e.dataSize));
+                        }
                     }
                     voidOut(pos, elementEnd);
                 }
@@ -1028,7 +1269,7 @@ public final class VideoContainerMetadata {
             }
             ByteBuffer buffer = ByteBuffer.allocate(n);
             while (buffer.hasRemaining()) {
-                if (ch.read(buffer, pos + buffer.position()) < 0) {
+                if (ch.read(buffer, offset + pos + buffer.position()) < 0) {
                     throw new IOException("Unexpected end of file");
                 }
             }
@@ -1038,7 +1279,7 @@ public final class VideoContainerMetadata {
         private void write(long pos, @NonNull byte[] bytes) throws IOException {
             ByteBuffer buffer = ByteBuffer.wrap(bytes);
             while (buffer.hasRemaining()) {
-                ch.write(buffer, pos + buffer.position());
+                ch.write(buffer, offset + pos + buffer.position());
             }
         }
 

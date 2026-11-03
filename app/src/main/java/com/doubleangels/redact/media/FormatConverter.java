@@ -48,14 +48,8 @@ public final class FormatConverter {
     @NonNull
     private static Bitmap applyExifOrientation(
             @NonNull Context context, @NonNull Uri sourceUri, @NonNull Bitmap bitmap) {
-        int orientation = androidx.exifinterface.media.ExifInterface.ORIENTATION_NORMAL;
-        try (InputStream in = context.getContentResolver().openInputStream(sourceUri)) {
-            if (in != null) {
-                orientation = new androidx.exifinterface.media.ExifInterface(in).getAttributeInt(
-                        androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION,
-                        androidx.exifinterface.media.ExifInterface.ORIENTATION_NORMAL);
-            }
-        } catch (Exception e) {
+        int orientation = exifOrientation(context, sourceUri);
+        if (orientation < 0) {
             return bitmap;
         }
         android.graphics.Matrix m = new android.graphics.Matrix();
@@ -87,8 +81,9 @@ public final class FormatConverter {
                 return bitmap;
         }
         try {
-            Bitmap out = Bitmap.createBitmap(
-                    bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, true);
+            Bitmap out = HighPrecisionPng.isHighPrecision(bitmap)
+                    ? transformKeepingPrecision(bitmap, m)
+                    : Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, true);
             if (out != bitmap) {
                 bitmap.recycle();
             }
@@ -96,6 +91,28 @@ public final class FormatConverter {
         } catch (OutOfMemoryError e) {
             return bitmap;
         }
+    }
+
+    /**
+     * {@code bitmap} turned by {@code m}, a quarter turn or flip, into a bitmap of the same type
+     * and colour space. {@link Bitmap#createBitmap(Bitmap, int, int, int, int, android.graphics.Matrix,
+     * boolean)} makes a 10-bit picture an 8-bit one.
+     */
+    @NonNull
+    private static Bitmap transformKeepingPrecision(@NonNull Bitmap bitmap, @NonNull android.graphics.Matrix m) {
+        android.graphics.RectF bounds = new android.graphics.RectF(0, 0, bitmap.getWidth(), bitmap.getHeight());
+        m.mapRect(bounds);
+        android.graphics.Matrix placed = new android.graphics.Matrix(m);
+        placed.postTranslate(-bounds.left, -bounds.top);
+        Bitmap out = Bitmap.createBitmap(Math.round(bounds.width()), Math.round(bounds.height()),
+                bitmap.getConfig(), bitmap.hasAlpha(),
+                bitmap.getColorSpace() != null ? bitmap.getColorSpace()
+                        : android.graphics.ColorSpace.get(android.graphics.ColorSpace.Named.SRGB));
+        android.graphics.Paint copy = new android.graphics.Paint();
+        copy.setFilterBitmap(false);
+        copy.setBlendMode(android.graphics.BlendMode.SRC);
+        new android.graphics.Canvas(out).drawBitmap(bitmap, placed, copy);
+        return out;
     }
 
     private FormatConverter() {
@@ -199,6 +216,103 @@ public final class FormatConverter {
         return AppPreferences.qualityForLossyFormat(qualityPreset, webpOrHeic);
     }
 
+    /**
+     * The quality for a JPEG made from a JPEG: on the High preset, never less than the source's
+     * own, so a re-encode spends at least the bits the camera did (phones save at 95 to 97, the
+     * preset is 92). Balanced and Smaller mean what they say, and other formats are unchanged.
+     */
+    @androidx.annotation.VisibleForTesting
+    static int matchSourceQuality(@NonNull Bitmap.CompressFormat format, int preset, int presetQuality,
+            int sourceJpegQuality) {
+        if (format != Bitmap.CompressFormat.JPEG || preset != AppPreferences.QUALITY_PRESET_HIGH) {
+            return presetQuality;
+        }
+        return Math.min(100, Math.max(presetQuality, sourceJpegQuality));
+    }
+
+    /** The IJG luminance quantization table that libjpeg's quality setting scales, in zigzag order. */
+    private static final int[] STANDARD_LUMINANCE_ZIGZAG = {
+            16, 11, 12, 14, 12, 10, 16, 14, 13, 14, 18, 17, 16, 19, 24, 40, 26, 24, 22, 22, 24, 49,
+            35, 37, 29, 40, 58, 51, 61, 60, 57, 51, 56, 55, 64, 72, 92, 78, 64, 68, 87, 69, 55, 56,
+            80, 109, 81, 87, 95, 98, 103, 104, 103, 62, 77, 113, 121, 112, 100, 120, 92, 101, 103, 99};
+
+    /**
+     * The quality a JPEG was saved at, estimated from its luminance quantization table the way
+     * ImageMagick does: the libjpeg quality whose scaled standard table is closest. 0 when the
+     * stream is not a JPEG or has no such table.
+     */
+    public static int estimateJpegQuality(@NonNull InputStream in) {
+        try {
+            java.io.DataInputStream data = new java.io.DataInputStream(new java.io.BufferedInputStream(in));
+            if (data.readUnsignedByte() != 0xFF || data.readUnsignedByte() != 0xD8) {
+                return 0;
+            }
+            while (true) {
+                int b = data.readUnsignedByte();
+                if (b != 0xFF) {
+                    return 0;
+                }
+                int marker;
+                do {
+                    marker = data.readUnsignedByte();
+                } while (marker == 0xFF);
+                if (marker == 0xDA || marker == 0xD9) {
+                    return 0;
+                }
+                int length = data.readUnsignedShort() - 2;
+                if (length < 0) {
+                    return 0;
+                }
+                if (marker != 0xDB) {
+                    data.skipBytes(length);
+                    continue;
+                }
+                while (length > 0) {
+                    int info = data.readUnsignedByte();
+                    boolean sixteenBit = (info >> 4) != 0;
+                    int[] table = new int[64];
+                    for (int i = 0; i < 64; i++) {
+                        table[i] = sixteenBit ? data.readUnsignedShort() : data.readUnsignedByte();
+                    }
+                    length -= 1 + (sixteenBit ? 128 : 64);
+                    if ((info & 0x0F) == 0) {
+                        return closestQuality(table);
+                    }
+                }
+            }
+        } catch (IOException | RuntimeException e) {
+            return 0;
+        }
+    }
+
+    @androidx.annotation.VisibleForTesting
+    static int closestQuality(@NonNull int[] luminance) {
+        int best = 0;
+        long bestError = Long.MAX_VALUE;
+        for (int quality = 1; quality <= 100; quality++) {
+            int scale = quality < 50 ? 5000 / quality : 200 - quality * 2;
+            long error = 0;
+            for (int i = 0; i < 64; i++) {
+                int expected = Math.max(1, Math.min(255, (STANDARD_LUMINANCE_ZIGZAG[i] * scale + 50) / 100));
+                error += Math.abs(expected - luminance[i]);
+            }
+            if (error <= bestError) {
+                bestError = error;
+                best = quality;
+            }
+        }
+        return best;
+    }
+
+    /** {@link #estimateJpegQuality(InputStream)} for a URI; 0 when it cannot be read. */
+    public static int estimateJpegQuality(@NonNull Context context, @NonNull Uri uri) {
+        try (InputStream in = context.getContentResolver().openInputStream(uri)) {
+            return in != null ? estimateJpegQuality(in) : 0;
+        } catch (IOException | RuntimeException e) {
+            return 0;
+        }
+    }
+
     /** Resolved output format for metadata stripping (preserves source type when possible). */
     public static final class ImageFormatSpec {
         public final String extension;
@@ -240,6 +354,128 @@ public final class FormatConverter {
         return jpegSpec();
     }
 
+    /**
+     * The output format for a clean or a share, which rebuild a HEIC or AVIF around its coded
+     * pictures instead of encoding it again: the source's own type, even where this device has
+     * no encoder for it. Should the rebuild fail there, the clean falls back to a JPEG and names
+     * it so ({@code MetadataStripper#writePictureOnly}). Other types are as
+     * {@link #resolveImageFormat}.
+     */
+    @NonNull
+    public static ImageFormatSpec resolveCleanFormat(
+            @Nullable String extensionWithDot, @Nullable String mimeType) throws IOException {
+        if (isHeicSource(extensionWithDot, mimeType)) {
+            // heicSpec() is a JPEG wherever Bitmap has no HEIC encoder, Android 14 and newer
+            // included, which skipped the rebuild and saved every HEIC as a JPEG.
+            ImageFormatSpec heic = isHeicProcessingSupported() ? heicSpec() : null;
+            return heic != null && ".heic".equals(heic.extension)
+                    ? heic
+                    : new ImageFormatSpec(".heic", "image/heic", Bitmap.CompressFormat.JPEG, false);
+        }
+        if (isAvifSource(extensionWithDot, mimeType)) {
+            // Bitmap has no AVIF encoder, so only the rebuild keeps it AVIF.
+            return new ImageFormatSpec(".avif", "image/avif", Bitmap.CompressFormat.JPEG, false);
+        }
+        if (".gif".equalsIgnoreCase(extensionWithDot) || "image/gif".equalsIgnoreCase(mimeType)) {
+            // Rebuilt block by block, which keeps every frame (GifContainerMetadata).
+            return new ImageFormatSpec(".gif", "image/gif", Bitmap.CompressFormat.PNG, false);
+        }
+        return resolveImageFormat(extensionWithDot, mimeType);
+    }
+
+    /**
+     * {@link #resolveCleanFormat(String, String)} for a file whose bytes are at hand: what the
+     * file is, by its first bytes, wins over what its name or type say, so a PNG named .jpg is
+     * not re-encoded as a JPEG, and a share's snapshot, named by its type, is not misread.
+     */
+    @NonNull
+    public static ImageFormatSpec resolveCleanFormat(
+            @NonNull java.io.File content, @Nullable String extensionWithDot, @Nullable String mimeType)
+            throws IOException {
+        String sniffed = sniffImageType(content);
+        if (sniffed != null) {
+            return resolveCleanFormat(null, sniffed);
+        }
+        return resolveCleanFormat(extensionWithDot, mimeType);
+    }
+
+    /** The image type a file's first bytes say it is, or null when they say nothing known. */
+    @androidx.annotation.VisibleForTesting
+    @Nullable
+    static String sniffImageType(@NonNull java.io.File file) {
+        byte[] head = new byte[64];
+        int n = 0;
+        try (InputStream in = new java.io.FileInputStream(file)) {
+            int r;
+            while (n < head.length && (r = in.read(head, n, head.length - n)) > 0) {
+                n += r;
+            }
+        } catch (IOException e) {
+            return null;
+        }
+        if (n >= 3 && (head[0] & 0xFF) == 0xFF && (head[1] & 0xFF) == 0xD8 && (head[2] & 0xFF) == 0xFF) {
+            return "image/jpeg";
+        }
+        if (n >= 8 && (head[0] & 0xFF) == 0x89 && head[1] == 'P' && head[2] == 'N' && head[3] == 'G') {
+            return "image/png";
+        }
+        if (n >= 12 && head[0] == 'R' && head[1] == 'I' && head[2] == 'F' && head[3] == 'F'
+                && head[8] == 'W' && head[9] == 'E' && head[10] == 'B' && head[11] == 'P') {
+            return "image/webp";
+        }
+        if (n >= 6 && head[0] == 'G' && head[1] == 'I' && head[2] == 'F' && head[3] == '8') {
+            return "image/gif";
+        }
+        if (n >= 14 && head[0] == 'B' && head[1] == 'M') {
+            return "image/bmp";
+        }
+        if (n >= 16 && head[4] == 'f' && head[5] == 't' && head[6] == 'y' && head[7] == 'p') {
+            int size = Math.min(n, (int) (((head[0] & 0xFFL) << 24) | ((head[1] & 0xFF) << 16)
+                    | ((head[2] & 0xFF) << 8) | (head[3] & 0xFF)));
+            boolean avif = false;
+            boolean heif = false;
+            for (int at = 8; at + 4 <= size; at += at == 8 ? 8 : 4) {
+                String brand = new String(head, at, 4, java.nio.charset.StandardCharsets.ISO_8859_1);
+                avif |= brand.equals("avif") || brand.equals("avis");
+                heif |= brand.equals("heic") || brand.equals("heix") || brand.equals("mif1")
+                        || brand.equals("msf1") || brand.startsWith("hev");
+            }
+            String major = new String(head, 8, 4, java.nio.charset.StandardCharsets.ISO_8859_1);
+            if (major.equals("avif") || major.equals("avis") || (avif && !major.startsWith("he"))) {
+                return "image/avif";
+            }
+            if (heif) {
+                return "image/heic";
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The format a re-encode writes when the clean's own format has no encoder here: a GIF
+     * becomes a PNG, which keeps every colour and its transparency, and anything else a JPEG.
+     */
+    @NonNull
+    public static ImageFormatSpec encodableSpecFor(@NonNull ImageFormatSpec spec) {
+        if (spec.bitmapFallbackSupported) {
+            return spec;
+        }
+        return ".gif".equals(spec.extension) ? pngSpec() : jpegSpec();
+    }
+
+    @NonNull
+    public static ImageFormatSpec pngSpec() {
+        return new ImageFormatSpec(".png", "image/png", Bitmap.CompressFormat.PNG, true);
+    }
+
+    private static boolean isAvifSource(
+            @Nullable String extensionWithDot, @Nullable String mimeType) {
+        if (extensionWithDot != null && ".avif".equalsIgnoreCase(extensionWithDot)) {
+            return true;
+        }
+        return mimeType != null && "image/avif".equalsIgnoreCase(mimeType);
+    }
+
     private static boolean isHeicSource(
             @Nullable String extensionWithDot, @Nullable String mimeType) {
         if (extensionWithDot != null) {
@@ -263,14 +499,118 @@ public final class FormatConverter {
             @NonNull Bitmap bitmap,
             @NonNull Bitmap.CompressFormat format,
             @NonNull OutputStream os) {
-        int q = qualityForFormat(format, context);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && isHeicFormat(format)) {
-            return bitmap.compress(format, q, os);
+        return compressBitmapToStream(context, bitmap, format, os, 0, false);
+    }
+
+    /**
+     * Like {@link #compressBitmapToStream(Context, Bitmap, Bitmap.CompressFormat, OutputStream)},
+     * for a picture decoded from a JPEG of {@code sourceJpegQuality} (0 when unknown or not a
+     * JPEG), or from a lossless source ({@code losslessSource}: PNG, GIF, BMP or lossless WebP).
+     *
+     * <ul>
+     *   <li>A JPEG made from a JPEG is never encoded below the source's own quality on High.
+     *   <li>A WebP made from a lossless source is lossless too, so no pixel changes.
+     *   <li>JPEG and HEIC hold no transparency, so a transparent picture is laid on white, as
+     *       image editors do, instead of its clear pixels turning black.
+     * </ul>
+     */
+    public static boolean compressBitmapToStream(
+            @NonNull Context context,
+            @NonNull Bitmap bitmap,
+            @NonNull Bitmap.CompressFormat format,
+            @NonNull OutputStream os,
+            int sourceJpegQuality,
+            boolean losslessSource) {
+        int q = matchSourceQuality(format, AppPreferences.getImageQualityPreset(context),
+                qualityForFormat(format, context), sourceJpegQuality);
+        boolean opaqueFormat = format == Bitmap.CompressFormat.JPEG || isHeicFormat(format);
+        Bitmap toWrite = opaqueFormat ? onWhite(bitmap) : bitmap;
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && isHeicFormat(format)) {
+                return toWrite.compress(format, q, os);
+            }
+            if (format == Bitmap.CompressFormat.WEBP) {
+                return losslessSource
+                        ? toWrite.compress(Bitmap.CompressFormat.WEBP_LOSSLESS, LOSSLESS_WEBP_EFFORT, os)
+                        : toWrite.compress(Bitmap.CompressFormat.WEBP_LOSSY, q, os);
+            }
+            return toWrite.compress(format, q, os);
+        } finally {
+            if (toWrite != bitmap) {
+                toWrite.recycle();
+            }
         }
-        if (format == Bitmap.CompressFormat.WEBP) {
-            return bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, q, os);
+    }
+
+    /** For lossless WebP the quality is how hard the encoder works on size, not what it keeps. */
+    private static final int LOSSLESS_WEBP_EFFORT = 75;
+
+    /** {@code bitmap} laid on white when it has transparency; {@code bitmap} itself otherwise. */
+    @androidx.annotation.VisibleForTesting
+    @NonNull
+    static Bitmap onWhite(@NonNull Bitmap bitmap) {
+        if (!bitmap.hasAlpha()) {
+            return bitmap;
         }
-        return bitmap.compress(format, q, os);
+        android.graphics.ColorSpace colorSpace = bitmap.getColorSpace();
+        Bitmap flat = colorSpace != null
+                ? Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888,
+                        false, colorSpace)
+                : Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        android.graphics.Canvas canvas = new android.graphics.Canvas(flat);
+        canvas.drawColor(android.graphics.Color.WHITE);
+        canvas.drawBitmap(bitmap, 0f, 0f, null);
+        return flat;
+    }
+
+    /**
+     * Whether an image's encoding keeps every pixel exactly: PNG, GIF, BMP and lossless WebP.
+     * Read from its first bytes; false when unknown.
+     */
+    public static boolean isLosslessImage(@NonNull InputStream in) {
+        try {
+            byte[] head = new byte[64 * 1024];
+            int n = 0;
+            int r;
+            while (n < head.length && (r = in.read(head, n, head.length - n)) > 0) {
+                n += r;
+            }
+            if (n >= 8 && (head[0] & 0xFF) == 0x89 && head[1] == 'P' && head[2] == 'N' && head[3] == 'G') {
+                return true;
+            }
+            if (n >= 6 && head[0] == 'G' && head[1] == 'I' && head[2] == 'F') {
+                return true;
+            }
+            if (n >= 2 && head[0] == 'B' && head[1] == 'M') {
+                return true;
+            }
+            if (n >= 16 && head[0] == 'R' && head[1] == 'I' && head[2] == 'F' && head[3] == 'F'
+                    && head[8] == 'W' && head[9] == 'E' && head[10] == 'B' && head[11] == 'P') {
+                // The first picture chunk says which: VP8L is lossless, VP8 (with ALPH) is not.
+                for (int at = 12; at + 4 <= n; at++) {
+                    if (head[at] == 'V' && head[at + 1] == 'P' && head[at + 2] == '8') {
+                        if (head[at + 3] == 'L') {
+                            return true;
+                        }
+                        if (head[at + 3] == ' ') {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return false;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    /** {@link #isLosslessImage(InputStream)} for a URI; false when it cannot be read. */
+    public static boolean isLosslessImage(@NonNull Context context, @NonNull Uri uri) {
+        try (InputStream in = context.getContentResolver().openInputStream(uri)) {
+            return in != null && isLosslessImage(in);
+        } catch (IOException | RuntimeException e) {
+            return false;
+        }
     }
 
     @NonNull
@@ -297,6 +637,8 @@ public final class FormatConverter {
             case ".webp" -> new ImageFormatSpec(
                     ".webp", "image/webp", Bitmap.CompressFormat.WEBP, true);
             case ".heic", ".heif" -> heicSpec();
+            // Lossless sources Bitmap can't write back: PNG keeps every pixel.
+            case ".gif", ".bmp" -> pngSpec();
             default -> null;
         };
     }
@@ -314,6 +656,7 @@ public final class FormatConverter {
             case "image/webp" -> new ImageFormatSpec(
                     ".webp", "image/webp", Bitmap.CompressFormat.WEBP, true);
             case "image/heic", "image/heif" -> heicSpec();
+            case "image/gif", "image/bmp", "image/x-ms-bmp" -> pngSpec();
             default -> null;
         };
     }
@@ -325,6 +668,98 @@ public final class FormatConverter {
             return jpegSpec();
         }
         return new ImageFormatSpec(".heic", "image/heic", heic, true);
+    }
+
+    /** The EXIF orientation of {@code sourceUri}, normal when it has none, or -1 when unreadable. */
+    private static int exifOrientation(@NonNull Context context, @NonNull Uri sourceUri) {
+        try (InputStream in = context.getContentResolver().openInputStream(sourceUri)) {
+            if (in == null) {
+                return -1;
+            }
+            return new androidx.exifinterface.media.ExifInterface(in).getAttributeInt(
+                    androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION,
+                    androidx.exifinterface.media.ExifInterface.ORIENTATION_NORMAL);
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    /**
+     * The header of {@code sourceUri} when it is a 16-bit PNG that {@link Png16} can write back
+     * as it is: one shown the way it is stored, with no EXIF rotation to bake in. Null otherwise.
+     */
+    @Nullable
+    public static Png16.Header sixteenBitPng(@NonNull Context context, @NonNull Uri sourceUri) {
+        Png16.Header header;
+        try (InputStream in = context.getContentResolver().openInputStream(sourceUri)) {
+            header = in != null ? Png16.readHeader(in) : null;
+        } catch (IOException | RuntimeException e) {
+            return null;
+        }
+        if (header == null) {
+            return null;
+        }
+        int orientation = exifOrientation(context, sourceUri);
+        return orientation == androidx.exifinterface.media.ExifInterface.ORIENTATION_NORMAL
+                || orientation == androidx.exifinterface.media.ExifInterface.ORIENTATION_UNDEFINED
+                ? header : null;
+    }
+
+    /**
+     * Converts a 16-bit PNG to PNG at 16 bits, which {@link Bitmap#compress} can't write: its
+     * samples are copied as they are and the result is cleaned like any PNG. Null when the
+     * source isn't one, so the caller converts it from its pixels.
+     */
+    @Nullable
+    private static Uri convertSixteenBitPng(
+            @NonNull Context context, @NonNull Uri sourceUri, @NonNull String baseDisplayName) {
+        if (sixteenBitPng(context, sourceUri) == null) {
+            return null;
+        }
+        ContentResolver resolver = context.getContentResolver();
+        File raw = null;
+        File clean = null;
+        Uri outUri = null;
+        try {
+            raw = File.createTempFile("png16_", ".png", context.getCacheDir());
+            clean = File.createTempFile("png16_clean_", ".png", context.getCacheDir());
+            try (InputStream in = resolver.openInputStream(sourceUri);
+                    OutputStream out = new java.io.BufferedOutputStream(new java.io.FileOutputStream(raw), 64 * 1024)) {
+                if (in == null) {
+                    throw new IOException("Cannot open source");
+                }
+                Png16.rewrite(in, out, null);
+            }
+            // Rebuilt and checked like any converted image; this also clears the fields of a
+            // colour profile that can name a device or a date.
+            new MetadataStripper(context).requireConvertedImageClean(raw, clean);
+            outUri = OutputDestination.create(context, false,
+                    MediaFileNames.outputBaseName(context, baseDisplayName) + ".png", "image/png");
+            try (InputStream in = new java.io.FileInputStream(clean);
+                    OutputStream os = resolver.openOutputStream(outUri)) {
+                if (os == null) {
+                    throw new IOException("Cannot open output stream");
+                }
+                MediaSizeLimits.copyStream(in, os);
+            }
+            OutputDestination.publish(resolver, outUri);
+            return outUri;
+        } catch (IOException | RuntimeException e) {
+            com.doubleangels.redact.sentry.SentryManager.log(
+                    "The 16-bit PNG could not be kept at 16 bits, so the app is converting it at 8: "
+                            + e.getMessage() + ".");
+            if (outUri != null) {
+                OutputDestination.discard(resolver, outUri);
+            }
+            return null;
+        } finally {
+            if (raw != null) {
+                SecureDelete.secureDelete(context, raw);
+            }
+            if (clean != null) {
+                SecureDelete.secureDelete(context, clean);
+            }
+        }
     }
 
     /**
@@ -357,48 +792,70 @@ public final class FormatConverter {
         String mime = mimeForFormat(format);
         String ext = extensionForFormat(format);
 
-        Bitmap bitmap = decodeUpright(context, sourceUri, AppPreferences.getMaxBitmapSize(context));
+        if (format == Bitmap.CompressFormat.PNG) {
+            Uri sixteenBit = convertSixteenBitPng(context, sourceUri, baseDisplayName);
+            if (sixteenBit != null) {
+                return sixteenBit;
+            }
+        }
+
+        Bitmap bitmap = decodeUpright(context, sourceUri, FULL_RESOLUTION);
 
         String outName = MediaFileNames.outputBaseName(context, baseDisplayName) + ext;
 
-        Uri outUri;
+        // Encoded into a private file, rebuilt with nothing but its picture and checked there:
+        // only a file that passes reaches the output folder, where another app could see it.
+        File encoded = null;
+        File clean = null;
+        Uri outUri = null;
         try {
-            outUri = OutputDestination.create(context, false, outName, mime);
-        } catch (IOException e) {
+            encoded = File.createTempFile("temp_convert_", ext, context.getCacheDir());
+            clean = File.createTempFile("temp_convert_clean_", ext, context.getCacheDir());
+            try (OutputStream os = new java.io.BufferedOutputStream(new java.io.FileOutputStream(encoded), 64 * 1024)) {
+                boolean ok;
+                if (format == Bitmap.CompressFormat.PNG && HighPrecisionPng.isHighPrecision(bitmap)) {
+                    // Decoded at more than 8 bits (a 10-bit HEIC or AVIF, a turned 16-bit PNG),
+                    // which compress() would save at 8.
+                    HighPrecisionPng.write(bitmap, os);
+                    ok = true;
+                } else {
+                    ok = compressBitmapToStream(context, bitmap, format, os,
+                            estimateJpegQuality(context, sourceUri), isLosslessImage(context, sourceUri));
+                }
+                if (!ok) {
+                    throw new IOException("Compress failed");
+                }
+            }
             bitmap.recycle();
-            throw e;
-        }
+            new MetadataStripper(context).requireConvertedImageClean(encoded, clean);
 
-        boolean written = false;
-        try (OutputStream os = resolver.openOutputStream(outUri)) {
-            if (os == null) {
-                throw new IOException("Cannot open output stream");
+            outUri = OutputDestination.create(context, false, outName, mime);
+            try (InputStream in = new java.io.FileInputStream(clean);
+                    OutputStream os = resolver.openOutputStream(outUri)) {
+                if (os == null) {
+                    throw new IOException("Cannot open output stream");
+                }
+                MediaSizeLimits.copyStream(in, os);
             }
-            int q = qualityForFormat(format, context);
-            boolean ok;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && isHeicFormat(format)) {
-                ok = bitmap.compress(format, q, os);
-            } else if (format == Bitmap.CompressFormat.WEBP) {
-                ok = bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, q, os);
-            } else {
-                ok = bitmap.compress(format, q, os);
-            }
-            if (!ok) {
-                throw new IOException("Compress failed");
-            }
-            os.flush();
-            written = true;
-        } finally {
-            bitmap.recycle();
-            if (!written) {
-                // Whatever went wrong (including the stream throwing), leave no partial file.
+            OutputDestination.publish(resolver, outUri);
+            return outUri;
+        } catch (IOException | RuntimeException e) {
+            // Whatever went wrong, leave no partial file.
+            if (outUri != null) {
                 OutputDestination.discard(resolver, outUri);
             }
+            throw e;
+        } finally {
+            if (!bitmap.isRecycled()) {
+                bitmap.recycle();
+            }
+            if (encoded != null) {
+                SecureDelete.secureDelete(context, encoded);
+            }
+            if (clean != null) {
+                SecureDelete.secureDelete(context, clean);
+            }
         }
-        // Re-encoding from decoded pixels drops all source metadata (EXIF, XMP, IPTC, ICC
-        // thumbnails); intentionally nothing is copied back.
-        OutputDestination.publish(resolver, outUri);
-        return outUri;
     }
 
     /**
@@ -424,7 +881,7 @@ public final class FormatConverter {
         Bitmap bitmap;
         boolean needsOrientationFix = false;
         if (bounds.outWidth > 0 && bounds.outHeight > 0) {
-            bitmap = decodeSampled(calculateInSampleSize(maxDimension, bounds), opts -> {
+            bitmap = decodeSampled(calculateInSampleSize(maxDimension, fullResolutionPixelBudget(context), bounds), opts -> {
                 try (InputStream in = resolver.openInputStream(sourceUri)) {
                     if (in == null) {
                         throw new IOException("Cannot open source");
@@ -457,14 +914,14 @@ public final class FormatConverter {
     @Nullable
     public static Bitmap decodeBitmapFromUri(@NonNull Context context, @NonNull Uri sourceUri)
             throws IOException {
-        return decodeBitmapFromUri(context, sourceUri, AppPreferences.getMaxBitmapSize(context));
+        return decodeBitmapFromUri(context, sourceUri, FULL_RESOLUTION);
     }
 
     @Nullable
     private static Bitmap decodeBitmapFromUri(
             @NonNull Context context, @NonNull Uri sourceUri, int maxDimension) throws IOException {
         try {
-            return decodeWithImageDecoder(context, sourceUri, maxDimension);
+            return decodeWithImageDecoder(context, sourceUri, maxDimension, fullResolutionPixelBudget(context));
         } catch (OutOfMemoryError e) {
             // Already scaled to the max bitmap size; fail this file rather than the app.
             throw new IOException("Not enough memory to decode the image", e);
@@ -478,8 +935,8 @@ public final class FormatConverter {
         }
     }
 
-    private static Bitmap decodeWithImageDecoder(Context context, Uri sourceUri, int maxDimension)
-            throws IOException {
+    private static Bitmap decodeWithImageDecoder(
+            Context context, Uri sourceUri, int maxDimension, long maxPixels) throws IOException {
         ImageDecoder.Source source = ImageDecoder.createSource(context.getContentResolver(), sourceUri);
         return ImageDecoder.decodeBitmap(
                 source,
@@ -490,8 +947,14 @@ public final class FormatConverter {
                     int w = info.getSize().getWidth();
                     int h = info.getSize().getHeight();
                     int maxSide = Math.max(w, h);
-                    if (maxSide > maxDimension) {
-                        float scale = maxDimension / (float) maxSide;
+                    float scale = 1f;
+                    if (maxDimension > 0 && maxSide > maxDimension) {
+                        scale = maxDimension / (float) maxSide;
+                    } else if (maxDimension <= 0 && (long) w * h > maxPixels) {
+                        // Full resolution that won't fit: the largest size that does, exactly.
+                        scale = (float) Math.sqrt((double) maxPixels / ((long) w * h));
+                    }
+                    if (scale < 1f) {
                         decoder.setTargetSize(
                                 Math.max(1, Math.round(w * scale)),
                                 Math.max(1, Math.round(h * scale)));
@@ -560,15 +1023,62 @@ public final class FormatConverter {
 
     private static final int MAX_ENCODER_DIMENSION = 16383;
 
+    /**
+     * The size limit for a picture that is saved: none but the device's free memory, so every
+     * pixel is kept that can be. Only on-screen previews pass a size.
+     */
+    public static final int FULL_RESOLUTION = 0;
+
+    /** Bytes a decoded pixel takes (ARGB_8888). */
+    private static final int BYTES_PER_PIXEL = 4;
+    /** The least a full-resolution decode is allowed, whatever the memory reading says: 24 MP. */
+    private static final long MIN_FULL_RESOLUTION_PIXELS = 24_000_000L;
+
+    /**
+     * How many pixels a full-resolution decode may hold: a quarter of the memory the system says
+     * is free, as the picture may be copied once while it is edited and encoded. Bitmaps live in
+     * native memory, so this, not the Java heap, is the limit. A decode that still runs out is
+     * retried smaller ({@link #decodeSampled}).
+     */
+    public static long fullResolutionPixelBudget(@NonNull Context context) {
+        long budget = MIN_FULL_RESOLUTION_PIXELS;
+        try {
+            android.app.ActivityManager am =
+                    (android.app.ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            if (am != null) {
+                android.app.ActivityManager.MemoryInfo info = new android.app.ActivityManager.MemoryInfo();
+                am.getMemoryInfo(info);
+                budget = Math.max(budget, info.availMem / 4 / BYTES_PER_PIXEL);
+            }
+        } catch (RuntimeException e) {
+            // The floor above still applies.
+        }
+        return budget;
+    }
+
     public static int calculateInSampleSize(Context context, BitmapFactory.Options options) {
-        return calculateInSampleSize(AppPreferences.getMaxBitmapSize(context), options);
+        return calculateInSampleSize(FULL_RESOLUTION, fullResolutionPixelBudget(context), options);
     }
 
     static int calculateInSampleSize(int maxDimension, BitmapFactory.Options options) {
+        return calculateInSampleSize(maxDimension, Long.MAX_VALUE, options);
+    }
+
+    /**
+     * The sample size to decode at. With a resolution set, both sides stay at least that large;
+     * at full resolution ({@code maxDimension <= 0}) the picture is decoded whole unless it would
+     * not fit in {@code maxPixels}.
+     */
+    static int calculateInSampleSize(int maxDimension, long maxPixels, BitmapFactory.Options options) {
         int height = options.outHeight;
         int width = options.outWidth;
         int inSampleSize = 1;
-        if (height > maxDimension || width > maxDimension) {
+        if (maxDimension <= 0) {
+            while ((long) ((width + inSampleSize - 1) / inSampleSize)
+                    * ((height + inSampleSize - 1) / inSampleSize) > maxPixels) {
+                inSampleSize *= 2;
+            }
+        } else if (height > maxDimension || width > maxDimension) {
             int halfHeight = height / 2;
             int halfWidth = width / 2;
             while ((halfHeight / inSampleSize) >= maxDimension

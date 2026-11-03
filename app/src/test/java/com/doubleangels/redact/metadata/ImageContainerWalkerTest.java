@@ -720,10 +720,12 @@ public class ImageContainerWalkerTest {
 
     @Test
     public void otherFiles_areUnrecognized_andCannotBeSanitized() throws Exception {
-        byte[] gif = a("GIF89a-not-walked");
-        ImageContainerMetadata.Report r = scan(gif);
+        ImageContainerMetadata.Report r = scan(a("%PDF-1.7 not a picture"));
         assertFalse(r.recognized);
         assertEquals(ImageContainerMetadata.Format.OTHER, r.format);
+        // A GIF is read by GifContainerMetadata, and one whose blocks can't be followed isn't clean.
+        byte[] gif = a("GIF89a-not-walked");
+        assertFalse(scan(gif).recognized);
         assertFalse(scan(new byte[0]).recognized);
 
         try {
@@ -739,5 +741,19 @@ public class ImageContainerWalkerTest {
         } catch (IOException expected) {
             assertTrue(expected.getMessage().contains("differ"));
         }
+    }
+
+    @Test
+    public void isoOnlyUltraHdr_keepsItsVersionBlock_asPartOfThePicture() throws Exception {
+        byte[] iso = cat(a("urn:iso:std:iso:ts:21496:-1\0"), new byte[] {0, 0, 0, 0});
+        ImageContainerMetadata.Report r = scan(jpeg(seg(0xE2, iso)));
+
+        assertTrue(r.recognized);
+        assertTrue(r.isClean());
+        boolean keptAsUltraHdr = false;
+        for (ImageContainerMetadata.Finding f : r.kept) {
+            keptAsUltraHdr |= f.key.equals("ULTRA_HDR");
+        }
+        assertTrue(keptAsUltraHdr);
     }
 }

@@ -231,4 +231,69 @@ public class MetadataStripperExifVerificationTest {
         }
         return "test-value";
     }
+
+    private static File resource(String name) throws Exception {
+        File f = File.createTempFile("verify_", "_" + name);
+        f.deleteOnExit();
+        try (java.io.InputStream in = MetadataStripperExifVerificationTest.class.getClassLoader()
+                .getResourceAsStream("image/" + name)) {
+            java.nio.file.Files.write(f.toPath(), in.readAllBytes());
+        }
+        return f;
+    }
+
+    @Test
+    public void verificationOfACleanedHeic_acceptsAKeptMotionPhoto_butNotOtherXmp() throws Exception {
+        AppPreferences.setStrictClean(RuntimeEnvironment.getApplication(), false);
+        File jpeg = resource("motion_photo_tagged.jpg");
+        MotionPhoto.Found inJpeg = MotionPhoto.find(jpeg);
+        byte[] all = java.nio.file.Files.readAllBytes(jpeg.toPath());
+        File video = File.createTempFile("verify_", ".mp4");
+        video.deleteOnExit();
+        java.nio.file.Files.write(video.toPath(), java.util.Arrays.copyOfRange(all, (int) inJpeg.start, (int) inJpeg.end));
+        VideoContainerMetadata.scrub(video);
+        File heic = resource("heic_tagged.heic");
+
+        File still = File.createTempFile("verify_", ".heic");
+        still.deleteOnExit();
+        HeifContainerMetadata.sanitize(heic, still);
+        assertTrue(verify(still));
+
+        File motion = File.createTempFile("verify_", ".heic");
+        motion.deleteOnExit();
+        HeifContainerMetadata.sanitize(heic, motion, new MotionPhoto.Clip(video, inJpeg.presentationTimestampUs));
+        assertTrue("a kept Motion Photo's directory and clean video pass", verify(motion));
+
+        // The source still has its own XMP item, which no clean keeps.
+        org.junit.Assert.assertFalse(verify(heic));
+    }
+
+    @Test
+    public void convertedImage_isRebuiltAndChecked_whateverItsFormat() throws Exception {
+        MetadataStripper stripper = new MetadataStripper(RuntimeEnvironment.getApplication());
+        File target = File.createTempFile("verify_", ".out");
+        target.deleteOnExit();
+
+        // A HEIF from an encoder is rebuilt around its pictures.
+        stripper.requireConvertedImageClean(resource("heic_tagged.heic"), target);
+        assertTrue(HeifContainerMetadata.isHeif(target));
+
+        // A format the rebuild doesn't take is copied, and passes when it holds nothing.
+        File gif = File.createTempFile("verify_", ".gif");
+        gif.deleteOnExit();
+        java.nio.file.Files.write(gif.toPath(), new byte[] {'G', 'I', 'F', '8', '9', 'a', 1, 0, 1, 0, 0, 0, 0,
+                0x2C, 0, 0, 0, 0, 1, 0, 1, 0, 0, 2, 2, 0x4C, 0x01, 0, 0x3B});
+        stripper.requireConvertedImageClean(gif, target);
+
+        // One with a comment is never saved.
+        java.nio.file.Files.write(gif.toPath(), new byte[] {'G', 'I', 'F', '8', '9', 'a', 1, 0, 1, 0, 0, 0, 0,
+                0x21, (byte) 0xFE, 3, 'a', 'b', 'c', 0,
+                0x2C, 0, 0, 0, 0, 1, 0, 1, 0, 0, 2, 2, 0x4C, 0x01, 0, 0x3B});
+        try {
+            stripper.requireConvertedImageClean(gif, target);
+            org.junit.Assert.fail("a converted file with a comment must not pass");
+        } catch (java.io.IOException expected) {
+            assertTrue(expected.getMessage().contains("verification"));
+        }
+    }
 }

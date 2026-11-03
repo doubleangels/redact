@@ -1,10 +1,10 @@
 ---
 description: Find outdated Gradle libraries and plugins, Bundler gems and GitHub Actions in every workflow, judge which upgrades are safe, apply them, and verify with lint and the tests
 allowed-tools: Bash, PowerShell, Read, Edit, Write, Grep, Glob, WebFetch
-argument-hint: "[report] [commit]"
+argument-hint: "[report]"
 ---
 
-Check every dependency the project uses, list what is outdated, upgrade what is safe, then prove nothing broke. If I passed `report`, stop after step 3 and change nothing. Do not push. Only commit if I ask (or if I invoked this with the word "commit"). Dependabot already opens PRs for these, so this is the one place where they are all judged together, and where the ones that touch metadata handling get extra care.
+Check every dependency the project uses, list what is outdated, upgrade what is safe, then prove nothing broke. If I passed `report`, stop after step 3 and change nothing. When the task is done, commit its changes to the current branch automatically, as the last step describes. Do not push. Dependabot already opens PRs for these, so this is the one place where they are all judged together, and where the ones that touch metadata handling get extra care.
 
 ## 1. Collect what the project uses
 
@@ -49,7 +49,7 @@ Never loosen a pin into a range, never add `+` or `latest.release`, and never ch
 1. `./gradlew :app:lintRelease -q` and `./gradlew :app:testDebugUnitTest -q` (use `gradlew.bat` from PowerShell). Check `app/build/test-results/testDebugUnitTest/*.xml` for `failures="[1-9]"` or `errors="[1-9]"`.
 2. `./gradlew :app:bundleRelease -q` if AGP, Gradle, R8 or any library changed, since CI builds the release bundle and R8 can fail on a new library when the unit tests pass.
 3. For workflow files, check they still parse (`python3 -c "import yaml,sys; [yaml.safe_load(open(f)) for f in sys.argv[1:]]" .github/workflows/*.yml .github/actions/*/action.yml`), and re-read every changed `uses:` line to confirm the owner, repo and ref are what you meant. A workflow cannot be run from here, so say which workflows are untested.
-4. If a media library changed, run `/verify-clean` if it exists. If not, run `python3 .claude/scripts/check_media.py` and clean at least one test JPEG and one test MP4 on the Pixel_10_Pro emulator (set `ANDROID_SERIAL` to its serial so a physical device is never used), then confirm no metadata remains.
+4. If a media library changed, run `/verifyclean` (`.claude/commands/verifyclean.md`).
 5. If a check fails, find which upgrade caused it, roll that one back, and put it in the **Needs a human** list. Never leave the tree red.
 
 ## 6. Report
@@ -62,4 +62,4 @@ Finish with a short report:
 - anything rolled back and why, and anything that deserves a human decision or a real CI run,
 - test, lint and bundle results.
 
-Only if I asked to commit: stage just the files this task changed (leave my other uncommitted files out), and commit with a message that lists the upgrades, using the prefixes Dependabot uses (`[Gradle]`, `[Github Actions]`, `[Bundler]`) when a commit holds one kind only. Never push.
+Then commit to the current branch without asking (skip it if nothing changed or a check is still failing, and say so): stage just the files this task changed (leave my other uncommitted files out), and commit with a message that lists the upgrades, using the prefixes Dependabot uses (`[Gradle]`, `[Github Actions]`, `[Bundler]`) when a commit holds one kind only. Never push.

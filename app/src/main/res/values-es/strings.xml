@@ -173,20 +173,20 @@
     <string name="settings_auto_clear_temp">Vaciar Caché al Iniciar</string>
     <string name="settings_auto_clear_temp_subtitle">Elimina archivos de caché de procesamiento de más de 24 horas al abrir la app.</string>
     <string name="settings_preserve_camera">Conservar Ajustes de Cámara</string>
-    <string name="settings_preserve_camera_subtitle">Conservar apertura, velocidad de obturación, ISO y marca/modelo de cámara en Limpiar. Ignorado con Limpieza Estricta o al compartir desde otras apps.</string>
+    <string name="settings_preserve_camera_subtitle">Conservar marca/modelo de cámara, apertura, velocidad de obturación, ISO, distancia focal, exposición, flash y balance de blancos en Limpiar. Ignorado con Limpieza Estricta o al compartir desde otras apps.</string>
     <string name="settings_preserve_location">Conservar Ubicación</string>
     <string name="settings_preserve_location_subtitle">Conservar coordenadas GPS en Limpiar. Ignorado con Limpieza Estricta o al compartir desde otras apps.</string>
+    <string name="settings_preserve_date">Conservar Fecha de Captura</string>
+    <string name="settings_preserve_date_subtitle">Conservar cuándo se tomó cada foto o video en Limpiar, para que siga en su sitio en la galería. Ignorado con Limpieza Estricta o al compartir desde otras apps.</string>
+    <string name="settings_preserve_motion">Conservar Fotos en Movimiento</string>
+    <string name="settings_preserve_motion_subtitle">Conservar el video corto de una foto en movimiento JPEG o HEIC en Limpiar, sin sus metadatos. Incluye el sonido grabado con él. Ignorado con Limpieza Estricta o al compartir desde otras apps.</string>
         <string name="settings_sentry_consent_allow">Activar</string>
     <string name="settings_sentry_consent_cancel">Ahora No</string>
     <string name="settings_sentry_consent_title">Activar Informes de Fallos</string>
     <string name="settings_sentry_consent_message">Enviar Informes de Fallos sube diagnósticos anonimizados a Sentry por internet.\n\nNo se suben fotos, videos, nombres de archivo ni coordenadas GPS.</string>
     <string name="settings_strict_clean">Limpieza Estricta</string>
-    <string name="settings_strict_clean_subtitle">Elimina todo rastro de metadatos, incluso la etiqueta de orientación, por lo que una foto girada puede verse torcida después. Desactiva las opciones de conservar de abajo y siempre recodifica el video por completo para la limpieza más profunda.</string>
+    <string name="settings_strict_clean_subtitle">Elimina todos los metadatos salvo las etiquetas que solo indican cómo mostrar la imagen, como su orientación y su espacio de color. Desactiva las opciones de conservar de abajo y siempre vuelve a codificar el video por completo para la limpieza más a fondo.</string>
     
-    <string name="settings_section_advanced_processing">Archivos Grandes y Memoria</string>
-    <string name="settings_advanced_processing_subtitle">Controla el uso de RAM al decodificar imágenes grandes durante la limpieza y conversión.</string>
-    <string name="settings_max_bitmap_size">Resolución Máxima de Procesamiento</string>
-    <string name="settings_max_bitmap_size_subtitle">Lado más largo en píxeles al decodificar en memoria. Valores más bajos usan menos RAM.</string>
     <string name="settings_video_fallback">Limpieza de Video Más Rápida</string>
     <string name="settings_video_fallback_subtitle">Cuando tu video ya está en un formato compatible, Redact elimina sus metadatos con un paso rápido en lugar de recodificarlo por completo, más rápido y más suave con la batería, aunque una recodificación completa elimina un poco más. Se desactiva automáticamente con Limpieza Estricta o al limpiar archivos compartidos desde otras apps.</string>
 
@@ -194,12 +194,6 @@
         <item>1 Pasada (Rápida)</item>
         <item>3 Pasadas (Segura)</item>
         <item>7 Pasadas (Ultrasegura)</item>
-    </string-array>
-
-    <string-array name="settings_max_bitmap_size_labels">
-        <item>2048px (Poca RAM)</item>
-        <item>4096px (Estándar)</item>
-        <item>8192px (Alto Rendimiento)</item>
     </string-array>
 
     

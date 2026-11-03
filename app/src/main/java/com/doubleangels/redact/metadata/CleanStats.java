@@ -59,6 +59,17 @@ public final class CleanStats {
     }
 
     /**
+     * These stats without the location and date when a clean kept them (Keep Location, Keep Date
+     * Taken), so the summary does not say they were removed.
+     */
+    @NonNull
+    CleanStats keeping(boolean location, boolean date) {
+        int kept = (location && hadLocation ? 1 : 0) + (date && hadDate ? 1 : 0);
+        return new CleanStats(Math.max(0, removedFields - kept), hadLocation && !location,
+                hadDate && !date, hadDevice, hadName);
+    }
+
+    /**
      * Sorts the identifying fields a video container carried, by their name as {@link
      * VideoContainerMetadata} reports it, into dates, devices and names. Location is reported by
      * the container scan itself.
@@ -98,6 +109,12 @@ public final class CleanStats {
                 hadDate || container.has(ImageContainerMetadata.Kind.DATE),
                 hadDevice || container.has(ImageContainerMetadata.Kind.DEVICE),
                 hadName || container.has(ImageContainerMetadata.Kind.NAME));
+    }
+
+    /** These stats with one item fewer removed: a Motion Photo's video the clean put back. */
+    @NonNull
+    CleanStats keepingOne() {
+        return new CleanStats(Math.max(0, removedFields - 1), hadLocation, hadDate, hadDevice, hadName);
     }
 
     /**

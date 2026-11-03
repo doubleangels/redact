@@ -188,4 +188,146 @@ public class VideoStreamMetadataTest {
         assertTrue(VideoStreamMetadata.nalUnits(new byte[] {(byte) 0x80, 0, 0, 0, 0x06}).isEmpty());
         assertEquals(1, VideoStreamMetadata.nalUnits(new byte[] {0, 0, 0, 2, 0x06, 0x07, 0x7F, 0x7F, 0x7F, 0x7F, 9}).size());
     }
+
+    /** An SEI user_data_registered_itu_t_t35 message. */
+    private static byte[] registered(int country, int provider, String payload) {
+        byte[] text = payload.getBytes(StandardCharsets.ISO_8859_1);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        out.write(0x06); // H.264 SEI
+        out.write(4);
+        out.write(3 + text.length);
+        out.write(country);
+        out.write(provider >> 8);
+        out.write(provider);
+        out.write(text, 0, text.length);
+        out.write(0x80);
+        return out.toByteArray();
+    }
+
+    @Test
+    public void t35_countsVendorData_butNotHdrOrCaptions() {
+        assertEquals(1, VideoStreamMetadata.scanBuffer(
+                stream(registered(0x26, 0x0042, "CamModel GPS")), false).userDataMessages);
+        assertEquals(0, VideoStreamMetadata.scanBuffer(
+                stream(registered(0xB5, 0x003C, "hdr10+")), false).userDataMessages);
+        assertEquals(0, VideoStreamMetadata.scanBuffer(
+                stream(registered(0xB5, 0x003B, "dovi")), false).userDataMessages);
+        assertEquals(0, VideoStreamMetadata.scanBuffer(
+                stream(registered(0xB5, 0x0031, "GA94")), false).userDataMessages);
+    }
+
+    @Test
+    public void mpeg4Part2_findsUserData() {
+        byte[] vol = {0x20, 0x08, 0x10};
+        byte[] userData = withHeader(new byte[] {(byte) 0xB2}, "DivX503b1393p".getBytes(StandardCharsets.ISO_8859_1));
+        byte[] vop = {(byte) 0xB6, 0x10, 0x20};
+        VideoStreamMetadata.Report r = VideoStreamMetadata.scanBuffer(stream(vol, userData, vop), false, true);
+
+        assertEquals(1, r.userDataMessages);
+        assertTrue(r.text.contains("DivX"));
+        assertEquals(0, VideoStreamMetadata.scanBuffer(stream(vol, vop), false, true).userDataMessages);
+    }
+
+    // ---- AV1 ----------------------------------------------------------------------------------
+
+    /** An AV1 OBU of {@code type} with a size field. */
+    private static byte[] obu(int type, byte[] payload) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        out.write(type << 3 | 0x02);
+        int size = payload.length;
+        do {
+            int b = size & 0x7F;
+            size >>>= 7;
+            out.write(size != 0 ? b | 0x80 : b);
+        } while (size != 0);
+        out.write(payload, 0, payload.length);
+        return out.toByteArray();
+    }
+
+    private static byte[] metadata(int metadataType, byte[] body) {
+        byte[] payload = new byte[1 + body.length];
+        payload[0] = (byte) metadataType;
+        System.arraycopy(body, 0, payload, 1, body.length);
+        return obu(5, payload);
+    }
+
+    private static byte[] concat(byte[]... parts) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        for (byte[] part : parts) {
+            out.write(part, 0, part.length);
+        }
+        return out.toByteArray();
+    }
+
+    private static final byte[] TEMPORAL_DELIMITER = obu(2, new byte[0]);
+    private static final byte[] FRAME = obu(6, new byte[] {0x10, 0x20, 0x30});
+
+    @Test
+    public void av1_findsT35UserDataAndItsText() {
+        byte[] t35 = concat(new byte[] {0x26, 0x00, 0x01},
+                "GPS 52.37N 4.89E".getBytes(StandardCharsets.ISO_8859_1));
+        VideoStreamMetadata.Report r = VideoStreamMetadata.scanAv1Buffer(
+                concat(TEMPORAL_DELIMITER, metadata(4, t35), FRAME));
+
+        assertEquals(1, r.userDataMessages);
+        assertTrue(r.text.contains("GPS"));
+    }
+
+    @Test
+    public void av1_ignoresHdr10PlusAndHdrLevels() {
+        byte[] hdr10Plus = {(byte) 0xB5, 0x00, 0x3C, 0x00, 0x01, 0x04};
+        VideoStreamMetadata.Report r = VideoStreamMetadata.scanAv1Buffer(concat(TEMPORAL_DELIMITER,
+                metadata(4, hdr10Plus), metadata(1, new byte[] {0, 1, 0, 2}),
+                metadata(2, new byte[24]), FRAME));
+
+        assertEquals(0, r.userDataMessages);
+    }
+
+    @Test
+    public void av1_countsTimecodesPrivateTypesAndPaddingThatIsNotZero() {
+        assertEquals(1, VideoStreamMetadata.scanAv1Buffer(metadata(5, new byte[] {0x1F, 0x00, 0x12, 0x34})).userDataMessages);
+        assertEquals(1, VideoStreamMetadata.scanAv1Buffer(metadata(6, "private".getBytes(StandardCharsets.ISO_8859_1))).userDataMessages);
+        assertEquals(1, VideoStreamMetadata.scanAv1Buffer(obu(15, "hidden".getBytes(StandardCharsets.ISO_8859_1))).userDataMessages);
+        assertEquals(0, VideoStreamMetadata.scanAv1Buffer(obu(15, new byte[8])).userDataMessages);
+    }
+
+    @Test
+    public void av1_readsTheObusOfACodecConfigurationRecord() {
+        byte[] config = concat(new byte[] {(byte) 0x81, 0x08, 0x0C, 0x00},
+                obu(1, new byte[] {0x00, 0x00, 0x00}), metadata(31, new byte[] {1, 2, 3, 4}));
+
+        assertEquals(1, VideoStreamMetadata.scanAv1Buffer(config).userDataMessages);
+    }
+
+    @Test
+    public void av1_lastObuWithoutASizeRunsToTheEnd() {
+        byte[] sizeless = concat(new byte[] {(byte) (5 << 3), 6}, "camera".getBytes(StandardCharsets.ISO_8859_1));
+
+        assertEquals(1, VideoStreamMetadata.scanAv1Buffer(concat(TEMPORAL_DELIMITER, sizeless)).userDataMessages);
+    }
+
+    @Test
+    public void av1_stopsAtACutOffObuWithoutThrowing() {
+        byte[] cut = {(byte) (5 << 3 | 0x02), 0x40, 0x04};
+
+        assertEquals(0, VideoStreamMetadata.scanAv1Buffer(cut).userDataMessages);
+    }
+
+    @Test
+    public void av1_followsExtensionHeaders_andStopsAtWhatIsNotAnObu() {
+        // A metadata OBU with an extension byte (temporal and spatial ids): T.35 from a camera maker.
+        byte[] withExtension = {(byte) (5 << 3 | 0x04 | 0x02), 0x00, 5, 4, 0x26, 0x00, 'a', 'b'};
+        assertEquals(1, VideoStreamMetadata.scanAv1Buffer(withExtension).userDataMessages);
+        // The forbidden bit set: not an OBU stream.
+        assertEquals(0, VideoStreamMetadata.scanAv1Buffer(new byte[] {(byte) 0x80, 0, 0}).userDataMessages);
+        // A size field longer than LEB128 allows.
+        byte[] longLeb = {(byte) (5 << 3 | 0x02), (byte) 0x80, (byte) 0x80, (byte) 0x80, (byte) 0x80,
+                (byte) 0x80, (byte) 0x80, (byte) 0x80, (byte) 0x80, 1};
+        assertEquals(0, VideoStreamMetadata.scanAv1Buffer(longLeb).userDataMessages);
+        // A metadata OBU whose type field is cut off.
+        assertEquals(0, VideoStreamMetadata.scanAv1Buffer(new byte[] {(byte) (5 << 3 | 0x02), 1, (byte) 0x80})
+                .userDataMessages);
+        // An extension byte that isn't there.
+        assertEquals(0, VideoStreamMetadata.scanAv1Buffer(new byte[] {(byte) (5 << 3 | 0x04)}).userDataMessages);
+    }
 }

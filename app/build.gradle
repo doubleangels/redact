@@ -16,8 +16,8 @@ android {
         applicationId "com.doubleangels.redact"
         minSdk 31
         targetSdk 37
-        versionCode 36
-        versionName "1.8.0"
+        versionCode 37
+        versionName "1.9.0"
 
         def sentryRelease = "${applicationId}@${versionName}+${versionCode}"
         buildConfigField "String", "SENTRY_RELEASE", "\"${sentryRelease}\""
@@ -123,6 +123,8 @@ dependencies {
     annotationProcessor libs.glide.compiler
     implementation libs.material
     implementation libs.media3.common
+    implementation libs.media3.container
+    implementation libs.media3.muxer
     implementation libs.media3.effect
     implementation libs.media3.transformer
     implementation libs.lifecycle.viewmodel.ktx

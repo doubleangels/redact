@@ -1,10 +1,10 @@
 ---
 description: Read the current version, choose a major, minor or patch bump from the changes since the last release, and update versionCode and versionName
 allowed-tools: Bash, PowerShell, Read, Edit, Write, Grep, Glob
-argument-hint: "[major|minor|patch|x.y.z] [commit]"
+argument-hint: "[major|minor|patch|x.y.z]"
 ---
 
-Bump the app version for the next release. If I passed `major`, `minor` or `patch`, use that level. If I passed an exact version such as `1.6.1`, use it as the new `versionName` and skip the classification in step 2 (still show the commit list, and warn me if the version is not higher than the current one). Otherwise decide from the changes. Do not push. Only commit if I ask (or if I invoked this with the word "commit").
+Bump the app version for the next release. If I passed `major`, `minor` or `patch`, use that level. If I passed an exact version such as `1.6.1`, use it as the new `versionName` and skip the classification in step 2 (still show the commit list, and warn me if the version is not higher than the current one). Otherwise decide from the changes. When the task is done, commit its changes to the current branch automatically, as the last step describes. Do not push.
 
 ## 1. Read the current state
 
@@ -38,4 +38,4 @@ Show me the classified commit list (features / fixes / ignored), the level you c
 
 End with: the old and new `versionName`/`versionCode`, the level and the reason, the one-line reason for the level, test and translation results, and the reminder that the `v<new versionName>` tag and GitHub release are created by CI when this reaches `main`.
 
-Only if I asked to commit: stage `app/build.gradle` only, and commit with the message `Bump version to <new versionName>`. Never push, and never create tags.
+Then commit to the current branch without asking (skip it if nothing changed or a check is still failing, and say so): stage `app/build.gradle` only, and commit with the message `Bump version to <new versionName>`. Never push, and never create tags.

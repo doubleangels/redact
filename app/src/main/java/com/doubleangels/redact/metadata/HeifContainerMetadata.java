@@ -1,0 +1,1803 @@
+package com.doubleangels.redact.metadata;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * Rebuilds a HEIF image (HEIC or AVIF) with nothing but its pictures, without re-encoding them.
+ *
+ * <p>Decoding and encoding a HEIC again costs quality, its 10-bit colour and its HDR gain map,
+ * and the decode is capped at the processing resolution, so a 50 MP photo came out at about
+ * 12 MP. This copies the coded pictures as they are and, like {@link ImageContainerMetadata},
+ * works from an allowlist: only image items (and the derived grids, overlays and gain map tone
+ * maps built from them) are kept, so EXIF, XMP and any other metadata item, known or not, is left
+ * behind together with its bytes. Item names and the handler name are emptied, item properties
+ * outside the allowlist are replaced with empty {@code free} boxes so the property indexes still
+ * line up, a colour profile keeps its colours with the fields that can name a device or a date
+ * cleared, and SEI messages (HEVC) or metadata OBUs (AV1) that are not about how to show the
+ * picture are dropped from the coded data. Every top-level box but {@code ftyp} goes, which also
+ * removes a Motion Photo's video.
+ */
+public final class HeifContainerMetadata {
+
+    /** {@code ftyp} brands of HEIF still images. */
+    private static final Set<String> BRANDS = Set.of(
+            "heic", "heix", "heim", "heis", "hevc", "hevx", "hevm", "hevs", "mif1", "mif2", "msf1",
+            "avif", "avis");
+
+    /** Items that are pictures or are built from them. */
+    private static final Set<String> IMAGE_ITEM_TYPES = Set.of(
+            "hvc1", "av01", "avc1", "vvc1", "jpeg", "j2k1", "unci", "grid", "iovl", "iden", "tmap");
+
+    /** Item properties a decoder needs to show the picture as it was taken. */
+    private static final Set<String> PROPERTY_KEEP = Set.of(
+            "hvcC", "av1C", "avcC", "vvcC", "jpgC", "ispe", "pixi", "colr", "irot", "imir", "clap",
+            "pasp", "auxC", "rloc", "lsel", "a1op", "a1lx", "clli", "mdcv", "cclv", "amve", "rref");
+
+    /**
+     * Brands that promise a {@code moov} track (image sequences, and MP4 audio or video next to
+     * the image), which is not kept.
+     */
+    /** The still-image brand that stands for a sequence brand that is dropped. */
+    private static final java.util.Map<String, String> STILL_BRANDS = java.util.Map.of(
+            "msf1", "mif1", "hevc", "heic", "hevx", "heix", "hevm", "heim", "hevs", "heis", "avis", "avif");
+
+    private static final Set<String> SEQUENCE_BRANDS = Set.of(
+            "msf1", "hevc", "hevx", "hevm", "hevs", "avis", "isom", "iso2", "iso4", "iso5", "iso6",
+            "mp41", "mp42", "M4A ", "M4V ", "qt  ", "avc1", "3gp4", "3gp5", "3gp6", "dash");
+
+    /**
+     * HEVC SEI payload types kept: mastering display colour volume (137), content light level
+     * (144), alternative transfer characteristics (147), ambient viewing environment (148) and
+     * alpha channel information (165). User data and everything else goes.
+     */
+    private static final Set<Integer> SEI_KEEP = Set.of(137, 144, 147, 148, 165);
+
+    /** AV1 metadata types kept: HDR content light level (1), mastering display (2), scalability (3). */
+    private static final Set<Integer> AV1_METADATA_KEEP = Set.of(1, 2, 3);
+
+    private static final int MAX_META_BYTES = 16 * 1024 * 1024;
+    private static final int MAX_ITEM_BYTES = 512 * 1024 * 1024;
+    private static final int MAX_MOOV_BYTES = 64 * 1024 * 1024;
+
+    private HeifContainerMetadata() {
+    }
+
+    /** Whether {@code file} starts with a HEIF still-image {@code ftyp}. */
+    public static boolean isHeif(@NonNull File file) {
+        try (InputStream in = new FileInputStream(file)) {
+            byte[] head = new byte[64];
+            int n = 0;
+            int r;
+            while (n < head.length && (r = in.read(head, n, head.length - n)) > 0) {
+                n += r;
+            }
+            return isHeif(head, n);
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    static boolean isHeif(@NonNull byte[] head, int length) {
+        if (length < 16 || !"ftyp".equals(fourCc(head, 4))) {
+            return false;
+        }
+        int size = (int) Math.min(u32(head, 0), length);
+        if (BRANDS.contains(fourCc(head, 8))) {
+            return true;
+        }
+        for (int at = 16; at + 4 <= size; at += 4) {
+            if (BRANDS.contains(fourCc(head, at))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** How the video scan names the picture tracks of an image sequence (HeifTracks keeps these). */
+    private static final Set<String> SEQUENCE_PICTURE_TRACKS = Set.of("track:pict", "track:vide", "track:auxv");
+
+    /** Most bytes of one box or item read to describe it in Scan. */
+    private static final int MAX_DESCRIBED = 1024 * 1024;
+    /** Most coded picture data read to look for SEI or metadata OBUs a clean would drop. */
+    private static final long MAX_PICTURE_BYTES_CHECKED = 256L * 1024 * 1024;
+
+    /**
+     * What a clean would leave out of a HEIF, as {@link ImageContainerMetadata#scan} reports it
+     * for other formats: XMP and other metadata items, item and handler names, item properties
+     * outside the allowlist, depth maps and mattes, user data in the coded pictures, top-level
+     * boxes a clean drops, data after the last box, and a Motion Photo's video or an image
+     * sequence that carries metadata of its own. What a clean keeps because it is the picture's
+     * (a Motion Photo's clean video and its directory, an Ultra HDR directory, a colour profile's
+     * name) is in {@code kept}. EXIF is left to ExifInterface, as for the other formats.
+     *
+     * <p>Never throws. A file whose structure cannot be followed is not recognized, so never
+     * called clean, but what was found before that is still reported.
+     */
+    @NonNull
+    static ImageContainerMetadata.Report scan(@NonNull java.nio.channels.FileChannel ch) {
+        List<ImageContainerMetadata.Finding> findings = new ArrayList<>();
+        List<ImageContainerMetadata.Finding> kept = new ArrayList<>();
+        boolean recognized = false;
+        try {
+            long length = ch.size();
+            long pos = 0;
+            byte[] meta = null;
+            boolean heif = false;
+            while (pos < length) {
+                if (pos + 8 > length) {
+                    findings.add(new ImageContainerMetadata.Finding("DATA_AFTER_IMAGE",
+                            null, length - pos, ImageContainerMetadata.Kind.OTHER));
+                    break;
+                }
+                byte[] h = readAt(ch, pos, (int) Math.min(16, length - pos));
+                long size = u32(h, 0);
+                String type = fourCc(h, 4);
+                int header = 8;
+                if (size == 1 && h.length >= 16) {
+                    size = java.nio.ByteBuffer.wrap(h, 8, 8).getLong();
+                    header = 16;
+                } else if (size == 0) {
+                    size = length - pos;
+                }
+                if (size < header || pos + size > length) {
+                    if (!heif) {
+                        return ImageContainerMetadata.Report.unrecognized(ImageContainerMetadata.Format.OTHER);
+                    }
+                    // Not a box: data appended after the last one, which a clean leaves out.
+                    findings.add(new ImageContainerMetadata.Finding("DATA_AFTER_IMAGE",
+                            ReadableText.strings(readAt(ch, pos, (int) Math.min(MAX_DESCRIBED, length - pos))),
+                            length - pos, ImageContainerMetadata.Kind.OTHER));
+                    break;
+                }
+                if (pos == 0) {
+                    byte[] head = readAt(ch, 0, (int) Math.min(64, size));
+                    if (!"ftyp".equals(type) || !isHeif(head, head.length)) {
+                        return ImageContainerMetadata.Report.unrecognized(ImageContainerMetadata.Format.OTHER);
+                    }
+                    heif = true;
+                }
+                switch (type) {
+                    case "ftyp":
+                    case "mdat":
+                        break;
+                    case "free":
+                    case "skip": {
+                        byte[] body = readAt(ch, pos + header, (int) Math.min(MAX_DESCRIBED, size - header));
+                        if (!allZero(body)) {
+                            findings.add(new ImageContainerMetadata.Finding("HEIF_BOX_" + ImageContainerMetadata.keyOf(type),
+                                    ReadableText.strings(body), size - header, ImageContainerMetadata.Kind.OTHER));
+                        }
+                        break;
+                    }
+                    case "meta":
+                        if (meta != null || size > MAX_META_BYTES) {
+                            throw new IOException("A second or oversized meta box");
+                        }
+                        meta = readAt(ch, pos, (int) size);
+                        break;
+                    case "moov":
+                    case "mpvd": {
+                        boolean motion = "mpvd".equals(type);
+                        // A burst's or animation's tracks are kept; a Motion Photo's clean video too.
+                        VideoContainerMetadata.Report video = motion
+                                ? VideoContainerMetadata.scan(ch, pos + header, pos + size)
+                                : VideoContainerMetadata.scan(ch, pos, pos + size);
+                        String key = motion ? "MOTION_PHOTO_VIDEO" : "IMAGE_SEQUENCE";
+                        // A sequence's frames are in picture tracks, which the video scan counts
+                        // as tracks of an unknown kind; they are the picture, kept by a clean.
+                        List<String> fields = new ArrayList<>(video.fields);
+                        if (!motion) {
+                            fields.removeAll(SEQUENCE_PICTURE_TRACKS);
+                        }
+                        if (video.recognized && fields.isEmpty()) {
+                            kept.add(new ImageContainerMetadata.Finding(key, null, size, ImageContainerMetadata.Kind.OTHER));
+                        } else {
+                            findings.add(new ImageContainerMetadata.Finding(key,
+                                    fields.isEmpty() ? null : String.join(", ", fields), size,
+                                    video.hasLocation ? ImageContainerMetadata.Kind.LOCATION : ImageContainerMetadata.Kind.OTHER));
+                        }
+                        break;
+                    }
+                    default:
+                        findings.add(new ImageContainerMetadata.Finding("HEIF_BOX_" + ImageContainerMetadata.keyOf(type),
+                                ReadableText.strings(readAt(ch, pos + header, (int) Math.min(MAX_DESCRIBED, size - header))),
+                                size - header, ImageContainerMetadata.Kind.OTHER));
+                }
+                pos += size;
+            }
+            if (meta == null) {
+                // A sequence without a still picture: its tracks were looked at above.
+                recognized = true;
+            } else {
+                Rebuild rebuild = new Rebuild(ch, meta);
+                rebuild.parse();
+                rebuild.describe(findings, kept);
+                recognized = true;
+            }
+        } catch (IOException | RuntimeException e) {
+            // A damaged file is never called clean; a RuntimeException is a gap in this parser,
+            // so report it, as ImageContainerMetadata.scan does.
+            if (e instanceof RuntimeException) {
+                com.doubleangels.redact.sentry.SentryManager.recordException(e);
+            }
+            recognized = false;
+        }
+        return new ImageContainerMetadata.Report(ImageContainerMetadata.Format.HEIF, recognized, findings, kept);
+    }
+
+    @NonNull
+    private static byte[] readAt(@NonNull java.nio.channels.FileChannel ch, long pos, int length) throws IOException {
+        java.nio.ByteBuffer b = java.nio.ByteBuffer.allocate(Math.max(0, length));
+        while (b.hasRemaining()) {
+            if (ch.read(b, pos + b.position()) < 0) {
+                throw new IOException("Unexpected end of file");
+            }
+        }
+        return b.array();
+    }
+
+    private static boolean allZero(@NonNull byte[] data) {
+        for (byte b : data) {
+            if (b != 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Writes {@code source}'s pictures to {@code target} and nothing else.
+     *
+     * @throws IOException when the file is not a HEIF this class can follow (external data,
+     *     protected items, an unknown layout), so the caller re-encodes it instead
+     */
+    public static void sanitize(@NonNull File source, @NonNull File target) throws IOException {
+        sanitize(source, target, null, null, false);
+    }
+
+    /**
+     * {@link #sanitize(File, File)}, keeping {@code motion}, a Motion Photo's video that has been
+     * cleaned already, the way the Motion Photo format puts it in a HEIF: an XMP item with the
+     * directory that finds it, and the video in a {@code mpvd} box that ends the file.
+     */
+    public static void sanitize(@NonNull File source, @NonNull File target, @Nullable MotionPhoto.Clip motion)
+            throws IOException {
+        sanitize(source, target, null, motion, false);
+    }
+
+    /**
+     * Adds an EXIF item holding {@code tiff} (a TIFF header and its tags, as in a JPEG's APP1
+     * after "Exif\0\0") to an already clean HEIF {@code file}, describing its primary picture.
+     * This is how the tags Keep Camera Settings, Keep Location and Keep Date Taken keep go back
+     * into a HEIC or AVIF, which carries no other EXIF.
+     */
+    public static void addExif(@NonNull File file, @NonNull byte[] tiff) throws IOException {
+        File rebuilt = File.createTempFile("heif_exif_", ".heic", file.getAbsoluteFile().getParentFile());
+        try {
+            sanitize(file, rebuilt, tiff, null, true);
+            java.nio.file.Files.move(rebuilt.toPath(), file.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            if (!rebuilt.delete()) {
+                rebuilt.deleteOnExit();
+            }
+        }
+    }
+
+    /**
+     * @param keepOwnMotion a rebuild of a file this class already cleaned, which keeps the Motion
+     *     Photo XMP and video it wrote
+     */
+    private static void sanitize(@NonNull File source, @NonNull File target, @Nullable byte[] exifTiff,
+            @Nullable MotionPhoto.Clip motion, boolean keepOwnMotion) throws IOException {
+        if (source.getCanonicalPath().equals(target.getCanonicalPath())) {
+            throw new IOException("Source and target must differ");
+        }
+        File body = File.createTempFile("heif_body_", ".bin", target.getAbsoluteFile().getParentFile());
+        try (RandomAccessFile in = new RandomAccessFile(source, "r")) {
+            byte[] ftyp = null;
+            byte[] meta = null;
+            byte[] moov = null;
+            long mpvdStart = -1;
+            long mpvdEnd = -1;
+            long pos = 0;
+            long length = in.length();
+            while (pos + 8 <= length) {
+                in.seek(pos);
+                long size = in.readInt() & 0xFFFFFFFFL;
+                byte[] typeBytes = new byte[4];
+                in.readFully(typeBytes);
+                String type = new String(typeBytes, StandardCharsets.ISO_8859_1);
+                int header = 8;
+                if (size == 1) {
+                    size = in.readLong();
+                    header = 16;
+                } else if (size == 0) {
+                    size = length - pos;
+                }
+                if (size < header || pos + size > length) {
+                    if (ftyp != null && (meta != null || moov != null)) {
+                        // Data after the last box, such as a vendor trailer: never copied, so it
+                        // need not stop a lossless clean.
+                        break;
+                    }
+                    throw new IOException("Damaged box " + type);
+                }
+                if ("mpvd".equals(type)) {
+                    mpvdStart = pos + header;
+                    mpvdEnd = pos + size;
+                } else if ("moov".equals(type) && moov == null && size <= MAX_MOOV_BYTES) {
+                    moov = new byte[(int) size];
+                    in.seek(pos);
+                    in.readFully(moov);
+                } else if ("ftyp".equals(type) || "meta".equals(type)) {
+                    if (size > MAX_META_BYTES) {
+                        throw new IOException("Box too large: " + type);
+                    }
+                    byte[] box = new byte[(int) size];
+                    in.seek(pos);
+                    in.readFully(box);
+                    if ("ftyp".equals(type) && ftyp == null) {
+                        ftyp = box;
+                    } else if ("meta".equals(type)) {
+                        if (meta != null) {
+                            throw new IOException("Two top-level meta boxes");
+                        }
+                        meta = box;
+                    }
+                }
+                pos += size;
+            }
+            if (ftyp == null || (meta == null && moov == null)) {
+                throw new IOException("Not a HEIF image");
+            }
+            // A sequence may come without a still image; then its meta, if any, holds nothing
+            // that is kept, and only the tracks are written.
+            Rebuild rebuild = null;
+            IOException noStill = null;
+            if (meta != null) {
+                rebuild = new Rebuild(in.getChannel(), meta);
+                try {
+                    rebuild.parse();
+                } catch (IOException e) {
+                    rebuild = null;
+                    noStill = e;
+                }
+            }
+            if (exifTiff != null) {
+                if (rebuild == null) {
+                    throw new IOException("No still picture to describe");
+                }
+                rebuild.addExif(exifTiff);
+            }
+            // The Motion Photo's video to end the file with: a clean clip, or the one an earlier
+            // clean of this file wrote, as [source file, start, end].
+            File videoFile = null;
+            long videoStart = 0;
+            long videoEnd = 0;
+            if (rebuild != null && motion != null) {
+                videoFile = motion.video;
+                videoEnd = motion.video.length();
+                rebuild.addXmp(UltraHdr.primaryXmp(null, -1, motion, primaryMime(ftyp), MPVD_HEADER)
+                        .getBytes(StandardCharsets.UTF_8));
+            } else if (rebuild != null && keepOwnMotion && mpvdStart >= 0) {
+                byte[] own = rebuild.ownMotionXmp();
+                if (own != null) {
+                    videoFile = source;
+                    videoStart = mpvdStart;
+                    videoEnd = mpvdEnd;
+                    rebuild.addXmp(own);
+                }
+            }
+            if (videoEnd - videoStart + MPVD_HEADER > 0xFFFFFFFFL) {
+                throw new IOException("Motion Photo video too large");
+            }
+            // A burst's or animation's frames are kept when their tracks can be followed;
+            // otherwise only the still image is, and ftyp stops promising the sequence.
+            HeifTracks tracks = null;
+            if (moov != null) {
+                try {
+                    tracks = HeifTracks.parse(in, moov);
+                } catch (IOException | RuntimeException e) {
+                    // Only the still picture is kept; the frames are dropped, never copied as they are.
+                    com.doubleangels.redact.sentry.SentryManager.log(
+                            "The image sequence's tracks could not be followed, so only the still picture is kept: "
+                                    + e.getClass().getSimpleName() + ".");
+                    tracks = null;
+                }
+            }
+            if (rebuild == null && tracks == null) {
+                throw noStill != null ? noStill : new IOException("Nothing to keep");
+            }
+            if (tracks == null) {
+                ftyp = stillImageFtyp(ftyp);
+            }
+            try (OutputStream bodyOut = new BufferedOutputStream(new FileOutputStream(body), 64 * 1024)) {
+                long itemBytes = rebuild != null ? rebuild.writeItemData(bodyOut) : 0;
+                if (tracks != null) {
+                    tracks.writeSamples(bodyOut, itemBytes);
+                }
+            }
+            long bodyLength = body.length();
+            // The pictures follow ftyp, meta, moov and the mdat header; iloc and stco point at
+            // them there. Neither box changes size with the offsets written into it.
+            long mdatHeader = bodyLength + 8 > 0xFFFFFFFFL ? 16 : 8;
+            int moovLength = tracks != null ? tracks.build(0).length : 0;
+            byte[] newMeta = rebuild != null
+                    ? rebuild.writeMeta(ftyp.length, moovLength + mdatHeader) : new byte[0];
+            long dataStart = ftyp.length + newMeta.length + moovLength + mdatHeader;
+            if (dataStart + bodyLength > 0xFFFFFFFFL) {
+                throw new IOException("Too large for 32-bit item offsets");
+            }
+            byte[] newMoov = tracks != null ? tracks.build(dataStart) : new byte[0];
+            try (OutputStream out = new BufferedOutputStream(new FileOutputStream(target), 64 * 1024);
+                    InputStream bodyIn = new FileInputStream(body)) {
+                out.write(ftyp);
+                out.write(newMeta);
+                out.write(newMoov);
+                if (mdatHeader == 16) {
+                    writeU32(out, 1);
+                    out.write(ascii("mdat"));
+                    writeU64(out, bodyLength + 16);
+                } else {
+                    writeU32(out, bodyLength + 8);
+                    out.write(ascii("mdat"));
+                }
+                byte[] buffer = new byte[64 * 1024];
+                int read;
+                while ((read = bodyIn.read(buffer)) > 0) {
+                    out.write(buffer, 0, read);
+                }
+                if (videoFile != null) {
+                    // After every other box, as the Motion Photo format asks.
+                    writeU32(out, videoEnd - videoStart + MPVD_HEADER);
+                    out.write(ascii("mpvd"));
+                    try (RandomAccessFile video = new RandomAccessFile(videoFile, "r")) {
+                        video.seek(videoStart);
+                        long left = videoEnd - videoStart;
+                        while (left > 0) {
+                            int n = video.read(buffer, 0, (int) Math.min(buffer.length, left));
+                            if (n < 0) {
+                                throw new IOException("The Motion Photo video ends early");
+                            }
+                            out.write(buffer, 0, n);
+                            left -= n;
+                        }
+                    }
+                }
+                out.flush();
+            }
+        } finally {
+            if (!body.delete()) {
+                body.deleteOnExit();
+            }
+        }
+    }
+
+    /** The size of the {@code mpvd} box header, which the directory gives as the primary's padding. */
+    static final int MPVD_HEADER = 8;
+
+    /** The primary picture's type for the Motion Photo directory: AVIF or HEIC, by the file's brand. */
+    @NonNull
+    private static String primaryMime(@NonNull byte[] ftyp) {
+        String major = fourCc(ftyp, headerSize(ftyp, 0));
+        return major.startsWith("avi") ? "image/avif" : "image/heic";
+    }
+
+    /**
+     * {@code ftyp} without image sequence brands: a burst's or animation's {@code moov} track is
+     * not kept, and a reader told the file is a sequence looks for it instead of the still image.
+     */
+    @VisibleForTesting
+    @NonNull
+    static byte[] stillImageFtyp(@NonNull byte[] ftyp) throws IOException {
+        int header = headerSize(ftyp, 0);
+        if (ftyp.length < header + 8) {
+            throw new IOException("Damaged ftyp");
+        }
+        String major = fourCc(ftyp, header);
+        List<String> compatible = new ArrayList<>();
+        for (int at = header + 8; at + 4 <= ftyp.length; at += 4) {
+            String brand = fourCc(ftyp, at);
+            if (SEQUENCE_BRANDS.contains(brand)) {
+                brand = STILL_BRANDS.get(brand);
+            }
+            if (brand != null && !compatible.contains(brand)) {
+                compatible.add(brand);
+            }
+        }
+        if (!SEQUENCE_BRANDS.contains(major) && compatible.size() * 4 + header + 8 == ftyp.length) {
+            return ftyp;
+        }
+        if (!compatible.contains("mif1")) {
+            compatible.add("mif1");
+        }
+        if (SEQUENCE_BRANDS.contains(major)) {
+            major = STILL_BRANDS.getOrDefault(major, "mif1");
+            if (!compatible.contains(major)) {
+                compatible.add(major);
+            }
+        }
+        ByteArrayOutputStream b = new ByteArrayOutputStream();
+        b.write(ascii(major));
+        b.write(ftyp, header + 4, 4); // minor version
+        for (String brand : compatible) {
+            b.write(ascii(brand));
+        }
+        return box("ftyp", b.toByteArray());
+    }
+
+    // ---- the rebuild ----------------------------------------------------------------------------
+
+    private static final class Item {
+        final long id;
+        final String type;
+        final int infeVersion;
+        final int infeFlags;
+        int constructionMethod;
+        final List<long[]> extents = new ArrayList<>();
+        /** Where the item's data went: in the new mdat body, or in the new idat. */
+        long newOffset;
+        long newLength;
+        boolean hasLocation;
+        /** Data written by this class rather than copied from the source: the kept EXIF or XMP. */
+        @Nullable byte[] data;
+        /** A {@code mime} item's content type, such as XMP's {@code application/rdf+xml}. */
+        @Nullable String contentType;
+        /** The item's name in the source, which a clean empties. */
+        @Nullable String name;
+
+        Item(long id, String type, int infeVersion, int infeFlags) {
+            this.id = id;
+            this.type = type;
+            this.infeVersion = infeVersion;
+            this.infeFlags = infeFlags;
+        }
+    }
+
+    private static final class Rebuild {
+        private final java.nio.channels.FileChannel in;
+        private final byte[] meta;
+        private final Map<Long, Item> items = new LinkedHashMap<>();
+        private final Set<Long> kept = new HashSet<>();
+        /** Children of meta in file order, as [type, start, end] of the whole child box. */
+        private final List<Object[]> children = new ArrayList<>();
+        private int metaVersionFlags;
+        private int ilocVersion;
+        private int irefVersion;
+        private int irefStart = -1;
+        private int irefEnd = -1;
+        private int idatPayload = -1;
+        private int idatEnd = -1;
+        private int ipcoStart = -1;
+        private int ipcoEnd = -1;
+        private int ipmaStart = -1;
+        private int ipmaEnd = -1;
+        private final List<int[]> properties = new ArrayList<>();
+        /** In the source's order, which is by increasing item ID. */
+        private final Map<Long, List<Integer>> itemProperties = new LinkedHashMap<>();
+        private long primaryId = -1;
+        private final ByteArrayOutputStream newIdat = new ByteArrayOutputStream();
+
+        Rebuild(@NonNull java.nio.channels.FileChannel in, @NonNull byte[] meta) {
+            this.in = in;
+            this.meta = meta;
+        }
+
+        void parse() throws IOException {
+            int header = headerSize(meta, 0);
+            metaVersionFlags = (int) u32(meta, header);
+            int pos = header + 4;
+            while (pos + 8 <= meta.length) {
+                int size = boxSize(meta, pos);
+                String type = fourCc(meta, pos + 4);
+                int end = pos + size;
+                int payload = pos + headerSize(meta, pos);
+                children.add(new Object[] {type, pos, end});
+                switch (type) {
+                    case "iinf":
+                        parseIinf(payload, end);
+                        break;
+                    case "pitm":
+                        primaryId = (meta[payload] & 0xFF) == 0 ? u16(meta, payload + 4) : u32(meta, payload + 4);
+                        break;
+                    case "iref":
+                        irefVersion = meta[payload] & 0xFF;
+                        irefStart = payload + 4;
+                        irefEnd = end;
+                        break;
+                    case "iprp":
+                        parseIprp(payload, end);
+                        break;
+                    case "idat":
+                        idatPayload = payload;
+                        idatEnd = end;
+                        break;
+                    case "ipro":
+                        throw new IOException("Protected items");
+                    case "dinf":
+                        requireSelfContained(payload, end);
+                        break;
+                    default:
+                        break;
+                }
+                pos = end;
+            }
+            // iloc may come before iinf; read it once every item's type is known.
+            for (Object[] child : children) {
+                if ("iloc".equals(child[0])) {
+                    int start = (int) child[1];
+                    parseIloc(start + headerSize(meta, start), (int) child[2]);
+                }
+            }
+            for (Item item : items.values()) {
+                if (IMAGE_ITEM_TYPES.contains(item.type) && !isDepthOrMatte(item.id)) {
+                    kept.add(item.id);
+                }
+            }
+            if (!kept.contains(primaryId)) {
+                throw new IOException("The primary item is not a picture");
+            }
+            // A property blanked out must not be one a kept picture can't be shown without.
+            for (Map.Entry<Long, List<Integer>> entry : itemProperties.entrySet()) {
+                if (!kept.contains(entry.getKey())) {
+                    continue;
+                }
+                for (int index : entry.getValue()) {
+                    if (index < 1 || index > properties.size()) {
+                        throw new IOException("Damaged property index");
+                    }
+                    String type = fourCc(meta, properties.get(index - 1)[0] + 4);
+                    if (!PROPERTY_KEEP.contains(type)
+                            && essential(entry.getKey(), index, ipmaFlags(), ipmaVersion())) {
+                        throw new IOException("Essential property " + type);
+                    }
+                }
+            }
+        }
+
+        private int ipmaVersion() {
+            return meta[ipmaStart] & 0xFF;
+        }
+
+        private int ipmaFlags() {
+            return (int) (u32(meta, ipmaStart) & 0xFFFFFF);
+        }
+
+        private void parseIinf(int payload, int end) throws IOException {
+            int version = meta[payload] & 0xFF;
+            int pos = payload + 4 + (version == 0 ? 2 : 4);
+            while (pos + 8 <= end) {
+                int size = boxSize(meta, pos);
+                int boxEnd = pos + size;
+                if ("infe".equals(fourCc(meta, pos + 4))) {
+                    int p = pos + headerSize(meta, pos);
+                    int infeVersion = meta[p] & 0xFF;
+                    int infeFlags = (int) (u32(meta, p) & 0xFFFFFF);
+                    if (infeVersion < 2) {
+                        throw new IOException("Old item info");
+                    }
+                    p += 4;
+                    long id;
+                    if (infeVersion == 2) {
+                        id = u16(meta, p);
+                        p += 2;
+                    } else {
+                        id = u32(meta, p);
+                        p += 4;
+                    }
+                    int protection = u16(meta, p);
+                    p += 2;
+                    String type = fourCc(meta, p);
+                    if (protection != 0 && IMAGE_ITEM_TYPES.contains(type)) {
+                        throw new IOException("Protected image item");
+                    }
+                    Item item = new Item(id, type, infeVersion, infeFlags);
+                    int nameStart = p + 4;
+                    int nameEnd = nameStart;
+                    while (nameEnd < boxEnd && meta[nameEnd] != 0) {
+                        nameEnd++;
+                    }
+                    if (nameEnd > nameStart) {
+                        item.name = new String(meta, nameStart, nameEnd - nameStart, StandardCharsets.UTF_8);
+                    }
+                    if ("mime".equals(type)) {
+                        p += 4;
+                        int name = p;
+                        while (name < boxEnd && meta[name] != 0) {
+                            name++;
+                        }
+                        int typeEnd = name + 1;
+                        while (typeEnd < boxEnd && meta[typeEnd] != 0) {
+                            typeEnd++;
+                        }
+                        if (name + 1 < boxEnd) {
+                            item.contentType = new String(meta, name + 1, typeEnd - name - 1,
+                                    StandardCharsets.ISO_8859_1);
+                        }
+                    }
+                    items.put(id, item);
+                }
+                pos = boxEnd;
+            }
+        }
+
+        private void parseIloc(int payload, int end) throws IOException {
+            ilocVersion = meta[payload] & 0xFF;
+            int pos = payload + 4;
+            int offsetSize = (meta[pos] >> 4) & 0xF;
+            int lengthSize = meta[pos] & 0xF;
+            int baseOffsetSize = (meta[pos + 1] >> 4) & 0xF;
+            int indexSize = ilocVersion >= 1 ? meta[pos + 1] & 0xF : 0;
+            pos += 2;
+            long count;
+            if (ilocVersion < 2) {
+                count = u16(meta, pos);
+                pos += 2;
+            } else {
+                count = u32(meta, pos);
+                pos += 4;
+            }
+            for (long i = 0; i < count; i++) {
+                long id;
+                if (ilocVersion < 2) {
+                    id = u16(meta, pos);
+                    pos += 2;
+                } else {
+                    id = u32(meta, pos);
+                    pos += 4;
+                }
+                int method = 0;
+                if (ilocVersion >= 1) {
+                    method = u16(meta, pos) & 0xF;
+                    pos += 2;
+                }
+                int dataReference = u16(meta, pos);
+                pos += 2;
+                long base = uN(meta, pos, baseOffsetSize);
+                pos += baseOffsetSize;
+                int extentCount = u16(meta, pos);
+                pos += 2;
+                Item item = items.get(id);
+                List<long[]> extents = new ArrayList<>();
+                for (int e = 0; e < extentCount; e++) {
+                    if (indexSize > 0) {
+                        pos += indexSize;
+                    }
+                    long offset = uN(meta, pos, offsetSize);
+                    pos += offsetSize;
+                    long length = uN(meta, pos, lengthSize);
+                    pos += lengthSize;
+                    extents.add(new long[] {base + offset, length});
+                }
+                if (pos > end) {
+                    throw new IOException("Damaged iloc");
+                }
+                if (item != null && !IMAGE_ITEM_TYPES.contains(item.type)) {
+                    if (dataReference == 0 && method <= 1) {
+                        // Read only to describe it in Scan, or to find XMP this class wrote
+                        // ({@link Rebuild#ownMotionXmp}); it is not kept from here.
+                        item.constructionMethod = method;
+                        item.extents.addAll(extents);
+                    }
+                    continue;
+                }
+                if (item == null || !IMAGE_ITEM_TYPES.contains(item.type)) {
+                    continue;
+                }
+                if (dataReference != 0 || method > 1 || (indexSize > 0 && extentCount > 1)) {
+                    throw new IOException("Item data this class cannot follow");
+                }
+                item.constructionMethod = method;
+                item.extents.addAll(extents);
+                item.hasLocation = true;
+            }
+        }
+
+        private void parseIprp(int payload, int end) throws IOException {
+            int pos = payload;
+            while (pos + 8 <= end) {
+                int size = boxSize(meta, pos);
+                String type = fourCc(meta, pos + 4);
+                int boxEnd = pos + size;
+                int p = pos + headerSize(meta, pos);
+                if ("ipco".equals(type)) {
+                    ipcoStart = p;
+                    ipcoEnd = boxEnd;
+                    int q = p;
+                    while (q + 8 <= boxEnd) {
+                        int propertySize = boxSize(meta, q);
+                        properties.add(new int[] {q, q + propertySize});
+                        q += propertySize;
+                    }
+                } else if ("ipma".equals(type)) {
+                    ipmaStart = p;
+                    ipmaEnd = boxEnd;
+                    int version = meta[p] & 0xFF;
+                    int flags = (int) (u32(meta, p) & 0xFFFFFF);
+                    int q = p + 4;
+                    long count = u32(meta, q);
+                    q += 4;
+                    for (long i = 0; i < count; i++) {
+                        long id;
+                        if (version < 1) {
+                            id = u16(meta, q);
+                            q += 2;
+                        } else {
+                            id = u32(meta, q);
+                            q += 4;
+                        }
+                        int associations = meta[q++] & 0xFF;
+                        List<Integer> indexes = new ArrayList<>();
+                        for (int a = 0; a < associations; a++) {
+                            int index;
+                            if ((flags & 1) != 0) {
+                                index = u16(meta, q) & 0x7FFF;
+                                q += 2;
+                            } else {
+                                index = meta[q++] & 0x7F;
+                            }
+                            indexes.add(index);
+                        }
+                        itemProperties.put(id, indexes);
+                    }
+                    if (q > boxEnd) {
+                        throw new IOException("Damaged ipma");
+                    }
+                }
+                pos = boxEnd;
+            }
+            if (ipcoStart < 0 || ipmaStart < 0) {
+                throw new IOException("No item properties");
+            }
+        }
+
+        private void requireSelfContained(int payload, int end) throws IOException {
+            // dinf > dref > entries; each must have the self-contained flag.
+            int pos = payload;
+            while (pos + 8 <= end) {
+                int size = boxSize(meta, pos);
+                if ("dref".equals(fourCc(meta, pos + 4))) {
+                    int p = pos + headerSize(meta, pos) + 8;
+                    while (p + 12 <= pos + size) {
+                        int entrySize = boxSize(meta, p);
+                        long flags = u32(meta, p + headerSize(meta, p)) & 0xFFFFFF;
+                        if ((flags & 1) == 0) {
+                            throw new IOException("External data");
+                        }
+                        p += entrySize;
+                    }
+                }
+                pos += size;
+            }
+        }
+
+        /**
+         * Adds to {@code findings} what a rebuild leaves out of meta, and to {@code kept} what it
+         * keeps that Scan should still show: see {@link HeifContainerMetadata#scan}.
+         */
+        void describe(@NonNull List<ImageContainerMetadata.Finding> findings,
+                @NonNull List<ImageContainerMetadata.Finding> keptRows) throws IOException {
+            for (Object[] child : children) {
+                String type = (String) child[0];
+                int start = (int) child[1];
+                int end = (int) child[2];
+                switch (type) {
+                    case "hdlr": {
+                        // version/flags, pre_defined, handler type, three reserved words, then the name.
+                        int name = start + headerSize(meta, start) + 24;
+                        int nameEnd = name;
+                        while (nameEnd < end && meta[nameEnd] != 0) {
+                            nameEnd++;
+                        }
+                        if (nameEnd > name) {
+                            findings.add(new ImageContainerMetadata.Finding("HEIF_HANDLER_NAME",
+                                    new String(meta, name, nameEnd - name, StandardCharsets.UTF_8),
+                                    nameEnd - name, ImageContainerMetadata.Kind.OTHER));
+                        }
+                        break;
+                    }
+                    case "pitm":
+                    case "dinf":
+                    case "iinf":
+                    case "iloc":
+                    case "iref":
+                    case "iprp":
+                    case "idat":
+                    case "grpl":
+                    case "free":
+                    case "skip":
+                        break;
+                    case "xml ": {
+                        int body = start + headerSize(meta, start) + 4;
+                        String xml = new String(meta, body, Math.max(0, end - body), StandardCharsets.UTF_8);
+                        findings.add(new ImageContainerMetadata.Finding("XMP", xml, end - body,
+                                ImageContainerMetadata.xmpKind(xml)));
+                        break;
+                    }
+                    default:
+                        findings.add(new ImageContainerMetadata.Finding("HEIF_META_" + ImageContainerMetadata.keyOf(type),
+                                ReadableText.strings(meta, start + 8, end - start - 8), end - start,
+                                ImageContainerMetadata.Kind.OTHER));
+                }
+            }
+            long pictureBytes = 0;
+            boolean sawExif = false;
+            for (Item item : items.values()) {
+                if (item.name != null && !item.name.trim().isEmpty()) {
+                    findings.add(new ImageContainerMetadata.Finding("HEIF_ITEM_NAME", item.name,
+                            item.name.length(), ImageContainerMetadata.Kind.OTHER));
+                }
+                if (IMAGE_ITEM_TYPES.contains(item.type)) {
+                    if (!kept.contains(item.id)) {
+                        byte[] auxC = property(item.id, "auxC");
+                        String urn = auxC != null && auxC.length > 12
+                                ? ReadableText.strings(auxC, 12, auxC.length - 12) : null;
+                        findings.add(new ImageContainerMetadata.Finding("HEIF_DEPTH_OR_MATTE", urn,
+                                itemLength(item), ImageContainerMetadata.Kind.OTHER));
+                        continue;
+                    }
+                    long itemBytes = itemLength(item);
+                    if (item.hasLocation && pictureBytes + itemBytes <= MAX_PICTURE_BYTES_CHECKED) {
+                        pictureBytes += itemBytes;
+                        byte[] data = readItem(item);
+                        byte[] clean = cleanItemData(item, data);
+                        if (clean.length != data.length) {
+                            findings.add(new ImageContainerMetadata.Finding("HEIF_PICTURE_USER_DATA",
+                                    null, data.length - clean.length, ImageContainerMetadata.Kind.OTHER));
+                        }
+                    }
+                    continue;
+                }
+                if ("Exif".equals(item.type)) {
+                    // The first is what ExifInterface reads and Scan lists tag by tag.
+                    if (sawExif) {
+                        findings.add(new ImageContainerMetadata.Finding("HEIF_EXTRA_EXIF", null,
+                                itemLength(item), ImageContainerMetadata.Kind.OTHER));
+                    }
+                    sawExif = true;
+                    continue;
+                }
+                byte[] data = item.extents.isEmpty() || itemLength(item) > MAX_DESCRIBED ? null : readItem(item);
+                if ("mime".equals(item.type) && "application/rdf+xml".equals(item.contentType) && data != null) {
+                    String xmp = new String(data, StandardCharsets.UTF_8);
+                    if (UltraHdr.isPictureOnlyXmp(xmp)) {
+                        keptRows.add(new ImageContainerMetadata.Finding(
+                                UltraHdr.declaresMotionPhoto(xmp) ? "MOTION_PHOTO" : "ULTRA_HDR",
+                                null, data.length, ImageContainerMetadata.Kind.OTHER));
+                    } else {
+                        findings.add(new ImageContainerMetadata.Finding("XMP", xmp, data.length,
+                                ImageContainerMetadata.xmpKind(xmp)));
+                    }
+                    continue;
+                }
+                String what = "mime".equals(item.type) && item.contentType != null ? item.contentType : item.type;
+                findings.add(new ImageContainerMetadata.Finding("HEIF_ITEM_" + ImageContainerMetadata.keyOf(what),
+                        data != null ? ReadableText.strings(data) : null, itemLength(item),
+                        ImageContainerMetadata.Kind.OTHER));
+            }
+            for (int[] property : properties) {
+                String type = fourCc(meta, property[0] + 4);
+                int body = property[0] + headerSize(meta, property[0]);
+                if ("colr".equals(type)) {
+                    String colourType = fourCc(meta, body);
+                    if ("prof".equals(colourType) || "rICC".equals(colourType)) {
+                        byte[] profile = java.util.Arrays.copyOfRange(meta, body + 4, property[1]);
+                        String description = ImageContainerMetadata.IccText.read(profile, "desc");
+                        if (description != null) {
+                            keptRows.add(new ImageContainerMetadata.Finding("ICC_PROFILE", description,
+                                    profile.length, ImageContainerMetadata.Kind.OTHER));
+                        }
+                        String device = ((nonNull(ImageContainerMetadata.IccText.read(profile, "dmnd")) + " "
+                                + nonNull(ImageContainerMetadata.IccText.read(profile, "dmdd")))).trim();
+                        if (!device.isEmpty()) {
+                            keptRows.add(new ImageContainerMetadata.Finding("ICC_PROFILE_DEVICE", device, 8,
+                                    ImageContainerMetadata.Kind.DEVICE));
+                        }
+                    }
+                } else if (("hvcC".equals(type) || "av1C".equals(type))) {
+                    byte[] box = java.util.Arrays.copyOfRange(meta, property[0], property[1]);
+                    byte[] clean = "hvcC".equals(type) ? filterHvcC(box) : filterAv1C(box);
+                    if (clean.length != box.length) {
+                        findings.add(new ImageContainerMetadata.Finding("HEIF_PICTURE_USER_DATA", null,
+                                box.length - clean.length, ImageContainerMetadata.Kind.OTHER));
+                    }
+                } else if (!PROPERTY_KEEP.contains(type) && !"free".equals(type) && !"skip".equals(type)) {
+                    findings.add(new ImageContainerMetadata.Finding("HEIF_PROPERTY_" + ImageContainerMetadata.keyOf(type),
+                            ReadableText.strings(meta, body, property[1] - body), property[1] - property[0],
+                            ImageContainerMetadata.Kind.OTHER));
+                }
+            }
+        }
+
+        private static String nonNull(@Nullable String s) {
+            return s != null ? s : "";
+        }
+
+        private static long itemLength(@NonNull Item item) {
+            long total = 0;
+            for (long[] extent : item.extents) {
+                total += extent[1];
+            }
+            return total;
+        }
+
+        /** Items this class added or kept that describe ("cdsc") the primary picture. */
+        private final List<Long> describing = new ArrayList<>();
+
+        /** Adds an EXIF item holding {@code tiff}, the way cameras store it in a HEIF. */
+        void addExif(@NonNull byte[] tiff) throws IOException {
+            // The item starts with where the TIFF header is, counted after these four bytes.
+            byte[] data = new byte[4 + tiff.length];
+            System.arraycopy(tiff, 0, data, 4, tiff.length);
+            addDescription("Exif", null, data);
+        }
+
+        /** Adds an XMP item holding {@code xmp}, the way a HEIF carries it. */
+        void addXmp(@NonNull byte[] xmp) throws IOException {
+            addDescription("mime", "application/rdf+xml", xmp);
+        }
+
+        private void addDescription(@NonNull String type, @Nullable String contentType, @NonNull byte[] data)
+                throws IOException {
+            long id = 0;
+            for (long existing : items.keySet()) {
+                id = Math.max(id, existing);
+            }
+            id++;
+            if (id > 0xFFFF) {
+                throw new IOException("No room for another item");
+            }
+            Item item = new Item(id, type, 2, 0);
+            item.hasLocation = true;
+            item.contentType = contentType;
+            item.data = data;
+            items.put(id, item);
+            kept.add(id);
+            describing.add(id);
+        }
+
+        /**
+         * The XMP this class wrote into an earlier clean of the file, which holds only a Motion
+         * Photo's directory, so a rebuild that adds the kept EXIF keeps it; null when none.
+         */
+        @Nullable
+        byte[] ownMotionXmp() throws IOException {
+            for (Item item : items.values()) {
+                if ("mime".equals(item.type) && "application/rdf+xml".equals(item.contentType)) {
+                    byte[] xmp = readItem(item);
+                    String text = new String(xmp, StandardCharsets.UTF_8);
+                    if (UltraHdr.isPictureOnlyXmp(text) && UltraHdr.declaresMotionPhoto(text)) {
+                        return xmp;
+                    }
+                }
+            }
+            return null;
+        }
+
+        /** Writes each kept item's data, cleaned, to the new mdat body or the new idat. */
+        long writeItemData(@NonNull OutputStream body) throws IOException {
+            long bodyOffset = 0;
+            for (Item item : items.values()) {
+                if (!kept.contains(item.id) || !item.hasLocation) {
+                    continue;
+                }
+                byte[] data = item.data != null ? item.data : cleanItemData(item, readItem(item));
+                if (item.constructionMethod == 1) {
+                    item.newOffset = newIdat.size();
+                    newIdat.write(data);
+                } else {
+                    item.newOffset = bodyOffset;
+                    body.write(data);
+                    bodyOffset += data.length;
+                }
+                item.newLength = data.length;
+            }
+            return bodyOffset;
+        }
+
+        @NonNull
+        private byte[] readItem(@NonNull Item item) throws IOException {
+            long total = 0;
+            for (long[] extent : item.extents) {
+                total += extent[1];
+            }
+            if (total > MAX_ITEM_BYTES) {
+                throw new IOException("Item too large");
+            }
+            byte[] data = new byte[(int) total];
+            int at = 0;
+            for (long[] extent : item.extents) {
+                int length = (int) extent[1];
+                if (item.constructionMethod == 1) {
+                    if (idatPayload < 0 || extent[0] + length > idatEnd - idatPayload) {
+                        throw new IOException("Item outside idat");
+                    }
+                    System.arraycopy(meta, idatPayload + (int) extent[0], data, at, length);
+                } else {
+                    if (extent[0] + length > in.size()) {
+                        throw new IOException("Item outside the file");
+                    }
+                    java.nio.ByteBuffer into = java.nio.ByteBuffer.wrap(data, at, length);
+                    long from = extent[0];
+                    while (into.hasRemaining()) {
+                        int n = in.read(into, from + (into.position() - at));
+                        if (n < 0) {
+                            throw new IOException("Item outside the file");
+                        }
+                    }
+                }
+                at += length;
+            }
+            return data;
+        }
+
+        @NonNull
+        private byte[] cleanItemData(@NonNull Item item, @NonNull byte[] data) throws IOException {
+            switch (item.type) {
+                case "hvc1": {
+                    byte[] hvcC = property(item.id, "hvcC");
+                    if (hvcC == null) {
+                        throw new IOException("HEVC item without hvcC");
+                    }
+                    int lengthSize = (hvcC[headerSize(hvcC, 0) + 21] & 3) + 1;
+                    return filterHevcNalUnits(data, lengthSize);
+                }
+                case "av01":
+                    return filterAv1Obus(data);
+                default:
+                    return data;
+            }
+        }
+
+        /**
+         * Whether an item is an auxiliary picture of the scene's depth, or a matte outlining a
+         * person, their skin, hair or teeth: a JPEG's depth map is left out too, and an outline
+         * can show the shape of a face or body. Alpha and HDR gain maps are kept, as the picture
+         * needs them.
+         */
+        private boolean isDepthOrMatte(long itemId) {
+            byte[] auxC = property(itemId, "auxC");
+            if (auxC == null || auxC.length <= 12) {
+                return false;
+            }
+            int end = 12;
+            while (end < auxC.length && auxC[end] != 0) {
+                end++;
+            }
+            String urn = new String(auxC, 12, end - 12, StandardCharsets.ISO_8859_1);
+            return urn.contains("depth") || urn.equals("urn:mpeg:hevc:2015:auxid:2")
+                    || urn.contains("matte") || urn.contains("disparity");
+        }
+
+        @Nullable
+        private byte[] property(long itemId, @NonNull String type) {
+            List<Integer> indexes = itemProperties.get(itemId);
+            if (indexes == null) {
+                return null;
+            }
+            for (int index : indexes) {
+                if (index >= 1 && index <= properties.size()) {
+                    int[] box = properties.get(index - 1);
+                    if (type.equals(fourCc(meta, box[0] + 4))) {
+                        return java.util.Arrays.copyOfRange(meta, box[0], box[1]);
+                    }
+                }
+            }
+            return null;
+        }
+
+        /** The new meta box, with item locations pointing past {@code ftypLength}, meta and mdat's header. */
+        @NonNull
+        byte[] writeMeta(int ftypLength, long afterMeta) throws IOException {
+            // iloc's size depends only on how many items there are, so meta's size is known
+            // before the offsets that depend on it are written.
+            byte[] probe = buildMeta(0);
+            long dataStart = ftypLength + probe.length + afterMeta;
+            byte[] built = buildMeta(dataStart);
+            if (built.length != probe.length) {
+                throw new IOException("meta size changed");
+            }
+            return built;
+        }
+
+        @NonNull
+        private byte[] buildMeta(long dataStart) throws IOException {
+            ByteArrayOutputStream body = new ByteArrayOutputStream();
+            writeU32(body, metaVersionFlags);
+            boolean wroteIref = false;
+            for (Object[] child : children) {
+                String type = (String) child[0];
+                int start = (int) child[1];
+                int end = (int) child[2];
+                switch (type) {
+                    case "hdlr":
+                        body.write(hdlr());
+                        break;
+                    case "pitm":
+                    case "dinf":
+                        body.write(meta, start, end - start);
+                        break;
+                    case "iinf":
+                        body.write(iinf());
+                        break;
+                    case "iloc":
+                        body.write(iloc(dataStart));
+                        break;
+                    case "iref":
+                        body.write(iref());
+                        wroteIref = true;
+                        break;
+                    case "iprp":
+                        body.write(iprp());
+                        break;
+                    case "idat":
+                        body.write(box("idat", newIdat.toByteArray()));
+                        break;
+                    case "grpl":
+                        body.write(grpl(start, end));
+                        break;
+                    default:
+                        // xml, bxml and anything unknown: not the picture.
+                        break;
+                }
+            }
+            if (!describing.isEmpty() && !wroteIref) {
+                body.write(iref());
+            }
+            return box("meta", body.toByteArray());
+        }
+
+        @NonNull
+        private byte[] hdlr() throws IOException {
+            ByteArrayOutputStream b = new ByteArrayOutputStream();
+            writeU32(b, 0); // version and flags
+            writeU32(b, 0); // pre_defined
+            b.write(ascii("pict"));
+            writeU32(b, 0);
+            writeU32(b, 0);
+            writeU32(b, 0);
+            b.write(0); // empty name
+            return box("hdlr", b.toByteArray());
+        }
+
+        @NonNull
+        private byte[] iinf() throws IOException {
+            boolean wide = false;
+            int count = 0;
+            for (Item item : items.values()) {
+                if (kept.contains(item.id)) {
+                    count++;
+                    wide |= item.id > 0xFFFF;
+                }
+            }
+            ByteArrayOutputStream b = new ByteArrayOutputStream();
+            int version = count > 0xFFFF ? 1 : 0;
+            writeU32(b, (long) version << 24);
+            if (version == 0) {
+                writeU16(b, count);
+            } else {
+                writeU32(b, count);
+            }
+            for (Item item : items.values()) {
+                if (!kept.contains(item.id)) {
+                    continue;
+                }
+                int infeVersion = wide || item.infeVersion == 3 ? 3 : 2;
+                ByteArrayOutputStream e = new ByteArrayOutputStream();
+                writeU32(e, ((long) infeVersion << 24) | item.infeFlags);
+                if (infeVersion == 2) {
+                    writeU16(e, (int) item.id);
+                } else {
+                    writeU32(e, item.id);
+                }
+                writeU16(e, 0); // protection index
+                e.write(ascii(item.type));
+                e.write(0); // empty name
+                if ("mime".equals(item.type) && item.contentType != null) {
+                    e.write(item.contentType.getBytes(StandardCharsets.ISO_8859_1));
+                    e.write(0);
+                }
+                b.write(box("infe", e.toByteArray()));
+            }
+            return box("iinf", b.toByteArray());
+        }
+
+        @NonNull
+        private byte[] iloc(long dataStart) throws IOException {
+            List<Item> located = new ArrayList<>();
+            boolean wide = false;
+            boolean usesIdat = false;
+            for (Item item : items.values()) {
+                if (kept.contains(item.id) && item.hasLocation) {
+                    located.add(item);
+                    wide |= item.id > 0xFFFF;
+                    usesIdat |= item.constructionMethod == 1;
+                }
+            }
+            int version = wide ? 2 : (usesIdat || ilocVersion >= 1 ? 1 : 0);
+            ByteArrayOutputStream b = new ByteArrayOutputStream();
+            writeU32(b, (long) version << 24);
+            b.write(0x44); // offset_size 4, length_size 4
+            b.write(0x00); // base_offset_size 0, index_size 0
+            if (version < 2) {
+                writeU16(b, located.size());
+            } else {
+                writeU32(b, located.size());
+            }
+            for (Item item : located) {
+                if (version < 2) {
+                    writeU16(b, (int) item.id);
+                } else {
+                    writeU32(b, item.id);
+                }
+                if (version >= 1) {
+                    writeU16(b, item.constructionMethod);
+                }
+                writeU16(b, 0); // data_reference_index: this file
+                writeU16(b, 1); // one extent
+                long offset = item.constructionMethod == 1 ? item.newOffset : dataStart + item.newOffset;
+                writeU32(b, offset);
+                writeU32(b, item.newLength);
+            }
+            return box("iloc", b.toByteArray());
+        }
+
+        @NonNull
+        private byte[] iref() throws IOException {
+            boolean wide = irefVersion == 1;
+            ByteArrayOutputStream b = new ByteArrayOutputStream();
+            writeU32(b, (long) irefVersion << 24);
+            int pos = irefStart;
+            while (pos + 8 <= irefEnd) {
+                int size = boxSize(meta, pos);
+                String type = fourCc(meta, pos + 4);
+                int p = pos + headerSize(meta, pos);
+                long from = wide ? u32(meta, p) : u16(meta, p);
+                p += wide ? 4 : 2;
+                int count = u16(meta, p);
+                p += 2;
+                List<Long> to = new ArrayList<>();
+                for (int i = 0; i < count; i++) {
+                    long id = wide ? u32(meta, p) : u16(meta, p);
+                    p += wide ? 4 : 2;
+                    if (kept.contains(id)) {
+                        to.add(id);
+                    }
+                }
+                // A derived image needs every input it names, in order; drop it whole otherwise.
+                if (kept.contains(from) && to.size() == count && !to.isEmpty()) {
+                    ByteArrayOutputStream r = new ByteArrayOutputStream();
+                    writeId(r, from, wide);
+                    writeU16(r, to.size());
+                    for (long id : to) {
+                        writeId(r, id, wide);
+                    }
+                    b.write(box(type, r.toByteArray()));
+                }
+                pos += size;
+            }
+            for (long id : describing) {
+                // The EXIF or XMP describes ("cdsc") the primary picture.
+                ByteArrayOutputStream r = new ByteArrayOutputStream();
+                writeId(r, id, wide);
+                writeU16(r, 1);
+                writeId(r, primaryId, wide);
+                b.write(box("cdsc", r.toByteArray()));
+            }
+            return box("iref", b.toByteArray());
+        }
+
+        @NonNull
+        private byte[] iprp() throws IOException {
+            ByteArrayOutputStream ipco = new ByteArrayOutputStream();
+            for (int[] property : properties) {
+                String type = fourCc(meta, property[0] + 4);
+                if (!PROPERTY_KEEP.contains(type)) {
+                    // Same index, no content.
+                    writeU32(ipco, 8);
+                    ipco.write(ascii("free"));
+                    continue;
+                }
+                byte[] copy = java.util.Arrays.copyOfRange(meta, property[0], property[1]);
+                if ("colr".equals(type)) {
+                    int p = headerSize(copy, 0);
+                    String colourType = fourCc(copy, p);
+                    if ("prof".equals(colourType) || "rICC".equals(colourType)) {
+                        ImageContainerMetadata.clearIccHeader(copy, p + 4);
+                    }
+                } else if ("hvcC".equals(type)) {
+                    copy = filterHvcC(copy);
+                } else if ("av1C".equals(type)) {
+                    copy = filterAv1C(copy);
+                }
+                ipco.write(copy);
+            }
+            ByteArrayOutputStream ipma = new ByteArrayOutputStream();
+            int version = meta[ipmaStart] & 0xFF;
+            int flags = (int) (u32(meta, ipmaStart) & 0xFFFFFF);
+            writeU32(ipma, ((long) version << 24) | flags);
+            int count = 0;
+            for (Long id : itemProperties.keySet()) {
+                if (kept.contains(id)) {
+                    count++;
+                }
+            }
+            writeU32(ipma, count);
+            for (Map.Entry<Long, List<Integer>> entry : itemProperties.entrySet()) {
+                if (!kept.contains(entry.getKey())) {
+                    continue;
+                }
+                writeId(ipma, entry.getKey(), version >= 1);
+                ipma.write(entry.getValue().size());
+                for (int index : entry.getValue()) {
+                    // The essential bit is kept from the source.
+                    boolean essential = essential(entry.getKey(), index, flags, version);
+                    if ((flags & 1) != 0) {
+                        writeU16(ipma, (essential ? 0x8000 : 0) | index);
+                    } else {
+                        ipma.write((essential ? 0x80 : 0) | index);
+                    }
+                }
+            }
+            ByteArrayOutputStream iprp = new ByteArrayOutputStream();
+            iprp.write(box("ipco", ipco.toByteArray()));
+            iprp.write(box("ipma", ipma.toByteArray()));
+            return box("iprp", iprp.toByteArray());
+        }
+
+        /** Reads an association's essential bit again from the source ipma. */
+        private boolean essential(long itemId, int index, int flags, int version) {
+            int q = ipmaStart + 8;
+            while (q < ipmaEnd) {
+                long id;
+                if (version < 1) {
+                    id = u16(meta, q);
+                    q += 2;
+                } else {
+                    id = u32(meta, q);
+                    q += 4;
+                }
+                int associations = meta[q++] & 0xFF;
+                for (int a = 0; a < associations; a++) {
+                    boolean bit;
+                    int i;
+                    if ((flags & 1) != 0) {
+                        bit = (meta[q] & 0x80) != 0;
+                        i = u16(meta, q) & 0x7FFF;
+                        q += 2;
+                    } else {
+                        bit = (meta[q] & 0x80) != 0;
+                        i = meta[q] & 0x7F;
+                        q += 1;
+                    }
+                    if (id == itemId && i == index) {
+                        return bit;
+                    }
+                }
+            }
+            return false;
+        }
+
+        @NonNull
+        private byte[] grpl(int start, int end) throws IOException {
+            ByteArrayOutputStream b = new ByteArrayOutputStream();
+            int pos = start + headerSize(meta, start);
+            while (pos + 8 <= end) {
+                int size = boxSize(meta, pos);
+                int p = pos + headerSize(meta, pos) + 4; // version and flags
+                long count = u32(meta, p + 4);
+                if (p + 8 + count * 4 > pos + size) {
+                    throw new IOException("Damaged entity group");
+                }
+                boolean allKept = true;
+                for (long i = 0; i < count; i++) {
+                    long id = u32(meta, p + 8 + (int) (i * 4));
+                    if (!kept.contains(id)) {
+                        allKept = false;
+                        break;
+                    }
+                }
+                // A group (alternatives, a gain map's base and tone map) keeps every member or goes.
+                if (allKept) {
+                    b.write(meta, pos, size);
+                }
+                pos += size;
+            }
+            return box("grpl", b.toByteArray());
+        }
+    }
+
+    // ---- coded data -----------------------------------------------------------------------------
+
+    /** Drops SEI NAL units that carry anything but how to show the picture. */
+    @NonNull
+    static byte[] filterHevcNalUnits(@NonNull byte[] data, int lengthSize) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream(data.length);
+        int pos = 0;
+        while (pos < data.length) {
+            if (pos + lengthSize > data.length) {
+                throw new IOException("Damaged NAL length");
+            }
+            long length = uN(data, pos, lengthSize);
+            int start = pos + lengthSize;
+            if (length < 2 || start + length > data.length) {
+                throw new IOException("Damaged NAL unit");
+            }
+            if (keepHevcNal(data, start, (int) length)) {
+                out.write(data, pos, lengthSize + (int) length);
+            }
+            pos = start + (int) length;
+        }
+        return out.toByteArray();
+    }
+
+    private static boolean keepHevcNal(@NonNull byte[] data, int start, int length) {
+        int type = (data[start] >> 1) & 0x3F;
+        if (type != 39 && type != 40) {
+            return true;
+        }
+        // Read the SEI messages with the emulation prevention bytes removed.
+        byte[] rbsp = unescape(data, start + 2, length - 2);
+        int pos = 0;
+        while (pos < rbsp.length) {
+            if (pos == rbsp.length - 1 && (rbsp[pos] & 0xFF) == 0x80) {
+                return true; // rbsp trailing bits
+            }
+            int payloadType = 0;
+            while (pos < rbsp.length && (rbsp[pos] & 0xFF) == 0xFF) {
+                payloadType += 255;
+                pos++;
+            }
+            if (pos >= rbsp.length) {
+                return false;
+            }
+            payloadType += rbsp[pos++] & 0xFF;
+            int payloadSize = 0;
+            while (pos < rbsp.length && (rbsp[pos] & 0xFF) == 0xFF) {
+                payloadSize += 255;
+                pos++;
+            }
+            if (pos >= rbsp.length) {
+                return false;
+            }
+            payloadSize += rbsp[pos++] & 0xFF;
+            if (!SEI_KEEP.contains(payloadType) || pos + payloadSize > rbsp.length) {
+                return false;
+            }
+            pos += payloadSize;
+        }
+        return true;
+    }
+
+    @NonNull
+    private static byte[] unescape(@NonNull byte[] data, int start, int length) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream(length);
+        int zeros = 0;
+        for (int i = start; i < start + length; i++) {
+            int b = data[i] & 0xFF;
+            if (zeros >= 2 && b == 3) {
+                zeros = 0;
+                continue;
+            }
+            zeros = b == 0 ? zeros + 1 : 0;
+            out.write(b);
+        }
+        return out.toByteArray();
+    }
+
+    /** hvcC with its SEI arrays filtered the same way as the coded data. */
+    @NonNull
+    static byte[] filterHvcC(@NonNull byte[] box) throws IOException {
+        int header = headerSize(box, 0);
+        int pos = header + 22;
+        if (pos >= box.length) {
+            throw new IOException("Damaged hvcC");
+        }
+        int arrays = box[pos] & 0xFF;
+        ByteArrayOutputStream body = new ByteArrayOutputStream();
+        body.write(box, header, 22);
+        ByteArrayOutputStream kept = new ByteArrayOutputStream();
+        int keptArrays = 0;
+        pos++;
+        for (int a = 0; a < arrays; a++) {
+            int flagsAndType = box[pos] & 0xFF;
+            int count = u16(box, pos + 1);
+            pos += 3;
+            ByteArrayOutputStream units = new ByteArrayOutputStream();
+            int keptUnits = 0;
+            for (int n = 0; n < count; n++) {
+                int length = u16(box, pos);
+                if (pos + 2 + length > box.length) {
+                    throw new IOException("Damaged hvcC");
+                }
+                if (length >= 2 && keepHevcNal(box, pos + 2, length)) {
+                    units.write(box, pos, 2 + length);
+                    keptUnits++;
+                }
+                pos += 2 + length;
+            }
+            if (keptUnits > 0) {
+                kept.write(flagsAndType);
+                writeU16(kept, keptUnits);
+                kept.write(units.toByteArray());
+                keptArrays++;
+            }
+        }
+        body.write(keptArrays);
+        body.write(kept.toByteArray());
+        return box("hvcC", body.toByteArray());
+    }
+
+    /** Drops AV1 metadata OBUs other than HDR and scalability information. */
+    @NonNull
+    static byte[] filterAv1Obus(@NonNull byte[] data) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream(data.length);
+        int pos = 0;
+        while (pos < data.length) {
+            int start = pos;
+            int header = data[pos] & 0xFF;
+            int type = (header >> 3) & 0xF;
+            boolean extension = (header & 0x04) != 0;
+            boolean hasSize = (header & 0x02) != 0;
+            pos += extension ? 2 : 1;
+            long size;
+            if (hasSize) {
+                long[] leb = leb128(data, pos);
+                size = leb[0];
+                pos = (int) leb[1];
+            } else {
+                size = data.length - pos;
+            }
+            if (pos > data.length || pos + size > data.length) {
+                throw new IOException("Damaged OBU");
+            }
+            int end = pos + (int) size;
+            boolean keep = true;
+            if (type == 5) {
+                long metadataType = size > 0 ? leb128(data, pos)[0] : -1;
+                keep = AV1_METADATA_KEEP.contains((int) metadataType);
+            }
+            if (keep) {
+                out.write(data, start, end - start);
+            }
+            pos = end;
+        }
+        return out.toByteArray();
+    }
+
+    @NonNull
+    static byte[] filterAv1C(@NonNull byte[] box) throws IOException {
+        int header = headerSize(box, 0);
+        if (box.length < header + 4) {
+            throw new IOException("Damaged av1C");
+        }
+        byte[] configObus = java.util.Arrays.copyOfRange(box, header + 4, box.length);
+        ByteArrayOutputStream body = new ByteArrayOutputStream();
+        body.write(box, header, 4);
+        body.write(filterAv1Obus(configObus));
+        return box("av1C", body.toByteArray());
+    }
+
+    /** {value, next position}. */
+    @NonNull
+    private static long[] leb128(@NonNull byte[] data, int pos) throws IOException {
+        long value = 0;
+        for (int i = 0; i < 8; i++) {
+            if (pos >= data.length) {
+                throw new IOException("Damaged leb128");
+            }
+            int b = data[pos++] & 0xFF;
+            value |= (long) (b & 0x7F) << (i * 7);
+            if ((b & 0x80) == 0) {
+                return new long[] {value, pos};
+            }
+        }
+        throw new IOException("Damaged leb128");
+    }
+
+    // ---- bytes ----------------------------------------------------------------------------------
+
+    @NonNull
+    static byte[] box(@NonNull String type, @NonNull byte[] payload) throws IOException {
+        ByteArrayOutputStream b = new ByteArrayOutputStream(payload.length + 8);
+        writeU32(b, payload.length + 8L);
+        b.write(ascii(type));
+        b.write(payload);
+        return b.toByteArray();
+    }
+
+    static int boxSize(@NonNull byte[] data, int pos) throws IOException {
+        if (pos + 8 > data.length) {
+            throw new IOException("Damaged box");
+        }
+        long size = u32(data, pos);
+        if (size == 1) {
+            if (pos + 16 > data.length) {
+                throw new IOException("Damaged box");
+            }
+            size = (u32(data, pos + 8) << 32) | u32(data, pos + 12);
+        } else if (size == 0) {
+            size = data.length - pos;
+        }
+        if (size < 8 || pos + size > data.length) {
+            throw new IOException("Damaged box");
+        }
+        return (int) size;
+    }
+
+    static int headerSize(@NonNull byte[] data, int pos) {
+        return u32(data, pos) == 1 ? 16 : 8;
+    }
+
+    private static void writeId(@NonNull OutputStream out, long id, boolean wide) throws IOException {
+        if (wide) {
+            writeU32(out, id);
+        } else {
+            writeU16(out, (int) id);
+        }
+    }
+
+    static void writeU16(@NonNull OutputStream out, int value) throws IOException {
+        out.write((value >> 8) & 0xFF);
+        out.write(value & 0xFF);
+    }
+
+    static void writeU32(@NonNull OutputStream out, long value) throws IOException {
+        out.write((int) (value >> 24) & 0xFF);
+        out.write((int) (value >> 16) & 0xFF);
+        out.write((int) (value >> 8) & 0xFF);
+        out.write((int) value & 0xFF);
+    }
+
+    private static void writeU64(@NonNull OutputStream out, long value) throws IOException {
+        writeU32(out, value >>> 32);
+        writeU32(out, value & 0xFFFFFFFFL);
+    }
+
+    static int u16(@NonNull byte[] data, int pos) {
+        return ((data[pos] & 0xFF) << 8) | (data[pos + 1] & 0xFF);
+    }
+
+    static long u32(@NonNull byte[] data, int pos) {
+        return ((long) (data[pos] & 0xFF) << 24) | ((data[pos + 1] & 0xFF) << 16)
+                | ((data[pos + 2] & 0xFF) << 8) | (data[pos + 3] & 0xFF);
+    }
+
+    static long uN(@NonNull byte[] data, int pos, int size) {
+        long value = 0;
+        for (int i = 0; i < size; i++) {
+            value = (value << 8) | (data[pos + i] & 0xFF);
+        }
+        return value;
+    }
+
+    @NonNull
+    static String fourCc(@NonNull byte[] data, int pos) {
+        return new String(data, pos, 4, StandardCharsets.ISO_8859_1);
+    }
+
+    @NonNull
+    static byte[] ascii(@NonNull String text) {
+        return text.getBytes(StandardCharsets.ISO_8859_1);
+    }
+}

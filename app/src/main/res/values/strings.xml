@@ -350,9 +350,13 @@
     <string name="settings_auto_clear_temp">Clear Cache on Startup</string>
     <string name="settings_auto_clear_temp_subtitle">Remove processing cache files older than 24 hours when you open the app.</string>
     <string name="settings_preserve_camera">Keep Camera Settings</string>
-    <string name="settings_preserve_camera_subtitle">Retain aperture, shutter speed, ISO, and camera make/model on the Clean tab. Ignored when Strict Clean is on or when sharing from other apps.</string>
+    <string name="settings_preserve_camera_subtitle">Retain camera make/model, aperture, shutter speed, ISO, focal length, exposure, flash, and white balance on the Clean tab. Ignored when Strict Clean is on or when sharing from other apps.</string>
     <string name="settings_preserve_location">Keep Location</string>
     <string name="settings_preserve_location_subtitle">Retain GPS coordinates on the Clean tab. Ignored when Strict Clean is on or when sharing from other apps.</string>
+    <string name="settings_preserve_date">Keep Date Taken</string>
+    <string name="settings_preserve_date_subtitle">Retain when each photo or video was taken on the Clean tab, so it stays in its place in your gallery. Ignored when Strict Clean is on or when sharing from other apps.</string>
+    <string name="settings_preserve_motion">Keep Motion Photos</string>
+    <string name="settings_preserve_motion_subtitle">Keep the short video of a JPEG or HEIC Motion Photo on the Clean tab, with its metadata removed. It includes the sound recorded with it. Ignored when Strict Clean is on or when sharing from other apps.</string>
     <string name="settings_preserve_location_confirm_title">Keep GPS on Cleaned Photos</string>
     <string name="settings_preserve_location_confirm_message">Cleaned files on the Clean tab may still contain GPS coordinates. Sharing from other apps always strips location.\n\nTurn this on only if you intentionally want location kept.</string>
     <string name="settings_location_permission_granted">Photo location permission granted.</string>
@@ -364,25 +368,15 @@
     <string name="settings_sentry_consent_title">Enable Crash Reporting</string>
     <string name="settings_sentry_consent_message">Send Crash Reports uploads anonymized diagnostics to Sentry over the internet.\n\nNo photos, videos, filenames, or GPS coordinates are uploaded.</string>
     <string name="settings_strict_clean">Strict Clean</string>
-    <string name="settings_strict_clean_subtitle">Removes every trace of metadata, even the orientation tag, so a rotated photo may look sideways afterward. Turns off the keep options below and always fully re-encodes video for the most thorough clean.</string>
+    <string name="settings_strict_clean_subtitle">Removes all metadata except the tags that only say how to show the picture, such as its orientation and color space. Turns off the keep options below and always fully re-encodes video for the most thorough clean.</string>
     <string name="settings_video_fallback">Faster Video Cleaning</string>
     <string name="settings_video_fallback_subtitle">When your video is already in a compatible format, Redact strips its metadata with a quick pass instead of fully re-encoding it. That\'s faster and lighter on battery, though a full re-encode removes a touch more. Automatically turned off when Strict Clean is on or when cleaning files shared in from other apps.</string>
     
-    <string name="settings_section_advanced_processing">Large Files &amp; Memory</string>
-    <string name="settings_advanced_processing_subtitle">Controls RAM use when decoding large images during clean and convert.</string>
-    <string name="settings_max_bitmap_size">Max Processing Resolution</string>
-    <string name="settings_max_bitmap_size_subtitle">Largest edge in pixels when decoding images in memory. Lower values use less RAM.</string>
 
     <string-array name="settings_secure_delete_labels">
         <item>1 Pass (Fast)</item>
         <item>3 Passes (Secure)</item>
         <item>7 Passes (Ultra-Secure)</item>
-    </string-array>
-
-    <string-array name="settings_max_bitmap_size_labels">
-        <item>2048px (Low RAM)</item>
-        <item>4096px (Standard)</item>
-        <item>8192px (High Perf)</item>
     </string-array>
 
     <plurals name="convert_hero_files_count">

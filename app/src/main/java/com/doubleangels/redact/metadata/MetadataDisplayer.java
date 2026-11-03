@@ -718,7 +718,9 @@ public class MetadataDisplayer {
         }
         if (embedded != null) {
             for (ImageContainerMetadata.Finding kept : report.kept) {
-                metadataMap.put(kept.key, kept.text != null ? kept.text : "");
+                // Kept parts that hold no text, such as an HDR gain map, show their size.
+                metadataMap.put(kept.key, kept.text != null ? kept.text
+                        : android.text.format.Formatter.formatShortFileSize(context, kept.bytes));
             }
         }
     }

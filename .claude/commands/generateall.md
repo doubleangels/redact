@@ -6,7 +6,7 @@ argument-hint: "[all | <store locales>]"
 
 > These commands drive the Pixel_10_Pro emulator and Gradle with Windows paths, so they only work on my own machine. If you are running in a cloud session without the Android SDK and the emulator, say so and stop instead of trying.
 
-Regenerate the baseline profile and the store screenshots, both on the **Pixel_10_Pro emulator and never on a physical device**, then review the results. This does both tasks in order; use `/generateprofile` or `/generatescreenshots` to do just one. Do not commit or push anything unless I ask. Do not copy screenshots into `fastlane/` unless I ask.
+Regenerate the baseline profile and the store screenshots, both on the **Pixel_10_Pro emulator and never on a physical device**, then review the results. This does both tasks in order; use `/generateprofiles` or `/generatescreenshots` to do just one. When it is done, commit the profiles to the current branch automatically. The screenshots land in `build/`, which git ignores, so there is nothing to commit unless I ask you to copy them into `fastlane/`; then commit the copied images to the current branch automatically. Do not push. Do not copy screenshots into `fastlane/` unless I ask.
 
 ## 1. Find or start the emulator
 
@@ -40,4 +40,4 @@ Using `git diff` on the two profile files (compare to HEAD), report:
 
 ## 6. Wrap up
 
-Finish with a short report: emulator used, profile counts and verdict, screenshot verdict, and what is left uncommitted. Offer to commit the profiles and to copy the store images into fastlane as step 4 of `generatescreenshots.md` describes, but do not do either without being asked.
+Finish with a short report: emulator used, profile counts and verdict, screenshot verdict, and the profile commit (or that it was skipped as noise). Unless the profile run failed, commit `baseline-prof.txt` and `startup-prof.txt` (only those two files) to the current branch without asking when the change is meaningful, and skip the commit and restore the two files when it is only noise, exactly as step 4 of `generateprofiles.md` describes. Offer to copy the store images into fastlane as step 4 of `generatescreenshots.md` describes, but do not copy without being asked; once copied, commit them automatically too.

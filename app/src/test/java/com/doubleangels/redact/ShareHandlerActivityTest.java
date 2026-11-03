@@ -443,6 +443,8 @@ public class ShareHandlerActivityTest {
         assertEquals(".png", ShareHandlerActivity.suffixFor("image/png", "shot.png"));
         assertEquals(".webp", ShareHandlerActivity.suffixFor("image/webp", null));
         assertEquals(".heic", ShareHandlerActivity.suffixFor("image/heic", "IMG_1.HEIC"));
+        assertEquals(".avif", ShareHandlerActivity.suffixFor("image/avif", null));
+        assertEquals(".avif", ShareHandlerActivity.suffixFor(null, "photo.AVIF"));
         assertEquals(".gif", ShareHandlerActivity.suffixFor("image/gif", null));
         assertEquals(".jpg", ShareHandlerActivity.suffixFor("image/jpeg", "a.png"));
         assertEquals(".mov", ShareHandlerActivity.suffixFor("video/quicktime", null));

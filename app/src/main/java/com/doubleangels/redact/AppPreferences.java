@@ -28,9 +28,10 @@ public final class AppPreferences {
     private static final String KEY_SHARE_CONFIRM_BEFORE_STRIP = "share_confirm_before_strip";
     private static final String KEY_SECURE_DELETE_PASSES = "secure_delete_passes";
     private static final String KEY_AUTO_CLEAR_TEMP_FILES = "auto_clear_temp_files";
-    private static final String KEY_MAX_BITMAP_SIZE = "max_bitmap_size";
     private static final String KEY_PRESERVE_CAMERA_SETTINGS = "preserve_camera_settings";
     private static final String KEY_PRESERVE_LOCATION = "preserve_location";
+    private static final String KEY_PRESERVE_DATE_TAKEN = "preserve_date_taken";
+    private static final String KEY_PRESERVE_MOTION_PHOTO = "preserve_motion_photo";
     private static final String KEY_STRICT_CLEAN = "strict_clean";
     private static final String KEY_WARN_ALREADY_CLEAN = "warn_already_clean";
     private static final String KEY_SECURE_WINDOW = "secure_window";
@@ -204,35 +205,6 @@ public final class AppPreferences {
         prefs(context).edit().putBoolean(KEY_AUTO_CLEAR_TEMP_FILES, enabled).apply();
     }
 
-    public static int getMaxBitmapSize(@NonNull Context context) {
-        int defaultSize = 4096;
-        try {
-            android.app.ActivityManager am = (android.app.ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-            if (am != null) {
-                int memoryClass = am.getMemoryClass();
-                if (memoryClass < 128) {
-                    defaultSize = 1024;
-                } else if (memoryClass < 256) {
-                    defaultSize = 2048;
-                } else {
-                    defaultSize = 4096;
-                }
-            }
-        } catch (Exception e) {
-            com.doubleangels.redact.sentry.SentryManager.recordException(e);
-        }
-        return prefs(context).getInt(KEY_MAX_BITMAP_SIZE, defaultSize);
-    }
-
-    public static void setMaxBitmapSize(@NonNull Context context, int size) {
-        int clamped = switch (size) {
-            case 2048 -> 2048;
-            case 8192 -> 8192;
-            default -> 4096;
-        };
-        prefs(context).edit().putInt(KEY_MAX_BITMAP_SIZE, clamped).apply();
-    }
-
     /**
      * The folder (a Storage Access Framework tree URI) the user picked for cleaned and converted
      * images or videos, or null to use the default {@code Pictures/Redact} / {@code Movies/Redact}.
@@ -261,6 +233,24 @@ public final class AppPreferences {
 
     public static void setPreserveCameraSettings(@NonNull Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_PRESERVE_CAMERA_SETTINGS, enabled).apply();
+    }
+
+    /** Whether a clean keeps when a photo was taken, so galleries still sort it by that date. */
+    public static boolean isPreserveDateTaken(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_PRESERVE_DATE_TAKEN, false);
+    }
+
+    public static void setPreserveDateTaken(@NonNull Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_PRESERVE_DATE_TAKEN, enabled).apply();
+    }
+
+    /** Whether a clean keeps a Motion Photo's video, cleaned, instead of making it a still. */
+    public static boolean isPreserveMotionPhoto(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_PRESERVE_MOTION_PHOTO, false);
+    }
+
+    public static void setPreserveMotionPhoto(@NonNull Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_PRESERVE_MOTION_PHOTO, enabled).apply();
     }
 
     public static boolean isPreserveLocation(@NonNull Context context) {

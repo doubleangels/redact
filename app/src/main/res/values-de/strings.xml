@@ -169,20 +169,20 @@
     <string name="settings_auto_clear_temp">Cache beim Start Leeren</string>
     <string name="settings_auto_clear_temp_subtitle">Entfernt Verarbeitungs-Cache-Dateien älter als 24 Stunden beim App-Start.</string>
     <string name="settings_preserve_camera">Kameraeinstellungen Behalten</string>
-    <string name="settings_preserve_camera_subtitle">Blende, Verschlusszeit, ISO und Kameramarke/-modell auf Bereinigen behalten. Ignoriert bei Strikter Bereinigung oder beim Teilen aus anderen Apps.</string>
+    <string name="settings_preserve_camera_subtitle">Kameramarke/-modell, Blende, Verschlusszeit, ISO, Brennweite, Belichtung, Blitz und Weißabgleich auf Bereinigen behalten. Ignoriert bei Strikter Bereinigung oder beim Teilen aus anderen Apps.</string>
     <string name="settings_preserve_location">Standort Behalten</string>
     <string name="settings_preserve_location_subtitle">GPS-Koordinaten auf Bereinigen behalten. Ignoriert bei Strikter Bereinigung oder beim Teilen aus anderen Apps.</string>
+    <string name="settings_preserve_date">Aufnahmedatum Behalten</string>
+    <string name="settings_preserve_date_subtitle">Aufnahmezeitpunkt jedes Fotos und Videos auf Bereinigen behalten, damit es in der Galerie an seiner Stelle bleibt. Ignoriert bei Strikter Bereinigung oder beim Teilen aus anderen Apps.</string>
+    <string name="settings_preserve_motion">Bewegte Fotos Behalten</string>
+    <string name="settings_preserve_motion_subtitle">Das kurze Video eines JPEG- oder HEIC-Bewegungsfotos auf Bereinigen behalten, ohne seine Metadaten. Es enthält den mit aufgenommenen Ton. Ignoriert bei Strikter Bereinigung oder beim Teilen aus anderen Apps.</string>
         <string name="settings_sentry_consent_allow">Aktivieren</string>
     <string name="settings_sentry_consent_cancel">Nicht Jetzt</string>
     <string name="settings_sentry_consent_title">Absturzberichte Aktivieren</string>
     <string name="settings_sentry_consent_message">Absturzberichte senden lädt anonymisierte Diagnosedaten über Sentry ins Internet hoch.\n\nKeine Fotos, Videos, Dateinamen oder GPS-Koordinaten werden hochgeladen.</string>
     <string name="settings_strict_clean">Strikte Bereinigung</string>
-    <string name="settings_strict_clean_subtitle">Entfernt jede Spur von Metadaten, sogar den Orientierungs-Tag, ein gedrehtes Foto kann danach also schräg aussehen. Schaltet die Behalten-Optionen unten aus und kodiert Videos für die gründlichste Bereinigung immer vollständig neu.</string>
+    <string name="settings_strict_clean_subtitle">Entfernt alle Metadaten außer den Tags, die nur angeben, wie das Bild angezeigt wird, etwa Ausrichtung und Farbraum. Schaltet die Behalten-Optionen unten aus und kodiert Videos für die gründlichste Bereinigung immer vollständig neu.</string>
     
-    <string name="settings_section_advanced_processing">Große Dateien &amp; Speicher</string>
-    <string name="settings_advanced_processing_subtitle">Steuert den RAM-Verbrauch beim Dekodieren großer Bilder beim Bereinigen und Konvertieren.</string>
-    <string name="settings_max_bitmap_size">Max. Verarbeitungsauflösung</string>
-    <string name="settings_max_bitmap_size_subtitle">Längste Kante in Pixeln beim Dekodieren im Speicher. Niedrigere Werte nutzen weniger RAM.</string>
     <string name="settings_video_fallback">Schnellere Videobereinigung</string>
     <string name="settings_video_fallback_subtitle">Wenn Ihr Video bereits in einem kompatiblen Format vorliegt, entfernt Redact dessen Metadaten mit einem schnellen Durchgang statt einer vollständigen Neukodierung, schneller und akkuschonender, auch wenn eine vollständige Neukodierung etwas gründlicher ist. Wird automatisch deaktiviert, wenn Strikte Bereinigung aktiv ist oder Dateien aus anderen Apps bereinigt werden.</string>
 
@@ -190,12 +190,6 @@
         <item>1 Durchlauf (Schnell)</item>
         <item>3 Durchläufe (Sicher)</item>
         <item>7 Durchläufe (Ultra-Sicher)</item>
-    </string-array>
-
-    <string-array name="settings_max_bitmap_size_labels">
-        <item>2048px (Wenig RAM)</item>
-        <item>4096px (Standard)</item>
-        <item>8192px (Hohe Leistung)</item>
     </string-array>
 
     

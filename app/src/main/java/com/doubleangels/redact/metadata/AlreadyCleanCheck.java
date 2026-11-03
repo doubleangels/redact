@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.exifinterface.media.ExifInterface;
 
+import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.media.MediaItem;
 import com.doubleangels.redact.sentry.SentryManager;
 
@@ -49,7 +50,6 @@ public final class AlreadyCleanCheck {
     }
 
     private static final String[] REDACT_OUTPUT_DIRS = {"Pictures/Redact", "Movies/Redact"};
-    private static final int XMP_SCAN_LIMIT = 256 * 1024;
 
     private AlreadyCleanCheck() {
     }
@@ -170,6 +170,9 @@ public final class AlreadyCleanCheck {
                     continue;
                 }
                 String value = exif.getAttribute(tag);
+                if (ExifInterface.TAG_XMP.equals(tag) && value != null && UltraHdr.isPictureOnlyXmp(value)) {
+                    continue; // the Ultra HDR or Motion Photo directory a clean keeps
+                }
                 if (value != null && !value.isEmpty()) {
                     return Status.NEEDS_CLEANING;
                 }
@@ -177,26 +180,14 @@ public final class AlreadyCleanCheck {
         } catch (IOException | RuntimeException e) {
             return Status.UNKNOWN;
         }
-        String lower = mime.toLowerCase(Locale.ROOT);
-        if (!lower.equals("image/heic") && !lower.equals("image/heif")) {
-            // IPTC, comments, text chunks, appended images and videos: everything a clean removes
-            // outside EXIF. A file whose structure cannot be followed is cleaned as usual.
-            ImageContainerMetadata.Report container = ImageContainerMetadata.scan(context, uri);
-            if (!container.recognized) {
-                return Status.UNKNOWN;
-            }
-            return container.findings.isEmpty() ? Status.ALREADY_CLEAN : Status.NEEDS_CLEANING;
-        }
-        try (InputStream in = resolver.openInputStream(uri)) {
-            if (in == null) {
-                return Status.UNKNOWN;
-            }
-            // HEIC keeps its XMP near the start.
-            return ImageContainerMetadata.containsXmpPacket(in, XMP_SCAN_LIMIT)
-                    ? Status.NEEDS_CLEANING : Status.ALREADY_CLEAN;
-        } catch (IOException | RuntimeException e) {
+        // IPTC, comments, text chunks, appended images and videos, a HEIF's metadata items, boxes
+        // and coded user data: everything a clean removes outside EXIF, read by what the file is
+        // rather than its type. A file whose structure cannot be followed is cleaned as usual.
+        ImageContainerMetadata.Report container = ImageContainerMetadata.scan(context, uri);
+        if (!container.recognized) {
             return Status.UNKNOWN;
         }
+        return container.findings.isEmpty() ? Status.ALREADY_CLEAN : Status.NEEDS_CLEANING;
     }
 
     private static boolean isExifReadableMime(@Nullable String mime) {
@@ -216,15 +207,22 @@ public final class AlreadyCleanCheck {
         if (!container.recognized) {
             return Status.UNKNOWN;
         }
-        if (!container.fields.isEmpty()) {
-            return Status.NEEDS_CLEANING;
+        // What Keep Location and Keep Date Taken keep is not something a clean would remove.
+        boolean keepLocation = !AppPreferences.isStrictClean(context) && AppPreferences.isPreserveLocation(context);
+        boolean keepDate = !AppPreferences.isStrictClean(context) && AppPreferences.isPreserveDateTaken(context);
+        for (String field : container.fields) {
+            boolean kept = (keepLocation && container.isLocationField(field))
+                    || (keepDate && field.equals("date"));
+            if (!kept) {
+                return Status.NEEDS_CLEANING;
+            }
         }
         try (MediaMetadataRetriever retriever = new MediaMetadataRetriever()) {
             retriever.setDataSource(context, uri);
-            if (MetadataStripper.normalizeMetadataValue(
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_LOCATION)) != null
-                    || MetadataStripper.normalizeMetadataValue(
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE)) != null) {
+            if ((!keepLocation && MetadataStripper.normalizeMetadataValue(
+                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_LOCATION)) != null)
+                    || (!keepDate && MetadataStripper.normalizeMetadataValue(
+                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE)) != null)) {
                 return Status.NEEDS_CLEANING;
             }
             for (int key : MetadataStripper.ADDITIONAL_VIDEO_PRIVACY_KEYS) {

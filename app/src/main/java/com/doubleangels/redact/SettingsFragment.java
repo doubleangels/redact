@@ -81,17 +81,17 @@ public class SettingsFragment extends TabFragment {
     private MaterialSwitch switchSecureWindow;
     private MaterialSwitch switchPreserveCamera;
     private MaterialSwitch switchPreserveLocation;
+    private MaterialSwitch switchPreserveDate;
+    private MaterialSwitch switchPreserveMotion;
     private MaterialSwitch switchAutoClearTemp;
     private MaterialSwitch switchVideoFallback;
     private MaterialAutoCompleteTextView dropdownSecureDelete;
-    private MaterialAutoCompleteTextView dropdownMaxBitmapSize;
     private MaterialAutoCompleteTextView dropdownClipboardClear;
 
     private String[] imageFormatLabels;
     private String[] videoFormatLabels;
     private String[] qualityLabels;
     private String[] secureDeleteLabels;
-    private String[] maxBitmapSizeLabels;
     private String[] clipboardClearLabels;
 
     @Nullable
@@ -117,7 +117,6 @@ public class SettingsFragment extends TabFragment {
             qualityLabels = getResources().getStringArray(R.array.settings_quality_labels);
             secureDeleteLabels = getResources().getStringArray(R.array.settings_secure_delete_labels);
             clipboardClearLabels = getResources().getStringArray(R.array.settings_clipboard_clear_labels);
-            maxBitmapSizeLabels = getResources().getStringArray(R.array.settings_max_bitmap_size_labels);
 
             bindStatistics(view);
             bindPermissions(view);
@@ -190,10 +189,11 @@ public class SettingsFragment extends TabFragment {
         switchSecureWindow = view.findViewById(R.id.switchSecureWindow);
         switchPreserveCamera = view.findViewById(R.id.switchPreserveCamera);
         switchPreserveLocation = view.findViewById(R.id.switchPreserveLocation);
+        switchPreserveDate = view.findViewById(R.id.switchPreserveDate);
+        switchPreserveMotion = view.findViewById(R.id.switchPreserveMotion);
         switchAutoClearTemp = view.findViewById(R.id.switchAutoClearTemp);
         switchVideoFallback = view.findViewById(R.id.switchVideoFallback);
         dropdownSecureDelete = view.findViewById(R.id.dropdownSecureDelete);
-        dropdownMaxBitmapSize = view.findViewById(R.id.dropdownMaxBitmapSize);
         dropdownClipboardClear = view.findViewById(R.id.dropdownClipboardClear);
     }
 
@@ -313,6 +313,8 @@ public class SettingsFragment extends TabFragment {
                 index -> AppPreferences.setClipboardClearSeconds(requireContext(), clearOptions[index]));
         switchPreserveCamera.setChecked(AppPreferences.isPreserveCameraSettings(requireContext()));
         switchPreserveLocation.setChecked(AppPreferences.isPreserveLocation(requireContext()));
+        switchPreserveDate.setChecked(AppPreferences.isPreserveDateTaken(requireContext()));
+        switchPreserveMotion.setChecked(AppPreferences.isPreserveMotionPhoto(requireContext()));
         switchAutoClearTemp.setChecked(AppPreferences.isAutoClearTempFiles(requireContext()));
         switchVideoFallback.setChecked(AppPreferences.isVideoFallbackCopy(requireContext()));
 
@@ -323,12 +325,20 @@ public class SettingsFragment extends TabFragment {
             if (isChecked) {
                 AppPreferences.setPreserveCameraSettings(requireContext(), false);
                 AppPreferences.setPreserveLocation(requireContext(), false);
+                AppPreferences.setPreserveDateTaken(requireContext(), false);
+                AppPreferences.setPreserveMotionPhoto(requireContext(), false);
             }
             updatePreservationTogglesState(isChecked);
         });
 
         switchPreserveCamera.setOnCheckedChangeListener((btn, isChecked) ->
                 AppPreferences.setPreserveCameraSettings(requireContext(), isChecked));
+
+        switchPreserveDate.setOnCheckedChangeListener((btn, isChecked) ->
+                AppPreferences.setPreserveDateTaken(requireContext(), isChecked));
+
+        switchPreserveMotion.setOnCheckedChangeListener((btn, isChecked) ->
+                AppPreferences.setPreserveMotionPhoto(requireContext(), isChecked));
 
         switchPreserveLocation.setOnCheckedChangeListener((btn, isChecked) -> {
             if (suppressPreserveLocationToggleCallback) {
@@ -373,20 +383,6 @@ public class SettingsFragment extends TabFragment {
             };
             AppPreferences.setSecureDeletePasses(requireContext(), passes);
         });
-
-        int maxBitmapSizeIndex = switch (AppPreferences.getMaxBitmapSize(requireContext())) {
-            case 2048 -> 0;
-            case 8192 -> 2;
-            default -> 1;
-        };
-        setupDropdown(dropdownMaxBitmapSize, maxBitmapSizeLabels, maxBitmapSizeIndex, index -> {
-            int size = switch (index) {
-                case 0 -> 2048;
-                case 2 -> 8192;
-                default -> 4096;
-            };
-            AppPreferences.setMaxBitmapSize(requireContext(), size);
-        });
     }
 
     private void updatePreservationTogglesState(boolean strictClean) {
@@ -395,6 +391,8 @@ public class SettingsFragment extends TabFragment {
         
         switchPreserveCamera.setEnabled(enabled);
         switchPreserveLocation.setEnabled(enabled);
+        switchPreserveDate.setEnabled(enabled);
+        switchPreserveMotion.setEnabled(enabled);
         
         // A disabled row shows no ripple when tapped, as its switch does nothing.
         View rowCamera = getView().findViewById(R.id.rowPreserveCamera);
@@ -408,10 +406,24 @@ public class SettingsFragment extends TabFragment {
             rowLocation.setAlpha(alpha);
             rowLocation.setEnabled(enabled);
         }
+
+        View rowDate = getView().findViewById(R.id.rowPreserveDate);
+        if (rowDate != null) {
+            rowDate.setAlpha(alpha);
+            rowDate.setEnabled(enabled);
+        }
+
+        View rowMotion = getView().findViewById(R.id.rowPreserveMotion);
+        if (rowMotion != null) {
+            rowMotion.setAlpha(alpha);
+            rowMotion.setEnabled(enabled);
+        }
         
         if (strictClean) {
             switchPreserveCamera.setChecked(false);
             switchPreserveLocation.setChecked(false);
+            switchPreserveDate.setChecked(false);
+            switchPreserveMotion.setChecked(false);
         }
     }
 
