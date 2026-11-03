@@ -1,5 +1,7 @@
 <b>Le tue foto possono rivelare dove abiti.</b>
-Ogni foto scattata dal telefono può contenere metadati nascosti: la posizione GPS esatta dello scatto, la data e l'ora, la marca e il modello del telefono. Chiunque riceva il file originale può leggerli. Redact ti mostra cosa rivela una foto o un video e lo rimuove, interamente sul tuo dispositivo. Nessun account, nessun caricamento, nessuna pubblicità e nessun dato raccolto.
+Ogni foto e video può contenere la posizione GPS esatta, la data e l'ora, la marca e il modello del telefono. Chiunque riceva il file originale può leggerli.
+Redact rimuove metadati e dati EXIF. Ti mostra cosa rivela un file e lo elimina, interamente sul tuo dispositivo.
+Nessun account, nessun caricamento, nessuna pubblicità e nessun dato raccolto.
 
 <b>A chi serve</b>
 • Vendere su Subito, eBay o Marketplace senza rivelare il tuo indirizzo di casa
@@ -8,20 +10,32 @@ Ogni foto scattata dal telefono può contenere metadati nascosti: la posizione G
 • Giornalisti, attivisti e chiunque protegga una fonte
 • Inviare foto via email o come file, che conservano ogni dettaglio nascosto
 
-<b>Guarda: Scansiona</b>
-Apri qualsiasi foto o video e vedi ogni campo nascosto in un elenco chiaro e ricercabile. Un badge Posizione segnala tutto ciò che mostra dove è stato scattato.
+<b>Guarda cosa rivela una foto con Scansiona</b>
+• Ogni campo nascosto in un visualizzatore EXIF chiaro e ricercabile
+• Un badge Posizione segnala tutto ciò che mostra dove è stata scattata
 
-<b>Rimuovi: Pulisci</b>
-Pulisci fino a 100 foto e video alla volta. Redact rimuove GPS, dati del dispositivo, date e orari, XMP, IPTC, commenti e tag video, oltre ai dati nascosti dopo l'immagine, come anteprime aggiuntive e clip Motion Photo, poi ti dice esattamente cosa ha rimosso. Gli originali restano intatti, a meno che tu non chieda a Redact di spostarli nel cestino. La qualità resta intatta: le foto non vengono mai ricompresse. Se vuoi, puoi mantenere la data di scatto, la posizione, le impostazioni della fotocamera o il video di una foto in movimento.
+<b>Rimuovi GPS, posizione e dati EXIF con Pulisci</b>
+• Pulisci fino a 100 foto e video alla volta
+• Rimuove GPS e geotag, dati del dispositivo, date e orari
+• Rimuove XMP, IPTC, commenti e tag video
+• Rimuove extra nascosti come anteprime e clip Motion Photo
+• Qualità intatta: le foto non vengono mai ricompresse
+• Se vuoi, mantieni la data di scatto, la posizione, le impostazioni della fotocamera o il video di una foto in movimento
+• Ti dice esattamente cosa ha rimosso
+• Gli originali restano intatti, a meno che tu non chieda a Redact di spostarli nel cestino
 
 <b>Condividi in sicurezza da qualsiasi app</b>
-Condividi una foto o un video con Redact dalla galleria o da un'altra app. Il file viene pulito e restituito subito al menu di condivisione. Oppure condividilo con Scansiona con Redact per controllarlo prima.
+Condividi una foto o un video con Redact dalla galleria o da un'altra app. Il file viene pulito e restituito subito al menu di condivisione.
+Oppure condividilo con Scansiona con Redact per controllarlo prima.
 
-<b>Converti i formati</b>
-Immagini JPEG, PNG, WebP e HEIC, e video H.264, H.265, VP9 e AV1. Ogni file convertito viene pulito e verificato.
+<b>Converti i formati e nascondi i dettagli</b>
+• Converti HEIC in JPG, oltre a immagini PNG e WebP
+• Converti video H.264, H.265, VP9 e AV1
+• Ogni file convertito viene pulito e verificato
+• Censura pixela, annerisce o sfoca volti, targhe e indirizzi
 
 <b>Privata per progettazione</b>
-• Tutto avviene sul telefono. Pulire, analizzare e convertire non richiedono una connessione a internet.
+• Tutto avviene sul telefono, senza bisogno di internet
 • Niente pubblicità, niente analisi, niente tracciamento e nessun account
 • Le tue foto, i tuoi video e i tuoi dati personali non vengono mai raccolti né condivisi
 • Open source con licenza GPL-3.0: chiunque può leggere il codice su GitHub
@@ -29,7 +43,12 @@ Immagini JPEG, PNG, WebP e HEIC, e video H.264, H.265, VP9 e AV1. Ogni file conv
 • I rapporti sugli arresti anomali facoltativi restano disattivati finché non li attivi
 
 <b>Extra utili</b>
-Un riquadro nelle Impostazioni rapide, scorciatoie nella schermata Home, cartelle di destinazione personalizzate, Mantieni i Nomi Originali, Pulizia Rigorosa, Redact nascosta da screenshot e app recenti, e cancellazione automatica dei metadati copiati. Statistiche mostra cosa ha rimosso Redact, conteggiato solo sul tuo telefono.
+• Riquadro nelle Impostazioni rapide e scorciatoie nella schermata Home
+• Cartelle di destinazione personalizzate e Mantieni i Nomi Originali
+• Pulizia Rigorosa
+• Nascondi Redact da screenshot e app recenti
+• Cancellazione automatica dei metadati copiati
+• Statistiche conteggiate solo sul tuo telefono
 
 <b>Paghi una volta, è tua</b>
 Nessun abbonamento, nessuna pubblicità e nessun acquisto in-app. Il tuo acquisto sostiene uno sviluppatore indipendente.

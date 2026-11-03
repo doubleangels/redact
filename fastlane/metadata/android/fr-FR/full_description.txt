@@ -1,5 +1,7 @@
 <b>Vos photos peuvent révéler où vous habitez.</b>
-Chaque photo prise par votre téléphone peut contenir des métadonnées cachées : la position GPS exacte de la prise de vue, la date et l'heure, ainsi que la marque et le modèle de votre téléphone. Toute personne qui reçoit le fichier original peut les lire. Redact vous montre ce qu'une photo ou une vidéo révèle et le supprime, entièrement sur votre appareil. Pas de compte, pas d'envoi en ligne, pas de publicité et aucune donnée collectée.
+Chaque photo et vidéo peut contenir la position GPS exacte, la date et l'heure, ainsi que la marque et le modèle de votre téléphone. Toute personne qui reçoit le fichier original peut les lire.
+Redact supprime les métadonnées et les données EXIF. Il vous montre ce qu'un fichier révèle et l'efface, entièrement sur votre appareil.
+Pas de compte, pas d'envoi en ligne, pas de publicité et aucune donnée collectée.
 
 <b>Pour qui ?</b>
 • Vendre sur Leboncoin, eBay ou Marketplace sans dévoiler votre adresse
@@ -8,20 +10,32 @@ Chaque photo prise par votre téléphone peut contenir des métadonnées cachée
 • Journalistes, militants et toute personne qui protège une source
 • Envoyer des photos par e-mail ou en tant que fichier, ce qui conserve tous les détails cachés
 
-<b>Voir : Scanner</b>
-Ouvrez n'importe quelle photo ou vidéo et voyez chaque champ caché dans une liste claire, avec recherche. Un badge Position signale tout ce qui indique où elle a été prise.
+<b>Voyez ce qu'une photo révèle avec Scanner</b>
+• Chaque champ caché dans une visionneuse EXIF claire, avec recherche
+• Un badge Position signale tout ce qui indique où elle a été prise
 
-<b>Supprimer : Nettoyer</b>
-Nettoyez jusqu'à 100 photos et vidéos à la fois. Redact supprime le GPS, les informations sur l'appareil, les horodatages, les données XMP et IPTC, les commentaires et les balises vidéo, ainsi que les données cachées après l'image, comme des aperçus supplémentaires et les clips Motion Photo, puis vous indique précisément ce qu'il a supprimé. Vos originaux restent intacts, sauf si vous demandez à Redact de les mettre à la corbeille. La qualité reste intacte : les photos ne sont jamais recompressées. Si vous le souhaitez, vous pouvez conserver la date de prise de vue, la position, les réglages de l'appareil ou la vidéo d'une photo animée.
+<b>Supprimez GPS, position et données EXIF avec Nettoyer</b>
+• Nettoyez jusqu'à 100 photos et vidéos à la fois
+• Supprime le GPS et la géolocalisation, les informations sur l'appareil et les horodatages
+• Supprime les données XMP et IPTC, les commentaires et les balises vidéo
+• Supprime les extras cachés comme les aperçus et les clips Motion Photo
+• Qualité intacte : les photos ne sont jamais recompressées
+• Si vous le souhaitez, conservez la date de prise de vue, la position, les réglages de l'appareil ou la vidéo d'une photo animée
+• Vous indique précisément ce qu'il a supprimé
+• Vos originaux restent intacts, sauf si vous demandez à Redact de les mettre à la corbeille
 
 <b>Partagez en toute sécurité depuis n'importe quelle app</b>
-Partagez une photo ou une vidéo vers Redact depuis votre galerie ou une autre app. Le fichier est nettoyé puis renvoyé directement au menu de partage. Ou partagez-le vers « Scanner avec Redact » pour le vérifier d'abord.
+Partagez une photo ou une vidéo vers Redact depuis votre galerie ou une autre app. Le fichier est nettoyé puis renvoyé directement au menu de partage.
+Ou partagez-le vers « Scanner avec Redact » pour le vérifier d'abord.
 
-<b>Convertir les formats</b>
-Images JPEG, PNG, WebP et HEIC, et vidéos H.264, H.265, VP9 et AV1. Chaque fichier converti est nettoyé et vérifié.
+<b>Convertissez les formats et masquez les détails</b>
+• Convertissez HEIC en JPG, ainsi que des images PNG et WebP
+• Convertissez des vidéos H.264, H.265, VP9 et AV1
+• Chaque fichier converti est nettoyé et vérifié
+• Censurer pixellise, noircit ou floute visages, plaques et adresses
 
 <b>Privé par conception</b>
-• Tout se passe sur votre téléphone. Nettoyer, analyser et convertir ne demandent aucune connexion Internet.
+• Tout se passe sur votre téléphone, sans connexion Internet
 • Pas de publicité, pas d'analyses, pas de pistage et pas de compte
 • Vos photos, vidéos et informations personnelles ne sont jamais collectées ni partagées
 • Open source sous GPL-3.0 : tout le monde peut lire le code sur GitHub
@@ -29,7 +43,12 @@ Images JPEG, PNG, WebP et HEIC, et vidéos H.264, H.265, VP9 et AV1. Chaque fich
 • Les rapports de plantage facultatifs restent désactivés tant que vous ne les activez pas
 
 <b>Petits plus pratiques</b>
-Une vignette Réglages rapides, des raccourcis sur l'écran d'accueil, vos propres dossiers de sortie, Conserver les Noms de Fichiers, le Nettoyage Strict, le masquage de Redact dans les captures et les apps récentes, et l'effacement automatique des métadonnées copiées. Statistiques montre ce que Redact a supprimé, compté uniquement sur votre téléphone.
+• Vignette Réglages rapides et raccourcis sur l'écran d'accueil
+• Vos propres dossiers de sortie et Conserver les Noms de Fichiers
+• Nettoyage Strict
+• Masquer Redact dans les captures et les apps récentes
+• Effacement automatique des métadonnées copiées
+• Statistiques comptées uniquement sur votre téléphone
 
 <b>Payez une fois, gardez-la</b>
 Pas d'abonnement, pas de publicité et pas d'achats intégrés. Votre achat soutient un développeur indépendant.
