@@ -21,7 +21,7 @@ Follow `.claude/commands/translate.md`: check every string in all 12 locales and
 
 Follow `.claude/commands/dependencies.md` with these changes:
 
-- Upgrade **everything outdated** to its latest stable version, the "Needs care" group included (Media3, Glide, AGP, the Gradle wrapper, the Java toolchain, `compileSdk` and `targetSdk`, moving together where they must). Still read the release notes of each major upgrade and make the smallest code or workflow change it needs. Skip only pre-releases, and versions that need a higher `minSdk` than the app has; say why each was skipped.
+- Apply **every update**: upgrade everything outdated to its latest stable version, ignoring step 3's groups. That includes the "Needs care" items (Media3, Glide, AGP, the Gradle wrapper, the Java toolchain, `compileSdk` and `targetSdk`, moving together where they must), versions pinned on purpose with a comment, and SHA-pinned actions (keep the SHA style). Read the release notes of each major upgrade and make the smallest code or workflow change it needs. The only exceptions are pre-releases (alpha, beta, rc), and a version that needs a higher `minSdk` than the app has, since raising `minSdk` drops devices; list each exception for me instead of applying it.
 - Skip its step 5 checks except two the final test run cannot cover: `./gradlew :app:bundleRelease -q` (R8 can fail on a new library while everything else passes) and the workflow YAML parse. If the bundle fails, find the upgrade that broke it and fix or roll back just that one. Step 6 tests everything else.
 - Do not commit unless commits are allowed.
 
