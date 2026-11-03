@@ -1,70 +1,54 @@
 <b>Your photos can reveal where you live.</b>
-
 Every photo and video can carry the exact GPS location, the date and time, and your phone's make and model. Anyone you send the original file to can read it.
-
 Redact is a metadata remover and EXIF remover. It shows what a file reveals and strips it, entirely on your device.
-
 No account, no uploads, no ads and no data collected.
 
 <b>Who it's for</b>
-<ul>
-<li>Selling on Marketplace, eBay or Craigslist without giving away your home address</li>
-<li>Sending photos to a date, a landlord or someone you just met</li>
-<li>Sharing pictures of your kids, your home or your car</li>
-<li>Journalists, activists and anyone protecting a source</li>
-<li>Emailing photos or sending them as files, which keeps every hidden detail</li>
-</ul>
+• Selling on Marketplace, eBay or Craigslist without giving away your home address
+• Sending photos to a date, a landlord or someone you just met
+• Sharing pictures of your kids, your home or your car
+• Journalists, activists and anyone protecting a source
+• Emailing photos or sending them as files, which keeps every hidden detail
 
 <b>See what a photo reveals with Scan</b>
-<ul>
-<li>Every hidden field in a clear, searchable EXIF viewer</li>
-<li>A Location badge marks anything that shows where it was taken</li>
-</ul>
+• Every hidden field in a clear, searchable EXIF viewer
+• A Location badge marks anything that shows where it was taken
 
 <b>Remove GPS, location and EXIF data with Clean</b>
-<ul>
-<li>Clean up to 100 photos and videos at once</li>
-<li>Removes GPS and geotags, device details and timestamps</li>
-<li>Removes XMP, IPTC, comments and video tags</li>
-<li>Removes hidden extras like preview images and Motion Photo clips</li>
-<li>Keeps full quality: photos are never recompressed</li>
-<li>Optionally keep the date taken, location, camera settings or Motion Photo video</li>
-<li>Tells you exactly what it removed</li>
-<li>Your originals stay untouched unless you ask Redact to trash them</li>
-</ul>
+• Clean up to 100 photos and videos at once
+• Removes GPS and geotags, device details and timestamps
+• Removes XMP, IPTC, comments and video tags
+• Removes hidden extras like preview images and Motion Photo clips
+• Keeps full quality: photos are never recompressed
+• Optionally keep the date taken, location, camera settings or Motion Photo video
+• Tells you exactly what it removed
+• Your originals stay untouched unless you ask Redact to trash them
 
 <b>Share safely from any app</b>
 Share a photo or video to Redact from your gallery or any other app. It cleans the file and hands it straight back to the share sheet.
-
 Or share it to Scan with Redact to check it first.
 
 <b>Convert formats and hide details</b>
-<ul>
-<li>Convert HEIC to JPG, plus PNG and WebP images</li>
-<li>Convert H.264, H.265, VP9 and AV1 video</li>
-<li>Every converted file is stripped and checked</li>
-<li>Censor pixelates, blacks out or blurs faces, plates and addresses</li>
-</ul>
+• Convert HEIC to JPG, plus PNG and WebP images
+• Convert H.264, H.265, VP9 and AV1 video
+• Every converted file is stripped and checked
+• Censor pixelates, blacks out or blurs faces, plates and addresses
 
 <b>Private by design</b>
-<ul>
-<li>Everything runs on your phone, no internet needed</li>
-<li>No ads, no analytics, no tracking and no account</li>
-<li>Your photos, videos and personal information are never collected or shared</li>
-<li>Open source under GPL-3.0, so anyone can read the code on GitHub</li>
-<li>Works with the system file picker, so access to your whole library is optional</li>
-<li>Optional crash reports stay off unless you turn them on</li>
-</ul>
+• Everything runs on your phone, no internet needed
+• No ads, no analytics, no tracking and no account
+• Your photos, videos and personal information are never collected or shared
+• Open source under GPL-3.0, so anyone can read the code on GitHub
+• Works with the system file picker, so access to your whole library is optional
+• Optional crash reports stay off unless you turn them on
 
 <b>Handy extras</b>
-<ul>
-<li>Quick Settings tile and home screen shortcuts</li>
-<li>Your own output folders and Keep Original File Names</li>
-<li>Strict Clean</li>
-<li>Hide Redact from screenshots and recents</li>
-<li>Automatic clearing of copied metadata</li>
-<li>Statistics counted only on your phone</li>
-</ul>
+• Quick Settings tile and home screen shortcuts
+• Your own output folders and Keep Original File Names
+• Strict Clean
+• Hide Redact from screenshots and recents
+• Automatic clearing of copied metadata
+• Statistics counted only on your phone
 
 <b>Pay once, keep it</b>
 No subscription, no ads and no in-app purchases. Your purchase supports an independent developer.

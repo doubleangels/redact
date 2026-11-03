@@ -1,42 +1,37 @@
 <b>Suas fotos podem revelar onde você mora.</b>
-
-<p>Cada foto que o seu celular tira pode carregar metadados ocultos: a localização GPS exata de onde foi tirada, a data e a hora, e a marca e o modelo do seu celular. Qualquer pessoa que receba o arquivo original pode lê-los. O Redact mostra o que uma foto ou um vídeo revela e remove tudo, inteiramente no seu dispositivo. Sem conta, sem uploads, sem anúncios e sem coleta de dados.</p>
+Cada foto que o seu celular tira pode carregar metadados ocultos: a localização GPS exata de onde foi tirada, a data e a hora, e a marca e o modelo do seu celular. Qualquer pessoa que receba o arquivo original pode lê-los. O Redact mostra o que uma foto ou um vídeo revela e remove tudo, inteiramente no seu dispositivo. Sem conta, sem uploads, sem anúncios e sem coleta de dados.
 
 <b>Para quem é</b>
-<ul>
-<li>Vender na OLX, no Mercado Livre ou no Marketplace sem entregar o endereço da sua casa</li>
-<li>Enviar fotos para um encontro, um proprietário ou alguém que você acabou de conhecer</li>
-<li>Compartilhar fotos dos seus filhos, da sua casa ou do seu carro</li>
-<li>Jornalistas, ativistas e qualquer pessoa que proteja uma fonte</li>
-<li>Enviar fotos por e-mail ou como arquivo, o que mantém todos os detalhes ocultos</li>
-</ul>
+• Vender na OLX, no Mercado Livre ou no Marketplace sem entregar o endereço da sua casa
+• Enviar fotos para um encontro, um proprietário ou alguém que você acabou de conhecer
+• Compartilhar fotos dos seus filhos, da sua casa ou do seu carro
+• Jornalistas, ativistas e qualquer pessoa que proteja uma fonte
+• Enviar fotos por e-mail ou como arquivo, o que mantém todos os detalhes ocultos
 
 <b>Veja: Escanear</b>
-<p>Abra qualquer foto ou vídeo e veja cada campo oculto em uma lista clara e pesquisável. Um selo de Localização marca tudo o que mostra onde foi tirada.</p>
+Abra qualquer foto ou vídeo e veja cada campo oculto em uma lista clara e pesquisável. Um selo de Localização marca tudo o que mostra onde foi tirada.
 
 <b>Remova: Limpar</b>
-<p>Limpe até 100 fotos e vídeos de uma vez. O Redact remove GPS, dados do aparelho, datas, XMP, IPTC, comentários e tags de vídeo, além de dados escondidos depois da imagem, como prévias extras e clipes de Motion Photo, e mostra exatamente o que removeu. Seus originais não são alterados, a menos que você peça ao Redact para movê-los para a lixeira. A qualidade fica intacta: as fotos nunca são recomprimidas. Se quiser, você pode manter a data da foto, a localização, as configurações da câmera ou o vídeo de uma foto com movimento.</p>
+Limpe até 100 fotos e vídeos de uma vez. O Redact remove GPS, dados do aparelho, datas, XMP, IPTC, comentários e tags de vídeo, além de dados escondidos depois da imagem, como prévias extras e clipes de Motion Photo, e mostra exatamente o que removeu. Seus originais não são alterados, a menos que você peça ao Redact para movê-los para a lixeira. A qualidade fica intacta: as fotos nunca são recomprimidas. Se quiser, você pode manter a data da foto, a localização, as configurações da câmera ou o vídeo de uma foto com movimento.
 
 <b>Compartilhe com segurança de qualquer app</b>
-<p>Compartilhe uma foto ou um vídeo com o Redact pela galeria ou por qualquer outro app. Ele limpa o arquivo e o devolve direto para o menu de compartilhamento. Ou compartilhe com Escanear com Redact para conferir antes.</p>
+Compartilhe uma foto ou um vídeo com o Redact pela galeria ou por qualquer outro app. Ele limpa o arquivo e o devolve direto para o menu de compartilhamento. Ou compartilhe com Escanear com Redact para conferir antes.
 
 <b>Converta formatos</b>
-<p>Imagens JPEG, PNG, WebP e HEIC, e vídeos H.264, H.265, VP9 e AV1. Cada arquivo convertido é limpo e verificado.</p>
+Imagens JPEG, PNG, WebP e HEIC, e vídeos H.264, H.265, VP9 e AV1. Cada arquivo convertido é limpo e verificado.
 
 <b>Privado desde a concepção</b>
-<ul>
-<li>Tudo acontece no seu celular. Limpar, analisar e converter não precisam de internet.</li>
-<li>Sem anúncios, sem análises, sem rastreamento e sem conta</li>
-<li>Suas fotos, vídeos e informações pessoais nunca são coletados nem compartilhados</li>
-<li>Código aberto sob GPL-3.0: qualquer pessoa pode ler o código no GitHub</li>
-<li>Funciona com o seletor de arquivos do sistema, então o acesso a toda a sua galeria é opcional</li>
-<li>Os relatórios de falhas opcionais ficam desativados até você ativá-los</li>
-</ul>
+• Tudo acontece no seu celular. Limpar, analisar e converter não precisam de internet.
+• Sem anúncios, sem análises, sem rastreamento e sem conta
+• Suas fotos, vídeos e informações pessoais nunca são coletados nem compartilhados
+• Código aberto sob GPL-3.0: qualquer pessoa pode ler o código no GitHub
+• Funciona com o seletor de arquivos do sistema, então o acesso a toda a sua galeria é opcional
+• Os relatórios de falhas opcionais ficam desativados até você ativá-los
 
 <b>Extras úteis</b>
-<p>Um bloco nas Configurações rápidas, atalhos na tela inicial, pastas de saída personalizadas, Manter Nomes Originais, Limpeza Rigorosa, ocultar o Redact em capturas de tela e recentes, e limpeza automática dos metadados copiados. Estatísticas mostra o que o Redact removeu, contado só no seu celular.</p>
+Um bloco nas Configurações rápidas, atalhos na tela inicial, pastas de saída personalizadas, Manter Nomes Originais, Limpeza Rigorosa, ocultar o Redact em capturas de tela e recentes, e limpeza automática dos metadados copiados. Estatísticas mostra o que o Redact removeu, contado só no seu celular.
 
 <b>Pague uma vez e é seu</b>
-<p>Sem assinatura, sem anúncios e sem compras no app. Sua compra apoia um desenvolvedor independente.</p>
+Sem assinatura, sem anúncios e sem compras no app. Sua compra apoia um desenvolvedor independente.
 
-<p>Disponível em português, inglês, espanhol, francês, alemão, italiano, russo, japonês, coreano, chinês (simplificado e tradicional), hindi e árabe.</p>
+Disponível em português, inglês, espanhol, francês, alemão, italiano, russo, japonês, coreano, chinês (simplificado e tradicional), hindi e árabe.
