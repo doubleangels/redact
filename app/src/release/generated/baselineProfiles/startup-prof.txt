@@ -1392,7 +1392,7 @@ SPLandroidx/constraintlayout/core/widgets/analyzer/DependencyGraph;->setMeasurer
 Landroidx/constraintlayout/core/widgets/analyzer/Direct;
 SPLandroidx/constraintlayout/core/widgets/analyzer/Direct;-><clinit>()V
 SPLandroidx/constraintlayout/core/widgets/analyzer/Direct;->canMeasure(ILandroidx/constraintlayout/core/widgets/ConstraintWidget;)Z
-HSPLandroidx/constraintlayout/core/widgets/analyzer/Direct;->horizontalSolvingPass(ILandroidx/constraintlayout/core/widgets/ConstraintWidget;Landroidx/constraintlayout/core/widgets/analyzer/BasicMeasure$Measurer;Z)V
+SPLandroidx/constraintlayout/core/widgets/analyzer/Direct;->horizontalSolvingPass(ILandroidx/constraintlayout/core/widgets/ConstraintWidget;Landroidx/constraintlayout/core/widgets/analyzer/BasicMeasure$Measurer;Z)V
 SPLandroidx/constraintlayout/core/widgets/analyzer/Direct;->solveHorizontalCenterConstraints(ILandroidx/constraintlayout/core/widgets/analyzer/BasicMeasure$Measurer;Landroidx/constraintlayout/core/widgets/ConstraintWidget;Z)V
 SPLandroidx/constraintlayout/core/widgets/analyzer/Direct;->solveHorizontalMatchConstraint(ILandroidx/constraintlayout/core/widgets/ConstraintWidget;Landroidx/constraintlayout/core/widgets/analyzer/BasicMeasure$Measurer;Landroidx/constraintlayout/core/widgets/ConstraintWidget;Z)V
 SPLandroidx/constraintlayout/core/widgets/analyzer/Direct;->solveVerticalCenterConstraints(ILandroidx/constraintlayout/core/widgets/analyzer/BasicMeasure$Measurer;Landroidx/constraintlayout/core/widgets/ConstraintWidget;)V
@@ -2388,10 +2388,8 @@ SPLandroidx/emoji2/text/EmojiProcessor$EmojiProcessAddSpanCallback;->getResult()
 Landroidx/emoji2/text/EmojiProcessor$EmojiProcessCallback;
 Landroidx/emoji2/text/EmojiProcessor$ProcessorSm;
 SPLandroidx/emoji2/text/EmojiProcessor$ProcessorSm;-><init>(Landroidx/emoji2/text/MetadataRepo$Node;Z[I)V
-SPLandroidx/emoji2/text/EmojiProcessor$ProcessorSm;->check(I)I
 PLandroidx/emoji2/text/EmojiProcessor$ProcessorSm;->isEmojiStyle(I)Z
 SPLandroidx/emoji2/text/EmojiProcessor$ProcessorSm;->isInFlushableState()Z
-PLandroidx/emoji2/text/EmojiProcessor$ProcessorSm;->isTextStyle(I)Z
 SPLandroidx/emoji2/text/EmojiProcessor$ProcessorSm;->reset()I
 PLandroidx/emoji2/text/EmojiProcessor$ProcessorSm;->shouldUseEmojiPresentationStyleForSingleCodepoint()Z
 Landroidx/emoji2/text/FontRequestEmojiCompatConfig;
@@ -2464,9 +2462,9 @@ PLandroidx/emoji2/text/SpannableBuilder$WatcherWrapper;->onSpanAdded(Landroid/te
 Landroidx/emoji2/text/TypefaceEmojiRasterizer;
 PLandroidx/emoji2/text/TypefaceEmojiRasterizer;-><clinit>()V
 SPLandroidx/emoji2/text/TypefaceEmojiRasterizer;-><init>(Landroidx/emoji2/text/MetadataRepo;I)V
-SPLandroidx/emoji2/text/TypefaceEmojiRasterizer;->getCodepointAt(I)I
+HSPLandroidx/emoji2/text/TypefaceEmojiRasterizer;->getCodepointAt(I)I
 SPLandroidx/emoji2/text/TypefaceEmojiRasterizer;->getCodepointsLength()I
-HSPLandroidx/emoji2/text/TypefaceEmojiRasterizer;->getId()I
+SPLandroidx/emoji2/text/TypefaceEmojiRasterizer;->getId()I
 HSPLandroidx/emoji2/text/TypefaceEmojiRasterizer;->getMetadataItem()Landroidx/emoji2/text/flatbuffer/MetadataItem;
 PLandroidx/emoji2/text/TypefaceEmojiRasterizer;->isDefaultEmoji()Z
 Landroidx/emoji2/text/UnprecomputeTextOnModificationSpannable;
@@ -2480,7 +2478,7 @@ SPLandroidx/emoji2/text/flatbuffer/MetadataItem;->__init(ILjava/nio/ByteBuffer;)
 SPLandroidx/emoji2/text/flatbuffer/MetadataItem;->codepoints(I)I
 SPLandroidx/emoji2/text/flatbuffer/MetadataItem;->codepointsLength()I
 PLandroidx/emoji2/text/flatbuffer/MetadataItem;->emojiStyle()Z
-HSPLandroidx/emoji2/text/flatbuffer/MetadataItem;->id()I
+SPLandroidx/emoji2/text/flatbuffer/MetadataItem;->id()I
 Landroidx/emoji2/text/flatbuffer/MetadataList;
 SPLandroidx/emoji2/text/flatbuffer/MetadataList;-><init>()V
 SPLandroidx/emoji2/text/flatbuffer/MetadataList;->__assign(ILjava/nio/ByteBuffer;)Landroidx/emoji2/text/flatbuffer/MetadataList;
@@ -2491,8 +2489,8 @@ SPLandroidx/emoji2/text/flatbuffer/MetadataList;->list(Landroidx/emoji2/text/fla
 SPLandroidx/emoji2/text/flatbuffer/MetadataList;->listLength()I
 Landroidx/emoji2/text/flatbuffer/Table;
 SPLandroidx/emoji2/text/flatbuffer/Table;-><init>()V
-SPLandroidx/emoji2/text/flatbuffer/Table;->__indirect(I)I
-HSPLandroidx/emoji2/text/flatbuffer/Table;->__offset(I)I
+HSPLandroidx/emoji2/text/flatbuffer/Table;->__indirect(I)I
+SPLandroidx/emoji2/text/flatbuffer/Table;->__offset(I)I
 SPLandroidx/emoji2/text/flatbuffer/Table;->__reset(ILjava/nio/ByteBuffer;)V
 SPLandroidx/emoji2/text/flatbuffer/Table;->__vector(I)I
 SPLandroidx/emoji2/text/flatbuffer/Table;->__vector_len(I)I
@@ -2514,7 +2512,7 @@ PLandroidx/emoji2/viewsintegration/EmojiEditableFactory;->getInstance()Landroid/
 PLandroidx/emoji2/viewsintegration/EmojiEditableFactory;->newEditable(Ljava/lang/CharSequence;)Landroid/text/Editable;
 Landroidx/emoji2/viewsintegration/EmojiInputFilter;
 SPLandroidx/emoji2/viewsintegration/EmojiInputFilter;-><init>(Landroid/widget/TextView;)V
-SPLandroidx/emoji2/viewsintegration/EmojiInputFilter;->filter(Ljava/lang/CharSequence;IILandroid/text/Spanned;II)Ljava/lang/CharSequence;
+HSPLandroidx/emoji2/viewsintegration/EmojiInputFilter;->filter(Ljava/lang/CharSequence;IILandroid/text/Spanned;II)Ljava/lang/CharSequence;
 SPLandroidx/emoji2/viewsintegration/EmojiInputFilter;->getInitCallback()Landroidx/emoji2/text/EmojiCompat$InitCallback;
 Landroidx/emoji2/viewsintegration/EmojiInputFilter$InitCallbackImpl;
 SPLandroidx/emoji2/viewsintegration/EmojiInputFilter$InitCallbackImpl;-><init>(Landroid/widget/TextView;Landroidx/emoji2/viewsintegration/EmojiInputFilter;)V
@@ -3777,7 +3775,7 @@ PLandroidx/recyclerview/widget/ChildHelper;->detachViewFromParent(I)V
 SPLandroidx/recyclerview/widget/ChildHelper;->findHiddenNonRemovedView(I)Landroid/view/View;
 SPLandroidx/recyclerview/widget/ChildHelper;->getChildAt(I)Landroid/view/View;
 SPLandroidx/recyclerview/widget/ChildHelper;->getChildCount()I
-SPLandroidx/recyclerview/widget/ChildHelper;->getOffset(I)I
+HSPLandroidx/recyclerview/widget/ChildHelper;->getOffset(I)I
 SPLandroidx/recyclerview/widget/ChildHelper;->getUnfilteredChildAt(I)Landroid/view/View;
 SPLandroidx/recyclerview/widget/ChildHelper;->getUnfilteredChildCount()I
 SPLandroidx/recyclerview/widget/ChildHelper;->isHidden(Landroid/view/View;)Z
@@ -4016,7 +4014,7 @@ SPLandroidx/recyclerview/widget/RecyclerView;->addOnScrollListener(Landroidx/rec
 SPLandroidx/recyclerview/widget/RecyclerView;->assertNotInLayoutOrScroll(Ljava/lang/String;)V
 PLandroidx/recyclerview/widget/RecyclerView;->canReuseUpdatedViewHolder(Landroidx/recyclerview/widget/RecyclerView$ViewHolder;)Z
 SPLandroidx/recyclerview/widget/RecyclerView;->checkLayoutParams(Landroid/view/ViewGroup$LayoutParams;)Z
-SPLandroidx/recyclerview/widget/RecyclerView;->clearNestedRecyclerViewIfNotNested(Landroidx/recyclerview/widget/RecyclerView$ViewHolder;)V
+PLandroidx/recyclerview/widget/RecyclerView;->clearNestedRecyclerViewIfNotNested(Landroidx/recyclerview/widget/RecyclerView$ViewHolder;)V
 SPLandroidx/recyclerview/widget/RecyclerView;->clearOldPositions()V
 SPLandroidx/recyclerview/widget/RecyclerView;->computeHorizontalScrollExtent()I
 SPLandroidx/recyclerview/widget/RecyclerView;->computeHorizontalScrollOffset()I
@@ -4195,7 +4193,7 @@ SPLandroidx/recyclerview/widget/RecyclerView$LayoutManager;->getColumnCountForAc
 SPLandroidx/recyclerview/widget/RecyclerView$LayoutManager;->getDecoratedLeft(Landroid/view/View;)I
 SPLandroidx/recyclerview/widget/RecyclerView$LayoutManager;->getDecoratedMeasuredHeight(Landroid/view/View;)I
 SPLandroidx/recyclerview/widget/RecyclerView$LayoutManager;->getDecoratedMeasuredWidth(Landroid/view/View;)I
-HSPLandroidx/recyclerview/widget/RecyclerView$LayoutManager;->getDecoratedRight(Landroid/view/View;)I
+SPLandroidx/recyclerview/widget/RecyclerView$LayoutManager;->getDecoratedRight(Landroid/view/View;)I
 SPLandroidx/recyclerview/widget/RecyclerView$LayoutManager;->getFocusedChild()Landroid/view/View;
 SPLandroidx/recyclerview/widget/RecyclerView$LayoutManager;->getHeight()I
 SPLandroidx/recyclerview/widget/RecyclerView$LayoutManager;->getHeightMode()I
@@ -4278,7 +4276,7 @@ SPLandroidx/recyclerview/widget/RecyclerView$RecycledViewPool;->factorInCreateTi
 SPLandroidx/recyclerview/widget/RecyclerView$RecycledViewPool;->getRecycledView(I)Landroidx/recyclerview/widget/RecyclerView$ViewHolder;
 SPLandroidx/recyclerview/widget/RecyclerView$RecycledViewPool;->getScrapDataForType(I)Landroidx/recyclerview/widget/RecyclerView$RecycledViewPool$ScrapData;
 SPLandroidx/recyclerview/widget/RecyclerView$RecycledViewPool;->onAdapterChanged(Landroidx/recyclerview/widget/RecyclerView$Adapter;Landroidx/recyclerview/widget/RecyclerView$Adapter;Z)V
-SPLandroidx/recyclerview/widget/RecyclerView$RecycledViewPool;->putRecycledView(Landroidx/recyclerview/widget/RecyclerView$ViewHolder;)V
+PLandroidx/recyclerview/widget/RecyclerView$RecycledViewPool;->putRecycledView(Landroidx/recyclerview/widget/RecyclerView$ViewHolder;)V
 SPLandroidx/recyclerview/widget/RecyclerView$RecycledViewPool;->runningAverage(JJ)J
 SPLandroidx/recyclerview/widget/RecyclerView$RecycledViewPool;->willBindInTime(IJJ)Z
 SPLandroidx/recyclerview/widget/RecyclerView$RecycledViewPool;->willCreateInTime(IJJ)Z
@@ -4286,7 +4284,7 @@ Landroidx/recyclerview/widget/RecyclerView$RecycledViewPool$ScrapData;
 SPLandroidx/recyclerview/widget/RecyclerView$RecycledViewPool$ScrapData;-><init>()V
 Landroidx/recyclerview/widget/RecyclerView$Recycler;
 SPLandroidx/recyclerview/widget/RecyclerView$Recycler;-><init>(Landroidx/recyclerview/widget/RecyclerView;)V
-SPLandroidx/recyclerview/widget/RecyclerView$Recycler;->addViewHolderToRecycledViewPool(Landroidx/recyclerview/widget/RecyclerView$ViewHolder;Z)V
+PLandroidx/recyclerview/widget/RecyclerView$Recycler;->addViewHolderToRecycledViewPool(Landroidx/recyclerview/widget/RecyclerView$ViewHolder;Z)V
 SPLandroidx/recyclerview/widget/RecyclerView$Recycler;->attachAccessibilityDelegateOnBind(Landroidx/recyclerview/widget/RecyclerView$ViewHolder;)V
 SPLandroidx/recyclerview/widget/RecyclerView$Recycler;->clear()V
 SPLandroidx/recyclerview/widget/RecyclerView$Recycler;->clearOldPositions()V
@@ -4384,7 +4382,7 @@ SPLandroidx/recyclerview/widget/RecyclerView$ViewHolder;->isScrap()Z
 SPLandroidx/recyclerview/widget/RecyclerView$ViewHolder;->isTmpDetached()Z
 SPLandroidx/recyclerview/widget/RecyclerView$ViewHolder;->isUpdated()Z
 SPLandroidx/recyclerview/widget/RecyclerView$ViewHolder;->needsUpdate()Z
-SPLandroidx/recyclerview/widget/RecyclerView$ViewHolder;->resetInternal()V
+PLandroidx/recyclerview/widget/RecyclerView$ViewHolder;->resetInternal()V
 SPLandroidx/recyclerview/widget/RecyclerView$ViewHolder;->setFlags(II)V
 PLandroidx/recyclerview/widget/RecyclerView$ViewHolder;->setIsRecyclable(Z)V
 PLandroidx/recyclerview/widget/RecyclerView$ViewHolder;->setScrapContainer(Landroidx/recyclerview/widget/RecyclerView$Recycler;Z)V
@@ -4400,7 +4398,7 @@ SPLandroidx/recyclerview/widget/RecyclerViewAccessibilityDelegate;->shouldIgnore
 Landroidx/recyclerview/widget/RecyclerViewAccessibilityDelegate$ItemDelegate;
 SPLandroidx/recyclerview/widget/RecyclerViewAccessibilityDelegate$ItemDelegate;-><init>(Landroidx/recyclerview/widget/RecyclerViewAccessibilityDelegate;)V
 SPLandroidx/recyclerview/widget/RecyclerViewAccessibilityDelegate$ItemDelegate;->getAccessibilityNodeProvider(Landroid/view/View;)Landroidx/core/view/accessibility/AccessibilityNodeProviderCompat;
-SPLandroidx/recyclerview/widget/RecyclerViewAccessibilityDelegate$ItemDelegate;->getAndRemoveOriginalDelegateForItem(Landroid/view/View;)Landroidx/core/view/AccessibilityDelegateCompat;
+PLandroidx/recyclerview/widget/RecyclerViewAccessibilityDelegate$ItemDelegate;->getAndRemoveOriginalDelegateForItem(Landroid/view/View;)Landroidx/core/view/AccessibilityDelegateCompat;
 SPLandroidx/recyclerview/widget/RecyclerViewAccessibilityDelegate$ItemDelegate;->onInitializeAccessibilityNodeInfo(Landroid/view/View;Landroidx/core/view/accessibility/AccessibilityNodeInfoCompat;)V
 SPLandroidx/recyclerview/widget/RecyclerViewAccessibilityDelegate$ItemDelegate;->onRequestSendAccessibilityEvent(Landroid/view/ViewGroup;Landroid/view/View;Landroid/view/accessibility/AccessibilityEvent;)Z
 SPLandroidx/recyclerview/widget/RecyclerViewAccessibilityDelegate$ItemDelegate;->saveOriginalDelegate(Landroid/view/View;)V
@@ -4421,7 +4419,7 @@ SPLandroidx/recyclerview/widget/SnapHelper$1;->onScrollStateChanged(Landroidx/re
 SPLandroidx/recyclerview/widget/SnapHelper$1;->onScrolled(Landroidx/recyclerview/widget/RecyclerView;II)V
 Landroidx/recyclerview/widget/ViewBoundsCheck;
 SPLandroidx/recyclerview/widget/ViewBoundsCheck;-><init>(Landroidx/recyclerview/widget/ViewBoundsCheck$Callback;)V
-SPLandroidx/recyclerview/widget/ViewBoundsCheck;->findOneViewWithinBoundFlags(IIII)Landroid/view/View;
+HSPLandroidx/recyclerview/widget/ViewBoundsCheck;->findOneViewWithinBoundFlags(IIII)Landroid/view/View;
 Landroidx/recyclerview/widget/ViewBoundsCheck$BoundFlags;
 SPLandroidx/recyclerview/widget/ViewBoundsCheck$BoundFlags;-><init>()V
 SPLandroidx/recyclerview/widget/ViewBoundsCheck$BoundFlags;->addFlags(I)V
@@ -7365,7 +7363,7 @@ SPLcom/google/android/material/shape/ShapeAppearanceModel;->getDefaultShape()Lco
 SPLcom/google/android/material/shape/ShapeAppearanceModel;->getShapeForState([I)Lcom/google/android/material/shape/ShapeAppearanceModel;
 SPLcom/google/android/material/shape/ShapeAppearanceModel;->getTopLeftCornerSize()Lcom/google/android/material/shape/CornerSize;
 PLcom/google/android/material/shape/ShapeAppearanceModel;->getTopRightCornerSize()Lcom/google/android/material/shape/CornerSize;
-SPLcom/google/android/material/shape/ShapeAppearanceModel;->hasRoundedCorners()Z
+HSPLcom/google/android/material/shape/ShapeAppearanceModel;->hasRoundedCorners()Z
 HSPLcom/google/android/material/shape/ShapeAppearanceModel;->isRoundRect(Landroid/graphics/RectF;)Z
 SPLcom/google/android/material/shape/ShapeAppearanceModel;->isStateful()Z
 SPLcom/google/android/material/shape/ShapeAppearanceModel;->toBuilder()Lcom/google/android/material/shape/ShapeAppearanceModel$Builder;
