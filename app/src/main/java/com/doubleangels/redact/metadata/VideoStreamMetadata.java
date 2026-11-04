@@ -109,7 +109,12 @@ public final class VideoStreamMetadata {
                         break;
                     }
                     // A sample too large to hold is skipped rather than ending the scan; SEI sits
-                    // in front of the picture data, but a frame this size is rare.
+                    // in front of the picture data, but a frame this size is rare. A clean that
+                    // would copy the stream as it is cannot vouch for a frame it did not read, so
+                    // it gets no answer and re-encodes instead.
+                    if (next > MAX_SAMPLE_BYTES && everySample) {
+                        return null;
+                    }
                     if (next <= MAX_SAMPLE_BYTES) {
                         if (sample == null || sample.capacity() < next) {
                             sample = ByteBuffer.allocate((int) Math.max(next, 256 * 1024));

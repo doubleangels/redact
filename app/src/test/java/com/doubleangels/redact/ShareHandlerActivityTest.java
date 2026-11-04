@@ -109,9 +109,13 @@ public class ShareHandlerActivityTest {
         return intent;
     }
 
-    /** Source files live outside the app's private data dir, as real inbound files would. */
+    /**
+     * Source files live in shared storage, outside the app's own directories, as real inbound
+     * files would: a file:// URI into the app's private or app-specific folders is rejected.
+     */
     private File sourceDir() {
-        File dir = app.getExternalCacheDir();
+        File dir = android.os.Environment.getExternalStoragePublicDirectory(
+                android.os.Environment.DIRECTORY_DOWNLOADS);
         dir.mkdirs();
         return dir;
     }

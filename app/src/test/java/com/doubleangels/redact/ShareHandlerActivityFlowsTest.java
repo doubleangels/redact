@@ -167,9 +167,13 @@ public class ShareHandlerActivityFlowsTest {
         return intent;
     }
 
-    /** Source files live outside the app's private data dir, as real inbound files would. */
+    /**
+     * Source files live in shared storage, outside the app's own directories, as real inbound
+     * files would: a file:// URI into the app's private or app-specific folders is rejected.
+     */
     private File sourceDir() {
-        File dir = app.getExternalCacheDir();
+        File dir = android.os.Environment.getExternalStoragePublicDirectory(
+                android.os.Environment.DIRECTORY_DOWNLOADS);
         dir.mkdirs();
         return dir;
     }
@@ -234,6 +238,41 @@ public class ShareHandlerActivityFlowsTest {
         files.add(secret);
 
         ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(secret)));
+        idle();
+
+        assertTrue(activity.isFinishing());
+        assertEquals(0, inboundSnapshots().length);
+    }
+
+    @Test
+    public void inboundFileUri_insideTheAppsExternalFolders_isRejected() throws IOException {
+        // Android/data/<package> holds working copies of unredacted videos while they transcode.
+        File externalCache = app.getExternalCacheDir();
+        externalCache.mkdirs();
+        File cached = File.createTempFile("transcode_", ".mp4", externalCache);
+        files.add(cached);
+        File externalFiles = app.getExternalFilesDir(null);
+        externalFiles.mkdirs();
+        File kept = File.createTempFile("kept_", ".jpg", externalFiles);
+        files.add(kept);
+
+        ShareHandlerActivity first = launch(send("video/mp4", Uri.fromFile(cached)));
+        idle();
+        assertTrue(first.isFinishing());
+        assertEquals(0, inboundSnapshots().length);
+        controller.pause().stop().destroy();
+
+        ShareHandlerActivity second = launch(send("image/jpeg", Uri.fromFile(kept)));
+        idle();
+        assertTrue(second.isFinishing());
+        assertEquals(0, inboundSnapshots().length);
+    }
+
+    @Test
+    public void inboundContentUri_fromTheAppsOwnFileProvider_isRejected() {
+        Uri own = Uri.parse("content://" + app.getPackageName() + ".fileprovider/converted/a.jpg");
+
+        ShareHandlerActivity activity = launch(send("image/jpeg", own));
         idle();
 
         assertTrue(activity.isFinishing());
