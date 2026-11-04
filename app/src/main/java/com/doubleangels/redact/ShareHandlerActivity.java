@@ -1010,6 +1010,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
             }
             return false;
         } catch (IOException e) {
+            // A path that cannot be resolved is treated as private, so it is refused rather than
+            // read; filterSupportedUris leaves a breadcrumb for the skipped item.
             return true;
         }
     }
@@ -1032,6 +1034,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
         unsupportedRejectCount = 0;
         for (Uri uri : uris) {
             if (uri == null || !isSupportedInboundUri(uri)) {
+                if (uri != null) {
+                    SentryManager.logEvent("share",
+                            "An inbound item with an unsupported scheme or a private location was skipped.");
+                }
                 continue;
             }
             String type;

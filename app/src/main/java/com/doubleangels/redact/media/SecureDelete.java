@@ -57,7 +57,9 @@ public final class SecureDelete {
 
             return file.delete();
         } catch (Exception e) {
-            SentryManager.log("An error occurred during secure file deletion: " + e.getMessage() + ".");
+            // The class only: a FileNotFoundException's message holds the file's path.
+            SentryManager.log("An error occurred during secure file deletion: "
+                    + e.getClass().getSimpleName() + ".");
             return file.delete();
         }
     }
