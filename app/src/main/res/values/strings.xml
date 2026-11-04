@@ -345,8 +345,6 @@
     
     <string name="settings_section_advanced_privacy">Metadata Cleaning</string>
     <string name="settings_advanced_privacy_subtitle">How Redact removes hidden info, like location and camera details (EXIF), on the Clean tab. Files shared in from other apps always have this stripped before forwarding.</string>
-    <string name="settings_secure_delete">Secure Deletion Passes</string>
-    <string name="settings_secure_delete_subtitle">How many times temporary files (including original, unredacted photos and videos before cleaning) are overwritten before deletion, so their data isn\'t recoverable from disk. More passes are slower; on flash storage, recovery may still be possible.</string>
     <string name="settings_auto_clear_temp">Clear Cache on Startup</string>
     <string name="settings_auto_clear_temp_subtitle">Remove processing cache files older than 24 hours when you open the app.</string>
     <string name="settings_preserve_camera">Keep Camera Settings</string>
@@ -371,13 +369,6 @@
     <string name="settings_strict_clean_subtitle">Removes all metadata except the tags that only say how to show the picture, such as its orientation and color space. Turns off the keep options below and always fully re-encodes video for the most thorough clean.</string>
     <string name="settings_video_fallback">Faster Video Cleaning</string>
     <string name="settings_video_fallback_subtitle">When your video is already in a compatible format, Redact strips its metadata with a quick pass instead of fully re-encoding it. That\'s faster and lighter on battery, though a full re-encode removes a touch more. Automatically turned off when Strict Clean is on or when cleaning files shared in from other apps.</string>
-    
-
-    <string-array name="settings_secure_delete_labels">
-        <item>1 Pass (Fast)</item>
-        <item>3 Passes (Secure)</item>
-        <item>7 Passes (Ultra-Secure)</item>
-    </string-array>
 
     <plurals name="convert_hero_files_count">
         <item quantity="one">%1$d file</item>

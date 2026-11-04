@@ -238,7 +238,7 @@ You don't need to know any of this to use Redact. But if you'd like to know why 
 6. **Redact checks its own work.** Before anyone else can see the new file, Redact reads it again from beginning to end, as if it had never seen it before, looking for anything that shouldn't be there: a location, dates, device names, notes left by other apps or hidden extras.
 7. **If anything is left, nothing is saved.** A file that fails the check is thrown away. It never reaches your gallery and is never shared, and Redact tells you that file couldn't be cleaned. A video that fails after the quicker route is cleaned the thorough way instead and checked again.
 8. **It's saved out of sight, then revealed.** While the new file is being written, it stays hidden from your gallery and other apps. Redact then confirms that what was saved is exactly what passed the check, and only then does the file appear. If something goes wrong partway, the unfinished file is removed. A file you share goes only to the app you choose.
-9. **The working copies are destroyed.** The private copies made along the way are overwritten with random data and then deleted. If your phone shuts down in the middle of a clean, the leftovers are cleared the next time you open Redact.
+9. **The working copies are destroyed.** The private copies made along the way are overwritten once with random data and then deleted. On flash storage that's a best effort, so what matters most is that they're deleted at all, and quickly. If your phone shuts down in the middle of a clean, the leftovers are cleared the next time you open Redact.
 10. **Even the name gives nothing away.** New files get a random name, because a name like `IMG_20260117_093012` shows the date and time a photo was taken. You can choose to keep original names in Settings.
 
 Want to see for yourself? After cleaning a single file, tap **Scan Result** to look inside the clean copy.
@@ -312,7 +312,6 @@ The Settings tab puts the settings you use every day first: cleaning, sharing, C
 | Setting | What it does |
 |---|---|
 | **Clear Cache on Startup** / **Clear Temporary Files** | Removes processing cache older than 24 hours when the app opens, or on demand. |
-| **Secure Deletion Passes** | How many times temporary files are overwritten before deletion. More passes are slower, and recovery may still be possible on flash storage. |
 
 **Diagnostics & Feedback**
 

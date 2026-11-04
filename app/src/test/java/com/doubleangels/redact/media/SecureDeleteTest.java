@@ -5,7 +5,6 @@ import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
 
-import com.doubleangels.redact.AppPreferences;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -47,23 +46,10 @@ public class SecureDeleteTest {
     }
 
     @Test
-    public void secureDelete_deletesPopulatedFileWithConfiguredPasses() throws IOException {
+    public void secureDelete_deletesPopulatedFile() throws IOException {
         File file = File.createTempFile("secure_", ".bin", context.getCacheDir());
-        AppPreferences.setSecureDeletePasses(context, AppPreferences.getSecureDeletePasses(context));
         try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) {
             fos.write(new byte[8192]);
-        }
-
-        assertTrue(SecureDelete.secureDelete(context, file));
-        assertFalse(file.exists());
-    }
-
-    @Test
-    public void secureDelete_withSinglePassStillDeletes() throws IOException {
-        AppPreferences.setSecureDeletePasses(context, 1);
-        File file = File.createTempFile("secure_", ".bin", context.getCacheDir());
-        try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) {
-            fos.write(new byte[4096]);
         }
 
         assertTrue(SecureDelete.secureDelete(context, file));

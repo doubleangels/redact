@@ -1,13 +1,13 @@
 <b>Deine Fotos können verraten, wo du wohnst.</b>
 Jedes Foto und Video kann den genauen GPS-Standort, Datum und Uhrzeit sowie Hersteller und Modell deines Handys enthalten. Jeder, dem du die Originaldatei schickst, kann das auslesen.
 Redact entfernt Metadaten und EXIF-Daten. Es zeigt, was eine Datei verrät, und entfernt es, komplett auf deinem Gerät.
-Kein Konto, keine Uploads, keine Werbung und keine Datenerfassung.
+Kein Konto, keine Uploads und keine Werbung.
 
 <b>Für wen ist Redact?</b>
-• Verkaufen auf Kleinanzeigen, eBay oder Marketplace, ohne deine Adresse preiszugeben
+• Online verkaufen, ohne deine Adresse preiszugeben
 • Fotos an ein Date, einen Vermieter oder neue Bekannte schicken
 • Bilder deiner Kinder, deiner Wohnung oder deines Autos teilen
-• Journalisten, Aktivisten und alle, die eine Quelle schützen
+• Journalisten und Aktivisten, als ein Schritt zum Schutz einer Quelle
 • Fotos per E-Mail oder als Datei senden, wobei jedes versteckte Detail erhalten bleibt
 
 <b>Mit Scannen sehen, was ein Foto verrät</b>
@@ -19,7 +19,7 @@ Kein Konto, keine Uploads, keine Werbung und keine Datenerfassung.
 • Entfernt GPS und Geotags, Geräteangaben und Zeitstempel
 • Entfernt XMP, IPTC, Kommentare und Video-Tags
 • Entfernt versteckte Extras wie Vorschaubilder und Motion-Photo-Clips
-• Volle Qualität: Fotos werden nie neu komprimiert
+• Volle Qualität: Die meisten Fotos werden ohne neue Komprimierung bereinigt
 • Auf Wunsch Aufnahmedatum, Standort, Kameraeinstellungen oder das Video eines Bewegungsfotos behalten
 • Zeigt dir genau, was entfernt wurde
 • Deine Originale bleiben unverändert, außer du lässt Redact sie in den Papierkorb verschieben

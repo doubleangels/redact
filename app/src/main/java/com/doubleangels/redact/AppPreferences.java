@@ -26,7 +26,6 @@ public final class AppPreferences {
     private static final String KEY_DEFAULT_VIDEO_FORMAT_INDEX = "default_video_format_index";
     private static final String KEY_IMAGE_QUALITY_PRESET = "image_quality_preset";
     private static final String KEY_SHARE_CONFIRM_BEFORE_STRIP = "share_confirm_before_strip";
-    private static final String KEY_SECURE_DELETE_PASSES = "secure_delete_passes";
     private static final String KEY_AUTO_CLEAR_TEMP_FILES = "auto_clear_temp_files";
     private static final String KEY_PRESERVE_CAMERA_SETTINGS = "preserve_camera_settings";
     private static final String KEY_PRESERVE_LOCATION = "preserve_location";
@@ -177,24 +176,6 @@ public final class AppPreferences {
             return FORMAT_INDEX_HEIC_AV1;
         }
         return index;
-    }
-
-    public static int getSecureDeletePasses(@NonNull Context context) {
-        int passes = prefs(context).getInt(KEY_SECURE_DELETE_PASSES, 3);
-        return switch (passes) {
-            case 1 -> 1;
-            case 7 -> 7;
-            default -> 3;
-        };
-    }
-
-    public static void setSecureDeletePasses(@NonNull Context context, int passes) {
-        int clamped = switch (passes) {
-            case 1 -> 1;
-            case 7 -> 7;
-            default -> 3;
-        };
-        prefs(context).edit().putInt(KEY_SECURE_DELETE_PASSES, clamped).apply();
     }
 
     public static boolean isAutoClearTempFiles(@NonNull Context context) {

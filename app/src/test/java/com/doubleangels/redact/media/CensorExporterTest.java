@@ -219,7 +219,6 @@ public class CensorExporterTest {
 
     @Test
     public void secureDeletion_cleansUpCensoredTempFile() throws Exception {
-        com.doubleangels.redact.AppPreferences.setSecureDeletePasses(context, 1);
         File src = photo(".jpg", Bitmap.CompressFormat.JPEG, 64, 48, ExifInterface.ORIENTATION_NORMAL);
         CensorExporter.Result result = CensorExporter.export(context, Uri.fromFile(src), "secure.jpg",
                 List.of(CensorRegion.rect(0.1f, 0.1f, 0.4f, 0.4f)), CensorEffects.Effect.BLACK);

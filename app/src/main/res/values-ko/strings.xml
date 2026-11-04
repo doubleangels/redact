@@ -160,8 +160,6 @@
     
     <string name="settings_section_advanced_privacy">메타데이터 정리</string>
     <string name="settings_advanced_privacy_subtitle">Redact가 정리 탭에서 위치 및 카메라 세부 정보(EXIF)와 같은 숨겨진 정보를 제거하는 방법. 다른 앱에서 공유된 파일은 전달 전에 항상 이 정보가 제거됩니다.</string>
-    <string name="settings_secure_delete">보안 삭제 패스 횟수</string>
-    <string name="settings_secure_delete_subtitle">삭제 전 임시 파일(정리 전 원본 사진·동영상 사본 포함)을 덮어쓰는 횟수로, 디스크에서 데이터를 복구할 수 없게 합니다. 횟수가 많을수록 느리며, 플래시 저장소에서는 복구가 가능할 수 있습니다.</string>
     <string name="settings_auto_clear_temp">시작 시 캐시 지우기</string>
     <string name="settings_auto_clear_temp_subtitle">앱을 열 때 24시간보다 오래된 처리 캐시 파일을 제거합니다.</string>
     <string name="settings_preserve_camera">카메라 설정 유지</string>
@@ -181,12 +179,6 @@
     
     <string name="settings_video_fallback">더 빠른 동영상 정리</string>
     <string name="settings_video_fallback_subtitle">동영상이 이미 호환 형식인 경우, Redact는 완전히 재인코딩하는 대신 빠른 처리로 메타데이터를 제거합니다. 더 빠르고 배터리 소모도 적지만, 완전 재인코딩이 조금 더 많이 제거합니다. 엄격 정리가 켜져 있거나 다른 앱에서 공유된 파일을 정리할 때는 자동으로 꺼집니다.</string>
-
-    <string-array name="settings_secure_delete_labels">
-        <item>1회(빠름)</item>
-        <item>3회(보안)</item>
-        <item>7회(초보안)</item>
-    </string-array>
 
     
     <string name="navigation_settings">설정</string>

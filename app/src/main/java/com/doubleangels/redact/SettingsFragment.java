@@ -85,13 +85,11 @@ public class SettingsFragment extends TabFragment {
     private MaterialSwitch switchPreserveMotion;
     private MaterialSwitch switchAutoClearTemp;
     private MaterialSwitch switchVideoFallback;
-    private MaterialAutoCompleteTextView dropdownSecureDelete;
     private MaterialAutoCompleteTextView dropdownClipboardClear;
 
     private String[] imageFormatLabels;
     private String[] videoFormatLabels;
     private String[] qualityLabels;
-    private String[] secureDeleteLabels;
     private String[] clipboardClearLabels;
 
     @Nullable
@@ -115,7 +113,6 @@ public class SettingsFragment extends TabFragment {
             imageFormatLabels = getResources().getStringArray(R.array.settings_image_format_labels);
             videoFormatLabels = getResources().getStringArray(R.array.settings_video_format_labels);
             qualityLabels = getResources().getStringArray(R.array.settings_quality_labels);
-            secureDeleteLabels = getResources().getStringArray(R.array.settings_secure_delete_labels);
             clipboardClearLabels = getResources().getStringArray(R.array.settings_clipboard_clear_labels);
 
             bindStatistics(view);
@@ -193,7 +190,6 @@ public class SettingsFragment extends TabFragment {
         switchPreserveMotion = view.findViewById(R.id.switchPreserveMotion);
         switchAutoClearTemp = view.findViewById(R.id.switchAutoClearTemp);
         switchVideoFallback = view.findViewById(R.id.switchVideoFallback);
-        dropdownSecureDelete = view.findViewById(R.id.dropdownSecureDelete);
         dropdownClipboardClear = view.findViewById(R.id.dropdownClipboardClear);
     }
 
@@ -369,20 +365,6 @@ public class SettingsFragment extends TabFragment {
 
         switchVideoFallback.setOnCheckedChangeListener((btn, isChecked) ->
                 AppPreferences.setVideoFallbackCopy(requireContext(), isChecked));
-
-        int secureDeleteIndex = switch (AppPreferences.getSecureDeletePasses(requireContext())) {
-            case 1 -> 0;
-            case 7 -> 2;
-            default -> 1;
-        };
-        setupDropdown(dropdownSecureDelete, secureDeleteLabels, secureDeleteIndex, index -> {
-            int passes = switch (index) {
-                case 0 -> 1;
-                case 2 -> 7;
-                default -> 3;
-            };
-            AppPreferences.setSecureDeletePasses(requireContext(), passes);
-        });
     }
 
     private void updatePreservationTogglesState(boolean strictClean) {

@@ -168,8 +168,6 @@
     
     <string name="settings_section_advanced_privacy">Nettoyage des Métadonnées</string>
     <string name="settings_advanced_privacy_subtitle">Comment Redact supprime les informations cachées, comme la localisation et les infos de l\'appareil photo (EXIF), dans l\'onglet Nettoyer. Les fichiers partagés depuis d\'autres apps en sont toujours débarrassés avant le transfert.</string>
-    <string name="settings_secure_delete">Passes de Suppression Sécurisée</string>
-    <string name="settings_secure_delete_subtitle">Nombre de passes d\'écrasement des fichiers temporaires (y compris les copies originales non modifiées des photos et vidéos avant le nettoyage) avant suppression, afin que leurs données ne puissent pas être récupérées sur le disque. Plus de passes = plus lent ; sur stockage flash, une récupération reste possible.</string>
     <string name="settings_auto_clear_temp">Vider le Cache au Démarrage</string>
     <string name="settings_auto_clear_temp_subtitle">Supprime les fichiers cache de traitement de plus de 24 heures à l\'ouverture de l\'app.</string>
     <string name="settings_preserve_camera">Conserver les Réglages Photo</string>
@@ -189,12 +187,6 @@
     
     <string name="settings_video_fallback">Nettoyage Vidéo Plus Rapide</string>
     <string name="settings_video_fallback_subtitle">Lorsque votre vidéo est déjà dans un format compatible, Redact supprime ses métadonnées en une passe rapide plutôt qu\'en la réencodant entièrement, plus rapide et plus économe en batterie, même si un réencodage complet en supprime un peu plus. Désactivé automatiquement avec Nettoyage Strict ou lors du nettoyage de fichiers partagés depuis d\'autres apps.</string>
-
-    <string-array name="settings_secure_delete_labels">
-        <item>1 Passe (Rapide)</item>
-        <item>3 Passes (Sécurisé)</item>
-        <item>7 Passes (Ultra-Sécurisé)</item>
-    </string-array>
 
     
     <string name="navigation_settings">Paramètres</string>

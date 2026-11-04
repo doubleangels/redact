@@ -164,8 +164,6 @@
     
     <string name="settings_section_advanced_privacy">Metadaten-Bereinigung</string>
     <string name="settings_advanced_privacy_subtitle">Wie Redact versteckte Infos, wie Standort und Kameradetails (EXIF), auf dem Tab Bereinigen entfernt. Aus anderen Apps geteilte Dateien werden vor dem Weiterleiten immer davon befreit.</string>
-    <string name="settings_secure_delete">Sichere Löschdurchläufe</string>
-    <string name="settings_secure_delete_subtitle">Wie oft temporäre Dateien (einschließlich der originalen, ungeschwärzten Fotos und Videos vor der Bereinigung) vor dem Löschen überschrieben werden, damit ihre Daten nicht von der Festplatte wiederhergestellt werden können. Mehr Durchläufe sind langsamer; auf Flash-Speicher ist Wiederherstellung ggf. trotzdem möglich.</string>
     <string name="settings_auto_clear_temp">Cache beim Start Leeren</string>
     <string name="settings_auto_clear_temp_subtitle">Entfernt Verarbeitungs-Cache-Dateien älter als 24 Stunden beim App-Start.</string>
     <string name="settings_preserve_camera">Kameraeinstellungen Behalten</string>
@@ -185,12 +183,6 @@
     
     <string name="settings_video_fallback">Schnellere Videobereinigung</string>
     <string name="settings_video_fallback_subtitle">Wenn Ihr Video bereits in einem kompatiblen Format vorliegt, entfernt Redact dessen Metadaten mit einem schnellen Durchgang statt einer vollständigen Neukodierung, schneller und akkuschonender, auch wenn eine vollständige Neukodierung etwas gründlicher ist. Wird automatisch deaktiviert, wenn Strikte Bereinigung aktiv ist oder Dateien aus anderen Apps bereinigt werden.</string>
-
-    <string-array name="settings_secure_delete_labels">
-        <item>1 Durchlauf (Schnell)</item>
-        <item>3 Durchläufe (Sicher)</item>
-        <item>7 Durchläufe (Ultra-Sicher)</item>
-    </string-array>
 
     
     <string name="navigation_settings">Einstellungen</string>
