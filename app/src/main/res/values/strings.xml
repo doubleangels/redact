@@ -564,6 +564,7 @@
     <string name="onboarding_private_offline">Nothing is uploaded, so your photos and videos stay private.</string>
     <string name="onboarding_private_no_ads">There are no ads, and nothing tracks what you do.</string>
     <string name="onboarding_private_open_source">Redact is open source, so anyone can check how it works.</string>
+    <string name="onboarding_private_recents">To keep photos and their details out of screenshots and the recent apps screen, turn on %1$s in Settings.</string>
     <string name="onboarding_choices_title">You decide what Redact can use.</string>
     <string name="onboarding_choices_body">Next, Redact will explain what it would like to use and why, one thing at a time. It\'s always your choice, and you can change your mind later in Settings.</string>
     <string name="onboarding_choices_media">First, your photos and videos, so Redact can open the ones you pick.</string>

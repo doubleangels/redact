@@ -413,6 +413,9 @@ public class OnboardingActivity extends AppCompatActivity {
                 points.add(point(R.drawable.ic_shield, R.string.onboarding_private_offline));
                 points.add(point(R.drawable.ic_person, R.string.onboarding_private_no_ads));
                 points.add(point(R.drawable.ic_info_outline_20, R.string.onboarding_private_open_source));
+                // Off by default, so a Recents thumbnail of Scan can show a photo's location.
+                points.add(new Point(R.drawable.ic_settings, getString(R.string.onboarding_private_recents,
+                        getString(R.string.settings_secure_window))));
             }
             case CHOICES -> {
                 icon = R.drawable.ic_settings;

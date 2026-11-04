@@ -5146,7 +5146,6 @@ PLcom/doubleangels/redact/AppPreferences;->getDefaultImageFormatIndex(Landroid/c
 PLcom/doubleangels/redact/AppPreferences;->getDefaultVideoFormatIndex(Landroid/content/Context;)I
 PLcom/doubleangels/redact/AppPreferences;->getImageQualityPreset(Landroid/content/Context;)I
 PLcom/doubleangels/redact/AppPreferences;->getOutputTree(Landroid/content/Context;Z)Landroid/net/Uri;
-PLcom/doubleangels/redact/AppPreferences;->getSecureDeletePasses(Landroid/content/Context;)I
 SPLcom/doubleangels/redact/AppPreferences;->hasCompletedInitialPermissionsPrompt(Landroid/content/Context;)Z
 SPLcom/doubleangels/redact/AppPreferences;->hasSeenOnboarding(Landroid/content/Context;)Z
 SPLcom/doubleangels/redact/AppPreferences;->isAutoClearTempFiles(Landroid/content/Context;)Z

@@ -30,7 +30,7 @@ public class SecureDeleteTest {
     @Test
     public void secureDelete_returnsFalseForNonExistentFile() {
         File missing = new File(context.getCacheDir(), "missing_" + System.nanoTime());
-        assertFalse(SecureDelete.secureDelete(context, missing));
+        assertFalse(SecureDelete.secureDelete(missing));
     }
 
     @Test
@@ -38,7 +38,7 @@ public class SecureDeleteTest {
         File dir = new File(context.getCacheDir(), "dir_" + System.nanoTime());
         assertTrue(dir.mkdirs());
         try {
-            assertFalse(SecureDelete.secureDelete(context, dir));
+            assertFalse(SecureDelete.secureDelete(dir));
             assertTrue(dir.exists());
         } finally {
             dir.delete();
@@ -52,14 +52,14 @@ public class SecureDeleteTest {
             fos.write(new byte[8192]);
         }
 
-        assertTrue(SecureDelete.secureDelete(context, file));
+        assertTrue(SecureDelete.secureDelete(file));
         assertFalse(file.exists());
     }
 
     @Test
     public void secureDelete_deletesEmptyFile() throws IOException {
         File file = File.createTempFile("secure_", ".bin", context.getCacheDir());
-        assertTrue(SecureDelete.secureDelete(context, file));
+        assertTrue(SecureDelete.secureDelete(file));
         assertFalse(file.exists());
     }
 }

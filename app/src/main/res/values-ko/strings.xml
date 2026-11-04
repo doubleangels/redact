@@ -547,6 +547,7 @@
     <string name="onboarding_private_offline">아무것도 업로드되지 않으므로 사진과 동영상은 비공개로 유지됩니다.</string>
     <string name="onboarding_private_no_ads">광고가 없으며 사용자의 활동을 추적하지 않습니다.</string>
     <string name="onboarding_private_open_source">Redact는 오픈 소스이므로 누구나 작동 방식을 확인할 수 있습니다.</string>
+    <string name="onboarding_private_recents">사진과 세부 정보가 스크린샷이나 최근 앱 화면에 남지 않게 하려면 설정에서 \'%1$s\'을(를) 켜세요.</string>
     <string name="onboarding_choices_title">Redact가 무엇을 사용할지는 사용자가 결정합니다.</string>
     <string name="onboarding_choices_body">이제 Redact가 사용하려는 항목과 그 이유를 하나씩 설명합니다. 선택은 언제나 사용자에게 달려 있으며, 나중에 설정에서 바꿀 수 있습니다.</string>
     <string name="onboarding_choices_media">먼저, 사진과 동영상입니다. 선택한 파일을 Redact에서 열기 위해 필요합니다.</string>

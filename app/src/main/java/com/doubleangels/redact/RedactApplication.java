@@ -36,6 +36,7 @@ public class RedactApplication extends Application {
         SentryManager.init(this);
         SentryInitializer.initializeIfNeeded(this);
         LocalNotifications.ensureChannels(this);
+        AppPreferences.removeRetiredSettings(this);
 
         // Working files from a previous process are orphans whatever their age (see the method).
         // Started first: the stale sweep below waits for it rather than racing it.

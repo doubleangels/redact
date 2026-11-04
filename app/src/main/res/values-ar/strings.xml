@@ -622,6 +622,7 @@
     <string name="onboarding_private_offline">لا يتم تحميل أي شيء، لذا تبقى صورك ومقاطع الفيديو خاصة.</string>
     <string name="onboarding_private_no_ads">لا توجد إعلانات، ولا شيء يتتبع ما تفعله.</string>
     <string name="onboarding_private_open_source">Redact مفتوح المصدر، لذا يمكن لأي شخص التحقق من طريقة عمله.</string>
+    <string name="onboarding_private_recents">لإبعاد الصور وتفاصيلها عن لقطات الشاشة وشاشة التطبيقات الأخيرة، فعّل %1$s في الإعدادات.</string>
     <string name="onboarding_choices_title">أنت من يقرر ما يمكن لـ Redact استخدامه.</string>
     <string name="onboarding_choices_body">سيشرح لك Redact الآن ما يرغب في استخدامه ولماذا، خطوة بخطوة. القرار لك دائمًا، ويمكنك تغيير رأيك لاحقًا من الإعدادات.</string>
     <string name="onboarding_choices_media">أولًا، صورك ومقاطع الفيديو، ليتمكن Redact من فتح ما تختاره منها.</string>

@@ -577,6 +577,7 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="onboarding_private_offline">Non viene caricato nulla, quindi foto e video restano privati.</string>
     <string name="onboarding_private_no_ads">Non ci sono pubblicità e nulla tiene traccia di ciò che fai.</string>
     <string name="onboarding_private_open_source">Redact è open source, quindi chiunque può verificare come funziona.</string>
+    <string name="onboarding_private_recents">Per tenere le foto e i loro dettagli fuori dagli screenshot e dalla schermata delle app recenti, attiva %1$s nelle Impostazioni.</string>
     <string name="onboarding_choices_title">Sei tu a decidere cosa può usare Redact.</string>
     <string name="onboarding_choices_body">Ora Redact ti spiegherà cosa vorrebbe usare e perché, una cosa alla volta. Decidi sempre tu, e potrai cambiare idea più avanti in Impostazioni.</string>
     <string name="onboarding_choices_media">Prima, le tue foto e i tuoi video, così Redact può aprire quelli che scegli.</string>

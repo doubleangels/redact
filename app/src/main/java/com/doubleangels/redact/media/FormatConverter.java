@@ -754,10 +754,10 @@ public final class FormatConverter {
             return null;
         } finally {
             if (raw != null) {
-                SecureDelete.secureDelete(context, raw);
+                SecureDelete.secureDelete(raw);
             }
             if (clean != null) {
-                SecureDelete.secureDelete(context, clean);
+                SecureDelete.secureDelete(clean);
             }
         }
     }
@@ -850,10 +850,10 @@ public final class FormatConverter {
                 bitmap.recycle();
             }
             if (encoded != null) {
-                SecureDelete.secureDelete(context, encoded);
+                SecureDelete.secureDelete(encoded);
             }
             if (clean != null) {
-                SecureDelete.secureDelete(context, clean);
+                SecureDelete.secureDelete(clean);
             }
         }
     }

@@ -2263,7 +2263,7 @@ public class MetadataStripper {
      * @return true if the file was successfully deleted, false otherwise
      */
     private boolean secureDeleteFile(@NonNull File file) {
-        return com.doubleangels.redact.media.SecureDelete.secureDelete(context, file);
+        return com.doubleangels.redact.media.SecureDelete.secureDelete(file);
     }
 
     /**

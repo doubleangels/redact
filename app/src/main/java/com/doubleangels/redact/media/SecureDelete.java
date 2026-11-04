@@ -1,7 +1,5 @@
 package com.doubleangels.redact.media;
 
-import android.content.Context;
-
 import androidx.annotation.NonNull;
 
 import com.doubleangels.redact.sentry.SentryManager;
@@ -33,7 +31,7 @@ public final class SecureDelete {
     private SecureDelete() {
     }
 
-    public static boolean secureDelete(@NonNull Context context, @NonNull File file) {
+    public static boolean secureDelete(@NonNull File file) {
         if (!file.exists() || !file.isFile()) {
             return false;
         }

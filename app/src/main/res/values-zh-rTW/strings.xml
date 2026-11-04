@@ -547,6 +547,7 @@
     <string name="onboarding_private_offline">不會上傳任何內容，你的相片和影片始終保持私密。</string>
     <string name="onboarding_private_no_ads">沒有廣告，也不會追蹤你的操作。</string>
     <string name="onboarding_private_open_source">Redact 是開放原始碼，任何人都能查看它的運作方式。</string>
+    <string name="onboarding_private_recents">如果不想讓相片及其資訊出現在螢幕截圖和最近使用畫面中，請在設定中開啟「%1$s」。</string>
     <string name="onboarding_choices_title">Redact 能使用什麼，由你決定。</string>
     <string name="onboarding_choices_body">接下來，Redact 會逐一說明想使用什麼以及原因。選擇權始終在你，之後也可以在設定中變更。</string>
     <string name="onboarding_choices_media">首先是相片和影片，這樣 Redact 才能開啟你選的檔案。</string>

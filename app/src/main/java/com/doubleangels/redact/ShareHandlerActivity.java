@@ -391,7 +391,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     if (!isCurrentSession(session)) {
                         // The share was cancelled during the copy and its cleanup has already
                         // run, so nothing else would delete this one.
-                        SecureDelete.secureDelete(getApplicationContext(), snapshot);
+                        SecureDelete.secureDelete(snapshot);
                         break;
                     }
                     synchronized (fileListLock) {
@@ -437,7 +437,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     FileOutputStream out = new FileOutputStream(dest)) {
                 copyForSession(in, out, session);
             } catch (IOException e) {
-                SecureDelete.secureDelete(getApplicationContext(), dest);
+                SecureDelete.secureDelete(dest);
                 throw e;
             }
             return dest;
@@ -461,7 +461,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             copyForSession(in, out, session);
         } catch (IOException e) {
             // A partial copy still holds part of the original.
-            SecureDelete.secureDelete(getApplicationContext(), dest);
+            SecureDelete.secureDelete(dest);
             throw e;
         }
         return dest;
@@ -863,10 +863,9 @@ public class ShareHandlerActivity extends AppCompatActivity {
         if (filesToDelete.isEmpty()) {
             return;
         }
-        Context appContext = getApplicationContext();
         cleanupExecutor.execute(() -> {
             for (File file : filesToDelete) {
-                if (file != null && file.exists() && !SecureDelete.secureDelete(appContext, file)) {
+                if (file != null && file.exists() && !SecureDelete.secureDelete(file)) {
                     file.deleteOnExit();
                 }
             }

@@ -592,6 +592,7 @@
     <string name="onboarding_private_offline">Ничего не загружается, поэтому ваши фото и видео остаются личными.</string>
     <string name="onboarding_private_no_ads">Здесь нет рекламы, и ничто не следит за вашими действиями.</string>
     <string name="onboarding_private_open_source">У Redact открытый исходный код, поэтому любой может проверить, как он работает.</string>
+    <string name="onboarding_private_recents">Чтобы фото и сведения о них не попадали на снимки экрана и в список недавних приложений, включите «%1$s» в настройках.</string>
     <string name="onboarding_choices_title">Вы решаете, что может использовать Redact.</string>
     <string name="onboarding_choices_body">Дальше Redact по очереди объяснит, к чему он хотел бы получить доступ и зачем. Решаете всегда вы, и передумать можно позже в Настройках.</string>
     <string name="onboarding_choices_media">Сначала ваши фото и видео, чтобы Redact мог открывать выбранные вами файлы.</string>
