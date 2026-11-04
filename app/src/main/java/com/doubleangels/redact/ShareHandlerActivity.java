@@ -985,7 +985,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     /**
      * Whether a file:// URI resolves inside one of this app's own directories: its private data
-     * directory, or its app-specific folders on shared storage (Android/data and Android/obb), where working copies of unredacted videos are kept while they are transcoded.
+     * directory, or its app-specific folders on shared storage (Android/data and Android/obb),
+     * where working copies of unredacted videos are kept while they are transcoded.
      * Another app can send an intent naming one of these files, which Redact can read but the sender
      * cannot; copying and re-sharing it would hand that data to whatever app the user picks.
      */
