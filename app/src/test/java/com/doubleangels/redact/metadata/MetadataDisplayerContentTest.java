@@ -131,23 +131,6 @@ public class MetadataDisplayerContentTest {
         return result.get();
     }
 
-    private String text(Uri uri) throws Exception {
-        AtomicReference<String> result = new AtomicReference<>();
-        MetadataDisplayer.extractMetadata(app, uri, new MetadataDisplayer.MetadataCallback() {
-            @Override
-            public void onMetadataExtracted(String metadata, boolean isVideo) {
-                result.set(metadata);
-            }
-
-            @Override
-            public void onExtractionFailed(String error) {
-                result.set("FAILED: " + error);
-            }
-        });
-        awaitMain(() -> result.get() != null);
-        return result.get();
-    }
-
     // ---- images --------------------------------------------------------------------------------------
 
     @Test
@@ -204,21 +187,6 @@ public class MetadataDisplayerContentTest {
         assertNotNull(s.get(MetadataDisplayer.SECTION_BASIC_INFO));
         // Whether the columns are surfaced depends on the extractor; it must at least not fail.
         MetadataDisplayer.resolveMapCoordinates(s);
-    }
-
-    @Test
-    public void image_legacyTextApi_listsTheFields() throws Exception {
-        grantLocation(true);
-        String text = text(imageUri(jpeg(true, 0)));
-        assertTrue(text, text.contains("Acme"));
-        assertTrue(text, text.contains(app.getString(com.doubleangels.redact.R.string.metadata_camera_information_header)));
-    }
-
-    @Test
-    public void image_legacyTextApi_withoutLocationAccess() throws Exception {
-        grantLocation(false);
-        String text = text(imageUri(jpeg(true, 0)));
-        assertTrue(text, text.contains("Acme"));
     }
 
     @Test
@@ -389,23 +357,6 @@ public class MetadataDisplayerContentTest {
     }
 
     @Test
-    public void video_legacyTextApi_listsTheHiddenTagsWithTheirValues() throws Exception {
-        grantLocation(true);
-
-        String text = text(videoWithHiddenTags());
-
-        assertFalse(text, text.contains(app.getString(com.doubleangels.redact.R.string.metadata_location_unreadable)));
-        assertFalse(text, text.contains(app.getString(com.doubleangels.redact.R.string.metadata_no_location_data)));
-        assertTrue(text, text.contains("comment: secret comment"));
-        assertTrue(text, text.contains("location: " + TestVideos.LOCATION));
-
-        grantLocation(false);
-        String withheld = text(videoWithHiddenTags());
-        assertTrue(withheld, withheld.contains("comment: secret comment"));
-        assertFalse(withheld, withheld.contains(TestVideos.LOCATION));
-    }
-
-    @Test
     public void containerDisplayKeys_areReadable() {
         assertEquals("MAKE", MetadataDisplayer.containerDisplayKey("©mak"));
         assertEquals("MODEL", MetadataDisplayer.containerDisplayKey("com.apple.quicktime.model"));
@@ -413,13 +364,6 @@ public class MetadataDisplayerContentTest {
         assertEquals("COMMENT", MetadataDisplayer.containerDisplayKey("comment"));
         assertEquals("TRACK_META", MetadataDisplayer.containerDisplayKey("track:meta"));
         assertEquals("XMP", MetadataDisplayer.containerDisplayKey("XMP"));
-    }
-
-    @Test
-    public void video_legacyTextApi() throws Exception {
-        grantLocation(true);
-        String text = text(videoWithMetadata("+40.5000-073.9833/"));
-        assertTrue(text, text.contains(app.getString(com.doubleangels.redact.R.string.metadata_video_properties_header)));
     }
 
     @Test
@@ -471,9 +415,6 @@ public class MetadataDisplayerContentTest {
         grantLocation(true);
         Uri uri = imageUri(jpegWithOddExif());
 
-        String report = text(uri);
-        assertFalse(report, report.startsWith("FAILED"));
-
         Map<String, String> s = sections(uri);
         String location = s.get(MetadataDisplayer.SECTION_LOCATION);
         assertNotNull(location);
@@ -487,8 +428,6 @@ public class MetadataDisplayerContentTest {
         grantLocation(false);
         Uri uri = imageUri(jpegWithOddExif());
 
-        String report = text(uri);
-        assertFalse(report, report.contains("33.8"));
         Map<String, String> s = sections(uri);
         String all = String.valueOf(s);
         assertFalse(all, all.contains("33.8"));

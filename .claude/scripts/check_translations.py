@@ -42,19 +42,16 @@ SAME_AS_ENGLISH_OK = re.compile(
 # Add "locale:name" here after checking, so the review list only shows new suspects.
 REVIEWED_SAME_AS_ENGLISH = {
     "de:content_description_selected_video", "it:content_description_selected_video",
-    "de:convert_item_type_video", "de:settings_output_videos", "de:metadata_orientation_normal",
-    "de:scan_section_details", "de:settings_about_version", "de:metadata_rotation", "de:metadata_bitrate",
+    "de:convert_item_type_video", "de:settings_output_videos",
+    "de:scan_section_details", "de:settings_about_version",
     "de:settings_max_bitmap_size_labels",
     "es:review_prompt_no", "it:review_prompt_no", "fr:censor_tool_rectangle",
-    "es:convert_item_type_video", "es:metadata_flash", "es:metadata_white_balance_manual",
-    "es:metadata_orientation_normal",
+    "es:convert_item_type_video",
     "fr:settings_section_notifications", "fr:settings_about_version", "fr:convert_item_type_image",
-    "fr:metadata_orientation_normal", "fr:metadata_orientation_transverse", "fr:settings_max_bitmap_size_labels",
+    "fr:settings_max_bitmap_size_labels",
     "fr:settings_output_images",
-    "it:convert_item_type_video", "it:metadata_flash", "it:metadata_bitrate", "it:metadata_frame_rate",
+    "it:convert_item_type_video",
     "it:settings_max_bitmap_size_labels", "it:convert_hero_files_count", "it:settings_section_privacy",
-    "pt:metadata_latitude", "pt:metadata_longitude", "pt:metadata_flash", "pt:metadata_white_balance_manual",
-    "pt:metadata_orientation_normal",
 }
 
 

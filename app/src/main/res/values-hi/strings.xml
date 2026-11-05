@@ -104,62 +104,24 @@
     
     <string name="metadata_image_properties_header">छवि गुण:</string>
     <string name="metadata_camera_information_header">कैमरा जानकारी:</string>
-    <string name="metadata_exposure_information_header">एक्सपोज़र जानकारी:</string>
     <string name="metadata_location_information_header">स्थान जानकारी:</string>
     <string name="metadata_technical_details_header">तकनीकी विवरण:</string>
     <string name="metadata_video_properties_header">वीडियो गुण:</string>
 
     
-    <string name="metadata_dimensions">आयाम: %1$d x %2$d</string>
-    <string name="metadata_date_taken">तारीख ली गई: %s</string>
-    <string name="metadata_camera_make">कैमरा निर्माता: %s</string>
-    <string name="metadata_camera_model">कैमरा मॉडल: %s</string>
-    <string name="metadata_aperture">एपर्चर: f/%s</string>
-    <string name="metadata_exposure_time_fraction">एक्सपोज़र समय: 1/%d सेकंड</string>
-    <string name="metadata_exposure_time_seconds">एक्सपोज़र समय: %.5f सेकंड</string>
-    <string name="metadata_latitude">अक्षांश: %.15f</string>
-    <string name="metadata_longitude">देशांतर: %.15f</string>
-    <string name="metadata_no_location_data">कोई स्थान डेटा उपलब्ध नहीं है।</string>
     <string name="metadata_location_unreadable">स्थान डेटा मौजूद है, लेकिन ऐसे रूप में सहेजा गया है जिसे यहाँ नहीं दिखाया जा सकता। साफ़ करने पर यह हट जाता है।</string>
-    <string name="metadata_container_tags_header">एम्बेड किए गए टैग:</string>
-    <string name="metadata_container_tags">फ़ाइल में मिला: %1$s</string>
     <string name="metadata_embedded_data_header">छिपा और एम्बेड किया गया डेटा</string>
     <plurals name="metadata_embedded_images">
         <item quantity="one">%1$d इमेज (%2$s) – साफ़ करने पर हट जाती है</item>
         <item quantity="other">%1$d इमेज (%2$s) – साफ़ करने पर हट जाती हैं</item>
     </plurals>
     <string name="metadata_location_permission_needed">स्थान अनुमति प्रदान नहीं की गई। स्थान डेटा देखने के लिए अनुमति प्रदान करें।</string>
-    <string name="metadata_orientation">अभिविन्यास: %s</string>
-    <string name="metadata_flash">फ्लैश: %s</string>
-    <string name="metadata_flash_fired">फायर किया गया</string>
-    <string name="metadata_flash_not_fired">फायर नहीं किया गया</string>
-    <string name="metadata_white_balance">व्हाइट बैलेंस: %s</string>
-    <string name="metadata_white_balance_auto">स्वचालित</string>
-    <string name="metadata_white_balance_manual">मैनुअल</string>
-
-    
-    <string name="metadata_duration_with_hours">अवधि: %s</string>
-    <string name="metadata_duration_without_hours">अवधि: %s</string>
-    <string name="metadata_resolution">रिज़ॉल्यूशन: %1$s x %2$s</string>
-    <string name="metadata_rotation">रोटेशन: %s°</string>
-    <string name="metadata_bitrate">बिटरेट: %d kbps</string>
-    <string name="metadata_date">तारीख: %s</string>
-    <string name="metadata_frame_rate">फ्रेम रेट: %s fps</string>
-    <string name="metadata_sample_rate">सैंपल रेट: %s Hz</string>
 
     
 
     
-    <string name="metadata_orientation_normal">सामान्य</string>
-    <string name="metadata_orientation_rotate_90">90° घुमाएं</string>
-    <string name="metadata_orientation_rotate_180">180° घुमाएं</string>
-    <string name="metadata_orientation_rotate_270">270° घुमाएं</string>
-    <string name="metadata_orientation_flip_horizontal">क्षैतिज रूप से फ्लिप करें</string>
-    <string name="metadata_orientation_flip_vertical">ऊर्ध्वाधर रूप से फ्लिप करें</string>
-    <string name="metadata_orientation_transpose">ट्रांसपोज़ करें</string>
-    <string name="metadata_orientation_transverse">ट्रांसवर्स</string>
-    <string name="metadata_orientation_unknown">अज्ञात (%d)</string>
-    <string name="metadata_error_file_open">त्रुटि: छवि फ़ाइल नहीं खोल सका</string>
+
+    
 
     
     <string name="settings_section_advanced_privacy">मेटाडेटा सफ़ाई</string>
@@ -264,9 +226,6 @@
     <string name="clean_status_ready">साफ़ करने के लिए फ़ाइलें चुनने के लिए तैयार।</string>
     <string name="convert_codec_fallback">%1$s उपलब्ध नहीं; इसके बजाय %2$s के रूप में सहेजा गया।</string>
     <string name="video_downscaled">%1$dp पर सहेजा गया क्योंकि यह फ़ोन वीडियो को पूरे आकार में प्रोसेस नहीं कर सका।</string>
-    <string name="metadata_error_basic_info_generic">मूल फ़ाइल जानकारी पढ़ नहीं सकी।</string>
-    <string name="metadata_error_image_generic">छवि मेटाडेटा पढ़ नहीं सका।</string>
-    <string name="metadata_error_video_generic">वीडियो मेटाडेटा पढ़ नहीं सका।</string>
     <string name="notification_clean_failed">इस बार कोई फ़ाइल साफ़ नहीं की जा सकी।</string>
     <plurals name="notification_clean_done">
         <item quantity="one">%1$d फ़ाइल साफ़ की गई।</item>

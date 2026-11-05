@@ -101,61 +101,23 @@
     
     <string name="metadata_image_properties_header">圖片屬性：</string>
     <string name="metadata_camera_information_header">相機資訊：</string>
-    <string name="metadata_exposure_information_header">曝光資訊：</string>
     <string name="metadata_location_information_header">位置資訊：</string>
     <string name="metadata_technical_details_header">技術詳細資訊：</string>
     <string name="metadata_video_properties_header">影片屬性：</string>
 
     
-    <string name="metadata_dimensions">尺寸：%1$d x %2$d</string>
-    <string name="metadata_date_taken">拍攝日期：%s</string>
-    <string name="metadata_camera_make">相機品牌：%s</string>
-    <string name="metadata_camera_model">相機型號：%s</string>
-    <string name="metadata_aperture">光圈：f/%s</string>
-    <string name="metadata_exposure_time_fraction">曝光時間：1/%d 秒</string>
-    <string name="metadata_exposure_time_seconds">曝光時間：%.5f 秒</string>
-    <string name="metadata_latitude">緯度：%.15f</string>
-    <string name="metadata_longitude">經度：%.15f</string>
-    <string name="metadata_no_location_data">無位置資料可用。</string>
     <string name="metadata_location_unreadable">存在位置資料，但其儲存形式無法在此顯示。清理會將其移除。</string>
-    <string name="metadata_container_tags_header">內嵌的標籤：</string>
-    <string name="metadata_container_tags">在檔案中發現：%1$s</string>
     <string name="metadata_embedded_data_header">隱藏和嵌入的資料</string>
     <plurals name="metadata_embedded_images">
         <item quantity="other">%1$d 張圖片（%2$s） – 清理時會移除</item>
     </plurals>
     <string name="metadata_location_permission_needed">未授予位置權限。授予權限以檢視位置資料。</string>
-    <string name="metadata_orientation">方向：%s</string>
-    <string name="metadata_flash">閃光燈：%s</string>
-    <string name="metadata_flash_fired">已觸發</string>
-    <string name="metadata_flash_not_fired">未觸發</string>
-    <string name="metadata_white_balance">白平衡：%s</string>
-    <string name="metadata_white_balance_auto">自動</string>
-    <string name="metadata_white_balance_manual">手動</string>
-
-    
-    <string name="metadata_duration_with_hours">長度：%s</string>
-    <string name="metadata_duration_without_hours">長度：%s</string>
-    <string name="metadata_resolution">解析度：%1$s x %2$s</string>
-    <string name="metadata_rotation">旋轉：%s°</string>
-    <string name="metadata_bitrate">位元率：%d kbps</string>
-    <string name="metadata_date">日期：%s</string>
-    <string name="metadata_frame_rate">影格率：%s fps</string>
-    <string name="metadata_sample_rate">取樣率：%s Hz</string>
 
     
 
     
-    <string name="metadata_orientation_normal">正常</string>
-    <string name="metadata_orientation_rotate_90">旋轉 90°</string>
-    <string name="metadata_orientation_rotate_180">旋轉 180°</string>
-    <string name="metadata_orientation_rotate_270">旋轉 270°</string>
-    <string name="metadata_orientation_flip_horizontal">水平翻轉</string>
-    <string name="metadata_orientation_flip_vertical">垂直翻轉</string>
-    <string name="metadata_orientation_transpose">轉置</string>
-    <string name="metadata_orientation_transverse">橫向</string>
-    <string name="metadata_orientation_unknown">未知 (%d)</string>
-    <string name="metadata_error_file_open">錯誤：無法開啟圖片檔案</string>
+
+    
 
     
     <string name="settings_section_advanced_privacy">中繼資料清理</string>
@@ -260,9 +222,6 @@
     <string name="clean_status_ready">準備選擇要清理的檔案。</string>
     <string name="convert_codec_fallback">%1$s 無法使用；已改為儲存為 %2$s。</string>
     <string name="video_downscaled">這支手機無法以原始尺寸處理此影片，因此已儲存為 %1$dp。</string>
-    <string name="metadata_error_basic_info_generic">無法讀取基本檔案資訊。</string>
-    <string name="metadata_error_image_generic">無法讀取影像中繼資料。</string>
-    <string name="metadata_error_video_generic">無法讀取影片中繼資料。</string>
     <string name="notification_clean_failed">這次沒有成功清理任何檔案。</string>
     <plurals name="notification_clean_done">
         <item quantity="other">已清理 %1$d 個檔案。</item>

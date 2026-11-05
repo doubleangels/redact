@@ -90,26 +90,6 @@ public class MetadataDisplayer {
     private static final char METADATA_UNIT_SEP = '\u001f';
 
     /**
-     * Callback interface for receiving consolidated metadata extraction results.
-     */
-    public interface MetadataCallback {
-        /**
-         * Called when metadata extraction is successful.
-         *
-         * @param metadata The extracted metadata formatted as a string
-         * @param isVideo Whether the processed file is a video
-         */
-        void onMetadataExtracted(String metadata, boolean isVideo);
-
-        /**
-         * Called when metadata extraction fails.
-         *
-         * @param error Error message describing the failure
-         */
-        void onExtractionFailed(String error);
-    }
-
-    /**
      * Callback interface for receiving sectioned metadata extraction results.
      */
     public interface SectionedMetadataCallback {
@@ -136,61 +116,6 @@ public class MetadataDisplayer {
         void onLocationSectionExtracted(@Nullable String locationSectionContent);
 
         void onExtractionFailed(String error);
-    }
-
-    /**
-     * Extracts metadata from a media file and returns it as a single formatted string.
-     * The operation is performed asynchronously on a background thread.
-     *
-     * @param context Application context
-     * @param mediaUri URI of the media file to analyze
-     * @param callback Callback to receive the extraction result
-     */
-    public static void extractMetadata(Context context, Uri mediaUri, MetadataCallback callback) {
-        SentryManager.log("The app is starting metadata extraction.");
-
-        cancelActiveScan();
-        FutureTask<Void>[] taskRef = new FutureTask[1];
-        taskRef[0] = new FutureTask<>(() -> {
-            try {
-                SentryManager.beginOperation("extract_metadata");
-                ContentResolver contentResolver = context.getContentResolver();
-                String mimeType = contentResolver.getType(mediaUri);
-                boolean isVideo = MediaSelector.isVideoFromMimeAndName(
-                        mimeType, fileNameFromUri(context, mediaUri));
-                SentryManager.setCustomKey("is_video", isVideo);
-                SentryManager.setCustomKey("mime_type", mimeType != null ? mimeType : "unknown");
-
-                StringBuilder metadata = new StringBuilder();
-                extractBasicFileInfo(context, mediaUri, metadata);
-
-                if (isVideo) {
-                    SentryManager.log("The app is extracting video metadata.");
-                    extractVideoMetadata(context, mediaUri, metadata);
-                } else {
-                    SentryManager.log("The app is extracting image metadata.");
-                    extractImageMetadata(context, mediaUri, metadata);
-                }
-
-                SentryManager.log("Metadata extraction completed successfully.");
-                if (isActiveScan(taskRef[0])) {
-                    String metadataResult = metadata.toString();
-                    deliverOnMain(() -> callback.onMetadataExtracted(metadataResult, isVideo));
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Error extracting metadata", e);
-                SentryManager.setCustomKey("extraction_failed", true);
-                SentryManager.setCustomKey("error_type", e.getClass().getName());
-                SentryManager.recordException(e);
-                if (isActiveScan(taskRef[0])) {
-                    String errorMessage = context.getString(R.string.status_extraction_fail);
-                    deliverOnMain(() -> callback.onExtractionFailed(errorMessage));
-                }
-            }
-            return null;
-        });
-        ACTIVE_SCAN.set(taskRef[0]);
-        SCAN_EXECUTOR.execute(taskRef[0]);
     }
 
     private static boolean isActiveScan(Future<?> future) {
@@ -447,225 +372,6 @@ public class MetadataDisplayer {
 
         } catch (Exception e) {
             Log.e(TAG, "Error extracting basic file info", e);
-            SentryManager.recordException(e);
-        }
-    }
-
-    /**
-     * Extracts basic file information such as name, size, and MIME type.
-     *
-     * @param context Application context
-     * @param mediaUri URI of the media file
-     * @param metadata StringBuilder to append the extracted information to
-     */
-    private static void extractBasicFileInfo(Context context, Uri mediaUri, StringBuilder metadata) {
-        SentryManager.log("The app is extracting basic file info.");
-
-        try {
-            ContentResolver contentResolver = context.getContentResolver();
-            Uri queryUri = uriForDisplayNameQuery(context, mediaUri);
-
-            String fileName = null;
-            long fileSize = -1;
-
-            // Query the content resolver for file name and size
-            try (Cursor cursor = contentResolver.query(
-                    queryUri,
-                    new String[]{OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE},
-                    null, null, null)) {
-                if (cursor != null && cursor.moveToFirst()) {
-                    int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                    int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
-
-                    if (nameIndex != -1) {
-                        fileName = cursor.getString(nameIndex);
-                    }
-
-                    if (sizeIndex != -1) {
-                        fileSize = cursor.getLong(sizeIndex);
-                    }
-                }
-            }
-
-            // Format file size in appropriate units (bytes, KB, MB)
-            String formattedSize;
-            if (fileSize >= 0) {
-                if (fileSize < 1024) {
-                    formattedSize = fileSize + " " + context.getString(R.string.metadata_size_bytes);
-                } else if (fileSize < 1024 * 1024) {
-                    formattedSize = String.format(Locale.getDefault(), "%.2f " + context.getString(R.string.metadata_size_kb), fileSize / 1024.0);
-                } else {
-                    formattedSize = String.format(Locale.getDefault(), "%.2f " + context.getString(R.string.metadata_size_mb), fileSize / (1024.0 * 1024));
-                }
-            } else {
-                formattedSize = context.getString(R.string.metadata_unknown);
-            }
-
-            String mimeType = contentResolver.getType(mediaUri);
-
-            // Append basic file information using raw metadata keys - sorted alphabetically (case-insensitive)
-            Map<String, String> basicInfoMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-            basicInfoMap.put("DISPLAY_NAME", fileName != null && !fileName.isEmpty()
-                    ? fileName
-                    : context.getString(R.string.metadata_unknown));
-            basicInfoMap.put("MIME_TYPE", mimeType != null ? mimeType : context.getString(R.string.metadata_unknown));
-            basicInfoMap.put("SIZE", formattedSize);
-            for (Map.Entry<String, String> entry : basicInfoMap.entrySet()) {
-                metadata.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
-            }
-
-            SentryManager.log("Basic file info was extracted successfully.");
-        } catch (Exception e) {
-            // Append error message if extraction fails
-            metadata.append(context.getString(R.string.metadata_error_basic_info_generic)).append("\n");
-            SentryManager.log("An error occurred while extracting basic file info: " + e.getMessage() + ".");
-            SentryManager.recordException(e);
-        }
-    }
-
-    /**
-     * Extracts detailed metadata from an image file using ExifInterface.
-     * Includes image properties, camera information, exposure details, and location data if available.
-     *
-     * @param context Application context
-     * @param imageUri URI of the image file
-     * @param metadata StringBuilder to append the extracted information to
-     */
-    private static void extractImageMetadata(Context context, Uri imageUri, StringBuilder metadata) {
-        SentryManager.log("The app is extracting image metadata.");
-
-        try {
-            ExifInterface exifInterface = createImageExifInterface(context, imageUri);
-            if (exifInterface == null) {
-                metadata.append(context.getString(R.string.metadata_error_file_open));
-                SentryManager.log("The input stream for the image failed to open.");
-                return;
-            }
-            SentryManager.log("The ExifInterface was created successfully.");
-
-            // Extract and append image properties
-            metadata.append("\n").append(context.getString(R.string.metadata_image_properties_header)).append("\n");
-
-            int width = exifInterface.getAttributeInt(ExifInterface.TAG_IMAGE_WIDTH, 0);
-            int height = exifInterface.getAttributeInt(ExifInterface.TAG_IMAGE_LENGTH, 0);
-            if (width > 0 && height > 0) {
-                metadata.append(context.getString(R.string.metadata_dimensions, width, height)).append("\n");
-                SentryManager.setCustomKey("image_width", width);
-                SentryManager.setCustomKey("image_height", height);
-            }
-
-            String dateTaken = exifInterface.getAttribute(ExifInterface.TAG_DATETIME);
-            if (dateTaken != null) {
-                metadata.append(context.getString(R.string.metadata_date_taken, dateTaken)).append("\n");
-            }
-
-            // Extract and append camera information
-            metadata.append("\n").append(context.getString(R.string.metadata_camera_information_header)).append("\n");
-
-            String make = exifInterface.getAttribute(ExifInterface.TAG_MAKE);
-            if (make != null) {
-                metadata.append(context.getString(R.string.metadata_camera_make, make)).append("\n");
-            }
-
-            String model = exifInterface.getAttribute(ExifInterface.TAG_MODEL);
-            if (model != null) {
-                metadata.append(context.getString(R.string.metadata_camera_model, model)).append("\n");
-            }
-
-            // Extract and append exposure information
-            metadata.append("\n").append(context.getString(R.string.metadata_exposure_information_header)).append("\n");
-
-            String aperture = exifInterface.getAttribute(ExifInterface.TAG_APERTURE_VALUE);
-            if (aperture != null) {
-                metadata.append(context.getString(R.string.metadata_aperture, aperture)).append("\n");
-            }
-
-            String exposureTime = exifInterface.getAttribute(ExifInterface.TAG_EXPOSURE_TIME);
-            if (exposureTime != null) {
-                try {
-                    float exposureValue = Float.parseFloat(exposureTime);
-                    // Format exposure time as fraction (1/x) for values less than 1 second
-                    if (exposureValue > 0 && exposureValue < 1) {
-                        metadata.append(context.getString(R.string.metadata_exposure_time_fraction, Math.round(1f / exposureValue))).append("\n");
-                    } else if (exposureValue >= 1) {
-                        metadata.append(context.getString(R.string.metadata_exposure_time_seconds, exposureValue)).append("\n");
-                    }
-                } catch (NumberFormatException e) {
-                    SentryManager.log("The exposure time format is invalid: " + exposureTime + ".");
-                    SentryManager.recordException(e);
-                }
-            }
-
-            // Check if we have permission to access media location
-            boolean hasLocationPermission = ContextCompat.checkSelfPermission(context,
-                    Manifest.permission.ACCESS_MEDIA_LOCATION) == PackageManager.PERMISSION_GRANTED;
-            SentryManager.setCustomKey("has_location_permission", hasLocationPermission);
-
-            // Extract and append location information if available
-            metadata.append("\n").append(context.getString(R.string.metadata_location_information_header)).append("\n");
-
-            if (hasLocationPermission) {
-                double[] latLong = null;
-                try {
-                    latLong = exifInterface.getLatLong();
-                } catch (SecurityException e) {
-                    SentryManager.recordException(e);
-                    SentryManager.log("A SecurityException occurred while reading latitude and longitude: " + e.getMessage() + ".");
-                }
-
-                if (latLong == null || !isUsableMapCoordinate(latLong[0], latLong[1])) {
-                    latLong = readMediaStoreGpsCoordinates(context, imageUri);
-                }
-
-                if (latLong != null && isUsableMapCoordinate(latLong[0], latLong[1])) {
-                    appendImageLocationMetadata(context, metadata, latLong[0], latLong[1]);
-                    SentryManager.setCustomKey("has_location_data", true);
-                } else {
-                    metadata.append(context.getString(R.string.metadata_no_location_data)).append("\n");
-                    SentryManager.setCustomKey("has_location_data", false);
-                }
-            } else {
-                metadata.append(context.getString(R.string.metadata_location_permission_needed)).append("\n");
-            }
-
-            // Extract and append technical details
-            metadata.append("\n").append(context.getString(R.string.metadata_technical_details_header)).append("\n");
-
-            String orientation = exifInterface.getAttribute(ExifInterface.TAG_ORIENTATION);
-            if (orientation != null) {
-                try {
-                    metadata.append(context.getString(R.string.metadata_orientation, getOrientationString(context, Integer.parseInt(orientation)))).append("\n");
-                } catch (NumberFormatException e) {
-                    SentryManager.log("The orientation format is invalid: " + orientation + ".");
-                    SentryManager.recordException(e);
-                }
-            }
-
-            String flash = exifInterface.getAttribute(ExifInterface.TAG_FLASH);
-            if (flash != null) {
-                try {
-                    boolean flashFired = (Integer.parseInt(flash) & 0x1) != 0;
-                    metadata.append(context.getString(R.string.metadata_flash,
-                            flashFired ? context.getString(R.string.metadata_flash_fired) : context.getString(R.string.metadata_flash_not_fired))).append("\n");
-                } catch (NumberFormatException e) {
-                    SentryManager.log("The flash format is invalid: " + flash + ".");
-                    SentryManager.recordException(e);
-                }
-            }
-
-            String whiteBalance = exifInterface.getAttribute(ExifInterface.TAG_WHITE_BALANCE);
-            if (whiteBalance != null) {
-                metadata.append(context.getString(R.string.metadata_white_balance,
-                        whiteBalance.equals("0") ? context.getString(R.string.metadata_white_balance_auto) :
-                                context.getString(R.string.metadata_white_balance_manual))).append("\n");
-            }
-
-            SentryManager.log("Image metadata extraction completed.");
-
-        } catch (IOException e) {
-            // Append error message if extraction fails
-            metadata.append(context.getString(R.string.metadata_error_image_generic));
-            Log.e(TAG, "Error extracting image metadata", e);
             SentryManager.recordException(e);
         }
     }
@@ -979,166 +685,6 @@ public class MetadataDisplayer {
             throw new IllegalArgumentException("Division by zero in rational: " + rational);
         }
         return numerator / denominator;
-    }
-
-    /**
-     * Extracts detailed metadata from a video file using MediaMetadataRetriever.
-     * Includes video properties, duration, resolution, location data if available, and technical details.
-     *
-     * @param context Application context
-     * @param videoUri URI of the video file
-     * @param metadata StringBuilder to append the extracted information to
-     */
-    private static void extractVideoMetadata(Context context, Uri videoUri, StringBuilder metadata) {
-        SentryManager.log("The app is extracting video metadata.");
-
-        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-        // The platform retriever misses many tags, so the container is read directly as well.
-        VideoContainerMetadata.Report container = VideoContainerMetadata.scan(context, videoUri);
-
-        try {
-            // Set the data source to the video URI
-            retriever.setDataSource(context, videoUri);
-            SentryManager.log("The MediaMetadataRetriever data source was set successfully.");
-
-            // Extract and append video properties
-            metadata.append("\n").append(context.getString(R.string.metadata_video_properties_header)).append("\n");
-
-            // Format duration in hours:minutes:seconds
-            String duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-            if (duration != null) {
-                try {
-                    long durationMs = Long.parseLong(duration);
-                    long seconds = (durationMs / 1000) % 60;
-                    long minutes = (durationMs / (1000 * 60)) % 60;
-                    long hours = (durationMs / (1000 * 60 * 60));
-
-                    String formattedDuration;
-                    if (hours > 0) {
-                        formattedDuration = String.format(Locale.getDefault(), "%d:%02d:%02d", hours, minutes, seconds);
-                        metadata.append(context.getString(R.string.metadata_duration_with_hours, formattedDuration)).append("\n");
-                    } else {
-                        formattedDuration = String.format(Locale.getDefault(), "%d:%02d", minutes, seconds);
-                        metadata.append(context.getString(R.string.metadata_duration_without_hours, formattedDuration)).append("\n");
-                    }
-                    SentryManager.setCustomKey("video_duration_ms", durationMs);
-                } catch (NumberFormatException e) {
-                    SentryManager.log("The duration format is invalid: " + duration + ".");
-                    SentryManager.recordException(e);
-                }
-            }
-
-            String width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH);
-            String height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT);
-            if (width != null && height != null) {
-                metadata.append(context.getString(R.string.metadata_resolution, width, height)).append("\n");
-                SentryManager.setCustomKey("video_width", width);
-                SentryManager.setCustomKey("video_height", height);
-            }
-
-            String rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION);
-            if (rotation != null) {
-                metadata.append(context.getString(R.string.metadata_rotation, rotation)).append("\n");
-                SentryManager.setCustomKey("video_rotation", rotation);
-            }
-
-            String bitrate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE);
-            if (bitrate != null) {
-                try {
-                    long bitrateValue = Long.parseLong(bitrate);
-                    metadata.append(context.getString(R.string.metadata_bitrate, bitrateValue / 1000)).append("\n");
-                    SentryManager.setCustomKey("video_bitrate_kbps", bitrateValue / 1000);
-                } catch (NumberFormatException e) {
-                    SentryManager.log("The bitrate format is invalid: " + bitrate + ".");
-                    SentryManager.recordException(e);
-                }
-            }
-
-            String date = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE);
-            if (date != null) {
-                metadata.append(context.getString(R.string.metadata_date, date)).append("\n");
-            }
-
-            // Check if we have permission to access media location
-            boolean hasLocationPermission = ContextCompat.checkSelfPermission(context,
-                    Manifest.permission.ACCESS_MEDIA_LOCATION) == PackageManager.PERMISSION_GRANTED;
-            SentryManager.setCustomKey("has_location_permission", hasLocationPermission);
-
-            // Extract and append location information if available
-            metadata.append("\n").append(context.getString(R.string.metadata_location_information_header)).append("\n");
-
-            if (hasLocationPermission) {
-                String locationRaw = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_LOCATION);
-                float[] coords = parseVideoLocationCoordinates(locationRaw);
-                if (coords == null && container.coordinates != null
-                        && isUsableMapCoordinate(container.coordinates[0], container.coordinates[1])) {
-                    coords = new float[]{(float) container.coordinates[0], (float) container.coordinates[1]};
-                }
-                if (coords != null) {
-                    float lat = coords[0];
-                    float lon = coords[1];
-
-                    metadata.append(context.getString(R.string.metadata_latitude, lat)).append("\n");
-                    metadata.append(context.getString(R.string.metadata_longitude, lon)).append("\n");
-                    SentryManager.setCustomKey("has_location_data", true);
-                } else if (container.hasLocation
-                        || (locationRaw != null && !locationRaw.isEmpty())) {
-                    // Present, but not as coordinates the retriever can hand over.
-                    metadata.append(context.getString(R.string.metadata_location_unreadable)).append("\n");
-                    SentryManager.setCustomKey("has_location_data", true);
-                } else {
-                    metadata.append(context.getString(R.string.metadata_no_location_data)).append("\n");
-                    SentryManager.setCustomKey("has_location_data", false);
-                }
-            } else {
-                metadata.append(context.getString(R.string.metadata_location_permission_needed)).append("\n");
-            }
-
-            if (!container.fields.isEmpty()) {
-                // A location's value is left out without the permission, as above.
-                List<String> tags = new ArrayList<>();
-                for (String name : new LinkedHashSet<>(container.fields)) {
-                    String value = container.values.get(name);
-                    boolean place = container.isLocationField(name);
-                    tags.add(value == null || (place && !hasLocationPermission) ? name : name + ": " + value);
-                }
-                metadata.append("\n").append(context.getString(R.string.metadata_container_tags_header)).append("\n");
-                metadata.append(context.getString(R.string.metadata_container_tags, String.join(", ", tags)))
-                        .append("\n");
-            }
-
-            // Extract and append technical details
-            metadata.append("\n").append(context.getString(R.string.metadata_technical_details_header)).append("\n");
-
-            String frameRate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE);
-            if (frameRate != null) {
-                metadata.append(context.getString(R.string.metadata_frame_rate, frameRate)).append("\n");
-                SentryManager.setCustomKey("video_frame_rate", frameRate);
-            }
-
-            String audioSampleRate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_SAMPLERATE);
-            if (audioSampleRate != null) {
-                metadata.append(context.getString(R.string.metadata_sample_rate, audioSampleRate)).append("\n");
-                SentryManager.setCustomKey("audio_sample_rate", audioSampleRate);
-            }
-
-            SentryManager.log("Video metadata extraction completed.");
-
-        } catch (Exception e) {
-            // Append error message if extraction fails
-            metadata.append(context.getString(R.string.metadata_error_video_generic));
-            Log.e(TAG, "Error extracting video metadata", e);
-            SentryManager.recordException(e);
-        } finally {
-            try {
-                // Always release the MediaMetadataRetriever to free resources
-                retriever.release();
-                SentryManager.log("The MediaMetadataRetriever was released.");
-            } catch (Exception ignored) {
-                // Ignore exceptions during release
-                SentryManager.log("An exception occurred while releasing the MediaMetadataRetriever, and it was ignored.");
-            }
-        }
     }
 
     /**
@@ -1649,12 +1195,6 @@ public class MetadataDisplayer {
         metadataMap.put("GPS_LONGITUDE", formatGpsCoordinate(lon));
     }
 
-    private static void appendImageLocationMetadata(Context context, StringBuilder metadata,
-                                                    double lat, double lon) {
-        metadata.append(context.getString(R.string.metadata_latitude, lat)).append("\n");
-        metadata.append(context.getString(R.string.metadata_longitude, lon)).append("\n");
-    }
-
     private static boolean isRedactedGpsRational(@Nullable String rational) {
         if (rational == null || rational.isEmpty()) {
             return false;
@@ -1747,27 +1287,13 @@ public class MetadataDisplayer {
         return null;
     }
 
-    /**
-     * Converts an orientation constant from ExifInterface to a human-readable string.
-     *
-     * @param context Application context for string resources
-     * @param orientation The orientation constant from ExifInterface
-     * @return A human-readable string describing the orientation
-     */
-    private static String getOrientationString(Context context, int orientation) {
-        SentryManager.setCustomKey("image_orientation", orientation);
-
-        return switch (orientation) {
-            case ExifInterface.ORIENTATION_NORMAL -> context.getString(R.string.metadata_orientation_normal);
-            case ExifInterface.ORIENTATION_ROTATE_90 -> context.getString(R.string.metadata_orientation_rotate_90);
-            case ExifInterface.ORIENTATION_ROTATE_180 -> context.getString(R.string.metadata_orientation_rotate_180);
-            case ExifInterface.ORIENTATION_ROTATE_270 -> context.getString(R.string.metadata_orientation_rotate_270);
-            case ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> context.getString(R.string.metadata_orientation_flip_horizontal);
-            case ExifInterface.ORIENTATION_FLIP_VERTICAL -> context.getString(R.string.metadata_orientation_flip_vertical);
-            case ExifInterface.ORIENTATION_TRANSPOSE -> context.getString(R.string.metadata_orientation_transpose);
-            case ExifInterface.ORIENTATION_TRANSVERSE -> context.getString(R.string.metadata_orientation_transverse);
-            default -> context.getString(R.string.metadata_orientation_unknown, orientation);
-        };
+    private static void recordVideoBitrateAnalytics(String bitrate) {
+        try {
+            SentryManager.setCustomKey("video_bitrate_kbps", Long.parseLong(bitrate) / 1000);
+        } catch (NumberFormatException e) {
+            SentryManager.log("The bitrate format for analytics is invalid: " + bitrate + ".");
+            SentryManager.recordException(e);
+        }
     }
 
     /**
@@ -1778,15 +1304,6 @@ public class MetadataDisplayer {
      * @param input The input string in camelCase or PascalCase
      * @return The string in snake_case format
      */
-    private static void recordVideoBitrateAnalytics(String bitrate) {
-        try {
-            SentryManager.setCustomKey("video_bitrate_kbps", Long.parseLong(bitrate) / 1000);
-        } catch (NumberFormatException e) {
-            SentryManager.log("The bitrate format for analytics is invalid: " + bitrate + ".");
-            SentryManager.recordException(e);
-        }
-    }
-
     private static String convertToSnakeCase(String input) {
         if (input == null || input.isEmpty()) {
             return input;

@@ -104,62 +104,24 @@
     
     <string name="metadata_image_properties_header">Bildeigenschaften:</string>
     <string name="metadata_camera_information_header">Kamerainformationen:</string>
-    <string name="metadata_exposure_information_header">Belichtungsinformationen:</string>
     <string name="metadata_location_information_header">Standortinformationen:</string>
     <string name="metadata_technical_details_header">Technische Details:</string>
     <string name="metadata_video_properties_header">Videoeigenschaften:</string>
 
     
-    <string name="metadata_dimensions">Abmessungen: %1$d x %2$d</string>
-    <string name="metadata_date_taken">Aufnahmedatum: %s</string>
-    <string name="metadata_camera_make">Kameramarke: %s</string>
-    <string name="metadata_camera_model">Kameramodell: %s</string>
-    <string name="metadata_aperture">Blende: f/%s</string>
-    <string name="metadata_exposure_time_fraction">Belichtungszeit: 1/%d s</string>
-    <string name="metadata_exposure_time_seconds">Belichtungszeit: %.5f s</string>
-    <string name="metadata_latitude">Breitengrad: %.15f</string>
-    <string name="metadata_longitude">Längengrad: %.15f</string>
-    <string name="metadata_no_location_data">Keine Standortdaten verfügbar.</string>
     <string name="metadata_location_unreadable">Standortdaten sind vorhanden, aber in einer Form gespeichert, die hier nicht angezeigt werden kann. Beim Bereinigen werden sie entfernt.</string>
-    <string name="metadata_container_tags_header">Eingebettete Tags:</string>
-    <string name="metadata_container_tags">In der Datei gefunden: %1$s</string>
     <string name="metadata_embedded_data_header">Versteckte &amp; eingebettete Daten</string>
     <plurals name="metadata_embedded_images">
         <item quantity="one">%1$d Bild (%2$s) – wird beim Bereinigen entfernt</item>
         <item quantity="other">%1$d Bilder (%2$s) – werden beim Bereinigen entfernt</item>
     </plurals>
     <string name="metadata_location_permission_needed">Standortberechtigung nicht erteilt. Erteilen Sie die Berechtigung, um Standortdaten anzuzeigen.</string>
-    <string name="metadata_orientation">Ausrichtung: %s</string>
-    <string name="metadata_flash">Blitz: %s</string>
-    <string name="metadata_flash_fired">Ausgelöst</string>
-    <string name="metadata_flash_not_fired">Nicht Ausgelöst</string>
-    <string name="metadata_white_balance">Weißabgleich: %s</string>
-    <string name="metadata_white_balance_auto">Automatisch</string>
-    <string name="metadata_white_balance_manual">Manuell</string>
-
-    
-    <string name="metadata_duration_with_hours">Dauer: %s</string>
-    <string name="metadata_duration_without_hours">Dauer: %s</string>
-    <string name="metadata_resolution">Auflösung: %1$s x %2$s</string>
-    <string name="metadata_rotation">Rotation: %s°</string>
-    <string name="metadata_bitrate">Bitrate: %d kbps</string>
-    <string name="metadata_date">Datum: %s</string>
-    <string name="metadata_frame_rate">Bildrate: %s fps</string>
-    <string name="metadata_sample_rate">Abtastrate: %s Hz</string>
 
     
 
     
-    <string name="metadata_orientation_normal">Normal</string>
-    <string name="metadata_orientation_rotate_90">90° drehen</string>
-    <string name="metadata_orientation_rotate_180">180° drehen</string>
-    <string name="metadata_orientation_rotate_270">270° drehen</string>
-    <string name="metadata_orientation_flip_horizontal">Horizontal Spiegeln</string>
-    <string name="metadata_orientation_flip_vertical">Vertikal Spiegeln</string>
-    <string name="metadata_orientation_transpose">Transponieren</string>
-    <string name="metadata_orientation_transverse">Transversal</string>
-    <string name="metadata_orientation_unknown">Unbekannt (%d)</string>
-    <string name="metadata_error_file_open">Fehler: Bilddatei konnte nicht geöffnet werden</string>
+
+    
 
     
     <string name="settings_section_advanced_privacy">Metadaten-Bereinigung</string>
@@ -263,9 +225,6 @@ Ihre Fotos und Videos werden nie hochgeladen. URIs, Dateinamen und GPS-Koordinat
     <string name="clean_status_ready">Bereit, Dateien zum Bereinigen auszuwählen.</string>
     <string name="convert_codec_fallback">%1$s nicht verfügbar; stattdessen als %2$s gespeichert.</string>
     <string name="video_downscaled">In %1$dp gespeichert, da dieses Telefon das Video nicht in voller Größe verarbeiten konnte.</string>
-    <string name="metadata_error_basic_info_generic">Grundlegende Dateiinformationen konnten nicht gelesen werden.</string>
-    <string name="metadata_error_image_generic">Bild-Metadaten konnten nicht gelesen werden.</string>
-    <string name="metadata_error_video_generic">Video-Metadaten konnten nicht gelesen werden.</string>
     <string name="notification_clean_failed">Diesmal konnten keine Dateien bereinigt werden.</string>
     <plurals name="notification_clean_done">
         <item quantity="one">%1$d Datei bereinigt.</item>
