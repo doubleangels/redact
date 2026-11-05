@@ -1,11 +1,11 @@
 ---
-description: Before a release, run /translate, upgrade every dependency, check that new code reports to Sentry, regenerate the profiles, regenerate the screenshots if Clean, Scan or Convert look different, preview the release notes CI will write, run /test last on the final code, and show one summary
+description: Before a release, run /translate, upgrade every dependency, check that new code reports to Sentry, run /cleanup, regenerate the profiles, regenerate the screenshots if Clean, Scan or Convert look different, preview the release notes CI will write, run /test last on the final code, and show one summary
 allowed-tools: Bash, PowerShell, Read, Edit, Write, Grep, Glob, WebFetch
 ---
 
 > These commands drive the Pixel_10_Pro emulator and Gradle with Windows paths, so they only work on my own machine. If you are running in a cloud session without the Android SDK and the emulator, say so and stop instead of trying.
 
-Get the app ready for a release on the **Pixel_10_Pro emulator and never on a physical device**, then give one combined summary. Every step that changes the code (translations, dependency upgrades, Sentry fixes) runs first, then the profiles and screenshots are generated from that code, and the full test run comes **last**, so its results cover exactly what will be released. Each step follows another command's file: read that file and do what it says, with the changes listed here. Each step commits its own changes to the current branch automatically when it finishes (translations, dependency upgrades, Sentry fixes, profiles), as the command it follows describes, so the final test run covers committed code. Never push, and do not copy screenshots into `fastlane/` unless I ask.
+Get the app ready for a release on the **Pixel_10_Pro emulator and never on a physical device**, then give one combined summary. Every step that changes the code (translations, dependency upgrades, Sentry fixes, cleanup) runs first, then the profiles and screenshots are generated from that code, and the full test run comes **last**, so its results cover exactly what will be released. Each step follows another command's file: read that file and do what it says, with the changes listed here. Each step commits its own changes to the current branch automatically when it finishes (translations, dependency upgrades, Sentry fixes, cleanup, profiles), as the command it follows describes, so the final test run covers committed code. Never push, and do not copy screenshots into `fastlane/` unless I ask.
 
 If a step fails, record why and carry on with the next one, except that a missing `Pixel_10_Pro` AVD stops everything.
 
@@ -42,9 +42,19 @@ Check that the code added or changed for this release reports to Sentry like the
 
 A gap that could not be fixed does not on its own make the release not ready, but anything that still sends private data to Sentry does.
 
+## 2c. Cleanup
+
+Follow `.claude/commands/cleanup.md` on the whole app, with these changes:
+
+- Do not stop to wait after its step 2: keep its numbered findings for the summary and apply them.
+- Run it after the upgrades and Sentry fixes, so it judges the code that will ship. A dependency step 2 just upgraded is still checked for whether anything uses it.
+- Skip its step 4 checks except the ones the final test run cannot cover: `./gradlew :app:lintRelease -q`, `./gradlew :app:bundleRelease -q`, and both `.claude/scripts/unused_imports.py` and `.claude/scripts/unused_dependencies.py`. Step 6 runs the unit tests, measures coverage and cleans every kind of file on the emulator with `check_media.py`, which covers `/verifyclean`. If a dependency was removed, still compare the `releaseRuntimeClasspath` before and after, as `cleanup.md` says.
+- Skip its baseline profile edits: step 3 regenerates the profiles from the cleaned code.
+- If lint or the bundle fails, find the change that broke it and revert just that one. Then commit as `cleanup.md` describes.
+
 ## 3. Profiles
 
-Follow `.claude/commands/generateprofiles.md`, using the emulator from step 0. This runs after every code change (translations, upgrades, Sentry fixes) so the profile is generated from the final code.
+Follow `.claude/commands/generateprofiles.md`, using the emulator from step 0. This runs after every code change (translations, upgrades, Sentry fixes, cleanup) so the profile is generated from the final code.
 
 ## 4. Screenshots, only if the first three tabs look different
 
@@ -73,20 +83,21 @@ CI (the `release-notes` job in `deploy.yml`) writes the Play "What's new" text, 
 
 ## 6. Tests, last
 
-Follow `.claude/commands/test.md` in full, using the emulator from step 0: the unit tests, then every feature on the emulator. It runs last so it tests the final code, including the translations, dependency upgrades and Sentry fixes above. Its uninstall step also removes the build the profile generator installed. Keep its summary for the end rather than printing it now. Do not fix failures in this step; if a failure looks tied to one of this run's upgrades or fixes, say which.
+Follow `.claude/commands/test.md` in full, using the emulator from step 0: the unit tests, then every feature on the emulator. It runs last so it tests the final code, including the translations, dependency upgrades, Sentry fixes and cleanup above. Run `jacocoTestReport` in its unit test step, since it exists here, and note the line coverage. Its uninstall step also removes the build the profile generator installed. Keep its summary for the end rather than printing it now. Do not fix failures in this step; if a failure looks tied to one of this run's upgrades or fixes, say which.
 
 ## 7. Summary
 
 Finish with one report:
 
-1. **Verdict:** ready to release, or not, and why, in one or two sentences. Any unit test failure, failed feature, crash, ANR, translation error left unfixed, failed profile run, or private data sent to Sentry means not ready.
+1. **Verdict:** ready to release, or not, and why, in one or two sentences. Any unit test failure, line coverage under the 90% gate CI enforces, failed feature, crash, ANR, translation error left unfixed, failed profile run, or private data sent to Sentry means not ready.
 2. **Tests:** the unit test totals and the feature table from step 6.
 3. **Translations:** what was missing or left in English, what was translated (per locale), and whether `StringTranslationsTest` passed in step 6.
 4. **Dependencies:** how many were outdated, each upgrade applied (`name old -> new`), anything skipped or rolled back and why, and any step 6 failure that looks tied to an upgrade.
 5. **Sentry coverage:** the release range checked, each gap with its `file:line` and how it was fixed, and anything left unfixed and why.
-6. **Profiles:** rule counts before and after, and whether the change is meaningful or noise.
-7. **Screenshots:** regenerated or skipped, the reason (the files that count as a visual change, or the baseline commit), and the review of the new images.
-8. **Release notes:** the previewed English text with its character count, and whether CI will generate it or keep a hand-written one.
-9. **Commits:** each commit this run made (short sha and subject), anything left uncommitted and why, and where the screenshots are (`build/screenshots/` and `build/store/`).
+6. **Cleanup:** the findings by group with what was applied, `git diff --stat` for its commit, how many imports and dependencies were removed (and any library whose version changed), anything skipped or reverted and why, and its questions for me.
+7. **Profiles:** rule counts before and after, and whether the change is meaningful or noise.
+8. **Screenshots:** regenerated or skipped, the reason (the files that count as a visual change, or the baseline commit), and the review of the new images.
+9. **Release notes:** the previewed English text with its character count, and whether CI will generate it or keep a hand-written one.
+10. **Commits:** each commit this run made (short sha and subject), anything left uncommitted and why, and where the screenshots are (`build/screenshots/` and `build/store/`).
 
 Offer to copy every locale's store images into fastlane (as step 4 of `generatescreenshots.md` describes), and to fix any failures, but do none of these without being asked.
