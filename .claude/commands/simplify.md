@@ -1,5 +1,5 @@
 ---
-description: Find dead code, duplicated logic and code that can be simpler or faster, apply the safe changes, and verify with the tests, the coverage gate and lint
+description: Find dead code, unused imports and dependencies, duplicated logic and code that can be simpler or faster, apply the safe changes, and verify with the tests, the coverage gate and lint
 allowed-tools: Bash, PowerShell, Read, Edit, Write, Grep, Glob
 argument-hint: "[report] [<file, class or package>]"
 ---
@@ -16,7 +16,7 @@ Read the code, do not guess from names. Run `git status` first and leave alone a
 
 - Private methods, fields, constants, parameters and local variables nothing uses. For a parameter, check every caller, and that it is not there to match an interface, a callback or an `@Override`.
 - Package-private or public members with no caller in `app/src/main`. Grep for the name across `app/src/main` and `app/src/test`. One used only by tests is a finding only if it is not marked `@VisibleForTesting` and the test exists only to cover it.
-- Unused imports, unused resources (strings, drawables, layouts, dimens, colors, ids), and string keys present in `values-*` but not in `values/`. Run `./gradlew :app:lintRelease -q` and read `UnusedResources` and `ExtraTranslation` from `app/build/reports/lint-results-release.xml`. Lint does not report unused view ids by default, so grep for those.
+- Unused resources (strings, drawables, layouts, dimens, colors, ids), and string keys present in `values-*` but not in `values/`. Run `./gradlew :app:lintRelease -q` and read `UnusedResources` and `ExtraTranslation` from `app/build/reports/lint-results-release.xml`. Lint does not report unused view ids by default, so grep for those.
 - `SDK_INT` checks below `minSdk` (see `app/build.gradle`), branches that can never run, and settings, keys or migrations for things the app no longer has.
 - Commented-out code.
 
@@ -26,6 +26,23 @@ Before calling anything dead, rule out these ways the app reaches code that grep
 - **The manifest and XML.** Activities, services, tile services, the `FileProvider`, activity aliases, `@xml/shortcuts`, `@xml/file_paths` and anything named in a layout.
 - **Annotations.** Glide's `@GlideModule` (`RedactGlideModule`), Sentry integrations, lifecycle callbacks and view binding (generated from layout ids).
 - **`app/lint.xml`, the baseline profile generator** (`baselineprofile/`) and the `.claude/scripts` that drive the emulator by view id.
+
+**Unused imports**
+
+Android Lint does not report unused imports in Java, so run `python .claude/scripts/unused_imports.py` (pass a path to limit it to my scope). It lists every unused or duplicate import in `app/src` and `baselineprofile/src`, tests included, as `file:line`. An import counts as used if its name appears anywhere else in the file, comments included, so one kept for a Javadoc `{@link}` is never reported, and a reported one cannot be needed. Wildcard imports are left alone. These are always **Safe**, so list them as one finding per file with the count, not one per line.
+
+**Unused dependencies**
+
+1. Build once if the Gradle cache is empty (`./gradlew :app:assembleDebug -q`), then run `python .claude/scripts/unused_dependencies.py`. For each dependency in `app/build.gradle` and `baselineprofile/build.gradle`, it reads the library's own packages from its jar or aar and counts the source files that name them, in code or XML. It also lists `gradle/libs.versions.toml` entries (libraries, plugins, versions) no build file uses.
+2. A count of 0 is a lead, not a verdict. Check each one by hand against the ways a library is used without being named in source:
+   - **Annotation processors**, such as `glide-compiler`, which `RedactGlideModule`'s `@GlideModule` needs.
+   - **Runtime only**, such as `leakcanary-android` (debug builds) and `profileinstaller`, which install themselves through the manifest.
+   - **Resources only**, such as themes, styles and attributes from `material`, `appcompat` or `core-splashscreen` used in `res/` by name rather than by package. Grep `res/` for their style and attribute names.
+   - **Umbrella libraries** with no classes of their own, which only pull in others (the script says so). One is unused when nothing needs what it pulls in, or when another declared library already brings the same thing. For example, `lifecycle-viewmodel-ktx` adds Kotlin extensions a Java app does not use, while the `ViewModel` classes also come with `activity` and `fragment`. Run `./gradlew :app:dependencies --configuration releaseRuntimeClasspath -q` to see what else brings a library in, and at what version, since removing one can quietly change the version of something it pinned.
+   - **The Gradle plugins** in `build.gradle`'s `plugins` block, and `project(':baselineprofile')`, which the script does not judge.
+3. A test-only library (`testImplementation`) is unused when no test names it. Check `app/src/test` for the `androidx.*.testing` and rule classes it provides.
+
+Removing a dependency is **Needs care**. List each with the evidence that nothing needs it, including what `:app:dependencies` showed.
 
 **Duplication and reuse**
 
@@ -55,7 +72,7 @@ If one of these looks wrong, list it as a question for me instead of changing it
 
 ## 2. Report the findings
 
-Show me a numbered list before changing anything, grouped as **Dead code**, **Duplication**, **Simpler code** and **Efficiency**. For each finding give:
+Show me a numbered list before changing anything, grouped as **Dead code**, **Unused imports**, **Unused dependencies**, **Duplication**, **Simpler code** and **Efficiency**. For each finding give:
 
 - `file:line` and what it is,
 - the change you propose, in one line,
@@ -68,6 +85,8 @@ Leave out anything that is only a matter of taste. Say how many findings there a
 
 Apply the findings in the list, Safe ones first.
 
+- Remove unused imports with `python .claude/scripts/unused_imports.py --fix` (with my scope's path if I gave one), then run it again without `--fix` to confirm it reports none.
+- Remove an unused dependency from the module's `build.gradle`, then remove its entry from `gradle/libs.versions.toml` if nothing else uses it, and its `[versions]` key if that is now unused too. If it had its own rule in `app/proguard-rules.pro`, remove that as well. Remove its credit from `ui/OpenSourceLicenses.java` (`OpenSourceLicensesTest` checks that list against the build), and its `res/raw/license_*.txt` file only if no other library still uses that license. Remove one dependency at a time and run the tests in between, so a failure points at the right one.
 - Keep each change small and behavior-preserving. Do not reformat code you are not otherwise changing, and do not rename public things just for style.
 - Removing a string or other resource means removing it from `values/` **and all 12 locales** (`ar de es fr hi it ja ko pt ru zh-rCN zh-rTW`), and checking `src/test` (for example `StringTranslationsTest`) for references.
 - Removing a setting means its `AppPreferences` key goes into `RETIRED_KEYS`, so older installs drop the saved value.
@@ -80,8 +99,9 @@ Apply the findings in the list, Safe ones first.
 
 1. Run `./gradlew :app:jacocoTestCoverageVerification -q` (use `gradlew.bat` from PowerShell). It runs `testDebugUnitTest` first. Confirm no test failed (check `app/build/test-results/testDebugUnitTest/*.xml` for `failures="[1-9]"` or `errors="[1-9]"`) and that the 90% line gate still passes. Deleted code can lower the percentage when it was well covered, so add tests if the margin is gone.
 2. Run `./gradlew :app:lintRelease -q` and confirm it reports no new issues.
-3. Run `./gradlew :app:bundleRelease -q` once. R8 can fail, or strip something reached by reflection, in a way the debug tests never see.
-4. If anything in `metadata/`, `media/`, `MetadataStripper`, `MediaProcessor` or `FormatConverter` changed, run `/verifyclean` (`.claude/commands/verifyclean.md`), or say it still needs to be run if the emulator is not available here.
+3. Run `./gradlew :app:bundleRelease -q` once. R8 can fail, or strip something reached by reflection, in a way the debug tests never see. If a dependency was removed, also compare `./gradlew :app:dependencies --configuration releaseRuntimeClasspath -q` before and after, and list any library whose version changed.
+4. Run `python .claude/scripts/unused_imports.py` and `python .claude/scripts/unused_dependencies.py` again and confirm they report nothing new.
+5. If anything in `metadata/`, `media/`, `MetadataStripper`, `MediaProcessor` or `FormatConverter` changed, run `/verifyclean` (`.claude/commands/verifyclean.md`), or say it still needs to be run if the emulator is not available here.
 
 If a check fails, fix it or revert that one change, and say which.
 
@@ -89,7 +109,7 @@ If a check fails, fix it or revert that one change, and say which.
 
 Finish with a short report:
 
-- lines removed and added (`git diff --stat`),
+- lines removed and added (`git diff --stat`), and how many imports and dependencies were removed,
 - the changes made, grouped as in step 2, one line each,
 - findings skipped and why, and questions for me (including anything on the never-change list that looked wrong),
 - test, coverage, lint, bundle and `/verifyclean` results,
