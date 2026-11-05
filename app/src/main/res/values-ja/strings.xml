@@ -160,8 +160,6 @@
     
     <string name="settings_section_advanced_privacy">メタデータのクリーン</string>
     <string name="settings_advanced_privacy_subtitle">Redact がクリーンタブで、位置情報やカメラの詳細(EXIF)などの隠れた情報をどのように削除するか。他アプリから共有されたファイルは、転送前に必ずこれらの情報が削除されます。</string>
-    <string name="settings_secure_delete">安全な削除パス数</string>
-    <string name="settings_secure_delete_subtitle">削除前に一時ファイル（クリーン処理前の元の写真・動画のコピーを含む）を上書きする回数。これにより、ディスクからデータを復元できなくなります。回数が多いほど遅くなります。フラッシュストレージでは復元が可能な場合があります。</string>
 
     <string name="settings_auto_clear_temp">起動時にキャッシュをクリア</string>
     <string name="settings_auto_clear_temp_subtitle">アプリ起動時に24時間より古い処理キャッシュを削除します。</string>
@@ -182,12 +180,6 @@
     
     <string name="settings_video_fallback">高速な動画クリーン</string>
     <string name="settings_video_fallback_subtitle">動画がすでに互換性のある形式である場合、Redact は完全に再エンコードする代わりに、クイック処理でメタデータを削除します。より速くバッテリーにも優しくなりますが、完全な再エンコードの方がわずかに多く削除できます。厳密クリーンがオンの場合や、他アプリから共有されたファイルをクリーンする場合は自動的にオフになります。</string>
-
-    <string-array name="settings_secure_delete_labels">
-        <item>1回（高速）</item>
-        <item>3回（安全）</item>
-        <item>7回（超安全）</item>
-    </string-array>
 
     
     <string name="navigation_settings">設定</string>
@@ -556,6 +548,7 @@
     <string name="onboarding_private_offline">何もアップロードされないので、写真や動画は非公開のままです。</string>
     <string name="onboarding_private_no_ads">広告はなく、あなたの操作を追跡することもありません。</string>
     <string name="onboarding_private_open_source">Redactはオープンソースなので、誰でも仕組みを確認できます。</string>
+    <string name="onboarding_private_recents">写真とその情報をスクリーンショットや最近使ったアプリの画面に残さないようにするには、設定で「%1$s」をオンにしてください。</string>
     <string name="onboarding_choices_title">Redactに何を許可するかは、あなたが決められます。</string>
     <string name="onboarding_choices_body">このあとRedactが、使いたいものとその理由を1つずつ説明します。決めるのはいつもあなたで、あとから設定で変更することもできます。</string>
     <string name="onboarding_choices_media">まず、写真と動画。選んだファイルをRedactで開くためです。</string>

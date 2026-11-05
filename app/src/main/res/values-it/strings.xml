@@ -168,8 +168,6 @@
     
     <string name="settings_section_advanced_privacy">Pulizia Metadati</string>
     <string name="settings_advanced_privacy_subtitle">Come Redact rimuove le informazioni nascoste, come posizione e dettagli della fotocamera (EXIF), nella scheda Pulisci. I file condivisi da altre app vengono sempre ripuliti da queste informazioni prima dell\'inoltro.</string>
-    <string name="settings_secure_delete">Passaggi di Cancellazione Sicura</string>
-    <string name="settings_secure_delete_subtitle">Quante volte i file temporanei (comprese le copie originali non modificate di foto e video prima della pulizia) vengono sovrascritti prima dell\'eliminazione, in modo che i loro dati non siano recuperabili dal disco. Più passaggi = più lento; su memoria flash il recupero può restare possibile.</string>
     <string name="settings_auto_clear_temp">Svuota Cache all\'Avvio</string>
     <string name="settings_auto_clear_temp_subtitle">Rimuove file cache di elaborazione più vecchi di 24 ore all\'apertura dell\'app.</string>
     <string name="settings_preserve_camera">Mantieni Impostazioni Fotocamera</string>
@@ -189,12 +187,6 @@
     
     <string name="settings_video_fallback">Pulizia Video Più Veloce</string>
     <string name="settings_video_fallback_subtitle">Quando il video è già in un formato compatibile, Redact ne rimuove i metadati con un passaggio rapido invece di ricodificarlo completamente, più veloce e più leggero per la batteria, anche se una ricodifica completa ne rimuove un po\' di più. Disattivato automaticamente quando Pulizia Rigorosa è attiva o durante la pulizia di file condivisi da altre app.</string>
-
-    <string-array name="settings_secure_delete_labels">
-        <item>1 Passaggio (Veloce)</item>
-        <item>3 Passaggi (Sicuro)</item>
-        <item>7 Passaggi (Ultrasicuro)</item>
-    </string-array>
 
     
     <string name="navigation_settings">Impostazioni</string>
@@ -585,6 +577,7 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="onboarding_private_offline">Non viene caricato nulla, quindi foto e video restano privati.</string>
     <string name="onboarding_private_no_ads">Non ci sono pubblicità e nulla tiene traccia di ciò che fai.</string>
     <string name="onboarding_private_open_source">Redact è open source, quindi chiunque può verificare come funziona.</string>
+    <string name="onboarding_private_recents">Per tenere le foto e i loro dettagli fuori dagli screenshot e dalla schermata delle app recenti, attiva %1$s nelle Impostazioni.</string>
     <string name="onboarding_choices_title">Sei tu a decidere cosa può usare Redact.</string>
     <string name="onboarding_choices_body">Ora Redact ti spiegherà cosa vorrebbe usare e perché, una cosa alla volta. Decidi sempre tu, e potrai cambiare idea più avanti in Impostazioni.</string>
     <string name="onboarding_choices_media">Prima, le tue foto e i tuoi video, così Redact può aprire quelli che scegli.</string>

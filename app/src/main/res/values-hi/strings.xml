@@ -164,8 +164,6 @@
     
     <string name="settings_section_advanced_privacy">मेटाडेटा सफ़ाई</string>
     <string name="settings_advanced_privacy_subtitle">Redact छिपी हुई जानकारी, जैसे स्थान और कैमरा विवरण (EXIF), को साफ़ करें टैब पर कैसे हटाता है। अन्य ऐप्स से साझा की गई फ़ाइलों से यह जानकारी आगे भेजने से पहले हमेशा हटा दी जाती है।</string>
-    <string name="settings_secure_delete">सुरक्षित हटाने के पास</string>
-    <string name="settings_secure_delete_subtitle">अस्थायी फ़ाइलें (जिनमें सफ़ाई से पहले फ़ोटो और वीडियो की मूल, असंपादित प्रतियां शामिल हैं) हटाने से पहले कितनी बार ओवरराइट हों, ताकि उनका डेटा डिस्क से पुनर्प्राप्त न किया जा सके। अधिक पास = धीमा; फ़्लैश स्टोरेज पर पुनर्प्राप्ति संभव हो सकती है।</string>
     <string name="settings_auto_clear_temp">शुरू पर कैश साफ़ करें</string>
     <string name="settings_auto_clear_temp_subtitle">ऐप खोलने पर 24 घंटे से पुरानी प्रोसेसिंग कैश फ़ाइलें हटाता है।</string>
     <string name="settings_preserve_camera">कैमरा सेटिंग्स रखें</string>
@@ -185,12 +183,6 @@
     
     <string name="settings_video_fallback">तेज़ वीडियो सफ़ाई</string>
     <string name="settings_video_fallback_subtitle">जब आपका वीडियो पहले से संगत प्रारूप में हो, तो Redact पूरी तरह पुनः-एन्कोड करने के बजाय एक त्वरित पास से उसका मेटाडेटा हटाता है, तेज़ और बैटरी पर हल्का, हालांकि पूर्ण पुनः-एन्कोड थोड़ा अधिक हटाता है। सख्त सफ़ाई चालू होने पर या अन्य ऐप्स से साझा फ़ाइलें साफ़ करते समय यह अपने आप बंद हो जाता है।</string>
-
-    <string-array name="settings_secure_delete_labels">
-        <item>1 पास (तेज़)</item>
-        <item>3 पास (सुरक्षित)</item>
-        <item>7 पास (अति-सुरक्षित)</item>
-    </string-array>
 
     
     <string name="navigation_settings">सेटिंग्स</string>
@@ -570,6 +562,7 @@
     <string name="onboarding_private_offline">कुछ भी अपलोड नहीं होता, इसलिए आपकी फ़ोटो और वीडियो निजी रहते हैं।</string>
     <string name="onboarding_private_no_ads">कोई विज्ञापन नहीं है, और आप क्या करते हैं इस पर कोई नज़र नहीं रखता।</string>
     <string name="onboarding_private_open_source">Redact ओपन सोर्स है, इसलिए कोई भी जाँच सकता है कि यह कैसे काम करता है।</string>
+    <string name="onboarding_private_recents">फ़ोटो और उनकी जानकारी को स्क्रीनशॉट और हाल के ऐप्स वाली स्क्रीन से दूर रखने के लिए, सेटिंग में %1$s चालू करें।</string>
     <string name="onboarding_choices_title">Redact क्या इस्तेमाल कर सकता है, यह आप तय करते हैं।</string>
     <string name="onboarding_choices_body">आगे Redact एक-एक करके बताएगा कि वह किस चीज़ का इस्तेमाल करना चाहता है और क्यों। फ़ैसला हमेशा आपका है, और आप बाद में सेटिंग्स में अपना मन बदल सकते हैं।</string>
     <string name="onboarding_choices_media">पहले, आपकी फ़ोटो और वीडियो, ताकि Redact आपकी चुनी हुई फ़ाइलें खोल सके।</string>

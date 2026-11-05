@@ -391,7 +391,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     if (!isCurrentSession(session)) {
                         // The share was cancelled during the copy and its cleanup has already
                         // run, so nothing else would delete this one.
-                        SecureDelete.secureDelete(getApplicationContext(), snapshot);
+                        SecureDelete.secureDelete(snapshot);
                         break;
                     }
                     synchronized (fileListLock) {
@@ -437,7 +437,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     FileOutputStream out = new FileOutputStream(dest)) {
                 copyForSession(in, out, session);
             } catch (IOException e) {
-                SecureDelete.secureDelete(getApplicationContext(), dest);
+                SecureDelete.secureDelete(dest);
                 throw e;
             }
             return dest;
@@ -461,7 +461,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             copyForSession(in, out, session);
         } catch (IOException e) {
             // A partial copy still holds part of the original.
-            SecureDelete.secureDelete(getApplicationContext(), dest);
+            SecureDelete.secureDelete(dest);
             throw e;
         }
         return dest;
@@ -863,10 +863,9 @@ public class ShareHandlerActivity extends AppCompatActivity {
         if (filesToDelete.isEmpty()) {
             return;
         }
-        Context appContext = getApplicationContext();
         cleanupExecutor.execute(() -> {
             for (File file : filesToDelete) {
-                if (file != null && file.exists() && !SecureDelete.secureDelete(appContext, file)) {
+                if (file != null && file.exists() && !SecureDelete.secureDelete(file)) {
                     file.deleteOnExit();
                 }
             }
@@ -975,15 +974,20 @@ public class ShareHandlerActivity extends AppCompatActivity {
             return false;
         }
         if ("content".equalsIgnoreCase(scheme)) {
-            return true;
+            // Redact's own FileProvider serves its working and converted files. The provider is not
+            // exported, but Redact can open it, so a share naming it would let the sender have
+            // Redact read and re-share files the sender itself cannot see.
+            return !(getPackageName() + ".fileprovider").equalsIgnoreCase(uri.getAuthority());
         }
         return "file".equalsIgnoreCase(scheme) && !pointsIntoOwnPrivateStorage(uri);
     }
 
     /**
-     * Whether a file:// URI resolves inside this app's private data directory. Another app can send
-     * an intent naming one of Redact's own files (for example shared_prefs), which Redact can read but
-     * the sender cannot; copying and re-sharing it would hand that data to whatever app the user picks.
+     * Whether a file:// URI resolves inside one of this app's own directories: its private data
+     * directory, or its app-specific folders on shared storage (Android/data and Android/obb),
+     * where working copies of unredacted videos are kept while they are transcoded.
+     * Another app can send an intent naming one of these files, which Redact can read but the sender
+     * cannot; copying and re-sharing it would hand that data to whatever app the user picks.
      */
     private boolean pointsIntoOwnPrivateStorage(@NonNull Uri uri) {
         String path = uri.getPath();
@@ -992,17 +996,36 @@ public class ShareHandlerActivity extends AppCompatActivity {
         }
         try {
             String target = new File(path).getCanonicalPath();
-            File[] privateRoots = {getDataDir(), createDeviceProtectedStorageContext().getDataDir()};
+            List<File> privateRoots = new ArrayList<>();
+            privateRoots.add(getDataDir());
+            privateRoots.add(createDeviceProtectedStorageContext().getDataDir());
+            addAppSpecificRoot(privateRoots, getExternalCacheDir());
+            addAppSpecificRoot(privateRoots, getExternalFilesDir(null));
+            addAppSpecificRoot(privateRoots, getObbDir());
             for (File root : privateRoots) {
-                String prefix = root.getCanonicalPath() + File.separator;
-                if (target.startsWith(prefix)) {
+                String rootPath = root.getCanonicalPath();
+                if (target.equals(rootPath) || target.startsWith(rootPath + File.separator)) {
                     return true;
                 }
             }
             return false;
         } catch (IOException e) {
+            // A path that cannot be resolved is treated as private, so it is refused rather than
+            // read; filterSupportedUris leaves a breadcrumb for the skipped item.
             return true;
         }
+    }
+
+    /**
+     * Adds an app-specific directory, or the per-package folder holding it (Android/data/&lt;package&gt;
+     * for the external cache and files directories), so every subfolder is covered.
+     */
+    private void addAppSpecificRoot(@NonNull List<File> roots, @Nullable File dir) {
+        if (dir == null) {
+            return;
+        }
+        File parent = dir.getParentFile();
+        roots.add(parent != null && getPackageName().equals(parent.getName()) ? parent : dir);
     }
 
     @NonNull
@@ -1011,6 +1034,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
         unsupportedRejectCount = 0;
         for (Uri uri : uris) {
             if (uri == null || !isSupportedInboundUri(uri)) {
+                if (uri != null) {
+                    SentryManager.logEvent("share",
+                            "An inbound item with an unsupported scheme or a private location was skipped.");
+                }
                 continue;
             }
             String type;

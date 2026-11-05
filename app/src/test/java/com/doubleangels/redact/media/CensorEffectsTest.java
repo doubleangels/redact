@@ -78,6 +78,31 @@ public class CensorEffectsTest {
         assertEquals(83, CensorEffects.blockSize(4000, 3000));
     }
 
+    @Test
+    public void blockSize_growsWithALargeArea() {
+        // A small area keeps the image's blocks.
+        assertEquals(83, CensorEffects.blockSize(83, new android.graphics.RectF(0, 0, 400, 300)));
+        // A close-up number plate filling most of a 4000x3000 photo: at most six blocks tall.
+        assertEquals(400, CensorEffects.blockSize(83, new android.graphics.RectF(200, 900, 3800, 3300)));
+        // A thin brush stroke keeps the image's blocks, however long it is.
+        assertEquals(83, CensorEffects.blockSize(83, new android.graphics.RectF(0, 0, 4000, 120)));
+    }
+
+    @Test
+    public void pixelate_leavesALargeAreaAFewBlocksAcross() {
+        Bitmap image = checkerboard(240, 240);
+        CensorEffects.apply(image, List.of(CensorRegion.rect(0f, 0f, 1f, 1f)),
+                CensorEffects.Effect.PIXELATE, new Random(5));
+
+        int[] px = pixels(image);
+        java.util.Set<Integer> rowColours = new java.util.HashSet<>();
+        for (int x = 0; x < 240; x++) {
+            rowColours.add(px[120 * 240 + x]);
+        }
+        assertTrue("one row crosses at most " + CensorEffects.MAX_BLOCKS_PER_AREA + " blocks",
+                rowColours.size() <= CensorEffects.MAX_BLOCKS_PER_AREA);
+    }
+
     // ---- nothing finer than a block survives -----------------------------------------------------
 
     /** Two 96x96 images whose 8x8 block averages match but whose pixels inside each block differ. */

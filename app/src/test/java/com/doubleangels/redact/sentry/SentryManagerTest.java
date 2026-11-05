@@ -8,6 +8,8 @@ import com.doubleangels.redact.media.ProcessingCancelledException;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.nio.channels.ClosedByInterruptException;
+import java.nio.channels.ClosedChannelException;
 
 public class SentryManagerTest {
 
@@ -25,6 +27,17 @@ public class SentryManagerTest {
                 new RuntimeException(new ProcessingCancelledException("Processing cancelled"))));
         assertFalse("a message alone is not a cancellation",
                 SentryManager.isUserCancellation(new IOException("Processing cancelled")));
+    }
+
+    @Test
+    public void isUserCancellation_detectsAnInterruptedFileChannel() {
+        // A share cancelled while a file channel is reading surfaces this, not InterruptedException.
+        IOException wrapped = new IOException(new ClosedByInterruptException());
+        assertTrue(SentryManager.isUserCancellation(new ClosedByInterruptException()));
+        assertTrue(SentryManager.isUserCancellation(wrapped));
+        assertTrue(SentryManager.isIgnored(wrapped));
+        assertFalse("a channel closed for another reason is a real failure",
+                SentryManager.isUserCancellation(new ClosedChannelException()));
     }
 
     @Test

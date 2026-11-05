@@ -152,7 +152,7 @@ public final class CacheCleanup {
         }
         Thread thread = new Thread(() -> {
             for (File orphan : orphans) {
-                if (orphan.exists() && !SecureDelete.secureDelete(appContext, orphan)) {
+                if (orphan.exists() && !SecureDelete.secureDelete(orphan)) {
                     //noinspection ResultOfMethodCallIgnored
                     orphan.delete();
                 }
@@ -339,7 +339,7 @@ public final class CacheCleanup {
             String name = file.getName();
             for (String prefix : TEMP_PREFIXES) {
                 if (name.startsWith(prefix)) {
-                    if (SecureDelete.secureDelete(context, file)) {
+                    if (SecureDelete.secureDelete(file)) {
                         deleted++;
                     }
                     break;

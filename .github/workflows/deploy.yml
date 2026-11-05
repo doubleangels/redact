@@ -80,7 +80,7 @@ jobs:
 
       - name: Write the release notes from the commits since the last release
         if: steps.notes.outputs.handwritten == 'false'
-        uses: anthropics/claude-code-action@d535f5172dec02b204866b393d6b20b9b2aaf98d # v1.0.266
+        uses: anthropics/claude-code-action@c0949c50a78c1ec8ce2647db36629b870e715d0c # v1.0.268
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}
@@ -186,47 +186,21 @@ jobs:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: ./gradlew bundleRelease
 
-      - name: Sign bundle for Google Play release
-        uses: r0adkll/sign-android-release@349ebdef58775b1e0d8099458af0816dc79b6407 # v1
-        with:
-          releaseDirectory: app/build/outputs/bundle/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-
-      - name: Verify signed bundle's certificate fingerprint
-        env:
-          PRODUCTION_SIGNING_CERT_SHA256: ${{ secrets.PRODUCTION_SIGNING_CERT_SHA256 }}
-        run: |
-          set -euo pipefail
-          AAB_PATH="app/build/outputs/bundle/release/app-release.aab"
-          if [ -z "${PRODUCTION_SIGNING_CERT_SHA256}" ]; then
-            echo "::error::PRODUCTION_SIGNING_CERT_SHA256 secret is not set. Add the expected SHA-256 fingerprint of the production signing certificate as a repository secret. Refusing to publish."
-            exit 1
-          fi
-          ACTUAL_SHA256=$(keytool -printcert -jarfile "${AAB_PATH}" 2>/dev/null \
-            | grep -oP 'SHA256:\s*\K[0-9A-Fa-f:]+' | tr -d ':' | tr '[:lower:]' '[:upper:]')
-          EXPECTED_SHA256=$(echo -n "${PRODUCTION_SIGNING_CERT_SHA256}" | tr -d ':' | tr '[:lower:]' '[:upper:]')
-          if [ -z "${ACTUAL_SHA256}" ]; then
-            echo "::error::Could not read a certificate fingerprint from the signed bundle."
-            exit 1
-          fi
-          if [ "${ACTUAL_SHA256}" != "${EXPECTED_SHA256}" ]; then
-            echo "::error::Signed bundle certificate fingerprint (${ACTUAL_SHA256}) does not match the expected production signing certificate (${EXPECTED_SHA256}). Refusing to publish."
-            exit 1
-          fi
-          echo "Verified signed bundle matches the expected production signing certificate."
-
-      - name: Upload bundle to artifacts
+      # Signed in the publish job instead, which runs in the Production environment, so the
+      # signing key is only ever handed to a job someone has approved.
+      - name: Upload unsigned bundle to artifacts
         uses: actions/upload-artifact@v7.0.2
         with:
-          name: google-play-bundle
+          name: unsigned-bundle
           path: app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 1
 
   publish:
     needs: ["check-version", "bundle-release", "release-notes"]
     # Requires a "Production" environment in repo Settings → Environments with required reviewers.
+    # SIGNING_KEY, ALIAS, KEY_STORE_PASSWORD, KEY_PASSWORD, PRODUCTION_SIGNING_CERT_SHA256 and
+    # SERVICE_ACCOUNT_JSON belong to that environment, not the repository, so no other job can read them.
     environment:
       name: Production
       url: https://play.google.com/store/apps/details?id=com.doubleangels.redact
@@ -242,11 +216,43 @@ jobs:
           fetch-tags: true
           persist-credentials: false
 
-      - name: Download bundle from artifacts
+      - name: Download unsigned bundle from artifacts
         uses: actions/download-artifact@v8.0.2
         with:
-          name: google-play-bundle
-          path: .
+          name: unsigned-bundle
+          path: bundle
+
+      - name: Sign bundle for Google Play release
+        uses: r0adkll/sign-android-release@349ebdef58775b1e0d8099458af0816dc79b6407 # v1
+        with:
+          releaseDirectory: bundle
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Verify signed bundle's certificate fingerprint
+        env:
+          PRODUCTION_SIGNING_CERT_SHA256: ${{ secrets.PRODUCTION_SIGNING_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          AAB_PATH="bundle/app-release.aab"
+          if [ -z "${PRODUCTION_SIGNING_CERT_SHA256}" ]; then
+            echo "::error::PRODUCTION_SIGNING_CERT_SHA256 secret is not set. Add the expected SHA-256 fingerprint of the production signing certificate as a secret of the Production environment. Refusing to publish."
+            exit 1
+          fi
+          ACTUAL_SHA256=$(keytool -printcert -jarfile "${AAB_PATH}" 2>/dev/null \
+            | grep -oP 'SHA256:\s*\K[0-9A-Fa-f:]+' | tr -d ':' | tr '[:lower:]' '[:upper:]')
+          EXPECTED_SHA256=$(echo -n "${PRODUCTION_SIGNING_CERT_SHA256}" | tr -d ':' | tr '[:lower:]' '[:upper:]')
+          if [ -z "${ACTUAL_SHA256}" ]; then
+            echo "::error::Could not read a certificate fingerprint from the signed bundle."
+            exit 1
+          fi
+          if [ "${ACTUAL_SHA256}" != "${EXPECTED_SHA256}" ]; then
+            echo "::error::Signed bundle certificate fingerprint (${ACTUAL_SHA256}) does not match the expected production signing certificate (${EXPECTED_SHA256}). Refusing to publish."
+            exit 1
+          fi
+          echo "Verified signed bundle matches the expected production signing certificate."
 
       - name: Download the release notes
         uses: actions/download-artifact@v8.0.2
@@ -264,7 +270,7 @@ jobs:
         with:
           serviceAccountJson: service_account.json
           packageName: com.doubleangels.redact
-          releaseFiles: app-release.aab
+          releaseFiles: bundle/app-release.aab
           tracks: production
           whatsNewDirectory: whatsnew
 
@@ -319,9 +325,9 @@ jobs:
           environment: production
           release: com.doubleangels.redact@${{ needs.check-version.outputs.name }}+${{ needs.check-version.outputs.code }}
 
-      - name: Remove service account credentials
+      - name: Remove service account and signing credentials
         if: always()
-        run: rm -f service_account.json
+        run: rm -f service_account.json bundle/*.jks bundle/*.keystore
 
   github-release:
     needs: ["check-version", "publish", "release-notes"]

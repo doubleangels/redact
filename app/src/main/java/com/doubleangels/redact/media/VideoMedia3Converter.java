@@ -414,7 +414,7 @@ public final class VideoMedia3Converter {
 
         IOException lastFailure = null;
         for (int attemptIndex : encoderFallbackOrder(formatIndex)) {
-            deleteQuietly(app, outFile);
+            deleteQuietly(outFile);
             try {
                 String videoMime = videoMimeTypeForFormatIndex(attemptIndex);
                 transcodeWithResolutionFallback(
@@ -431,7 +431,7 @@ public final class VideoMedia3Converter {
                 return attemptIndex;
             } catch (UnsupportedMediaException e) {
                 // The source itself can't be read; another output codec won't change that.
-                deleteQuietly(app, outFile);
+                deleteQuietly(outFile);
                 throw e;
             } catch (IOException e) {
                 lastFailure = e;
@@ -1151,7 +1151,7 @@ public final class VideoMedia3Converter {
         }
         if (cancelled.get() && errorRef.get() == null && syncFailureRef.get() == null) {
             stopPolling(mainHandler, pollingActive, pollRunnable[0]);
-            deleteQuietly(app, outFile);
+            deleteQuietly(outFile);
             throw new InterruptedException("Video conversion was cancelled");
         }
         if (!finished) {
@@ -1166,14 +1166,14 @@ public final class VideoMedia3Converter {
                         cancelDone.countDown();
                     });
             cancelDone.await(5, TimeUnit.SECONDS);
-            deleteQuietly(app, outFile);
+            deleteQuietly(outFile);
             logAttemptFailure(attemptLabel, outputShortSide, "STALLED", progressSeen.get(), startedAt);
             throw new IOException("Video conversion stalled");
         }
 
         ExportException exportException = errorRef.get();
         if (exportException != null) {
-            deleteQuietly(app, outFile);
+            deleteQuietly(outFile);
             logAttemptFailure(attemptLabel, outputShortSide, exportException.getErrorCodeName(),
                     progressSeen.get(), startedAt);
             if (isUnsupportedInput(exportException)) {
@@ -1190,7 +1190,7 @@ public final class VideoMedia3Converter {
         }
         Throwable syncFailure = syncFailureRef.get();
         if (syncFailure != null) {
-            deleteQuietly(app, outFile);
+            deleteQuietly(outFile);
             logAttemptFailure(attemptLabel, outputShortSide, syncFailure.getClass().getSimpleName(),
                     progressSeen.get(), startedAt);
             throw new IOException(
@@ -1198,7 +1198,7 @@ public final class VideoMedia3Converter {
         }
 
         if (!outFile.exists() || outFile.length() == 0) {
-            deleteQuietly(app, outFile);
+            deleteQuietly(outFile);
             throw new IOException("Video conversion produced no output");
         }
     }
@@ -1585,9 +1585,9 @@ public final class VideoMedia3Converter {
                 context, sourceUri, outputFile.getAbsolutePath(), formatIndex, progressListener, ownerId);
     }
 
-    private static void deleteQuietly(@NonNull Context context, @Nullable File file) {
+    private static void deleteQuietly(@Nullable File file) {
         if (file != null && file.exists()) {
-            SecureDelete.secureDelete(context, file);
+            SecureDelete.secureDelete(file);
         }
     }
 

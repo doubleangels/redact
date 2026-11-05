@@ -335,22 +335,9 @@ public class SettingsFragmentTest {
     }
 
     @Test
-    public void secureDeleteDropdown_mapsIndexesToValues() {
-        MaterialAutoCompleteTextView secure = settings.findViewById(R.id.dropdownSecureDelete);
-
-        pickDropdownItem(secure, 0);
-        assertEquals(1, AppPreferences.getSecureDeletePasses(activity));
-        pickDropdownItem(secure, 1);
-        assertEquals(3, AppPreferences.getSecureDeletePasses(activity));
-        pickDropdownItem(secure, 2);
-        assertEquals(7, AppPreferences.getSecureDeletePasses(activity));
-    }
-
-    @Test
     public void savedDropdownValues_areShownWhenTheTabIsCreated() {
         controller.pause().stop().destroy();
-        AppPreferences.setSecureDeletePasses(activity, 7);
-        AppPreferences.setDefaultImageFormatIndex(activity, 2);
+        AppPreferences.setDefaultVideoFormatIndex(activity, 2);
 
         controller = Robolectric.buildActivity(MainActivity.class).setup();
         activity = controller.get();
@@ -358,9 +345,9 @@ public class SettingsFragmentTest {
         idle();
         settings = fragment().getView();
 
-        MaterialAutoCompleteTextView secure = settings.findViewById(R.id.dropdownSecureDelete);
-        String[] labels = activity.getResources().getStringArray(R.array.settings_secure_delete_labels);
-        assertEquals(labels[2], secure.getText().toString());
+        MaterialAutoCompleteTextView video = settings.findViewById(R.id.dropdownDefaultVideoFormat);
+        String[] labels = activity.getResources().getStringArray(R.array.settings_video_format_labels);
+        assertEquals(labels[2], video.getText().toString());
     }
 
     // ---- crash reporting ---------------------------------------------------------------------
@@ -616,22 +603,6 @@ public class SettingsFragmentTest {
         assertEquals(activity.getString(R.string.settings_reset_all_busy),
                 com.doubleangels.redact.ui.Notice.lastShownForTests());
         assertTrue(AppPreferences.isDeleteOriginalsAfterClean(activity));
-    }
-
-    @Test
-    public void dropdowns_showTheLeastAndMostThoroughChoices() {
-        AppPreferences.setSecureDeletePasses(activity, 1);
-        // Settings reads its values when its view is made, so start over with a new activity.
-        controller.pause().stop().destroy();
-        controller = Robolectric.buildActivity(MainActivity.class).setup();
-        activity = controller.get();
-        activity.selectTab(R.id.navigation_settings);
-        idle();
-        settings = fragment().getView();
-
-        String[] passes = activity.getResources().getStringArray(R.array.settings_secure_delete_labels);
-        assertEquals(passes[0],
-                ((MaterialAutoCompleteTextView) settings.findViewById(R.id.dropdownSecureDelete)).getText().toString());
     }
 
     @Test

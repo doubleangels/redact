@@ -180,8 +180,6 @@
     
     <string name="settings_section_advanced_privacy">تنظيف البيانات الوصفية</string>
     <string name="settings_advanced_privacy_subtitle">كيف يزيل Redact المعلومات المخفية، مثل الموقع وتفاصيل الكاميرا (EXIF)، في تبويب التنظيف. الملفات المشارَكة من تطبيقات أخرى تتم إزالة هذه المعلومات منها دائماً قبل إعادة إرسالها.</string>
-    <string name="settings_secure_delete">مرات الحذف الآمن</string>
-    <string name="settings_secure_delete_subtitle">عدد مرات الكتابة فوق الملفات المؤقتة (بما في ذلك النسخ الأصلية غير المنقّحة من الصور والفيديوهات قبل التنظيف) قبل الحذف، بحيث لا يمكن استرداد بياناتها من القرص. المزيد من المرات أبطأ؛ على التخزين الفلاشي قد يبقى الاسترداد ممكناً.</string>
     <string name="settings_auto_clear_temp">مسح الذاكرة عند البدء</string>
     <string name="settings_auto_clear_temp_subtitle">يزيل ملفات ذاكرة المعالجة الأقدم من 24 ساعة عند فتح التطبيق.</string>
     <string name="settings_preserve_camera">الاحتفاظ بإعدادات الكاميرا</string>
@@ -201,12 +199,6 @@
     
     <string name="settings_video_fallback">تنظيف فيديو أسرع</string>
     <string name="settings_video_fallback_subtitle">عندما يكون الفيديو بصيغة متوافقة بالفعل، يزيل Redact بياناته الوصفية بعملية سريعة بدلاً من إعادة الترميز الكاملة، أسرع وأخف على البطارية، رغم أن إعادة الترميز الكاملة تزيل القليل الإضافي. يُعطَّل تلقائياً عند تفعيل التنظيف الصارم أو عند تنظيف ملفات مُشارَكة من تطبيقات أخرى.</string>
-
-    <string-array name="settings_secure_delete_labels">
-        <item>مرة واحدة (سريع)</item>
-        <item>3 مرات (آمن)</item>
-        <item>7 مرات (فائق الأمان)</item>
-    </string-array>
 
     
     <string name="navigation_settings">الإعدادات</string>
@@ -630,6 +622,7 @@
     <string name="onboarding_private_offline">لا يتم تحميل أي شيء، لذا تبقى صورك ومقاطع الفيديو خاصة.</string>
     <string name="onboarding_private_no_ads">لا توجد إعلانات، ولا شيء يتتبع ما تفعله.</string>
     <string name="onboarding_private_open_source">Redact مفتوح المصدر، لذا يمكن لأي شخص التحقق من طريقة عمله.</string>
+    <string name="onboarding_private_recents">لإبعاد الصور وتفاصيلها عن لقطات الشاشة وشاشة التطبيقات الأخيرة، فعّل %1$s في الإعدادات.</string>
     <string name="onboarding_choices_title">أنت من يقرر ما يمكن لـ Redact استخدامه.</string>
     <string name="onboarding_choices_body">سيشرح لك Redact الآن ما يرغب في استخدامه ولماذا، خطوة بخطوة. القرار لك دائمًا، ويمكنك تغيير رأيك لاحقًا من الإعدادات.</string>
     <string name="onboarding_choices_media">أولًا، صورك ومقاطع الفيديو، ليتمكن Redact من فتح ما تختاره منها.</string>

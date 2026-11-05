@@ -7,7 +7,7 @@ android {
     namespace 'com.doubleangels.redact.baselineprofile'
     compileSdk {
         version = release(37) {
-            minorApiLevel = 0
+            minorApiLevel = 2
         }
     }
 

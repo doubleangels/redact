@@ -8,18 +8,14 @@ runs:
       uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
 
     - name: Set up JDK 21
-      uses: actions/setup-java@v6.1.0
+      uses: actions/setup-java@v6.2.0
       with:
         java-version: "21"
         distribution: temurin
         cache: gradle
 
-    - name: Cache Android SDK platform 37.0
-      uses: actions/cache@v6.1.0
-      with:
-        path: /usr/local/lib/android/sdk/platforms/android-37.0
-        key: android-sdk-platform-37.0
-
+    # No actions/cache for the platform: the SDK folder belongs to root on the runner, so restoring
+    # it fails ("Cannot utime: Operation not permitted") and every job downloaded it anyway.
     - name: Prepare Android SDK
       shell: bash
       run: |

@@ -160,8 +160,6 @@
     
     <string name="settings_section_advanced_privacy">元数据清理</string>
     <string name="settings_advanced_privacy_subtitle">Redact 如何在清理标签页移除隐藏信息，例如位置和相机详情（EXIF）。从其他应用分享的文件在转发前始终会移除这些信息。</string>
-    <string name="settings_secure_delete">安全删除遍数</string>
-    <string name="settings_secure_delete_subtitle">删除前覆写临时文件（包括清理前的原始照片和视频副本）的次数，使其数据无法从磁盘恢复。次数越多越慢；在闪存上仍可能恢复数据。</string>
     <string name="settings_auto_clear_temp">启动时清除缓存</string>
     <string name="settings_auto_clear_temp_subtitle">打开应用时删除超过 24 小时的处理缓存文件。</string>
     <string name="settings_preserve_camera">保留相机设置</string>
@@ -181,12 +179,6 @@
     
     <string name="settings_video_fallback">更快的视频清理</string>
     <string name="settings_video_fallback_subtitle">当视频已经是兼容格式时，Redact 会用快速处理来移除其元数据，而不是完全重新编码，速度更快、更省电，不过完全重新编码能多移除一点。在开启严格清理或清理从其他应用分享的文件时会自动关闭此功能。</string>
-
-    <string-array name="settings_secure_delete_labels">
-        <item>1 遍（快速）</item>
-        <item>3 遍（安全）</item>
-        <item>7 遍（超安全）</item>
-    </string-array>
 
     
     <string name="navigation_settings">设置</string>
@@ -555,6 +547,7 @@
     <string name="onboarding_private_offline">不会上传任何内容，你的照片和视频始终保持私密。</string>
     <string name="onboarding_private_no_ads">没有广告，也不会跟踪你的操作。</string>
     <string name="onboarding_private_open_source">Redact 是开源的，任何人都可以查看它的工作方式。</string>
+    <string name="onboarding_private_recents">如果不想让照片及其信息出现在截图和最近任务界面中，请在设置中开启“%1$s”。</string>
     <string name="onboarding_choices_title">Redact 能使用什么，由你决定。</string>
     <string name="onboarding_choices_body">接下来，Redact 会逐一说明想使用什么以及原因。选择权始终在你，之后也可以在设置中更改。</string>
     <string name="onboarding_choices_media">首先是照片和视频，这样 Redact 才能打开你选的文件。</string>

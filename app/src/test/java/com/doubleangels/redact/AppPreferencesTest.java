@@ -110,19 +110,6 @@ public class AppPreferencesTest {
     }
 
     @Test
-    public void secureDeletePasses_acceptsOnlyConfiguredValues() {
-        assertEquals(3, AppPreferences.getSecureDeletePasses(context));
-        AppPreferences.setSecureDeletePasses(context, 1);
-        assertEquals(1, AppPreferences.getSecureDeletePasses(context));
-        AppPreferences.setSecureDeletePasses(context, 7);
-        assertEquals(7, AppPreferences.getSecureDeletePasses(context));
-        AppPreferences.setSecureDeletePasses(context, 5);
-        assertEquals(3, AppPreferences.getSecureDeletePasses(context));
-        AppPreferences.setSecureDeletePasses(context, 0);
-        assertEquals(3, AppPreferences.getSecureDeletePasses(context));
-    }
-
-    @Test
     public void defaultImageFormatIndex_defaultsToJpegAndClamps() {
         assertEquals(AppPreferences.FORMAT_INDEX_JPEG_H264, AppPreferences.getDefaultImageFormatIndex(context));
         AppPreferences.setDefaultImageFormatIndex(context, AppPreferences.FORMAT_INDEX_PNG_H265);

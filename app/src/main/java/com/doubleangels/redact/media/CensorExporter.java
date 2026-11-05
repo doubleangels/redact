@@ -103,7 +103,7 @@ public final class CensorExporter {
             Uri out = stripper.saveCensoredImage(source, censored, name, spec);
             return new Result(out, downscaled, stripper.getLastCleanStats());
         } finally {
-            if (!SecureDelete.secureDelete(context, censored)) {
+            if (!SecureDelete.secureDelete(censored)) {
                 censored.deleteOnExit();
             }
         }

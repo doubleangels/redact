@@ -1,13 +1,13 @@
 <b>Vos photos peuvent révéler où vous habitez.</b>
 Chaque photo et vidéo peut contenir la position GPS exacte, la date et l'heure, ainsi que la marque et le modèle de votre téléphone. Toute personne qui reçoit le fichier original peut les lire.
 Redact supprime les métadonnées et les données EXIF. Il vous montre ce qu'un fichier révèle et l'efface, entièrement sur votre appareil.
-Pas de compte, pas d'envoi en ligne, pas de publicité et aucune donnée collectée.
+Pas de compte, pas d'envoi en ligne et pas de publicité.
 
 <b>Pour qui ?</b>
-• Vendre sur Leboncoin, eBay ou Marketplace sans dévoiler votre adresse
+• Vendre en ligne sans dévoiler votre adresse
 • Envoyer des photos à un rendez-vous, un propriétaire ou une personne rencontrée récemment
 • Partager des photos de vos enfants, de votre logement ou de votre voiture
-• Journalistes, militants et toute personne qui protège une source
+• Journalistes et militants, comme une étape pour protéger une source
 • Envoyer des photos par e-mail ou en tant que fichier, ce qui conserve tous les détails cachés
 
 <b>Voyez ce qu'une photo révèle avec Scanner</b>
@@ -19,7 +19,7 @@ Pas de compte, pas d'envoi en ligne, pas de publicité et aucune donnée collect
 • Supprime le GPS et la géolocalisation, les informations sur l'appareil et les horodatages
 • Supprime les données XMP et IPTC, les commentaires et les balises vidéo
 • Supprime les extras cachés comme les aperçus et les clips Motion Photo
-• Qualité intacte : les photos ne sont jamais recompressées
+• Qualité intacte : la plupart des photos sont nettoyées sans être recompressées
 • Si vous le souhaitez, conservez la date de prise de vue, la position, les réglages de l'appareil ou la vidéo d'une photo animée
 • Vous indique précisément ce qu'il a supprimé
 • Vos originaux restent intacts, sauf si vous demandez à Redact de les mettre à la corbeille
