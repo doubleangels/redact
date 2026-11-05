@@ -49,4 +49,6 @@ baselineProfile {
 dependencies {
     implementation libs.benchmark.macro.junit4
     implementation libs.uiautomator
+    // InstrumentationRegistry, for the context that saves the sample photo the share journeys use.
+    implementation libs.test.monitor
 }

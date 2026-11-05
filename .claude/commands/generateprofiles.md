@@ -23,9 +23,10 @@ Nothing to start: there is no emulator to find, and `ANDROID_SERIAL` is not need
 
 Using `git diff` on the two profile files (compare to HEAD), report:
 
-- Rule counts before and after for `baseline-prof.txt` and `startup-prof.txt`, and how many rules were added and removed. Say whether the two files are identical.
+- Rule counts before and after for `baseline-prof.txt` and `startup-prof.txt`, and how many rules were added and removed. The two files come from different journeys in `BaselineProfileGenerator` (`startup` for the startup profile, `generate` for the rest of the baseline profile), so the startup profile should be much smaller. If they are identical, say so: the generator's journeys are broken.
 - The notable changes, grouped by package, with a few example classes or methods for each. Call out anything tied to this app (`com.doubleangels.redact`) separately from framework and library rules (androidx, Media3, Glide, Sentry, kotlin).
-- Whether the startup profile looks sensible (it should be dominated by app startup classes such as the application class, `MainActivity` and the first tab).
+- Whether the startup profile looks sensible: a cold start to the Clean tab, so the application class, `MainActivity`, `CleanFragment` and what they load, and no `OnboardingActivity`, Settings, Statistics or share-handling code.
+- Whether the baseline profile covers every journey `generate` runs: each tab, `StatisticsActivity`, `LicensesActivity`, the tile services, `ShareHandlerActivity` and the clean it runs (`MetadataStripper`), and the Scan, Convert and Censor share targets. Name any that are missing.
 - Whether the change looks meaningful or is just run-to-run noise (for example, renumbered synthetic lambdas, the same rules in a different order, or a handful of library methods).
 
 ## 4. Wrap up
