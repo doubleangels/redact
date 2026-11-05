@@ -66,7 +66,7 @@ The Google Play text, screenshots and icon live in `fastlane/metadata/`. `script
 
 ## Baseline profile
 
-If you change startup-critical code, regenerate the baseline and startup profiles on a connected device or emulator (set `ANDROID_SERIAL` if more than one is connected):
+If you change startup-critical code, regenerate the baseline and startup profiles. They are generated on `profileGeneratorApi37`, an emulator that Gradle creates, boots headless and shuts down itself (defined in `baselineprofile/build.gradle`), so no device needs to be connected and none that is gets used. The first run downloads its system image:
 
 ```bash
 ./gradlew :app:generateBaselineProfile

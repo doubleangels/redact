@@ -23,11 +23,27 @@ android {
     }
 
     targetProjectPath = ':app'
+
+    // The profile generator's own emulator, separate from the Pixel_10_Pro AVD that /test and the
+    // store screenshots use. Gradle creates it, boots it headless with a fresh install of the app,
+    // runs the generator and shuts it down, so nothing left over from a test run can change the
+    // profile. A Pixel 10 Pro screen, so it profiles the phone layouts. The Google APIs image (Google
+    // Play services, no Play Store) rather than plain AOSP: without Play services the emoji font never
+    // loads at startup and the profile loses the androidx.emoji2 startup path real phones run.
+    testOptions.managedDevices.localDevices {
+        create("profileGeneratorApi37") {
+            device = "Pixel 10 Pro"
+            apiLevel = 37
+            systemImageSource = "google"
+        }
+    }
 }
 
-// Generate on a connected device: ./gradlew :app:generateBaselineProfile
+// Generate the profiles: ./gradlew :app:generateBaselineProfile
+// It runs on the profileGeneratorApi37 managed emulator above, never on a connected device.
 baselineProfile {
-    useConnectedDevices = true
+    managedDevices += "profileGeneratorApi37"
+    useConnectedDevices = false
 }
 
 dependencies {

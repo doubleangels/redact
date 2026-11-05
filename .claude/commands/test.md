@@ -27,9 +27,9 @@ Work from Git Bash. Use the scratchpad directory for everything you create (medi
 
 ## 2. Emulator and app
 
-1. Run `adb devices -l`. Pick the running emulator whose `adb -s <serial> emu avd name` is `Pixel_10_Pro`; ignore physical devices even if one is the only other device. If none is running, start `%LOCALAPPDATA%\Android\Sdk\emulator\emulator.exe -avd Pixel_10_Pro -no-snapshot-save` in the background and wait until `getprop sys.boot_completed` is `1`. If the AVD does not exist, stop and tell me.
+1. Run `adb devices -l`. Pick the running emulator whose `adb -s <serial> emu avd name` is `Pixel_10_Pro`; ignore physical devices even if one is the only other device. If none is running, start the **test emulator** headless, since these checks drive it through adb and never need its window: `%LOCALAPPDATA%\Android\Sdk\emulator\emulator.exe -avd Pixel_10_Pro -no-window -no-audio -no-boot-anim -no-snapshot-save` in the background, and wait until `getprop sys.boot_completed` is `1`. Reuse it as it is if it is already running, with or without a window. Ignore any other emulator: the profile generator's Gradle-managed one (`profileGeneratorApi37`) may be running alongside. If the AVD does not exist, stop and tell me.
 2. Set `ANDROID_SERIAL=<serial>` in every command from here on, including Gradle.
-3. Uninstall any existing build (`adb uninstall com.doubleangels.redact`; the profile generator installs a differently signed variant), then `./gradlew :app:installDebug`.
+3. Uninstall any existing build (`adb uninstall com.doubleangels.redact`), so the run starts from a fresh install with the introduction and permission prompts, then `./gradlew :app:installDebug`.
 4. Make the media with `make_test_media.py "$S/media"`, push it to `/sdcard/DCIM/Camera/`, and broadcast `android.intent.action.MEDIA_SCANNER_SCAN_FILE` for each file. Also push four copies of `VID_long.mp4` (`VID_long2.mp4`…`VID_long5.mp4`) for the overlap test.
 
 ## 3. Features
