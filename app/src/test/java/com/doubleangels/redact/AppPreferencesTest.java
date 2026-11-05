@@ -28,18 +28,6 @@ public class AppPreferencesTest {
     }
 
     @Test
-    public void removeRetiredSettings_dropsTheOldSecureDeletionPassesValue() {
-        android.content.SharedPreferences prefs =
-                context.getSharedPreferences(AppPreferences.PREFS_NAME, Context.MODE_PRIVATE);
-        prefs.edit().putInt("secure_delete_passes", 7).putBoolean("strict_clean", true).commit();
-
-        AppPreferences.removeRetiredSettings(context);
-
-        assertFalse(prefs.contains("secure_delete_passes"));
-        assertTrue(AppPreferences.isStrictClean(context));
-    }
-
-    @Test
     public void summaryHints_areLearnedPerTab_andComeBackAfterAReset() {
         assertFalse(AppPreferences.isSummaryHintLearned(context, AppPreferences.HINT_CENSOR));
         AppPreferences.setSummaryHintLearned(context, AppPreferences.HINT_CENSOR);

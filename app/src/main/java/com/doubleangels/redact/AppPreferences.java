@@ -46,8 +46,6 @@ public final class AppPreferences {
     private static final String KEY_CENSOR_TOOL = "censor_tool";
     private static final String KEY_CENSOR_EFFECT = "censor_effect";
     private static final String KEY_CENSOR_BRUSH_SIZE = "censor_brush_size";
-    /** Settings that no longer exist, cleared from older installs (Secure Deletion Passes). */
-    private static final String[] RETIRED_KEYS = {"secure_delete_passes"};
     private static final String KEY_SUMMARY_HINT_LEARNED_PREFIX = "summary_hint_learned_";
 
     /** The tabs whose summary card shows a how-to line until a job there succeeds once. */
@@ -401,23 +399,6 @@ public final class AppPreferences {
 
     public static void setConsentedToOpenLocationInMaps(@NonNull Context context, boolean consented) {
         prefs(context).edit().putBoolean(KEY_MAPS_LOCATION_CONSENT_GIVEN, consented).apply();
-    }
-
-    /** Removes values saved by settings that have since been taken out of the app. */
-    public static void removeRetiredSettings(@NonNull Context context) {
-        SharedPreferences p = prefs(context);
-        SharedPreferences.Editor editor = null;
-        for (String key : RETIRED_KEYS) {
-            if (p.contains(key)) {
-                if (editor == null) {
-                    editor = p.edit();
-                }
-                editor.remove(key);
-            }
-        }
-        if (editor != null) {
-            editor.apply();
-        }
     }
 
     /**

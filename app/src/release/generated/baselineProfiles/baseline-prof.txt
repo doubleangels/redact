@@ -5164,7 +5164,6 @@ PLcom/doubleangels/redact/AppPreferences;->isVideoFallbackCopy(Landroid/content/
 PLcom/doubleangels/redact/AppPreferences;->isWarnAlreadyClean(Landroid/content/Context;)Z
 PLcom/doubleangels/redact/AppPreferences;->outputTreeKey(Z)Ljava/lang/String;
 SPLcom/doubleangels/redact/AppPreferences;->prefs(Landroid/content/Context;)Landroid/content/SharedPreferences;
-SPLcom/doubleangels/redact/AppPreferences;->removeRetiredSettings(Landroid/content/Context;)V
 PLcom/doubleangels/redact/AppPreferences;->setCleanNotificationsEnabled(Landroid/content/Context;Z)V
 PLcom/doubleangels/redact/AppPreferences;->setConvertNotificationsEnabled(Landroid/content/Context;Z)V
 PLcom/doubleangels/redact/AppPreferences;->setInitialPermissionsPromptCompleted(Landroid/content/Context;)V
