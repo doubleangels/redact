@@ -1,9 +1,9 @@
 ---
-description: Check every string in all 12 locales, translate anything missing or left in English, and show a summary
+description: Check every string and the Play store listing text in all 12 locales, translate anything missing, out of date or left in English, and show a summary
 allowed-tools: Bash, PowerShell, Read, Edit, Write, Grep, Glob
 ---
 
-Make sure every user-visible string is translated into all 12 locales (`ar de es fr hi it ja ko pt ru zh-rCN zh-rTW`), fix any gaps, then show me a summary. When the task is done, commit its changes to the current branch automatically, as the last step describes. Do not push.
+Make sure every user-visible string, and the Play store listing text, is translated into all 12 locales (`ar de es fr hi it ja ko pt ru zh-rCN zh-rTW`), fix any gaps, then show me a summary. When the task is done, commit its changes to the current branch automatically, as the last step describes. Do not push.
 
 ## 1. Check
 
@@ -15,7 +15,12 @@ Make sure every user-visible string is translated into all 12 locales (`ar de es
    It exits 1 when there is any ERROR.
 3. Also look for user-visible text that is not a resource at all: string literals passed to `setText`, `Toast.makeText`, `Snackbar.make`, `setTitle`, `setMessage`, `setContentTitle`/`setContentText` or `setContentDescription` in `app/src/main/java`. Log tags, intent extras, preference keys and exception messages that are never shown are fine.
 4. Compare the letter case of every translation in `de es fr it pt ru` with its English original (see **Case** under Fix). The checker does not flag this, so read the files side by side.
-5. If there are no ERRORs, no CHECKs, no hardcoded text and no case mismatches, skip to step 3 (Verify).
+5. Check the store listing in `fastlane/metadata/android/`. The release pushes it to Play, so a stale translation goes live. The English is in `en-US/`; the other folders are the store locales (`ar de-DE es-ES fr-FR hi-IN it-IT ja-JP ko-KR pt-BR ru-RU zh-CN zh-TW`). For each locale and each of `title.txt`, `short_description.txt` and `full_description.txt`:
+   - **Missing**: the file does not exist.
+   - **Too long**: Play's limits are 30 characters for the title, 80 for the short description and 4000 for the full description (count characters, not bytes).
+   - **Out of date**: `en-US`'s copy changed in a later commit than the locale's (compare `git log -1 --format=%ct -- <file>` for both, and also count uncommitted changes to `en-US`). Read `git diff <locale file's last commit> -- fastlane/metadata/android/en-US/<file>` to see what changed in the English since.
+   - **Untranslated**: lines still in English that are not brand, format or codec names.
+6. If there are no ERRORs, no CHECKs, no hardcoded text, no case mismatches and no store listing problems, skip to step 3 (Verify).
 
 ## 2. Fix
 
@@ -33,10 +38,11 @@ Make sure every user-visible string is translated into all 12 locales (`ar de es
 - **CHECK (same as English)**: translate it unless the English really is correct in that language (a loanword such as German "Video", a unit, a codec or brand name). When it is correct, add `"<locale>:<name>"` to `REVIEWED_SAME_AS_ENGLISH` in `.claude/scripts/check_translations.py`, so it is not flagged again.
 - **Escaping**: `&` as `&amp;`, `'` as `\'`, `"` as `\"`, `<` as `&lt;`; a leading `@` or `?` needs a backslash. Save files as UTF-8.
 - Never add `translatable="false"` to user-visible text, because `StringTranslationsTest` forbids it.
+- **Store listing**: bring each out-of-date locale file in line with the English by translating only what changed in `en-US` since (keep the rest of the locale's wording), and translate missing or untranslated files in full. Keep the same structure as the English: paragraphs, bullet characters, line breaks and the order of sections. Use the same words for features as that locale's `strings.xml` (the app's labels for Clean, Scan, Convert, Censor and the settings), and follow **Case** for headings. Stay within the length limits; shorten the wording rather than cut a feature. Never edit `en-US` here, and never touch `changelogs/` (CI writes those).
 
 ## 3. Verify
 
-1. Re-run the checker. The goal is `Total: 0 problems, 0 same-as-English values to review`.
+1. Re-run the checker. The goal is `Total: 0 problems, 0 same-as-English values to review`. Re-check the store listing: every locale has all three files, within the limits.
 2. Run `./gradlew :app:testDebugUnitTest --tests com.doubleangels.redact.StringTranslationsTest -q` (use `gradlew.bat` from PowerShell) and confirm it passes.
 3. If any string used in a layout got noticeably longer (for example in German or Russian), say which screen may need a visual check.
 
@@ -46,8 +52,9 @@ End with:
 
 - a table with one row per locale: problems found, fixed, and same-as-English values reviewed,
 - the strings added since the last tag, and whether each is now present in all 12 locales,
+- the store listing: per locale, which files were missing, too long, out of date or untranslated, and what you changed,
 - the strings whose case you changed, per locale, with the English for comparison,
 - every string you translated, grouped by name, with the English and a short back-translation for anything you were unsure of,
 - anything that needs a native speaker or a human decision.
 
-Then commit to the current branch without asking (skip it if nothing changed or a check is still failing, and say so): stage only the resource files (and the checker script, if you edited its allowlist), then commit with a message like "Translate <what> into all locales". Never push.
+Then commit to the current branch without asking (skip it if nothing changed or a check is still failing, and say so): stage only the resource files, the store listing text files you changed (and the checker script, if you edited its allowlist), then commit with a message like "Translate <what> into all locales". Never push.

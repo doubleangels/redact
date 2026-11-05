@@ -30,7 +30,7 @@ Sort the issues by users affected, then events, and handle each one:
 - **Crash inside the OS, a device vendor's code or a library**: make our code survive it (catch at our boundary, fall back, or avoid the call on the affected SDK or device) and keep reporting it if it still means a failed job. If the only possible fix is a library upgrade, do it if a released version fixes it (check its changelog); otherwise leave the issue unresolved and say why.
 - **Privacy**: if any event contains a URI, path, file name, coordinate, metadata value or typed text, that is a bug of its own. Fix it at the source and in `SentryPrivacyScrubber` (with a case in `SentryPrivacyScrubberTest`), even if the issue itself is noise.
 
-Follow the Sentry rules in step 2b of `.claude/commands/prerelease.md`: everything goes through `SentryManager`, failures carry their failure tags, and nothing private is sent. Never fix an issue by catching and silently ignoring a real failure.
+Follow the Sentry rules in step 2 of `.claude/commands/sentrycoverage.md`: everything goes through `SentryManager`, failures carry their failure tags, and nothing private is sent. Never fix an issue by catching and silently ignoring a real failure.
 
 ## 4. Verify
 

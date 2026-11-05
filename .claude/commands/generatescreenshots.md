@@ -1,12 +1,29 @@
 ---
 description: Regenerate the store screenshots, their captioned store versions and the feature graphic on the Pixel 10 Pro emulator, and check the images
 allowed-tools: Bash, PowerShell, Read, Grep, Glob
-argument-hint: "[all | <store locales>]"
+argument-hint: "[ifchanged] [all | <store locales>]"
 ---
 
 > These commands drive the Pixel_10_Pro emulator and Gradle with Windows paths, so they only work on my own machine. If you are running in a cloud session without the Android SDK and the emulator, say so and stop instead of trying.
 
 Regenerate the store screenshots on the **Pixel_10_Pro emulator and never on a physical device**, then check the images. This does only the screenshots; use `/generateprofiles` for the profiles or `/generateall` for both. The screenshots land in `build/`, which git ignores, so there is nothing to commit unless I ask you to copy them into `fastlane/`; then commit the copied images to the current branch automatically. Do not push. Do not copy screenshots into `fastlane/` unless I ask.
+
+## 0. Only if the first three tabs look different (`ifchanged`)
+
+Skip this step unless I passed `ifchanged`. The store screenshots show the Clean, Scan and Convert tabs (light and dark). With `ifchanged`, regenerate them only when something that changes how those tabs look has changed since the screenshots were last updated. Settings does not appear in the screenshots, so changes that only affect it never count.
+
+1. Find the last screenshot update, ignoring image-optimiser commits:
+   `git log -1 --format=%H --perl-regexp --author='^(?!ImgBot)' -- fastlane/metadata/android/en-US/images/phoneScreenshots`
+2. List what changed since then, including uncommitted changes (a translation run may have edited strings): `git diff --stat <that commit> -- app/src/main/res app/src/main/java scripts/screenshots.sh scripts/store_graphics.py scripts/tag_samples.py icons/sample`.
+3. It **counts as a visual change** when any of these changed:
+   - layouts for those tabs and the parts they share: `activity_main.xml`, `menu/bottom_navigation_menu.xml` (the tab bar is in every shot), `fragment_clean.xml`, `fragment_scan.xml`, `fragment_convert.xml`, every `item_*.xml`, `dialog_progress.xml`;
+   - anything under `res/drawable*` or `res/mipmap*`, except a drawable used only by `fragment_settings.xml` or the Censor tab's layouts (check with grep); `ic_censor` counts, since the tab bar shows it;
+   - styling resources in any `values*` folder: `colors.xml`, `themes.xml`, `styles.xml`, `dimens.xml`, `shapes.xml`, or a font;
+   - English text shown on those tabs in the screenshot state (titles, button labels, hints, badges, format chips): check whether each changed `values/strings.xml` name is used in those layouts or in the classes below;
+   - code that sets how those tabs look (visibility, colours, sizes, icons, text, which views appear for a selection): `MainActivity`, `CleanFragment`, `ScanFragment`, `ConvertFragment`, `MediaAdapter`, `ConvertFileAdapter`, `ScanMetadataAdapter`, `UIStateManager`. Read the diff and judge: a change only to background work, logging, or dialogs and states the screenshots never show does not count;
+   - the screenshot scripts `scripts/screenshots.sh`, `scripts/store_graphics.py` or `scripts/tag_samples.py`, or the sample media in `icons/sample`.
+4. It does **not** count when the only changes are to `fragment_settings.xml`, `SettingsFragment`, Settings-only strings, the Censor tab (`fragment_censor.xml`, `layout-land/fragment_censor.xml`, `censor_*.xml`, `CensorFragment`, `CensorCanvasView`, `CensorViewModel`, `censor_*` strings other than `navigation_censor`), translations into other locales, or non-UI code. The store screenshots never open Censor.
+5. If nothing counts, stop here: say which commit you compared against and that nothing on those tabs changed. Otherwise list the files that count and carry on. In step 3, also compare each locale's new store images with its published ones in `fastlane/metadata/android/<locale>/images/phoneScreenshots/` (read both), describe what looks different, and say which locales had no published images yet.
 
 ## 1. Find or start the emulator
 
