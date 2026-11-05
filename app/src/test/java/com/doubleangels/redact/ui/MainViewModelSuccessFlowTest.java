@@ -41,7 +41,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BooleanSupplier;
 
 /** Batches that really succeed (images are written through the fake MediaStore). */
 @RunWith(RobolectricTestRunner.class)

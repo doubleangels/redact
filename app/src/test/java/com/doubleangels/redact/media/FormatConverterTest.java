@@ -177,15 +177,6 @@ public class FormatConverterTest {
     }
 
     @Test
-    public void jpegFormatSpec_returnsJpegDefaults() {
-        FormatConverter.ImageFormatSpec spec = FormatConverter.jpegFormatSpec();
-        assertNotNull(spec);
-        assertEquals(".jpg", spec.extension);
-        assertEquals("image/jpeg", spec.mimeType);
-        assertEquals(Bitmap.CompressFormat.JPEG, spec.compressFormat);
-    }
-
-    @Test
     public void calculateInSampleSize_forAPreviewSize_samplesDownToIt() {
         BitmapFactory.Options small = new BitmapFactory.Options();
         small.outWidth = 1000;

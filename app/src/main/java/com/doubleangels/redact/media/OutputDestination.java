@@ -3,6 +3,7 @@ package com.doubleangels.redact.media;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.UriPermission;
 import android.database.Cursor;
 import android.net.Uri;
@@ -23,10 +24,14 @@ import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.sentry.SentryManager;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -56,11 +61,11 @@ public final class OutputDestination {
     private static final String PENDING_PREFS = "redact_pending_outputs";
     private static final String KEY_PENDING_DOCUMENTS = "documents";
     /** Marks this process's entries, so the sweep at start never touches a file being written now. */
-    private static final String PROCESS_TOKEN = java.util.UUID.randomUUID().toString();
+    private static final String PROCESS_TOKEN = UUID.randomUUID().toString();
     private static final Object PENDING_LOCK = new Object();
     /** The file of documents being written, once this process has created one. */
     @Nullable
-    private static volatile android.content.SharedPreferences pendingDocuments;
+    private static volatile SharedPreferences pendingDocuments;
 
     private OutputDestination() {
     }
@@ -162,24 +167,24 @@ public final class OutputDestination {
     }
 
     private static void markPendingDocument(@NonNull Context context, @NonNull Uri doc) {
-        android.content.SharedPreferences prefs = pendingPrefs(context.getApplicationContext());
+        SharedPreferences prefs = pendingPrefs(context.getApplicationContext());
         pendingDocuments = prefs;
         synchronized (PENDING_LOCK) {
-            Set<String> entries = new java.util.HashSet<>(
-                    prefs.getStringSet(KEY_PENDING_DOCUMENTS, java.util.Collections.emptySet()));
+            Set<String> entries = new HashSet<>(
+                    prefs.getStringSet(KEY_PENDING_DOCUMENTS, Collections.emptySet()));
             entries.add(PROCESS_TOKEN + "\t" + doc);
             prefs.edit().putStringSet(KEY_PENDING_DOCUMENTS, entries).apply();
         }
     }
 
     private static void clearPendingDocument(@Nullable Uri uri) {
-        android.content.SharedPreferences prefs = pendingDocuments;
+        SharedPreferences prefs = pendingDocuments;
         if (uri == null || prefs == null || !isDocumentAuthority(uri)) {
             return;
         }
         synchronized (PENDING_LOCK) {
-            Set<String> stored = prefs.getStringSet(KEY_PENDING_DOCUMENTS, java.util.Collections.emptySet());
-            Set<String> entries = new java.util.HashSet<>(stored);
+            Set<String> stored = prefs.getStringSet(KEY_PENDING_DOCUMENTS, Collections.emptySet());
+            Set<String> entries = new HashSet<>(stored);
             if (entries.remove(PROCESS_TOKEN + "\t" + uri)) {
                 prefs.edit().putStringSet(KEY_PENDING_DOCUMENTS, entries).apply();
             }
@@ -200,9 +205,9 @@ public final class OutputDestination {
     static void sweepAbandonedDocuments(@NonNull Context app) {
         List<Uri> abandoned = new ArrayList<>();
         synchronized (PENDING_LOCK) {
-            android.content.SharedPreferences prefs = pendingPrefs(app);
-            Set<String> stored = prefs.getStringSet(KEY_PENDING_DOCUMENTS, java.util.Collections.emptySet());
-            Set<String> kept = new java.util.HashSet<>();
+            SharedPreferences prefs = pendingPrefs(app);
+            Set<String> stored = prefs.getStringSet(KEY_PENDING_DOCUMENTS, Collections.emptySet());
+            Set<String> kept = new HashSet<>();
             for (String entry : stored) {
                 int tab = entry.indexOf('\t');
                 if (tab > 0 && entry.substring(0, tab).equals(PROCESS_TOKEN)) {
@@ -226,7 +231,7 @@ public final class OutputDestination {
     }
 
     @NonNull
-    private static android.content.SharedPreferences pendingPrefs(@NonNull Context app) {
+    private static SharedPreferences pendingPrefs(@NonNull Context app) {
         return app.getSharedPreferences(PENDING_PREFS, Context.MODE_PRIVATE);
     }
 
@@ -295,7 +300,7 @@ public final class OutputDestination {
         // The default folder is only made with the first file saved to it, and a file manager
         // asked to open a missing folder falls back to Downloads, so open Pictures or Movies.
         String path = defaultPath(video);
-        if (!new java.io.File(Environment.getExternalStorageDirectory(), path).isDirectory()) {
+        if (!new File(Environment.getExternalStorageDirectory(), path).isDirectory()) {
             path = video ? Environment.DIRECTORY_MOVIES : Environment.DIRECTORY_PICTURES;
         }
         return DocumentsContract.buildDocumentUri(EXTERNAL_STORAGE_AUTHORITY, PRIMARY_VOLUME + ":" + path);

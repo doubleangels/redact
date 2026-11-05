@@ -1,12 +1,19 @@
 package com.doubleangels.redact;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.icu.text.CompactDecimalFormat;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.DocumentsContract;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +21,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -31,15 +39,26 @@ import com.doubleangels.redact.sentry.SentryInitializer;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.stats.StatsSnapshot;
 import com.doubleangels.redact.stats.StatsStore;
+import com.doubleangels.redact.ui.CrashReportingPrompt;
+import com.doubleangels.redact.ui.FoldDialogs;
 import com.doubleangels.redact.ui.Notice;
+import com.doubleangels.redact.ui.ReviewPrompt;
+import com.doubleangels.redact.ui.SecureWindow;
+import com.doubleangels.redact.ui.SwitchRows;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 
+import java.text.DateFormat;
+import java.text.NumberFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Settings screen for notifications, conversion defaults, privacy, permissions, and about info.
@@ -124,7 +143,7 @@ public class SettingsFragment extends TabFragment {
             bindPrivacy(view);
             bindAdvancedSettings();
             bindAbout(view);
-            com.doubleangels.redact.ui.SwitchRows.wire(view);
+            SwitchRows.wire(view);
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
@@ -212,7 +231,7 @@ public class SettingsFragment extends TabFragment {
                     return;
                 }
                 if (needsNotificationPermission() && !hasNotificationPermission()) {
-                    notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS);
+                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
                     return;
                 }
                 applyNotificationsEnabled(true);
@@ -266,13 +285,13 @@ public class SettingsFragment extends TabFragment {
                         },
                         null);
             } catch (Exception e) {
-                android.util.Log.e("SettingsFragment", "Error saving crash reporting pref", e);
+                Log.e("SettingsFragment", "Error saving crash reporting pref", e);
                 SentryManager.recordException(e);
             }
         });
 
         MaterialButton learnMore = view.findViewById(R.id.buttonCrashReportingLearnMore);
-        learnMore.setOnClickListener(v -> com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
+        learnMore.setOnClickListener(v -> FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.settings_crash_reporting_detail_title)
                 .setMessage(R.string.settings_crash_reporting_detail_message)
                 .setPositiveButton(R.string.settings_crash_reporting_privacy_policy, (d, w) ->
@@ -295,7 +314,7 @@ public class SettingsFragment extends TabFragment {
         switchSecureWindow.setChecked(AppPreferences.isSecureWindow(requireContext()));
         switchSecureWindow.setOnCheckedChangeListener((btn, isChecked) -> {
             AppPreferences.setSecureWindow(requireContext(), isChecked);
-            com.doubleangels.redact.ui.SecureWindow.apply(requireActivity());
+            SecureWindow.apply(requireActivity());
         });
 
         int[] clearOptions = AppPreferences.CLIPBOARD_CLEAR_SECONDS_OPTIONS;
@@ -344,7 +363,7 @@ public class SettingsFragment extends TabFragment {
                 suppressPreserveLocationToggleCallback = true;
                 switchPreserveLocation.setChecked(false);
                 suppressPreserveLocationToggleCallback = false;
-                com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
+                FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
                         .setTitle(R.string.settings_preserve_location_confirm_title)
                         .setMessage(R.string.settings_preserve_location_confirm_message)
                         .setPositiveButton(android.R.string.ok, (d, w) -> {
@@ -454,7 +473,7 @@ public class SettingsFragment extends TabFragment {
 
     private void bindStorage(@NonNull View view) {
         MaterialButton clearButton = view.findViewById(R.id.buttonClearTempFiles);
-        clearButton.setOnClickListener(v -> com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
+        clearButton.setOnClickListener(v -> FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.settings_storage_clear_confirm_title)
                 .setMessage(R.string.settings_storage_clear_confirm_message)
                 .setPositiveButton(R.string.settings_storage_clear, (d, w) -> clearTempFiles())
@@ -488,7 +507,7 @@ public class SettingsFragment extends TabFragment {
 
     /** Asks whether the folder just chosen for {@code video} output should take the other type too. */
     private void offerFolderForOtherType(boolean video, @NonNull Uri tree) {
-        com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
+        FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(video ? R.string.settings_output_also_images : R.string.settings_output_also_videos)
                 .setMessage(OutputDestination.describe(requireContext(), tree))
                 .setPositiveButton(R.string.settings_output_also_confirm, (d, w) -> {
@@ -580,10 +599,10 @@ public class SettingsFragment extends TabFragment {
     private void openOutputFolder(boolean video) {
         withFolderLocation(context -> OutputDestination.currentFolderDocument(context, video), folder -> {
             Intent intent = new Intent(Intent.ACTION_VIEW)
-                    .setDataAndType(folder, android.provider.DocumentsContract.Document.MIME_TYPE_DIR);
+                    .setDataAndType(folder, DocumentsContract.Document.MIME_TYPE_DIR);
             // Only a chosen folder is under a grant Redact can pass on; asking to grant the default
             // folder, which Redact holds no grant for, makes startActivity throw.
-            if (android.provider.DocumentsContract.isTreeUri(folder)) {
+            if (DocumentsContract.isTreeUri(folder)) {
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             }
             try {
@@ -599,8 +618,8 @@ public class SettingsFragment extends TabFragment {
      * storage provider (slow for an SD card or a cloud folder), then hands it to {@code then} on
      * the main thread while this screen is still showing.
      */
-    private void withFolderLocation(@NonNull java.util.function.Function<Context, Uri> locate,
-                                    @NonNull java.util.function.Consumer<Uri> then) {
+    private void withFolderLocation(@NonNull Function<Context, Uri> locate,
+                                    @NonNull Consumer<Uri> then) {
         View root = getView();
         if (root == null || backgroundExecutor == null) {
             return;
@@ -705,8 +724,8 @@ public class SettingsFragment extends TabFragment {
         int foreground = MaterialColors.getColor(context, usable
                 ? com.google.android.material.R.attr.colorOnSecondaryContainer
                 : com.google.android.material.R.attr.colorOnErrorContainer, 0);
-        badge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(background));
-        icon.setImageTintList(android.content.res.ColorStateList.valueOf(foreground));
+        badge.setBackgroundTintList(ColorStateList.valueOf(background));
+        icon.setImageTintList(ColorStateList.valueOf(foreground));
     }
 
     private void bindStatistics(@NonNull View view) {
@@ -732,8 +751,8 @@ public class SettingsFragment extends TabFragment {
             return;
         }
         textStatsSummarySubtitle.setText(getString(R.string.stats_settings_since,
-                java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM)
-                        .format(new java.util.Date(stats.trackingSince))));
+                DateFormat.getDateInstance(DateFormat.MEDIUM)
+                        .format(new Date(stats.trackingSince))));
         textStatsSummaryFields.setText(compactCount(stats.fieldsRemoved));
         textStatsSummaryLocations.setText(compactCount(stats.locationsRemoved));
         textStatsSummaryFiles.setText(compactCount(stats.filesCleaned()));
@@ -744,11 +763,11 @@ public class SettingsFragment extends TabFragment {
     @NonNull
     private static String compactCount(long count) {
         if (count < 1_000_000) {
-            return java.text.NumberFormat.getIntegerInstance().format(count);
+            return NumberFormat.getIntegerInstance().format(count);
         }
-        return android.icu.text.CompactDecimalFormat.getInstance(
-                java.util.Locale.getDefault(),
-                android.icu.text.CompactDecimalFormat.CompactStyle.SHORT).format(count);
+        return CompactDecimalFormat.getInstance(
+                Locale.getDefault(),
+                CompactDecimalFormat.CompactStyle.SHORT).format(count);
     }
 
     private void bindAbout(@NonNull View view) {
@@ -769,11 +788,11 @@ public class SettingsFragment extends TabFragment {
         view.findViewById(R.id.rowAboutReportIssue).setOnClickListener(v ->
                 openUrl(getString(R.string.url_report_issue)));
         view.findViewById(R.id.rowAboutRate).setOnClickListener(v ->
-                com.doubleangels.redact.ui.ReviewPrompt.openStoreListing(requireContext()));
+                ReviewPrompt.openStoreListing(requireContext()));
         view.findViewById(R.id.rowAboutDonate).setOnClickListener(v ->
                 openUrl(getString(R.string.url_donate)));
         view.findViewById(R.id.rowResetSettings).setOnClickListener(v ->
-                com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
+                FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
                         .setTitle(R.string.settings_reset_all_title)
                         .setMessage(R.string.settings_reset_all_message)
                         .setPositiveButton(R.string.settings_reset_all_confirm, (d, w) -> resetAllSettings())
@@ -804,8 +823,8 @@ public class SettingsFragment extends TabFragment {
         }
         // A toast, not a snackbar: the activity is recreated just below, which would take a
         // snackbar with it before it could be read.
-        android.widget.Toast.makeText(context.getApplicationContext(), R.string.settings_reset_all_done,
-                android.widget.Toast.LENGTH_SHORT).show();
+        Toast.makeText(context.getApplicationContext(), R.string.settings_reset_all_done,
+                Toast.LENGTH_SHORT).show();
         // Restored view state would put back each switch and dropdown as it was, and the switch
         // listeners would then write the old values straight back into the reset preferences.
         View root = getView();
@@ -920,10 +939,10 @@ public class SettingsFragment extends TabFragment {
         if (textStorageSize == null || backgroundExecutor == null) {
             return;
         }
-        final android.content.Context ctx = requireContext().getApplicationContext();
+        final Context ctx = requireContext().getApplicationContext();
         backgroundExecutor.execute(() -> {
             long bytes = CacheCleanup.getTempCacheSizeBytes(ctx);
-            android.app.Activity activity = getActivity();
+            Activity activity = getActivity();
             if (activity != null) {
                 activity.runOnUiThread(() -> {
                     if (isAdded()) {
@@ -946,11 +965,11 @@ public class SettingsFragment extends TabFragment {
         if (backgroundExecutor == null) {
             return;
         }
-        final android.content.Context ctx = requireContext().getApplicationContext();
+        final Context ctx = requireContext().getApplicationContext();
         backgroundExecutor.execute(() -> {
             long before = CacheCleanup.getTempCacheSizeBytes(ctx);
             int deleted = CacheCleanup.clearAllTempFiles(ctx);
-            android.app.Activity activity = getActivity();
+            Activity activity = getActivity();
             if (activity != null) {
                 activity.runOnUiThread(() -> {
                     if (isAdded()) {
@@ -978,12 +997,12 @@ public class SettingsFragment extends TabFragment {
 
     private void requestLocationPermissionFromSettings() {
         if (ContextCompat.checkSelfPermission(
-                        requireContext(), android.Manifest.permission.ACCESS_MEDIA_LOCATION)
-                == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                        requireContext(), Manifest.permission.ACCESS_MEDIA_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
             return;
         }
         if (!PermissionStatusHelper.hasMediaReadPrerequisiteForLocation(requireContext())) {
-            com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
+            FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.settings_location_needs_media_title)
                     .setMessage(R.string.settings_location_needs_media_message)
                     .setPositiveButton(R.string.settings_location_grant_media_first, (d, w) -> {
@@ -995,7 +1014,7 @@ public class SettingsFragment extends TabFragment {
                     .show());
             return;
         }
-        locationPermissionLauncher.launch(android.Manifest.permission.ACCESS_MEDIA_LOCATION);
+        locationPermissionLauncher.launch(Manifest.permission.ACCESS_MEDIA_LOCATION);
     }
 
     private void maybeRequestLocationAfterMediaGrant() {
@@ -1008,9 +1027,9 @@ public class SettingsFragment extends TabFragment {
         }
         requestLocationAfterMediaGrant = false;
         if (ContextCompat.checkSelfPermission(
-                        requireContext(), android.Manifest.permission.ACCESS_MEDIA_LOCATION)
-                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-            locationPermissionLauncher.launch(android.Manifest.permission.ACCESS_MEDIA_LOCATION);
+                        requireContext(), Manifest.permission.ACCESS_MEDIA_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            locationPermissionLauncher.launch(Manifest.permission.ACCESS_MEDIA_LOCATION);
         }
     }
 
@@ -1073,12 +1092,12 @@ public class SettingsFragment extends TabFragment {
             return true;
         }
         return ContextCompat.checkSelfPermission(
-                        requireContext(), android.Manifest.permission.POST_NOTIFICATIONS)
-                == android.content.pm.PackageManager.PERMISSION_GRANTED;
+                        requireContext(), Manifest.permission.POST_NOTIFICATIONS)
+                == PackageManager.PERMISSION_GRANTED;
     }
 
   /** Applies saved default format index to Convert tab chips. */
-    public static int defaultFormatIndexForSelection(@NonNull android.content.Context context,
+    public static int defaultFormatIndexForSelection(@NonNull Context context,
                                                      int numImages, int numVideos) {
         if (numVideos == 0) {
             return AppPreferences.getDefaultImageFormatIndex(context);
@@ -1101,7 +1120,7 @@ public class SettingsFragment extends TabFragment {
     private void showSentryConsentDialog(
             @NonNull Runnable onAllow,
             @Nullable Runnable onDeny) {
-        com.doubleangels.redact.ui.FoldDialogs.place(com.doubleangels.redact.ui.CrashReportingPrompt.consentDialog(requireContext(), onAllow, () -> {
+        FoldDialogs.place(CrashReportingPrompt.consentDialog(requireContext(), onAllow, () -> {
                     if (onDeny != null) {
                         onDeny.run();
                     }

@@ -1,10 +1,12 @@
 package com.doubleangels.redact;
 
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -32,12 +34,17 @@ import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.metadata.MetadataDisplayer;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.sentry.SentryManager;
+import com.doubleangels.redact.ui.CensorViewModel;
+import com.doubleangels.redact.ui.ErrorFeedbackPrompt;
 import com.doubleangels.redact.ui.FabScroll;
+import com.doubleangels.redact.ui.FoldDialogs;
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.ui.Notice;
+import com.doubleangels.redact.ui.ReviewPrompt;
 import com.doubleangels.redact.ui.ScanMetadataAdapter;
 import com.doubleangels.redact.ui.ScanViewModel;
+import com.doubleangels.redact.ui.SecureWindow;
 import com.doubleangels.redact.ui.SensitiveClipboard;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -45,6 +52,10 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.textfield.TextInputEditText;
+
+import io.sentry.ITransaction;
+import io.sentry.SpanStatus;
+import io.sentry.protocol.SentryId;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,10 +65,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import io.sentry.ITransaction;
-import io.sentry.SpanStatus;
-import io.sentry.protocol.SentryId;
 
 /**
  * Scan tab: metadata inspection UI; hosted in {@link MainActivity}'s fragment container.
@@ -128,14 +135,14 @@ public class ScanFragment extends TabFragment {
 
     private ActivityResultLauncher<String[]> mediaPickerLauncher;
     private PermissionManager permissionManager;
-    private com.doubleangels.redact.media.MediaSelector mediaSelector;
+    private MediaSelector mediaSelector;
     private ScanViewModel scanViewModel;
     @Nullable
     private MediaItem currentMediaItem;
     /** Counts picks, so a slow earlier pick does not replace a newer one. */
     private int scanPickCount;
     @Nullable
-    private io.sentry.ITransaction activeScanTransaction;
+    private ITransaction activeScanTransaction;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -231,7 +238,7 @@ public class ScanFragment extends TabFragment {
             }
         });
 
-        mediaSelector = new com.doubleangels.redact.media.MediaSelector(requireActivity());
+        mediaSelector = new MediaSelector(requireActivity());
 
         permissionManager = new PermissionManager(requireActivity(),
                 new PermissionManager.PermissionCallback() {
@@ -260,8 +267,8 @@ public class ScanFragment extends TabFragment {
                     }
                 });
         permissionManager.applyPendingPermissionResultIfAny(
-                com.doubleangels.redact.permission.PermissionManager.STORAGE_PERMISSION_REQUEST_CODE,
-                com.doubleangels.redact.permission.PermissionManager.LOCATION_PERMISSION_REQUEST_CODE);
+                PermissionManager.STORAGE_PERMISSION_REQUEST_CODE,
+                PermissionManager.LOCATION_PERMISSION_REQUEST_CODE);
 
         selectMediaButton.setOnClickListener(v -> onSelectMediaClicked());
         if (!isHidden()) {
@@ -383,10 +390,10 @@ public class ScanFragment extends TabFragment {
 
     @Override
     public void onDestroyView() {
-        android.app.Activity activity = getActivity();
+        Activity activity = getActivity();
         if (activity != null) {
-            com.doubleangels.redact.ui.SecureWindow.setSensitiveContentShowing(
-                    activity, com.doubleangels.redact.ui.SecureWindow.SOURCE_SCAN, false);
+            SecureWindow.setSensitiveContentShowing(
+                    activity, SecureWindow.SOURCE_SCAN, false);
         }
         MetadataDisplayer.cancelActiveScan();
         if (metadataSearchInput != null) {
@@ -491,7 +498,7 @@ public class ScanFragment extends TabFragment {
 
             progressText.setText(isVideo ? R.string.status_extracting_media : R.string.status_extracting_image);
 
-            finishActiveScanTransaction(io.sentry.SpanStatus.CANCELLED);
+            finishActiveScanTransaction(SpanStatus.CANCELLED);
             final ITransaction transaction = SentryManager.startTransaction("extract_metadata", "task");
             activeScanTransaction = transaction;
             MetadataDisplayer.extractSectionedMetadata(
@@ -501,7 +508,7 @@ public class ScanFragment extends TabFragment {
                     transaction.setStatus(SpanStatus.OK);
                     transaction.finish();
                     activeScanTransaction = null;
-                    android.app.Activity activity = getActivity();
+                    Activity activity = getActivity();
                     if (activity != null) {
                         activity.runOnUiThread(() -> {
                             if (!isAdded() || generation != scanGeneration.get()) return;
@@ -520,7 +527,7 @@ public class ScanFragment extends TabFragment {
                                 }
                                 displayCombinedMetadata(metadataSections);
                                 syncScanStateToViewModel();
-                                com.doubleangels.redact.ui.ReviewPrompt.onJobSucceeded(ScanFragment.this);
+                                ReviewPrompt.onJobSucceeded(ScanFragment.this);
 
                                 String locationSection = metadataSections.get(MetadataDisplayer.SECTION_LOCATION);
                                 boolean hasLocationRows = locationSection != null && !locationSection.trim().isEmpty();
@@ -546,7 +553,7 @@ public class ScanFragment extends TabFragment {
                     transaction.setStatus(SpanStatus.INTERNAL_ERROR);
                     transaction.finish();
                     activeScanTransaction = null;
-                    android.app.Activity activity = getActivity();
+                    Activity activity = getActivity();
                     if (activity == null) {
                         return;
                     }
@@ -567,7 +574,7 @@ public class ScanFragment extends TabFragment {
                         metadataCard.setVisibility(View.VISIBLE);
                         clearCoordinateState();
                         SentryManager.logEvent("scan", "Metadata extraction failed.");
-                        com.doubleangels.redact.ui.ErrorFeedbackPrompt.offer(
+                        ErrorFeedbackPrompt.offer(
                                 getView(), SentryManager.reportedSince(reportedBefore));
                     });
                 }
@@ -722,7 +729,7 @@ public class ScanFragment extends TabFragment {
                 break;
             }
         }
-        heroRiskBadge.setText(android.text.TextUtils.join(" · ", risks));
+        heroRiskBadge.setText(TextUtils.join(" · ", risks));
         heroRiskBadge.setVisibility(risks.isEmpty() ? View.GONE : View.VISIBLE);
 
         if (permissionManager != null && permissionManager.needsLocationPermission() && !hasLocationRows) {
@@ -889,14 +896,14 @@ public class ScanFragment extends TabFragment {
      * say) while this tab shows them.
      */
     private void updateRecentsPreview() {
-        android.app.Activity activity = getActivity();
+        Activity activity = getActivity();
         if (activity == null) {
             return;
         }
         boolean showing = !isHidden() && getView() != null
                 && heroCard != null && heroCard.getVisibility() == View.VISIBLE;
-        com.doubleangels.redact.ui.SecureWindow.setSensitiveContentShowing(
-                activity, com.doubleangels.redact.ui.SecureWindow.SOURCE_SCAN, showing);
+        SecureWindow.setSensitiveContentShowing(
+                activity, SecureWindow.SOURCE_SCAN, showing);
     }
 
     private void clearMetadataUi() {
@@ -1030,7 +1037,7 @@ public class ScanFragment extends TabFragment {
             openCoordinatesInMaps(latitude, longitude);
             return;
         }
-        com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
+        FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.scan_maps_consent_title)
                 .setMessage(R.string.scan_maps_consent_message)
                 .setPositiveButton(R.string.scan_maps_consent_continue, (dialog, which) -> {
@@ -1061,7 +1068,7 @@ public class ScanFragment extends TabFragment {
     }
 
     private void openInCensorTab(@NonNull MediaItem item) {
-        new ViewModelProvider(requireActivity()).get(com.doubleangels.redact.ui.CensorViewModel.class)
+        new ViewModelProvider(requireActivity()).get(CensorViewModel.class)
                 .requestOpen(item.uri());
         if (requireActivity() instanceof MainActivity mainActivity) {
             mainActivity.selectTab(R.id.navigation_censor);
@@ -1145,7 +1152,7 @@ public class ScanFragment extends TabFragment {
         clearScanActionCards();
     }
 
-    private void finishActiveScanTransaction(io.sentry.SpanStatus status) {
+    private void finishActiveScanTransaction(SpanStatus status) {
         if (activeScanTransaction != null && !activeScanTransaction.isFinished()) {
             activeScanTransaction.setStatus(status);
             activeScanTransaction.finish();

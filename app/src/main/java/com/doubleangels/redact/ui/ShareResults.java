@@ -1,14 +1,17 @@
 package com.doubleangels.redact.ui;
 
+import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.stats.StatsStore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,10 +22,10 @@ public final class ShareResults {
     private ShareResults() {}
 
     /** Shows the Share button only after a completed batch that saved something. */
-    public static void updateButton(@NonNull android.view.View button, boolean completed,
+    public static void updateButton(@NonNull View button, boolean completed,
                                     @NonNull List<Uri> outputs) {
         button.setVisibility(completed && !outputs.isEmpty()
-                ? android.view.View.VISIBLE : android.view.View.GONE);
+                ? View.VISIBLE : View.GONE);
     }
 
     /**
@@ -62,8 +65,8 @@ public final class ShareResults {
         try {
             context.startActivity(withoutOwnTargets(context,
                     Intent.createChooser(send, context.getString(R.string.share_results_chooser_title))));
-            com.doubleangels.redact.stats.StatsStore.recordShare(context);
-        } catch (android.content.ActivityNotFoundException e) {
+            StatsStore.recordShare(context);
+        } catch (ActivityNotFoundException e) {
             Notice.show(context, R.string.share_error_generic, false);
         }
     }

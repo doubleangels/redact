@@ -169,12 +169,6 @@ public class PermissionManagerInstanceTest {
         assertFalse(manager.needsLocationPermission());
     }
 
-    @Test
-    public void requestCodes_areExposed() {
-        assertEquals(PermissionManager.STORAGE_PERMISSION_REQUEST_CODE, manager.getPermissionRequestCode());
-        assertEquals(PermissionManager.LOCATION_PERMISSION_REQUEST_CODE, manager.getLocationPermissionRequestCode());
-    }
-
     // ---- checkPermissions ------------------------------------------------------------------------
 
     @Test
@@ -388,7 +382,8 @@ public class PermissionManagerInstanceTest {
         final boolean[] completed = {false};
         PermissionManager.setInitialFlowCompletedCallback(() -> completed[0] = true);
 
-        PermissionManager.requestAllInitialPermissions(activity);
+        PermissionManager.prepareInitialPermissionFlow();
+        PermissionManager.startInitialPermissionFlow(activity);
         assertTrue(PermissionManager.isInitialPermissionFlowInProgress());
         assertTrue(Arrays.asList(lastRequested()).contains(Manifest.permission.READ_MEDIA_IMAGES));
 
@@ -426,7 +421,8 @@ public class PermissionManagerInstanceTest {
         clearPrompted();
         grant(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.ACCESS_MEDIA_LOCATION);
 
-        PermissionManager.requestAllInitialPermissions(activity);
+        PermissionManager.prepareInitialPermissionFlow();
+        PermissionManager.startInitialPermissionFlow(activity);
         org.robolectric.shadows.ShadowLooper.idleMainLooper();
 
         assertFalse(PermissionManager.isInitialPermissionFlowInProgress());
@@ -440,7 +436,8 @@ public class PermissionManagerInstanceTest {
                 Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED, Manifest.permission.ACCESS_MEDIA_LOCATION);
         grant(Manifest.permission.POST_NOTIFICATIONS);
 
-        PermissionManager.requestAllInitialPermissions(activity);
+        PermissionManager.prepareInitialPermissionFlow();
+        PermissionManager.startInitialPermissionFlow(activity);
         PermissionManager.handleInitialPermissionFlowResult(activity,
                 PermissionManager.STORAGE_PERMISSION_REQUEST_CODE,
                 new String[] {Manifest.permission.READ_MEDIA_IMAGES},
@@ -451,40 +448,8 @@ public class PermissionManagerInstanceTest {
     }
 
     @Test
-    public void requestAllInitialPermissions_doesNothingOnceCompleted() {
-        PermissionManager.requestAllInitialPermissions(activity);
-        assertFalse(PermissionManager.isInitialPermissionFlowInProgress());
-    }
-
-    @Test
     public void startInitialPermissionFlow_isANoOpWhenNotInProgress() {
         PermissionManager.startInitialPermissionFlow(activity);
         assertNull(lastRequested());
-    }
-
-    @Test
-    public void requestInitialPermissionsIfNeeded_branches() {
-        // In flight: nothing happens.
-        PermissionManager.prepareInitialPermissionFlow();
-        PermissionManager.requestInitialPermissionsIfNeeded(activity);
-        assertNull(lastRequested());
-        PermissionManager.resetRuntimePermissionRequestStateForTests();
-
-        // Not yet prompted: starts the first-launch flow.
-        clearPrompted();
-        deny(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO,
-                Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED);
-        PermissionManager.requestInitialPermissionsIfNeeded(activity);
-        assertNotNull(lastRequested());
-        PermissionManager.resetRuntimePermissionRequestStateForTests();
-
-        // Already prompted, but something is missing: asks again.
-        AppPreferences.setInitialPermissionsPromptCompleted(activity);
-        PermissionManager.requestInitialPermissionsIfNeeded(activity);
-        assertNotNull(lastRequested());
-
-        // Destroying the host clears the in-flight flag so the next check can ask again.
-        PermissionManager.clearRuntimePermissionRequestOnDestroy();
-        PermissionManager.requestInitialPermissionsIfNeeded(activity);
     }
 }

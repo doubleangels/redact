@@ -8,6 +8,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.metadata.CleanStats;
 import com.doubleangels.redact.metadata.MetadataStripper;
@@ -15,6 +16,11 @@ import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.stats.StatsStore;
 import com.doubleangels.redact.ui.CleanSummary;
 
+import io.sentry.ISpan;
+import io.sentry.ITransaction;
+import io.sentry.SpanStatus;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,10 +28,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import io.sentry.ISpan;
-import io.sentry.ITransaction;
-import io.sentry.SpanStatus;
 
 /**
  * Handles the processing of media files (images and videos) to strip metadata.
@@ -152,16 +154,16 @@ public class MediaProcessor {
     }
 
     public List<Uri> getSucceededOutputs() {
-        return new java.util.ArrayList<>(succeededOutputs);
+        return new ArrayList<>(succeededOutputs);
     }
 
     /** What the last batch removed, over the items that were cleaned successfully. */
     public CleanSummary getCleanSummary() {
-        return CleanSummary.of(new java.util.ArrayList<>(succeededStats));
+        return CleanSummary.of(new ArrayList<>(succeededStats));
     }
 
     public List<Uri> getSucceededSources() {
-        return new java.util.ArrayList<>(succeededSources);
+        return new ArrayList<>(succeededSources);
     }
 
     /**
@@ -170,7 +172,7 @@ public class MediaProcessor {
      * to every newly created view, e.g. after a rotation).
      */
     public synchronized List<Uri> takeSucceededSources() {
-        List<Uri> taken = new java.util.ArrayList<>(succeededSources);
+        List<Uri> taken = new ArrayList<>(succeededSources);
         awaitingTrash.clear();
         for (int i = 0; i < taken.size() && i < succeededOutputs.size() && i < succeededSourceNames.size(); i++) {
             awaitingTrash.put(taken.get(i),
@@ -189,14 +191,14 @@ public class MediaProcessor {
      * {@link #getSucceededOutputs()}.
      */
     public void restoreOriginalNames(@NonNull List<Uri> trashed) {
-        List<TrashedOriginal> renames = new java.util.ArrayList<>();
+        List<TrashedOriginal> renames = new ArrayList<>();
         for (Uri source : trashed) {
             TrashedOriginal original = awaitingTrash.remove(source);
             if (original != null) {
                 renames.add(original);
             }
         }
-        if (renames.isEmpty() || !com.doubleangels.redact.AppPreferences.isKeepOriginalFileNames(context)) {
+        if (renames.isEmpty() || !AppPreferences.isKeepOriginalFileNames(context)) {
             return;
         }
         if (processingExecutor.isShutdown()) {

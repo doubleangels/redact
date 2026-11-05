@@ -2,65 +2,51 @@ package com.doubleangels.redact.ui;
 
 
 
+import android.annotation.SuppressLint;
 import android.app.Application;
-
 import android.graphics.Bitmap;
-
+import android.net.Uri;
 import android.os.Handler;
-
 import android.os.Looper;
-
-
 
 import androidx.fragment.app.FragmentActivity;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModelProvider;
 
-
-
+import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.ShareHandlerActivity;
-
 import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.FormatConverter;
-
 import com.doubleangels.redact.media.MediaItem;
-
 import com.doubleangels.redact.media.MediaProcessor;
-
 import com.doubleangels.redact.media.MediaSelector;
-
 import com.doubleangels.redact.media.ProgressUpdateThrottler;
-
 import com.doubleangels.redact.media.VideoMedia3Converter;
-
 import com.doubleangels.redact.notifications.LocalNotifications;
-
 import com.doubleangels.redact.sentry.SentryManager;
-
-
-
-import java.util.ArrayList;
-
-import java.util.List;
-
-import java.util.concurrent.ExecutorService;
-
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
-
+import com.doubleangels.redact.stats.StatsStore;
 
 import io.sentry.ISpan;
-
 import io.sentry.ITransaction;
-
 import io.sentry.SpanStatus;
 import io.sentry.protocol.SentryId;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 
@@ -90,7 +76,7 @@ public class MainViewModel extends AndroidViewModel {
 
     private final ExecutorService convertExecutor;
 
-    private final List<android.net.Uri> convertOutputs;
+    private final List<Uri> convertOutputs;
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
@@ -128,13 +114,13 @@ public class MainViewModel extends AndroidViewModel {
         final MutableLiveData<Integer> convertProgressPercent = new MutableLiveData<>(0);
         final MutableLiveData<String> cleanProgressMessage = new MutableLiveData<>("");
         final MutableLiveData<String> convertProgressMessage = new MutableLiveData<>("");
-        final List<android.net.Uri> convertOutputs = new java.util.concurrent.CopyOnWriteArrayList<>();
+        final List<Uri> convertOutputs = new CopyOnWriteArrayList<>();
         final ProgressUpdateThrottler convertProgressThrottler = new ProgressUpdateThrottler();
         /** Error report the last failed clean sent, until its tab offers feedback on it. */
-        @androidx.annotation.Nullable
+        @Nullable
         volatile SentryId cleanFeedbackEventId;
         /** Error report the last failed convert sent, until its tab offers feedback on it. */
-        @androidx.annotation.Nullable
+        @Nullable
         volatile SentryId convertFeedbackEventId;
         /**
          * False until a ViewModel has filled this from its saved state. Only the first one does:
@@ -146,13 +132,13 @@ public class MainViewModel extends AndroidViewModel {
          * The saved state of the newest ViewModel. A job reports through the ViewModel that
          * started it, so its results are saved here, where a recreated screen will look.
          */
-        @androidx.annotation.Nullable
+        @Nullable
         volatile SavedStateHandle savingHandle;
     }
 
-    @androidx.annotation.Nullable
+    @Nullable
     private static SharedState sharedState;
-    @androidx.annotation.Nullable
+    @Nullable
     private static AppProcessingScope sharedStateScope;
 
     /** The state for {@code scope}; a new scope (a new process, or tests) starts a new one. */
@@ -183,9 +169,9 @@ public class MainViewModel extends AndroidViewModel {
     private final SavedStateHandle savedStateHandle;
 
     // A fresh handle for callers without saved state; the constructor is only flagged because lint treats it as test-only.
-    @android.annotation.SuppressLint("VisibleForTests")
+    @SuppressLint("VisibleForTests")
     public MainViewModel(Application application) {
-        this(application, new SavedStateHandle(new java.util.HashMap<>()));
+        this(application, new SavedStateHandle(new HashMap<>()));
     }
 
     public MainViewModel(Application application, SavedStateHandle savedStateHandle) {
@@ -312,7 +298,7 @@ public class MainViewModel extends AndroidViewModel {
         for (int i = 0; i < count; i++) {
             items.add(
                     new MediaItem(
-                            android.net.Uri.parse(uris.get(i)),
+                            Uri.parse(uris.get(i)),
                             Boolean.TRUE.equals(videos.get(i)),
                             names.get(i)));
         }
@@ -574,8 +560,8 @@ public class MainViewModel extends AndroidViewModel {
         if (previous == null || previous.isEmpty()) {
             return;
         }
-        java.util.Set<android.net.Uri> keepUris = new java.util.HashSet<>();
-        for (List<MediaItem> kept : java.util.Arrays.asList(next, otherTab)) {
+        Set<Uri> keepUris = new HashSet<>();
+        for (List<MediaItem> kept : Arrays.asList(next, otherTab)) {
             if (kept != null) {
                 for (MediaItem item : kept) {
                     keepUris.add(item.uri());
@@ -691,7 +677,7 @@ public class MainViewModel extends AndroidViewModel {
      * The error report sent by the last clean that had failures, once: later calls return null
      * so a rotation doesn't offer it again.
      */
-    @androidx.annotation.Nullable
+    @Nullable
     public SentryId takeCleanFeedbackEventId() {
         SentryId id = shared.cleanFeedbackEventId;
         shared.cleanFeedbackEventId = null;
@@ -699,7 +685,7 @@ public class MainViewModel extends AndroidViewModel {
     }
 
     /** Like {@link #takeCleanFeedbackEventId()}, for the last convert. */
-    @androidx.annotation.Nullable
+    @Nullable
     public SentryId takeConvertFeedbackEventId() {
         SentryId id = shared.convertFeedbackEventId;
         shared.convertFeedbackEventId = null;
@@ -707,7 +693,7 @@ public class MainViewModel extends AndroidViewModel {
     }
 
     /** Saved outputs of the last clean batch, kept until the next batch starts. */
-    public List<android.net.Uri> getCleanOutputs() {
+    public List<Uri> getCleanOutputs() {
         return mediaProcessor.getSucceededOutputs();
     }
 
@@ -715,7 +701,7 @@ public class MainViewModel extends AndroidViewModel {
      * What the last clean batch removed, phrased to follow the completion status, or null when
      * nothing was cleaned (or the process was recreated since and the batch is gone).
      */
-    @androidx.annotation.Nullable
+    @Nullable
     public String getCleanSummaryText() {
         return mediaProcessor.getCleanSummary().describe(getApplication().getResources());
     }
@@ -726,21 +712,21 @@ public class MainViewModel extends AndroidViewModel {
     }
 
     /** Saved outputs of the last convert batch, kept until the next batch starts. */
-    public List<android.net.Uri> getConvertOutputs() {
+    public List<Uri> getConvertOutputs() {
         return new ArrayList<>(convertOutputs);
     }
 
-    public List<android.net.Uri> getCleanSucceededSources() {
+    public List<Uri> getCleanSucceededSources() {
         return mediaProcessor.getSucceededSources();
     }
 
     /** Like {@link #getCleanSucceededSources()} but consumes the list, so it is returned only once. */
-    public List<android.net.Uri> takeCleanSucceededSources() {
+    public List<Uri> takeCleanSucceededSources() {
         return mediaProcessor.takeSucceededSources();
     }
 
     /** Call once the user has let {@code trashed} originals go to the trash; see MediaProcessor. */
-    public void restoreCleanOriginalNames(List<android.net.Uri> trashed) {
+    public void restoreCleanOriginalNames(List<Uri> trashed) {
         mediaProcessor.restoreOriginalNames(trashed);
     }
 
@@ -816,8 +802,8 @@ public class MainViewModel extends AndroidViewModel {
                     ReviewPrompt.recordSuccessfulJob(getApplication());
                 }
                 if (successCount > 0) {
-                    com.doubleangels.redact.AppPreferences.setSummaryHintLearned(
-                            getApplication(), com.doubleangels.redact.AppPreferences.HINT_CLEAN);
+                    AppPreferences.setSummaryHintLearned(
+                            getApplication(), AppPreferences.HINT_CLEAN);
                 }
                 LocalNotifications.stopProcessingForeground(
                         getApplication(), LocalNotifications.ForegroundJob.CLEAN);
@@ -930,7 +916,7 @@ public class MainViewModel extends AndroidViewModel {
 
                     MediaItem mediaItem = items.get(i);
 
-                    android.net.Uri uri = mediaItem.uri();
+                    Uri uri = mediaItem.uri();
 
                     final int index = i + 1;
 
@@ -957,7 +943,7 @@ public class MainViewModel extends AndroidViewModel {
                         if (mediaItem.isVideo()) {
                             int[] actualFormatIndex = new int[1];
                             actualFormatIndex[0] = formatIndex;
-                            android.net.Uri convertedVideo = FormatConverter.convertVideoToMovies(
+                            Uri convertedVideo = FormatConverter.convertVideoToMovies(
 
                                     getApplication(),
 
@@ -1032,7 +1018,7 @@ public class MainViewModel extends AndroidViewModel {
 
 
 
-                            android.net.Uri convertedImage = FormatConverter.convertImageToPictures(
+                            Uri convertedImage = FormatConverter.convertImageToPictures(
 
                                     getApplication(), uri,
                                     FormatConverter.formatAtIndex(imageFormatIndex), outputName);
@@ -1043,7 +1029,7 @@ public class MainViewModel extends AndroidViewModel {
                         }
 
                         ok++;
-                        com.doubleangels.redact.stats.StatsStore.recordConverted(getApplication());
+                        StatsStore.recordConverted(getApplication());
                         SentryManager.count(
                                 "processing.convert.success", 1, "is_video", String.valueOf(mediaItem.isVideo()));
 
@@ -1126,8 +1112,8 @@ public class MainViewModel extends AndroidViewModel {
                             ReviewPrompt.recordSuccessfulJob(getApplication());
                         }
                         if (finalOk > 0) {
-                            com.doubleangels.redact.AppPreferences.setSummaryHintLearned(getApplication(),
-                                    com.doubleangels.redact.AppPreferences.HINT_CONVERT);
+                            AppPreferences.setSummaryHintLearned(getApplication(),
+                                    AppPreferences.HINT_CONVERT);
                         }
                         LocalNotifications.showConversionComplete(getApplication(), finalOk, finalFail);
                     }

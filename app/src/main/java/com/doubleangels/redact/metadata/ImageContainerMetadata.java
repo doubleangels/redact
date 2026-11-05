@@ -7,27 +7,35 @@ import android.os.ParcelFileDescriptor;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import androidx.exifinterface.media.ExifInterface;
 
+import com.doubleangels.redact.media.MediaSizeLimits;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.CRC32;
@@ -270,11 +278,7 @@ public final class ImageContainerMetadata {
             // Last in the file, where the directory says it is.
             try (FileInputStream in = new FileInputStream(motion.video);
                     OutputStream out = new BufferedOutputStream(new FileOutputStream(target, true), 64 * 1024)) {
-                byte[] buffer = new byte[64 * 1024];
-                int n;
-                while ((n = in.read(buffer)) > 0) {
-                    out.write(buffer, 0, n);
-                }
+                MediaSizeLimits.copyStream(in, out);
             }
         }
     }
@@ -282,11 +286,11 @@ public final class ImageContainerMetadata {
     @VisibleForTesting
     @NonNull
     static Report scan(@NonNull FileChannel channel) throws IOException {
-        java.nio.ByteBuffer head = java.nio.ByteBuffer.allocate(64);
+        ByteBuffer head = ByteBuffer.allocate(64);
         while (head.hasRemaining() && channel.read(head, head.position()) > 0) {
             // filled below
         }
-        byte[] first = java.util.Arrays.copyOf(head.array(), head.position());
+        byte[] first = Arrays.copyOf(head.array(), head.position());
         if (HeifContainerMetadata.isHeif(first, first.length)) {
             return HeifContainerMetadata.scan(channel);
         }
@@ -337,9 +341,9 @@ public final class ImageContainerMetadata {
         final List<Finding> findings = new ArrayList<>();
         final List<Finding> kept = new ArrayList<>();
         /** Extended XMP arrives in chunks; each GUID is one finding, its text the chunks in order. */
-        private final Map<String, java.util.TreeMap<Long, String>> extendedXmp = new java.util.HashMap<>();
-        private final Map<String, Integer> extendedXmpAt = new java.util.HashMap<>();
-        private final Map<String, Long> extendedXmpBytes = new java.util.HashMap<>();
+        private final Map<String, TreeMap<Long, String>> extendedXmp = new HashMap<>();
+        private final Map<String, Integer> extendedXmpAt = new HashMap<>();
+        private final Map<String, Long> extendedXmpBytes = new HashMap<>();
 
         Walker(@NonNull FileChannel channel, @Nullable OutputStream out) throws IOException {
             this.src = new Source(channel);
@@ -508,7 +512,7 @@ public final class ImageContainerMetadata {
             } else if (marker == 0xEE && startsWith(data, ascii("Adobe"))) {
                 // Colour transform flags, needed to decode CMYK and YCCK pictures.
                 if (data.length >= 12) {
-                    writeSegment(marker, java.util.Arrays.copyOf(data, 12));
+                    writeSegment(marker, Arrays.copyOf(data, 12));
                 }
             } else if (marker == 0xFE) {
                 find("JPEG_COMMENT", printable(data), size, Kind.OTHER);
@@ -528,7 +532,7 @@ public final class ImageContainerMetadata {
         private void app0(byte[] data) throws IOException {
             if (startsWith(data, ascii("JFIF\0")) && data.length >= 14) {
                 // Keep the version and pixel density; drop any thumbnail.
-                byte[] jfif = java.util.Arrays.copyOf(data, 14);
+                byte[] jfif = Arrays.copyOf(data, 14);
                 jfif[12] = 0;
                 jfif[13] = 0;
                 writeSegment(0xE0, jfif);
@@ -580,7 +584,7 @@ public final class ImageContainerMetadata {
             if (out != null) {
                 return;
             }
-            extendedXmp.computeIfAbsent(guid, g -> new java.util.TreeMap<>()).put(offset, xmp);
+            extendedXmp.computeIfAbsent(guid, g -> new TreeMap<>()).put(offset, xmp);
             extendedXmpBytes.merge(guid, size, Long::sum);
             if (!extendedXmpAt.containsKey(guid)) {
                 if (findings.size() < MAX_FINDINGS) {
@@ -825,7 +829,7 @@ public final class ImageContainerMetadata {
                 find("EMBEDDED_VIDEO", null, end - videoStart, Kind.OTHER);
                 described = true;
             }
-            if (end - start >= 8 && java.util.Arrays.equals(src.read(end - 4, 4), ascii("SEFT"))) {
+            if (end - start >= 8 && Arrays.equals(src.read(end - 4, 4), ascii("SEFT"))) {
                 long sefStart = Math.max(start, end - Math.min(end - start, 4L * 1024 * 1024));
                 byte[] sef = src.read(sefStart, (int) (end - sefStart));
                 Set<String> names = samsungEntries(sef);
@@ -926,20 +930,20 @@ public final class ImageContainerMetadata {
         private EmbeddedExif embeddedExif(long start, long end) {
             try {
                 int n = (int) Math.min(end - start, 512 * 1024);
-                androidx.exifinterface.media.ExifInterface exif =
-                        new androidx.exifinterface.media.ExifInterface(
-                                new java.io.ByteArrayInputStream(src.read(start, n)));
+                ExifInterface exif =
+                        new ExifInterface(
+                                new ByteArrayInputStream(src.read(start, n)));
                 EmbeddedExif result = new EmbeddedExif();
                 double[] latLong = exif.getLatLong();
                 if (latLong != null && MetadataDisplayer.isUsableMapCoordinate(latLong[0], latLong[1])) {
                     result.latLong = latLong;
                 }
                 result.dateTime = MetadataStripper.normalizeMetadataValue(exif.getAttribute(
-                        androidx.exifinterface.media.ExifInterface.TAG_DATETIME_ORIGINAL));
+                        ExifInterface.TAG_DATETIME_ORIGINAL));
                 String make = MetadataStripper.normalizeMetadataValue(
-                        exif.getAttribute(androidx.exifinterface.media.ExifInterface.TAG_MAKE));
+                        exif.getAttribute(ExifInterface.TAG_MAKE));
                 String model = MetadataStripper.normalizeMetadataValue(
-                        exif.getAttribute(androidx.exifinterface.media.ExifInterface.TAG_MODEL));
+                        exif.getAttribute(ExifInterface.TAG_MODEL));
                 if (make != null || model != null) {
                     result.device = ((make != null ? make + " " : "") + (model != null ? model : "")).trim();
                 }
@@ -1037,7 +1041,7 @@ public final class ImageContainerMetadata {
                         throw new IOException("Bad iTXt");
                     }
                     byte[] value = compressed ? inflate(data, pos)
-                            : java.util.Arrays.copyOfRange(data, pos, data.length);
+                            : Arrays.copyOfRange(data, pos, data.length);
                     text = new String(value, StandardCharsets.UTF_8);
                 }
             } catch (IOException | RuntimeException e) {
@@ -1125,7 +1129,7 @@ public final class ImageContainerMetadata {
                     size = body.count;
                 }
                 if (vp8xAt >= 0 && vp8xAt + 9 <= size) {
-                    try (java.io.RandomAccessFile raf = new java.io.RandomAccessFile(chunks, "rw")) {
+                    try (RandomAccessFile raf = new RandomAccessFile(chunks, "rw")) {
                         // Clear the EXIF and XMP flags, and the ICC one when no profile was kept.
                         raf.seek(vp8xAt + 8);
                         int flags = raf.read() & 0xFF;
@@ -1141,11 +1145,7 @@ public final class ImageContainerMetadata {
                 write(le32Bytes(size + 4));
                 write(ascii("WEBP"));
                 try (FileInputStream in = new FileInputStream(chunks)) {
-                    byte[] buffer = new byte[64 * 1024];
-                    int read;
-                    while ((read = in.read(buffer)) != -1) {
-                        out.write(buffer, 0, read);
-                    }
+                    MediaSizeLimits.copyStream(in, out);
                 }
             } finally {
                 // Only the picture's own chunks are in it, the same bytes as the output.
@@ -1309,10 +1309,10 @@ public final class ImageContainerMetadata {
         if (buffer.length < offset + 128) {
             return;
         }
-        java.util.Arrays.fill(buffer, offset + 4, offset + 8, (byte) 0);
-        java.util.Arrays.fill(buffer, offset + 24, offset + 36, (byte) 0);
-        java.util.Arrays.fill(buffer, offset + 48, offset + 64, (byte) 0);
-        java.util.Arrays.fill(buffer, offset + 80, offset + 100, (byte) 0);
+        Arrays.fill(buffer, offset + 4, offset + 8, (byte) 0);
+        Arrays.fill(buffer, offset + 24, offset + 36, (byte) 0);
+        Arrays.fill(buffer, offset + 48, offset + 64, (byte) 0);
+        Arrays.fill(buffer, offset + 80, offset + 100, (byte) 0);
     }
 
     /** Text from an ICC profile's tags. */
@@ -1339,7 +1339,7 @@ public final class ImageContainerMetadata {
                         int n = (int) u32(p, offset + 8);
                         n = Math.min(n, size - 12);
                         return MetadataStripper.normalizeMetadataValue(
-                                printable(java.util.Arrays.copyOfRange(p, offset + 12, offset + 12 + n)));
+                                printable(Arrays.copyOfRange(p, offset + 12, offset + 12 + n)));
                     }
                     if (type.equals("mluc")) {
                         int records = (int) u32(p, offset + 8);
@@ -1356,7 +1356,7 @@ public final class ImageContainerMetadata {
                     }
                     if (type.equals("text")) {
                         return MetadataStripper.normalizeMetadataValue(
-                                printable(java.util.Arrays.copyOfRange(p, offset + 8, offset + size)));
+                                printable(Arrays.copyOfRange(p, offset + 8, offset + size)));
                     }
                     return null;
                 }
@@ -1510,7 +1510,7 @@ public final class ImageContainerMetadata {
     }
 
     /** Keys whose end is text read from the file: a PNG text keyword, a chunk, box, item or app name. */
-    private static final java.util.regex.Pattern FILE_NAMED_KEY = java.util.regex.Pattern.compile(
+    private static final Pattern FILE_NAMED_KEY = Pattern.compile(
             "^(PNG_TEXT|PNG_CHUNK|WEBP_CHUNK|HEIF_BOX|HEIF_ITEM|HEIF_META|HEIF_PROPERTY|GIF_APP|APP\\d+)_.+");
 
     /**
@@ -1519,7 +1519,7 @@ public final class ImageContainerMetadata {
      */
     @NonNull
     static String logKey(@NonNull String key) {
-        java.util.regex.Matcher m = FILE_NAMED_KEY.matcher(key);
+        Matcher m = FILE_NAMED_KEY.matcher(key);
         return m.matches() ? m.group(1) + "_*" : key;
     }
 
@@ -1657,7 +1657,7 @@ public final class ImageContainerMetadata {
     }
 
     /** Counts what passes through, so a WebP's size is known once its chunks are written. */
-    private static final class CountingOutputStream extends java.io.FilterOutputStream {
+    private static final class CountingOutputStream extends FilterOutputStream {
         long count;
 
         CountingOutputStream(@NonNull OutputStream out) {

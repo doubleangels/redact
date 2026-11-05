@@ -46,7 +46,6 @@ import org.robolectric.shadows.ShadowDialog;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.function.BooleanSupplier;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 31)

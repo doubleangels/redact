@@ -15,7 +15,6 @@ import android.provider.MediaStore;
 
 import androidx.exifinterface.media.ExifInterface;
 
-import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.FakeMediaStoreProvider;
 import com.doubleangels.redact.R;
 

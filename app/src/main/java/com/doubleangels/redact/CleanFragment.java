@@ -1,6 +1,7 @@
 package com.doubleangels.redact;
 
 import android.app.Activity;
+import android.content.ContentUris;
 import android.content.Context;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -24,7 +25,6 @@ import com.doubleangels.redact.media.MediaAdapter;
 import com.doubleangels.redact.media.MediaItem;
 import com.doubleangels.redact.media.MediaPickerContracts;
 import com.doubleangels.redact.media.ProcessingResourceWarnings;
-import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.ui.FabScroll;
@@ -39,12 +39,17 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.doubleangels.redact.sentry.SentryManager;
-
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.doubleangels.redact.metadata.AlreadyCleanCheck;
+import com.doubleangels.redact.ui.CensorViewModel;
+import com.doubleangels.redact.ui.ErrorFeedbackPrompt;
+import com.doubleangels.redact.ui.ReviewPrompt;
+import com.doubleangels.redact.ui.ScanViewModel;
+import com.doubleangels.redact.ui.ShareResults;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -100,7 +105,7 @@ public class CleanFragment extends TabFragment {
                 new ActivityResultContracts.StartIntentSenderForResult(), result -> {
                     List<Uri> trashed = pendingTrashSources;
                     pendingTrashSources = null;
-                    if (result.getResultCode() == android.app.Activity.RESULT_OK && trashed != null
+                    if (result.getResultCode() == Activity.RESULT_OK && trashed != null
                             && viewModel != null) {
                         viewModel.restoreCleanOriginalNames(trashed);
                     }
@@ -169,7 +174,7 @@ public class CleanFragment extends TabFragment {
             shareResultsButton = view.findViewById(R.id.shareResultsButton);
             shareResultsButton.setOnClickListener(v -> {
                 Haptics.tick(v);
-                com.doubleangels.redact.ui.ShareResults.share(
+                ShareResults.share(
                         requireContext(), viewModel.getCleanOutputs());
             });
             scanResultButton = view.findViewById(R.id.scanResultButton);
@@ -335,7 +340,7 @@ public class CleanFragment extends TabFragment {
                 mediaSelector = new MediaSelector(requireActivity());
             }
             permissionManager.applyPendingPermissionResultIfAny(
-                    com.doubleangels.redact.permission.PermissionManager.STORAGE_PERMISSION_REQUEST_CODE);
+                    PermissionManager.STORAGE_PERMISSION_REQUEST_CODE);
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
@@ -378,7 +383,7 @@ public class CleanFragment extends TabFragment {
         Uri collection = mimeType != null && mimeType.startsWith("video/")
                 ? MediaStore.Video.Media.getContentUri(volume)
                 : MediaStore.Images.Media.getContentUri(volume);
-        return android.content.ContentUris.withAppendedId(collection, android.content.ContentUris.parseId(media));
+        return ContentUris.withAppendedId(collection, ContentUris.parseId(media));
     }
 
     /** Shows the single file a clean just saved in Scan, so the user can see what it still holds. */
@@ -387,7 +392,7 @@ public class CleanFragment extends TabFragment {
         if (outputs.size() != 1) {
             return;
         }
-        new ViewModelProvider(requireActivity()).get(com.doubleangels.redact.ui.ScanViewModel.class)
+        new ViewModelProvider(requireActivity()).get(ScanViewModel.class)
                 .setPendingUri(outputs.get(0));
         if (requireActivity() instanceof MainActivity mainActivity) {
             mainActivity.selectTab(R.id.navigation_scan);
@@ -400,7 +405,7 @@ public class CleanFragment extends TabFragment {
             return;
         }
         SentryManager.log("The user opened the cleaned photo in Censor.");
-        new ViewModelProvider(requireActivity()).get(com.doubleangels.redact.ui.CensorViewModel.class)
+        new ViewModelProvider(requireActivity()).get(CensorViewModel.class)
                 .requestOpen(photo);
         if (requireActivity() instanceof MainActivity mainActivity) {
             mainActivity.selectTab(R.id.navigation_censor);
@@ -496,7 +501,7 @@ public class CleanFragment extends TabFragment {
                     }
                     List<MediaItem> previous = lastObservedSelectedItems;
                     boolean selectionChanged = previous != null
-                            && !java.util.Objects.equals(previous, items);
+                            && !Objects.equals(previous, items);
                     if (selectionChanged
                             && viewModel.getCleanProcessingState().getValue()
                                     == MainViewModel.ProcessingState.COMPLETED) {
@@ -575,10 +580,10 @@ public class CleanFragment extends TabFragment {
                             // itself is a one-time question.
                             if (!trashing && count != null && count > 0
                                     && count.equals(total != null ? total : count)) {
-                                com.doubleangels.redact.ui.ReviewPrompt.askIfDue(this);
+                                ReviewPrompt.askIfDue(this);
                             }
                             if (!isHidden()) {
-                                com.doubleangels.redact.ui.ErrorFeedbackPrompt.offer(
+                                ErrorFeedbackPrompt.offer(
                                         getView(), viewModel.takeCleanFeedbackEventId());
                             }
                             break;
@@ -594,7 +599,7 @@ public class CleanFragment extends TabFragment {
                             }
                             break;
                     }
-                    com.doubleangels.redact.ui.ShareResults.updateButton(
+                    ShareResults.updateButton(
                             shareResultsButton, state == MainViewModel.ProcessingState.COMPLETED,
                             viewModel.getCleanOutputs());
                     scanResultButton.setVisibility(state == MainViewModel.ProcessingState.COMPLETED

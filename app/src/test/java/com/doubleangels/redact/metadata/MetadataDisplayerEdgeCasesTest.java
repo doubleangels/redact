@@ -12,7 +12,6 @@ import android.app.Application;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
-import android.os.Looper;
 import android.provider.MediaStore;
 
 import androidx.exifinterface.media.ExifInterface;
@@ -38,7 +37,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BooleanSupplier;
 
 /** Less common values and failures in what Scan shows: odd EXIF, long videos, unreadable files. */
 @RunWith(RobolectricTestRunner.class)

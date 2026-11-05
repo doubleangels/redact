@@ -4,6 +4,7 @@ import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 
 import androidx.annotation.NonNull;
 import androidx.core.view.AccessibilityDelegateCompat;
@@ -56,7 +57,7 @@ public final class SwitchRows {
             public void onInitializeAccessibilityNodeInfo(@NonNull View host,
                                                           @NonNull AccessibilityNodeInfoCompat info) {
                 super.onInitializeAccessibilityNodeInfo(host, info);
-                info.setClassName(android.widget.Switch.class.getName());
+                info.setClassName(Switch.class.getName());
                 info.setCheckable(true);
                 info.setChecked(toggle.isChecked());
                 info.setEnabled(toggle.isEnabled());

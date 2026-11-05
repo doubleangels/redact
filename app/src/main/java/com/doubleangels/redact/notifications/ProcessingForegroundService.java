@@ -13,6 +13,9 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.media.AppProcessingScope;
+import com.doubleangels.redact.media.VideoMedia3Converter;
+import com.doubleangels.redact.sentry.SentryManager;
 
 /**
  * Keeps long-running clean/convert/share work alive when the app is backgrounded.
@@ -181,7 +184,7 @@ public class ProcessingForegroundService extends Service {
         } catch (RuntimeException e) {
             // InvalidForegroundServiceTypeException and similar FGS failures on newer Android. Record it:
             // swallowing it silently is how the API 34 failure went unnoticed.
-            com.doubleangels.redact.sentry.SentryManager.recordException(e);
+            SentryManager.recordException(e);
             stopSelf();
             return START_NOT_STICKY;
         }
@@ -202,16 +205,16 @@ public class ProcessingForegroundService extends Service {
      */
     @Override
     public void onTimeout(int startId, int fgsType) {
-        com.doubleangels.redact.sentry.SentryManager.log(
+        SentryManager.log(
                 "The ProcessingForegroundService hit the Android background execution time limit.");
-        com.doubleangels.redact.media.AppProcessingScope scope =
-                com.doubleangels.redact.media.AppProcessingScope.get(getApplicationContext());
+        AppProcessingScope scope =
+                AppProcessingScope.get(getApplicationContext());
         scope.mediaProcessor().cancel();
         // The Convert loop notices this, stops, and reports CANCELLED itself (it clears
         // convertInProgress when it ends). Moving the generation here would make it skip that
         // final update and leave the UI stuck on "Cancel".
         scope.convertTimedOut().set(true);
-        com.doubleangels.redact.media.VideoMedia3Converter.cancelActiveTranscode();
+        VideoMedia3Converter.cancelActiveTranscode();
         LocalNotifications.clearForegroundJobs();
         stopForeground(STOP_FOREGROUND_REMOVE);
         inForeground = false;

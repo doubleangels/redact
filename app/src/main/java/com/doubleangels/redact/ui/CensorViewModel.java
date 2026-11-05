@@ -3,6 +3,10 @@ package com.doubleangels.redact.ui;
 import android.app.Application;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.net.Uri;
 import android.provider.OpenableColumns;
 
@@ -12,13 +16,16 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.media.CensorEffects;
 import com.doubleangels.redact.media.CensorExporter;
 import com.doubleangels.redact.media.CensorRegion;
 import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.UnsupportedMediaException;
+import com.doubleangels.redact.metadata.CleanStats;
 import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.sentry.SentryManager;
+import com.doubleangels.redact.stats.StatsStore;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -27,6 +34,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * State for the Censor tab, shared with the activity so the picker, Scan and "Censor with
@@ -77,8 +85,8 @@ public class CensorViewModel extends AndroidViewModel {
     /** The preview on screen, set by the fragment, and the one it replaced, reused for the next render. */
     @Nullable
     private Bitmap shownPreview;
-    private final java.util.concurrent.atomic.AtomicReference<Bitmap> spare =
-            new java.util.concurrent.atomic.AtomicReference<>();
+    private final AtomicReference<Bitmap> spare =
+            new AtomicReference<>();
     /** The regions and effect {@link #renderedPreview} shows. */
     @NonNull
     private volatile List<CensorRegion> renderedRegions = List.of();
@@ -103,7 +111,7 @@ public class CensorViewModel extends AndroidViewModel {
     /** The effect used last time, so it does not have to be picked again for every photo. */
     @NonNull
     static CensorEffects.Effect savedEffect(@NonNull Application application) {
-        String name = com.doubleangels.redact.AppPreferences.getCensorEffect(application);
+        String name = AppPreferences.getCensorEffect(application);
         if (name != null) {
             try {
                 return CensorEffects.Effect.valueOf(name);
@@ -357,7 +365,7 @@ public class CensorViewModel extends AndroidViewModel {
     public void setEffect(@NonNull CensorEffects.Effect newEffect) {
         if (newEffect != effect.getValue()) {
             effect.setValue(newEffect);
-            com.doubleangels.redact.AppPreferences.setCensorEffect(getApplication(), newEffect.name());
+            AppPreferences.setCensorEffect(getApplication(), newEffect.name());
             lastSaveFailed = false;
             render();
         }
@@ -394,9 +402,9 @@ public class CensorViewModel extends AndroidViewModel {
                 CensorExporter.Result result =
                         CensorExporter.export(getApplication(), uri, name, snapshot, chosen);
                 // The copy went through a clean, so it counts in the statistics like one.
-                com.doubleangels.redact.stats.StatsStore.recordClean(getApplication(),
+                StatsStore.recordClean(getApplication(),
                         result.stats != null ? result.stats
-                                : new com.doubleangels.redact.metadata.CleanStats(0, false),
+                                : new CleanStats(0, false),
                         false, false);
                 if (generation != photoGeneration.get()) {
                     return;
@@ -407,8 +415,8 @@ public class CensorViewModel extends AndroidViewModel {
                 savedEffect = chosen;
                 // Counted here, so a save that finishes with the app in the background still counts.
                 ReviewPrompt.recordSuccessfulJob(getApplication());
-                com.doubleangels.redact.AppPreferences.setSummaryHintLearned(
-                        getApplication(), com.doubleangels.redact.AppPreferences.HINT_CENSOR);
+                AppPreferences.setSummaryHintLearned(
+                        getApplication(), AppPreferences.HINT_CENSOR);
                 LocalNotifications.showCleanComplete(getApplication(), 1, 0, result.stats != null && result.stats.hadLocation ? 1 : 0);
                 SentryManager.log("The censored copy was saved.");
                 state.postValue(State.SAVED);
@@ -512,9 +520,9 @@ public class CensorViewModel extends AndroidViewModel {
         Bitmap reuse = spare.getAndSet(null);
         if (reuse != null && reuse != from && !reuse.isRecycled() && from.getConfig() != Bitmap.Config.HARDWARE
                 && reuse.getWidth() == from.getWidth() && reuse.getHeight() == from.getHeight()) {
-            android.graphics.Paint copy = new android.graphics.Paint();
-            copy.setXfermode(new android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.SRC));
-            new android.graphics.Canvas(reuse).drawBitmap(from, 0, 0, copy);
+            Paint copy = new Paint();
+            copy.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
+            new Canvas(reuse).drawBitmap(from, 0, 0, copy);
             return reuse;
         }
         return from.copy(Bitmap.Config.ARGB_8888, true);

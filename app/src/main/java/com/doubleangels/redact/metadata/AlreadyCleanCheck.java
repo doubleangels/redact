@@ -14,6 +14,7 @@ import androidx.exifinterface.media.ExifInterface;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.media.MediaItem;
+import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.IOException;
@@ -89,7 +90,7 @@ public final class AlreadyCleanCheck {
     }
 
     static boolean isRedactOutput(@NonNull Context context, @NonNull Uri uri) {
-        if (com.doubleangels.redact.media.OutputDestination.isInChosenFolder(context, uri)) {
+        if (OutputDestination.isInChosenFolder(context, uri)) {
             return true;
         }
         String relativePath = queryRelativePath(context, uri);
@@ -110,7 +111,7 @@ public final class AlreadyCleanCheck {
         List<String> outputDirs = new ArrayList<>(Arrays.asList(REDACT_OUTPUT_DIRS));
         // The picker's Images and Recent views hand out MediaStore URIs, so chosen folders are
         // matched by path here as well as by document ID above.
-        outputDirs.addAll(com.doubleangels.redact.media.OutputDestination.chosenRelativePaths(context));
+        outputDirs.addAll(OutputDestination.chosenRelativePaths(context));
         for (String dir : outputDirs) {
             if (isInsideDir(normalized, dir)) {
                 return true;

@@ -136,7 +136,6 @@ dependencies {
     testImplementation libs.junit
     testImplementation libs.robolectric
     testImplementation libs.arch.core.testing
-    testImplementation libs.window.testing
 
     debugImplementation libs.leakcanary.android
 }

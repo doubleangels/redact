@@ -14,6 +14,10 @@ import androidx.core.content.ContextCompat;
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.sentry.SentryManager;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 /**
  * Manages runtime permissions for media access in Android applications.
  *
@@ -61,8 +65,8 @@ public class PermissionManager {
         }
     }
 
-    private static final java.util.concurrent.ConcurrentLinkedQueue<PendingPermissionResult>
-            pendingPermissionResults = new java.util.concurrent.ConcurrentLinkedQueue<>();
+    private static final ConcurrentLinkedQueue<PendingPermissionResult>
+            pendingPermissionResults = new ConcurrentLinkedQueue<>();
 
     /** Avoid stacking duplicate system dialogs when MainActivity and fragments both check on launch. */
     private static volatile boolean runtimePermissionRequestInFlight = false;
@@ -136,7 +140,7 @@ public class PermissionManager {
             return;
         }
         try {
-            java.util.List<String> missing = collectMissingRuntimePermissions(activity);
+            List<String> missing = collectMissingRuntimePermissions(activity);
             SentryManager.setCustomKey("needs_permissions", !missing.isEmpty());
 
             if (missing.isEmpty()) {
@@ -152,7 +156,7 @@ public class PermissionManager {
             }
         } catch (Exception e) {
             SentryManager.recordException(e);
-            java.util.List<String> missing = collectMissingRuntimePermissions(activity);
+            List<String> missing = collectMissingRuntimePermissions(activity);
             if (missing.isEmpty()) {
                 notifyAllGranted();
             } else if (!runtimePermissionRequestInFlight) {
@@ -529,38 +533,6 @@ public class PermissionManager {
         }
     }
 
-    /**
-     * Returns the permission request code used by this manager.
-     * This can be used to identify permission requests in onRequestPermissionsResult.
-     *
-     * @return The permission request code
-     */
-    public int getPermissionRequestCode() {
-        return STORAGE_PERMISSION_REQUEST_CODE;
-    }
-
-    /**
-     * Returns the location permission request code used by this manager.
-     * This can be used to identify location permission requests in onRequestPermissionsResult.
-     *
-     * @return The location permission request code
-     */
-    public int getLocationPermissionRequestCode() {
-        return LOCATION_PERMISSION_REQUEST_CODE;
-    }
-
-    /**
-     * Requests all necessary permissions (media, location, notifications) on first startup.
-     * This avoids prompting the user sequentially across different screens.
-     */
-    public static void requestAllInitialPermissions(Activity activity) {
-        if (!shouldPromptInitialPermissions(activity)) {
-            return;
-        }
-        prepareInitialPermissionFlow();
-        startInitialPermissionFlow(activity);
-    }
-
     /** Whether the first-launch permission sequence should run. */
     public static boolean shouldPromptInitialPermissions(@NonNull Activity activity) {
         return !AppPreferences.hasCompletedInitialPermissionsPrompt(activity);
@@ -646,7 +618,7 @@ public class PermissionManager {
     }
 
     private static void requestInitialMediaStep(@NonNull Activity activity) {
-        java.util.List<String> missing = collectMissingRuntimePermissions(activity);
+        List<String> missing = collectMissingRuntimePermissions(activity);
         if (missing.isEmpty()) {
             advanceInitialFlowStep();
             requestCurrentInitialFlowStep(activity);
@@ -723,7 +695,7 @@ public class PermissionManager {
      */
     public static void requestMissingRuntimePermissions(Activity activity, boolean includePhotoLocation) {
         try {
-            java.util.List<String> permissions = collectMissingRuntimePermissions(activity);
+            List<String> permissions = collectMissingRuntimePermissions(activity);
             if (includePhotoLocation
                     && ContextCompat.checkSelfPermission(
                             activity, Manifest.permission.ACCESS_MEDIA_LOCATION)
@@ -750,8 +722,8 @@ public class PermissionManager {
     }
 
     @SuppressLint("InlinedApi") // guarded by sdkInt()
-    public static java.util.List<String> collectMissingRuntimePermissions(Activity activity) {
-        java.util.List<String> permissions = new java.util.ArrayList<>();
+    public static List<String> collectMissingRuntimePermissions(Activity activity) {
+        List<String> permissions = new ArrayList<>();
 
         if (sdkInt() >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_MEDIA_IMAGES)
@@ -784,20 +756,6 @@ public class PermissionManager {
         }
 
         return permissions;
-    }
-
-    /** Requests missing runtime permissions when the activity resumes without an in-flight dialog. */
-    public static void requestInitialPermissionsIfNeeded(Activity activity) {
-        if (runtimePermissionRequestInFlight || initialPermissionFlowInProgress) {
-            return;
-        }
-        if (!AppPreferences.hasCompletedInitialPermissionsPrompt(activity)) {
-            requestAllInitialPermissions(activity);
-            return;
-        }
-        if (!collectMissingRuntimePermissions(activity).isEmpty()) {
-            requestMissingRuntimePermissions(activity);
-        }
     }
 
     /** Clears an in-flight permission dialog flag when the host activity is destroyed. */

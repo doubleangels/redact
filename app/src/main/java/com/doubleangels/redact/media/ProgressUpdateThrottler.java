@@ -1,5 +1,7 @@
 package com.doubleangels.redact.media;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * Limits how often UI progress callbacks run (e.g. during video transcode).
  */
@@ -8,7 +10,7 @@ public final class ProgressUpdateThrottler {
     public static final long DEFAULT_INTERVAL_MS = 300L;
 
     private final long intervalMs;
-    private final java.util.concurrent.atomic.AtomicLong lastPostMs = new java.util.concurrent.atomic.AtomicLong(0);
+    private final AtomicLong lastPostMs = new AtomicLong(0);
 
     public ProgressUpdateThrottler() {
         this(DEFAULT_INTERVAL_MS);

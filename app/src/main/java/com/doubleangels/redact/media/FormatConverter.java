@@ -1,26 +1,44 @@
 package com.doubleangels.redact.media;
 
+import android.app.ActivityManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BlendMode;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorSpace;
 import android.graphics.ImageDecoder;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
+import androidx.annotation.VisibleForTesting;
+import androidx.exifinterface.media.ExifInterface;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.metadata.MetadataStripper;
+import com.doubleangels.redact.sentry.SentryManager;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Locale;
+import java.util.function.BooleanSupplier;
 
 /**
  * Converts image content to a target bitmap format (saved under {@code Pictures/Redact}) or
@@ -33,11 +51,11 @@ public final class FormatConverter {
 
 
 
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     @Nullable
     static Bitmap.CompressFormat testHeicCompressFormatOverride;
 
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     @Nullable
     static Bitmap.CompressFormat testTreatFormatAsHeic;
 
@@ -52,28 +70,28 @@ public final class FormatConverter {
         if (orientation < 0) {
             return bitmap;
         }
-        android.graphics.Matrix m = new android.graphics.Matrix();
+        Matrix m = new Matrix();
         switch (orientation) {
-            case androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_90:
+            case ExifInterface.ORIENTATION_ROTATE_90:
                 m.postRotate(90);
                 break;
-            case androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_180:
+            case ExifInterface.ORIENTATION_ROTATE_180:
                 m.postRotate(180);
                 break;
-            case androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_270:
+            case ExifInterface.ORIENTATION_ROTATE_270:
                 m.postRotate(270);
                 break;
-            case androidx.exifinterface.media.ExifInterface.ORIENTATION_FLIP_HORIZONTAL:
+            case ExifInterface.ORIENTATION_FLIP_HORIZONTAL:
                 m.postScale(-1, 1);
                 break;
-            case androidx.exifinterface.media.ExifInterface.ORIENTATION_FLIP_VERTICAL:
+            case ExifInterface.ORIENTATION_FLIP_VERTICAL:
                 m.postScale(1, -1);
                 break;
-            case androidx.exifinterface.media.ExifInterface.ORIENTATION_TRANSPOSE:
+            case ExifInterface.ORIENTATION_TRANSPOSE:
                 m.postRotate(90);
                 m.postScale(-1, 1);
                 break;
-            case androidx.exifinterface.media.ExifInterface.ORIENTATION_TRANSVERSE:
+            case ExifInterface.ORIENTATION_TRANSVERSE:
                 m.postRotate(270);
                 m.postScale(-1, 1);
                 break;
@@ -99,19 +117,19 @@ public final class FormatConverter {
      * boolean)} makes a 10-bit picture an 8-bit one.
      */
     @NonNull
-    private static Bitmap transformKeepingPrecision(@NonNull Bitmap bitmap, @NonNull android.graphics.Matrix m) {
-        android.graphics.RectF bounds = new android.graphics.RectF(0, 0, bitmap.getWidth(), bitmap.getHeight());
+    private static Bitmap transformKeepingPrecision(@NonNull Bitmap bitmap, @NonNull Matrix m) {
+        RectF bounds = new RectF(0, 0, bitmap.getWidth(), bitmap.getHeight());
         m.mapRect(bounds);
-        android.graphics.Matrix placed = new android.graphics.Matrix(m);
+        Matrix placed = new Matrix(m);
         placed.postTranslate(-bounds.left, -bounds.top);
         Bitmap out = Bitmap.createBitmap(Math.round(bounds.width()), Math.round(bounds.height()),
                 bitmap.getConfig(), bitmap.hasAlpha(),
                 bitmap.getColorSpace() != null ? bitmap.getColorSpace()
-                        : android.graphics.ColorSpace.get(android.graphics.ColorSpace.Named.SRGB));
-        android.graphics.Paint copy = new android.graphics.Paint();
+                        : ColorSpace.get(ColorSpace.Named.SRGB));
+        Paint copy = new Paint();
         copy.setFilterBitmap(false);
-        copy.setBlendMode(android.graphics.BlendMode.SRC);
-        new android.graphics.Canvas(out).drawBitmap(bitmap, placed, copy);
+        copy.setBlendMode(BlendMode.SRC);
+        new Canvas(out).drawBitmap(bitmap, placed, copy);
         return out;
     }
 
@@ -120,9 +138,6 @@ public final class FormatConverter {
 
     /** Number of selectable output format options (chips). */
     public static final int FORMAT_OPTION_COUNT = 4;
-
-    /** {@link IOException#getMessage()} when HEIC clean/convert is requested below API 34. */
-    public static final String HEIC_REQUIRES_API_34 = "heic_requires_api_34";
 
     @NonNull
     public static Bitmap.CompressFormat formatAtIndex(int index) {
@@ -221,7 +236,7 @@ public final class FormatConverter {
      * own, so a re-encode spends at least the bits the camera did (phones save at 95 to 97, the
      * preset is 92). Balanced and Smaller mean what they say, and other formats are unchanged.
      */
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     static int matchSourceQuality(@NonNull Bitmap.CompressFormat format, int preset, int presetQuality,
             int sourceJpegQuality) {
         if (format != Bitmap.CompressFormat.JPEG || preset != AppPreferences.QUALITY_PRESET_HIGH) {
@@ -243,7 +258,7 @@ public final class FormatConverter {
      */
     public static int estimateJpegQuality(@NonNull InputStream in) {
         try {
-            java.io.DataInputStream data = new java.io.DataInputStream(new java.io.BufferedInputStream(in));
+            DataInputStream data = new DataInputStream(new BufferedInputStream(in));
             if (data.readUnsignedByte() != 0xFF || data.readUnsignedByte() != 0xD8) {
                 return 0;
             }
@@ -285,7 +300,7 @@ public final class FormatConverter {
         }
     }
 
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     static int closestQuality(@NonNull int[] luminance) {
         int best = 0;
         long bestError = Long.MAX_VALUE;
@@ -390,7 +405,7 @@ public final class FormatConverter {
      */
     @NonNull
     public static ImageFormatSpec resolveCleanFormat(
-            @NonNull java.io.File content, @Nullable String extensionWithDot, @Nullable String mimeType)
+            @NonNull File content, @Nullable String extensionWithDot, @Nullable String mimeType)
             throws IOException {
         String sniffed = sniffImageType(content);
         if (sniffed != null) {
@@ -400,12 +415,12 @@ public final class FormatConverter {
     }
 
     /** The image type a file's first bytes say it is, or null when they say nothing known. */
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     @Nullable
-    static String sniffImageType(@NonNull java.io.File file) {
+    static String sniffImageType(@NonNull File file) {
         byte[] head = new byte[64];
         int n = 0;
-        try (InputStream in = new java.io.FileInputStream(file)) {
+        try (InputStream in = new FileInputStream(file)) {
             int r;
             while (n < head.length && (r = in.read(head, n, head.length - n)) > 0) {
                 n += r;
@@ -435,12 +450,12 @@ public final class FormatConverter {
             boolean avif = false;
             boolean heif = false;
             for (int at = 8; at + 4 <= size; at += at == 8 ? 8 : 4) {
-                String brand = new String(head, at, 4, java.nio.charset.StandardCharsets.ISO_8859_1);
+                String brand = new String(head, at, 4, StandardCharsets.ISO_8859_1);
                 avif |= brand.equals("avif") || brand.equals("avis");
                 heif |= brand.equals("heic") || brand.equals("heix") || brand.equals("mif1")
                         || brand.equals("msf1") || brand.startsWith("hev");
             }
-            String major = new String(head, 8, 4, java.nio.charset.StandardCharsets.ISO_8859_1);
+            String major = new String(head, 8, 4, StandardCharsets.ISO_8859_1);
             if (major.equals("avif") || major.equals("avis") || (avif && !major.startsWith("he"))) {
                 return "image/avif";
             }
@@ -479,13 +494,13 @@ public final class FormatConverter {
     private static boolean isHeicSource(
             @Nullable String extensionWithDot, @Nullable String mimeType) {
         if (extensionWithDot != null) {
-            String ext = extensionWithDot.toLowerCase(java.util.Locale.US);
+            String ext = extensionWithDot.toLowerCase(Locale.US);
             if (".heic".equals(ext) || ".heif".equals(ext)) {
                 return true;
             }
         }
         if (mimeType != null) {
-            String mime = mimeType.toLowerCase(java.util.Locale.US);
+            String mime = mimeType.toLowerCase(Locale.US);
             return "image/heic".equals(mime) || "image/heif".equals(mime);
         }
         return false;
@@ -546,19 +561,19 @@ public final class FormatConverter {
     private static final int LOSSLESS_WEBP_EFFORT = 75;
 
     /** {@code bitmap} laid on white when it has transparency; {@code bitmap} itself otherwise. */
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     @NonNull
     static Bitmap onWhite(@NonNull Bitmap bitmap) {
         if (!bitmap.hasAlpha()) {
             return bitmap;
         }
-        android.graphics.ColorSpace colorSpace = bitmap.getColorSpace();
+        ColorSpace colorSpace = bitmap.getColorSpace();
         Bitmap flat = colorSpace != null
                 ? Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888,
                         false, colorSpace)
                 : Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-        android.graphics.Canvas canvas = new android.graphics.Canvas(flat);
-        canvas.drawColor(android.graphics.Color.WHITE);
+        Canvas canvas = new Canvas(flat);
+        canvas.drawColor(Color.WHITE);
         canvas.drawBitmap(bitmap, 0f, 0f, null);
         return flat;
     }
@@ -618,18 +633,12 @@ public final class FormatConverter {
         return new ImageFormatSpec(".jpg", "image/jpeg", Bitmap.CompressFormat.JPEG, true);
     }
 
-    /** JPEG output spec for callers that need a public accessor. */
-    @NonNull
-    public static ImageFormatSpec jpegFormatSpec() {
-        return jpegSpec();
-    }
-
     @Nullable
     private static ImageFormatSpec specForExtension(@Nullable String extensionWithDot) {
         if (extensionWithDot == null || extensionWithDot.isEmpty()) {
             return null;
         }
-        String ext = extensionWithDot.toLowerCase(java.util.Locale.US);
+        String ext = extensionWithDot.toLowerCase(Locale.US);
         return switch (ext) {
             case ".jpg", ".jpeg" -> jpegSpec();
             case ".png" -> new ImageFormatSpec(
@@ -648,7 +657,7 @@ public final class FormatConverter {
         if (mimeType == null || mimeType.isEmpty()) {
             return null;
         }
-        String mime = mimeType.toLowerCase(java.util.Locale.US);
+        String mime = mimeType.toLowerCase(Locale.US);
         return switch (mime) {
             case "image/jpeg", "image/jpg" -> jpegSpec();
             case "image/png" -> new ImageFormatSpec(
@@ -676,9 +685,9 @@ public final class FormatConverter {
             if (in == null) {
                 return -1;
             }
-            return new androidx.exifinterface.media.ExifInterface(in).getAttributeInt(
-                    androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION,
-                    androidx.exifinterface.media.ExifInterface.ORIENTATION_NORMAL);
+            return new ExifInterface(in).getAttributeInt(
+                    ExifInterface.TAG_ORIENTATION,
+                    ExifInterface.ORIENTATION_NORMAL);
         } catch (Exception e) {
             return -1;
         }
@@ -700,8 +709,8 @@ public final class FormatConverter {
             return null;
         }
         int orientation = exifOrientation(context, sourceUri);
-        return orientation == androidx.exifinterface.media.ExifInterface.ORIENTATION_NORMAL
-                || orientation == androidx.exifinterface.media.ExifInterface.ORIENTATION_UNDEFINED
+        return orientation == ExifInterface.ORIENTATION_NORMAL
+                || orientation == ExifInterface.ORIENTATION_UNDEFINED
                 ? header : null;
     }
 
@@ -724,7 +733,7 @@ public final class FormatConverter {
             raw = File.createTempFile("png16_", ".png", context.getCacheDir());
             clean = File.createTempFile("png16_clean_", ".png", context.getCacheDir());
             try (InputStream in = resolver.openInputStream(sourceUri);
-                    OutputStream out = new java.io.BufferedOutputStream(new java.io.FileOutputStream(raw), 64 * 1024)) {
+                    OutputStream out = new BufferedOutputStream(new FileOutputStream(raw), 64 * 1024)) {
                 if (in == null) {
                     throw new IOException("Cannot open source");
                 }
@@ -735,7 +744,7 @@ public final class FormatConverter {
             new MetadataStripper(context).requireConvertedImageClean(raw, clean);
             outUri = OutputDestination.create(context, false,
                     MediaFileNames.outputBaseName(context, baseDisplayName) + ".png", "image/png");
-            try (InputStream in = new java.io.FileInputStream(clean);
+            try (InputStream in = new FileInputStream(clean);
                     OutputStream os = resolver.openOutputStream(outUri)) {
                 if (os == null) {
                     throw new IOException("Cannot open output stream");
@@ -745,7 +754,7 @@ public final class FormatConverter {
             OutputDestination.publish(resolver, outUri);
             return outUri;
         } catch (IOException | RuntimeException e) {
-            com.doubleangels.redact.sentry.SentryManager.log(
+            SentryManager.log(
                     "The 16-bit PNG could not be kept at 16 bits, so the app is converting it at 8: "
                             + e.getMessage() + ".");
             if (outUri != null) {
@@ -811,7 +820,7 @@ public final class FormatConverter {
         try {
             encoded = File.createTempFile("temp_convert_", ext, context.getCacheDir());
             clean = File.createTempFile("temp_convert_clean_", ext, context.getCacheDir());
-            try (OutputStream os = new java.io.BufferedOutputStream(new java.io.FileOutputStream(encoded), 64 * 1024)) {
+            try (OutputStream os = new BufferedOutputStream(new FileOutputStream(encoded), 64 * 1024)) {
                 boolean ok;
                 if (format == Bitmap.CompressFormat.PNG && HighPrecisionPng.isHighPrecision(bitmap)) {
                     // Decoded at more than 8 bits (a 10-bit HEIC or AVIF, a turned 16-bit PNG),
@@ -830,7 +839,7 @@ public final class FormatConverter {
             new MetadataStripper(context).requireConvertedImageClean(encoded, clean);
 
             outUri = OutputDestination.create(context, false, outName, mime);
-            try (InputStream in = new java.io.FileInputStream(clean);
+            try (InputStream in = new FileInputStream(clean);
                     OutputStream os = resolver.openOutputStream(outUri)) {
                 if (os == null) {
                     throw new IOException("Cannot open output stream");
@@ -1043,10 +1052,10 @@ public final class FormatConverter {
     public static long fullResolutionPixelBudget(@NonNull Context context) {
         long budget = MIN_FULL_RESOLUTION_PIXELS;
         try {
-            android.app.ActivityManager am =
-                    (android.app.ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            ActivityManager am =
+                    (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
             if (am != null) {
-                android.app.ActivityManager.MemoryInfo info = new android.app.ActivityManager.MemoryInfo();
+                ActivityManager.MemoryInfo info = new ActivityManager.MemoryInfo();
                 am.getMemoryInfo(info);
                 budget = Math.max(budget, info.availMem / 4 / BYTES_PER_PIXEL);
             }
@@ -1164,7 +1173,7 @@ public final class FormatConverter {
             @Nullable VideoMedia3Converter.TranscodeProgressListener progressListener,
             @Nullable int[] outActualFormatIndex,
             long transcodeOwnerId,
-            @Nullable java.util.function.BooleanSupplier cancelled)
+            @Nullable BooleanSupplier cancelled)
             throws IOException {
         MetadataStripper stripper = new MetadataStripper(context);
         stripper.setCancellationCheck(cancelled);

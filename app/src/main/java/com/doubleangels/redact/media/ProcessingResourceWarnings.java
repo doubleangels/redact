@@ -15,6 +15,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.doubleangels.redact.CacheCleanup;
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.ui.FoldDialogs;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
@@ -126,7 +127,7 @@ public final class ProcessingResourceWarnings {
                             ? activity.getString(
                                     criticalStorage.messageResId, criticalStorage.formatArgs)
                             : activity.getString(criticalStorage.messageResId);
-            com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(activity)
+            FoldDialogs.place(new MaterialAlertDialogBuilder(activity)
                     .setTitle(R.string.processing_warning_critical_storage_title)
                     .setMessage(message)
                     .setPositiveButton(R.string.processing_warning_continue, (d, w) -> onProceed.run())

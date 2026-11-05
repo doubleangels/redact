@@ -6,12 +6,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Application;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Looper;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.FakeMediaStoreProvider;
@@ -30,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.BooleanSupplier;
 
 @RunWith(RobolectricTestRunner.class)
 public class MediaProcessorFlowTest {

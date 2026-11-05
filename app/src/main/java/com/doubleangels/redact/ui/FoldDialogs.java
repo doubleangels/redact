@@ -8,7 +8,6 @@ import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowManager;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 

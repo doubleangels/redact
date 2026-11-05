@@ -4,15 +4,25 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import com.doubleangels.redact.media.MediaSizeLimits;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -319,7 +329,7 @@ final class UltraHdr {
         // Only the head is read to find where the segment goes; the rest is streamed, so a large
         // photo is never held in memory whole.
         byte[] head;
-        try (java.io.RandomAccessFile in = new java.io.RandomAccessFile(target, "r")) {
+        try (RandomAccessFile in = new RandomAccessFile(target, "r")) {
             head = new byte[(int) Math.min(in.length(), 64 * 1024 + 6)];
             in.readFully(head);
         }
@@ -333,8 +343,8 @@ final class UltraHdr {
         byte[] segment = segment(0xE1, concat(XMP_ID, xmp.getBytes(StandardCharsets.UTF_8)));
         File rewritten = File.createTempFile("xmp_", ".jpg", target.getAbsoluteFile().getParentFile());
         try {
-            try (java.io.InputStream in = new java.io.BufferedInputStream(new java.io.FileInputStream(target), 64 * 1024);
-                    OutputStream out = new java.io.BufferedOutputStream(new FileOutputStream(rewritten), 64 * 1024)) {
+            try (InputStream in = new BufferedInputStream(new FileInputStream(target), 64 * 1024);
+                    OutputStream out = new BufferedOutputStream(new FileOutputStream(rewritten), 64 * 1024)) {
                 byte[] buffer = new byte[64 * 1024];
                 int left = insertAt;
                 while (left > 0) {
@@ -346,12 +356,9 @@ final class UltraHdr {
                     left -= n;
                 }
                 out.write(segment);
-                int n;
-                while ((n = in.read(buffer)) > 0) {
-                    out.write(buffer, 0, n);
-                }
+                MediaSizeLimits.copyStream(in, out);
             }
-            Files.move(rewritten.toPath(), target.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            Files.move(rewritten.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } finally {
             if (rewritten.exists() && !rewritten.delete()) {
                 rewritten.deleteOnExit();
@@ -460,7 +467,7 @@ final class UltraHdr {
         byte[] iso = null;
         for (byte[] segment : appSegments(gainMap)) {
             int marker = segment[0] & 0xFF;
-            byte[] data = java.util.Arrays.copyOfRange(segment, 1, segment.length);
+            byte[] data = Arrays.copyOfRange(segment, 1, segment.length);
             if (marker == 0xE1 && startsWith(data, XMP_ID) && xmp == null) {
                 xmp = new String(data, XMP_ID.length, data.length - XMP_ID.length, StandardCharsets.UTF_8);
             } else if (marker == 0xE2 && startsWith(data, ISO_ID) && iso == null
@@ -519,7 +526,7 @@ final class UltraHdr {
         long tiffHeader = mpfAt + 4 + 4; // marker, length, "MPF\0"
         byte[] mpf = mpfSegment(primaryLength, gainMapBytes.length, primaryLength - tiffHeader);
 
-        try (OutputStream out = new java.io.BufferedOutputStream(new FileOutputStream(target), 64 * 1024)) {
+        try (OutputStream out = new BufferedOutputStream(new FileOutputStream(target), 64 * 1024)) {
             out.write(primary, 0, insertAt);
             out.write(directory);
             out.write(isoVersion);
@@ -563,8 +570,8 @@ final class UltraHdr {
     private static void fixMpf(@NonNull RandomAccessFile f, @NonNull byte[] head, int tiff, int end)
             throws IOException {
         boolean big = head[tiff] == 'M';
-        java.nio.ByteBuffer b = java.nio.ByteBuffer.wrap(head, 0, end)
-                .order(big ? java.nio.ByteOrder.BIG_ENDIAN : java.nio.ByteOrder.LITTLE_ENDIAN);
+        ByteBuffer b = ByteBuffer.wrap(head, 0, end)
+                .order(big ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN);
         long ifd = tiff + (b.getInt(tiff + 4) & 0xFFFFFFFFL);
         if (ifd + 2 > end) {
             return;
@@ -639,7 +646,7 @@ final class UltraHdr {
 
     @NonNull
     private static byte[] concat(@NonNull byte[] a, @NonNull byte[] b) {
-        byte[] out = java.util.Arrays.copyOf(a, a.length + b.length);
+        byte[] out = Arrays.copyOf(a, a.length + b.length);
         System.arraycopy(b, 0, out, a.length, b.length);
         return out;
     }

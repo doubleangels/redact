@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
@@ -14,8 +13,10 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.IntentCompat;
@@ -28,25 +29,37 @@ import com.doubleangels.redact.media.SecureDelete;
 import com.doubleangels.redact.media.VideoMedia3Converter;
 import com.doubleangels.redact.metadata.MetadataStripper;
 import com.doubleangels.redact.notifications.LocalNotifications;
+import com.doubleangels.redact.media.MediaSizeLimits;
+import com.doubleangels.redact.media.MediaUriResolver;
+import com.doubleangels.redact.media.ProcessingCancelledException;
+import com.doubleangels.redact.media.ProcessingResourceWarnings;
+import com.doubleangels.redact.metadata.CleanStats;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.doubleangels.redact.sentry.SentryManager;
+import com.doubleangels.redact.stats.StatsStore;
+import com.doubleangels.redact.ui.ReviewPrompt;
+import com.doubleangels.redact.ui.SecureWindow;
+import com.doubleangels.redact.ui.ShareResults;
+import com.google.android.material.color.DynamicColors;
+
+import io.sentry.ITransaction;
+import io.sentry.SpanStatus;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
-import com.doubleangels.redact.media.MediaSizeLimits;
-import com.doubleangels.redact.media.MediaUriResolver;
-import com.doubleangels.redact.media.ProcessingResourceWarnings;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.doubleangels.redact.sentry.SentryManager;
-import com.google.android.material.color.DynamicColors;
-
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import io.sentry.ITransaction;
-import io.sentry.SpanStatus;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ShareHandlerActivity extends AppCompatActivity {
 
@@ -62,8 +75,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private static final String KEY_PROCESSING_ACTIVE = "processing_active";
 
     /** Tracks in-flight share processing so MainActivity does not delete temp files mid-share. */
-    private static final java.util.concurrent.atomic.AtomicInteger activeShareSessions =
-            new java.util.concurrent.atomic.AtomicInteger(0);
+    private static final AtomicInteger activeShareSessions =
+            new AtomicInteger(0);
 
     /**
      * Runs secure-delete cleanup off the calling thread. Overwriting a large video file with
@@ -71,8 +84,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
      * trip Android's ANR watchdog when it runs synchronously on the main thread, which is where
      * cancel/finish/onDestroy call into cleanup.
      */
-    private static final java.util.concurrent.ExecutorService cleanupExecutor =
-            java.util.concurrent.Executors.newSingleThreadExecutor();
+    private static final ExecutorService cleanupExecutor =
+            Executors.newSingleThreadExecutor();
 
     public static boolean isShareProcessingActive() {
         return activeShareSessions.get() > 0;
@@ -80,7 +93,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     private final ActivityResultLauncher<Intent> shareResultLauncher =
             registerForActivityResult(
-                    new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+                    new ActivityResultContracts.StartActivityForResult(),
                     // The chooser forwards the chosen app's result, and most apps never set one, so
                     // RESULT_CANCELED does not mean nothing was shared: an app that opens in its own
                     // task returns it at once, before it has read anything. Every result waits.
@@ -101,8 +114,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private volatile boolean processingActive = false;
     private final AtomicBoolean activityDestroyed = new AtomicBoolean(false);
     private final AtomicBoolean shareSessionEnded = new AtomicBoolean(false);
-    private final java.util.concurrent.atomic.AtomicInteger shareSessionId =
-            new java.util.concurrent.atomic.AtomicInteger(0);
+    private final AtomicInteger shareSessionId =
+            new AtomicInteger(0);
     private volatile Thread processingThread;
 
     private AlertDialog progressDialog;
@@ -114,7 +127,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         DynamicColors.applyToActivityIfAvailable(this);
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
-        com.doubleangels.redact.ui.SecureWindow.apply(this);
+        SecureWindow.apply(this);
 
         try {
             mediaSelector = new MediaSelector(this);
@@ -468,16 +481,16 @@ public class ShareHandlerActivity extends AppCompatActivity {
     }
 
     /** Copies a whole stream, giving up as soon as the share it belongs to is cancelled. */
-    private void copyForSession(@NonNull InputStream in, @NonNull java.io.OutputStream out, int session)
+    private void copyForSession(@NonNull InputStream in, @NonNull OutputStream out, int session)
             throws IOException {
         try {
             MediaSizeLimits.copyStream(in, out, () -> {
                 if (!isCurrentSession(session)) {
-                    throw new java.io.UncheckedIOException(
-                            new com.doubleangels.redact.media.ProcessingCancelledException("Share cancelled"));
+                    throw new UncheckedIOException(
+                            new ProcessingCancelledException("Share cancelled"));
                 }
             });
-        } catch (java.io.UncheckedIOException e) {
+        } catch (UncheckedIOException e) {
             throw e.getCause();
         }
     }
@@ -491,11 +504,11 @@ public class ShareHandlerActivity extends AppCompatActivity {
      * The suffix for a snapshot of a shared item: the one its type names, else the extension of its
      * name when that is a media extension Redact recognizes, else {@code .bin}.
      */
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     @NonNull
     static String suffixFor(@Nullable String mimeType, @Nullable String name) {
         if (mimeType != null) {
-            switch (mimeType.toLowerCase(java.util.Locale.US)) {
+            switch (mimeType.toLowerCase(Locale.US)) {
                 case "image/jpeg":
                 case "image/jpg":
                     return ".jpg";
@@ -527,7 +540,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     break;
             }
         }
-        String lower = name != null ? name.toLowerCase(java.util.Locale.US) : "";
+        String lower = name != null ? name.toLowerCase(Locale.US) : "";
         int dot = lower.lastIndexOf('.');
         String extension = dot >= 0 ? lower.substring(dot) : "";
         switch (extension) {
@@ -625,10 +638,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     Uri processedUri = metadataStripper.stripMetadataForSharing(uri, fileName, isVideo);
                     if (processedUri != null) {
                         processedUris.add(processedUri);
-                        com.doubleangels.redact.metadata.CleanStats stats =
+                        CleanStats stats =
                                 metadataStripper.getLastCleanStats();
-                        com.doubleangels.redact.stats.StatsStore.recordClean(this,
-                                stats != null ? stats : new com.doubleangels.redact.metadata.CleanStats(0, false),
+                        StatsStore.recordClean(this,
+                                stats != null ? stats : new CleanStats(0, false),
                                 isVideo, true);
                         try {
                             File outputFile = metadataStripper.getLastProcessedOutputFile();
@@ -696,7 +709,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                             if (finalFailCount == 0) {
                                 // Counted only: the share sheet is about to open, so this is no
                                 // time to ask for a rating.
-                                com.doubleangels.redact.ui.ReviewPrompt.recordSuccessfulJob(
+                                ReviewPrompt.recordSuccessfulJob(
                                         ShareHandlerActivity.this);
                             }
                             if (processedUris.size() == 1) {
@@ -775,7 +788,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private void launchShareChooser(Intent chooser) {
         sharingInitiated = true;
         shareResultLauncher.launch(chooser);
-        com.doubleangels.redact.stats.StatsStore.recordShare(this);
+        StatsStore.recordShare(this);
     }
 
     private void shareCleanFile(boolean isVideo, Uri cleanedFileUri) {
@@ -799,7 +812,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 shareIntent.setClipData(ClipData.newRawUri(displayName, cleanedFileUri));
                 shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-                Intent chooser = com.doubleangels.redact.ui.ShareResults.withoutOwnTargets(this,
+                Intent chooser = ShareResults.withoutOwnTargets(this,
                         Intent.createChooser(shareIntent, getString(R.string.share_chooser_title)));
                 chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
@@ -838,7 +851,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 shareIntent.setClipData(clipData);
                 shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-                Intent chooser = com.doubleangels.redact.ui.ShareResults.withoutOwnTargets(this,
+                Intent chooser = ShareResults.withoutOwnTargets(this,
                         Intent.createChooser(shareIntent, getString(R.string.share_chooser_title)));
                 chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
@@ -1062,12 +1075,12 @@ public class ShareHandlerActivity extends AppCompatActivity {
      * Whether an item's own MIME type rules it out. Unknown or generic types are let through and
      * left to the decoders; vector images (SVG) are rejected because they have no pixels to decode.
      */
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     static boolean isUnsupportedMediaType(@Nullable String type) {
         if (type == null) {
             return false;
         }
-        String lower = type.toLowerCase(java.util.Locale.US);
+        String lower = type.toLowerCase(Locale.US);
         if (lower.equals("application/octet-stream") || lower.equals("*/*")) {
             return false;
         }

@@ -46,7 +46,6 @@ profileinstaller = { module = "androidx.profileinstaller:profileinstaller", vers
 benchmark-macro-junit4 = { module = "androidx.benchmark:benchmark-macro-junit4", version.ref = "baselineprofile" }
 uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
 window-java = { module = "androidx.window:window-java", version.ref = "window" }
-window-testing = { module = "androidx.window:window-testing", version.ref = "window" }
 core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "splashscreen" }
 
 [plugins]

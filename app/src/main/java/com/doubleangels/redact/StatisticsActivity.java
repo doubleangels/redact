@@ -10,16 +10,20 @@ import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.doubleangels.redact.stats.StatsSnapshot;
 import com.doubleangels.redact.stats.StatsStore;
 import com.doubleangels.redact.ui.Notice;
+import com.doubleangels.redact.ui.SecureWindow;
 import com.doubleangels.redact.ui.StatsBarChart;
+import com.doubleangels.redact.ui.SwitchRows;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 import java.text.DateFormat;
@@ -57,7 +61,7 @@ public class StatisticsActivity extends AppCompatActivity {
         DynamicColors.applyToActivityIfAvailable(this);
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
-        com.doubleangels.redact.ui.SecureWindow.apply(this);
+        SecureWindow.apply(this);
         setContentView(R.layout.activity_statistics);
 
         MaterialToolbar toolbar = findViewById(R.id.statsToolbar);
@@ -79,17 +83,17 @@ public class StatisticsActivity extends AppCompatActivity {
         tileConverted = setUpTile(R.id.tileConverted, R.drawable.ic_convert, R.string.stats_files_converted);
 
         findViewById(R.id.rowClearStats).setOnClickListener(v -> confirmClear());
-        com.google.android.material.materialswitch.MaterialSwitch keep = findViewById(R.id.switchKeepStats);
-        keep.setChecked(com.doubleangels.redact.AppPreferences.isKeepStatistics(this));
+        MaterialSwitch keep = findViewById(R.id.switchKeepStats);
+        keep.setChecked(AppPreferences.isKeepStatistics(this));
         keep.setOnCheckedChangeListener((button, checked) -> {
-            com.doubleangels.redact.AppPreferences.setKeepStatistics(this, checked);
+            AppPreferences.setKeepStatistics(this, checked);
             if (!checked) {
                 // Off means no record at all, including the day-by-day history kept so far.
                 StatsStore.clear(this);
                 render();
             }
         });
-        com.doubleangels.redact.ui.SwitchRows.wire(keep);
+        SwitchRows.wire(keep);
         applyInsets();
     }
 
@@ -178,7 +182,7 @@ public class StatisticsActivity extends AppCompatActivity {
         int contentBottom = content.getPaddingBottom();
         int barsAndCutout = WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout();
         ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
-            androidx.core.graphics.Insets outer = insets.getInsets(barsAndCutout);
+            Insets outer = insets.getInsets(barsAndCutout);
             v.setPadding(outer.left, outer.top, outer.right, 0);
             content.setPadding(content.getPaddingLeft(), content.getPaddingTop(),
                     content.getPaddingRight(), contentBottom + outer.bottom);

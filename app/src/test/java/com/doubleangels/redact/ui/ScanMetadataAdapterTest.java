@@ -57,24 +57,6 @@ public class ScanMetadataAdapterTest {
     }
 
     @Test
-    public void filterBySection_filtersCorrectly() {
-        List<ScanMetadataAdapter.Entry> entries = new ArrayList<>();
-        entries.add(ScanMetadataAdapter.Entry.header("file", "File", 0, 1));
-        entries.add(ScanMetadataAdapter.Entry.row("file", "Name", "photo.jpg"));
-        entries.add(ScanMetadataAdapter.Entry.header("camera", "Camera", 0, 1));
-        entries.add(ScanMetadataAdapter.Entry.row("camera", "Make", "Google"));
-
-        adapter.setEntries(entries);
-        assertEquals(4, adapter.getItemCount());
-
-        adapter.filterBySection("camera");
-        assertEquals(2, adapter.getItemCount());
-
-        adapter.filterBySection(null);
-        assertEquals(4, adapter.getItemCount());
-    }
-
-    @Test
     public void clear_resetsAdapter() {
         List<ScanMetadataAdapter.Entry> entries = new ArrayList<>();
         entries.add(ScanMetadataAdapter.Entry.row("Key", "Val"));

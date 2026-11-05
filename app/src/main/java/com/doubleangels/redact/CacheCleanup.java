@@ -8,6 +8,8 @@ import androidx.annotation.VisibleForTesting;
 import com.doubleangels.redact.media.SecureDelete;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -131,12 +133,12 @@ public final class CacheCleanup {
      */
     public static void scheduleOrphanedWorkFileSweep(@NonNull Context context) {
         Context appContext = context.getApplicationContext();
-        java.util.List<File> orphans = new java.util.ArrayList<>();
+        List<File> orphans = new ArrayList<>();
         collectTempPrefixFiles(appContext.getCacheDir(), orphans);
         collectTempPrefixFiles(appContext.getExternalCacheDir(), orphans);
         // Shared files whose delayed deletion died with an earlier process. They are clean, so
         // they are only unlinked, and only once the app they went to has had time to read them.
-        java.util.List<File> sharedOutputs = new java.util.ArrayList<>();
+        List<File> sharedOutputs = new ArrayList<>();
         File cacheDir = appContext.getCacheDir();
         if (cacheDir != null) {
             collectFilesOlderThan(new File(cacheDir, PROCESSED_SUBDIR),
@@ -166,7 +168,7 @@ public final class CacheCleanup {
         thread.start();
     }
 
-    private static void collectTempPrefixFiles(File directory, java.util.List<File> out) {
+    private static void collectTempPrefixFiles(File directory, List<File> out) {
         if (directory == null || !directory.isDirectory()) {
             return;
         }
@@ -188,7 +190,7 @@ public final class CacheCleanup {
         }
     }
 
-    private static void collectFilesOlderThan(File directory, long cutoff, java.util.List<File> out) {
+    private static void collectFilesOlderThan(File directory, long cutoff, List<File> out) {
         if (directory == null || !directory.isDirectory()) {
             return;
         }

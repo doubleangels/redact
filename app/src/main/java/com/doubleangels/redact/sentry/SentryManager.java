@@ -1,31 +1,18 @@
 package com.doubleangels.redact.sentry;
 
 import android.content.Context;
+import android.os.OperationCanceledException;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.doubleangels.redact.AppPreferences;
+import com.doubleangels.redact.BuildConfig;
 import com.doubleangels.redact.media.ProcessingCancelledException;
 import com.doubleangels.redact.media.UnsupportedMediaException;
 
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLHandshakeException;
-
 import io.sentry.Breadcrumb;
-import io.sentry.ISpan;
 import io.sentry.ITransaction;
 import io.sentry.NoOpTransaction;
 import io.sentry.Sentry;
@@ -37,6 +24,22 @@ import io.sentry.metrics.MetricsUnit;
 import io.sentry.metrics.SentryMetricsParameters;
 import io.sentry.protocol.Feedback;
 import io.sentry.protocol.SentryId;
+
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
+import java.nio.channels.ClosedByInterruptException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CancellationException;
+
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLHandshakeException;
 
 /**
  * Crashlytics-style helpers: breadcrumbs, structured logs, metrics, scoped tags, and exception capture.
@@ -220,9 +223,9 @@ public final class SentryManager {
             // interrupted, which is how a share or job is cancelled.
             if (t instanceof ProcessingCancelledException
                     || t instanceof InterruptedException
-                    || t instanceof java.nio.channels.ClosedByInterruptException
-                    || t instanceof java.util.concurrent.CancellationException
-                    || t instanceof android.os.OperationCanceledException) {
+                    || t instanceof ClosedByInterruptException
+                    || t instanceof CancellationException
+                    || t instanceof OperationCanceledException) {
                 return true;
             }
         }
@@ -233,7 +236,7 @@ public final class SentryManager {
     public static void logEvent(String category, String message) {
         // Nothing would be sent, and release builds strip Log.i: scrubbing would be wasted work,
         // on every log line, for the users who left crash reports off (the default).
-        if (!isEnabled() && !com.doubleangels.redact.BuildConfig.DEBUG) {
+        if (!isEnabled() && !BuildConfig.DEBUG) {
             return;
         }
         String safeCategory = category != null ? category : "app";

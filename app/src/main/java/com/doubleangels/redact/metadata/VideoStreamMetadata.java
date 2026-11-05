@@ -12,6 +12,10 @@ import androidx.annotation.VisibleForTesting;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.IntPredicate;
 
 /**
  * Finds metadata carried inside an H.264, H.265 or MPEG-4 Part 2 video stream rather than its
@@ -170,7 +174,7 @@ public final class VideoStreamMetadata {
                 }
                 return;
             }
-            java.util.function.IntPredicate sei = hevc
+            IntPredicate sei = hevc
                     ? first -> ((first >> 1) & 0x3F) == 39 || ((first >> 1) & 0x3F) == 40
                     : first -> (first & 0x1F) == 6;
             for (byte[] nal : units(data, sei)) {
@@ -315,8 +319,8 @@ public final class VideoStreamMetadata {
      * frame of a long video can be read.
      */
     @NonNull
-    static java.util.List<byte[]> units(@NonNull byte[] d, @NonNull java.util.function.IntPredicate wanted) {
-        java.util.List<byte[]> units = new java.util.ArrayList<>();
+    static List<byte[]> units(@NonNull byte[] d, @NonNull IntPredicate wanted) {
+        List<byte[]> units = new ArrayList<>();
         int start = nextStartCode(d, 0);
         if (start >= 0) {
             while (start >= 0) {
@@ -329,7 +333,7 @@ public final class VideoStreamMetadata {
                         end--;
                     }
                     if (end > payload) {
-                        units.add(java.util.Arrays.copyOfRange(d, payload, end));
+                        units.add(Arrays.copyOfRange(d, payload, end));
                     }
                 }
                 start = next;
@@ -344,7 +348,7 @@ public final class VideoStreamMetadata {
                 break;
             }
             if (wanted.test(d[pos + 4] & 0xFF)) {
-                units.add(java.util.Arrays.copyOfRange(d, pos + 4, pos + 4 + length));
+                units.add(Arrays.copyOfRange(d, pos + 4, pos + 4 + length));
             }
             pos += 4 + length;
         }
@@ -353,8 +357,8 @@ public final class VideoStreamMetadata {
 
     /** Splits Annex B (start codes) or, failing that, 4-byte length-prefixed data into NAL units. */
     @NonNull
-    static java.util.List<byte[]> nalUnits(@NonNull byte[] d) {
-        java.util.List<byte[]> units = new java.util.ArrayList<>();
+    static List<byte[]> nalUnits(@NonNull byte[] d) {
+        List<byte[]> units = new ArrayList<>();
         int start = nextStartCode(d, 0);
         if (start >= 0) {
             while (start >= 0) {
@@ -365,7 +369,7 @@ public final class VideoStreamMetadata {
                     end--; // trailing zero bytes belong to the next start code
                 }
                 if (end > payload) {
-                    units.add(java.util.Arrays.copyOfRange(d, payload, end));
+                    units.add(Arrays.copyOfRange(d, payload, end));
                 }
                 start = next;
             }
@@ -378,7 +382,7 @@ public final class VideoStreamMetadata {
             if (length <= 0 || pos + 4L + length > d.length) {
                 break;
             }
-            units.add(java.util.Arrays.copyOfRange(d, pos + 4, pos + 4 + length));
+            units.add(Arrays.copyOfRange(d, pos + 4, pos + 4 + length));
             pos += 4 + length;
         }
         return units;

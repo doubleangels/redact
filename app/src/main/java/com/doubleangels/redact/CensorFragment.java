@@ -1,8 +1,13 @@
 package com.doubleangels.redact;
 
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -13,23 +18,32 @@ import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.doubleangels.redact.media.CensorEffects;
 import com.doubleangels.redact.media.CensorExporter;
+import com.doubleangels.redact.media.CensorRegion;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.CensorCanvasView;
 import com.doubleangels.redact.ui.CensorViewModel;
+import com.doubleangels.redact.ui.FoldDialogs;
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.Notice;
+import com.doubleangels.redact.ui.ReviewPrompt;
 import com.doubleangels.redact.ui.ScanViewModel;
+import com.doubleangels.redact.ui.SecureWindow;
 import com.doubleangels.redact.ui.ShareResults;
 import com.doubleangels.redact.ui.SummaryCard;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.chip.Chip;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.slider.Slider;
 
+import java.text.NumberFormat;
 import java.util.List;
 
 /**
@@ -74,7 +88,7 @@ public class CensorFragment extends TabFragment {
     @Nullable
     private View column;
     private View deleteButton;
-    private com.google.android.material.chip.Chip zoomChip;
+    private Chip zoomChip;
     private View undoButton;
     private View redoButton;
     private TextView statusText;
@@ -82,9 +96,9 @@ public class CensorFragment extends TabFragment {
     private View shareButton;
     private View scanResultButton;
     @Nullable
-    private androidx.appcompat.app.AlertDialog replaceDialog;
+    private AlertDialog replaceDialog;
     @Nullable
-    private androidx.appcompat.widget.PopupMenu effectMenu;
+    private PopupMenu effectMenu;
     /** Whether this fragment last hid the bars, so they are only shown or hidden on a change. */
     private boolean immersive;
     /** The rectangle selected on the canvas, which Delete removes, or minus one. */
@@ -121,11 +135,11 @@ public class CensorFragment extends TabFragment {
                 new ActivityResultContracts.StartIntentSenderForResult(), result -> {
                     Uri trashed = pendingTrashSource;
                     pendingTrashSource = null;
-                    SentryManager.logEvent("censor", result.getResultCode() == android.app.Activity.RESULT_OK
+                    SentryManager.logEvent("censor", result.getResultCode() == Activity.RESULT_OK
                             ? "The user moved the uncensored original to the trash."
                             : "The user kept the uncensored original.");
                     // The original is gone, so there is nothing left to save another copy from.
-                    if (result.getResultCode() == android.app.Activity.RESULT_OK && trashed != null
+                    if (result.getResultCode() == Activity.RESULT_OK && trashed != null
                             && viewModel != null && trashed.equals(viewModel.getSource())) {
                         viewModel.close();
                     }
@@ -156,7 +170,7 @@ public class CensorFragment extends TabFragment {
         fileName = view.findViewById(R.id.summaryTitle);
         // A file name keeps its extension visible, which a count has no need for.
         fileName.setSingleLine(true);
-        fileName.setEllipsize(android.text.TextUtils.TruncateAt.MIDDLE);
+        fileName.setEllipsize(TextUtils.TruncateAt.MIDDLE);
         historyControls = view.findViewById(R.id.censorHistoryControls);
         toolPill = view.findViewById(R.id.censorToolPill);
         fullScreenButton = view.findViewById(R.id.censorFullScreenButton);
@@ -217,13 +231,13 @@ public class CensorFragment extends TabFragment {
         setUpEffects();
         canvas.setListener(new CensorCanvasView.Listener() {
             @Override
-            public void onRegionDrawn(@NonNull com.doubleangels.redact.media.CensorRegion region) {
+            public void onRegionDrawn(@NonNull CensorRegion region) {
                 viewModel.addRegion(region);
                 Haptics.tick(canvas);
             }
 
             @Override
-            public void onRegionChanged(int index, @NonNull com.doubleangels.redact.media.CensorRegion region) {
+            public void onRegionChanged(int index, @NonNull CensorRegion region) {
                 viewModel.replaceRegion(index, region);
                 Haptics.tick(canvas);
             }
@@ -286,13 +300,13 @@ public class CensorFragment extends TabFragment {
         CensorViewModel.State state = viewModel.getState().getValue();
         boolean photoShowing = !isHidden() && getView() != null
                 && state != null && state != CensorViewModel.State.NONE;
-        com.doubleangels.redact.ui.SecureWindow.setPhotoOpen(requireActivity(), photoShowing);
+        SecureWindow.setPhotoOpen(requireActivity(), photoShowing);
     }
 
     @Override
     public void onDestroyView() {
         canvas.removeCallbacks(hideBrushPreview);
-        com.doubleangels.redact.ui.SecureWindow.setPhotoOpen(requireActivity(), false);
+        SecureWindow.setPhotoOpen(requireActivity(), false);
         setImmersive(false);
         if (effectMenu != null) {
             effectMenu.dismiss();
@@ -308,7 +322,7 @@ public class CensorFragment extends TabFragment {
     private void pickPhoto() {
         try {
             photoPickerLauncher.launch(new String[] {"image/*"});
-        } catch (android.content.ActivityNotFoundException e) {
+        } catch (ActivityNotFoundException e) {
             SentryManager.recordException(e);
             Notice.show(requireContext(), R.string.share_error_generic, false);
         }
@@ -479,11 +493,11 @@ public class CensorFragment extends TabFragment {
         if (effectMenu != null) {
             return;
         }
-        androidx.appcompat.widget.PopupMenu popup =
-                new androidx.appcompat.widget.PopupMenu(requireContext(), anchor);
+        PopupMenu popup =
+                new PopupMenu(requireContext(), anchor);
         effectMenu = popup;
         popup.setOnDismissListener(menu -> effectMenu = null);
-        android.view.Menu menu = popup.getMenu();
+        Menu menu = popup.getMenu();
         CensorEffects.Effect current = viewModel.getEffect().getValue();
         CensorEffects.Effect[] effects = CensorEffects.Effect.values();
         for (int i = 0; i < effects.length; i++) {
@@ -499,7 +513,7 @@ public class CensorFragment extends TabFragment {
         popup.show();
     }
 
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     void chooseEffect(@NonNull CensorEffects.Effect effect) {
         SentryManager.logEvent("censor", "The user chose the " + effect.name() + " effect.");
         viewModel.setEffect(effect);
@@ -531,7 +545,7 @@ public class CensorFragment extends TabFragment {
             viewModel.acknowledgeSaveResult();
             // Android's trash confirmation takes priority over asking for a rating.
             if (!requestTrashOriginal()) {
-                com.doubleangels.redact.ui.ReviewPrompt.askIfDue(this);
+                ReviewPrompt.askIfDue(this);
             }
             return;
         }
@@ -626,7 +640,7 @@ public class CensorFragment extends TabFragment {
     @NonNull
     static String zoomLabel(float zoom) {
         float rounded = Math.round(zoom * 10f) / 10f;
-        java.text.NumberFormat format = java.text.NumberFormat.getNumberInstance();
+        NumberFormat format = NumberFormat.getNumberInstance();
         format.setMaximumFractionDigits(rounded == Math.rint(rounded) ? 0 : 1);
         return format.format(rounded);
     }
@@ -654,7 +668,7 @@ public class CensorFragment extends TabFragment {
     private Uri trashableSource(@NonNull Uri source) {
         try {
             Uri media;
-            if (android.provider.MediaStore.AUTHORITY.equals(source.getAuthority())) {
+            if (MediaStore.AUTHORITY.equals(source.getAuthority())) {
                 // A photo picker item's number is the picker's own, not the library's.
                 List<String> path = source.getPathSegments();
                 if (path.isEmpty() || path.get(0).startsWith("picker")) {
@@ -662,7 +676,7 @@ public class CensorFragment extends TabFragment {
                 }
                 media = source;
             } else {
-                media = android.provider.MediaStore.getMediaUri(requireContext(), source);
+                media = MediaStore.getMediaUri(requireContext(), source);
             }
             return media != null ? CleanFragment.trashableMediaUri(media, "image/*") : null;
         } catch (Exception notMedia) {
@@ -675,7 +689,7 @@ public class CensorFragment extends TabFragment {
         try {
             pendingTrashSource = source;
             trashRequestLauncher.launch(new IntentSenderRequest.Builder(
-                    android.provider.MediaStore.createTrashRequest(requireContext().getContentResolver(),
+                    MediaStore.createTrashRequest(requireContext().getContentResolver(),
                             List.of(media), true).getIntentSender()).build());
         } catch (Exception e) {
             pendingTrashSource = null;
@@ -694,7 +708,7 @@ public class CensorFragment extends TabFragment {
         if (pending == null || replaceDialog != null) {
             return;
         }
-        replaceDialog = com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
+        replaceDialog = FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.censor_discard_title)
                 .setMessage(R.string.censor_discard_message)
                 .setNegativeButton(R.string.censor_keep_editing, (d, w) -> viewModel.cancelReplacement())
@@ -705,7 +719,7 @@ public class CensorFragment extends TabFragment {
     }
 
     private void confirmDiscard(@NonNull Runnable onDiscard) {
-        com.doubleangels.redact.ui.FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
+        FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.censor_discard_title)
                 .setMessage(R.string.censor_discard_message)
                 .setNegativeButton(R.string.censor_keep_editing, null)

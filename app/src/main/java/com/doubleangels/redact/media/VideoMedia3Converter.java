@@ -2,13 +2,19 @@ package com.doubleangels.redact.media;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
+import android.media.MediaExtractor;
+import android.media.MediaFormat;
 import android.media.MediaMetadataRetriever;
 import android.media.metrics.LogSessionId;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.MediaStore;
+import android.os.SystemClock;
+import android.view.Surface;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
@@ -39,7 +45,16 @@ import androidx.media3.transformer.ExportResult;
 import androidx.media3.transformer.ProgressHolder;
 import androidx.media3.transformer.Transformer;
 import androidx.media3.transformer.VideoEncoderSettings;
+import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
+import androidx.media3.common.Effect;
+import androidx.media3.common.Metadata;
+import androidx.media3.common.util.ExperimentalApi;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.container.Mp4LocationData;
 
+import com.doubleangels.redact.R;
+import com.doubleangels.redact.sentry.SentryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
@@ -48,8 +63,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -57,11 +77,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
-
-import androidx.annotation.Nullable;
-import androidx.annotation.OptIn;
-import androidx.media3.common.util.ExperimentalApi;
-import androidx.media3.common.util.UnstableApi;
 
 /**
  * Transcodes video with Jetpack Media3 {@link Transformer}, then copies the result into
@@ -161,7 +176,7 @@ public final class VideoMedia3Converter {
         }
     }
 
-    private static final java.util.Set<Waiter> WAITERS = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private static final Set<Waiter> WAITERS = ConcurrentHashMap.newKeySet();
 
     private VideoMedia3Converter() {
     }
@@ -273,7 +288,7 @@ public final class VideoMedia3Converter {
             if (keepLocation != null && keepLocation.length >= 2) {
                 // Written from the value the clean was asked to keep, not passed through from the
                 // source, so nothing else can ride along with it.
-                muxer.addMetadataEntry(new androidx.media3.container.Mp4LocationData(
+                muxer.addMetadataEntry(new Mp4LocationData(
                         (float) keepLocation[0], (float) keepLocation[1]));
             }
             return new Muxer() {
@@ -282,20 +297,20 @@ public final class VideoMedia3Converter {
                     if (vp9Config != null && MimeTypes.VIDEO_VP9.equals(format.sampleMimeType)
                             && format.initializationData.isEmpty()) {
                         format = format.buildUpon()
-                                .setInitializationData(java.util.Collections.singletonList(vp9Config))
+                                .setInitializationData(Collections.singletonList(vp9Config))
                                 .build();
                     }
                     return muxer.addTrack(format);
                 }
 
                 @Override
-                public void writeSampleData(int trackId, @NonNull java.nio.ByteBuffer data,
+                public void writeSampleData(int trackId, @NonNull ByteBuffer data,
                                             @NonNull BufferInfo bufferInfo) throws MuxerException {
                     muxer.writeSampleData(trackId, data, bufferInfo);
                 }
 
                 @Override
-                public void addMetadataEntry(@NonNull androidx.media3.common.Metadata.Entry entry) {
+                public void addMetadataEntry(@NonNull Metadata.Entry entry) {
                     // Dropped: see the class comment.
                 }
 
@@ -409,7 +424,7 @@ public final class VideoMedia3Converter {
         // Read once: every codec and size attempt below would otherwise open the source again.
         boolean hasAudio = sourceHasAudio(app, sourceUri);
         SourceVideo source = readSourceVideo(app, sourceUri);
-        com.doubleangels.redact.sentry.SentryManager.log(
+        SentryManager.log(
                 "The app is transcoding a " + source.describe() + " video.");
 
         IOException lastFailure = null;
@@ -489,7 +504,7 @@ public final class VideoMedia3Converter {
                 ? planOutput(source.width, source.height, source.frameRate, support)
                 : new int[] {0, 0};
         if (plan[0] > 0 || plan[1] > 0) {
-            com.doubleangels.redact.sentry.SentryManager.log(
+            SentryManager.log(
                     "The hardware " + videoMimeType + " encoder doesn't support " + source.describe()
                             + ", so the app is exporting at "
                             + (plan[0] > 0 ? plan[0] + "p" : "full size")
@@ -630,18 +645,18 @@ public final class VideoMedia3Converter {
      */
     @Nullable
     private static SizeRateSupport hardwareEncoderSupport(@NonNull String mimeType) {
-        android.media.MediaCodecInfo.VideoCapabilities caps = hardwareEncoderCapabilities(mimeType);
+        MediaCodecInfo.VideoCapabilities caps = hardwareEncoderCapabilities(mimeType);
         if (caps == null) {
             return null;
         }
-        List<android.media.MediaCodecInfo.VideoCapabilities.PerformancePoint> points =
+        List<MediaCodecInfo.VideoCapabilities.PerformancePoint> points =
                 caps.getSupportedPerformancePoints();
         if (points != null && !points.isEmpty()) {
             return (width, height, frameRate) -> {
-                android.media.MediaCodecInfo.VideoCapabilities.PerformancePoint wanted =
-                        new android.media.MediaCodecInfo.VideoCapabilities.PerformancePoint(
+                MediaCodecInfo.VideoCapabilities.PerformancePoint wanted =
+                        new MediaCodecInfo.VideoCapabilities.PerformancePoint(
                                 width, height, frameRate);
-                for (android.media.MediaCodecInfo.VideoCapabilities.PerformancePoint point : points) {
+                for (MediaCodecInfo.VideoCapabilities.PerformancePoint point : points) {
                     if (point.covers(wanted)) {
                         return true;
                     }
@@ -659,11 +674,11 @@ public final class VideoMedia3Converter {
      * Media3 picks, or null when there is none or the codec list can't be read.
      */
     @Nullable
-    private static android.media.MediaCodecInfo.VideoCapabilities hardwareEncoderCapabilities(
+    private static MediaCodecInfo.VideoCapabilities hardwareEncoderCapabilities(
             @NonNull String mimeType) {
         try {
-            for (android.media.MediaCodecInfo info :
-                    new android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS)
+            for (MediaCodecInfo info :
+                    new MediaCodecList(MediaCodecList.REGULAR_CODECS)
                             .getCodecInfos()) {
                 if (info.isEncoder() && info.isHardwareAccelerated()
                         && Arrays.asList(info.getSupportedTypes()).contains(mimeType)) {
@@ -683,13 +698,13 @@ public final class VideoMedia3Converter {
     private static int audioEncoderMaxBitrate(@NonNull String mimeType) {
         int max = 0;
         try {
-            for (android.media.MediaCodecInfo info :
-                    new android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS)
+            for (MediaCodecInfo info :
+                    new MediaCodecList(MediaCodecList.REGULAR_CODECS)
                             .getCodecInfos()) {
                 if (!info.isEncoder() || !Arrays.asList(info.getSupportedTypes()).contains(mimeType)) {
                     continue;
                 }
-                android.media.MediaCodecInfo.AudioCapabilities caps =
+                MediaCodecInfo.AudioCapabilities caps =
                         info.getCapabilitiesForType(mimeType).getAudioCapabilities();
                 if (caps != null) {
                     max = Math.max(max, caps.getBitrateRange().getUpper());
@@ -722,7 +737,7 @@ public final class VideoMedia3Converter {
         int target = matchedVideoBitrate(
                 source.bitrate, source.mime, (long) sourceLong * sourceShort * source.frameRate,
                 outputMime, (long) outLong * outShort * outFrameRate);
-        android.media.MediaCodecInfo.VideoCapabilities caps = hardwareEncoderCapabilities(outputMime);
+        MediaCodecInfo.VideoCapabilities caps = hardwareEncoderCapabilities(outputMime);
         if (target > 0 && caps != null) {
             target = caps.getBitrateRange().clamp(target);
         }
@@ -803,18 +818,18 @@ public final class VideoMedia3Converter {
      */
     @VisibleForTesting
     static void warnDownscaled(@NonNull Context app, int shortSide) {
-        com.doubleangels.redact.sentry.SentryManager.log(
+        SentryManager.log(
                 "The video was saved at " + shortSide + "p, smaller than its source.");
-        String message = app.getString(com.doubleangels.redact.R.string.video_downscaled, shortSide);
+        String message = app.getString(R.string.video_downscaled, shortSide);
         new Handler(Looper.getMainLooper()).post(
-                () -> android.widget.Toast.makeText(app, message, android.widget.Toast.LENGTH_LONG).show());
+                () -> Toast.makeText(app, message, Toast.LENGTH_LONG).show());
     }
 
     /**
      * Downscale targets strictly smaller than the source's short side, so a retry never upscales.
      * When the source size is unknown ({@code <= 0}) every target is tried.
      */
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     static int[] fallbackShortSides(int sourceShortSide) {
         int count = 0;
         int[] sides = new int[FALLBACK_SHORT_SIDES.length];
@@ -843,7 +858,7 @@ public final class VideoMedia3Converter {
      * before, so audio is never dropped by mistake.
      */
     private static boolean sourceHasAudio(@NonNull Context app, @NonNull Uri sourceUri) {
-        android.media.MediaExtractor extractor = new android.media.MediaExtractor();
+        MediaExtractor extractor = new MediaExtractor();
         try {
             extractor.setDataSource(app, sourceUri, null);
             int tracks = extractor.getTrackCount();
@@ -851,7 +866,7 @@ public final class VideoMedia3Converter {
                 return true;
             }
             for (int i = 0; i < tracks; i++) {
-                String mime = extractor.getTrackFormat(i).getString(android.media.MediaFormat.KEY_MIME);
+                String mime = extractor.getTrackFormat(i).getString(MediaFormat.KEY_MIME);
                 if (mime != null && mime.startsWith("audio/")) {
                     return true;
                 }
@@ -859,7 +874,7 @@ public final class VideoMedia3Converter {
             return false;
         } catch (Exception e) {
             // Keeping the audio track is the safe default when the source cannot be inspected.
-            com.doubleangels.redact.sentry.SentryManager.log("The video's tracks could not be read, so its audio is kept.");
+            SentryManager.log("The video's tracks could not be read, so its audio is kept.");
             return true;
         } finally {
             extractor.release();
@@ -997,7 +1012,7 @@ public final class VideoMedia3Converter {
         MediaItem mediaItem = MediaItem.fromUri(sourceUri);
         EditedMediaItem.Builder editedMediaItemBuilder =
                 new EditedMediaItem.Builder(mediaItem).setRemoveAudio(false);
-        ImmutableList.Builder<androidx.media3.common.Effect> videoEffects = ImmutableList.builder();
+        ImmutableList.Builder<Effect> videoEffects = ImmutableList.builder();
         if (outputFrameRate > 0) {
             // Dropped on the GPU before the encoder, which is configured for this rate too.
             videoEffects.add(FrameDropEffect.createDefaultFrameDropEffect(outputFrameRate));
@@ -1005,7 +1020,7 @@ public final class VideoMedia3Converter {
         if (outputShortSide > 0) {
             videoEffects.add(Presentation.createForShortSide(outputShortSide));
         }
-        ImmutableList<androidx.media3.common.Effect> effects = videoEffects.build();
+        ImmutableList<Effect> effects = videoEffects.build();
         if (!effects.isEmpty()) {
             editedMediaItemBuilder.setEffects(new Effects(ImmutableList.of(), effects));
         }
@@ -1025,7 +1040,7 @@ public final class VideoMedia3Converter {
         AtomicReference<Transformer> transformerRef = new AtomicReference<>();
         // The last progress Media3 reported, for the stall check; -1 before the first.
         AtomicInteger progressSeen = new AtomicInteger(-1);
-        long startedAt = android.os.SystemClock.elapsedRealtime();
+        long startedAt = SystemClock.elapsedRealtime();
         String attemptLabel = copyVideo
                 ? "video copy"
                 : outputFrameRate > 0 ? videoMimeType + " " + outputFrameRate + "fps" : videoMimeType;
@@ -1206,9 +1221,9 @@ public final class VideoMedia3Converter {
     private static void logAttemptFailure(
             @NonNull String videoMimeType, int outputShortSide, @NonNull String reason,
             int progress, long startedAt) {
-        com.doubleangels.redact.sentry.SentryManager.log(describeAttemptFailure(
+        SentryManager.log(describeAttemptFailure(
                 videoMimeType, outputShortSide, reason, progress,
-                android.os.SystemClock.elapsedRealtime() - startedAt));
+                SystemClock.elapsedRealtime() - startedAt));
     }
 
     /**
@@ -1270,25 +1285,25 @@ public final class VideoMedia3Converter {
         int bitrate = 0;
         int audioBitrate = 0;
         boolean audioSeen = false;
-        android.media.MediaExtractor extractor = new android.media.MediaExtractor();
+        MediaExtractor extractor = new MediaExtractor();
         try {
             extractor.setDataSource(app, sourceUri, null);
             for (int i = 0; i < extractor.getTrackCount(); i++) {
-                android.media.MediaFormat format = extractor.getTrackFormat(i);
-                String trackMime = format.getString(android.media.MediaFormat.KEY_MIME);
+                MediaFormat format = extractor.getTrackFormat(i);
+                String trackMime = format.getString(MediaFormat.KEY_MIME);
                 if (trackMime == null) {
                     continue;
                 }
                 if (mime == null && trackMime.startsWith("video/")) {
                     mime = trackMime;
-                    width = intOrZero(format, android.media.MediaFormat.KEY_WIDTH);
-                    height = intOrZero(format, android.media.MediaFormat.KEY_HEIGHT);
-                    frameRate = intOrZero(format, android.media.MediaFormat.KEY_FRAME_RATE);
-                    bitrate = intOrZero(format, android.media.MediaFormat.KEY_BIT_RATE);
+                    width = intOrZero(format, MediaFormat.KEY_WIDTH);
+                    height = intOrZero(format, MediaFormat.KEY_HEIGHT);
+                    frameRate = intOrZero(format, MediaFormat.KEY_FRAME_RATE);
+                    bitrate = intOrZero(format, MediaFormat.KEY_BIT_RATE);
                 } else if (!audioSeen && trackMime.startsWith("audio/")) {
                     // Only the first audio track is kept by the export, so only its rate counts.
                     audioSeen = true;
-                    audioBitrate = intOrZero(format, android.media.MediaFormat.KEY_BIT_RATE);
+                    audioBitrate = intOrZero(format, MediaFormat.KEY_BIT_RATE);
                 }
             }
         } catch (Exception e) {
@@ -1346,7 +1361,7 @@ public final class VideoMedia3Converter {
     }
 
     /** Frame rate is a float in some containers and an int in others. */
-    private static int intOrZero(@NonNull android.media.MediaFormat format, @NonNull String key) {
+    private static int intOrZero(@NonNull MediaFormat format, @NonNull String key) {
         if (!format.containsKey(key)) {
             return 0;
         }
@@ -1369,11 +1384,11 @@ public final class VideoMedia3Converter {
     private static boolean awaitUnlessStalled(
             @NonNull CountDownLatch latch, @NonNull File outFile, @NonNull AtomicInteger progressSeen)
             throws InterruptedException {
-        long lastChange = android.os.SystemClock.elapsedRealtime();
+        long lastChange = SystemClock.elapsedRealtime();
         long lastLength = -1;
         int lastProgress = -1;
         while (!latch.await(STALL_CHECK_SECONDS, TimeUnit.SECONDS)) {
-            long now = android.os.SystemClock.elapsedRealtime();
+            long now = SystemClock.elapsedRealtime();
             long length = outFile.length();
             int progress = progressSeen.get();
             if (length != lastLength || progress != lastProgress) {
@@ -1393,7 +1408,7 @@ public final class VideoMedia3Converter {
      * failures arrive as {@link ExportException#ERROR_CODE_UNSPECIFIED} wrapping the player's
      * {@link PlaybackException}, so the cause chain is checked too.
      */
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     static boolean isUnsupportedInput(@NonNull ExportException e) {
         if (e.errorCode == ExportException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED) {
             return true;
@@ -1417,7 +1432,7 @@ public final class VideoMedia3Converter {
      * {@link IllegalArgumentException} "unsupported width"/"unsupported height" from Media3's
      * encoder resolution search; that surfaces wrapped as a frame processing error.
      */
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     static boolean isEncoderResolutionFailure(@NonNull ExportException e) {
         Throwable t = e;
         for (int depth = 0; t != null && depth < 16; depth++, t = t.getCause()) {
@@ -1438,7 +1453,7 @@ public final class VideoMedia3Converter {
      * long. Some hardware codecs hang at certain frame sizes (REDACT-25), and a smaller frame
      * gives them a lighter load to retry with.
      */
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     static boolean isMuxerStall(@NonNull ExportException e) {
         return e.errorCode == ExportException.ERROR_CODE_MUXING_TIMEOUT;
     }
@@ -1449,7 +1464,7 @@ public final class VideoMedia3Converter {
      * (REDACT-26), and a smaller frame brings the load back within them. Audio encoder failures
      * are left alone, since a smaller frame would not help.
      */
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     static boolean isVideoEncoderFailure(@NonNull ExportException e) {
         return (e.errorCode == ExportException.ERROR_CODE_ENCODING_FAILED
                         || e.errorCode == ExportException.ERROR_CODE_ENCODER_INIT_FAILED)
@@ -1457,7 +1472,7 @@ public final class VideoMedia3Converter {
     }
 
     /** The stall timeout for a phone of {@code mediaPerformanceClass} (0 when it declares none). */
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     static long maxSampleGapMs(int mediaPerformanceClass) {
         return mediaPerformanceClass > 0 ? MAX_SAMPLE_GAP_MS : MAX_SAMPLE_GAP_UNRATED_MS;
     }
@@ -1508,7 +1523,7 @@ public final class VideoMedia3Converter {
 
         @NonNull
         @Override
-        public Codec createForVideoDecoding(@NonNull Format format, @NonNull android.view.Surface outputSurface,
+        public Codec createForVideoDecoding(@NonNull Format format, @NonNull Surface outputSurface,
                 boolean requestSdrToneMapping, @Nullable LogSessionId logSessionId) throws ExportException {
             return delegate.createForVideoDecoding(
                     evenSize(format), outputSurface, requestSdrToneMapping, logSessionId);
@@ -1593,7 +1608,7 @@ public final class VideoMedia3Converter {
 
     /** Maps format chip index to output video MIME (MP4). */
     @NonNull
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     static String videoMimeTypeForFormatIndex(int formatIndex) {
         switch (formatIndex) {
             case 1:
@@ -1641,7 +1656,7 @@ public final class VideoMedia3Converter {
     public static Uri copyToMoviesRedact(Context context, File file, String originalFileName)
             throws IOException {
         ContentResolver resolver = context.getContentResolver();
-        boolean webm = file.getName().toLowerCase(java.util.Locale.ROOT).endsWith(".webm");
+        boolean webm = file.getName().toLowerCase(Locale.ROOT).endsWith(".webm");
         String ext = webm ? ".webm" : ".mp4";
         String mime = webm ? "video/webm" : "video/mp4";
         String outName = MediaFileNames.outputBaseName(context, originalFileName) + ext;
@@ -1654,17 +1669,13 @@ public final class VideoMedia3Converter {
                 OutputDestination.discard(resolver, outUri);
                 throw new IOException("Cannot open output stream");
             }
-            byte[] buffer = new byte[65536];
-            int read;
-            while ((read = in.read(buffer)) > 0) {
-                out.write(buffer, 0, read);
-            }
+            MediaSizeLimits.copyStream(in, out);
             out.flush();
         } catch (IOException e) {
             try {
                 OutputDestination.discard(resolver, outUri);
             } catch (Exception ignored) {
-                com.doubleangels.redact.sentry.SentryManager.recordException(ignored);
+                SentryManager.recordException(ignored);
             }
             throw e;
         }

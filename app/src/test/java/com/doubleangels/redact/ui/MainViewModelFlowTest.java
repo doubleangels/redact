@@ -5,12 +5,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Application;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Looper;
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
 import androidx.fragment.app.FragmentActivity;
@@ -34,7 +32,6 @@ import org.robolectric.annotation.Config;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BooleanSupplier;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 31)

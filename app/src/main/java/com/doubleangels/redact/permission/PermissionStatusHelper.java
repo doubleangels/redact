@@ -10,7 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 
-import com.doubleangels.redact.AppPreferences;
 
 /**
  * Read-only permission status checks for the Settings screen.
@@ -31,7 +30,7 @@ public final class PermissionStatusHelper {
     private PermissionStatusHelper() {
     }
 
-    @android.annotation.SuppressLint("InlinedApi")
+    @SuppressLint("InlinedApi")
     @NonNull
     public static Status getMediaAccessStatus(@NonNull Context context) {
         Context app = context.getApplicationContext();

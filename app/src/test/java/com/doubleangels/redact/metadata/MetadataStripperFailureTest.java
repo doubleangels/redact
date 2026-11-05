@@ -1,8 +1,6 @@
 package com.doubleangels.redact.metadata;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import android.app.Application;
 import android.graphics.Bitmap;

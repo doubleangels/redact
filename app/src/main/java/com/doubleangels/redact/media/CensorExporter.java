@@ -4,14 +4,26 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Gainmap;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.net.Uri;
+import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.annotation.VisibleForTesting;
 
+import com.doubleangels.redact.R;
 import com.doubleangels.redact.metadata.CleanStats;
 import com.doubleangels.redact.metadata.MetadataStripper;
+import com.doubleangels.redact.sentry.SentryManager;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -71,16 +83,16 @@ public final class CensorExporter {
         try {
             try {
                 CensorEffects.apply(bitmap, regions, effect);
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                     censorGainMap(bitmap, regions);
                 }
-                boolean png = spec.compressFormat == android.graphics.Bitmap.CompressFormat.PNG;
+                boolean png = spec.compressFormat == Bitmap.CompressFormat.PNG;
                 boolean sixteenBit = png && writeSixteenBitPng(context, source, bitmap, regions, censored);
                 if (!sixteenBit && png && HighPrecisionPng.isHighPrecision(bitmap)) {
                     // A turned 16-bit PNG, or a picture decoded at more than 8 bits some other
                     // way: its own samples can't be lined up with the picture, but the censored
                     // bitmap still holds them at full precision.
-                    try (OutputStream os = new java.io.BufferedOutputStream(new FileOutputStream(censored), 64 * 1024)) {
+                    try (OutputStream os = new BufferedOutputStream(new FileOutputStream(censored), 64 * 1024)) {
                         HighPrecisionPng.write(bitmap, os);
                     }
                     sixteenBit = true;
@@ -98,7 +110,7 @@ public final class CensorExporter {
                 bitmap.recycle();
             }
             String name = MediaFileNames.outputBaseName(context, fileName,
-                    com.doubleangels.redact.R.string.censor_file_name) + spec.extension;
+                    R.string.censor_file_name) + spec.extension;
             MetadataStripper stripper = new MetadataStripper(context);
             Uri out = stripper.saveCensoredImage(source, censored, name, spec);
             return new Result(out, downscaled, stripper.getLastCleanStats());
@@ -116,13 +128,13 @@ public final class CensorExporter {
      * brightness, so those regions just show at their SDR level. The edge is padded, so gain map
      * pixels that only partly overlap a region are covered.
      */
-    @androidx.annotation.RequiresApi(android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-    @androidx.annotation.VisibleForTesting
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    @VisibleForTesting
     static void censorGainMap(@NonNull Bitmap bitmap, @NonNull List<CensorRegion> regions) {
         if (!bitmap.hasGainmap()) {
             return;
         }
-        android.graphics.Gainmap gainmap = bitmap.getGainmap();
+        Gainmap gainmap = bitmap.getGainmap();
         Bitmap contents = gainmap.getGainmapContents();
         Bitmap editable = contents.isMutable() && contents.getConfig() != Bitmap.Config.HARDWARE
                 ? contents
@@ -133,10 +145,10 @@ public final class CensorExporter {
             bitmap.setGainmap(null);
             return;
         }
-        android.graphics.Canvas canvas = new android.graphics.Canvas(editable);
-        android.graphics.Paint clear = new android.graphics.Paint();
-        clear.setXfermode(new android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.CLEAR));
-        clear.setStyle(android.graphics.Paint.Style.FILL_AND_STROKE);
+        Canvas canvas = new Canvas(editable);
+        Paint clear = new Paint();
+        clear.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+        clear.setStyle(Paint.Style.FILL_AND_STROKE);
         clear.setStrokeWidth(2f);
         for (CensorRegion region : regions) {
             if (!region.isEmpty()) {
@@ -157,7 +169,7 @@ public final class CensorExporter {
      * when the source is not a 16-bit PNG shown as stored at full size, or the write fails, and
      * the caller encodes {@code censored} instead.
      */
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     static boolean writeSixteenBitPng(@NonNull Context context, @NonNull Uri source,
             @NonNull Bitmap censored, @NonNull List<CensorRegion> regions, @NonNull File target) {
         Png16.Header header = FormatConverter.sixteenBitPng(context, source);
@@ -169,11 +181,11 @@ public final class CensorExporter {
         Bitmap mask = null;
         try {
             mask = Bitmap.createBitmap(width, height, Bitmap.Config.ALPHA_8);
-            android.graphics.Canvas canvas = new android.graphics.Canvas(mask);
-            android.graphics.Paint paint = new android.graphics.Paint();
-            paint.setStyle(android.graphics.Paint.Style.FILL_AND_STROKE);
+            Canvas canvas = new Canvas(mask);
+            Paint paint = new Paint();
+            paint.setStyle(Paint.Style.FILL_AND_STROKE);
             paint.setStrokeWidth(2f);
-            paint.setColor(android.graphics.Color.BLACK);
+            paint.setColor(Color.BLACK);
             for (CensorRegion region : regions) {
                 if (!region.isEmpty()) {
                     canvas.drawPath(region.toPath(width, height), paint);
@@ -182,7 +194,7 @@ public final class CensorExporter {
             Bitmap covered = mask;
             int[] maskRow = new int[width];
             try (InputStream in = context.getContentResolver().openInputStream(source);
-                    OutputStream out = new java.io.BufferedOutputStream(new FileOutputStream(target), 64 * 1024)) {
+                    OutputStream out = new BufferedOutputStream(new FileOutputStream(target), 64 * 1024)) {
                 if (in == null) {
                     return false;
                 }
@@ -203,7 +215,7 @@ public final class CensorExporter {
             }
             return true;
         } catch (IOException | RuntimeException | OutOfMemoryError e) {
-            com.doubleangels.redact.sentry.SentryManager.log(
+            SentryManager.log(
                     "The censored 16-bit PNG could not be kept at 16 bits, so the app is saving it at 8: "
                             + e.getMessage() + ".");
             return false;

@@ -2,35 +2,41 @@ package com.doubleangels.redact.metadata;
 
 import android.Manifest;
 import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
+import android.text.format.Formatter;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.core.content.ContextCompat;
 import androidx.exifinterface.media.ExifInterface;
 
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.media.MediaSelector;
+import com.doubleangels.redact.media.MediaUriResolver;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -150,7 +156,7 @@ public class MetadataDisplayer {
                 SentryManager.beginOperation("extract_metadata");
                 ContentResolver contentResolver = context.getContentResolver();
                 String mimeType = contentResolver.getType(mediaUri);
-                boolean isVideo = com.doubleangels.redact.media.MediaSelector.isVideoFromMimeAndName(
+                boolean isVideo = MediaSelector.isVideoFromMimeAndName(
                         mimeType, fileNameFromUri(context, mediaUri));
                 SentryManager.setCustomKey("is_video", isVideo);
                 SentryManager.setCustomKey("mime_type", mimeType != null ? mimeType : "unknown");
@@ -200,11 +206,11 @@ public class MetadataDisplayer {
 
     @Nullable
     private static String fileNameFromUri(Context context, Uri mediaUri) {
-        return com.doubleangels.redact.media.MediaUriResolver.readDisplayName(context, mediaUri);
+        return MediaUriResolver.readDisplayName(context, mediaUri);
     }
 
     private static Uri uriForDisplayNameQuery(Context context, Uri mediaUri) {
-        return com.doubleangels.redact.media.MediaUriResolver.resolveForDisplayNameQuery(context, mediaUri);
+        return MediaUriResolver.resolveForDisplayNameQuery(context, mediaUri);
     }
 
     /**
@@ -225,7 +231,7 @@ public class MetadataDisplayer {
                 SentryManager.beginOperation("extract_sectioned_metadata");
                 ContentResolver contentResolver = context.getContentResolver();
                 String mimeType = contentResolver.getType(mediaUri);
-                boolean isVideo = com.doubleangels.redact.media.MediaSelector.isVideoFromMimeAndName(
+                boolean isVideo = MediaSelector.isVideoFromMimeAndName(
                         mimeType, fileNameFromUri(context, mediaUri));
                 SentryManager.setCustomKey("is_video", isVideo);
                 SentryManager.setCustomKey("mime_type", mimeType != null ? mimeType : "unknown");
@@ -331,7 +337,7 @@ public class MetadataDisplayer {
             try {
                 ContentResolver contentResolver = context.getContentResolver();
                 String mimeType = contentResolver.getType(mediaUri);
-                boolean isVideo = com.doubleangels.redact.media.MediaSelector.isVideoFromMimeAndName(
+                boolean isVideo = MediaSelector.isVideoFromMimeAndName(
                         mimeType, fileNameFromUri(context, mediaUri));
 
                 Map<String, String> locationMetadata = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
@@ -688,7 +694,7 @@ public class MetadataDisplayer {
      * permission; everything else goes to {@code embedded}, which is null when only location is
      * wanted.
      */
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     static void addImageContainerFindings(Context context, ImageContainerMetadata.Report report,
                                           boolean hasLocationPermission, Map<String, String> metadataMap,
                                           @Nullable Map<String, String> embedded) {
@@ -720,13 +726,13 @@ public class MetadataDisplayer {
             for (ImageContainerMetadata.Finding kept : report.kept) {
                 // Kept parts that hold no text, such as an HDR gain map, show their size.
                 metadataMap.put(kept.key, kept.text != null ? kept.text
-                        : android.text.format.Formatter.formatShortFileSize(context, kept.bytes));
+                        : Formatter.formatShortFileSize(context, kept.bytes));
             }
         }
     }
 
     private static String embeddedValue(Context context, ImageContainerMetadata.Finding finding) {
-        String size = android.text.format.Formatter.formatShortFileSize(context, finding.bytes);
+        String size = Formatter.formatShortFileSize(context, finding.bytes);
         if (finding.key.equals("EMBEDDED_IMAGES") && finding.text != null) {
             try {
                 int count = Integer.parseInt(finding.text);
@@ -770,8 +776,8 @@ public class MetadataDisplayer {
             final int maxExifTags = 200;
             int exifTagsAdded = 0;
             boolean exifTagCapReached = false;
-            java.lang.reflect.Field[] fields = ExifInterface.class.getDeclaredFields();
-            for (java.lang.reflect.Field field : fields) {
+            Field[] fields = ExifInterface.class.getDeclaredFields();
+            for (Field field : fields) {
                 if (exifTagsAdded >= maxExifTags) {
                     exifTagCapReached = true;
                     break;
@@ -789,7 +795,7 @@ public class MetadataDisplayer {
                                 }
 
                                 boolean looksLikeXmp = XmlLikeMetadataFormatter.looksLikeRdfOrXmp(trimmedValue);
-                                String upperTagName = convertToSnakeCase(tagName).toUpperCase(java.util.Locale.ROOT);
+                                String upperTagName = convertToSnakeCase(tagName).toUpperCase(Locale.ROOT);
                                 if (!hasLocationPermission
                                         && (isLocationMetadataKey(upperTagName) || looksLikeXmp)) {
                                     // An RDF/XMP blob (e.g. TAG_XMP) can embed its own GPS fields that
@@ -878,8 +884,8 @@ public class MetadataDisplayer {
             int width = exifInterface.getAttributeInt(ExifInterface.TAG_IMAGE_WIDTH, 0);
             int height = exifInterface.getAttributeInt(ExifInterface.TAG_IMAGE_LENGTH, 0);
             if (width > 0 && height > 0) {
-                String widthTagName = convertToSnakeCase(ExifInterface.TAG_IMAGE_WIDTH).toUpperCase(java.util.Locale.ROOT);
-                String heightTagName = convertToSnakeCase(ExifInterface.TAG_IMAGE_LENGTH).toUpperCase(java.util.Locale.ROOT);
+                String widthTagName = convertToSnakeCase(ExifInterface.TAG_IMAGE_WIDTH).toUpperCase(Locale.ROOT);
+                String heightTagName = convertToSnakeCase(ExifInterface.TAG_IMAGE_LENGTH).toUpperCase(Locale.ROOT);
                 // Only add if not already in the map (from reflection loop)
                 if (!metadataMap.containsKey(widthTagName)) {
                     metadataMap.put(widthTagName, String.valueOf(width));
@@ -1091,7 +1097,7 @@ public class MetadataDisplayer {
             if (!container.fields.isEmpty()) {
                 // A location's value is left out without the permission, as above.
                 List<String> tags = new ArrayList<>();
-                for (String name : new java.util.LinkedHashSet<>(container.fields)) {
+                for (String name : new LinkedHashSet<>(container.fields)) {
                     String value = container.values.get(name);
                     boolean place = container.isLocationField(name);
                     tags.add(value == null || (place && !hasLocationPermission) ? name : name + ": " + value);
@@ -1154,14 +1160,14 @@ public class MetadataDisplayer {
             retriever.setDataSource(context, videoUri);
 
             // Extract ALL available video metadata keys using reflection
-            java.util.Set<String> processedVideoKeys = new java.util.HashSet<>();
+            Set<String> processedVideoKeys = new HashSet<>();
             
             // Store LOCATION field for special processing (to split into GPSLATITUDE and GPSLONGITUDE)
             String locationValue = null;
             
             // Get all METADATA_KEY constants from MediaMetadataRetriever using reflection
-            java.lang.reflect.Field[] retrieverFields = MediaMetadataRetriever.class.getDeclaredFields();
-            for (java.lang.reflect.Field field : retrieverFields) {
+            Field[] retrieverFields = MediaMetadataRetriever.class.getDeclaredFields();
+            for (Field field : retrieverFields) {
                 if (field.getType() == int.class && field.getName().startsWith("METADATA_KEY_")) {
                     try {
                         int keyCode = field.getInt(null);
@@ -1187,12 +1193,12 @@ public class MetadataDisplayer {
                             }
 
                             // Remove METADATA_KEY_ prefix and convert to uppercase with underscores, then add to single map
-                            String displayKeyName = keyName.toUpperCase(java.util.Locale.ROOT);
+                            String displayKeyName = keyName.toUpperCase(Locale.ROOT);
                             if (displayKeyName.startsWith("METADATA_KEY_")) {
                                 displayKeyName = displayKeyName.substring("METADATA_KEY_".length());
                             }
                             // Convert to snake_case if needed (e.g., "VIDEOWIDTH" -> "VIDEO_WIDTH")
-                            displayKeyName = convertToSnakeCase(displayKeyName).toUpperCase(java.util.Locale.ROOT);
+                            displayKeyName = convertToSnakeCase(displayKeyName).toUpperCase(Locale.ROOT);
                             metadataMap.put(displayKeyName, trimmedValue);
                             
                             // Log important keys for analytics
@@ -1245,7 +1251,7 @@ public class MetadataDisplayer {
                 VideoStreamMetadata.Report stream = VideoStreamMetadata.scan(context, videoUri);
                 if (stream != null && stream.userDataMessages > 0) {
                     embedded.put("VIDEO_STREAM_USER_DATA", stream.text != null ? stream.text
-                            : android.text.format.Formatter.formatShortFileSize(context, stream.userDataBytes));
+                            : Formatter.formatShortFileSize(context, stream.userDataBytes));
                 }
             }
 
@@ -1311,7 +1317,7 @@ public class MetadataDisplayer {
     private static void addContainerFields(Context context, VideoContainerMetadata.Report container,
                                            boolean hasLocationPermission, Map<String, String> metadataMap,
                                            @Nullable Map<String, String> embedded) {
-        java.util.Set<String> names = new java.util.LinkedHashSet<>(container.fields);
+        Set<String> names = new LinkedHashSet<>(container.fields);
         if (hasLocationPermission && container.hasLocation
                 && !metadataMap.containsKey("GPS_LATITUDE") && !metadataMap.containsKey("LOCATION")) {
             double[] coordinates = container.coordinates;
@@ -1358,14 +1364,14 @@ public class MetadataDisplayer {
             }
             if (value == null) {
                 Long size = container.sizes.get(name);
-                value = android.text.format.Formatter.formatShortFileSize(context, size != null ? size : 0);
+                value = Formatter.formatShortFileSize(context, size != null ? size : 0);
             }
             embedded.put(key, value);
         }
     }
 
     /** A display key for a container tag: ©mak becomes MAKE, com.apple.quicktime.model MODEL. */
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     static String containerDisplayKey(String name) {
         switch (name) {
             case "©mak": return "MAKE";
@@ -1589,12 +1595,12 @@ public class MetadataDisplayer {
         if (uri == null) {
             return uri;
         }
-        Uri resolved = com.doubleangels.redact.media.MediaUriResolver.resolveToMediaStoreUri(context, uri);
+        Uri resolved = MediaUriResolver.resolveToMediaStoreUri(context, uri);
         return resolved != null ? resolved : uri;
     }
 
     private static boolean isPhotoPickerUri(@Nullable Uri uri) {
-        return com.doubleangels.redact.media.MediaUriResolver.isPhotoPickerUri(uri);
+        return MediaUriResolver.isPhotoPickerUri(uri);
     }
 
     private static boolean shouldUseRequireOriginal(Uri sourceUri, Uri accessUri) {
