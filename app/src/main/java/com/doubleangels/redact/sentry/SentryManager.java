@@ -216,8 +216,11 @@ public final class SentryManager {
         // Bounded walk: a cyclic cause chain must not hang error handling.
         Throwable t = e;
         for (int depth = 0; t != null && depth < 16; depth++, t = t.getCause()) {
+            // ClosedByInterruptException is how file channel I/O reports that its thread was
+            // interrupted, which is how a share or job is cancelled.
             if (t instanceof ProcessingCancelledException
                     || t instanceof InterruptedException
+                    || t instanceof java.nio.channels.ClosedByInterruptException
                     || t instanceof java.util.concurrent.CancellationException
                     || t instanceof android.os.OperationCanceledException) {
                 return true;
