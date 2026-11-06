@@ -8,7 +8,7 @@ allowed-tools: Bash, PowerShell, Read, Edit, Write, Grep, Glob, WebFetch
 Get the app ready for a release on two emulators, and never on a physical device, then give one combined summary:
 
 - **Test emulator:** the `Pixel_10_Pro` AVD (Play Store image, API 37.2). `/test` and the store screenshots run on it.
-- **Profile emulator:** `profileGeneratorApi37`, the Gradle-managed emulator in `baselineprofile/build.gradle` (Google APIs API 37, no Play Store, headless). Only the profile generator uses it; Gradle starts and stops it.
+- **Profile emulator:** `Pixel_10_Pro_Profiles`, the Gradle-managed emulator in `baselineprofile/build.gradle` (Google APIs API 37, no Play Store, headless). Only the profile generator uses it; Gradle starts and stops it.
 
 Because they are separate, the profiles are generated while the feature tests run. Every step that changes the code (translations, dependency upgrades, Sentry fixes, cleanup, lint fixes, the version bump) runs first, then the tests, profiles and screenshots run on that code, so their results cover exactly what will be released. The profiles only change the release build's profile files, which the debug app under test never uses, so generating them alongside the tests does not change what the tests cover. Each step follows another command's file: read that file and do what it says, with the changes listed here. Each step commits its own changes to the current branch automatically when it finishes (translations, dependency upgrades, Sentry fixes, cleanup, lint fixes, the version bump, profiles, coverage tests), as the command it follows describes, so the final test run covers committed code. Never push, and do not copy screenshots into `fastlane/` unless I ask.
 

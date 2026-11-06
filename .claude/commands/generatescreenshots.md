@@ -28,7 +28,7 @@ Skip this step unless I passed `ifchanged`. The store screenshots show the Clean
 ## 1. Find or start the emulator
 
 1. Run `adb devices -l` (adb is at `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe` if it is not on PATH).
-2. Pick the serial of the running emulator named `Pixel_10_Pro`, the **test emulator** (check with `adb -s <serial> emu avd name` or `getprop ro.boot.qemu.avd_name`). Ignore every physical device, even if it is the only other one connected, and the profile generator's Gradle-managed emulator (`profileGeneratorApi37`), which may be running alongside.
+2. Pick the serial of the running emulator named `Pixel_10_Pro`, the **test emulator** (check with `adb -s <serial> emu avd name` or `getprop ro.boot.qemu.avd_name`). Ignore every physical device, even if it is the only other one connected, and the profile generator's Gradle-managed emulator (`Pixel_10_Pro_Profiles`), which may be running alongside.
 3. If no `Pixel_10_Pro` emulator is running, start it with its window (the store images are its real screen): `%LOCALAPPDATA%\Android\Sdk\emulator\emulator.exe -avd Pixel_10_Pro -no-snapshot-save` (in the background), then wait until `sys.boot_completed` is `1`. If the AVD does not exist, stop and tell me.
 
 ## 2. Generate the screenshots

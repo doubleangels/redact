@@ -9,9 +9,7 @@ import android.provider.MediaStore
 import androidx.benchmark.macro.junit4.BaselineProfileRule
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
-import androidx.test.uiautomator.BySelector
 import androidx.test.uiautomator.Direction
-import androidx.test.uiautomator.StaleObjectException
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import java.io.File
@@ -19,17 +17,8 @@ import java.util.regex.Pattern
 import org.junit.Rule
 import org.junit.Test
 
-private const val PACKAGE = "com.doubleangels.redact"
-
-/** The system permission prompt's allow buttons: "Allow", "Allow all" (photos) or "While using the app". */
-private val ALLOW_BUTTON: Pattern =
-    Pattern.compile("com\\.android\\.permissioncontroller:id/permission_allow(_all|_foreground_only)?_button")
-
 /** The system share sheet that Redact's Clean share opens with the cleaned copy. */
 private val SHARE_SHEET: Pattern = Pattern.compile("com\\.android\\.intentresolver|android")
-
-/** The introduction's crash-report page, whose main button would turn crash reports on. */
-private const val CRASH_REPORTS_STEP = 8
 
 /** The Quick Settings tiles, each a shortcut to one tab. */
 private val TILES = listOf("CleanTileService", "ScanTileService", "CensorTileService")
@@ -54,8 +43,12 @@ private const val JOB_TIMEOUT_MS = 90_000L
  *   the code that does the work is compiled ahead of time too, not only the screens.
  *
  * Each sets up what it needs itself, so they run in any order.
+ *
+ * The class name is kept short on purpose: it starts the name of every profile file the emulator
+ * writes, and with a longer one the copy back to Windows passes the 260-character path limit adb
+ * cannot go over, so no profile arrives and the run deletes the committed ones.
  */
-class BaselineProfileGenerator {
+class Profiles {
 
     @get:Rule
     val rule = BaselineProfileRule()
@@ -65,9 +58,7 @@ class BaselineProfileGenerator {
     @Test
     fun startup() {
         // A returning user: the introduction is done before collecting, so it stays out of the profile.
-        device.executeShellCommand("am start -W -n $PACKAGE/.MainActivity")
-        finishIntroduction(device)
-        allowPermissionPrompts(device)
+        becomeReturningUser(device)
 
         rule.collect(PACKAGE, includeInStartupProfile = true) {
             pressHome()
@@ -111,6 +102,9 @@ class BaselineProfileGenerator {
                 convertToPng(photo)
                 censorAndSave(photo)
                 if (video != null) {
+                    // The introduction's photo prompt can leave Redact without video access, and the
+                    // sample video belongs to the shell, so grant it here, after the introduction.
+                    device.executeShellCommand("pm grant $PACKAGE android.permission.READ_MEDIA_VIDEO")
                     shareToClean(video, "video/mp4")
                     shareToTab(video, "video/mp4", "ScanShareTarget", "metadataCard")
                 }
@@ -167,11 +161,22 @@ class BaselineProfileGenerator {
         waitForJob("shareResultsButton")
     }
 
-    /** Shares the file to Redact's Clean entry, waits for the share sheet with the clean copy, and closes it. */
+    /**
+     * Shares the file to Redact's Clean entry, waits for the share sheet with the clean copy, and
+     * closes it. Stops waiting early if the share handler closes without a share sheet (the clean
+     * failed), so a failure costs seconds, not the whole job timeout. The handler is see-through, so
+     * the main screen showing underneath says nothing; the top activity does.
+     */
     private fun shareToClean(file: Uri, mimeType: String) {
         device.executeShellCommand(shareCommand(file, mimeType, "ShareHandlerActivity"))
-        device.wait(Until.hasObject(By.pkg(SHARE_SHEET).depth(0)), JOB_TIMEOUT_MS)
-        device.pressBack()
+        val deadline = System.currentTimeMillis() + JOB_TIMEOUT_MS
+        while (System.currentTimeMillis() < deadline) {
+            if (device.wait(Until.hasObject(By.pkg(SHARE_SHEET).depth(0)), 2_000)) {
+                device.pressBack()
+                break
+            }
+            if (!topActivity().contains("ShareHandlerActivity")) break
+        }
         device.waitForIdle()
     }
 
@@ -217,6 +222,11 @@ class BaselineProfileGenerator {
         device.waitForIdle()
         clickWhenShown(device, By.res("android", "button2"), 1_000)
     }
+
+    /** The `topResumedActivity` line of `dumpsys activity activities`. */
+    private fun topActivity(): String =
+        device.executeShellCommand("dumpsys activity activities").lineSequence()
+            .firstOrNull { it.contains("topResumedActivity") }.orEmpty()
 
     private fun shareCommand(file: Uri, mimeType: String, target: String) =
         "am start -a android.intent.action.SEND -t $mimeType --eu android.intent.extra.STREAM $file " +
@@ -277,47 +287,5 @@ class BaselineProfileGenerator {
         resolver.update(uri, ContentValues().apply { put(MediaStore.Images.Media.IS_PENDING, 0) }, null, null)
         file.delete()
         return uri
-    }
-
-    /**
-     * Skips to the introduction's choices, then allows media, location and notification access as
-     * a new user would. Crash reports get Not Now: a profile run must never turn them on.
-     */
-    private fun finishIntroduction(device: UiDevice) {
-        if (!clickWhenShown(device, By.res(PACKAGE, "onboardingSkip"), 3_000)) return
-        repeat(12) {
-            device.waitForIdle()
-            allowPermissionPrompts(device)
-            val progress = device.findObject(By.res(PACKAGE, "onboardingProgress")) ?: return
-            // "Step 8 of 9": the step number is the first number in the description.
-            val step = Regex("\\d+").find(progress.contentDescription ?: "")?.value?.toInt()
-            val button = if (step == CRASH_REPORTS_STEP) "onboardingSecondary" else "onboardingPrimary"
-            clickWhenShown(device, By.res(PACKAGE, button), 2_000)
-        }
-    }
-
-    private fun allowPermissionPrompts(device: UiDevice) {
-        repeat(4) {
-            if (!clickWhenShown(device, By.res(ALLOW_BUTTON), 2_000)) return
-            device.waitForIdle()
-        }
-    }
-
-    /**
-     * Clicks what [selector] finds once it shows, and returns whether it did. A permission prompt or
-     * an introduction page can redraw between finding a button and clicking it, which makes the found
-     * object stale; then it looks again instead of failing the run.
-     */
-    private fun clickWhenShown(device: UiDevice, selector: BySelector, timeoutMs: Long): Boolean {
-        repeat(3) {
-            val found = device.wait(Until.findObject(selector), timeoutMs) ?: return false
-            try {
-                found.click()
-                return true
-            } catch (e: StaleObjectException) {
-                device.waitForIdle()
-            }
-        }
-        return false
     }
 }

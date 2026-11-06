@@ -8,7 +8,7 @@ argument-hint: "[all | <store locales>]"
 
 Regenerate the baseline profile and the store screenshots, then review the results. They use two different emulators, so they run at the same time:
 
-- **Profile emulator:** `profileGeneratorApi37`, the Gradle-managed emulator in `baselineprofile/build.gradle` (Google APIs API 37, no Play Store, headless). See `/generateprofiles`.
+- **Profile emulator:** `Pixel_10_Pro_Profiles`, the Gradle-managed emulator in `baselineprofile/build.gradle` (Google APIs API 37, no Play Store, headless). See `/generateprofiles`.
 - **Test emulator:** the `Pixel_10_Pro` AVD (Play Store image, API 37.2), with its window. The screenshots always come from this one, never from the profile emulator or a physical device.
 
 Use `/generateprofiles` or `/generatescreenshots` to do just one. When it is done, commit the profiles to the current branch automatically. The screenshots land in `build/`, which git ignores, so there is nothing to commit unless I ask you to copy them into `fastlane/`; then commit the copied images to the current branch automatically. Do not push. Do not copy screenshots into `fastlane/` unless I ask.

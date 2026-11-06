@@ -15,6 +15,10 @@ android {
         minSdk 31
         targetSdk 37
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        // StartupBenchmark runs on the benchmark emulator below, which Macrobenchmark otherwise
+        // refuses. Emulator timings are only good for comparing the profile against no profile, not
+        // as absolute start times.
+        testInstrumentationRunnerArguments["androidx.benchmark.suppressErrors"] = "EMULATOR"
     }
 
     compileOptions {
@@ -31,18 +35,33 @@ android {
     // Play services, no Play Store) rather than plain AOSP: without Play services the emoji font never
     // loads at startup and the profile loses the androidx.emoji2 startup path real phones run.
     testOptions.managedDevices.localDevices {
-        create("profileGeneratorApi37") {
+        create("Pixel_10_Pro_Profiles") {
             device = "Pixel 10 Pro"
             apiLevel = 37
             systemImageSource = "google"
+            // The API 37.0 Google APIs image uses 4 KB pages; saying so stops Gradle warning that it
+            // could not tell. The page size does not change the profiles.
+            pageAlignment = com.android.build.api.dsl.ManagedVirtualDevice.PageAlignment.FORCE_4KB_PAGES
+        }
+
+        // The startup benchmark's own emulator (/benchmark), used for nothing else. An Automated Test
+        // Device image: stripped of most system apps and background services, so fewer processes
+        // compete with Redact while it is timed and the runs vary less. It has no Play services, so
+        // the emoji font load real phones do is not timed; both runs skip it alike, and only the gap
+        // between no profile and the profile is read.
+        create("Pixel_10_Pro_Benchmark") {
+            device = "Pixel 10 Pro"
+            apiLevel = 37
+            systemImageSource = "aosp-atd"
+            pageAlignment = com.android.build.api.dsl.ManagedVirtualDevice.PageAlignment.FORCE_4KB_PAGES
         }
     }
 }
 
 // Generate the profiles: ./gradlew :app:generateBaselineProfile
-// It runs on the profileGeneratorApi37 managed emulator above, never on a connected device.
+// It runs on the Pixel_10_Pro_Profiles managed emulator above, never on a connected device.
 baselineProfile {
-    managedDevices += "profileGeneratorApi37"
+    managedDevices += "Pixel_10_Pro_Profiles"
     useConnectedDevices = false
 }
 

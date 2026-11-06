@@ -518,7 +518,7 @@ Startup performance comes from a generated baseline and startup profile in `app/
 ./gradlew :app:generateBaselineProfile
 ```
 
-It runs on `profileGeneratorApi37`, a Gradle-managed emulator defined in `baselineprofile/build.gradle` (Google APIs API 37, no Play Store, on a Pixel 10 Pro screen). Gradle creates it, boots it headless with a fresh install, runs the generator and shuts it down, so no device needs to be connected and none that is gets used. The first run downloads its system image.
+It runs on `Pixel_10_Pro_Profiles`, a Gradle-managed emulator defined in `baselineprofile/build.gradle` (Google APIs API 37, no Play Store, on a Pixel 10 Pro screen). Gradle creates it, boots it headless with a fresh install, runs the generator and shuts it down, so no device needs to be connected and none that is gets used. The first run downloads its system image.
 
 ### Store screenshots and feature graphic
 
