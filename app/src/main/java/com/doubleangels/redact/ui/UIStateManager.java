@@ -5,6 +5,8 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+
 import com.doubleangels.redact.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
@@ -152,7 +154,7 @@ public final class UIStateManager {
      * Same as {@link #setProcessedItemsStatus(int, int)}, followed by {@code summary} (what the
      * batch removed, from {@link CleanSummary#describe}) when anything was cleaned.
      */
-    public void setProcessedItemsStatus(int successCount, int totalCount, @androidx.annotation.Nullable String summary) {
+    public void setProcessedItemsStatus(int successCount, int totalCount, @Nullable String summary) {
         runOnUi(() -> {
             if (totalCount > 0 && successCount < totalCount) {
                 if (successCount > 0) {

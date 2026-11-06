@@ -22,6 +22,7 @@ import com.doubleangels.redact.media.CensorRegion;
 import com.google.android.material.color.MaterialColors;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -664,7 +665,7 @@ public class CensorCanvasView extends View {
 
     private void addStrokePoint(float x, float y) {
         if (strokeCount + 2 > strokePoints.length) {
-            strokePoints = java.util.Arrays.copyOf(strokePoints, strokePoints.length * 2);
+            strokePoints = Arrays.copyOf(strokePoints, strokePoints.length * 2);
         }
         strokePoints[strokeCount++] = x;
         strokePoints[strokeCount++] = y;

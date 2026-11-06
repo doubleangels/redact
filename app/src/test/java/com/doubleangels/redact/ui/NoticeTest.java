@@ -14,7 +14,6 @@ import com.doubleangels.redact.MainActivity;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.MediaItem;
-import com.google.android.material.snackbar.Snackbar;
 
 import org.junit.After;
 import org.junit.Before;

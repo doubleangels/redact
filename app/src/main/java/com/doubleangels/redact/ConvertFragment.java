@@ -3,6 +3,7 @@ package com.doubleangels.redact;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -37,9 +38,14 @@ import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.doubleangels.redact.sentry.SentryManager;
+import com.doubleangels.redact.ui.ErrorFeedbackPrompt;
+import com.doubleangels.redact.ui.ReviewPrompt;
+import com.doubleangels.redact.ui.ScanViewModel;
+import com.doubleangels.redact.ui.ShareResults;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Converts images to JPEG, PNG, WebP, or HEIC and transcodes videos to MP4; saves under
@@ -132,7 +138,7 @@ public class ConvertFragment extends TabFragment {
         shareResultsButton = view.findViewById(R.id.shareResultsButton);
         shareResultsButton.setOnClickListener(v -> {
             Haptics.tick(v);
-            com.doubleangels.redact.ui.ShareResults.share(
+            ShareResults.share(
                     requireContext(), viewModel.getConvertOutputs());
         });
         scanResultButton = view.findViewById(R.id.scanResultButton);
@@ -197,7 +203,7 @@ public class ConvertFragment extends TabFragment {
                     != MainViewModel.ProcessingState.PROCESSING) {
                 List<MediaItem> current = currentSelectedItems();
                 if (position >= 0 && position < current.size()) {
-                    List<MediaItem> updated = new java.util.ArrayList<>(current);
+                    List<MediaItem> updated = new ArrayList<>(current);
                     updated.remove(position);
                     viewModel.setConvertSelectedItems(updated);
                 }
@@ -231,7 +237,7 @@ public class ConvertFragment extends TabFragment {
                     }
                 });
         permissionManager.applyPendingPermissionResultIfAny(
-                com.doubleangels.redact.permission.PermissionManager.STORAGE_PERMISSION_REQUEST_CODE);
+                PermissionManager.STORAGE_PERMISSION_REQUEST_CODE);
 
         if (mediaSelector == null) {
             mediaSelector = new MediaSelector(requireActivity());
@@ -448,13 +454,13 @@ public class ConvertFragment extends TabFragment {
                 convertButton.setEnabled(hasItems);
             }
             List<MediaItem> previous = lastObservedConvertItems;
-            boolean selectionChanged = previous != null && !java.util.Objects.equals(previous, list);
+            boolean selectionChanged = previous != null && !Objects.equals(previous, list);
             if (selectionChanged
                     && viewModel.getConvertProcessingState().getValue()
                             == MainViewModel.ProcessingState.COMPLETED) {
                 viewModel.setConvertProcessingState(MainViewModel.ProcessingState.IDLE);
             }
-            lastObservedConvertItems = new java.util.ArrayList<>(list);
+            lastObservedConvertItems = new ArrayList<>(list);
             if (list.isEmpty()) {
                 statusText.setText(R.string.convert_status_ready);
             } else if (viewModel.getConvertProcessingState().getValue()
@@ -511,14 +517,14 @@ public class ConvertFragment extends TabFragment {
                         Notice.show(requireContext(), R.string.convert_saved_to_gallery, false);
                     }
                     // Counted by the view model; asks only when this tab is showing.
-                    com.doubleangels.redact.ui.ReviewPrompt.askIfDue(this);
+                    ReviewPrompt.askIfDue(this);
                 }
                 if (!isHidden()) {
-                    com.doubleangels.redact.ui.ErrorFeedbackPrompt.offer(
+                    ErrorFeedbackPrompt.offer(
                             getView(), viewModel.takeConvertFeedbackEventId());
                 }
             }
-            com.doubleangels.redact.ui.ShareResults.updateButton(
+            ShareResults.updateButton(
                     shareResultsButton, state == MainViewModel.ProcessingState.COMPLETED,
                     viewModel.getConvertOutputs());
             scanResultButton.setVisibility(state == MainViewModel.ProcessingState.COMPLETED
@@ -680,11 +686,11 @@ public class ConvertFragment extends TabFragment {
 
     /** Opens the single converted file in Scan so the user can see what it still carries. */
     private void openResultInScan() {
-        List<android.net.Uri> outputs = viewModel.getConvertOutputs();
+        List<Uri> outputs = viewModel.getConvertOutputs();
         if (outputs.size() != 1) {
             return;
         }
-        new ViewModelProvider(requireActivity()).get(com.doubleangels.redact.ui.ScanViewModel.class)
+        new ViewModelProvider(requireActivity()).get(ScanViewModel.class)
                 .setPendingUri(outputs.get(0));
         if (requireActivity() instanceof MainActivity mainActivity) {
             mainActivity.selectTab(R.id.navigation_scan);

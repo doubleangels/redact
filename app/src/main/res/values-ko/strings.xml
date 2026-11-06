@@ -101,61 +101,23 @@
     
     <string name="metadata_image_properties_header">이미지 속성:</string>
     <string name="metadata_camera_information_header">카메라 정보:</string>
-    <string name="metadata_exposure_information_header">노출 정보:</string>
     <string name="metadata_location_information_header">위치 정보:</string>
     <string name="metadata_technical_details_header">기술 세부 정보:</string>
     <string name="metadata_video_properties_header">동영상 속성:</string>
 
     
-    <string name="metadata_dimensions">크기: %1$d x %2$d</string>
-    <string name="metadata_date_taken">촬영 날짜: %s</string>
-    <string name="metadata_camera_make">카메라 제조사: %s</string>
-    <string name="metadata_camera_model">카메라 모델: %s</string>
-    <string name="metadata_aperture">조리개: f/%s</string>
-    <string name="metadata_exposure_time_fraction">노출 시간: 1/%d초</string>
-    <string name="metadata_exposure_time_seconds">노출 시간: %.5f초</string>
-    <string name="metadata_latitude">위도: %.15f</string>
-    <string name="metadata_longitude">경도: %.15f</string>
-    <string name="metadata_no_location_data">위치 데이터를 사용할 수 없습니다.</string>
     <string name="metadata_location_unreadable">위치 데이터가 있지만 여기에서 표시할 수 없는 형식으로 저장되어 있습니다. 정리하면 삭제됩니다.</string>
-    <string name="metadata_container_tags_header">포함된 태그:</string>
-    <string name="metadata_container_tags">파일에서 발견됨: %1$s</string>
     <string name="metadata_embedded_data_header">숨겨진 데이터 및 포함된 데이터</string>
     <plurals name="metadata_embedded_images">
         <item quantity="other">이미지 %1$d개(%2$s) – 정리하면 삭제됨</item>
     </plurals>
     <string name="metadata_location_permission_needed">위치 권한이 부여되지 않았습니다. 위치 데이터를 보려면 권한을 부여하세요.</string>
-    <string name="metadata_orientation">방향: %s</string>
-    <string name="metadata_flash">플래시: %s</string>
-    <string name="metadata_flash_fired">발광</string>
-    <string name="metadata_flash_not_fired">미발광</string>
-    <string name="metadata_white_balance">화이트 밸런스: %s</string>
-    <string name="metadata_white_balance_auto">자동</string>
-    <string name="metadata_white_balance_manual">수동</string>
-
-    
-    <string name="metadata_duration_with_hours">길이: %s</string>
-    <string name="metadata_duration_without_hours">길이: %s</string>
-    <string name="metadata_resolution">해상도: %1$s x %2$s</string>
-    <string name="metadata_rotation">회전: %s°</string>
-    <string name="metadata_bitrate">비트레이트: %d kbps</string>
-    <string name="metadata_date">날짜: %s</string>
-    <string name="metadata_frame_rate">프레임 레이트: %s fps</string>
-    <string name="metadata_sample_rate">샘플 레이트: %s Hz</string>
 
     
 
     
-    <string name="metadata_orientation_normal">정상</string>
-    <string name="metadata_orientation_rotate_90">90° 회전</string>
-    <string name="metadata_orientation_rotate_180">180° 회전</string>
-    <string name="metadata_orientation_rotate_270">270° 회전</string>
-    <string name="metadata_orientation_flip_horizontal">수평 뒤집기</string>
-    <string name="metadata_orientation_flip_vertical">수직 뒤집기</string>
-    <string name="metadata_orientation_transpose">전치</string>
-    <string name="metadata_orientation_transverse">가로</string>
-    <string name="metadata_orientation_unknown">알 수 없음 (%d)</string>
-    <string name="metadata_error_file_open">오류: 이미지 파일을 열 수 없습니다</string>
+
+    
 
     
     <string name="settings_section_advanced_privacy">메타데이터 정리</string>
@@ -260,9 +222,6 @@
     <string name="clean_status_ready">정리할 파일을 선택할 준비가 되었습니다.</string>
     <string name="convert_codec_fallback">%1$s을(를) 사용할 수 없어 %2$s(으)로 저장했습니다.</string>
     <string name="video_downscaled">이 휴대폰에서 원본 크기로 동영상을 처리할 수 없어 %1$dp로 저장했습니다.</string>
-    <string name="metadata_error_basic_info_generic">기본 파일 정보를 읽을 수 없습니다.</string>
-    <string name="metadata_error_image_generic">이미지 메타데이터를 읽을 수 없습니다.</string>
-    <string name="metadata_error_video_generic">동영상 메타데이터를 읽을 수 없습니다.</string>
     <string name="notification_clean_failed">이번에는 정리할 수 있는 파일이 없습니다.</string>
     <plurals name="notification_clean_done">
         <item quantity="other">%1$d개 파일을 정리했습니다.</item>

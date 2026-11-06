@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
+import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.metadata.CleanStats;
 
 import java.time.LocalDate;
@@ -61,7 +62,7 @@ public final class StatsStore {
     /** Counts one file cleaned on the Clean tab ({@code viaShare} false) or shared into Redact. */
     public static synchronized void recordClean(@NonNull Context context, @NonNull CleanStats stats,
                                                 boolean isVideo, boolean viaShare) {
-        if (!com.doubleangels.redact.AppPreferences.isKeepStatistics(context)) {
+        if (!AppPreferences.isKeepStatistics(context)) {
             return;
         }
         SharedPreferences p = prefs(context);
@@ -130,7 +131,7 @@ public final class StatsStore {
     }
 
     private static void increment(@NonNull Context context, @NonNull String key) {
-        if (!com.doubleangels.redact.AppPreferences.isKeepStatistics(context)) {
+        if (!AppPreferences.isKeepStatistics(context)) {
             return;
         }
         SharedPreferences p = prefs(context);

@@ -14,9 +14,9 @@ Work from Git Bash. Use the scratchpad directory for everything you create; call
 
 ## 1. Emulator and app
 
-1. Run `adb devices -l` and pick the running emulator whose `adb -s <serial> emu avd name` is `Pixel_10_Pro`; ignore physical devices. If none is running, start `%LOCALAPPDATA%\Android\Sdk\emulator\emulator.exe -avd Pixel_10_Pro -no-snapshot-save` in the background and wait until `getprop sys.boot_completed` is `1`. If the AVD does not exist, stop and tell me.
+1. Run `adb devices -l` and pick the running emulator whose `adb -s <serial> emu avd name` is `Pixel_10_Pro`; ignore physical devices. If none is running, start the **test emulator** headless, since these checks drive it through adb and never need its window: `%LOCALAPPDATA%\Android\Sdk\emulator\emulator.exe -avd Pixel_10_Pro -no-window -no-audio -no-boot-anim -no-snapshot-save` in the background, and wait until `getprop sys.boot_completed` is `1`. Reuse it as it is if it is already running, with or without a window. Ignore any other emulator: the profile generator's Gradle-managed one (`Pixel_10_Pro_Profiles`) may be running alongside. If the AVD does not exist, stop and tell me.
 2. Set `ANDROID_SERIAL=<serial>` in every command from here on, including Gradle.
-3. `adb uninstall com.doubleangels.redact` (the profile generator installs a differently signed variant), then `./gradlew :app:installDebug -q`.
+3. `adb uninstall com.doubleangels.redact`, so no setting from an earlier run carries over, then `./gradlew :app:installDebug -q`.
 4. Skip the introduction and prompts the way `fresh_app` in `scripts/screenshots.sh` does: `pm grant` POST_NOTIFICATIONS, READ_MEDIA_IMAGES, READ_MEDIA_VIDEO, READ_MEDIA_VISUAL_USER_SELECTED and ACCESS_MEDIA_LOCATION, and write `shared_prefs/redact_prefs.xml` through `run-as` with `initial_permissions_prompted` and `onboarding_seen` true, `review_state` 2 and `crash_reporting_prompted` true. Every other setting stays at its default (Strict Clean on).
 5. `adb logcat -c`.
 

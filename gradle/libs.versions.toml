@@ -1,6 +1,6 @@
 [versions]
 activity = "1.13.0"
-agp = "9.5.0"
+agp = "9.5.1"
 constraintlayout = "2.2.2"
 exifinterface = "1.4.2"
 fragment = "1.9.1"
@@ -9,8 +9,8 @@ appcompat = "1.8.0"
 material = "1.14.0"
 media3 = "1.11.1"
 lifecycleViewmodelKtx = "2.11.0"
-sentry = "8.62.0"
-sentryGradlePlugin = "6.25.0"
+sentry = "8.63.0"
+sentryGradlePlugin = "6.26.0"
 leakcanary = "2.14"
 junit = "4.13.2"
 robolectric = "4.17"
@@ -18,6 +18,7 @@ archCoreTesting = "2.2.0"
 baselineprofile = "1.5.0"
 profileinstaller = "1.4.1"
 uiautomator = "2.4.1"
+testMonitor = "1.8.0"
 window = "1.5.1"
 splashscreen = "1.2.0"
 
@@ -45,8 +46,8 @@ arch-core-testing = { module = "androidx.arch.core:core-testing", version.ref = 
 profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileinstaller" }
 benchmark-macro-junit4 = { module = "androidx.benchmark:benchmark-macro-junit4", version.ref = "baselineprofile" }
 uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
+test-monitor = { module = "androidx.test:monitor", version.ref = "testMonitor" }
 window-java = { module = "androidx.window:window-java", version.ref = "window" }
-window-testing = { module = "androidx.window:window-testing", version.ref = "window" }
 core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "splashscreen" }
 
 [plugins]

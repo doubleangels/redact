@@ -10,10 +10,12 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
+import androidx.annotation.VisibleForTesting;
 
 import com.doubleangels.redact.R;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigationrail.NavigationRailView;
 import com.google.android.material.snackbar.Snackbar;
 
 /**
@@ -31,13 +33,13 @@ public final class Notice {
     private Notice() {
     }
 
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     @Nullable
     public static String lastShownForTests() {
         return lastShown != null ? lastShown.toString() : null;
     }
 
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     public static void resetForTests() {
         lastShown = null;
     }
@@ -106,7 +108,7 @@ public final class Notice {
     @Nullable
     static View bottomBar(@NonNull View root) {
         View nav = root.findViewById(R.id.bottomNavigation);
-        return nav instanceof com.google.android.material.navigationrail.NavigationRailView ? null : nav;
+        return nav instanceof NavigationRailView ? null : nav;
     }
 
     @Nullable

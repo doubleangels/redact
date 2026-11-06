@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.EOFException;
@@ -12,11 +13,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.zip.CRC32;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
+import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
 /**
@@ -95,7 +98,7 @@ public final class Png16 {
         byte[] signature = new byte[8];
         try {
             data.readFully(signature);
-            if (!java.util.Arrays.equals(signature, SIGNATURE)) {
+            if (!Arrays.equals(signature, SIGNATURE)) {
                 return null;
             }
             int length = data.readInt();
@@ -129,7 +132,7 @@ public final class Png16 {
      */
     public static void rewrite(@NonNull InputStream source, @NonNull OutputStream target,
             @Nullable Patch patch) throws IOException {
-        DataInputStream in = new DataInputStream(new java.io.BufferedInputStream(source, 64 * 1024));
+        DataInputStream in = new DataInputStream(new BufferedInputStream(source, 64 * 1024));
         Header header = readHeader(in);
         if (header == null) {
             throw new IOException("Not a 16-bit PNG");
@@ -163,7 +166,7 @@ public final class Png16 {
         if (rowBytes > Integer.MAX_VALUE - 1) {
             throw new IOException("PNG too wide");
         }
-        InputStream pixels = new InflaterInputStream(new IdatStream(in, length), new java.util.zip.Inflater(), 64 * 1024);
+        InputStream pixels = new InflaterInputStream(new IdatStream(in, length), new Inflater(), 64 * 1024);
 
         target.write(SIGNATURE);
         ByteArrayOutputStream ihdr = new ByteArrayOutputStream(13);
@@ -303,7 +306,7 @@ public final class Png16 {
         void write(int y, byte[] source, int offset) throws IOException {
             System.arraycopy(source, offset, current, 0, current.length);
             if (patch != null) {
-                java.util.Arrays.fill(replace, false);
+                Arrays.fill(replace, false);
                 if (patch.row(y, argb, replace)) {
                     applyPatch(header, current, argb, replace);
                 }
@@ -592,7 +595,7 @@ public final class Png16 {
 
         private void flushChunk() throws IOException {
             if (used > 0) {
-                out.write(chunk("IDAT", java.util.Arrays.copyOf(buffer, used)));
+                out.write(chunk("IDAT", Arrays.copyOf(buffer, used)));
                 used = 0;
             }
         }

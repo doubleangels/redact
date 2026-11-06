@@ -1,9 +1,13 @@
 package com.doubleangels.redact.metadata;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.File;
@@ -12,7 +16,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Rebuilds a GIF, still or animated, with nothing but its pictures, without re-encoding them.
@@ -129,15 +139,15 @@ public final class GifContainerMetadata {
      * clean, but what was found before that is still reported.
      */
     @NonNull
-    static ImageContainerMetadata.Report scan(@NonNull java.nio.channels.FileChannel ch) {
-        java.util.List<ImageContainerMetadata.Finding> findings = new java.util.ArrayList<>();
+    static ImageContainerMetadata.Report scan(@NonNull FileChannel ch) {
+        List<ImageContainerMetadata.Finding> findings = new ArrayList<>();
         boolean recognized = false;
         try {
             long length = ch.size();
             ch.position(0);
             // Not closed: closing a stream from Channels closes the caller's channel.
             DataInputStream in = new DataInputStream(new BufferedInputStream(
-                    java.nio.channels.Channels.newInputStream(ch), 64 * 1024));
+                    Channels.newInputStream(ch), 64 * 1024));
             long[] pos = {0};
             byte[] header = new byte[13];
             in.readFully(header);
@@ -175,7 +185,7 @@ public final class GifContainerMetadata {
                 } else if (block == 0x21) {
                     int label = in.readUnsignedByte();
                     pos[0]++;
-                    java.io.ByteArrayOutputStream data = new java.io.ByteArrayOutputStream();
+                    ByteArrayOutputStream data = new ByteArrayOutputStream();
                     if (label == 0xF9) {
                         pos[0] += skipSubBlocks(in, null);
                     } else if (label == 0xFF) {
@@ -192,7 +202,7 @@ public final class GifContainerMetadata {
                                     StandardCharsets.UTF_8);
                             add(findings, "XMP", xmp, size, ImageContainerMetadata.xmpKind(xmp));
                         } else if (id.startsWith("ICCRGBG1")) {
-                            byte[] profile = java.util.Arrays.copyOfRange(bytes, Math.min(11, bytes.length), bytes.length);
+                            byte[] profile = Arrays.copyOfRange(bytes, Math.min(11, bytes.length), bytes.length);
                             add(findings, "ICC_PROFILE", ImageContainerMetadata.IccText.read(profile, "desc"),
                                     size, ImageContainerMetadata.Kind.OTHER);
                         } else {
@@ -214,7 +224,7 @@ public final class GifContainerMetadata {
                                     ReadableText.strings(bytes, Math.min(12, bytes.length), bytes.length),
                                     size, ImageContainerMetadata.Kind.OTHER);
                         } else {
-                            add(findings, String.format(java.util.Locale.ROOT, "GIF_EXTENSION_%02X", label),
+                            add(findings, String.format(Locale.ROOT, "GIF_EXTENSION_%02X", label),
                                     ReadableText.strings(bytes), size, ImageContainerMetadata.Kind.OTHER);
                         }
                     }
@@ -226,16 +236,16 @@ public final class GifContainerMetadata {
             // A damaged file is never called clean; a RuntimeException is a gap in this parser,
             // so report it, as ImageContainerMetadata.scan does.
             if (e instanceof RuntimeException) {
-                com.doubleangels.redact.sentry.SentryManager.recordException(e);
+                SentryManager.recordException(e);
             }
             recognized = false;
         }
         return new ImageContainerMetadata.Report(ImageContainerMetadata.Format.GIF, recognized, findings,
-                new java.util.ArrayList<>());
+                new ArrayList<>());
     }
 
-    private static void add(@NonNull java.util.List<ImageContainerMetadata.Finding> findings, @NonNull String key,
-            @androidx.annotation.Nullable String text, long bytes, @NonNull ImageContainerMetadata.Kind kind) {
+    private static void add(@NonNull List<ImageContainerMetadata.Finding> findings, @NonNull String key,
+            @Nullable String text, long bytes, @NonNull ImageContainerMetadata.Kind kind) {
         if (findings.size() >= MAX_FINDINGS) {
             return;
         }
@@ -255,7 +265,7 @@ public final class GifContainerMetadata {
     }
 
     /** Skips sub-blocks up to their terminator, keeping up to {@link #MAX_DESCRIBED} bytes of them in {@code keep}. */
-    private static long skipSubBlocks(@NonNull DataInputStream in, @androidx.annotation.Nullable java.io.ByteArrayOutputStream keep)
+    private static long skipSubBlocks(@NonNull DataInputStream in, @Nullable ByteArrayOutputStream keep)
             throws IOException {
         long total = 0;
         byte[] buffer = new byte[255];

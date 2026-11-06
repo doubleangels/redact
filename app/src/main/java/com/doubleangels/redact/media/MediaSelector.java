@@ -4,16 +4,20 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-
-import androidx.annotation.NonNull;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.sentry.SentryManager;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 /**
  * Handles selection and processing of media files (images and videos).
@@ -45,10 +49,10 @@ public final class MediaSelector {
      * pick), then hands the items to {@code onDone} on the main thread.
      */
     public void processMediaUrisAsync(
-            @NonNull java.util.List<Uri> uris,
-            @NonNull java.util.function.Consumer<java.util.List<MediaItem>> onDone) {
+            @NonNull List<Uri> uris,
+            @NonNull Consumer<List<MediaItem>> onDone) {
         new Thread(() -> {
-            java.util.List<MediaItem> items = new java.util.ArrayList<>();
+            List<MediaItem> items = new ArrayList<>();
             for (Uri uri : uris) {
                 try {
                     items.add(processMediaUri(uri));
@@ -138,7 +142,7 @@ public final class MediaSelector {
             return true;
         }
         if (fileName != null) {
-            return fileName.toLowerCase(java.util.Locale.US).endsWith(".gif");
+            return fileName.toLowerCase(Locale.US).endsWith(".gif");
         }
         return false;
     }
@@ -147,7 +151,7 @@ public final class MediaSelector {
      * Reads up to {@code maxBytes} from {@code uri} and detects animated WebP/APNG payloads.
      */
     public static boolean isAnimatedImageUri(@NonNull Context context, @NonNull Uri uri, int maxBytes) {
-        try (java.io.InputStream in = context.getContentResolver().openInputStream(uri)) {
+        try (InputStream in = context.getContentResolver().openInputStream(uri)) {
             if (in == null) {
                 return false;
             }
@@ -169,13 +173,13 @@ public final class MediaSelector {
             return false;
         }
         if (data[0] == (byte) 0x89 && data[1] == 'P' && data[2] == 'N' && data[3] == 'G') {
-            return indexOf(data, length, "acTL".getBytes(java.nio.charset.StandardCharsets.US_ASCII)) >= 0;
+            return indexOf(data, length, "acTL".getBytes(StandardCharsets.US_ASCII)) >= 0;
         }
         if (data[0] == 'R' && data[1] == 'I' && data[2] == 'F' && data[3] == 'F'
                 && length >= 12
                 && data[8] == 'W' && data[9] == 'E' && data[10] == 'B' && data[11] == 'P') {
-            byte[] anim = "ANIM".getBytes(java.nio.charset.StandardCharsets.US_ASCII);
-            byte[] anmf = "ANMF".getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+            byte[] anim = "ANIM".getBytes(StandardCharsets.US_ASCII);
+            byte[] anmf = "ANMF".getBytes(StandardCharsets.US_ASCII);
             return indexOf(data, length, anim) >= 0 || indexOf(data, length, anmf) >= 0;
         }
         return false;

@@ -1,32 +1,32 @@
 ---
-description: Regenerate only the baseline and startup profiles on the Pixel 10 Pro emulator and summarize what changed
+description: Regenerate only the baseline and startup profiles on the profile generator's own Gradle-managed emulator and summarize what changed
 allowed-tools: Bash, PowerShell, Read, Grep, Glob
 ---
 
-> These commands drive the Pixel_10_Pro emulator and Gradle with Windows paths, so they only work on my own machine. If you are running in a cloud session without the Android SDK and the emulator, say so and stop instead of trying.
+> These commands use the Android SDK's emulator and Gradle with Windows paths, so they only work on my own machine. If you are running in a cloud session without the Android SDK and the emulator, say so and stop instead of trying.
 
-Regenerate the baseline and startup profiles on the **Pixel_10_Pro emulator and never on a physical device**, then summarize what changed. This does only the profiles; use `/generatescreenshots` for screenshots or `/generateall` for both. When it is done, commit the two profile files to the current branch automatically. Do not push.
+Regenerate the baseline and startup profiles on the **profile emulator**, then summarize what changed. This does only the profiles; use `/generatescreenshots` for screenshots or `/generateall` for both. When it is done, commit the two profile files to the current branch automatically. Do not push.
 
-## 1. Find or start the emulator
+**Which emulator.** The profiles are generated on `Pixel_10_Pro_Profiles`, a Gradle-managed emulator defined in `baselineprofile/build.gradle` (Google APIs API 37, no Play Store, on a Pixel 10 Pro screen). Gradle creates it, boots it headless with a fresh install, runs the generator and shuts it down. It is not the `Pixel_10_Pro` AVD, which is the **test emulator** that `/test`, `/verifyclean` and `/generatescreenshots` use. The profile run never touches the test emulator or a connected device, so it can run while they are in use, as long as no other Gradle build of this project runs at the same time (two builds fight over the same build locks).
 
-1. Run `adb devices -l` (adb is at `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe` if it is not on PATH).
-2. Pick the serial of the running emulator named `Pixel_10_Pro` (check with `adb -s <serial> emu avd name` or `getprop ro.boot.qemu.avd_name`). Ignore every physical device, even if it is the only other one connected.
-3. If no `Pixel_10_Pro` emulator is running, start it: `%LOCALAPPDATA%\Android\Sdk\emulator\emulator.exe -avd Pixel_10_Pro -no-snapshot-save` (in the background), then wait until `sys.boot_completed` is `1`. If the AVD does not exist, stop and tell me.
-4. Use that serial for the Gradle call by setting `ANDROID_SERIAL=<serial>` in the same command. Never run Gradle without it while a physical device is connected.
+## 1. Before the run
+
+Nothing to start: there is no emulator to find, and `ANDROID_SERIAL` is not needed. The first run on a machine downloads the API 37 Google APIs system image (`system-images;android-37.0;google_apis;x86_64`) and creates the device, which takes a few extra minutes; later runs reuse both.
 
 ## 2. Generate the profiles
 
 1. Note the current rule counts first, from `app/src/release/generated/baselineProfiles/baseline-prof.txt` and `startup-prof.txt` (line counts).
-2. Run `./gradlew :app:generateBaselineProfile` with `ANDROID_SERIAL` set (use `gradlew.bat` from PowerShell). It takes a few minutes. Do not change the build to work around problems; just run it.
-3. If it fails, show the relevant error and stop. Do not retry in a loop.
+2. Run `./gradlew :app:generateBaselineProfile` (use `gradlew.bat` from PowerShell). It runs on `Pixel_10_Pro_Profiles` and takes a few minutes. Do not change the build to work around problems; just run it.
+3. If it fails, show the relevant error and stop. Do not retry in a loop. If the managed emulator itself failed to boot, `./gradlew cleanManagedDevices` removes its saved state; say so rather than running it yourself.
 
 ## 3. Summarize the profile changes
 
 Using `git diff` on the two profile files (compare to HEAD), report:
 
-- Rule counts before and after for `baseline-prof.txt` and `startup-prof.txt`, and how many rules were added and removed. Say whether the two files are identical.
+- Rule counts before and after for `baseline-prof.txt` and `startup-prof.txt`, and how many rules were added and removed. The two files come from different journeys in `Profiles` (`startup` for the startup profile, `generate` for the rest of the baseline profile), so the startup profile should be much smaller. If they are identical, say so: the generator's journeys are broken.
 - The notable changes, grouped by package, with a few example classes or methods for each. Call out anything tied to this app (`com.doubleangels.redact`) separately from framework and library rules (androidx, Media3, Glide, Sentry, kotlin).
-- Whether the startup profile looks sensible (it should be dominated by app startup classes such as the application class, `MainActivity` and the first tab).
+- Whether the startup profile looks sensible: a cold start to the Clean tab, so the application class, `MainActivity`, `CleanFragment` and what they load, and no `OnboardingActivity`, Settings, Statistics or share-handling code.
+- Whether the baseline profile covers every journey `generate` runs: each tab, `StatisticsActivity`, `LicensesActivity`, the tile services, the share targets, and the real jobs it runs on the sample photo and video: a clean from the Clean tab (`MediaProcessor`) and from a share (`ShareHandlerActivity`, `MetadataStripper`), a video clean (`VideoMedia3Converter` and the video container code), a scan of each (`MetadataDisplayer`), a PNG conversion (`FormatConverter`) and a censor save (`CensorExporter`). Name any that are missing, and say if the run took much longer than the last one.
 - Whether the change looks meaningful or is just run-to-run noise (for example, renumbered synthetic lambdas, the same rules in a different order, or a handful of library methods).
 
 ## 4. Wrap up
@@ -38,4 +38,4 @@ Unless the profile run failed, commit `baseline-prof.txt` and `startup-prof.txt`
 
 For noise, skip the commit and restore the two files (`git checkout -- app/src/release/generated/baselineProfiles/baseline-prof.txt app/src/release/generated/baselineProfiles/startup-prof.txt`) so they do not linger in the working tree. Skip the commit too if neither file changed.
 
-Finish with a short report: emulator used, profile counts and verdict, the commit (or that it was skipped as noise and the files restored), and any uncommitted source changes that were part of the build.
+Finish with a short report: that it ran on `Pixel_10_Pro_Profiles`, how long the run took, profile counts and verdict, the commit (or that it was skipped as noise and the files restored), and any uncommitted source changes that were part of the build.

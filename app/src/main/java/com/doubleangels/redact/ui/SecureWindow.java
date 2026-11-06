@@ -11,6 +11,10 @@ import androidx.annotation.NonNull;
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Applies the "Hide Content in Screenshots and Recents" setting to an activity's window.
  *
@@ -59,8 +63,8 @@ public final class SecureWindow {
             return;
         }
         View decor = window.getDecorView();
-        java.util.Set<String> before = showingSources(decor);
-        java.util.Set<String> after = new java.util.HashSet<>(before);
+        Set<String> before = showingSources(decor);
+        Set<String> after = new HashSet<>(before);
         if (showing) {
             after.add(source);
         } else {
@@ -79,9 +83,9 @@ public final class SecureWindow {
 
     @NonNull
     @SuppressWarnings("unchecked")
-    private static java.util.Set<String> showingSources(@NonNull View decor) {
+    private static Set<String> showingSources(@NonNull View decor) {
         Object tag = decor.getTag(R.id.secure_window_photo_open);
-        return tag instanceof java.util.Set<?> set ? (java.util.Set<String>) set : java.util.Collections.emptySet();
+        return tag instanceof Set<?> set ? (Set<String>) set : Collections.emptySet();
     }
 
     private static boolean needsFlagForPhoto(@NonNull Window window) {

@@ -1,11 +1,13 @@
 package com.doubleangels.redact.notifications;
 
+import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.os.Build;
 import android.os.SystemClock;
 
@@ -19,6 +21,10 @@ import com.doubleangels.redact.MainActivity;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.sentry.SentryManager;
 
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -72,7 +78,7 @@ public final class LocalNotifications {
         Context app = context.getApplicationContext();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(app,
-                    android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                    Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 return false;
             }
         }
@@ -90,7 +96,7 @@ public final class LocalNotifications {
         Context app = context.getApplicationContext();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(app,
-                    android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                    Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 return false;
             }
         }
@@ -179,8 +185,8 @@ public final class LocalNotifications {
         }
         Context app = context.getApplicationContext();
         String title = app.getString(R.string.notification_convert_title);
-        android.content.res.Resources res = app.getResources();
-        java.util.List<String> sentences = new java.util.ArrayList<>();
+        Resources res = app.getResources();
+        List<String> sentences = new ArrayList<>();
         if (okCount > 0) {
             sentences.add(res.getQuantityString(R.plurals.notification_convert_done, okCount, okCount));
         }
@@ -229,8 +235,8 @@ public final class LocalNotifications {
     public enum ForegroundJob { CLEAN, CONVERT, SHARE }
 
     /** Jobs currently using the service; it stops when the last one ends. Guarded by itself. */
-    private static final java.util.Set<ForegroundJob> foregroundJobs =
-            java.util.EnumSet.noneOf(ForegroundJob.class);
+    private static final Set<ForegroundJob> foregroundJobs =
+            EnumSet.noneOf(ForegroundJob.class);
 
     /**
      * Keeps the app running in the foreground for {@code job}. A share can run while a clean is
@@ -280,8 +286,8 @@ public final class LocalNotifications {
             return;
         }
         Context app = context.getApplicationContext();
-        android.content.res.Resources res = app.getResources();
-        java.util.List<String> sentences = new java.util.ArrayList<>();
+        Resources res = app.getResources();
+        List<String> sentences = new ArrayList<>();
         if (okCount > 0) {
             sentences.add(res.getQuantityString(R.plurals.notification_clean_done, okCount, okCount));
         }

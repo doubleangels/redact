@@ -1,6 +1,7 @@
 package com.doubleangels.redact;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -26,8 +27,10 @@ import androidx.annotation.StringRes;
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.widget.TextViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -37,6 +40,7 @@ import com.doubleangels.redact.permission.PermissionStatusHelper;
 import com.doubleangels.redact.permission.PermissionStatusHelper.Status;
 import com.doubleangels.redact.sentry.SentryInitializer;
 import com.doubleangels.redact.sentry.SentryManager;
+import com.doubleangels.redact.ui.SecureWindow;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.color.DynamicColors;
@@ -97,7 +101,7 @@ public class OnboardingActivity extends AppCompatActivity {
         DynamicColors.applyToActivityIfAvailable(this);
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
-        com.doubleangels.redact.ui.SecureWindow.apply(this);
+        SecureWindow.apply(this);
         setContentView(R.layout.activity_onboarding);
 
         replay = getIntent().getBooleanExtra(EXTRA_REPLAY, false);
@@ -279,7 +283,7 @@ public class OnboardingActivity extends AppCompatActivity {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU;
     }
 
-    @android.annotation.SuppressLint("InlinedApi") // guarded by needsNotificationPermission()
+    @SuppressLint("InlinedApi") // guarded by needsNotificationPermission()
     private boolean hasNotificationPermission() {
         return !needsNotificationPermission() || ContextCompat.checkSelfPermission(this,
                 Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
@@ -553,7 +557,7 @@ public class OnboardingActivity extends AppCompatActivity {
         holder.status.setCardBackgroundColor(background);
         holder.statusText.setCompoundDrawablesRelativeWithIntrinsicBounds(
                 positive ? R.drawable.ic_check_circle : R.drawable.ic_info_outline_20, 0, 0, 0);
-        androidx.core.widget.TextViewCompat.setCompoundDrawableTintList(
+        TextViewCompat.setCompoundDrawableTintList(
                 holder.statusText, ColorStateList.valueOf(foreground));
         holder.statusText.setTextColor(foreground);
         holder.statusText.setText(text);
@@ -587,7 +591,7 @@ public class OnboardingActivity extends AppCompatActivity {
         View root = findViewById(R.id.onboardingRoot);
         int barsAndCutout = WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout();
         ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
-            androidx.core.graphics.Insets outer = insets.getInsets(barsAndCutout);
+            Insets outer = insets.getInsets(barsAndCutout);
             v.setPadding(outer.left, outer.top, outer.right, outer.bottom);
             return insets;
         });

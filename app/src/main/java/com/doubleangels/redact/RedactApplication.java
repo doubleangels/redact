@@ -6,9 +6,11 @@ import android.os.StrictMode;
 import androidx.annotation.NonNull;
 
 import com.doubleangels.redact.media.AppProcessingScope;
+import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.sentry.SentryInitializer;
 import com.doubleangels.redact.sentry.SentryManager;
+import com.doubleangels.redact.stats.StatsStore;
 
 /**
  * Custom Application class for the Redact application.
@@ -48,9 +50,9 @@ public class RedactApplication extends Application {
         CacheCleanup.scheduleAutoCleanupIfEnabled(this);
 
         // Files a killed process left half-written in a folder the user chose as the output.
-        com.doubleangels.redact.media.OutputDestination.scheduleAbandonedDocumentSweep(this);
+        OutputDestination.scheduleAbandonedDocumentSweep(this);
 
-        com.doubleangels.redact.stats.StatsStore.preload(this);
+        StatsStore.preload(this);
     }
 
     @NonNull

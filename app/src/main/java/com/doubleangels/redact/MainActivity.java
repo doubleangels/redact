@@ -1,30 +1,48 @@
 package com.doubleangels.redact;
 
+import android.content.ContentResolver;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.os.Build;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowInsetsController;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.IntentCompat;
+import androidx.core.graphics.Insets;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.color.DynamicColors;
 import com.doubleangels.redact.media.MediaPickerContracts;
+import com.doubleangels.redact.media.MediaSelector;
+import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.ui.FoldPosture;
 import com.doubleangels.redact.ui.FoldTracker;
 import com.doubleangels.redact.sentry.SentryManager;
+import com.doubleangels.redact.ui.CensorViewModel;
+import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.ui.Notice;
+import com.doubleangels.redact.ui.ScanViewModel;
+import com.doubleangels.redact.ui.SecureWindow;
+import com.google.android.material.navigationrail.NavigationRailView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Single host activity: version line and bottom navigation stay fixed;
@@ -58,17 +76,17 @@ public class MainActivity extends AppCompatActivity {
      * own page. When it finishes, the first-launch flow ends without prompting again. Backing out
      * of its first page closes the app, and the introduction shows again on the next start.
      */
-    private final androidx.activity.result.ActivityResultLauncher<android.content.Intent> onboardingLauncher =
+    private final ActivityResultLauncher<Intent> onboardingLauncher =
             registerForActivityResult(
-                    new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+                    new ActivityResultContracts.StartActivityForResult(),
                     result -> {
                         if (result.getResultCode() != RESULT_OK) {
                             finish();
                             return;
                         }
                         AppPreferences.setOnboardingSeen(this);
-                        if (com.doubleangels.redact.permission.PermissionManager.shouldPromptInitialPermissions(this)) {
-                            com.doubleangels.redact.permission.PermissionManager
+                        if (PermissionManager.shouldPromptInitialPermissions(this)) {
+                            PermissionManager
                                     .finishInitialPermissionFlowFromIntroduction(this);
                         }
                     });
@@ -83,8 +101,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        com.doubleangels.redact.permission.PermissionManager.setInitialFlowCompletedCallback(null);
-        com.doubleangels.redact.permission.PermissionManager.clearRuntimePermissionRequestOnDestroy();
+        PermissionManager.setInitialFlowCompletedCallback(null);
+        PermissionManager.clearRuntimePermissionRequestOnDestroy();
         super.onDestroy();
     }
 
@@ -98,15 +116,15 @@ public class MainActivity extends AppCompatActivity {
                 AppPreferences.setInitialPermissionsPromptCompleted(this);
             }
             if (savedInstanceState == null
-                    && com.doubleangels.redact.permission.PermissionManager.shouldPromptInitialPermissions(this)) {
-                com.doubleangels.redact.permission.PermissionManager.prepareInitialPermissionFlow();
+                    && PermissionManager.shouldPromptInitialPermissions(this)) {
+                PermissionManager.prepareInitialPermissionFlow();
             }
 
             DynamicColors.applyToActivityIfAvailable(this);
             EdgeToEdge.enable(this);
 
             super.onCreate(savedInstanceState);
-            com.doubleangels.redact.ui.SecureWindow.apply(this);
+            SecureWindow.apply(this);
             setContentView(R.layout.activity_main);
 
             setupEdgeToEdgeInsets();
@@ -123,8 +141,8 @@ public class MainActivity extends AppCompatActivity {
             // only matters when MainActivity is recreated without a fresh process (e.g. after a
             // configuration change) and isAnyProcessing requires a live Activity to check, so it
             // can't move into the Application-level call.
-            if (!com.doubleangels.redact.ui.MainViewModel.isAnyProcessing(this)) {
-                com.doubleangels.redact.CacheCleanup.scheduleAutoCleanupIfEnabled(this);
+            if (!MainViewModel.isAnyProcessing(this)) {
+                CacheCleanup.scheduleAutoCleanupIfEnabled(this);
             }
 
             if (savedInstanceState == null) {
@@ -190,13 +208,13 @@ public class MainActivity extends AppCompatActivity {
             animateTabSwitches = true;
             SentryManager.setCustomKey("app_started", true);
 
-            com.doubleangels.redact.permission.PermissionManager.setInitialFlowCompletedCallback(
+            PermissionManager.setInitialFlowCompletedCallback(
                     this::notifyVisibleFragmentPermissionFlowCompleted);
             if (savedInstanceState == null && shouldShowOnboarding()) {
                 // The introduction asks for the permissions itself.
-                onboardingLauncher.launch(new android.content.Intent(this, OnboardingActivity.class));
-            } else if (com.doubleangels.redact.permission.PermissionManager.isInitialPermissionFlowInProgress()) {
-                com.doubleangels.redact.permission.PermissionManager.startInitialPermissionFlow(this);
+                onboardingLauncher.launch(new Intent(this, OnboardingActivity.class));
+            } else if (PermissionManager.isInitialPermissionFlowInProgress()) {
+                PermissionManager.startInitialPermissionFlow(this);
             }
         } catch (Exception e) {
             SentryManager.recordException(e);
@@ -204,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onNewIntent(@NonNull android.content.Intent intent) {
+    protected void onNewIntent(@NonNull Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
         if (queueConvertShareIntent(intent)) {
@@ -222,30 +240,30 @@ public class MainActivity extends AppCompatActivity {
      * Selects shared images/videos in Convert when they were shared to Redact › Convert
      * (ACTION_SEND or ACTION_SEND_MULTIPLE). Returns whether the share was for Convert.
      */
-    private boolean queueConvertShareIntent(@Nullable android.content.Intent intent) {
+    private boolean queueConvertShareIntent(@Nullable Intent intent) {
         if (intent == null || intent.getComponent() == null
                 || !intent.getComponent().getClassName().endsWith(CONVERT_SHARE_TARGET)) {
             return false;
         }
-        java.util.List<android.net.Uri> shared = new java.util.ArrayList<>();
-        if (android.content.Intent.ACTION_SEND.equals(intent.getAction())) {
-            android.net.Uri uri = androidx.core.content.IntentCompat.getParcelableExtra(
-                    intent, android.content.Intent.EXTRA_STREAM, android.net.Uri.class);
+        List<Uri> shared = new ArrayList<>();
+        if (Intent.ACTION_SEND.equals(intent.getAction())) {
+            Uri uri = IntentCompat.getParcelableExtra(
+                    intent, Intent.EXTRA_STREAM, Uri.class);
             if (uri != null) {
                 shared.add(uri);
             }
-        } else if (android.content.Intent.ACTION_SEND_MULTIPLE.equals(intent.getAction())) {
-            java.util.List<android.net.Uri> uris = androidx.core.content.IntentCompat
+        } else if (Intent.ACTION_SEND_MULTIPLE.equals(intent.getAction())) {
+            List<Uri> uris = IntentCompat
                     .getParcelableArrayListExtra(
-                            intent, android.content.Intent.EXTRA_STREAM, android.net.Uri.class);
+                            intent, Intent.EXTRA_STREAM, Uri.class);
             if (uris != null) {
                 shared.addAll(uris);
             }
         } else {
             return false;
         }
-        java.util.List<android.net.Uri> media = new java.util.ArrayList<>();
-        for (android.net.Uri uri : shared) {
+        List<Uri> media = new ArrayList<>();
+        for (Uri uri : shared) {
             if (isForeignContentUri(uri) && isImageOrVideo(uri, intent.getType())) {
                 media.add(uri);
             }
@@ -261,15 +279,15 @@ public class MainActivity extends AppCompatActivity {
             media = MediaPickerContracts.trimToMax(
                     media, MediaPickerContracts.MAX_SHARE_ITEMS);
         }
-        com.doubleangels.redact.ui.MainViewModel viewModel = new androidx.lifecycle.ViewModelProvider(this)
-                .get(com.doubleangels.redact.ui.MainViewModel.class);
+        MainViewModel viewModel = new ViewModelProvider(this)
+                .get(MainViewModel.class);
         if (viewModel.getConvertProcessingState().getValue()
-                == com.doubleangels.redact.ui.MainViewModel.ProcessingState.PROCESSING) {
+                == MainViewModel.ProcessingState.PROCESSING) {
             // Don't swap the files out from under a running convert; just show its progress.
             return true;
         }
         SentryManager.logEvent("share", "Media was shared to Convert.");
-        new com.doubleangels.redact.media.MediaSelector(this)
+        new MediaSelector(this)
                 .processMediaUrisAsync(media, viewModel::setConvertSelectedItems);
         return true;
     }
@@ -278,26 +296,26 @@ public class MainActivity extends AppCompatActivity {
      * Opens a photo shared to Redact › Censor in the Censor tab. Returns whether the share
      * was for Censor, including one that could not be used (which shows a message).
      */
-    private boolean queueCensorShareIntent(@Nullable android.content.Intent intent) {
+    private boolean queueCensorShareIntent(@Nullable Intent intent) {
         if (intent == null || intent.getComponent() == null
                 || !intent.getComponent().getClassName().endsWith(CENSOR_SHARE_TARGET)) {
             return false;
         }
-        android.net.Uri uri = android.content.Intent.ACTION_SEND.equals(intent.getAction())
-                ? androidx.core.content.IntentCompat.getParcelableExtra(
-                        intent, android.content.Intent.EXTRA_STREAM, android.net.Uri.class)
+        Uri uri = Intent.ACTION_SEND.equals(intent.getAction())
+                ? IntentCompat.getParcelableExtra(
+                        intent, Intent.EXTRA_STREAM, Uri.class)
                 : null;
         if (!isForeignContentUri(uri) || !isImage(uri, intent.getType())) {
             Notice.show(this, R.string.share_error_unsupported_media, true);
             return true;
         }
         SentryManager.logEvent("share", "A photo was shared to Censor.");
-        new androidx.lifecycle.ViewModelProvider(this)
-                .get(com.doubleangels.redact.ui.CensorViewModel.class).requestOpen(uri);
+        new ViewModelProvider(this)
+                .get(CensorViewModel.class).requestOpen(uri);
         return true;
     }
 
-    private boolean isImage(@NonNull android.net.Uri uri, @Nullable String intentType) {
+    private boolean isImage(@NonNull Uri uri, @Nullable String intentType) {
         String type;
         try {
             type = getContentResolver().getType(uri);
@@ -311,7 +329,7 @@ public class MainActivity extends AppCompatActivity {
         return type != null && type.startsWith("image/");
     }
 
-    private boolean isImageOrVideo(@NonNull android.net.Uri uri, @Nullable String intentType) {
+    private boolean isImageOrVideo(@NonNull Uri uri, @Nullable String intentType) {
         String type;
         try {
             type = getContentResolver().getType(uri);
@@ -329,16 +347,16 @@ public class MainActivity extends AppCompatActivity {
      * Queues an image/video for Scan when it was opened from another app (ACTION_VIEW) or shared
      * to Redact › Scan (ACTION_SEND). Returns whether one was queued.
      */
-    private boolean queueViewIntent(@Nullable android.content.Intent intent) {
+    private boolean queueViewIntent(@Nullable Intent intent) {
         if (intent == null) {
             return false;
         }
-        android.net.Uri data;
-        if (android.content.Intent.ACTION_VIEW.equals(intent.getAction())) {
+        Uri data;
+        if (Intent.ACTION_VIEW.equals(intent.getAction())) {
             data = intent.getData();
-        } else if (android.content.Intent.ACTION_SEND.equals(intent.getAction())) {
-            data = androidx.core.content.IntentCompat.getParcelableExtra(
-                    intent, android.content.Intent.EXTRA_STREAM, android.net.Uri.class);
+        } else if (Intent.ACTION_SEND.equals(intent.getAction())) {
+            data = IntentCompat.getParcelableExtra(
+                    intent, Intent.EXTRA_STREAM, Uri.class);
         } else {
             return false;
         }
@@ -353,8 +371,8 @@ public class MainActivity extends AppCompatActivity {
             if (type == null || !(type.startsWith("image/") || type.startsWith("video/"))) {
                 return false;
             }
-            new androidx.lifecycle.ViewModelProvider(this)
-                    .get(com.doubleangels.redact.ui.ScanViewModel.class).setPendingUri(data);
+            new ViewModelProvider(this)
+                    .get(ScanViewModel.class).setPendingUri(data);
             return true;
         } catch (Exception e) {
             SentryManager.recordException(e);
@@ -366,15 +384,15 @@ public class MainActivity extends AppCompatActivity {
      * Only content from another app's provider: a file:// path or one of Redact's own providers
      * would let the sender point Scan at files that are private to Redact.
      */
-    private boolean isForeignContentUri(@Nullable android.net.Uri uri) {
-        if (uri == null || !android.content.ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
+    private boolean isForeignContentUri(@Nullable Uri uri) {
+        if (uri == null || !ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
             return false;
         }
         String authority = uri.getAuthority();
         return authority != null && !authority.startsWith(getPackageName());
     }
 
-    private static int tabFromIntent(@Nullable android.content.Intent intent) {
+    private static int tabFromIntent(@Nullable Intent intent) {
         String tab = intent == null ? null : intent.getStringExtra(EXTRA_TAB);
         if (TAG_SCAN.equals(tab)) {
             return R.id.navigation_scan;
@@ -394,10 +412,10 @@ public class MainActivity extends AppCompatActivity {
         if (nav != null) {
             nav.setVisibility(immersive ? View.GONE : View.VISIBLE);
         }
-        androidx.core.view.WindowInsetsControllerCompat controller =
-                androidx.core.view.WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        WindowInsetsControllerCompat controller =
+                WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
         controller.setSystemBarsBehavior(
-                androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
         if (immersive) {
             controller.hide(WindowInsetsCompat.Type.systemBars());
         } else {
@@ -466,7 +484,7 @@ public class MainActivity extends AppCompatActivity {
     void onFoldPostureChanged(@NonNull FoldPosture posture) {
         // Set even when this activity already knew the posture: the view model outlives a
         // recreated activity, which starts out flat, and must not keep the posture from before.
-        new androidx.lifecycle.ViewModelProvider(this).get(com.doubleangels.redact.ui.MainViewModel.class).setFoldPosture(posture);
+        new ViewModelProvider(this).get(MainViewModel.class).setFoldPosture(posture);
         if (posture.equals(foldPosture)) {
             return;
         }
@@ -486,7 +504,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void updateRailLabels() {
         View nav = findViewById(R.id.bottomNavigation);
-        if (!(nav instanceof com.google.android.material.navigationrail.NavigationRailView rail)) {
+        if (!(nav instanceof NavigationRailView rail)) {
             return;
         }
         float density = getResources().getDisplayMetrics().density;
@@ -534,7 +552,7 @@ public class MainActivity extends AppCompatActivity {
 
     /** The system bars and cutout as last applied, kept so a fold can be applied without new insets. */
     @NonNull
-    private androidx.core.graphics.Insets systemBars = androidx.core.graphics.Insets.NONE;
+    private Insets systemBars = Insets.NONE;
 
     /**
      * Pads the root for the system bars and, when folded, for the half the app leaves empty. The
@@ -560,9 +578,9 @@ public class MainActivity extends AppCompatActivity {
                 final int barsAndCutout = WindowInsetsCompat.Type.systemBars()
                         | WindowInsetsCompat.Type.displayCutout();
                 ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, insets) -> {
-                    androidx.core.graphics.Insets outer = insets.getInsets(barsAndCutout);
-                    androidx.core.graphics.Insets nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars());
-                    androidx.core.graphics.Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+                    Insets outer = insets.getInsets(barsAndCutout);
+                    Insets nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars());
+                    Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
                     // On a table the app ends at the hinge, above the system bar, so it is not padded for it.
                     int bottomOverlap = foldPosture.type() == FoldPosture.Type.TABLETOP
                             ? 0 : Math.max(nav.bottom, ime.bottom);
@@ -587,7 +605,7 @@ public class MainActivity extends AppCompatActivity {
                     // it has to clear the system bar and the keyboard itself.
                     View container = findViewById(R.id.fragment_container);
                     if (container != null && bottomNav instanceof
-                            com.google.android.material.navigationrail.NavigationRailView) {
+                            NavigationRailView) {
                         container.setPadding(0, 0, 0, bottomOverlap);
                     }
 
@@ -660,15 +678,15 @@ public class MainActivity extends AppCompatActivity {
     @Nullable
     private Fragment resolvePermissionResultTarget(int requestCode) {
         if (requestCode
-                == com.doubleangels.redact.permission.PermissionManager.LOCATION_PERMISSION_REQUEST_CODE) {
+                == PermissionManager.LOCATION_PERMISSION_REQUEST_CODE) {
             return getSupportFragmentManager().findFragmentByTag(TAG_SCAN);
         }
         if (requestCode
-                == com.doubleangels.redact.permission.PermissionManager.NOTIFICATION_PERMISSION_REQUEST_CODE) {
+                == PermissionManager.NOTIFICATION_PERMISSION_REQUEST_CODE) {
             return getSupportFragmentManager().findFragmentByTag(TAG_SETTINGS);
         }
         if (requestCode
-                == com.doubleangels.redact.permission.PermissionManager.STORAGE_PERMISSION_REQUEST_CODE) {
+                == PermissionManager.STORAGE_PERMISSION_REQUEST_CODE) {
             return getVisibleTabFragment();
         }
         return null;
@@ -714,10 +732,10 @@ public class MainActivity extends AppCompatActivity {
             SentryManager.logEvent("permission", "The app received a permission result.");
             SentryManager.setCustomKey("permission_request_code", requestCode);
 
-            com.doubleangels.redact.permission.PermissionManager.storeActivityPermissionResult(
+            PermissionManager.storeActivityPermissionResult(
                     requestCode, permissions, grantResults);
 
-            if (com.doubleangels.redact.permission.PermissionManager.handleInitialPermissionFlowResult(
+            if (PermissionManager.handleInitialPermissionFlowResult(
                     this, requestCode, permissions, grantResults)) {
                 return;
             }

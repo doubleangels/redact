@@ -15,10 +15,10 @@
       </SelectionState>
       <SelectionState runConfigName="app (no flow)">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-10-05T23:18:15.486184600Z">
+        <DropdownSelection timestamp="2026-11-05T20:28:38.933064700Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=2A141FDH30019W" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\mattv\.android\avd\Fold_Test.avd" />
             </handle>
           </Target>
         </DropdownSelection>

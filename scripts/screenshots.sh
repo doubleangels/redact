@@ -12,11 +12,12 @@
 # emulator first (./gradlew installDebug); set SKIP_INSTALL=1 to reuse what is installed.
 # Windows: run it from Git Bash (adb and the emulator are found via PATH or the SDK in local.properties).
 # Android 17 (API 37) emulator only: physical devices and emulators on any other API level are never used
-# or touched (an inherited ANDROID_SERIAL is ignored). Uses a running API 37 emulator if there is one (and
-# leaves it running); otherwise boots the AVD named by $AVD (default Pixel_10_Pro, must be API 37) in a
-# visible window and shuts it down on exit.
-# Emulator setup: sdkmanager "system-images;android-37;google_apis;x86_64", then avdmanager create avd
-# -n Pixel_10_Pro -d pixel_7_pro -k <that image>.
+# or touched (an inherited ANDROID_SERIAL is ignored). Uses the running emulator of the AVD named by $AVD
+# (default Pixel_10_Pro, must be API 37) if there is one, and leaves it running; any other emulator, such
+# as the profile generator's, is ignored. Otherwise it boots that AVD in a visible window and shuts it
+# down on exit.
+# Emulator setup: sdkmanager "system-images;android-37.2;google_apis_playstore_ps16k;x86_64", then
+# avdmanager create avd -n Pixel_10_Pro -d pixel_10_pro -k <that image>.
 # Changes it makes on the emulator are undone on exit: system dark mode, the monochrome (black and white)
 # system theme, animation scales, the demo-mode status bar, the app language, the pushed files in
 # /sdcard/Pictures/redact-samples and the copies the Clean shots save. Redact's own app data on the
@@ -100,8 +101,8 @@ start_emulator() {
   emu=$(find_emulator) || { echo "No emulator running and no emulator binary found (set ANDROID_HOME)" >&2; exit 1; }
   "$emu" -list-avds | tr -d '\r' | grep -qx "$AVD" || {
     echo "No API $REQUIRED_API emulator running and no AVD named $AVD." >&2
-    echo "Create one: sdkmanager \"system-images;android-$REQUIRED_API;google_apis;x86_64\", then" >&2
-    echo "avdmanager create avd -n $AVD -d pixel_7_pro -k \"system-images;android-$REQUIRED_API;google_apis;x86_64\"" >&2
+    echo "Create one: sdkmanager \"system-images;android-$REQUIRED_API.2;google_apis_playstore_ps16k;x86_64\", then" >&2
+    echo "avdmanager create avd -n $AVD -d pixel_10_pro -k \"system-images;android-$REQUIRED_API.2;google_apis_playstore_ps16k;x86_64\"" >&2
     exit 1
   }
   echo "No API $REQUIRED_API emulator running; starting $AVD"
@@ -157,6 +158,8 @@ trap 'exit 130' INT TERM
 
 ANDROID_SERIAL=""
 for serial in $(adb devices | tr -d '\r' | awk 'NR>1 && $2=="device" && $1~/^emulator-/ {print $1}'); do
+  # Match the AVD by name: the profile generator's Gradle-managed emulator is API 37 too.
+  [[ $(adb -s "$serial" emu avd name 2>/dev/null | head -1 | tr -d '') == "$AVD" ]] || continue
   if [[ $(emulator_api "$serial") == "$REQUIRED_API" ]]; then ANDROID_SERIAL=$serial; break; fi
 done
 [[ -n "$ANDROID_SERIAL" ]] || start_emulator

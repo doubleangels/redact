@@ -1,9 +1,12 @@
 package com.doubleangels.redact.media;
 
+import android.content.Context;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.doubleangels.redact.R;
 
 import java.util.Objects;
 
@@ -47,10 +50,10 @@ public final class MediaItem {
 
     /** The file name to show, with a generic label when the source has none. */
     @NonNull
-    public String displayName(@NonNull android.content.Context context) {
+    public String displayName(@NonNull Context context) {
         return fileName != null && !fileName.isEmpty()
                 ? fileName
-                : context.getString(com.doubleangels.redact.R.string.scan_default_file_name);
+                : context.getString(R.string.scan_default_file_name);
     }
 
     @Override

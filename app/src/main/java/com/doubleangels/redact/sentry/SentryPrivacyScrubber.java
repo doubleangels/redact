@@ -2,11 +2,6 @@ package com.doubleangels.redact.sentry;
 
 import androidx.annotation.Nullable;
 
-import java.util.Locale;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import io.sentry.Breadcrumb;
 import io.sentry.SentryAttributeType;
 import io.sentry.SentryEvent;
@@ -16,6 +11,18 @@ import io.sentry.protocol.SentrySpan;
 import io.sentry.protocol.SentryTransaction;
 import io.sentry.SentryLogEvent;
 import io.sentry.SentryMetricsEvent;
+import io.sentry.protocol.Feedback;
+import io.sentry.protocol.SentryException;
+import io.sentry.protocol.SentryStackFrame;
+import io.sentry.protocol.SentryStackTrace;
+import io.sentry.protocol.SentryThread;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Redacts URIs, filesystem paths, filenames, and GPS coordinates from Sentry payloads.
@@ -218,7 +225,7 @@ public final class SentryPrivacyScrubber {
             logEvent.setBody(scrub(logEvent.getBody()));
         }
         if (logEvent.getAttributes() != null) {
-            for (String key : new java.util.ArrayList<>(logEvent.getAttributes().keySet())) {
+            for (String key : new ArrayList<>(logEvent.getAttributes().keySet())) {
                 if (isPiiAttributeKey(key)) {
                     logEvent.getAttributes().remove(key);
                     continue;
@@ -243,7 +250,7 @@ public final class SentryPrivacyScrubber {
             return;
         }
         if (metric.getAttributes() != null) {
-            for (String key : new java.util.ArrayList<>(metric.getAttributes().keySet())) {
+            for (String key : new ArrayList<>(metric.getAttributes().keySet())) {
                 if (isPiiAttributeKey(key) || isSensitiveMetricAttributeKey(key)) {
                     metric.getAttributes().remove(key);
                     continue;
@@ -315,7 +322,7 @@ public final class SentryPrivacyScrubber {
             message.setMessage(scrub(message.getMessage()));
         }
         if (event.getExceptions() != null) {
-            for (io.sentry.protocol.SentryException ex : event.getExceptions()) {
+            for (SentryException ex : event.getExceptions()) {
                 if (ex.getValue() != null) {
                     ex.setValue(scrub(ex.getValue()));
                 }
@@ -334,7 +341,7 @@ public final class SentryPrivacyScrubber {
             event.getTags().replaceAll((k, v) -> scrubTag(k, v));
         }
         if (event.getThreads() != null) {
-            for (io.sentry.protocol.SentryThread thread : event.getThreads()) {
+            for (SentryThread thread : event.getThreads()) {
                 scrubStacktrace(thread.getStacktrace());
             }
         }
@@ -360,7 +367,7 @@ public final class SentryPrivacyScrubber {
         if (event == null || event.getContexts() == null) {
             return;
         }
-        io.sentry.protocol.Feedback feedback = event.getContexts().getFeedback();
+        Feedback feedback = event.getContexts().getFeedback();
         if (feedback == null) {
             return;
         }
@@ -388,8 +395,8 @@ public final class SentryPrivacyScrubber {
             scrubStringObjectMap(castToStringObjectMap(nested));
             return nested;
         }
-        if (value instanceof java.util.List<?> list) {
-            java.util.List<Object> scrubbed = new java.util.ArrayList<>(list.size());
+        if (value instanceof List<?> list) {
+            List<Object> scrubbed = new ArrayList<>(list.size());
             for (Object item : list) {
                 scrubbed.add(scrubValue(item));
             }
@@ -410,11 +417,11 @@ public final class SentryPrivacyScrubber {
         return (Map<String, Object>) map;
     }
 
-    private static void scrubStacktrace(@Nullable io.sentry.protocol.SentryStackTrace stacktrace) {
+    private static void scrubStacktrace(@Nullable SentryStackTrace stacktrace) {
         if (stacktrace == null || stacktrace.getFrames() == null) {
             return;
         }
-        for (io.sentry.protocol.SentryStackFrame frame : stacktrace.getFrames()) {
+        for (SentryStackFrame frame : stacktrace.getFrames()) {
             if (frame.getFilename() != null) {
                 frame.setFilename(scrub(frame.getFilename()));
             }

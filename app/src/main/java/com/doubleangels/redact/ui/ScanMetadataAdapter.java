@@ -1,5 +1,6 @@
 package com.doubleangels.redact.ui;
 
+import android.annotation.SuppressLint;
 import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +20,7 @@ import com.google.android.material.color.MaterialColors;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 /**
  * List for Scan tab metadata displaying categorized section headers and interactive rows, with a red
@@ -122,22 +124,14 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
 
     private final List<Entry> allEntries = new ArrayList<>();
     private final List<Entry> displayedEntries = new ArrayList<>();
-    @Nullable
-    private String currentFilterSection = null;
     /** Normalized search text (see {@link #normalize}); empty shows everything. */
     @NonNull
     private String query = "";
 
-    @android.annotation.SuppressLint("NotifyDataSetChanged")
+    @SuppressLint("NotifyDataSetChanged")
     public void setEntries(@NonNull List<Entry> newEntries) {
         allEntries.clear();
         allEntries.addAll(newEntries);
-        applyFilter();
-    }
-
-    @android.annotation.SuppressLint("NotifyDataSetChanged")
-    public void filterBySection(@Nullable String sectionId) {
-        currentFilterSection = sectionId;
         applyFilter();
     }
 
@@ -160,23 +154,13 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
         return !query.isEmpty();
     }
 
-    @android.annotation.SuppressLint("NotifyDataSetChanged")
+    @SuppressLint("NotifyDataSetChanged")
     private void applyFilter() {
-        List<Entry> inSection = new ArrayList<>();
-        if (currentFilterSection == null || currentFilterSection.isEmpty()) {
-            inSection.addAll(allEntries);
-        } else {
-            for (Entry entry : allEntries) {
-                if (currentFilterSection.equals(entry.sectionId)) {
-                    inSection.add(entry);
-                }
-            }
-        }
         displayedEntries.clear();
         if (query.isEmpty()) {
-            displayedEntries.addAll(inSection);
+            displayedEntries.addAll(allEntries);
         } else {
-            addMatches(inSection);
+            addMatches(allEntries);
         }
         notifyDataSetChanged();
     }
@@ -215,7 +199,7 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
         displayedEntries.addAll(matches);
     }
 
-    private static final java.util.regex.Pattern SPACES = java.util.regex.Pattern.compile("\\s+");
+    private static final Pattern SPACES = Pattern.compile("\\s+");
 
     /** Lower-cases, treats underscores as spaces and collapses runs of spaces, for matching. */
     @NonNull
@@ -226,14 +210,13 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
         return SPACES.matcher(text.toLowerCase(Locale.ROOT).replace('_', ' ')).replaceAll(" ").trim();
     }
 
-    @android.annotation.SuppressLint("NotifyDataSetChanged")
+    @SuppressLint("NotifyDataSetChanged")
     public void clear() {
         if (allEntries.isEmpty() && displayedEntries.isEmpty()) {
             return;
         }
         allEntries.clear();
         displayedEntries.clear();
-        currentFilterSection = null;
         notifyDataSetChanged();
     }
 

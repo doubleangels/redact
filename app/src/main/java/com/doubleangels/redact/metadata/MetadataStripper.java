@@ -4,42 +4,69 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaCodec;
+import android.media.MediaExtractor;
+import android.media.MediaFormat;
+import android.media.MediaMetadataRetriever;
+import android.media.MediaMuxer;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
 
-import java.util.Locale;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
+import androidx.media3.common.C;
+import androidx.media3.common.Format;
+import androidx.media3.common.util.MediaFormatUtil;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.container.Mp4LocationData;
+import androidx.media3.muxer.BufferInfo;
+import androidx.media3.muxer.Mp4Muxer;
+import androidx.media3.muxer.MuxerException;
 
 import com.doubleangels.redact.AppPreferences;
-import com.doubleangels.redact.CacheCleanup;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.FormatConverter;
+import com.doubleangels.redact.media.MediaFileNames;
 import com.doubleangels.redact.media.MediaSizeLimits;
 import com.doubleangels.redact.media.VideoMedia3Converter;
 import com.doubleangels.redact.media.OutputDestination;
+import com.doubleangels.redact.media.ProcessingCancelledException;
+import com.doubleangels.redact.media.SecureDelete;
 import com.doubleangels.redact.media.UnsupportedMediaException;
 import com.doubleangels.redact.sentry.SentryManager;
+import com.google.common.collect.ImmutableList;
 
-import java.io.Closeable;
+import java.io.BufferedOutputStream;
+import java.util.Locale;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.lang.reflect.Field;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.security.DigestOutputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BooleanSupplier;
 
 
 /**
@@ -128,19 +155,19 @@ public class MetadataStripper {
     private File lastProcessedOutputFile;
     private volatile boolean lastFailureUnsupported;
 
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     @Nullable
     File testFastStripVideoMetadataOverride;
 
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     boolean testForceOutputDirMkdirsFailure;
 
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     void setTestFastStripVideoMetadataOverride(@Nullable File overrideFile) {
         this.testFastStripVideoMetadataOverride = overrideFile;
     }
 
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     void setTestForceOutputDirMkdirsFailure(boolean force) {
         this.testForceOutputDirMkdirsFailure = force;
     }
@@ -154,8 +181,8 @@ public class MetadataStripper {
      */
     private final Map<String, String> preservedExifValues = new HashMap<>();
 
-    private final java.util.concurrent.atomic.AtomicBoolean operationCancelled =
-            new java.util.concurrent.atomic.AtomicBoolean(false);
+    private final AtomicBoolean operationCancelled =
+            new AtomicBoolean(false);
 
     private volatile long transcodeOwnerId = -1L;
 
@@ -163,7 +190,7 @@ public class MetadataStripper {
     private volatile CleanStats lastCleanStats;
 
     @Nullable
-    private volatile java.util.function.BooleanSupplier externalCancellationCheck;
+    private volatile BooleanSupplier externalCancellationCheck;
 
     public void resetCancellation() {
         operationCancelled.set(false);
@@ -186,7 +213,7 @@ public class MetadataStripper {
      * Lets a caller that owns the cancellation state (e.g. the Convert loop) stop an operation in
      * progress without holding a reference to this stripper.
      */
-    public void setCancellationCheck(@Nullable java.util.function.BooleanSupplier check) {
+    public void setCancellationCheck(@Nullable BooleanSupplier check) {
         externalCancellationCheck = check;
     }
 
@@ -201,10 +228,10 @@ public class MetadataStripper {
     }
 
     private void throwIfCancelled() throws IOException {
-        java.util.function.BooleanSupplier external = externalCancellationCheck;
+        BooleanSupplier external = externalCancellationCheck;
         if (operationCancelled.get() || Thread.currentThread().isInterrupted()
                 || (external != null && external.getAsBoolean())) {
-            throw new com.doubleangels.redact.media.ProcessingCancelledException("Processing cancelled");
+            throw new ProcessingCancelledException("Processing cancelled");
         }
     }
 
@@ -388,7 +415,7 @@ public class MetadataStripper {
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new com.doubleangels.redact.media.ProcessingCancelledException("Video processing interrupted", e);
+                throw new ProcessingCancelledException("Video processing interrupted", e);
             } catch (Exception e) {
                 SentryManager.log("Video processing failed: " + e.getMessage() + ".");
                 throw new IOException("Failed to clean video safely", e);
@@ -468,7 +495,7 @@ public class MetadataStripper {
                     resolveImageOutputFormat(sourceUri, originalFilename, tempFile);
             String extension = outputFormat.extension;
             String newFilename =
-                    com.doubleangels.redact.media.MediaFileNames.outputBaseName(context, originalFilename)
+                    MediaFileNames.outputBaseName(context, originalFilename)
                             + extension;
 
             // Extract essential EXIF data to preserve (like orientation)
@@ -618,8 +645,8 @@ public class MetadataStripper {
                 if (os == null) {
                     throw new IOException("Failed to open output stream for new image");
                 }
-                java.security.MessageDigest digest = sha256();
-                MediaSizeLimits.copyStream(in, new java.security.DigestOutputStream(os, digest));
+                MessageDigest digest = sha256();
+                MediaSizeLimits.copyStream(in, new DigestOutputStream(os, digest));
                 written = digest.digest();
             }
             requireSameContent(newUri, written);
@@ -660,8 +687,8 @@ public class MetadataStripper {
         File video = null;
         try {
             video = File.createTempFile("motion_", ".mp4", context.getCacheDir());
-            try (java.io.RandomAccessFile in = new java.io.RandomAccessFile(picture, "r");
-                    OutputStream out = new java.io.BufferedOutputStream(new FileOutputStream(video), 64 * 1024)) {
+            try (RandomAccessFile in = new RandomAccessFile(picture, "r");
+                    OutputStream out = new BufferedOutputStream(new FileOutputStream(video), 64 * 1024)) {
                 in.seek(found.start);
                 byte[] buffer = new byte[64 * 1024];
                 long left = found.end - found.start;
@@ -867,7 +894,7 @@ public class MetadataStripper {
                         transcodeOwnerId);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new com.doubleangels.redact.media.ProcessingCancelledException("Video transcoding interrupted", e);
+                throw new ProcessingCancelledException("Video transcoding interrupted", e);
             } catch (Exception e) {
                 SentryManager.log("Video processing failed: " + e.getMessage() + ".");
                 throw new IOException("Failed to process video safely", e);
@@ -910,24 +937,24 @@ public class MetadataStripper {
      * so an HEVC video named .mp4 was re-encoded to H.264 while the same video named .mov stayed
      * HEVC.
      */
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     int detectVideoFormatIndex(Uri sourceUri, String fileName) {
-        android.media.MediaExtractor extractor = new android.media.MediaExtractor();
+        MediaExtractor extractor = new MediaExtractor();
         try {
             extractor.setDataSource(context, sourceUri, null);
             for (int i = 0; i < extractor.getTrackCount(); i++) {
-                android.media.MediaFormat format = extractor.getTrackFormat(i);
-                String mime = format.getString(android.media.MediaFormat.KEY_MIME);
+                MediaFormat format = extractor.getTrackFormat(i);
+                String mime = format.getString(MediaFormat.KEY_MIME);
                 if (mime == null || !mime.startsWith("video/")) {
                     continue;
                 }
-                if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_HEVC)) {
+                if (mime.equals(MediaFormat.MIMETYPE_VIDEO_HEVC)) {
                     return 1;
                 }
-                if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP9) || mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP8)) {
+                if (mime.equals(MediaFormat.MIMETYPE_VIDEO_VP9) || mime.equals(MediaFormat.MIMETYPE_VIDEO_VP8)) {
                     return 2;
                 }
-                if (mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_AV1)) {
+                if (mime.equals(MediaFormat.MIMETYPE_VIDEO_AV1)) {
                     return 3;
                 }
                 return 0;
@@ -942,7 +969,7 @@ public class MetadataStripper {
             }
         }
         if (fileName != null) {
-            String lower = fileName.toLowerCase(java.util.Locale.ROOT);
+            String lower = fileName.toLowerCase(Locale.ROOT);
             if (lower.endsWith(".webm") || lower.endsWith(".vp9") || lower.endsWith(".vp8")) {
                 return 2;
             }
@@ -956,8 +983,8 @@ public class MetadataStripper {
      * of every audio sample, a file that cannot start playing until it has been read to the end.
      */
     private void remuxTracks(
-            android.media.MediaExtractor extractor,
-            java.util.Map<Integer, Integer> muxerTracks,
+            MediaExtractor extractor,
+            Map<Integer, Integer> muxerTracks,
             @NonNull SampleSink muxer) throws IOException {
         for (int i = 0; i < extractor.getTrackCount(); i++) {
             extractor.unselectTrack(i);
@@ -965,8 +992,8 @@ public class MetadataStripper {
         for (int sourceTrack : muxerTracks.keySet()) {
             extractor.selectTrack(sourceTrack);
         }
-        java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(1024 * 1024 * 2);
-        android.media.MediaCodec.BufferInfo info = new android.media.MediaCodec.BufferInfo();
+        ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024 * 2);
+        MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         while (true) {
             checkCancelled();
             int sourceTrack = extractor.getSampleTrackIndex();
@@ -983,7 +1010,7 @@ public class MetadataStripper {
                 break;
             }
             if (info.size > buffer.capacity()) {
-                buffer = java.nio.ByteBuffer.allocate(info.size);
+                buffer = ByteBuffer.allocate(info.size);
                 info.size = extractor.readSampleData(buffer, 0);
                 if (info.size < 0) {
                     break;
@@ -992,11 +1019,11 @@ public class MetadataStripper {
             info.presentationTimeUs = extractor.getSampleTime();
             int sampleFlags = extractor.getSampleFlags();
             info.flags = 0;
-            if ((sampleFlags & android.media.MediaExtractor.SAMPLE_FLAG_SYNC) != 0) {
-                info.flags |= android.media.MediaCodec.BUFFER_FLAG_KEY_FRAME;
+            if ((sampleFlags & MediaExtractor.SAMPLE_FLAG_SYNC) != 0) {
+                info.flags |= MediaCodec.BUFFER_FLAG_KEY_FRAME;
             }
-            if ((sampleFlags & android.media.MediaExtractor.SAMPLE_FLAG_PARTIAL_FRAME) != 0) {
-                info.flags |= android.media.MediaCodec.BUFFER_FLAG_PARTIAL_FRAME;
+            if ((sampleFlags & MediaExtractor.SAMPLE_FLAG_PARTIAL_FRAME) != 0) {
+                info.flags |= MediaCodec.BUFFER_FLAG_PARTIAL_FRAME;
             }
             info.offset = 0;
             muxer.write(muxerTrackIndex, buffer, info);
@@ -1116,8 +1143,8 @@ public class MetadataStripper {
 
     /** Where {@link #remuxTracks} writes each sample. */
     private interface SampleSink {
-        void write(int track, @NonNull java.nio.ByteBuffer buffer,
-                @NonNull android.media.MediaCodec.BufferInfo info) throws IOException;
+        void write(int track, @NonNull ByteBuffer buffer,
+                @NonNull MediaCodec.BufferInfo info) throws IOException;
     }
 
     /** The name a {@link #remuxWebmToMp4} copy starts with, so it is saved even though the source was WebM. */
@@ -1139,8 +1166,8 @@ public class MetadataStripper {
                 return mp4;
             }
         }
-        android.media.MediaExtractor extractor = new android.media.MediaExtractor();
-        android.media.MediaMuxer muxer = null;
+        MediaExtractor extractor = new MediaExtractor();
+        MediaMuxer muxer = null;
         File outputFile = null;
         boolean succeeded = false;
         try {
@@ -1164,10 +1191,10 @@ public class MetadataStripper {
             
             outputFile = File.createTempFile(
                     "vid_transmux_", useWebm ? ".webm" : ".mp4", context.getCacheDir());
-            int outputFormat = useWebm ? android.media.MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM 
-                                       : android.media.MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4;
+            int outputFormat = useWebm ? MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM 
+                                       : MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4;
             
-            muxer = new android.media.MediaMuxer(outputFile.getAbsolutePath(), outputFormat);
+            muxer = new MediaMuxer(outputFile.getAbsolutePath(), outputFormat);
             if (keepLocation != null && !useWebm) {
                 // Keep Location: written from the value asked for, nothing copied from the source.
                 muxer.setLocation((float) keepLocation[0], (float) keepLocation[1]);
@@ -1181,20 +1208,20 @@ public class MetadataStripper {
             int audioTrackCount = 0;
             
             for (int i = 0; i < extractor.getTrackCount(); i++) {
-                android.media.MediaFormat format = extractor.getTrackFormat(i);
-                String mime = format.getString(android.media.MediaFormat.KEY_MIME);
+                MediaFormat format = extractor.getTrackFormat(i);
+                String mime = format.getString(MediaFormat.KEY_MIME);
                 if (mime == null) continue;
                 if (mime.startsWith("video/")) {
                     videoTrackCount++;
                     if (videoTrackIndex == -1) {
                     videoTrackIndex = i;
-                    if (format.containsKey(android.media.MediaFormat.KEY_ROTATION)) {
-                        muxer.setOrientationHint(format.getInteger(android.media.MediaFormat.KEY_ROTATION));
+                    if (format.containsKey(MediaFormat.KEY_ROTATION)) {
+                        muxer.setOrientationHint(format.getInteger(MediaFormat.KEY_ROTATION));
                     } else {
-                        android.media.MediaMetadataRetriever retriever = new android.media.MediaMetadataRetriever();
+                        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
                         try {
                             retriever.setDataSource(context, sourceUri);
-                            String rotation = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION);
+                            String rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION);
                             if (rotation != null) {
                                 muxer.setOrientationHint(Integer.parseInt(rotation));
                             }
@@ -1226,7 +1253,7 @@ public class MetadataStripper {
             
             muxer.start();
 
-            java.util.Map<Integer, Integer> muxerTracks = new java.util.HashMap<>();
+            Map<Integer, Integer> muxerTracks = new HashMap<>();
             if (videoTrackIndex != -1 && muxerVideoTrackIndex != -1) {
                 muxerTracks.put(videoTrackIndex, muxerVideoTrackIndex);
             }
@@ -1271,13 +1298,13 @@ public class MetadataStripper {
      * a source that is not VP9 in WebM, VP8, Vorbis audio, or a copy that fails.
      */
     // The Media3 muxer it writes with is not yet a stable API.
-    @androidx.annotation.OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)
+    @OptIn(markerClass = UnstableApi.class)
     @Nullable
     private File remuxWebmToMp4(@NonNull Uri sourceUri, @Nullable double[] keepLocation) {
-        android.media.MediaExtractor extractor = new android.media.MediaExtractor();
+        MediaExtractor extractor = new MediaExtractor();
         File outputFile = null;
         boolean succeeded = false;
-        androidx.media3.muxer.Mp4Muxer muxer = null;
+        Mp4Muxer muxer = null;
         try {
             extractor.setDataSource(context, sourceUri, null);
             if (!useWebmContainer(extractor)) {
@@ -1287,18 +1314,18 @@ public class MetadataStripper {
             int audioTrack = -1;
             boolean vorbis = false;
             for (int i = 0; i < extractor.getTrackCount(); i++) {
-                String mime = extractor.getTrackFormat(i).getString(android.media.MediaFormat.KEY_MIME);
+                String mime = extractor.getTrackFormat(i).getString(MediaFormat.KEY_MIME);
                 if (mime == null) {
                     continue;
                 }
                 if (mime.startsWith("video/") && videoTrack == -1) {
-                    if (!mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP9)) {
+                    if (!mime.equals(MediaFormat.MIMETYPE_VIDEO_VP9)) {
                         return null;
                     }
                     videoTrack = i;
                 } else if (mime.startsWith("audio/") && audioTrack == -1) {
-                    vorbis = mime.equals(android.media.MediaFormat.MIMETYPE_AUDIO_VORBIS);
-                    if (!vorbis && !mime.equals(android.media.MediaFormat.MIMETYPE_AUDIO_OPUS)) {
+                    vorbis = mime.equals(MediaFormat.MIMETYPE_AUDIO_VORBIS);
+                    if (!vorbis && !mime.equals(MediaFormat.MIMETYPE_AUDIO_OPUS)) {
                         return null;
                     }
                     audioTrack = i;
@@ -1307,15 +1334,15 @@ public class MetadataStripper {
             if (videoTrack == -1) {
                 return null;
             }
-            android.media.MediaFormat videoFormat = extractor.getTrackFormat(videoTrack);
+            MediaFormat videoFormat = extractor.getTrackFormat(videoTrack);
             byte[] vpcC = Vp9CodecConfig.vpcC(
                     firstSample(sourceUri, videoTrack),
-                    videoFormat.getInteger(android.media.MediaFormat.KEY_WIDTH, 0),
-                    videoFormat.getInteger(android.media.MediaFormat.KEY_HEIGHT, 0),
+                    videoFormat.getInteger(MediaFormat.KEY_WIDTH, 0),
+                    videoFormat.getInteger(MediaFormat.KEY_HEIGHT, 0),
                     frameRateOf(videoFormat),
-                    videoFormat.getInteger(android.media.MediaFormat.KEY_COLOR_STANDARD, 0),
-                    videoFormat.getInteger(android.media.MediaFormat.KEY_COLOR_TRANSFER, 0),
-                    videoFormat.getInteger(android.media.MediaFormat.KEY_COLOR_RANGE, 0));
+                    videoFormat.getInteger(MediaFormat.KEY_COLOR_STANDARD, 0),
+                    videoFormat.getInteger(MediaFormat.KEY_COLOR_TRANSFER, 0),
+                    videoFormat.getInteger(MediaFormat.KEY_COLOR_RANGE, 0));
             if (vpcC == null) {
                 SentryManager.log("The WebM video does not start with a VP9 key frame, so it stays WebM.");
                 return null;
@@ -1330,30 +1357,30 @@ public class MetadataStripper {
                 succeeded = true;
                 return outputFile;
             }
-            muxer = new androidx.media3.muxer.Mp4Muxer.Builder(new java.io.FileOutputStream(outputFile)).build();
+            muxer = new Mp4Muxer.Builder(new FileOutputStream(outputFile)).build();
             if (keepLocation != null) {
                 // Written from the value asked for, nothing copied from the source.
-                muxer.addMetadataEntry(new androidx.media3.container.Mp4LocationData(
+                muxer.addMetadataEntry(new Mp4LocationData(
                         (float) keepLocation[0], (float) keepLocation[1]));
             }
-            java.util.Map<Integer, Integer> tracks = new java.util.LinkedHashMap<>();
+            Map<Integer, Integer> tracks = new LinkedHashMap<>();
             tracks.put(videoTrack, muxer.addTrack(media3Format(videoFormat)
                     .buildUpon()
-                    .setInitializationData(java.util.Collections.singletonList(vpcC))
+                    .setInitializationData(Collections.singletonList(vpcC))
                     .build()));
             if (audioTrack != -1) {
                 tracks.put(audioTrack, muxer.addTrack(media3Format(extractor.getTrackFormat(audioTrack))));
             }
-            androidx.media3.muxer.Mp4Muxer sink = muxer;
+            Mp4Muxer sink = muxer;
             remuxTracks(extractor, tracks, (track, buffer, info) -> {
                 buffer.position(0);
                 buffer.limit(info.size);
                 try {
-                    sink.writeSampleData(track, buffer, new androidx.media3.muxer.BufferInfo(
+                    sink.writeSampleData(track, buffer, new BufferInfo(
                             info.presentationTimeUs, info.size,
-                            (info.flags & android.media.MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0
-                                    ? androidx.media3.common.C.BUFFER_FLAG_KEY_FRAME : 0));
-                } catch (androidx.media3.muxer.MuxerException e) {
+                            (info.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0
+                                    ? C.BUFFER_FLAG_KEY_FRAME : 0));
+                } catch (MuxerException e) {
                     throw new IOException(e);
                 }
             });
@@ -1382,11 +1409,11 @@ public class MetadataStripper {
     /** The first sample of {@code track}, read with an extractor of its own. */
     @NonNull
     private byte[] firstSample(@NonNull Uri sourceUri, int track) throws IOException {
-        android.media.MediaExtractor extractor = new android.media.MediaExtractor();
+        MediaExtractor extractor = new MediaExtractor();
         try {
             extractor.setDataSource(context, sourceUri, null);
             extractor.selectTrack(track);
-            java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(2 * 1024 * 1024);
+            ByteBuffer buffer = ByteBuffer.allocate(2 * 1024 * 1024);
             int size = extractor.readSampleData(buffer, 0);
             if (size <= 0) {
                 throw new IOException("The video has no samples");
@@ -1400,24 +1427,24 @@ public class MetadataStripper {
         }
     }
 
-    private static float frameRateOf(@NonNull android.media.MediaFormat format) {
+    private static float frameRateOf(@NonNull MediaFormat format) {
         try {
-            return format.getInteger(android.media.MediaFormat.KEY_FRAME_RATE, 0);
+            return format.getInteger(MediaFormat.KEY_FRAME_RATE, 0);
         } catch (ClassCastException isFloat) {
-            return format.getFloat(android.media.MediaFormat.KEY_FRAME_RATE, 0f);
+            return format.getFloat(MediaFormat.KEY_FRAME_RATE, 0f);
         }
     }
 
     /** The platform's track format as Media3's, keeping nothing but how to decode it. */
     // Building a Media3 Format for its muxer is not yet a stable API.
-    @androidx.annotation.OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)
+    @OptIn(markerClass = UnstableApi.class)
     @NonNull
-    private static androidx.media3.common.Format media3Format(@NonNull android.media.MediaFormat format) {
-        return androidx.media3.common.util.MediaFormatUtil.createFormatFromMediaFormat(format)
+    private static Format media3Format(@NonNull MediaFormat format) {
+        return MediaFormatUtil.createFormatFromMediaFormat(format)
                 .buildUpon()
                 .setLanguage(null)
                 .setLabel(null)
-                .setLabels(com.google.common.collect.ImmutableList.of())
+                .setLabels(ImmutableList.of())
                 .setMetadata(null)
                 .build();
     }
@@ -1427,19 +1454,19 @@ public class MetadataStripper {
      * for Opus or Vorbis audio with no video. The video decides when there is some, so H.264 with
      * Opus audio is not sent to a WebM muxer that would only reject the H.264.
      */
-    private static boolean useWebmContainer(@NonNull android.media.MediaExtractor extractor) {
+    private static boolean useWebmContainer(@NonNull MediaExtractor extractor) {
         boolean webmAudio = false;
         for (int i = 0; i < extractor.getTrackCount(); i++) {
-            String mime = extractor.getTrackFormat(i).getString(android.media.MediaFormat.KEY_MIME);
+            String mime = extractor.getTrackFormat(i).getString(MediaFormat.KEY_MIME);
             if (mime == null) {
                 continue;
             }
             if (mime.startsWith("video/")) {
-                return mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP8)
-                        || mime.equals(android.media.MediaFormat.MIMETYPE_VIDEO_VP9);
+                return mime.equals(MediaFormat.MIMETYPE_VIDEO_VP8)
+                        || mime.equals(MediaFormat.MIMETYPE_VIDEO_VP9);
             }
-            if (mime.equals(android.media.MediaFormat.MIMETYPE_AUDIO_OPUS)
-                    || mime.equals(android.media.MediaFormat.MIMETYPE_AUDIO_VORBIS)) {
+            if (mime.equals(MediaFormat.MIMETYPE_AUDIO_OPUS)
+                    || mime.equals(MediaFormat.MIMETYPE_AUDIO_VORBIS)) {
                 webmAudio = true;
             }
         }
@@ -1502,9 +1529,9 @@ public class MetadataStripper {
      * @return A random string of 12 characters (alphanumeric)
      */
     @NonNull
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     String generateShortRandomName() {
-        return com.doubleangels.redact.media.MediaFileNames.generateShortRandomName();
+        return MediaFileNames.generateShortRandomName();
     }
 
     /**
@@ -1631,7 +1658,7 @@ public class MetadataStripper {
      * would turn the picture twice in some viewers.
      */
     private void restoreHeifExif(@NonNull File heif) {
-        Map<String, String> values = new java.util.LinkedHashMap<>(preservedExifValues);
+        Map<String, String> values = new LinkedHashMap<>(preservedExifValues);
         values.keySet().removeAll(ALWAYS_KEPT_TAGS);
         if (values.isEmpty()) {
             return;
@@ -1658,7 +1685,7 @@ public class MetadataStripper {
                 exif.setAttribute(entry.getKey(), entry.getValue());
             }
             exif.saveAttributes();
-            byte[] tiff = exifTiff(java.nio.file.Files.readAllBytes(carrier.toPath()));
+            byte[] tiff = exifTiff(Files.readAllBytes(carrier.toPath()));
             if (tiff == null) {
                 throw new IOException("The EXIF carrier has no EXIF");
             }
@@ -1685,7 +1712,7 @@ public class MetadataStripper {
             int body = pos + 4;
             if (marker == 0xE1 && length >= 8 && jpeg[body] == 'E' && jpeg[body + 1] == 'x'
                     && jpeg[body + 2] == 'i' && jpeg[body + 3] == 'f' && jpeg[body + 4] == 0 && jpeg[body + 5] == 0) {
-                return java.util.Arrays.copyOfRange(jpeg, body + 6, pos + 2 + length);
+                return Arrays.copyOfRange(jpeg, body + 6, pos + 2 + length);
             }
             pos += 2 + length;
         }
@@ -1720,11 +1747,11 @@ public class MetadataStripper {
     private void removeAllExifMetadata(@NonNull ExifInterface exif, boolean forSharing) {
         try {
             // Get all TAG constants from ExifInterface using reflection
-            java.lang.reflect.Field[] fields = ExifInterface.class.getDeclaredFields();
-            java.util.Set<String> tagsToPreserve = new java.util.HashSet<>(getTagsToPreserve(forSharing));
+            Field[] fields = ExifInterface.class.getDeclaredFields();
+            Set<String> tagsToPreserve = new HashSet<>(getTagsToPreserve(forSharing));
 
             int removedCount = 0;
-            for (java.lang.reflect.Field field : fields) {
+            for (Field field : fields) {
                 if (field.getType() == String.class && field.getName().startsWith("TAG_")) {
                     try {
                         String tagName = (String) field.get(null);
@@ -1892,7 +1919,7 @@ public class MetadataStripper {
 
     /** EXIF tags a clean keeps for the current settings; shared with {@link AlreadyCleanCheck}. */
     static List<String> tagsToPreserve(@NonNull Context context, boolean forSharing) {
-        List<String> tags = new java.util.ArrayList<>(ALWAYS_KEPT_TAGS);
+        List<String> tags = new ArrayList<>(ALWAYS_KEPT_TAGS);
         if (forSharing || AppPreferences.isStrictClean(context)) {
             return tags;
         }
@@ -1966,7 +1993,7 @@ public class MetadataStripper {
             ExifInterface.TAG_INTEROPERABILITY_INDEX);
 
     /** Source location/date used to detect preserved privacy metadata after cleaning. */
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     static final class VideoPrivacySnapshot {
         @Nullable final String location;
         @Nullable final String date;
@@ -1994,7 +2021,7 @@ public class MetadataStripper {
         VideoPrivacySnapshot(@Nullable String location, @Nullable String date, int additionalFieldCount,
                              int containerFieldCount, boolean containerHasLocation) {
             this(location, date, additionalFieldCount, containerFieldCount, containerHasLocation,
-                    java.util.Collections.emptyList(), false);
+                    Collections.emptyList(), false);
         }
 
         VideoPrivacySnapshot(@Nullable String location, @Nullable String date, int additionalFieldCount,
@@ -2034,11 +2061,11 @@ public class MetadataStripper {
 
     @NonNull
     private VideoPrivacySnapshot extractVideoPrivacyMetadata(@NonNull Uri sourceUri) {
-        try (android.media.MediaMetadataRetriever retriever = new android.media.MediaMetadataRetriever()) {
+        try (MediaMetadataRetriever retriever = new MediaMetadataRetriever()) {
             retriever.setDataSource(context, sourceUri);
             String date = normalizeMetadataValue(
                     retriever.extractMetadata(
-                            android.media.MediaMetadataRetriever.METADATA_KEY_DATE));
+                            MediaMetadataRetriever.METADATA_KEY_DATE));
             if (VIDEO_DATE_UNSET_PLACEHOLDER.equals(date)) {
                 date = null;
             }
@@ -2055,7 +2082,7 @@ public class MetadataStripper {
             return new VideoPrivacySnapshot(
                     normalizeMetadataValue(
                             retriever.extractMetadata(
-                                    android.media.MediaMetadataRetriever.METADATA_KEY_LOCATION)),
+                                    MediaMetadataRetriever.METADATA_KEY_LOCATION)),
                     date,
                     additional,
                     container.fields,
@@ -2074,7 +2101,7 @@ public class MetadataStripper {
         CleanStats exif;
         boolean exifCountedXmp = false;
         try {
-            Set<String> preserved = new java.util.HashSet<>(getTagsToPreserve(forSharing));
+            Set<String> preserved = new HashSet<>(getTagsToPreserve(forSharing));
             exif = CleanStats.fromExif(reader, preserved);
             String xmp = reader.getAttribute(ExifInterface.TAG_XMP);
             exifCountedXmp = xmp != null && !xmp.isEmpty()
@@ -2146,55 +2173,55 @@ public class MetadataStripper {
      */
     /** The {@link #ADDITIONAL_VIDEO_PRIVACY_KEYS} that name a person. */
     private static final Set<Integer> NAME_VIDEO_KEYS = Set.of(
-            android.media.MediaMetadataRetriever.METADATA_KEY_AUTHOR,
-            android.media.MediaMetadataRetriever.METADATA_KEY_WRITER,
-            android.media.MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST,
-            android.media.MediaMetadataRetriever.METADATA_KEY_ARTIST,
-            android.media.MediaMetadataRetriever.METADATA_KEY_COMPOSER);
+            MediaMetadataRetriever.METADATA_KEY_AUTHOR,
+            MediaMetadataRetriever.METADATA_KEY_WRITER,
+            MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST,
+            MediaMetadataRetriever.METADATA_KEY_ARTIST,
+            MediaMetadataRetriever.METADATA_KEY_COMPOSER);
 
     static final int[] ADDITIONAL_VIDEO_PRIVACY_KEYS = {
-            android.media.MediaMetadataRetriever.METADATA_KEY_AUTHOR,
-            android.media.MediaMetadataRetriever.METADATA_KEY_WRITER,
-            android.media.MediaMetadataRetriever.METADATA_KEY_ALBUM,
-            android.media.MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST,
-            android.media.MediaMetadataRetriever.METADATA_KEY_ARTIST,
-            android.media.MediaMetadataRetriever.METADATA_KEY_COMPOSER,
-            android.media.MediaMetadataRetriever.METADATA_KEY_TITLE,
+            MediaMetadataRetriever.METADATA_KEY_AUTHOR,
+            MediaMetadataRetriever.METADATA_KEY_WRITER,
+            MediaMetadataRetriever.METADATA_KEY_ALBUM,
+            MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST,
+            MediaMetadataRetriever.METADATA_KEY_ARTIST,
+            MediaMetadataRetriever.METADATA_KEY_COMPOSER,
+            MediaMetadataRetriever.METADATA_KEY_TITLE,
     };
 
     @NonNull
     private static String videoMetadataKeyName(int key) {
-        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_LOCATION) {
+        if (key == MediaMetadataRetriever.METADATA_KEY_LOCATION) {
             return "METADATA_KEY_LOCATION";
         }
-        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_DATE) {
+        if (key == MediaMetadataRetriever.METADATA_KEY_DATE) {
             return "METADATA_KEY_DATE";
         }
-        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_AUTHOR) {
+        if (key == MediaMetadataRetriever.METADATA_KEY_AUTHOR) {
             return "METADATA_KEY_AUTHOR";
         }
-        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_WRITER) {
+        if (key == MediaMetadataRetriever.METADATA_KEY_WRITER) {
             return "METADATA_KEY_WRITER";
         }
-        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_ALBUM) {
+        if (key == MediaMetadataRetriever.METADATA_KEY_ALBUM) {
             return "METADATA_KEY_ALBUM";
         }
-        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST) {
+        if (key == MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST) {
             return "METADATA_KEY_ALBUMARTIST";
         }
-        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_ARTIST) {
+        if (key == MediaMetadataRetriever.METADATA_KEY_ARTIST) {
             return "METADATA_KEY_ARTIST";
         }
-        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_COMPOSER) {
+        if (key == MediaMetadataRetriever.METADATA_KEY_COMPOSER) {
             return "METADATA_KEY_COMPOSER";
         }
-        if (key == android.media.MediaMetadataRetriever.METADATA_KEY_TITLE) {
+        if (key == MediaMetadataRetriever.METADATA_KEY_TITLE) {
             return "METADATA_KEY_TITLE";
         }
         return "METADATA_KEY_" + key;
     }
 
-    @androidx.annotation.VisibleForTesting
+    @VisibleForTesting
     boolean verifyVideoMetadataRemoval(
             @NonNull File videoFile, @NonNull VideoPrivacySnapshot sourceSnapshot) {
         return verifyVideoMetadataRemoval(videoFile, sourceSnapshot, false);
@@ -2202,19 +2229,19 @@ public class MetadataStripper {
 
     boolean verifyVideoMetadataRemoval(
             @NonNull File videoFile, @NonNull VideoPrivacySnapshot sourceSnapshot, boolean keepLocation) {
-        try (android.media.MediaMetadataRetriever retriever = new android.media.MediaMetadataRetriever()) {
+        try (MediaMetadataRetriever retriever = new MediaMetadataRetriever()) {
             retriever.setDataSource(videoFile.getAbsolutePath());
 
             String location =
                     normalizeMetadataValue(
                             retriever.extractMetadata(
-                                    android.media.MediaMetadataRetriever.METADATA_KEY_LOCATION));
+                                    MediaMetadataRetriever.METADATA_KEY_LOCATION));
             if (location != null && !keepLocation) {
                 SentryManager.setCustomKey("video_verify_failed_key", "LOCATION");
                 SentryManager.log(
                         "The app found a remaining video metadata key: "
                                 + videoMetadataKeyName(
-                                        android.media.MediaMetadataRetriever.METADATA_KEY_LOCATION)
+                                        MediaMetadataRetriever.METADATA_KEY_LOCATION)
                                 + ".");
                 return false;
             }
@@ -2223,14 +2250,14 @@ public class MetadataStripper {
                 String outputDate =
                         normalizeMetadataValue(
                                 retriever.extractMetadata(
-                                        android.media.MediaMetadataRetriever.METADATA_KEY_DATE));
+                                        MediaMetadataRetriever.METADATA_KEY_DATE));
                 if (outputDate != null && outputDate.equals(sourceSnapshot.date)) {
                     // Only that it happened: the date is when the user recorded the video.
                     SentryManager.setCustomKey("video_verify_failed_key", "DATE_PRESERVED");
                     SentryManager.log(
                             "The original recording date was preserved in the output: "
                                     + videoMetadataKeyName(
-                                            android.media.MediaMetadataRetriever.METADATA_KEY_DATE)
+                                            MediaMetadataRetriever.METADATA_KEY_DATE)
                                     + ".");
                     return false;
                 }
@@ -2263,7 +2290,7 @@ public class MetadataStripper {
      * @return true if the file was successfully deleted, false otherwise
      */
     private boolean secureDeleteFile(@NonNull File file) {
-        return com.doubleangels.redact.media.SecureDelete.secureDelete(file);
+        return SecureDelete.secureDelete(file);
     }
 
     /**
@@ -2299,7 +2326,7 @@ public class MetadataStripper {
             // removeAllExifMetadata, so verification can't pass a file
             // that still carries a tag the fixed identifyingTags list used to miss (e.g. lens
             // make/model, body/lens serial numbers, camera owner name, GPS area info).
-            for (java.lang.reflect.Field field : ExifInterface.class.getDeclaredFields()) {
+            for (Field field : ExifInterface.class.getDeclaredFields()) {
                 if (field.getType() != String.class || !field.getName().startsWith("TAG_")) {
                     continue;
                 }
@@ -2380,7 +2407,7 @@ public class MetadataStripper {
      * it is read, so no second copy of the image is written to check it.
      */
     private void requireSameContent(@NonNull Uri output, @NonNull byte[] expectedSha256) throws IOException {
-        java.security.MessageDigest digest = sha256();
+        MessageDigest digest = sha256();
         try (InputStream is = contentResolver.openInputStream(output)) {
             if (is == null) {
                 throw new IOException("Cannot open cleaned image for verification");
@@ -2391,17 +2418,17 @@ public class MetadataStripper {
                 digest.update(buffer, 0, read);
             }
         }
-        if (!java.security.MessageDigest.isEqual(expectedSha256, digest.digest())) {
+        if (!MessageDigest.isEqual(expectedSha256, digest.digest())) {
             SentryManager.setCustomKey("metadata_verification_passed", false);
             throw new IOException("Metadata verification failed: the saved copy differs from the verified one");
         }
     }
 
     @NonNull
-    private static java.security.MessageDigest sha256() throws IOException {
+    private static MessageDigest sha256() throws IOException {
         try {
-            return java.security.MessageDigest.getInstance("SHA-256");
-        } catch (java.security.NoSuchAlgorithmException e) {
+            return MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
             throw new IOException(e);
         }
     }

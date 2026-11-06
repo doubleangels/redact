@@ -14,16 +14,20 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RawRes;
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.doubleangels.redact.media.MediaSizeLimits;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.Notice;
 import com.doubleangels.redact.ui.OpenSourceLicenses;
+import com.doubleangels.redact.ui.SecureWindow;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -39,7 +43,7 @@ public class LicensesActivity extends AppCompatActivity {
         DynamicColors.applyToActivityIfAvailable(this);
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
-        com.doubleangels.redact.ui.SecureWindow.apply(this);
+        SecureWindow.apply(this);
         setContentView(R.layout.activity_licenses);
 
         MaterialToolbar toolbar = findViewById(R.id.licensesToolbar);
@@ -73,12 +77,8 @@ public class LicensesActivity extends AppCompatActivity {
     String readLicense(@RawRes int resId) {
         // InputStream.readAllBytes needs API 33; minSdk is 31.
         try (InputStream in = getResources().openRawResource(resId);
-                java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream()) {
-            byte[] buffer = new byte[8192];
-            int read;
-            while ((read = in.read(buffer)) != -1) {
-                out.write(buffer, 0, read);
-            }
+                ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            MediaSizeLimits.copyStream(in, out);
             return out.toString(StandardCharsets.UTF_8.name());
         } catch (IOException e) {
             SentryManager.recordException(e);
@@ -100,7 +100,7 @@ public class LicensesActivity extends AppCompatActivity {
         int contentBottom = content.getPaddingBottom();
         int barsAndCutout = WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout();
         ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
-            androidx.core.graphics.Insets outer = insets.getInsets(barsAndCutout);
+            Insets outer = insets.getInsets(barsAndCutout);
             v.setPadding(outer.left, outer.top, outer.right, 0);
             content.setPadding(content.getPaddingLeft(), content.getPaddingTop(),
                     content.getPaddingRight(), contentBottom + outer.bottom);

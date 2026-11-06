@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import com.doubleangels.redact.sentry.SentryManager;
+
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -13,8 +15,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -57,7 +64,7 @@ public final class HeifContainerMetadata {
      * the image), which is not kept.
      */
     /** The still-image brand that stands for a sequence brand that is dropped. */
-    private static final java.util.Map<String, String> STILL_BRANDS = java.util.Map.of(
+    private static final Map<String, String> STILL_BRANDS = Map.of(
             "msf1", "mif1", "hevc", "heic", "hevx", "heix", "hevm", "heim", "hevs", "heis", "avis", "avif");
 
     private static final Set<String> SEQUENCE_BRANDS = Set.of(
@@ -133,7 +140,7 @@ public final class HeifContainerMetadata {
      * called clean, but what was found before that is still reported.
      */
     @NonNull
-    static ImageContainerMetadata.Report scan(@NonNull java.nio.channels.FileChannel ch) {
+    static ImageContainerMetadata.Report scan(@NonNull FileChannel ch) {
         List<ImageContainerMetadata.Finding> findings = new ArrayList<>();
         List<ImageContainerMetadata.Finding> kept = new ArrayList<>();
         boolean recognized = false;
@@ -153,7 +160,7 @@ public final class HeifContainerMetadata {
                 String type = fourCc(h, 4);
                 int header = 8;
                 if (size == 1 && h.length >= 16) {
-                    size = java.nio.ByteBuffer.wrap(h, 8, 8).getLong();
+                    size = ByteBuffer.wrap(h, 8, 8).getLong();
                     header = 16;
                 } else if (size == 0) {
                     size = length - pos;
@@ -237,7 +244,7 @@ public final class HeifContainerMetadata {
             // A damaged file is never called clean; a RuntimeException is a gap in this parser,
             // so report it, as ImageContainerMetadata.scan does.
             if (e instanceof RuntimeException) {
-                com.doubleangels.redact.sentry.SentryManager.recordException(e);
+                SentryManager.recordException(e);
             }
             recognized = false;
         }
@@ -245,8 +252,8 @@ public final class HeifContainerMetadata {
     }
 
     @NonNull
-    private static byte[] readAt(@NonNull java.nio.channels.FileChannel ch, long pos, int length) throws IOException {
-        java.nio.ByteBuffer b = java.nio.ByteBuffer.allocate(Math.max(0, length));
+    private static byte[] readAt(@NonNull FileChannel ch, long pos, int length) throws IOException {
+        ByteBuffer b = ByteBuffer.allocate(Math.max(0, length));
         while (b.hasRemaining()) {
             if (ch.read(b, pos + b.position()) < 0) {
                 throw new IOException("Unexpected end of file");
@@ -294,8 +301,8 @@ public final class HeifContainerMetadata {
         File rebuilt = File.createTempFile("heif_exif_", ".heic", file.getAbsoluteFile().getParentFile());
         try {
             sanitize(file, rebuilt, tiff, null, true);
-            java.nio.file.Files.move(rebuilt.toPath(), file.toPath(),
-                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            Files.move(rebuilt.toPath(), file.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING);
         } finally {
             if (!rebuilt.delete()) {
                 rebuilt.deleteOnExit();
@@ -419,7 +426,7 @@ public final class HeifContainerMetadata {
                     tracks = HeifTracks.parse(in, moov);
                 } catch (IOException | RuntimeException e) {
                     // Only the still picture is kept; the frames are dropped, never copied as they are.
-                    com.doubleangels.redact.sentry.SentryManager.log(
+                    SentryManager.log(
                             "The image sequence's tracks could not be followed, so only the still picture is kept: "
                                     + e.getClass().getSimpleName() + ".");
                     tracks = null;
@@ -575,7 +582,7 @@ public final class HeifContainerMetadata {
     }
 
     private static final class Rebuild {
-        private final java.nio.channels.FileChannel in;
+        private final FileChannel in;
         private final byte[] meta;
         private final Map<Long, Item> items = new LinkedHashMap<>();
         private final Set<Long> kept = new HashSet<>();
@@ -598,7 +605,7 @@ public final class HeifContainerMetadata {
         private long primaryId = -1;
         private final ByteArrayOutputStream newIdat = new ByteArrayOutputStream();
 
-        Rebuild(@NonNull java.nio.channels.FileChannel in, @NonNull byte[] meta) {
+        Rebuild(@NonNull FileChannel in, @NonNull byte[] meta) {
             this.in = in;
             this.meta = meta;
         }
@@ -1001,7 +1008,7 @@ public final class HeifContainerMetadata {
                 if ("colr".equals(type)) {
                     String colourType = fourCc(meta, body);
                     if ("prof".equals(colourType) || "rICC".equals(colourType)) {
-                        byte[] profile = java.util.Arrays.copyOfRange(meta, body + 4, property[1]);
+                        byte[] profile = Arrays.copyOfRange(meta, body + 4, property[1]);
                         String description = ImageContainerMetadata.IccText.read(profile, "desc");
                         if (description != null) {
                             keptRows.add(new ImageContainerMetadata.Finding("ICC_PROFILE", description,
@@ -1015,7 +1022,7 @@ public final class HeifContainerMetadata {
                         }
                     }
                 } else if (("hvcC".equals(type) || "av1C".equals(type))) {
-                    byte[] box = java.util.Arrays.copyOfRange(meta, property[0], property[1]);
+                    byte[] box = Arrays.copyOfRange(meta, property[0], property[1]);
                     byte[] clean = "hvcC".equals(type) ? filterHvcC(box) : filterAv1C(box);
                     if (clean.length != box.length) {
                         findings.add(new ImageContainerMetadata.Finding("HEIF_PICTURE_USER_DATA", null,
@@ -1137,7 +1144,7 @@ public final class HeifContainerMetadata {
                     if (extent[0] + length > in.size()) {
                         throw new IOException("Item outside the file");
                     }
-                    java.nio.ByteBuffer into = java.nio.ByteBuffer.wrap(data, at, length);
+                    ByteBuffer into = ByteBuffer.wrap(data, at, length);
                     long from = extent[0];
                     while (into.hasRemaining()) {
                         int n = in.read(into, from + (into.position() - at));
@@ -1199,7 +1206,7 @@ public final class HeifContainerMetadata {
                 if (index >= 1 && index <= properties.size()) {
                     int[] box = properties.get(index - 1);
                     if (type.equals(fourCc(meta, box[0] + 4))) {
-                        return java.util.Arrays.copyOfRange(meta, box[0], box[1]);
+                        return Arrays.copyOfRange(meta, box[0], box[1]);
                     }
                 }
             }
@@ -1418,7 +1425,7 @@ public final class HeifContainerMetadata {
                     ipco.write(ascii("free"));
                     continue;
                 }
-                byte[] copy = java.util.Arrays.copyOfRange(meta, property[0], property[1]);
+                byte[] copy = Arrays.copyOfRange(meta, property[0], property[1]);
                 if ("colr".equals(type)) {
                     int p = headerSize(copy, 0);
                     String colourType = fourCc(copy, p);
@@ -1691,7 +1698,7 @@ public final class HeifContainerMetadata {
         if (box.length < header + 4) {
             throw new IOException("Damaged av1C");
         }
-        byte[] configObus = java.util.Arrays.copyOfRange(box, header + 4, box.length);
+        byte[] configObus = Arrays.copyOfRange(box, header + 4, box.length);
         ByteArrayOutputStream body = new ByteArrayOutputStream();
         body.write(box, header, 4);
         body.write(filterAv1Obus(configObus));

@@ -230,7 +230,6 @@
 
                 <!-- Strict Clean Toggle -->
                 <LinearLayout
-                    android:id="@+id/rowStrictClean"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
@@ -420,7 +419,6 @@
 
                 <!-- Video Fallback Copy Toggle -->
                 <LinearLayout
-                    android:id="@+id/rowVideoFallback"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
@@ -498,7 +496,6 @@
 
                 <!-- Warn About Already-Clean Files Toggle -->
                 <LinearLayout
-                    android:id="@+id/rowWarnAlreadyClean"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
@@ -536,7 +533,6 @@
 
                 <!-- Delete Originals Toggle -->
                 <LinearLayout
-                    android:id="@+id/rowDeleteOriginals"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
@@ -613,7 +609,6 @@
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <LinearLayout
-                    android:id="@+id/rowShareConfirm"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
@@ -1039,7 +1034,6 @@
 
                 <!-- Keep Original File Names Toggle -->
                 <LinearLayout
-                    android:id="@+id/rowKeepOriginalNames"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
@@ -1118,7 +1112,6 @@
 
                 <!-- Hide Content in Screenshots and Recents Toggle -->
                 <LinearLayout
-                    android:id="@+id/rowSecureWindow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
@@ -1212,7 +1205,6 @@
 
                 <!-- Notifications master toggle -->
                 <LinearLayout
-                    android:id="@+id/rowNotifications"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
@@ -1242,7 +1234,6 @@
                             android:textStyle="bold" />
 
                         <TextView
-                            android:id="@+id/notificationsSubtitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
@@ -1624,7 +1615,6 @@
 
                 <!-- Auto-Clear Temp Files Toggle -->
                 <LinearLayout
-                    android:id="@+id/rowAutoClearTemp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
@@ -1711,7 +1701,6 @@
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <LinearLayout
-                    android:id="@+id/rowCrashReporting"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"

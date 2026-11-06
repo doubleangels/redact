@@ -203,7 +203,6 @@
 
             <!-- Files List Card with Header & Item Rows -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/filesSection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
@@ -236,7 +235,6 @@
                             app:tint="?attr/colorPrimary" />
 
                         <TextView
-                            android:id="@+id/filesCardLabel"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"

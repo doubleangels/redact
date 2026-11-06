@@ -7,6 +7,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -99,7 +100,7 @@ final class ReadableText {
             return;
         }
         boolean letter = false;
-        Set<Integer> distinct = new java.util.HashSet<>();
+        Set<Integer> distinct = new HashSet<>();
         for (int i = 0; i < text.length(); ) {
             int c = text.codePointAt(i);
             letter |= Character.isLetter(c);

@@ -110,25 +110,12 @@
     
     <string name="metadata_image_properties_header">Свойства Изображения:</string>
     <string name="metadata_camera_information_header">Информация о Камере:</string>
-    <string name="metadata_exposure_information_header">Информация об Экспозиции:</string>
     <string name="metadata_location_information_header">Информация о Местоположении:</string>
     <string name="metadata_technical_details_header">Технические Детали:</string>
     <string name="metadata_video_properties_header">Свойства Видео:</string>
 
     
-    <string name="metadata_dimensions">Размеры: %1$d x %2$d</string>
-    <string name="metadata_date_taken">Дата Съемки: %s</string>
-    <string name="metadata_camera_make">Производитель Камеры: %s</string>
-    <string name="metadata_camera_model">Модель Камеры: %s</string>
-    <string name="metadata_aperture">Диафрагма: f/%s</string>
-    <string name="metadata_exposure_time_fraction">Время Экспозиции: 1/%d сек</string>
-    <string name="metadata_exposure_time_seconds">Время Экспозиции: %.5f сек</string>
-    <string name="metadata_latitude">Широта: %.15f</string>
-    <string name="metadata_longitude">Долгота: %.15f</string>
-    <string name="metadata_no_location_data">Данные о местоположении недоступны.</string>
     <string name="metadata_location_unreadable">Данные о местоположении есть, но сохранены в виде, который нельзя показать здесь. Очистка удаляет их.</string>
-    <string name="metadata_container_tags_header">Встроенные Теги:</string>
-    <string name="metadata_container_tags">Найдено в файле: %1$s</string>
     <string name="metadata_embedded_data_header">Скрытые и встроенные данные</string>
     <plurals name="metadata_embedded_images">
         <item quantity="one">%1$d изображение (%2$s) – удаляется при очистке</item>
@@ -137,37 +124,12 @@
         <item quantity="other">%1$d изображения (%2$s) – удаляются при очистке</item>
     </plurals>
     <string name="metadata_location_permission_needed">Разрешение на местоположение не предоставлено. Предоставьте разрешение для просмотра данных о местоположении.</string>
-    <string name="metadata_orientation">Ориентация: %s</string>
-    <string name="metadata_flash">Вспышка: %s</string>
-    <string name="metadata_flash_fired">Сработала</string>
-    <string name="metadata_flash_not_fired">Не Сработала</string>
-    <string name="metadata_white_balance">Баланс Белого: %s</string>
-    <string name="metadata_white_balance_auto">Автоматический</string>
-    <string name="metadata_white_balance_manual">Ручной</string>
-
-    
-    <string name="metadata_duration_with_hours">Длительность: %s</string>
-    <string name="metadata_duration_without_hours">Длительность: %s</string>
-    <string name="metadata_resolution">Разрешение: %1$s x %2$s</string>
-    <string name="metadata_rotation">Поворот: %s°</string>
-    <string name="metadata_bitrate">Битрейт: %d кбит/с</string>
-    <string name="metadata_date">Дата: %s</string>
-    <string name="metadata_frame_rate">Частота Кадров: %s кадр/с</string>
-    <string name="metadata_sample_rate">Частота Дискретизации: %s Гц</string>
 
     
 
     
-    <string name="metadata_orientation_normal">Обычная</string>
-    <string name="metadata_orientation_rotate_90">Повернуть на 90°</string>
-    <string name="metadata_orientation_rotate_180">Повернуть на 180°</string>
-    <string name="metadata_orientation_rotate_270">Повернуть на 270°</string>
-    <string name="metadata_orientation_flip_horizontal">Отразить Горизонтально</string>
-    <string name="metadata_orientation_flip_vertical">Отразить Вертикально</string>
-    <string name="metadata_orientation_transpose">Транспонировать</string>
-    <string name="metadata_orientation_transverse">Поперечная</string>
-    <string name="metadata_orientation_unknown">Неизвестно (%d)</string>
-    <string name="metadata_error_file_open">Ошибка: Не удалось открыть файл изображения</string>
+
+    
 
     
     <string name="settings_section_advanced_privacy">Очистка Метаданных</string>
@@ -272,9 +234,6 @@
     <string name="clean_status_ready">Готово к выбору файлов для очистки.</string>
     <string name="convert_codec_fallback">%1$s недоступен; сохранено как %2$s.</string>
     <string name="video_downscaled">Сохранено в %1$dp, так как этот телефон не смог обработать видео в полном размере.</string>
-    <string name="metadata_error_basic_info_generic">Не удалось прочитать основную информацию о файле.</string>
-    <string name="metadata_error_image_generic">Не удалось прочитать метаданные изображения.</string>
-    <string name="metadata_error_video_generic">Не удалось прочитать метаданные видео.</string>
     <string name="notification_clean_failed">На этот раз не удалось очистить ни одного файла.</string>
     <plurals name="notification_clean_done">
         <item quantity="one">Очищен %1$d файл.</item>
