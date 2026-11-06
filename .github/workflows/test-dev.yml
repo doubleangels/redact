@@ -25,6 +25,11 @@ concurrency:
   group: test-dev-${{ github.ref }}
   cancel-in-progress: true
 
+# Each job runs one Gradle build on a fresh runner, where a daemon only costs memory and start-up.
+# gradle.properties turns the daemon on for local builds, which reuse it between commands.
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
+
 jobs:
   unit-tests:
     if: |
