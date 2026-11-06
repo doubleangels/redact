@@ -1345,7 +1345,6 @@ SPLandroidx/core/os/LocaleListCompat$Api24Impl;->createLocaleList([Ljava/util/Lo
 Landroidx/core/os/LocaleListInterface;
 Landroidx/core/os/LocaleListPlatformWrapper;
 SPLandroidx/core/os/LocaleListPlatformWrapper;-><init>(Ljava/lang/Object;)V
-Landroidx/core/os/TraceCompat;
 PLandroidx/core/os/TraceCompat;-><clinit>()V
 PLandroidx/core/os/TraceCompat;->beginSection(Ljava/lang/String;)V
 PLandroidx/core/os/TraceCompat;->endSection()V
