@@ -1291,8 +1291,9 @@ public class MetadataDisplayer {
         try {
             SentryManager.setCustomKey("video_bitrate_kbps", Long.parseLong(bitrate) / 1000);
         } catch (NumberFormatException e) {
-            SentryManager.log("The bitrate format for analytics is invalid: " + bitrate + ".");
-            SentryManager.recordException(e);
+            // The bitrate comes from the file's own metadata, so neither it nor the exception (whose
+            // message repeats it) goes to Sentry; an odd file is an expected case, not an error.
+            SentryManager.log("The video's bitrate is not a number, so it is left out of the analytics.");
         }
     }
 
