@@ -14,16 +14,17 @@ public class MetadataLabelsTest {
     }
 
     @Test
-    public void acronymsStayUpperCase() {
-        assertEquals("GPS Latitude", MetadataLabels.format("GPS_LATITUDE"));
-        assertEquals("XMP Extended", MetadataLabels.format("XMP_EXTENDED"));
-        assertEquals("MIME Type", MetadataLabels.format("MIME_TYPE"));
-        assertEquals("ICC Profile", MetadataLabels.format("ICC_PROFILE"));
+    public void acronymsAreTitleCasedToo() {
+        assertEquals("Gps Latitude", MetadataLabels.format("GPS_LATITUDE"));
+        assertEquals("Xmp Extended", MetadataLabels.format("XMP_EXTENDED"));
+        assertEquals("Mime Type", MetadataLabels.format("MIME_TYPE"));
+        assertEquals("Icc Profile", MetadataLabels.format("ICC_PROFILE"));
     }
 
     @Test
-    public void namesWithLowerCaseAreLeftAlone() {
+    public void mixedCaseAndEmptyNames() {
         assertEquals("Model", MetadataLabels.format("Model"));
+        assertEquals("Gcamera", MetadataLabels.format("GCamera"));
         assertEquals("", MetadataLabels.format(null));
         assertEquals("", MetadataLabels.format(""));
     }
