@@ -14,11 +14,11 @@ public class MetadataLabelsTest {
     }
 
     @Test
-    public void acronymsAreTitleCasedToo() {
-        assertEquals("Gps Latitude", MetadataLabels.format("GPS_LATITUDE"));
-        assertEquals("Xmp Extended", MetadataLabels.format("XMP_EXTENDED"));
-        assertEquals("Mime Type", MetadataLabels.format("MIME_TYPE"));
-        assertEquals("Icc Profile", MetadataLabels.format("ICC_PROFILE"));
+    public void knownAcronymsStayUpperCase() {
+        assertEquals("GPS Latitude", MetadataLabels.format("GPS_LATITUDE"));
+        assertEquals("XMP Extended", MetadataLabels.format("XMP_EXTENDED"));
+        assertEquals("MIME Type", MetadataLabels.format("MIME_TYPE"));
+        assertEquals("ICC Profile", MetadataLabels.format("ICC_PROFILE"));
     }
 
     @Test

@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * Turns a raw metadata name such as {@code GPS_LATITUDE} into the label Scan shows, "GPS Latitude".
@@ -11,12 +12,20 @@ import java.util.Locale;
  */
 public final class MetadataLabels {
 
+    /** Words that are initialisms or format names, kept in capitals. */
+    private static final Set<String> ACRONYMS = Set.of(
+            "GPS", "XMP", "EXIF", "IPTC", "ICC", "ICCP", "ISO", "MIME", "DNG", "HDR", "GIF", "PNG",
+            "JPEG", "JFIF", "HEIC", "HEIF", "WEBP", "MP4", "URI", "URL", "ID", "UUID", "GUID", "SDK",
+            "JUMBF", "RIFF", "APP0", "APP1", "APP2", "APP13", "IFD", "DPI", "FPS", "RGB", "YCBCR",
+            "CMYK", "RDF", "XML", "SEFT", "VP8", "VP8L", "VP8X", "IHDR", "IDAT", "IEND", "PLTE",
+            "ALPH", "ANIM", "ANMF");
+
     private MetadataLabels() {
     }
 
     /**
-     * Title-cases every word of a raw name and replaces underscores with spaces. Acronyms are
-     * title-cased too, so GPS_LATITUDE shows as "Gps Latitude".
+     * Title-cases every word of a raw name and replaces underscores with spaces. Known acronyms
+     * stay in capitals, so GPS_LATITUDE shows as "GPS Latitude" and APERTURE_VALUE as "Aperture Value".
      */
     @NonNull
     public static String format(@Nullable String key) {
@@ -31,8 +40,12 @@ public final class MetadataLabels {
             if (out.length() > 0) {
                 out.append(' ');
             }
-            out.append(word.substring(0, 1).toUpperCase(Locale.ROOT))
-                    .append(word.substring(1).toLowerCase(Locale.ROOT));
+            String upper = word.toUpperCase(Locale.ROOT);
+            if (ACRONYMS.contains(upper)) {
+                out.append(upper);
+            } else {
+                out.append(upper.charAt(0)).append(word.substring(1).toLowerCase(Locale.ROOT));
+            }
         }
         return out.toString();
     }
