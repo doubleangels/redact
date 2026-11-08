@@ -33,8 +33,18 @@ public class MetadataLabelsTest {
     public void unlistedAcronymsAreCaughtByTheFailOver() {
         assertEquals("QRS Data", MetadataLabels.format("QRS_DATA"));
         assertEquals("APP7 Data", MetadataLabels.format("APP7_DATA"));
-        assertEquals("Heif Item Name".replace("Heif", "HEIF"), MetadataLabels.format("HEIF_ITEM_NAME"));
+        assertEquals("HEIF Item Name", MetadataLabels.format("HEIF_ITEM_NAME"));
         assertEquals("Ultra HDR Gain Map", MetadataLabels.format("ULTRA_HDR_GAIN_MAP"));
         assertEquals("Samsung Trailer", MetadataLabels.format("SAMSUNG_TRAILER"));
+    }
+
+    @Test
+    public void otherSeparatorsAndCamelCaseSplitIntoWords() {
+        assertEquals("PNG Text Author", MetadataLabels.format("PNG_TEXT_Author"));
+        assertEquals("HDR Plus Makernote", MetadataLabels.format("HdrPlusMakernote"));
+        assertEquals("XMP Tool", MetadataLabels.format("xmp:tool"));
+        assertEquals("YCBCR Positioning", MetadataLabels.format("YCBCR_POSITIONING"));
+        assertEquals("Gcamera", MetadataLabels.format("GCamera"));
+        assertEquals("", MetadataLabels.format("__"));
     }
 }

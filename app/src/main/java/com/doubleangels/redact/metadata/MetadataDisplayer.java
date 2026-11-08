@@ -27,6 +27,7 @@ import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -385,7 +386,7 @@ public class MetadataDisplayer {
      */
     private static void extractImageMetadataToMap(Context context, Uri imageUri, Map<String, String> metadataMap,
                                                   @Nullable Map<String, String> embedded) {
-        extractExifToMap(context, imageUri, metadataMap);
+        extractExifToMap(context, imageUri, metadataMap, embedded);
         try {
             addImageContainerFindings(context, ImageContainerMetadata.scan(context, imageUri),
                     hasMediaLocationPermission(context), metadataMap, embedded);
@@ -460,7 +461,8 @@ public class MetadataDisplayer {
         map.put(key, existing == null || existing.equals(value) ? value : existing + ", " + value);
     }
 
-    private static void extractExifToMap(Context context, Uri imageUri, Map<String, String> metadataMap) {
+    private static void extractExifToMap(Context context, Uri imageUri, Map<String, String> metadataMap,
+                                         @Nullable Map<String, String> embedded) {
         SentryManager.log("The app is extracting image metadata to a single map.");
         boolean hasLocationPermission = hasMediaLocationPermission(context);
 
@@ -479,7 +481,7 @@ public class MetadataDisplayer {
             String gpsLongitudeRef = null;
             
             // Get TAG constants from ExifInterface using reflection (capped for performance).
-            final int maxExifTags = 200;
+            final int maxExifTags = 400; // above the number of TAG_ constants, so nothing is dropped
             int exifTagsAdded = 0;
             boolean exifTagCapReached = false;
             Field[] fields = ExifInterface.class.getDeclaredFields();
@@ -493,6 +495,18 @@ public class MetadataDisplayer {
                         String tagName = (String) field.get(null);
                         if (tagName != null) {
                             String value = exifInterface.getAttribute(tagName);
+                            boolean unreadable = value != null && !isReadableText(value);
+                            if (value == null || value.isEmpty()) {
+                                // Binary data (a maker note, say) can read as empty; it still shows, by size.
+                                long[] range = exifInterface.getAttributeRange(tagName);
+                                if (range != null && range[1] > 0) {
+                                    value = sizeText(context, range[1]);
+                                }
+                            } else if (unreadable) {
+                                long[] range = exifInterface.getAttributeRange(tagName);
+                                value = sizeText(context, range != null && range[1] > 0
+                                        ? range[1] : value.getBytes(StandardCharsets.UTF_8).length);
+                            }
                             if (value != null && !value.isEmpty()) {
                                 // Trim trailing whitespace from the value itself (e.g., XMP data may have trailing newlines)
                                 String trimmedValue = value;
@@ -584,6 +598,11 @@ public class MetadataDisplayer {
                     && rationalLat != null && rationalLon != null
                     && isUsableMapCoordinate(rationalLat, rationalLon)) {
                 putGpsCoordinatesInMap(metadataMap, rationalLat, rationalLon);
+            }
+
+            long[] thumbnail = exifInterface.getThumbnailRange();
+            if (embedded != null && thumbnail != null && thumbnail[1] > 0) {
+                embedded.put("EXIF_THUMBNAIL", sizeText(context, thumbnail[1]));
             }
 
             // Also handle integer attributes that don't have string values
@@ -891,16 +910,21 @@ public class MetadataDisplayer {
             return;
         }
         String date = container.values.get("date");
-        if (date != null && !metadataMap.containsKey("DATE")) {
-            metadataMap.put("DATE", date);
+        if (date != null) {
+            String shown = metadataMap.get("DATE");
+            if (shown == null) {
+                metadataMap.put("DATE", date);
+            } else if (!shown.equals(date)) {
+                embedded.put("CONTAINER_DATE", date);
+            }
         }
         for (String name : names) {
             if (name.equals("date") || VideoContainerMetadata.isLocationName(name)) {
                 continue;
             }
             String key = containerDisplayKey(name);
-            if (key.isEmpty() || metadataMap.containsKey(key) || embedded.containsKey(key)) {
-                continue;
+            if (key.isEmpty()) {
+                key = "UNNAMED_FIELD";
             }
             // Without the permission, a field holding a location (XMP with GPS in it) shows only its size.
             String value = hasLocationPermission || !container.isLocationField(name)
@@ -912,7 +936,18 @@ public class MetadataDisplayer {
                 Long size = container.sizes.get(name);
                 value = Formatter.formatShortFileSize(context, size != null ? size : 0);
             }
-            embedded.put(key, value);
+            // Two fields can share a display key; both show, the second under a numbered key.
+            String unique = key;
+            for (int n = 2; metadataMap.containsKey(unique) || embedded.containsKey(unique); n++) {
+                if (value.equals(metadataMap.get(unique)) || value.equals(embedded.get(unique))) {
+                    unique = null;
+                    break;
+                }
+                unique = key + "_" + n;
+            }
+            if (unique != null) {
+                embedded.put(unique, value);
+            }
         }
     }
 
@@ -940,6 +975,23 @@ public class MetadataDisplayer {
         }
         key = key.replace("©", "").toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]+", "_");
         return key.replaceAll("^_+|_+$", "");
+    }
+
+    /** Whether {@code value} is text a person can read: no control characters or replacement marks. */
+    @VisibleForTesting
+    static boolean isReadableText(String value) {
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (c == '\uFFFD' || (c < 0x20 && c != '\n' && c != '\r' && c != '\t')
+                    || (c >= 0x7F && c <= 0x9F)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static String sizeText(Context context, long bytes) {
+        return Formatter.formatShortFileSize(context, bytes);
     }
 
     private static String trimTrailingWhitespace(String s) {
