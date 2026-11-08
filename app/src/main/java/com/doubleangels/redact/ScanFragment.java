@@ -37,6 +37,7 @@ import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.CensorViewModel;
 import com.doubleangels.redact.ui.ErrorFeedbackPrompt;
 import com.doubleangels.redact.ui.FabScroll;
+import com.doubleangels.redact.ui.MetadataLabels;
 import com.doubleangels.redact.ui.FoldDialogs;
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
@@ -1088,7 +1089,7 @@ public class ScanFragment extends TabFragment {
         StringBuilder sb = new StringBuilder();
         for (Pair<String, String> row : rows) {
             if (row.first != null && !row.first.isEmpty()) {
-                sb.append(row.first).append(": ");
+                sb.append(MetadataLabels.format(row.first)).append(": ");
             }
             if (row.second != null) {
                 sb.append(row.second);
@@ -1109,7 +1110,8 @@ public class ScanFragment extends TabFragment {
 
     private static List<Pair<String, String>> parseMetadataBlockToRows(String block) {
         List<Pair<String, String>> rows = new ArrayList<>();
-        if (block.indexOf('\u001e') >= 0) {
+        if (block.indexOf('\u001e') >= 0 || block.indexOf('\u001f') >= 0) {
+            // A block of one record has no trailing record separator (trimmed as whitespace).
             for (String entry : block.split("\u001e", -1)) {
                 if (entry.isEmpty()) {
                     continue;

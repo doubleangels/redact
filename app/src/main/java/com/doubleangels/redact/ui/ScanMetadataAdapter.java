@@ -296,7 +296,7 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
                 rowHolder.keyView.setVisibility(View.GONE);
             } else {
                 rowHolder.keyView.setVisibility(View.VISIBLE);
-                rowHolder.keyView.setText(entry.key);
+                rowHolder.keyView.setText(MetadataLabels.format(entry.key));
                 rowHolder.keyView.setTextColor(entry.isLocation ? errorColor : primaryColor);
             }
             rowHolder.valueView.setText(entry.value != null ? entry.value : "");
@@ -304,7 +304,7 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
             View.OnClickListener copyListener = v -> {
                 if (entry.value != null && !entry.value.isEmpty()) {
                     String label = entry.key != null && !entry.key.isEmpty()
-                            ? entry.key
+                            ? MetadataLabels.format(entry.key)
                             : v.getContext().getString(R.string.scan_metadata);
                     if (SensitiveClipboard.copy(v.getContext(), label, entry.value)) {
                         Haptics.confirm(v);
