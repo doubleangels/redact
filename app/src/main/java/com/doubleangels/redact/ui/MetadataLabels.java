@@ -18,7 +18,8 @@ public final class MetadataLabels {
             "JPEG", "JFIF", "HEIC", "HEIF", "WEBP", "MP4", "URI", "URL", "ID", "UUID", "GUID", "SDK",
             "JUMBF", "RIFF", "APP0", "APP1", "APP2", "APP13", "IFD", "DPI", "FPS", "RGB", "YCBCR",
             "CMYK", "RDF", "XML", "SEFT", "VP8", "VP8L", "VP8X", "IHDR", "IDAT", "IEND", "PLTE",
-            "ALPH", "ANIM", "ANMF");
+            "ALPH", "ANIM", "ANMF", "C2PA", "MPF", "XYZ", "AAC", "AVC", "HEVC", "AV1", "VP9", "OBU",
+            "TIFF", "BMP", "AVIF", "MOV", "M4V", "MKV", "UTC", "OS", "AI");
 
     private MetadataLabels() {
     }
@@ -41,12 +42,28 @@ public final class MetadataLabels {
                 out.append(' ');
             }
             String upper = word.toUpperCase(Locale.ROOT);
-            if (ACRONYMS.contains(upper)) {
+            if (ACRONYMS.contains(upper) || looksLikeAcronym(upper)) {
                 out.append(upper);
             } else {
                 out.append(upper.charAt(0)).append(word.substring(1).toLowerCase(Locale.ROOT));
             }
         }
         return out.toString();
+    }
+
+    /**
+     * Fail-over for names not in {@link #ACRONYMS}: a word with a digit (APP13, MP4) or without a
+     * vowel (HDR, SDK, DNG) is almost certainly an initialism, not a plain word.
+     */
+    private static boolean looksLikeAcronym(String upper) {
+        boolean vowel = false;
+        for (int i = 0; i < upper.length(); i++) {
+            char c = upper.charAt(i);
+            if (Character.isDigit(c)) {
+                return true;
+            }
+            vowel |= "AEIOUY".indexOf(c) >= 0;
+        }
+        return !vowel;
     }
 }

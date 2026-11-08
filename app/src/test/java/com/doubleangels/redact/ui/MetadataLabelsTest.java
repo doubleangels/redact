@@ -28,4 +28,13 @@ public class MetadataLabelsTest {
         assertEquals("", MetadataLabels.format(null));
         assertEquals("", MetadataLabels.format(""));
     }
+
+    @Test
+    public void unlistedAcronymsAreCaughtByTheFailOver() {
+        assertEquals("QRS Data", MetadataLabels.format("QRS_DATA"));
+        assertEquals("APP7 Data", MetadataLabels.format("APP7_DATA"));
+        assertEquals("Heif Item Name".replace("Heif", "HEIF"), MetadataLabels.format("HEIF_ITEM_NAME"));
+        assertEquals("Ultra HDR Gain Map", MetadataLabels.format("ULTRA_HDR_GAIN_MAP"));
+        assertEquals("Samsung Trailer", MetadataLabels.format("SAMSUNG_TRAILER"));
+    }
 }
