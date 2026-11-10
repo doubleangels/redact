@@ -49,10 +49,11 @@ android {
             includeAndroidResources = true
             all {
                 // Each fork builds its own Robolectric sandboxes, which need more than the 512 MB default.
-                // One fork per core (up to 8, 2 GB each): the tests are CPU-bound, and half the cores left
-                // the rest idle while the 20 s sandbox start-up of a few big classes ran.
+                // Half the cores, measured: on CI's 4 cores, 4 forks took 5m25 against 3m36 with 2 (the
+                // forks fought over the CPUs under JaCoCo, 752 class-seconds against 216), and one run
+                // hit an UnsatisfiedLinkError loading Robolectric's native SQLite.
                 maxHeapSize = "2g"
-                maxParallelForks = Math.min(8, Math.max(1, Runtime.runtime.availableProcessors()))
+                maxParallelForks = Math.max(1, Runtime.runtime.availableProcessors().intdiv(2))
                 // Robolectric-loaded classes need includeNoLocationClasses for JaCoCo to see them; the
                 // include keeps it from instrumenting the whole Android framework as well.
                 jacoco {
