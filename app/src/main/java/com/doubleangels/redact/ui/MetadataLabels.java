@@ -19,11 +19,37 @@ public final class MetadataLabels {
             "HEIF", "AVIF", "WEBP", "TIFF", "BMP", "URI", "URL", "UUID", "GUID", "JUMBF", "RIFF",
             "IFD", "IHDR", "IDAT", "IEND", "PLTE", "ALPH", "ANIM", "ANMF", "SEFT", "AAC", "AVC",
             "HEVC", "MOV", "MKV", "UTC", "OS", "AI", "OEM", "NAL", "SEI", "EXR", "WAV", "OGG", "UI",
-            "IO", "IP", "YCBCR", "XYZ", "ID", "IR", "PAL", "NTSC", "MPF", "C2PA", "CFA", "OECF");
+            "IO", "IP", "YCBCR", "XYZ", "ISO6709", "ID", "IR", "PAL", "NTSC", "MPF", "C2PA", "CFA", "OECF");
 
-    /** Words ExifInterface runs together, such as GPSDOP, that the rules above cannot split. */
-    private static final Map<String, String> WORD_FIXES = Map.of(
-            "GPSDOP", "GPS DOP", "GPSH", "GPS Horizontal");
+    /**
+     * Words that run letters together or are codes, which the rules above cannot split or read:
+     * ExifInterface's GPSDOP and ISO_SPEED_LATITUDEYYY, the retriever's SAMPLERATE and MIMETYPE, and
+     * the handler codes of a video's tracks.
+     */
+    private static final Map<String, String> WORD_FIXES = Map.ofEntries(
+            Map.entry("GPSDOP", "GPS DOP"),
+            Map.entry("GPSH", "GPS Horizontal"),
+            Map.entry("LATITUDEYYY", "Latitude YYY"),
+            Map.entry("LATITUDEZZZ", "Latitude ZZZ"),
+            Map.entry("IN35MM", "In 35mm"),
+            Map.entry("IMG", "Image"),
+            Map.entry("ALBUMARTIST", "Album Artist"),
+            Map.entry("SAMPLERATE", "Sample Rate"),
+            Map.entry("FRAMERATE", "Frame Rate"),
+            Map.entry("MIMETYPE", "MIME Type"),
+            Map.entry("VIDE", "Video"),
+            Map.entry("SOUN", "Sound"),
+            Map.entry("SBTL", "Subtitle"),
+            Map.entry("SUBT", "Subtitle"),
+            Map.entry("TMCD", "Timecode"));
+
+    /**
+     * Key prefixes that are followed by a four-character or hexadecimal code from the file (a PNG
+     * chunk's "tEXt", a HEIF box's "ftyp", a GIF extension's "FE"). The code stays in capitals.
+     */
+    private static final String[] CODE_PREFIXES = {
+            "PNG_CHUNK_", "WEBP_CHUNK_", "HEIF_BOX_", "HEIF_META_", "HEIF_PROPERTY_", "JPEG_SEGMENT_",
+            "GIF_EXTENSION_"};
 
     /** The camel-case tag name that Scan splits into Y_CB_CR; it reads best as the standard "YCbCr". */
     private static final String Y_CB_CR = "Y_CB_CR";
@@ -41,6 +67,12 @@ public final class MetadataLabels {
     public static String format(@Nullable String key) {
         if (key == null || key.isEmpty()) {
             return "";
+        }
+        for (String prefix : CODE_PREFIXES) {
+            if (key.length() > prefix.length() && key.startsWith(prefix)) {
+                return format(key.substring(0, prefix.length() - 1)) + ' '
+                        + key.substring(prefix.length()).replace('_', ' ').toUpperCase(Locale.ROOT);
+            }
         }
         int ycc = key.indexOf(Y_CB_CR);
         if (ycc >= 0) {
@@ -82,18 +114,18 @@ public final class MetadataLabels {
     }
 
     /**
-     * Fail-over for names not in {@link #ACRONYMS}: a word with a digit (APP13, MP4) or without a
+     * Fail-over for names not in {@link #ACRONYMS}: a short word with a digit (APP13, MP4) or a word without a
      * vowel (GPS, HDR, XMP, SDK) is almost certainly an initialism, not a plain word.
      */
     private static boolean looksLikeAcronym(String upper) {
         boolean vowel = false;
+        boolean digit = false;
         for (int i = 0; i < upper.length(); i++) {
             char c = upper.charAt(i);
-            if (Character.isDigit(c)) {
-                return true;
-            }
+            digit |= Character.isDigit(c);
             vowel |= "AEIOUY".indexOf(c) >= 0;
         }
-        return !vowel;
+        // A short word with a digit is a code (APP13, MP4, H264); a long one is a name (Netscape2).
+        return !vowel || (digit && upper.length() <= 6);
     }
 }

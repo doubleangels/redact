@@ -969,6 +969,33 @@ public class MetadataDisplayer {
             case "©too": return "SOFTWARE";
             case "©des": return "DESCRIPTION";
             case "©inf": return "INFORMATION";
+            // 3GPP and iTunes boxes named by a four-letter code that would read as gibberish.
+            case "cprt":
+            case "©cpy": return "COPYRIGHT";
+            case "auth": return "AUTHOR";
+            case "perf": return "PERFORMER";
+            case "albm":
+            case "©alb": return "ALBUM";
+            case "yrrc": return "YEAR";
+            case "titl": return "TITLE";
+            case "dscp":
+            case "desc": return "DESCRIPTION";
+            case "ldes": return "LONG_DESCRIPTION";
+            case "gnre":
+            case "©gen": return "GENRE";
+            case "rtng": return "RATING";
+            case "clsf": return "CLASSIFICATION";
+            case "kywd": return "KEYWORDS";
+            case "aART": return "ALBUM_ARTIST";
+            case "©wrt": return "WRITER";
+            case "©grp": return "GROUPING";
+            case "©lyr": return "LYRICS";
+            case "covr": return "COVER_ART";
+            case "trkn": return "TRACK_NUMBER";
+            case "disk": return "DISC_NUMBER";
+            case "tmpo": return "TEMPO";
+            case "cpil": return "COMPILATION";
+            case "pgap": return "GAPLESS_PLAYBACK";
             default: break;
         }
         String key = name;
@@ -1371,7 +1398,8 @@ public class MetadataDisplayer {
      * @param input The input string in camelCase or PascalCase
      * @return The string in snake_case format
      */
-    private static String convertToSnakeCase(String input) {
+    @VisibleForTesting
+    static String convertToSnakeCase(String input) {
         if (input == null || input.isEmpty()) {
             return input;
         }
