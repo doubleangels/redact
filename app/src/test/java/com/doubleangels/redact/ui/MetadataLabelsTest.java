@@ -45,6 +45,16 @@ public class MetadataLabelsTest {
         assertEquals("XMP Tool", MetadataLabels.format("xmp:tool"));
         assertEquals("YCBCR Positioning", MetadataLabels.format("YCBCR_POSITIONING"));
         assertEquals("Gcamera", MetadataLabels.format("GCamera"));
-        assertEquals("", MetadataLabels.format("__"));
+        assertEquals("__", MetadataLabels.format("__"));
+    }
+
+    @Test
+    public void exifTagNamesThatConvertAwkwardly() {
+        assertEquals("YCbCr Positioning", MetadataLabels.format("Y_CB_CR_POSITIONING"));
+        assertEquals("YCbCr Sub Sampling", MetadataLabels.format("Y_CB_CR_SUB_SAMPLING"));
+        assertEquals("GPS DOP", MetadataLabels.format("GPSDOP"));
+        assertEquals("CFA Pattern", MetadataLabels.format("CFA_PATTERN"));
+        assertEquals("GPS Version ID", MetadataLabels.format("GPS_VERSION_ID"));
+        assertEquals("EXIF IFD Pointer", MetadataLabels.format("EXIF_IFD_POINTER"));
     }
 }

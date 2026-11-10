@@ -495,17 +495,15 @@ public class MetadataDisplayer {
                         String tagName = (String) field.get(null);
                         if (tagName != null) {
                             String value = exifInterface.getAttribute(tagName);
-                            boolean unreadable = value != null && !isReadableText(value);
                             if (value == null || value.isEmpty()) {
-                                // Binary data (a maker note, say) can read as empty; it still shows, by size.
-                                long[] range = exifInterface.getAttributeRange(tagName);
-                                if (range != null && range[1] > 0) {
-                                    value = sizeText(context, range[1]);
-                                }
-                            } else if (unreadable) {
-                                long[] range = exifInterface.getAttributeRange(tagName);
-                                value = sizeText(context, range != null && range[1] > 0
-                                        ? range[1] : value.getBytes(StandardCharsets.UTF_8).length);
+                                // Binary data (a maker note, say) can read as empty; it still shows, by
+                                // size. One byte is just an empty text's terminator.
+                                long length = attributeLength(exifInterface, tagName);
+                                value = length > 1 ? sizeText(context, length) : null;
+                            } else if (!isReadableText(value)) {
+                                long length = attributeLength(exifInterface, tagName);
+                                value = sizeText(context, length > 0
+                                        ? length : value.getBytes(StandardCharsets.UTF_8).length);
                             }
                             if (value != null && !value.isEmpty()) {
                                 // Trim trailing whitespace from the value itself (e.g., XMP data may have trailing newlines)
@@ -600,9 +598,15 @@ public class MetadataDisplayer {
                 putGpsCoordinatesInMap(metadataMap, rationalLat, rationalLon);
             }
 
-            long[] thumbnail = exifInterface.getThumbnailRange();
-            if (embedded != null && thumbnail != null && thumbnail[1] > 0) {
-                embedded.put("EXIF_THUMBNAIL", sizeText(context, thumbnail[1]));
+            if (embedded != null) {
+                try {
+                    long[] thumbnail = exifInterface.getThumbnailRange();
+                    if (thumbnail != null && thumbnail[1] > 0) {
+                        embedded.put("EXIF_THUMBNAIL", sizeText(context, thumbnail[1]));
+                    }
+                } catch (RuntimeException e) {
+                    SentryManager.log("The EXIF thumbnail size could not be read.");
+                }
             }
 
             // Also handle integer attributes that don't have string values
@@ -988,6 +992,16 @@ public class MetadataDisplayer {
             }
         }
         return true;
+    }
+
+    /** How many bytes {@code tag} takes in the file, or -1 when that cannot be told. */
+    private static long attributeLength(ExifInterface exif, String tag) {
+        try {
+            long[] range = exif.getAttributeRange(tag);
+            return range != null ? range[1] : -1;
+        } catch (RuntimeException e) {
+            return -1;
+        }
     }
 
     private static String sizeText(Context context, long bytes) {
