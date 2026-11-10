@@ -1,11 +1,11 @@
 ---
-description: Run every unit test, then test every feature of the app on the Pixel 10 Pro emulator, and show a summary
+description: Test every feature of the app on the Pixel 10 Pro emulator while every unit test runs in the background, and show a summary
 allowed-tools: Bash, PowerShell, Read, Grep, Glob
 ---
 
 > These commands drive the Pixel_10_Pro emulator and Gradle with Windows paths, so they only work on my own machine. If you are running in a cloud session without the Android SDK and the emulator, say so and stop instead of trying.
 
-Run the full unit test suite, then drive the app on the **Pixel_10_Pro emulator and never on a physical device** through every feature below, checking real output files, and finish with a summary. Do not change source code, commit or push. If a feature is broken, record it with the evidence and keep going; at the end, offer to fix what failed.
+Run the full unit test suite (in the background, while the emulator is driven) and drive the app on the **Pixel_10_Pro emulator and never on a physical device** through every feature below, checking real output files, and finish with a summary. Do not change source code, commit or push. If a feature is broken, record it with the evidence and keep going; at the end, offer to fix what failed.
 
 Work from Git Bash. Use the scratchpad directory for everything you create (media, pulled files, screenshots); call it `$S` below.
 
@@ -19,18 +19,24 @@ Work from Git Bash. Use the scratchpad directory for everything you create (medi
 - Find a file's MediaStore id with `ui.sh adb shell "content query --uri content://media/external/file --projection _id:_display_name:relative_path --where \"_display_name='NAME'\""`. Read app files with `ui.sh adb shell run-as com.doubleangels.redact …` (for example `cat shared_prefs/redact_prefs.xml` or `ls cache/processed`).
 - Clear logcat at the start (`ui.sh adb logcat -c`), and after every section check `ui.sh adb logcat -d -b crash` and `logcat -d | grep -E "FATAL EXCEPTION|ANR in com.doubleangels"`. Any crash or ANR fails that section.
 
-## 1. Unit tests
+## 1. Emulator, media and app
 
-1. Run `./gradlew testDebugUnitTest`. Afterwards total the `tests`, `skipped`, `failures` and `errors` attributes of `app/build/test-results/testDebugUnitTest/*.xml`, and list every failing test with its message.
-2. If `jacocoTestReport` exists (`./gradlew tasks --all | grep -i jacoco`), run it and note the line coverage from its report.
-3. Failing unit tests do not stop the run; carry on to the emulator.
+The slow parts overlap: the emulator boots and the test media is made while Gradle builds, and the unit tests run in the background while the emulator is driven. Only one Gradle build ever runs at a time.
 
-## 2. Emulator and app
+1. Run `adb devices -l`. Pick the running emulator whose `adb -s <serial> emu avd name` is `Pixel_10_Pro`; ignore physical devices even if one is the only other device. If none is running, start the **test emulator** headless, since these checks drive it through adb and never need its window: `%LOCALAPPDATA%\Android\Sdk\emulator\emulator.exe -avd Pixel_10_Pro -no-window -no-audio -no-boot-anim -no-snapshot-save` in the background (do not wait for it yet). Reuse it as it is if it is already running, with or without a window. Ignore any other emulator: the profile generator's Gradle-managed one (`Pixel_10_Pro_Profiles`) may be running alongside. If the AVD does not exist, stop and tell me.
+2. While it boots, in the same step, make the media with `make_test_media.py "$S/media"` (it needs only Python) and compile the app with `./gradlew :app:assembleDebug` (run it in the background too if you can, and wait for both). Then wait until `getprop sys.boot_completed` is `1`.
+3. Set `ANDROID_SERIAL=<serial>` in every command from here on, including Gradle.
+4. Uninstall any existing build (`adb uninstall com.doubleangels.redact`), so the run starts from a fresh install with the introduction and permission prompts, then `./gradlew :app:installDebug` (quick, as the compile is done).
+5. Push the media to `/sdcard/DCIM/Camera/` and broadcast `android.intent.action.MEDIA_SCANNER_SCAN_FILE` for each file. Also push four copies of `VID_long.mp4` (`VID_long2.mp4`…`VID_long5.mp4`) for the overlap test.
 
-1. Run `adb devices -l`. Pick the running emulator whose `adb -s <serial> emu avd name` is `Pixel_10_Pro`; ignore physical devices even if one is the only other device. If none is running, start the **test emulator** headless, since these checks drive it through adb and never need its window: `%LOCALAPPDATA%\Android\Sdk\emulator\emulator.exe -avd Pixel_10_Pro -no-window -no-audio -no-boot-anim -no-snapshot-save` in the background, and wait until `getprop sys.boot_completed` is `1`. Reuse it as it is if it is already running, with or without a window. Ignore any other emulator: the profile generator's Gradle-managed one (`Pixel_10_Pro_Profiles`) may be running alongside. If the AVD does not exist, stop and tell me.
-2. Set `ANDROID_SERIAL=<serial>` in every command from here on, including Gradle.
-3. Uninstall any existing build (`adb uninstall com.doubleangels.redact`), so the run starts from a fresh install with the introduction and permission prompts, then `./gradlew :app:installDebug`.
-4. Make the media with `make_test_media.py "$S/media"`, push it to `/sdcard/DCIM/Camera/`, and broadcast `android.intent.action.MEDIA_SCANNER_SCAN_FILE` for each file. Also push four copies of `VID_long.mp4` (`VID_long2.mp4`…`VID_long5.mp4`) for the overlap test.
+## 2. Unit tests, in the background
+
+Now that the app is installed, nothing else needs Gradle, so start the unit tests without waiting for them, and drive the emulator (section 3) while they run: `./gradlew testDebugUnitTest > "$S/unit.log" 2>&1` as a background command (`run_in_background`). Do not start another Gradle build until it is done.
+
+- If a UI step times out or looks stalled while the tests are using the CPU, repeat that step once after they finish before calling it a FAIL.
+- When section 3 is done, wait for the tests to finish (read `$S/unit.log`). Then total the `tests`, `skipped`, `failures` and `errors` attributes of `app/build/test-results/testDebugUnitTest/*.xml`, and list every failing test with its message.
+- If `jacocoTestReport` exists (`./gradlew tasks --all | grep -i jacoco`), run it afterwards and note the line coverage from its report.
+- Failing unit tests do not stop the run. Some steps in section 3 rely on a unit test for what adb cannot show (`CensorEffectsTest`, `CensorCanvasViewTest`): check those in these results.
 
 ## 3. Features
 
@@ -78,8 +84,8 @@ Record, per file, how many screenshots were read and every FAIL with the screens
 **Censor.** Work on the Censor tab (the fourth). For geometry, read the `censorCanvas` bounds from `ui.sh dump`: the photo is fitted inside it, centred, so a screen point maps to a photo pixel by that fit. Pull every output and run `check_media.py` on it: all `ok`.
 - **Pick and draw.** Select Photo opens the Files picker showing images only; pick `IMG_20260117_093012.jpg`. The summary card shows its name with Clear and Select Photo; Save Copy is not shown until something is drawn. Drag a rectangle with one finger: it is pixelated in place, Undo turns on and Save Copy appears. A drag shorter than about 12dp, or a plain tap on empty photo, adds nothing.
 - **Effects and save.** Save Copy: the status line over the photo says the copy was saved, Share and Scan Result appear, and the output is in `Pictures/Redact` at the original size and format with no metadata. Pull it and compare with the original (Pillow): inside the rectangle the detail is gone (neighbouring pixels nearly equal, every block one colour within ±10), outside it matches apart from JPEG noise. Switch to Black and to Blur and save each: Black is pure black inside, Blur is smooth with no blocks; each switch hides Share until saved again.
-- **Cannot be undone.** Save the same rectangle twice with Pixelate: the two outputs differ inside the rectangle (fresh random noise each time) and are identical outside it apart from JPEG noise. The unit test `CensorEffectsTest` proves that nothing finer than a block survives; check it passed in section 1.
-- **Brush, zoom and move.** Brush shows the size slider; a stroke covers its path with round ends, and its on-screen width follows the slider. There are no zoom buttons: zooming is a pinch with Move selected, and with Rectangle or Brush a second finger only cancels the shape. adb cannot send a two-finger pinch on this Play Store image (`input` has no multi-touch, `sendevent` needs root, and `adb emu event send` does not reach the touchscreen), so check that `CensorCanvasViewTest.pinching_zoomsWithTheMoveTool` and `pinching_whileDrawing_neitherZoomsNorDraws` passed in section 1, and mark the on-device fine-detail check (pinch in on `censor_me.jpg`, Black, brush size 2, one stroke along the CARD line: every pixel of `(1900, 1498)-(2208, 1514)` black and the ACCOUNT line unchanged apart from JPEG noise) as manual. With Move, a one-finger drag pans without drawing; changing tools while zoomed must not make the photo jump more than half the change in the canvas height.
+- **Cannot be undone.** Save the same rectangle twice with Pixelate: the two outputs differ inside the rectangle (fresh random noise each time) and are identical outside it apart from JPEG noise. The unit test `CensorEffectsTest` proves that nothing finer than a block survives; check it passed in the unit test results (section 2).
+- **Brush, zoom and move.** Brush shows the size slider; a stroke covers its path with round ends, and its on-screen width follows the slider. There are no zoom buttons: zooming is a pinch with Move selected, and with Rectangle or Brush a second finger only cancels the shape. adb cannot send a two-finger pinch on this Play Store image (`input` has no multi-touch, `sendevent` needs root, and `adb emu event send` does not reach the touchscreen), so check that `CensorCanvasViewTest.pinching_zoomsWithTheMoveTool` and `pinching_whileDrawing_neitherZoomsNorDraws` passed in the unit test results (section 2), and mark the on-device fine-detail check (pinch in on `censor_me.jpg`, Black, brush size 2, one stroke along the CARD line: every pixel of `(1900, 1498)-(2208, 1514)` black and the ACCOUNT line unchanged apart from JPEG noise) as manual. With Move, a one-finger drag pans without drawing; changing tools while zoomed must not make the photo jump more than half the change in the canvas height.
 - **Select, move, resize.** Draw five rectangles side by side, each starting on the previous one's edge: all five are drawn (a new rectangle is never selected). Tap one: handles appear on its corners. Drag inside it to move it (kept inside the photo) and drag a handle to resize it; each is one Undo step, and Redo brings it back. Tap empty photo to clear the selection; choosing Brush or Move clears it too.
 - **Unsaved changes.** With an unsaved edit, Back on the Censor tab shows "Discard Your Changes?"; Keep Editing stays, Discard returns to the empty state. Switching to another tab and back keeps the edits; Back on another tab never shows this dialog. Clear with unsaved edits asks the same.
 - **Rotation and landscape.** A portrait-EXIF photo (orientation 6) shows upright and the saved copy is covered where it was drawn. Rotate to landscape mid-edit: the edits, effect and tool survive, the photo is on the left at full height, the tools are on the right above Save Copy and not covered by it.
