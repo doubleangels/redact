@@ -51,10 +51,10 @@ public class MetadataStripperExifVerificationTest {
     }
 
     private static boolean verify(File file) throws Exception {
-        Method verify = MetadataStripper.class.getDeclaredMethod(
+        Method verify = CleanVerifier.class.getDeclaredMethod(
                 "verifyMetadataRemoval", File.class, boolean.class);
         verify.setAccessible(true);
-        return (boolean) verify.invoke(new MetadataStripper(RuntimeEnvironment.getApplication()), file, false);
+        return (boolean) verify.invoke(new MetadataStripper(RuntimeEnvironment.getApplication()).verifier, file, false);
     }
 
     private static byte[] plainJpeg() {
@@ -151,16 +151,16 @@ public class MetadataStripperExifVerificationTest {
 
         MetadataStripper stripper = new MetadataStripper(app);
 
-        Method removeAll = MetadataStripper.class.getDeclaredMethod(
+        Method removeAll = ImageCleaner.class.getDeclaredMethod(
                 "removeAllExifMetadata", ExifInterface.class, boolean.class);
         removeAll.setAccessible(true);
-        removeAll.invoke(stripper, exif, forSharing);
+        removeAll.invoke(stripper.images, exif, forSharing);
         exif.saveAttributes();
 
-        Method verify = MetadataStripper.class.getDeclaredMethod(
+        Method verify = CleanVerifier.class.getDeclaredMethod(
                 "verifyMetadataRemoval", File.class, boolean.class);
         verify.setAccessible(true);
-        boolean passed = (boolean) verify.invoke(stripper, jpeg, forSharing);
+        boolean passed = (boolean) verify.invoke(stripper.verifier, jpeg, forSharing);
 
         if (!passed) {
             ExifInterface reopened = new ExifInterface(jpeg.getAbsolutePath());

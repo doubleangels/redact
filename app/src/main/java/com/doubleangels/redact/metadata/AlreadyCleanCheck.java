@@ -151,7 +151,7 @@ public final class AlreadyCleanCheck {
             return Status.UNKNOWN;
         }
         Set<String> ignored = new HashSet<>(MetadataStripper.tagsToPreserve(context, false));
-        ignored.addAll(MetadataStripper.NON_IDENTIFYING_UNCLEARABLE_TAGS);
+        ignored.addAll(CleanVerifier.NON_IDENTIFYING_UNCLEARABLE_TAGS);
         try (InputStream in = resolver.openInputStream(uri)) {
             if (in == null) {
                 return Status.UNKNOWN;
@@ -220,14 +220,14 @@ public final class AlreadyCleanCheck {
         }
         try (MediaMetadataRetriever retriever = new MediaMetadataRetriever()) {
             retriever.setDataSource(context, uri);
-            if ((!keepLocation && MetadataStripper.normalizeMetadataValue(
+            if ((!keepLocation && CleanVerifier.normalizeMetadataValue(
                     retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_LOCATION)) != null)
-                    || (!keepDate && MetadataStripper.normalizeMetadataValue(
+                    || (!keepDate && CleanVerifier.normalizeMetadataValue(
                     retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE)) != null)) {
                 return Status.NEEDS_CLEANING;
             }
-            for (int key : MetadataStripper.ADDITIONAL_VIDEO_PRIVACY_KEYS) {
-                if (MetadataStripper.normalizeMetadataValue(retriever.extractMetadata(key)) != null) {
+            for (int key : CleanVerifier.ADDITIONAL_VIDEO_PRIVACY_KEYS) {
+                if (CleanVerifier.normalizeMetadataValue(retriever.extractMetadata(key)) != null) {
                     return Status.NEEDS_CLEANING;
                 }
             }

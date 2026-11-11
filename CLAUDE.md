@@ -4,14 +4,15 @@ Android app (Java, minSdk 31, targetSdk 37) that removes metadata from photos an
 
 ## Privacy rules
 
-- Never weaken a check that a cleaned file is clean (`verifyMetadataRemoval`, `requireSameContent`, `requireVideoMetadataClean`, `VideoStreamMetadata.scan`, the container scans), even where it repeats work. Code that fails closed (returns null, throws or re-encodes when it cannot vouch for a file) stays that way.
+- Never weaken a check that a cleaned file is clean (`CleanVerifier`: `verifyMetadataRemoval`, `requireSameContent`, `requireVideoMetadataClean`, `VideoStreamMetadata.scan`, the container scans), even where it repeats work. Code that fails closed (returns null, throws or re-encodes when it cannot vouch for a file) stays that way.
 - Keep `SecureDelete` on anything that may hold original media, the inbound URI checks in `MainActivity` and `ShareHandlerActivity`, `SentryPrivacyScrubber` and the `before*` callbacks in `SentryInitializer`.
 - Everything reported to Sentry goes through `SentryManager`, and nothing sent to it may hold a URI, path, file name, coordinate, metadata value or typed text.
 
 ## Code
 
+- `MetadataStripper` is the entry point for cleaning and holds the shared state (context, progress, cancellation); the work is in `ImageCleaner`, `VideoCleaner` and `CleanVerifier`, each created by it.
 - Reuse the helpers before writing new ones: `MediaSizeLimits.copyStream`, `SecureDelete`, `MediaFileNames`, `MediaUriResolver`, `MediaStoreWrites`, `OutputDestination`, `SentryManager`.
-- `MetadataStripper`, `MetadataDisplayer`, `CleanStats` and `AlreadyCleanCheck` find EXIF tags by reflection over `ExifInterface.TAG_*`, so grep alone does not show every use; `proguard-rules.pro` keeps those names.
+- `ImageCleaner`, `CleanVerifier`, `MetadataDisplayer`, `CleanStats` and `AlreadyCleanCheck` find EXIF tags by reflection over `ExifInterface.TAG_*`, so grep alone does not show every use; `proguard-rules.pro` keeps those names.
 - Every user-visible string goes into `values/` and all 12 locales (`ar de es fr hi it ja ko pt ru zh-rCN zh-rTW`); `StringTranslationsTest` checks it. The Play listing text in `fastlane/metadata/android/<locale>/` follows the English too.
 - A setting that is removed leaves its saved value in place; do not add code to clear it.
 

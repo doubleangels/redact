@@ -176,11 +176,11 @@ public class MetadataStripperGalleryTest {
         java.util.Map<String, String> kept = new java.util.HashMap<>();
         kept.put(androidx.exifinterface.media.ExifInterface.TAG_MAKE, "KeptMaker");
         kept.put(androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION, "6");
-        java.lang.reflect.Method restore = MetadataStripper.class.getDeclaredMethod(
+        java.lang.reflect.Method restore = ImageCleaner.class.getDeclaredMethod(
                 "restoreHeifExif", File.class, java.util.Map.class);
         restore.setAccessible(true);
 
-        restore.invoke(stripper, clean, kept);
+        restore.invoke(stripper.images, clean, kept);
 
         String written = new String(java.nio.file.Files.readAllBytes(clean.toPath()),
                 java.nio.charset.StandardCharsets.ISO_8859_1);
@@ -274,8 +274,8 @@ public class MetadataStripperGalleryTest {
                 (byte) 0xFF, (byte) 0xE0, 0, 4, 1, 2,
                 (byte) 0xFF, (byte) 0xE1, 0, 12, 'E', 'x', 'i', 'f', 0, 0, 'I', 'I', 42, 0,
                 (byte) 0xFF, (byte) 0xDA, 0, 2};
-        assertTrue(java.util.Arrays.equals(new byte[] {'I', 'I', 42, 0}, MetadataStripper.exifTiff(jpeg)));
-        assertNull(MetadataStripper.exifTiff(new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xDA, 0, 2}));
+        assertTrue(java.util.Arrays.equals(new byte[] {'I', 'I', 42, 0}, ImageCleaner.exifTiff(jpeg)));
+        assertNull(ImageCleaner.exifTiff(new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xDA, 0, 2}));
     }
 
     @Test

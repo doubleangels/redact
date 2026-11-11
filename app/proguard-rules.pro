@@ -6,7 +6,8 @@
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
 
-# MetadataDisplayer/MetadataStripper enumerate ExifInterface.TAG_* fields by reflection and use
+# MetadataDisplayer, ImageCleaner, CleanVerifier, CleanStats and AlreadyCleanCheck enumerate
+# ExifInterface.TAG_* fields by reflection and use
 # the field names, so they must not be renamed.
 -keepclassmembers class androidx.exifinterface.media.ExifInterface {
     public static final java.lang.String TAG_*;

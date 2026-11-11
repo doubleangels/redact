@@ -136,7 +136,7 @@ public final class CleanStats {
                 continue;
             }
             if (tag == null || preservedTags.contains(tag)
-                    || MetadataStripper.NON_IDENTIFYING_UNCLEARABLE_TAGS.contains(tag)) {
+                    || CleanVerifier.NON_IDENTIFYING_UNCLEARABLE_TAGS.contains(tag)) {
                 continue;
             }
             String value = exif.getAttribute(tag);
