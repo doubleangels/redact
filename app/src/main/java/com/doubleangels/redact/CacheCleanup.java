@@ -43,7 +43,8 @@ public final class CacheCleanup {
     private static final String[] TEMP_PREFIXES = {
             "temp_", "verify_", "vid_transform_", "vid_transmux_", "inbound_", "censored_",
             // Copies of a picture, video or its tags made on the way to a clean file.
-            "vid_keep_", "motion_", "gainmap_", "heif_body_", "heif_exif_", "png16_", "exif_carrier_"
+            "vid_keep_", "motion_", "gainmap_", "heif_body_", "heif_exif_", "png16_", "exif_carrier_",
+            "xmp_"
     };
     /**
      * Grace period below which a temp file is left alone even for a "clear all" request, so a

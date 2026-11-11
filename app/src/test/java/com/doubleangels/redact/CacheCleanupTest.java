@@ -282,4 +282,64 @@ public class CacheCleanupTest {
 
         assertFalse(thumbnail.exists());
     }
+
+    @Test
+    public void staleSweep_securelyRemovesAnUltraHdrXmpCopy() throws IOException {
+        File cacheDir = context.getCacheDir();
+        File orphan = writeFile(new File(cacheDir, "xmp_1234.jpg"), 100);
+        orphan.setLastModified(System.currentTimeMillis() - CacheCleanup.DEFAULT_STALE_TEMP_MAX_AGE_MS * 2);
+
+        assertEquals(1, CacheCleanup.clearStaleTempFiles(context, CacheCleanup.DEFAULT_STALE_TEMP_MAX_AGE_MS));
+        assertFalse(orphan.exists());
+    }
+
+    private static final java.util.regex.Pattern TEMP_FILE_NAME = java.util.regex.Pattern.compile(
+            "createTempFile\\(\\s*(\"[^\"]*\"|[A-Z_]+)"
+                    + "|new File\\([^,;()]*(?:\\([^()]*\\))?[^,;()]*,\\s*(\"[^\"]*\")\\s*\\+");
+
+    /**
+     * Every working file named in the code must start with a prefix the sweeps know, or a copy of a
+     * photo left by a process that died mid-clean is never removed.
+     */
+    @Test
+    public void everyWorkingFilePrefix_isCoveredByTheSweeps() throws Exception {
+        java.lang.reflect.Field field = CacheCleanup.class.getDeclaredField("TEMP_PREFIXES");
+        field.setAccessible(true);
+        String[] prefixes = (String[]) field.get(null);
+
+        java.util.List<String> uncovered = new java.util.ArrayList<>();
+        int found = 0;
+        try (java.util.stream.Stream<java.nio.file.Path> files =
+                     java.nio.file.Files.walk(new File("src/main/java").toPath())) {
+            for (java.nio.file.Path file : (Iterable<java.nio.file.Path>)
+                    files.filter(p -> p.toString().endsWith(".java"))::iterator) {
+                String source = new String(java.nio.file.Files.readAllBytes(file),
+                        java.nio.charset.StandardCharsets.UTF_8);
+                java.util.regex.Matcher m = TEMP_FILE_NAME.matcher(source);
+                while (m.find()) {
+                    String name = m.group(1) != null ? m.group(1) : m.group(2);
+                    if (!name.startsWith("\"")) {
+                        java.util.regex.Matcher constant = java.util.regex.Pattern.compile(
+                                "String\\s+" + name + "\\s*=\\s*(\"[^\"]*\")").matcher(source);
+                        if (!constant.find()) {
+                            uncovered.add(file.getFileName() + ": unresolved " + name);
+                            continue;
+                        }
+                        name = constant.group(1);
+                    }
+                    name = name.substring(1, name.length() - 1);
+                    found++;
+                    boolean covered = false;
+                    for (String prefix : prefixes) {
+                        covered |= name.startsWith(prefix);
+                    }
+                    if (!covered) {
+                        uncovered.add(file.getFileName() + ": " + name);
+                    }
+                }
+            }
+        }
+        assertTrue("The scan found no working files; is the pattern still right?", found > 10);
+        assertEquals("Add these to CacheCleanup.TEMP_PREFIXES: " + uncovered, 0, uncovered.size());
+    }
 }
