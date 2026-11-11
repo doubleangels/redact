@@ -23,6 +23,7 @@ import android.os.ParcelFileDescriptor;
 import androidx.appcompat.app.AlertDialog;
 
 import com.doubleangels.redact.media.AppProcessingScope;
+import com.doubleangels.redact.metadata.MetadataStripper;
 
 import org.junit.After;
 import org.junit.Before;
@@ -44,7 +45,11 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Share-sheet flows that do not need a FileProvider URI, so they also run on Windows hosts: new
@@ -127,6 +132,7 @@ public class ShareHandlerActivityFlowsTest {
                 f.delete();
             }
         }
+        ShareHandlerActivity.stripperFactory = MetadataStripper::new;
         AppProcessingScope.resetForTests();
     }
 
@@ -229,6 +235,81 @@ public class ShareHandlerActivityFlowsTest {
         assertNotNull(ShadowDialog.getLatestDialog());
         awaitMain(() -> inboundSnapshots().length == 1);
         assertFalse(ShareHandlerActivity.isShareProcessingActive());
+    }
+
+    /** Holds the first clean of the test until released, then cleans as usual. */
+    private static final class HeldStripper extends MetadataStripper {
+        static final AtomicInteger calls = new AtomicInteger();
+        static CountDownLatch entered;
+        static CountDownLatch release;
+
+        HeldStripper(android.content.Context context) {
+            super(context);
+        }
+
+        @Override
+        public Uri stripMetadataForSharing(Uri sourceUri, String originalFilename, boolean isVideo) {
+            if (calls.getAndIncrement() == 0) {
+                entered.countDown();
+                boolean interrupted = false;
+                while (true) {
+                    try {
+                        release.await();
+                        break;
+                    } catch (InterruptedException e) {
+                        interrupted = true;
+                    }
+                }
+                if (interrupted) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+            return super.stripMetadataForSharing(sourceUri, originalFilename, isVideo);
+        }
+    }
+
+    @Test
+    public void newIntent_duringTheClean_leavesTheNewShareRunning() throws Exception {
+        FileProviderTestSupport.makeUsable(app);
+        HeldStripper.calls.set(0);
+        HeldStripper.entered = new CountDownLatch(1);
+        HeldStripper.release = new CountDownLatch(1);
+        ShareHandlerActivity.stripperFactory = HeldStripper::new;
+
+        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        ((AlertDialog) ShadowDialog.getLatestDialog()).getButton(DialogInterface.BUTTON_POSITIVE).performClick();
+        idle();
+        assertTrue(HeldStripper.entered.await(20, TimeUnit.SECONDS));
+        Thread firstWorker = field(activity, "processingThread");
+        List<File> firstSnapshots = Arrays.asList(inboundSnapshots());
+
+        controller.newIntent(send("image/jpeg", Uri.fromFile(jpeg())));
+        idle();
+        awaitPreparation(activity);
+        List<File> secondSnapshots = new ArrayList<>(Arrays.asList(inboundSnapshots()));
+        secondSnapshots.removeAll(firstSnapshots);
+        assertEquals(1, secondSnapshots.size());
+        AlertDialog secondConfirm = (AlertDialog) ShadowDialog.getLatestDialog();
+
+        // The first share's clean finishes after the second share took over.
+        HeldStripper.release.countDown();
+        firstWorker.join(20_000);
+        idle();
+        ShadowLooper.idleMainLooper();
+
+        assertFalse(activity.isFinishing());
+        assertTrue(secondSnapshots.get(0).exists());
+
+        secondConfirm.getButton(DialogInterface.BUTTON_POSITIVE).performClick();
+        idle();
+        awaitMain(() -> {
+            idle();
+            return shadowOf(activity).peekNextStartedActivityForResult() != null;
+        });
+        assertEquals(Intent.ACTION_CHOOSER,
+                shadowOf(activity).peekNextStartedActivityForResult().intent.getAction());
+        assertFalse(activity.isFinishing());
+        awaitMain(() -> inboundSnapshots().length == 0);
     }
 
     @Test

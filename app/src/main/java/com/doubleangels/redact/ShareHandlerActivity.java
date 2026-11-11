@@ -102,21 +102,62 @@ public class ShareHandlerActivity extends AppCompatActivity {
                         finish();
                     });
 
+    /** Builds the cleaner each share uses; tests swap it to hold a share inside its clean. */
+    @VisibleForTesting
+    static java.util.function.Function<Context, MetadataStripper> stripperFactory = MetadataStripper::new;
+
     private MediaSelector mediaSelector;
-    private MetadataStripper metadataStripper;
-    
+
     private final Object fileListLock = new Object();
     private final List<File> processedFiles = new ArrayList<>();
-    private final List<File> inboundSnapshotFiles = new ArrayList<>();
     private final List<String> processedDisplayNames = new ArrayList<>();
     
     private boolean sharingInitiated = false;
     private volatile boolean processingActive = false;
     private final AtomicBoolean activityDestroyed = new AtomicBoolean(false);
-    private final AtomicBoolean shareSessionEnded = new AtomicBoolean(false);
     private final AtomicInteger shareSessionId =
             new AtomicInteger(0);
+    /** The share this activity is running; a new intent replaces it (see {@link #onNewIntent}). */
+    private volatile ShareSession shareSession;
     private volatile Thread processingThread;
+
+    /**
+     * One share, from the inbound intent to the chooser. A second share can arrive while the first
+     * is still cleaning ({@code singleTask}), so everything a worker touches belongs to its own
+     * session: its cleaner and that cleaner's last-result fields, and its inbound snapshots, which
+     * the worker deletes without reaching the next share's.
+     */
+    static final class ShareSession {
+        final int id;
+        final MetadataStripper stripper;
+        final AtomicBoolean ended = new AtomicBoolean(false);
+        /** Whether {@link #activeShareSessions} counts this session; touched on the main thread only. */
+        boolean counted;
+        private final List<File> snapshots = new ArrayList<>();
+        private boolean snapshotsClosed;
+
+        ShareSession(int id, @NonNull MetadataStripper stripper) {
+            this.id = id;
+            this.stripper = stripper;
+        }
+
+        /** Keeps a snapshot for later deletion; false once the session's snapshots were deleted. */
+        synchronized boolean addSnapshot(@NonNull File snapshot) {
+            if (snapshotsClosed) {
+                return false;
+            }
+            snapshots.add(snapshot);
+            return true;
+        }
+
+        /** Hands over every snapshot for deletion and refuses any added later. */
+        synchronized List<File> closeSnapshots() {
+            snapshotsClosed = true;
+            List<File> taken = new ArrayList<>(snapshots);
+            snapshots.clear();
+            return taken;
+        }
+    }
 
     private AlertDialog progressDialog;
     private TextView progressMessageView;
@@ -131,11 +172,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
         try {
             mediaSelector = new MediaSelector(this);
-            metadataStripper = new MetadataStripper(this);
-            
-            metadataStripper.setProgressCallback((percent, message) ->
-                    shareProgressThrottler.maybeRun(
-                            () -> safeRunOnUiThread(() -> updateProgressMessage(message))));
+            shareSession = newShareSession();
 
             SentryManager.log("The ShareHandlerActivity was created.");
 
@@ -167,29 +204,40 @@ public class ShareHandlerActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        int previousSession = shareSessionId.get();
-        invalidateShareSession();
+        ShareSession previous = shareSession;
+        synchronized (fileListLock) {
+            // Switched under the lock so a worker of the old share cannot add a processed file
+            // after cleanupProcessedOutputs below has emptied the list (see processMediaItems).
+            shareSession = newShareSession();
+        }
+        if (previous != null) {
+            previous.stripper.requestCancellation();
+            endShareSession(previous);
+            deleteSnapshots(previous.closeSnapshots());
+            VideoMedia3Converter.cancelActiveTranscode(VideoMedia3Converter.shareOwner(previous.id));
+        }
         Thread thread = processingThread;
         if (thread != null) {
             thread.interrupt();
         }
-        VideoMedia3Converter.cancelActiveTranscode(VideoMedia3Converter.shareOwner(previousSession));
         LocalNotifications.stopProcessingForeground(this, LocalNotifications.ForegroundJob.SHARE);
         processingActive = false;
         sharingInitiated = false;
-        cleanupProcessedFiles();
+        // The old session's snapshots went above; the new session has none of its own yet.
+        cleanupProcessedOutputs();
         dismissProgressDialog();
         createProgressDialog();
         handleIntent(intent);
     }
 
-    private void invalidateShareSession() {
-        shareSessionId.incrementAndGet();
-        shareSessionEnded.set(true);
-        if (activeShareSessions.get() > 0) {
-            activeShareSessions.decrementAndGet();
-        }
-        shareSessionEnded.set(false);
+    @NonNull
+    private ShareSession newShareSession() {
+        ShareSession session = new ShareSession(shareSessionId.incrementAndGet(), stripperFactory.apply(this));
+        session.stripper.setTranscodeOwnerId(VideoMedia3Converter.shareOwner(session.id));
+        session.stripper.setProgressCallback((percent, message) ->
+                shareProgressThrottler.maybeRun(
+                        () -> runOnUiThreadForSession(session, () -> updateProgressMessage(message))));
+        return session;
     }
 
     @Override
@@ -315,10 +363,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
      * copy, so the user can stop before space is used.
      */
     private void prepareAndProcess(@NonNull List<Uri> uris) {
-        final int session = shareSessionId.get();
+        final ShareSession session = shareSession;
         // A recreated activity cannot resume this, so treat it like a running job (see onCreate).
         processingActive = true;
-        startShareThread("redact-share-check", () -> {
+        startShareThread("redact-share-check", session, () -> {
             List<Uri> accepted = filterSupportedUris(uris);
             List<ProcessingResourceWarnings.Warning> warnings = accepted.isEmpty()
                     ? new ArrayList<>()
@@ -337,8 +385,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
         });
     }
 
-    private void snapshotAndProcess(@NonNull List<Uri> accepted, int session) {
-        startShareThread("redact-share-snapshot", () -> {
+    private void snapshotAndProcess(@NonNull List<Uri> accepted, @NonNull ShareSession session) {
+        startShareThread("redact-share-snapshot", session, () -> {
             List<Uri> snapshotted = snapshotInboundUris(accepted, session);
             runOnUiThreadForSession(session, () -> {
                 if (snapshotted.isEmpty()) {
@@ -346,19 +394,19 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     return;
                 }
                 SentryManager.setCustomKey("media_count", snapshotted.size());
-                maybeConfirmAndProcess(snapshotted);
+                maybeConfirmAndProcess(snapshotted, session);
             });
         });
     }
 
     /** Runs preparation work on its own thread; cancelling the share interrupts it. */
-    private void startShareThread(@NonNull String name, @NonNull Runnable work) {
+    private void startShareThread(@NonNull String name, @NonNull ShareSession session, @NonNull Runnable work) {
         Thread thread = new Thread(() -> {
             try {
                 work.run();
             } catch (Exception e) {
                 SentryManager.recordException(e);
-                safeRunOnUiThread(() -> finishWithError(getString(R.string.share_error_generic)));
+                runOnUiThreadForSession(session, () -> finishWithError(getString(R.string.share_error_generic)));
             }
         }, name);
         processingThread = thread;
@@ -366,18 +414,30 @@ public class ShareHandlerActivity extends AppCompatActivity {
     }
 
     /** Runs {@code action} on the main thread unless the share it belongs to was replaced or ended. */
-    private void runOnUiThreadForSession(int session, @NonNull Runnable action) {
+    private void runOnUiThreadForSession(@NonNull ShareSession session, @NonNull Runnable action) {
         safeRunOnUiThread(() -> {
-            if (session == shareSessionId.get() && !shareSessionEnded.get()) {
+            if (session == shareSession && !session.ended.get()) {
                 action.run();
             }
         });
     }
 
-    /** Whether the share that {@code session} names is still the one this activity is running. */
-    private boolean isCurrentSession(int session) {
-        return session == shareSessionId.get()
-                && !shareSessionEnded.get()
+    /**
+     * Runs {@code action} on the main thread unless a newer share replaced {@code session}. For a
+     * worker's last callback: the worker ends its session before the callback gets to run.
+     */
+    private void runOnUiThreadIfNotReplaced(@NonNull ShareSession session, @NonNull Runnable action) {
+        safeRunOnUiThread(() -> {
+            if (session == shareSession) {
+                action.run();
+            }
+        });
+    }
+
+    /** Whether {@code session} is still the share this activity is running. */
+    private boolean isCurrentSession(@NonNull ShareSession session) {
+        return session == shareSession
+                && !session.ended.get()
                 && !activityDestroyed.get()
                 && !Thread.currentThread().isInterrupted();
     }
@@ -390,7 +450,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     /** Copies each item to cache, on a background thread; stops early when the share ends. */
     @NonNull
-    private List<Uri> snapshotInboundUris(@NonNull List<Uri> uris, int session) {
+    private List<Uri> snapshotInboundUris(@NonNull List<Uri> uris, @NonNull ShareSession session) {
         List<Uri> stable = new ArrayList<>();
         snapshotFailCount = 0;
         for (Uri uri : uris) {
@@ -401,14 +461,11 @@ public class ShareHandlerActivity extends AppCompatActivity {
             if ("content".equalsIgnoreCase(scheme) || "file".equalsIgnoreCase(scheme)) {
                 try {
                     File snapshot = copyInboundUriToCache(uri, session);
-                    if (!isCurrentSession(session)) {
+                    if (!isCurrentSession(session) || !session.addSnapshot(snapshot)) {
                         // The share was cancelled during the copy and its cleanup has already
                         // run, so nothing else would delete this one.
                         SecureDelete.secureDelete(snapshot);
                         break;
-                    }
-                    synchronized (fileListLock) {
-                        inboundSnapshotFiles.add(snapshot);
                     }
                     stable.add(Uri.fromFile(snapshot));
                 } catch (IOException e) {
@@ -437,7 +494,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
     }
 
     @NonNull
-    private File copyInboundUriToCache(@NonNull Uri uri, int session) throws IOException {
+    private File copyInboundUriToCache(@NonNull Uri uri, @NonNull ShareSession session) throws IOException {
         if ("file".equalsIgnoreCase(uri.getScheme())) {
             String path = uri.getPath();
             if (path == null || path.isEmpty()) {
@@ -481,7 +538,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
     }
 
     /** Copies a whole stream, giving up as soon as the share it belongs to is cancelled. */
-    private void copyForSession(@NonNull InputStream in, @NonNull OutputStream out, int session)
+    private void copyForSession(@NonNull InputStream in, @NonNull OutputStream out, @NonNull ShareSession session)
             throws IOException {
         try {
             MediaSizeLimits.copyStream(in, out, () -> {
@@ -576,7 +633,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
     }
 
     /** Starts cleaning the snapshots, after asking first when Settings says to. */
-    private void maybeConfirmAndProcess(List<Uri> uris) {
+    private void maybeConfirmAndProcess(List<Uri> uris, @NonNull ShareSession session) {
         if (AppPreferences.isShareConfirmBeforeStrip(this)) {
             if (progressDialog != null && progressDialog.isShowing()) {
                 progressDialog.dismiss();
@@ -587,24 +644,33 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     .setPositiveButton(
                             R.string.settings_share_confirm_dialog_confirm,
                             (d, w) -> {
-                                createProgressDialog();
-                                processMediaItems(uris);
+                                // A dialog left over from a share that a newer one replaced
+                                // must not start or end the newer one.
+                                if (isCurrentSession(session)) {
+                                    createProgressDialog();
+                                    processMediaItems(uris, session);
+                                }
                             })
                     .setNegativeButton(
-                            R.string.settings_share_confirm_dialog_cancel, (d, w) -> finish())
-                    .setOnCancelListener(d -> finish())
+                            R.string.settings_share_confirm_dialog_cancel, (d, w) -> finishIfCurrent(session))
+                    .setOnCancelListener(d -> finishIfCurrent(session))
                     .show();
         } else {
-            processMediaItems(uris);
+            processMediaItems(uris, session);
         }
     }
 
-    private void processMediaItems(List<Uri> uris) {
+    private void finishIfCurrent(@NonNull ShareSession session) {
+        if (session == shareSession) {
+            finish();
+        }
+    }
+
+    private void processMediaItems(List<Uri> uris, @NonNull ShareSession session) {
+        final MetadataStripper stripper = session.stripper;
         processingActive = true;
-        shareSessionEnded.set(false);
-        final int session = shareSessionId.incrementAndGet();
+        session.counted = true;
         activeShareSessions.incrementAndGet();
-        metadataStripper.setTranscodeOwnerId(VideoMedia3Converter.shareOwner(session));
         LocalNotifications.startProcessingForeground(
                 this, LocalNotifications.ForegroundJob.SHARE, getString(R.string.share_processing_title));
         Thread worker = new Thread(() -> {
@@ -617,16 +683,14 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
             try {
                 for (int i = 0; i < uris.size(); i++) {
-                    if (activityDestroyed.get()
-                            || Thread.currentThread().isInterrupted()
-                            || shareSessionEnded.get()) {
+                    if (!isCurrentSession(session)) {
                         break;
                     }
                     Uri uri = uris.get(i);
                     final int currentIndex = i + 1;
                     final int total = uris.size();
 
-                    safeRunOnUiThread(() -> updateProgressMessage(
+                    runOnUiThreadForSession(session, () -> updateProgressMessage(
                             getString(R.string.status_processing) + " (" + currentIndex + "/" + total + ")"));
 
                     String mimeType = getContentResolver().getType(uri);
@@ -635,20 +699,31 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     if (isVideo) hasVideo = true;
                     else hasImage = true;
 
-                    Uri processedUri = metadataStripper.stripMetadataForSharing(uri, fileName, isVideo);
+                    Uri processedUri = stripper.stripMetadataForSharing(uri, fileName, isVideo);
                     if (processedUri != null) {
                         processedUris.add(processedUri);
                         CleanStats stats =
-                                metadataStripper.getLastCleanStats();
+                                stripper.getLastCleanStats();
                         StatsStore.recordClean(this,
                                 stats != null ? stats : new CleanStats(0, false),
                                 isVideo, true);
                         try {
-                            File outputFile = metadataStripper.getLastProcessedOutputFile();
+                            File outputFile = stripper.getLastProcessedOutputFile();
                             if (outputFile != null && outputFile.exists() && outputFile.isFile()) {
+                                boolean replaced;
                                 synchronized (fileListLock) {
-                                    processedFiles.add(outputFile);
-                                    processedDisplayNames.add(outputFile.getName());
+                                    replaced = session != shareSession;
+                                    if (!replaced) {
+                                        processedFiles.add(outputFile);
+                                        processedDisplayNames.add(outputFile.getName());
+                                    }
+                                }
+                                if (replaced) {
+                                    // A newer share took over and already emptied the list.
+                                    List<File> stale = new ArrayList<>();
+                                    stale.add(outputFile);
+                                    Context appContext = getApplicationContext();
+                                    cleanupExecutor.execute(() -> deleteProcessedFileList(appContext, stale));
                                 }
                             }
                         } catch (Exception e) {
@@ -656,7 +731,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                         }
                     } else {
                         failCount++;
-                        if (metadataStripper.wasLastFailureUnsupported()) {
+                        if (stripper.wasLastFailureUnsupported()) {
                             unsupportedFailCount++;
                         }
                     }
@@ -676,10 +751,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 final int finalFailCount = failCount;
                 final boolean allFailuresUnsupported =
                         failCount > 0 && unsupportedFailCount == failCount;
-                final boolean cancelled = shareSessionEnded.get()
+                final boolean cancelled = session.ended.get()
                         || Thread.currentThread().isInterrupted();
 
-                safeRunOnUiThread(() -> {
+                runOnUiThreadIfNotReplaced(session, () -> {
                     try {
                         dismissProgressDialog();
 
@@ -734,12 +809,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     transaction.finish();
                 }
                 SentryManager.recordException(e);
-                safeRunOnUiThread(() -> finishWithError(getString(R.string.share_error_generic)));
+                runOnUiThreadIfNotReplaced(session, () -> finishWithError(getString(R.string.share_error_generic)));
             } finally {
                 // The snapshots are copies of the originals, metadata included, and only the
                 // cleaned files are shared, so delete them now rather than when the share ends:
-                // on a successful share nothing else would until the next process start.
-                cleanupInboundSnapshots();
+                // on a successful share nothing else would until the next process start. Only
+                // this session's: a share that replaced it keeps its own.
+                deleteSnapshots(session.closeSnapshots());
                 endShareSession(session);
             }
         });
@@ -747,13 +823,15 @@ public class ShareHandlerActivity extends AppCompatActivity {
         worker.start();
     }
 
-    private void endShareSession(int session) {
-        if (session != shareSessionId.get()) {
+    private void endShareSession(@NonNull ShareSession session) {
+        if (!session.ended.compareAndSet(false, true)) {
             return;
         }
-        if (shareSessionEnded.compareAndSet(false, true)) {
-            processingActive = false;
+        if (session.counted) {
             activeShareSessions.updateAndGet(count -> Math.max(0, count - 1));
+        }
+        if (session == shareSession) {
+            processingActive = false;
             LocalNotifications.stopProcessingForeground(
                     ShareHandlerActivity.this, LocalNotifications.ForegroundJob.SHARE);
         }
@@ -764,11 +842,12 @@ public class ShareHandlerActivity extends AppCompatActivity {
         if (thread != null) {
             thread.interrupt();
         }
-        VideoMedia3Converter.cancelActiveTranscode(VideoMedia3Converter.shareOwner(shareSessionId.get()));
-        if (metadataStripper != null) {
-            metadataStripper.requestCancellation();
+        ShareSession session = shareSession;
+        if (session != null) {
+            VideoMedia3Converter.cancelActiveTranscode(VideoMedia3Converter.shareOwner(session.id));
+            session.stripper.requestCancellation();
+            endShareSession(session);
         }
-        endShareSession(shareSessionId.get());
         dismissProgressDialog();
         cleanupProcessedFiles();
         Toast.makeText(this, R.string.status_processing_cancelled, Toast.LENGTH_SHORT).show();
@@ -868,11 +947,14 @@ public class ShareHandlerActivity extends AppCompatActivity {
     }
 
     private void cleanupInboundSnapshots() {
-        List<File> filesToDelete;
-        synchronized (fileListLock) {
-            filesToDelete = new ArrayList<>(inboundSnapshotFiles);
-            inboundSnapshotFiles.clear();
+        ShareSession session = shareSession;
+        if (session != null) {
+            deleteSnapshots(session.closeSnapshots());
         }
+    }
+
+    /** Securely deletes inbound snapshots off the main thread; they hold the original media. */
+    private static void deleteSnapshots(@NonNull List<File> filesToDelete) {
         if (filesToDelete.isEmpty()) {
             return;
         }
@@ -887,6 +969,11 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     private void cleanupProcessedFiles() {
         cleanupInboundSnapshots();
+        cleanupProcessedOutputs();
+    }
+
+    /** Deletes the cleaned outputs the share has not handed to the chooser. */
+    private void cleanupProcessedOutputs() {
         List<File> filesToDelete;
         synchronized (fileListLock) {
             filesToDelete = new ArrayList<>(processedFiles);
@@ -1113,12 +1200,11 @@ public class ShareHandlerActivity extends AppCompatActivity {
         if (thread != null) {
             thread.interrupt();
         }
-        VideoMedia3Converter.cancelActiveTranscode(VideoMedia3Converter.shareOwner(shareSessionId.get()));
-        if (metadataStripper != null) {
-            metadataStripper.requestCancellation();
-        }
-        if (!shareSessionEnded.get()) {
-            endShareSession(shareSessionId.get());
+        ShareSession session = shareSession;
+        if (session != null) {
+            VideoMedia3Converter.cancelActiveTranscode(VideoMedia3Converter.shareOwner(session.id));
+            session.stripper.requestCancellation();
+            endShareSession(session);
         }
         LocalNotifications.stopProcessingForeground(
                 getApplicationContext(), LocalNotifications.ForegroundJob.SHARE);
