@@ -18,6 +18,7 @@ android {
         targetSdk 37
         versionCode 39
         versionName "1.9.2"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         def sentryRelease = "${applicationId}@${versionName}+${versionCode}"
         buildConfigField "String", "SENTRY_RELEASE", "\"${sentryRelease}\""
@@ -45,6 +46,16 @@ android {
     }
 
     testOptions {
+        // CleanOnDeviceTest cleans real media with real codecs: ./gradlew :app:Pixel_10_Pro_CleanDebugAndroidTest
+        // The name stays short, as the profile emulator's does (see CLAUDE.md).
+        managedDevices.localDevices {
+            create("Pixel_10_Pro_Clean") {
+                device = "Pixel 10 Pro"
+                apiLevel = 37
+                systemImageSource = "google"
+                pageAlignment = com.android.build.api.dsl.ManagedVirtualDevice.PageAlignment.FORCE_4KB_PAGES
+            }
+        }
         unitTests {
             includeAndroidResources = true
             all {
@@ -141,6 +152,8 @@ dependencies {
     baselineProfile project(':baselineprofile')
 
     testImplementation libs.junit
+    androidTestImplementation libs.test.runner
+    androidTestImplementation libs.test.ext.junit
     testImplementation libs.robolectric
     testImplementation libs.arch.core.testing
 
