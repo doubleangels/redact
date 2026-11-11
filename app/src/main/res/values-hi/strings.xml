@@ -425,6 +425,15 @@
     <string name="censor_undo">पूर्ववत करें</string>
     <string name="censor_redo">फिर से करें</string>
     <string name="censor_delete_rectangle">आयत हटाएँ</string>
+    <string name="censor_add_area">क्षेत्र जोड़ें</string>
+    <string name="censor_area_description">छिपाया गया क्षेत्र %2$d में से %1$d</string>
+    <string name="censor_action_move_left">बाएँ खिसकाएँ</string>
+    <string name="censor_action_move_right">दाएँ खिसकाएँ</string>
+    <string name="censor_action_move_up">ऊपर खिसकाएँ</string>
+    <string name="censor_action_move_down">नीचे खिसकाएँ</string>
+    <string name="censor_action_larger">बड़ा करें</string>
+    <string name="censor_action_smaller">छोटा करें</string>
+    <string name="censor_action_delete">क्षेत्र हटाएँ</string>
     <string name="censor_full_screen">फ़ुल स्क्रीन</string>
     <string name="censor_exit_full_screen">फ़ुल स्क्रीन से बाहर निकलें</string>
     <string name="censor_zoom_level">%1$s×</string>

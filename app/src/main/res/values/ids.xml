@@ -6,4 +6,12 @@
     <item name="edge_padding_original" type="id" />
     <!-- Remembers the end margin an action button had before it was fitted to one half of a folded screen. -->
     <item name="edge_margin_original" type="id" />
+    <!-- Accessibility actions on a covered area in the Censor editor. -->
+    <item name="censor_action_move_left" type="id" />
+    <item name="censor_action_move_right" type="id" />
+    <item name="censor_action_move_up" type="id" />
+    <item name="censor_action_move_down" type="id" />
+    <item name="censor_action_larger" type="id" />
+    <item name="censor_action_smaller" type="id" />
+    <item name="censor_action_delete" type="id" />
 </resources>

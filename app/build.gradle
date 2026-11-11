@@ -120,6 +120,7 @@ dependencies {
     implementation libs.activity
     implementation libs.appcompat
     implementation libs.constraintlayout
+    implementation libs.customview
     implementation libs.exifinterface
     implementation libs.fragment
     implementation libs.glide

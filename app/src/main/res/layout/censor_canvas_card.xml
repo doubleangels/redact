@@ -150,6 +150,25 @@
                     app:iconPadding="0dp"
                     app:iconSize="24dp" />
 
+                <!-- Drops a rectangle in the middle of the photo, so an area can be covered
+                     without drawing (TalkBack, Switch Access); its actions move and resize it. -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/censorAddAreaButton"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:contentDescription="@string/censor_add_area"
+                    android:insetLeft="4dp"
+                    android:insetTop="4dp"
+                    android:insetRight="4dp"
+                    android:insetBottom="4dp"
+                    android:padding="0dp"
+                    android:tooltipText="@string/censor_add_area"
+                    app:icon="@drawable/ic_add"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
+                    app:iconSize="24dp" />
+
                 <com.google.android.material.divider.MaterialDivider
                     android:layout_width="24dp"
                     android:layout_height="wrap_content"

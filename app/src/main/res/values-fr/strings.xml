@@ -439,6 +439,15 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="censor_undo">Annuler</string>
     <string name="censor_redo">Rétablir</string>
     <string name="censor_delete_rectangle">Supprimer le Rectangle</string>
+    <string name="censor_add_area">Ajouter une Zone</string>
+    <string name="censor_area_description">Zone masquée %1$d sur %2$d</string>
+    <string name="censor_action_move_left">Déplacer à Gauche</string>
+    <string name="censor_action_move_right">Déplacer à Droite</string>
+    <string name="censor_action_move_up">Déplacer vers le Haut</string>
+    <string name="censor_action_move_down">Déplacer vers le Bas</string>
+    <string name="censor_action_larger">Agrandir</string>
+    <string name="censor_action_smaller">Réduire</string>
+    <string name="censor_action_delete">Supprimer la Zone</string>
     <string name="censor_full_screen">Plein Écran</string>
     <string name="censor_exit_full_screen">Quitter le Plein Écran</string>
     <string name="censor_zoom_level">%1$s×</string>

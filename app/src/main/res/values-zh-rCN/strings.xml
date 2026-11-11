@@ -411,6 +411,15 @@
     <string name="censor_undo">撤销</string>
     <string name="censor_redo">重做</string>
     <string name="censor_delete_rectangle">删除矩形</string>
+    <string name="censor_add_area">添加区域</string>
+    <string name="censor_area_description">遮盖区域 %1$d/%2$d</string>
+    <string name="censor_action_move_left">左移</string>
+    <string name="censor_action_move_right">右移</string>
+    <string name="censor_action_move_up">上移</string>
+    <string name="censor_action_move_down">下移</string>
+    <string name="censor_action_larger">放大</string>
+    <string name="censor_action_smaller">缩小</string>
+    <string name="censor_action_delete">删除区域</string>
     <string name="censor_full_screen">全屏</string>
     <string name="censor_exit_full_screen">退出全屏</string>
     <string name="censor_zoom_level">%1$s×</string>

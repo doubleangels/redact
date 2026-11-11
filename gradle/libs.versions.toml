@@ -2,6 +2,7 @@
 activity = "1.13.0"
 agp = "9.5.1"
 constraintlayout = "2.2.2"
+customview = "1.2.0"
 exifinterface = "1.4.2"
 fragment = "1.9.1"
 glide = "5.0.9"
@@ -25,6 +26,7 @@ splashscreen = "1.2.0"
 [libraries]
 activity = { module = "androidx.activity:activity", version.ref = "activity" }
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
+customview = { module = "androidx.customview:customview", version.ref = "customview" }
 exifinterface = { module = "androidx.exifinterface:exifinterface", version.ref = "exifinterface" }
 sentry-android = { module = "io.sentry:sentry-android", version.ref = "sentry" }
 sentry-android-fragment = { module = "io.sentry:sentry-android-fragment", version.ref = "sentry" }

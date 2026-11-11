@@ -424,6 +424,15 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="censor_undo">Rückgängig</string>
     <string name="censor_redo">Wiederholen</string>
     <string name="censor_delete_rectangle">Rechteck Löschen</string>
+    <string name="censor_add_area">Bereich Hinzufügen</string>
+    <string name="censor_area_description">Verdeckter Bereich %1$d von %2$d</string>
+    <string name="censor_action_move_left">Nach Links Verschieben</string>
+    <string name="censor_action_move_right">Nach Rechts Verschieben</string>
+    <string name="censor_action_move_up">Nach Oben Verschieben</string>
+    <string name="censor_action_move_down">Nach Unten Verschieben</string>
+    <string name="censor_action_larger">Vergrößern</string>
+    <string name="censor_action_smaller">Verkleinern</string>
+    <string name="censor_action_delete">Bereich Löschen</string>
     <string name="censor_full_screen">Vollbild</string>
     <string name="censor_exit_full_screen">Vollbild Beenden</string>
     <string name="censor_zoom_level">%1$s×</string>

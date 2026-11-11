@@ -453,6 +453,15 @@
     <string name="censor_undo">Отменить</string>
     <string name="censor_redo">Повторить</string>
     <string name="censor_delete_rectangle">Удалить Прямоугольник</string>
+    <string name="censor_add_area">Добавить Область</string>
+    <string name="censor_area_description">Скрытая область %1$d из %2$d</string>
+    <string name="censor_action_move_left">Сдвинуть Влево</string>
+    <string name="censor_action_move_right">Сдвинуть Вправо</string>
+    <string name="censor_action_move_up">Сдвинуть Вверх</string>
+    <string name="censor_action_move_down">Сдвинуть Вниз</string>
+    <string name="censor_action_larger">Увеличить</string>
+    <string name="censor_action_smaller">Уменьшить</string>
+    <string name="censor_action_delete">Удалить Область</string>
     <string name="censor_full_screen">Во Весь Экран</string>
     <string name="censor_exit_full_screen">Выйти из Полноэкранного Режима</string>
     <string name="censor_zoom_level">%1$s×</string>

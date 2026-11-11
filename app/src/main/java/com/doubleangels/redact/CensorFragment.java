@@ -243,6 +243,13 @@ public class CensorFragment extends TabFragment {
             }
 
             @Override
+            public void onRegionRemoved(int index) {
+                canvas.clearSelection();
+                viewModel.removeRegion(index);
+                Haptics.tick(canvas);
+            }
+
+            @Override
             public void onSelectionChanged(int index) {
                 if (index >= 0 && index != selectedRectangle) {
                     // A light tick tells the user the tap picked up the rectangle.
@@ -376,6 +383,16 @@ public class CensorFragment extends TabFragment {
         fullScreenButton.setOnClickListener(v -> {
             Haptics.tick(v);
             setFullScreen(!viewModel.isFullScreen());
+        });
+        view.findViewById(R.id.censorAddAreaButton).setOnClickListener(v -> {
+            Haptics.tick(v);
+            // The added area is a rectangle, so its tool comes up to keep it selected for editing.
+            if (currentTool != CensorCanvasView.Tool.RECT) {
+                currentTool = CensorCanvasView.Tool.RECT;
+                AppPreferences.setCensorTool(requireContext(), currentTool.name());
+                applyTool();
+            }
+            canvas.addCentredRegion();
         });
         applyTool();
     }
