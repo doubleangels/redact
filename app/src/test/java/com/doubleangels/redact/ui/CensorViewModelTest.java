@@ -203,14 +203,49 @@ public class CensorViewModelTest {
 
     @Test
     public void fitPreview_scalesALargePhotoDown_andLeavesASmallOneAlone() throws Exception {
-        java.lang.reflect.Method fit = CensorViewModel.class.getDeclaredMethod("fitPreview", android.graphics.Bitmap.class);
+        java.lang.reflect.Method fit = CensorViewModel.class.getDeclaredMethod(
+                "fitPreview", android.graphics.Bitmap.class, int.class);
         fit.setAccessible(true);
         android.graphics.Bitmap small = android.graphics.Bitmap.createBitmap(100, 50, android.graphics.Bitmap.Config.ARGB_8888);
-        org.junit.Assert.assertSame(small, fit.invoke(null, small));
+        org.junit.Assert.assertSame(small, fit.invoke(null, small, CensorViewModel.PREVIEW_MAX_DIMENSION));
 
         android.graphics.Bitmap large = android.graphics.Bitmap.createBitmap(6000, 10, android.graphics.Bitmap.Config.ARGB_8888);
-        android.graphics.Bitmap scaled = (android.graphics.Bitmap) fit.invoke(null, large);
+        android.graphics.Bitmap scaled = (android.graphics.Bitmap) fit.invoke(null, large, CensorViewModel.PREVIEW_MAX_DIMENSION);
         org.junit.Assert.assertEquals(CensorViewModel.PREVIEW_MAX_DIMENSION, scaled.getWidth());
         org.junit.Assert.assertEquals(5, scaled.getHeight());
+
+        android.graphics.Bitmap other = android.graphics.Bitmap.createBitmap(6000, 10, android.graphics.Bitmap.Config.ARGB_8888);
+        android.graphics.Bitmap smaller = (android.graphics.Bitmap) fit.invoke(
+                null, other, CensorViewModel.PREVIEW_MAX_DIMENSION_LOW_MEMORY);
+        org.junit.Assert.assertEquals(CensorViewModel.PREVIEW_MAX_DIMENSION_LOW_MEMORY, smaller.getWidth());
+    }
+
+    private static org.robolectric.shadows.ShadowActivityManager activityManager() {
+        return org.robolectric.Shadows.shadowOf((android.app.ActivityManager) RuntimeEnvironment.getApplication()
+                .getSystemService(android.content.Context.ACTIVITY_SERVICE));
+    }
+
+    @Test
+    public void previewLimit_followsTheHeap() {
+        activityManager().setIsLowRamDevice(false);
+        activityManager().setMemoryClass(512);
+        org.junit.Assert.assertEquals(CensorViewModel.PREVIEW_MAX_DIMENSION,
+                CensorViewModel.previewMaxDimension(RuntimeEnvironment.getApplication()));
+
+        activityManager().setMemoryClass(CensorViewModel.LOW_MEMORY_CLASS_MB);
+        org.junit.Assert.assertEquals(CensorViewModel.PREVIEW_MAX_DIMENSION,
+                CensorViewModel.previewMaxDimension(RuntimeEnvironment.getApplication()));
+
+        activityManager().setMemoryClass(192);
+        org.junit.Assert.assertEquals(CensorViewModel.PREVIEW_MAX_DIMENSION_LOW_MEMORY,
+                CensorViewModel.previewMaxDimension(RuntimeEnvironment.getApplication()));
+    }
+
+    @Test
+    public void previewLimit_isSmallOnALowRamPhone_whateverItsHeap() {
+        activityManager().setMemoryClass(512);
+        activityManager().setIsLowRamDevice(true);
+        org.junit.Assert.assertEquals(CensorViewModel.PREVIEW_MAX_DIMENSION_LOW_MEMORY,
+                CensorViewModel.previewMaxDimension(RuntimeEnvironment.getApplication()));
     }
 }

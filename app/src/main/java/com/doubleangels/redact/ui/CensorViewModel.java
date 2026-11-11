@@ -1,6 +1,8 @@
 package com.doubleangels.redact.ui;
 
+import android.app.ActivityManager;
 import android.app.Application;
+import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -47,9 +49,16 @@ public class CensorViewModel extends AndroidViewModel {
 
     /**
      * Longer side of the editing preview, enough to see fine details when zoomed in; the saved
-     * photo is full size.
+     * photo is full size (CensorExporter decodes the original again).
      */
     static final int PREVIEW_MAX_DIMENSION = 3072;
+    /**
+     * The limit on a phone with a small heap: up to three previews are alive at once (the photo,
+     * the covered copy and a spare), about 38 MB each at 3072 x 3072 but 17 MB at 2048.
+     */
+    static final int PREVIEW_MAX_DIMENSION_LOW_MEMORY = 2048;
+    /** Heap size, in MB, below which the smaller preview is used. */
+    static final int LOW_MEMORY_CLASS_MB = 256;
 
     private final ExecutorService worker = Executors.newSingleThreadExecutor(r -> {
         Thread thread = new Thread(r, "redact-censor");
@@ -103,9 +112,23 @@ public class CensorViewModel extends AndroidViewModel {
     @Nullable
     private volatile CensorEffects.Effect savedEffect;
 
+    private final int previewMaxDimension;
+
     public CensorViewModel(@NonNull Application application) {
         super(application);
         effect.setValue(savedEffect(application));
+        previewMaxDimension = previewMaxDimension(application);
+    }
+
+    /** The preview's longer side for this phone's heap. */
+    static int previewMaxDimension(@NonNull Context context) {
+        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        if (manager == null) {
+            return PREVIEW_MAX_DIMENSION_LOW_MEMORY;
+        }
+        return manager.isLowRamDevice() || manager.getMemoryClass() < LOW_MEMORY_CLASS_MB
+                ? PREVIEW_MAX_DIMENSION_LOW_MEMORY
+                : PREVIEW_MAX_DIMENSION;
     }
 
     /** The effect used last time, so it does not have to be picked again for every photo. */
@@ -224,7 +247,7 @@ public class CensorViewModel extends AndroidViewModel {
             try {
                 String name = queryFileName(uri);
                 Bitmap decoded = fitPreview(
-                        FormatConverter.decodeUpright(getApplication(), uri, PREVIEW_MAX_DIMENSION));
+                        FormatConverter.decodeUpright(getApplication(), uri, previewMaxDimension), previewMaxDimension);
                 if (generation != photoGeneration.get()) {
                     return;
                 }
@@ -249,16 +272,16 @@ public class CensorViewModel extends AndroidViewModel {
     }
 
     /**
-     * Scales a decoded photo down to {@link #PREVIEW_MAX_DIMENSION} exactly: decoding only halves,
+     * Scales a decoded photo down to {@code maxDimension} exactly: decoding only halves,
      * so a photo just under twice the limit would otherwise be kept at full size.
      */
     @NonNull
-    private static Bitmap fitPreview(@NonNull Bitmap decoded) {
+    private static Bitmap fitPreview(@NonNull Bitmap decoded, int maxDimension) {
         int longest = Math.max(decoded.getWidth(), decoded.getHeight());
-        if (longest <= PREVIEW_MAX_DIMENSION) {
+        if (longest <= maxDimension) {
             return decoded;
         }
-        float scale = PREVIEW_MAX_DIMENSION / (float) longest;
+        float scale = maxDimension / (float) longest;
         try {
             Bitmap scaled = Bitmap.createScaledBitmap(decoded,
                     Math.max(1, Math.round(decoded.getWidth() * scale)),
