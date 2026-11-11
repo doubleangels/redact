@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
-    android:minHeight="48dp"
+    android:minHeight="@dimen/touch_target_min"
     android:orientation="horizontal"
     android:paddingVertical="10dp">
 
@@ -18,8 +18,8 @@
 
         <ImageView
             android:id="@+id/onboardingPointIcon"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="@dimen/icon_size_small"
+            android:layout_height="@dimen/icon_size_small"
             android:layout_gravity="center"
             android:contentDescription="@null"
             app:tint="?attr/colorOnSecondaryContainer"
@@ -30,7 +30,7 @@
         android:id="@+id/onboardingPointText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="@dimen/spacing_large"
         android:layout_weight="1"
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textColor="?attr/colorOnSurface"

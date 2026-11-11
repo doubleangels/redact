@@ -17,20 +17,20 @@
         android:gravity="center_vertical"
         android:minHeight="80dp"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:padding="@dimen/spacing_large"
         android:screenReaderFocusable="true">
 
         <FrameLayout
             android:layout_width="36dp"
             android:layout_height="36dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="@dimen/spacing_large"
             android:background="@drawable/bg_stat_icon_badge"
             android:importantForAccessibility="no">
 
             <ImageView
                 android:id="@+id/statIcon"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="@dimen/icon_size_small"
+                android:layout_height="@dimen/icon_size_small"
                 android:layout_gravity="center"
                 android:contentDescription="@null"
                 app:tint="?attr/colorOnSecondaryContainer"

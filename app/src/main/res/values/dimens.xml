@@ -31,4 +31,18 @@
     <dimen name="media_thumbnail_px">96dp</dimen>
     <!-- Widest the introduction text gets, so it stays readable on tablets. -->
     <dimen name="onboarding_content_max_width">560dp</dimen>
+
+    <!-- The smallest a tappable control is, Material's 48dp touch target. -->
+    <dimen name="touch_target_min">48dp</dimen>
+    <!-- Icon sizes: the standard one, and the smaller one beside a line of text. -->
+    <dimen name="icon_size">24dp</dimen>
+    <dimen name="icon_size_small">20dp</dimen>
+    <!-- Inset of the compact buttons in the pills over a photo, inside their 48dp touch target. -->
+    <dimen name="button_inset">4dp</dimen>
+    <!-- The spacing steps margins and padding use. -->
+    <dimen name="spacing_xsmall">4dp</dimen>
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_medium">12dp</dimen>
+    <dimen name="spacing_large">16dp</dimen>
+    <dimen name="spacing_xlarge">24dp</dimen>
 </resources>

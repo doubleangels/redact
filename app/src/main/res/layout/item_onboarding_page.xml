@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingHorizontal="@dimen/screen_edge_padding"
-        android:paddingVertical="16dp">
+        android:paddingVertical="@dimen/spacing_large">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -56,7 +56,7 @@
                 android:id="@+id/onboardingBody"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="@dimen/spacing_medium"
                 android:gravity="center_horizontal"
                 android:lineSpacingMultiplier="1.15"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
@@ -80,8 +80,8 @@
                     android:layout_height="wrap_content"
                     android:drawablePadding="12dp"
                     android:gravity="center_vertical"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="12dp"
+                    android:paddingHorizontal="@dimen/spacing_large"
+                    android:paddingVertical="@dimen/spacing_medium"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     tools:drawableStart="@drawable/ic_check_circle"
                     tools:text="@string/onboarding_status_granted" />
@@ -90,7 +90,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="@dimen/spacing_xlarge"
                 app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
                 app:cardCornerRadius="@dimen/component_corner_large"
                 app:cardElevation="0dp"
@@ -102,7 +102,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:paddingHorizontal="20dp"
-                    android:paddingVertical="8dp" />
+                    android:paddingVertical="@dimen/spacing_small" />
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>

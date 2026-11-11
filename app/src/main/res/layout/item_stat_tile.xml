@@ -17,7 +17,7 @@
         android:screenReaderFocusable="true"
         android:minHeight="112dp"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="@dimen/spacing_large">
 
         <FrameLayout
             android:layout_width="36dp"
@@ -27,8 +27,8 @@
 
             <ImageView
                 android:id="@+id/statIcon"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="@dimen/icon_size_small"
+                android:layout_height="@dimen/icon_size_small"
                 android:layout_gravity="center"
                 android:contentDescription="@null"
                 app:tint="?attr/colorOnSecondaryContainer"
@@ -39,7 +39,7 @@
             android:id="@+id/statValue"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="@dimen/spacing_medium"
             android:maxLines="1"
             android:textAppearance="?attr/textAppearanceHeadlineSmall"
             android:textColor="?attr/colorOnSurface"

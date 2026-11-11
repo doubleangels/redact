@@ -17,7 +17,7 @@
         android:fillViewport="true"
         android:paddingHorizontal="@dimen/screen_edge_padding"
         android:tag="edgePadded"
-        android:paddingTop="8dp"
+        android:paddingTop="@dimen/spacing_small"
         android:paddingBottom="160dp"
         android:scrollbars="none"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -38,15 +38,15 @@
                 layout="@layout/summary_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="12dp" />
+                android:layout_marginTop="@dimen/spacing_small"
+                android:layout_marginBottom="@dimen/spacing_medium" />
 
             <!-- Format Selection Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/formatSection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="@dimen/spacing_medium"
                 app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
                 app:cardCornerRadius="@dimen/component_corner_large"
                 app:cardElevation="1dp"
@@ -56,7 +56,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="@dimen/spacing_large">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -88,7 +88,7 @@
                             android:layout_height="wrap_content"
                             android:background="@drawable/bg_rounded_surface"
                             android:backgroundTint="?attr/colorPrimaryContainer"
-                            android:paddingHorizontal="8dp"
+                            android:paddingHorizontal="@dimen/spacing_small"
                             android:paddingVertical="2dp"
                             android:textAppearance="?attr/textAppearanceLabelSmall"
                             android:textColor="?attr/colorOnPrimaryContainer"
@@ -102,7 +102,7 @@
                         android:id="@+id/formatChipGroup"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="@dimen/spacing_medium"
                         app:chipSpacingHorizontal="8dp"
                         app:chipSpacingVertical="4dp"
                         app:selectionRequired="true"
@@ -157,7 +157,7 @@
                 android:id="@+id/statusText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="@dimen/spacing_medium"
                 android:background="@drawable/bg_rounded_surface"
                 android:backgroundTint="?attr/colorSurfaceContainerHigh"
                 android:paddingHorizontal="14dp"
@@ -173,12 +173,12 @@
                 android:id="@+id/progressContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="@dimen/spacing_medium"
                 android:background="@drawable/bg_rounded_surface"
                 android:backgroundTint="?attr/colorSurfaceContainerHigh"
                 android:orientation="vertical"
                 android:paddingHorizontal="14dp"
-                android:paddingVertical="12dp"
+                android:paddingVertical="@dimen/spacing_medium"
                 android:visibility="gone">
 
                 <TextView
@@ -205,7 +205,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="@dimen/spacing_large"
                 app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
                 app:cardCornerRadius="@dimen/component_corner_large"
                 app:cardElevation="1dp"
@@ -215,15 +215,15 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingTop="16dp"
-                    android:paddingBottom="4dp">
+                    android:paddingTop="@dimen/spacing_large"
+                    android:paddingBottom="@dimen/spacing_xsmall">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:paddingHorizontal="16dp"
+                        android:paddingHorizontal="@dimen/spacing_large"
                         android:paddingBottom="10dp">
 
                         <ImageView
@@ -249,7 +249,7 @@
                             android:layout_height="wrap_content"
                             android:background="@drawable/bg_rounded_surface"
                             android:backgroundTint="?attr/colorSurfaceContainerHigh"
-                            android:paddingHorizontal="8dp"
+                            android:paddingHorizontal="@dimen/spacing_small"
                             android:paddingVertical="2dp"
                             android:textAppearance="?attr/textAppearanceLabelSmall"
                             android:textColor="?attr/colorOnSurfaceVariant"
@@ -297,7 +297,7 @@
             android:layout_gravity="center"
             android:gravity="center"
             android:orientation="vertical"
-            android:paddingHorizontal="24dp"
+            android:paddingHorizontal="@dimen/spacing_xlarge"
             android:paddingVertical="@dimen/empty_state_vertical_padding">
 
             <com.google.android.material.card.MaterialCardView
@@ -330,7 +330,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/spacing_small"
                 android:text="@string/convert_empty_state_description"
                 android:maxWidth="@dimen/empty_state_text_max_width"
                 android:textAlignment="center"
@@ -341,9 +341,9 @@
                 android:id="@+id/emptyStateSelectButton"
                 style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:layout_marginTop="24dp"
-                android:paddingHorizontal="24dp"
+                android:layout_height="@dimen/touch_target_min"
+                android:layout_marginTop="@dimen/spacing_xlarge"
+                android:paddingHorizontal="@dimen/spacing_xlarge"
                 android:text="@string/convert_select_files"
                 app:cornerRadius="@dimen/component_corner_medium"
                 app:icon="@drawable/ic_add_photo"
@@ -359,7 +359,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/fab_margin_end"
         android:tag="edgeFab"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="@dimen/spacing_large"
         android:text="@string/convert_run"
         android:textColor="?attr/colorOnPrimary"
         android:visibility="gone"
@@ -377,7 +377,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/fab_margin_end"
         android:tag="edgeFab"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="@dimen/spacing_large"
         android:text="@string/button_share_results"
         android:visibility="gone"
         app:icon="@drawable/ic_share"
@@ -392,7 +392,7 @@
         style="@style/Widget.Material3.FloatingActionButton.Secondary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="12dp"
+        android:layout_marginEnd="@dimen/spacing_medium"
         android:contentDescription="@string/button_scan_result"
         android:tooltipText="@string/button_scan_result"
         android:visibility="gone"

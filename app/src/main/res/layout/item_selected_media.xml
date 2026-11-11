@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
+    android:layout_margin="@dimen/spacing_xsmall"
     android:clickable="true"
     android:focusable="true"
     app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
@@ -31,11 +31,11 @@
 
         <ImageView
             android:id="@+id/videoIndicator"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="@dimen/icon_size"
+            android:layout_height="@dimen/icon_size"
             android:layout_margin="6dp"
             android:background="@drawable/bg_rounded_surface"
-            android:backgroundTint="#80000000"
+            android:backgroundTint="@color/media_scrim"
             android:contentDescription="@null"
             android:padding="3dp"
             android:src="@drawable/ic_video"
