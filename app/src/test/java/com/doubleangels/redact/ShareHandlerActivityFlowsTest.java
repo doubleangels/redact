@@ -387,6 +387,28 @@ public class ShareHandlerActivityFlowsTest {
     }
 
     @Test
+    public void openedFileCheck_looksAtWhatWasActuallyOpened() throws Exception {
+        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        File shared = jpeg();
+        File secret = File.createTempFile("secret_", ".jpg", app.getFilesDir());
+        files.add(secret);
+        File link = new File(sourceDir(), "link_" + System.nanoTime() + ".jpg");
+        files.add(link);
+        java.nio.file.Files.createSymbolicLink(link.toPath(), secret.toPath());
+
+        try (ParcelFileDescriptor opened = ParcelFileDescriptor.open(shared, ParcelFileDescriptor.MODE_READ_ONLY)) {
+            assertFalse(activity.openedFileIsPrivate(opened, shared));
+        }
+        try (ParcelFileDescriptor opened = ParcelFileDescriptor.open(secret, ParcelFileDescriptor.MODE_READ_ONLY)) {
+            // Named as if it were the harmless shared file: the descriptor still tells the truth.
+            assertTrue(activity.openedFileIsPrivate(opened, shared));
+        }
+        try (ParcelFileDescriptor opened = ParcelFileDescriptor.open(link, ParcelFileDescriptor.MODE_READ_ONLY)) {
+            assertTrue(activity.openedFileIsPrivate(opened, link));
+        }
+    }
+
+    @Test
     public void newIntent_withUnsupportedAction_finishesWithAnError() {
         ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(new File("/nope/x.jpg"))));
 

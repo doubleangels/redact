@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.ParcelFileDescriptor;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
@@ -46,7 +47,6 @@ import io.sentry.ITransaction;
 import io.sentry.SpanStatus;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -503,8 +503,14 @@ public class ShareHandlerActivity extends AppCompatActivity {
             File source = new File(path);
             String suffix = suffixForPath(path);
             File dest = new File(getCacheDir(), "inbound_" + System.nanoTime() + suffix);
-            try (FileInputStream in = new FileInputStream(source);
+            ParcelFileDescriptor opened = ParcelFileDescriptor.open(source, ParcelFileDescriptor.MODE_READ_ONLY);
+            try (InputStream in = new ParcelFileDescriptor.AutoCloseInputStream(opened);
                     FileOutputStream out = new FileOutputStream(dest)) {
+                // The path was checked when the share arrived; a symlink swapped in since then
+                // could point the open somewhere else, so check what was actually opened.
+                if (openedFileIsPrivate(opened, source)) {
+                    throw new IOException("The opened inbound file is in the app's private storage");
+                }
                 copyForSession(in, out, session);
             } catch (IOException e) {
                 SecureDelete.secureDelete(dest);
@@ -1116,6 +1122,25 @@ public class ShareHandlerActivity extends AppCompatActivity {
             // read; filterSupportedUris leaves a breadcrumb for the skipped item.
             return true;
         }
+    }
+
+    /**
+     * Whether the file behind an open descriptor is in one of this app's own directories. The
+     * descriptor's own path, read from /proc/self/fd, is what was opened, whatever happened to the
+     * path the share named after it was checked.
+     */
+    @VisibleForTesting
+    boolean openedFileIsPrivate(@NonNull ParcelFileDescriptor opened, @NonNull File source) {
+        String openedPath;
+        try {
+            openedPath = java.nio.file.Files.readSymbolicLink(
+                    java.nio.file.Paths.get("/proc/self/fd/" + opened.getFd())).toString();
+        } catch (IOException | RuntimeException e) {
+            // Android always has /proc/self/fd; only unit tests on other hosts get here, and they
+            // check the path the share named again instead.
+            openedPath = source.getAbsolutePath();
+        }
+        return pointsIntoOwnPrivateStorage(Uri.fromFile(new File(openedPath)));
     }
 
     /**
