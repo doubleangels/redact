@@ -9,7 +9,8 @@ glide = "5.0.9"
 appcompat = "1.8.0"
 material = "1.14.0"
 media3 = "1.11.1"
-lifecycleViewmodelKtx = "2.11.0"
+lifecycle = "2.11.0"
+recyclerview = "1.2.1"
 sentry = "8.63.0"
 sentryGradlePlugin = "6.26.0"
 leakcanary = "2.14"
@@ -40,7 +41,10 @@ media3-container = { module = "androidx.media3:media3-container", version.ref = 
 media3-muxer = { module = "androidx.media3:media3-muxer", version.ref = "media3" }
 media3-effect = { module = "androidx.media3:media3-effect", version.ref = "media3" }
 media3-transformer = { module = "androidx.media3:media3-transformer", version.ref = "media3" }
-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
+lifecycle-livedata = { group = "androidx.lifecycle", name = "lifecycle-livedata", version.ref = "lifecycle" }
+lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "lifecycle" }
+lifecycle-viewmodel-savedstate = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-savedstate", version.ref = "lifecycle" }
+recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 junit = { module = "junit:junit", version.ref = "junit" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }

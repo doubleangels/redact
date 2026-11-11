@@ -20,6 +20,8 @@
     <!-- INTERNET is only used when Send Crash Reports is enabled (Sentry). -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- tools:targetApi names the newest API among the attributes below (localeConfig and
+         enableOnBackInvokedCallback are API 33), not targetSdk; it tells lint they are meant. -->
     <application
         android:name=".RedactApplication"
         android:allowBackup="false"

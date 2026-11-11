@@ -131,7 +131,10 @@ dependencies {
     implementation libs.media3.muxer
     implementation libs.media3.effect
     implementation libs.media3.transformer
-    implementation libs.lifecycle.viewmodel.ktx
+    implementation libs.lifecycle.livedata
+    implementation libs.lifecycle.viewmodel
+    implementation libs.lifecycle.viewmodel.savedstate
+    implementation libs.recyclerview
     implementation libs.profileinstaller
     implementation libs.core.splashscreen
     implementation libs.window.java
