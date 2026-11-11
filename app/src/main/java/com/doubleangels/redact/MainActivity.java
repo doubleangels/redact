@@ -113,114 +113,112 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         SplashScreen.installSplashScreen(this);
-        try {
-            if (savedInstanceState == null && BuildConfig.DEBUG
-                    && getIntent().getBooleanExtra(EXTRA_SKIP_INTRO, false)) {
-                AppPreferences.setOnboardingSeen(this);
-                AppPreferences.setInitialPermissionsPromptCompleted(this);
-            }
-            if (savedInstanceState == null
-                    && PermissionManager.shouldPromptInitialPermissions(this)) {
-                PermissionManager.prepareInitialPermissionFlow();
-            }
+        // No catch-all: a failure halfway through would leave a screen with no listeners, which is
+        // worse than a crash the user and Sentry can see.
+        if (savedInstanceState == null && BuildConfig.DEBUG
+                && getIntent().getBooleanExtra(EXTRA_SKIP_INTRO, false)) {
+            AppPreferences.setOnboardingSeen(this);
+            AppPreferences.setInitialPermissionsPromptCompleted(this);
+        }
+        if (savedInstanceState == null
+                && PermissionManager.shouldPromptInitialPermissions(this)) {
+            PermissionManager.prepareInitialPermissionFlow();
+        }
 
-            DynamicColors.applyToActivityIfAvailable(this);
-            EdgeToEdge.enable(this);
+        DynamicColors.applyToActivityIfAvailable(this);
+        EdgeToEdge.enable(this);
 
-            super.onCreate(savedInstanceState);
-            SecureWindow.apply(this);
-            setContentView(R.layout.activity_main);
+        super.onCreate(savedInstanceState);
+        SecureWindow.apply(this);
+        setContentView(R.layout.activity_main);
 
-            setupEdgeToEdgeInsets();
-            getLifecycle().addObserver(new FoldTracker(this, this::onFoldPostureChanged));
-            setupStatusBarColors();
-            setupVersionNumber();
+        setupEdgeToEdgeInsets();
+        getLifecycle().addObserver(new FoldTracker(this, this::onFoldPostureChanged));
+        setupStatusBarColors();
+        setupVersionNumber();
 
-            SentryManager.logEvent("lifecycle", "The MainActivity was created.");
+        SentryManager.logEvent("lifecycle", "The MainActivity was created.");
 
-            // Tells Play vitals / Macrobenchmark when the first screen is usable.
-            getWindow().getDecorView().post(this::reportFullyDrawn);
+        // Tells Play vitals / Macrobenchmark when the first screen is usable.
+        getWindow().getDecorView().post(this::reportFullyDrawn);
 
-            // RedactApplication.onCreate already runs this sweep once per process; this call
-            // only matters when MainActivity is recreated without a fresh process (e.g. after a
-            // configuration change) and isAnyProcessing requires a live Activity to check, so it
-            // can't move into the Application-level call.
-            if (!MainViewModel.isAnyProcessing(this)) {
-                CacheCleanup.scheduleAutoCleanupIfEnabled(this);
-            }
+        // RedactApplication.onCreate already runs this sweep once per process; this call
+        // only matters when MainActivity is recreated without a fresh process (e.g. after a
+        // configuration change) and isAnyProcessing requires a live Activity to check, so it
+        // can't move into the Application-level call.
+        if (!MainViewModel.isAnyProcessing(this)) {
+            CacheCleanup.scheduleAutoCleanupIfEnabled(this);
+        }
 
-            if (savedInstanceState == null) {
-                getSupportFragmentManager().beginTransaction()
-                        .add(R.id.fragment_container, new CleanFragment(), TAG_CLEAN)
-                        .commitNow();
-            }
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.fragment_container, new CleanFragment(), TAG_CLEAN)
+                    .commitNow();
+        }
 
-            NavigationBarView bottomNavigationView = findViewById(R.id.bottomNavigation);
-            updateRailLabels();
-            bottomNavigationView.setOnItemSelectedListener(item -> {
-                try {
-                    int itemId = item.getItemId();
-                    SentryManager.logEvent("navigation", "The user selected a tab.");
-                    Fragment target = ensureFragmentForTab(itemId);
-                    if (target == null) {
-                        return false;
-                    }
-                    FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                    if (animateTabSwitches) {
-                        // Material's fade through between top-level destinations. Not for the tab
-                        // shown at launch or after a rotation, which should simply be there.
-                        ft.setCustomAnimations(R.animator.fade_through_enter, R.animator.fade_through_exit);
-                    } else if (target.getView() != null) {
-                        // A tab faded out earlier keeps the fade's end values; show it whole.
-                        target.getView().setAlpha(1f);
-                        target.getView().setScaleX(1f);
-                        target.getView().setScaleY(1f);
-                    }
-                    for (String tag : new String[] {TAG_CLEAN, TAG_SCAN, TAG_CONVERT, TAG_CENSOR, TAG_SETTINGS}) {
-                        Fragment f = getSupportFragmentManager().findFragmentByTag(tag);
-                        if (f != null) {
-                            if (f == target) {
-                                ft.show(f);
-                            } else {
-                                ft.hide(f);
-                            }
+        NavigationBarView bottomNavigationView = findViewById(R.id.bottomNavigation);
+        updateRailLabels();
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            try {
+                int itemId = item.getItemId();
+                SentryManager.logEvent("navigation", "The user selected a tab.");
+                Fragment target = ensureFragmentForTab(itemId);
+                if (target == null) {
+                    return false;
+                }
+                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                if (animateTabSwitches) {
+                    // Material's fade through between top-level destinations. Not for the tab
+                    // shown at launch or after a rotation, which should simply be there.
+                    ft.setCustomAnimations(R.animator.fade_through_enter, R.animator.fade_through_exit);
+                } else if (target.getView() != null) {
+                    // A tab faded out earlier keeps the fade's end values; show it whole.
+                    target.getView().setAlpha(1f);
+                    target.getView().setScaleX(1f);
+                    target.getView().setScaleY(1f);
+                }
+                for (String tag : new String[] {TAG_CLEAN, TAG_SCAN, TAG_CONVERT, TAG_CENSOR, TAG_SETTINGS}) {
+                    Fragment f = getSupportFragmentManager().findFragmentByTag(tag);
+                    if (f != null) {
+                        if (f == target) {
+                            ft.show(f);
+                        } else {
+                            ft.hide(f);
                         }
                     }
-                    ft.commit();
-                    return true;
-                } catch (Exception e) {
-                    SentryManager.recordException(e);
                 }
-                return false;
-            });
-
-            if (savedInstanceState != null) {
-                int restoredTab = savedInstanceState.getInt(KEY_SELECTED_TAB, R.id.navigation_clean);
-                bottomNavigationView.setSelectedItemId(restoredTab);
-                restoreTabVisibility(restoredTab);
-            } else {
-                bottomNavigationView.setSelectedItemId(
-                        queueConvertShareIntent(getIntent())
-                                ? R.id.navigation_convert
-                                : queueCensorShareIntent(getIntent())
-                                        ? R.id.navigation_censor
-                                        : queueViewIntent(getIntent())
-                                                ? R.id.navigation_scan
-                                                : tabFromIntent(getIntent()));
+                ft.commit();
+                return true;
+            } catch (Exception e) {
+                SentryManager.recordException(e);
             }
+            return false;
+        });
 
-            animateTabSwitches = true;
-            SentryManager.setCustomKey("app_started", true);
+        if (savedInstanceState != null) {
+            int restoredTab = savedInstanceState.getInt(KEY_SELECTED_TAB, R.id.navigation_clean);
+            bottomNavigationView.setSelectedItemId(restoredTab);
+            restoreTabVisibility(restoredTab);
+        } else {
+            bottomNavigationView.setSelectedItemId(
+                    queueConvertShareIntent(getIntent())
+                            ? R.id.navigation_convert
+                            : queueCensorShareIntent(getIntent())
+                                    ? R.id.navigation_censor
+                                    : queueViewIntent(getIntent())
+                                            ? R.id.navigation_scan
+                                            : tabFromIntent(getIntent()));
+        }
 
-            PermissionManager.addInitialFlowCompletedCallback(permissionFlowCompleted);
-            if (savedInstanceState == null && shouldShowOnboarding()) {
-                // The introduction asks for the permissions itself.
-                onboardingLauncher.launch(new Intent(this, OnboardingActivity.class));
-            } else if (PermissionManager.isInitialPermissionFlowInProgress()) {
-                PermissionManager.startInitialPermissionFlow(this);
-            }
-        } catch (Exception e) {
-            SentryManager.recordException(e);
+        animateTabSwitches = true;
+        SentryManager.setCustomKey("app_started", true);
+
+        PermissionManager.addInitialFlowCompletedCallback(permissionFlowCompleted);
+        if (savedInstanceState == null && shouldShowOnboarding()) {
+            // The introduction asks for the permissions itself.
+            onboardingLauncher.launch(new Intent(this, OnboardingActivity.class));
+        } else if (PermissionManager.isInitialPermissionFlowInProgress()) {
+            PermissionManager.startInitialPermissionFlow(this);
         }
     }
 
@@ -759,21 +757,13 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
-        try {
-            super.onResume();
-            SentryManager.logEvent("lifecycle", "The MainActivity resumed.");
-        } catch (Exception e) {
-            SentryManager.recordException(e);
-        }
+        super.onResume();
+        SentryManager.logEvent("lifecycle", "The MainActivity resumed.");
     }
 
     @Override
     protected void onPause() {
-        try {
-            super.onPause();
-            SentryManager.logEvent("lifecycle", "The MainActivity paused.");
-        } catch (Exception e) {
-            SentryManager.recordException(e);
-        }
+        super.onPause();
+        SentryManager.logEvent("lifecycle", "The MainActivity paused.");
     }
 }
