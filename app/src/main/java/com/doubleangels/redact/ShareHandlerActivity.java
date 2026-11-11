@@ -652,7 +652,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                                 }
                             }
                         } catch (Exception e) {
-                            SentryManager.log("The processed file could not be resolved for cleanup: " + e.getMessage() + ".");
+                            SentryManager.log("The processed file could not be resolved for cleanup: " + e.getClass().getSimpleName() + ".");
                         }
                     } else {
                         failCount++;
@@ -933,7 +933,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                         processedFile.deleteOnExit();
                     }
                 } catch (Exception e) {
-                    SentryManager.log("An error occurred while deleting the temporary file: " + e.getMessage() + ".");
+                    SentryManager.log("An error occurred while deleting the temporary file: " + e.getClass().getSimpleName() + ".");
                 }
             }
         }

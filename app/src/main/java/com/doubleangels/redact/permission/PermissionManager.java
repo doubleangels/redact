@@ -217,7 +217,7 @@ public class PermissionManager {
             }
             return result;
         } catch (Exception e) {
-            SentryManager.recordException(new Exception("Error checking permissions: " + e.getMessage(), e));
+            SentryManager.recordException(new Exception("Error checking permissions.", e));
             return true;
         }
     }
@@ -253,7 +253,7 @@ public class PermissionManager {
             SentryManager.setCustomKey("has_location_permission", hasLocationPermission);
             return !hasLocationPermission;
         } catch (Exception e) {
-            SentryManager.recordException(new Exception("Error checking location permission: " + e.getMessage(), e));
+            SentryManager.recordException(new Exception("Error checking location permission.", e));
             return true;
         }
     }
@@ -271,7 +271,7 @@ public class PermissionManager {
             SentryManager.log("The app is requesting media and storage permissions.");
             requestMissingRuntimePermissions(activity);
         } catch (Exception e) {
-            SentryManager.recordException(new Exception("Error requesting permissions: " + e.getMessage(), e));
+            SentryManager.recordException(new Exception("Error requesting permissions.", e));
             requestMissingRuntimePermissions(activity);
         }
     }
@@ -297,7 +297,7 @@ public class PermissionManager {
             SentryManager.log("The app is requesting the ACCESS_MEDIA_LOCATION permission.");
             requestMediaLocationPermission();
         } catch (Exception e) {
-            SentryManager.recordException(new Exception("Error requesting location permission: " + e.getMessage(), e));
+            SentryManager.recordException(new Exception("Error requesting location permission.", e));
             requestMediaLocationPermission();
         }
     }
@@ -359,7 +359,7 @@ public class PermissionManager {
             }
         } catch (Exception e) {
             // Log exception and fall back to simple result handling
-            SentryManager.recordException(new Exception("Error handling permission result: " + e.getMessage(), e));
+            SentryManager.recordException(new Exception("Error handling permission result.", e));
 
             boolean allGranted = grantResults.length > 0 &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED;
@@ -514,7 +514,7 @@ public class PermissionManager {
             }
             SentryManager.log("Media and storage permissions were denied.");
         } catch (Exception e) {
-            SentryManager.recordException(new Exception("Error handling permission denial: " + e.getMessage(), e));
+            SentryManager.recordException(new Exception("Error handling permission denial.", e));
         }
     }
 
@@ -528,8 +528,7 @@ public class PermissionManager {
                     hasShownLocationRationale && !canAskAgain);
             SentryManager.log("The location permission was denied.");
         } catch (Exception e) {
-            SentryManager.recordException(new Exception("Error handling location permission denial: "
-                    + e.getMessage(), e));
+            SentryManager.recordException(new Exception("Error handling location permission denial.", e));
         }
     }
 
@@ -712,8 +711,7 @@ public class PermissionManager {
                     activity, permissions.toArray(new String[0]), STORAGE_PERMISSION_REQUEST_CODE);
         } catch (Exception e) {
             runtimePermissionRequestInFlight = false;
-            SentryManager.recordException(new Exception("Error requesting runtime permissions: "
-                    + e.getMessage(), e));
+            SentryManager.recordException(new Exception("Error requesting runtime permissions.", e));
         }
     }
 

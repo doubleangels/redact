@@ -217,7 +217,7 @@ public final class CensorExporter {
         } catch (IOException | RuntimeException | OutOfMemoryError e) {
             SentryManager.log(
                     "The censored 16-bit PNG could not be kept at 16 bits, so the app is saving it at 8: "
-                            + e.getMessage() + ".");
+                            + e.getClass().getSimpleName() + ".");
             return false;
         } finally {
             if (mask != null) {

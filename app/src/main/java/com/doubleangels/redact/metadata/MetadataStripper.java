@@ -384,7 +384,7 @@ public class MetadataStripper {
                     } catch (IOException fastPathFailed) {
                         SentryManager.log(
                                 "The fast video clean failed verification, so the app is re-encoding: "
-                                        + fastPathFailed.getMessage() + ".");
+                                        + fastPathFailed.getClass().getSimpleName() + ".");
                     }
                 }
                 if (!savedViaFastPath) {
@@ -417,7 +417,7 @@ public class MetadataStripper {
                 Thread.currentThread().interrupt();
                 throw new ProcessingCancelledException("Video processing interrupted", e);
             } catch (Exception e) {
-                SentryManager.log("Video processing failed: " + e.getMessage() + ".");
+                SentryManager.log("Video processing failed: " + e.getClass().getSimpleName() + ".");
                 throw new IOException("Failed to clean video safely", e);
             } finally {
                 if (tempCleanFile != null && tempCleanFile.exists()) {
@@ -722,7 +722,7 @@ public class MetadataStripper {
             return new MotionPhoto.Clip(video, found.presentationTimestampUs);
         } catch (IOException | RuntimeException e) {
             SentryManager.log("The Motion Photo's video could not be kept, so the photo becomes a still: "
-                    + e.getMessage() + ".");
+                    + e.getClass().getSimpleName() + ".");
             if (video != null && video.exists()) {
                 secureDeleteFile(video);
             }
@@ -896,7 +896,7 @@ public class MetadataStripper {
                 Thread.currentThread().interrupt();
                 throw new ProcessingCancelledException("Video transcoding interrupted", e);
             } catch (Exception e) {
-                SentryManager.log("Video processing failed: " + e.getMessage() + ".");
+                SentryManager.log("Video processing failed: " + e.getClass().getSimpleName() + ".");
                 throw new IOException("Failed to process video safely", e);
             }
 
@@ -960,12 +960,12 @@ public class MetadataStripper {
                 return 0;
             }
         } catch (Exception ignored) {
-            SentryManager.log("An exception was ignored: " + ignored + ".");
+            SentryManager.log("An exception was ignored: " + ignored.getClass().getSimpleName() + ".");
         } finally {
             try {
                 extractor.release();
             } catch (Exception ignored) {
-                SentryManager.log("An exception was ignored: " + ignored + ".");
+                SentryManager.log("An exception was ignored: " + ignored.getClass().getSimpleName() + ".");
             }
         }
         if (fileName != null) {
@@ -1087,7 +1087,7 @@ public class MetadataStripper {
         try {
             VideoContainerMetadata.writeMovieTimes(video, times);
         } catch (IOException e) {
-            SentryManager.log("The recording date could not be kept: " + e.getMessage() + ".");
+            SentryManager.log("The recording date could not be kept: " + e.getClass().getSimpleName() + ".");
         }
     }
 
@@ -1122,7 +1122,7 @@ public class MetadataStripper {
             }
         } catch (IOException | RuntimeException e) {
             SentryManager.log("The converted image could not be rebuilt, so it is checked as it is: "
-                    + e.getMessage() + ".");
+                    + e.getClass().getSimpleName() + ".");
         }
         if (!rebuilt) {
             try (InputStream in = new FileInputStream(encoded);
@@ -1225,8 +1225,8 @@ public class MetadataStripper {
                             if (rotation != null) {
                                 muxer.setOrientationHint(Integer.parseInt(rotation));
                             }
-                        } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored + "."); } finally {
-                            try { retriever.release(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored + "."); }
+                        } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored.getClass().getSimpleName() + "."); } finally {
+                            try { retriever.release(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
                         }
                     }
                     muxerVideoTrackIndex = muxer.addTrack(format);
@@ -1272,15 +1272,15 @@ public class MetadataStripper {
                 // transcode from the source, which still produces a verified clean output.
                 SentryManager.logEvent("video",
                         "The fast transmux failed, so the app is falling back to a full transcode: "
-                                + e.getMessage());
+                                + e.getClass().getSimpleName());
             } else {
                 SentryManager.recordException(e);
             }
             return null;
         } finally {
-            try { extractor.release(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored + "."); }
+            try { extractor.release(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
             if (muxer != null) {
-                try { muxer.release(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored + "."); }
+                try { muxer.release(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
             }
             // Every way out but success, including the early returns once the muxer has created
             // the file, leaves an unused (possibly partly written) copy of the video behind.
@@ -1393,12 +1393,12 @@ public class MetadataStripper {
                 throw asCancellationException(e);
             }
             SentryManager.log("The WebM could not be copied into an MP4, so it stays WebM: "
-                    + e.getMessage() + ".");
+                    + e.getClass().getSimpleName() + ".");
             return null;
         } finally {
-            try { extractor.release(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored + "."); }
+            try { extractor.release(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
             if (muxer != null) {
-                try { muxer.close(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored + "."); }
+                try { muxer.close(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
             }
             if (!succeeded && outputFile != null && outputFile.exists()) {
                 secureDeleteFile(outputFile);
@@ -1645,7 +1645,7 @@ public class MetadataStripper {
                 UltraHdr.fixPrimarySize(imageFile);
             }
         } catch (Exception e) {
-            SentryManager.log("The EXIF failed to restore: " + e.getMessage() + ".");
+            SentryManager.log("The EXIF failed to restore: " + e.getClass().getSimpleName() + ".");
             SentryManager.recordException(e);
         }
     }
@@ -1691,7 +1691,7 @@ public class MetadataStripper {
             }
             HeifContainerMetadata.addExif(heif, tiff);
         } catch (IOException | RuntimeException e) {
-            SentryManager.log("The kept EXIF tags could not be added to the HEIF: " + e.getMessage() + ".");
+            SentryManager.log("The kept EXIF tags could not be added to the HEIF: " + e.getClass().getSimpleName() + ".");
         } finally {
             if (carrier != null) {
                 secureDeleteFile(carrier);
@@ -1784,7 +1784,7 @@ public class MetadataStripper {
             SentryManager.setCustomKey("exif_tags_removed", removedCount);
 
         } catch (Exception e) {
-            SentryManager.log("An error occurred while removing EXIF metadata: " + e.getMessage() + ".");
+            SentryManager.log("An error occurred while removing EXIF metadata: " + e.getClass().getSimpleName() + ".");
             SentryManager.recordException(e);
             // Fallback to hardcoded list if reflection fails
             removeExifMetadataFallback(exif);
@@ -2089,7 +2089,7 @@ public class MetadataStripper {
                     container.hasLocation,
                     hasName);
         } catch (Exception e) {
-            SentryManager.log("The source video privacy metadata could not be read: " + e.getMessage() + ".");
+            SentryManager.log("The source video privacy metadata could not be read: " + e.getClass().getSimpleName() + ".");
             VideoContainerMetadata.Report container = VideoContainerMetadata.scan(context, sourceUri);
             return new VideoPrivacySnapshot(null, null, 0, container.fields, container.hasLocation, false);
         }
@@ -2397,7 +2397,7 @@ public class MetadataStripper {
         try (InputStream in = new FileInputStream(file)) {
             return ImageContainerMetadata.containsXmpPacket(in, Long.MAX_VALUE);
         } catch (IOException e) {
-            SentryManager.log("XMP detection failed: " + e.getMessage() + ".");
+            SentryManager.log("XMP detection failed: " + e.getClass().getSimpleName() + ".");
             return true;
         }
     }
@@ -2489,7 +2489,7 @@ public class MetadataStripper {
                     return outputFormat;
                 }
                 SentryManager.log("The HEIC or AVIF could not be rebuilt without its metadata, so the app is re-encoding it: "
-                        + e.getMessage() + ".");
+                        + e.getClass().getSimpleName() + ".");
             }
         }
         if (".gif".equalsIgnoreCase(outputFormat.extension) && GifContainerMetadata.isGif(source)) {
@@ -2499,7 +2499,7 @@ public class MetadataStripper {
                 return outputFormat;
             } catch (IOException | RuntimeException e) {
                 SentryManager.log("The GIF could not be rebuilt without its metadata, so the app is re-encoding it: "
-                        + e.getMessage() + ".");
+                        + e.getClass().getSimpleName() + ".");
             }
         }
         if (expected != ImageContainerMetadata.Format.OTHER
@@ -2511,7 +2511,7 @@ public class MetadataStripper {
                 // A structure the walker could not follow, however it failed: the pixels are
                 // re-encoded instead, which carries no metadata either.
                 SentryManager.log("The image could not be rebuilt without its metadata, so the app is re-encoding it: "
-                        + e.getMessage() + ".");
+                        + e.getClass().getSimpleName() + ".");
             }
         }
         checkCancelled();

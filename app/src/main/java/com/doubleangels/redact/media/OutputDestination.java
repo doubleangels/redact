@@ -98,7 +98,7 @@ public final class OutputDestination {
                 }
                 failure = "the provider created nothing";
             } catch (Exception e) {
-                failure = e.toString();
+                failure = e.getClass().getSimpleName();
             }
             // Folder deleted, permission revoked or provider gone: save to the default instead of
             // failing the whole job, and tell the user once so they know where to look.
@@ -161,7 +161,7 @@ public final class OutputDestination {
                 resolver.delete(uri, null, null);
             }
         } catch (Exception e) {
-            SentryManager.log("The partial output failed to clean up: " + e.getMessage() + ".");
+            SentryManager.log("The partial output failed to clean up: " + e.getClass().getSimpleName() + ".");
         }
         clearPendingDocument(uri);
     }
@@ -225,7 +225,7 @@ public final class OutputDestination {
                 DocumentsContract.deleteDocument(app.getContentResolver(), doc);
             } catch (Exception e) {
                 // Already gone, or the folder's permission was revoked: nothing left to do.
-                SentryManager.log("An abandoned output could not be removed: " + e.getMessage() + ".");
+                SentryManager.log("An abandoned output could not be removed: " + e.getClass().getSimpleName() + ".");
             }
         }
     }
@@ -260,7 +260,7 @@ public final class OutputDestination {
             values.put(MediaStore.MediaColumns.DISPLAY_NAME, displayName);
             return resolver.update(uri, values, null, null) > 0 ? uri : null;
         } catch (Exception e) {
-            SentryManager.log("A clean copy could not be renamed: " + e.getMessage() + ".");
+            SentryManager.log("A clean copy could not be renamed: " + e.getClass().getSimpleName() + ".");
             return null;
         }
     }

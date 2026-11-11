@@ -574,7 +574,7 @@ public class MetadataDisplayer {
                     if (!isRedactedGpsRational(gpsLatitude)) {
                         metadataMap.put("GPS_LATITUDE", gpsLatitude);
                     }
-                    SentryManager.log("The GPS latitude failed to convert to decimal: " + e.getMessage() + ".");
+                    SentryManager.log("The GPS latitude failed to convert to decimal: " + e.getClass().getSimpleName() + ".");
                 }
             }
 
@@ -589,7 +589,7 @@ public class MetadataDisplayer {
                     if (!isRedactedGpsRational(gpsLongitude)) {
                         metadataMap.put("GPS_LONGITUDE", gpsLongitude);
                     }
-                    SentryManager.log("The GPS longitude failed to convert to decimal: " + e.getMessage() + ".");
+                    SentryManager.log("The GPS longitude failed to convert to decimal: " + e.getClass().getSimpleName() + ".");
                 }
             }
             if (hasLocationPermission
@@ -635,7 +635,7 @@ public class MetadataDisplayer {
                     latLong = exifInterface.getLatLong();
                 } catch (SecurityException e) {
                     SentryManager.recordException(e);
-                    SentryManager.log("A SecurityException occurred while reading the latitude and longitude map: " + e.getMessage() + ".");
+                    SentryManager.log("A SecurityException occurred while reading the latitude and longitude map: " + e.getClass().getSimpleName() + ".");
                 }
                 if (latLong == null || latLong.length < 2
                         || !isUsableMapCoordinate(latLong[0], latLong[1])) {
@@ -700,12 +700,12 @@ public class MetadataDisplayer {
     private static double parseRational(String rational) {
         String[] fraction = rational.split("/");
         if (fraction.length != 2) {
-            throw new IllegalArgumentException("Invalid rational format: " + rational);
+            throw new IllegalArgumentException("The rational has no single slash.");
         }
         double numerator = Double.parseDouble(fraction[0].trim());
         double denominator = Double.parseDouble(fraction[1].trim());
         if (denominator == 0) {
-            throw new IllegalArgumentException("Division by zero in rational: " + rational);
+            throw new IllegalArgumentException("The rational has a zero denominator.");
         }
         return numerator / denominator;
     }
@@ -1209,7 +1209,7 @@ public class MetadataDisplayer {
                 }
             }
         } catch (Exception e) {
-            SentryManager.log("The original file descriptor EXIF read failed: " + e.getMessage() + ".");
+            SentryManager.log("The original file descriptor EXIF read failed: " + e.getClass().getSimpleName() + ".");
         }
         try {
             Uri originalUri = MediaStore.setRequireOriginal(accessUri);
@@ -1220,7 +1220,7 @@ public class MetadataDisplayer {
                 }
             }
         } catch (Exception e) {
-            SentryManager.log("The original input stream EXIF read failed: " + e.getMessage() + ".");
+            SentryManager.log("The original input stream EXIF read failed: " + e.getClass().getSimpleName() + ".");
         }
         return null;
     }
@@ -1278,7 +1278,7 @@ public class MetadataDisplayer {
                 }
             }
         } catch (Exception e) {
-            SentryManager.log("The MediaStore GPS query failed: " + e.getMessage() + ".");
+            SentryManager.log("The MediaStore GPS query failed: " + e.getClass().getSimpleName() + ".");
         }
         return null;
     }

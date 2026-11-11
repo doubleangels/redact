@@ -51,7 +51,7 @@ public final class MediaUriResolver {
             }
         } catch (SecurityException e) {
             // The sender shared a URI without granting read access, which only the sender can fix.
-            SentryManager.log("The display name query was denied: " + e.getMessage() + ".");
+            SentryManager.log("The display name query was denied: " + e.getClass().getSimpleName() + ".");
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
@@ -71,7 +71,7 @@ public final class MediaUriResolver {
                     return mediaUri;
                 }
             } catch (Exception e) {
-                SentryManager.log("The MediaStore.getMediaUri call failed: " + e.getMessage() + ".");
+                SentryManager.log("The MediaStore.getMediaUri call failed: " + e.getClass().getSimpleName() + ".");
             }
         }
         if (!isPhotoPickerUri(uri)) {
@@ -81,7 +81,7 @@ public final class MediaUriResolver {
         try {
             mimeType = context.getContentResolver().getType(uri);
         } catch (Exception e) {
-            SentryManager.log("The picker MIME type failed to resolve: " + e.getMessage() + ".");
+            SentryManager.log("The picker MIME type failed to resolve: " + e.getClass().getSimpleName() + ".");
         }
         boolean isVideo = MediaSelector.isVideoFromMimeAndName(mimeType, uri.getLastPathSegment());
 
@@ -128,7 +128,7 @@ public final class MediaUriResolver {
                 null, null, null)) {
             return cursor != null && cursor.moveToFirst();
         } catch (Exception e) {
-            SentryManager.log("The MediaStore URI probe failed: " + e.getMessage() + ".");
+            SentryManager.log("The MediaStore URI probe failed: " + e.getClass().getSimpleName() + ".");
             return false;
         }
     }

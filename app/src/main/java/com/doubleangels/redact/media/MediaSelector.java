@@ -163,7 +163,7 @@ public final class MediaSelector {
             }
             return containsAnimatedImagePayload(buffer, read);
         } catch (Exception e) {
-            SentryManager.log("The animated image probe failed: " + e.getMessage() + ".");
+            SentryManager.log("The animated image probe failed: " + e.getClass().getSimpleName() + ".");
             return false;
         }
     }
