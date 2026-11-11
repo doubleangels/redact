@@ -51,7 +51,9 @@ public class MetadataLabelCoverageTest {
 
         Map<String, String> actual = new TreeMap<>();
         for (Field field : ExifInterface.class.getDeclaredFields()) {
-            if (field.getType() == String.class && field.getName().startsWith("TAG_")) {
+            // Only the public tags: the app skips fields it cannot read, as a private one is.
+            if (field.getType() == String.class && field.getName().startsWith("TAG_")
+                    && java.lang.reflect.Modifier.isPublic(field.getModifiers())) {
                 String tag = (String) field.get(null);
                 if (tag != null) {
                     String raw = MetadataDisplayer.convertToSnakeCase(tag).toUpperCase(Locale.ROOT);
@@ -74,6 +76,8 @@ public class MetadataLabelCoverageTest {
 
     private static final Map<String, String> RETRIEVER_LABELS = Map.ofEntries(
             Map.entry("ALBUM", "Album"), Map.entry("ALBUMARTIST", "Album Artist"),
+            Map.entry("IS_DRM", "Is DRM"), Map.entry("TIMED_TEXT_LANGUAGES", "Timed Text Languages"),
+            Map.entry("VIDEO_CODEC_MIME_TYPE", "Video Codec MIME Type"),
             Map.entry("ARTIST", "Artist"), Map.entry("AUTHOR", "Author"), Map.entry("BITRATE", "Bitrate"),
             Map.entry("BITS_PER_SAMPLE", "Bits Per Sample"), Map.entry("CAPTURE_FRAMERATE", "Capture Frame Rate"),
             Map.entry("CD_TRACK_NUMBER", "CD Track Number"), Map.entry("COLOR_RANGE", "Color Range"),
