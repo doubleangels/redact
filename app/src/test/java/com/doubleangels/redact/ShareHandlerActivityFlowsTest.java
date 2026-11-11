@@ -248,7 +248,8 @@ public class ShareHandlerActivityFlowsTest {
         }
 
         @Override
-        public Uri stripMetadataForSharing(Uri sourceUri, String originalFilename, boolean isVideo) {
+        public com.doubleangels.redact.metadata.CleanResult cleanForSharing(
+                Uri sourceUri, String originalFilename, boolean isVideo) {
             if (calls.getAndIncrement() == 0) {
                 entered.countDown();
                 boolean interrupted = false;
@@ -264,7 +265,7 @@ public class ShareHandlerActivityFlowsTest {
                     Thread.currentThread().interrupt();
                 }
             }
-            return super.stripMetadataForSharing(sourceUri, originalFilename, isVideo);
+            return super.cleanForSharing(sourceUri, originalFilename, isVideo);
         }
     }
 

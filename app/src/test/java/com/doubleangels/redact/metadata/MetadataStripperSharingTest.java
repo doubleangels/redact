@@ -29,6 +29,9 @@ import java.util.List;
 @RunWith(RobolectricTestRunner.class)
 public class MetadataStripperSharingTest {
 
+    /** The result of the latest clean in this test, for the checks that follow it. */
+    private com.doubleangels.redact.metadata.CleanResult lastResult;
+
     private Application app;
     private MetadataStripper stripper;
 
@@ -61,12 +64,33 @@ public class MetadataStripperSharingTest {
 
     private void assertClean(Uri out) throws Exception {
         assertNotNull(out);
-        File f = stripper.getLastProcessedOutputFile();
+        File f = lastResult.file();
         assertNotNull(f);
         assertTrue(f.exists() && f.length() > 0);
         ExifInterface e = new ExifInterface(f.getAbsolutePath());
         assertEquals(null, e.getAttribute(ExifInterface.TAG_MAKE));
         assertEquals(null, e.getLatLong());
+    }
+
+    /**
+     * Each clean hands back its own result. With the old last-result fields, a later failed clean
+     * cleared the earlier clean's output file, so a caller reading late lost track of it.
+     */
+    @Test
+    public void eachCleanKeepsItsOwnResult_whateverCleanComesNext() throws Exception {
+        File src = image(".jpg", Bitmap.CompressFormat.JPEG, true);
+        CleanResult first = stripper.cleanImageForSharing(Uri.fromFile(src), "a.jpg");
+        CleanResult second = stripper.cleanImageForSharing(Uri.fromFile(new File("/nope/x.jpg")), "x.jpg");
+
+        assertTrue(first.succeeded());
+        assertNotNull(first.file());
+        assertTrue(first.file().exists());
+        assertNotNull(first.stats());
+        assertFalse(first.unsupported());
+
+        assertFalse(second.succeeded());
+        assertEquals(null, second.file());
+        assertEquals(null, second.stats());
     }
 
     @Test
@@ -75,10 +99,10 @@ public class MetadataStripperSharingTest {
         File src = image(".jpg", Bitmap.CompressFormat.JPEG, true);
         List<Integer> pct = new ArrayList<>();
         stripper.setProgressCallback((p, m) -> pct.add(p));
-        Uri out = stripper.stripExifDataForSharing(Uri.fromFile(src), "a.jpg");
+        Uri out = (lastResult = stripper.cleanImageForSharing(Uri.fromFile(src), "a.jpg")).uri();
         assertClean(out);
-        assertNotNull(stripper.getLastProcessedFileUri());
-        assertNotNull(stripper.getLastProcessedOutputFile());
+        assertNotNull(lastResult.uri());
+        assertNotNull(lastResult.file());
         assertTrue(!pct.isEmpty());
     }
 
@@ -86,9 +110,9 @@ public class MetadataStripperSharingTest {
     public void shareJpeg_reportsWhatItRemoved() throws Exception {
         File src = image(".jpg", Bitmap.CompressFormat.JPEG, true);
 
-        assertClean(stripper.stripExifDataForSharing(Uri.fromFile(src), "s.jpg"));
+        assertClean((lastResult = stripper.cleanImageForSharing(Uri.fromFile(src), "s.jpg")).uri());
 
-        CleanStats stats = stripper.getLastCleanStats();
+        CleanStats stats = lastResult.stats();
         assertNotNull(stats);
         assertTrue(stats.removedFields > 0);
         assertTrue(stats.hadLocation);
@@ -97,51 +121,51 @@ public class MetadataStripperSharingTest {
     @Test
     public void aFailedShareAfterAGoodOne_doesNotReportTheGoodOneAgain() throws Exception {
         File src = image(".jpg", Bitmap.CompressFormat.JPEG, true);
-        assertClean(stripper.stripExifDataForSharing(Uri.fromFile(src), "s.jpg"));
-        assertNotNull(stripper.getLastCleanStats());
+        assertClean((lastResult = stripper.cleanImageForSharing(Uri.fromFile(src), "s.jpg")).uri());
+        assertNotNull(lastResult.stats());
 
-        stripper.stripExifDataForSharing(Uri.parse("file:///no/such/file.jpg"), "missing.jpg");
+        (lastResult = stripper.cleanImageForSharing(Uri.parse("file:///no/such/file.jpg"), "missing.jpg")).uri();
 
-        assertEquals(null, stripper.getLastCleanStats());
+        assertEquals(null, lastResult.stats());
     }
 
     @Test
     public void shareWithoutALocation_reportsNoLocation() throws Exception {
         File src = image(".jpg", Bitmap.CompressFormat.JPEG, false);
 
-        assertClean(stripper.stripExifDataForSharing(Uri.fromFile(src), "s.jpg"));
+        assertClean((lastResult = stripper.cleanImageForSharing(Uri.fromFile(src), "s.jpg")).uri());
 
-        CleanStats stats = stripper.getLastCleanStats();
+        CleanStats stats = lastResult.stats();
         assertNotNull(stats);
         assertFalse(stats.hadLocation);
     }
 
     @Test
     public void shareMissingSource_reportsNothing() {
-        stripper.stripExifDataForSharing(Uri.parse("file:///no/such/file.jpg"), "missing.jpg");
+        (lastResult = stripper.cleanImageForSharing(Uri.parse("file:///no/such/file.jpg"), "missing.jpg")).uri();
 
-        assertEquals(null, stripper.getLastCleanStats());
+        assertEquals(null, lastResult.stats());
     }
 
     @Test
     public void shareJpeg_nonStrict_removesExif() throws Exception {
         AppPreferences.setStrictClean(app, false);
         File src = image(".jpg", Bitmap.CompressFormat.JPEG, true);
-        stripper.stripMetadataForSharing(Uri.fromFile(src), "b.jpg", false); // exercised only; Robolectric EXIF round-trip differs
+        (lastResult = stripper.cleanForSharing(Uri.fromFile(src), "b.jpg", false)).uri(); // exercised only; Robolectric EXIF round-trip differs
     }
 
     @Test
     public void sharePng_andWebp() throws Exception {
         AppPreferences.setStrictClean(app, true);
         File png = image(".png", Bitmap.CompressFormat.PNG, false);
-        stripper.stripExifDataForSharing(Uri.fromFile(png), "c.png");
+        (lastResult = stripper.cleanImageForSharing(Uri.fromFile(png), "c.png")).uri();
         File webp = image(".webp", Bitmap.CompressFormat.WEBP_LOSSY, false);
-        stripper.stripExifDataForSharing(Uri.fromFile(webp), "d.webp");
+        (lastResult = stripper.cleanImageForSharing(Uri.fromFile(webp), "d.webp")).uri();
     }
 
     @Test
     public void shareMissingSource_returnsNull() {
-        assertEquals(null, stripper.stripExifDataForSharing(Uri.fromFile(new File("/nope/x.jpg")), "x.jpg"));
+        assertEquals(null, (lastResult = stripper.cleanImageForSharing(Uri.fromFile(new File("/nope/x.jpg")), "x.jpg")).uri());
     }
 
     @Test
@@ -155,16 +179,16 @@ public class MetadataStripperSharingTest {
                     .getBytes(java.nio.charset.StandardCharsets.UTF_8));
         }
 
-        assertEquals(null, stripper.stripMetadataForSharing(Uri.fromFile(svg), "f.svg", false));
-        assertTrue(stripper.wasLastFailureUnsupported());
-        assertEquals(null, stripper.getLastProcessedOutputFile());
+        assertEquals(null, (lastResult = stripper.cleanForSharing(Uri.fromFile(svg), "f.svg", false)).uri());
+        assertTrue(lastResult.unsupported());
+        assertEquals(null, lastResult.file());
         File[] leftovers = new File(app.getCacheDir(), "processed").listFiles();
         assertTrue(leftovers == null || leftovers.length == 0);
 
         // A different kind of failure on the next item must not inherit the flag.
-        assertEquals(null, stripper.stripMetadataForSharing(
-                Uri.fromFile(new File("/nope/z.jpg")), "z.jpg", false));
-        assertFalse(stripper.wasLastFailureUnsupported());
+        assertEquals(null, (lastResult = stripper.cleanForSharing(
+                Uri.fromFile(new File("/nope/z.jpg")), "z.jpg", false)).uri());
+        assertFalse(lastResult.unsupported());
     }
 
     @Test
@@ -176,14 +200,14 @@ public class MetadataStripperSharingTest {
             out.write("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"4\" height=\"4\"/>"
                     .getBytes(java.nio.charset.StandardCharsets.UTF_8));
         }
-        assertEquals(null, stripper.stripExifData(Uri.fromFile(svg), "g.svg"));
+        assertEquals(null, (lastResult = stripper.cleanImage(Uri.fromFile(svg), "g.svg")).uri());
     }
 
     @Test
     public void galleryJpeg_doesNotThrow() throws Exception {
         File src = image(".jpg", Bitmap.CompressFormat.JPEG, true);
-        stripper.stripExifData(Uri.fromFile(src), "e.jpg");
-        stripper.stripExifData(Uri.fromFile(new File("/nope/x.jpg")), "x.jpg");
+        (lastResult = stripper.cleanImage(Uri.fromFile(src), "e.jpg")).uri();
+        (lastResult = stripper.cleanImage(Uri.fromFile(new File("/nope/x.jpg")), "x.jpg")).uri();
     }
 
     @Test
@@ -194,6 +218,6 @@ public class MetadataStripperSharingTest {
         stripper.resetCancellation();
         File missing = new File("/nope/y.jpg");
         stripper.requestCancellation();
-        assertEquals(null, stripper.stripExifDataForSharing(Uri.fromFile(missing), "y.jpg"));
+        assertEquals(null, (lastResult = stripper.cleanImageForSharing(Uri.fromFile(missing), "y.jpg")).uri());
     }
 }

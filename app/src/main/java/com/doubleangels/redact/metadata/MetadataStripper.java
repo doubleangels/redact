@@ -144,17 +144,6 @@ public class MetadataStripper {
      */
     private ProgressCallback progressCallback;
 
-    /**
-     * Stores the most recently processed file's URI.
-     * This allows clients to easily access the result of the most recent operation.
-     */
-    private Uri lastProcessedFileUri;
-
-    /** On-disk output from the most recent sharing operation (for cleanup and display names). */
-    @Nullable
-    private File lastProcessedOutputFile;
-    private volatile boolean lastFailureUnsupported;
-
     @VisibleForTesting
     @Nullable
     File testFastStripVideoMetadataOverride;
@@ -173,21 +162,28 @@ public class MetadataStripper {
     }
 
     /**
-     * Map to store essential EXIF values that should be preserved during
-     * processing.
-     * These values (like orientation) are important for proper display but don't
-     * contain
-     * identifying information.
+     * What one clean call has found and made so far: the tags the settings keep, its statistics,
+     * and where its output went. Each call has its own, so two calls never share kept tags or
+     * results, and the public methods hand the outcome back as a {@link CleanResult}.
      */
-    private final Map<String, String> preservedExifValues = new HashMap<>();
+    private static final class Job {
+        final Map<String, String> kept = new HashMap<>();
+        @Nullable
+        CleanStats stats;
+        @Nullable
+        File file;
+        boolean unsupported;
+
+        @NonNull
+        CleanResult result(@Nullable Uri uri) {
+            return new CleanResult(uri, uri != null ? file : null, stats, uri == null && unsupported);
+        }
+    }
 
     private final AtomicBoolean operationCancelled =
             new AtomicBoolean(false);
 
     private volatile long transcodeOwnerId = -1L;
-
-    @Nullable
-    private volatile CleanStats lastCleanStats;
 
     @Nullable
     private volatile BooleanSupplier externalCancellationCheck;
@@ -215,16 +211,6 @@ public class MetadataStripper {
      */
     public void setCancellationCheck(@Nullable BooleanSupplier check) {
         externalCancellationCheck = check;
-    }
-
-    /**
-     * What the last {@link #stripExifData}, {@link #stripVideoMetadata} or
-     * {@link #stripMetadataForSharing} call found to remove, or null when that call failed before
-     * reading the source.
-     */
-    @Nullable
-    public CleanStats getLastCleanStats() {
-        return lastCleanStats;
     }
 
     private void throwIfCancelled() throws IOException {
@@ -331,16 +317,16 @@ public class MetadataStripper {
      *
      * @param sourceUri        URI of the source video, must not be null
      * @param originalFilename Original filename of the video, must not be null
-     * @return URI of the processed video, or null if processing failed
+     * @return the saved video's URI (null when the clean failed) and what it removed
      * @throws IllegalArgumentException if sourceUri or originalFilename is null
      */
-    @Nullable
-    public Uri stripVideoMetadata(@NonNull Uri sourceUri, @NonNull String originalFilename) {
+    @NonNull
+    public CleanResult cleanVideo(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Log operation start for analytics and debugging
         SentryManager.log("The app is starting video metadata stripping for MediaStore.");
         SentryManager.beginOperation("video_to_mediastore");
         Uri newUri = null;
-        lastCleanStats = null;
+        Job job = new Job();
 
         try {
             throwIfCancelled();
@@ -348,7 +334,7 @@ public class MetadataStripper {
             updateProgress(1, 4, context.getString(R.string.strip_progress_reading_video));
 
             VideoPrivacySnapshot sourceSnapshot = extractVideoPrivacyMetadata(sourceUri);
-            lastCleanStats = countVideoPrivacyFields(sourceSnapshot);
+            job.stats = countVideoPrivacyFields(sourceSnapshot);
 
             throwIfCancelled();
             int formatIndex = detectVideoFormatIndex(sourceUri, originalFilename);
@@ -359,7 +345,7 @@ public class MetadataStripper {
             // What Keep Location and Keep Date Taken ask to put back; null when they are off.
             double[] keptLocation = keptVideoLocation(sourceSnapshot, sourceUri);
             long[] keptTimes = keptVideoTimes(sourceUri);
-            lastCleanStats = lastCleanStats.keeping(keptLocation != null, keptTimes != null);
+            job.stats = job.stats.keeping(keptLocation != null, keptTimes != null);
             File tempCleanFile = null;
             if (mayKeepTransmux()) {
                 updateProgress(2, 4, context.getString(R.string.strip_progress_transmuxing));
@@ -425,7 +411,6 @@ public class MetadataStripper {
                 }
             }
 
-            lastProcessedFileUri = newUri;
             SentryManager.log("The video was processed successfully.");
             SentryManager.setCustomKey("success", true);
 
@@ -440,6 +425,7 @@ public class MetadataStripper {
 
             if (newUri != null) {
                 OutputDestination.discard(contentResolver, newUri);
+                newUri = null;
             }
         } catch (Exception e) {
             if (shouldPropagateCancellation(e)) {
@@ -453,10 +439,11 @@ public class MetadataStripper {
 
             if (newUri != null) {
                 OutputDestination.discard(contentResolver, newUri);
+                newUri = null;
             }
         }
 
-        return newUri;
+        return job.result(newUri);
     }
 
     /**
@@ -471,16 +458,16 @@ public class MetadataStripper {
      *
      * @param sourceUri        URI of the source image, must not be null
      * @param originalFilename Original filename of the image, must not be null
-     * @return URI of the processed image, or null if processing failed
+     * @return the saved image's URI (null when the clean failed) and what it removed
      * @throws IllegalArgumentException if sourceUri or originalFilename is null
      */
-    @Nullable
-    public Uri stripExifData(@NonNull Uri sourceUri, @NonNull String originalFilename) {
+    @NonNull
+    public CleanResult cleanImage(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Log operation start for analytics and debugging
         SentryManager.log("The app is starting image EXIF stripping for MediaStore.");
         SentryManager.beginOperation("image_to_mediastore");
         Uri newUri = null;
-        lastCleanStats = null;
+        Job job = new Job();
         File tempFile = null;
 
         try {
@@ -500,11 +487,10 @@ public class MetadataStripper {
 
             // Extract essential EXIF data to preserve (like orientation)
             updateProgress(2, 5, context.getString(R.string.strip_progress_reading_essential_metadata));
-            lastCleanStats = readEssentialTagsAndStats(tempFile, false);
+            job.stats = readEssentialTagsAndStats(tempFile, false, job.kept);
 
-            newUri = writeCleanImage(tempFile, sourceUri, newFilename, outputFormat, false);
+            newUri = writeCleanImage(tempFile, sourceUri, newFilename, outputFormat, false, job);
 
-            lastProcessedFileUri = newUri;
             SentryManager.log("The image was processed successfully.");
             SentryManager.setCustomKey("success", true);
 
@@ -540,15 +526,13 @@ public class MetadataStripper {
                 // Use secure deletion for temp files
                 secureDeleteFile(tempFile);
             }
-
-            preservedExifValues.clear();
         }
 
-        return newUri;
+        return job.result(newUri);
     }
 
     /**
-     * Saves a censored photo to the gallery the way {@link #stripExifData} saves a clean one, so it
+     * Saves a censored photo to the gallery the way {@link #cleanImage} saves a clean one, so it
      * follows the same settings: the tags they keep are copied from the original, the file is
      * rebuilt with nothing else in it, and it is checked before anyone can see it.
      *
@@ -557,32 +541,26 @@ public class MetadataStripper {
      * @param censored the censored picture, already upright, so the original's orientation is
      *                 not copied
      * @param outputName the saved file's name, with its extension
-     * @return the saved copy
+     * @return the saved copy and the original's clean statistics
      * @throws IOException when it could not be saved; nothing is left behind
      */
     @NonNull
-    public Uri saveCensoredImage(@NonNull Uri original, @NonNull File censored,
-                                 @NonNull String outputName,
-                                 @NonNull FormatConverter.ImageFormatSpec outputFormat) throws IOException {
+    public CleanResult saveCensored(@NonNull Uri original, @NonNull File censored,
+                                    @NonNull String outputName,
+                                    @NonNull FormatConverter.ImageFormatSpec outputFormat) throws IOException {
         SentryManager.log("The app is saving a censored image to MediaStore.");
-        lastCleanStats = null;
+        Job job = new Job();
         // A private copy of the uncensored original, deleted as soon as its tags are read.
         File originalCopy = File.createTempFile("temp_", outputFormat.extension, context.getCacheDir());
         try {
             copySourceToTempFile(original, originalCopy);
-            lastCleanStats = readEssentialTagsAndStats(originalCopy, false);
-            preservedExifValues.remove(ExifInterface.TAG_ORIENTATION);
+            job.stats = readEssentialTagsAndStats(originalCopy, false, job.kept);
+            job.kept.remove(ExifInterface.TAG_ORIENTATION);
         } finally {
             secureDeleteFile(originalCopy);
         }
-        try {
-            // The censored file is also what a re-encode falls back to decoding, never the original.
-            Uri out = writeCleanImage(censored, Uri.fromFile(censored), outputName, outputFormat, true);
-            lastProcessedFileUri = out;
-            return out;
-        } finally {
-            preservedExifValues.clear();
-        }
+        // The censored file is also what a re-encode falls back to decoding, never the original.
+        return job.result(writeCleanImage(censored, Uri.fromFile(censored), outputName, outputFormat, true, job));
     }
 
     /**
@@ -594,7 +572,8 @@ public class MetadataStripper {
      */
     @NonNull
     private Uri writeCleanImage(@NonNull File picture, @NonNull Uri pictureUri, @NonNull String newFilename,
-                                @NonNull FormatConverter.ImageFormatSpec outputFormat, boolean fromPixels)
+                                @NonNull FormatConverter.ImageFormatSpec outputFormat, boolean fromPixels,
+                                @NonNull Job job)
             throws IOException {
         Uri newUri = null;
         File cleanFile = null;
@@ -603,11 +582,11 @@ public class MetadataStripper {
             updateProgress(3, 5, context.getString(R.string.strip_progress_removing_metadata));
             if (!fromPixels) {
                 motion = cleanMotionClip(picture);
-                if (motion != null && lastCleanStats != null
+                if (motion != null && job.stats != null
                         && ImageContainerMetadata.sniff(picture) == ImageContainerMetadata.Format.JPEG) {
                     // Counted among the removed (EMBEDDED_VIDEO) when the JPEG was read.
                     // The video goes back, cleaned, so the summary doesn't count it as removed.
-                    lastCleanStats = lastCleanStats.keepingOne();
+                    job.stats = job.stats.keepingOne();
                 }
             }
 
@@ -617,14 +596,14 @@ public class MetadataStripper {
             // can be a full copy of the original with its metadata.
             cleanFile = File.createTempFile("temp_clean_", outputFormat.extension, context.getCacheDir());
             FormatConverter.ImageFormatSpec cleanFormat =
-                    writePictureOnly(picture, pictureUri, cleanFile, outputFormat, fromPixels, motion);
+                    writePictureOnly(picture, pictureUri, cleanFile, outputFormat, fromPixels, motion, job.kept);
             if (!cleanFormat.extension.equals(outputFormat.extension)) {
                 newFilename = withExtension(newFilename, cleanFormat.extension);
             }
 
             // Restore only essential EXIF data (like orientation)
             updateProgress(4, 5, context.getString(R.string.strip_progress_restoring_essential_metadata));
-            restoreEssentialExifData(cleanFile);
+            restoreEssentialExifData(cleanFile, job.kept);
 
             // Verified while still private: a folder the user chose shows a new file at once (a
             // cloud-backed one may upload it), so nothing unverified may reach the output.
@@ -734,23 +713,23 @@ public class MetadataStripper {
      * Strips EXIF metadata from an image and saves it to the app's cache directory
      * for sharing.
      *
-     * This method is similar to stripExifData but saves to app cache instead of
+     * This method is similar to cleanImage but saves to app cache instead of
      * MediaStore,
      * making it suitable for temporary files intended for sharing.
      *
      * @param sourceUri        URI of the source image, must not be null
      * @param originalFilename Original filename of the image, must not be null
-     * @return URI of the processed image (FileProvider URI), or null if processing
-     *         failed
+     * @return the FileProvider URI and file of the processed image (null when the clean failed),
+     *         what it removed, and whether it failed because the format cannot be decoded here
      * @throws IllegalArgumentException if sourceUri or originalFilename is null
      */
-    @Nullable
-    public Uri stripExifDataForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename) {
+    @NonNull
+    public CleanResult cleanImageForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Log operation start for analytics and debugging
         SentryManager.log("The app is starting image EXIF stripping for sharing.");
 
         SentryManager.beginOperation("image_for_sharing");
-        lastCleanStats = null;
+        Job job = new Job();
 
         File tempFile = null;
         File outputFile = null;
@@ -766,7 +745,7 @@ public class MetadataStripper {
             String extension = outputFormat.extension;
 
             updateProgress(2, 4, context.getString(R.string.strip_progress_reading_essential_metadata));
-            lastCleanStats = readEssentialTagsAndStats(tempFile, true);
+            job.stats = readEssentialTagsAndStats(tempFile, true, job.kept);
 
             File outputDir = new File(context.getCacheDir(), "processed");
             if (!outputDir.exists()) {
@@ -780,7 +759,7 @@ public class MetadataStripper {
 
             updateProgress(3, 5, context.getString(R.string.strip_progress_removing_metadata));
             FormatConverter.ImageFormatSpec cleanFormat =
-                    writePictureOnly(tempFile, Uri.fromFile(tempFile), outputFile, outputFormat, false, null);
+                    writePictureOnly(tempFile, Uri.fromFile(tempFile), outputFile, outputFormat, false, null, job.kept);
             if (!cleanFormat.extension.equals(extension)) {
                 // Shared under the name of what it really is, so the app it goes to opens it.
                 File renamed = new File(outputDir, generateShortRandomName() + cleanFormat.extension);
@@ -792,7 +771,7 @@ public class MetadataStripper {
 
             // Put back only the essential tags (orientation)
             updateProgress(4, 5, context.getString(R.string.strip_progress_removing_all_metadata));
-            restoreEssentialExifData(outputFile);
+            restoreEssentialExifData(outputFile, job.kept);
 
             // Verify metadata removal
             updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
@@ -803,38 +782,34 @@ public class MetadataStripper {
                 if (outputFile != null && outputFile.exists()) {
                     secureDeleteFile(outputFile);
                 }
-                return null;
+                return job.result(null);
             }
             Uri fileUri = FileProvider.getUriForFile(
                     context,
                     context.getPackageName() + ".fileprovider",
                     outputFile);
 
-            lastProcessedFileUri = fileUri;
-            lastProcessedOutputFile = outputFile;
+            job.file = outputFile;
             SentryManager.log("The image was processed successfully for sharing.");
             SentryManager.setCustomKey("success", true);
-            return fileUri;
+            return job.result(fileUri);
 
         } catch (Exception e) {
             // Log error
             Log.e(TAG, "Error processing image for sharing", e);
-            lastFailureUnsupported = UnsupportedMediaException.isCauseOf(e);
+            job.unsupported = UnsupportedMediaException.isCauseOf(e);
             SentryManager.setCustomKey("success", false);
             SentryManager.setCustomKey("error_type", e.getClass().getName());
             SentryManager.recordException(e);
             if (outputFile != null && outputFile.exists()) {
                 secureDeleteFile(outputFile);
             }
-            lastProcessedOutputFile = null;
-            return null;
+            return job.result(null);
         } finally {
             if (tempFile != null && tempFile.exists()) {
                 // Use secure deletion for temp files
                 secureDeleteFile(tempFile);
             }
-
-            preservedExifValues.clear();
         }
     }
 
@@ -849,17 +824,17 @@ public class MetadataStripper {
      *
      * @param sourceUri        URI of the source video, must not be null
      * @param originalFilename Original filename of the video, must not be null
-     * @return URI of the processed video (FileProvider URI), or null if processing
-     *         failed
+     * @return the FileProvider URI and file of the processed video (null when the clean failed),
+     *         what it removed, and whether it failed because the format cannot be decoded here
      * @throws IllegalArgumentException if sourceUri or originalFilename is null
      */
-    @Nullable
-    public Uri stripVideoMetadataForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename) {
+    @NonNull
+    public CleanResult cleanVideoForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Log operation start for analytics and debugging
         SentryManager.log("The app is starting video metadata stripping for sharing.");
 
         SentryManager.beginOperation("video_for_sharing");
-        lastCleanStats = null;
+        Job job = new Job();
 
         File outputFile = null;
 
@@ -867,7 +842,7 @@ public class MetadataStripper {
             updateProgress(1, 4, context.getString(R.string.strip_progress_reading_video));
 
             VideoPrivacySnapshot sourceSnapshot = extractVideoPrivacyMetadata(sourceUri);
-            lastCleanStats = countVideoPrivacyFields(sourceSnapshot);
+            job.stats = countVideoPrivacyFields(sourceSnapshot);
 
             // Create directory for processed files if it doesn't exist
             File outputDir = new File(context.getCacheDir(), "processed");
@@ -910,24 +885,22 @@ public class MetadataStripper {
                     context.getPackageName() + ".fileprovider",
                     outputFile);
 
-            lastProcessedFileUri = fileUri;
-            lastProcessedOutputFile = outputFile;
+            job.file = outputFile;
             SentryManager.log("The video was processed successfully for sharing.");
             SentryManager.setCustomKey("success", true);
-            return fileUri;
+            return job.result(fileUri);
 
         } catch (Exception e) {
             // Log error
             Log.e(TAG, "Error processing video for sharing", e);
-            lastFailureUnsupported = UnsupportedMediaException.isCauseOf(e);
+            job.unsupported = UnsupportedMediaException.isCauseOf(e);
             SentryManager.setCustomKey("success", false);
             SentryManager.setCustomKey("error_type", e.getClass().getName());
             SentryManager.recordException(e);
             if (outputFile != null && outputFile.exists()) {
                 secureDeleteFile(outputFile);
             }
-            lastProcessedOutputFile = null;
-            return null;
+            return job.result(null);
         }
     }
 
@@ -1474,8 +1447,8 @@ public class MetadataStripper {
     }
 
     /**
-     * Convenience method that routes to either stripExifDataForSharing or
-     * stripVideoMetadataForSharing
+     * Convenience method that routes to either cleanImageForSharing or
+     * cleanVideoForSharing
      * based on the media type.
      *
      * @param sourceUri        URI of the source media file, must not be null
@@ -1485,41 +1458,14 @@ public class MetadataStripper {
      *         processing failed
      * @throws IllegalArgumentException if sourceUri or originalFilename is null
      */
-    @Nullable
-    public Uri stripMetadataForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename, boolean isVideo) {
+    @NonNull
+    public CleanResult cleanForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename, boolean isVideo) {
         // Log operation start for analytics and debugging
         SentryManager.log("The app is starting metadata stripping for sharing.");
         SentryManager.setCustomKey("is_video", isVideo);
-        lastFailureUnsupported = false;
-
-        if (isVideo) {
-            return stripVideoMetadataForSharing(sourceUri, originalFilename);
-        } else {
-            return stripExifDataForSharing(sourceUri, originalFilename);
-        }
-    }
-
-    /**
-     * Returns the URI of the most recently processed file.
-     *
-     * @return URI of the last processed file, or null if no file has been processed
-     */
-    @Nullable
-    public Uri getLastProcessedFileUri() {
-        return lastProcessedFileUri;
-    }
-
-    @Nullable
-    public File getLastProcessedOutputFile() {
-        return lastProcessedOutputFile;
-    }
-
-    /**
-     * Whether the last {@link #stripMetadataForSharing} call failed because the input is in a
-     * format this device cannot decode, rather than for some other reason.
-     */
-    public boolean wasLastFailureUnsupported() {
-        return lastFailureUnsupported;
+        return isVideo
+                ? cleanVideoForSharing(sourceUri, originalFilename)
+                : cleanImageForSharing(sourceUri, originalFilename);
     }
 
     /**
@@ -1586,14 +1532,16 @@ public class MetadataStripper {
      * @throws IOException when the EXIF cannot be read at all
      */
     @NonNull
-    private CleanStats readEssentialTagsAndStats(@NonNull File imageFile, boolean forSharing) throws IOException {
+    private CleanStats readEssentialTagsAndStats(@NonNull File imageFile, boolean forSharing,
+                                                 @NonNull Map<String, String> kept) throws IOException {
         ExifInterface exif = new ExifInterface(imageFile.getAbsolutePath());
-        readEssentialExifData(exif, forSharing);
+        readEssentialExifData(exif, forSharing, kept);
         return readCleanStats(imageFile, exif, forSharing);
     }
 
-    private void readEssentialExifData(@NonNull ExifInterface exif, boolean forSharing) {
-        preservedExifValues.clear();
+    private void readEssentialExifData(@NonNull ExifInterface exif, boolean forSharing,
+                                       @NonNull Map<String, String> kept) {
+        kept.clear();
 
         List<String> tagsToPreserve = getTagsToPreserve(forSharing);
 
@@ -1601,15 +1549,15 @@ public class MetadataStripper {
         for (String tag : tagsToPreserve) {
             String value = exif.getAttribute(tag);
             if (value != null) {
-                preservedExifValues.put(tag, value);
+                kept.put(tag, value);
                 SentryManager.log("The app is preserving the EXIF tag: " + tag + ".");
             }
         }
-        if (!preservedExifValues.containsKey(ExifInterface.TAG_COLOR_SPACE)) {
-            preservedExifValues.remove(ExifInterface.TAG_INTEROPERABILITY_INDEX);
+        if (!kept.containsKey(ExifInterface.TAG_COLOR_SPACE)) {
+            kept.remove(ExifInterface.TAG_INTEROPERABILITY_INDEX);
         }
 
-        SentryManager.setCustomKey("preserved_exif_count", preservedExifValues.size());
+        SentryManager.setCustomKey("preserved_exif_count", kept.size());
     }
 
     /**
@@ -1620,13 +1568,13 @@ public class MetadataStripper {
      *
      * @param imageFile the processed image, before it is copied to the output
      */
-    private void restoreEssentialExifData(@NonNull File imageFile) {
+    private void restoreEssentialExifData(@NonNull File imageFile, @NonNull Map<String, String> kept) {
         // Skip if no EXIF values were preserved
-        if (preservedExifValues.isEmpty()) {
+        if (kept.isEmpty()) {
             return;
         }
         if (HeifContainerMetadata.isHeif(imageFile)) {
-            restoreHeifExif(imageFile);
+            restoreHeifExif(imageFile, kept);
             return;
         }
         if (ImageContainerMetadata.sniff(imageFile) == ImageContainerMetadata.Format.OTHER) {
@@ -1639,7 +1587,7 @@ public class MetadataStripper {
             ExifInterface newExif = new ExifInterface(imageFile.getAbsolutePath());
 
             removeAllExifMetadata(newExif);
-            restoreEssentialExifValues(newExif);
+            restoreEssentialExifValues(newExif, kept);
             newExif.saveAttributes();
             if (ImageContainerMetadata.sniff(imageFile) == ImageContainerMetadata.Format.JPEG) {
                 UltraHdr.fixPrimarySize(imageFile);
@@ -1657,8 +1605,8 @@ public class MetadataStripper {
      * space are left out: a HEIF keeps those in its own boxes, and an EXIF orientation as well
      * would turn the picture twice in some viewers.
      */
-    private void restoreHeifExif(@NonNull File heif) {
-        Map<String, String> values = new LinkedHashMap<>(preservedExifValues);
+    private void restoreHeifExif(@NonNull File heif, @NonNull Map<String, String> kept) {
+        Map<String, String> values = new LinkedHashMap<>(kept);
         values.keySet().removeAll(ALWAYS_KEPT_TAGS);
         if (values.isEmpty()) {
             return;
@@ -1724,9 +1672,9 @@ public class MetadataStripper {
      *
      * @param exif ExifInterface to write values to, must not be null
      */
-    private void restoreEssentialExifValues(@NonNull ExifInterface exif) {
+    private void restoreEssentialExifValues(@NonNull ExifInterface exif, @NonNull Map<String, String> kept) {
         // Write each preserved value to the ExifInterface
-        for (Map.Entry<String, String> entry : preservedExifValues.entrySet()) {
+        for (Map.Entry<String, String> entry : kept.entrySet()) {
             exif.setAttribute(entry.getKey(), entry.getValue());
         }
     }
@@ -2457,7 +2405,7 @@ public class MetadataStripper {
     private FormatConverter.ImageFormatSpec writePictureOnly(@NonNull File source, @NonNull Uri sourceUri,
                                   @NonNull File target,
                                   @NonNull FormatConverter.ImageFormatSpec outputFormat, boolean fromPixels,
-                                  @Nullable MotionPhoto.Clip motion)
+                                  @Nullable MotionPhoto.Clip motion, @NonNull Map<String, String> kept)
             throws IOException {
         ImageContainerMetadata.Format expected = containerFormat(outputFormat.extension);
         // A HEIC the encoder just wrote is still rebuilt below: losslessly, so whatever the
@@ -2521,7 +2469,7 @@ public class MetadataStripper {
         ImageContainerMetadata.Format writtenFormat = containerFormat(written.extension);
         File encoded = File.createTempFile("temp_encoded_", written.extension, context.getCacheDir());
         try {
-            reEncode(source, sourceUri, encoded, outputFormat);
+            reEncode(source, sourceUri, encoded, outputFormat, kept);
             if (writtenFormat != ImageContainerMetadata.Format.OTHER
                     && ImageContainerMetadata.sniff(encoded) == writtenFormat) {
                 ImageContainerMetadata.sanitize(encoded, target, motion);
@@ -2561,14 +2509,15 @@ public class MetadataStripper {
 
     /** Decodes {@code source} and encodes its pixels, which carry no metadata, to {@code target}. */
     private void reEncode(@NonNull File source, @NonNull Uri sourceUri, @NonNull File target,
-                          @NonNull FormatConverter.ImageFormatSpec outputFormat) throws IOException {
+                          @NonNull FormatConverter.ImageFormatSpec outputFormat,
+                          @NonNull Map<String, String> kept) throws IOException {
         FormatConverter.ImageFormatSpec bitmapOutput = FormatConverter.encodableSpecFor(outputFormat);
         if (containerFormat(bitmapOutput.extension) == ImageContainerMetadata.Format.OTHER) {
             // No tags can be written back into this format (HEIC), so the orientation has to be
             // in the pixels: ImageDecoder applies it, BitmapFactory does not.
             Bitmap upright = FormatConverter.decodeUpright(context, Uri.fromFile(source),
                     FormatConverter.FULL_RESOLUTION);
-            preservedExifValues.remove(ExifInterface.TAG_ORIENTATION);
+            kept.remove(ExifInterface.TAG_ORIENTATION);
             compressTo(upright, bitmapOutput, target, 0, false);
             return;
         }

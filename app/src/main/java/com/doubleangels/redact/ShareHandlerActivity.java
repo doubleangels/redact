@@ -34,6 +34,7 @@ import com.doubleangels.redact.media.MediaSizeLimits;
 import com.doubleangels.redact.media.MediaUriResolver;
 import com.doubleangels.redact.media.ProcessingCancelledException;
 import com.doubleangels.redact.media.ProcessingResourceWarnings;
+import com.doubleangels.redact.metadata.CleanResult;
 import com.doubleangels.redact.metadata.CleanStats;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.doubleangels.redact.sentry.SentryManager;
@@ -705,16 +706,15 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     if (isVideo) hasVideo = true;
                     else hasImage = true;
 
-                    Uri processedUri = stripper.stripMetadataForSharing(uri, fileName, isVideo);
-                    if (processedUri != null) {
-                        processedUris.add(processedUri);
-                        CleanStats stats =
-                                stripper.getLastCleanStats();
+                    CleanResult result = stripper.cleanForSharing(uri, fileName, isVideo);
+                    if (result.succeeded()) {
+                        processedUris.add(result.uri());
+                        CleanStats stats = result.stats();
                         StatsStore.recordClean(this,
                                 stats != null ? stats : new CleanStats(0, false),
                                 isVideo, true);
                         try {
-                            File outputFile = stripper.getLastProcessedOutputFile();
+                            File outputFile = result.file();
                             if (outputFile != null && outputFile.exists() && outputFile.isFile()) {
                                 boolean replaced;
                                 synchronized (fileListLock) {
@@ -737,7 +737,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                         }
                     } else {
                         failCount++;
-                        if (stripper.wasLastFailureUnsupported()) {
+                        if (result.unsupported()) {
                             unsupportedFailCount++;
                         }
                     }

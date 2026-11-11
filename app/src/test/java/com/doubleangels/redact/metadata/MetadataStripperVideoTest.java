@@ -38,6 +38,9 @@ import java.util.List;
 @RunWith(RobolectricTestRunner.class)
 public class MetadataStripperVideoTest {
 
+    /** The result of the latest clean in this test, for the checks that follow it. */
+    private com.doubleangels.redact.metadata.CleanResult lastResult;
+
     @Rule
     public Timeout timeout = Timeout.seconds(40);
 
@@ -342,7 +345,7 @@ public class MetadataStripperVideoTest {
         List<Integer> progress = new ArrayList<>();
         stripper.setProgressCallback((p, m) -> progress.add(p));
 
-        Uri out = stripper.stripVideoMetadata(source, "holiday.mp4");
+        Uri out = (lastResult = stripper.cleanVideo(source, "holiday.mp4")).uri();
 
         assertNotNull(out);
         FakeMediaStoreProvider.Entry entry = FakeMediaStoreProvider.only();
@@ -372,7 +375,7 @@ public class MetadataStripperVideoTest {
         long length = muxed.length();
         stripper.setTestFastStripVideoMetadataOverride(muxed);
 
-        Uri out = stripper.stripVideoMetadata(Uri.fromFile(writeVideo(TestVideos.cleanMp4())), "a.mp4");
+        Uri out = (lastResult = stripper.cleanVideo(Uri.fromFile(writeVideo(TestVideos.cleanMp4())), "a.mp4")).uri();
 
         assertNotNull(out);
         File saved = FakeMediaStoreProvider.only().file;
@@ -391,9 +394,9 @@ public class MetadataStripperVideoTest {
         File source = TestVideos.resource(app.getFilesDir(), "video/ffmpeg_location_keys.mp4");
         files.add(source);
 
-        assertNotNull(stripper.stripVideoMetadata(Uri.fromFile(source), "a.mp4"));
+        assertNotNull((lastResult = stripper.cleanVideo(Uri.fromFile(source), "a.mp4")).uri());
 
-        CleanStats stats = stripper.getLastCleanStats();
+        CleanStats stats = lastResult.stats();
         assertNotNull(stats);
         assertTrue(stats.hadLocation);
         assertTrue(String.valueOf(stats.removedFields), stats.removedFields >= 3);

@@ -32,6 +32,9 @@ import java.util.List;
 @Config(sdk = 31)
 public class MetadataStripperFailureTest {
 
+    /** The result of the latest clean in this test, for the checks that follow it. */
+    private com.doubleangels.redact.metadata.CleanResult lastResult;
+
     @Rule
     public Timeout timeout = Timeout.seconds(60);
 
@@ -90,7 +93,7 @@ public class MetadataStripperFailureTest {
         deleteTree(processedDir());
         stripper.setTestForceOutputDirMkdirsFailure(true);
 
-        assertNull(stripper.stripMetadataForSharing(Uri.fromFile(jpegWithGps()), "photo.jpg", false));
+        assertNull((lastResult = stripper.cleanForSharing(Uri.fromFile(jpegWithGps()), "photo.jpg", false)).uri());
     }
 
 }

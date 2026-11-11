@@ -49,6 +49,9 @@ import java.util.zip.Deflater;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class ImageContainerMetadataTest {
 
+    /** The result of the latest clean in this test, for the checks that follow it. */
+    private com.doubleangels.redact.metadata.CleanResult lastResult;
+
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
@@ -455,17 +458,17 @@ public class ImageContainerMetadataTest {
     @Test
     public void sharingAJpeg_removesEverythingAndKeepsOrientation() throws Exception {
         MetadataStripper stripper = new MetadataStripper(app);
-        Uri out = stripper.stripExifDataForSharing(
-                Uri.fromFile(everythingJpeg(encode(Bitmap.CompressFormat.JPEG))), "p.jpg");
+        Uri out = (lastResult = stripper.cleanImageForSharing(
+                Uri.fromFile(everythingJpeg(encode(Bitmap.CompressFormat.JPEG))), "p.jpg")).uri();
 
         assertNotNull(out);
-        File file = stripper.getLastProcessedOutputFile();
+        File file = lastResult.file();
         String bytes = text(file);
         for (String secret : JPEG_SECRETS) {
             assertFalse(secret + " survived", bytes.contains(secret));
         }
         assertEquals("6", new ExifInterface(file.getAbsolutePath()).getAttribute(ExifInterface.TAG_ORIENTATION));
-        CleanStats stats = stripper.getLastCleanStats();
+        CleanStats stats = lastResult.stats();
         assertTrue(stats.hadLocation);
         assertTrue(stats.hadName);
         assertTrue(stats.removedFields >= 12);
@@ -478,24 +481,24 @@ public class ImageContainerMetadataTest {
                 segment(0xFE, a("CREATOR: gd-jpeg v1.0")), Arrays.copyOfRange(plain, 2, plain.length)));
         MetadataStripper stripper = new MetadataStripper(app);
 
-        assertNotNull(stripper.stripExifDataForSharing(Uri.fromFile(source), "c.jpg"));
-        assertFalse(text(stripper.getLastProcessedOutputFile()).contains("gd-jpeg"));
+        assertNotNull((lastResult = stripper.cleanImageForSharing(Uri.fromFile(source), "c.jpg")).uri());
+        assertFalse(text(lastResult.file()).contains("gd-jpeg"));
     }
 
     @Test
     public void sharingAPng_removesTextChunks() throws Exception {
         MetadataStripper stripper = new MetadataStripper(app);
 
-        assertNotNull(stripper.stripExifDataForSharing(Uri.fromFile(everythingPng()), "p.png"));
-        assertFalse(text(stripper.getLastProcessedOutputFile()).contains("SECRET"));
+        assertNotNull((lastResult = stripper.cleanImageForSharing(Uri.fromFile(everythingPng()), "p.png")).uri());
+        assertFalse(text(lastResult.file()).contains("SECRET"));
     }
 
     @Test
     public void sharingAWebp_removesXmpAndUnknownChunks() throws Exception {
         MetadataStripper stripper = new MetadataStripper(app);
 
-        assertNotNull(stripper.stripExifDataForSharing(Uri.fromFile(everythingWebp()), "p.webp"));
-        assertFalse(text(stripper.getLastProcessedOutputFile()).contains("SECRET"));
+        assertNotNull((lastResult = stripper.cleanImageForSharing(Uri.fromFile(everythingWebp()), "p.webp")).uri());
+        assertFalse(text(lastResult.file()).contains("SECRET"));
     }
 
     @Test

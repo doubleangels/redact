@@ -15,6 +15,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.doubleangels.redact.media.SecureDelete;
+import com.doubleangels.redact.metadata.CleanResult;
 import com.doubleangels.redact.metadata.MetadataStripper;
 
 import org.junit.After;
@@ -97,9 +98,9 @@ public class CleanOnDeviceTest {
         assertMarkersPresent(source);
 
         MetadataStripper stripper = new MetadataStripper(context);
-        Uri cleaned = stripper.stripMetadataForSharing(Uri.fromFile(source), name, video);
-        assertNotNull("The clean of " + name + " failed", cleaned);
-        File output = stripper.getLastProcessedOutputFile();
+        CleanResult cleaned = stripper.cleanForSharing(Uri.fromFile(source), name, video);
+        assertTrue("The clean of " + name + " failed", cleaned.succeeded());
+        File output = cleaned.file();
         assertNotNull(output);
         made.add(output);
         assertTrue(output.length() > 0);
