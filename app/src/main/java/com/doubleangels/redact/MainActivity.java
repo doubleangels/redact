@@ -30,6 +30,7 @@ import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.color.DynamicColors;
 import com.doubleangels.redact.media.MediaPickerContracts;
 import com.doubleangels.redact.media.MediaSelector;
+import com.doubleangels.redact.media.MediaUriResolver;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.ui.FoldPosture;
 import com.doubleangels.redact.ui.FoldTracker;
@@ -389,7 +390,8 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
         String authority = uri.getAuthority();
-        return authority != null && !authority.startsWith(getPackageName());
+        return authority != null && !authority.startsWith(getPackageName())
+                && !MediaUriResolver.isOwnProvider(this, uri);
     }
 
     private static int tabFromIntent(@Nullable Intent intent) {

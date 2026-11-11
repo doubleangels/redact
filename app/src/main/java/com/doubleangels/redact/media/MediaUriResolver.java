@@ -2,6 +2,7 @@ package com.doubleangels.redact.media;
 
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -147,5 +148,31 @@ public final class MediaUriResolver {
         }
         String authority = uri.getAuthority();
         return authority != null && authority.contains("picker");
+    }
+
+    /**
+     * Whether a content URI names one of this app's own providers. Android drops a
+     * {@code userId@} prefix from an authority before it finds the provider, so
+     * {@code 0@<package>.fileprovider} still opens Redact's FileProvider: the prefix is dropped
+     * here too, and the system is asked who owns what is left. A URI with no authority, or an
+     * owner the lookup cannot name, counts as Redact's own so that callers refuse it.
+     */
+    public static boolean isOwnProvider(@NonNull Context context, @NonNull Uri uri) {
+        String authority = uri.getAuthority();
+        if (authority == null) {
+            return true;
+        }
+        authority = authority.substring(authority.lastIndexOf('@') + 1);
+        if (authority.isEmpty()) {
+            return true;
+        }
+        String packageName = context.getPackageName();
+        try {
+            ProviderInfo info = context.getPackageManager().resolveContentProvider(authority, 0);
+            return info != null && packageName.equals(info.packageName);
+        } catch (RuntimeException e) {
+            SentryManager.log("The provider owner lookup failed: " + e.getClass().getSimpleName() + ".");
+            return true;
+        }
     }
 }

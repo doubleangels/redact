@@ -398,6 +398,39 @@ public class MainActivityTest {
         assertEquals(R.id.navigation_clean, launchedTab(own));
     }
 
+    /**
+     * Android drops a {@code userId@} prefix from an authority before it finds the provider, so
+     * {@code 0@<package>.fileprovider} names Redact's own FileProvider and is refused everywhere.
+     */
+    @Test
+    public void redactsOwnProvider_withAUserIdPrefix_isNotOpenedAnywhere() {
+        android.net.Uri own = android.net.Uri.parse(
+                "content://0@com.doubleangels.redact.fileprovider/processed/a.jpg");
+
+        android.content.Intent view = new android.content.Intent(android.content.Intent.ACTION_VIEW)
+                .setDataAndType(own, "image/jpeg");
+        assertEquals(R.id.navigation_clean, launchedTab(view));
+        controller.pause().stop().destroy();
+
+        android.content.Intent scan = new android.content.Intent(android.content.Intent.ACTION_SEND)
+                .setType("image/jpeg")
+                .putExtra(android.content.Intent.EXTRA_STREAM, own);
+        assertEquals(R.id.navigation_clean, launchedTab(scan));
+        controller.pause().stop().destroy();
+
+        android.content.Intent convert = convertShare(android.content.Intent.ACTION_SEND)
+                .putExtra(android.content.Intent.EXTRA_STREAM, own);
+        assertEquals(R.id.navigation_convert, launchedTab(convert));
+        assertEquals(controller.get().getString(R.string.share_error_unsupported_media),
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
+        controller.pause().stop().destroy();
+
+        assertEquals(R.id.navigation_censor, launchedTab(censorShare(own)));
+        assertEquals(controller.get().getString(R.string.share_error_unsupported_media),
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
+        assertNull(censorViewModel().getSource());
+    }
+
     // ---- Redact › Convert ----------------------------------------------------------------
 
     private static android.net.Uri sharedImage(int n) {

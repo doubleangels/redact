@@ -359,6 +359,33 @@ public class ShareHandlerActivityFlowsTest {
         assertEquals(0, inboundSnapshots().length);
     }
 
+    /**
+     * Android drops a {@code userId@} prefix from an authority before it finds the provider, so
+     * {@code 0@<package>.fileprovider} opens Redact's own FileProvider (Robolectric's resolver does
+     * the same). The test provider stands in for it, serving a file the sender should not reach.
+     */
+    @Test
+    public void inboundContentUri_fromTheAppsOwnFileProvider_withAUserIdPrefix_isRejected() throws IOException {
+        TestMediaProvider.file = jpeg();
+        TestMediaProvider.type = "image/jpeg";
+        Robolectric.setupContentProvider(TestMediaProvider.class, app.getPackageName() + ".fileprovider");
+        Uri own = Uri.parse("content://0@" + app.getPackageName() + ".fileprovider/processed/a.jpg");
+
+        ShareHandlerActivity activity = launch(send("image/jpeg", own));
+        idle();
+        assertTrue(activity.isFinishing());
+        assertEquals(0, inboundSnapshots().length);
+        controller.pause().stop().destroy();
+
+        Intent multiple = new Intent(Intent.ACTION_SEND_MULTIPLE);
+        multiple.setType("image/*");
+        multiple.putParcelableArrayListExtra(Intent.EXTRA_STREAM, new ArrayList<>(Arrays.asList(own)));
+        ShareHandlerActivity second = launch(multiple);
+        idle();
+        assertTrue(second.isFinishing());
+        assertEquals(0, inboundSnapshots().length);
+    }
+
     @Test
     public void newIntent_withUnsupportedAction_finishesWithAnError() {
         ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(new File("/nope/x.jpg"))));

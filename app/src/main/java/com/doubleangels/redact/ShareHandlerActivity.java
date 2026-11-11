@@ -1076,8 +1076,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
         if ("content".equalsIgnoreCase(scheme)) {
             // Redact's own FileProvider serves its working and converted files. The provider is not
             // exported, but Redact can open it, so a share naming it would let the sender have
-            // Redact read and re-share files the sender itself cannot see.
-            return !(getPackageName() + ".fileprovider").equalsIgnoreCase(uri.getAuthority());
+            // Redact read and re-share files the sender itself cannot see. The second check also
+            // catches a userId@ prefix, which Android drops before it finds the provider.
+            return !(getPackageName() + ".fileprovider").equalsIgnoreCase(uri.getAuthority())
+                    && !MediaUriResolver.isOwnProvider(this, uri);
         }
         return "file".equalsIgnoreCase(scheme) && !pointsIntoOwnPrivateStorage(uri);
     }

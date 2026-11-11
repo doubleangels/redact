@@ -7,6 +7,10 @@ import static org.junit.Assert.assertTrue;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.ContextWrapper;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.net.Uri;
 
@@ -18,6 +22,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
 
 @RunWith(RobolectricTestRunner.class)
 public class MediaUriResolverTest {
@@ -132,5 +137,62 @@ public class MediaUriResolverTest {
                 String[] selectionArgs) {
             return 0;
         }
+    }
+
+    // ---- isOwnProvider -----------------------------------------------------------------------
+
+    private static ProviderInfo provider(String packageName, String authority) {
+        ProviderInfo info = new ProviderInfo();
+        info.packageName = packageName;
+        info.name = packageName + ".Provider";
+        info.authority = authority;
+        return info;
+    }
+
+    @Test
+    public void isOwnProvider_dropsAUserIdPrefixAsAndroidDoes() {
+        String fileProvider = context.getPackageName() + ".fileprovider";
+        assertTrue(MediaUriResolver.isOwnProvider(context, Uri.parse("content://" + fileProvider + "/processed/a.jpg")));
+        assertTrue(MediaUriResolver.isOwnProvider(context, Uri.parse("content://0@" + fileProvider + "/processed/a.jpg")));
+        assertTrue(MediaUriResolver.isOwnProvider(context, Uri.parse("content://10@" + fileProvider + "/processed/a.jpg")));
+    }
+
+    @Test
+    public void isOwnProvider_asksTheSystemWhoOwnsTheAuthority() {
+        Shadows.shadowOf(context.getPackageManager())
+                .addOrUpdateProvider(provider(context.getPackageName(), "media.cache.internal"));
+        assertTrue(MediaUriResolver.isOwnProvider(context, Uri.parse("content://0@media.cache.internal/x")));
+
+        PackageInfo other = new PackageInfo();
+        other.packageName = "com.example.gallery";
+        Shadows.shadowOf(context.getPackageManager()).installPackage(other);
+        Shadows.shadowOf(context.getPackageManager())
+                .addOrUpdateProvider(provider("com.example.gallery", "com.example.gallery.files"));
+        assertFalse(MediaUriResolver.isOwnProvider(context, Uri.parse("content://com.example.gallery.files/1")));
+        assertFalse(MediaUriResolver.isOwnProvider(context, Uri.parse("content://0@com.example.gallery.files/1")));
+    }
+
+    @Test
+    public void isOwnProvider_acceptsAProviderTheSystemCannotName() {
+        assertFalse(MediaUriResolver.isOwnProvider(context,
+                Uri.parse("content://com.android.externalstorage.documents/document/primary%3Aa.jpg")));
+    }
+
+    @Test
+    public void isOwnProvider_refusesAUriWithNoAuthority() {
+        assertTrue(MediaUriResolver.isOwnProvider(context, Uri.parse("content:///x")));
+        assertTrue(MediaUriResolver.isOwnProvider(context, Uri.parse("content://0@/x")));
+        assertTrue(MediaUriResolver.isOwnProvider(context, new Uri.Builder().scheme("content").build()));
+    }
+
+    @Test
+    public void isOwnProvider_refusesWhenTheLookupFails() {
+        Context broken = new ContextWrapper(context) {
+            @Override
+            public PackageManager getPackageManager() {
+                throw new IllegalStateException("package manager unavailable");
+            }
+        };
+        assertTrue(MediaUriResolver.isOwnProvider(broken, Uri.parse("content://com.example.gallery.files/1")));
     }
 }
