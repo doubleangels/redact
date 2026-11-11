@@ -100,10 +100,13 @@ public class MainActivity extends AppCompatActivity {
         return !AppPreferences.hasSeenOnboarding(this);
     }
 
+    /** This instance's own callback, so destroying it leaves another instance's in place. */
+    private final Runnable permissionFlowCompleted = this::notifyVisibleFragmentPermissionFlowCompleted;
+
     @Override
     protected void onDestroy() {
-        PermissionManager.setInitialFlowCompletedCallback(null);
-        PermissionManager.clearRuntimePermissionRequestOnDestroy();
+        PermissionManager.removeInitialFlowCompletedCallback(permissionFlowCompleted);
+        PermissionManager.clearRuntimePermissionRequestOnDestroy(this);
         super.onDestroy();
     }
 
@@ -209,8 +212,7 @@ public class MainActivity extends AppCompatActivity {
             animateTabSwitches = true;
             SentryManager.setCustomKey("app_started", true);
 
-            PermissionManager.setInitialFlowCompletedCallback(
-                    this::notifyVisibleFragmentPermissionFlowCompleted);
+            PermissionManager.addInitialFlowCompletedCallback(permissionFlowCompleted);
             if (savedInstanceState == null && shouldShowOnboarding()) {
                 // The introduction asks for the permissions itself.
                 onboardingLauncher.launch(new Intent(this, OnboardingActivity.class));

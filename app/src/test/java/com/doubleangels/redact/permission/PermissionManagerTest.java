@@ -143,7 +143,7 @@ public class PermissionManagerTest {
                 Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED,
                 Manifest.permission.ACCESS_MEDIA_LOCATION, Manifest.permission.POST_NOTIFICATIONS);
         AtomicBoolean completed = new AtomicBoolean(false);
-        PermissionManager.setInitialFlowCompletedCallback(() -> completed.set(true));
+        PermissionManager.addInitialFlowCompletedCallback(() -> completed.set(true));
 
         PermissionManager.prepareInitialPermissionFlow();
         PermissionManager.startInitialPermissionFlow(activity);
@@ -153,6 +153,48 @@ public class PermissionManagerTest {
         assertTrue(AppPreferences.hasCompletedInitialPermissionsPrompt(activity));
         assertTrue(completed.get());
         assertNull(Shadows.shadowOf(activity).getLastRequestedPermission());
+    }
+
+    @Test
+    public void initialFlow_runsEveryRegisteredCallbackButARemovedOne() {
+        grant(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO,
+                Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED,
+                Manifest.permission.ACCESS_MEDIA_LOCATION, Manifest.permission.POST_NOTIFICATIONS);
+        AtomicBoolean first = new AtomicBoolean(false);
+        AtomicBoolean second = new AtomicBoolean(false);
+        Runnable firstCallback = () -> first.set(true);
+        PermissionManager.addInitialFlowCompletedCallback(firstCallback);
+        PermissionManager.addInitialFlowCompletedCallback(() -> second.set(true));
+        PermissionManager.removeInitialFlowCompletedCallback(firstCallback);
+
+        PermissionManager.prepareInitialPermissionFlow();
+        PermissionManager.startInitialPermissionFlow(activity);
+        ShadowLooper.idleMainLooper();
+
+        assertFalse(first.get());
+        assertTrue(second.get());
+    }
+
+    private static boolean requestInFlight() throws Exception {
+        java.lang.reflect.Field f = PermissionManager.class.getDeclaredField("runtimePermissionRequestInFlight");
+        f.setAccessible(true);
+        return f.getBoolean(null);
+    }
+
+    @Test
+    public void destroyingAnotherActivity_keepsItsDialogInFlight() throws Exception {
+        deny(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO,
+                Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED);
+        Activity other = Robolectric.buildActivity(Activity.class).setup().get();
+
+        PermissionManager.requestMissingRuntimePermissions(activity);
+        assertTrue(requestInFlight());
+
+        PermissionManager.clearRuntimePermissionRequestOnDestroy(other);
+        assertTrue(requestInFlight());
+
+        PermissionManager.clearRuntimePermissionRequestOnDestroy(activity);
+        assertFalse(requestInFlight());
     }
 
     @Test

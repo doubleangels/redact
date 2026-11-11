@@ -431,6 +431,40 @@ public class MainActivityTest {
         assertNull(censorViewModel().getSource());
     }
 
+    @SuppressWarnings("unchecked")
+    private static java.util.Set<Runnable> flowCallbacks() throws Exception {
+        java.lang.reflect.Field f = PermissionManager.class.getDeclaredField("initialFlowCompletedCallbacks");
+        f.setAccessible(true);
+        return (java.util.Set<Runnable>) f.get(null);
+    }
+
+    private static Runnable flowCallbackOf(MainActivity activity) throws Exception {
+        java.lang.reflect.Field f = MainActivity.class.getDeclaredField("permissionFlowCompleted");
+        f.setAccessible(true);
+        return (Runnable) f.get(activity);
+    }
+
+    /**
+     * Another app can open a second MainActivity in its own task (VIEW and SEND are exported).
+     * Destroying one must leave the other's permission flow callback in place.
+     */
+    @Test
+    public void destroyingOneOfTwoInstances_keepsTheOthersPermissionCallback() throws Exception {
+        ActivityController<MainActivity> first = Robolectric.buildActivity(MainActivity.class).setup();
+        MainActivity firstActivity = first.get();
+        MainActivity second = launch();
+        Runnable firstCallback = flowCallbackOf(firstActivity);
+        Runnable secondCallback = flowCallbackOf(second);
+
+        first.pause().stop().destroy();
+
+        assertTrue(flowCallbacks().contains(secondCallback));
+        assertTrue(!flowCallbacks().contains(firstCallback));
+        controller.pause().stop().destroy();
+        assertTrue(!flowCallbacks().contains(secondCallback));
+        controller = null;
+    }
+
     // ---- Redact › Convert ----------------------------------------------------------------
 
     private static android.net.Uri sharedImage(int n) {
