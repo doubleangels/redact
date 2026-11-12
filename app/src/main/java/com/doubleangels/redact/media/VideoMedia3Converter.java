@@ -1417,7 +1417,8 @@ public final class VideoMedia3Converter {
      */
     @VisibleForTesting
     static boolean isUnsupportedInput(@NonNull ExportException e) {
-        if (e.errorCode == ExportException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED) {
+        if (e.errorCode == ExportException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED
+                || isLegacyVideoDecodeFailure(e)) {
             return true;
         }
         Throwable t = e.getCause();
@@ -1431,6 +1432,23 @@ public final class VideoMedia3Converter {
             }
         }
         return false;
+    }
+
+    /**
+     * Whether the video decoder gave out mid-export on MPEG-4 Part 2 or H.263. Android decodes these
+     * old codecs only in their basic profiles (an Advanced Simple Profile MPEG-4 stream fails in
+     * {@code c2.android.mpeg4}, REDACT-26), usually with no other decoder to fall back to, so the
+     * video is one this phone cannot read rather than a processing fault.
+     */
+    @VisibleForTesting
+    static boolean isLegacyVideoDecodeFailure(@NonNull ExportException e) {
+        ExportException.CodecInfo codec = e.codecInfo;
+        if (e.errorCode != ExportException.ERROR_CODE_DECODING_FAILED
+                || codec == null || !codec.isVideo || !codec.isDecoder) {
+            return false;
+        }
+        String format = codec.configurationFormat;
+        return format.contains(MimeTypes.VIDEO_MP4V) || format.contains(MimeTypes.VIDEO_H263);
     }
 
     /**
