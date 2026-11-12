@@ -25,7 +25,6 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowToast;
 
-import java.util.List;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 31)
@@ -73,7 +72,7 @@ public class OutputDestinationTest {
         assertEquals(FakeDocumentsProvider.AUTHORITY, out.getAuthority());
         assertTrue(FakeDocumentsProvider.fileFor("primary:Pictures/Private/a.jpg").exists());
         assertTrue(FakeMediaStoreProvider.entries().isEmpty());
-        assertTrue(OutputDestination.isInChosenFolder(app, out));
+        assertTrue(DocumentsContract.getDocumentId(out).startsWith("primary:Pictures/Private/"));
         // A chosen folder holds images only; videos still use the default.
         OutputDestination.create(app, true, "b.mp4", "video/mp4");
         assertEquals(1, FakeMediaStoreProvider.entries().size());
@@ -211,14 +210,6 @@ public class OutputDestinationTest {
 
         FakeDocumentsProvider.readOnly = true;
         assertFalse(OutputDestination.isUsable(app, tree));
-    }
-
-    @Test
-    public void chosenRelativePaths_listsStorageFoldersOnly() {
-        AppPreferences.setOutputTree(app, false, FakeDocumentsProvider.tree("primary:Pictures/Private"));
-        AppPreferences.setOutputTree(app, true,
-                DocumentsContract.buildTreeDocumentUri("com.example.cloud", "folder-42"));
-        assertEquals(List.of("Pictures/Private"), OutputDestination.chosenRelativePaths(app));
     }
 
     @Test

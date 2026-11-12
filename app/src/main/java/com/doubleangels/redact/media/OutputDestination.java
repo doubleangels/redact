@@ -349,66 +349,6 @@ public final class OutputDestination {
         }
     }
 
-    /**
-     * True when {@code uri} is a file inside a folder the user chose as an output folder, reached
-     * through the file browser's storage view (its document ID is a path inside the chosen folder).
-     * Files reached through MediaStore are matched by {@link #chosenRelativePaths} instead.
-     */
-    public static boolean isInChosenFolder(@NonNull Context context, @NonNull Uri uri) {
-        if (!isDocumentAuthority(uri)) {
-            return false;
-        }
-        String docId;
-        try {
-            docId = DocumentsContract.getDocumentId(uri);
-        } catch (Exception e) {
-            return false;
-        }
-        for (boolean video : new boolean[] {false, true}) {
-            Uri tree = AppPreferences.getOutputTree(context, video);
-            if (tree == null || !uri.getAuthority().equals(tree.getAuthority())) {
-                continue;
-            }
-            String treeId;
-            try {
-                treeId = DocumentsContract.getTreeDocumentId(tree);
-            } catch (Exception e) {
-                continue;
-            }
-            String prefix = treeId.endsWith(":") || treeId.endsWith("/") ? treeId : treeId + "/";
-            if (docId.equals(treeId) || docId.startsWith(prefix)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * The MediaStore relative paths of the chosen output folders on device or SD card storage,
-     * such as {@code Pictures/Private}, without a trailing slash. Folders from other providers have
-     * no such path and are left out.
-     */
-    @NonNull
-    public static List<String> chosenRelativePaths(@NonNull Context context) {
-        List<String> paths = new ArrayList<>();
-        for (boolean video : new boolean[] {false, true}) {
-            Uri tree = AppPreferences.getOutputTree(context, video);
-            if (tree == null || !EXTERNAL_STORAGE_AUTHORITY.equals(tree.getAuthority())) {
-                continue;
-            }
-            try {
-                String id = DocumentsContract.getTreeDocumentId(tree);
-                String path = trimSlashes(id.substring(id.indexOf(':') + 1));
-                if (!path.isEmpty()) {
-                    paths.add(path);
-                }
-            } catch (Exception ignored) {
-                // Not a tree URI; nothing to match.
-            }
-        }
-        return paths;
-    }
-
     private static boolean isDocumentAuthority(@NonNull Uri uri) {
         return "content".equals(uri.getScheme())
                 && uri.getPathSegments().contains("document");
