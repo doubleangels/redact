@@ -188,7 +188,7 @@ public class CensorFragmentTest {
         // The effect button names the current effect, and follows a new choice.
         View effectButton = root.findViewById(R.id.censorEffectButton);
         assertEquals(activity.getString(R.string.censor_effect_current,
-                        activity.getString(R.string.censor_effect_pixelate)),
+                        activity.getString(R.string.censor_effect_black)),
                 effectButton.getContentDescription().toString());
         ((CensorFragment) fragment("censor")).chooseEffect(com.doubleangels.redact.media.CensorEffects.Effect.BLUR);
         idle();
@@ -556,13 +556,14 @@ public class CensorFragmentTest {
         assertNotNull(menu);
         assertEquals(com.doubleangels.redact.media.CensorEffects.Effect.values().length, menu.getMenu().size());
 
-        int black = com.doubleangels.redact.media.CensorEffects.Effect.BLACK.ordinal();
-        menu.getMenu().performIdentifierAction(black, 0);
+        // Not the default, so the menu has to change something for the check to pass.
+        int blur = com.doubleangels.redact.media.CensorEffects.Effect.BLUR.ordinal();
+        menu.getMenu().performIdentifierAction(blur, 0);
         idle();
 
-        assertEquals(com.doubleangels.redact.media.CensorEffects.Effect.BLACK, vm.getEffect().getValue());
+        assertEquals(com.doubleangels.redact.media.CensorEffects.Effect.BLUR, vm.getEffect().getValue());
         // The choice is remembered for later photos; put the default back for the other tests.
-        vm.setEffect(com.doubleangels.redact.media.CensorEffects.Effect.PIXELATE);
+        vm.setEffect(com.doubleangels.redact.media.CensorEffects.Effect.BLACK);
     }
 
     @Test

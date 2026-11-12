@@ -53,6 +53,12 @@ public class CensorViewModel extends AndroidViewModel {
      */
     static final int PREVIEW_MAX_DIMENSION = 3072;
     /**
+     * The effect until the user picks one. Black keeps nothing of what it covers; Pixelate and Blur
+     * keep one noisy average colour per block, which attacks on pixelated text work from. An effect
+     * the user chose before stays chosen.
+     */
+    static final CensorEffects.Effect DEFAULT_EFFECT = CensorEffects.Effect.BLACK;
+    /**
      * The limit on a phone with a small heap: up to three previews are alive at once (the photo,
      * the covered copy and a spare), about 38 MB each at 3072 x 3072 but 17 MB at 2048.
      */
@@ -73,7 +79,7 @@ public class CensorViewModel extends AndroidViewModel {
     private final MutableLiveData<Bitmap> preview = new MutableLiveData<>();
     private final MutableLiveData<String> fileName = new MutableLiveData<>();
     private final MutableLiveData<CensorEffects.Effect> effect =
-            new MutableLiveData<>(CensorEffects.Effect.PIXELATE);
+            new MutableLiveData<>(DEFAULT_EFFECT);
     /** Bumped whenever the regions, the undo history or the saved copy change. */
     private final MutableLiveData<Integer> historyVersion = new MutableLiveData<>(0);
     /** A photo waiting for the user to discard unsaved edits before it replaces the current one. */
@@ -142,7 +148,7 @@ public class CensorViewModel extends AndroidViewModel {
                 // A name from another version: use the default.
             }
         }
-        return CensorEffects.Effect.PIXELATE;
+        return DEFAULT_EFFECT;
     }
 
     @NonNull
@@ -580,7 +586,7 @@ public class CensorViewModel extends AndroidViewModel {
     @NonNull
     private CensorEffects.Effect effectOrDefault() {
         CensorEffects.Effect chosen = effect.getValue();
-        return chosen != null ? chosen : CensorEffects.Effect.PIXELATE;
+        return chosen != null ? chosen : DEFAULT_EFFECT;
     }
 
     @Nullable

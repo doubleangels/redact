@@ -187,17 +187,27 @@ public class CensorViewModelTest {
 
     @Test
     public void theEffect_isRememberedForTheNextEditor() {
-        assertEquals(CensorEffects.Effect.PIXELATE, vm.getEffect().getValue());
+        assertEquals(CensorEffects.Effect.BLACK, vm.getEffect().getValue());
         vm.setEffect(CensorEffects.Effect.BLUR);
 
         CensorViewModel next = new CensorViewModel(RuntimeEnvironment.getApplication());
         assertEquals(CensorEffects.Effect.BLUR, next.getEffect().getValue());
     }
 
+    /** Black keeps nothing of what it covers; Pixelate and Blur keep an average colour per block. */
     @Test
-    public void anUnknownSavedEffect_fallsBackToPixelate() {
-        com.doubleangels.redact.AppPreferences.setCensorEffect(RuntimeEnvironment.getApplication(), "SWIRL");
+    public void aFirstEditor_startsOnBlack_butAnEffectChosenBeforeIsKept() {
+        assertEquals(CensorEffects.Effect.BLACK,
+                CensorViewModel.savedEffect(RuntimeEnvironment.getApplication()));
+        com.doubleangels.redact.AppPreferences.setCensorEffect(RuntimeEnvironment.getApplication(), "PIXELATE");
         assertEquals(CensorEffects.Effect.PIXELATE,
+                CensorViewModel.savedEffect(RuntimeEnvironment.getApplication()));
+    }
+
+    @Test
+    public void anUnknownSavedEffect_fallsBackToBlack() {
+        com.doubleangels.redact.AppPreferences.setCensorEffect(RuntimeEnvironment.getApplication(), "SWIRL");
+        assertEquals(CensorEffects.Effect.BLACK,
                 CensorViewModel.savedEffect(RuntimeEnvironment.getApplication()));
     }
 
