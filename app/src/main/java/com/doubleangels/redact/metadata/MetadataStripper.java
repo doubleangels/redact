@@ -103,11 +103,10 @@ public class MetadataStripper {
      */
     private ProgressCallback progressCallback;
 
-    @VisibleForTesting
+    /** Read by the cleaners in this package; tests set them through the setters below. */
     @Nullable
     File testFastStripVideoMetadataOverride;
 
-    @VisibleForTesting
     boolean testForceOutputDirMkdirsFailure;
 
     @VisibleForTesting
@@ -439,7 +438,6 @@ public class MetadataStripper {
      * @return A random string of 12 characters (alphanumeric)
      */
     @NonNull
-    @VisibleForTesting
     String generateShortRandomName() {
         return MediaFileNames.generateShortRandomName();
     }

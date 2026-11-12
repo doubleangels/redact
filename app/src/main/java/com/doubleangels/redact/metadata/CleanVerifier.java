@@ -51,7 +51,6 @@ final class CleanVerifier {
     }
 
     /** Source location/date used to detect preserved privacy metadata after cleaning. */
-    @VisibleForTesting
     static final class VideoPrivacySnapshot {
         @Nullable final String location;
         @Nullable final String date;
