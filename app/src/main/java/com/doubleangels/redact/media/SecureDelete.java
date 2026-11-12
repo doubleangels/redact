@@ -55,12 +55,26 @@ public final class SecureDelete {
                 raf.getFD().sync();
             }
 
-            return file.delete();
+            return unlink(file);
         } catch (Exception e) {
             // The class only: a FileNotFoundException's message holds the file's path.
             SentryManager.log("An error occurred during secure file deletion: "
                     + e.getClass().getSimpleName() + ".");
-            return file.delete();
+            SentryManager.count("secure_delete.fallback", 1, "outcome", "overwrite_failed",
+                    "error_type", e.getClass().getSimpleName());
+            return unlink(file);
         }
+    }
+
+    /**
+     * Deletes the file and counts it when that fails: a working copy of original media may then
+     * stay behind until the next sweep.
+     */
+    private static boolean unlink(@NonNull File file) {
+        boolean deleted = file.delete();
+        if (!deleted) {
+            SentryManager.count("secure_delete.fallback", 1, "outcome", "unlink_failed");
+        }
+        return deleted;
     }
 }

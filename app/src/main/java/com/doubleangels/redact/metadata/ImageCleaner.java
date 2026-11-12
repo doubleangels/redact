@@ -316,6 +316,7 @@ final class ImageCleaner {
         } catch (IOException | RuntimeException e) {
             SentryManager.log("The Motion Photo's video could not be kept, so the photo becomes a still: "
                     + e.getClass().getSimpleName() + ".");
+            SentryManager.count("clean.part_dropped", 1, "media_type", "image", "outcome", "motion_video");
             if (video != null && video.exists()) {
                 host.secureDeleteFile(video);
             }

@@ -479,6 +479,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     // is really a single failure. Drop this item instead, but count it so the
                     // user still sees the partial-success message.
                     snapshotFailCount++;
+                    SentryManager.count("share.snapshot.failure", 1, "error_type",
+                            e instanceof FileNotFoundException ? "not_found" : e.getClass().getSimpleName());
                     if (e instanceof FileNotFoundException) {
                         // The sharing app handed us a URI whose item no longer exists (deleted,
                         // or a stale cloud/gallery entry). Nothing on our side to fix.

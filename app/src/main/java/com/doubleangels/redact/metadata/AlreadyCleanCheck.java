@@ -60,9 +60,11 @@ public final class AlreadyCleanCheck {
             @NonNull Context context, @NonNull List<MediaItem> items, long budgetMs) {
         long deadline = SystemClock.elapsedRealtime() + budgetMs;
         List<Status> result = new ArrayList<>(items.size());
+        int timedOut = 0;
         for (MediaItem item : items) {
             if (SystemClock.elapsedRealtime() > deadline) {
                 result.add(Status.UNKNOWN);
+                timedOut++;
                 continue;
             }
             Status status;
@@ -70,8 +72,14 @@ public final class AlreadyCleanCheck {
                 status = assessItem(context, item);
             } catch (Exception e) {
                 status = Status.UNKNOWN;
+                SentryManager.count("already_clean.check", 1, "outcome", "error",
+                        "error_type", e.getClass().getSimpleName());
             }
             result.add(status);
+        }
+        if (timedOut > 0) {
+            // Slow (usually cloud-backed) files used up the time budget; they are cleaned as usual.
+            SentryManager.count("already_clean.check", timedOut, "outcome", "timed_out");
         }
         return result;
     }

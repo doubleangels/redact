@@ -27,7 +27,11 @@ public class UnsupportedFormatTagTest {
     @Test
     public void theScrubber_leavesTheseValuesAlone() {
         for (String value : new String[] {"image/heic", "application/pdf", "video/mp4", "low_storage",
-                "advisory", "downscaled", "full_size", "saved_copy_differs", "fast_failed", "rebuild_failed"}) {
+                "advisory", "downscaled", "full_size", "saved_copy_differs", "fast_failed", "rebuild_failed",
+                "1080p", "video/avc", "video/hevc", "copy", "ProviderCreatedNothing", "SecurityException",
+                "ERROR_CODE_ENCODING_FAILED", "STALLED", "not_found", "timed_out", "overwrite_failed",
+                "unlink_failed", "motion_video", "gain_map", "recording_date", "webm_kept", "decode_retry",
+                "censor_preview_scale"}) {
             assertEquals(value, SentryPrivacyScrubber.scrub(value));
         }
     }

@@ -1,5 +1,6 @@
 package com.doubleangels.redact;
 
+import com.doubleangels.redact.sentry.SentryManager;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -147,6 +148,10 @@ public final class CacheCleanup {
         }
         // Thumbnails earlier versions kept in Glide's disk cache, which is now off.
         File thumbnailCache = cacheDir != null ? new File(cacheDir, GLIDE_DISK_CACHE_DIR) : null;
+        if (!orphans.isEmpty()) {
+            // Working files from a clean that never finished: the process died partway.
+            SentryManager.count("cache.orphans_found", orphans.size());
+        }
         if (thumbnailCache != null && thumbnailCache.isDirectory()) {
             collectFilesOlderThan(thumbnailCache, Long.MAX_VALUE, orphans);
         }

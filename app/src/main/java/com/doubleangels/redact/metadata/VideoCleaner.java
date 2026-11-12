@@ -450,6 +450,7 @@ final class VideoCleaner {
             VideoContainerMetadata.writeMovieTimes(video, times);
         } catch (IOException e) {
             SentryManager.log("The recording date could not be kept: " + e.getClass().getSimpleName() + ".");
+            SentryManager.count("clean.part_dropped", 1, "media_type", "video", "outcome", "recording_date");
         }
     }
 
@@ -657,6 +658,7 @@ final class VideoCleaner {
                     videoFormat.getInteger(MediaFormat.KEY_COLOR_RANGE, 0));
             if (vpcC == null) {
                 SentryManager.log("The WebM video does not start with a VP9 key frame, so it stays WebM.");
+                SentryManager.count("clean.part_dropped", 1, "media_type", "video", "outcome", "webm_kept");
                 return null;
             }
 
@@ -706,6 +708,7 @@ final class VideoCleaner {
             }
             SentryManager.log("The WebM could not be copied into an MP4, so it stays WebM: "
                     + e.getClass().getSimpleName() + ".");
+            SentryManager.count("clean.part_dropped", 1, "media_type", "video", "outcome", "webm_kept");
             return null;
         } finally {
             try { extractor.release(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }

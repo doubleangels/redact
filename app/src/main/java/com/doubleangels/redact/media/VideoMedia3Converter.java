@@ -822,6 +822,7 @@ public final class VideoMedia3Converter {
     static void warnDownscaled(@NonNull Context app, int shortSide) {
         SentryManager.log(
                 "The video was saved at " + shortSide + "p, smaller than its source.");
+        SentryManager.count("video.downscaled", 1, "outcome", shortSide + "p");
         String message = app.getString(R.string.video_downscaled, shortSide);
         new Handler(Looper.getMainLooper()).post(
                 () -> Toast.makeText(app, message, Toast.LENGTH_LONG).show());
@@ -1226,6 +1227,10 @@ public final class VideoMedia3Converter {
         SentryManager.log(describeAttemptFailure(
                 videoMimeType, outputShortSide, reason, progress,
                 SystemClock.elapsedRealtime() - startedAt));
+        // The codec alone (video/avc), or "copy" for a stream copy; the reason is Media3's error
+        // code name, STALLED or an exception class.
+        String codec = videoMimeType.startsWith("video/") ? videoMimeType.split(" ", 2)[0] : "copy";
+        SentryManager.count("video.transcode.failure", 1, "mime_type", codec, "error_type", reason);
     }
 
     /**

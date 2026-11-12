@@ -101,13 +101,15 @@ public final class OutputDestination {
                     markPendingDocument(context, doc);
                     return doc;
                 }
-                failure = "the provider created nothing";
+                failure = "ProviderCreatedNothing";
             } catch (Exception e) {
                 failure = e.getClass().getSimpleName();
             }
             // Folder deleted, permission revoked or provider gone: save to the default instead of
             // failing the whole job, and tell the user once so they know where to look.
             SentryManager.log("The chosen output folder could not be used: " + failure + ".");
+            SentryManager.count("output.folder_fallback", 1,
+                    "media_type", video ? "video" : "image", "error_type", failure);
             warnFallback(context, tree, video);
         }
 
