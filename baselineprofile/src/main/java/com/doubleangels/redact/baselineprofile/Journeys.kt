@@ -67,7 +67,13 @@ internal fun finishIntroduction(device: UiDevice) {
         allowPermissionPrompts(device)
         val progress = device.findObject(By.res(PACKAGE, "onboardingProgress")) ?: return
         // "Step 8 of 9": the step number is the first number in the description.
-        val step = Regex("\\d+").find(progress.contentDescription ?: "")?.value?.toInt()
+        // The page can redraw between finding the progress bar and reading it; look again next time.
+        val description = try {
+            progress.contentDescription ?: ""
+        } catch (e: StaleObjectException) {
+            return@repeat
+        }
+        val step = Regex("\\d+").find(description)?.value?.toInt()
         val button = if (step == CRASH_REPORTS_STEP) "onboardingSecondary" else "onboardingPrimary"
         clickWhenShown(device, By.res(PACKAGE, button), 2_000)
     }
