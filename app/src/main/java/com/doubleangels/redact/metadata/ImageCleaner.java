@@ -472,7 +472,7 @@ final class ImageCleaner {
         try {
             mimeType = contentResolver.getType(sourceUri);
         } catch (Exception e) {
-            SentryManager.logEvent("metadata", "The MIME type for the source could not be read.");
+            SentryManager.logEvent("Metadata", "The MIME type for the source could not be read.");
         }
         return FormatConverter.resolveCleanFormat(content, MetadataStripper.extensionFromFilename(originalFilename), mimeType);
     }
@@ -822,12 +822,15 @@ final class ImageCleaner {
             }
             return outputFormat;
         }
+        // Censor's freshly encoded pixels never held metadata, so only real cleans count a path.
+        boolean rebuildFailed = false;
         if ((".heic".equalsIgnoreCase(outputFormat.extension) || ".avif".equalsIgnoreCase(outputFormat.extension))
                 && HeifContainerMetadata.isHeif(source)) {
             // Rebuilt around its coded pictures, which keeps the full resolution, 10-bit colour
             // and any HDR gain map that a decode and encode would lose.
             try {
                 HeifContainerMetadata.sanitize(source, target, motion);
+                countPicturePath(fromPixels, "rebuilt");
                 return outputFormat;
             } catch (IOException | RuntimeException e) {
                 if (fromPixels) {
@@ -841,28 +844,33 @@ final class ImageCleaner {
                 }
                 SentryManager.log("The HEIC or AVIF could not be rebuilt without its metadata, so the app is re-encoding it: "
                         + e.getClass().getSimpleName() + ".");
+                rebuildFailed = true;
             }
         }
         if (".gif".equalsIgnoreCase(outputFormat.extension) && GifContainerMetadata.isGif(source)) {
             // Rebuilt block by block, which keeps every frame, its timing and transparency.
             try {
                 GifContainerMetadata.sanitize(source, target);
+                countPicturePath(fromPixels, "rebuilt");
                 return outputFormat;
             } catch (IOException | RuntimeException e) {
                 SentryManager.log("The GIF could not be rebuilt without its metadata, so the app is re-encoding it: "
                         + e.getClass().getSimpleName() + ".");
+                rebuildFailed = true;
             }
         }
         if (expected != ImageContainerMetadata.Format.OTHER
                 && ImageContainerMetadata.sniff(source) == expected) {
             try {
                 ImageContainerMetadata.sanitize(source, target, motion);
+                countPicturePath(fromPixels, "rebuilt");
                 return outputFormat;
             } catch (IOException | RuntimeException e) {
                 // A structure the walker could not follow, however it failed: the pixels are
                 // re-encoded instead, which carries no metadata either.
                 SentryManager.log("The image could not be rebuilt without its metadata, so the app is re-encoding it: "
                         + e.getClass().getSimpleName() + ".");
+                rebuildFailed = true;
             }
         }
         host.checkCancelled();
@@ -885,7 +893,18 @@ final class ImageCleaner {
         } finally {
             host.secureDeleteFile(encoded);
         }
+        countPicturePath(fromPixels, rebuildFailed ? "rebuild_failed" : "reencoded");
         return written;
+    }
+
+    /**
+     * Counts how a cleaned picture was written: rebuilt losslessly, or re-encoded (which costs
+     * quality) because the format has no lossless route or the rebuild failed.
+     */
+    private static void countPicturePath(boolean fromPixels, @NonNull String path) {
+        if (!fromPixels) {
+            SentryManager.count("clean.path", 1, "media_type", "image", "outcome", path);
+        }
     }
 
     /** {@code name} with its extension replaced by {@code extension} (which starts with a dot). */

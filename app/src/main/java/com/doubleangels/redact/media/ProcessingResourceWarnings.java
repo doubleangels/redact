@@ -13,6 +13,7 @@ import androidx.annotation.StringRes;
 import androidx.annotation.VisibleForTesting;
 import androidx.fragment.app.FragmentActivity;
 
+import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.CacheCleanup;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.ui.FoldDialogs;
@@ -118,6 +119,7 @@ public final class ProcessingResourceWarnings {
         for (Warning warning : warnings) {
             if (warning.severity == Severity.ADVISORY) {
                 showToast(activity, warning);
+                SentryManager.count("resource.warning", 1, "outcome", "advisory");
             }
         }
         Warning criticalStorage = findCriticalStorageWarning(warnings);
@@ -133,6 +135,7 @@ public final class ProcessingResourceWarnings {
                     .setPositiveButton(R.string.processing_warning_continue, (d, w) -> onProceed.run())
                     .setNegativeButton(android.R.string.cancel, null)
                     .show());
+            SentryManager.count("resource.warning", 1, "outcome", "low_storage");
             return;
         }
         onProceed.run();

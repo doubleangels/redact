@@ -464,7 +464,7 @@ public class ScanFragment extends TabFragment {
                         if (generation != scanGeneration.get() || !isAdded()) {
                             return;
                         }
-                        SentryManager.logEvent("scan", "The location metadata refresh failed.");
+                        SentryManager.logEvent("Scan", "The location metadata refresh failed.");
                     }
                 });
     }
@@ -495,7 +495,7 @@ public class ScanFragment extends TabFragment {
 
             // The worker tags its own operation with the type and permission: these keys belong to
             // the thread that sets them, and set here they would only tag later main-thread events.
-            SentryManager.logEvent("scan", "The app is starting metadata extraction.");
+            SentryManager.logEvent("Scan", "The app is starting metadata extraction.");
 
             progressText.setText(isVideo ? R.string.status_extracting_media : R.string.status_extracting_image);
 
@@ -574,7 +574,7 @@ public class ScanFragment extends TabFragment {
                         showEmptyState(false);
                         metadataCard.setVisibility(View.VISIBLE);
                         clearCoordinateState();
-                        SentryManager.logEvent("scan", "Metadata extraction failed.");
+                        SentryManager.logEvent("Scan", "Metadata extraction failed.");
                         ErrorFeedbackPrompt.offer(
                                 getView(), SentryManager.reportedSince(reportedBefore));
                     });

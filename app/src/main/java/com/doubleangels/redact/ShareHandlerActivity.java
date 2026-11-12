@@ -323,7 +323,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         try {
             List<Uri> uris = extractUrisFromIntent(intent);
             if (uris.isEmpty()) {
-                SentryManager.logEvent("share", "The app received no media URI.");
+                SentryManager.logEvent("Share", "The app received no media URI.");
                 finishWithError(getString(R.string.share_error_failed_receive_media));
                 return;
             }
@@ -348,7 +348,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 }
                 prepareAndProcess(uris);
             } else {
-                SentryManager.logEvent("share", "The app received an empty media list.");
+                SentryManager.logEvent("Share", "The app received an empty media list.");
                 finishWithError(getString(R.string.share_error_failed_receive_media));
             }
         } catch (Exception e) {
@@ -482,7 +482,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     if (e instanceof FileNotFoundException) {
                         // The sharing app handed us a URI whose item no longer exists (deleted,
                         // or a stale cloud/gallery entry). Nothing on our side to fix.
-                        SentryManager.logEvent("share", "An inbound item no longer exists and was skipped.");
+                        SentryManager.logEvent("Share", "An inbound item no longer exists and was skipped.");
                     } else {
                         SentryManager.recordException(e);
                     }
@@ -682,6 +682,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 this, LocalNotifications.ForegroundJob.SHARE, getString(R.string.share_processing_title));
         Thread worker = new Thread(() -> {
             ITransaction transaction = SentryManager.startTransaction("share_cleanup", "task");
+            long batchStartMs = System.currentTimeMillis();
+            SentryManager.distribution("processing.batch.size", uris.size(), "operation_type", "share");
             ArrayList<Uri> processedUris = new ArrayList<>();
             int failCount = snapshotFailCount + unsupportedRejectCount;
             int unsupportedFailCount = unsupportedRejectCount;
@@ -708,6 +710,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
                     CleanResult result = stripper.cleanForSharing(uri, fileName, isVideo);
                     if (result.succeeded()) {
+                        SentryManager.count("processing.share.success", 1, "is_video", String.valueOf(isVideo));
                         processedUris.add(result.uri());
                         CleanStats stats = result.stats();
                         StatsStore.recordClean(this,
@@ -739,6 +742,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
                         failCount++;
                         if (result.unsupported()) {
                             unsupportedFailCount++;
+                            countUnsupported(mimeType);
+                        }
+                        // A file stopped by a cancel comes back failed too; only real failures count.
+                        if (isCurrentSession(session)) {
+                            SentryManager.count("processing.share.failure", 1,
+                                    "is_video", String.valueOf(isVideo),
+                                    "error_type", result.unsupported() ? "unsupported" : "clean_failed");
                         }
                     }
                 }
@@ -823,6 +833,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 // this session's: a share that replaced it keeps its own.
                 deleteSnapshots(session.closeSnapshots());
                 endShareSession(session);
+                SentryManager.distributionDurationMs("processing.duration_ms",
+                        System.currentTimeMillis() - batchStartMs, "operation_type", "share");
             }
         });
         processingThread = worker;
@@ -1162,7 +1174,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         for (Uri uri : uris) {
             if (uri == null || !isSupportedInboundUri(uri)) {
                 if (uri != null) {
-                    SentryManager.logEvent("share",
+                    SentryManager.logEvent("Share",
                             "An inbound item with an unsupported scheme or a private location was skipped.");
                 }
                 continue;
@@ -1177,7 +1189,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 // A multi-item share's intent type can be image/* or */* while individual items
                 // are PDFs, text or SVGs. Skip them up front instead of copying and failing later.
                 unsupportedRejectCount++;
-                SentryManager.logEvent("share", "An inbound item of a non-media type was skipped.");
+                countUnsupported(type);
+                SentryManager.logEvent("Share", "An inbound item of a non-media type was skipped.");
                 continue;
             }
             accepted.add(uri);
@@ -1212,8 +1225,27 @@ public class ShareHandlerActivity extends AppCompatActivity {
         return mediaSelector.getFileName(uri);
     }
 
+    /**
+     * Counts a shared item Redact could not handle, by its MIME type alone (such as image/heic or
+     * application/pdf), to show which formats people bring that the device cannot decode.
+     */
+    private static void countUnsupported(@Nullable String mimeType) {
+        SentryManager.count("media.unsupported", 1, "mime_type", mimeTypeTag(mimeType));
+    }
+
+    /** A MIME type reduced to "type/subtype" in lower case, or "unknown" when it is not one. */
+    @VisibleForTesting
+    @NonNull
+    static String mimeTypeTag(@Nullable String mimeType) {
+        if (mimeType == null) {
+            return "unknown";
+        }
+        String bare = mimeType.split(";", 2)[0].trim().toLowerCase(Locale.ROOT);
+        return bare.matches("[a-z]+/[a-z0-9][a-z0-9.+-]{0,63}") ? bare : "unknown";
+    }
+
     private void finishWithError(String message) {
-        SentryManager.logEvent("share", "The share flow finished with an error.");
+        SentryManager.logEvent("Share", "The share flow finished with an error.");
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         dismissProgressDialog();
         cleanupProcessedFiles();

@@ -541,11 +541,13 @@ public final class VideoMedia3Converter {
                             keepLocation,
                             null);
                     warnDownscaled(app, shortSide);
+                    countSmallerSizeRetry("recovered");
                     return;
                 } catch (RetryAtSmallerSizeException retryFailure) {
                     lastFailure = retryFailure;
                 }
             }
+            countSmallerSizeRetry("failed");
             throw lastFailure;
         }
     }
@@ -1687,5 +1689,10 @@ public final class VideoMedia3Converter {
             }
             throw e;
         }
+    }
+
+    /** Counts a transcode the encoder refused at full size, by whether a smaller size worked. */
+    private static void countSmallerSizeRetry(@NonNull String outcome) {
+        SentryManager.count("video.retry_smaller", 1, "media_type", "video", "outcome", outcome);
     }
 }

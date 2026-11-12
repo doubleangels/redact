@@ -424,7 +424,8 @@ public class CensorViewModel extends AndroidViewModel {
         int generation = photoGeneration.get();
         String name = fileName.getValue();
         state.setValue(State.SAVING);
-        SentryManager.logEvent("censor", "The user saved a censored photo.");
+        SentryManager.logEvent("Censor", "The user saved a censored photo.");
+        long saveStartMs = System.currentTimeMillis();
         worker.execute(() -> {
             SentryManager.beginOperation("censor_export");
             try {
@@ -448,6 +449,7 @@ public class CensorViewModel extends AndroidViewModel {
                         getApplication(), AppPreferences.HINT_CENSOR);
                 LocalNotifications.showCleanComplete(getApplication(), 1, 0, result.stats != null && result.stats.hadLocation ? 1 : 0);
                 SentryManager.log("The censored copy was saved.");
+                countCensorSave(result.downscaled, System.currentTimeMillis() - saveStartMs);
                 state.postValue(State.SAVED);
             } catch (Exception e) {
                 SentryManager.setCustomKey("error_type", e.getClass().getName());
@@ -581,6 +583,15 @@ public class CensorViewModel extends AndroidViewModel {
                 preview.postValue(from);
             }
         }
+    }
+
+    /**
+     * Counts a saved censored copy by how long the export took, and whether it came out smaller
+     * than the original (Max Processing Resolution set below the photo).
+     */
+    private static void countCensorSave(boolean downscaled, long durationMs) {
+        SentryManager.count("censor.save", 1, "outcome", downscaled ? "downscaled" : "full_size");
+        SentryManager.distributionDurationMs("processing.duration_ms", durationMs, "operation_type", "censor");
     }
 
     @NonNull

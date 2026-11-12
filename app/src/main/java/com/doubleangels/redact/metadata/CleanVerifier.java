@@ -194,11 +194,13 @@ final class CleanVerifier {
             SentryManager.setCustomKey("video_metadata_verification_passed", false);
             SentryManager.setCustomKey("video_verify_failed_key",
                     remaining.recognized ? "CONTAINER_BOX" : "CONTAINER_UNREADABLE");
+            countVerificationFailure("video", "video_container");
             throw new IOException("Video metadata verification failed");
         }
         boolean videoClean = verifyVideoMetadataRemoval(videoFile, sourceSnapshot, keepLocation);
         SentryManager.setCustomKey("video_metadata_verification_passed", videoClean);
         if (!videoClean) {
+            countVerificationFailure("video", "video_fields");
             throw new IOException("Video metadata verification failed");
         }
     }
@@ -344,6 +346,14 @@ final class CleanVerifier {
             ExifInterface.TAG_ORIENTATION);
 
     /**
+     * Counts a check that would not vouch for a cleaned file. Each one already fails closed; the
+     * count shows when a cleaning path starts leaving data behind, by media type and reason.
+     */
+    static void countVerificationFailure(@NonNull String mediaType, @NonNull String reason) {
+        SentryManager.count("verification.failed", 1, "media_type", mediaType, "outcome", reason);
+    }
+
+    /**
      * Verifies that metadata has been properly removed from an image file: no EXIF tag beyond
      * the ones the settings keep, and nothing outside EXIF (see {@link ImageContainerMetadata}).
      *
@@ -378,6 +388,7 @@ final class CleanVerifier {
                 }
                 if (value != null && !value.isEmpty()) {
                     SentryManager.log("The app found a remaining metadata tag: " + tag + ".");
+                    countVerificationFailure("image", "exif_tag");
                     return false;
                 }
             }
@@ -389,6 +400,7 @@ final class CleanVerifier {
                 if (!container.isClean()) {
                     SentryManager.log("The app found remaining metadata outside EXIF: "
                             + (container.findings.isEmpty() ? "UNREADABLE" : ImageContainerMetadata.logKey(container.findings.get(0).key)) + ".");
+                    countVerificationFailure("image", "container");
                     return false;
                 }
             } else {
@@ -403,6 +415,7 @@ final class CleanVerifier {
                 if (structured && !container.isClean()) {
                     SentryManager.log("The app found remaining metadata outside EXIF: "
                             + ImageContainerMetadata.logKey(container.findings.get(0).key) + ".");
+                    countVerificationFailure("image", "container");
                     return false;
                 }
                 boolean keptDirectory = false;
@@ -411,6 +424,7 @@ final class CleanVerifier {
                 }
                 if (!(structured && keptDirectory) && containsXmpPacket(imageFile)) {
                     SentryManager.log("The app found XMP metadata in the file.");
+                    countVerificationFailure("image", "xmp");
                     return false;
                 }
             }
@@ -418,6 +432,7 @@ final class CleanVerifier {
             return true;
         } catch (Exception e) {
             SentryManager.log("An error occurred while verifying metadata removal.");
+            countVerificationFailure("image", "unreadable");
             return false;
         }
     }

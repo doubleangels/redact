@@ -180,7 +180,20 @@ public final class OutputDestination {
         }
         if (!MessageDigest.isEqual(expectedSha256, digest.digest())) {
             SentryManager.setCustomKey("metadata_verification_passed", false);
+            SentryManager.count("verification.failed", 1,
+                    "media_type", mediaTypeOf(resolver, output), "outcome", "saved_copy_differs");
             throw new IOException("Metadata verification failed: the saved copy differs from the verified one");
+        }
+    }
+
+    /** "video" or "image" from the output's MIME type, for a metric tag; "image" when unknown. */
+    @NonNull
+    private static String mediaTypeOf(@NonNull ContentResolver resolver, @NonNull Uri output) {
+        try {
+            String type = resolver.getType(output);
+            return type != null && type.startsWith("video/") ? "video" : "image";
+        } catch (RuntimeException e) {
+            return "image";
         }
     }
 

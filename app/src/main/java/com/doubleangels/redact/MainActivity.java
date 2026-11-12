@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
         setupStatusBarColors();
         setupVersionNumber();
 
-        SentryManager.logEvent("lifecycle", "The MainActivity was created.");
+        SentryManager.logEvent("Lifecycle", "The MainActivity was created.");
 
         // Tells Play vitals / Macrobenchmark when the first screen is usable.
         getWindow().getDecorView().post(this::reportFullyDrawn);
@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView.setOnItemSelectedListener(item -> {
             try {
                 int itemId = item.getItemId();
-                SentryManager.logEvent("navigation", "The user selected a tab.");
+                SentryManager.logEvent("Navigation", "The user selected a tab.");
                 Fragment target = ensureFragmentForTab(itemId);
                 if (target == null) {
                     return false;
@@ -287,7 +287,7 @@ public class MainActivity extends AppCompatActivity {
             // Don't swap the files out from under a running convert; just show its progress.
             return true;
         }
-        SentryManager.logEvent("share", "Media was shared to Convert.");
+        SentryManager.logEvent("Share", "Media was shared to Convert.");
         new MediaSelector(this)
                 .processMediaUrisAsync(media, viewModel::setConvertSelectedItems);
         return true;
@@ -310,7 +310,7 @@ public class MainActivity extends AppCompatActivity {
             Notice.show(this, R.string.share_error_unsupported_media, true);
             return true;
         }
-        SentryManager.logEvent("share", "A photo was shared to Censor.");
+        SentryManager.logEvent("Share", "A photo was shared to Censor.");
         new ViewModelProvider(this)
                 .get(CensorViewModel.class).requestOpen(uri);
         return true;
@@ -641,7 +641,7 @@ public class MainActivity extends AppCompatActivity {
                     SentryManager.setCustomKey("theme_mode", "light");
                 }
             } else {
-                SentryManager.logEvent("ui", "The insets controller is null.");
+                SentryManager.logEvent("UI", "The insets controller is null.");
             }
         } catch (Exception e) {
             SentryManager.recordException(e);
@@ -731,7 +731,7 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         try {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-            SentryManager.logEvent("permission", "The app received a permission result.");
+            SentryManager.logEvent("Permission", "The app received a permission result.");
             SentryManager.setCustomKey("permission_request_code", requestCode);
 
             PermissionManager.storeActivityPermissionResult(
@@ -758,12 +758,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        SentryManager.logEvent("lifecycle", "The MainActivity resumed.");
+        SentryManager.logEvent("Lifecycle", "The MainActivity resumed.");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        SentryManager.logEvent("lifecycle", "The MainActivity paused.");
+        SentryManager.logEvent("Lifecycle", "The MainActivity paused.");
     }
 }

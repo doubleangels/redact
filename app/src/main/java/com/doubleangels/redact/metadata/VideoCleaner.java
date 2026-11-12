@@ -107,6 +107,7 @@ final class VideoCleaner {
 
             boolean needsTranscode = !shouldSkipVideoTranscode(formatIndex, tempCleanFile, false);
             boolean savedViaFastPath = false;
+            boolean fastPathFailed = false;
 
             try {
                 if (!needsTranscode && tempCleanFile != null) {
@@ -119,10 +120,11 @@ final class VideoCleaner {
                         newUri = VideoMedia3Converter.copyToMoviesRedact(
                                 context, tempCleanFile, originalFilename);
                         savedViaFastPath = true;
-                    } catch (IOException fastPathFailed) {
+                    } catch (IOException fastPathError) {
+                        fastPathFailed = true;
                         SentryManager.log(
                                 "The fast video clean failed verification, so the app is re-encoding: "
-                                        + fastPathFailed.getClass().getSimpleName() + ".");
+                                        + fastPathError.getClass().getSimpleName() + ".");
                     }
                 }
                 if (!savedViaFastPath) {
@@ -163,6 +165,7 @@ final class VideoCleaner {
                 }
             }
 
+            countVideoPath(savedViaFastPath ? "fast_copy" : fastPathFailed ? "fast_failed" : "transcoded");
             SentryManager.log("The video was processed successfully.");
             SentryManager.setCustomKey("success", true);
 
@@ -271,6 +274,7 @@ final class VideoCleaner {
                     outputFile);
 
             job.file = outputFile;
+            countVideoPath("transcoded");
             SentryManager.log("The video was processed successfully for sharing.");
             SentryManager.setCustomKey("success", true);
             return job.result(fileUri);
@@ -484,7 +488,7 @@ final class VideoCleaner {
             } catch (IOException unreadable) {
                 // No platform extractor for this container. The full transcode that follows
                 // decides whether the input is usable at all and reports it accordingly.
-                SentryManager.logEvent("video",
+                SentryManager.logEvent("Video",
                         "The fast transmux could not open the source, so the app is falling back to a full transcode.");
                 return null;
             }
@@ -578,7 +582,7 @@ final class VideoCleaner {
                 // MediaMuxer rejects some streams mid-write (its native writer stops and stop()
                 // then throws). This fast path is best-effort: every caller falls back to a full
                 // transcode from the source, which still produces a verified clean output.
-                SentryManager.logEvent("video",
+                SentryManager.logEvent("Video",
                         "The fast transmux failed, so the app is falling back to a full transcode: "
                                 + e.getClass().getSimpleName());
             } else {
@@ -825,5 +829,13 @@ final class VideoCleaner {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Counts how a cleaned video was made: the quick copy that keeps the original streams, a
+     * transcode after the quick copy failed its check, or a transcode from the start.
+     */
+    private static void countVideoPath(@NonNull String path) {
+        SentryManager.count("clean.path", 1, "media_type", "video", "outcome", path);
     }
 }

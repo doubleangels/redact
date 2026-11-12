@@ -148,7 +148,7 @@ public class OnboardingActivity extends AppCompatActivity {
         updateControls();
         applyInsets();
         if (savedInstanceState == null) {
-            SentryManager.logEvent("lifecycle", "The introduction was shown.");
+            SentryManager.logEvent("Lifecycle", "The introduction was shown.");
         }
     }
 
@@ -195,7 +195,7 @@ public class OnboardingActivity extends AppCompatActivity {
 
     private void finishIntroduction(int resultCode) {
         if (resultCode == RESULT_OK) {
-            SentryManager.logEvent("lifecycle", "The introduction finished.");
+            SentryManager.logEvent("Lifecycle", "The introduction finished.");
         }
         setResult(resultCode);
         finish();
@@ -309,7 +309,7 @@ public class OnboardingActivity extends AppCompatActivity {
 
     private void onPrimary() {
         Step step = current();
-        SentryManager.logEvent("onboarding", "The user tapped the main button on " + step.name() + ".");
+        SentryManager.logEvent("Onboarding", "The user tapped the main button on " + step.name() + ".");
         if (isPermissionStep(step) && canAsk(step)) {
             requestPermission(step);
         } else {
@@ -319,7 +319,7 @@ public class OnboardingActivity extends AppCompatActivity {
 
     private void onSecondary() {
         Step step = current();
-        SentryManager.logEvent("onboarding", "The user tapped the second button on " + step.name() + ".");
+        SentryManager.logEvent("Onboarding", "The user tapped the second button on " + step.name() + ".");
         if (canOpenSettings(step)) {
             openSystemSettings(step);
         } else {
