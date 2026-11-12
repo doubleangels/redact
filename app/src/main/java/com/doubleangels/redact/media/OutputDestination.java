@@ -199,8 +199,9 @@ public final class OutputDestination {
         }
     }
 
+    /** A SHA-256 digest; every device has one, so its absence is an I/O failure. */
     @NonNull
-    static MessageDigest sha256() throws IOException {
+    public static MessageDigest sha256() throws IOException {
         try {
             return MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {

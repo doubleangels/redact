@@ -124,26 +124,6 @@ public final class MediaSelector {
                 || lower.endsWith(".avi")) {
             return true;
         }
-        if (lower.endsWith(".jpg")
-                || lower.endsWith(".jpeg")
-                || lower.endsWith(".png")
-                || lower.endsWith(".webp")
-                || lower.endsWith(".heic")
-                || lower.endsWith(".heif")
-                || lower.endsWith(".gif")
-                || lower.endsWith(".bmp")) {
-            return false;
-        }
-        return false;
-    }
-
-    public static boolean isAnimatedImageFile(@Nullable String fileName, @Nullable String mimeType) {
-        if (mimeType != null && "image/gif".equalsIgnoreCase(mimeType)) {
-            return true;
-        }
-        if (fileName != null) {
-            return fileName.toLowerCase(Locale.US).endsWith(".gif");
-        }
         return false;
     }
 

@@ -238,7 +238,7 @@ final class ImageCleaner {
                 if (os == null) {
                     throw new IOException("Failed to open output stream for new image");
                 }
-                MessageDigest digest = CleanVerifier.sha256();
+                MessageDigest digest = OutputDestination.sha256();
                 MediaSizeLimits.copyStream(in, new DigestOutputStream(os, digest));
                 written = digest.digest();
             }

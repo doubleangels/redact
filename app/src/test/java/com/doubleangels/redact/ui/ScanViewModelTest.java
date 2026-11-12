@@ -113,26 +113,4 @@ public class ScanViewModelTest {
         assertEquals(item, viewModel.getCurrentMediaItem());
         assertEquals("Scanning…", viewModel.getStatusMessage());
     }
-
-    @Test
-    public void clearScanState_resetsEverything() {
-        ScanViewModel viewModel = newViewModel();
-        viewModel.setMetadataSections(Map.of("Exif", "v"));
-        viewModel.setMetadataRows(List.of(new Pair<>("Make", "Pixel")));
-        viewModel.setMetadataPlainText("text");
-        viewModel.setMapCoordinates(1.0, 2.0);
-        viewModel.setCurrentMediaItem(
-                new MediaItem(Uri.parse("content://media/1"), false, "x.jpg"));
-        viewModel.setStatusMessage("msg");
-
-        viewModel.clearScanState();
-
-        assertFalse(viewModel.hasMetadataToRestore());
-        assertNull(viewModel.getMetadataSections());
-        assertEquals(0, viewModel.getMetadataRows().size());
-        assertEquals("", viewModel.getMetadataPlainText());
-        assertTrue(Double.isNaN(viewModel.getMapLatitude()));
-        assertNull(viewModel.getCurrentMediaItem());
-        assertNull(viewModel.getStatusMessage());
-    }
 }

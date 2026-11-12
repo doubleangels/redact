@@ -49,7 +49,7 @@ public class MainViewModelTest {
         viewModel.setConvertSelectedItems(java.util.Collections.singletonList(
                 new com.doubleangels.redact.media.MediaItem(shared, false, "a.jpg")));
 
-        viewModel.clearSelectedItems();
+        viewModel.setSelectedItems(new java.util.ArrayList<>());
 
         java.util.Set<android.net.Uri> granted = new java.util.HashSet<>();
         for (android.content.UriPermission p : app.getContentResolver().getPersistedUriPermissions()) {

@@ -16,10 +16,4 @@ public class MediaSelectorTest {
     public void isVideoFromMimeAndNameDetectsImageMime() {
         assertFalse(MediaSelector.isVideoFromMimeAndName("image/jpeg", "photo.jpg"));
     }
-
-    @Test
-    public void isAnimatedImageFileDetectsGif() {
-        assertTrue(MediaSelector.isAnimatedImageFile("animation.gif", "image/gif"));
-        assertFalse(MediaSelector.isAnimatedImageFile("still.jpg", "image/jpeg"));
-    }
 }

@@ -16,8 +16,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -29,8 +27,6 @@ import java.util.Set;
  * reached the output. Moved out of MetadataStripper unchanged; see CLAUDE.md before changing any of it.
  */
 final class CleanVerifier {
-
-    private static final String TAG = "MetadataStripper";
 
     private final MetadataStripper host;
     private final Context context;
@@ -456,14 +452,5 @@ final class CleanVerifier {
      */
     void requireSameContent(@NonNull Uri output, @NonNull byte[] expectedSha256) throws IOException {
         OutputDestination.requireSameContent(contentResolver, output, expectedSha256);
-    }
-
-    @NonNull
-    static MessageDigest sha256() throws IOException {
-        try {
-            return MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e) {
-            throw new IOException(e);
-        }
     }
 }

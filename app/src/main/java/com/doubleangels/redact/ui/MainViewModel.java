@@ -577,10 +577,6 @@ public class MainViewModel extends AndroidViewModel {
 
 
 
-    public void clearSelectedItems() {
-        setSelectedItems(new ArrayList<>());
-    }
-
     public void cancelCleaning() {
         final int runGeneration = cleanGeneration.get();
         cleanGeneration.incrementAndGet();

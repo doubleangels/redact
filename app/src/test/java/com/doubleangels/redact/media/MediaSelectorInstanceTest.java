@@ -151,14 +151,6 @@ public class MediaSelectorInstanceTest {
     }
 
     @Test
-    public void isAnimatedImageFile_checksMimeThenName() {
-        assertTrue(MediaSelector.isAnimatedImageFile(null, "IMAGE/GIF"));
-        assertTrue(MediaSelector.isAnimatedImageFile("a.GIF", null));
-        assertFalse(MediaSelector.isAnimatedImageFile("a.jpg", "image/jpeg"));
-        assertFalse(MediaSelector.isAnimatedImageFile(null, null));
-    }
-
-    @Test
     public void containsAnimatedImagePayload_rejectsShortBuffers() {
         assertFalse(MediaSelector.containsAnimatedImagePayload(new byte[4], 4));
     }

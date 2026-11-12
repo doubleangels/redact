@@ -2,31 +2,15 @@ package com.doubleangels.redact.metadata;
 
 import android.content.ContentResolver;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.media.MediaCodec;
-import android.media.MediaExtractor;
-import android.media.MediaFormat;
-import android.media.MediaMetadataRetriever;
-import android.media.MediaMuxer;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.OptIn;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
-import androidx.media3.common.C;
-import androidx.media3.common.Format;
-import androidx.media3.common.util.MediaFormatUtil;
-import androidx.media3.common.util.UnstableApi;
-import androidx.media3.container.Mp4LocationData;
-import androidx.media3.muxer.BufferInfo;
-import androidx.media3.muxer.Mp4Muxer;
-import androidx.media3.muxer.MuxerException;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
@@ -34,37 +18,19 @@ import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaFileNames;
 import com.doubleangels.redact.media.MediaSizeLimits;
 import com.doubleangels.redact.media.VideoMedia3Converter;
-import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.media.ProcessingCancelledException;
 import com.doubleangels.redact.media.SecureDelete;
-import com.doubleangels.redact.media.UnsupportedMediaException;
 import com.doubleangels.redact.sentry.SentryManager;
-import com.google.common.collect.ImmutableList;
 
-import java.io.BufferedOutputStream;
 import java.util.Locale;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
-import java.lang.reflect.Field;
-import java.nio.ByteBuffer;
-import java.nio.file.Files;
-import java.security.DigestOutputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 
@@ -102,13 +68,6 @@ import java.util.function.BooleanSupplier;
  * @see FileProvider
  */
 public class MetadataStripper {
-    private static final String TAG = "MetadataStripper";
-
-    /**
-     * Optimized buffer size for file I/O operations (64KB for better performance).
-     * Larger buffers reduce system calls and improve throughput.
-     */
-    static final int DEFAULT_BUFFER_SIZE = 65536; // 64KB
 
     /**
      * Interface for reporting progress during media processing operations.
