@@ -113,7 +113,7 @@
 
     
     <string name="metadata_location_unreadable">Des données de localisation sont présentes, dans un format qui ne peut pas être affiché ici. Le nettoyage les supprime.</string>
-    <string name="metadata_embedded_data_header">Données cachées et intégrées</string>
+    <string name="metadata_embedded_data_header">Données Cachées et Intégrées</string>
     <plurals name="metadata_embedded_images">
         <item quantity="one">%1$d image (%2$s) – supprimée lors du nettoyage</item>
         <item quantity="many">%1$d images (%2$s) – supprimées lors du nettoyage</item>

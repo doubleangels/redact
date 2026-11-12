@@ -113,7 +113,7 @@
 
     
     <string name="metadata_location_unreadable">Sono presenti dati di posizione, salvati in un formato che non può essere mostrato qui. La pulizia li rimuove.</string>
-    <string name="metadata_embedded_data_header">Dati nascosti e incorporati</string>
+    <string name="metadata_embedded_data_header">Dati Nascosti e Incorporati</string>
     <plurals name="metadata_embedded_images">
         <item quantity="one">%1$d immagine (%2$s) – rimossa durante la pulizia</item>
         <item quantity="many">%1$d immagini (%2$s) – rimosse durante la pulizia</item>

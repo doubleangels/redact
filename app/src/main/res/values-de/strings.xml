@@ -110,7 +110,7 @@
 
     
     <string name="metadata_location_unreadable">Standortdaten sind vorhanden, aber in einer Form gespeichert, die hier nicht angezeigt werden kann. Beim Bereinigen werden sie entfernt.</string>
-    <string name="metadata_embedded_data_header">Versteckte &amp; eingebettete Daten</string>
+    <string name="metadata_embedded_data_header">Versteckte &amp; Eingebettete Daten</string>
     <plurals name="metadata_embedded_images">
         <item quantity="one">%1$d Bild (%2$s) – wird beim Bereinigen entfernt</item>
         <item quantity="other">%1$d Bilder (%2$s) – werden beim Bereinigen entfernt</item>

@@ -113,7 +113,7 @@
 
     
     <string name="metadata_location_unreadable">Há dados de localização salvos em um formato que não pode ser mostrado aqui. A limpeza os remove.</string>
-    <string name="metadata_embedded_data_header">Dados ocultos e incorporados</string>
+    <string name="metadata_embedded_data_header">Dados Ocultos e Incorporados</string>
     <plurals name="metadata_embedded_images">
         <item quantity="one">%1$d imagem (%2$s) – removida ao limpar</item>
         <item quantity="many">%1$d imagens (%2$s) – removidas ao limpar</item>
