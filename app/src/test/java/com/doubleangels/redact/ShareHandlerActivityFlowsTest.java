@@ -389,6 +389,9 @@ public class ShareHandlerActivityFlowsTest {
 
     @Test
     public void openedFileCheck_looksAtWhatWasActuallyOpened() throws Exception {
+        // The check reads /proc/self/fd, as Android always can; a Windows or macOS host has no such
+        // folder (or symbolic links without a privilege), so this runs on Linux, as in CI.
+        org.junit.Assume.assumeTrue("needs /proc/self/fd", new File("/proc/self/fd").isDirectory());
         ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
         File shared = jpeg();
         File secret = File.createTempFile("secret_", ".jpg", app.getFilesDir());
