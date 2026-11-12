@@ -1663,15 +1663,23 @@ public final class VideoMedia3Converter {
 
         Uri outUri = OutputDestination.create(context, true, outName, mime);
 
-        try (InputStream in = new FileInputStream(file);
-                OutputStream out = resolver.openOutputStream(outUri)) {
-            if (out == null) {
-                OutputDestination.discard(resolver, outUri);
-                throw new IOException("Cannot open output stream");
+        try {
+            byte[] written;
+            try (InputStream in = new FileInputStream(file);
+                    OutputStream out = resolver.openOutputStream(outUri)) {
+                if (out == null) {
+                    throw new IOException("Cannot open output stream");
+                }
+                written = OutputDestination.copyAndDigest(in, out);
+                out.flush();
             }
-            MediaSizeLimits.copyStream(in, out);
-            out.flush();
-        } catch (IOException e) {
+            // The output must hold exactly the verified file, as a picture's save checks.
+            OutputDestination.requireSameContent(resolver, outUri, written);
+            OutputDestination.publish(resolver, outUri);
+            return outUri;
+        } catch (IOException | RuntimeException e) {
+            // A provider can fail with an unchecked exception too (SecurityException): either way
+            // the half-written, unverified entry goes.
             try {
                 OutputDestination.discard(resolver, outUri);
             } catch (Exception ignored) {
@@ -1679,7 +1687,5 @@ public final class VideoMedia3Converter {
             }
             throw e;
         }
-        OutputDestination.publish(resolver, outUri);
-        return outUri;
     }
 }

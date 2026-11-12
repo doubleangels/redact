@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.exifinterface.media.ExifInterface;
 import androidx.media3.common.Format;
+import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.sentry.SentryManager;
 import java.io.File;
 import java.io.FileInputStream;
@@ -439,21 +440,7 @@ final class CleanVerifier {
      * it is read, so no second copy of the image is written to check it.
      */
     void requireSameContent(@NonNull Uri output, @NonNull byte[] expectedSha256) throws IOException {
-        MessageDigest digest = sha256();
-        try (InputStream is = contentResolver.openInputStream(output)) {
-            if (is == null) {
-                throw new IOException("Cannot open cleaned image for verification");
-            }
-            byte[] buffer = new byte[MetadataStripper.DEFAULT_BUFFER_SIZE];
-            int read;
-            while ((read = is.read(buffer)) != -1) {
-                digest.update(buffer, 0, read);
-            }
-        }
-        if (!MessageDigest.isEqual(expectedSha256, digest.digest())) {
-            SentryManager.setCustomKey("metadata_verification_passed", false);
-            throw new IOException("Metadata verification failed: the saved copy differs from the verified one");
-        }
+        OutputDestination.requireSameContent(contentResolver, output, expectedSha256);
     }
 
     @NonNull

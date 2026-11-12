@@ -26,6 +26,11 @@ import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.DigestOutputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -144,6 +149,50 @@ public final class OutputDestination {
     }
 
     /** Makes a finished output visible. Documents in a chosen folder need no publish step. */
+    /**
+     * Copies a verified clean file to its output and returns the SHA-256 of the bytes written, for
+     * {@link #requireSameContent} to compare with what actually landed.
+     */
+    @NonNull
+    public static byte[] copyAndDigest(@NonNull InputStream in, @NonNull OutputStream out) throws IOException {
+        MessageDigest digest = sha256();
+        MediaSizeLimits.copyStream(in, new DigestOutputStream(out, digest));
+        return digest.digest();
+    }
+
+    /**
+     * Fails unless {@code output} holds exactly the bytes whose SHA-256 is {@code expectedSha256}.
+     * A provider that does not truncate on "w" keeps the tail of an older, longer file, which can be
+     * a full copy of an original with its metadata; the copy is then not what was verified.
+     */
+    public static void requireSameContent(@NonNull ContentResolver resolver, @NonNull Uri output,
+                                          @NonNull byte[] expectedSha256) throws IOException {
+        MessageDigest digest = sha256();
+        try (InputStream is = resolver.openInputStream(output)) {
+            if (is == null) {
+                throw new IOException("Cannot open the saved copy for verification");
+            }
+            byte[] buffer = new byte[65536];
+            int read;
+            while ((read = is.read(buffer)) != -1) {
+                digest.update(buffer, 0, read);
+            }
+        }
+        if (!MessageDigest.isEqual(expectedSha256, digest.digest())) {
+            SentryManager.setCustomKey("metadata_verification_passed", false);
+            throw new IOException("Metadata verification failed: the saved copy differs from the verified one");
+        }
+    }
+
+    @NonNull
+    static MessageDigest sha256() throws IOException {
+        try {
+            return MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IOException(e);
+        }
+    }
+
     public static void publish(@NonNull ContentResolver resolver, @Nullable Uri uri) {
         MediaStoreWrites.markPublished(resolver, uri);
         clearPendingDocument(uri);

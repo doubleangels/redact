@@ -58,12 +58,21 @@ public class FakeMediaStoreProvider extends ContentProvider {
     public static volatile boolean failInsert;
     /** When true, opening a row's file fails, like a MediaStore row whose backing file is gone. */
     public static volatile boolean failOpen;
+    /**
+     * When set, a row opened for writing already holds these bytes and is not truncated, like a
+     * provider that ignores the truncate in "w": a shorter write leaves their tail behind.
+     */
+    public static volatile byte[] staleTail;
+    /** When true, opening a row for writing throws SecurityException, like a revoked grant. */
+    public static volatile boolean denyWrite;
 
     /** Registers the provider for the {@code media} authority and clears earlier rows. */
     public static void install(Context context) {
         ENTRIES.clear();
         failInsert = false;
         failOpen = false;
+        staleTail = null;
+        denyWrite = false;
         directory = new File(context.getCacheDir(), "fake_media_store");
         //noinspection ResultOfMethodCallIgnored
         directory.mkdirs();
@@ -74,6 +83,8 @@ public class FakeMediaStoreProvider extends ContentProvider {
         ENTRIES.clear();
         failInsert = false;
         failOpen = false;
+        staleTail = null;
+        denyWrite = false;
     }
 
     public static Map<Long, Entry> entries() {
@@ -132,6 +143,20 @@ public class FakeMediaStoreProvider extends ContentProvider {
         Entry entry = entryFor(uri);
         if (entry == null || failOpen) {
             throw new FileNotFoundException(String.valueOf(uri));
+        }
+        boolean writing = mode.contains("w");
+        if (writing && denyWrite) {
+            throw new SecurityException("Permission denial: writing this row");
+        }
+        byte[] tail = staleTail;
+        if (writing && tail != null) {
+            try (java.io.FileOutputStream old = new java.io.FileOutputStream(entry.file)) {
+                old.write(tail);
+            } catch (java.io.IOException e) {
+                throw new FileNotFoundException(e.getMessage());
+            }
+            return ParcelFileDescriptor.open(entry.file,
+                    ParcelFileDescriptor.MODE_WRITE_ONLY | ParcelFileDescriptor.MODE_CREATE);
         }
         return ParcelFileDescriptor.open(entry.file, ParcelFileDescriptor.parseMode(mode));
     }
