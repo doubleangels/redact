@@ -25,4 +25,18 @@ public class MetadataDisplayerReadableTest {
         assertFalse(MetadataDisplayer.isReadableText("abc�def"));
         assertFalse(MetadataDisplayer.isReadableText("a\u0085b"));
     }
+
+    @Test
+    public void questionMarksExifInterfaceMadeFromBytes_areNotText() {
+        // A Pixel photo's Components Configuration (01 02 03 00) and Scene Type (01) read "???" and "?".
+        assertTrue(MetadataDisplayer.replacedUnprintableBytes("???", new byte[] {1, 2, 3, 0}));
+        assertTrue(MetadataDisplayer.replacedUnprintableBytes("?", new byte[] {1}));
+    }
+
+    @Test
+    public void realQuestionMarks_andValuesWithoutRawBytes_stayText() {
+        assertFalse(MetadataDisplayer.replacedUnprintableBytes("Why?", "Why?".getBytes()));
+        assertFalse(MetadataDisplayer.replacedUnprintableBytes("Pixel 10 Pro", new byte[] {1, 2}));
+        assertFalse(MetadataDisplayer.replacedUnprintableBytes("???", null));
+    }
 }

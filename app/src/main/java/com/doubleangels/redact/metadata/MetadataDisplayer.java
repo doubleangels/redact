@@ -15,6 +15,7 @@ import android.provider.OpenableColumns;
 import android.text.format.Formatter;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.content.ContextCompat;
@@ -500,7 +501,8 @@ public class MetadataDisplayer {
                                 // size. One byte is just an empty text's terminator.
                                 long length = attributeLength(exifInterface, tagName);
                                 value = length > 1 ? sizeText(context, length) : null;
-                            } else if (!isReadableText(value)) {
+                            } else if (!isReadableText(value)
+                                    || replacedUnprintableBytes(value, attributeBytes(exifInterface, tagName))) {
                                 long length = attributeLength(exifInterface, tagName);
                                 value = sizeText(context, length > 0
                                         ? length : value.getBytes(StandardCharsets.UTF_8).length);
@@ -755,6 +757,10 @@ public class MetadataDisplayer {
                             if (keyName.equals("METADATA_KEY_LOCATION")) {
                                 locationValue = trimmedValue;
                                 continue; // Skip adding this field directly
+                            }
+                            // The file's own MIME type row is already there, under the same label.
+                            if (keyName.equals("METADATA_KEY_MIMETYPE") && metadataMap.containsKey("MIME_TYPE")) {
+                                continue;
                             }
 
                             if (XmlLikeMetadataFormatter.looksLikeRdfOrXmp(trimmedValue)) {
@@ -1019,6 +1025,33 @@ public class MetadataDisplayer {
             }
         }
         return true;
+    }
+
+    /**
+     * Whether ExifInterface turned unprintable bytes into question marks in {@code value}. It renders
+     * BYTE and UNDEFINED data (Components Configuration, Scene Type) as text with every byte below
+     * 32 replaced by '?', so "???" passes {@link #isReadableText} though the tag holds no text.
+     */
+    @VisibleForTesting
+    static boolean replacedUnprintableBytes(@NonNull String value, @Nullable byte[] raw) {
+        if (raw == null || value.indexOf('?') < 0) {
+            return false;
+        }
+        for (int i = 0; i < value.length() && i < raw.length; i++) {
+            if (value.charAt(i) == '?' && raw[i] != '?') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Nullable
+    private static byte[] attributeBytes(ExifInterface exif, String tag) {
+        try {
+            return exif.getAttributeBytes(tag);
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     /** How many bytes {@code tag} takes in the file, or -1 when that cannot be told. */

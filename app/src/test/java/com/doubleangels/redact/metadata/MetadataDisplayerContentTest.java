@@ -272,6 +272,19 @@ public class MetadataDisplayerContentTest {
     }
 
     @Test
+    public void video_listsItsMimeTypeOnce() throws Exception {
+        // The retriever's MIMETYPE and the file's MIME_TYPE both read "MIME Type" in Scan.
+        grantLocation(true);
+        Uri uri = videoWithMetadata("+40.5000-073.9833/");
+        videoMetadata(uri, MediaMetadataRetriever.METADATA_KEY_MIMETYPE, "video/mp4");
+
+        String all = String.join("\n", sections(uri).values());
+
+        assertTrue(all, all.contains("MIME_TYPE"));
+        assertFalse(all, all.contains("MIMETYPE"));
+    }
+
+    @Test
     public void video_withoutLocationAccess_withholdsTheCoordinates() throws Exception {
         grantLocation(false);
         Map<String, String> s = sections(videoWithMetadata("+40.5000-073.9833/"));
