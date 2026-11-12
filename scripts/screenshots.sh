@@ -159,7 +159,7 @@ trap 'exit 130' INT TERM
 ANDROID_SERIAL=""
 for serial in $(adb devices | tr -d '\r' | awk 'NR>1 && $2=="device" && $1~/^emulator-/ {print $1}'); do
   # Match the AVD by name: the profile generator's Gradle-managed emulator is API 37 too.
-  [[ $(adb -s "$serial" emu avd name 2>/dev/null | head -1 | tr -d '') == "$AVD" ]] || continue
+  [[ $(adb -s "$serial" emu avd name 2>/dev/null | head -1 | tr -d '\r') == "$AVD" ]] || continue
   if [[ $(emulator_api "$serial") == "$REQUIRED_API" ]]; then ANDROID_SERIAL=$serial; break; fi
 done
 [[ -n "$ANDROID_SERIAL" ]] || start_emulator
