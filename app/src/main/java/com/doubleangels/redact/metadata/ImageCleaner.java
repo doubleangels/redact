@@ -791,6 +791,9 @@ final class ImageCleaner {
             exifCountedXmp = xmp != null && !xmp.isEmpty()
                     && !preserved.contains(ExifInterface.TAG_XMP);
         } catch (Exception e) {
+            // Only the count of removed fields is lost; the clean itself is checked elsewhere.
+            SentryManager.log("The app could not count the photo's EXIF fields: "
+                    + e.getClass().getSimpleName() + ".");
             exif = new CleanStats(0, false);
         }
         return exif.plus(ImageContainerMetadata.scan(imageFile), exifCountedXmp);
