@@ -205,6 +205,8 @@ jobs:
 
   publish:
     needs: ["check-version", "checks", "bundle-release", "release-notes"]
+    # Nothing publishes unless every job before it succeeded; a skipped one counts as a failure.
+    if: ${{ !cancelled() && needs.check-version.result == 'success' && needs.checks.result == 'success' && needs.bundle-release.result == 'success' && needs.release-notes.result == 'success' }}
     # Requires a "Production" environment in repo Settings → Environments with required reviewers.
     # SIGNING_KEY, ALIAS, KEY_STORE_PASSWORD, KEY_PASSWORD, PRODUCTION_SIGNING_CERT_SHA256 and
     # SERVICE_ACCOUNT_JSON belong to that environment, not the repository, so no other job can read them.

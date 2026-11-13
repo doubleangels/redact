@@ -33,8 +33,10 @@ env:
 jobs:
   # A push or pull request that only touches files the build, tests and lint never read (store
   # listing, website, docs, slash commands) skips the three jobs below. The run still finishes
-  # green on that commit, which /release and required checks look for. Anything it cannot tell
-  # (API error, forced push, 300 or more files) runs everything, and so does a release.
+  # green on that commit, which /release and required checks look for.
+  # Fails closed: the jobs are skipped only when this job proves every changed file is on the
+  # list and says skip=true. An API error, a forced push, 300 or more files, a release, an empty
+  # output or this job failing all run everything.
   changes:
     if: |
       github.event_name != 'pull_request' ||
@@ -42,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
-      code: ${{ steps.diff.outputs.code }}
+      skip: ${{ steps.diff.outputs.skip }}
     steps:
       - name: Look for changes the checks cover
         id: diff
@@ -55,22 +57,22 @@ jobs:
           NOT_BUILT: '^(fastlane/|whatsnew/|site/|legal/|icons/|scripts/|\.claude/|\.idea/|Gemfile(\.lock)?$|LICENSE$|sentry\.dsn\.local\.example$|[^/]+\.md$)'
         run: |
           set -u
-          code=true
+          skip=false
           if { [ "$EVENT" = push ] || [ "$EVENT" = pull_request ]; } && [ "$FORCED" != true ]; then
             if files=$(gh api "repos/$GITHUB_REPOSITORY/compare/$BASE...$HEAD" \
                 --jq '.files[] | .filename, (.previous_filename // empty)') \
               && [ -n "$files" ] \
               && [ "$(printf '%s\n' "$files" | wc -l)" -lt 300 ] \
               && ! printf '%s\n' "$files" | grep -Evq "$NOT_BUILT"; then
-              code=false
+              skip=true
             fi
           fi
-          echo "code=$code" >> "$GITHUB_OUTPUT"
-          echo "Checks needed: $code"
+          echo "skip=$skip" >> "$GITHUB_OUTPUT"
+          echo "Skip the checks: $skip"
 
   unit-tests:
     needs: changes
-    if: needs.changes.outputs.code == 'true'
+    if: ${{ !cancelled() && needs.changes.result != 'skipped' && needs.changes.outputs.skip != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -107,7 +109,7 @@ jobs:
 
   lint:
     needs: changes
-    if: needs.changes.outputs.code == 'true'
+    if: ${{ !cancelled() && needs.changes.result != 'skipped' && needs.changes.outputs.skip != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -134,7 +136,7 @@ jobs:
 
   build:
     needs: changes
-    if: inputs.build != 'false' && needs.changes.outputs.code == 'true'
+    if: ${{ !cancelled() && inputs.build != 'false' && needs.changes.result != 'skipped' && needs.changes.outputs.skip != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
