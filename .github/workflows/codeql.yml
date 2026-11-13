@@ -5,9 +5,12 @@ name: CodeQL
 # new queries even when nothing has been pushed.
 
 on:
+  # Other branches are scanned through their pull request; scanning their pushes too ran every
+  # Dependabot update twice.
   push:
     branches:
-      - "**"
+      - dev
+      - main
   pull_request:
   schedule:
     - cron: "23 5 * * 1"

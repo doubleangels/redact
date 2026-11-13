@@ -31,10 +31,48 @@ env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false
 
 jobs:
-  unit-tests:
+  # A push or pull request that only touches files the build, tests and lint never read (store
+  # listing, website, docs, slash commands) skips the three jobs below. The run still finishes
+  # green on that commit, which /release and required checks look for.
+  # Fails closed: the jobs are skipped only when this job proves every changed file is on the
+  # list and says skip=true. An API error, a forced push, 300 or more files, a release, an empty
+  # output or this job failing all run everything.
+  changes:
     if: |
       github.event_name != 'pull_request' ||
       github.event.pull_request.head.ref != 'dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      skip: ${{ steps.diff.outputs.skip }}
+    steps:
+      - name: Look for changes the checks cover
+        id: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          FORCED: ${{ github.event.forced }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          NOT_BUILT: '^(fastlane/|whatsnew/|site/|legal/|icons/|scripts/|\.claude/|\.idea/|Gemfile(\.lock)?$|LICENSE$|sentry\.dsn\.local\.example$|[^/]+\.md$)'
+        run: |
+          set -u
+          skip=false
+          if { [ "$EVENT" = push ] || [ "$EVENT" = pull_request ]; } && [ "$FORCED" != true ]; then
+            if files=$(gh api "repos/$GITHUB_REPOSITORY/compare/$BASE...$HEAD" \
+                --jq '.files[] | .filename, (.previous_filename // empty)') \
+              && [ -n "$files" ] \
+              && [ "$(printf '%s\n' "$files" | wc -l)" -lt 300 ] \
+              && ! printf '%s\n' "$files" | grep -Evq "$NOT_BUILT"; then
+              skip=true
+            fi
+          fi
+          echo "skip=$skip" >> "$GITHUB_OUTPUT"
+          echo "Skip the checks: $skip"
+
+  unit-tests:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.result != 'skipped' && needs.changes.outputs.skip != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -70,9 +108,8 @@ jobs:
           retention-days: 7
 
   lint:
-    if: |
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.ref != 'dev'
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.result != 'skipped' && needs.changes.outputs.skip != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -98,10 +135,8 @@ jobs:
           retention-days: 7
 
   build:
-    if: |
-      inputs.build != 'false' &&
-      (github.event_name != 'pull_request' ||
-      github.event.pull_request.head.ref != 'dev')
+    needs: changes
+    if: ${{ !cancelled() && inputs.build != 'false' && needs.changes.result != 'skipped' && needs.changes.outputs.skip != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -114,4 +149,8 @@ jobs:
         uses: ./.github/actions/setup-android-build
 
       - name: Build release bundle
-        run: ./gradlew bundleRelease
+        run: ./gradlew bundleRelease exportReleaseManifest
+
+      # A library can add a permission or an exported component without touching our manifest.
+      - name: Check the release manifest against app/release-manifest.txt
+        run: python3 .github/scripts/check_release_manifest.py
