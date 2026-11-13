@@ -3,8 +3,6 @@ package com.doubleangels.redact.media;
 import static com.doubleangels.redact.TestWaits.awaitMain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Application;
@@ -117,7 +115,7 @@ public class MediaProcessorFlowTest {
         assertEquals(1, cb.successCount);
         assertEquals(1, cb.totalCount);
         assertFalse(cb.percents.isEmpty());
-        assertNotNull(processor.getLastProcessedFileUri());
+        assertFalse(processor.getSucceededOutputs().isEmpty());
         assertEquals(Arrays.asList(item.uri()), processor.getSucceededSources());
         assertEquals(1, FakeMediaStoreProvider.entries().size());
         awaitMain(() -> !processor.isBusy());
@@ -220,7 +218,7 @@ public class MediaProcessorFlowTest {
     @Test
     public void transcodeOwnerAndLastUriDefaults() {
         processor.setTranscodeOwnerId(7L);
-        assertNull(processor.getLastProcessedFileUri());
+        assertTrue(processor.getSucceededOutputs().isEmpty());
         assertTrue(processor.getSucceededSources().isEmpty());
         assertFalse(processor.isBusy());
     }

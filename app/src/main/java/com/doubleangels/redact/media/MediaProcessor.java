@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.metadata.CleanResult;
 import com.doubleangels.redact.metadata.CleanStats;
 import com.doubleangels.redact.metadata.MetadataStripper;
 import com.doubleangels.redact.sentry.SentryManager;
@@ -44,9 +45,6 @@ public class MediaProcessor {
 
     /** The application context used for background operations */
     private final Context context;
-
-    /** Stores the URI of the most recently processed file */
-    private volatile Uri lastProcessedFileUri;
 
     /** Source URIs of items cleaned successfully in the current/last batch. */
     private final List<Uri> succeededSources = new CopyOnWriteArrayList<>();
@@ -142,15 +140,6 @@ public class MediaProcessor {
     public void shutdown() {
         cancel();
         processingExecutor.shutdownNow();
-    }
-
-    /**
-     * Returns the URI of the most recently processed file.
-     *
-     * @return The URI of the last successfully processed media file, or null if none
-     */
-    public Uri getLastProcessedFileUri() {
-        return lastProcessedFileUri;
     }
 
     public List<Uri> getSucceededOutputs() {
@@ -310,23 +299,20 @@ public class MediaProcessor {
                                                                 (itemIndex * 100) / totalItems,
                                                                 batchLine)));
 
-                        Uri processedUri;
                         // "" when the source has no name: the output then gets a random one.
                         String sourceName = item.fileName() != null ? item.fileName() : "";
-                        if (item.isVideo()) {
-                            processedUri = metadataStripper.stripVideoMetadata(item.uri(), sourceName);
-                        } else {
-                            processedUri = metadataStripper.stripExifData(item.uri(), sourceName);
-                        }
+                        CleanResult result = item.isVideo()
+                                ? metadataStripper.cleanVideo(item.uri(), sourceName)
+                                : metadataStripper.cleanImage(item.uri(), sourceName);
+                        Uri processedUri = result.uri();
 
                         metadataStripper.setProgressCallback(null);
 
                         if (processedUri != null) {
-                            lastProcessedFileUri = processedUri;
                             succeededSources.add(item.uri());
                             succeededSourceNames.add(sourceName);
                             succeededOutputs.add(processedUri);
-                            CleanStats stats = metadataStripper.getLastCleanStats();
+                            CleanStats stats = result.stats();
                             if (stats != null) {
                                 succeededStats.add(stats);
                             }

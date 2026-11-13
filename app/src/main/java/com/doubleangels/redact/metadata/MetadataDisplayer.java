@@ -15,6 +15,7 @@ import android.provider.OpenableColumns;
 import android.text.format.Formatter;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.content.ContextCompat;
@@ -27,6 +28,7 @@ import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -385,7 +387,7 @@ public class MetadataDisplayer {
      */
     private static void extractImageMetadataToMap(Context context, Uri imageUri, Map<String, String> metadataMap,
                                                   @Nullable Map<String, String> embedded) {
-        extractExifToMap(context, imageUri, metadataMap);
+        extractExifToMap(context, imageUri, metadataMap, embedded);
         try {
             addImageContainerFindings(context, ImageContainerMetadata.scan(context, imageUri),
                     hasMediaLocationPermission(context), metadataMap, embedded);
@@ -460,7 +462,8 @@ public class MetadataDisplayer {
         map.put(key, existing == null || existing.equals(value) ? value : existing + ", " + value);
     }
 
-    private static void extractExifToMap(Context context, Uri imageUri, Map<String, String> metadataMap) {
+    private static void extractExifToMap(Context context, Uri imageUri, Map<String, String> metadataMap,
+                                         @Nullable Map<String, String> embedded) {
         SentryManager.log("The app is extracting image metadata to a single map.");
         boolean hasLocationPermission = hasMediaLocationPermission(context);
 
@@ -479,7 +482,7 @@ public class MetadataDisplayer {
             String gpsLongitudeRef = null;
             
             // Get TAG constants from ExifInterface using reflection (capped for performance).
-            final int maxExifTags = 200;
+            final int maxExifTags = 400; // above the number of TAG_ constants, so nothing is dropped
             int exifTagsAdded = 0;
             boolean exifTagCapReached = false;
             Field[] fields = ExifInterface.class.getDeclaredFields();
@@ -493,6 +496,17 @@ public class MetadataDisplayer {
                         String tagName = (String) field.get(null);
                         if (tagName != null) {
                             String value = exifInterface.getAttribute(tagName);
+                            if (value == null || value.isEmpty()) {
+                                // Binary data (a maker note, say) can read as empty; it still shows, by
+                                // size. One byte is just an empty text's terminator.
+                                long length = attributeLength(exifInterface, tagName);
+                                value = length > 1 ? sizeText(context, length) : null;
+                            } else if (!isReadableText(value)
+                                    || replacedUnprintableBytes(value, attributeBytes(exifInterface, tagName))) {
+                                long length = attributeLength(exifInterface, tagName);
+                                value = sizeText(context, length > 0
+                                        ? length : value.getBytes(StandardCharsets.UTF_8).length);
+                            }
                             if (value != null && !value.isEmpty()) {
                                 // Trim trailing whitespace from the value itself (e.g., XMP data may have trailing newlines)
                                 String trimmedValue = value;
@@ -562,7 +576,7 @@ public class MetadataDisplayer {
                     if (!isRedactedGpsRational(gpsLatitude)) {
                         metadataMap.put("GPS_LATITUDE", gpsLatitude);
                     }
-                    SentryManager.log("The GPS latitude failed to convert to decimal: " + e.getMessage() + ".");
+                    SentryManager.log("The GPS latitude failed to convert to decimal: " + e.getClass().getSimpleName() + ".");
                 }
             }
 
@@ -577,13 +591,24 @@ public class MetadataDisplayer {
                     if (!isRedactedGpsRational(gpsLongitude)) {
                         metadataMap.put("GPS_LONGITUDE", gpsLongitude);
                     }
-                    SentryManager.log("The GPS longitude failed to convert to decimal: " + e.getMessage() + ".");
+                    SentryManager.log("The GPS longitude failed to convert to decimal: " + e.getClass().getSimpleName() + ".");
                 }
             }
             if (hasLocationPermission
                     && rationalLat != null && rationalLon != null
                     && isUsableMapCoordinate(rationalLat, rationalLon)) {
                 putGpsCoordinatesInMap(metadataMap, rationalLat, rationalLon);
+            }
+
+            if (embedded != null) {
+                try {
+                    long[] thumbnail = exifInterface.getThumbnailRange();
+                    if (thumbnail != null && thumbnail[1] > 0) {
+                        embedded.put("EXIF_THUMBNAIL", sizeText(context, thumbnail[1]));
+                    }
+                } catch (RuntimeException e) {
+                    SentryManager.log("The EXIF thumbnail size could not be read.");
+                }
             }
 
             // Also handle integer attributes that don't have string values
@@ -612,7 +637,7 @@ public class MetadataDisplayer {
                     latLong = exifInterface.getLatLong();
                 } catch (SecurityException e) {
                     SentryManager.recordException(e);
-                    SentryManager.log("A SecurityException occurred while reading the latitude and longitude map: " + e.getMessage() + ".");
+                    SentryManager.log("A SecurityException occurred while reading the latitude and longitude map: " + e.getClass().getSimpleName() + ".");
                 }
                 if (latLong == null || latLong.length < 2
                         || !isUsableMapCoordinate(latLong[0], latLong[1])) {
@@ -677,12 +702,12 @@ public class MetadataDisplayer {
     private static double parseRational(String rational) {
         String[] fraction = rational.split("/");
         if (fraction.length != 2) {
-            throw new IllegalArgumentException("Invalid rational format: " + rational);
+            throw new IllegalArgumentException("The rational has no single slash.");
         }
         double numerator = Double.parseDouble(fraction[0].trim());
         double denominator = Double.parseDouble(fraction[1].trim());
         if (denominator == 0) {
-            throw new IllegalArgumentException("Division by zero in rational: " + rational);
+            throw new IllegalArgumentException("The rational has a zero denominator.");
         }
         return numerator / denominator;
     }
@@ -732,6 +757,10 @@ public class MetadataDisplayer {
                             if (keyName.equals("METADATA_KEY_LOCATION")) {
                                 locationValue = trimmedValue;
                                 continue; // Skip adding this field directly
+                            }
+                            // The file's own MIME type row is already there, under the same label.
+                            if (keyName.equals("METADATA_KEY_MIMETYPE") && metadataMap.containsKey("MIME_TYPE")) {
+                                continue;
                             }
 
                             if (XmlLikeMetadataFormatter.looksLikeRdfOrXmp(trimmedValue)) {
@@ -891,16 +920,21 @@ public class MetadataDisplayer {
             return;
         }
         String date = container.values.get("date");
-        if (date != null && !metadataMap.containsKey("DATE")) {
-            metadataMap.put("DATE", date);
+        if (date != null) {
+            String shown = metadataMap.get("DATE");
+            if (shown == null) {
+                metadataMap.put("DATE", date);
+            } else if (!shown.equals(date)) {
+                embedded.put("CONTAINER_DATE", date);
+            }
         }
         for (String name : names) {
             if (name.equals("date") || VideoContainerMetadata.isLocationName(name)) {
                 continue;
             }
             String key = containerDisplayKey(name);
-            if (key.isEmpty() || metadataMap.containsKey(key) || embedded.containsKey(key)) {
-                continue;
+            if (key.isEmpty()) {
+                key = "UNNAMED_FIELD";
             }
             // Without the permission, a field holding a location (XMP with GPS in it) shows only its size.
             String value = hasLocationPermission || !container.isLocationField(name)
@@ -912,7 +946,18 @@ public class MetadataDisplayer {
                 Long size = container.sizes.get(name);
                 value = Formatter.formatShortFileSize(context, size != null ? size : 0);
             }
-            embedded.put(key, value);
+            // Two fields can share a display key; both show, the second under a numbered key.
+            String unique = key;
+            for (int n = 2; metadataMap.containsKey(unique) || embedded.containsKey(unique); n++) {
+                if (value.equals(metadataMap.get(unique)) || value.equals(embedded.get(unique))) {
+                    unique = null;
+                    break;
+                }
+                unique = key + "_" + n;
+            }
+            if (unique != null) {
+                embedded.put(unique, value);
+            }
         }
     }
 
@@ -930,6 +975,33 @@ public class MetadataDisplayer {
             case "©too": return "SOFTWARE";
             case "©des": return "DESCRIPTION";
             case "©inf": return "INFORMATION";
+            // 3GPP and iTunes boxes named by a four-letter code that would read as gibberish.
+            case "cprt":
+            case "©cpy": return "COPYRIGHT";
+            case "auth": return "AUTHOR";
+            case "perf": return "PERFORMER";
+            case "albm":
+            case "©alb": return "ALBUM";
+            case "yrrc": return "YEAR";
+            case "titl": return "TITLE";
+            case "dscp":
+            case "desc": return "DESCRIPTION";
+            case "ldes": return "LONG_DESCRIPTION";
+            case "gnre":
+            case "©gen": return "GENRE";
+            case "rtng": return "RATING";
+            case "clsf": return "CLASSIFICATION";
+            case "kywd": return "KEYWORDS";
+            case "aART": return "ALBUM_ARTIST";
+            case "©wrt": return "WRITER";
+            case "©grp": return "GROUPING";
+            case "©lyr": return "LYRICS";
+            case "covr": return "COVER_ART";
+            case "trkn": return "TRACK_NUMBER";
+            case "disk": return "DISC_NUMBER";
+            case "tmpo": return "TEMPO";
+            case "cpil": return "COMPILATION";
+            case "pgap": return "GAPLESS_PLAYBACK";
             default: break;
         }
         String key = name;
@@ -940,6 +1012,60 @@ public class MetadataDisplayer {
         }
         key = key.replace("©", "").toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]+", "_");
         return key.replaceAll("^_+|_+$", "");
+    }
+
+    /** Whether {@code value} is text a person can read: no control characters or replacement marks. */
+    @VisibleForTesting
+    static boolean isReadableText(String value) {
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (c == '\uFFFD' || (c < 0x20 && c != '\n' && c != '\r' && c != '\t')
+                    || (c >= 0x7F && c <= 0x9F)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Whether ExifInterface turned unprintable bytes into question marks in {@code value}. It renders
+     * BYTE and UNDEFINED data (Components Configuration, Scene Type) as text with every byte below
+     * 32 replaced by '?', so "???" passes {@link #isReadableText} though the tag holds no text.
+     */
+    @VisibleForTesting
+    static boolean replacedUnprintableBytes(@NonNull String value, @Nullable byte[] raw) {
+        if (raw == null || value.indexOf('?') < 0) {
+            return false;
+        }
+        for (int i = 0; i < value.length() && i < raw.length; i++) {
+            if (value.charAt(i) == '?' && raw[i] != '?') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Nullable
+    private static byte[] attributeBytes(ExifInterface exif, String tag) {
+        try {
+            return exif.getAttributeBytes(tag);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    /** How many bytes {@code tag} takes in the file, or -1 when that cannot be told. */
+    private static long attributeLength(ExifInterface exif, String tag) {
+        try {
+            long[] range = exif.getAttributeRange(tag);
+            return range != null ? range[1] : -1;
+        } catch (RuntimeException e) {
+            return -1;
+        }
+    }
+
+    private static String sizeText(Context context, long bytes) {
+        return Formatter.formatShortFileSize(context, bytes);
     }
 
     private static String trimTrailingWhitespace(String s) {
@@ -1116,7 +1242,7 @@ public class MetadataDisplayer {
                 }
             }
         } catch (Exception e) {
-            SentryManager.log("The original file descriptor EXIF read failed: " + e.getMessage() + ".");
+            SentryManager.log("The original file descriptor EXIF read failed: " + e.getClass().getSimpleName() + ".");
         }
         try {
             Uri originalUri = MediaStore.setRequireOriginal(accessUri);
@@ -1127,7 +1253,7 @@ public class MetadataDisplayer {
                 }
             }
         } catch (Exception e) {
-            SentryManager.log("The original input stream EXIF read failed: " + e.getMessage() + ".");
+            SentryManager.log("The original input stream EXIF read failed: " + e.getClass().getSimpleName() + ".");
         }
         return null;
     }
@@ -1185,7 +1311,7 @@ public class MetadataDisplayer {
                 }
             }
         } catch (Exception e) {
-            SentryManager.log("The MediaStore GPS query failed: " + e.getMessage() + ".");
+            SentryManager.log("The MediaStore GPS query failed: " + e.getClass().getSimpleName() + ".");
         }
         return null;
     }
@@ -1305,7 +1431,8 @@ public class MetadataDisplayer {
      * @param input The input string in camelCase or PascalCase
      * @return The string in snake_case format
      */
-    private static String convertToSnakeCase(String input) {
+    @VisibleForTesting
+    static String convertToSnakeCase(String input) {
         if (input == null || input.isEmpty()) {
             return input;
         }

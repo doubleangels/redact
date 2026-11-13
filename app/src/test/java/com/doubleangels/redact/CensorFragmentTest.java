@@ -188,7 +188,7 @@ public class CensorFragmentTest {
         // The effect button names the current effect, and follows a new choice.
         View effectButton = root.findViewById(R.id.censorEffectButton);
         assertEquals(activity.getString(R.string.censor_effect_current,
-                        activity.getString(R.string.censor_effect_pixelate)),
+                        activity.getString(R.string.censor_effect_black)),
                 effectButton.getContentDescription().toString());
         ((CensorFragment) fragment("censor")).chooseEffect(com.doubleangels.redact.media.CensorEffects.Effect.BLUR);
         idle();
@@ -246,6 +246,54 @@ public class CensorFragmentTest {
         assertTrue(redo.isEnabled());
         // Redo is still there to use, so the pill stays.
         assertEquals(View.VISIBLE, pill.getVisibility());
+    }
+
+    @Test
+    public void addArea_dropsASelectedRectangle_andSwitchesToTheRectangleTool() throws Exception {
+        View root = censorTab();
+        vm.requestOpen(createTestJpeg("sample.jpg"));
+        awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.READY);
+        idle();
+        root.findViewById(R.id.censorToolBrush).performClick();
+        idle();
+
+        View add = root.findViewById(R.id.censorAddAreaButton);
+        assertEquals(activity.getString(R.string.censor_add_area), add.getContentDescription().toString());
+        add.performClick();
+        idle();
+
+        assertTrue(((com.google.android.material.button.MaterialButton)
+                root.findViewById(R.id.censorToolRect)).isChecked());
+        assertEquals(1, vm.regions().size());
+        assertEquals(CensorRegion.Shape.RECT, vm.regions().get(0).shape());
+        awaitMain(() -> {
+            idle();
+            return root.findViewById(R.id.censorDeleteButton).getVisibility() == View.VISIBLE;
+        });
+    }
+
+    @Test
+    public void deletingAnAreaFromTalkBack_removesItFromThePhoto() throws Exception {
+        View root = censorTab();
+        vm.requestOpen(createTestJpeg("sample.jpg"));
+        awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.READY);
+        idle();
+        vm.addRegion(CensorRegion.rect(0.1f, 0.1f, 0.5f, 0.5f));
+        idle();
+        com.doubleangels.redact.ui.CensorCanvasView canvas = root.findViewById(R.id.censorCanvas);
+        androidx.customview.widget.ExploreByTouchHelper helper = (androidx.customview.widget.ExploreByTouchHelper)
+                androidx.core.view.ViewCompat.getAccessibilityDelegate(canvas);
+        assertNotNull(helper);
+        androidx.core.view.accessibility.AccessibilityNodeProviderCompat provider =
+                helper.getAccessibilityNodeProvider(canvas);
+        assertNotNull(provider);
+        // The canvas gets the region once its preview is drawn; the action works from then on.
+        awaitMain(() -> {
+            idle();
+            return provider.performAction(0, R.id.censor_action_delete, null);
+        });
+        idle();
+        assertFalse(vm.hasRegions());
     }
 
     @Test
@@ -508,13 +556,14 @@ public class CensorFragmentTest {
         assertNotNull(menu);
         assertEquals(com.doubleangels.redact.media.CensorEffects.Effect.values().length, menu.getMenu().size());
 
-        int black = com.doubleangels.redact.media.CensorEffects.Effect.BLACK.ordinal();
-        menu.getMenu().performIdentifierAction(black, 0);
+        // Not the default, so the menu has to change something for the check to pass.
+        int blur = com.doubleangels.redact.media.CensorEffects.Effect.BLUR.ordinal();
+        menu.getMenu().performIdentifierAction(blur, 0);
         idle();
 
-        assertEquals(com.doubleangels.redact.media.CensorEffects.Effect.BLACK, vm.getEffect().getValue());
+        assertEquals(com.doubleangels.redact.media.CensorEffects.Effect.BLUR, vm.getEffect().getValue());
         // The choice is remembered for later photos; put the default back for the other tests.
-        vm.setEffect(com.doubleangels.redact.media.CensorEffects.Effect.PIXELATE);
+        vm.setEffect(com.doubleangels.redact.media.CensorEffects.Effect.BLACK);
     }
 
     @Test

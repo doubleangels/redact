@@ -54,4 +54,7 @@
 
     <!-- Utility colors -->
     <color name="black">#FF000000</color>
+    <!-- Half-black scrim over a media thumbnail, so the white badge or button on it stays readable
+         on any picture, light or dark theme alike. -->
+    <color name="media_scrim">#80000000</color>
 </resources>

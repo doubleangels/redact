@@ -2,6 +2,7 @@ package com.doubleangels.redact.media;
 
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -51,7 +52,7 @@ public final class MediaUriResolver {
             }
         } catch (SecurityException e) {
             // The sender shared a URI without granting read access, which only the sender can fix.
-            SentryManager.log("The display name query was denied: " + e.getMessage() + ".");
+            SentryManager.log("The display name query was denied: " + e.getClass().getSimpleName() + ".");
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
@@ -71,7 +72,7 @@ public final class MediaUriResolver {
                     return mediaUri;
                 }
             } catch (Exception e) {
-                SentryManager.log("The MediaStore.getMediaUri call failed: " + e.getMessage() + ".");
+                SentryManager.log("The MediaStore.getMediaUri call failed: " + e.getClass().getSimpleName() + ".");
             }
         }
         if (!isPhotoPickerUri(uri)) {
@@ -81,7 +82,7 @@ public final class MediaUriResolver {
         try {
             mimeType = context.getContentResolver().getType(uri);
         } catch (Exception e) {
-            SentryManager.log("The picker MIME type failed to resolve: " + e.getMessage() + ".");
+            SentryManager.log("The picker MIME type failed to resolve: " + e.getClass().getSimpleName() + ".");
         }
         boolean isVideo = MediaSelector.isVideoFromMimeAndName(mimeType, uri.getLastPathSegment());
 
@@ -128,7 +129,7 @@ public final class MediaUriResolver {
                 null, null, null)) {
             return cursor != null && cursor.moveToFirst();
         } catch (Exception e) {
-            SentryManager.log("The MediaStore URI probe failed: " + e.getMessage() + ".");
+            SentryManager.log("The MediaStore URI probe failed: " + e.getClass().getSimpleName() + ".");
             return false;
         }
     }
@@ -147,5 +148,31 @@ public final class MediaUriResolver {
         }
         String authority = uri.getAuthority();
         return authority != null && authority.contains("picker");
+    }
+
+    /**
+     * Whether a content URI names one of this app's own providers. Android drops a
+     * {@code userId@} prefix from an authority before it finds the provider, so
+     * {@code 0@<package>.fileprovider} still opens Redact's FileProvider: the prefix is dropped
+     * here too, and the system is asked who owns what is left. A URI with no authority, or an
+     * owner the lookup cannot name, counts as Redact's own so that callers refuse it.
+     */
+    public static boolean isOwnProvider(@NonNull Context context, @NonNull Uri uri) {
+        String authority = uri.getAuthority();
+        if (authority == null) {
+            return true;
+        }
+        authority = authority.substring(authority.lastIndexOf('@') + 1);
+        if (authority.isEmpty()) {
+            return true;
+        }
+        String packageName = context.getPackageName();
+        try {
+            ProviderInfo info = context.getPackageManager().resolveContentProvider(authority, 0);
+            return info != null && packageName.equals(info.packageName);
+        } catch (RuntimeException e) {
+            SentryManager.log("The provider owner lookup failed: " + e.getClass().getSimpleName() + ".");
+            return true;
+        }
     }
 }

@@ -35,6 +35,9 @@ import java.util.List;
 @RunWith(RobolectricTestRunner.class)
 public class MetadataStripperGalleryTest {
 
+    /** The result of the latest clean in this test, for the checks that follow it. */
+    private com.doubleangels.redact.metadata.CleanResult lastResult;
+
     private Application app;
     private MetadataStripper stripper;
     private final List<File> files = new ArrayList<>();
@@ -93,7 +96,7 @@ public class MetadataStripperGalleryTest {
     public void jpeg_strict_isCleanedIntoAPublishedRandomlyNamedEntry() throws Exception {
         AppPreferences.setStrictClean(app, true);
 
-        Uri out = stripper.stripExifData(Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, true)), "trip.jpg");
+        Uri out = (lastResult = stripper.cleanImage(Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, true)), "trip.jpg")).uri();
 
         assertNotNull(out);
         FakeMediaStoreProvider.Entry entry = FakeMediaStoreProvider.only();
@@ -102,7 +105,7 @@ public class MetadataStripperGalleryTest {
         assertEquals("image/jpeg", entry.mimeType());
         assertFalse(entry.isPending());
         assertNoIdentifyingExif(entry.file);
-        assertEquals(out, stripper.getLastProcessedFileUri());
+        assertEquals(out, lastResult.uri());
         assertFalse(progress.isEmpty());
         assertEquals(Integer.valueOf(100), progress.get(progress.size() - 1));
     }
@@ -117,7 +120,7 @@ public class MetadataStripperGalleryTest {
             out.write(in.readAllBytes());
         }
 
-        Uri out = stripper.stripExifData(Uri.fromFile(heic), "photo.heic");
+        Uri out = (lastResult = stripper.cleanImage(Uri.fromFile(heic), "photo.heic")).uri();
 
         assertNotNull(out);
         FakeMediaStoreProvider.Entry entry = FakeMediaStoreProvider.only();
@@ -140,7 +143,7 @@ public class MetadataStripperGalleryTest {
             out.write(in.readAllBytes());
         }
 
-        assertNotNull(stripper.stripExifData(Uri.fromFile(heic), "photo.heic"));
+        assertNotNull((lastResult = stripper.cleanImage(Uri.fromFile(heic), "photo.heic")).uri());
 
         FakeMediaStoreProvider.Entry entry = FakeMediaStoreProvider.only();
         assertEquals("image/heic", entry.mimeType());
@@ -170,15 +173,14 @@ public class MetadataStripperGalleryTest {
         File clean = File.createTempFile("gallery_", ".heic", app.getFilesDir());
         files.add(clean);
         HeifContainerMetadata.sanitize(fixtureFile("heic_tagged.heic", ".heic"), clean);
-        java.lang.reflect.Field values = MetadataStripper.class.getDeclaredField("preservedExifValues");
-        values.setAccessible(true);
-        java.util.Map<String, String> kept = (java.util.Map<String, String>) values.get(stripper);
+        java.util.Map<String, String> kept = new java.util.HashMap<>();
         kept.put(androidx.exifinterface.media.ExifInterface.TAG_MAKE, "KeptMaker");
         kept.put(androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION, "6");
-        java.lang.reflect.Method restore = MetadataStripper.class.getDeclaredMethod("restoreHeifExif", File.class);
+        java.lang.reflect.Method restore = ImageCleaner.class.getDeclaredMethod(
+                "restoreHeifExif", File.class, java.util.Map.class);
         restore.setAccessible(true);
 
-        restore.invoke(stripper, clean);
+        restore.invoke(stripper.images, clean, kept);
 
         String written = new String(java.nio.file.Files.readAllBytes(clean.toPath()),
                 java.nio.charset.StandardCharsets.ISO_8859_1);
@@ -193,8 +195,8 @@ public class MetadataStripperGalleryTest {
         AppPreferences.setStrictClean(app, false);
         AppPreferences.setPreserveMotionPhoto(app, true);
 
-        assertNotNull(stripper.stripExifData(
-                Uri.fromFile(fixtureFile("motion_photo_tagged.jpg", ".jpg")), "motion.jpg"));
+        assertNotNull((lastResult = stripper.cleanImage(
+                Uri.fromFile(fixtureFile("motion_photo_tagged.jpg", ".jpg")), "motion.jpg")).uri());
 
         byte[] written = java.nio.file.Files.readAllBytes(FakeMediaStoreProvider.only().file.toPath());
         String text = new String(written, java.nio.charset.StandardCharsets.ISO_8859_1);
@@ -208,7 +210,7 @@ public class MetadataStripperGalleryTest {
         AppPreferences.setPreserveCameraSettings(app, true);
         AppPreferences.setPreserveLocation(app, false);
 
-        Uri out = stripper.stripExifData(Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, true)), "trip.jpg");
+        Uri out = (lastResult = stripper.cleanImage(Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, true)), "trip.jpg")).uri();
 
         assertNotNull(out);
         ExifInterface exif = new ExifInterface(FakeMediaStoreProvider.only().file.getAbsolutePath());
@@ -238,7 +240,7 @@ public class MetadataStripperGalleryTest {
         AppPreferences.setPreserveCameraSettings(app, true);
         AppPreferences.setPreserveDateTaken(app, false);
 
-        assertNotNull(stripper.stripExifData(Uri.fromFile(photoWithSettings()), "trip.jpg"));
+        assertNotNull((lastResult = stripper.cleanImage(Uri.fromFile(photoWithSettings()), "trip.jpg")).uri());
 
         ExifInterface exif = new ExifInterface(FakeMediaStoreProvider.only().file.getAbsolutePath());
         assertEquals("41", exif.getAttribute(ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY));
@@ -256,7 +258,7 @@ public class MetadataStripperGalleryTest {
         AppPreferences.setPreserveCameraSettings(app, false);
         AppPreferences.setPreserveDateTaken(app, true);
 
-        assertNotNull(stripper.stripExifData(Uri.fromFile(photoWithSettings()), "trip.jpg"));
+        assertNotNull((lastResult = stripper.cleanImage(Uri.fromFile(photoWithSettings()), "trip.jpg")).uri());
 
         ExifInterface exif = new ExifInterface(FakeMediaStoreProvider.only().file.getAbsolutePath());
         assertEquals("2023:10:06 19:25:15", exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL));
@@ -272,8 +274,8 @@ public class MetadataStripperGalleryTest {
                 (byte) 0xFF, (byte) 0xE0, 0, 4, 1, 2,
                 (byte) 0xFF, (byte) 0xE1, 0, 12, 'E', 'x', 'i', 'f', 0, 0, 'I', 'I', 42, 0,
                 (byte) 0xFF, (byte) 0xDA, 0, 2};
-        assertTrue(java.util.Arrays.equals(new byte[] {'I', 'I', 42, 0}, MetadataStripper.exifTiff(jpeg)));
-        assertNull(MetadataStripper.exifTiff(new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xDA, 0, 2}));
+        assertTrue(java.util.Arrays.equals(new byte[] {'I', 'I', 42, 0}, ImageCleaner.exifTiff(jpeg)));
+        assertNull(ImageCleaner.exifTiff(new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xDA, 0, 2}));
     }
 
     @Test
@@ -281,7 +283,7 @@ public class MetadataStripperGalleryTest {
         AppPreferences.setStrictClean(app, true);
         AppPreferences.setPreserveDateTaken(app, true); // ignored by Strict Clean
 
-        assertNotNull(stripper.stripExifData(Uri.fromFile(photoWithSettings()), "trip.jpg"));
+        assertNotNull((lastResult = stripper.cleanImage(Uri.fromFile(photoWithSettings()), "trip.jpg")).uri());
 
         ExifInterface exif = new ExifInterface(FakeMediaStoreProvider.only().file.getAbsolutePath());
         assertEquals("65535", exif.getAttribute(ExifInterface.TAG_COLOR_SPACE));
@@ -293,10 +295,10 @@ public class MetadataStripperGalleryTest {
     public void jpeg_strict_reportsEveryIdentifyingFieldAndTheLocation() throws Exception {
         AppPreferences.setStrictClean(app, true);
 
-        assertNotNull(stripper.stripExifData(
-                Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, true)), "trip.jpg"));
+        assertNotNull((lastResult = stripper.cleanImage(
+                Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, true)), "trip.jpg")).uri());
 
-        CleanStats stats = stripper.getLastCleanStats();
+        CleanStats stats = lastResult.stats();
         assertNotNull(stats);
         // Make, model, serial, both dates (saving DateTimeOriginal also writes DateTime) and the four
         // GPS tags; orientation is kept, so it is not counted.
@@ -310,10 +312,10 @@ public class MetadataStripperGalleryTest {
         AppPreferences.setPreserveCameraSettings(app, true);
         AppPreferences.setPreserveLocation(app, true);
 
-        assertNotNull(stripper.stripExifData(
-                Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, true)), "trip.jpg"));
+        assertNotNull((lastResult = stripper.cleanImage(
+                Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, true)), "trip.jpg")).uri());
 
-        CleanStats stats = stripper.getLastCleanStats();
+        CleanStats stats = lastResult.stats();
         assertNotNull(stats);
         // Only the serial and the two dates go; camera settings and location are kept.
         assertEquals(3, stats.removedFields);
@@ -324,10 +326,10 @@ public class MetadataStripperGalleryTest {
     public void jpeg_withoutMetadata_reportsNothingRemoved() throws Exception {
         AppPreferences.setStrictClean(app, true);
 
-        assertNotNull(stripper.stripExifData(
-                Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, false)), "plain.jpg"));
+        assertNotNull((lastResult = stripper.cleanImage(
+                Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, false)), "plain.jpg")).uri());
 
-        CleanStats stats = stripper.getLastCleanStats();
+        CleanStats stats = lastResult.stats();
         assertNotNull(stats);
         assertEquals(0, stats.removedFields);
         assertFalse(stats.hadLocation);
@@ -335,8 +337,8 @@ public class MetadataStripperGalleryTest {
 
     @Test
     public void failedImageClean_reportsNoStats() {
-        assertNull(stripper.stripExifData(Uri.fromFile(new File("/nonexistent/x.jpg")), "x.jpg"));
-        assertNull(stripper.getLastCleanStats());
+        assertNull((lastResult = stripper.cleanImage(Uri.fromFile(new File("/nonexistent/x.jpg")), "x.jpg")).uri());
+        assertNull(lastResult.stats());
     }
 
     @Test
@@ -346,9 +348,9 @@ public class MetadataStripperGalleryTest {
     public void png_andWebp_areCleanedInTheirOwnFormat() throws Exception {
         AppPreferences.setStrictClean(app, true);
 
-        assertNotNull(stripper.stripExifData(Uri.fromFile(image(".png", Bitmap.CompressFormat.PNG, false)), "a.png"));
-        assertNotNull(stripper.stripExifData(
-                Uri.fromFile(image(".webp", Bitmap.CompressFormat.WEBP_LOSSY, false)), "b.webp"));
+        assertNotNull((lastResult = stripper.cleanImage(Uri.fromFile(image(".png", Bitmap.CompressFormat.PNG, false)), "a.png")).uri());
+        assertNotNull((lastResult = stripper.cleanImage(
+                Uri.fromFile(image(".webp", Bitmap.CompressFormat.WEBP_LOSSY, false)), "b.webp")).uri());
 
         java.util.Set<String> mimes = new java.util.HashSet<>();
         for (FakeMediaStoreProvider.Entry e : FakeMediaStoreProvider.entries().values()) {
@@ -362,14 +364,14 @@ public class MetadataStripperGalleryTest {
     @Test
     public void unknownExtension_fallsBackToJpegOutput() throws Exception {
         AppPreferences.setStrictClean(app, true);
-        Uri out = stripper.stripExifData(Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, false)), "photo.dat");
+        Uri out = (lastResult = stripper.cleanImage(Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, false)), "photo.dat")).uri();
         assertNotNull(out);
         assertEquals("image/jpeg", FakeMediaStoreProvider.only().mimeType());
     }
 
     @Test
     public void missingSource_returnsNullAndLeavesNoEntry() {
-        Uri out = stripper.stripExifData(Uri.fromFile(new File("/nonexistent/x.jpg")), "x.jpg");
+        Uri out = (lastResult = stripper.cleanImage(Uri.fromFile(new File("/nonexistent/x.jpg")), "x.jpg")).uri();
         assertNull(out);
         assertTrue(FakeMediaStoreProvider.entries().isEmpty());
     }
@@ -377,7 +379,7 @@ public class MetadataStripperGalleryTest {
     @Test
     public void mediaStoreRefusingTheRow_returnsNull() throws Exception {
         FakeMediaStoreProvider.failInsert = true;
-        Uri out = stripper.stripExifData(Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, true)), "x.jpg");
+        Uri out = (lastResult = stripper.cleanImage(Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, true)), "x.jpg")).uri();
         assertNull(out);
     }
 
@@ -385,7 +387,7 @@ public class MetadataStripperGalleryTest {
     public void cancellation_beforeTheCall_isReportedByTheFlag() throws Exception {
         stripper.requestCancellation();
         stripper.resetCancellation();
-        Uri out = stripper.stripExifData(Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, true)), "x.jpg");
+        Uri out = (lastResult = stripper.cleanImage(Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, true)), "x.jpg")).uri();
         assertNotNull(out);
     }
 
@@ -394,8 +396,8 @@ public class MetadataStripperGalleryTest {
         AppPreferences.setStrictClean(app, false);
         // The share path is only exercised for its early branches here: FileProvider URIs cannot be
         // produced on every host (see FileProviderTestSupport), so null is an acceptable outcome.
-        stripper.stripMetadataForSharing(
-                Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, true)), "x.jpg", false);
+        (lastResult = stripper.cleanForSharing(
+                Uri.fromFile(image(".jpg", Bitmap.CompressFormat.JPEG, true)), "x.jpg", false)).uri();
     }
 
     // ---- video paths: only their early failure branches can run without real codecs ------------------
@@ -418,7 +420,7 @@ public class MetadataStripperGalleryTest {
         Uri out = null;
         try {
             Uri junk = Uri.fromFile(junkVideo());
-            out = callOffMain(() -> stripper.stripVideoMetadata(junk, "clip.mp4"));
+            out = callOffMain(() -> (lastResult = stripper.cleanVideo(junk, "clip.mp4")).uri());
         } catch (RuntimeException expected) {
             // transcoding is unavailable under Robolectric
         }
@@ -433,8 +435,8 @@ public class MetadataStripperGalleryTest {
         VideoMedia3Converter.setAwaitTimeoutForTests(500L);
         Uri out = null;
         try {
-            out = callOffMain(() -> stripper.stripVideoMetadata(
-                    Uri.fromFile(new File("/nonexistent/clip.mp4")), "clip.mp4"));
+            out = callOffMain(() -> (lastResult = stripper.cleanVideo(
+                    Uri.fromFile(new File("/nonexistent/clip.mp4")), "clip.mp4")).uri());
         } catch (RuntimeException expected) {
             // cancellation-style failures propagate
         }
@@ -448,8 +450,8 @@ public class MetadataStripperGalleryTest {
         VideoMedia3Converter.setAwaitTimeoutForTests(500L);
         Uri out = null;
         try {
-            out = callOffMain(() -> stripper.stripVideoMetadataForSharing(
-                    Uri.fromFile(new File("/nonexistent/clip.mp4")), "clip.mp4"));
+            out = callOffMain(() -> (lastResult = stripper.cleanVideoForSharing(
+                    Uri.fromFile(new File("/nonexistent/clip.mp4")), "clip.mp4")).uri());
         } catch (RuntimeException expected) {
             // cancellation-style failures propagate
         }

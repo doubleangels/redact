@@ -5,13 +5,13 @@
     android:layout_height="wrap_content"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="@dimen/spacing_xlarge">
 
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progress_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="@dimen/spacing_large"
         android:indeterminate="true"
         app:indicatorColor="?attr/colorPrimary"
         app:trackCornerRadius="4dp" />

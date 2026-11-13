@@ -24,10 +24,10 @@
         layout="@layout/censor_canvas_card"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="12dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginStart="@dimen/spacing_large"
+        android:layout_marginTop="@dimen/spacing_small"
+        android:layout_marginEnd="@dimen/spacing_medium"
+        android:layout_marginBottom="@dimen/spacing_small"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/censorColumn"
         app:layout_goneMarginEnd="16dp"
@@ -39,8 +39,8 @@
         android:layout_width="360dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:paddingEnd="16dp"
-        android:paddingBottom="8dp"
+        android:paddingEnd="@dimen/spacing_large"
+        android:paddingBottom="@dimen/spacing_small"
         android:scrollbars="none"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/censorActionsTop"
@@ -58,8 +58,8 @@
                 layout="@layout/summary_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginTop="@dimen/spacing_small"
+                android:layout_marginBottom="@dimen/spacing_small" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

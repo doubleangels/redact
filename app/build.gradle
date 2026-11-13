@@ -16,8 +16,9 @@ android {
         applicationId "com.doubleangels.redact"
         minSdk 31
         targetSdk 37
-        versionCode 39
-        versionName "1.9.2"
+        versionCode 40
+        versionName "1.10.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         def sentryRelease = "${applicationId}@${versionName}+${versionCode}"
         buildConfigField "String", "SENTRY_RELEASE", "\"${sentryRelease}\""
@@ -45,10 +46,23 @@ android {
     }
 
     testOptions {
+        // CleanOnDeviceTest cleans real media with real codecs: ./gradlew :app:Pixel_10_Pro_CleanDebugAndroidTest
+        // The name stays short, as the profile emulator's does (see CLAUDE.md).
+        managedDevices.localDevices {
+            create("Pixel_10_Pro_Clean") {
+                device = "Pixel 10 Pro"
+                apiLevel = 37
+                systemImageSource = "google"
+                pageAlignment = com.android.build.api.dsl.ManagedVirtualDevice.PageAlignment.FORCE_4KB_PAGES
+            }
+        }
         unitTests {
             includeAndroidResources = true
             all {
                 // Each fork builds its own Robolectric sandboxes, which need more than the 512 MB default.
+                // Half the cores, measured: on CI's 4 cores, 4 forks took 5m25 against 3m36 with 2 (the
+                // forks fought over the CPUs under JaCoCo, 752 class-seconds against 216), and one run
+                // hit an UnsatisfiedLinkError loading Robolectric's native SQLite.
                 maxHeapSize = "2g"
                 maxParallelForks = Math.max(1, Runtime.runtime.availableProcessors().intdiv(2))
                 // Robolectric-loaded classes need includeNoLocationClasses for JaCoCo to see them; the
@@ -117,6 +131,7 @@ dependencies {
     implementation libs.activity
     implementation libs.appcompat
     implementation libs.constraintlayout
+    implementation libs.customview
     implementation libs.exifinterface
     implementation libs.fragment
     implementation libs.glide
@@ -127,13 +142,18 @@ dependencies {
     implementation libs.media3.muxer
     implementation libs.media3.effect
     implementation libs.media3.transformer
-    implementation libs.lifecycle.viewmodel.ktx
+    implementation libs.lifecycle.livedata
+    implementation libs.lifecycle.viewmodel
+    implementation libs.lifecycle.viewmodel.savedstate
+    implementation libs.recyclerview
     implementation libs.profileinstaller
     implementation libs.core.splashscreen
     implementation libs.window.java
     baselineProfile project(':baselineprofile')
 
     testImplementation libs.junit
+    androidTestImplementation libs.test.runner
+    androidTestImplementation libs.test.ext.junit
     testImplementation libs.robolectric
     testImplementation libs.arch.core.testing
 

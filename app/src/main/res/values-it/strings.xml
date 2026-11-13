@@ -113,7 +113,7 @@
 
     
     <string name="metadata_location_unreadable">Sono presenti dati di posizione, salvati in un formato che non può essere mostrato qui. La pulizia li rimuove.</string>
-    <string name="metadata_embedded_data_header">Dati nascosti e incorporati</string>
+    <string name="metadata_embedded_data_header">Dati Nascosti e Incorporati</string>
     <plurals name="metadata_embedded_images">
         <item quantity="one">%1$d immagine (%2$s) – rimossa durante la pulizia</item>
         <item quantity="many">%1$d immagini (%2$s) – rimosse durante la pulizia</item>
@@ -439,6 +439,15 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="censor_undo">Annulla</string>
     <string name="censor_redo">Ripeti</string>
     <string name="censor_delete_rectangle">Elimina Rettangolo</string>
+    <string name="censor_add_area">Aggiungi Area</string>
+    <string name="censor_area_description">Area censurata %1$d di %2$d</string>
+    <string name="censor_action_move_left">Sposta a Sinistra</string>
+    <string name="censor_action_move_right">Sposta a Destra</string>
+    <string name="censor_action_move_up">Sposta in Alto</string>
+    <string name="censor_action_move_down">Sposta in Basso</string>
+    <string name="censor_action_larger">Ingrandisci</string>
+    <string name="censor_action_smaller">Riduci</string>
+    <string name="censor_action_delete">Elimina Area</string>
     <string name="censor_full_screen">Schermo Intero</string>
     <string name="censor_exit_full_screen">Esci da Schermo Intero</string>
     <string name="censor_zoom_level">%1$s×</string>

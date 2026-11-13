@@ -14,7 +14,7 @@
         android:layout_gravity="center"
         android:gravity="center"
         android:orientation="vertical"
-        android:paddingHorizontal="24dp"
+        android:paddingHorizontal="@dimen/spacing_xlarge"
         android:paddingVertical="@dimen/empty_state_vertical_padding">
 
         <com.google.android.material.card.MaterialCardView
@@ -47,7 +47,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/spacing_small"
             android:text="@string/censor_empty_state_description"
             android:maxWidth="@dimen/empty_state_text_max_width"
             android:textAlignment="center"
@@ -58,9 +58,9 @@
             android:id="@+id/emptyStateSelectButton"
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:layout_marginTop="24dp"
-            android:paddingHorizontal="24dp"
+            android:layout_height="@dimen/touch_target_min"
+            android:layout_marginTop="@dimen/spacing_xlarge"
+            android:paddingHorizontal="@dimen/spacing_xlarge"
             android:text="@string/censor_select_photo"
             app:cornerRadius="@dimen/component_corner_medium"
             app:icon="@drawable/ic_add_photo"

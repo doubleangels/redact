@@ -38,6 +38,9 @@ import java.util.List;
 @RunWith(RobolectricTestRunner.class)
 public class MetadataStripperVideoTest {
 
+    /** The result of the latest clean in this test, for the checks that follow it. */
+    private com.doubleangels.redact.metadata.CleanResult lastResult;
+
     @Rule
     public Timeout timeout = Timeout.seconds(40);
 
@@ -107,8 +110,8 @@ public class MetadataStripperVideoTest {
         }
     }
 
-    private MetadataStripper.VideoPrivacySnapshot snapshot(String location, String date) {
-        return new MetadataStripper.VideoPrivacySnapshot(location, date);
+    private CleanVerifier.VideoPrivacySnapshot snapshot(String location, String date) {
+        return new CleanVerifier.VideoPrivacySnapshot(location, date);
     }
 
     // ---- detectVideoFormatIndex -------------------------------------------------------------------
@@ -116,30 +119,30 @@ public class MetadataStripperVideoTest {
     @Test
     public void detectFormat_prefersTheFileExtension() throws Exception {
         Uri uri = Uri.fromFile(videoFile(".bin"));
-        assertEquals(2, stripper.detectVideoFormatIndex(uri, "clip.WEBM"));
-        assertEquals(2, stripper.detectVideoFormatIndex(uri, "clip.vp9"));
-        assertEquals(2, stripper.detectVideoFormatIndex(uri, "clip.vp8"));
-        assertEquals(0, stripper.detectVideoFormatIndex(uri, "clip.mp4"));
-        assertEquals(0, stripper.detectVideoFormatIndex(uri, "clip.m4v"));
+        assertEquals(2, stripper.videos.detectVideoFormatIndex(uri, "clip.WEBM"));
+        assertEquals(2, stripper.videos.detectVideoFormatIndex(uri, "clip.vp9"));
+        assertEquals(2, stripper.videos.detectVideoFormatIndex(uri, "clip.vp8"));
+        assertEquals(0, stripper.videos.detectVideoFormatIndex(uri, "clip.mp4"));
+        assertEquals(0, stripper.videos.detectVideoFormatIndex(uri, "clip.m4v"));
     }
 
     @Test
     public void detectFormat_readsTheCodecFromTheContainerOtherwise() throws Exception {
-        assertEquals(1, stripper.detectVideoFormatIndex(
+        assertEquals(1, stripper.videos.detectVideoFormatIndex(
                 withTracks(videoFile(".mkv"), videoFormat(MediaFormat.MIMETYPE_VIDEO_HEVC)), "clip.mkv"));
-        assertEquals(2, stripper.detectVideoFormatIndex(
+        assertEquals(2, stripper.videos.detectVideoFormatIndex(
                 withTracks(videoFile(".mkv"), videoFormat(MediaFormat.MIMETYPE_VIDEO_VP9)), "clip.mkv"));
-        assertEquals(2, stripper.detectVideoFormatIndex(
+        assertEquals(2, stripper.videos.detectVideoFormatIndex(
                 withTracks(videoFile(".mkv"), videoFormat(MediaFormat.MIMETYPE_VIDEO_VP8)), null));
-        assertEquals(3, stripper.detectVideoFormatIndex(
+        assertEquals(3, stripper.videos.detectVideoFormatIndex(
                 withTracks(videoFile(".mkv"), videoFormat(MediaFormat.MIMETYPE_VIDEO_AV1)), "clip.mkv"));
-        assertEquals(0, stripper.detectVideoFormatIndex(
+        assertEquals(0, stripper.videos.detectVideoFormatIndex(
                 withTracks(videoFile(".mkv"), videoFormat(MediaFormat.MIMETYPE_VIDEO_AVC)), "clip.mkv"));
     }
 
     @Test
     public void detectFormat_unreadableContainerDefaultsToH264() {
-        assertEquals(0, stripper.detectVideoFormatIndex(Uri.fromFile(new File("/nonexistent/x.mkv")), "x.mkv"));
+        assertEquals(0, stripper.videos.detectVideoFormatIndex(Uri.fromFile(new File("/nonexistent/x.mkv")), "x.mkv"));
     }
 
     // ---- transmux ---------------------------------------------------------------------------------------
@@ -252,22 +255,22 @@ public class MetadataStripperVideoTest {
 
     @Test
     public void verify_passesForAFileWithoutPrivacyMetadata() throws Exception {
-        assertTrue(stripper.verifyVideoMetadataRemoval(videoFile(".mp4"), snapshot(null, null)));
+        assertTrue(stripper.verifier.verifyVideoMetadataRemoval(videoFile(".mp4"), snapshot(null, null)));
     }
 
     @Test
     public void verify_failsOnRemainingLocation() throws Exception {
         File f = outputWith(MediaMetadataRetriever.METADATA_KEY_LOCATION, "+39.6594-104.9620/");
-        assertFalse(stripper.verifyVideoMetadataRemoval(f, snapshot(null, null)));
+        assertFalse(stripper.verifier.verifyVideoMetadataRemoval(f, snapshot(null, null)));
     }
 
     @Test
     public void verify_failsWhenTheSourceDateSurvives() throws Exception {
         File f = outputWith(MediaMetadataRetriever.METADATA_KEY_DATE, "20240102T030405.000Z");
-        assertFalse(stripper.verifyVideoMetadataRemoval(f, snapshot(null, "20240102T030405.000Z")));
+        assertFalse(stripper.verifier.verifyVideoMetadataRemoval(f, snapshot(null, "20240102T030405.000Z")));
         // A different (new) date is fine.
-        assertTrue(stripper.verifyVideoMetadataRemoval(f, snapshot(null, "20200101T000000.000Z")));
-        assertTrue(stripper.verifyVideoMetadataRemoval(f, snapshot(null, null)));
+        assertTrue(stripper.verifier.verifyVideoMetadataRemoval(f, snapshot(null, "20200101T000000.000Z")));
+        assertTrue(stripper.verifier.verifyVideoMetadataRemoval(f, snapshot(null, null)));
     }
 
     @Test
@@ -279,10 +282,10 @@ public class MetadataStripperVideoTest {
                 MediaMetadataRetriever.METADATA_KEY_TITLE};
         for (int key : keys) {
             File f = outputWith(key, "someone");
-            assertFalse("key " + key, stripper.verifyVideoMetadataRemoval(f, snapshot(null, null)));
+            assertFalse("key " + key, stripper.verifier.verifyVideoMetadataRemoval(f, snapshot(null, null)));
         }
         assertTrue("whitespace-only values do not count",
-                stripper.verifyVideoMetadataRemoval(
+                stripper.verifier.verifyVideoMetadataRemoval(
                         outputWith(MediaMetadataRetriever.METADATA_KEY_TITLE, "   "), snapshot(null, null)));
     }
 
@@ -291,7 +294,7 @@ public class MetadataStripperVideoTest {
         File broken = new File("/nonexistent/none.mp4");
         ShadowMediaMetadataRetriever.addException(
                 DataSource.toDataSource(broken.getAbsolutePath()), new RuntimeException("unreadable"));
-        assertFalse(stripper.verifyVideoMetadataRemoval(broken, snapshot(null, null)));
+        assertFalse(stripper.verifier.verifyVideoMetadataRemoval(broken, snapshot(null, null)));
     }
 
     @Test
@@ -342,7 +345,7 @@ public class MetadataStripperVideoTest {
         List<Integer> progress = new ArrayList<>();
         stripper.setProgressCallback((p, m) -> progress.add(p));
 
-        Uri out = stripper.stripVideoMetadata(source, "holiday.mp4");
+        Uri out = (lastResult = stripper.cleanVideo(source, "holiday.mp4")).uri();
 
         assertNotNull(out);
         FakeMediaStoreProvider.Entry entry = FakeMediaStoreProvider.only();
@@ -372,7 +375,7 @@ public class MetadataStripperVideoTest {
         long length = muxed.length();
         stripper.setTestFastStripVideoMetadataOverride(muxed);
 
-        Uri out = stripper.stripVideoMetadata(Uri.fromFile(writeVideo(TestVideos.cleanMp4())), "a.mp4");
+        Uri out = (lastResult = stripper.cleanVideo(Uri.fromFile(writeVideo(TestVideos.cleanMp4())), "a.mp4")).uri();
 
         assertNotNull(out);
         File saved = FakeMediaStoreProvider.only().file;
@@ -391,17 +394,17 @@ public class MetadataStripperVideoTest {
         File source = TestVideos.resource(app.getFilesDir(), "video/ffmpeg_location_keys.mp4");
         files.add(source);
 
-        assertNotNull(stripper.stripVideoMetadata(Uri.fromFile(source), "a.mp4"));
+        assertNotNull((lastResult = stripper.cleanVideo(Uri.fromFile(source), "a.mp4")).uri());
 
-        CleanStats stats = stripper.getLastCleanStats();
+        CleanStats stats = lastResult.stats();
         assertNotNull(stats);
         assertTrue(stats.hadLocation);
         assertTrue(String.valueOf(stats.removedFields), stats.removedFields >= 3);
     }
 
     private void requireClean(File f) throws Exception {
-        call(stripper, "requireVideoMetadataClean",
-                new Class<?>[]{File.class, MetadataStripper.VideoPrivacySnapshot.class},
+        call(stripper.verifier, "requireVideoMetadataClean",
+                new Class<?>[]{File.class, CleanVerifier.VideoPrivacySnapshot.class},
                 f, snapshot(null, null));
     }
 
@@ -443,21 +446,21 @@ public class MetadataStripperVideoTest {
 
     @Test
     public void countVideoPrivacyFields_usesTheContainerCountWhenItSeesMore() {
-        CleanStats hidden = MetadataStripper.countVideoPrivacyFields(
-                new MetadataStripper.VideoPrivacySnapshot(null, null, 0, 3, true));
+        CleanStats hidden = CleanVerifier.countVideoPrivacyFields(
+                new CleanVerifier.VideoPrivacySnapshot(null, null, 0, 3, true));
         org.junit.Assert.assertEquals(3, hidden.removedFields);
         org.junit.Assert.assertTrue(hidden.hadLocation);
 
-        CleanStats retrieverSeesMore = MetadataStripper.countVideoPrivacyFields(
-                new MetadataStripper.VideoPrivacySnapshot("+40.7-074.0/", "20250101T000000.000Z", 2, 1, false));
+        CleanStats retrieverSeesMore = CleanVerifier.countVideoPrivacyFields(
+                new CleanVerifier.VideoPrivacySnapshot("+40.7-074.0/", "20250101T000000.000Z", 2, 1, false));
         org.junit.Assert.assertEquals(4, retrieverSeesMore.removedFields);
         org.junit.Assert.assertTrue(retrieverSeesMore.hadLocation);
     }
 
     @Test
     public void countVideoPrivacyFields_reportsDatesDevicesAndNames() {
-        CleanStats stats = MetadataStripper.countVideoPrivacyFields(
-                new MetadataStripper.VideoPrivacySnapshot(null, "20250101T000000.000Z", 1,
+        CleanStats stats = CleanVerifier.countVideoPrivacyFields(
+                new CleanVerifier.VideoPrivacySnapshot(null, "20250101T000000.000Z", 1,
                         java.util.List.of("©mak", "©mod"), false, true));
         org.junit.Assert.assertEquals(2, stats.removedFields);
         org.junit.Assert.assertTrue(stats.hadDate);
@@ -518,13 +521,13 @@ public class MetadataStripperVideoTest {
 
     @Test
     public void countVideoPrivacyFields_addsLocationDateAndTheOtherKeys() {
-        CleanStats all = MetadataStripper.countVideoPrivacyFields(
-                new MetadataStripper.VideoPrivacySnapshot("+40.7-074.0/", "20250101T000000.000Z", 2));
+        CleanStats all = CleanVerifier.countVideoPrivacyFields(
+                new CleanVerifier.VideoPrivacySnapshot("+40.7-074.0/", "20250101T000000.000Z", 2));
         org.junit.Assert.assertEquals(4, all.removedFields);
         org.junit.Assert.assertTrue(all.hadLocation);
 
-        CleanStats none = MetadataStripper.countVideoPrivacyFields(
-                new MetadataStripper.VideoPrivacySnapshot(null, null));
+        CleanStats none = CleanVerifier.countVideoPrivacyFields(
+                new CleanVerifier.VideoPrivacySnapshot(null, null));
         org.junit.Assert.assertEquals(0, none.removedFields);
         org.junit.Assert.assertFalse(none.hadLocation);
     }
@@ -631,7 +634,7 @@ public class MetadataStripperVideoTest {
     }
 
     private File remux(Uri uri, double[] location) throws Exception {
-        return (File) call(stripper, "remuxWebmToMp4", new Class<?>[] {Uri.class, double[].class}, uri, location);
+        return (File) call(stripper.videos, "remuxWebmToMp4", new Class<?>[] {Uri.class, double[].class}, uri, location);
     }
 
     @Test
@@ -666,20 +669,20 @@ public class MetadataStripperVideoTest {
 
     @Test
     public void keptVideoLocation_onlyWithKeepLocation_andOnlyAValidOne() throws Exception {
-        Class<?>[] types = {MetadataStripper.VideoPrivacySnapshot.class, Uri.class};
+        Class<?>[] types = {CleanVerifier.VideoPrivacySnapshot.class, Uri.class};
         Uri uri = Uri.fromFile(videoFile(".mp4"));
         AppPreferences.setStrictClean(app, false);
         AppPreferences.setPreserveLocation(app, true);
 
-        double[] kept = (double[]) call(stripper, "keptVideoLocation", types, snapshot("+52.3700+004.8900/", null), uri);
+        double[] kept = (double[]) call(stripper.videos, "keptVideoLocation", types, snapshot("+52.3700+004.8900/", null), uri);
         assertNotNull(kept);
         assertEquals(52.37, kept[0], 1e-6);
         assertEquals(4.89, kept[1], 1e-6);
-        assertNull(call(stripper, "keptVideoLocation", types, snapshot(null, null), uri));
-        assertNull("out of range", call(stripper, "keptVideoLocation", types, snapshot("+95.0000+195.0000/", null), uri));
+        assertNull(call(stripper.videos, "keptVideoLocation", types, snapshot(null, null), uri));
+        assertNull("out of range", call(stripper.videos, "keptVideoLocation", types, snapshot("+95.0000+195.0000/", null), uri));
 
         AppPreferences.setStrictClean(app, true);
-        assertNull(call(stripper, "keptVideoLocation", types, snapshot("+52.3700+004.8900/", null), uri));
+        assertNull(call(stripper.videos, "keptVideoLocation", types, snapshot("+52.3700+004.8900/", null), uri));
     }
 
     // ---- movie times with 64-bit fields -----------------------------------------------------------

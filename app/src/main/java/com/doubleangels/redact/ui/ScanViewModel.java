@@ -120,13 +120,4 @@ public class ScanViewModel extends AndroidViewModel {
         pendingUri.setValue(null);
         return uri;
     }
-
-    public void clearScanState() {
-        metadataSections = null;
-        metadataRows = List.of();
-        metadataPlainText = "";
-        clearMapCoordinates();
-        currentMediaItem = null;
-        statusMessage = null;
-    }
 }

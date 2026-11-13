@@ -32,7 +32,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Redact"
         android:usesCleartextTraffic="false"
-        tools:targetApi="33">
+        tools:targetApi="37">
 
         <!-- Manual init in RedactApplication with DSN; default SentryInitProvider runs too early -->
         <meta-data

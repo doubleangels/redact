@@ -56,15 +56,6 @@ public final class FileProviderTestSupport {
         String authority = context.getPackageName() + ".fileprovider";
         Map<String, File> roots = new LinkedHashMap<>();
         roots.put("processed", new File(context.getCacheDir(), "processed"));
-        roots.put("temp", new File(context.getCacheDir(), "temp"));
-        roots.put("converted", new File(context.getFilesDir(), "converted"));
-        if (context.getExternalCacheDir() != null) {
-            roots.put("external_cache", new File(context.getExternalCacheDir(), "redact"));
-        }
-        File externalFiles = context.getExternalFilesDir(null);
-        if (externalFiles != null) {
-            roots.put("external_files", new File(externalFiles, "Redact"));
-        }
         try {
             Class<?> strategyType = Class.forName("androidx.core.content.FileProvider$PathStrategy");
             Object strategy = Proxy.newProxyInstance(strategyType.getClassLoader(),

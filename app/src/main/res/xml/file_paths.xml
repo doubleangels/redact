@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <!-- Processed output files staged for sharing (temp, then cleaned up) -->
+    <!-- Cleaned files staged for sharing. The only folder the provider serves: every other
+         working folder can hold original media. -->
     <cache-path name="processed" path="processed/" />
-    <cache-path name="temp" path="temp/" />
-    <!-- Converted outputs written to internal files dir -->
-    <files-path name="converted" path="converted/" />
-    <!-- External cache for video transcoding temp files -->
-    <external-cache-path name="external_cache" path="redact/" />
-    <!-- External app-specific dir for outputs shared via intent -->
-    <external-files-path name="external_files" path="Redact/" />
 </paths>

@@ -159,7 +159,7 @@ trap 'exit 130' INT TERM
 ANDROID_SERIAL=""
 for serial in $(adb devices | tr -d '\r' | awk 'NR>1 && $2=="device" && $1~/^emulator-/ {print $1}'); do
   # Match the AVD by name: the profile generator's Gradle-managed emulator is API 37 too.
-  [[ $(adb -s "$serial" emu avd name 2>/dev/null | head -1 | tr -d '') == "$AVD" ]] || continue
+  [[ $(adb -s "$serial" emu avd name 2>/dev/null | head -1 | tr -d '\r') == "$AVD" ]] || continue
   if [[ $(emulator_api "$serial") == "$REQUIRED_API" ]]; then ANDROID_SERIAL=$serial; break; fi
 done
 [[ -n "$ANDROID_SERIAL" ]] || start_emulator
@@ -420,14 +420,14 @@ go_tab() {
   sleep 0.5
 }
 
-# Scrolls Scan's metadata list so the camera and location rows (MAKE, MODEL, then the GPS fields) sit
+# Scrolls Scan's metadata list so the camera and location rows (Make, Model, then the GPS fields) sit
 # near the top of the screen: the store's first image has to show what a photo gives away. Field
-# keys are not translated, so this works in every locale.
+# labels (MetadataLabels) are English Title Case in every locale, so this works everywhere.
 scroll_scan_to_camera() {
   local i p y
   for ((i = 0; i < 12; i++)); do
     ui_dump
-    if p=$(node_center text MAKE); then
+    if p=$(node_center text Make); then
       y=${p#* }
       # Anywhere in 600-1100 will do. Every correction moves at least 250px: a swipe of a few
       # pixels is a long press, which selects a field's text and shows the copy popup.

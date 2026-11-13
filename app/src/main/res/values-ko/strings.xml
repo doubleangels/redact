@@ -411,6 +411,15 @@
     <string name="censor_undo">실행 취소</string>
     <string name="censor_redo">다시 실행</string>
     <string name="censor_delete_rectangle">사각형 삭제</string>
+    <string name="censor_add_area">영역 추가</string>
+    <string name="censor_area_description">가린 영역 %2$d개 중 %1$d번째</string>
+    <string name="censor_action_move_left">왼쪽으로 이동</string>
+    <string name="censor_action_move_right">오른쪽으로 이동</string>
+    <string name="censor_action_move_up">위로 이동</string>
+    <string name="censor_action_move_down">아래로 이동</string>
+    <string name="censor_action_larger">크게</string>
+    <string name="censor_action_smaller">작게</string>
+    <string name="censor_action_delete">영역 삭제</string>
     <string name="censor_full_screen">전체 화면</string>
     <string name="censor_exit_full_screen">전체 화면 종료</string>
     <string name="censor_zoom_level">%1$s×</string>

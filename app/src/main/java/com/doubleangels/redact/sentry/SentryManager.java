@@ -63,6 +63,7 @@ public final class SentryManager {
     /** Tags that may be set without user-identifying values. */
     private static final Set<String> ALLOWED_TAG_KEYS = new HashSet<>(Arrays.asList(
             "operation_type",
+            "outcome",
             "is_video",
             "mime_type",
             "media_type",
@@ -239,7 +240,7 @@ public final class SentryManager {
         if (!isEnabled() && !BuildConfig.DEBUG) {
             return;
         }
-        String safeCategory = category != null ? category : "app";
+        String safeCategory = category != null ? category : "App";
         String safeMessage = SentryPrivacyScrubber.scrub(message != null ? message : "");
         Log.i(TAG, safeCategory + ": " + safeMessage);
         if (!isEnabled()) {
@@ -317,7 +318,7 @@ public final class SentryManager {
     /** @deprecated Use {@link #logEvent(String, String)} with non-identifying messages. */
     @Deprecated
     public static void log(String message) {
-        logEvent("custom", message);
+        logEvent("Custom", message);
     }
 
     /**
@@ -328,7 +329,7 @@ public final class SentryManager {
     public static SentryId recordException(Throwable e) {
         if (UnsupportedMediaException.isCauseOf(e)) {
             Log.i(TAG, "Unsupported media, not sending:", e);
-            logEvent("media", "An item in an unsupported format was skipped.");
+            logEvent("Media", "An item in an unsupported format was skipped.");
             return null;
         }
         if (isIgnored(e)) {

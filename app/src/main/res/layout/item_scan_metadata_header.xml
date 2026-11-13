@@ -9,12 +9,12 @@
     android:paddingStart="@dimen/scan_metadata_row_horizontal_padding"
     android:paddingTop="18dp"
     android:paddingEnd="@dimen/scan_metadata_row_horizontal_padding"
-    android:paddingBottom="8dp">
+    android:paddingBottom="@dimen/spacing_small">
 
     <ImageView
         android:id="@+id/sectionHeaderIcon"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+        android:layout_width="@dimen/icon_size_small"
+        android:layout_height="@dimen/icon_size_small"
         android:layout_marginEnd="10dp"
         android:contentDescription="@null"
         app:tint="?attr/colorPrimary"
@@ -36,7 +36,7 @@
         android:layout_height="wrap_content"
         android:background="@drawable/bg_rounded_surface"
         android:backgroundTint="?attr/colorSurfaceContainerHigh"
-        android:paddingHorizontal="8dp"
+        android:paddingHorizontal="@dimen/spacing_small"
         android:paddingVertical="2dp"
         android:textAppearance="?attr/textAppearanceLabelSmall"
         android:textColor="?attr/colorOnSurfaceVariant"

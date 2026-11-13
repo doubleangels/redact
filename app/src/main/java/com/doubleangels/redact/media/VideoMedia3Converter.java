@@ -541,11 +541,13 @@ public final class VideoMedia3Converter {
                             keepLocation,
                             null);
                     warnDownscaled(app, shortSide);
+                    countSmallerSizeRetry("recovered");
                     return;
                 } catch (RetryAtSmallerSizeException retryFailure) {
                     lastFailure = retryFailure;
                 }
             }
+            countSmallerSizeRetry("failed");
             throw lastFailure;
         }
     }
@@ -820,6 +822,7 @@ public final class VideoMedia3Converter {
     static void warnDownscaled(@NonNull Context app, int shortSide) {
         SentryManager.log(
                 "The video was saved at " + shortSide + "p, smaller than its source.");
+        SentryManager.count("video.downscaled", 1, "outcome", shortSide + "p");
         String message = app.getString(R.string.video_downscaled, shortSide);
         new Handler(Looper.getMainLooper()).post(
                 () -> Toast.makeText(app, message, Toast.LENGTH_LONG).show());
@@ -1224,6 +1227,10 @@ public final class VideoMedia3Converter {
         SentryManager.log(describeAttemptFailure(
                 videoMimeType, outputShortSide, reason, progress,
                 SystemClock.elapsedRealtime() - startedAt));
+        // The codec alone (video/avc), or "copy" for a stream copy; the reason is Media3's error
+        // code name, STALLED or an exception class.
+        String codec = videoMimeType.startsWith("video/") ? videoMimeType.split(" ", 2)[0] : "copy";
+        SentryManager.count("video.transcode.failure", 1, "mime_type", codec, "error_type", reason);
     }
 
     /**
@@ -1410,7 +1417,8 @@ public final class VideoMedia3Converter {
      */
     @VisibleForTesting
     static boolean isUnsupportedInput(@NonNull ExportException e) {
-        if (e.errorCode == ExportException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED) {
+        if (e.errorCode == ExportException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED
+                || isLegacyVideoDecodeFailure(e)) {
             return true;
         }
         Throwable t = e.getCause();
@@ -1424,6 +1432,23 @@ public final class VideoMedia3Converter {
             }
         }
         return false;
+    }
+
+    /**
+     * Whether the video decoder gave out mid-export on MPEG-4 Part 2 or H.263. Android decodes these
+     * old codecs only in their basic profiles (an Advanced Simple Profile MPEG-4 stream fails in
+     * {@code c2.android.mpeg4}, REDACT-26), usually with no other decoder to fall back to, so the
+     * video is one this phone cannot read rather than a processing fault.
+     */
+    @VisibleForTesting
+    static boolean isLegacyVideoDecodeFailure(@NonNull ExportException e) {
+        ExportException.CodecInfo codec = e.codecInfo;
+        if (e.errorCode != ExportException.ERROR_CODE_DECODING_FAILED
+                || codec == null || !codec.isVideo || !codec.isDecoder) {
+            return false;
+        }
+        String format = codec.configurationFormat;
+        return format.contains(MimeTypes.VIDEO_MP4V) || format.contains(MimeTypes.VIDEO_H263);
     }
 
     /**
@@ -1663,15 +1688,23 @@ public final class VideoMedia3Converter {
 
         Uri outUri = OutputDestination.create(context, true, outName, mime);
 
-        try (InputStream in = new FileInputStream(file);
-                OutputStream out = resolver.openOutputStream(outUri)) {
-            if (out == null) {
-                OutputDestination.discard(resolver, outUri);
-                throw new IOException("Cannot open output stream");
+        try {
+            byte[] written;
+            try (InputStream in = new FileInputStream(file);
+                    OutputStream out = resolver.openOutputStream(outUri)) {
+                if (out == null) {
+                    throw new IOException("Cannot open output stream");
+                }
+                written = OutputDestination.copyAndDigest(in, out);
+                out.flush();
             }
-            MediaSizeLimits.copyStream(in, out);
-            out.flush();
-        } catch (IOException e) {
+            // The output must hold exactly the verified file, as a picture's save checks.
+            OutputDestination.requireSameContent(resolver, outUri, written);
+            OutputDestination.publish(resolver, outUri);
+            return outUri;
+        } catch (IOException | RuntimeException e) {
+            // A provider can fail with an unchecked exception too (SecurityException): either way
+            // the half-written, unverified entry goes.
             try {
                 OutputDestination.discard(resolver, outUri);
             } catch (Exception ignored) {
@@ -1679,7 +1712,10 @@ public final class VideoMedia3Converter {
             }
             throw e;
         }
-        OutputDestination.publish(resolver, outUri);
-        return outUri;
+    }
+
+    /** Counts a transcode the encoder refused at full size, by whether a smaller size worked. */
+    private static void countSmallerSizeRetry(@NonNull String outcome) {
+        SentryManager.count("video.retry_smaller", 1, "media_type", "video", "outcome", outcome);
     }
 }

@@ -6,10 +6,13 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Rect;
 import android.graphics.RectF;
+import android.os.Bundle;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.GestureDetector;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -17,6 +20,11 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
+import androidx.customview.widget.ExploreByTouchHelper;
+
+import com.doubleangels.redact.R;
 
 import com.doubleangels.redact.media.CensorRegion;
 import com.google.android.material.color.MaterialColors;
@@ -34,6 +42,10 @@ import java.util.List;
  * inside it or resized by its corner handles. Finished shapes and changes go to the
  * {@link Listener} in image fractions; the owner covers them and hands back a new preview with
  * {@link #setImage} and the regions with {@link #setRegions}.
+ *
+ * <p>Each covered area is also a virtual accessibility node, so TalkBack, Switch Access and a
+ * keyboard can reach it without drawing: rectangles can be selected, moved and resized with
+ * actions, and any area deleted. {@link #addCentredRegion} adds a rectangle without a drag.
  */
 public class CensorCanvasView extends View {
 
@@ -44,6 +56,10 @@ public class CensorCanvasView extends View {
 
         /** The rectangle at {@code index} was moved or resized. */
         void onRegionChanged(int index, @NonNull CensorRegion region);
+
+        /** The area at {@code index} was deleted with an accessibility action. */
+        default void onRegionRemoved(int index) {
+        }
 
         /** A rectangle was selected (its index) or the selection was cleared (minus one). */
         default void onSelectionChanged(int index) {
@@ -65,6 +81,16 @@ public class CensorCanvasView extends View {
     /** Corner handles of the selected rectangle: drawn radius, and how near counts as a grab. */
     private static final float HANDLE_DP = 7f;
     private static final float HANDLE_TOUCH_DP = 24f;
+    /** How far a move action shifts a rectangle, as a fraction of the photo's width or height. */
+    @VisibleForTesting
+    static final float ACTION_MOVE_STEP = 0.05f;
+    /** How much a resize action grows or shrinks a rectangle on each side, as a fraction. */
+    @VisibleForTesting
+    static final float ACTION_RESIZE_STEP = 0.025f;
+    /** The smallest side a resize action leaves, as a fraction of the photo. */
+    private static final float ACTION_MIN_SIDE = 0.02f;
+    /** The side of an added rectangle, as a fraction of the part of the photo on screen. */
+    private static final float ADDED_RECT_FRACTION = 0.3f;
 
     private final Matrix baseMatrix = new Matrix();
     private final Matrix userMatrix = new Matrix();
@@ -124,6 +150,8 @@ public class CensorCanvasView extends View {
     /** The selection last reported to the listener. */
     private int reportedSelection = -1;
 
+    private final RegionAccessibilityHelper accessibilityHelper;
+
     public CensorCanvasView(@NonNull Context context) {
         this(context, null);
     }
@@ -156,6 +184,9 @@ public class CensorCanvasView extends View {
                 return true;
             }
         });
+        accessibilityHelper = new RegionAccessibilityHelper(this);
+        ViewCompat.setAccessibilityDelegate(this, accessibilityHelper);
+        setFocusable(true);
         tapDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onDoubleTap(@NonNull MotionEvent e) {
@@ -181,6 +212,8 @@ public class CensorCanvasView extends View {
             invalidate();
         }
         reportSelection();
+        // Only the rectangle tool selects, so the areas' click action comes and goes with it.
+        accessibilityHelper.invalidateRoot();
     }
 
     /** Clears the selected rectangle, if any. */
@@ -211,6 +244,34 @@ public class CensorCanvasView extends View {
         }
         invalidate();
         reportSelection();
+        accessibilityHelper.invalidateRoot();
+    }
+
+    /**
+     * Adds a rectangle in the middle of the part of the photo on screen and selects it, so an area
+     * can be covered without drawing; the accessibility actions then move and resize it.
+     */
+    public void addCentredRegion() {
+        if (image == null || listener == null || getWidth() == 0 || getHeight() == 0) {
+            return;
+        }
+        updateDrawMatrix();
+        float[] centre = toImage(getWidth() / 2f, getHeight() / 2f);
+        RectF visible = new RectF(0, 0, getWidth(), getHeight());
+        inverse.mapRect(visible);
+        if (!visible.intersect(0, 0, image.getWidth(), image.getHeight())) {
+            visible.set(0, 0, image.getWidth(), image.getHeight());
+        }
+        float w = image.getWidth();
+        float h = image.getHeight();
+        float halfW = visible.width() * ADDED_RECT_FRACTION / 2f;
+        float halfH = visible.height() * ADDED_RECT_FRACTION / 2f;
+        CensorRegion region = CensorRegion.rect((centre[0] - halfW) / w, (centre[1] - halfH) / h,
+                (centre[0] + halfW) / w, (centre[1] + halfH) / h);
+        if (tool == Tool.RECT) {
+            selectedRegion = region;
+        }
+        listener.onRegionDrawn(region);
     }
 
     /** The index of the selected rectangle, or -1. */
@@ -300,6 +361,7 @@ public class CensorCanvasView extends View {
         invalidate();
         reportSelection();
         reportZoom();
+        accessibilityHelper.invalidateRoot();
     }
 
     @Override
@@ -513,6 +575,236 @@ public class CensorCanvasView extends View {
     @Override
     public boolean performClick() {
         return super.performClick();
+    }
+
+    @Override
+    public boolean dispatchHoverEvent(@NonNull MotionEvent event) {
+        return accessibilityHelper.dispatchHoverEvent(event) || super.dispatchHoverEvent(event);
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(@NonNull KeyEvent event) {
+        return accessibilityHelper.dispatchKeyEvent(event) || super.dispatchKeyEvent(event);
+    }
+
+    @Override
+    protected void onFocusChanged(boolean gainFocus, int direction, @Nullable Rect previouslyFocusedRect) {
+        super.onFocusChanged(gainFocus, direction, previouslyFocusedRect);
+        accessibilityHelper.onFocusChanged(gainFocus, direction, previouslyFocusedRect);
+    }
+
+    /** The area under a view point, topmost first, for touch exploration; -1 for none. */
+    private int regionAtView(float viewX, float viewY) {
+        if (image == null) {
+            return -1;
+        }
+        updateDrawMatrix();
+        for (int i = regions.size() - 1; i >= 0; i--) {
+            if (regionBoundsInView(i).contains((int) viewX, (int) viewY)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /** An area's bounds on screen, kept inside the view and never empty (a node needs some). */
+    @NonNull
+    private Rect regionBoundsInView(int index) {
+        RectF r = boundsPx(regions.get(index));
+        drawMatrix.mapRect(r);
+        Rect bounds = new Rect();
+        r.roundOut(bounds);
+        if (!bounds.intersect(0, 0, getWidth(), getHeight())) {
+            bounds.set(0, 0, 1, 1);
+        }
+        if (bounds.isEmpty()) {
+            bounds.set(bounds.left, bounds.top, bounds.left + 1, bounds.top + 1);
+        }
+        return bounds;
+    }
+
+    /** The image-pixel bounds of any region; a stroke's include half its brush width. */
+    @NonNull
+    private RectF boundsPx(@NonNull CensorRegion region) {
+        if (region.shape() == CensorRegion.Shape.RECT) {
+            return rectPx(region);
+        }
+        float[] p = region.points();
+        int w = image == null ? 1 : image.getWidth();
+        int h = image == null ? 1 : image.getHeight();
+        float half = region.strokeWidth() * Math.max(w, h) / 2f;
+        RectF r = new RectF(p[0] * w, p[1] * h, p[0] * w, p[1] * h);
+        for (int i = 2; i < p.length; i += 2) {
+            r.union(p[i] * w, p[i + 1] * h);
+        }
+        r.inset(-half, -half);
+        return r;
+    }
+
+    /** Selects the rectangle at {@code index}, as a tap on it does. */
+    private boolean selectRegion(int index) {
+        if (index < 0 || index >= regions.size() || regions.get(index).shape() != CensorRegion.Shape.RECT
+                || tool != Tool.RECT) {
+            return false;
+        }
+        selectedRegion = regions.get(index);
+        invalidate();
+        reportSelection();
+        return true;
+    }
+
+    /**
+     * Moves the rectangle at {@code index} by a step in image fractions, kept inside the photo, or
+     * grows or shrinks it about its centre; the change goes to the listener as a drag's would.
+     */
+    @VisibleForTesting
+    boolean editRegion(int index, float dx, float dy, float grow) {
+        if (listener == null || index < 0 || index >= regions.size()) {
+            return false;
+        }
+        CensorRegion region = regions.get(index);
+        if (region.shape() != CensorRegion.Shape.RECT) {
+            return false;
+        }
+        float[] p = region.points();
+        float left = p[0];
+        float top = p[1];
+        float right = p[2];
+        float bottom = p[3];
+        if (grow != 0f) {
+            float halfW = Math.max(ACTION_MIN_SIDE / 2f, (right - left) / 2f + grow);
+            float halfH = Math.max(ACTION_MIN_SIDE / 2f, (bottom - top) / 2f + grow);
+            float cx = (left + right) / 2f;
+            float cy = (top + bottom) / 2f;
+            left = Math.max(0f, cx - halfW);
+            top = Math.max(0f, cy - halfH);
+            right = Math.min(1f, cx + halfW);
+            bottom = Math.min(1f, cy + halfH);
+        } else {
+            dx = Math.max(-left, Math.min(1f - right, dx));
+            dy = Math.max(-top, Math.min(1f - bottom, dy));
+            left += dx;
+            right += dx;
+            top += dy;
+            bottom += dy;
+        }
+        CensorRegion changed = CensorRegion.rect(left, top, right, bottom);
+        if (changed.equals(region)) {
+            return false;
+        }
+        if (tool == Tool.RECT) {
+            selectedRegion = changed;
+        }
+        listener.onRegionChanged(index, changed);
+        return true;
+    }
+
+    /** Deletes the area at {@code index} through the listener. */
+    private boolean removeRegion(int index) {
+        if (listener == null || index < 0 || index >= regions.size()) {
+            return false;
+        }
+        if (regions.get(index).equals(selectedRegion)) {
+            selectedRegion = null;
+            reportSelection();
+        }
+        listener.onRegionRemoved(index);
+        return true;
+    }
+
+    /**
+     * The covered areas as virtual nodes: each says which area it is, a tap selects a rectangle,
+     * and custom actions move, resize or delete it, which is all a drag would do.
+     */
+    private final class RegionAccessibilityHelper extends ExploreByTouchHelper {
+
+        RegionAccessibilityHelper(@NonNull View host) {
+            super(host);
+        }
+
+        @Override
+        protected int getVirtualViewAt(float x, float y) {
+            int index = regionAtView(x, y);
+            return index >= 0 ? index : HOST_ID;
+        }
+
+        @Override
+        protected void getVisibleVirtualViews(@NonNull List<Integer> virtualViewIds) {
+            if (image == null) {
+                return;
+            }
+            for (int i = 0; i < regions.size(); i++) {
+                virtualViewIds.add(i);
+            }
+        }
+
+        @Override
+        protected void onPopulateNodeForVirtualView(int virtualViewId, @NonNull AccessibilityNodeInfoCompat node) {
+            if (virtualViewId < 0 || virtualViewId >= regions.size() || image == null) {
+                // A node that went away between the system asking for it and this call.
+                node.setContentDescription("");
+                node.setBoundsInParent(new Rect(0, 0, 1, 1));
+                return;
+            }
+            updateDrawMatrix();
+            node.setContentDescription(getContext().getString(
+                    R.string.censor_area_description, virtualViewId + 1, regions.size()));
+            node.setBoundsInParent(regionBoundsInView(virtualViewId));
+            boolean rect = regions.get(virtualViewId).shape() == CensorRegion.Shape.RECT;
+            if (rect) {
+                if (tool == Tool.RECT) {
+                    node.addAction(AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_CLICK);
+                    node.setSelected(virtualViewId == selectedIndex());
+                }
+                addAction(node, R.id.censor_action_move_left, R.string.censor_action_move_left);
+                addAction(node, R.id.censor_action_move_right, R.string.censor_action_move_right);
+                addAction(node, R.id.censor_action_move_up, R.string.censor_action_move_up);
+                addAction(node, R.id.censor_action_move_down, R.string.censor_action_move_down);
+                addAction(node, R.id.censor_action_larger, R.string.censor_action_larger);
+                addAction(node, R.id.censor_action_smaller, R.string.censor_action_smaller);
+            }
+            addAction(node, R.id.censor_action_delete, R.string.censor_action_delete);
+        }
+
+        private void addAction(@NonNull AccessibilityNodeInfoCompat node, int id, int label) {
+            node.addAction(new AccessibilityNodeInfoCompat.AccessibilityActionCompat(
+                    id, getContext().getString(label)));
+        }
+
+        @Override
+        protected boolean onPerformActionForVirtualView(int virtualViewId, int action, @Nullable Bundle arguments) {
+            boolean done;
+            if (action == AccessibilityNodeInfoCompat.ACTION_CLICK) {
+                done = selectRegion(virtualViewId);
+            } else if (action == R.id.censor_action_move_left) {
+                done = editRegion(virtualViewId, -ACTION_MOVE_STEP, 0f, 0f);
+            } else if (action == R.id.censor_action_move_right) {
+                done = editRegion(virtualViewId, ACTION_MOVE_STEP, 0f, 0f);
+            } else if (action == R.id.censor_action_move_up) {
+                done = editRegion(virtualViewId, 0f, -ACTION_MOVE_STEP, 0f);
+            } else if (action == R.id.censor_action_move_down) {
+                done = editRegion(virtualViewId, 0f, ACTION_MOVE_STEP, 0f);
+            } else if (action == R.id.censor_action_larger) {
+                done = editRegion(virtualViewId, 0f, 0f, ACTION_RESIZE_STEP);
+            } else if (action == R.id.censor_action_smaller) {
+                done = editRegion(virtualViewId, 0f, 0f, -ACTION_RESIZE_STEP);
+            } else if (action == R.id.censor_action_delete) {
+                done = removeRegion(virtualViewId);
+            } else {
+                return false;
+            }
+            if (done) {
+                invalidateVirtualView(virtualViewId);
+            }
+            return done;
+        }
+    }
+
+    /** The accessibility helper, for tests that walk the virtual nodes. */
+    @VisibleForTesting
+    @NonNull
+    ExploreByTouchHelper accessibilityHelper() {
+        return accessibilityHelper;
     }
 
     /**

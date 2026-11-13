@@ -19,6 +19,7 @@ import androidx.annotation.RequiresApi;
 import androidx.annotation.VisibleForTesting;
 
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.metadata.CleanResult;
 import com.doubleangels.redact.metadata.CleanStats;
 import com.doubleangels.redact.metadata.MetadataStripper;
 import com.doubleangels.redact.sentry.SentryManager;
@@ -112,8 +113,8 @@ public final class CensorExporter {
             String name = MediaFileNames.outputBaseName(context, fileName,
                     R.string.censor_file_name) + spec.extension;
             MetadataStripper stripper = new MetadataStripper(context);
-            Uri out = stripper.saveCensoredImage(source, censored, name, spec);
-            return new Result(out, downscaled, stripper.getLastCleanStats());
+            CleanResult saved = stripper.saveCensored(source, censored, name, spec);
+            return new Result(saved.uri(), downscaled, saved.stats());
         } finally {
             if (!SecureDelete.secureDelete(censored)) {
                 censored.deleteOnExit();
@@ -217,7 +218,7 @@ public final class CensorExporter {
         } catch (IOException | RuntimeException | OutOfMemoryError e) {
             SentryManager.log(
                     "The censored 16-bit PNG could not be kept at 16 bits, so the app is saving it at 8: "
-                            + e.getMessage() + ".");
+                            + e.getClass().getSimpleName() + ".");
             return false;
         } finally {
             if (mask != null) {

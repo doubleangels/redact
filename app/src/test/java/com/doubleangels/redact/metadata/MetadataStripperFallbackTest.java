@@ -33,6 +33,9 @@ import java.util.List;
 @RunWith(RobolectricTestRunner.class)
 public class MetadataStripperFallbackTest {
 
+    /** The result of the latest clean in this test, for the checks that follow it. */
+    private com.doubleangels.redact.metadata.CleanResult lastResult;
+
     private Application app;
     private MetadataStripper stripper;
     private final List<File> files = new ArrayList<>();
@@ -91,7 +94,7 @@ public class MetadataStripperFallbackTest {
     public void whenLosslessStrippingIsImpossible_theImageIsReEncoded() throws Exception {
         Uri out = null;
         try {
-            out = stripper.stripExifData(Uri.fromFile(notReallyAJpeg()), "broken.jpg");
+            out = (lastResult = stripper.cleanImage(Uri.fromFile(notReallyAJpeg()), "broken.jpg")).uri();
         } catch (RuntimeException ignored) {
             // The decoder emulation may reject the junk outright.
         }
@@ -110,7 +113,7 @@ public class MetadataStripperFallbackTest {
         AppPreferences.setPreserveCameraSettings(app, true);
         AppPreferences.setPreserveLocation(app, false);
 
-        Uri out = stripper.stripExifData(Uri.fromFile(jpeg(true)), "trip.jpg");
+        Uri out = (lastResult = stripper.cleanImage(Uri.fromFile(jpeg(true)), "trip.jpg")).uri();
 
         assertNotNull(out);
         ExifInterface exif = new ExifInterface(FakeMediaStoreProvider.only().file.getAbsolutePath());
@@ -124,7 +127,7 @@ public class MetadataStripperFallbackTest {
         AppPreferences.setPreserveCameraSettings(app, true);
 
         // Keeping location is an opt-in; verification only has to accept the allowed tags.
-        Uri out = stripper.stripExifData(Uri.fromFile(jpeg(true)), "trip.jpg");
+        Uri out = (lastResult = stripper.cleanImage(Uri.fromFile(jpeg(true)), "trip.jpg")).uri();
 
         assertNotNull(out);
     }
@@ -133,7 +136,7 @@ public class MetadataStripperFallbackTest {
     public void anUnwritableGalleryEntry_isDeletedAndReportedAsAFailure() throws Exception {
         FakeMediaStoreProvider.failOpen = true;
 
-        Uri out = stripper.stripExifData(Uri.fromFile(jpeg(true)), "trip.jpg");
+        Uri out = (lastResult = stripper.cleanImage(Uri.fromFile(jpeg(true)), "trip.jpg")).uri();
 
         assertNull(out);
         assertTrue("the half-created row is removed", FakeMediaStoreProvider.entries().isEmpty());
@@ -143,7 +146,7 @@ public class MetadataStripperFallbackTest {
     public void cancellingMidWay_propagatesInsteadOfBeingReportedAsAFailure() throws Exception {
         stripper.requestCancellation();
         try {
-            stripper.stripExifData(Uri.fromFile(jpeg(true)), "trip.jpg");
+            (lastResult = stripper.cleanImage(Uri.fromFile(jpeg(true)), "trip.jpg")).uri();
             fail("a cancelled clean must surface as a cancellation");
         } catch (RuntimeException expected) {
             assertTrue(com.doubleangels.redact.sentry.SentryManager.isUserCancellation(expected));
@@ -152,11 +155,12 @@ public class MetadataStripperFallbackTest {
     }
 
     @Test
-    public void lastProcessedUri_tracksTheMostRecentSuccess() throws Exception {
-        assertNull(stripper.getLastProcessedFileUri());
-        Uri out = stripper.stripExifData(Uri.fromFile(jpeg(false)), "a.jpg");
-        assertEquals(out, stripper.getLastProcessedFileUri());
-        assertNull(stripper.getLastProcessedOutputFile());
+    public void aGalleryClean_returnsItsOutput_butNoShareFile() throws Exception {
+        CleanResult result = stripper.cleanImage(Uri.fromFile(jpeg(false)), "a.jpg");
+        assertNotNull(result.uri());
+        assertTrue(result.succeeded());
+        // Only a share's output is a private file the caller cleans up later.
+        assertNull(result.file());
     }
 
     @Test
@@ -167,7 +171,7 @@ public class MetadataStripperFallbackTest {
         }
         Uri out = null;
         try {
-            out = stripper.stripExifData(Uri.fromFile(big), "big.jpg");
+            out = (lastResult = stripper.cleanImage(Uri.fromFile(big), "big.jpg")).uri();
         } catch (RuntimeException ignored) {
             // size limits may reject it first
         }

@@ -23,6 +23,7 @@ import android.os.ParcelFileDescriptor;
 import androidx.appcompat.app.AlertDialog;
 
 import com.doubleangels.redact.media.AppProcessingScope;
+import com.doubleangels.redact.metadata.MetadataStripper;
 
 import org.junit.After;
 import org.junit.Before;
@@ -44,7 +45,11 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Share-sheet flows that do not need a FileProvider URI, so they also run on Windows hosts: new
@@ -127,6 +132,7 @@ public class ShareHandlerActivityFlowsTest {
                 f.delete();
             }
         }
+        ShareHandlerActivity.stripperFactory = MetadataStripper::new;
         AppProcessingScope.resetForTests();
     }
 
@@ -231,6 +237,82 @@ public class ShareHandlerActivityFlowsTest {
         assertFalse(ShareHandlerActivity.isShareProcessingActive());
     }
 
+    /** Holds the first clean of the test until released, then cleans as usual. */
+    private static final class HeldStripper extends MetadataStripper {
+        static final AtomicInteger calls = new AtomicInteger();
+        static CountDownLatch entered;
+        static CountDownLatch release;
+
+        HeldStripper(android.content.Context context) {
+            super(context);
+        }
+
+        @Override
+        public com.doubleangels.redact.metadata.CleanResult cleanForSharing(
+                Uri sourceUri, String originalFilename, boolean isVideo) {
+            if (calls.getAndIncrement() == 0) {
+                entered.countDown();
+                boolean interrupted = false;
+                while (true) {
+                    try {
+                        release.await();
+                        break;
+                    } catch (InterruptedException e) {
+                        interrupted = true;
+                    }
+                }
+                if (interrupted) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+            return super.cleanForSharing(sourceUri, originalFilename, isVideo);
+        }
+    }
+
+    @Test
+    public void newIntent_duringTheClean_leavesTheNewShareRunning() throws Exception {
+        FileProviderTestSupport.makeUsable(app);
+        HeldStripper.calls.set(0);
+        HeldStripper.entered = new CountDownLatch(1);
+        HeldStripper.release = new CountDownLatch(1);
+        ShareHandlerActivity.stripperFactory = HeldStripper::new;
+
+        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        ((AlertDialog) ShadowDialog.getLatestDialog()).getButton(DialogInterface.BUTTON_POSITIVE).performClick();
+        idle();
+        assertTrue(HeldStripper.entered.await(20, TimeUnit.SECONDS));
+        Thread firstWorker = field(activity, "processingThread");
+        List<File> firstSnapshots = Arrays.asList(inboundSnapshots());
+
+        controller.newIntent(send("image/jpeg", Uri.fromFile(jpeg())));
+        idle();
+        awaitPreparation(activity);
+        List<File> secondSnapshots = new ArrayList<>(Arrays.asList(inboundSnapshots()));
+        secondSnapshots.removeAll(firstSnapshots);
+        assertEquals(1, secondSnapshots.size());
+        AlertDialog secondConfirm = (AlertDialog) ShadowDialog.getLatestDialog();
+
+        // The first share's clean finishes after the second share took over.
+        HeldStripper.release.countDown();
+        firstWorker.join(20_000);
+        idle();
+        ShadowLooper.idleMainLooper();
+
+        assertFalse(activity.isFinishing());
+        assertTrue(secondSnapshots.get(0).exists());
+
+        secondConfirm.getButton(DialogInterface.BUTTON_POSITIVE).performClick();
+        idle();
+        awaitMain(() -> {
+            idle();
+            return shadowOf(activity).peekNextStartedActivityForResult() != null;
+        });
+        assertEquals(Intent.ACTION_CHOOSER,
+                shadowOf(activity).peekNextStartedActivityForResult().intent.getAction());
+        assertFalse(activity.isFinishing());
+        awaitMain(() -> inboundSnapshots().length == 0);
+    }
+
     @Test
     public void inboundFileUri_insideTheAppsPrivateStorage_isRejected() throws IOException {
         File secret = File.createTempFile("secret_", ".jpg", app.getFilesDir());
@@ -276,6 +358,58 @@ public class ShareHandlerActivityFlowsTest {
 
         assertTrue(activity.isFinishing());
         assertEquals(0, inboundSnapshots().length);
+    }
+
+    /**
+     * Android drops a {@code userId@} prefix from an authority before it finds the provider, so
+     * {@code 0@<package>.fileprovider} opens Redact's own FileProvider (Robolectric's resolver does
+     * the same). The test provider stands in for it, serving a file the sender should not reach.
+     */
+    @Test
+    public void inboundContentUri_fromTheAppsOwnFileProvider_withAUserIdPrefix_isRejected() throws IOException {
+        TestMediaProvider.file = jpeg();
+        TestMediaProvider.type = "image/jpeg";
+        Robolectric.setupContentProvider(TestMediaProvider.class, app.getPackageName() + ".fileprovider");
+        Uri own = Uri.parse("content://0@" + app.getPackageName() + ".fileprovider/processed/a.jpg");
+
+        ShareHandlerActivity activity = launch(send("image/jpeg", own));
+        idle();
+        assertTrue(activity.isFinishing());
+        assertEquals(0, inboundSnapshots().length);
+        controller.pause().stop().destroy();
+
+        Intent multiple = new Intent(Intent.ACTION_SEND_MULTIPLE);
+        multiple.setType("image/*");
+        multiple.putParcelableArrayListExtra(Intent.EXTRA_STREAM, new ArrayList<>(Arrays.asList(own)));
+        ShareHandlerActivity second = launch(multiple);
+        idle();
+        assertTrue(second.isFinishing());
+        assertEquals(0, inboundSnapshots().length);
+    }
+
+    @Test
+    public void openedFileCheck_looksAtWhatWasActuallyOpened() throws Exception {
+        // The check reads /proc/self/fd, as Android always can; a Windows or macOS host has no such
+        // folder (or symbolic links without a privilege), so this runs on Linux, as in CI.
+        org.junit.Assume.assumeTrue("needs /proc/self/fd", new File("/proc/self/fd").isDirectory());
+        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        File shared = jpeg();
+        File secret = File.createTempFile("secret_", ".jpg", app.getFilesDir());
+        files.add(secret);
+        File link = new File(sourceDir(), "link_" + System.nanoTime() + ".jpg");
+        files.add(link);
+        java.nio.file.Files.createSymbolicLink(link.toPath(), secret.toPath());
+
+        try (ParcelFileDescriptor opened = ParcelFileDescriptor.open(shared, ParcelFileDescriptor.MODE_READ_ONLY)) {
+            assertFalse(activity.openedFileIsPrivate(opened, shared));
+        }
+        try (ParcelFileDescriptor opened = ParcelFileDescriptor.open(secret, ParcelFileDescriptor.MODE_READ_ONLY)) {
+            // Named as if it were the harmless shared file: the descriptor still tells the truth.
+            assertTrue(activity.openedFileIsPrivate(opened, shared));
+        }
+        try (ParcelFileDescriptor opened = ParcelFileDescriptor.open(link, ParcelFileDescriptor.MODE_READ_ONLY)) {
+            assertTrue(activity.openedFileIsPrivate(opened, link));
+        }
     }
 
     @Test

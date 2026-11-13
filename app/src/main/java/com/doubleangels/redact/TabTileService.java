@@ -41,7 +41,7 @@ public abstract class TabTileService extends TileService {
 
     @SuppressLint("StartActivityAndCollapseDeprecated")
     private void openTab() {
-        SentryManager.logEvent("navigation", "A Quick Settings tile opened a tab.");
+        SentryManager.logEvent("Navigation", "A Quick Settings tile opened a tab.");
         Intent intent = tabIntent();
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {

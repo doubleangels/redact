@@ -412,6 +412,15 @@
     <string name="censor_undo">元に戻す</string>
     <string name="censor_redo">やり直す</string>
     <string name="censor_delete_rectangle">四角形を削除</string>
+    <string name="censor_add_area">範囲を追加</string>
+    <string name="censor_area_description">隠した範囲 %1$d/%2$d</string>
+    <string name="censor_action_move_left">左へ移動</string>
+    <string name="censor_action_move_right">右へ移動</string>
+    <string name="censor_action_move_up">上へ移動</string>
+    <string name="censor_action_move_down">下へ移動</string>
+    <string name="censor_action_larger">大きくする</string>
+    <string name="censor_action_smaller">小さくする</string>
+    <string name="censor_action_delete">範囲を削除</string>
     <string name="censor_full_screen">全画面表示</string>
     <string name="censor_exit_full_screen">全画面表示を終了</string>
     <string name="censor_zoom_level">%1$s×</string>

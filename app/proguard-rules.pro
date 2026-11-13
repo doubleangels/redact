@@ -6,17 +6,24 @@
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
 
-# MetadataDisplayer/MetadataStripper enumerate ExifInterface.TAG_* fields by reflection and use
+# MetadataDisplayer, ImageCleaner, CleanVerifier, CleanStats and AlreadyCleanCheck enumerate
+# ExifInterface.TAG_* fields by reflection and use
 # the field names, so they must not be renamed.
 -keepclassmembers class androidx.exifinterface.media.ExifInterface {
     public static final java.lang.String TAG_*;
 }
 
-# Strip verbose logging in release (warn/error kept).
+# Every level, in app and library code: a warning or error often carries an exception whose
+# message holds a path, URI or file name, and logcat ends up in bug reports users share. Debug
+# builds are not minified and keep full logs. Opted-in crash reports go through SentryManager.
 -assumenosideeffects class android.util.Log {
     public static *** d(...);
     public static *** v(...);
     public static *** i(...);
+    public static *** w(...);
+    public static *** e(...);
+    public static *** wtf(...);
+    public static *** println(...);
 }
 
 -repackageclasses

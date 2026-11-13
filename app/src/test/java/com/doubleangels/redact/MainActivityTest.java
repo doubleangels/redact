@@ -398,6 +398,73 @@ public class MainActivityTest {
         assertEquals(R.id.navigation_clean, launchedTab(own));
     }
 
+    /**
+     * Android drops a {@code userId@} prefix from an authority before it finds the provider, so
+     * {@code 0@<package>.fileprovider} names Redact's own FileProvider and is refused everywhere.
+     */
+    @Test
+    public void redactsOwnProvider_withAUserIdPrefix_isNotOpenedAnywhere() {
+        android.net.Uri own = android.net.Uri.parse(
+                "content://0@com.doubleangels.redact.fileprovider/processed/a.jpg");
+
+        android.content.Intent view = new android.content.Intent(android.content.Intent.ACTION_VIEW)
+                .setDataAndType(own, "image/jpeg");
+        assertEquals(R.id.navigation_clean, launchedTab(view));
+        controller.pause().stop().destroy();
+
+        android.content.Intent scan = new android.content.Intent(android.content.Intent.ACTION_SEND)
+                .setType("image/jpeg")
+                .putExtra(android.content.Intent.EXTRA_STREAM, own);
+        assertEquals(R.id.navigation_clean, launchedTab(scan));
+        controller.pause().stop().destroy();
+
+        android.content.Intent convert = convertShare(android.content.Intent.ACTION_SEND)
+                .putExtra(android.content.Intent.EXTRA_STREAM, own);
+        assertEquals(R.id.navigation_convert, launchedTab(convert));
+        assertEquals(controller.get().getString(R.string.share_error_unsupported_media),
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
+        controller.pause().stop().destroy();
+
+        assertEquals(R.id.navigation_censor, launchedTab(censorShare(own)));
+        assertEquals(controller.get().getString(R.string.share_error_unsupported_media),
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
+        assertNull(censorViewModel().getSource());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static java.util.Set<Runnable> flowCallbacks() throws Exception {
+        java.lang.reflect.Field f = PermissionManager.class.getDeclaredField("initialFlowCompletedCallbacks");
+        f.setAccessible(true);
+        return (java.util.Set<Runnable>) f.get(null);
+    }
+
+    private static Runnable flowCallbackOf(MainActivity activity) throws Exception {
+        java.lang.reflect.Field f = MainActivity.class.getDeclaredField("permissionFlowCompleted");
+        f.setAccessible(true);
+        return (Runnable) f.get(activity);
+    }
+
+    /**
+     * Another app can open a second MainActivity in its own task (VIEW and SEND are exported).
+     * Destroying one must leave the other's permission flow callback in place.
+     */
+    @Test
+    public void destroyingOneOfTwoInstances_keepsTheOthersPermissionCallback() throws Exception {
+        ActivityController<MainActivity> first = Robolectric.buildActivity(MainActivity.class).setup();
+        MainActivity firstActivity = first.get();
+        MainActivity second = launch();
+        Runnable firstCallback = flowCallbackOf(firstActivity);
+        Runnable secondCallback = flowCallbackOf(second);
+
+        first.pause().stop().destroy();
+
+        assertTrue(flowCallbacks().contains(secondCallback));
+        assertTrue(!flowCallbacks().contains(firstCallback));
+        controller.pause().stop().destroy();
+        assertTrue(!flowCallbacks().contains(secondCallback));
+        controller = null;
+    }
+
     // ---- Redact › Convert ----------------------------------------------------------------
 
     private static android.net.Uri sharedImage(int n) {

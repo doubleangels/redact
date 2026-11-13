@@ -33,13 +33,13 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingHorizontal="@dimen/screen_edge_padding"
-            android:paddingTop="8dp"
-            android:paddingBottom="24dp">
+            android:paddingTop="@dimen/spacing_small"
+            android:paddingBottom="@dimen/spacing_xlarge">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="@dimen/spacing_large"
                 android:text="@string/licenses_intro"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="?attr/colorOnSurfaceVariant" />
@@ -57,7 +57,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingVertical="8dp" />
+                    android:paddingVertical="@dimen/spacing_small" />
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

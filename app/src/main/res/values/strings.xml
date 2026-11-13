@@ -288,7 +288,7 @@
 
     
     <string name="metadata_location_unreadable">Location data is present, stored in a form that can\'t be shown here. Cleaning removes it.</string>
-    <string name="metadata_embedded_data_header">Hidden &amp; embedded data</string>
+    <string name="metadata_embedded_data_header">Hidden &amp; Embedded Data</string>
     <plurals name="metadata_embedded_images">
         <item quantity="one">%1$d image (%2$s) – removed when you clean</item>
         <item quantity="other">%1$d images (%2$s) – removed when you clean</item>
@@ -431,6 +431,15 @@
     <string name="censor_undo">Undo</string>
     <string name="censor_redo">Redo</string>
     <string name="censor_delete_rectangle">Delete Rectangle</string>
+    <string name="censor_add_area">Add Area</string>
+    <string name="censor_area_description">Censored area %1$d of %2$d</string>
+    <string name="censor_action_move_left">Move Left</string>
+    <string name="censor_action_move_right">Move Right</string>
+    <string name="censor_action_move_up">Move Up</string>
+    <string name="censor_action_move_down">Move Down</string>
+    <string name="censor_action_larger">Make Larger</string>
+    <string name="censor_action_smaller">Make Smaller</string>
+    <string name="censor_action_delete">Delete Area</string>
     <string name="censor_full_screen">Full Screen</string>
     <string name="censor_exit_full_screen">Exit Full Screen</string>
     <string name="censor_zoom_level">%1$s×</string>

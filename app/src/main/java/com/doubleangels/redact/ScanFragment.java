@@ -40,6 +40,7 @@ import com.doubleangels.redact.ui.FabScroll;
 import com.doubleangels.redact.ui.FoldDialogs;
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
+import com.doubleangels.redact.ui.MetadataLabels;
 import com.doubleangels.redact.ui.Notice;
 import com.doubleangels.redact.ui.ReviewPrompt;
 import com.doubleangels.redact.ui.ScanMetadataAdapter;
@@ -463,7 +464,7 @@ public class ScanFragment extends TabFragment {
                         if (generation != scanGeneration.get() || !isAdded()) {
                             return;
                         }
-                        SentryManager.logEvent("scan", "The location metadata refresh failed.");
+                        SentryManager.logEvent("Scan", "The location metadata refresh failed.");
                     }
                 });
     }
@@ -494,7 +495,7 @@ public class ScanFragment extends TabFragment {
 
             // The worker tags its own operation with the type and permission: these keys belong to
             // the thread that sets them, and set here they would only tag later main-thread events.
-            SentryManager.logEvent("scan", "The app is starting metadata extraction.");
+            SentryManager.logEvent("Scan", "The app is starting metadata extraction.");
 
             progressText.setText(isVideo ? R.string.status_extracting_media : R.string.status_extracting_image);
 
@@ -573,7 +574,7 @@ public class ScanFragment extends TabFragment {
                         showEmptyState(false);
                         metadataCard.setVisibility(View.VISIBLE);
                         clearCoordinateState();
-                        SentryManager.logEvent("scan", "Metadata extraction failed.");
+                        SentryManager.logEvent("Scan", "Metadata extraction failed.");
                         ErrorFeedbackPrompt.offer(
                                 getView(), SentryManager.reportedSince(reportedBefore));
                     });
@@ -1088,7 +1089,7 @@ public class ScanFragment extends TabFragment {
         StringBuilder sb = new StringBuilder();
         for (Pair<String, String> row : rows) {
             if (row.first != null && !row.first.isEmpty()) {
-                sb.append(row.first).append(": ");
+                sb.append(MetadataLabels.format(row.first)).append(": ");
             }
             if (row.second != null) {
                 sb.append(row.second);
@@ -1109,7 +1110,8 @@ public class ScanFragment extends TabFragment {
 
     private static List<Pair<String, String>> parseMetadataBlockToRows(String block) {
         List<Pair<String, String>> rows = new ArrayList<>();
-        if (block.indexOf('\u001e') >= 0) {
+        if (block.indexOf('\u001e') >= 0 || block.indexOf('\u001f') >= 0) {
+            // A block of one record has no trailing record separator (trimmed as whitespace).
             for (String entry : block.split("\u001e", -1)) {
                 if (entry.isEmpty()) {
                     continue;

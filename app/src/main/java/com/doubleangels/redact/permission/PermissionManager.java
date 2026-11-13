@@ -14,9 +14,12 @@ import androidx.core.content.ContextCompat;
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.sentry.SentryManager;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * Manages runtime permissions for media access in Android applications.
@@ -50,8 +53,11 @@ public class PermissionManager {
 
     private static volatile boolean initialPermissionFlowInProgress = false;
     private static InitialFlowStep initialFlowStep = InitialFlowStep.DONE;
-    @Nullable
-    private static Runnable initialFlowCompletedCallback;
+    /**
+     * One per live MainActivity. Another app can open a second instance in its own task (VIEW and
+     * SEND are exported), so each instance adds and removes its own instead of sharing one slot.
+     */
+    private static final Set<Runnable> initialFlowCompletedCallbacks = new CopyOnWriteArraySet<>();
 
     private static final class PendingPermissionResult {
         final int requestCode;
@@ -70,6 +76,10 @@ public class PermissionManager {
 
     /** Avoid stacking duplicate system dialogs when MainActivity and fragments both check on launch. */
     private static volatile boolean runtimePermissionRequestInFlight = false;
+
+    /** The activity whose system dialog {@link #runtimePermissionRequestInFlight} stands for. */
+    @Nullable
+    private static volatile WeakReference<Activity> runtimePermissionRequester;
 
     /** Activity context used for permission requests */
     private final Activity activity;
@@ -217,7 +227,7 @@ public class PermissionManager {
             }
             return result;
         } catch (Exception e) {
-            SentryManager.recordException(new Exception("Error checking permissions: " + e.getMessage(), e));
+            SentryManager.recordException(new Exception("Error checking permissions.", e));
             return true;
         }
     }
@@ -253,7 +263,7 @@ public class PermissionManager {
             SentryManager.setCustomKey("has_location_permission", hasLocationPermission);
             return !hasLocationPermission;
         } catch (Exception e) {
-            SentryManager.recordException(new Exception("Error checking location permission: " + e.getMessage(), e));
+            SentryManager.recordException(new Exception("Error checking location permission.", e));
             return true;
         }
     }
@@ -271,7 +281,7 @@ public class PermissionManager {
             SentryManager.log("The app is requesting media and storage permissions.");
             requestMissingRuntimePermissions(activity);
         } catch (Exception e) {
-            SentryManager.recordException(new Exception("Error requesting permissions: " + e.getMessage(), e));
+            SentryManager.recordException(new Exception("Error requesting permissions.", e));
             requestMissingRuntimePermissions(activity);
         }
     }
@@ -297,7 +307,7 @@ public class PermissionManager {
             SentryManager.log("The app is requesting the ACCESS_MEDIA_LOCATION permission.");
             requestMediaLocationPermission();
         } catch (Exception e) {
-            SentryManager.recordException(new Exception("Error requesting location permission: " + e.getMessage(), e));
+            SentryManager.recordException(new Exception("Error requesting location permission.", e));
             requestMediaLocationPermission();
         }
     }
@@ -306,7 +316,7 @@ public class PermissionManager {
         if (!needsLocationPermission()) {
             return;
         }
-        runtimePermissionRequestInFlight = true;
+        markRuntimePermissionRequestInFlight(activity);
         SentryManager.log("The app is requesting the ACCESS_MEDIA_LOCATION permission.");
         ActivityCompat.requestPermissions(activity,
                 new String[]{Manifest.permission.ACCESS_MEDIA_LOCATION},
@@ -359,7 +369,7 @@ public class PermissionManager {
             }
         } catch (Exception e) {
             // Log exception and fall back to simple result handling
-            SentryManager.recordException(new Exception("Error handling permission result: " + e.getMessage(), e));
+            SentryManager.recordException(new Exception("Error handling permission result.", e));
 
             boolean allGranted = grantResults.length > 0 &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED;
@@ -514,7 +524,7 @@ public class PermissionManager {
             }
             SentryManager.log("Media and storage permissions were denied.");
         } catch (Exception e) {
-            SentryManager.recordException(new Exception("Error handling permission denial: " + e.getMessage(), e));
+            SentryManager.recordException(new Exception("Error handling permission denial.", e));
         }
     }
 
@@ -528,8 +538,7 @@ public class PermissionManager {
                     hasShownLocationRationale && !canAskAgain);
             SentryManager.log("The location permission was denied.");
         } catch (Exception e) {
-            SentryManager.recordException(new Exception("Error handling location permission denial: "
-                    + e.getMessage(), e));
+            SentryManager.recordException(new Exception("Error handling location permission denial.", e));
         }
     }
 
@@ -548,8 +557,14 @@ public class PermissionManager {
         return initialPermissionFlowInProgress;
     }
 
-    public static void setInitialFlowCompletedCallback(@Nullable Runnable callback) {
-        initialFlowCompletedCallback = callback;
+    /** Runs {@code callback} when the first-launch permission flow completes. */
+    public static void addInitialFlowCompletedCallback(@NonNull Runnable callback) {
+        initialFlowCompletedCallbacks.add(callback);
+    }
+
+    /** Removes only {@code callback}, leaving those of other live activities in place. */
+    public static void removeInitialFlowCompletedCallback(@NonNull Runnable callback) {
+        initialFlowCompletedCallbacks.remove(callback);
     }
 
     /** Starts or continues the first-launch permission sequence. */
@@ -639,7 +654,7 @@ public class PermissionManager {
             requestCurrentInitialFlowStep(activity);
             return;
         }
-        runtimePermissionRequestInFlight = true;
+        markRuntimePermissionRequestInFlight(activity);
         SentryManager.log("The initial flow is requesting ACCESS_MEDIA_LOCATION.");
         ActivityCompat.requestPermissions(
                 activity,
@@ -658,7 +673,7 @@ public class PermissionManager {
             finishInitialPermissionFlow(activity);
             return;
         }
-        runtimePermissionRequestInFlight = true;
+        markRuntimePermissionRequestInFlight(activity);
         SentryManager.log("The initial flow is requesting POST_NOTIFICATIONS.");
         ActivityCompat.requestPermissions(
                 activity,
@@ -679,8 +694,7 @@ public class PermissionManager {
         initialFlowStep = InitialFlowStep.DONE;
         AppPreferences.setInitialPermissionsPromptCompleted(activity);
         SentryManager.log("The initial permission flow completed.");
-        Runnable callback = initialFlowCompletedCallback;
-        if (callback != null) {
+        for (Runnable callback : initialFlowCompletedCallbacks) {
             activity.getWindow().getDecorView().post(callback);
         }
     }
@@ -706,14 +720,13 @@ public class PermissionManager {
                 runtimePermissionRequestInFlight = false;
                 return;
             }
-            runtimePermissionRequestInFlight = true;
+            markRuntimePermissionRequestInFlight(activity);
             SentryManager.log("The app is requesting " + permissions.size() + " runtime permissions.");
             ActivityCompat.requestPermissions(
                     activity, permissions.toArray(new String[0]), STORAGE_PERMISSION_REQUEST_CODE);
         } catch (Exception e) {
             runtimePermissionRequestInFlight = false;
-            SentryManager.recordException(new Exception("Error requesting runtime permissions: "
-                    + e.getMessage(), e));
+            SentryManager.recordException(new Exception("Error requesting runtime permissions.", e));
         }
     }
 
@@ -758,9 +771,22 @@ public class PermissionManager {
         return permissions;
     }
 
-    /** Clears an in-flight permission dialog flag when the host activity is destroyed. */
-    public static void clearRuntimePermissionRequestOnDestroy() {
-        runtimePermissionRequestInFlight = false;
+    private static void markRuntimePermissionRequestInFlight(@NonNull Activity activity) {
+        runtimePermissionRequester = new WeakReference<>(activity);
+        runtimePermissionRequestInFlight = true;
+    }
+
+    /**
+     * Clears the in-flight permission dialog flag when the activity that showed the dialog is
+     * destroyed. Another instance's dialog keeps it set, so that instance is not asked twice.
+     */
+    public static void clearRuntimePermissionRequestOnDestroy(@NonNull Activity activity) {
+        WeakReference<Activity> requester = runtimePermissionRequester;
+        Activity owner = requester != null ? requester.get() : null;
+        if (owner == null || owner == activity) {
+            runtimePermissionRequester = null;
+            runtimePermissionRequestInFlight = false;
+        }
     }
 
     /** Visible for unit tests. */
@@ -768,7 +794,8 @@ public class PermissionManager {
         runtimePermissionRequestInFlight = false;
         initialPermissionFlowInProgress = false;
         initialFlowStep = InitialFlowStep.DONE;
-        initialFlowCompletedCallback = null;
+        initialFlowCompletedCallbacks.clear();
+        runtimePermissionRequester = null;
         pendingPermissionResults.clear();
         testSdkIntOverride = null;
     }

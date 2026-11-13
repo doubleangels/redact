@@ -71,19 +71,6 @@ public class OutputDestinationEdgeCasesTest {
     }
 
     @Test
-    public void isInChosenFolder_skipsUrisAndTreesItCannotMatch() {
-        assertFalse(OutputDestination.isInChosenFolder(app, Uri.parse("content://media/external/images/media/1")));
-
-        AppPreferences.setOutputTree(app, false,
-                DocumentsContract.buildTreeDocumentUri("com.example.other", "primary:Pictures/Private"));
-        AppPreferences.setOutputTree(app, true, Uri.parse("content://" + FakeDocumentsProvider.AUTHORITY + "/notatree"));
-        assertFalse(OutputDestination.isInChosenFolder(app, DocumentsContract.buildDocumentUri(
-                FakeDocumentsProvider.AUTHORITY, "primary:Pictures/Private/a.jpg")));
-        assertTrue(OutputDestination.chosenRelativePaths(app).isEmpty()
-                || !OutputDestination.chosenRelativePaths(app).contains("Pictures/Private"));
-    }
-
-    @Test
     public void isUsable_withoutAGrant_isFalse() {
         Uri tree = FakeDocumentsProvider.folder("primary:Pictures/Private");
         assertFalse(OutputDestination.isUsable(app, tree));

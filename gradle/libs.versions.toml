@@ -2,14 +2,16 @@
 activity = "1.13.0"
 agp = "9.5.1"
 constraintlayout = "2.2.2"
+customview = "1.2.0"
 exifinterface = "1.4.2"
 fragment = "1.9.1"
 glide = "5.0.9"
 appcompat = "1.8.0"
 material = "1.14.0"
 media3 = "1.11.1"
-lifecycleViewmodelKtx = "2.11.0"
-sentry = "8.63.0"
+lifecycle = "2.11.0"
+recyclerview = "1.4.0"
+sentry = "8.64.0"
 sentryGradlePlugin = "6.26.0"
 leakcanary = "2.14"
 junit = "4.13.2"
@@ -19,12 +21,15 @@ baselineprofile = "1.5.0"
 profileinstaller = "1.4.1"
 uiautomator = "2.4.1"
 testMonitor = "1.8.0"
+testRunner = "1.7.0"
+testExtJunit = "1.3.0"
 window = "1.5.1"
 splashscreen = "1.2.0"
 
 [libraries]
 activity = { module = "androidx.activity:activity", version.ref = "activity" }
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
+customview = { module = "androidx.customview:customview", version.ref = "customview" }
 exifinterface = { module = "androidx.exifinterface:exifinterface", version.ref = "exifinterface" }
 sentry-android = { module = "io.sentry:sentry-android", version.ref = "sentry" }
 sentry-android-fragment = { module = "io.sentry:sentry-android-fragment", version.ref = "sentry" }
@@ -38,7 +43,10 @@ media3-container = { module = "androidx.media3:media3-container", version.ref = 
 media3-muxer = { module = "androidx.media3:media3-muxer", version.ref = "media3" }
 media3-effect = { module = "androidx.media3:media3-effect", version.ref = "media3" }
 media3-transformer = { module = "androidx.media3:media3-transformer", version.ref = "media3" }
-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
+lifecycle-livedata = { group = "androidx.lifecycle", name = "lifecycle-livedata", version.ref = "lifecycle" }
+lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "lifecycle" }
+lifecycle-viewmodel-savedstate = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-savedstate", version.ref = "lifecycle" }
+recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 junit = { module = "junit:junit", version.ref = "junit" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
@@ -47,6 +55,8 @@ profileinstaller = { module = "androidx.profileinstaller:profileinstaller", vers
 benchmark-macro-junit4 = { module = "androidx.benchmark:benchmark-macro-junit4", version.ref = "baselineprofile" }
 uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
 test-monitor = { module = "androidx.test:monitor", version.ref = "testMonitor" }
+test-runner = { module = "androidx.test:runner", version.ref = "testRunner" }
+test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "testExtJunit" }
 window-java = { module = "androidx.window:window-java", version.ref = "window" }
 core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "splashscreen" }
 

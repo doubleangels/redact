@@ -107,9 +107,9 @@ public class MainViewModelFlowTest {
     }
 
     @Test
-    public void clearSelectedItems_emptiesAndRemovesPersistedState() {
+    public void emptyingTheSelection_removesPersistedState() {
         vm.setSelectedItems(Arrays.asList(image("a.jpg")));
-        vm.clearSelectedItems();
+        vm.setSelectedItems(new ArrayList<>());
 
         assertTrue(vm.getSelectedItems().getValue().isEmpty());
         assertTrue(new MainViewModel(app, handle).getSelectedItems().getValue().isEmpty());

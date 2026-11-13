@@ -46,6 +46,15 @@ jobs:
       - name: Setup Android build
         uses: ./.github/actions/setup-android-build
 
+      # Robolectric downloads one android-all jar per Android version the tests use (31, 33 and 34)
+      # into ~/.m2 on every fresh runner; the Gradle cache does not cover that folder.
+      - name: Cache Robolectric Android jars
+        uses: actions/cache@v6.1.0
+        with:
+          path: ~/.m2/repository/org/robolectric
+          key: robolectric-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: robolectric-${{ runner.os }}-
+
       # Debug only: the release variant reruns the same tests, and coverage is measured on debug.
       - name: Run unit tests and check coverage
         run: ./gradlew testDebugUnitTest jacocoTestCoverageVerification

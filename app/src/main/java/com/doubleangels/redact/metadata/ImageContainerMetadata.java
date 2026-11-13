@@ -268,7 +268,8 @@ public final class ImageContainerMetadata {
                 directoryWritten = true;
             } catch (IOException | RuntimeException e) {
                 // The picture written above is complete; it is only without its HDR.
-                SentryManager.log("The Ultra HDR gain map could not be kept: " + e.getMessage() + ".");
+                SentryManager.log("The Ultra HDR gain map could not be kept: " + e.getClass().getSimpleName() + ".");
+                SentryManager.count("clean.part_dropped", 1, "media_type", "image", "outcome", "gain_map");
             }
         }
         if (motion != null) {
@@ -938,11 +939,11 @@ public final class ImageContainerMetadata {
                 if (latLong != null && MetadataDisplayer.isUsableMapCoordinate(latLong[0], latLong[1])) {
                     result.latLong = latLong;
                 }
-                result.dateTime = MetadataStripper.normalizeMetadataValue(exif.getAttribute(
+                result.dateTime = CleanVerifier.normalizeMetadataValue(exif.getAttribute(
                         ExifInterface.TAG_DATETIME_ORIGINAL));
-                String make = MetadataStripper.normalizeMetadataValue(
+                String make = CleanVerifier.normalizeMetadataValue(
                         exif.getAttribute(ExifInterface.TAG_MAKE));
-                String model = MetadataStripper.normalizeMetadataValue(
+                String model = CleanVerifier.normalizeMetadataValue(
                         exif.getAttribute(ExifInterface.TAG_MODEL));
                 if (make != null || model != null) {
                     result.device = ((make != null ? make + " " : "") + (model != null ? model : "")).trim();
@@ -1338,7 +1339,7 @@ public final class ImageContainerMetadata {
                     if (type.equals("desc")) {
                         int n = (int) u32(p, offset + 8);
                         n = Math.min(n, size - 12);
-                        return MetadataStripper.normalizeMetadataValue(
+                        return CleanVerifier.normalizeMetadataValue(
                                 printable(Arrays.copyOfRange(p, offset + 12, offset + 12 + n)));
                     }
                     if (type.equals("mluc")) {
@@ -1351,11 +1352,11 @@ public final class ImageContainerMetadata {
                         if (at + length > size) {
                             return null;
                         }
-                        return MetadataStripper.normalizeMetadataValue(
+                        return CleanVerifier.normalizeMetadataValue(
                                 new String(p, offset + at, length, StandardCharsets.UTF_16BE));
                     }
                     if (type.equals("text")) {
-                        return MetadataStripper.normalizeMetadataValue(
+                        return CleanVerifier.normalizeMetadataValue(
                                 printable(Arrays.copyOfRange(p, offset + 8, offset + size)));
                     }
                     return null;

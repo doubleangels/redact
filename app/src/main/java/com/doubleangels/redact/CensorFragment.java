@@ -135,7 +135,7 @@ public class CensorFragment extends TabFragment {
                 new ActivityResultContracts.StartIntentSenderForResult(), result -> {
                     Uri trashed = pendingTrashSource;
                     pendingTrashSource = null;
-                    SentryManager.logEvent("censor", result.getResultCode() == Activity.RESULT_OK
+                    SentryManager.logEvent("Censor", result.getResultCode() == Activity.RESULT_OK
                             ? "The user moved the uncensored original to the trash."
                             : "The user kept the uncensored original.");
                     // The original is gone, so there is nothing left to save another copy from.
@@ -239,6 +239,13 @@ public class CensorFragment extends TabFragment {
             @Override
             public void onRegionChanged(int index, @NonNull CensorRegion region) {
                 viewModel.replaceRegion(index, region);
+                Haptics.tick(canvas);
+            }
+
+            @Override
+            public void onRegionRemoved(int index) {
+                canvas.clearSelection();
+                viewModel.removeRegion(index);
                 Haptics.tick(canvas);
             }
 
@@ -377,6 +384,16 @@ public class CensorFragment extends TabFragment {
             Haptics.tick(v);
             setFullScreen(!viewModel.isFullScreen());
         });
+        view.findViewById(R.id.censorAddAreaButton).setOnClickListener(v -> {
+            Haptics.tick(v);
+            // The added area is a rectangle, so its tool comes up to keep it selected for editing.
+            if (currentTool != CensorCanvasView.Tool.RECT) {
+                currentTool = CensorCanvasView.Tool.RECT;
+                AppPreferences.setCensorTool(requireContext(), currentTool.name());
+                applyTool();
+            }
+            canvas.addCentredRegion();
+        });
         applyTool();
     }
 
@@ -408,7 +425,7 @@ public class CensorFragment extends TabFragment {
     }
 
     private void setFullScreen(boolean fullScreen) {
-        SentryManager.logEvent("censor", fullScreen
+        SentryManager.logEvent("Censor", fullScreen
                 ? "The user turned on full screen." : "The user left full screen.");
         viewModel.setFullScreen(fullScreen);
         applyFullScreen();
@@ -515,7 +532,7 @@ public class CensorFragment extends TabFragment {
 
     @VisibleForTesting
     void chooseEffect(@NonNull CensorEffects.Effect effect) {
-        SentryManager.logEvent("censor", "The user chose the " + effect.name() + " effect.");
+        SentryManager.logEvent("Censor", "The user chose the " + effect.name() + " effect.");
         viewModel.setEffect(effect);
         updateControls();
     }
@@ -724,7 +741,7 @@ public class CensorFragment extends TabFragment {
                 .setMessage(R.string.censor_discard_message)
                 .setNegativeButton(R.string.censor_keep_editing, null)
                 .setPositiveButton(R.string.censor_discard, (d, w) -> {
-                    SentryManager.logEvent("censor", "The user discarded unsaved censor edits.");
+                    SentryManager.logEvent("Censor", "The user discarded unsaved censor edits.");
                     onDiscard.run();
                 })
                 .show());

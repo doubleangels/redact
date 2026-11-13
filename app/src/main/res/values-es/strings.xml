@@ -113,7 +113,7 @@
 
     
     <string name="metadata_location_unreadable">Hay datos de ubicación guardados en un formato que no se puede mostrar aquí. La limpieza los elimina.</string>
-    <string name="metadata_embedded_data_header">Datos ocultos e incrustados</string>
+    <string name="metadata_embedded_data_header">Datos Ocultos e Incrustados</string>
     <plurals name="metadata_embedded_images">
         <item quantity="one">%1$d imagen (%2$s) – se elimina al limpiar</item>
         <item quantity="many">%1$d imágenes (%2$s) – se eliminan al limpiar</item>
@@ -439,6 +439,15 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="censor_undo">Deshacer</string>
     <string name="censor_redo">Rehacer</string>
     <string name="censor_delete_rectangle">Eliminar Rectángulo</string>
+    <string name="censor_add_area">Añadir Área</string>
+    <string name="censor_area_description">Área censurada %1$d de %2$d</string>
+    <string name="censor_action_move_left">Mover a la Izquierda</string>
+    <string name="censor_action_move_right">Mover a la Derecha</string>
+    <string name="censor_action_move_up">Mover Arriba</string>
+    <string name="censor_action_move_down">Mover Abajo</string>
+    <string name="censor_action_larger">Agrandar</string>
+    <string name="censor_action_smaller">Reducir</string>
+    <string name="censor_action_delete">Eliminar Área</string>
     <string name="censor_full_screen">Pantalla Completa</string>
     <string name="censor_exit_full_screen">Salir de Pantalla Completa</string>
     <string name="censor_zoom_level">%1$s×</string>

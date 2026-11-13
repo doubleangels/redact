@@ -380,7 +380,7 @@ public class PermissionManagerInstanceTest {
                 Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED, Manifest.permission.ACCESS_MEDIA_LOCATION,
                 Manifest.permission.POST_NOTIFICATIONS);
         final boolean[] completed = {false};
-        PermissionManager.setInitialFlowCompletedCallback(() -> completed[0] = true);
+        PermissionManager.addInitialFlowCompletedCallback(() -> completed[0] = true);
 
         PermissionManager.prepareInitialPermissionFlow();
         PermissionManager.startInitialPermissionFlow(activity);

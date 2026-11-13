@@ -22,6 +22,9 @@ updates:
       media3:
         patterns:
           - "androidx.media3:*"
+      lifecycle:
+        patterns:
+          - "androidx.lifecycle:*"
       sentry:
         patterns:
           - "io.sentry*"

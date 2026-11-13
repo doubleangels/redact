@@ -200,7 +200,7 @@ public class ScanFragmentTest {
 
         actionCard(v, activity.getString(R.string.scan_copy_all_metadata)).performClick();
         String all = clipboard.getPrimaryClip().getItemAt(0).getText().toString();
-        assertTrue(all.contains("MAKE"));
+        assertTrue(all.contains("Make: Acme"));
     }
 
     @Test

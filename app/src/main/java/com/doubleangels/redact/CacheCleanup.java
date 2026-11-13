@@ -1,5 +1,6 @@
 package com.doubleangels.redact;
 
+import com.doubleangels.redact.sentry.SentryManager;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -43,7 +44,8 @@ public final class CacheCleanup {
     private static final String[] TEMP_PREFIXES = {
             "temp_", "verify_", "vid_transform_", "vid_transmux_", "inbound_", "censored_",
             // Copies of a picture, video or its tags made on the way to a clean file.
-            "vid_keep_", "motion_", "gainmap_", "heif_body_", "heif_exif_", "png16_", "exif_carrier_"
+            "vid_keep_", "motion_", "gainmap_", "heif_body_", "heif_exif_", "png16_", "exif_carrier_",
+            "xmp_"
     };
     /**
      * Grace period below which a temp file is left alone even for a "clear all" request, so a
@@ -146,6 +148,10 @@ public final class CacheCleanup {
         }
         // Thumbnails earlier versions kept in Glide's disk cache, which is now off.
         File thumbnailCache = cacheDir != null ? new File(cacheDir, GLIDE_DISK_CACHE_DIR) : null;
+        if (!orphans.isEmpty()) {
+            // Working files from a clean that never finished: the process died partway.
+            SentryManager.count("cache.orphans_found", orphans.size());
+        }
         if (thumbnailCache != null && thumbnailCache.isDirectory()) {
             collectFilesOlderThan(thumbnailCache, Long.MAX_VALUE, orphans);
         }

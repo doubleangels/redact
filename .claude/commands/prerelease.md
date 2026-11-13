@@ -87,11 +87,11 @@ Follow `.claude/commands/releasenotes.md` and keep its report for the summary. I
 
 ## 4. Unit tests and coverage
 
-Run `./gradlew :app:jacocoTestReport` alone, as `test.md` step 1 describes: it runs `testDebugUnitTest` first, so the suite runs once and gives both the results and the line coverage. If every unit test passed but line coverage is under the 90% gate CI enforces, follow `.claude/commands/coverage.md` to add tests until it is back over 90% (tests only: it never changes app code), starting from the report this step already made instead of measuring again, commit as it describes, and note the coverage before and after. Do not fix test failures here; if a failure looks tied to one of this run's upgrades or fixes, say which.
+Run `./gradlew :app:jacocoTestReport` alone, as `test.md` section 2 describes: it runs `testDebugUnitTest` first, so the suite runs once and gives both the results and the line coverage. If every unit test passed but line coverage is under the 90% gate CI enforces, follow `.claude/commands/coverage.md` to add tests until it is back over 90% (tests only: it never changes app code), starting from the report this step already made instead of measuring again, commit as it describes, and note the coverage before and after. Do not fix test failures here; if a failure looks tied to one of this run's upgrades or fixes, say which.
 
 ## 5. Feature tests and profiles, side by side
 
-1. Follow `.claude/commands/test.md` from its step 2 on, on the test emulator from step 0: its unit tests already ran in step 4. Its install (`./gradlew :app:installDebug`) is the last Gradle build it runs.
+1. Follow `.claude/commands/test.md` on the test emulator from step 0, but skip its section 2: its unit tests already ran in step 4, so there is nothing to start in the background and its summary uses step 4's results. Its install (`./gradlew :app:installDebug`) is the last Gradle build it runs.
 2. As soon as that install has finished, start `./gradlew :app:generateBaselineProfile` in the background, as `.claude/commands/generateprofiles.md` step 2 describes. It runs on the profile emulator, so the feature tests carry on undisturbed. Note the profile rule counts before starting it.
 3. Do not run any other Gradle build of this project until the profile run has finished. If `/test` would need one later (for example to reinstall), wait for the profile run first.
 4. When the profile run finishes, summarize and commit it as `generateprofiles.md` steps 3 and 4 describe. This runs after every code change (translations, upgrades, Sentry fixes, cleanup, lint fixes), so the profile is generated from the final code.

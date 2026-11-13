@@ -26,6 +26,11 @@ import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.DigestOutputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -96,13 +101,15 @@ public final class OutputDestination {
                     markPendingDocument(context, doc);
                     return doc;
                 }
-                failure = "the provider created nothing";
+                failure = "ProviderCreatedNothing";
             } catch (Exception e) {
-                failure = e.toString();
+                failure = e.getClass().getSimpleName();
             }
             // Folder deleted, permission revoked or provider gone: save to the default instead of
             // failing the whole job, and tell the user once so they know where to look.
             SentryManager.log("The chosen output folder could not be used: " + failure + ".");
+            SentryManager.count("output.folder_fallback", 1,
+                    "media_type", video ? "video" : "image", "error_type", failure);
             warnFallback(context, tree, video);
         }
 
@@ -144,6 +151,64 @@ public final class OutputDestination {
     }
 
     /** Makes a finished output visible. Documents in a chosen folder need no publish step. */
+    /**
+     * Copies a verified clean file to its output and returns the SHA-256 of the bytes written, for
+     * {@link #requireSameContent} to compare with what actually landed.
+     */
+    @NonNull
+    public static byte[] copyAndDigest(@NonNull InputStream in, @NonNull OutputStream out) throws IOException {
+        MessageDigest digest = sha256();
+        MediaSizeLimits.copyStream(in, new DigestOutputStream(out, digest));
+        return digest.digest();
+    }
+
+    /**
+     * Fails unless {@code output} holds exactly the bytes whose SHA-256 is {@code expectedSha256}.
+     * A provider that does not truncate on "w" keeps the tail of an older, longer file, which can be
+     * a full copy of an original with its metadata; the copy is then not what was verified.
+     */
+    public static void requireSameContent(@NonNull ContentResolver resolver, @NonNull Uri output,
+                                          @NonNull byte[] expectedSha256) throws IOException {
+        MessageDigest digest = sha256();
+        try (InputStream is = resolver.openInputStream(output)) {
+            if (is == null) {
+                throw new IOException("Cannot open the saved copy for verification");
+            }
+            byte[] buffer = new byte[65536];
+            int read;
+            while ((read = is.read(buffer)) != -1) {
+                digest.update(buffer, 0, read);
+            }
+        }
+        if (!MessageDigest.isEqual(expectedSha256, digest.digest())) {
+            SentryManager.setCustomKey("metadata_verification_passed", false);
+            SentryManager.count("verification.failed", 1,
+                    "media_type", mediaTypeOf(resolver, output), "outcome", "saved_copy_differs");
+            throw new IOException("Metadata verification failed: the saved copy differs from the verified one");
+        }
+    }
+
+    /** "video" or "image" from the output's MIME type, for a metric tag; "image" when unknown. */
+    @NonNull
+    private static String mediaTypeOf(@NonNull ContentResolver resolver, @NonNull Uri output) {
+        try {
+            String type = resolver.getType(output);
+            return type != null && type.startsWith("video/") ? "video" : "image";
+        } catch (RuntimeException e) {
+            return "image";
+        }
+    }
+
+    /** A SHA-256 digest; every device has one, so its absence is an I/O failure. */
+    @NonNull
+    public static MessageDigest sha256() throws IOException {
+        try {
+            return MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IOException(e);
+        }
+    }
+
     public static void publish(@NonNull ContentResolver resolver, @Nullable Uri uri) {
         MediaStoreWrites.markPublished(resolver, uri);
         clearPendingDocument(uri);
@@ -161,7 +226,7 @@ public final class OutputDestination {
                 resolver.delete(uri, null, null);
             }
         } catch (Exception e) {
-            SentryManager.log("The partial output failed to clean up: " + e.getMessage() + ".");
+            SentryManager.log("The partial output failed to clean up: " + e.getClass().getSimpleName() + ".");
         }
         clearPendingDocument(uri);
     }
@@ -225,7 +290,7 @@ public final class OutputDestination {
                 DocumentsContract.deleteDocument(app.getContentResolver(), doc);
             } catch (Exception e) {
                 // Already gone, or the folder's permission was revoked: nothing left to do.
-                SentryManager.log("An abandoned output could not be removed: " + e.getMessage() + ".");
+                SentryManager.log("An abandoned output could not be removed: " + e.getClass().getSimpleName() + ".");
             }
         }
     }
@@ -260,7 +325,7 @@ public final class OutputDestination {
             values.put(MediaStore.MediaColumns.DISPLAY_NAME, displayName);
             return resolver.update(uri, values, null, null) > 0 ? uri : null;
         } catch (Exception e) {
-            SentryManager.log("A clean copy could not be renamed: " + e.getMessage() + ".");
+            SentryManager.log("A clean copy could not be renamed: " + e.getClass().getSimpleName() + ".");
             return null;
         }
     }
@@ -347,66 +412,6 @@ public final class OutputDestination {
         } catch (Exception e) {
             return false;
         }
-    }
-
-    /**
-     * True when {@code uri} is a file inside a folder the user chose as an output folder, reached
-     * through the file browser's storage view (its document ID is a path inside the chosen folder).
-     * Files reached through MediaStore are matched by {@link #chosenRelativePaths} instead.
-     */
-    public static boolean isInChosenFolder(@NonNull Context context, @NonNull Uri uri) {
-        if (!isDocumentAuthority(uri)) {
-            return false;
-        }
-        String docId;
-        try {
-            docId = DocumentsContract.getDocumentId(uri);
-        } catch (Exception e) {
-            return false;
-        }
-        for (boolean video : new boolean[] {false, true}) {
-            Uri tree = AppPreferences.getOutputTree(context, video);
-            if (tree == null || !uri.getAuthority().equals(tree.getAuthority())) {
-                continue;
-            }
-            String treeId;
-            try {
-                treeId = DocumentsContract.getTreeDocumentId(tree);
-            } catch (Exception e) {
-                continue;
-            }
-            String prefix = treeId.endsWith(":") || treeId.endsWith("/") ? treeId : treeId + "/";
-            if (docId.equals(treeId) || docId.startsWith(prefix)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * The MediaStore relative paths of the chosen output folders on device or SD card storage,
-     * such as {@code Pictures/Private}, without a trailing slash. Folders from other providers have
-     * no such path and are left out.
-     */
-    @NonNull
-    public static List<String> chosenRelativePaths(@NonNull Context context) {
-        List<String> paths = new ArrayList<>();
-        for (boolean video : new boolean[] {false, true}) {
-            Uri tree = AppPreferences.getOutputTree(context, video);
-            if (tree == null || !EXTERNAL_STORAGE_AUTHORITY.equals(tree.getAuthority())) {
-                continue;
-            }
-            try {
-                String id = DocumentsContract.getTreeDocumentId(tree);
-                String path = trimSlashes(id.substring(id.indexOf(':') + 1));
-                if (!path.isEmpty()) {
-                    paths.add(path);
-                }
-            } catch (Exception ignored) {
-                // Not a tree URI; nothing to match.
-            }
-        }
-        return paths;
     }
 
     private static boolean isDocumentAuthority(@NonNull Uri uri) {

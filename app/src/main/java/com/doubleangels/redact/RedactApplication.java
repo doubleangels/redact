@@ -3,9 +3,7 @@ package com.doubleangels.redact;
 import android.app.Application;
 import android.os.StrictMode;
 
-import androidx.annotation.NonNull;
 
-import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.sentry.SentryInitializer;
@@ -19,8 +17,6 @@ import com.doubleangels.redact.stats.StatsStore;
  * <p>Initializes Sentry and notification channels.
  */
 public class RedactApplication extends Application {
-
-    private AppProcessingScope processingScope;
 
     @Override
     public void onCreate() {
@@ -53,14 +49,6 @@ public class RedactApplication extends Application {
         OutputDestination.scheduleAbandonedDocumentSweep(this);
 
         StatsStore.preload(this);
-    }
-
-    @NonNull
-    public AppProcessingScope getProcessingScope() {
-        if (processingScope == null) {
-            processingScope = AppProcessingScope.get(this);
-        }
-        return processingScope;
     }
 
     @Override

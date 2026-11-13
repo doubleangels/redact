@@ -117,41 +117,46 @@ public class AlreadyCleanCheckTest {
         assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(f, "image/jpeg")));
     }
 
+    /**
+     * A photo moved into Pictures/Redact by hand still has its location: the folder says nothing
+     * about the file, so it is read like any other.
+     */
     @Test
-    public void fileInRedactOutputFolder_isAlreadyClean_evenWithMetadata() throws IOException {
-        File f = jpegWith(ExifInterface.TAG_MAKE, "Acme");
+    public void fileInRedactOutputFolder_withLocation_needsCleaning() throws IOException {
+        File f = jpegWith(ExifInterface.TAG_GPS_LATITUDE, "40/1,41/1,0/1");
         MediaItem item = item(f, "image/jpeg");
+        FakeMediaStoreProvider.only().values.put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/Redact/");
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item));
+    }
+
+    @Test
+    public void cleanFileInRedactOutputFolder_isAlreadyClean() throws IOException {
+        MediaItem item = item(jpeg(), "image/jpeg");
         FakeMediaStoreProvider.only().values.put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/Redact/");
         assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item));
     }
 
+    /**
+     * The output folder can be one that also holds originals (DCIM/Camera, Pictures, Download):
+     * an uncleaned original there must not be reported as clean.
+     */
     @Test
-    public void fileInChosenOutputFolder_isAlreadyClean() {
-        android.net.Uri tree = android.net.Uri.parse(
-                "content://com.android.externalstorage.documents/tree/primary%3APictures%2FPrivate");
-        com.doubleangels.redact.AppPreferences.setOutputTree(app, false, tree);
-        android.net.Uri inside = android.net.Uri.parse(
-                "content://com.android.externalstorage.documents/tree/primary%3APictures%2FPrivate"
-                        + "/document/primary%3APictures%2FPrivate%2Fabc.jpg");
-        android.net.Uri outside = android.net.Uri.parse(
-                "content://com.android.externalstorage.documents/tree/primary%3APictures%2FPrivateOther"
-                        + "/document/primary%3APictures%2FPrivateOther%2Fabc.jpg");
-        assertEquals(true, com.doubleangels.redact.media.OutputDestination.isInChosenFolder(app, inside));
-        assertEquals(false, com.doubleangels.redact.media.OutputDestination.isInChosenFolder(app, outside));
+    public void originalInAChosenOutputFolder_withLocation_needsCleaning() throws IOException {
+        com.doubleangels.redact.AppPreferences.setOutputTree(app, false, android.net.Uri.parse(
+                "content://com.android.externalstorage.documents/tree/primary%3ADCIM%2FCamera"));
+        File f = jpegWith(ExifInterface.TAG_GPS_LATITUDE, "40/1,41/1,0/1");
+        MediaItem item = item(f, "image/jpeg");
+        FakeMediaStoreProvider.only().values.put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/Camera/");
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item));
     }
 
     @Test
-    public void fileInChosenOutputFolder_pickedThroughMediaStore_isAlreadyClean() throws IOException {
+    public void cleanFileInAChosenOutputFolder_isAlreadyClean() throws IOException {
         com.doubleangels.redact.AppPreferences.setOutputTree(app, false, android.net.Uri.parse(
-                "content://com.android.externalstorage.documents/tree/primary%3APictures%2FPrivate"));
-        File f = jpegWith(ExifInterface.TAG_MAKE, "Acme");
-        MediaItem item = item(f, "image/jpeg");
-        // Shared storage ignores case, so a differently cased path is the same folder.
-        FakeMediaStoreProvider.only().values.put(MediaStore.MediaColumns.RELATIVE_PATH, "pictures/private/");
-        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item));
-
-        FakeMediaStoreProvider.only().values.put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/PrivateOther/");
-        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item));
+                "content://com.android.externalstorage.documents/tree/primary%3ADCIM%2FCamera"));
+        MediaItem clean = item(jpeg(), "image/jpeg");
+        FakeMediaStoreProvider.only().values.put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/Camera/");
+        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, clean));
     }
 
     @Test
@@ -310,10 +315,9 @@ public class AlreadyCleanCheckTest {
     }
 
     @Test
-    public void aUriNoProviderAnswersFor_isNotARedactOutput_andIsUnknown() {
+    public void aUriNoProviderAnswersFor_isUnknown() {
         Uri orphan = Uri.parse("content://com.example.nobody/images/1");
 
-        assertEquals(false, AlreadyCleanCheck.isRedactOutput(app, orphan));
         assertEquals(Status.UNKNOWN, AlreadyCleanCheck.assessItem(app, new MediaItem(orphan, false, "1.jpg")));
     }
 

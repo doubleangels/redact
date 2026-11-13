@@ -159,6 +159,41 @@ public class UnsupportedMediaTest {
     }
 
     @Test
+    public void anOldCodecTheDecoderGivesUpOn_isUnsupportedInput() {
+        // REDACT-26 (1.9.2): c2.android.mpeg4 was released mid-export on an MPEG-4 Part 2 share.
+        ExportException.CodecInfo mpeg4Decoder = new ExportException.CodecInfo(
+                "{width=1200, mime=video/mp4v-es, height=900}", true, true, "c2.android.mpeg4.decoder");
+        ExportException failed = ExportException.createForCodec(
+                new IllegalStateException("Invalid to call at Released state; only valid in executing state"),
+                ExportException.ERROR_CODE_DECODING_FAILED, mpeg4Decoder);
+        assertTrue(VideoMedia3Converter.isUnsupportedInput(failed));
+        assertFalse(VideoMedia3Converter.isVideoEncoderFailure(failed));
+        ExportException.CodecInfo h263Decoder = new ExportException.CodecInfo(
+                "{mime=video/3gpp}", true, true, "c2.android.h263.decoder");
+        assertTrue(VideoMedia3Converter.isUnsupportedInput(ExportException.createForCodec(
+                new IllegalStateException(), ExportException.ERROR_CODE_DECODING_FAILED, h263Decoder)));
+    }
+
+    @Test
+    public void otherDecoderFaults_stayReportable() {
+        // A modern codec's decoder failing is a fault worth seeing, not a format the phone lacks.
+        ExportException.CodecInfo hevcDecoder =
+                new ExportException.CodecInfo("{mime=video/hevc}", true, true, "c2.qti.hevc.decoder");
+        assertFalse(VideoMedia3Converter.isUnsupportedInput(ExportException.createForCodec(
+                new IllegalStateException(), ExportException.ERROR_CODE_DECODING_FAILED, hevcDecoder)));
+        // An old codec whose decoder failed to start stays reportable too (REDACT-21's class).
+        ExportException.CodecInfo mpeg4Decoder =
+                new ExportException.CodecInfo("{mime=video/mp4v-es}", true, true, "c2.android.mpeg4.decoder");
+        assertFalse(VideoMedia3Converter.isUnsupportedInput(ExportException.createForCodec(
+                new IllegalStateException(), ExportException.ERROR_CODE_DECODER_INIT_FAILED, mpeg4Decoder)));
+        // So does an encoder configured for MPEG-4.
+        ExportException.CodecInfo mpeg4Encoder =
+                new ExportException.CodecInfo("{mime=video/mp4v-es}", true, false, "c2.android.mpeg4.encoder");
+        assertFalse(VideoMedia3Converter.isUnsupportedInput(ExportException.createForCodec(
+                new IllegalStateException(), ExportException.ERROR_CODE_DECODING_FAILED, mpeg4Encoder)));
+    }
+
+    @Test
     public void stallTimeout_isLongerOnPhonesWithoutAPerformanceClass() {
         long rated = VideoMedia3Converter.maxSampleGapMs(android.os.Build.VERSION_CODES.TIRAMISU);
         assertEquals(androidx.media3.transformer.Transformer.DEFAULT_MAX_DELAY_BETWEEN_MUXER_SAMPLES_MS, rated);

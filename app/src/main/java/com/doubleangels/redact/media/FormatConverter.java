@@ -756,7 +756,7 @@ public final class FormatConverter {
         } catch (IOException | RuntimeException e) {
             SentryManager.log(
                     "The 16-bit PNG could not be kept at 16 bits, so the app is converting it at 8: "
-                            + e.getMessage() + ".");
+                            + e.getClass().getSimpleName() + ".");
             if (outUri != null) {
                 OutputDestination.discard(resolver, outUri);
             }
@@ -933,6 +933,7 @@ public final class FormatConverter {
             return decodeWithImageDecoder(context, sourceUri, maxDimension, fullResolutionPixelBudget(context));
         } catch (OutOfMemoryError e) {
             // Already scaled to the max bitmap size; fail this file rather than the app.
+            SentryManager.count("memory.low", 1, "outcome", "decode_failed");
             throw new IOException("Not enough memory to decode the image", e);
         } catch (ImageDecoder.DecodeException e) {
             // SOURCE_EXCEPTION means the bytes could not be read (a real I/O failure). Any other
@@ -1023,8 +1024,10 @@ public final class FormatConverter {
                 return decode.decode(options);
             } catch (OutOfMemoryError e) {
                 if (attempt >= MAX_OUT_OF_MEMORY_RETRIES) {
+                    SentryManager.count("memory.low", 1, "outcome", "decode_failed");
                     throw new IOException("Not enough memory to decode the image", e);
                 }
+                SentryManager.count("memory.low", 1, "outcome", "decode_retry");
                 sampleSize *= 2;
             }
         }

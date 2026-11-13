@@ -85,13 +85,14 @@ jobs:
 
       - name: Write the release notes from the commits since the last release
         if: steps.notes.outputs.handwritten == 'false'
-        uses: anthropics/claude-code-action@c0949c50a78c1ec8ce2647db36629b870e715d0c # v1.0.268
+        uses: anthropics/claude-code-action@8a29bc6f0ae11a363721054b6739feba6adabe57 # v1.0.273
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}
           claude_args: |
             --allowedTools "Read,Write,Glob,Grep,Bash(git log:*),Bash(git show:*),Bash(git diff:*),Bash(git tag:*),Bash(git rev-parse:*)"
             --max-turns 40
+            --permission-mode default
           prompt: |
             You write the Google Play "What's new" text for Redact ${{ needs.check-version.outputs.name }}
             (versionCode ${{ needs.check-version.outputs.code }}), an Android app that removes hidden metadata
@@ -172,8 +173,46 @@ jobs:
             fastlane/metadata/android/en-US/changelogs/${{ needs.check-version.outputs.code }}.txt
           if-no-files-found: error
 
+  # Cleans real photos and videos with real codecs on an emulator (CleanOnDeviceTest), which the
+  # Robolectric checks only imitate. A codec or OS change that leaves metadata behind stops the
+  # release here, before the bundle is built and signed.
+  device-test:
+    needs: ["check-version"]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Android build
+        uses: ./.github/actions/setup-android-build
+
+      # Hosted Linux runners have KVM, but only root can open it until a udev rule allows it.
+      - name: Enable KVM for the emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Clean the test media on the managed emulator
+        run: >-
+          ./gradlew :app:Pixel_10_Pro_CleanDebugAndroidTest
+          -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
+
+      - name: Upload the device test report
+        if: failure()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: device-test-report
+          path: app/build/reports/androidTests/
+          if-no-files-found: ignore
+          retention-days: 7
+
   bundle-release:
-    needs: ["checks", "check-version"]
+    needs: ["checks", "check-version", "device-test"]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -306,7 +345,7 @@ jobs:
 
       - name: Set up Ruby for Fastlane
         if: steps.metadata_diff.outputs.changed == 'true'
-        uses: ruby/setup-ruby@de492cf36cbab201753d720ce4f4e336cd688c94 # v1.336.0
+        uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1.338.0
         with:
           ruby-version: "3.3"
           bundler-cache: true
@@ -321,7 +360,7 @@ jobs:
           git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" last-metadata-publish --force
 
       - name: Finalize Sentry release
-        uses: getsentry/action-release@e6703d0b00208e0b3687ba660d18ab5af7892821 # v3.7.2
+        uses: getsentry/action-release@d55c8c3b7375607e972b710f12926b676d89d7d2 # v3.8.0
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: doubleangels

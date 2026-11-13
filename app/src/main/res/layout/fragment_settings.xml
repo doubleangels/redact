@@ -15,15 +15,15 @@
         android:orientation="vertical"
         android:paddingHorizontal="@dimen/screen_edge_padding"
         android:tag="edgePadded"
-        android:paddingTop="8dp"
+        android:paddingTop="@dimen/spacing_small"
         android:paddingBottom="88dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginStart="@dimen/spacing_xsmall"
+            android:layout_marginTop="@dimen/spacing_xsmall"
+            android:layout_marginBottom="@dimen/spacing_small"
             android:text="@string/navigation_settings"
             android:textAppearance="?attr/textAppearanceHeadlineMedium"
             android:textColor="?attr/colorOnSurface"
@@ -34,7 +34,7 @@
             android:id="@+id/cardStatsSummary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/spacing_small"
             android:clickable="true"
             android:focusable="true"
             app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
@@ -73,8 +73,8 @@
 
                     <ImageView
                         android:contentDescription="@null"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
+                        android:layout_width="@dimen/icon_size_small"
+                        android:layout_height="@dimen/icon_size_small"
                         android:src="@drawable/ic_chevron_right"
                         app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
@@ -92,7 +92,7 @@
                     android:id="@+id/rowStatsSummary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="@dimen/spacing_large"
                     android:baselineAligned="false"
                     android:orientation="horizontal"
                     android:visibility="gone"
@@ -130,7 +130,7 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
+                        android:layout_marginStart="@dimen/spacing_medium"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
@@ -160,7 +160,7 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
+                        android:layout_marginStart="@dimen/spacing_medium"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
@@ -195,7 +195,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/spacing_large"
             app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
             app:cardCornerRadius="@dimen/component_corner_large"
             app:cardElevation="1dp"
@@ -223,7 +223,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="@dimen/spacing_large"
                     android:text="@string/settings_advanced_privacy_subtitle"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
@@ -234,8 +234,8 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
+                    android:paddingTop="@dimen/spacing_small"
+                    android:paddingBottom="@dimen/spacing_small">
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -262,7 +262,7 @@
                         android:id="@+id/switchStrictClean"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp" />
+                        android:layout_marginStart="@dimen/spacing_medium" />
                 </LinearLayout>
 
                 <!-- Preserve Camera Settings Toggle -->
@@ -272,8 +272,8 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
+                    android:paddingTop="@dimen/spacing_small"
+                    android:paddingBottom="@dimen/spacing_small">
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -300,7 +300,7 @@
                         android:id="@+id/switchPreserveCamera"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp" />
+                        android:layout_marginStart="@dimen/spacing_medium" />
                 </LinearLayout>
 
                 <!-- Preserve Location Toggle -->
@@ -310,8 +310,8 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
+                    android:paddingTop="@dimen/spacing_small"
+                    android:paddingBottom="@dimen/spacing_small">
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -338,7 +338,7 @@
                         android:id="@+id/switchPreserveLocation"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp" />
+                        android:layout_marginStart="@dimen/spacing_medium" />
                 </LinearLayout>
 
                 <!-- Preserve Date Taken Toggle -->
@@ -348,8 +348,8 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
+                    android:paddingTop="@dimen/spacing_small"
+                    android:paddingBottom="@dimen/spacing_small">
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -376,7 +376,7 @@
                         android:id="@+id/switchPreserveDate"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp" />
+                        android:layout_marginStart="@dimen/spacing_medium" />
                 </LinearLayout>
 
                 <!-- Preserve Motion Photo Toggle -->
@@ -386,8 +386,8 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
+                    android:paddingTop="@dimen/spacing_small"
+                    android:paddingBottom="@dimen/spacing_small">
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -414,7 +414,7 @@
                         android:id="@+id/switchPreserveMotion"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp" />
+                        android:layout_marginStart="@dimen/spacing_medium" />
                 </LinearLayout>
 
                 <!-- Video Fallback Copy Toggle -->
@@ -423,8 +423,8 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="16dp">
+                    android:paddingTop="@dimen/spacing_small"
+                    android:paddingBottom="@dimen/spacing_large">
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -451,7 +451,7 @@
                         android:id="@+id/switchVideoFallback"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp" />
+                        android:layout_marginStart="@dimen/spacing_medium" />
                 </LinearLayout>
 
             </LinearLayout>
@@ -461,7 +461,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/spacing_large"
             app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
             app:cardCornerRadius="@dimen/component_corner_large"
             app:cardElevation="1dp"
@@ -489,7 +489,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="@dimen/spacing_large"
                     android:text="@string/settings_cleaning_workflow_subtitle"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
@@ -500,8 +500,8 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
+                    android:paddingTop="@dimen/spacing_small"
+                    android:paddingBottom="@dimen/spacing_small">
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -528,7 +528,7 @@
                         android:id="@+id/switchWarnAlreadyClean"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp" />
+                        android:layout_marginStart="@dimen/spacing_medium" />
                 </LinearLayout>
 
                 <!-- Delete Originals Toggle -->
@@ -537,8 +537,8 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
+                    android:paddingTop="@dimen/spacing_small"
+                    android:paddingBottom="@dimen/spacing_small">
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -565,7 +565,7 @@
                         android:id="@+id/switchDeleteOriginals"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp" />
+                        android:layout_marginStart="@dimen/spacing_medium" />
                 </LinearLayout>
 
             </LinearLayout>
@@ -575,7 +575,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/spacing_large"
             app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
             app:cardCornerRadius="@dimen/component_corner_large"
             app:cardElevation="1dp"
@@ -603,7 +603,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="@dimen/spacing_large"
                     android:text="@string/settings_section_share_subtitle"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
@@ -613,14 +613,14 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
+                    android:paddingTop="@dimen/spacing_small"
+                    android:paddingBottom="@dimen/spacing_small">
 
                     <ImageView
                         android:contentDescription="@null"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginEnd="16dp"
+                        android:layout_width="@dimen/icon_size"
+                        android:layout_height="@dimen/icon_size"
+                        android:layout_marginEnd="@dimen/spacing_large"
                         android:src="@drawable/ic_clean"
                         app:tint="?attr/colorPrimary" />
 
@@ -651,7 +651,7 @@
                         android:id="@+id/switchShareConfirm"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp" />
+                        android:layout_marginStart="@dimen/spacing_medium" />
 
                 </LinearLayout>
             </LinearLayout>
@@ -661,7 +661,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/spacing_large"
             app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
             app:cardCornerRadius="@dimen/component_corner_large"
             app:cardElevation="1dp"
@@ -689,7 +689,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="@dimen/spacing_large"
                     android:text="@string/settings_conversion_subtitle"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
@@ -699,7 +699,7 @@
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="@dimen/spacing_medium"
                     android:hint="@string/settings_default_image_format">
 
                     <com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -714,7 +714,7 @@
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="@dimen/spacing_medium"
                     android:hint="@string/settings_default_video_format">
 
                     <com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -741,7 +741,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="@dimen/spacing_small"
                     android:text="@string/settings_quality_subtitle"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
@@ -753,7 +753,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/spacing_large"
             app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
             app:cardCornerRadius="@dimen/component_corner_large"
             app:cardElevation="1dp"
@@ -781,7 +781,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="@dimen/spacing_large"
                     android:text="@string/settings_output_folders_subtitle"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
@@ -791,7 +791,7 @@
                     android:id="@+id/cardOutputImages"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="@dimen/spacing_medium"
                     android:clickable="true"
                     android:focusable="true"
                     app:cardBackgroundColor="?attr/colorSurfaceContainer"
@@ -803,9 +803,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:paddingStart="16dp"
+                        android:paddingStart="@dimen/spacing_large"
                         android:paddingTop="14dp"
-                        android:paddingEnd="8dp"
+                        android:paddingEnd="@dimen/spacing_small"
                         android:paddingBottom="6dp">
 
                         <LinearLayout
@@ -818,7 +818,7 @@
                                 android:id="@+id/badgeOutputImages"
                                 android:layout_width="40dp"
                                 android:layout_height="40dp"
-                                android:layout_marginEnd="16dp"
+                                android:layout_marginEnd="@dimen/spacing_large"
                                 android:background="@drawable/bg_folder_icon">
 
                                 <ImageView
@@ -859,9 +859,9 @@
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/buttonOpenOutputImages"
                                 style="@style/Widget.Material3.Button.IconButton"
-                                android:layout_width="48dp"
-                                android:layout_height="48dp"
-                                android:layout_marginStart="4dp"
+                                android:layout_width="@dimen/touch_target_min"
+                                android:layout_height="@dimen/touch_target_min"
+                                android:layout_marginStart="@dimen/spacing_xsmall"
                                 android:contentDescription="@string/settings_output_open_images"
                                 android:tooltipText="@string/settings_output_open_images"
                                 app:icon="@drawable/ic_folder_open"
@@ -874,8 +874,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="56dp"
-                            android:layout_marginTop="8dp"
-                            android:layout_marginEnd="8dp"
+                            android:layout_marginTop="@dimen/spacing_small"
+                            android:layout_marginEnd="@dimen/spacing_small"
                             android:textAppearance="?attr/textAppearanceBodySmall"
                             android:textColor="?attr/colorError"
                             android:visibility="gone" />
@@ -883,7 +883,7 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="@dimen/spacing_xsmall"
                             android:gravity="end"
                             android:orientation="horizontal">
 
@@ -892,7 +892,7 @@
                                 style="@style/Widget.Material3.Button.TextButton"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:minHeight="48dp"
+                                android:minHeight="@dimen/touch_target_min"
                                 android:text="@string/settings_output_folder_reset"
                                 android:visibility="gone" />
 
@@ -901,7 +901,7 @@
                                 style="@style/Widget.Material3.Button.TextButton"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:minHeight="48dp"
+                                android:minHeight="@dimen/touch_target_min"
                                 android:text="@string/settings_output_choose"
                                 app:icon="@drawable/ic_folder"
                                 app:iconSize="18dp" />
@@ -926,9 +926,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:paddingStart="16dp"
+                        android:paddingStart="@dimen/spacing_large"
                         android:paddingTop="14dp"
-                        android:paddingEnd="8dp"
+                        android:paddingEnd="@dimen/spacing_small"
                         android:paddingBottom="6dp">
 
                         <LinearLayout
@@ -941,7 +941,7 @@
                                 android:id="@+id/badgeOutputVideos"
                                 android:layout_width="40dp"
                                 android:layout_height="40dp"
-                                android:layout_marginEnd="16dp"
+                                android:layout_marginEnd="@dimen/spacing_large"
                                 android:background="@drawable/bg_folder_icon">
 
                                 <ImageView
@@ -982,9 +982,9 @@
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/buttonOpenOutputVideos"
                                 style="@style/Widget.Material3.Button.IconButton"
-                                android:layout_width="48dp"
-                                android:layout_height="48dp"
-                                android:layout_marginStart="4dp"
+                                android:layout_width="@dimen/touch_target_min"
+                                android:layout_height="@dimen/touch_target_min"
+                                android:layout_marginStart="@dimen/spacing_xsmall"
                                 android:contentDescription="@string/settings_output_open_videos"
                                 android:tooltipText="@string/settings_output_open_videos"
                                 app:icon="@drawable/ic_folder_open"
@@ -997,8 +997,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="56dp"
-                            android:layout_marginTop="8dp"
-                            android:layout_marginEnd="8dp"
+                            android:layout_marginTop="@dimen/spacing_small"
+                            android:layout_marginEnd="@dimen/spacing_small"
                             android:textAppearance="?attr/textAppearanceBodySmall"
                             android:textColor="?attr/colorError"
                             android:visibility="gone" />
@@ -1006,7 +1006,7 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="@dimen/spacing_xsmall"
                             android:gravity="end"
                             android:orientation="horizontal">
 
@@ -1015,7 +1015,7 @@
                                 style="@style/Widget.Material3.Button.TextButton"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:minHeight="48dp"
+                                android:minHeight="@dimen/touch_target_min"
                                 android:text="@string/settings_output_folder_reset"
                                 android:visibility="gone" />
 
@@ -1024,7 +1024,7 @@
                                 style="@style/Widget.Material3.Button.TextButton"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:minHeight="48dp"
+                                android:minHeight="@dimen/touch_target_min"
                                 android:text="@string/settings_output_choose"
                                 app:icon="@drawable/ic_folder"
                                 app:iconSize="18dp" />
@@ -1036,11 +1036,11 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="@dimen/spacing_small"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
+                    android:paddingTop="@dimen/spacing_small"
+                    android:paddingBottom="@dimen/spacing_small">
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -1067,7 +1067,7 @@
                         android:id="@+id/switchKeepOriginalNames"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp" />
+                        android:layout_marginStart="@dimen/spacing_medium" />
                 </LinearLayout>
 
             </LinearLayout>
@@ -1077,7 +1077,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/spacing_large"
             app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
             app:cardCornerRadius="@dimen/component_corner_large"
             app:cardElevation="1dp"
@@ -1105,7 +1105,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="@dimen/spacing_large"
                     android:text="@string/settings_privacy_subtitle"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
@@ -1116,8 +1116,8 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
+                    android:paddingTop="@dimen/spacing_small"
+                    android:paddingBottom="@dimen/spacing_small">
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -1144,7 +1144,7 @@
                         android:id="@+id/switchSecureWindow"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp" />
+                        android:layout_marginStart="@dimen/spacing_medium" />
                 </LinearLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -1153,7 +1153,7 @@
                     app:helperText="@string/settings_clipboard_clear_subtitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="@dimen/spacing_small"
                     android:hint="@string/settings_clipboard_clear">
 
                     <com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -1170,7 +1170,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/spacing_large"
             app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
             app:cardCornerRadius="@dimen/component_corner_large"
             app:cardElevation="1dp"
@@ -1198,7 +1198,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="@dimen/spacing_large"
                     android:text="@string/settings_section_notifications_subtitle"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
@@ -1209,14 +1209,14 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
+                    android:paddingTop="@dimen/spacing_small"
+                    android:paddingBottom="@dimen/spacing_small">
 
                     <ImageView
                         android:contentDescription="@null"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginEnd="16dp"
+                        android:layout_width="@dimen/icon_size"
+                        android:layout_height="@dimen/icon_size"
+                        android:layout_marginEnd="@dimen/spacing_large"
                         android:src="@drawable/ic_notification"
                         app:tint="?attr/colorPrimary" />
 
@@ -1247,7 +1247,7 @@
                         android:id="@+id/switchNotifications"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp" />
+                        android:layout_marginStart="@dimen/spacing_medium" />
 
                 </LinearLayout>
 
@@ -1255,8 +1255,8 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:layout_marginTop="12dp"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginTop="@dimen/spacing_medium"
+                    android:layout_marginBottom="@dimen/spacing_medium"
                     android:background="?attr/colorOutlineVariant" />
 
                 <!-- Clean notifications sub-toggle -->
@@ -1266,14 +1266,14 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
+                    android:paddingTop="@dimen/spacing_small"
+                    android:paddingBottom="@dimen/spacing_small">
 
                     <ImageView
                         android:contentDescription="@null"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginEnd="16dp"
+                        android:layout_width="@dimen/icon_size"
+                        android:layout_height="@dimen/icon_size"
+                        android:layout_marginEnd="@dimen/spacing_large"
                         android:src="@drawable/ic_clean"
                         app:tint="?attr/colorOnSurfaceVariant" />
 
@@ -1303,7 +1303,7 @@
                         android:id="@+id/switchCleanNotifications"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp" />
+                        android:layout_marginStart="@dimen/spacing_medium" />
 
                 </LinearLayout>
 
@@ -1314,14 +1314,14 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
+                    android:paddingTop="@dimen/spacing_small"
+                    android:paddingBottom="@dimen/spacing_small">
 
                     <ImageView
                         android:contentDescription="@null"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginEnd="16dp"
+                        android:layout_width="@dimen/icon_size"
+                        android:layout_height="@dimen/icon_size"
+                        android:layout_marginEnd="@dimen/spacing_large"
                         android:src="@drawable/ic_convert"
                         app:tint="?attr/colorOnSurfaceVariant" />
 
@@ -1351,7 +1351,7 @@
                         android:id="@+id/switchConvertNotifications"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp" />
+                        android:layout_marginStart="@dimen/spacing_medium" />
 
                 </LinearLayout>
 
@@ -1362,14 +1362,14 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
+                    android:paddingTop="@dimen/spacing_small"
+                    android:paddingBottom="@dimen/spacing_small">
 
                     <ImageView
                         android:contentDescription="@null"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginEnd="16dp"
+                        android:layout_width="@dimen/icon_size"
+                        android:layout_height="@dimen/icon_size"
+                        android:layout_marginEnd="@dimen/spacing_large"
                         android:src="@drawable/ic_notification"
                         app:tint="?attr/colorOnSurfaceVariant" />
 
@@ -1399,7 +1399,7 @@
                         android:id="@+id/switchProgressNotifications"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp" />
+                        android:layout_marginStart="@dimen/spacing_medium" />
 
                 </LinearLayout>
 
@@ -1410,7 +1410,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/spacing_large"
             app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
             app:cardCornerRadius="@dimen/component_corner_large"
             app:cardElevation="1dp"
@@ -1438,7 +1438,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="@dimen/spacing_large"
                     android:text="@string/settings_permissions_subtitle"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
@@ -1502,8 +1502,8 @@
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:minHeight="48dp"
+                    android:layout_marginTop="@dimen/spacing_xsmall"
+                    android:minHeight="@dimen/touch_target_min"
                     android:text="@string/settings_location_permission_grant"
                     android:visibility="gone"
                     app:cornerRadius="@dimen/component_corner_medium" />
@@ -1538,8 +1538,8 @@
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:minHeight="48dp"
+                    android:layout_marginTop="@dimen/spacing_medium"
+                    android:minHeight="@dimen/touch_target_min"
                     android:text="@string/settings_open_system_settings"
                     app:cornerRadius="@dimen/component_corner_medium" />
 
@@ -1550,7 +1550,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/spacing_large"
             app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
             app:cardCornerRadius="@dimen/component_corner_large"
             app:cardElevation="1dp"
@@ -1578,7 +1578,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="@dimen/spacing_large"
                     android:text="@string/settings_storage_subtitle"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
@@ -1587,7 +1587,7 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="@dimen/spacing_large"
                     app:cardBackgroundColor="?attr/colorSurfaceContainer"
                     app:cardCornerRadius="@dimen/component_corner_medium"
                     app:cardElevation="0dp"
@@ -1598,7 +1598,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="16dp">
+                        android:padding="@dimen/spacing_large">
 
                         <TextView
                             android:id="@+id/textStorageSize"
@@ -1619,8 +1619,8 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="12dp">
+                    android:paddingTop="@dimen/spacing_small"
+                    android:paddingBottom="@dimen/spacing_medium">
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -1647,7 +1647,7 @@
                         android:id="@+id/switchAutoClearTemp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp" />
+                        android:layout_marginStart="@dimen/spacing_medium" />
                 </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
@@ -1655,8 +1655,8 @@
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:minHeight="48dp"
+                    android:layout_marginTop="@dimen/spacing_large"
+                    android:minHeight="@dimen/touch_target_min"
                     android:text="@string/settings_storage_clear"
                     app:cornerRadius="@dimen/component_corner_medium" />
 
@@ -1667,7 +1667,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/spacing_large"
             app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
             app:cardCornerRadius="@dimen/component_corner_large"
             app:cardElevation="1dp"
@@ -1695,7 +1695,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="@dimen/spacing_large"
                     android:text="@string/settings_section_diagnostics_subtitle"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
@@ -1705,14 +1705,14 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
+                    android:paddingTop="@dimen/spacing_small"
+                    android:paddingBottom="@dimen/spacing_small">
 
                     <ImageView
                         android:contentDescription="@null"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginEnd="16dp"
+                        android:layout_width="@dimen/icon_size"
+                        android:layout_height="@dimen/icon_size"
+                        android:layout_marginEnd="@dimen/spacing_large"
                         android:src="@drawable/ic_bug_report"
                         app:tint="?attr/colorPrimary" />
 
@@ -1743,7 +1743,7 @@
                         android:id="@+id/switchCrashReporting"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp" />
+                        android:layout_marginStart="@dimen/spacing_medium" />
 
                 </LinearLayout>
 
@@ -1767,7 +1767,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/spacing_large"
             app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
             app:cardCornerRadius="@dimen/component_corner_large"
             app:cardElevation="1dp"
@@ -1781,10 +1781,10 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="center_vertical"
-                android:minHeight="48dp"
+                android:minHeight="@dimen/touch_target_min"
                 android:orientation="horizontal"
                 android:paddingHorizontal="20dp"
-                android:paddingVertical="16dp">
+                android:paddingVertical="@dimen/spacing_large">
 
                 <TextView
                     android:layout_width="0dp"
@@ -1800,7 +1800,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/spacing_large"
             app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
             app:cardCornerRadius="@dimen/component_corner_large"
             app:cardElevation="1dp"
@@ -1829,7 +1829,7 @@
                     android:id="@+id/textAboutVersion"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="4dp"
+                    android:layout_marginBottom="@dimen/spacing_xsmall"
                     android:textAppearance="?attr/textAppearanceLabelLarge"
                     android:textColor="?attr/colorSecondary"
                     tools:text="Version 1.3.0" />
@@ -1837,7 +1837,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="@dimen/spacing_large"
                     android:text="@string/settings_about_subtitle"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
@@ -1850,7 +1850,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center_vertical"
-                    android:minHeight="48dp"
+                    android:minHeight="@dimen/touch_target_min"
                     android:orientation="horizontal"
                     android:paddingTop="10dp"
                     android:paddingBottom="10dp">
@@ -1865,8 +1865,8 @@
 
                     <ImageView
                         android:contentDescription="@null"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
+                        android:layout_width="@dimen/icon_size_small"
+                        android:layout_height="@dimen/icon_size_small"
                         android:src="@drawable/ic_chevron_right"
                         app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
@@ -1884,7 +1884,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center_vertical"
-                    android:minHeight="48dp"
+                    android:minHeight="@dimen/touch_target_min"
                     android:orientation="horizontal"
                     android:paddingTop="10dp"
                     android:paddingBottom="10dp">
@@ -1899,8 +1899,8 @@
 
                     <ImageView
                         android:contentDescription="@null"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
+                        android:layout_width="@dimen/icon_size_small"
+                        android:layout_height="@dimen/icon_size_small"
                         android:src="@drawable/ic_chevron_right"
                         app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
@@ -1918,7 +1918,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center_vertical"
-                    android:minHeight="48dp"
+                    android:minHeight="@dimen/touch_target_min"
                     android:orientation="horizontal"
                     android:paddingTop="10dp"
                     android:paddingBottom="10dp">
@@ -1933,8 +1933,8 @@
 
                     <ImageView
                         android:contentDescription="@null"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
+                        android:layout_width="@dimen/icon_size_small"
+                        android:layout_height="@dimen/icon_size_small"
                         android:src="@drawable/ic_chevron_right"
                         app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
@@ -1952,7 +1952,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center_vertical"
-                    android:minHeight="48dp"
+                    android:minHeight="@dimen/touch_target_min"
                     android:orientation="horizontal"
                     android:paddingTop="10dp"
                     android:paddingBottom="10dp">
@@ -1967,8 +1967,8 @@
 
                     <ImageView
                         android:contentDescription="@null"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
+                        android:layout_width="@dimen/icon_size_small"
+                        android:layout_height="@dimen/icon_size_small"
                         android:src="@drawable/ic_chevron_right"
                         app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
@@ -1986,7 +1986,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center_vertical"
-                    android:minHeight="48dp"
+                    android:minHeight="@dimen/touch_target_min"
                     android:orientation="horizontal"
                     android:paddingTop="10dp"
                     android:paddingBottom="10dp">
@@ -2001,8 +2001,8 @@
 
                     <ImageView
                         android:contentDescription="@null"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
+                        android:layout_width="@dimen/icon_size_small"
+                        android:layout_height="@dimen/icon_size_small"
                         android:src="@drawable/ic_chevron_right"
                         app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
@@ -2020,7 +2020,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center_vertical"
-                    android:minHeight="48dp"
+                    android:minHeight="@dimen/touch_target_min"
                     android:orientation="horizontal"
                     android:paddingTop="10dp"
                     android:paddingBottom="10dp">
@@ -2035,8 +2035,8 @@
 
                     <ImageView
                         android:contentDescription="@null"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
+                        android:layout_width="@dimen/icon_size_small"
+                        android:layout_height="@dimen/icon_size_small"
                         android:src="@drawable/ic_chevron_right"
                         app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
@@ -2054,7 +2054,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center_vertical"
-                    android:minHeight="48dp"
+                    android:minHeight="@dimen/touch_target_min"
                     android:orientation="horizontal"
                     android:paddingTop="10dp"
                     android:paddingBottom="10dp">
@@ -2069,8 +2069,8 @@
 
                     <ImageView
                         android:contentDescription="@null"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
+                        android:layout_width="@dimen/icon_size_small"
+                        android:layout_height="@dimen/icon_size_small"
                         android:src="@drawable/ic_chevron_right"
                         app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
@@ -2088,7 +2088,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center_vertical"
-                    android:minHeight="48dp"
+                    android:minHeight="@dimen/touch_target_min"
                     android:orientation="horizontal"
                     android:paddingTop="10dp"
                     android:paddingBottom="10dp">
@@ -2103,8 +2103,8 @@
 
                     <ImageView
                         android:contentDescription="@null"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
+                        android:layout_width="@dimen/icon_size_small"
+                        android:layout_height="@dimen/icon_size_small"
                         android:src="@drawable/ic_chevron_right"
                         app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
