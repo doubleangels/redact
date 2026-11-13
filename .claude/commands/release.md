@@ -35,7 +35,7 @@ Stop and tell me, without merging or deploying, if any check below fails.
 ## 4. Deploy
 
 1. Start the workflow on `main`: `gh workflow run deploy.yml --ref main`. Find its run with `gh run list --workflow deploy.yml --branch main --limit 1 --json databaseId,headSha,status,url` and check its `headSha` is the merge commit.
-2. Watch it: `gh run watch <id> --exit-status`. The jobs run in this order: `check-version`; then `checks` (the same tests and lint as `test-dev.yml`), `device-test` (`CleanOnDeviceTest` on the `Pixel_10_Pro_Clean` managed emulator; its report is uploaded as `device-test-report` when it fails) and `release-notes` (the Play "What's new" text and 12 translations, written by Claude); then `bundle-release` (signed bundle, ProGuard mapping uploaded to Sentry); then `publish` and `github-release`.
+2. Watch it: `gh run watch <id> --exit-status`. The jobs run in this order: `check-version`; then `checks` (the same tests and lint as `test-dev.yml`), `release-notes` (the Play "What's new" text and 12 translations, written by Claude); then `bundle-release` (signed bundle, ProGuard mapping uploaded to Sentry); then `publish` and `github-release`.
 3. `publish` runs in the `Production` environment, which waits for a required reviewer. When the run is waiting there, tell me to approve it in GitHub (give the run URL) and keep watching. Never approve it yourself.
 4. If a job fails, show the end of its log (`gh run view <id> --log-failed | tail -80`), say which job failed and what that means (nothing reaches Play unless `publish` succeeded), and stop. Do not re-run it in a loop; offer to re-run the failed jobs (`gh run rerun <id> --failed`) once the cause is known.
 
