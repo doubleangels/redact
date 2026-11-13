@@ -168,13 +168,12 @@ sentry {
     projectName = "redact"
     authToken = sentryAuthToken
     includeProguardMapping = true
-    // Only the release workflow's mapping is needed. test-dev.yml has the token for size analysis
-    // and sets SENTRY_SKIP_MAPPING_UPLOAD so each dev push does not store a mapping nobody uses.
-    autoUploadProguardMapping = sentryAuthToken != null && System.getenv("SENTRY_SKIP_MAPPING_UPLOAD") != "true"
+    autoUploadProguardMapping = sentryAuthToken != null
     telemetry = false
-    // Uploads the release bundle to Sentry Size Analysis after bundleRelease, only where CI asks
-    // for it. The bundle holds the app's code and resources, never anything from a person's
-    // phone. A failed upload fails the build, and so does asking for it without a token.
+    // Uploads the release bundle to Sentry Size Analysis after bundleRelease. Only deploy.yml turns
+    // it on, so only releases are measured. The bundle holds the app's code and resources, never
+    // anything from a person's phone. A failed upload fails the build, and so does asking for it
+    // without a token.
     sizeAnalysis {
         enabled = System.getenv("SENTRY_SIZE_ANALYSIS") == "true"
     }

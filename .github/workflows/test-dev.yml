@@ -148,11 +148,5 @@ jobs:
       - name: Setup Android build
         uses: ./.github/actions/setup-android-build
 
-      # A push to dev also uploads the bundle to Sentry Size Analysis, so every commit has a size.
-      # Pull requests do not: Dependabot and forks cannot read the token.
       - name: Build release bundle
-        env:
-          SENTRY_SIZE_ANALYSIS: ${{ github.event_name == 'push' }}
-          SENTRY_AUTH_TOKEN: ${{ github.event_name == 'push' && secrets.SENTRY_AUTH_TOKEN || '' }}
-          SENTRY_SKIP_MAPPING_UPLOAD: "true"
         run: ./gradlew bundleRelease
