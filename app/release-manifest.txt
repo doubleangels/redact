@@ -1,0 +1,27 @@
+# What the release bundle's merged manifest grants, checked by .github/scripts/check_release_manifest.py
+# after every bundleRelease in CI. A library that adds a permission or an exported component fails
+# the build until the line is added here on purpose. Rewrite with --update after an intended change.
+
+application allowBackup=false
+application debuggable=unset
+application usesCleartextTraffic=false
+exported activity com.doubleangels.redact.MainActivity
+exported activity com.doubleangels.redact.ShareHandlerActivity
+exported activity-alias com.doubleangels.redact.CensorShareTarget
+exported activity-alias com.doubleangels.redact.ConvertShareTarget
+exported activity-alias com.doubleangels.redact.ScanShareTarget
+exported receiver androidx.profileinstaller.ProfileInstallReceiver permission=android.permission.DUMP
+exported service com.doubleangels.redact.CensorTileService permission=android.permission.BIND_QUICK_SETTINGS_TILE
+exported service com.doubleangels.redact.CleanTileService permission=android.permission.BIND_QUICK_SETTINGS_TILE
+exported service com.doubleangels.redact.ScanTileService permission=android.permission.BIND_QUICK_SETTINGS_TILE
+uses-permission android.permission.ACCESS_MEDIA_LOCATION
+uses-permission android.permission.FOREGROUND_SERVICE
+uses-permission android.permission.FOREGROUND_SERVICE_DATA_SYNC
+uses-permission android.permission.FOREGROUND_SERVICE_MEDIA_PROCESSING
+uses-permission android.permission.INTERNET
+uses-permission android.permission.POST_NOTIFICATIONS
+uses-permission android.permission.READ_EXTERNAL_STORAGE maxSdkVersion=32
+uses-permission android.permission.READ_MEDIA_IMAGES
+uses-permission android.permission.READ_MEDIA_VIDEO
+uses-permission android.permission.READ_MEDIA_VISUAL_USER_SELECTED
+uses-permission com.doubleangels.redact.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION

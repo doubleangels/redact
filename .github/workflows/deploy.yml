@@ -194,6 +194,10 @@ jobs:
           SENTRY_SIZE_ANALYSIS: "true"
         run: ./gradlew bundleRelease
 
+      # A library can add a permission or an exported component without touching our manifest.
+      - name: Check the release manifest against app/release-manifest.txt
+        run: python3 .github/scripts/check_release_manifest.py
+
       # Signed in the publish job instead, which runs in the Production environment, so the
       # signing key is only ever handed to a job someone has approved.
       - name: Upload unsigned bundle to artifacts

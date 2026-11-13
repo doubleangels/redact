@@ -150,3 +150,7 @@ jobs:
 
       - name: Build release bundle
         run: ./gradlew bundleRelease
+
+      # A library can add a permission or an exported component without touching our manifest.
+      - name: Check the release manifest against app/release-manifest.txt
+        run: python3 .github/scripts/check_release_manifest.py
