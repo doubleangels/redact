@@ -15,6 +15,7 @@ exported service com.doubleangels.redact.CensorTileService permission=android.pe
 exported service com.doubleangels.redact.CleanTileService permission=android.permission.BIND_QUICK_SETTINGS_TILE
 exported service com.doubleangels.redact.ScanTileService permission=android.permission.BIND_QUICK_SETTINGS_TILE
 uses-permission android.permission.ACCESS_MEDIA_LOCATION
+uses-permission android.permission.ACCESS_NETWORK_STATE
 uses-permission android.permission.FOREGROUND_SERVICE
 uses-permission android.permission.FOREGROUND_SERVICE_DATA_SYNC
 uses-permission android.permission.FOREGROUND_SERVICE_MEDIA_PROCESSING
@@ -24,4 +25,5 @@ uses-permission android.permission.READ_EXTERNAL_STORAGE maxSdkVersion=32
 uses-permission android.permission.READ_MEDIA_IMAGES
 uses-permission android.permission.READ_MEDIA_VIDEO
 uses-permission android.permission.READ_MEDIA_VISUAL_USER_SELECTED
+uses-permission android.permission.WAKE_LOCK
 uses-permission com.doubleangels.redact.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
