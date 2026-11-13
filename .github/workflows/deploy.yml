@@ -187,10 +187,11 @@ jobs:
       - name: Setup Android build
         uses: ./.github/actions/setup-android-build
 
-      - name: Build release bundle and upload ProGuard mapping to Sentry
+      - name: Build release bundle, upload ProGuard mapping and bundle size to Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_SIZE_ANALYSIS: "true"
         run: ./gradlew bundleRelease
 
       # Signed in the publish job instead, which runs in the Production environment, so the
