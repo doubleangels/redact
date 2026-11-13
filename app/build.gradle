@@ -190,6 +190,18 @@ sentry {
     }
 }
 
+// Copies the release variant's merged manifest to a fixed path for
+// .github/scripts/check_release_manifest.py. Read through AGP's public artifact API, since the
+// intermediates folder it is written to changes between AGP versions.
+androidComponents {
+    onVariants(selector().withBuildType("release")) { variant ->
+        tasks.register("exportReleaseManifest", Copy) {
+            from(variant.artifacts.get(com.android.build.api.artifact.SingleArtifact.MERGED_MANIFEST.INSTANCE))
+            into(layout.buildDirectory.dir("outputs/release-manifest"))
+        }
+    }
+}
+
 // Unit test line coverage of the app's own code. Generated classes (view binding, Glide's
 // generated API, BuildConfig, R, Sentry's build-time options) are left out.
 def coverageExcludes = [

@@ -1,5 +1,5 @@
 # What the release bundle's merged manifest grants, checked by .github/scripts/check_release_manifest.py
-# after every bundleRelease in CI. A library that adds a permission or an exported component fails
+# after every release build in CI. A library that adds a permission or an exported component fails
 # the build until the line is added here on purpose. Rewrite with --update after an intended change.
 
 application allowBackup=false

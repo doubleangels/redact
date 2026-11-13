@@ -5,7 +5,7 @@ Android app (Java, minSdk 31, targetSdk 37) that removes metadata from photos an
 ## Privacy rules
 
 - Never weaken a check that a cleaned file is clean (`CleanVerifier`: `verifyMetadataRemoval`, `requireSameContent`, `requireVideoMetadataClean`, `VideoStreamMetadata.scan`, the container scans), even where it repeats work. Code that fails closed (returns null, throws or re-encodes when it cannot vouch for a file) stays that way.
-- Never loosen `.github/scripts/check_release_manifest.py`, which fails CI when the release manifest grants a permission, exported component or application flag that `app/release-manifest.txt` does not list. Add a line there only for a change that is meant to ship, after `./gradlew bundleRelease` and `--update`.
+- Never loosen `.github/scripts/check_release_manifest.py`, which fails CI when the release manifest grants a permission, exported component or application flag that `app/release-manifest.txt` does not list. Add a line there only for a change that is meant to ship, after `./gradlew bundleRelease exportReleaseManifest` and `--update`.
 - Keep `SecureDelete` on anything that may hold original media, the inbound URI checks in `MainActivity` and `ShareHandlerActivity`, `SentryPrivacyScrubber` and the `before*` callbacks in `SentryInitializer`.
 - Sentry metrics count the app's own operations only (verification results, cleaning paths, durations, failures, formats it cannot decode): never what people choose, how they open the app or how often they use it. The privacy policy promises Sentry is never used for analytics.
 - Everything reported to Sentry goes through `SentryManager`, and nothing sent to it may hold a URI, path, file name, coordinate, metadata value or typed text.

@@ -6,12 +6,11 @@ app/src/main/AndroidManifest.xml. This compares what the bundle actually ships (
 exported components and a few privacy-relevant application flags) with the committed list, and
 fails on any difference in either direction, so the list always says exactly what ships.
 
-Run after ./gradlew bundleRelease:
+Run after ./gradlew bundleRelease exportReleaseManifest:
     python3 .github/scripts/check_release_manifest.py           # check
     python3 .github/scripts/check_release_manifest.py --update  # rewrite the list after an intended change
 """
 import argparse
-import glob
 import os
 import sys
 import xml.etree.ElementTree as ET
@@ -19,8 +18,8 @@ import xml.etree.ElementTree as ET
 ANDROID = "{http://schemas.android.com/apk/res/android}"
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 ALLOWLIST = os.path.join(ROOT, "app", "release-manifest.txt")
-# The manifest AGP packages into the release bundle.
-MANIFEST_GLOB = os.path.join(ROOT, "app", "build", "intermediates", "bundle_manifest", "release", "**", "AndroidManifest.xml")
+# The release variant's merged manifest, copied there by the exportReleaseManifest task in app/build.gradle.
+MANIFEST = os.path.join(ROOT, "app", "build", "outputs", "release-manifest", "AndroidManifest.xml")
 COMPONENTS = ("activity", "activity-alias", "service", "receiver", "provider")
 APP_FLAGS = ("allowBackup", "usesCleartextTraffic", "debuggable")
 HEADER = """\
@@ -64,12 +63,10 @@ def read_allowlist(path):
 
 
 def find_manifest():
-    found = sorted(glob.glob(MANIFEST_GLOB, recursive=True))
-    if len(found) != 1:
-        listing = "\n  ".join(found) or "(none)"
-        sys.exit(f"::error::Expected one release bundle manifest, found {len(found)}. Run ./gradlew bundleRelease "
-                 f"first; if it ran, AGP moved the file and MANIFEST_GLOB needs updating.\n  {listing}")
-    return found[0]
+    if not os.path.isfile(MANIFEST):
+        sys.exit(f"::error::{os.path.relpath(MANIFEST, ROOT)} does not exist. "
+                 "Run ./gradlew bundleRelease exportReleaseManifest first.")
+    return MANIFEST
 
 
 def main():
@@ -98,7 +95,7 @@ def main():
     for line in removed:
         print(f"::error::No longer in the release manifest: {line}")
     sys.exit("The release manifest changed. Find which dependency or manifest change did it. If it is intended, "
-             "run this script with --update after ./gradlew bundleRelease and commit app/release-manifest.txt.")
+             "run this script with --update after ./gradlew bundleRelease exportReleaseManifest and commit app/release-manifest.txt.")
 
 
 if __name__ == "__main__":

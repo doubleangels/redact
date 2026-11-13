@@ -192,7 +192,7 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SENTRY_SIZE_ANALYSIS: "true"
-        run: ./gradlew bundleRelease
+        run: ./gradlew bundleRelease exportReleaseManifest
 
       # A library can add a permission or an exported component without touching our manifest.
       - name: Check the release manifest against app/release-manifest.txt
