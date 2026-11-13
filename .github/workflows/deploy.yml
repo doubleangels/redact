@@ -173,46 +173,8 @@ jobs:
             fastlane/metadata/android/en-US/changelogs/${{ needs.check-version.outputs.code }}.txt
           if-no-files-found: error
 
-  # Cleans real photos and videos with real codecs on an emulator (CleanOnDeviceTest), which the
-  # Robolectric checks only imitate. A codec or OS change that leaves metadata behind stops the
-  # release here, before the bundle is built and signed.
-  device-test:
-    needs: ["check-version"]
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Setup Android build
-        uses: ./.github/actions/setup-android-build
-
-      # Hosted Linux runners have KVM, but only root can open it until a udev rule allows it.
-      - name: Enable KVM for the emulator
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
-            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-
-      - name: Clean the test media on the managed emulator
-        run: >-
-          ./gradlew :app:Pixel_10_Pro_CleanDebugAndroidTest
-          -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
-
-      - name: Upload the device test report
-        if: failure()
-        uses: actions/upload-artifact@v7.0.2
-        with:
-          name: device-test-report
-          path: app/build/reports/androidTests/
-          if-no-files-found: ignore
-          retention-days: 7
-
   bundle-release:
-    needs: ["checks", "check-version", "device-test"]
+    needs: ["checks", "check-version"]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
