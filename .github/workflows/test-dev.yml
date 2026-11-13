@@ -31,10 +31,46 @@ env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false
 
 jobs:
-  unit-tests:
+  # A push or pull request that only touches files the build, tests and lint never read (store
+  # listing, website, docs, slash commands) skips the three jobs below. The run still finishes
+  # green on that commit, which /release and required checks look for. Anything it cannot tell
+  # (API error, forced push, 300 or more files) runs everything, and so does a release.
+  changes:
     if: |
       github.event_name != 'pull_request' ||
       github.event.pull_request.head.ref != 'dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.diff.outputs.code }}
+    steps:
+      - name: Look for changes the checks cover
+        id: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          FORCED: ${{ github.event.forced }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          NOT_BUILT: '^(fastlane/|whatsnew/|site/|legal/|icons/|scripts/|\.claude/|\.idea/|Gemfile(\.lock)?$|LICENSE$|sentry\.dsn\.local\.example$|[^/]+\.md$)'
+        run: |
+          set -u
+          code=true
+          if { [ "$EVENT" = push ] || [ "$EVENT" = pull_request ]; } && [ "$FORCED" != true ]; then
+            if files=$(gh api "repos/$GITHUB_REPOSITORY/compare/$BASE...$HEAD" \
+                --jq '.files[] | .filename, (.previous_filename // empty)') \
+              && [ -n "$files" ] \
+              && [ "$(printf '%s\n' "$files" | wc -l)" -lt 300 ] \
+              && ! printf '%s\n' "$files" | grep -Evq "$NOT_BUILT"; then
+              code=false
+            fi
+          fi
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "Checks needed: $code"
+
+  unit-tests:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -70,9 +106,8 @@ jobs:
           retention-days: 7
 
   lint:
-    if: |
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.ref != 'dev'
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -98,10 +133,8 @@ jobs:
           retention-days: 7
 
   build:
-    if: |
-      inputs.build != 'false' &&
-      (github.event_name != 'pull_request' ||
-      github.event.pull_request.head.ref != 'dev')
+    needs: changes
+    if: inputs.build != 'false' && needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:

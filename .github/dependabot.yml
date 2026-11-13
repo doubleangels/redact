@@ -1,14 +1,19 @@
 version: 2
 updates:
+  # One pull request a week for every action, instead of one a day for each.
   - package-ecosystem: github-actions
     directories:
       - "/"
       - "/.github/actions/setup-android-build"
     schedule:
-      interval: daily
+      interval: weekly
     target-branch: dev
     commit-message:
       prefix: "[Github Actions]"
+    groups:
+      actions:
+        patterns:
+          - "*"
 
   - package-ecosystem: gradle
     directory: "/"
@@ -28,6 +33,11 @@ updates:
       sentry:
         patterns:
           - "io.sentry*"
+      # Everything else shares one pull request; a major version still gets its own.
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: bundler
     directory: "/"
@@ -36,3 +46,7 @@ updates:
     target-branch: dev
     commit-message:
       prefix: "[Bundler]"
+    groups:
+      gems:
+        patterns:
+          - "*"
