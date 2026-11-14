@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
@@ -25,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -46,17 +46,22 @@ public class MediaProcessor {
     /** The application context used for background operations */
     private final Context context;
 
-    /** Source URIs of items cleaned successfully in the current/last batch. */
-    private final List<Uri> succeededSources = new CopyOnWriteArrayList<>();
+    /**
+     * One item of the current/last batch that was cleaned: its source, the source's file name (""
+     * when unknown), the clean copy, and what was removed (null when not counted).
+     */
+    private record Succeeded(@NonNull Uri source, @NonNull String name, @NonNull Uri output,
+                             @Nullable CleanStats stats) {
+    }
 
-    /** Output URIs of items cleaned successfully in the current/last batch (kept until the next batch). */
-    private final List<Uri> succeededOutputs = new CopyOnWriteArrayList<>();
+    /** The batch's cleaned items, kept until the next batch. Guarded by {@code this}. */
+    private final List<Succeeded> succeeded = new ArrayList<>();
 
-    /** What each successfully cleaned item had removed, in the current/last batch. */
-    private final List<CleanStats> succeededStats = new CopyOnWriteArrayList<>();
-
-    /** File names of {@link #succeededSources}, in the same order ("" when unknown). */
-    private final List<String> succeededSourceNames = new CopyOnWriteArrayList<>();
+    /**
+     * How many of {@link #succeeded} {@link #takeSucceededSources} has handed out already, so each
+     * source is offered for trashing once. Guarded by {@code this}.
+     */
+    private int sourcesTaken;
 
     /**
      * The clean copy and original file name of each source handed out by
@@ -142,17 +147,32 @@ public class MediaProcessor {
         processingExecutor.shutdownNow();
     }
 
-    public List<Uri> getSucceededOutputs() {
-        return new ArrayList<>(succeededOutputs);
+    public synchronized List<Uri> getSucceededOutputs() {
+        List<Uri> outputs = new ArrayList<>(succeeded.size());
+        for (Succeeded item : succeeded) {
+            outputs.add(item.output());
+        }
+        return outputs;
     }
 
     /** What the last batch removed, over the items that were cleaned successfully. */
-    public CleanSummary getCleanSummary() {
-        return CleanSummary.of(new ArrayList<>(succeededStats));
+    public synchronized CleanSummary getCleanSummary() {
+        List<CleanStats> stats = new ArrayList<>(succeeded.size());
+        for (Succeeded item : succeeded) {
+            if (item.stats() != null) {
+                stats.add(item.stats());
+            }
+        }
+        return CleanSummary.of(stats);
     }
 
-    public List<Uri> getSucceededSources() {
-        return new ArrayList<>(succeededSources);
+    /** The last batch's cleaned sources that {@link #takeSucceededSources} has not handed out. */
+    public synchronized List<Uri> getSucceededSources() {
+        List<Uri> sources = new ArrayList<>();
+        for (Succeeded item : succeeded.subList(sourcesTaken, succeeded.size())) {
+            sources.add(item.source());
+        }
+        return sources;
     }
 
     /**
@@ -161,14 +181,13 @@ public class MediaProcessor {
      * to every newly created view, e.g. after a rotation).
      */
     public synchronized List<Uri> takeSucceededSources() {
-        List<Uri> taken = new ArrayList<>(succeededSources);
+        List<Uri> taken = new ArrayList<>();
         awaitingTrash.clear();
-        for (int i = 0; i < taken.size() && i < succeededOutputs.size() && i < succeededSourceNames.size(); i++) {
-            awaitingTrash.put(taken.get(i),
-                    new TrashedOriginal(succeededOutputs.get(i), succeededSourceNames.get(i)));
+        for (Succeeded item : succeeded.subList(sourcesTaken, succeeded.size())) {
+            taken.add(item.source());
+            awaitingTrash.put(item.source(), new TrashedOriginal(item.output(), item.name()));
         }
-        succeededSources.clear();
-        succeededSourceNames.clear();
+        sourcesTaken = succeeded.size();
         return taken;
     }
 
@@ -201,12 +220,30 @@ public class MediaProcessor {
                     continue;
                 }
                 Uri renamed = OutputDestination.rename(context.getContentResolver(), original.output(), wanted);
-                int index = succeededOutputs.indexOf(original.output());
-                if (renamed != null && index >= 0) {
-                    succeededOutputs.set(index, renamed);
+                if (renamed != null) {
+                    replaceOutput(original.output(), renamed);
                 }
             }
         });
+    }
+
+    private synchronized void replaceOutput(@NonNull Uri output, @NonNull Uri renamed) {
+        for (int i = 0; i < succeeded.size(); i++) {
+            Succeeded item = succeeded.get(i);
+            if (item.output().equals(output)) {
+                succeeded.set(i, new Succeeded(item.source(), item.name(), renamed, item.stats()));
+                return;
+            }
+        }
+    }
+
+    private synchronized void clearSucceeded() {
+        succeeded.clear();
+        sourcesTaken = 0;
+    }
+
+    private synchronized void addSucceeded(@NonNull Succeeded item) {
+        succeeded.add(item);
     }
 
     /** Whether a clean batch is currently running on the shared worker. */
@@ -246,10 +283,7 @@ public class MediaProcessor {
         }
         cancelled.set(false);
         metadataStripper.setTranscodeOwnerId(transcodeOwnerId);
-        succeededSources.clear();
-        succeededSourceNames.clear();
-        succeededOutputs.clear();
-        succeededStats.clear();
+        clearSucceeded();
         awaitingTrash.clear();
         metadataStripper.resetCancellation();
         mainHandler.post(callback::onBatchStarted);
@@ -257,7 +291,6 @@ public class MediaProcessor {
             final int totalItems = items.size();
             ITransaction transaction = SentryManager.startTransaction("clean_multiple", "task");
             long batchStartMs = System.currentTimeMillis();
-            SentryManager.distribution("processing.batch.size", totalItems, "operation_type", "clean");
             int successCount = 0;
             try {
                 for (int index = 0; index < totalItems; index++) {
@@ -309,19 +342,12 @@ public class MediaProcessor {
                         metadataStripper.setProgressCallback(null);
 
                         if (processedUri != null) {
-                            succeededSources.add(item.uri());
-                            succeededSourceNames.add(sourceName);
-                            succeededOutputs.add(processedUri);
                             CleanStats stats = result.stats();
-                            if (stats != null) {
-                                succeededStats.add(stats);
-                            }
+                            addSucceeded(new Succeeded(item.uri(), sourceName, processedUri, stats));
                             StatsStore.recordClean(context,
                                     stats != null ? stats : new CleanStats(0, false),
                                     item.isVideo(), false);
                             successCount++;
-                            SentryManager.count(
-                                    "processing.clean.success", 1, "is_video", String.valueOf(item.isVideo()));
                             span.setStatus(SpanStatus.OK);
                         } else if (cancelled.get()) {
                             VideoMedia3Converter.cancelActiveTranscode(metadataStripper.getTranscodeOwnerId());
@@ -371,6 +397,10 @@ public class MediaProcessor {
                 final int finalSuccessCount = successCount;
                 final int finalTotal = totalItems;
                 final boolean wasCancelled = cancelled.get();
+                // Free before the callback is posted, so a batch it starts is not refused as
+                // already running.
+                processing.set(false);
+                cancelled.set(false);
                 mainHandler.post(() -> {
                     if (wasCancelled) {
                         callback.onCancelled(finalSuccessCount, finalTotal);
@@ -378,8 +408,6 @@ public class MediaProcessor {
                         callback.onComplete(finalSuccessCount, finalTotal);
                     }
                 });
-                processing.set(false);
-                cancelled.set(false);
                 SentryManager.distributionDurationMs(
                         "processing.duration_ms",
                         System.currentTimeMillis() - batchStartMs,

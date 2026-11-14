@@ -318,6 +318,7 @@ The Settings tab puts the settings you use every day first: cleaning, sharing, C
 | Setting | What it does |
 |---|---|
 | **Send Crash Reports** | Optional anonymized crash diagnostics through Sentry, off by default, with a consent prompt. On first start the introduction asks once, on its own page, whether to turn it on; choosing Not Now leaves it off. |
+| **Check for Updates** | Asks GitHub for the newest version number when you tap it, and offers the store page when a newer one is out. Never runs on its own. |
 
 **Reset All Settings** puts every setting back to its default and forgets the chosen output folders. Your files are not touched.
 
@@ -331,9 +332,10 @@ Open the Settings tab in the app for the full list.
 
 - **Your files stay on your device** for every core feature. Cleaning, scanning and converting never need a network connection.
 - **No ads, no behavioral tracking, no analytics.**
-- **Two optional things can touch the network or another app:**
+- **Three optional things can touch the network or another app:**
   1. **Send Crash Reports** (off by default) sends anonymized diagnostics to [Sentry](https://sentry.io): device model, Android version, app version, stack traces and a few scrubbed tags. File paths, filenames and GPS coordinates are removed before anything is sent. Your photos and videos are **never** uploaded. Sentry keeps the reports for a limited time, 90 days for crash and error reports and 30 days for performance data and logs, see its [data retention periods](https://docs.sentry.io/security-legal-pii/security/data-retention-periods/).
   2. **Open in maps** from Scan hands coordinates to your default maps app, only after your explicit one-time consent.
+  3. **Check for Updates** in Settings asks GitHub once for the newest release's version number, only when you tap it. The request carries nothing about you or your files; like any connection, GitHub sees the IP address it comes from. Redact never checks on its own, and the update itself comes from the store you installed it from.
 - **Statistics stay on your phone.** The counts behind Your Privacy Stats are stored only in Redact's private storage, are left out of backups and device transfers, and are never included in crash reports.
 - **Permissions are minimal.** On Android 13 and newer Redact uses the system document picker, so it can reach Downloads, Files and gallery folders without broad media access.
 
@@ -380,7 +382,7 @@ Yes. Images are decoded and saved in the new format, which carries none of the o
 <details>
 <summary><b>Does Redact need an internet connection?</b></summary>
 
-No. Only the two optional features above (crash reports and opening a location in a maps app) can use the network, and both are off until you choose them.
+No. Only the three optional features above can use the network or another app: crash reports, which are off until you turn them on; opening a location in a maps app, which asks first; and Check for Updates, which runs only when you tap it.
 </details>
 
 <details>

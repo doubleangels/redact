@@ -42,6 +42,7 @@ import com.doubleangels.redact.stats.StatsStore;
 import com.doubleangels.redact.ui.CrashReportingPrompt;
 import com.doubleangels.redact.ui.FoldDialogs;
 import com.doubleangels.redact.ui.Notice;
+import com.doubleangels.redact.update.UpdateChecker;
 import com.doubleangels.redact.ui.ReviewPrompt;
 import com.doubleangels.redact.ui.SecureWindow;
 import com.doubleangels.redact.ui.SwitchRows;
@@ -289,6 +290,10 @@ public class SettingsFragment extends TabFragment {
                 SentryManager.recordException(e);
             }
         });
+
+        // The only way the app asks GitHub anything: the user taps this.
+        MaterialButton checkForUpdates = view.findViewById(R.id.buttonCheckForUpdates);
+        checkForUpdates.setOnClickListener(v -> checkForUpdates(v, new UpdateChecker()));
 
         MaterialButton learnMore = view.findViewById(R.id.buttonCrashReportingLearnMore);
         learnMore.setOnClickListener(v -> FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
@@ -798,6 +803,44 @@ public class SettingsFragment extends TabFragment {
                         .setPositiveButton(R.string.settings_reset_all_confirm, (d, w) -> resetAllSettings())
                         .setNegativeButton(android.R.string.cancel, null)
                         .show()));
+    }
+
+    /**
+     * Runs {@code checker} off the main thread, with {@code button} disabled until it answers,
+     * then shows what it found.
+     *
+     * @return the thread doing the check
+     */
+    @VisibleForTesting
+    @NonNull
+    Thread checkForUpdates(@NonNull View button, @NonNull UpdateChecker checker) {
+        button.setEnabled(false);
+        Thread thread = new Thread(() -> {
+            UpdateChecker.Result result = checker.checkNow();
+            button.post(() -> {
+                button.setEnabled(true);
+                if (isAdded()) {
+                    showUpdateResult(result);
+                }
+            });
+        }, "redact-update-check");
+        thread.setDaemon(true);
+        thread.start();
+        return thread;
+    }
+
+    /** Tells the user what tapping Check for updates found, with a way to the store when newer. */
+    @VisibleForTesting
+    void showUpdateResult(@NonNull UpdateChecker.Result result) {
+        Context context = requireContext();
+        switch (result.status) {
+            case NEWER -> Notice.showWithAction(requireActivity(),
+                    getString(R.string.update_available, result.version),
+                    getString(R.string.update_available_action),
+                    () -> ReviewPrompt.openStoreListing(context));
+            case UP_TO_DATE -> Notice.show(context, R.string.update_up_to_date, false);
+            case FAILED -> Notice.show(context, R.string.update_check_failed, true);
+        }
     }
 
     /**

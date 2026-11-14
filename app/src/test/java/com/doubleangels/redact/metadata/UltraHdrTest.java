@@ -262,7 +262,7 @@ public class UltraHdrTest {
         png.deleteOnExit();
         java.nio.file.Files.write(png.toPath(), new byte[] {(byte) 0x89, 'P', 'N', 'G', 0, 0, 0, 0});
         try {
-            UltraHdr.insertPrimaryXmp(png, "<x:xmpmeta/>");
+            UltraHdr.insertPrimaryXmp(png, "<x:xmpmeta/>", png.getAbsoluteFile().getParentFile());
             org.junit.Assert.fail();
         } catch (java.io.IOException expected) {
             assertTrue(expected.getMessage().contains("Not a JPEG"));
@@ -272,7 +272,7 @@ public class UltraHdrTest {
         // SOI, then a JFIF header that says it runs far past the end of the file.
         java.nio.file.Files.write(cut.toPath(), new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0x7F, 0x7F, 'J'});
         try {
-            UltraHdr.insertPrimaryXmp(cut, "<x:xmpmeta/>");
+            UltraHdr.insertPrimaryXmp(cut, "<x:xmpmeta/>", cut.getAbsoluteFile().getParentFile());
             org.junit.Assert.fail();
         } catch (java.io.IOException expected) {
             assertTrue(expected.getMessage().contains("JFIF"));

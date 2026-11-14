@@ -18,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
 
 /**
  * The foreground service type must be one the running Android version knows. mediaProcessing only
@@ -40,12 +41,10 @@ public class ProcessingForegroundServiceTypeTest {
 
     @After
     public void tearDown() {
-        ProcessingForegroundService.testSdkIntOverride = null;
         AppProcessingScope.resetForTests();
     }
 
-    private int startedForegroundType(int sdk) {
-        ProcessingForegroundService.testSdkIntOverride = sdk;
+    private int startedForegroundType() {
         Intent intent = new Intent(app, ProcessingForegroundService.class);
         intent.setAction(ProcessingForegroundService.ACTION_START);
         ProcessingForegroundService service =
@@ -55,17 +54,20 @@ public class ProcessingForegroundServiceTypeTest {
     }
 
     @Test
+    @Config(sdk = 34)
     public void onAndroid14_usesDataSync_becauseMediaProcessingDoesNotExistThere() {
-        assertEquals(ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC, startedForegroundType(34));
+        assertEquals(ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC, startedForegroundType());
     }
 
     @Test
+    @Config(sdk = 35)
     public void onAndroid15_usesMediaProcessing() {
-        assertEquals(ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING, startedForegroundType(35));
+        assertEquals(ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING, startedForegroundType());
     }
 
     @Test
+    @Config(sdk = 33)
     public void beforeAndroid14_passesNoType() {
-        assertEquals(0, startedForegroundType(33));
+        assertEquals(0, startedForegroundType());
     }
 }

@@ -234,17 +234,37 @@ public final class ImageContainerMetadata {
      * @throws IOException when the file is not a JPEG, PNG or WebP this class can follow, so the
      *     caller re-encodes it from its pixels instead
      */
+    @VisibleForTesting
     public static void sanitize(@NonNull File source, @NonNull File target) throws IOException {
-        sanitize(source, target, null);
+        sanitize(source, target, null, target.getAbsoluteFile().getParentFile());
+    }
+
+    /** {@link #sanitize(File, File)} with its intermediate files in {@code workDir}. */
+    static void sanitize(@NonNull File source, @NonNull File target, @NonNull File workDir)
+            throws IOException {
+        sanitize(source, target, null, workDir);
     }
 
     /**
      * {@link #sanitize(File, File)}, putting {@code motion}, a Motion Photo's video that has been
      * cleaned already, back after a JPEG's picture with the XMP that tells a gallery it is there.
      * It is left out of any other format.
+     *
+     * @param workDir where intermediate files go: never the folder FileProvider serves, since
+     *     they can hold the source's metadata
      */
-    public static void sanitize(@NonNull File source, @NonNull File target, @Nullable MotionPhoto.Clip motion)
-            throws IOException {
+    public static void sanitize(@NonNull File source, @NonNull File target, @Nullable MotionPhoto.Clip motion,
+                                @NonNull File workDir) throws IOException {
+        sanitize(source, target, motion, workDir, false);
+    }
+
+    /**
+     * {@link #sanitize(File, File, MotionPhoto.Clip, File)}, and with {@code neutralIcc} (Strict
+     * Clean and shares) the colour profile rebuilt with only its colour tags and a neutral name
+     * ({@link IccProfiles#neutralize}). The colours are the same either way.
+     */
+    public static void sanitize(@NonNull File source, @NonNull File target, @Nullable MotionPhoto.Clip motion,
+                                @NonNull File workDir, boolean neutralIcc) throws IOException {
         if (source.getCanonicalPath().equals(target.getCanonicalPath())) {
             throw new IOException("Source and target must differ");
         }
@@ -252,7 +272,8 @@ public final class ImageContainerMetadata {
         try (FileInputStream in = new FileInputStream(source);
              OutputStream out = new BufferedOutputStream(new FileOutputStream(target), 64 * 1024)) {
             walker = new Walker(in.getChannel(), out);
-            walker.workDir = target.getAbsoluteFile().getParentFile();
+            walker.workDir = workDir;
+            walker.neutralIcc = neutralIcc;
             if (!walker.run()) {
                 throw new IOException("Not a JPEG, PNG or WebP file");
             }
@@ -264,7 +285,8 @@ public final class ImageContainerMetadata {
         boolean directoryWritten = false;
         if (walker.gainMapStart >= 0) {
             try {
-                UltraHdr.rebuild(source, walker.gainMapStart, walker.gainMapEnd, walker.primaryIso, target, motion);
+                UltraHdr.rebuild(source, walker.gainMapStart, walker.gainMapEnd, walker.primaryIso, target, motion,
+                        workDir);
                 directoryWritten = true;
             } catch (IOException | RuntimeException e) {
                 // The picture written above is complete; it is only without its HDR.
@@ -274,7 +296,7 @@ public final class ImageContainerMetadata {
         }
         if (motion != null) {
             if (!directoryWritten) {
-                UltraHdr.insertPrimaryXmp(target, UltraHdr.primaryXmp(null, -1, motion));
+                UltraHdr.insertPrimaryXmp(target, UltraHdr.primaryXmp(null, -1, motion), workDir);
             }
             // Last in the file, where the directory says it is.
             try (FileInputStream in = new FileInputStream(motion.video);
@@ -327,6 +349,11 @@ public final class ImageContainerMetadata {
         @Nullable private final OutputStream out;
         /** Where a WebP's chunks are gathered before its size is known; the system's when null. */
         @Nullable File workDir;
+        /** Strict Clean or a share: the colour profile keeps only its colour tags ({@link IccProfiles}). */
+        boolean neutralIcc;
+        /** A JPEG profile's APP2 pieces, held until the last one so it can be rebuilt whole. */
+        @Nullable private List<byte[]> pendingIcc;
+        private int pendingIccTotal;
         /** The picture says an Ultra HDR gain map follows it. */
         boolean ultraHdr;
         /** XMP with nothing but the picture's directory says a Motion Photo's video ends the file. */
@@ -423,6 +450,9 @@ public final class ImageContainerMetadata {
                 }
                 int marker = src.at(pos);
                 pos++;
+                if (marker == 0xD9 || marker == 0xDA || isFrameMarker(marker)) {
+                    flushPendingIcc();
+                }
                 if (marker == 0xD9) {
                     write(new byte[] {(byte) 0xFF, (byte) 0xD9});
                     trailer(pos);
@@ -456,6 +486,63 @@ public final class ImageContainerMetadata {
             }
             if (icc.size() > 0) {
                 iccInfo(icc.toByteArray());
+            }
+        }
+
+        /**
+         * Holds one APP2 piece of a profile. Once all of them have come, in order, the profile is
+         * rebuilt ({@link IccProfiles#neutralize}) and written again as new pieces.
+         */
+        private void holdIccPiece(@NonNull byte[] chunk) throws IOException {
+            int sequence = chunk[12] & 0xFF;
+            int total = chunk[13] & 0xFF;
+            if (pendingIcc == null) {
+                pendingIcc = new ArrayList<>();
+                pendingIccTotal = total;
+            }
+            pendingIcc.add(chunk);
+            if (total != pendingIccTotal || sequence != pendingIcc.size()) {
+                pendingIccTotal = -1; // out of order or inconsistent: written as it came
+            }
+            if (pendingIccTotal > 0 && pendingIcc.size() == pendingIccTotal) {
+                ByteArrayOutputStream whole = new ByteArrayOutputStream();
+                for (byte[] piece : pendingIcc) {
+                    whole.write(piece, 14, piece.length - 14);
+                }
+                byte[] profile = IccProfiles.neutralize(whole.toByteArray());
+                pendingIcc = null;
+                writeIccPieces(profile);
+            }
+        }
+
+        /** Writes what is held as it came, when the picture starts before the profile is whole. */
+        private void flushPendingIcc() throws IOException {
+            if (pendingIcc == null) {
+                return;
+            }
+            for (byte[] piece : pendingIcc) {
+                writeSegment(0xE2, piece);
+            }
+            pendingIcc = null;
+        }
+
+        /** Writes {@code profile} as APP2 pieces numbered 1 to N, each under a segment's size limit. */
+        private void writeIccPieces(@NonNull byte[] profile) throws IOException {
+            int perPiece = 0xFFFF - 2 - 14;
+            int count = Math.max(1, (profile.length + perPiece - 1) / perPiece);
+            if (count > 255) {
+                throw new IOException("Colour profile too large for JPEG");
+            }
+            byte[] id = ascii("ICC_PROFILE\0");
+            for (int i = 0; i < count; i++) {
+                int from = i * perPiece;
+                int length = Math.min(perPiece, profile.length - from);
+                byte[] piece = new byte[14 + length];
+                System.arraycopy(id, 0, piece, 0, 12);
+                piece[12] = (byte) (i + 1);
+                piece[13] = (byte) count;
+                System.arraycopy(profile, from, piece, 14, length);
+                writeSegment(0xE2, piece);
             }
         }
 
@@ -636,6 +723,10 @@ public final class ImageContainerMetadata {
                 byte[] chunk = data.clone();
                 if ((chunk[12] & 0xFF) == 1) {
                     clearIccHeader(chunk, 14);
+                }
+                if (neutralIcc && out != null) {
+                    holdIccPiece(chunk);
+                    return;
                 }
                 writeSegment(0xE2, chunk);
                 return;
@@ -1084,6 +1175,9 @@ public final class ImageContainerMetadata {
                 return;
             }
             clearIccHeader(profile, 0);
+            if (neutralIcc) {
+                profile = IccProfiles.neutralize(profile);
+            }
             ByteArrayOutputStream body = new ByteArrayOutputStream();
             body.write(ascii("ICC Profile"));
             body.write(0);
@@ -1192,9 +1286,13 @@ public final class ImageContainerMetadata {
                         iccInfo(profile);
                         if (body != null) {
                             clearIccHeader(profile, 0);
-                            body.write(src.read(pos, 8));
+                            if (neutralIcc) {
+                                profile = IccProfiles.neutralize(profile);
+                            }
+                            body.write(ascii("ICCP"));
+                            body.write(le32Bytes(profile.length));
                             body.write(profile);
-                            if ((size & 1) == 1) {
+                            if ((profile.length & 1) == 1) {
                                 body.write(0);
                             }
                             keptIcc = true;

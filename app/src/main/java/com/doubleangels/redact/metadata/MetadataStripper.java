@@ -103,22 +103,6 @@ public class MetadataStripper {
      */
     private ProgressCallback progressCallback;
 
-    /** Read by the cleaners in this package; tests set them through the setters below. */
-    @Nullable
-    File testFastStripVideoMetadataOverride;
-
-    boolean testForceOutputDirMkdirsFailure;
-
-    @VisibleForTesting
-    void setTestFastStripVideoMetadataOverride(@Nullable File overrideFile) {
-        this.testFastStripVideoMetadataOverride = overrideFile;
-    }
-
-    @VisibleForTesting
-    void setTestForceOutputDirMkdirsFailure(boolean force) {
-        this.testForceOutputDirMkdirsFailure = force;
-    }
-
     /**
      * What one clean call has found and made so far: the tags the settings keep, its statistics,
      * and where its output went. Each call has its own, so two calls never share kept tags or
@@ -202,25 +186,33 @@ public class MetadataStripper {
         return new RuntimeException(e);
     }
 
-    /**
-     * Creates a new MetadataStripper instance.
-     *
-     * @param context Application context for accessing system services, must not be
-     *                null
-     * @throws IllegalArgumentException if context is null
-     */
     /** Where the work happens; each keeps its code as it was here, and reads the shared state above. */
     final ImageCleaner images;
     final VideoCleaner videos;
     final CleanVerifier verifier;
 
+    /**
+     * Creates a new MetadataStripper instance.
+     *
+     * @param context Application context for accessing system services, must not be null
+     */
     public MetadataStripper(@NonNull Context context) {
+        this(context, null);
+    }
+
+    /**
+     * @param transmuxer stands in for the platform muxer in the video cleaner's quick copy; null
+     *     for the real one. Everything around it, including the settings that decide whether
+     *     the copy may be kept and the checks on it, runs as in the app.
+     */
+    @VisibleForTesting
+    MetadataStripper(@NonNull Context context, @Nullable VideoCleaner.Transmuxer transmuxer) {
         // Store application context to prevent memory leaks
         this.context = context.getApplicationContext();
         this.contentResolver = this.context.getContentResolver();
         this.verifier = new CleanVerifier(this);
         this.images = new ImageCleaner(this);
-        this.videos = new VideoCleaner(this);
+        this.videos = new VideoCleaner(this, transmuxer);
         SentryManager.log("The MetadataStripper was initialized.");
     }
 
@@ -423,7 +415,7 @@ public class MetadataStripper {
      */
     @NonNull
     public CleanResult cleanForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename, boolean isVideo) {
-        // Log operation start for analytics and debugging
+        // Breadcrumb for a crash report.
         SentryManager.log("The app is starting metadata stripping for sharing.");
         SentryManager.setCustomKey("is_video", isVideo);
         return isVideo
@@ -540,9 +532,8 @@ public class MetadataStripper {
             ExifInterface.TAG_INTEROPERABILITY_INDEX);
 
     /**
-     * Securely deletes a file by overwriting it with random data multiple times
-     * before deletion.
-     * This makes file recovery significantly more difficult.
+     * Overwrites a file once and then deletes it (see {@link SecureDelete}), so a copy that may
+     * hold original media is not left readable on disk.
      *
      * @param file The file to securely delete
      * @return true if the file was successfully deleted, false otherwise

@@ -31,7 +31,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class MediaProcessorFlowTest {
 
     /** Records every callback; the optional ones are only wired when asked, to cover their defaults. */
-    private static final class Recorder implements MediaProcessor.ProcessingCallback {
+    private static class Recorder implements MediaProcessor.ProcessingCallback {
         final List<String> events = new CopyOnWriteArrayList<>();
         final List<Integer> percents = new CopyOnWriteArrayList<>();
         volatile int successCount = -1;
@@ -145,6 +145,42 @@ public class MediaProcessorFlowTest {
         assertEquals(0, empty.totalCount);
         assertEquals(0, none.totalCount);
         assertFalse(processor.isBusy());
+    }
+
+    /** A batch started from onComplete, once the first has finished, must not be refused. */
+    @Test
+    public void aBatchStartedFromOnComplete_isAccepted() throws Exception {
+        Recorder second = new Recorder();
+        MediaItem next = jpeg("next.jpg");
+        Recorder first = new Recorder() {
+            @Override
+            public void onComplete(int successCount, int totalCount) {
+                super.onComplete(successCount, totalCount);
+                processor.processMediaItems(Arrays.asList(next), second);
+            }
+        };
+
+        processor.processMediaItems(Arrays.asList(jpeg("first.jpg")), first);
+        awaitMain(() -> second.events.contains("complete") || second.events.contains("already"));
+
+        assertFalse("refused as already processing: " + second.events, second.events.contains("already"));
+        assertEquals(1, second.successCount);
+        assertEquals(Arrays.asList(next.uri()), processor.getSucceededSources());
+    }
+
+    /** Sources go out once; the outputs and summary stay for the batch's completion screen. */
+    @Test
+    public void succeededSources_areTakenOnce_outputsStay() throws Exception {
+        Recorder cb = new Recorder();
+        MediaItem a = jpeg("a.jpg");
+        MediaItem b = jpeg("b.jpg");
+        processor.processMediaItems(Arrays.asList(a, b), cb);
+        awaitMain(() -> cb.events.contains("complete"));
+
+        assertEquals(Arrays.asList(a.uri(), b.uri()), processor.takeSucceededSources());
+        assertTrue(processor.takeSucceededSources().isEmpty());
+        assertTrue(processor.getSucceededSources().isEmpty());
+        assertEquals(2, processor.getSucceededOutputs().size());
     }
 
     @Test

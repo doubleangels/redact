@@ -473,6 +473,26 @@ public final class VideoContainerMetadata {
         private static final List<String> BMFF_TOP_BENIGN = List.of(
                 "ftyp", "styp", "moov", "mdat", "free", "skip", "wide", "moof", "mfra", "sidx",
                 "ssix", "prft", "emsg", "pdin");
+        /**
+         * The boxes a player needs directly under moov, trak and mdia. Anything else there is
+         * reported and blanked, as at the top level; udta, meta, uuid and free space have their own
+         * checks. The platform muxer writes mvhd, udta, meta and trak under moov, tkhd, edts and
+         * mdia under trak, and mdhd, hdlr and minf under mdia (MPEG4Writer); Media3's muxer the
+         * same boxes, plus mvex for fragmented files.
+         */
+        private static final List<String> MOOV_STRUCTURE = List.of("mvhd", "trak", "mvex", "iods");
+        private static final List<String> TRAK_STRUCTURE = List.of("tkhd", "edts", "tref", "trgr", "mdia");
+        private static final List<String> MDIA_STRUCTURE = List.of("mdhd", "hdlr", "minf", "elng");
+        /**
+         * Handler names the muxers that write the app's outputs use: MPEG4Writer writes
+         * "VideoHandle", "SoundHandle" and "MetadHandle"; Media3's Mp4Muxer "VideoHandle",
+         * "SoundHandle", "MetaHandle" and an empty name. Any other name can say which device or
+         * program made the file.
+         */
+        private static final List<String> MUXER_HANDLER_NAMES = List.of(
+                "", "VideoHandle", "SoundHandle", "MetaHandle", "MetadHandle");
+        /** Free space a muxer reserves: MPEG4Writer fills it with the character '0', not zero bytes. */
+        private static final byte FILLER_DIGIT_ZERO = '0';
         /** Keys ffmpeg copies from the ftyp box; they describe the format, not the recording. */
         private static final List<String> BENIGN_KEYS = List.of(
                 "major_brand", "minor_version", "compatible_brands");
@@ -552,12 +572,110 @@ public final class VideoContainerMetadata {
                         blank(pos, size, header);
                     }
                     return;
-                default:
-                    if (level == Level.TOP && !BMFF_TOP_BENIGN.contains(type)) {
+                case "free":
+                case "skip":
+                case "wide":
+                    // Free space, unless an editor left something in it.
+                    if (level != Level.OTHER && !onlyFiller(body, end)) {
                         field(type, false, strings(body, end), size - header);
                         blank(pos, size, header);
                     }
+                    return;
+                case "hdlr":
+                    if (level == Level.MDIA) {
+                        handlerName(body, end);
+                    } else {
+                        otherBox(pos, size, header, type, level);
+                    }
+                    return;
+                default:
+                    otherBox(pos, size, header, type, level);
             }
+        }
+
+        /** A box with no check of its own: reported and blanked unless {@code level} allows it. */
+        private void otherBox(long pos, long size, int header, String type, Level level) throws IOException {
+            List<String> structure = structureOf(level);
+            if (level == Level.TOP ? !BMFF_TOP_BENIGN.contains(type)
+                    : structure != null && !structure.contains(type)) {
+                field(type, false, strings(pos + header, pos + size), size - header);
+                blank(pos, size, header);
+            }
+        }
+
+        /** The boxes allowed directly under {@code level}; null where nothing is checked. */
+        @Nullable
+        private static List<String> structureOf(@NonNull Level level) {
+            switch (level) {
+                case MOOV:
+                    return MOOV_STRUCTURE;
+                case TRAK:
+                    return TRAK_STRUCTURE;
+                case MDIA:
+                    return MDIA_STRUCTURE;
+                default:
+                    return null;
+            }
+        }
+
+        /** Whether [start, end) holds only zero bytes, or only the '0' characters MPEG4Writer writes. */
+        private boolean onlyFiller(long start, long end) throws IOException {
+            if (end <= start) {
+                return true;
+            }
+            byte filler = read(start, 1)[0];
+            if (filler != 0 && filler != FILLER_DIGIT_ZERO) {
+                return false;
+            }
+            for (long pos = start; pos < end; ) {
+                int n = (int) Math.min(64 * 1024, end - pos);
+                for (byte b : read(pos, n)) {
+                    if (b != filler) {
+                        return false;
+                    }
+                }
+                pos += n;
+            }
+            return true;
+        }
+
+        /**
+         * Reports a track's handler name when it is not one the muxers write, and blanks it when
+         * scrubbing. The name follows the handler type and twelve reserved bytes: a C string, or
+         * in QuickTime files a length byte and the text.
+         */
+        private void handlerName(long body, long end) throws IOException {
+            long nameStart = body + 24;
+            if (nameStart >= end) {
+                return;
+            }
+            byte[] raw = read(nameStart, (int) Math.min(end - nameStart, 1024));
+            String name = handlerText(raw);
+            if (MUXER_HANDLER_NAMES.contains(name)) {
+                return;
+            }
+            field("handler_name", false, name, end - nameStart);
+            if (scrub) {
+                zero(nameStart, end - nameStart);
+                scrubbed++;
+            }
+        }
+
+        /** A handler name as written: a C string, or a QuickTime length byte and that many bytes. */
+        @NonNull
+        private static String handlerText(@NonNull byte[] raw) {
+            if (raw.length == 0) {
+                return "";
+            }
+            int len = raw[0] & 0xFF;
+            if (len > 0 && len == raw.length - 1 && len < 0x20) {
+                return new String(raw, 1, len, StandardCharsets.UTF_8);
+            }
+            int end = 0;
+            while (end < raw.length && raw[end] != 0) {
+                end++;
+            }
+            return new String(raw, 0, end, StandardCharsets.UTF_8);
         }
 
         private void trak(long body, long end, int depth) throws IOException {

@@ -280,7 +280,6 @@ public class ScanFragment extends TabFragment {
         // Files opened from another app (ACTION_VIEW); delivered via MainActivity.
         scanViewModel.getPendingUri().observe(getViewLifecycleOwner(), pending -> {
             if (pending != null) {
-                SentryManager.log("Media was opened from another app in ScanFragment.");
                 scanUri(scanViewModel.consumePendingUri());
             }
         });
@@ -370,6 +369,7 @@ public class ScanFragment extends TabFragment {
         }
     }
 
+    @Override
     void onHostPermissionFlowCompleted() {
         if (permissionManager != null) {
             permissionManager.applyPendingPermissionResultIfAny(
@@ -379,6 +379,7 @@ public class ScanFragment extends TabFragment {
         syncSelectButtonForPickerAccess();
     }
 
+    @Override
     void handlePermissionResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         try {
             if (permissionManager != null) {

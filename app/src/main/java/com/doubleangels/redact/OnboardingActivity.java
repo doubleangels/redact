@@ -309,7 +309,6 @@ public class OnboardingActivity extends AppCompatActivity {
 
     private void onPrimary() {
         Step step = current();
-        SentryManager.logEvent("Onboarding", "The user tapped the main button on " + step.name() + ".");
         if (isPermissionStep(step) && canAsk(step)) {
             requestPermission(step);
         } else {
@@ -319,7 +318,6 @@ public class OnboardingActivity extends AppCompatActivity {
 
     private void onSecondary() {
         Step step = current();
-        SentryManager.logEvent("Onboarding", "The user tapped the second button on " + step.name() + ".");
         if (canOpenSettings(step)) {
             openSystemSettings(step);
         } else {

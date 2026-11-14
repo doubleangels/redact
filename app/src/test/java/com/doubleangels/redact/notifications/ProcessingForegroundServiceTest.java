@@ -77,6 +77,28 @@ public class ProcessingForegroundServiceTest {
         return n.extras.getCharSequence(key);
     }
 
+    /**
+     * From the background the system refuses a foreground service with
+     * ForegroundServiceStartNotAllowedException, an IllegalStateException. The job must go on
+     * without it rather than crash the app.
+     */
+    @Test
+    public void start_fromTheBackground_doesNotThrow() {
+        Context refusing = new android.content.ContextWrapper(app) {
+            @Override
+            public android.content.ComponentName startForegroundService(Intent service) {
+                throw new IllegalStateException("startForegroundService() not allowed");
+            }
+        };
+        Context caller = new android.content.ContextWrapper(app) {
+            @Override
+            public Context getApplicationContext() {
+                return refusing;
+            }
+        };
+        ProcessingForegroundService.start(caller, "Cleaning");
+    }
+
     @Test
     public void start_postsAnOngoingProgressNotificationWithTheTitle() {
         Intent intent = action(ProcessingForegroundService.ACTION_START);

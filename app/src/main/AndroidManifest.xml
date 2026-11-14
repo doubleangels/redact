@@ -17,7 +17,7 @@
     <!-- Android 14 (API 34) has no mediaProcessing type, so the service runs as dataSync there. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
-    <!-- INTERNET is only used when Send Crash Reports is enabled (Sentry). -->
+    <!-- INTERNET is only used when Send Crash Reports (Sentry) is on, or when the user taps Check for Updates in Settings (GitHub). -->
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application

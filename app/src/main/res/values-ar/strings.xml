@@ -176,6 +176,13 @@
     <string name="settings_section_diagnostics_subtitle">تقارير اختيارية للمساعدة في إصلاح الأعطال. وسائطك لا تغادر الجهاز أبداً.</string>
     <string name="settings_crash_reporting_label">إرسال تقارير الأعطال</string>
     <string name="settings_crash_reporting_subtitle">يشارك فقط تفاصيل تقنية مجهولة الهوية (إصدار التطبيق، طراز الجهاز، ما كان يفعله التطبيق عند حدوث العطل)، ولا يشارك صورك أو مقاطع الفيديو أبداً. تُرسَل عبر الإنترنت إلى خدمة الإبلاغ عن الأعطال التي نستخدمها، Sentry، عند التفعيل.</string>
+    <string name="settings_update_check_label">التحديثات</string>
+    <string name="settings_update_check_subtitle">يسأل GitHub عبر الإنترنت عن رقم أحدث إصدار، فقط عند النقر على «التحقق من وجود تحديثات». لا يُرسَل أي شيء عنك أو عن ملفاتك.</string>
+    <string name="update_available">صدر Redact %1$s. قد يستغرق وصوله إلى المتجر يومًا أو يومين.</string>
+    <string name="update_available_action">تحديث</string>
+    <string name="update_check_button">التحقق من وجود تحديثات</string>
+    <string name="update_up_to_date">لديك أحدث إصدار.</string>
+    <string name="update_check_failed">تعذّر التحقق من وجود تحديثات. تحقّق من اتصالك وحاول مرة أخرى.</string>
     <string name="settings_section_conversion">افتراضيات تبويب التحويل</string>
     <string name="settings_conversion_subtitle">التنسيقات المحددة مسبقاً عند اختيار الملفات في التحويل. يمكنك تغييرها لكل دفعة.</string>
     <string name="settings_default_image_format">تنسيق الصورة الافتراضي</string>
@@ -630,7 +637,7 @@
     <string name="onboarding_done_notifications_granted">سيُعلمك Redact عند انتهاء مهمة.</string>
     <string name="onboarding_done_notifications_denied">لن يرسل لك Redact إشعارات.</string>
     <string name="onboarding_crash_title">ساعد في تحسين Redact.</string>
-    <string name="onboarding_crash_body">إذا تعطّل Redact يومًا، يمكنه إرسال تقرير مجهول الهوية حتى يتم العثور على المشكلة وإصلاحها. تقارير الأعطال هي الشيء الوحيد الذي يرسله Redact عبر الإنترنت.</string>
+    <string name="onboarding_crash_body">إذا تعطّل Redact يومًا، يمكنه إرسال تقرير مجهول الهوية حتى يتم العثور على المشكلة وإصلاحها. لا يتصل Redact بالإنترنت إلا لإرسال تقارير الأعطال التي تفعّلها، وللتحقق من التحديثات عندما تبدأه بنفسك من الإعدادات.</string>
     <string name="onboarding_crash_point_private">لا تتضمن التقارير أبدًا صورك أو مقاطع الفيديو أو أسماء الملفات أو المواقع.</string>
     <string name="onboarding_crash_point_sentry">تُرسل التقارير إلى Sentry، وهي خدمة تساعد المطورين في العثور على الأعطال وإصلاحها.</string>
     <string name="onboarding_crash_allow">إرسال تقارير الأعطال</string>

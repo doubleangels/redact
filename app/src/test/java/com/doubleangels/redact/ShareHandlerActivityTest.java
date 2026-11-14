@@ -56,6 +56,7 @@ public class ShareHandlerActivityTest {
         AppPreferences.setShareConfirmBeforeStrip(app, false);
         deleteInboundSnapshots();
         clearFileProviderCache();
+        TestShareProvider.install(app);
     }
 
     /**
@@ -128,7 +129,7 @@ public class ShareHandlerActivityTest {
         try (FileOutputStream fos = new FileOutputStream(jpeg)) {
             assertTrue(bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos));
         }
-        return Uri.fromFile(jpeg);
+        return TestShareProvider.share(jpeg);
     }
 
     private File[] inboundSnapshots() {
@@ -222,6 +223,7 @@ public class ShareHandlerActivityTest {
 
     @Test
     public void sendMultiple_tooManyItems_finishesWithLimitError() {
+        TestShareProvider.register(app, "com.example");
         ArrayList<Uri> uris = new ArrayList<>();
         for (int i = 0; i <= MediaPickerContracts.MAX_SHARE_ITEMS; i++) {
             uris.add(Uri.parse("content://com.example/media/" + i));
@@ -241,7 +243,7 @@ public class ShareHandlerActivityTest {
             fos.write("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"4\" height=\"4\"/>"
                     .getBytes(java.nio.charset.StandardCharsets.UTF_8));
         }
-        return Uri.fromFile(svg);
+        return TestShareProvider.share(svg);
     }
 
     @Test
@@ -409,7 +411,7 @@ public class ShareHandlerActivityTest {
         try (FileOutputStream fos = new FileOutputStream(garbage)) {
             fos.write("definitely not a jpeg".getBytes(java.nio.charset.StandardCharsets.US_ASCII));
         }
-        ShareHandlerActivity activity = launch(sendIntent("image/jpeg", Uri.fromFile(garbage)));
+        ShareHandlerActivity activity = launch(sendIntent("image/jpeg", TestShareProvider.share(garbage)));
 
         Intent started = awaitStartedActivity(activity);
 

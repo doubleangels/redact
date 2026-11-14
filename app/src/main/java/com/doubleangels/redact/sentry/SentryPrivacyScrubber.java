@@ -2,6 +2,10 @@ package com.doubleangels.redact.sentry;
 
 import androidx.annotation.Nullable;
 
+import com.doubleangels.redact.media.CleanFailedException;
+import com.doubleangels.redact.media.ProcessingCancelledException;
+import com.doubleangels.redact.media.UnsupportedMediaException;
+
 import io.sentry.Breadcrumb;
 import io.sentry.SentryAttributeType;
 import io.sentry.SentryEvent;
@@ -18,9 +22,12 @@ import io.sentry.protocol.SentryStackTrace;
 import io.sentry.protocol.SentryThread;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,12 +38,39 @@ public final class SentryPrivacyScrubber {
 
     private static final String REDACTED = "[redacted]";
 
+    /** What a library's exception message becomes: the type and stack trace are enough to debug. */
+    static final String MESSAGE_REMOVED = "[message removed]";
+
+    /** The package of the app's own classes in a debug build, which is not minified. */
+    private static final String APP_PACKAGE_PREFIX = "com.doubleangels.redact.";
+
+    /**
+     * The app's own exception classes by their runtime names. A release build is minified with
+     * {@code -repackageclasses}, so there the app's classes are not in {@link #APP_PACKAGE_PREFIX};
+     * these names are renamed the same way as the type Sentry reports, so they still match.
+     */
+    private static final Set<String> OWN_EXCEPTION_CLASSES = new HashSet<>(Arrays.asList(
+            CleanFailedException.class.getName(),
+            ProcessingCancelledException.class.getName(),
+            UnsupportedMediaException.class.getName()));
+
     private static final Pattern CONTENT_URI =
             Pattern.compile("content://[^\\s\"']+", Pattern.CASE_INSENSITIVE);
     private static final Pattern FILE_URI =
             Pattern.compile("file://[^\\s\"']+", Pattern.CASE_INSENSITIVE);
     private static final Pattern ABSOLUTE_PATH =
             Pattern.compile("(?:/storage/|/data/|/sdcard/|/mnt/)[^\\s\"']+", Pattern.CASE_INSENSITIVE);
+    /**
+     * A path whose folder or file names hold spaces ("/storage/…/Trip to Kyiv/IMG 1.jpg"), which
+     * {@link #ABSOLUTE_PATH} would cut at the first space. It runs to the last slash on the line,
+     * then through the next name with an extension, or else the next run without spaces. Taking a
+     * little of the text after a path is better than sending part of a name. Runs first.
+     */
+    private static final Pattern ABSOLUTE_PATH_WITH_SPACES =
+            Pattern.compile(
+                    "(?:/storage/|/data/|/sdcard/|/mnt/)[^\"'\\r\\n]*/"
+                            + "(?:[^\"'\\r\\n/]*?\\.[A-Za-z0-9]{1,8}\\b|[^\\s\"'/]*)",
+                    Pattern.CASE_INSENSITIVE);
     private static final Pattern WINDOWS_PATH =
             Pattern.compile("(?:[A-Za-z]:\\\\|\\\\\\\\)[^\\s\"']+");
     private static final Pattern LAT_LON =
@@ -67,13 +101,14 @@ public final class SentryPrivacyScrubber {
      * {@link #FILENAME_PREFIX} requires (e.g. a raw filename embedded in a vendor
      * IOException/FileNotFoundException message). Scoped to this app's own media extensions
      * so it doesn't also redact harmless tokens like source file names in stack traces. A name can
-     * hold spaces and brackets ("IMG_1 (1).jpg", "My Trip.jpg") and the text does not show where
-     * it starts, so up to three words before it go too: losing a little context is better than
-     * sending part of a name.
+     * hold spaces, brackets and symbols ("IMG_1 (1).jpg", "Mom & Dad @ clinic.jpg") and the text
+     * does not show where it starts, so up to four words before it go too: losing a little context
+     * is better than sending part of a name. A colon ends a name, so "open failed: x.jpg" keeps
+     * its first words.
      */
     private static final Pattern MEDIA_FILENAME =
             Pattern.compile(
-                    "(?:[\\w.\\-()'\\[\\]]{1,255} ){0,3}[\\w.\\-()'\\[\\]]{0,255}"
+                    "(?:[\\w.\\-()'\\[\\]&@#+!,%$~=]{1,255} ){0,4}[\\w.\\-()'\\[\\]&@#+!,%$~=]{0,255}"
                             + "\\.(?:jpe?g|png|webp|heic|heics|heif|avif|dng|tiff?|jxl|gif|bmp|apng"
                             + "|mp4|mov|m4v|avi|mkv|webm|3gp|vp[89]|bin)\\b",
                     Pattern.CASE_INSENSITIVE);
@@ -103,6 +138,7 @@ public final class SentryPrivacyScrubber {
         }
         s = CONTENT_URI.matcher(s).replaceAll(REDACTED);
         s = FILE_URI.matcher(s).replaceAll(REDACTED);
+        s = ABSOLUTE_PATH_WITH_SPACES.matcher(s).replaceAll(REDACTED);
         s = ABSOLUTE_PATH.matcher(s).replaceAll(REDACTED);
         s = WINDOWS_PATH.matcher(s).replaceAll(REDACTED);
         s = LAT_LON.matcher(s).replaceAll(REDACTED);
@@ -324,7 +360,9 @@ public final class SentryPrivacyScrubber {
         if (event.getExceptions() != null) {
             for (SentryException ex : event.getExceptions()) {
                 if (ex.getValue() != null) {
-                    ex.setValue(scrub(ex.getValue()));
+                    // A library writes its own messages and can put a path or file name in them in
+                    // ways the patterns can't all foresee, so only the app's own are kept.
+                    ex.setValue(isOwnException(ex) ? scrub(ex.getValue()) : MESSAGE_REMOVED);
                 }
                 if (ex.getModule() != null) {
                     ex.setModule(scrubCodeIdentifier(ex.getModule()));
@@ -356,6 +394,17 @@ public final class SentryPrivacyScrubber {
         // The SDK fills in a random ID per installation, which would tie every report from one
         // device together. Logs and metrics already drop it; events go without a user at all.
         event.setUser(null);
+    }
+
+    /** Whether Sentry's record of an exception is one of the app's own exception classes. */
+    static boolean isOwnException(SentryException ex) {
+        String type = ex.getType();
+        if (type == null || type.isEmpty()) {
+            return false;
+        }
+        String module = ex.getModule();
+        String name = module == null || module.isEmpty() ? type : module + "." + type;
+        return name.startsWith(APP_PACKAGE_PREFIX) || OWN_EXCEPTION_CLASSES.contains(name);
     }
 
     /**

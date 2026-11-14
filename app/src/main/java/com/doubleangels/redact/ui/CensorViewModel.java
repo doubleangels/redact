@@ -588,11 +588,14 @@ public class CensorViewModel extends AndroidViewModel {
     }
 
     /**
-     * Counts a saved censored copy by how long the export took, and whether it came out smaller
-     * than the original (Max Processing Resolution set below the photo).
+     * Records how long the export took, and counts a copy that came out smaller than the original
+     * (Max Processing Resolution set below the photo). A full-size save is not counted: that would
+     * count how often people censor.
      */
     private static void countCensorSave(boolean downscaled, long durationMs) {
-        SentryManager.count("censor.save", 1, "outcome", downscaled ? "downscaled" : "full_size");
+        if (downscaled) {
+            SentryManager.count("censor.save", 1, "outcome", "downscaled");
+        }
         SentryManager.distributionDurationMs("processing.duration_ms", durationMs, "operation_type", "censor");
     }
 

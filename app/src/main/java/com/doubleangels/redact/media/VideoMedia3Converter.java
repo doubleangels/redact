@@ -1162,6 +1162,13 @@ public final class VideoMedia3Converter {
             finished = testTimeout != null
                     ? latch.await(testTimeout, TimeUnit.MILLISECONDS)
                     : awaitUnlessStalled(latch, outFile, progressSeen);
+        } catch (InterruptedException e) {
+            // The job was stopped while waiting. The export must stop too: the finally below
+            // clears the owner, so a cancel arriving after it would find nothing to cancel, and
+            // the export would keep the codec and keep writing a file its caller has deleted.
+            cancelOnMainThread(mainHandler, cancelHook);
+            deleteQuietly(outFile);
+            throw e;
         } finally {
             activeTranscodeOwner.compareAndSet(ownerId, -1L);
             activeTransformer.compareAndSet(transformerRef.get(), null);
@@ -1186,7 +1193,7 @@ public final class VideoMedia3Converter {
             cancelDone.await(5, TimeUnit.SECONDS);
             deleteQuietly(outFile);
             logAttemptFailure(attemptLabel, outputShortSide, "STALLED", progressSeen.get(), startedAt);
-            throw new IOException("Video conversion stalled");
+            throw new CleanFailedException("Video conversion stalled");
         }
 
         ExportException exportException = errorRef.get();
@@ -1217,7 +1224,7 @@ public final class VideoMedia3Converter {
 
         if (!outFile.exists() || outFile.length() == 0) {
             deleteQuietly(outFile);
-            throw new IOException("Video conversion produced no output");
+            throw new CleanFailedException("Video conversion produced no output");
         }
     }
 
@@ -1380,6 +1387,30 @@ public final class VideoMedia3Converter {
             } catch (ClassCastException ignored) {
                 return 0;
             }
+        }
+    }
+
+    /**
+     * Runs {@code cancelHook} on the main thread, where the transformer lives, and waits a few
+     * seconds for it. Called from a thread whose interrupt has just been consumed.
+     */
+    private static void cancelOnMainThread(@NonNull Handler mainHandler, @NonNull Runnable cancelHook) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            cancelHook.run();
+            return;
+        }
+        CountDownLatch cancelDone = new CountDownLatch(1);
+        mainHandler.post(() -> {
+            try {
+                cancelHook.run();
+            } finally {
+                cancelDone.countDown();
+            }
+        });
+        try {
+            cancelDone.await(5, TimeUnit.SECONDS);
+        } catch (InterruptedException again) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -1601,7 +1632,7 @@ public final class VideoMedia3Converter {
         File parent = outputFile.getParentFile();
         if (parent != null && !parent.exists()) {
             if (!parent.mkdirs()) {
-                throw new IOException("Failed to create output directory");
+                throw new CleanFailedException("Failed to create output directory");
             }
         }
         transcodeToPath(context, sourceUri, outputFile.getAbsolutePath(), formatIndex, progressListener, -1L);
@@ -1618,7 +1649,7 @@ public final class VideoMedia3Converter {
         File parent = outputFile.getParentFile();
         if (parent != null && !parent.exists()) {
             if (!parent.mkdirs()) {
-                throw new IOException("Failed to create output directory");
+                throw new CleanFailedException("Failed to create output directory");
             }
         }
         transcodeToPath(
@@ -1655,8 +1686,9 @@ public final class VideoMedia3Converter {
     public static final String TRANSCODE_EXTENSION = ".mp4";
 
     /**
-     * The container a source in this format is usually in, which the fast transmux keeps (it
-     * writes WebM for VP8/VP9). A transcode is always {@link #TRANSCODE_EXTENSION}.
+     * The container the fast transmux writes for a source in this format: WebM for VP8/VP9, MP4
+     * for everything else, AV1 included (an AV1 source is often Matroska, but the transmux
+     * writes it to MP4). A transcode is always {@link #TRANSCODE_EXTENSION}.
      */
     @NonNull
     public static String extensionForFormatIndex(int formatIndex) {
@@ -1664,7 +1696,6 @@ public final class VideoMedia3Converter {
             case 2:
                 return ".webm";
             case 3:
-                return ".mkv";
             case 0:
             case 1:
             default:
@@ -1693,7 +1724,7 @@ public final class VideoMedia3Converter {
             try (InputStream in = new FileInputStream(file);
                     OutputStream out = resolver.openOutputStream(outUri)) {
                 if (out == null) {
-                    throw new IOException("Cannot open output stream");
+                    throw new CleanFailedException("Cannot open output stream");
                 }
                 written = OutputDestination.copyAndDigest(in, out);
                 out.flush();

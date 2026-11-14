@@ -21,6 +21,11 @@ public class UnsupportedFormatTagTest {
         assertEquals("unknown", ShareHandlerActivity.mimeTypeTag(""));
         assertEquals("unknown", ShareHandlerActivity.mimeTypeTag("image/../../secret"));
         assertEquals("unknown", ShareHandlerActivity.mimeTypeTag("holiday photo.jpg"));
+        // Wildcards are how most apps share; a sender's own text in their place is not kept.
+        assertEquals("image/*", ShareHandlerActivity.mimeTypeTag("image/*"));
+        assertEquals("*/*", ShareHandlerActivity.mimeTypeTag("*/*"));
+        assertEquals("unknown", ShareHandlerActivity.mimeTypeTag("image/Trip to Kyiv"));
+        assertEquals("unknown", ShareHandlerActivity.mimeTypeTag("/storage/emulated/0/DCIM/a.jpg"));
     }
 
     /** Every metric value goes through the scrubber; it must not mangle the fixed values. */

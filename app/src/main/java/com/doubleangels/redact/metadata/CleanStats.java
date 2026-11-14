@@ -3,7 +3,6 @@ package com.doubleangels.redact.metadata;
 import androidx.annotation.NonNull;
 import androidx.exifinterface.media.ExifInterface;
 
-import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -125,17 +124,8 @@ public final class CleanStats {
     @NonNull
     static CleanStats fromExif(@NonNull ExifInterface exif, @NonNull Set<String> preservedTags) {
         Set<String> found = new HashSet<>();
-        for (Field field : ExifInterface.class.getDeclaredFields()) {
-            if (field.getType() != String.class || !field.getName().startsWith("TAG_")) {
-                continue;
-            }
-            String tag;
-            try {
-                tag = (String) field.get(null);
-            } catch (IllegalAccessException | IllegalArgumentException e) {
-                continue;
-            }
-            if (tag == null || preservedTags.contains(tag)
+        for (String tag : ExifTags.all()) {
+            if (preservedTags.contains(tag)
                     || CleanVerifier.NON_IDENTIFYING_UNCLEARABLE_TAGS.contains(tag)) {
                 continue;
             }

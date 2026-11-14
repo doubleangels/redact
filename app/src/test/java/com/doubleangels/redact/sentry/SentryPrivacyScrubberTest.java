@@ -17,6 +17,7 @@ import io.sentry.SentryLogEventAttributeValue;
 import io.sentry.SentryLogLevel;
 import io.sentry.SentryMetricsEvent;
 import io.sentry.protocol.Feedback;
+import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryId;
 
 public class SentryPrivacyScrubberTest {
@@ -50,6 +51,69 @@ public class SentryPrivacyScrubberTest {
         }
         assertEquals("open failed: [redacted]",
                 SentryPrivacyScrubber.scrub("open failed: PXL_20261006_020342821.heic"));
+    }
+
+    /** Folder and file names with spaces and symbols, as libraries write them into messages. */
+    private static final String[][] NAMES_WITH_SPACES = {
+            {"/storage/emulated/0/Pictures/Divorce lawyer 2026/scan 1.jpg: open failed: EACCES (Permission denied)",
+                    "Divorce", "lawyer", "2026", "scan", "1.jpg"},
+            {"Failed to build unique file: /storage/emulated/0/DCIM/Trip to Kyiv/IMG_1.jpg image/jpeg",
+                    "Trip", "Kyiv", "IMG_1"},
+            {"Unable to decode Mom & Dad @ clinic.jpg", "Mom", "Dad", "clinic"},
+    };
+
+    @Test
+    public void scrubLeavesNoPartOfAFolderOrFileNameWithSpaces() {
+        for (String[] row : NAMES_WITH_SPACES) {
+            String scrubbed = SentryPrivacyScrubber.scrub(row[0]);
+            for (int i = 1; i < row.length; i++) {
+                assertFalse(row[0] + " -> " + scrubbed, scrubbed.contains(row[i]));
+            }
+        }
+        // The error itself is still there to debug with.
+        assertEquals("[redacted]: open failed: EACCES (Permission denied)",
+                SentryPrivacyScrubber.scrub(NAMES_WITH_SPACES[0][0]));
+    }
+
+    @Test
+    public void scrubEventDropsALibraryExceptionsMessageAndScrubsTheAppsOwn() {
+        SentryException library = new SentryException();
+        library.setType("FileNotFoundException");
+        library.setModule("java.io");
+        library.setValue(NAMES_WITH_SPACES[0][0]);
+        SentryException androidx = new SentryException();
+        androidx.setType("ImageDecoder$DecodeException");
+        androidx.setModule("android.graphics");
+        androidx.setValue(NAMES_WITH_SPACES[2][0]);
+        SentryException own = new SentryException();
+        own.setType("UnsupportedMediaException");
+        own.setModule("com.doubleangels.redact.media");
+        own.setValue("Unsupported: /storage/emulated/0/DCIM/Trip to Kyiv/IMG_1.heic");
+        SentryException untyped = new SentryException();
+        untyped.setValue("open /storage/emulated/0/x.jpg");
+        SentryEvent event = new SentryEvent();
+        event.setExceptions(new java.util.ArrayList<>(java.util.Arrays.asList(library, androidx, own, untyped)));
+
+        SentryPrivacyScrubber.scrubEvent(event);
+
+        assertEquals(SentryPrivacyScrubber.MESSAGE_REMOVED, library.getValue());
+        assertEquals(SentryPrivacyScrubber.MESSAGE_REMOVED, androidx.getValue());
+        assertEquals(SentryPrivacyScrubber.MESSAGE_REMOVED, untyped.getValue());
+        assertEquals("Unsupported: [redacted]", own.getValue());
+        // The type is kept: with the stack trace, that is what the issue is debugged from.
+        assertEquals("FileNotFoundException", library.getType());
+    }
+
+    /** In a minified build the app's classes are renamed into the root package. */
+    @Test
+    public void isOwnExceptionMatchesTheRuntimeNamesOfTheAppsExceptionClasses() {
+        SentryException renamed = new SentryException();
+        renamed.setType(com.doubleangels.redact.media.ProcessingCancelledException.class.getName());
+        assertTrue(SentryPrivacyScrubber.isOwnException(renamed));
+        SentryException lookalike = new SentryException();
+        lookalike.setType("IOException");
+        lookalike.setModule("com.doubleangels.redactor");
+        assertFalse(SentryPrivacyScrubber.isOwnException(lookalike));
     }
 
     @Test
@@ -101,7 +165,7 @@ public class SentryPrivacyScrubberTest {
     @Test
     public void scrubMetricRedactsStringAttributesAndStripsPiiKeys() {
         SentryMetricsEvent metric =
-                new SentryMetricsEvent(new SentryId(), 1.0, "processing.clean.success", null, 1.0);
+                new SentryMetricsEvent(new SentryId(), 1.0, "processing.clean.failure", null, 1.0);
         metric.setAttribute(
                 "user.email",
                 new SentryLogEventAttributeValue(SentryAttributeType.STRING, "a@b.com"));

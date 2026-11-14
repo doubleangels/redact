@@ -26,6 +26,7 @@ import androidx.media3.muxer.MuxerException;
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.VideoMedia3Converter;
+import com.doubleangels.redact.media.CleanFailedException;
 import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.media.ProcessingCancelledException;
 import com.doubleangels.redact.media.UnsupportedMediaException;
@@ -54,10 +55,27 @@ final class VideoCleaner {
     private final Context context;
     private final ContentResolver contentResolver;
 
+    /**
+     * Copies a video's tracks into a new file without its metadata; null when it can't. The real
+     * one is {@link #transmux}; a test passes its own to stand in for the platform muxer.
+     */
+    interface Transmuxer {
+        @Nullable
+        File transmux(@NonNull Uri sourceUri, @Nullable double[] keepLocation, boolean keepDate);
+    }
+
+    private final Transmuxer transmuxer;
+
     VideoCleaner(@NonNull MetadataStripper host) {
+        this(host, null);
+    }
+
+    /** @param transmuxer stands in for {@link #transmux}; null for the real one */
+    VideoCleaner(@NonNull MetadataStripper host, @Nullable Transmuxer transmuxer) {
         this.host = host;
         this.context = host.context;
         this.contentResolver = host.contentResolver;
+        this.transmuxer = transmuxer != null ? transmuxer : this::transmux;
     }
 
 
@@ -158,7 +176,7 @@ final class VideoCleaner {
                 throw new ProcessingCancelledException("Video processing interrupted", e);
             } catch (Exception e) {
                 SentryManager.log("Video processing failed: " + e.getClass().getSimpleName() + ".");
-                throw new IOException("Failed to clean video safely", e);
+                throw new CleanFailedException("Failed to clean video safely", e);
             } finally {
                 if (tempCleanFile != null && tempCleanFile.exists()) {
                     host.secureDeleteFile(tempCleanFile);
@@ -236,7 +254,7 @@ final class VideoCleaner {
             File outputDir = new File(context.getCacheDir(), "processed");
             if (!outputDir.exists()) {
                 if (!outputDir.mkdirs()) {
-                    throw new IOException("Failed to create output directory");
+                    throw new CleanFailedException("Failed to create output directory");
                 }
             }
 
@@ -260,7 +278,7 @@ final class VideoCleaner {
                 throw new ProcessingCancelledException("Video transcoding interrupted", e);
             } catch (Exception e) {
                 SentryManager.log("Video processing failed: " + e.getClass().getSimpleName() + ".");
-                throw new IOException("Failed to process video safely", e);
+                throw new CleanFailedException("Failed to process video safely", e);
             }
 
             host.updateProgress(4, 4, context.getString(R.string.strip_progress_verifying));
@@ -354,7 +372,7 @@ final class VideoCleaner {
         for (int sourceTrack : muxerTracks.keySet()) {
             extractor.selectTrack(sourceTrack);
         }
-        ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024 * 2);
+        ByteBuffer buffer = ByteBuffer.allocate(INITIAL_SAMPLE_BUFFER);
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         while (true) {
             host.checkCancelled();
@@ -367,16 +385,12 @@ final class VideoCleaner {
                 extractor.advance();
                 continue;
             }
+            // readSampleData throws rather than report a sample bigger than the buffer, so the
+            // buffer is grown first, from the size the extractor gives.
+            buffer = bufferFor(buffer, extractor.getSampleSize());
             info.size = extractor.readSampleData(buffer, 0);
             if (info.size < 0) {
                 break;
-            }
-            if (info.size > buffer.capacity()) {
-                buffer = ByteBuffer.allocate(info.size);
-                info.size = extractor.readSampleData(buffer, 0);
-                if (info.size < 0) {
-                    break;
-                }
             }
             info.presentationTimeUs = extractor.getSampleTime();
             int sampleFlags = extractor.getSampleFlags();
@@ -467,10 +481,14 @@ final class VideoCleaner {
      * @param keepDate whether Keep Date Taken will put the recording date back, which a WebM
      *     cannot hold
      */
+    @Nullable
     File fastStripVideoMetadata(Uri sourceUri, @Nullable double[] keepLocation, boolean keepDate) {
-        if (host.testFastStripVideoMetadataOverride != null) {
-            return host.testFastStripVideoMetadataOverride;
-        }
+        return transmuxer.transmux(sourceUri, keepLocation, keepDate);
+    }
+
+    /** The real {@link Transmuxer}: MediaExtractor into MediaMuxer, or a WebM into an MP4. */
+    @Nullable
+    private File transmux(@NonNull Uri sourceUri, @Nullable double[] keepLocation, boolean keepDate) {
         if (keepLocation != null || keepDate) {
             // A WebM has no field for a location, and Android reads no recording date from one,
             // so a VP9 video whose location or date is kept is copied into an MP4 instead.
@@ -721,6 +739,34 @@ final class VideoCleaner {
         }
     }
 
+    /** What each sample is read into at first; {@link #bufferFor} grows it for a larger one. */
+    private static final int INITIAL_SAMPLE_BUFFER = 2 * 1024 * 1024;
+
+    /**
+     * No real frame comes near this; a size beyond it is a damaged or hostile file, which the
+     * caller turns into a full re-encode rather than an allocation that could run out of memory.
+     */
+    @VisibleForTesting
+    static final int MAX_SAMPLE_BYTES = 64 * 1024 * 1024;
+
+    /**
+     * {@code buffer}, or a new one big enough for a sample of {@code sampleSize} bytes, as
+     * {@link MediaExtractor#getSampleSize()} gives it (-1 when there are no more samples).
+     *
+     * @throws IOException when the sample is larger than {@link #MAX_SAMPLE_BYTES}
+     */
+    @VisibleForTesting
+    @NonNull
+    static ByteBuffer bufferFor(@NonNull ByteBuffer buffer, long sampleSize) throws IOException {
+        if (sampleSize <= buffer.capacity()) {
+            return buffer;
+        }
+        if (sampleSize > MAX_SAMPLE_BYTES) {
+            throw new CleanFailedException("Video sample too large");
+        }
+        return ByteBuffer.allocate((int) sampleSize);
+    }
+
     /** The first sample of {@code track}, read with an extractor of its own. */
     @NonNull
     private byte[] firstSample(@NonNull Uri sourceUri, int track) throws IOException {
@@ -728,10 +774,10 @@ final class VideoCleaner {
         try {
             extractor.setDataSource(context, sourceUri, null);
             extractor.selectTrack(track);
-            ByteBuffer buffer = ByteBuffer.allocate(2 * 1024 * 1024);
+            ByteBuffer buffer = bufferFor(ByteBuffer.allocate(INITIAL_SAMPLE_BUFFER), extractor.getSampleSize());
             int size = extractor.readSampleData(buffer, 0);
             if (size <= 0) {
-                throw new IOException("The video has no samples");
+                throw new CleanFailedException("The video has no samples");
             }
             byte[] sample = new byte[size];
             buffer.position(0);
@@ -793,9 +839,6 @@ final class VideoCleaner {
      * Strict Clean off), which is the only reason to make one.
      */
     private boolean mayKeepTransmux() {
-        if (host.testFastStripVideoMetadataOverride != null) {
-            return true;
-        }
         return !AppPreferences.isStrictClean(context) && AppPreferences.isVideoFallbackCopy(context);
     }
 

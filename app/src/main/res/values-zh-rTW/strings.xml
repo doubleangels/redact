@@ -156,6 +156,13 @@
     <string name="settings_section_diagnostics_subtitle">可選的當機報告以協助修復問題。您的媒體絕不會離開裝置。</string>
     <string name="settings_crash_reporting_label">傳送當機報告</string>
     <string name="settings_crash_reporting_subtitle">僅分享匿名的技術資訊（App 版本、裝置型號、當機時 App 正在做什麼），絕不包含您的相片或影片。啟用後會透過網際網路傳送至我們的當機回報服務 Sentry。</string>
+    <string name="settings_update_check_label">更新</string>
+    <string name="settings_update_check_subtitle">僅在您輕觸「檢查更新」時，透過網際網路向 GitHub 查詢最新版本號。不會傳送任何關於您或您檔案的資訊。</string>
+    <string name="update_available">Redact %1$s 已發布，可能需要一兩天才會在應用程式商店上架。</string>
+    <string name="update_available_action">更新</string>
+    <string name="update_check_button">檢查更新</string>
+    <string name="update_up_to_date">您使用的是最新版本。</string>
+    <string name="update_check_failed">無法檢查更新。請檢查網路連線後再試一次。</string>
     <string name="settings_section_conversion">轉換分頁預設值</string>
     <string name="settings_conversion_subtitle">在「轉換」中選擇檔案時預先選取的格式。仍可為每批變更。</string>
     <string name="settings_default_image_format">預設圖片格式</string>
@@ -555,7 +562,7 @@
     <string name="onboarding_done_notifications_granted">工作完成時 Redact 會通知你。</string>
     <string name="onboarding_done_notifications_denied">Redact 不會傳送通知給你。</string>
     <string name="onboarding_crash_title">幫助改善 Redact。</string>
-    <string name="onboarding_crash_body">如果 Redact 發生當機，它可以傳送一份匿名報告，以便找出並修正問題。當機報告是 Redact 透過網際網路傳送的唯一內容。</string>
+    <string name="onboarding_crash_body">如果 Redact 發生當機，它可以傳送一份匿名報告，以便找出並修正問題。Redact 只會為您開啟的當機回報，以及您在設定中親自發起的更新檢查而連上網路。</string>
     <string name="onboarding_crash_point_private">報告絕不會包含你的相片、影片、檔名或位置。</string>
     <string name="onboarding_crash_point_sentry">報告會傳送到 Sentry，這是一項協助開發者找出並修正當機的服務。</string>
     <string name="onboarding_crash_allow">傳送當機報告</string>

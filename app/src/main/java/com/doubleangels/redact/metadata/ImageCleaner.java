@@ -14,6 +14,7 @@ import androidx.exifinterface.media.ExifInterface;
 import androidx.media3.common.Format;
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.media.CleanFailedException;
 import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaFileNames;
 import com.doubleangels.redact.media.MediaSizeLimits;
@@ -29,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
-import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
@@ -77,7 +77,7 @@ final class ImageCleaner {
      */
     @NonNull
     public CleanResult cleanImage(@NonNull Uri sourceUri, @NonNull String originalFilename) {
-        // Log operation start for analytics and debugging
+        // Breadcrumb for a crash report.
         SentryManager.log("The app is starting image EXIF stripping for MediaStore.");
         SentryManager.beginOperation("image_to_mediastore");
         Uri newUri = null;
@@ -210,14 +210,15 @@ final class ImageCleaner {
             // can be a full copy of the original with its metadata.
             cleanFile = File.createTempFile("temp_clean_", outputFormat.extension, context.getCacheDir());
             FormatConverter.ImageFormatSpec cleanFormat =
-                    writePictureOnly(picture, pictureUri, cleanFile, outputFormat, fromPixels, motion, job.kept);
+                    writePictureOnly(picture, pictureUri, cleanFile, outputFormat, fromPixels, motion, job.kept,
+                            AppPreferences.isStrictClean(context));
             if (!cleanFormat.extension.equals(outputFormat.extension)) {
                 newFilename = withExtension(newFilename, cleanFormat.extension);
             }
 
             // Restore only essential EXIF data (like orientation)
             host.updateProgress(4, 5, context.getString(R.string.strip_progress_restoring_essential_metadata));
-            restoreEssentialExifData(cleanFile, job.kept);
+            restoreEssentialExifData(cleanFile, job.kept, false);
 
             // Verified while still private: a folder the user chose shows a new file at once (a
             // cloud-backed one may upload it), so nothing unverified may reach the output.
@@ -225,7 +226,7 @@ final class ImageCleaner {
             boolean metadataRemoved = host.verifier.verifyMetadataRemoval(cleanFile, false);
             SentryManager.setCustomKey("metadata_verification_passed", metadataRemoved);
             if (!metadataRemoved) {
-                throw new IOException("Metadata verification failed");
+                throw new CleanFailedException("Metadata verification failed");
             }
 
             // Create the output (a pending MediaStore entry, or a file in the chosen folder) and
@@ -236,7 +237,7 @@ final class ImageCleaner {
             try (InputStream in = new FileInputStream(cleanFile);
                     OutputStream os = contentResolver.openOutputStream(newUri)) {
                 if (os == null) {
-                    throw new IOException("Failed to open output stream for new image");
+                    throw new CleanFailedException("Failed to open output stream for new image");
                 }
                 MessageDigest digest = OutputDestination.sha256();
                 MediaSizeLimits.copyStream(in, new DigestOutputStream(os, digest));
@@ -288,7 +289,7 @@ final class ImageCleaner {
                 while (left > 0) {
                     int n = in.read(buffer, 0, (int) Math.min(buffer.length, left));
                     if (n < 0) {
-                        throw new IOException("The video ends early");
+                        throw new CleanFailedException("The video ends early");
                     }
                     out.write(buffer, 0, n);
                     left -= n;
@@ -306,11 +307,11 @@ final class ImageCleaner {
             VideoContainerMetadata.scrub(video);
             VideoContainerMetadata.Report container = VideoContainerMetadata.scan(video);
             if (!container.recognized || !container.fields.isEmpty()) {
-                throw new IOException("its container still holds metadata");
+                throw new CleanFailedException("its container still holds metadata");
             }
             VideoStreamMetadata.Report stream = VideoStreamMetadata.scan(context, Uri.fromFile(video), true);
             if (stream == null || stream.userDataMessages > 0) {
-                throw new IOException("its stream carries data of its own");
+                throw new CleanFailedException("its stream carries data of its own");
             }
             return new MotionPhoto.Clip(video, found.presentationTimestampUs);
         } catch (IOException | RuntimeException e) {
@@ -340,7 +341,7 @@ final class ImageCleaner {
      */
     @NonNull
     public CleanResult cleanImageForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename) {
-        // Log operation start for analytics and debugging
+        // Breadcrumb for a crash report.
         SentryManager.log("The app is starting image EXIF stripping for sharing.");
 
         SentryManager.beginOperation("image_for_sharing");
@@ -364,8 +365,8 @@ final class ImageCleaner {
 
             File outputDir = new File(context.getCacheDir(), "processed");
             if (!outputDir.exists()) {
-                if (host.testForceOutputDirMkdirsFailure || !outputDir.mkdirs()) {
-                    throw new IOException("Failed to create output directory");
+                if (!outputDir.mkdirs()) {
+                    throw new CleanFailedException("Failed to create output directory");
                 }
             }
 
@@ -374,19 +375,20 @@ final class ImageCleaner {
 
             host.updateProgress(3, 5, context.getString(R.string.strip_progress_removing_metadata));
             FormatConverter.ImageFormatSpec cleanFormat =
-                    writePictureOnly(tempFile, Uri.fromFile(tempFile), outputFile, outputFormat, false, null, job.kept);
+                    writePictureOnly(tempFile, Uri.fromFile(tempFile), outputFile, outputFormat, false, null, job.kept,
+                            true);
             if (!cleanFormat.extension.equals(extension)) {
                 // Shared under the name of what it really is, so the app it goes to opens it.
                 File renamed = new File(outputDir, host.generateShortRandomName() + cleanFormat.extension);
                 if (!outputFile.renameTo(renamed)) {
-                    throw new IOException("Failed to rename the shared image");
+                    throw new CleanFailedException("Failed to rename the shared image");
                 }
                 outputFile = renamed;
             }
 
             // Put back only the essential tags (orientation)
             host.updateProgress(4, 5, context.getString(R.string.strip_progress_removing_all_metadata));
-            restoreEssentialExifData(outputFile, job.kept);
+            restoreEssentialExifData(outputFile, job.kept, true);
 
             // Verify metadata removal
             host.updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
@@ -440,10 +442,10 @@ final class ImageCleaner {
         boolean rebuilt = false;
         try {
             if (ImageContainerMetadata.sniff(encoded) != ImageContainerMetadata.Format.OTHER) {
-                ImageContainerMetadata.sanitize(encoded, target);
+                ImageContainerMetadata.sanitize(encoded, target, context.getCacheDir());
                 rebuilt = true;
             } else if (HeifContainerMetadata.isHeif(encoded)) {
-                HeifContainerMetadata.sanitize(encoded, target);
+                HeifContainerMetadata.sanitize(encoded, target, context.getCacheDir());
                 rebuilt = true;
             }
         } catch (IOException | RuntimeException e) {
@@ -458,7 +460,7 @@ final class ImageCleaner {
         }
         // Checked as a share is: nothing kept but how to show the picture.
         if (!host.verifier.verifyMetadataRemoval(target, true)) {
-            throw new IOException("Converted image verification failed");
+            throw new CleanFailedException("Converted image verification failed");
         }
     }
 
@@ -531,8 +533,10 @@ final class ImageCleaner {
      * preserved from the original image.
      *
      * @param imageFile the processed image, before it is copied to the output
+     * @param forSharing whether it is being cleaned to share, which keeps a different set of tags
      */
-    private void restoreEssentialExifData(@NonNull File imageFile, @NonNull Map<String, String> kept) {
+    private void restoreEssentialExifData(@NonNull File imageFile, @NonNull Map<String, String> kept,
+                                          boolean forSharing) {
         // Skip if no EXIF values were preserved
         if (kept.isEmpty()) {
             return;
@@ -550,7 +554,7 @@ final class ImageCleaner {
         try {
             ExifInterface newExif = new ExifInterface(imageFile.getAbsolutePath());
 
-            removeAllExifMetadata(newExif);
+            removeAllExifMetadata(newExif, forSharing);
             restoreEssentialExifValues(newExif, kept);
             newExif.saveAttributes();
             if (ImageContainerMetadata.sniff(imageFile) == ImageContainerMetadata.Format.JPEG) {
@@ -581,7 +585,7 @@ final class ImageCleaner {
             Bitmap pixel = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
             try (FileOutputStream out = new FileOutputStream(carrier)) {
                 if (!pixel.compress(Bitmap.CompressFormat.JPEG, 90, out)) {
-                    throw new IOException("Could not write the EXIF carrier");
+                    throw new CleanFailedException("Could not write the EXIF carrier");
                 }
             } finally {
                 pixel.recycle();
@@ -599,9 +603,9 @@ final class ImageCleaner {
             exif.saveAttributes();
             byte[] tiff = exifTiff(Files.readAllBytes(carrier.toPath()));
             if (tiff == null) {
-                throw new IOException("The EXIF carrier has no EXIF");
+                throw new CleanFailedException("The EXIF carrier has no EXIF");
             }
-            HeifContainerMetadata.addExif(heif, tiff);
+            HeifContainerMetadata.addExif(heif, tiff, context.getCacheDir());
         } catch (IOException | RuntimeException e) {
             SentryManager.log("The kept EXIF tags could not be added to the HEIF: " + e.getClass().getSimpleName() + ".");
         } finally {
@@ -651,38 +655,30 @@ final class ImageCleaner {
      * except the tags we explicitly want to preserve.
      *
      * @param exif The ExifInterface instance to clean
+     * @param forSharing whether the photo is being cleaned to share; the settings keep different
+     *                   tags then
      */
-    private void removeAllExifMetadata(@NonNull ExifInterface exif) {
-        removeAllExifMetadata(exif, false);
-    }
-
     private void removeAllExifMetadata(@NonNull ExifInterface exif, boolean forSharing) {
         try {
-            // Get all TAG constants from ExifInterface using reflection
-            Field[] fields = ExifInterface.class.getDeclaredFields();
+            // Every TAG_ constant; throws when they can't be read, and the catch below falls back
+            // to the fixed list (verification fails closed on the same check).
+            List<String> tags = ExifTags.all();
             Set<String> tagsToPreserve = new HashSet<>(host.getTagsToPreserve(forSharing));
 
             int removedCount = 0;
-            for (Field field : fields) {
-                if (field.getType() == String.class && field.getName().startsWith("TAG_")) {
-                    try {
-                        String tagName = (String) field.get(null);
-                        if (tagName != null && !tagsToPreserve.contains(tagName)) {
-                            // Try to get the attribute to see if it exists
-                            String value = exif.getAttribute(tagName);
-                            if (ExifInterface.TAG_XMP.equals(tagName) && value != null
-                                    && UltraHdr.isPictureOnlyXmp(value)) {
-                                // The Ultra HDR directory a clean wrote: removing it loses the HDR.
-                                continue;
-                            }
-                            if (value != null) {
-                                // Remove the attribute by setting it to null
-                                exif.setAttribute(tagName, null);
-                                removedCount++;
-                            }
-                        }
-                    } catch (IllegalAccessException | IllegalArgumentException e) {
-                        // Skip fields we can't access
+            for (String tagName : tags) {
+                if (!tagsToPreserve.contains(tagName)) {
+                    // Try to get the attribute to see if it exists
+                    String value = exif.getAttribute(tagName);
+                    if (ExifInterface.TAG_XMP.equals(tagName) && value != null
+                            && UltraHdr.isPictureOnlyXmp(value)) {
+                        // The Ultra HDR directory a clean wrote: removing it loses the HDR.
+                        continue;
+                    }
+                    if (value != null) {
+                        // Remove the attribute by setting it to null
+                        exif.setAttribute(tagName, null);
+                        removedCount++;
                     }
                 }
             }
@@ -807,12 +803,16 @@ final class ImageCleaner {
      * or a file whose structure cannot be followed, is decoded and re-encoded from its pixels, and
      * a re-encoded JPEG, PNG or WebP is then rebuilt the same way, so whatever the encoder added
      * goes too. EXIF is gone either way; the caller puts back the tags the settings keep.
+     *
+     * @param neutralIcc Strict Clean or a share: a JPEG's, PNG's or WebP's colour profile keeps
+     *                   only its colour tags and a neutral name ({@link IccProfiles})
      */
     @NonNull
     private FormatConverter.ImageFormatSpec writePictureOnly(@NonNull File source, @NonNull Uri sourceUri,
                                   @NonNull File target,
                                   @NonNull FormatConverter.ImageFormatSpec outputFormat, boolean fromPixels,
-                                  @Nullable MotionPhoto.Clip motion, @NonNull Map<String, String> kept)
+                                  @Nullable MotionPhoto.Clip motion, @NonNull Map<String, String> kept,
+                                  boolean neutralIcc)
             throws IOException {
         ImageContainerMetadata.Format expected = containerFormat(outputFormat.extension);
         // A HEIC the encoder just wrote is still rebuilt below: losslessly, so whatever the
@@ -833,7 +833,7 @@ final class ImageCleaner {
             // Rebuilt around its coded pictures, which keeps the full resolution, 10-bit colour
             // and any HDR gain map that a decode and encode would lose.
             try {
-                HeifContainerMetadata.sanitize(source, target, motion);
+                HeifContainerMetadata.sanitize(source, target, motion, context.getCacheDir());
                 countPicturePath(fromPixels, "rebuilt");
                 return outputFormat;
             } catch (IOException | RuntimeException e) {
@@ -866,7 +866,7 @@ final class ImageCleaner {
         if (expected != ImageContainerMetadata.Format.OTHER
                 && ImageContainerMetadata.sniff(source) == expected) {
             try {
-                ImageContainerMetadata.sanitize(source, target, motion);
+                ImageContainerMetadata.sanitize(source, target, motion, context.getCacheDir(), neutralIcc);
                 countPicturePath(fromPixels, "rebuilt");
                 return outputFormat;
             } catch (IOException | RuntimeException e) {
@@ -887,7 +887,7 @@ final class ImageCleaner {
             reEncode(source, sourceUri, encoded, outputFormat, kept);
             if (writtenFormat != ImageContainerMetadata.Format.OTHER
                     && ImageContainerMetadata.sniff(encoded) == writtenFormat) {
-                ImageContainerMetadata.sanitize(encoded, target, motion);
+                ImageContainerMetadata.sanitize(encoded, target, motion, context.getCacheDir(), neutralIcc);
             } else {
                 try (InputStream in = new FileInputStream(encoded);
                         OutputStream out = new FileOutputStream(target)) {
@@ -980,7 +980,7 @@ final class ImageCleaner {
         try (FileOutputStream out = new FileOutputStream(target)) {
             if (!FormatConverter.compressBitmapToStream(
                     context, bitmap, bitmapOutput.compressFormat, out, sourceJpegQuality, losslessSource)) {
-                throw new IOException("Failed to compress bitmap");
+                throw new CleanFailedException("Failed to compress bitmap");
             }
             out.flush();
             out.getFD().sync();

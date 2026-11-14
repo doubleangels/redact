@@ -258,6 +258,31 @@ public class CacheCleanupTest {
         assertTrue("a recent share stays for the app reading it", fresh.exists());
     }
 
+    /**
+     * A raw gain map is the source's, EXIF and all. One left in processed/ by a clean that died
+     * goes at the next start whatever its age, while a fresh shared file there stays.
+     */
+    @Test
+    public void orphanSweep_removesAWorkingFileLeftInTheSharedFolder() throws IOException {
+        File dir = new File(context.getCacheDir(), "processed");
+        dir.mkdirs();
+        File gainMap = new File(dir, "gainmap_123.jpg");
+        File heifBody = new File(dir, "heif_body_456.bin");
+        File shared = new File(dir, "Ab3dEf9h.jpg");
+        for (File f : new File[] {gainMap, heifBody, shared}) {
+            try (java.io.FileOutputStream out = new java.io.FileOutputStream(f)) {
+                out.write(new byte[64]);
+            }
+        }
+
+        CacheCleanup.scheduleOrphanedWorkFileSweep(context);
+        CacheCleanup.awaitOrphanSweepForTests();
+
+        assertFalse("a working file in processed/ is an orphan", gainMap.exists());
+        assertFalse(heifBody.exists());
+        assertTrue("a recent share stays for the app reading it", shared.exists());
+    }
+
     @Test
     public void orphanSweep_removesALeftoverCensoredCopy() throws IOException {
         File censored = cacheFile("censored_123.jpg");

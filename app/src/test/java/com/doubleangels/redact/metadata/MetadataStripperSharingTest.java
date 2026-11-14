@@ -220,4 +220,56 @@ public class MetadataStripperSharingTest {
         stripper.requestCancellation();
         assertEquals(null, (lastResult = stripper.cleanImageForSharing(Uri.fromFile(missing), "y.jpg")).uri());
     }
+
+    /** A v2 profile named after a home calibration, naming its display maker in dmnd. */
+    private static byte[] calibratedProfile() {
+        byte[] desc = concat(ascii("desc"), new byte[4], be32(28), ascii("Jane's Dell calibrated 2024"));
+        byte[] maker = concat(ascii("text"), new byte[4], ascii("AcmeDisplays"));
+        int offset = 128 + 4 + 2 * 12;
+        byte[] header = new byte[128];
+        header[8] = 2; // version 2
+        return concat(header, be32(2),
+                ascii("desc"), be32(offset), be32(desc.length),
+                ascii("dmnd"), be32(offset + desc.length), be32(maker.length),
+                desc, maker);
+    }
+
+    private static byte[] ascii(String s) {
+        return s.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1);
+    }
+
+    private static byte[] be32(long v) {
+        return java.nio.ByteBuffer.allocate(4).putInt((int) v).array();
+    }
+
+    private static byte[] concat(byte[]... parts) {
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        for (byte[] part : parts) {
+            out.write(part, 0, part.length);
+        }
+        return out.toByteArray();
+    }
+
+    /** A share keeps the colour profile but not the person or device it names (item 3, third pass). */
+    @Test
+    public void shareJpeg_keepsTheProfile_withoutTheNamesInIt() throws Exception {
+        AppPreferences.setStrictClean(app, false);
+        byte[] plain = java.nio.file.Files.readAllBytes(image(".jpg", Bitmap.CompressFormat.JPEG, false).toPath());
+        byte[] app2 = concat(ascii("ICC_PROFILE "), new byte[] {1, 1}, calibratedProfile());
+        int length = app2.length + 2;
+        byte[] jpeg = concat(java.util.Arrays.copyOf(plain, 2),
+                new byte[] {(byte) 0xFF, (byte) 0xE2, (byte) (length >> 8), (byte) length}, app2,
+                java.util.Arrays.copyOfRange(plain, 2, plain.length));
+        File src = File.createTempFile("strip_icc_", ".jpg");
+        src.deleteOnExit();
+        java.nio.file.Files.write(src.toPath(), jpeg);
+
+        assertNotNull((lastResult = stripper.cleanImageForSharing(Uri.fromFile(src), "a.jpg")).uri());
+
+        byte[] out = java.nio.file.Files.readAllBytes(lastResult.file().toPath());
+        String text = new String(out, java.nio.charset.StandardCharsets.ISO_8859_1);
+        assertTrue("the profile is kept", text.contains("ICC_PROFILE"));
+        assertTrue(text.contains(IccProfiles.NEUTRAL_NAME));
+        assertTrue(!text.contains("Jane") && !text.contains("AcmeDisplays"));
+    }
 }

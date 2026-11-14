@@ -787,4 +787,59 @@ public class SettingsFragmentTest {
     @SuppressWarnings("unused")
     private static void unused(Activity a) {
     }
+
+    /**
+     * What a tap on Check for Updates found: a newer version offers the store, up to date and failure
+     * each say so. The button itself is the only way a check starts (see UpdateCheckerTest).
+     */
+    @Test
+    public void checkForUpdates_showsWhatTheCheckFound() {
+        SettingsFragment fragment = (SettingsFragment) fragment();
+        assertNotNull(settings.findViewById(R.id.buttonCheckForUpdates));
+
+        fragment.showUpdateResult(new com.doubleangels.redact.update.UpdateChecker.Result(
+                com.doubleangels.redact.update.UpdateChecker.Result.Status.NEWER, "9.9.0"));
+        idle();
+        assertEquals(activity.getString(R.string.update_available, "9.9.0"),
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
+
+        fragment.showUpdateResult(new com.doubleangels.redact.update.UpdateChecker.Result(
+                com.doubleangels.redact.update.UpdateChecker.Result.Status.UP_TO_DATE, null));
+        idle();
+        assertEquals(activity.getString(R.string.update_up_to_date),
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
+
+        fragment.showUpdateResult(new com.doubleangels.redact.update.UpdateChecker.Result(
+                com.doubleangels.redact.update.UpdateChecker.Result.Status.FAILED, null));
+        idle();
+        assertEquals(activity.getString(R.string.update_check_failed),
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
+    }
+
+    /** Tapping Check for Updates disables the button until the answer comes, then shows it. */
+    @Test
+    public void checkNow_disablesTheButtonWhileChecking_thenShowsTheAnswer() throws Exception {
+        SettingsFragment fragment = (SettingsFragment) fragment();
+        View button = settings.findViewById(R.id.buttonCheckForUpdates);
+        java.util.concurrent.CountDownLatch release = new java.util.concurrent.CountDownLatch(1);
+        com.doubleangels.redact.update.UpdateChecker checker = new com.doubleangels.redact.update.UpdateChecker(
+                url -> {
+                    try {
+                        release.await();
+                    } catch (InterruptedException e) {
+                        throw new java.io.IOException(e);
+                    }
+                    return "{\"tag_name\":\"v99.0.0\"}";
+                }, "1.0.0");
+
+        Thread thread = fragment.checkForUpdates(button, checker);
+        assertFalse(button.isEnabled());
+        release.countDown();
+        thread.join(10_000);
+        idle();
+
+        assertTrue(button.isEnabled());
+        assertEquals(activity.getString(R.string.update_available, "99.0.0"),
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
+    }
 }

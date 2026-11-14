@@ -1,6 +1,5 @@
 package com.doubleangels.redact;
 
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.res.Configuration;
@@ -28,9 +27,9 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.color.DynamicColors;
+import com.doubleangels.redact.media.InboundUriPolicy;
 import com.doubleangels.redact.media.MediaPickerContracts;
 import com.doubleangels.redact.media.MediaSelector;
-import com.doubleangels.redact.media.MediaUriResolver;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.ui.FoldPosture;
 import com.doubleangels.redact.ui.FoldTracker;
@@ -70,8 +69,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String CONVERT_SHARE_TARGET = ".ConvertShareTarget";
     /** Manifest alias that receives Redact › Censor shares. */
     private static final String CENSOR_SHARE_TARGET = ".CensorShareTarget";
-    /** Same cap as picking files in Convert. */
-
     /**
      * The first-start introduction, which asks for each permission and about crash reports on its
      * own page. When it finishes, the first-launch flow ends without prompting again. Backing out
@@ -102,6 +99,16 @@ public class MainActivity extends AppCompatActivity {
 
     /** This instance's own callback, so destroying it leaves another instance's in place. */
     private final Runnable permissionFlowCompleted = this::notifyVisibleFragmentPermissionFlowCompleted;
+
+    /**
+     * Hands every MainViewModel this activity or its fragments ask for the application's
+     * {@link com.doubleangels.redact.ui.ProcessingRepository}, which owns the jobs.
+     */
+    @NonNull
+    @Override
+    public ViewModelProvider.Factory getDefaultViewModelProviderFactory() {
+        return MainViewModel.factory(super.getDefaultViewModelProviderFactory());
+    }
 
     @Override
     protected void onDestroy() {
@@ -161,7 +168,6 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView.setOnItemSelectedListener(item -> {
             try {
                 int itemId = item.getItemId();
-                SentryManager.logEvent("Navigation", "The user selected a tab.");
                 Fragment target = ensureFragmentForTab(itemId);
                 if (target == null) {
                     return false;
@@ -287,7 +293,6 @@ public class MainActivity extends AppCompatActivity {
             // Don't swap the files out from under a running convert; just show its progress.
             return true;
         }
-        SentryManager.logEvent("Share", "Media was shared to Convert.");
         new MediaSelector(this)
                 .processMediaUrisAsync(media, viewModel::setConvertSelectedItems);
         return true;
@@ -310,7 +315,6 @@ public class MainActivity extends AppCompatActivity {
             Notice.show(this, R.string.share_error_unsupported_media, true);
             return true;
         }
-        SentryManager.logEvent("Share", "A photo was shared to Censor.");
         new ViewModelProvider(this)
                 .get(CensorViewModel.class).requestOpen(uri);
         return true;
@@ -386,12 +390,7 @@ public class MainActivity extends AppCompatActivity {
      * would let the sender point Scan at files that are private to Redact.
      */
     private boolean isForeignContentUri(@Nullable Uri uri) {
-        if (uri == null || !ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
-            return false;
-        }
-        String authority = uri.getAuthority();
-        return authority != null && !authority.startsWith(getPackageName())
-                && !MediaUriResolver.isOwnProvider(this, uri);
+        return InboundUriPolicy.isForeignContentUri(this, uri);
     }
 
     private static int tabFromIntent(@Nullable Intent intent) {
@@ -651,8 +650,9 @@ public class MainActivity extends AppCompatActivity {
     private void setupVersionNumber() {
         try {
             PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-            assert packageInfo.versionName != null;
-            SentryManager.setCustomKey("app_version", packageInfo.versionName);
+            if (packageInfo.versionName != null) {
+                SentryManager.setCustomKey("app_version", packageInfo.versionName);
+            }
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
@@ -695,13 +695,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void notifyVisibleFragmentPermissionFlowCompleted() {
-        Fragment target = getVisibleTabFragment();
-        if (target instanceof CleanFragment cleanFragment) {
-            cleanFragment.onHostPermissionFlowCompleted();
-        } else if (target instanceof ScanFragment scanFragment) {
-            scanFragment.onHostPermissionFlowCompleted();
-        } else if (target instanceof ConvertFragment convertFragment) {
-            convertFragment.onHostPermissionFlowCompleted();
+        if (getVisibleTabFragment() instanceof TabFragment tab) {
+            tab.onHostPermissionFlowCompleted();
         }
     }
 
@@ -742,28 +737,11 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            Fragment target = resolvePermissionResultTarget(requestCode);
-            if (target instanceof CleanFragment cleanFragment) {
-                cleanFragment.handlePermissionResult(requestCode, permissions, grantResults);
-            } else if (target instanceof ScanFragment scanFragment) {
-                scanFragment.handlePermissionResult(requestCode, permissions, grantResults);
-            } else if (target instanceof ConvertFragment convertFragment) {
-                convertFragment.handlePermissionResult(requestCode, permissions, grantResults);
+            if (resolvePermissionResultTarget(requestCode) instanceof TabFragment tab) {
+                tab.handlePermissionResult(requestCode, permissions, grantResults);
             }
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        SentryManager.logEvent("Lifecycle", "The MainActivity resumed.");
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        SentryManager.logEvent("Lifecycle", "The MainActivity paused.");
     }
 }

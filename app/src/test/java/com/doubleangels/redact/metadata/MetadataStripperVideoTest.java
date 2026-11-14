@@ -239,9 +239,9 @@ public class MetadataStripperVideoTest {
     }
 
     @Test
-    public void transmux_testOverrideShortCircuits() throws Exception {
+    public void transmux_usesTheInjectedTransmuxer() throws Exception {
         File forced = videoFile(".mp4");
-        stripper.setTestFastStripVideoMetadataOverride(forced);
+        stripper = new MetadataStripper(app, (uri, location, date) -> forced);
         assertEquals(forced, stripper.transmuxVideoWithoutMetadata(Uri.fromFile(new File("/nonexistent/x.mp4"))));
     }
 
@@ -340,7 +340,7 @@ public class MetadataStripperVideoTest {
         AppPreferences.setStrictClean(app, false);
         AppPreferences.setVideoFallbackCopy(app, true);
         File clean = videoFile(".mp4");
-        stripper.setTestFastStripVideoMetadataOverride(clean);
+        stripper = new MetadataStripper(app, (uri, location, date) -> clean);
         Uri source = Uri.fromFile(videoFile(".mp4"));
         List<Integer> progress = new ArrayList<>();
         stripper.setProgressCallback((p, m) -> progress.add(p));
@@ -355,6 +355,23 @@ public class MetadataStripperVideoTest {
         assertFalse(entry.isPending());
         assertEquals(TestVideos.cleanMp4().length, entry.file.length());
         assertEquals(Integer.valueOf(100), progress.get(progress.size() - 1));
+    }
+
+    /** An AV1 video takes the fast path too: its transmux is an MP4, as the check expects. */
+    @Test
+    public void stripVideo_fastPath_keepsAnAv1Transmux() throws Exception {
+        AppPreferences.setStrictClean(app, false);
+        AppPreferences.setVideoFallbackCopy(app, true);
+        File clean = videoFile(".mp4");
+        stripper = new MetadataStripper(app, (uri, location, date) -> clean);
+        Uri source = withTracks(videoFile(".mp4"), videoFormat(MediaFormat.MIMETYPE_VIDEO_AV1));
+
+        assertNotNull((lastResult = stripper.cleanVideo(source, "drone.mp4")).uri());
+
+        FakeMediaStoreProvider.Entry entry = FakeMediaStoreProvider.only();
+        assertEquals("video/mp4", entry.mimeType());
+        assertEquals("the transmux was saved as it is, not re-encoded",
+                TestVideos.cleanMp4().length, entry.file.length());
     }
 
     private File writeVideo(byte[] content) throws IOException {
@@ -373,7 +390,7 @@ public class MetadataStripperVideoTest {
                 TestVideos.mdtaMeta("com.android.version", "17"),
                 TestVideos.box("udta", TestVideos.box("loci", TestVideos.bytes(TestVideos.LOCATION)))));
         long length = muxed.length();
-        stripper.setTestFastStripVideoMetadataOverride(muxed);
+        stripper = new MetadataStripper(app, (uri, location, date) -> muxed);
 
         Uri out = (lastResult = stripper.cleanVideo(Uri.fromFile(writeVideo(TestVideos.cleanMp4())), "a.mp4")).uri();
 
@@ -390,7 +407,8 @@ public class MetadataStripperVideoTest {
     public void stripVideo_countsTagsThePlatformCannotSee() throws Exception {
         AppPreferences.setStrictClean(app, false);
         AppPreferences.setVideoFallbackCopy(app, true);
-        stripper.setTestFastStripVideoMetadataOverride(writeVideo(TestVideos.cleanMp4()));
+        File transmuxed = writeVideo(TestVideos.cleanMp4());
+        stripper = new MetadataStripper(app, (uri, location, date) -> transmuxed);
         File source = TestVideos.resource(app.getFilesDir(), "video/ffmpeg_location_keys.mp4");
         files.add(source);
 

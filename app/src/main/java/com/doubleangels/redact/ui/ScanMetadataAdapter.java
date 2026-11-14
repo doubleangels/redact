@@ -1,6 +1,5 @@
 package com.doubleangels.redact.ui;
 
-import android.annotation.SuppressLint;
 import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.doubleangels.redact.R;
@@ -19,7 +19,8 @@ import com.google.android.material.color.MaterialColors;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -128,7 +129,6 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
     @NonNull
     private String query = "";
 
-    @SuppressLint("NotifyDataSetChanged")
     public void setEntries(@NonNull List<Entry> newEntries) {
         allEntries.clear();
         allEntries.addAll(newEntries);
@@ -154,15 +154,62 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
         return !query.isEmpty();
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     private void applyFilter() {
+        List<Entry> before = new ArrayList<>(displayedEntries);
         displayedEntries.clear();
         if (query.isEmpty()) {
             displayedEntries.addAll(allEntries);
         } else {
             addMatches(allEntries);
         }
-        notifyDataSetChanged();
+        dispatchChanges(before);
+    }
+
+    /**
+     * Tells the list which rows changed since {@code before}, so a search keystroke rebinds only
+     * the rows it adds, removes or changes rather than every row. Worked out here, at once, so the
+     * rows are up to date as soon as this returns.
+     */
+    private void dispatchChanges(@NonNull List<Entry> before) {
+        List<Entry> after = displayedEntries;
+        DiffUtil.calculateDiff(new DiffUtil.Callback() {
+            @Override
+            public int getOldListSize() {
+                return before.size();
+            }
+
+            @Override
+            public int getNewListSize() {
+                return after.size();
+            }
+
+            @Override
+            public boolean areItemsTheSame(int oldPosition, int newPosition) {
+                return sameItem(before.get(oldPosition), after.get(newPosition));
+            }
+
+            @Override
+            public boolean areContentsTheSame(int oldPosition, int newPosition) {
+                return sameContent(before.get(oldPosition), after.get(newPosition));
+            }
+        }).dispatchUpdatesTo(this);
+    }
+
+    /** The same header (by section and title) or the same row (by section and name). */
+    static boolean sameItem(@NonNull Entry a, @NonNull Entry b) {
+        return a.viewType == b.viewType
+                && Objects.equals(a.sectionId, b.sectionId)
+                && Objects.equals(a.headerTitle, b.headerTitle)
+                && Objects.equals(a.key, b.key);
+    }
+
+    /** Everything a row or header shows is the same. */
+    static boolean sameContent(@NonNull Entry a, @NonNull Entry b) {
+        return sameItem(a, b)
+                && a.headerIconRes == b.headerIconRes
+                && a.itemCount == b.itemCount
+                && a.isLocation == b.isLocation
+                && Objects.equals(a.value, b.value);
     }
 
     /**
@@ -210,14 +257,14 @@ public final class ScanMetadataAdapter extends RecyclerView.Adapter<RecyclerView
         return SPACES.matcher(text.toLowerCase(Locale.ROOT).replace('_', ' ')).replaceAll(" ").trim();
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     public void clear() {
         if (allEntries.isEmpty() && displayedEntries.isEmpty()) {
             return;
         }
+        int removed = displayedEntries.size();
         allEntries.clear();
         displayedEntries.clear();
-        notifyDataSetChanged();
+        notifyItemRangeRemoved(0, removed);
     }
 
     @Override

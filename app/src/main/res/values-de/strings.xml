@@ -160,6 +160,13 @@
     <string name="settings_section_diagnostics_subtitle">Optionale Absturzberichte helfen bei Fehlerbehebung. Ihre Medien verlassen nie das Gerät.</string>
     <string name="settings_crash_reporting_label">Absturzberichte Senden</string>
     <string name="settings_crash_reporting_subtitle">Teilt nur anonymisierte technische Details (App-Version, Gerätemodell, was die App beim Absturz gerade tat), niemals Ihre Fotos oder Videos. Wird bei Aktivierung über das Internet an unseren Absturzbericht-Dienst Sentry gesendet.</string>
+    <string name="settings_update_check_label">Updates</string>
+    <string name="settings_update_check_subtitle">Fragt bei GitHub über das Internet die neueste Versionsnummer ab, nur wenn Sie auf „Nach Updates suchen“ tippen. Über Sie oder Ihre Dateien wird nichts gesendet.</string>
+    <string name="update_available">Redact %1$s ist erschienen. Es kann ein bis zwei Tage dauern, bis es im Store ankommt.</string>
+    <string name="update_available_action">Aktualisieren</string>
+    <string name="update_check_button">Nach Updates suchen</string>
+    <string name="update_up_to_date">Sie haben die neueste Version.</string>
+    <string name="update_check_failed">Es konnte nicht nach Updates gesucht werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.</string>
     <string name="settings_section_conversion">Standardwerte Konvertieren</string>
     <string name="settings_conversion_subtitle">Vorausgewählte Formate beim Auswählen auf Konvertieren. Pro Stapel weiterhin änderbar.</string>
     <string name="settings_default_image_format">Standard-Bildformat</string>
@@ -569,7 +576,7 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="onboarding_done_notifications_granted">Redact gibt dir Bescheid, wenn eine Aufgabe fertig ist.</string>
     <string name="onboarding_done_notifications_denied">Redact sendet dir keine Benachrichtigungen.</string>
     <string name="onboarding_crash_title">Hilf mit, Redact besser zu machen.</string>
-    <string name="onboarding_crash_body">Falls Redact einmal abstürzt, kann es einen anonymen Bericht senden, damit das Problem gefunden und behoben werden kann. Absturzberichte sind das Einzige, was Redact jemals über das Internet sendet.</string>
+    <string name="onboarding_crash_body">Falls Redact einmal abstürzt, kann es einen anonymen Bericht senden, damit das Problem gefunden und behoben werden kann. Redact geht nur online für Absturzberichte, die Sie einschalten, und für eine Update-Suche, die Sie selbst in den Einstellungen starten.</string>
     <string name="onboarding_crash_point_private">Berichte enthalten niemals deine Fotos, Videos, Dateinamen oder Standorte.</string>
     <string name="onboarding_crash_point_sentry">Berichte gehen an Sentry, einen Dienst, der Entwicklern hilft, Abstürze zu finden und zu beheben.</string>
     <string name="onboarding_crash_allow">Absturzberichte Senden</string>

@@ -164,6 +164,13 @@
     <string name="settings_section_diagnostics_subtitle">Rapports optionnels pour corriger les plantages. Vos médias ne quittent jamais l\'appareil.</string>
     <string name="settings_crash_reporting_label">Envoyer les Rapports de Plantage</string>
     <string name="settings_crash_reporting_subtitle">Ne partage que des détails techniques anonymisés (version de l\'app, modèle d\'appareil, ce que l\'app faisait au moment du plantage), jamais vos photos ou vidéos. Envoyés via Internet à notre service de rapport de plantage, Sentry, lorsque c\'est activé.</string>
+    <string name="settings_update_check_label">Mises à jour</string>
+    <string name="settings_update_check_subtitle">Demande à GitHub via Internet le numéro de la dernière version, uniquement quand vous touchez Rechercher des mises à jour. Rien sur vous ni sur vos fichiers n\'est envoyé.</string>
+    <string name="update_available">Redact %1$s est sorti. Il peut mettre un jour ou deux à arriver dans la boutique.</string>
+    <string name="update_available_action">Mettre à jour</string>
+    <string name="update_check_button">Rechercher des mises à jour</string>
+    <string name="update_up_to_date">Vous avez la dernière version.</string>
+    <string name="update_check_failed">Impossible de rechercher des mises à jour. Vérifiez votre connexion et réessayez.</string>
     <string name="settings_section_conversion">Valeurs par Défaut de Convertir</string>
     <string name="settings_conversion_subtitle">Formats présélectionnés lors du choix des fichiers dans Convertir. Modifiables pour chaque lot.</string>
     <string name="settings_default_image_format">Format d\'Image par Défaut</string>
@@ -585,7 +592,7 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="onboarding_done_notifications_granted">Redact vous préviendra quand une tâche sera terminée.</string>
     <string name="onboarding_done_notifications_denied">Redact ne vous enverra pas de notifications.</string>
     <string name="onboarding_crash_title">Aidez à améliorer Redact.</string>
-    <string name="onboarding_crash_body">Si Redact plante, il peut envoyer un rapport anonyme pour que le problème soit trouvé et corrigé. Les rapports de plantage sont la seule chose que Redact envoie sur Internet.</string>
+    <string name="onboarding_crash_body">Si Redact plante, il peut envoyer un rapport anonyme pour que le problème soit trouvé et corrigé. Redact ne se connecte à Internet que pour les rapports de plantage que vous activez et pour une recherche de mises à jour que vous lancez vous-même dans les paramètres.</string>
     <string name="onboarding_crash_point_private">Les rapports n\'incluent jamais vos photos, vidéos, noms de fichiers ni lieux.</string>
     <string name="onboarding_crash_point_sentry">Les rapports sont envoyés à Sentry, un service qui aide les développeurs à trouver et corriger les plantages.</string>
     <string name="onboarding_crash_allow">Envoyer les Rapports de Plantage</string>
