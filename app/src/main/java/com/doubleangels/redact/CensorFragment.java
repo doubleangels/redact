@@ -135,9 +135,6 @@ public class CensorFragment extends TabFragment {
                 new ActivityResultContracts.StartIntentSenderForResult(), result -> {
                     Uri trashed = pendingTrashSource;
                     pendingTrashSource = null;
-                    SentryManager.logEvent("Censor", result.getResultCode() == Activity.RESULT_OK
-                            ? "The user moved the uncensored original to the trash."
-                            : "The user kept the uncensored original.");
                     // The original is gone, so there is nothing left to save another copy from.
                     if (result.getResultCode() == Activity.RESULT_OK && trashed != null
                             && viewModel != null && trashed.equals(viewModel.getSource())) {
@@ -425,8 +422,6 @@ public class CensorFragment extends TabFragment {
     }
 
     private void setFullScreen(boolean fullScreen) {
-        SentryManager.logEvent("Censor", fullScreen
-                ? "The user turned on full screen." : "The user left full screen.");
         viewModel.setFullScreen(fullScreen);
         applyFullScreen();
     }
@@ -740,7 +735,6 @@ public class CensorFragment extends TabFragment {
                 .setMessage(R.string.censor_discard_message)
                 .setNegativeButton(R.string.censor_keep_editing, null)
                 .setPositiveButton(R.string.censor_discard, (d, w) -> {
-                    SentryManager.logEvent("Censor", "The user discarded unsaved censor edits.");
                     onDiscard.run();
                 })
                 .show());

@@ -425,7 +425,7 @@ public class CensorViewModel extends AndroidViewModel {
         int generation = photoGeneration.get();
         String name = fileName.getValue();
         state.setValue(State.SAVING);
-        SentryManager.logEvent("Censor", "The user saved a censored photo.");
+        SentryManager.log("The app is saving a censored copy.");
         long saveStartMs = System.currentTimeMillis();
         worker.execute(() -> {
             SentryManager.beginOperation("censor_export");

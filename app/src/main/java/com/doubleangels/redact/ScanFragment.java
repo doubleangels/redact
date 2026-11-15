@@ -286,7 +286,6 @@ public class ScanFragment extends TabFragment {
     }
 
     private void onSelectMediaClicked() {
-        SentryManager.log("The user clicked the Select button in ScanFragment.");
         if (permissionManager != null && permissionManager.shouldRequestStorageBeforePicker()) {
             permissionManager.requestStoragePermission();
         } else {

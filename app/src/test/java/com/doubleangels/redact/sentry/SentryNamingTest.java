@@ -46,6 +46,29 @@ public class SentryNamingTest {
         assertEquals("Breadcrumb categories should be Title Case: " + wrong, 0, wrong.size());
     }
 
+    /** A breadcrumb or log line in a SentryManager call, up to the end of its statement. */
+    private static final Pattern SENTRY_TEXT_CALL =
+            Pattern.compile("SentryManager\\.(log|logEvent)\\(([^;]*);", Pattern.DOTALL);
+
+    /**
+     * Breadcrumbs describe what the app did, never what someone chose or tapped: the privacy
+     * policy promises Sentry is never used to learn what people do in the app.
+     */
+    @Test
+    public void breadcrumbs_neverDescribeWhatTheUserDid() throws IOException {
+        List<String> wrong = new ArrayList<>();
+        for (Path file : sources()) {
+            Matcher m = SENTRY_TEXT_CALL.matcher(read(file));
+            while (m.find()) {
+                String call = m.group(2);
+                if (call.contains("\"The user") || call.contains("\"User ")) {
+                    wrong.add(file.getFileName() + ": " + call.replaceAll("\\s+", " ").trim());
+                }
+            }
+        }
+        assertEquals("Breadcrumbs that record what the user did: " + wrong, 0, wrong.size());
+    }
+
     @Test
     public void metricNamesAndAttributeKeys_followTheRules() throws Exception {
         Method allowed = SentryManager.class.getDeclaredMethod("isAllowedTagKey", String.class);
