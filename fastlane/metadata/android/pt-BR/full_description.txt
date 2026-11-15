@@ -41,6 +41,7 @@ Ou compartilhe com Escanear com Redact para conferir antes.
 • Código aberto sob GPL-3.0: qualquer pessoa pode ler o código no GitHub
 • Funciona com o seletor de arquivos do sistema, então o acesso a toda a sua galeria é opcional
 • Os relatórios de falhas opcionais ficam desativados até você ativá-los
+• A verificação opcional de atualizações só acontece quando você toca em "Procurar atualizações"
 
 <b>Extras úteis</b>
 • Bloco nas Configurações rápidas e atalhos na tela inicial

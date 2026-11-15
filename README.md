@@ -336,6 +336,24 @@ Open the Settings tab in the app for the full list.
   1. **Send Crash Reports** (off by default) sends anonymized diagnostics to [Sentry](https://sentry.io): device model, Android version, app version, stack traces and a few scrubbed tags. File paths, filenames and GPS coordinates are removed before anything is sent. Your photos and videos are **never** uploaded. Sentry keeps the reports for a limited time, 90 days for crash and error reports and 30 days for performance data and logs, see its [data retention periods](https://docs.sentry.io/security-legal-pii/security/data-retention-periods/).
   2. **Open in maps** from Scan hands coordinates to your default maps app, only after your explicit one-time consent.
   3. **Check for Updates** in Settings asks GitHub once for the newest release's version number, only when you tap it. The request carries nothing about you or your files; like any connection, GitHub sees the IP address it comes from. Redact never checks on its own, and the update itself comes from the store you installed it from.
+- **Every server Redact connects to** is in the table below. There are only two, and Redact contacts neither unless you turn on or tap the feature that needs it. It has no other server, account or backend.
+
+| Domain | When Redact connects | What is sent | Why |
+|---|---|---|---|
+| `o244019.ingest.us.sentry.io` ([Sentry](https://sentry.io), US servers) | Only while **Send Crash Reports** is on: after a crash or error, and when you choose to add a note to an error report | An anonymized report: stack trace, device model, Android and app version, and a few scrubbed tags. Paths, file names, coordinates and metadata values are removed first. Never a photo or video. | To find and fix bugs |
+| `api.github.com` | Only when you tap **Check for Updates** in Settings | One request for the newest release of Redact, with a fixed User-Agent and nothing about you, your settings or your files | To read the newest version number |
+
+Some buttons open a page in another app, which then makes its own connection. Redact itself sends nothing:
+
+| Opens | From | Why |
+|---|---|---|
+| `play.google.com` (or the Play Store app) | **Rate Redact on Google Play**, and **Update** after Check for Updates finds a newer version | The store listing |
+| `github.com` | **View Source on GitHub** and **Report an Issue** in Settings › About, and **Project Page** in **Open-Source Licenses** | The source code, the issue tracker and library pages |
+| `developer.android.com` | **Project Page** in **Open-Source Licenses** | Library pages |
+| `doubleangels.github.io` | **Privacy Policy** and **Terms of Use** in Settings › About | The policies |
+| `donate.stripe.com` | **Donate** in Settings › About | An optional donation |
+| Your maps app | **Open in Maps** in Scan, after you agree | Shows a photo's location; the maps app decides what it loads |
+
 - **Statistics stay on your phone.** The counts behind Your Privacy Stats are stored only in Redact's private storage, are left out of backups and device transfers, and are never included in crash reports.
 - **Permissions are minimal.** On Android 13 and newer Redact uses the system document picker, so it can reach Downloads, Files and gallery folders without broad media access.
 
@@ -400,7 +418,7 @@ No hard limit. Very large files can still strain a device that is low on storage
 <details>
 <summary><b>Does Redact use analytics or trackers?</b></summary>
 
-No. The only thing of this kind is the optional Sentry crash reporting described in [Privacy and security](#privacy-and-security).
+No. The only thing of this kind is the optional Sentry crash reporting described in [Privacy and security](#privacy-and-security), which counts the app's own failures, never what you do or how often you use it. The table there lists every server Redact can connect to.
 </details>
 
 <details>

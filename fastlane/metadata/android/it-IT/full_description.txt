@@ -41,6 +41,7 @@ Oppure condividilo con Scansiona con Redact per controllarlo prima.
 • Open source con licenza GPL-3.0: chiunque può leggere il codice su GitHub
 • Funziona con il selettore di file di sistema, quindi l'accesso a tutta la galleria è facoltativo
 • I rapporti sugli arresti anomali facoltativi restano disattivati finché non li attivi
+• Il controllo facoltativo degli aggiornamenti parte solo quando tocchi "Cerca aggiornamenti"
 
 <b>Extra utili</b>
 • Riquadro nelle Impostazioni rapide e scorciatoie nella schermata Home

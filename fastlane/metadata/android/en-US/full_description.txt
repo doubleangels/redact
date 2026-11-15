@@ -41,6 +41,7 @@ Or share it to Scan with Redact to check it first.
 • Open source under GPL-3.0, so anyone can read the code on GitHub
 • Works with the system file picker, so access to your whole library is optional
 • Optional crash reports stay off unless you turn them on
+• Optional update check runs only when you tap Check for Updates
 
 <b>Handy extras</b>
 • Quick Settings tile and home screen shortcuts

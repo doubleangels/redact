@@ -41,6 +41,7 @@ Oder teile sie mit „Mit Redact Scannen“, um sie zuerst zu prüfen.
 • Open Source unter GPL-3.0, jeder kann den Code auf GitHub lesen
 • Funktioniert mit der Dateiauswahl des Systems, Zugriff auf deine ganze Mediathek ist daher optional
 • Optionale Absturzberichte bleiben aus, bis du sie einschaltest
+• Die optionale Update-Prüfung läuft nur, wenn du auf „Nach Updates suchen“ tippst
 
 <b>Praktische Extras</b>
 • Schnelleinstellungen-Kachel und Verknüpfungen auf dem Startbildschirm
