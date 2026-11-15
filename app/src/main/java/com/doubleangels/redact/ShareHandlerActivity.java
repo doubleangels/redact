@@ -824,14 +824,18 @@ public class ShareHandlerActivity extends AppCompatActivity {
     }
 
     private void cancelShareProcessing() {
-        Thread thread = processingThread;
-        if (thread != null) {
-            thread.interrupt();
-        }
+        // The export first, while it still has an owner to cancel by, then the thread: an
+        // interrupted worker clears the owner on its way out (as onNewIntent orders it).
         ShareSession session = shareSession;
         if (session != null) {
             VideoMedia3Converter.cancelActiveTranscode(VideoMedia3Converter.shareOwner(session.id));
             session.stripper.requestCancellation();
+        }
+        Thread thread = processingThread;
+        if (thread != null) {
+            thread.interrupt();
+        }
+        if (session != null) {
             endShareSession(session);
         }
         dismissProgressDialog();
@@ -1156,14 +1160,17 @@ public class ShareHandlerActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         activityDestroyed.set(true);
-        Thread thread = processingThread;
-        if (thread != null) {
-            thread.interrupt();
-        }
+        // The export first, then the thread, as in cancelShareProcessing.
         ShareSession session = shareSession;
         if (session != null) {
             VideoMedia3Converter.cancelActiveTranscode(VideoMedia3Converter.shareOwner(session.id));
             session.stripper.requestCancellation();
+        }
+        Thread thread = processingThread;
+        if (thread != null) {
+            thread.interrupt();
+        }
+        if (session != null) {
             endShareSession(session);
         }
         LocalNotifications.stopProcessingForeground(

@@ -1162,6 +1162,13 @@ public final class VideoMedia3Converter {
             finished = testTimeout != null
                     ? latch.await(testTimeout, TimeUnit.MILLISECONDS)
                     : awaitUnlessStalled(latch, outFile, progressSeen);
+        } catch (InterruptedException e) {
+            // The job was stopped while waiting. The export must stop too: the finally below
+            // clears the owner, so a cancel arriving after it would find nothing to cancel, and
+            // the export would keep the codec and keep writing a file its caller has deleted.
+            cancelOnMainThread(mainHandler, cancelHook);
+            deleteQuietly(outFile);
+            throw e;
         } finally {
             activeTranscodeOwner.compareAndSet(ownerId, -1L);
             activeTransformer.compareAndSet(transformerRef.get(), null);
@@ -1380,6 +1387,30 @@ public final class VideoMedia3Converter {
             } catch (ClassCastException ignored) {
                 return 0;
             }
+        }
+    }
+
+    /**
+     * Runs {@code cancelHook} on the main thread, where the transformer lives, and waits a few
+     * seconds for it. Called from a thread whose interrupt has just been consumed.
+     */
+    private static void cancelOnMainThread(@NonNull Handler mainHandler, @NonNull Runnable cancelHook) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            cancelHook.run();
+            return;
+        }
+        CountDownLatch cancelDone = new CountDownLatch(1);
+        mainHandler.post(() -> {
+            try {
+                cancelHook.run();
+            } finally {
+                cancelDone.countDown();
+            }
+        });
+        try {
+            cancelDone.await(5, TimeUnit.SECONDS);
+        } catch (InterruptedException again) {
+            Thread.currentThread().interrupt();
         }
     }
 
