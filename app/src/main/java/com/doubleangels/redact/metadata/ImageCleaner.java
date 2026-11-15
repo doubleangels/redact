@@ -210,7 +210,8 @@ final class ImageCleaner {
             // can be a full copy of the original with its metadata.
             cleanFile = File.createTempFile("temp_clean_", outputFormat.extension, context.getCacheDir());
             FormatConverter.ImageFormatSpec cleanFormat =
-                    writePictureOnly(picture, pictureUri, cleanFile, outputFormat, fromPixels, motion, job.kept);
+                    writePictureOnly(picture, pictureUri, cleanFile, outputFormat, fromPixels, motion, job.kept,
+                            AppPreferences.isStrictClean(context));
             if (!cleanFormat.extension.equals(outputFormat.extension)) {
                 newFilename = withExtension(newFilename, cleanFormat.extension);
             }
@@ -374,7 +375,8 @@ final class ImageCleaner {
 
             host.updateProgress(3, 5, context.getString(R.string.strip_progress_removing_metadata));
             FormatConverter.ImageFormatSpec cleanFormat =
-                    writePictureOnly(tempFile, Uri.fromFile(tempFile), outputFile, outputFormat, false, null, job.kept);
+                    writePictureOnly(tempFile, Uri.fromFile(tempFile), outputFile, outputFormat, false, null, job.kept,
+                            true);
             if (!cleanFormat.extension.equals(extension)) {
                 // Shared under the name of what it really is, so the app it goes to opens it.
                 File renamed = new File(outputDir, host.generateShortRandomName() + cleanFormat.extension);
@@ -801,12 +803,16 @@ final class ImageCleaner {
      * or a file whose structure cannot be followed, is decoded and re-encoded from its pixels, and
      * a re-encoded JPEG, PNG or WebP is then rebuilt the same way, so whatever the encoder added
      * goes too. EXIF is gone either way; the caller puts back the tags the settings keep.
+     *
+     * @param neutralIcc Strict Clean or a share: a JPEG's, PNG's or WebP's colour profile keeps
+     *                   only its colour tags and a neutral name ({@link IccProfiles})
      */
     @NonNull
     private FormatConverter.ImageFormatSpec writePictureOnly(@NonNull File source, @NonNull Uri sourceUri,
                                   @NonNull File target,
                                   @NonNull FormatConverter.ImageFormatSpec outputFormat, boolean fromPixels,
-                                  @Nullable MotionPhoto.Clip motion, @NonNull Map<String, String> kept)
+                                  @Nullable MotionPhoto.Clip motion, @NonNull Map<String, String> kept,
+                                  boolean neutralIcc)
             throws IOException {
         ImageContainerMetadata.Format expected = containerFormat(outputFormat.extension);
         // A HEIC the encoder just wrote is still rebuilt below: losslessly, so whatever the
@@ -860,7 +866,7 @@ final class ImageCleaner {
         if (expected != ImageContainerMetadata.Format.OTHER
                 && ImageContainerMetadata.sniff(source) == expected) {
             try {
-                ImageContainerMetadata.sanitize(source, target, motion, context.getCacheDir());
+                ImageContainerMetadata.sanitize(source, target, motion, context.getCacheDir(), neutralIcc);
                 countPicturePath(fromPixels, "rebuilt");
                 return outputFormat;
             } catch (IOException | RuntimeException e) {
@@ -881,7 +887,7 @@ final class ImageCleaner {
             reEncode(source, sourceUri, encoded, outputFormat, kept);
             if (writtenFormat != ImageContainerMetadata.Format.OTHER
                     && ImageContainerMetadata.sniff(encoded) == writtenFormat) {
-                ImageContainerMetadata.sanitize(encoded, target, motion, context.getCacheDir());
+                ImageContainerMetadata.sanitize(encoded, target, motion, context.getCacheDir(), neutralIcc);
             } else {
                 try (InputStream in = new FileInputStream(encoded);
                         OutputStream out = new FileOutputStream(target)) {
