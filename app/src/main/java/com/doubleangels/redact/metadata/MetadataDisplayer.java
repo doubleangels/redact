@@ -485,80 +485,70 @@ public class MetadataDisplayer {
             final int maxExifTags = 400; // above the number of TAG_ constants, so nothing is dropped
             int exifTagsAdded = 0;
             boolean exifTagCapReached = false;
-            Field[] fields = ExifInterface.class.getDeclaredFields();
-            for (Field field : fields) {
+            for (String tagName : ExifTags.all()) {
                 if (exifTagsAdded >= maxExifTags) {
                     exifTagCapReached = true;
                     break;
                 }
-                if (field.getType() == String.class && field.getName().startsWith("TAG_")) {
-                    try {
-                        String tagName = (String) field.get(null);
-                        if (tagName != null) {
-                            String value = exifInterface.getAttribute(tagName);
-                            if (value == null || value.isEmpty()) {
-                                // Binary data (a maker note, say) can read as empty; it still shows, by
-                                // size. One byte is just an empty text's terminator.
-                                long length = attributeLength(exifInterface, tagName);
-                                value = length > 1 ? sizeText(context, length) : null;
-                            } else if (!isReadableText(value)
-                                    || replacedUnprintableBytes(value, attributeBytes(exifInterface, tagName))) {
-                                long length = attributeLength(exifInterface, tagName);
-                                value = sizeText(context, length > 0
-                                        ? length : value.getBytes(StandardCharsets.UTF_8).length);
-                            }
-                            if (value != null && !value.isEmpty()) {
-                                // Trim trailing whitespace from the value itself (e.g., XMP data may have trailing newlines)
-                                String trimmedValue = value;
-                                while (!trimmedValue.isEmpty() && Character.isWhitespace(trimmedValue.charAt(trimmedValue.length() - 1))) {
-                                    trimmedValue = trimmedValue.substring(0, trimmedValue.length() - 1);
-                                }
-
-                                boolean looksLikeXmp = XmlLikeMetadataFormatter.looksLikeRdfOrXmp(trimmedValue);
-                                String upperTagName = convertToSnakeCase(tagName).toUpperCase(Locale.ROOT);
-                                if (!hasLocationPermission
-                                        && (isLocationMetadataKey(upperTagName) || looksLikeXmp)) {
-                                    // An RDF/XMP blob (e.g. TAG_XMP) can embed its own GPS fields that
-                                    // isLocationMetadataKey cannot see since it only checks the tag name,
-                                    // so withhold the whole blob rather than risk leaking location data.
-                                    continue;
-                                }
-
-                                if (looksLikeXmp) {
-                                    trimmedValue = XmlLikeMetadataFormatter.formatForDisplay(trimmedValue);
-                                }
-
-                                // Store GPS coordinates for later conversion
-                                switch (tagName) {
-                                    case ExifInterface.TAG_GPS_LATITUDE -> {
-                                        if (!isRedactedGpsRational(trimmedValue)) {
-                                            gpsLatitude = trimmedValue;
-                                        }
-                                        continue; // Don't add raw value yet
-                                    }
-                                    case ExifInterface.TAG_GPS_LATITUDE_REF -> {
-                                        gpsLatitudeRef = trimmedValue;
-                                        continue; // Don't add raw value yet
-                                    }
-                                    case ExifInterface.TAG_GPS_LONGITUDE -> {
-                                        if (!isRedactedGpsRational(trimmedValue)) {
-                                            gpsLongitude = trimmedValue;
-                                        }
-                                        continue; // Don't add raw value yet
-                                    }
-                                    case ExifInterface.TAG_GPS_LONGITUDE_REF -> {
-                                        gpsLongitudeRef = trimmedValue;
-                                        continue; // Don't add raw value yet
-                                    }
-                                }
-
-                                metadataMap.put(upperTagName, trimmedValue);
-                                exifTagsAdded++;
-                            }
-                        }
-                    } catch (IllegalAccessException | IllegalArgumentException e) {
-                        // Skip fields we can't access
+                String value = exifInterface.getAttribute(tagName);
+                if (value == null || value.isEmpty()) {
+                    // Binary data (a maker note, say) can read as empty; it still shows, by
+                    // size. One byte is just an empty text's terminator.
+                    long length = attributeLength(exifInterface, tagName);
+                    value = length > 1 ? sizeText(context, length) : null;
+                } else if (!isReadableText(value)
+                        || replacedUnprintableBytes(value, attributeBytes(exifInterface, tagName))) {
+                    long length = attributeLength(exifInterface, tagName);
+                    value = sizeText(context, length > 0
+                            ? length : value.getBytes(StandardCharsets.UTF_8).length);
+                }
+                if (value != null && !value.isEmpty()) {
+                    // Trim trailing whitespace from the value itself (e.g., XMP data may have trailing newlines)
+                    String trimmedValue = value;
+                    while (!trimmedValue.isEmpty() && Character.isWhitespace(trimmedValue.charAt(trimmedValue.length() - 1))) {
+                        trimmedValue = trimmedValue.substring(0, trimmedValue.length() - 1);
                     }
+
+                    boolean looksLikeXmp = XmlLikeMetadataFormatter.looksLikeRdfOrXmp(trimmedValue);
+                    String upperTagName = convertToSnakeCase(tagName).toUpperCase(Locale.ROOT);
+                    if (!hasLocationPermission
+                            && (isLocationMetadataKey(upperTagName) || looksLikeXmp)) {
+                        // An RDF/XMP blob (e.g. TAG_XMP) can embed its own GPS fields that
+                        // isLocationMetadataKey cannot see since it only checks the tag name,
+                        // so withhold the whole blob rather than risk leaking location data.
+                        continue;
+                    }
+
+                    if (looksLikeXmp) {
+                        trimmedValue = XmlLikeMetadataFormatter.formatForDisplay(trimmedValue);
+                    }
+
+                    // Store GPS coordinates for later conversion
+                    switch (tagName) {
+                        case ExifInterface.TAG_GPS_LATITUDE -> {
+                            if (!isRedactedGpsRational(trimmedValue)) {
+                                gpsLatitude = trimmedValue;
+                            }
+                            continue; // Don't add raw value yet
+                        }
+                        case ExifInterface.TAG_GPS_LATITUDE_REF -> {
+                            gpsLatitudeRef = trimmedValue;
+                            continue; // Don't add raw value yet
+                        }
+                        case ExifInterface.TAG_GPS_LONGITUDE -> {
+                            if (!isRedactedGpsRational(trimmedValue)) {
+                                gpsLongitude = trimmedValue;
+                            }
+                            continue; // Don't add raw value yet
+                        }
+                        case ExifInterface.TAG_GPS_LONGITUDE_REF -> {
+                            gpsLongitudeRef = trimmedValue;
+                            continue; // Don't add raw value yet
+                        }
+                    }
+
+                    metadataMap.put(upperTagName, trimmedValue);
+                    exifTagsAdded++;
                 }
             }
             

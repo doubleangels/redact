@@ -86,6 +86,17 @@ public class AlreadyCleanCheckTest {
         assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(f, "image/jpeg")));
     }
 
+    /** Without the EXIF tag list nothing can be vouched for, so the photo is cleaned as usual. */
+    @Test
+    public void unreadableExifTagList_isUnknown() throws IOException {
+        ExifTags.testFields = new java.lang.reflect.Field[0];
+        try {
+            assertEquals(Status.UNKNOWN, AlreadyCleanCheck.assessItem(app, item(jpeg(), "image/jpeg")));
+        } finally {
+            ExifTags.testFields = null;
+        }
+    }
+
     @Test
     public void orientationAlone_doesNotCountAsMetadata() throws IOException {
         File f = jpegWith(ExifInterface.TAG_ORIENTATION, "6");

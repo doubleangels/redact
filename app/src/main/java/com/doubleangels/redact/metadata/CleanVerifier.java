@@ -16,7 +16,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -365,17 +364,10 @@ final class CleanVerifier {
             // removeAllExifMetadata, so verification can't pass a file
             // that still carries a tag the fixed identifyingTags list used to miss (e.g. lens
             // make/model, body/lens serial numbers, camera owner name, GPS area info).
-            for (Field field : ExifInterface.class.getDeclaredFields()) {
-                if (field.getType() != String.class || !field.getName().startsWith("TAG_")) {
-                    continue;
-                }
-                String tag;
-                try {
-                    tag = (String) field.get(null);
-                } catch (IllegalAccessException | IllegalArgumentException e) {
-                    continue;
-                }
-                if (tag == null || allowedTags.contains(tag) || NON_IDENTIFYING_UNCLEARABLE_TAGS.contains(tag)) {
+            // ExifTags.all() throws rather than return an empty list, so the check can't pass
+            // with nothing checked: the catch below fails the verification.
+            for (String tag : ExifTags.all()) {
+                if (allowedTags.contains(tag) || NON_IDENTIFYING_UNCLEARABLE_TAGS.contains(tag)) {
                     continue;
                 }
                 String value = exif.getAttribute(tag);

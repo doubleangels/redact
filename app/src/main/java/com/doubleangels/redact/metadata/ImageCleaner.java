@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
-import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
@@ -659,31 +658,25 @@ final class ImageCleaner {
 
     private void removeAllExifMetadata(@NonNull ExifInterface exif, boolean forSharing) {
         try {
-            // Get all TAG constants from ExifInterface using reflection
-            Field[] fields = ExifInterface.class.getDeclaredFields();
+            // Every TAG_ constant; throws when they can't be read, and the catch below falls back
+            // to the fixed list (verification fails closed on the same check).
+            List<String> tags = ExifTags.all();
             Set<String> tagsToPreserve = new HashSet<>(host.getTagsToPreserve(forSharing));
 
             int removedCount = 0;
-            for (Field field : fields) {
-                if (field.getType() == String.class && field.getName().startsWith("TAG_")) {
-                    try {
-                        String tagName = (String) field.get(null);
-                        if (tagName != null && !tagsToPreserve.contains(tagName)) {
-                            // Try to get the attribute to see if it exists
-                            String value = exif.getAttribute(tagName);
-                            if (ExifInterface.TAG_XMP.equals(tagName) && value != null
-                                    && UltraHdr.isPictureOnlyXmp(value)) {
-                                // The Ultra HDR directory a clean wrote: removing it loses the HDR.
-                                continue;
-                            }
-                            if (value != null) {
-                                // Remove the attribute by setting it to null
-                                exif.setAttribute(tagName, null);
-                                removedCount++;
-                            }
-                        }
-                    } catch (IllegalAccessException | IllegalArgumentException e) {
-                        // Skip fields we can't access
+            for (String tagName : tags) {
+                if (!tagsToPreserve.contains(tagName)) {
+                    // Try to get the attribute to see if it exists
+                    String value = exif.getAttribute(tagName);
+                    if (ExifInterface.TAG_XMP.equals(tagName) && value != null
+                            && UltraHdr.isPictureOnlyXmp(value)) {
+                        // The Ultra HDR directory a clean wrote: removing it loses the HDR.
+                        continue;
+                    }
+                    if (value != null) {
+                        // Remove the attribute by setting it to null
+                        exif.setAttribute(tagName, null);
+                        removedCount++;
                     }
                 }
             }

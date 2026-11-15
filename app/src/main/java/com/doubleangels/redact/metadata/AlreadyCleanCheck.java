@@ -16,7 +16,6 @@ import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -106,17 +105,9 @@ public final class AlreadyCleanCheck {
                 return Status.UNKNOWN;
             }
             ExifInterface exif = new ExifInterface(in);
-            for (Field field : ExifInterface.class.getDeclaredFields()) {
-                if (field.getType() != String.class || !field.getName().startsWith("TAG_")) {
-                    continue;
-                }
-                String tag;
-                try {
-                    tag = (String) field.get(null);
-                } catch (IllegalAccessException | IllegalArgumentException e) {
-                    continue;
-                }
-                if (tag == null || ignored.contains(tag)) {
+            // Throws when the tag list can't be read, which the catch below makes UNKNOWN.
+            for (String tag : ExifTags.all()) {
+                if (ignored.contains(tag)) {
                     continue;
                 }
                 String value = exif.getAttribute(tag);
