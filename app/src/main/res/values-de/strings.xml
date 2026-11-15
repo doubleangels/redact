@@ -164,7 +164,7 @@
     <string name="settings_update_check_subtitle">Fragt bei GitHub über das Internet die neueste Versionsnummer ab, nur wenn Sie auf „Nach Updates suchen“ tippen. Über Sie oder Ihre Dateien wird nichts gesendet.</string>
     <string name="update_available">Redact %1$s ist erschienen. Es kann ein bis zwei Tage dauern, bis es im Store ankommt.</string>
     <string name="update_available_action">Aktualisieren</string>
-    <string name="update_check_button">Nach Updates suchen</string>
+    <string name="update_check_button">Nach Updates Suchen</string>
     <string name="update_up_to_date">Sie haben die neueste Version.</string>
     <string name="update_check_failed">Es konnte nicht nach Updates gesucht werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.</string>
     <string name="settings_section_conversion">Standardwerte Konvertieren</string>
@@ -462,11 +462,11 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="button_scan_result">Ergebnis Scannen</string>
     <string name="settings_keep_original_names">Originale Dateinamen Behalten</string>
     <string name="settings_keep_original_names_subtitle">Bereinigte und konvertierte Dateien erhalten den Namen des Originals statt eines zufälligen Namens. Namen wie IMG_20260117 können verraten, wann ein Foto aufgenommen wurde.</string>
-    <string name="review_prompt_title">Hilf anderen, Redact zu finden</string>
+    <string name="review_prompt_title">Hilf Anderen, Redact zu Finden</string>
     <string name="review_prompt_message">Redact ist ein unabhängiges Ein-Personen-Projekt, ohne Werbung, ohne Tracking und ohne Marketingbudget. Eine Bewertung bei Google Play, gern mit einem Satz dazu, wofür du es nutzt, hilft am meisten: So finden andere die App.</string>
     <string name="review_prompt_location">Redact hat gerade einen versteckten Standort entfernt. Was du bereinigt hast, verrät nicht mehr, wo es aufgenommen wurde.</string>
-    <string name="review_prompt_yes">Bei Google Play bewerten</string>
-    <string name="review_prompt_no">Nein, danke</string>
+    <string name="review_prompt_yes">Bei Google Play Bewerten</string>
+    <string name="review_prompt_no">Nein, Danke</string>
     <string name="review_prompt_later">Später</string>
     <string name="review_prompt_declined">Alles klar, Redact fragt nicht noch einmal. Falls du es dir anders überlegst, kannst du es jederzeit unter Einstellungen › Über bewerten.</string>
     <string name="error_feedback_offer">Etwas ist schiefgelaufen. Ein Absturzbericht wurde gesendet.</string>

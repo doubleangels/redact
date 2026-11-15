@@ -168,7 +168,7 @@
     <string name="settings_update_check_subtitle">Consulta o GitHub pela internet sobre o número da versão mais recente, só quando você toca em Procurar atualizações. Nada sobre você ou seus arquivos é enviado.</string>
     <string name="update_available">O Redact %1$s foi lançado. Pode levar um ou dois dias para chegar à loja.</string>
     <string name="update_available_action">Atualizar</string>
-    <string name="update_check_button">Procurar atualizações</string>
+    <string name="update_check_button">Procurar Atualizações</string>
     <string name="update_up_to_date">Você tem a versão mais recente.</string>
     <string name="update_check_failed">Não foi possível procurar atualizações. Verifique sua conexão e tente novamente.</string>
     <string name="settings_section_conversion">Padrões da Aba Converter</string>
@@ -477,12 +477,12 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="button_scan_result">Escanear Resultado</string>
     <string name="settings_keep_original_names">Manter Nomes Originais</string>
     <string name="settings_keep_original_names_subtitle">Os arquivos limpos e convertidos recebem o nome do original em vez de um nome aleatório. Nomes como IMG_20260117 podem revelar quando uma foto foi tirada.</string>
-    <string name="review_prompt_title">Ajude outras pessoas a encontrar o Redact</string>
+    <string name="review_prompt_title">Ajude Outras Pessoas a Encontrar o Redact</string>
     <string name="review_prompt_message">O Redact é um projeto independente de uma pessoa só, sem anúncios, sem rastreamento e sem verba de marketing. Uma avaliação no Google Play, com uma frase sobre para que você o usa, é a maior ajuda possível: é assim que outras pessoas o encontram.</string>
     <string name="review_prompt_location">O Redact acabou de remover uma localização oculta: o que você limpou não revela mais onde foi feito.</string>
     <string name="review_prompt_yes">Avaliar no Google Play</string>
-    <string name="review_prompt_no">Não, obrigado</string>
-    <string name="review_prompt_later">Agora não</string>
+    <string name="review_prompt_no">Não, Obrigado</string>
+    <string name="review_prompt_later">Agora Não</string>
     <string name="review_prompt_declined">Tudo bem, o Redact não vai perguntar de novo. Se mudar de ideia, você pode avaliá-lo quando quiser em Configurações › Sobre.</string>
     <string name="error_feedback_offer">Algo deu errado. Um relatório de falhas foi enviado.</string>
     <string name="error_feedback_action">Adicionar Detalhes</string>
