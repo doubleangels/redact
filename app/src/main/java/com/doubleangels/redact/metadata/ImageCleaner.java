@@ -217,7 +217,7 @@ final class ImageCleaner {
 
             // Restore only essential EXIF data (like orientation)
             host.updateProgress(4, 5, context.getString(R.string.strip_progress_restoring_essential_metadata));
-            restoreEssentialExifData(cleanFile, job.kept);
+            restoreEssentialExifData(cleanFile, job.kept, false);
 
             // Verified while still private: a folder the user chose shows a new file at once (a
             // cloud-backed one may upload it), so nothing unverified may reach the output.
@@ -386,7 +386,7 @@ final class ImageCleaner {
 
             // Put back only the essential tags (orientation)
             host.updateProgress(4, 5, context.getString(R.string.strip_progress_removing_all_metadata));
-            restoreEssentialExifData(outputFile, job.kept);
+            restoreEssentialExifData(outputFile, job.kept, true);
 
             // Verify metadata removal
             host.updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
@@ -531,8 +531,10 @@ final class ImageCleaner {
      * preserved from the original image.
      *
      * @param imageFile the processed image, before it is copied to the output
+     * @param forSharing whether it is being cleaned to share, which keeps a different set of tags
      */
-    private void restoreEssentialExifData(@NonNull File imageFile, @NonNull Map<String, String> kept) {
+    private void restoreEssentialExifData(@NonNull File imageFile, @NonNull Map<String, String> kept,
+                                          boolean forSharing) {
         // Skip if no EXIF values were preserved
         if (kept.isEmpty()) {
             return;
@@ -550,7 +552,7 @@ final class ImageCleaner {
         try {
             ExifInterface newExif = new ExifInterface(imageFile.getAbsolutePath());
 
-            removeAllExifMetadata(newExif);
+            removeAllExifMetadata(newExif, forSharing);
             restoreEssentialExifValues(newExif, kept);
             newExif.saveAttributes();
             if (ImageContainerMetadata.sniff(imageFile) == ImageContainerMetadata.Format.JPEG) {
@@ -651,11 +653,9 @@ final class ImageCleaner {
      * except the tags we explicitly want to preserve.
      *
      * @param exif The ExifInterface instance to clean
+     * @param forSharing whether the photo is being cleaned to share; the settings keep different
+     *                   tags then
      */
-    private void removeAllExifMetadata(@NonNull ExifInterface exif) {
-        removeAllExifMetadata(exif, false);
-    }
-
     private void removeAllExifMetadata(@NonNull ExifInterface exif, boolean forSharing) {
         try {
             // Every TAG_ constant; throws when they can't be read, and the catch below falls back
