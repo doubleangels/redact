@@ -432,8 +432,8 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="censor_empty_state_title">Copri Ciò Che Deve Restare Privato</string>
     <string name="censor_empty_state_description">Pixela, oscura o sfoca volti, targhe, indirizzi e qualsiasi altra cosa in una foto. Redact salva una copia censurata senza metadati, e l’originale resta com’è.</string>
     <string name="censor_select_photo">Seleziona Foto</string>
-    <string name="censor_hint">Disegna su tutto ciò che deve restare privato, poi tocca Salva Copia. Usa Sposta per ingrandire con due dita e spostarti, e tocca un rettangolo per spostarlo o ridimensionarlo. Usa Ritaglia per tenere solo una parte della foto.</string>
-    <string name="censor_canvas_description">Foto da censurare. Disegna con un dito per coprire un’area. Con Sposta, trascina per spostarti e avvicina due dita per lo zoom.</string>
+    <string name="censor_hint">Disegna su tutto ciò che deve restare privato, poi tocca Salva Copia. Avvicina o allontana due dita per ingrandire e spostarti. Trascina un rettangolo per spostarlo e toccalo per ridimensionarlo con le maniglie. Usa Ritaglia per tenere solo una parte della foto.</string>
+    <string name="censor_canvas_description">Foto da censurare. Disegna con un dito per coprire un’area. Avvicina o allontana due dita per ingrandire e spostarti.</string>
     <string name="censor_tool_rectangle">Rettangolo</string>
     <string name="censor_tool_brush">Pennello</string>
     <string name="censor_tool_move">Sposta</string>
@@ -442,8 +442,6 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="censor_effect_pixelate">Pixela</string>
     <string name="censor_effect_black">Nero</string>
     <string name="censor_effect_blur">Sfoca</string>
-    <string name="censor_effect">Effetto</string>
-    <string name="censor_effect_current">Effetto: %1$s</string>
     <string name="censor_undo">Annulla</string>
     <string name="censor_redo">Ripeti</string>
     <string name="censor_delete_rectangle">Elimina Rettangolo</string>

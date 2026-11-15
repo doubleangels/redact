@@ -76,6 +76,37 @@ public class CensorFragmentTest {
         return v;
     }
 
+    /** Whether {@code view} is {@code ancestor} or inside it. */
+    private static boolean isInside(View view, View ancestor) {
+        for (Object v = view; v instanceof View; v = ((View) v).getParent()) {
+            if (v == ancestor) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Selects the area at {@code index} the way TalkBack does, once the canvas has the regions. */
+    private void selectArea(View root, int index) throws InterruptedException {
+        com.doubleangels.redact.ui.CensorCanvasView canvas = root.findViewById(R.id.censorCanvas);
+        androidx.customview.widget.ExploreByTouchHelper helper = (androidx.customview.widget.ExploreByTouchHelper)
+                androidx.core.view.ViewCompat.getAccessibilityDelegate(canvas);
+        assertNotNull(helper);
+        androidx.core.view.accessibility.AccessibilityNodeProviderCompat provider =
+                helper.getAccessibilityNodeProvider(canvas);
+        assertNotNull(provider);
+        awaitMain(() -> {
+            idle();
+            return provider.performAction(index,
+                    androidx.core.view.accessibility.AccessibilityNodeInfoCompat.ACTION_CLICK, null);
+        });
+        idle();
+    }
+
+    private static boolean isChecked(View root, int id) {
+        return ((com.google.android.material.button.MaterialButton) root.findViewById(id)).isChecked();
+    }
+
     private Uri createTestJpeg(String name) throws Exception {
         FakeMediaStoreProvider.install(activity);
         File f = new File(activity.getCacheDir(), name);
@@ -97,7 +128,7 @@ public class CensorFragmentTest {
     }
 
     @Test
-    public void openPhoto_showsSummaryCanvasAndToolPill() throws Exception {
+    public void openPhoto_showsSummaryCanvasAndToolbar() throws Exception {
         View root = censorTab();
         Uri testUri = createTestJpeg("sample.jpg");
         vm.requestOpen(testUri);
@@ -109,7 +140,10 @@ public class CensorFragmentTest {
 
         assertNotNull(root.findViewById(R.id.censorSummaryCard));
         assertNotNull(root.findViewById(R.id.censorCanvasCard));
-        assertEquals(View.VISIBLE, root.findViewById(R.id.censorToolPill).getVisibility());
+        View toolbar = root.findViewById(R.id.censorToolbar);
+        assertEquals(View.VISIBLE, toolbar.getVisibility());
+        // Under the photo, not over it.
+        assertFalse(isInside(toolbar, root.findViewById(R.id.censorCanvasCard)));
 
         TextView fileName = root.findViewById(R.id.summaryTitle);
         assertNotNull(fileName);
@@ -185,20 +219,20 @@ public class CensorFragmentTest {
         awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.READY);
         idle();
 
-        // The effect button names the current effect, and follows a new choice.
-        View effectButton = root.findViewById(R.id.censorEffectButton);
-        assertEquals(activity.getString(R.string.censor_effect_current,
-                        activity.getString(R.string.censor_effect_black)),
-                effectButton.getContentDescription().toString());
+        // The effect buttons are one tap each, with the current effect checked.
+        assertTrue(isChecked(root, R.id.censorEffectBlack));
+        assertFalse(isChecked(root, R.id.censorEffectBlur));
         ((CensorFragment) fragment("censor")).chooseEffect(com.doubleangels.redact.media.CensorEffects.Effect.BLUR);
         idle();
         assertEquals(com.doubleangels.redact.media.CensorEffects.Effect.BLUR, vm.getEffect().getValue());
-        assertEquals(activity.getString(R.string.censor_effect_current,
-                        activity.getString(R.string.censor_effect_blur)),
-                effectButton.getContentDescription().toString());
+        assertTrue(isChecked(root, R.id.censorEffectBlur));
+        assertFalse(isChecked(root, R.id.censorEffectBlack));
+        vm.setEffect(com.doubleangels.redact.media.CensorEffects.Effect.BLACK);
+        idle();
 
         View undo = root.findViewById(R.id.censorUndoButton);
         View redo = root.findViewById(R.id.censorRedoButton);
+        View fullScreen = root.findViewById(R.id.censorFullScreenButton);
         View delete = root.findViewById(R.id.censorDeleteButton);
         View save = root.findViewById(R.id.censorSaveButton);
 
@@ -207,15 +241,17 @@ public class CensorFragmentTest {
         assertNotNull(delete);
         assertNotNull(save);
 
-        // Undo, redo and delete float in one pill over the photo's top end, taking none of its height.
-        android.widget.LinearLayout undoColumn = (android.widget.LinearLayout) undo.getParent();
-        assertEquals(android.widget.LinearLayout.VERTICAL, undoColumn.getOrientation());
-        assertTrue(undoColumn == redo.getParent() && undoColumn == delete.getParent());
+        // Undo, redo and full screen float in one row over the photo's top end.
+        android.widget.LinearLayout undoRow = (android.widget.LinearLayout) undo.getParent();
+        assertEquals(android.widget.LinearLayout.HORIZONTAL, undoRow.getOrientation());
+        assertTrue(undoRow == redo.getParent() && undoRow == fullScreen.getParent());
         View pill = root.findViewById(R.id.censorHistoryControls);
-        assertEquals(pill, undoColumn.getParent());
+        assertEquals(pill, undoRow.getParent());
         assertEquals(root.findViewById(R.id.censorCanvasCard), pill.getParent());
         assertEquals(android.view.Gravity.TOP | android.view.Gravity.END,
                 ((android.widget.FrameLayout.LayoutParams) pill.getLayoutParams()).gravity);
+        // Delete is not in it: it sits beside the selected rectangle.
+        assertTrue(isInside(delete, root.findViewById(R.id.censorContextActions)));
 
         int expectedSize = Math.round(48 * root.getResources().getDisplayMetrics().density);
         assertEquals(expectedSize, undo.getLayoutParams().width);
@@ -223,18 +259,19 @@ public class CensorFragmentTest {
         assertEquals(expectedSize, redo.getLayoutParams().width);
         assertEquals(expectedSize, redo.getLayoutParams().height);
 
-        // Initially no edits: undo/redo disabled, delete gone, save gone, and so is the pill
+        // Initially no edits: undo/redo disabled, delete and save gone; the pill still shows, so it
+        // never appears under the user's finger.
         assertFalse(undo.isEnabled());
         assertFalse(redo.isEnabled());
         assertEquals(View.GONE, delete.getVisibility());
         assertEquals(View.GONE, save.getVisibility());
-        assertEquals(View.GONE, pill.getVisibility());
+        assertEquals(View.VISIBLE, pill.getVisibility());
 
         // Add a region
         vm.addRegion(CensorRegion.rect(0.1f, 0.1f, 0.5f, 0.5f));
         idle();
 
-        // Now undo should be enabled, with its pill, and save visible
+        // Now undo should be enabled and save visible
         assertTrue(undo.isEnabled());
         assertEquals(View.VISIBLE, pill.getVisibility());
         assertEquals(View.VISIBLE, save.getVisibility());
@@ -244,7 +281,6 @@ public class CensorFragmentTest {
         idle();
         assertFalse(undo.isEnabled());
         assertTrue(redo.isEnabled());
-        // Redo is still there to use, so the pill stays.
         assertEquals(View.VISIBLE, pill.getVisibility());
     }
 
@@ -259,6 +295,18 @@ public class CensorFragmentTest {
 
         View add = root.findViewById(R.id.censorAddAreaButton);
         assertEquals(activity.getString(R.string.censor_add_area), add.getContentDescription().toString());
+        // It takes room in the toolbar only while an accessibility service is on.
+        assertEquals(View.GONE, add.getVisibility());
+        android.view.accessibility.AccessibilityManager manager = (android.view.accessibility.AccessibilityManager)
+                activity.getSystemService(android.content.Context.ACCESSIBILITY_SERVICE);
+        shadowOf(manager).setEnabled(true);
+        try {
+            controller.pause().resume();
+            idle();
+            assertEquals(View.VISIBLE, add.getVisibility());
+        } finally {
+            shadowOf(manager).setEnabled(false);
+        }
         add.performClick();
         idle();
 
@@ -303,7 +351,7 @@ public class CensorFragmentTest {
         awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.READY);
         idle();
         View nav = activity.findViewById(R.id.bottomNavigation);
-        View pill = root.findViewById(R.id.censorToolPill);
+        View pill = root.findViewById(R.id.censorToolbar);
         assertEquals(View.VISIBLE, pill.getVisibility());
 
         root.findViewById(R.id.censorFullScreenButton).performClick();
@@ -333,16 +381,13 @@ public class CensorFragmentTest {
     }
 
     @Test
-    public void toolPill_makesRoomForTheZoomChip_onlyWhileItShows() throws Exception {
+    public void theZoomChip_showsWhileZoomedIn_andTappingItShowsTheWholePhoto() throws Exception {
         View root = censorTab();
         vm.requestOpen(createTestJpeg("zoom.jpg"));
         awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.READY);
         idle();
-        View pill = root.findViewById(R.id.censorToolPill);
         View chip = root.findViewById(R.id.censorZoomChip);
-        float density = root.getResources().getDisplayMetrics().density;
-        int bottom = ((android.view.ViewGroup.MarginLayoutParams) pill.getLayoutParams()).bottomMargin;
-        assertEquals(Math.round(12 * density), bottom);
+        assertEquals(View.GONE, chip.getVisibility());
 
         java.lang.reflect.Method zoomBy = com.doubleangels.redact.ui.CensorCanvasView.class
                 .getDeclaredMethod("zoomBy", float.class);
@@ -350,14 +395,10 @@ public class CensorFragmentTest {
         zoomBy.invoke(root.findViewById(R.id.censorCanvas), 2f);
         idle();
         assertEquals(View.VISIBLE, chip.getVisibility());
-        bottom = ((android.view.ViewGroup.MarginLayoutParams) pill.getLayoutParams()).bottomMargin;
-        assertEquals(Math.round(64 * density), bottom);
 
         chip.performClick();
         idle();
         assertEquals(View.GONE, chip.getVisibility());
-        bottom = ((android.view.ViewGroup.MarginLayoutParams) pill.getLayoutParams()).bottomMargin;
-        assertEquals(Math.round(12 * density), bottom);
     }
 
     @Test
@@ -451,13 +492,15 @@ public class CensorFragmentTest {
     @Test
     public void saving_showsTheResult_andScanResultOpensTheCopyInScan() throws Exception {
         View root = openWithOneRegion();
+        com.doubleangels.redact.ui.Notice.resetForTests();
 
         saveAndWait();
 
         assertNotNull(vm.getLastSaved());
-        TextView status = root.findViewById(R.id.statusText);
-        assertEquals(View.VISIBLE, status.getVisibility());
-        assertEquals(activity.getString(R.string.censor_saved), status.getText().toString());
+        // A full-size copy says so in a short notice, leaving nothing over the result.
+        assertEquals(activity.getString(R.string.censor_saved),
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
+        assertEquals(View.GONE, root.findViewById(R.id.statusText).getVisibility());
         assertEquals(View.VISIBLE, root.findViewById(R.id.shareResultsButton).getVisibility());
         View scanResult = root.findViewById(R.id.scanResultButton);
         assertEquals(View.VISIBLE, scanResult.getVisibility());
@@ -542,28 +585,62 @@ public class CensorFragmentTest {
     }
 
     @Test
-    public void theEffectButton_opensAMenu_whoseChoiceIsUsed() throws Exception {
+    public void anEffectButton_setsTheEffectForNewAreas_andLeavesCoveredOnesAlone() throws Exception {
         View root = openWithOneRegion();
-        View effectButton = root.findViewById(R.id.censorEffectButton);
+        assertEquals(com.doubleangels.redact.media.CensorEffects.Effect.BLACK, vm.regions().get(0).effect());
 
-        effectButton.performClick();
-        effectButton.performClick(); // a second tap while it is open opens no second menu
+        root.findViewById(R.id.censorEffectBlur).performClick();
         idle();
-        java.lang.reflect.Field field = CensorFragment.class.getDeclaredField("effectMenu");
-        field.setAccessible(true);
-        androidx.appcompat.widget.PopupMenu menu =
-                (androidx.appcompat.widget.PopupMenu) field.get(fragment("censor"));
-        assertNotNull(menu);
-        assertEquals(com.doubleangels.redact.media.CensorEffects.Effect.values().length, menu.getMenu().size());
-
-        // Not the default, so the menu has to change something for the check to pass.
-        int blur = com.doubleangels.redact.media.CensorEffects.Effect.BLUR.ordinal();
-        menu.getMenu().performIdentifierAction(blur, 0);
-        idle();
-
         assertEquals(com.doubleangels.redact.media.CensorEffects.Effect.BLUR, vm.getEffect().getValue());
+        assertTrue(isChecked(root, R.id.censorEffectBlur));
+        // The area already covered keeps its effect; the next one gets the new one.
+        assertEquals(com.doubleangels.redact.media.CensorEffects.Effect.BLACK, vm.regions().get(0).effect());
+        vm.addRegion(CensorRegion.rect(0.6f, 0.6f, 0.9f, 0.9f));
+        idle();
+        assertEquals(com.doubleangels.redact.media.CensorEffects.Effect.BLUR, vm.regions().get(1).effect());
         // The choice is remembered for later photos; put the default back for the other tests.
         vm.setEffect(com.doubleangels.redact.media.CensorEffects.Effect.BLACK);
+    }
+
+    @Test
+    public void anEffectButton_withARectangleSelected_changesIt_asAnEditThatCanBeUndone() throws Exception {
+        View root = openWithOneRegion();
+        selectArea(root, 0);
+        assertEquals(View.VISIBLE, root.findViewById(R.id.censorDeleteButton).getVisibility());
+        assertEquals(View.VISIBLE, root.findViewById(R.id.censorContextActions).getVisibility());
+
+        root.findViewById(R.id.censorEffectPixelate).performClick();
+        idle();
+        assertEquals(com.doubleangels.redact.media.CensorEffects.Effect.PIXELATE, vm.regions().get(0).effect());
+        assertTrue(isChecked(root, R.id.censorEffectPixelate));
+        // Still selected, so Delete stays beside it.
+        assertEquals(View.VISIBLE, root.findViewById(R.id.censorDeleteButton).getVisibility());
+
+        root.findViewById(R.id.censorUndoButton).performClick();
+        idle();
+        assertEquals(com.doubleangels.redact.media.CensorEffects.Effect.BLACK, vm.regions().get(0).effect());
+        // The selected rectangle's effect is what the buttons show.
+        assertTrue(isChecked(root, R.id.censorEffectBlack));
+        vm.setEffect(com.doubleangels.redact.media.CensorEffects.Effect.BLACK);
+    }
+
+    @Test
+    public void theHint_hidesOnceSomethingIsCovered() throws Exception {
+        AppPreferences.resetAll(activity);
+        View root = censorTab();
+        vm.requestOpen(createTestJpeg("hint.jpg"));
+        awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.READY);
+        idle();
+        View hint = root.findViewById(R.id.censorSummaryCard).findViewById(R.id.summaryHint);
+        assertEquals(View.VISIBLE, hint.getVisibility());
+
+        vm.addRegion(CensorRegion.rect(0.1f, 0.1f, 0.5f, 0.5f));
+        idle();
+        assertEquals(View.GONE, hint.getVisibility());
+
+        root.findViewById(R.id.censorUndoButton).performClick();
+        idle();
+        assertEquals(View.VISIBLE, hint.getVisibility());
     }
 
     @Test
@@ -590,7 +667,7 @@ public class CensorFragmentTest {
         idle();
 
         assertEquals(View.VISIBLE, root.findViewById(R.id.censorContent).getVisibility());
-        assertNotNull(root.findViewById(R.id.censorToolPill));
+        assertEquals(View.VISIBLE, root.findViewById(R.id.censorToolbar).getVisibility());
         assertNotNull(root.findViewById(R.id.censorCanvasCard));
         assertNotNull(root.findViewById(R.id.censorSummaryCard));
     }

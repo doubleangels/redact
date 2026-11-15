@@ -405,8 +405,8 @@
     <string name="censor_empty_state_title">見せたくないものを隠す</string>
     <string name="censor_empty_state_description">写真の顔、ナンバープレート、住所などをモザイク、黒塗り、ぼかしで隠せます。Redact はメタデータを一切含まないコピーを保存し、元の写真はそのまま残ります。</string>
     <string name="censor_select_photo">写真を選択</string>
-    <string name="censor_hint">見せたくない部分をなぞってから、「コピーを保存」をタップします。「移動」ではピンチで拡大し、ドラッグで表示位置を動かせます。四角形をタップすると、移動やサイズ変更ができます。「切り抜き」では写真の一部だけを残せます。</string>
-    <string name="censor_canvas_description">編集中の写真。1 本の指でなぞると範囲を隠します。「移動」ではドラッグで動かし、ピンチで拡大します。</string>
+    <string name="censor_hint">見せたくない部分をなぞってから、「コピーを保存」をタップします。2 本の指でピンチすると拡大や表示位置の移動ができます。四角形はドラッグで移動でき、タップするとハンドルでサイズを変更できます。「切り抜き」では写真の一部だけを残せます。</string>
+    <string name="censor_canvas_description">編集中の写真。1 本の指でなぞると範囲を隠します。2 本の指でピンチすると拡大や表示位置の移動ができます。</string>
     <string name="censor_tool_rectangle">四角形</string>
     <string name="censor_tool_brush">ブラシ</string>
     <string name="censor_tool_move">移動</string>
@@ -415,8 +415,6 @@
     <string name="censor_effect_pixelate">モザイク</string>
     <string name="censor_effect_black">黒塗り</string>
     <string name="censor_effect_blur">ぼかし</string>
-    <string name="censor_effect">効果</string>
-    <string name="censor_effect_current">効果: %1$s</string>
     <string name="censor_undo">元に戻す</string>
     <string name="censor_redo">やり直す</string>
     <string name="censor_delete_rectangle">四角形を削除</string>

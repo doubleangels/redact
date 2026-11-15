@@ -52,7 +52,11 @@ public final class CensorEffects {
     private CensorEffects() {
     }
 
-    /** Covers every region in {@code target}, which must be mutable and not a hardware bitmap. */
+    /**
+     * Covers every region in {@code target}, which must be mutable and not a hardware bitmap, each
+     * with its own effect or, for a region without one, with {@code effect}. Regions are covered in
+     * order, each on top of the ones before, so an area covered twice never shows its original.
+     */
     public static void apply(
             @NonNull Bitmap target, @NonNull List<CensorRegion> regions, @NonNull Effect effect) {
         apply(target, regions, effect, SECURE_RANDOM);
@@ -73,7 +77,8 @@ public final class CensorEffects {
                 continue;
             }
             Path path = region.toPath(width, height);
-            if (effect == Effect.BLACK) {
+            Effect regionEffect = region.effect() != null ? region.effect() : effect;
+            if (regionEffect == Effect.BLACK) {
                 canvas.drawPath(path, black);
                 continue;
             }
@@ -95,7 +100,7 @@ public final class CensorEffects {
             int[] pixels = new int[w * h];
             target.getPixels(pixels, 0, w, area.left, area.top, w, h);
             int[] colours = blockColours(pixels, w, h, block, random);
-            if (effect == Effect.PIXELATE) {
+            if (regionEffect == Effect.PIXELATE) {
                 fillBlocks(pixels, w, h, block, colours);
             } else {
                 blendBlocks(pixels, w, h, block, colours);

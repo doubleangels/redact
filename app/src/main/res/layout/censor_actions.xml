@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- The same buttons as Clean: Save Copy is the big action in the bottom right, and once a copy is
      saved, Share and Scan Result take its place as Clean's smaller buttons. The two never show
-     together (Save Copy only shows with new edits), so they share the bottom right. -->
+     together (Save Copy only shows with new edits), so they share the bottom right. In portrait
+     they sit above the toolbar under the photo. -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -13,7 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/spacing_large"
-        android:layout_marginBottom="@dimen/spacing_large"
+        android:layout_marginBottom="@dimen/censor_actions_margin_bottom"
         android:text="@string/censor_save"
         android:textColor="?attr/colorOnPrimary"
         android:visibility="gone"
@@ -35,7 +36,7 @@
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/censorSaveButton"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_goneMarginBottom="16dp"
+        app:layout_goneMarginBottom="@dimen/censor_actions_margin_bottom"
         app:srcCompat="@drawable/ic_share" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton

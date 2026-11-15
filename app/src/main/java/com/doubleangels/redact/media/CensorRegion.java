@@ -4,13 +4,18 @@ import android.graphics.Paint;
 import android.graphics.Path;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * One area the user covered in the censor editor: a rectangle or a brush stroke. Coordinates are
  * fractions of the image (x of its width, y of its height), so the same region lands on the same
  * pixels in the small preview and in the full-size saved photo.
+ *
+ * <p>Each region can carry its own effect, so a face can be blacked out and a sign next to it
+ * blurred. A region without one takes the effect {@link CensorEffects#apply} is given.
  */
 public final class CensorRegion {
 
@@ -23,11 +28,16 @@ public final class CensorRegion {
     private final float[] points;
     /** Brush width as a fraction of the image's longer side; unused for RECT. */
     private final float strokeWidth;
+    /** How this region is covered; null for the effect the whole photo is covered with. */
+    @Nullable
+    private final CensorEffects.Effect effect;
 
-    private CensorRegion(@NonNull Shape shape, @NonNull float[] points, float strokeWidth) {
+    private CensorRegion(@NonNull Shape shape, @NonNull float[] points, float strokeWidth,
+                         @Nullable CensorEffects.Effect effect) {
         this.shape = shape;
         this.points = points;
         this.strokeWidth = strokeWidth;
+        this.effect = effect;
     }
 
     /** A rectangle between two corners, in either order, kept inside the image. */
@@ -35,7 +45,7 @@ public final class CensorRegion {
     public static CensorRegion rect(float x1, float y1, float x2, float y2) {
         return new CensorRegion(Shape.RECT, new float[] {
                 clamp(Math.min(x1, x2)), clamp(Math.min(y1, y2)),
-                clamp(Math.max(x1, x2)), clamp(Math.max(y1, y2))}, 0f);
+                clamp(Math.max(x1, x2)), clamp(Math.max(y1, y2))}, 0f, null);
     }
 
     /** A brush stroke through {@code xyPairs}, {@code width} a fraction of the longer side. */
@@ -44,7 +54,19 @@ public final class CensorRegion {
         if (xyPairs.length < 2 || xyPairs.length % 2 != 0) {
             throw new IllegalArgumentException("A stroke needs at least one x, y pair");
         }
-        return new CensorRegion(Shape.STROKE, xyPairs.clone(), width);
+        return new CensorRegion(Shape.STROKE, xyPairs.clone(), width, null);
+    }
+
+    /** The same area covered with {@code newEffect}, or with the photo's effect when null. */
+    @NonNull
+    public CensorRegion withEffect(@Nullable CensorEffects.Effect newEffect) {
+        return newEffect == effect ? this : new CensorRegion(shape, points, strokeWidth, newEffect);
+    }
+
+    /** This region's own effect, or null when it takes the photo's. */
+    @Nullable
+    public CensorEffects.Effect effect() {
+        return effect;
     }
 
     @NonNull
@@ -109,11 +131,13 @@ public final class CensorRegion {
         }
         return shape == other.shape
                 && Float.compare(strokeWidth, other.strokeWidth) == 0
-                && Arrays.equals(points, other.points);
+                && Arrays.equals(points, other.points)
+                && effect == other.effect;
     }
 
     @Override
     public int hashCode() {
-        return 31 * (31 * shape.hashCode() + Arrays.hashCode(points)) + Float.hashCode(strokeWidth);
+        return 31 * (31 * (31 * shape.hashCode() + Arrays.hashCode(points)) + Float.hashCode(strokeWidth))
+                + Objects.hashCode(effect);
     }
 }

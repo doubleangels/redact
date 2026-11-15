@@ -45,4 +45,11 @@
     <dimen name="spacing_medium">12dp</dimen>
     <dimen name="spacing_large">16dp</dimen>
     <dimen name="spacing_xlarge">24dp</dimen>
+
+    <!-- Censor: room the top end pill (three 48dp buttons, 12dp from the edge, 8dp gap) takes from
+         what shares the photo's top edge with it. -->
+    <dimen name="censor_top_pill_clearance">164dp</dimen>
+    <!-- Censor: how far the buttons in the bottom right sit above the screen's bottom edge, clear of
+         the toolbar under the photo (8dp padding, 48dp toolbar, 8dp gap, 8dp above it). -->
+    <dimen name="censor_actions_margin_bottom">72dp</dimen>
 </resources>

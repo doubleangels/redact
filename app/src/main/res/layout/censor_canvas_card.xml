@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The photo being censored; the parent sizes it to take the space that is left. -->
+<!-- The photo being censored; the parent sizes it to take the space that is left. The tools are in
+     the toolbar under it (censor_toolbar), so only what has to sit on the photo is over it: undo,
+     redo and full screen in a pill at its top end, the brush size while Brush is the tool, the
+     actions for the selected rectangle or the crop, and the zoom level. -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/censorCanvasCard"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -16,212 +20,38 @@
         android:layout_height="match_parent"
         android:contentDescription="@string/censor_canvas_description" />
 
-    <!-- Status: shown while saving and after a save. Over the photo rather than in its own row,
-         so the photo does not shift when it appears; its side margins keep it clear of the pills
-         at either corner, and it moves below the brush size bar while that shows. -->
+    <!-- Status: shown while saving, after a save that came out smaller than the original, and after
+         a failed save. A plain success is a short notice instead, so nothing stays over the result.
+         Over the photo rather than in its own row, so the photo does not shift when it appears; it
+         moves below the brush size bar while that shows. -->
     <TextView
         android:id="@+id/statusText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|center_horizontal"
-        android:layout_marginHorizontal="72dp"
-        android:layout_marginTop="@dimen/spacing_medium"
-        android:background="@drawable/bg_rounded_surface"
-        android:backgroundTint="?attr/colorSurfaceContainerHighest"
-        android:elevation="4dp"
-        android:paddingHorizontal="@dimen/spacing_large"
-        android:paddingVertical="@dimen/spacing_small"
-        android:textAlignment="center"
-        android:textAppearance="?attr/textAppearanceLabelLarge"
-        android:textColor="?attr/colorOnSurface"
-        android:visibility="gone" />
-
-    <!-- The editor's tools, in a pill over the photo's top start that mirrors the undo pill at
-         its top end: full screen, then Rectangle, Brush, Move and Crop, then the effect, which opens a
-         menu of Pixelate, Black and Blur. Over the photo rather than in a card above it, so the
-         photo keeps that height, and the same in full screen as out of it. -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/censorToolPill"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|start"
         android:layout_marginStart="@dimen/spacing_medium"
         android:layout_marginTop="@dimen/spacing_medium"
-        android:layout_marginBottom="@dimen/spacing_medium"
-        android:visibility="gone"
-        app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
-        app:cardCornerRadius="24dp"
-        app:cardElevation="3dp"
-        app:strokeWidth="0dp">
+        android:layout_marginEnd="@dimen/censor_top_pill_clearance"
+        android:background="@drawable/bg_rounded_surface"
+        android:backgroundTint="?attr/colorSurfaceContainerHighest"
+        android:elevation="4dp"
+        android:paddingHorizontal="@dimen/spacing_large"
+        android:paddingVertical="@dimen/spacing_small"
+        android:textAlignment="viewStart"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:textColor="?attr/colorOnSurface"
+        android:visibility="gone" />
 
-        <!-- Scrolls on a photo too short for the whole pill, as in landscape on a small phone,
-             with a fading edge to show there is more. While the zoom chip shows, the pill's
-             bottom margin grows to keep it 12dp clear of the chip. -->
-        <androidx.core.widget.NestedScrollView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fadingEdgeLength="24dp"
-            android:overScrollMode="never"
-            android:requiresFadingEdge="vertical"
-            android:scrollbars="none">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorFullScreenButton"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="@dimen/touch_target_min"
-                    android:layout_height="@dimen/touch_target_min"
-                    android:contentDescription="@string/censor_full_screen"
-                    android:insetLeft="@dimen/button_inset"
-                    android:insetTop="@dimen/button_inset"
-                    android:insetRight="@dimen/button_inset"
-                    android:insetBottom="@dimen/button_inset"
-                    android:padding="0dp"
-                    android:tooltipText="@string/censor_full_screen"
-                    app:icon="@drawable/ic_fullscreen"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    app:iconSize="@dimen/icon_size" />
-
-                <com.google.android.material.divider.MaterialDivider
-                    android:layout_width="24dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginVertical="@dimen/spacing_xsmall" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorToolRect"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="@dimen/touch_target_min"
-                    android:layout_height="@dimen/touch_target_min"
-                    android:checkable="true"
-                    android:saveEnabled="false"
-                    android:contentDescription="@string/censor_tool_rectangle"
-                    android:insetLeft="@dimen/button_inset"
-                    android:insetTop="@dimen/button_inset"
-                    android:insetRight="@dimen/button_inset"
-                    android:insetBottom="@dimen/button_inset"
-                    android:padding="0dp"
-                    android:tooltipText="@string/censor_tool_rectangle"
-                    app:icon="@drawable/ic_rectangle"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    app:iconSize="@dimen/icon_size" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorToolBrush"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="@dimen/touch_target_min"
-                    android:layout_height="@dimen/touch_target_min"
-                    android:checkable="true"
-                    android:saveEnabled="false"
-                    android:contentDescription="@string/censor_tool_brush"
-                    android:insetLeft="@dimen/button_inset"
-                    android:insetTop="@dimen/button_inset"
-                    android:insetRight="@dimen/button_inset"
-                    android:insetBottom="@dimen/button_inset"
-                    android:padding="0dp"
-                    android:tooltipText="@string/censor_tool_brush"
-                    app:icon="@drawable/ic_brush"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    app:iconSize="@dimen/icon_size" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorToolMove"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="@dimen/touch_target_min"
-                    android:layout_height="@dimen/touch_target_min"
-                    android:checkable="true"
-                    android:saveEnabled="false"
-                    android:contentDescription="@string/censor_tool_move"
-                    android:insetLeft="@dimen/button_inset"
-                    android:insetTop="@dimen/button_inset"
-                    android:insetRight="@dimen/button_inset"
-                    android:insetBottom="@dimen/button_inset"
-                    android:padding="0dp"
-                    android:tooltipText="@string/censor_tool_move"
-                    app:icon="@drawable/ic_pan"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    app:iconSize="@dimen/icon_size" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorToolCrop"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="@dimen/touch_target_min"
-                    android:layout_height="@dimen/touch_target_min"
-                    android:checkable="true"
-                    android:saveEnabled="false"
-                    android:contentDescription="@string/censor_tool_crop"
-                    android:insetLeft="@dimen/button_inset"
-                    android:insetTop="@dimen/button_inset"
-                    android:insetRight="@dimen/button_inset"
-                    android:insetBottom="@dimen/button_inset"
-                    android:padding="0dp"
-                    android:tooltipText="@string/censor_tool_crop"
-                    app:icon="@drawable/ic_crop"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    app:iconSize="@dimen/icon_size" />
-
-                <!-- Drops a rectangle in the middle of the photo, so an area can be covered
-                     without drawing (TalkBack, Switch Access); its actions move and resize it. -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorAddAreaButton"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="@dimen/touch_target_min"
-                    android:layout_height="@dimen/touch_target_min"
-                    android:contentDescription="@string/censor_add_area"
-                    android:insetLeft="@dimen/button_inset"
-                    android:insetTop="@dimen/button_inset"
-                    android:insetRight="@dimen/button_inset"
-                    android:insetBottom="@dimen/button_inset"
-                    android:padding="0dp"
-                    android:tooltipText="@string/censor_add_area"
-                    app:icon="@drawable/ic_add"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    app:iconSize="@dimen/icon_size" />
-
-                <com.google.android.material.divider.MaterialDivider
-                    android:layout_width="24dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginVertical="@dimen/spacing_xsmall" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorEffectButton"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="@dimen/touch_target_min"
-                    android:layout_height="@dimen/touch_target_min"
-                    android:contentDescription="@string/censor_effect"
-                    android:insetLeft="@dimen/button_inset"
-                    android:insetTop="@dimen/button_inset"
-                    android:insetRight="@dimen/button_inset"
-                    android:insetBottom="@dimen/button_inset"
-                    android:padding="0dp"
-                    android:tooltipText="@string/censor_effect"
-                    app:icon="@drawable/ic_censor"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    app:iconSize="@dimen/icon_size" />
-            </LinearLayout>
-        </androidx.core.widget.NestedScrollView>
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Brush size, while Brush is the tool: a bar across the top between the two pills. -->
+    <!-- Brush size, while Brush is the tool: a bar across the top, clear of the pill at the top end.
+         The dot at its end grows and shrinks with the brush, so the size reads without dragging. -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/censorBrushSizeContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|center_horizontal"
-        android:layout_marginHorizontal="72dp"
+        android:layout_gravity="top|start"
+        android:layout_marginStart="@dimen/spacing_medium"
         android:layout_marginTop="@dimen/spacing_medium"
+        android:layout_marginEnd="@dimen/censor_top_pill_clearance"
         android:visibility="gone"
         app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
         app:cardCornerRadius="24dp"
@@ -236,8 +66,8 @@
             android:paddingHorizontal="@dimen/spacing_medium">
 
             <ImageView
-                android:layout_width="14dp"
-                android:layout_height="14dp"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_brush"
                 app:tint="?attr/colorOnSurfaceVariant" />
@@ -256,19 +86,25 @@
                 app:labelBehavior="gone"
                 app:tickVisibilityMode="hidden" />
 
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_brush"
-                app:tint="?attr/colorOnSurfaceVariant" />
+            <!-- Holds the dot at its largest, so the slider keeps its width as the dot changes. -->
+            <FrameLayout
+                android:layout_width="24dp"
+                android:layout_height="24dp">
+
+                <View
+                    android:id="@+id/censorBrushSizeDot"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_brush_size_dot"
+                    android:backgroundTint="?attr/colorOnSurfaceVariant" />
+            </FrameLayout>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Undo, Redo, Reset Crop while cropping, and Delete while a rectangle is selected: one raised pill over the photo's top
-         end, like the zoom chip at its bottom start, so they take none of the photo's height. It
-         shows only once there is something to undo, redo or delete, as Save Copy shows only with
-         edits. Save Copy, Share and Scan Result are the buttons in the bottom right, as on Clean. -->
+    <!-- Undo, Redo and Full Screen: one raised pill over the photo's top end. It shows whenever the
+         photo does, with Undo and Redo disabled until there is something to undo or redo, so it
+         never appears and disappears under the user's finger. -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/censorHistoryControls"
         android:layout_width="wrap_content"
@@ -284,79 +120,69 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/censorUndoButton"
-                style="@style/Widget.Material3.Button.IconButton"
-                android:layout_width="@dimen/touch_target_min"
-                android:layout_height="@dimen/touch_target_min"
+                style="@style/Widget.Redact.Censor.IconButton"
                 android:contentDescription="@string/censor_undo"
                 android:enabled="false"
-                android:insetLeft="@dimen/button_inset"
-                android:insetTop="@dimen/button_inset"
-                android:insetRight="@dimen/button_inset"
-                android:insetBottom="@dimen/button_inset"
-                android:padding="0dp"
                 android:tooltipText="@string/censor_undo"
-                app:icon="@drawable/ic_undo"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconSize="@dimen/icon_size" />
+                app:icon="@drawable/ic_undo" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/censorRedoButton"
-                style="@style/Widget.Material3.Button.IconButton"
-                android:layout_width="@dimen/touch_target_min"
-                android:layout_height="@dimen/touch_target_min"
+                style="@style/Widget.Redact.Censor.IconButton"
                 android:contentDescription="@string/censor_redo"
                 android:enabled="false"
-                android:insetLeft="@dimen/button_inset"
-                android:insetTop="@dimen/button_inset"
-                android:insetRight="@dimen/button_inset"
-                android:insetBottom="@dimen/button_inset"
-                android:padding="0dp"
                 android:tooltipText="@string/censor_redo"
-                app:icon="@drawable/ic_redo"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconSize="@dimen/icon_size" />
+                app:icon="@drawable/ic_redo" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/censorFullScreenButton"
+                style="@style/Widget.Redact.Censor.IconButton"
+                android:contentDescription="@string/censor_full_screen"
+                android:tooltipText="@string/censor_full_screen"
+                app:icon="@drawable/ic_fullscreen" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Actions on what is selected: Delete beside the selected rectangle (above it, or below it
+         near the top), and Reset Crop at the bottom while the crop tool shows a crop. Placed in
+         code by translation from the top left, which is why its gravity is left rather than start;
+         it shows only while one of them applies. -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/censorContextActions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|left"
+        tools:ignore="RtlHardcoded"
+        android:visibility="gone"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="3dp"
+        app:strokeWidth="0dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/censorResetCropButton"
-                style="@style/Widget.Material3.Button.IconButton"
-                android:layout_width="@dimen/touch_target_min"
-                android:layout_height="@dimen/touch_target_min"
+                style="@style/Widget.Redact.Censor.IconButton"
                 android:contentDescription="@string/censor_reset_crop"
-                android:insetLeft="@dimen/button_inset"
-                android:insetTop="@dimen/button_inset"
-                android:insetRight="@dimen/button_inset"
-                android:insetBottom="@dimen/button_inset"
-                android:padding="0dp"
                 android:tooltipText="@string/censor_reset_crop"
                 android:visibility="gone"
-                app:icon="@drawable/ic_crop_reset"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconSize="@dimen/icon_size" />
+                app:icon="@drawable/ic_crop_reset" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/censorDeleteButton"
-                style="@style/Widget.Material3.Button.IconButton"
-                android:layout_width="@dimen/touch_target_min"
-                android:layout_height="@dimen/touch_target_min"
+                style="@style/Widget.Redact.Censor.IconButton"
                 android:contentDescription="@string/censor_delete_rectangle"
-                android:insetLeft="@dimen/button_inset"
-                android:insetTop="@dimen/button_inset"
-                android:insetRight="@dimen/button_inset"
-                android:insetBottom="@dimen/button_inset"
-                android:padding="0dp"
                 android:tooltipText="@string/censor_delete_rectangle"
                 android:visibility="gone"
                 app:icon="@drawable/ic_delete"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconSize="@dimen/icon_size"
                 app:iconTint="?attr/colorError" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

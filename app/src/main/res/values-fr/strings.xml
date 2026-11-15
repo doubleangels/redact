@@ -432,8 +432,8 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="censor_empty_state_title">Masquez Ce Qui Doit Rester Privé</string>
     <string name="censor_empty_state_description">Pixellisez, noircissez ou floutez les visages, les plaques d’immatriculation, les adresses et tout le reste sur une photo. Redact enregistre une copie censurée sans aucune métadonnée, et votre original reste intact.</string>
     <string name="censor_select_photo">Sélectionner une Photo</string>
-    <string name="censor_hint">Dessinez sur tout ce qui doit rester privé, puis appuyez sur Enregistrer une Copie. Avec Déplacer, pincez pour zoomer et faites glisser pour vous déplacer ; appuyez sur un rectangle pour le déplacer ou le redimensionner. Avec Rogner, ne gardez qu\'une partie de la photo.</string>
-    <string name="censor_canvas_description">Photo en cours de censure. Dessinez avec un doigt pour masquer une zone. Avec Déplacer, faites glisser pour vous déplacer et pincez pour zoomer.</string>
+    <string name="censor_hint">Dessinez sur tout ce qui doit rester privé, puis appuyez sur Enregistrer une Copie. Pincez avec deux doigts pour zoomer et vous déplacer. Faites glisser un rectangle pour le déplacer, et appuyez dessus pour le redimensionner avec ses poignées. Avec Rogner, ne gardez qu\'une partie de la photo.</string>
+    <string name="censor_canvas_description">Photo en cours de censure. Dessinez avec un doigt pour masquer une zone. Pincez avec deux doigts pour zoomer et vous déplacer.</string>
     <string name="censor_tool_rectangle">Rectangle</string>
     <string name="censor_tool_brush">Pinceau</string>
     <string name="censor_tool_move">Déplacer</string>
@@ -442,8 +442,6 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="censor_effect_pixelate">Pixelliser</string>
     <string name="censor_effect_black">Noir</string>
     <string name="censor_effect_blur">Flouter</string>
-    <string name="censor_effect">Effet</string>
-    <string name="censor_effect_current">Effet : %1$s</string>
     <string name="censor_undo">Annuler</string>
     <string name="censor_redo">Rétablir</string>
     <string name="censor_delete_rectangle">Supprimer le Rectangle</string>

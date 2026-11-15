@@ -2,14 +2,16 @@ package com.doubleangels.redact;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
+import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.TextView;
 
 import androidx.activity.OnBackPressedCallback;
@@ -20,7 +22,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.PopupMenu;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.doubleangels.redact.media.CensorEffects;
@@ -80,10 +81,23 @@ public class CensorFragment extends TabFragment {
     private TextView fileName;
     private View summaryCard;
     private View historyControls;
-    private View toolPill;
+    /** The row of tools under the photo. */
+    private View toolbar;
     private MaterialButton fullScreenButton;
-    private MaterialButton effectButton;
     private View brushSizeBar;
+    private View brushSizeDot;
+    /** Add Area and the divider before it, shown only while an accessibility service is on. */
+    private View addAreaButton;
+    private View addAreaDivider;
+    /** Delete beside the selected rectangle, and Reset Crop with the crop tool. */
+    private View contextActions;
+    /** The selected rectangle on screen, in the photo card's coordinates; null for none. */
+    @Nullable
+    private RectF selectionBounds;
+    @Nullable
+    private AccessibilityManager accessibilityManager;
+    private final AccessibilityManager.AccessibilityStateChangeListener accessibilityListener =
+            enabled -> updateAddArea();
     /** The landscape column holding the summary card; null in portrait. */
     @Nullable
     private View column;
@@ -99,8 +113,6 @@ public class CensorFragment extends TabFragment {
     private View scanResultButton;
     @Nullable
     private AlertDialog replaceDialog;
-    @Nullable
-    private PopupMenu effectMenu;
     /** Whether this fragment last hid the bars, so they are only shown or hidden on a change. */
     private boolean immersive;
     /** The rectangle selected on the canvas, which Delete removes, or minus one. */
@@ -171,10 +183,13 @@ public class CensorFragment extends TabFragment {
         fileName.setSingleLine(true);
         fileName.setEllipsize(TextUtils.TruncateAt.MIDDLE);
         historyControls = view.findViewById(R.id.censorHistoryControls);
-        toolPill = view.findViewById(R.id.censorToolPill);
+        toolbar = view.findViewById(R.id.censorToolbar);
         fullScreenButton = view.findViewById(R.id.censorFullScreenButton);
-        effectButton = view.findViewById(R.id.censorEffectButton);
         brushSizeBar = view.findViewById(R.id.censorBrushSizeContainer);
+        brushSizeDot = view.findViewById(R.id.censorBrushSizeDot);
+        addAreaButton = view.findViewById(R.id.censorAddAreaButton);
+        addAreaDivider = view.findViewById(R.id.censorAddAreaDivider);
+        contextActions = view.findViewById(R.id.censorContextActions);
         column = view.findViewById(R.id.censorColumn);
         deleteButton = view.findViewById(R.id.censorDeleteButton);
         resetCropButton = view.findViewById(R.id.censorResetCropButton);
@@ -233,6 +248,13 @@ public class CensorFragment extends TabFragment {
         });
         setUpTools(view);
         setUpEffects();
+        // The photo's size changes with full screen and rotation, and the actions placed on it move.
+        canvas.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            if (right - left != oldRight - oldLeft || bottom - top != oldBottom - oldTop) {
+                selectionBounds = canvas.selectedBoundsInView();
+                updateContextActions();
+            }
+        });
         canvas.setListener(new CensorCanvasView.Listener() {
             @Override
             public void onRegionDrawn(@NonNull CensorRegion region) {
@@ -260,8 +282,16 @@ public class CensorFragment extends TabFragment {
                     Haptics.tick(canvas);
                 }
                 selectedRectangle = index;
-                deleteButton.setVisibility(index >= 0 ? View.VISIBLE : View.GONE);
-                updateHistoryControls();
+                selectionBounds = canvas.selectedBoundsInView();
+                updateContextActions();
+                // The effect buttons show the selected rectangle's effect, which they change.
+                updateEffectButtons();
+            }
+
+            @Override
+            public void onSelectionBoundsChanged(@Nullable RectF viewBounds) {
+                selectionBounds = viewBounds;
+                updateContextActions();
             }
 
             @Override
@@ -293,9 +323,19 @@ public class CensorFragment extends TabFragment {
             canvas.setRegions(viewModel.regions());
             canvas.setCrop(viewModel.getCrop());
             updateControls();
+            updateEffectButtons();
         });
         viewModel.getState().observe(getViewLifecycleOwner(), this::render);
         viewModel.getPendingReplacement().observe(getViewLifecycleOwner(), this::askToReplace);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // An accessibility service turned on or off while the app was away.
+        if (addAreaButton != null) {
+            updateAddArea();
+        }
     }
 
     @Override
@@ -326,9 +366,9 @@ public class CensorFragment extends TabFragment {
         canvas.removeCallbacks(hideBrushPreview);
         SecureWindow.setPhotoOpen(requireActivity(), false);
         setImmersive(false);
-        if (effectMenu != null) {
-            effectMenu.dismiss();
-            effectMenu = null;
+        if (accessibilityManager != null) {
+            accessibilityManager.removeAccessibilityStateChangeListener(accessibilityListener);
+            accessibilityManager = null;
         }
         if (replaceDialog != null) {
             replaceDialog.dismiss();
@@ -353,10 +393,12 @@ public class CensorFragment extends TabFragment {
         float size = AppPreferences.getCensorBrushSize(requireContext(), brushSize.getValue());
         brushSize.setValue(Math.max(brushSize.getValueFrom(), Math.min(brushSize.getValueTo(), Math.round(size))));
         canvas.setBrushWidth(brushSize.getValue() * BRUSH_WIDTH_PER_STEP);
+        showBrushSizeDot(brushSize.getValue());
         // A circle of the brush's real size shows while the slider moves, since the size on the
         // photo depends on the zoom.
         brushSize.addOnChangeListener((slider, value, fromUser) -> {
             canvas.setBrushWidth(value * BRUSH_WIDTH_PER_STEP);
+            showBrushSizeDot(value);
             if (fromUser && !draggingBrushSize) {
                 // Changed without dragging (keys or an accessibility action): show it briefly.
                 canvas.setBrushPreview(true);
@@ -395,7 +437,13 @@ public class CensorFragment extends TabFragment {
             Haptics.tick(v);
             setFullScreen(!viewModel.isFullScreen());
         });
-        view.findViewById(R.id.censorAddAreaButton).setOnClickListener(v -> {
+        accessibilityManager = (AccessibilityManager) requireContext()
+                .getSystemService(Context.ACCESSIBILITY_SERVICE);
+        if (accessibilityManager != null) {
+            accessibilityManager.addAccessibilityStateChangeListener(accessibilityListener);
+        }
+        updateAddArea();
+        addAreaButton.setOnClickListener(v -> {
             Haptics.tick(v);
             // The added area is a rectangle, so its tool comes up to keep it selected for editing.
             if (currentTool != CensorCanvasView.Tool.RECT) {
@@ -408,11 +456,32 @@ public class CensorFragment extends TabFragment {
         applyTool();
     }
 
+    /** Sizes the dot beside the brush size slider to the brush: 6dp at 1, up to 24dp at 10. */
+    private void showBrushSizeDot(float value) {
+        int size = Math.round((6 + (value - 1) * 2) * getResources().getDisplayMetrics().density);
+        ViewGroup.LayoutParams lp = brushSizeDot.getLayoutParams();
+        if (lp.width != size) {
+            lp.width = size;
+            lp.height = size;
+            brushSizeDot.setLayoutParams(lp);
+        }
+    }
+
+    /**
+     * Add Area is for drawing without a drag (TalkBack, Switch Access), so it takes room in the
+     * toolbar only while an accessibility service is on.
+     */
+    private void updateAddArea() {
+        boolean shown = accessibilityManager != null && accessibilityManager.isEnabled();
+        addAreaButton.setVisibility(shown ? View.VISIBLE : View.GONE);
+        addAreaDivider.setVisibility(shown ? View.VISIBLE : View.GONE);
+    }
+
     /** Puts the current tool on the canvas and marks its button, the only one checked. */
     private void applyTool() {
         canvas.setTool(currentTool);
         for (CensorCanvasView.Tool tool : CensorCanvasView.Tool.values()) {
-            ((MaterialButton) toolPill.findViewById(buttonFor(tool))).setChecked(tool == currentTool);
+            ((MaterialButton) toolbar.findViewById(buttonFor(tool))).setChecked(tool == currentTool);
         }
         updateBrushSizeBar();
         updateHistoryControls();
@@ -444,7 +513,7 @@ public class CensorFragment extends TabFragment {
     /**
      * Shows the photo on its own, filling the screen, while full screen is on and the photo is
      * open: the card above it (or beside it, in landscape), the bottom navigation and the system
-     * bars all hide. The tools stay, over the photo.
+     * bars all hide. The tools stay, under the photo.
      */
     private void applyFullScreen() {
         CensorViewModel.State state = viewModel.getState().getValue();
@@ -455,7 +524,7 @@ public class CensorFragment extends TabFragment {
         }
         // Loading a replacement keeps full screen, so it does not drop out and back in.
         boolean on = viewModel.isFullScreen() && open && !isHidden();
-        toolPill.setVisibility(isPhotoShown() ? View.VISIBLE : View.GONE);
+        toolbar.setVisibility(isPhotoShown() ? View.VISIBLE : View.GONE);
         updateBrushSizeBar();
         int label = on ? R.string.censor_exit_full_screen : R.string.censor_full_screen;
         fullScreenButton.setIconResource(on ? R.drawable.ic_fullscreen_exit : R.drawable.ic_fullscreen);
@@ -500,66 +569,51 @@ public class CensorFragment extends TabFragment {
         };
     }
 
+    /** Pixelate, Blur and Black are one tap each in the toolbar. */
     private void setUpEffects() {
-        effectButton.setOnClickListener(v -> {
-            Haptics.tick(v);
-            showEffectMenu(v);
-        });
+        for (CensorEffects.Effect effect : CensorEffects.Effect.values()) {
+            toolbar.findViewById(buttonFor(effect)).setOnClickListener(v -> {
+                Haptics.tick(v);
+                chooseEffect(effect);
+            });
+        }
         viewModel.getEffect().observe(getViewLifecycleOwner(), effect -> {
-            if (effect == null) {
-                return;
-            }
-            effectButton.setIconResource(iconFor(effect));
-            String label = getString(R.string.censor_effect_current, getString(labelFor(effect)));
-            effectButton.setContentDescription(label);
-            effectButton.setTooltipText(label);
+            canvas.setEffect(effect);
+            updateEffectButtons();
         });
     }
 
-    /** Pixelate, Black and Blur, with the current one checked. */
-    private void showEffectMenu(@NonNull View anchor) {
-        if (effectMenu != null) {
-            return;
-        }
-        PopupMenu popup =
-                new PopupMenu(requireContext(), anchor);
-        effectMenu = popup;
-        popup.setOnDismissListener(menu -> effectMenu = null);
-        Menu menu = popup.getMenu();
-        CensorEffects.Effect current = viewModel.getEffect().getValue();
-        CensorEffects.Effect[] effects = CensorEffects.Effect.values();
-        for (int i = 0; i < effects.length; i++) {
-            menu.add(0, i, i, labelFor(effects[i])).setIcon(iconFor(effects[i]))
-                    .setChecked(effects[i] == current);
-        }
-        menu.setGroupCheckable(0, true, true);
-        popup.setForceShowIcon(true);
-        popup.setOnMenuItemClickListener(item -> {
-            chooseEffect(effects[item.getItemId()]);
-            return true;
-        });
-        popup.show();
-    }
-
+    /**
+     * Sets the effect for the areas covered next and, when a rectangle is selected, covers that one
+     * with it too, as an edit that can be undone. Areas already covered otherwise keep theirs.
+     */
     @VisibleForTesting
     void chooseEffect(@NonNull CensorEffects.Effect effect) {
         viewModel.setEffect(effect);
+        if (selectedRectangle >= 0) {
+            viewModel.setRegionEffect(selectedRectangle, effect);
+        }
         updateControls();
+        updateEffectButtons();
     }
 
-    private static int iconFor(@NonNull CensorEffects.Effect effect) {
-        return switch (effect) {
-            case BLACK -> R.drawable.ic_effect_black;
-            case BLUR -> R.drawable.ic_effect_blur;
-            default -> R.drawable.ic_censor;
-        };
+    /** Checks the selected rectangle's effect, or the one new areas get when none is selected. */
+    private void updateEffectButtons() {
+        CensorEffects.Effect shown = selectedRectangle >= 0
+                ? viewModel.regionEffect(selectedRectangle) : null;
+        if (shown == null) {
+            shown = viewModel.getEffect().getValue();
+        }
+        for (CensorEffects.Effect effect : CensorEffects.Effect.values()) {
+            ((MaterialButton) toolbar.findViewById(buttonFor(effect))).setChecked(effect == shown);
+        }
     }
 
-    private static int labelFor(@NonNull CensorEffects.Effect effect) {
+    private static int buttonFor(@NonNull CensorEffects.Effect effect) {
         return switch (effect) {
-            case BLACK -> R.string.censor_effect_black;
-            case BLUR -> R.string.censor_effect_blur;
-            default -> R.string.censor_effect_pixelate;
+            case BLACK -> R.id.censorEffectBlack;
+            case BLUR -> R.id.censorEffectBlur;
+            default -> R.id.censorEffectPixelate;
         };
     }
 
@@ -569,6 +623,12 @@ public class CensorFragment extends TabFragment {
         }
         if (state == CensorViewModel.State.SAVED) {
             Haptics.confirm(saveButton);
+            CensorExporter.Result saved = viewModel.getLastSaved();
+            if (saved != null && !saved.downscaled) {
+                // A short notice: a full-size copy needs nothing more from the user, so nothing
+                // stays over the result. A smaller copy keeps its status, which says what to change.
+                Notice.show(requireContext(), R.string.censor_saved);
+            }
             viewModel.acknowledgeSaveResult();
             // Android's trash confirmation takes priority over asking for a rating.
             if (!requestTrashOriginal()) {
@@ -599,19 +659,58 @@ public class CensorFragment extends TabFragment {
     }
 
     /**
-     * The undo pill floats over the photo, so it shows only while it holds something to use; it
-     * stays up while a copy saves so it does not blink out and back.
+     * The pill with Undo, Redo and Full Screen shows whenever the photo does (and stays while a copy
+     * saves), so it never blinks in and out; Undo and Redo are disabled when there is nothing to do.
      */
     private void updateHistoryControls() {
+        historyControls.setVisibility(isPhotoShown() ? View.VISIBLE : View.GONE);
+        updateContextActions();
+    }
+
+    /**
+     * Shows Delete beside the selected rectangle, above it or, with no room there, below it, and
+     * Reset Crop at the bottom middle while the crop tool shows a crop.
+     */
+    private void updateContextActions() {
         CensorViewModel.State state = viewModel.getState().getValue();
-        boolean editing = state == CensorViewModel.State.READY
-                || state == CensorViewModel.State.SAVING;
+        boolean ready = state == CensorViewModel.State.READY;
         boolean cropShown = currentTool == CensorCanvasView.Tool.CROP && viewModel.getCrop() != null;
+        RectF bounds = selectedRectangle >= 0 ? selectionBounds : null;
         resetCropButton.setVisibility(cropShown ? View.VISIBLE : View.GONE);
-        resetCropButton.setEnabled(state == CensorViewModel.State.READY);
-        boolean useful = viewModel.canUndo() || viewModel.canRedo() || cropShown
-                || deleteButton.getVisibility() == View.VISIBLE;
-        historyControls.setVisibility(editing && useful ? View.VISIBLE : View.GONE);
+        resetCropButton.setEnabled(ready);
+        deleteButton.setVisibility(bounds != null ? View.VISIBLE : View.GONE);
+        boolean shown = isPhotoShown() && (cropShown || bounds != null);
+        contextActions.setVisibility(shown ? View.VISIBLE : View.GONE);
+        if (!shown) {
+            return;
+        }
+        float density = getResources().getDisplayMetrics().density;
+        float margin = 12 * density;
+        float gap = 8 * density;
+        float button = 48 * density;
+        float width = button * ((cropShown ? 1 : 0) + (bounds != null ? 1 : 0));
+        float height = button;
+        float cardWidth = canvas.getWidth();
+        float cardHeight = canvas.getHeight();
+        float x;
+        float y;
+        if (bounds != null) {
+            x = bounds.centerX() - width / 2f;
+            y = bounds.top - gap - height;
+            if (y < margin) {
+                y = bounds.bottom + gap;
+            }
+        } else {
+            x = (cardWidth - width) / 2f;
+            y = cardHeight - margin - height;
+        }
+        contextActions.setTranslationX(clamp(x, margin, cardWidth - margin - width));
+        contextActions.setTranslationY(clamp(y, margin, cardHeight - margin - height));
+    }
+
+    /** {@code value} kept between {@code min} and {@code max}, or at {@code min} when there is no room. */
+    private static float clamp(float value, float min, float max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     private void updateControls() {
@@ -638,27 +737,26 @@ public class CensorFragment extends TabFragment {
             showStatus(getString(R.string.status_processing));
         } else if (viewModel.isLastSaveFailed()) {
             showStatus(getString(R.string.censor_error_save));
-        } else if (savedMatches) {
-            showStatus(getString(saved.downscaled ? R.string.censor_saved_downscaled : R.string.censor_saved));
+        } else if (savedMatches && saved.downscaled) {
+            showStatus(getString(R.string.censor_saved_downscaled));
         } else {
             statusText.setVisibility(View.GONE);
         }
 
         unsavedEditsCallback.setEnabled(!isHidden() && unsaved);
+
+        // The hint explains how to start; once something is covered it only takes the photo's room.
+        if (viewModel.hasEdits()) {
+            summaryCard.findViewById(R.id.summaryHint).setVisibility(View.GONE);
+        } else {
+            SummaryCard.refreshHint(summaryCard, AppPreferences.HINT_CENSOR);
+        }
     }
 
     /** Shows "2×" while zoomed in, so the way back to the whole photo is one tap away. */
     private void showZoom(float zoom) {
         boolean zoomed = zoom > 1.01f;
         zoomChip.setVisibility(zoomed ? View.VISIBLE : View.GONE);
-        // The tool pill stops 12dp above the chip while it shows (the chip's 48dp touch target
-        // has 8dp of it below its 32dp shape), and runs to 12dp from the bottom otherwise.
-        ViewGroup.MarginLayoutParams pill = (ViewGroup.MarginLayoutParams) toolPill.getLayoutParams();
-        int bottom = Math.round((zoomed ? 12 + 48 + 4 : 12) * getResources().getDisplayMetrics().density);
-        if (pill.bottomMargin != bottom) {
-            pill.bottomMargin = bottom;
-            toolPill.setLayoutParams(pill);
-        }
         if (zoomed) {
             String level = zoomLabel(zoom);
             zoomChip.setText(getString(R.string.censor_zoom_level, level));

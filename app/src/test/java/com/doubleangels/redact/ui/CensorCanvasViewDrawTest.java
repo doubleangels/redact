@@ -2,6 +2,7 @@ package com.doubleangels.redact.ui;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -138,5 +139,27 @@ public class CensorCanvasViewDrawTest {
         view.setBrushWidth(0.3f);
         view.setBrushPreview(false);
         assertEquals(Color.RED, render().getPixel(200, 150));
+    }
+
+    @Test
+    public void aShapeBeingDrawn_isShownDark_notTinted() {
+        view.onTouchEvent(event(MotionEvent.ACTION_DOWN, 100, 100));
+        view.onTouchEvent(event(MotionEvent.ACTION_MOVE, 250, 220));
+
+        int c = render().getPixel(175, 160);
+
+        // Red darkened by a translucent black, with no colour of its own added.
+        assertTrue("red " + Color.red(c), Color.red(c) < 140);
+        assertTrue("green " + Color.green(c), Color.green(c) < 20);
+        assertTrue("blue " + Color.blue(c), Color.blue(c) < 20);
+    }
+
+    @Test
+    public void aLargeSelectedRectangle_alsoShowsHandlesAtTheMiddleOfItsEdges() {
+        drag(100, 50, 300, 250);
+        int before = render().getPixel(300, 150);
+        drag(200, 150, 200, 150); // tap: select it
+
+        assertNotEquals(before, render().getPixel(300, 150));
     }
 }
