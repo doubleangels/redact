@@ -277,8 +277,15 @@ public final class HeifContainerMetadata {
      * @throws IOException when the file is not a HEIF this class can follow (external data,
      *     protected items, an unknown layout), so the caller re-encodes it instead
      */
+    @VisibleForTesting
     public static void sanitize(@NonNull File source, @NonNull File target) throws IOException {
-        sanitize(source, target, null, null, false);
+        sanitize(source, target, target.getAbsoluteFile().getParentFile());
+    }
+
+    /** {@link #sanitize(File, File)} with its intermediate files in {@code workDir}. */
+    public static void sanitize(@NonNull File source, @NonNull File target, @NonNull File workDir)
+            throws IOException {
+        sanitize(source, target, null, null, false, workDir);
     }
 
     /**
@@ -286,9 +293,9 @@ public final class HeifContainerMetadata {
      * cleaned already, the way the Motion Photo format puts it in a HEIF: an XMP item with the
      * directory that finds it, and the video in a {@code mpvd} box that ends the file.
      */
-    public static void sanitize(@NonNull File source, @NonNull File target, @Nullable MotionPhoto.Clip motion)
-            throws IOException {
-        sanitize(source, target, null, motion, false);
+    public static void sanitize(@NonNull File source, @NonNull File target, @Nullable MotionPhoto.Clip motion,
+                                @NonNull File workDir) throws IOException {
+        sanitize(source, target, null, motion, false, workDir);
     }
 
     /**
@@ -297,10 +304,21 @@ public final class HeifContainerMetadata {
      * This is how the tags Keep Camera Settings, Keep Location and Keep Date Taken keep go back
      * into a HEIC or AVIF, which carries no other EXIF.
      */
+    @VisibleForTesting
     public static void addExif(@NonNull File file, @NonNull byte[] tiff) throws IOException {
-        File rebuilt = File.createTempFile("heif_exif_", ".heic", file.getAbsoluteFile().getParentFile());
+        addExif(file, tiff, file.getAbsoluteFile().getParentFile());
+    }
+
+    /**
+     * {@link #addExif(File, byte[])} with its intermediate files in {@code workDir}.
+     *
+     * @param workDir where intermediate files go: never the folder FileProvider serves, since
+     *     they can hold the source's metadata
+     */
+    public static void addExif(@NonNull File file, @NonNull byte[] tiff, @NonNull File workDir) throws IOException {
+        File rebuilt = File.createTempFile("heif_exif_", ".heic", workDir);
         try {
-            sanitize(file, rebuilt, tiff, null, true);
+            sanitize(file, rebuilt, tiff, null, true, workDir);
             Files.move(rebuilt.toPath(), file.toPath(),
                     StandardCopyOption.REPLACE_EXISTING);
         } finally {
@@ -315,11 +333,11 @@ public final class HeifContainerMetadata {
      *     Photo XMP and video it wrote
      */
     private static void sanitize(@NonNull File source, @NonNull File target, @Nullable byte[] exifTiff,
-            @Nullable MotionPhoto.Clip motion, boolean keepOwnMotion) throws IOException {
+            @Nullable MotionPhoto.Clip motion, boolean keepOwnMotion, @NonNull File workDir) throws IOException {
         if (source.getCanonicalPath().equals(target.getCanonicalPath())) {
             throw new IOException("Source and target must differ");
         }
-        File body = File.createTempFile("heif_body_", ".bin", target.getAbsoluteFile().getParentFile());
+        File body = File.createTempFile("heif_body_", ".bin", workDir);
         try (RandomAccessFile in = new RandomAccessFile(source, "r")) {
             byte[] ftyp = null;
             byte[] meta = null;

@@ -763,7 +763,7 @@
         </header>
 
         <div class="meta-row">
-            <span class="chip">Last Updated: November 4, 2026</span>
+            <span class="chip">Last Updated: November 14, 2026</span>
             <a class="chip" href="redact-terms.html">Terms of Use →</a>
         </div>
 
@@ -774,6 +774,7 @@
                 <li><span class="tick">✓</span><span>Every photo and video you clean, scan, or convert stays right there on your phone, processed <strong>entirely on your device</strong>. Your photos and videos are never uploaded, anywhere.</span></li>
                 <li><span class="tick">✓</span><span>We never ask for access to your camera, microphone, contacts, or real-time location. Redact simply can't see, hear, or track you, that's built into how the app works, not just something we promise.</span></li>
                 <li><span class="tick">✓</span><span>Crash reporting (Sentry) exists only to catch bugs and make Redact better for everyone, and it's never forced on you, it's <strong>off by default</strong>. Even once you turn it on, we only ever get anonymous diagnostics, scrubbed on your phone before they're sent, never your media, file names, or anything that identifies you.</span></li>
+                <li><span class="tick">✓</span><span>Redact only goes online for two things you choose: crash reports, if you turn them on, and <strong>Check for Updates</strong>, only when you tap it. Section 3 lists every server it can ever connect to.</span></li>
                 <li><span class="tick">✓</span><span>No ads, no analytics, no Firebase, no Google Play Services. We don't sell or share anything with data brokers, because we simply don't have anything to sell.</span></li>
                 <li><span class="tick">✓</span><span>Don't just take our word for it, our full source code is public on <a href="https://github.com/doubleangels/redact" target="_blank" rel="noopener noreferrer">GitHub</a>, so anyone can check that everything here is true.</span></li>
             </ul>
@@ -833,7 +834,7 @@
                 <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </summary>
             <div class="section-body">
-                <p><strong>Here's the plain truth: Redact doesn't collect any of your personal information.</strong> There's no account, no sign-in, no sign-up form, and no server anywhere waiting to receive your photos, videos, or identity. You don't have to take our word for it either, the <code>INTERNET</code> permission is the only thing that lets the app talk to the network at all, and it's used for exactly one optional purpose, covered in Section 6. The only other ways information about you reaches us are the limited order details Google Play shares when you buy Redact, explained below, and anything you choose to send us by email or on GitHub, covered in Section 18.</p>
+                <p><strong>Here's the plain truth: Redact doesn't collect any of your personal information.</strong> There's no account, no sign-in, no sign-up form, and no server anywhere waiting to receive your photos, videos, or identity. You don't have to take our word for it either, the <code>INTERNET</code> permission is the only thing that lets the app talk to the network at all, and it's used for just two optional things: the crash reports in Section 6, and the update check described below, which runs only when you tap Check for Updates. The only other ways information about you reaches us are the limited order details Google Play shares when you buy Redact, explained below, and anything you choose to send us by email or on GitHub, covered in Section 18.</p>
                 <p>To be really specific, here's what Redact will never do.</p>
                 <ul>
                     <li>Upload your photos, videos, or any other file to a server, for any reason.</li>
@@ -842,10 +843,43 @@
                     <li>Use advertising identifiers, behavior tracking, or any ad software.</li>
                     <li>Follow you across other apps or websites, or build a profile about you.</li>
                 </ul>
-                <p>The only thing Redact itself can ever send from your device is the optional, anonymous diagnostic data covered in Section 6, and that only happens if you turn it on yourself.</p>
+                <p>The only things Redact itself can ever send from your device are the optional, anonymous diagnostic data covered in Section 6, which only happens if you turn it on yourself, and the update check described below, which only happens when you tap its button.</p>
 
                 <h3>When You Buy Redact</h3>
                 <p>Redact is sold through Google Play, and Google handles the whole purchase: your payment method, billing address, receipts, taxes, and refunds, all under <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google's Privacy Policy</a>. We never see your card or payment details. Like every Play developer, we receive limited order details from Google, such as an order number, the date, the price, and the country or region of purchase, in our Google Play account. We use them only for accounting, taxes, and helping with refunds or purchase problems, never for marketing, and we don't combine them with anything else. Redact itself doesn't check your purchase or contact Google about it.</p>
+
+                <h3>Checking for Updates</h3>
+                <p>Settings has a <strong>Check for Updates</strong> button. Redact never checks on its own: only when you tap it does Redact send one request to GitHub, where its source code lives, asking for the version number of its newest release, and then tells you whether a newer one is out. The request carries nothing about you, your settings, or your files, only a fixed label naming the app, the same for everyone. Like any connection on the internet, GitHub sees the IP address the request comes from, and it handles that under the <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener noreferrer">GitHub General Privacy Statement</a>. We never receive it. The update itself always comes from Google Play.</p>
+
+                <h3>Every Server Redact Connects To</h3>
+                <p>There are only two, and Redact contacts neither unless you turn on or tap the feature that needs it.</p>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Server</th>
+                                <th>When</th>
+                                <th>What Is Sent</th>
+                                <th>Why</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>o244019.ingest.us.sentry.io</code> (Sentry, United States)</td>
+                                <td data-label="When">Only while Send Crash Reports is on: after a crash or error, and when you choose to add a note to an error report.</td>
+                                <td data-label="What Is Sent">The anonymous, scrubbed diagnostics described in Section 6. Never a photo, video, file name, or location.</td>
+                                <td data-label="Why">To find and fix bugs.</td>
+                            </tr>
+                            <tr>
+                                <td><code>api.github.com</code> (GitHub, United States)</td>
+                                <td data-label="When">Only when you tap Check for Updates in Settings.</td>
+                                <td data-label="What Is Sent">One request for Redact's newest release, with nothing about you, your settings, or your files.</td>
+                                <td data-label="Why">To read the newest version number.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p>Some buttons open a page in another app instead, which then makes its own connection under its own policy, and Redact itself sends nothing: <strong>Rate Redact on Google Play</strong> and <strong>Update</strong> open Google Play; <strong>View Source on GitHub</strong>, <strong>Report an Issue</strong>, and <strong>Project Page</strong> in Open-Source Licenses open GitHub or the Android developer site; <strong>Privacy Policy</strong> and <strong>Terms of Use</strong> open this site; <strong>Donate</strong> opens Stripe (Section 12); and <strong>Open in Maps</strong> in Scan, after you agree, hands a location to your maps app.</p>
 
                 <h3>Categories of Data We Never Collect</h3>
                 <p>Just to be thorough, here's a checklist of common data types and whether Redact collects them. The answer is the same for every one.</p>
@@ -956,8 +990,8 @@
                             </tr>
                             <tr>
                                 <td>INTERNET</td>
-                                <td data-label="Used For">The only permission that allows network access at all. Used exclusively to send scrubbed, anonymous diagnostics (and an optional note you write) to Sentry, and only when you turn on Send Crash Reports in Settings.</td>
-                                <td class="badge-cell" data-label="Status"><span class="badge badge-cond">Conditional (Crash Reporting)</span></td>
+                                <td data-label="Used For">The only permission that allows network access at all. Used for two optional things only: sending scrubbed, anonymous diagnostics (and an optional note you write) to Sentry when you turn on Send Crash Reports in Settings, and asking GitHub for the newest version number when you tap Check for Updates (Section 3).</td>
+                                <td class="badge-cell" data-label="Status"><span class="badge badge-cond">Conditional (Crash Reporting or Update Check)</span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -1002,7 +1036,7 @@
                     <li><strong>Crash and error reports:</strong> a scrubbed error trace, the app version, your device model, and Android version.</li>
                     <li><strong>App-not-responding reports:</strong> the same details, when the app freezes.</li>
                     <li><strong>Performance data:</strong> for about one in four app sessions, how long screens took to open, slow or frozen frame counts, and timing samples of the app's own code. This shows us where Redact is slow, not what you were doing.</li>
-                    <li><strong>Diagnostic logs and counters:</strong> short, scrubbed messages and numbers the app records about its own operations, like how long a conversion took or how many files were in a batch.</li>
+                    <li><strong>Diagnostic logs and counters:</strong> short, scrubbed messages and numbers the app records about its own operations, like how long a conversion took or which video formats it couldn't decode. Never how often you use Redact or what you choose in it.</li>
                     <li><strong>A note you choose to write:</strong> after an error, Redact may offer an <strong>Add Details</strong> button. If you type a note and tap Send, that text is attached to the report. File paths and GPS coordinates are removed from it, and it never asks for your name or email. Please don't include personal information in it.</li>
                 </ul>
                 <p>Like any connection on the internet, Sentry's servers can see the IP address a report comes from while receiving it. Redact doesn't put your IP address in the report, and we don't use it to identify anyone.</p>
@@ -1067,6 +1101,12 @@
                                 <td data-label="Publisher">Block, Inc. (Square, open source)</td>
                                 <td data-label="What It Does">Memory-leak detection during development only.</td>
                                 <td data-label="Data Sent Off-Device">None. Included only in debug builds and <strong>not shipped in the Google Play release APK.</strong></td>
+                            </tr>
+                            <tr>
+                                <td><a href="https://docs.github.com/rest/releases/releases#get-the-latest-release" target="_blank" rel="noopener noreferrer">GitHub REST API</a></td>
+                                <td data-label="Publisher"><a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener noreferrer">GitHub, Inc.</a></td>
+                                <td data-label="What It Does">Answers Check for Updates with the newest version number (see Section 3). It's a web service Redact asks, not code inside the app.</td>
+                                <td data-label="Data Sent Off-Device">One request, only when you tap Check for Updates, with nothing about you, your settings, or your files. Like any server, GitHub sees the IP address it comes from.</td>
                             </tr>
                             <tr>
                                 <td>Google Play Store (distribution)</td>
@@ -1146,6 +1186,11 @@
                                 <td data-label="How Long">Sentry's retention period for our plan, currently 90 days for crash and error reports and 30 days for performance data and logs. See Sentry's <a href="https://docs.sentry.io/security-legal-pii/security/data-retention-periods/" target="_blank" rel="noopener noreferrer">data retention periods</a>.</td>
                             </tr>
                             <tr>
+                                <td>Update check request</td>
+                                <td data-label="Where">GitHub, United States</td>
+                                <td data-label="How Long">Redact and we keep nothing. GitHub may log the request, including the IP address it came from, under its own <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener noreferrer">privacy statement</a>.</td>
+                            </tr>
+                            <tr>
                                 <td>Order details from Google Play</td>
                                 <td data-label="Where">Our Google Play account</td>
                                 <td data-label="How Long">As long as tax and accounting laws require us to keep sales records, usually up to 7 years, and Google's own retention for its records.</td>
@@ -1172,7 +1217,7 @@
                 <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </summary>
             <div class="section-body">
-                <p>Because everything happens locally and there's no account system or database anywhere, there's simply no central server holding your photos, videos, or personal information for anyone to break into. The only network connection Redact ever makes is the single, opt-in diagnostic channel from Section 6, and that's encrypted over HTTPS.</p>
+                <p>Because everything happens locally and there's no account system or database anywhere, there's simply no central server holding your photos, videos, or personal information for anyone to break into. The only network connections Redact ever makes are the opt-in diagnostics from Section 6 and the update check you start from Settings (Section 3), and both are encrypted over HTTPS.</p>
                 <p>Redact also blocks all unencrypted network traffic outright (<code>usesCleartextTraffic="false"</code>) and turns off Android's automatic app backup (<code>allowBackup="false"</code>), so nothing can be pulled out through a device backup. There's no password, PIN, or credential stored anywhere, since there's no account to begin with. And because the full source code is public, you don't have to take our word for any of this, anyone can go check for themselves.</p>
                 <p>No system is perfectly secure, and we can't guarantee that one never will be. If we learn of a security incident affecting information we're responsible for, we'll take reasonable steps to contain it and notify affected people and authorities where the law requires us to. Found a security problem in Redact? Please report it as described in our <a href="https://github.com/doubleangels/redact/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer">security policy</a>.</p>
             </div>
@@ -1229,7 +1274,7 @@
                 <p>If you think we've mishandled your data, please tell us first so we can try to fix it. You also have the right to complain to a data protection authority, for example the authority in your EU country of residence, the UK Information Commissioner's Office (ICO), the Swiss Federal Data Protection and Information Commissioner (FDPIC), or your local equivalent listed below. In the United States, you can contact your state attorney general or the Federal Trade Commission.</p>
 
                 <h3>International Data Transfers</h3>
-                <p>If you turn on crash reporting, that limited diagnostic data from Section 6 might be processed by Sentry (Functional Software, Inc.) on servers outside your own country, including in the United States. This only ever happens if you've opted in, and it only ever covers that same scrubbed technical data, never your photos, videos, or identity. Sentry protects transfers like this under its Data Processing Addendum, which includes the European Commission's Standard Contractual Clauses and their UK and Swiss equivalents. If you email us, your message is handled by our email providers, which may also store it in the United States. Turning on crash reporting is your explicit consent to this transfer, including where a law like China's PIPL requires separate consent for sending data abroad.</p>
+                <p>If you turn on crash reporting, that limited diagnostic data from Section 6 might be processed by Sentry (Functional Software, Inc.) on servers outside your own country, including in the United States. This only ever happens if you've opted in, and it only ever covers that same scrubbed technical data, never your photos, videos, or identity. Sentry protects transfers like this under its Data Processing Addendum, which includes the European Commission's Standard Contractual Clauses and their UK and Swiss equivalents. If you tap Check for Updates, your request goes to GitHub in the United States, carrying nothing but the fixed request itself and, as with any connection, your IP address (Section 3). If you email us, your message is handled by our email providers, which may also store it in the United States. Turning on crash reporting is your explicit consent to this transfer, including where a law like China's PIPL requires separate consent for sending data abroad.</p>
 
                 <h3>California (CCPA/CPRA)</h3>
                 <p>Redact doesn't sell or share personal information, and in the normal course of running the app, it doesn't collect personal information as California law defines it either. So there's simply no sale or sharing for you to opt out of. DoubleAngels is an independent developer and doesn't meet the size thresholds that make the CCPA apply, but we're giving you the same disclosures and honoring the same rights voluntarily. Here's the formal category-by-category breakdown California law describes.</p>
@@ -1302,7 +1347,7 @@
 
                 <h3>Other Countries</h3>
                 <p>Many other countries give you similar rights, to know what data is held about you, get a copy, correct it, delete it, withdraw consent, and complain to a regulator. These include Brazil (LGPD, regulator ANPD), Canada (PIPEDA and Quebec's Law 25, regulator the Office of the Privacy Commissioner), Australia (Privacy Act, OAIC), New Zealand (Privacy Act 2020), Japan (APPI, Personal Information Protection Commission), South Korea (PIPA, Personal Information Protection Commission), China (PIPL), Taiwan (PDPA), India (DPDP Act, Data Protection Board), Singapore (PDPA), South Africa (POPIA, Information Regulator), Türkiye (KVKK), and the UAE, Saudi Arabia, and others. Everything in this policy applies to you wherever you live, and you can use any of these rights by emailing us. The same limit applies everywhere: anonymous crash diagnostics can't be traced back to you.</p>
-                <p>For Japan, Korea, and other countries that ask about data sent abroad: the only data that leaves your phone is the opt-in diagnostics, sent to Sentry in the United States as described in Section 6. The United States has no single national privacy law equivalent to yours, which is why we keep that data anonymous and protected by Sentry's contractual safeguards.</p>
+                <p>For Japan, Korea, and other countries that ask about data sent abroad: the only data that leaves your phone is the opt-in diagnostics, sent to Sentry in the United States as described in Section 6, and the update check you start yourself, sent to GitHub in the United States as described in Section 3. The United States has no single national privacy law equivalent to yours, which is why we keep that data anonymous and protected by Sentry's contractual safeguards.</p>
 
                 <h3>How We Handle Requests</h3>
                 <p>We'll answer genuine privacy requests within the time the law that applies to you allows, usually 30 days (45 days under U.S. state laws), and tell you if we need more time where the law permits an extension. Requests are free. We may decline requests that are manifestly unfounded, excessive, or that we can't verify, and we'll tell you why when we do.</p>
@@ -1336,7 +1381,7 @@
             <div class="section-body">
                 <p>We'll update this policy now and then, say, when a dependency changes or a new optional feature shows up. Whenever that happens, you'll see a fresh "Last updated" date at the top of this page. It's worth a glance every so often, especially before turning on optional features like crash reporting.</p>
                 <p>If a change would let Redact collect new kinds of data, or use data in a new way, we'll mention it in the app's release notes, and we'll never start sending any new data without asking for your consent first. Every earlier version of this policy is kept in its public <a href="https://github.com/doubleangels/redact/commits/main/legal/redact.html" target="_blank" rel="noopener noreferrer">edit history</a>.</p>
-                <p>This policy was last updated on <strong>November 4, 2026</strong>.</p>
+                <p>This policy was last updated on <strong>November 14, 2026</strong>.</p>
             </div>
         </details>
 

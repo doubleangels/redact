@@ -107,6 +107,9 @@ li + li { margin-top: 0.35rem; }
 table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.95rem; }
 th, td { text-align: left; padding: 0.6rem 0.7rem; border-bottom: 1px solid var(--border); vertical-align: top; }
 th { background: var(--card-high); }
+.table-wrap { overflow-x: auto; }
+.table-wrap table { min-width: 560px; }
+td code { overflow-wrap: anywhere; }
 
 details { background: var(--card); border-radius: var(--radius-md); padding: 0.9rem 1.1rem; }
 details + details { margin-top: 0.6rem; }

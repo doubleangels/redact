@@ -63,6 +63,24 @@ final class TestVideos {
         return box("hdlr", b.array());
     }
 
+    /** An hdlr box whose name is {@code name}, written as a C string. */
+    static byte[] namedHdlr(String handler, String name) {
+        byte[] n = bytes(name);
+        ByteBuffer b = ByteBuffer.allocate(24 + n.length + 1);
+        b.putInt(0).putInt(0).put(handler.getBytes(StandardCharsets.ISO_8859_1)).put(new byte[12]).put(n);
+        return box("hdlr", b.array());
+    }
+
+    /** A video track whose mdia carries {@code hdlr}, and {@code mdiaExtras} after it. */
+    static byte[] trakWith(byte[] hdlr, byte[]... mdiaExtras) {
+        byte[][] mdia = new byte[3 + mdiaExtras.length][];
+        mdia[0] = header("mdhd", 0, 12);
+        mdia[1] = hdlr;
+        mdia[2] = box("minf", box("stbl", box("stsd", new byte[8])));
+        System.arraycopy(mdiaExtras, 0, mdia, 3, mdiaExtras.length);
+        return box("trak", header("tkhd", 0, 72), box("mdia", mdia));
+    }
+
     static byte[] trak(String handler, long time) {
         return box("trak", header("tkhd", time, 72),
                 box("mdia", header("mdhd", time, 12), hdlr(handler),

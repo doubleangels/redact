@@ -62,6 +62,13 @@
     <string name="settings_section_diagnostics_subtitle">Optional reports to help fix crashes. Your media never leaves the device.</string>
     <string name="settings_crash_reporting_label">Send Crash Reports</string>
     <string name="settings_crash_reporting_subtitle">Shares only anonymized technical details (app version, device model, what the app was doing when it crashed), never your photos or videos. Sent over the internet to our crash-reporting service, Sentry, when enabled.</string>
+    <string name="settings_update_check_label">Updates</string>
+    <string name="settings_update_check_subtitle">Asks GitHub over the internet for the newest version number, only when you tap Check for Updates. Nothing about you or your files is sent.</string>
+    <string name="update_available">Redact %1$s is out. It can take a day or two to reach the store.</string>
+    <string name="update_available_action">Update</string>
+    <string name="update_check_button">Check for Updates</string>
+    <string name="update_up_to_date">You have the latest version.</string>
+    <string name="update_check_failed">Couldn\'t check for updates. Check your connection and try again.</string>
 
 
     <string name="settings_section_conversion">Convert Tab Defaults</string>
@@ -417,11 +424,12 @@
     <string name="censor_empty_state_title">Cover What Should Stay Private</string>
     <string name="censor_empty_state_description">Pixelate, black out or blur faces, number plates, addresses and anything else in a photo. Redact saves a censored copy without any metadata, and your original stays as it is.</string>
     <string name="censor_select_photo">Select Photo</string>
-    <string name="censor_hint">Draw over anything that should stay private, then tap Save Copy. Use Move to pinch-zoom and pan, and tap a rectangle to move or resize it.</string>
+    <string name="censor_hint">Draw over anything that should stay private, then tap Save Copy. Use Move to pinch-zoom and pan, and tap a rectangle to move or resize it. Use Crop to keep only part of the photo.</string>
     <string name="censor_canvas_description">Photo being censored. Draw with one finger to cover an area. With Move, drag to pan and pinch to zoom.</string>
     <string name="censor_tool_rectangle">Rectangle</string>
     <string name="censor_tool_brush">Brush</string>
     <string name="censor_tool_move">Move</string>
+    <string name="censor_tool_crop">Crop</string>
     <string name="censor_brush_size">Brush size</string>
     <string name="censor_effect_pixelate">Pixelate</string>
     <string name="censor_effect_black">Black</string>
@@ -431,8 +439,11 @@
     <string name="censor_undo">Undo</string>
     <string name="censor_redo">Redo</string>
     <string name="censor_delete_rectangle">Delete Rectangle</string>
+    <string name="censor_reset_crop">Reset Crop</string>
     <string name="censor_add_area">Add Area</string>
     <string name="censor_area_description">Censored area %1$d of %2$d</string>
+    <string name="censor_crop_description">Crop: the part of the photo the copy keeps</string>
+    <string name="censor_crop_whole_description">Crop: the whole photo</string>
     <string name="censor_action_move_left">Move Left</string>
     <string name="censor_action_move_right">Move Right</string>
     <string name="censor_action_move_up">Move Up</string>
@@ -458,10 +469,12 @@
     <string name="button_scan_result">Scan Result</string>
     <string name="settings_keep_original_names">Keep Original File Names</string>
     <string name="settings_keep_original_names_subtitle">Name cleaned and converted files after the originals instead of a random name. Names such as IMG_20260117 can reveal when a photo was taken.</string>
-    <string name="review_prompt_title">Rate Redact</string>
-    <string name="review_prompt_message">If Redact has helped keep your photos private, would you like to rate it on Google Play? It only takes a moment, and it helps other people find the app.</string>
-    <string name="review_prompt_yes">Yes</string>
-    <string name="review_prompt_no">No</string>
+    <string name="review_prompt_title">Help Others Find Redact</string>
+    <string name="review_prompt_message">Redact is an independent project made by one person, with no ads, no tracking and no marketing budget. A rating on Google Play, with a sentence about what you use it for, is the biggest help there is: that\'s how other people find it.</string>
+    <string name="review_prompt_location">Redact just removed a hidden location, so what you cleaned no longer shows where it was taken.</string>
+    <string name="review_prompt_yes">Rate on Google Play</string>
+    <string name="review_prompt_no">No Thanks</string>
+    <string name="review_prompt_later">Not Now</string>
     <string name="review_prompt_declined">Got it, Redact won\'t ask again. If you change your mind, you can rate it anytime from Settings › About.</string>
     <string name="error_feedback_offer">Something went wrong. A crash report was sent.</string>
     <string name="error_feedback_action">Add Details</string>
@@ -572,7 +585,7 @@
     <string name="onboarding_done_notifications_granted">Redact will let you know when a task finishes.</string>
     <string name="onboarding_done_notifications_denied">Redact won\'t send you notifications.</string>
     <string name="onboarding_crash_title">Help make Redact better.</string>
-    <string name="onboarding_crash_body">If Redact ever crashes, it can send an anonymous report so the problem can be found and fixed. Crash reports are the only thing Redact ever sends over the internet.</string>
+    <string name="onboarding_crash_body">If Redact ever crashes, it can send an anonymous report so the problem can be found and fixed. Redact only goes online for crash reports you turn on and for an update check you start yourself in Settings.</string>
     <string name="onboarding_crash_point_private">Reports never include your photos, videos, file names or locations.</string>
     <string name="onboarding_crash_point_sentry">Reports go to Sentry, a service that helps developers find and fix crashes.</string>
     <string name="onboarding_crash_allow">Send Crash Reports</string>

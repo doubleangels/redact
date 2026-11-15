@@ -250,8 +250,8 @@ public final class SentryManager {
         b.setMessage(safeMessage);
         b.setCategory(safeCategory);
         b.setLevel(SentryLevel.INFO);
+        // Breadcrumb only: it travels with an error event, never on its own.
         Sentry.addBreadcrumb(b);
-        Sentry.logger().info("%s: %s", safeCategory, safeMessage);
     }
 
     /** Counter metric with no attributes. */

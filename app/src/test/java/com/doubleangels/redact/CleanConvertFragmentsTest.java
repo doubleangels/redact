@@ -279,6 +279,27 @@ public class CleanConvertFragmentsTest {
         FakeMediaStoreProvider.reset();
     }
 
+    /**
+     * The clean that reaches the count is asked about as it completes: the job is counted before
+     * COMPLETED reaches the Clean tab, not after.
+     */
+    @Test
+    public void clean_thatReachesTheCount_asksForARatingRightAway() throws Exception {
+        activity.getSharedPreferences(AppPreferences.PREFS_NAME, android.content.Context.MODE_PRIVATE).edit()
+                .putInt(com.doubleangels.redact.ui.ReviewPrompt.KEY_SUCCESS_COUNT,
+                        com.doubleangels.redact.ui.ReviewPrompt.ASK_ANYWAY_AFTER - 1)
+                .commit();
+        org.robolectric.shadows.ShadowDialog.reset();
+
+        cleanOneFile();
+
+        android.app.Dialog dialog = org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        assertTrue(dialog != null && dialog.isShowing());
+        assertTrue(org.robolectric.Shadows.shadowOf(dialog).getTitle().toString()
+                .contains(activity.getString(R.string.review_prompt_title)));
+        FakeMediaStoreProvider.reset();
+    }
+
     /** Cleans one real JPEG through the fake MediaStore and waits for the run to finish. */
     private View cleanOneFile() throws Exception {
         FakeMediaStoreProvider.install(activity);

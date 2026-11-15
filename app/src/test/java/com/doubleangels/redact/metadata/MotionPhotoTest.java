@@ -100,7 +100,7 @@ public class MotionPhotoTest {
         MotionPhoto.Clip clip = cleanClip(source, MotionPhoto.find(source));
         File out = new File(temp.getRoot(), "clean.jpg");
 
-        ImageContainerMetadata.sanitize(source, out, clip);
+        ImageContainerMetadata.sanitize(source, out, clip, out.getAbsoluteFile().getParentFile());
 
         byte[] clean = Files.readAllBytes(out.toPath());
         assertFalse(contains(clean, "SecretPerson"));
@@ -127,7 +127,7 @@ public class MotionPhotoTest {
         MotionPhoto.Clip clip = cleanClip(source, MotionPhoto.find(source));
         File out = new File(temp.getRoot(), "clean.jpg");
 
-        ImageContainerMetadata.sanitize(source, out, clip);
+        ImageContainerMetadata.sanitize(source, out, clip, out.getAbsoluteFile().getParentFile());
 
         byte[] clean = Files.readAllBytes(out.toPath());
         assertFalse(contains(clean, "SEFT"));
@@ -145,7 +145,7 @@ public class MotionPhotoTest {
         File out = new File(temp.getRoot(), "clean.jpg");
 
         // The directory is written, but the video keeps its location and title.
-        ImageContainerMetadata.sanitize(source, out, new MotionPhoto.Clip(video, -1));
+        ImageContainerMetadata.sanitize(source, out, new MotionPhoto.Clip(video, -1), out.getAbsoluteFile().getParentFile());
 
         ImageContainerMetadata.Report report = scan(out);
         assertFalse(report.isClean());
@@ -191,7 +191,7 @@ public class MotionPhotoTest {
 
         MotionPhoto.Clip clip = cleanClip(source, found);
         File out = new File(temp.getRoot(), "clean.heic");
-        HeifContainerMetadata.sanitize(source, out, clip);
+        HeifContainerMetadata.sanitize(source, out, clip, out.getAbsoluteFile().getParentFile());
 
         byte[] clean = Files.readAllBytes(out.toPath());
         assertFalse(contains(clean, "SecretTitle"));

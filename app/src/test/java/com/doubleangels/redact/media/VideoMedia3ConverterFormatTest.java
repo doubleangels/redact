@@ -36,7 +36,8 @@ public class VideoMedia3ConverterFormatTest {
         assertEquals(".mp4", VideoMedia3Converter.extensionForFormatIndex(0));
         assertEquals(".mp4", VideoMedia3Converter.extensionForFormatIndex(1));
         assertEquals(".webm", VideoMedia3Converter.extensionForFormatIndex(2));
-        assertEquals(".mkv", VideoMedia3Converter.extensionForFormatIndex(3));
+        // AV1: the transmux writes MP4, so its copy can be kept as it is.
+        assertEquals(".mp4", VideoMedia3Converter.extensionForFormatIndex(3));
         assertEquals(".mp4", VideoMedia3Converter.extensionForFormatIndex(42));
     }
 

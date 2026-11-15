@@ -13,7 +13,7 @@ Read `versionCode` and `versionName` from `app/build.gradle`. If `fastlane/metad
 
 1. Find the previous release the way CI does: `last-published-version` if `git rev-parse --verify --quiet refs/tags/last-published-version` succeeds, otherwise the newest `v*` tag. Run `git fetch --tags --force origin` first, since a local copy of that tag can be stale.
 2. Read `git log <that ref>..HEAD --no-merges`, and the diff for any commit whose subject does not make its user-visible effect clear.
-3. Draft the English text yourself, following the rules in the `release-notes` job's prompt in `deploy.yml` (one short plain line per user-facing change, features first, no jargon, labels as the app names them, at most 500 characters). CI will word it independently with `anthropics/claude-code-action`, so treat this as a check on the commit history, not as the final text.
+3. Draft the English text yourself, following the rules in the `release-notes` job's prompt in `deploy.yml` (one short plain line per user-facing change, features first, no jargon, labels as the app names them, at most 5 lines and 400 characters), ending with the fixed line "Like Redact? A short review on Google Play helps other people find it.", which CI always adds. CI will word it independently with `anthropics/claude-code-action`, so treat this as a check on the commit history, not as the final text.
 
 ## 3. Report
 

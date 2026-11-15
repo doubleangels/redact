@@ -14,4 +14,6 @@
     <item name="censor_action_larger" type="id" />
     <item name="censor_action_smaller" type="id" />
     <item name="censor_action_delete" type="id" />
+    <!-- And on the crop frame. -->
+    <item name="censor_action_reset_crop" type="id" />
 </resources>

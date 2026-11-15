@@ -16,7 +16,6 @@ import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -106,17 +105,9 @@ public final class AlreadyCleanCheck {
                 return Status.UNKNOWN;
             }
             ExifInterface exif = new ExifInterface(in);
-            for (Field field : ExifInterface.class.getDeclaredFields()) {
-                if (field.getType() != String.class || !field.getName().startsWith("TAG_")) {
-                    continue;
-                }
-                String tag;
-                try {
-                    tag = (String) field.get(null);
-                } catch (IllegalAccessException | IllegalArgumentException e) {
-                    continue;
-                }
-                if (tag == null || ignored.contains(tag)) {
+            // Throws when the tag list can't be read, which the catch below makes UNKNOWN.
+            for (String tag : ExifTags.all()) {
+                if (ignored.contains(tag)) {
                     continue;
                 }
                 String value = exif.getAttribute(tag);
@@ -128,6 +119,24 @@ public final class AlreadyCleanCheck {
                 }
             }
         } catch (IOException | RuntimeException e) {
+            return Status.UNKNOWN;
+        }
+        // Tags ExifInterface has no name for (Windows' XPAuthor, a vendor's own): it never reports
+        // them, and a clean never writes them, so one being there means the photo needs a clean.
+        try (InputStream in = resolver.openInputStream(uri)) {
+            if (in == null) {
+                return Status.UNKNOWN;
+            }
+            byte[] block = ExifBlock.find(in);
+            if (block != null) {
+                for (ExifBlock.Entry entry : ExifBlock.read(block)) {
+                    if (!entry.knownToExifInterface()) {
+                        return Status.NEEDS_CLEANING;
+                    }
+                }
+            }
+        } catch (IOException | RuntimeException e) {
+            // A block that cannot be followed cannot be vouched for.
             return Status.UNKNOWN;
         }
         // IPTC, comments, text chunks, appended images and videos, a HEIF's metadata items, boxes

@@ -293,7 +293,7 @@ public class CensorFragmentTest {
             return provider.performAction(0, R.id.censor_action_delete, null);
         });
         idle();
-        assertFalse(vm.hasRegions());
+        assertTrue(vm.regions().isEmpty());
     }
 
     @Test
@@ -505,17 +505,17 @@ public class CensorFragmentTest {
 
         root.findViewById(R.id.censorUndoButton).performClick();
         idle();
-        assertFalse(vm.hasRegions());
+        assertTrue(vm.regions().isEmpty());
         root.findViewById(R.id.censorRedoButton).performClick();
         idle();
-        assertTrue(vm.hasRegions());
+        assertFalse(vm.regions().isEmpty());
 
         root.findViewById(R.id.summaryClearButton).performClick();
         idle();
         androidx.appcompat.app.AlertDialog dialog =
                 (androidx.appcompat.app.AlertDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog();
         assertNotNull(dialog);
-        assertTrue(vm.hasRegions());
+        assertFalse(vm.regions().isEmpty());
 
         dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE).performClick();
         idle();
@@ -537,7 +537,7 @@ public class CensorFragmentTest {
         dialog.getButton(android.content.DialogInterface.BUTTON_NEGATIVE).performClick();
         idle();
 
-        assertTrue(vm.hasRegions());
+        assertFalse(vm.regions().isEmpty());
         assertEquals(null, vm.getPendingReplacement().getValue());
     }
 
@@ -593,5 +593,92 @@ public class CensorFragmentTest {
         assertNotNull(root.findViewById(R.id.censorToolPill));
         assertNotNull(root.findViewById(R.id.censorCanvasCard));
         assertNotNull(root.findViewById(R.id.censorSummaryCard));
+    }
+
+    // ---- crop ------------------------------------------------------------------------------------
+
+    private View openedCensorTab() throws Exception {
+        View root = censorTab();
+        vm.requestOpen(createTestJpeg("crop.jpg"));
+        awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.READY);
+        idle();
+        return root;
+    }
+
+    @Test
+    public void theCropTool_isOneOfTheTools_andRemembered() throws Exception {
+        View root = openedCensorTab();
+        com.google.android.material.button.MaterialButton crop = root.findViewById(R.id.censorToolCrop);
+        com.google.android.material.button.MaterialButton rect = root.findViewById(R.id.censorToolRect);
+
+        crop.performClick();
+        idle();
+        assertTrue(crop.isChecked());
+        assertFalse(rect.isChecked());
+        assertEquals(View.GONE, root.findViewById(R.id.censorBrushSizeContainer).getVisibility());
+        assertEquals("CROP", AppPreferences.getCensorTool(activity));
+    }
+
+    /** A crop alone is something to save, and Reset Crop shows with the crop tool while there is one. */
+    @Test
+    public void aCropAlone_offersSaveCopy_andResetCropShowsWithTheCropTool() throws Exception {
+        View root = openedCensorTab();
+        View save = root.findViewById(R.id.censorSaveButton);
+        View reset = root.findViewById(R.id.censorResetCropButton);
+        assertEquals(View.GONE, save.getVisibility());
+
+        root.findViewById(R.id.censorToolCrop).performClick();
+        idle();
+        assertEquals("nothing to reset yet", View.GONE, reset.getVisibility());
+
+        vm.setCrop(CensorRegion.rect(0.1f, 0.1f, 0.6f, 0.6f));
+        idle();
+        assertEquals(View.VISIBLE, save.getVisibility());
+        assertEquals(View.VISIBLE, reset.getVisibility());
+        assertEquals(View.VISIBLE, root.findViewById(R.id.censorHistoryControls).getVisibility());
+
+        root.findViewById(R.id.censorToolRect).performClick();
+        idle();
+        assertEquals("only with the crop tool", View.GONE, reset.getVisibility());
+
+        root.findViewById(R.id.censorToolCrop).performClick();
+        idle();
+        reset.performClick();
+        idle();
+        org.junit.Assert.assertNull(vm.getCrop());
+        assertEquals(View.GONE, reset.getVisibility());
+        assertEquals(View.GONE, save.getVisibility());
+        assertTrue("the reset can be undone", vm.canUndo());
+    }
+
+    @Test
+    public void aCrop_isUnsavedWork_thatBackAsksAbout() throws Exception {
+        openedCensorTab();
+        vm.setCrop(CensorRegion.rect(0.1f, 0.1f, 0.6f, 0.6f));
+        idle();
+        assertTrue(vm.hasUnsavedEdits());
+        assertTrue(activity.getOnBackPressedDispatcher().hasEnabledCallbacks());
+    }
+
+    @Test
+    public void savingACropAlone_offersShareAndScanResult() throws Exception {
+        View root = openedCensorTab();
+        vm.setCrop(CensorRegion.rect(0f, 0f, 0.5f, 0.5f));
+        idle();
+
+        root.findViewById(R.id.censorSaveButton).performClick();
+        awaitMain(() -> vm.getLastSaved() != null
+                && vm.getState().getValue() == CensorViewModel.State.READY);
+        idle();
+
+        assertFalse(vm.hasUnsavedEdits());
+        assertEquals(View.VISIBLE, root.findViewById(R.id.shareResultsButton).getVisibility());
+        assertEquals(View.VISIBLE, root.findViewById(R.id.scanResultButton).getVisibility());
+        android.graphics.Bitmap out;
+        try (java.io.InputStream in = activity.getContentResolver().openInputStream(vm.getLastSaved().uri)) {
+            out = android.graphics.BitmapFactory.decodeStream(in);
+        }
+        assertEquals(50, out.getWidth());
+        assertEquals(50, out.getHeight());
     }
 }

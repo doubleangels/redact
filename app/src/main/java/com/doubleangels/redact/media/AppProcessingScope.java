@@ -1,8 +1,11 @@
 package com.doubleangels.redact.media;
 
+import android.app.Application;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+
+import com.doubleangels.redact.ui.ProcessingRepository;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,7 +21,10 @@ public final class AppProcessingScope {
 
     private static volatile AppProcessingScope instance;
 
+    private final Context app;
     private final MediaProcessor mediaProcessor;
+    /** The Clean and Convert jobs' state, made on first use; see {@link #repository()}. */
+    private volatile ProcessingRepository repository;
     private final ExecutorService convertExecutor;
     private final AtomicInteger cleanGeneration = new AtomicInteger(0);
     private final AtomicInteger convertGeneration = new AtomicInteger(0);
@@ -31,7 +37,7 @@ public final class AppProcessingScope {
     private final AtomicBoolean convertTimedOut = new AtomicBoolean(false);
 
     private AppProcessingScope(@NonNull Context context) {
-        Context app = context.getApplicationContext();
+        app = context.getApplicationContext();
         mediaProcessor = new MediaProcessor(app);
         convertExecutor =
                 Executors.newSingleThreadExecutor(
@@ -52,6 +58,22 @@ public final class AppProcessingScope {
             }
         }
         return instance;
+    }
+
+    /**
+     * The jobs and what the Clean and Convert tabs show, one per scope: it lives as long as the
+     * workers that run them, so a job's results reach the screen showing when it ends.
+     */
+    @NonNull
+    public ProcessingRepository repository() {
+        if (repository == null) {
+            synchronized (this) {
+                if (repository == null) {
+                    repository = new ProcessingRepository((Application) app, this);
+                }
+            }
+        }
+        return repository;
     }
 
     @NonNull

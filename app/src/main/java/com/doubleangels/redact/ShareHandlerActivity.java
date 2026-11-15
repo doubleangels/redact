@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.ParcelFileDescriptor;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
@@ -24,6 +23,7 @@ import androidx.core.content.IntentCompat;
 
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.MediaPickerContracts;
+import com.doubleangels.redact.media.InboundUriPolicy;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.media.ProgressUpdateThrottler;
 import com.doubleangels.redact.media.SecureDelete;
@@ -64,7 +64,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ShareHandlerActivity extends AppCompatActivity {
 
-    /** Maximum items accepted from ACTION_SEND_MULTIPLE. */
     /**
      * How long shared files are kept so the target app can read them. Some apps read a shared
      * file only when the user finally sends (an email draft, a chat queued offline), so this is
@@ -136,6 +135,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
         boolean counted;
         private final List<File> snapshots = new ArrayList<>();
         private boolean snapshotsClosed;
+        /**
+         * Items dropped while copying them to cache; counted as failures in the final toast. Kept
+         * per share, so the worker of a share that was replaced can't change the next one's count.
+         */
+        final AtomicInteger snapshotFailCount = new AtomicInteger();
+        /** Items dropped for a non-media type before copying; also counted as failures. */
+        final AtomicInteger unsupportedRejectCount = new AtomicInteger();
 
         ShareSession(int id, @NonNull MetadataStripper stripper) {
             this.id = id;
@@ -289,7 +295,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
             String type = intent.getType();
 
             SentryManager.setCustomKey("intent_action", action != null ? action : "null");
-            SentryManager.setCustomKey("intent_type", type != null ? type : "null");
+            // The sender writes the type, so only a plain MIME type is sent, never its own text.
+            SentryManager.setCustomKey("intent_type", mimeTypeTag(type));
 
             if (Intent.ACTION_SEND.equals(action)) {
                 if (type == null || type.startsWith("image/") || type.startsWith("video/")
@@ -297,7 +304,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     SentryManager.log("The app is handling a single media item.");
                     handleSentMedia(intent);
                 } else {
-                    SentryManager.setCustomKey("unsupported_type", type);
+                    SentryManager.setCustomKey("unsupported_type", mimeTypeTag(type));
                     finishWithError(getString(R.string.share_error_unsupported_media));
                 }
             } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
@@ -306,7 +313,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     SentryManager.log("The app is handling multiple media items.");
                     handleMultipleMedia(intent);
                 } else {
-                    SentryManager.setCustomKey("unsupported_type", type);
+                    SentryManager.setCustomKey("unsupported_type", mimeTypeTag(type));
                     finishWithError(getString(R.string.share_error_unsupported_media));
                 }
             } else {
@@ -368,14 +375,14 @@ public class ShareHandlerActivity extends AppCompatActivity {
         // A recreated activity cannot resume this, so treat it like a running job (see onCreate).
         processingActive = true;
         startShareThread("redact-share-check", session, () -> {
-            List<Uri> accepted = filterSupportedUris(uris);
+            List<Uri> accepted = filterSupportedUris(uris, session);
             List<ProcessingResourceWarnings.Warning> warnings = accepted.isEmpty()
                     ? new ArrayList<>()
                     : ProcessingResourceWarnings.assessShareUris(
                             this, getContentResolver(), accepted, mediaSelector);
             runOnUiThreadForSession(session, () -> {
                 if (accepted.isEmpty()) {
-                    finishWithError(getString(unsupportedRejectCount > 0
+                    finishWithError(getString(session.unsupportedRejectCount.get() > 0
                             ? R.string.share_error_unsupported_media
                             : R.string.share_error_failed_receive_media));
                     return;
@@ -443,54 +450,45 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 && !Thread.currentThread().isInterrupted();
     }
 
-    /** Items dropped by {@link #snapshotInboundUris}; counted as failures in the final toast. */
-    private volatile int snapshotFailCount;
-
-    /** Items dropped by {@link #filterSupportedUris} for a non-media type; also counted as failures. */
-    private volatile int unsupportedRejectCount;
-
     /** Copies each item to cache, on a background thread; stops early when the share ends. */
     @NonNull
     private List<Uri> snapshotInboundUris(@NonNull List<Uri> uris, @NonNull ShareSession session) {
         List<Uri> stable = new ArrayList<>();
-        snapshotFailCount = 0;
+        session.snapshotFailCount.set(0);
         for (Uri uri : uris) {
             if (!isCurrentSession(session)) {
                 break;
             }
-            String scheme = uri.getScheme();
-            if ("content".equalsIgnoreCase(scheme) || "file".equalsIgnoreCase(scheme)) {
-                try {
-                    File snapshot = copyInboundUriToCache(uri, session);
-                    if (!isCurrentSession(session) || !session.addSnapshot(snapshot)) {
-                        // The share was cancelled during the copy and its cleanup has already
-                        // run, so nothing else would delete this one.
-                        SecureDelete.secureDelete(snapshot);
-                        break;
-                    }
-                    stable.add(Uri.fromFile(snapshot));
-                } catch (IOException e) {
-                    if (!isCurrentSession(session)) {
-                        break;
-                    }
-                    // The source is already unreadable here, so forwarding the original URI
-                    // would only fail identically at every later processing stage (extractor,
-                    // transcoder, verifier), each logging its own duplicate exception for what
-                    // is really a single failure. Drop this item instead, but count it so the
-                    // user still sees the partial-success message.
-                    snapshotFailCount++;
-                    SentryManager.count("share.snapshot.failure", 1, "error_type",
-                            e instanceof FileNotFoundException ? "not_found" : e.getClass().getSimpleName());
-                    if (e instanceof FileNotFoundException) {
-                        // The sharing app handed us a URI whose item no longer exists (deleted,
-                        // or a stale cloud/gallery entry). Nothing on our side to fix.
-                        SentryManager.logEvent("Share", "An inbound item no longer exists and was skipped.");
-                    } else {
-                        SentryManager.recordException(e);
-                    }
+            // Intake lets through only another app's content:// (isSupportedInboundUri), so each
+            // item is copied from its provider.
+            try {
+                File snapshot = copyInboundUriToCache(uri, session);
+                if (!isCurrentSession(session) || !session.addSnapshot(snapshot)) {
+                    // The share was cancelled during the copy and its cleanup has already
+                    // run, so nothing else would delete this one.
+                    SecureDelete.secureDelete(snapshot);
+                    break;
                 }
-            } else {
-                stable.add(uri);
+                stable.add(Uri.fromFile(snapshot));
+            } catch (IOException e) {
+                if (!isCurrentSession(session)) {
+                    break;
+                }
+                // The source is already unreadable here, so forwarding the original URI
+                // would only fail identically at every later processing stage (extractor,
+                // transcoder, verifier), each logging its own duplicate exception for what
+                // is really a single failure. Drop this item instead, but count it so the
+                // user still sees the partial-success message.
+                session.snapshotFailCount.incrementAndGet();
+                SentryManager.count("share.snapshot.failure", 1, "error_type",
+                        e instanceof FileNotFoundException ? "not_found" : e.getClass().getSimpleName());
+                if (e instanceof FileNotFoundException) {
+                    // The sharing app handed us a URI whose item no longer exists (deleted,
+                    // or a stale cloud/gallery entry). Nothing on our side to fix.
+                    SentryManager.logEvent("Share", "An inbound item no longer exists and was skipped.");
+                } else {
+                    SentryManager.recordException(e);
+                }
             }
         }
         return stable;
@@ -498,36 +496,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     @NonNull
     private File copyInboundUriToCache(@NonNull Uri uri, @NonNull ShareSession session) throws IOException {
-        if ("file".equalsIgnoreCase(uri.getScheme())) {
-            String path = uri.getPath();
-            if (path == null || path.isEmpty()) {
-                throw new IOException("Invalid file URI path");
-            }
-            File source = new File(path);
-            String suffix = suffixForPath(path);
-            File dest = new File(getCacheDir(), "inbound_" + System.nanoTime() + suffix);
-            ParcelFileDescriptor opened = ParcelFileDescriptor.open(source, ParcelFileDescriptor.MODE_READ_ONLY);
-            try (InputStream in = new ParcelFileDescriptor.AutoCloseInputStream(opened);
-                    FileOutputStream out = new FileOutputStream(dest)) {
-                // The path was checked when the share arrived; a symlink swapped in since then
-                // could point the open somewhere else, so check what was actually opened.
-                if (openedFileIsPrivate(opened, source)) {
-                    throw new IOException("The opened inbound file is in the app's private storage");
-                }
-                copyForSession(in, out, session);
-            } catch (IOException e) {
-                SecureDelete.secureDelete(dest);
-                throw e;
-            }
-            return dest;
-        }
         String type;
         try {
             type = getContentResolver().getType(uri);
         } catch (RuntimeException e) {
             type = null;
         }
-        // The suffix is all the clean has to go on later (a file:// copy has no type), and it
+        // The suffix is all the clean has to go on later (the copy has no type), and it
         // picks the output's format: naming every image .jpg turned PNGs, WebPs and HEICs into
         // JPEGs, and a PNG's transparency into black.
         String suffix = suffixFor(type, MediaUriResolver.readDisplayName(this, uri));
@@ -559,11 +534,6 @@ public class ShareHandlerActivity extends AppCompatActivity {
         } catch (UncheckedIOException e) {
             throw e.getCause();
         }
-    }
-
-    @NonNull
-    private static String suffixForPath(@NonNull String path) {
-        return suffixFor(null, path);
     }
 
     /**
@@ -685,10 +655,9 @@ public class ShareHandlerActivity extends AppCompatActivity {
         Thread worker = new Thread(() -> {
             ITransaction transaction = SentryManager.startTransaction("share_cleanup", "task");
             long batchStartMs = System.currentTimeMillis();
-            SentryManager.distribution("processing.batch.size", uris.size(), "operation_type", "share");
             ArrayList<Uri> processedUris = new ArrayList<>();
-            int failCount = snapshotFailCount + unsupportedRejectCount;
-            int unsupportedFailCount = unsupportedRejectCount;
+            int failCount = session.snapshotFailCount.get() + session.unsupportedRejectCount.get();
+            int unsupportedFailCount = session.unsupportedRejectCount.get();
             boolean hasVideo = false;
             boolean hasImage = false;
 
@@ -712,7 +681,6 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
                     CleanResult result = stripper.cleanForSharing(uri, fileName, isVideo);
                     if (result.succeeded()) {
-                        SentryManager.count("processing.share.success", 1, "is_video", String.valueOf(isVideo));
                         processedUris.add(result.uri());
                         CleanStats stats = result.stats();
                         StatsStore.recordClean(this,
@@ -755,9 +723,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     }
                 }
 
-                if (!processedUris.isEmpty() && failCount == 0) {
-                    transaction.setStatus(SpanStatus.OK);
-                } else if (!processedUris.isEmpty()) {
+                if (!processedUris.isEmpty()) {
                     transaction.setStatus(SpanStatus.OK);
                 } else {
                     transaction.setStatus(SpanStatus.INTERNAL_ERROR);
@@ -858,14 +824,18 @@ public class ShareHandlerActivity extends AppCompatActivity {
     }
 
     private void cancelShareProcessing() {
-        Thread thread = processingThread;
-        if (thread != null) {
-            thread.interrupt();
-        }
+        // The export first, while it still has an owner to cancel by, then the thread: an
+        // interrupted worker clears the owner on its way out (as onNewIntent orders it).
         ShareSession session = shareSession;
         if (session != null) {
             VideoMedia3Converter.cancelActiveTranscode(VideoMedia3Converter.shareOwner(session.id));
             session.stripper.requestCancellation();
+        }
+        Thread thread = processingThread;
+        if (thread != null) {
+            thread.interrupt();
+        }
+        if (session != null) {
             endShareSession(session);
         }
         dismissProgressDialog();
@@ -1088,91 +1058,21 @@ public class ShareHandlerActivity extends AppCompatActivity {
         uris.add(uri);
     }
 
+    /**
+     * Only content from another app's provider, as Scan, Convert and Censor take. Redact's own
+     * providers serve its working and converted files: not exported, but Redact can open them, so
+     * a share naming one would let the sender have Redact read and re-share files it cannot see.
+     * A file:// path is refused too: Redact can read media on shared storage that the sender may
+     * have no permission for, and apps have shared content:// since Android 7.
+     */
     private boolean isSupportedInboundUri(Uri uri) {
-        String scheme = uri.getScheme();
-        if (scheme == null) {
-            return false;
-        }
-        if ("content".equalsIgnoreCase(scheme)) {
-            // Redact's own FileProvider serves its working and converted files. The provider is not
-            // exported, but Redact can open it, so a share naming it would let the sender have
-            // Redact read and re-share files the sender itself cannot see. The second check also
-            // catches a userId@ prefix, which Android drops before it finds the provider.
-            return !(getPackageName() + ".fileprovider").equalsIgnoreCase(uri.getAuthority())
-                    && !MediaUriResolver.isOwnProvider(this, uri);
-        }
-        return "file".equalsIgnoreCase(scheme) && !pointsIntoOwnPrivateStorage(uri);
-    }
-
-    /**
-     * Whether a file:// URI resolves inside one of this app's own directories: its private data
-     * directory, or its app-specific folders on shared storage (Android/data and Android/obb),
-     * where working copies of unredacted videos are kept while they are transcoded.
-     * Another app can send an intent naming one of these files, which Redact can read but the sender
-     * cannot; copying and re-sharing it would hand that data to whatever app the user picks.
-     */
-    private boolean pointsIntoOwnPrivateStorage(@NonNull Uri uri) {
-        String path = uri.getPath();
-        if (path == null || path.isEmpty()) {
-            return true;
-        }
-        try {
-            String target = new File(path).getCanonicalPath();
-            List<File> privateRoots = new ArrayList<>();
-            privateRoots.add(getDataDir());
-            privateRoots.add(createDeviceProtectedStorageContext().getDataDir());
-            addAppSpecificRoot(privateRoots, getExternalCacheDir());
-            addAppSpecificRoot(privateRoots, getExternalFilesDir(null));
-            addAppSpecificRoot(privateRoots, getObbDir());
-            for (File root : privateRoots) {
-                String rootPath = root.getCanonicalPath();
-                if (target.equals(rootPath) || target.startsWith(rootPath + File.separator)) {
-                    return true;
-                }
-            }
-            return false;
-        } catch (IOException e) {
-            // A path that cannot be resolved is treated as private, so it is refused rather than
-            // read; filterSupportedUris leaves a breadcrumb for the skipped item.
-            return true;
-        }
-    }
-
-    /**
-     * Whether the file behind an open descriptor is in one of this app's own directories. The
-     * descriptor's own path, read from /proc/self/fd, is what was opened, whatever happened to the
-     * path the share named after it was checked.
-     */
-    @VisibleForTesting
-    boolean openedFileIsPrivate(@NonNull ParcelFileDescriptor opened, @NonNull File source) {
-        String openedPath;
-        try {
-            openedPath = java.nio.file.Files.readSymbolicLink(
-                    java.nio.file.Paths.get("/proc/self/fd/" + opened.getFd())).toString();
-        } catch (IOException | RuntimeException e) {
-            // Android always has /proc/self/fd; only unit tests on other hosts get here, and they
-            // check the path the share named again instead.
-            openedPath = source.getAbsolutePath();
-        }
-        return pointsIntoOwnPrivateStorage(Uri.fromFile(new File(openedPath)));
-    }
-
-    /**
-     * Adds an app-specific directory, or the per-package folder holding it (Android/data/&lt;package&gt;
-     * for the external cache and files directories), so every subfolder is covered.
-     */
-    private void addAppSpecificRoot(@NonNull List<File> roots, @Nullable File dir) {
-        if (dir == null) {
-            return;
-        }
-        File parent = dir.getParentFile();
-        roots.add(parent != null && getPackageName().equals(parent.getName()) ? parent : dir);
+        return InboundUriPolicy.isForeignContentUri(this, uri);
     }
 
     @NonNull
-    private List<Uri> filterSupportedUris(List<Uri> uris) {
+    private List<Uri> filterSupportedUris(List<Uri> uris, @NonNull ShareSession session) {
         List<Uri> accepted = new ArrayList<>();
-        unsupportedRejectCount = 0;
+        session.unsupportedRejectCount.set(0);
         for (Uri uri : uris) {
             if (uri == null || !isSupportedInboundUri(uri)) {
                 if (uri != null) {
@@ -1190,7 +1090,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             if (isUnsupportedMediaType(type)) {
                 // A multi-item share's intent type can be image/* or */* while individual items
                 // are PDFs, text or SVGs. Skip them up front instead of copying and failing later.
-                unsupportedRejectCount++;
+                session.unsupportedRejectCount.incrementAndGet();
                 countUnsupported(type);
                 SentryManager.logEvent("Share", "An inbound item of a non-media type was skipped.");
                 continue;
@@ -1235,7 +1135,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
         SentryManager.count("media.unsupported", 1, "mime_type", mimeTypeTag(mimeType));
     }
 
-    /** A MIME type reduced to "type/subtype" in lower case, or "unknown" when it is not one. */
+    /**
+     * A MIME type reduced to "type/subtype" in lower case (a wildcard such as "image/*" included),
+     * or "unknown" when it is not one.
+     */
     @VisibleForTesting
     @NonNull
     static String mimeTypeTag(@Nullable String mimeType) {
@@ -1243,7 +1146,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             return "unknown";
         }
         String bare = mimeType.split(";", 2)[0].trim().toLowerCase(Locale.ROOT);
-        return bare.matches("[a-z]+/[a-z0-9][a-z0-9.+-]{0,63}") ? bare : "unknown";
+        return bare.matches("([a-z]+|\\*)/([a-z0-9][a-z0-9.+-]{0,63}|\\*)") ? bare : "unknown";
     }
 
     private void finishWithError(String message) {
@@ -1257,14 +1160,17 @@ public class ShareHandlerActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         activityDestroyed.set(true);
-        Thread thread = processingThread;
-        if (thread != null) {
-            thread.interrupt();
-        }
+        // The export first, then the thread, as in cancelShareProcessing.
         ShareSession session = shareSession;
         if (session != null) {
             VideoMedia3Converter.cancelActiveTranscode(VideoMedia3Converter.shareOwner(session.id));
             session.stripper.requestCancellation();
+        }
+        Thread thread = processingThread;
+        if (thread != null) {
+            thread.interrupt();
+        }
+        if (session != null) {
             endShareSession(session);
         }
         LocalNotifications.stopProcessingForeground(

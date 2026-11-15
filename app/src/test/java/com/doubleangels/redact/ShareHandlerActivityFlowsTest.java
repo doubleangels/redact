@@ -101,7 +101,7 @@ public class ShareHandlerActivityFlowsTest {
         }
     }
 
-    private static final String AUTHORITY = "com.doubleangels.redact.test.media";
+    private static final String AUTHORITY = "com.example.test.media";
 
     private Application app;
     private ActivityController<ShareHandlerActivity> controller;
@@ -112,6 +112,9 @@ public class ShareHandlerActivityFlowsTest {
         AppProcessingScope.resetForTests();
         app = RuntimeEnvironment.getApplication();
         AppPreferences.setShareConfirmBeforeStrip(app, true);
+        TestShareProvider.install(app);
+        // The fixture provider below stands for another app's, as the package manager knows it.
+        TestShareProvider.register(app, AUTHORITY);
     }
 
     @After
@@ -174,7 +177,8 @@ public class ShareHandlerActivityFlowsTest {
 
     /**
      * Source files live in shared storage, outside the app's own directories, as real inbound
-     * files would: a file:// URI into the app's private or app-specific folders is rejected.
+     * files would. They reach the activity through {@link TestShareProvider}, since file:// is
+     * refused.
      */
     private File sourceDir() {
         File dir = android.os.Environment.getExternalStoragePublicDirectory(
@@ -225,10 +229,10 @@ public class ShareHandlerActivityFlowsTest {
 
     @Test
     public void newIntent_replacesTheShareInFlight() throws Exception {
-        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        ShareHandlerActivity activity = launch(send("image/jpeg", TestShareProvider.share(jpeg())));
         assertEquals(1, inboundSnapshots().length);
 
-        controller.newIntent(send("image/jpeg", Uri.fromFile(jpeg())));
+        controller.newIntent(send("image/jpeg", TestShareProvider.share(jpeg())));
         idle();
 
         assertFalse(activity.isFinishing());
@@ -277,14 +281,14 @@ public class ShareHandlerActivityFlowsTest {
         HeldStripper.release = new CountDownLatch(1);
         ShareHandlerActivity.stripperFactory = HeldStripper::new;
 
-        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        ShareHandlerActivity activity = launch(send("image/jpeg", TestShareProvider.share(jpeg())));
         ((AlertDialog) ShadowDialog.getLatestDialog()).getButton(DialogInterface.BUTTON_POSITIVE).performClick();
         idle();
         assertTrue(HeldStripper.entered.await(20, TimeUnit.SECONDS));
         Thread firstWorker = field(activity, "processingThread");
         List<File> firstSnapshots = Arrays.asList(inboundSnapshots());
 
-        controller.newIntent(send("image/jpeg", Uri.fromFile(jpeg())));
+        controller.newIntent(send("image/jpeg", TestShareProvider.share(jpeg())));
         idle();
         awaitPreparation(activity);
         List<File> secondSnapshots = new ArrayList<>(Arrays.asList(inboundSnapshots()));
@@ -311,6 +315,19 @@ public class ShareHandlerActivityFlowsTest {
                 shadowOf(activity).peekNextStartedActivityForResult().intent.getAction());
         assertFalse(activity.isFinishing());
         awaitMain(() -> inboundSnapshots().length == 0);
+    }
+
+    /**
+     * A file:// path on shared storage is refused like any other: Redact can read media there
+     * that the sender may have no permission for.
+     */
+    @Test
+    public void inboundFileUri_onSharedStorage_isRejected() throws IOException {
+        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        idle();
+
+        assertTrue(activity.isFinishing());
+        assertEquals(0, inboundSnapshots().length);
     }
 
     @Test
@@ -388,33 +405,8 @@ public class ShareHandlerActivityFlowsTest {
     }
 
     @Test
-    public void openedFileCheck_looksAtWhatWasActuallyOpened() throws Exception {
-        // The check reads /proc/self/fd, as Android always can; a Windows or macOS host has no such
-        // folder (or symbolic links without a privilege), so this runs on Linux, as in CI.
-        org.junit.Assume.assumeTrue("needs /proc/self/fd", new File("/proc/self/fd").isDirectory());
-        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
-        File shared = jpeg();
-        File secret = File.createTempFile("secret_", ".jpg", app.getFilesDir());
-        files.add(secret);
-        File link = new File(sourceDir(), "link_" + System.nanoTime() + ".jpg");
-        files.add(link);
-        java.nio.file.Files.createSymbolicLink(link.toPath(), secret.toPath());
-
-        try (ParcelFileDescriptor opened = ParcelFileDescriptor.open(shared, ParcelFileDescriptor.MODE_READ_ONLY)) {
-            assertFalse(activity.openedFileIsPrivate(opened, shared));
-        }
-        try (ParcelFileDescriptor opened = ParcelFileDescriptor.open(secret, ParcelFileDescriptor.MODE_READ_ONLY)) {
-            // Named as if it were the harmless shared file: the descriptor still tells the truth.
-            assertTrue(activity.openedFileIsPrivate(opened, shared));
-        }
-        try (ParcelFileDescriptor opened = ParcelFileDescriptor.open(link, ParcelFileDescriptor.MODE_READ_ONLY)) {
-            assertTrue(activity.openedFileIsPrivate(opened, link));
-        }
-    }
-
-    @Test
     public void newIntent_withUnsupportedAction_finishesWithAnError() {
-        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(new File("/nope/x.jpg"))));
+        ShareHandlerActivity activity = launch(send("image/jpeg", TestShareProvider.share(new File("/nope/x.jpg"))));
 
         controller.newIntent(new Intent(Intent.ACTION_VIEW));
         idle();
@@ -427,7 +419,7 @@ public class ShareHandlerActivityFlowsTest {
 
     @Test
     public void saveInstanceState_recordsTheSharingFlags() throws Exception {
-        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        ShareHandlerActivity activity = launch(send("image/jpeg", TestShareProvider.share(jpeg())));
         setField(activity, "sharingInitiated", true);
         setField(activity, "processingActive", true);
 
@@ -442,7 +434,7 @@ public class ShareHandlerActivityFlowsTest {
 
     @Test
     public void confirming_startsProcessing_andCancellingTheProgressDialogStopsIt() throws Exception {
-        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        ShareHandlerActivity activity = launch(send("image/jpeg", TestShareProvider.share(jpeg())));
         AlertDialog confirm = (AlertDialog) ShadowDialog.getLatestDialog();
         confirm.getButton(DialogInterface.BUTTON_POSITIVE).performClick();
         idle();
@@ -460,7 +452,7 @@ public class ShareHandlerActivityFlowsTest {
     @Test
     public void confirming_andFinishing_countsTheFileAndTheShare() throws Exception {
         FileProviderTestSupport.makeUsable(app);
-        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        ShareHandlerActivity activity = launch(send("image/jpeg", TestShareProvider.share(jpeg())));
         ((AlertDialog) ShadowDialog.getLatestDialog()).getButton(DialogInterface.BUTTON_POSITIVE).performClick();
         idle();
 
@@ -484,7 +476,7 @@ public class ShareHandlerActivityFlowsTest {
             out.write(new byte[]{(byte) 0xFF, (byte) 0xD8, 1, 2, 3, 4, 5, 6, 7, 8});
         }
 
-        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(broken)));
+        ShareHandlerActivity activity = launch(send("image/jpeg", TestShareProvider.share(broken)));
         android.app.Dialog dialog = ShadowDialog.getLatestDialog();
         if (dialog instanceof AlertDialog && dialog.isShowing()
                 && ((AlertDialog) dialog).getButton(DialogInterface.BUTTON_POSITIVE) != null) {
@@ -503,7 +495,7 @@ public class ShareHandlerActivityFlowsTest {
 
     @Test
     public void cancelShareProcessing_cleansUpAndFinishes() throws Exception {
-        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        ShareHandlerActivity activity = launch(send("image/jpeg", TestShareProvider.share(jpeg())));
 
         call(activity, "cancelShareProcessing", new Class<?>[0]);
         idle();
@@ -516,7 +508,7 @@ public class ShareHandlerActivityFlowsTest {
 
     @Test
     public void shareCleanFile_buildsAChooserForASingleImageOrVideo() throws Exception {
-        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        ShareHandlerActivity activity = launch(send("image/jpeg", TestShareProvider.share(jpeg())));
         Uri cleaned = Uri.fromFile(new File("/cache/processed/abc123.jpg"));
 
         call(activity, "shareCleanFile", new Class<?>[] {boolean.class, Uri.class}, false, cleaned);
@@ -538,7 +530,7 @@ public class ShareHandlerActivityFlowsTest {
 
     @Test
     public void shareCleanFile_withoutAFile_finishesWithAnError() throws Exception {
-        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        ShareHandlerActivity activity = launch(send("image/jpeg", TestShareProvider.share(jpeg())));
 
         call(activity, "shareCleanFile", new Class<?>[] {boolean.class, Uri.class}, false, null);
 
@@ -549,7 +541,7 @@ public class ShareHandlerActivityFlowsTest {
 
     @Test
     public void shareCleanFiles_picksTheMimeTypeFromTheContent() throws Exception {
-        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        ShareHandlerActivity activity = launch(send("image/jpeg", TestShareProvider.share(jpeg())));
         ArrayList<Uri> uris = new ArrayList<>();
         uris.add(Uri.fromFile(new File("/cache/processed/a.jpg")));
         uris.add(Uri.fromFile(new File("/cache/processed/b.jpg")));
@@ -571,7 +563,7 @@ public class ShareHandlerActivityFlowsTest {
 
     @Test
     public void shareCleanFiles_withNothing_finishesWithAnError() throws Exception {
-        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        ShareHandlerActivity activity = launch(send("image/jpeg", TestShareProvider.share(jpeg())));
 
         call(activity, "shareCleanFiles", new Class<?>[] {boolean.class, boolean.class, ArrayList.class},
                 false, true, new ArrayList<Uri>());
@@ -602,7 +594,7 @@ public class ShareHandlerActivityFlowsTest {
     public void chooserCancelled_stillKeepsFilesForTheGracePeriod() throws Exception {
         // The chooser forwards the chosen app's result, which is RESULT_CANCELED for most apps
         // even after something was shared, so it must not delete what that app is reading.
-        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        ShareHandlerActivity activity = launch(send("image/jpeg", TestShareProvider.share(jpeg())));
         File processed = addProcessedFile(activity);
         Uri cleaned = Uri.fromFile(processed);
         call(activity, "shareCleanFile", new Class<?>[] {boolean.class, Uri.class}, false, cleaned);
@@ -620,7 +612,7 @@ public class ShareHandlerActivityFlowsTest {
 
     @Test
     public void chooserCompleted_deletesProcessedFilesAfterTheGracePeriod() throws Exception {
-        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        ShareHandlerActivity activity = launch(send("image/jpeg", TestShareProvider.share(jpeg())));
         File processed = addProcessedFile(activity);
         call(activity, "shareCleanFile", new Class<?>[] {boolean.class, Uri.class}, false, Uri.fromFile(processed));
         ShadowActivity shadow = shadowOf(activity);
@@ -637,7 +629,7 @@ public class ShareHandlerActivityFlowsTest {
 
     @Test
     public void destroyingAfterSharing_schedulesTheDelayedCleanup() throws Exception {
-        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        ShareHandlerActivity activity = launch(send("image/jpeg", TestShareProvider.share(jpeg())));
         File processed = addProcessedFile(activity);
         setField(activity, "sharingInitiated", true);
         activity.finish();
@@ -650,7 +642,7 @@ public class ShareHandlerActivityFlowsTest {
 
     @Test
     public void destroyingWithoutSharing_deletesProcessedFilesImmediately() throws Exception {
-        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(jpeg())));
+        ShareHandlerActivity activity = launch(send("image/jpeg", TestShareProvider.share(jpeg())));
         File processed = addProcessedFile(activity);
         activity.finish();
 
@@ -708,8 +700,8 @@ public class ShareHandlerActivityFlowsTest {
         File bin = File.createTempFile("blob_", ".dat", sourceDir());
         files.add(bin);
         ArrayList<Uri> uris = new ArrayList<>();
-        uris.add(Uri.fromFile(mp4));
-        uris.add(Uri.fromFile(bin));
+        uris.add(TestShareProvider.share(mp4));
+        uris.add(TestShareProvider.share(bin));
         Intent intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
         intent.setType("*/*");
         intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
@@ -726,7 +718,7 @@ public class ShareHandlerActivityFlowsTest {
 
     @Test
     public void unreadableInboundFile_isDroppedAndTheShareFails() {
-        ShareHandlerActivity activity = launch(send("image/jpeg", Uri.fromFile(new File("/nonexistent/photo.jpg"))));
+        ShareHandlerActivity activity = launch(send("image/jpeg", TestShareProvider.share(new File("/nonexistent/photo.jpg"))));
 
         assertTrue(activity.isFinishing());
         assertEquals(app.getString(R.string.share_error_failed_receive_media), ShadowToast.getTextOfLatestToast());
@@ -737,7 +729,7 @@ public class ShareHandlerActivityFlowsTest {
     public void dataUriFallback_isUsedWhenThereIsNoStreamExtra() throws Exception {
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType("image/jpeg");
-        intent.setData(Uri.fromFile(jpeg()));
+        intent.setData(TestShareProvider.share(jpeg()));
 
         ShareHandlerActivity activity = launch(intent);
 

@@ -56,6 +56,49 @@ public class ScanMetadataAdapterTest {
         assertEquals(ScanMetadataAdapter.Entry.VIEW_TYPE_ROW, adapter.getItemViewType(2));
     }
 
+    /** A search keystroke tells the list which rows went, rather than rebinding every row. */
+    @Test
+    public void narrowingTheSearch_removesOnlyTheRowsThatNoLongerMatch() {
+        List<ScanMetadataAdapter.Entry> entries = new ArrayList<>();
+        entries.add(ScanMetadataAdapter.Entry.header("camera", "Camera", 0, 3));
+        entries.add(ScanMetadataAdapter.Entry.row("camera", "Make", "Google"));
+        entries.add(ScanMetadataAdapter.Entry.row("camera", "Model", "Pixel 8 Pro"));
+        entries.add(ScanMetadataAdapter.Entry.row("camera", "Lens", "Main"));
+        adapter.setEntries(entries);
+
+        List<String> events = new ArrayList<>();
+        adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                events.add("all");
+            }
+
+            @Override
+            public void onItemRangeRemoved(int positionStart, int itemCount) {
+                events.add("removed " + positionStart + "+" + itemCount);
+            }
+
+            @Override
+            public void onItemRangeChanged(int positionStart, int itemCount, Object payload) {
+                events.add("changed " + positionStart + "+" + itemCount);
+            }
+
+            @Override
+            public void onItemRangeInserted(int positionStart, int itemCount) {
+                events.add("inserted " + positionStart + "+" + itemCount);
+            }
+        });
+
+        adapter.setQuery("pixel");
+
+        assertEquals(2, adapter.getItemCount());
+        assertFalse("rebound everything: " + events, events.contains("all"));
+        // The header's count went from 3 to 1; Make and Lens went.
+        assertTrue(events.toString(), events.contains("changed 0+1"));
+        assertEquals(events.toString(), 2, events.stream().filter(e -> e.startsWith("removed")).mapToInt(
+                e -> Integer.parseInt(e.substring(e.indexOf('+') + 1))).sum());
+    }
+
     @Test
     public void clear_resetsAdapter() {
         List<ScanMetadataAdapter.Entry> entries = new ArrayList<>();

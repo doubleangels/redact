@@ -37,7 +37,7 @@
         android:visibility="gone" />
 
     <!-- The editor's tools, in a pill over the photo's top start that mirrors the undo pill at
-         its top end: full screen, then Rectangle, Brush and Move, then the effect, which opens a
+         its top end: full screen, then Rectangle, Brush, Move and Crop, then the effect, which opens a
          menu of Pixelate, Black and Blur. Over the photo rather than in a card above it, so the
          photo keeps that height, and the same in full screen as out of it. -->
     <com.google.android.material.card.MaterialCardView
@@ -150,6 +150,25 @@
                     app:iconPadding="0dp"
                     app:iconSize="@dimen/icon_size" />
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/censorToolCrop"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="@dimen/touch_target_min"
+                    android:layout_height="@dimen/touch_target_min"
+                    android:checkable="true"
+                    android:saveEnabled="false"
+                    android:contentDescription="@string/censor_tool_crop"
+                    android:insetLeft="@dimen/button_inset"
+                    android:insetTop="@dimen/button_inset"
+                    android:insetRight="@dimen/button_inset"
+                    android:insetBottom="@dimen/button_inset"
+                    android:padding="0dp"
+                    android:tooltipText="@string/censor_tool_crop"
+                    app:icon="@drawable/ic_crop"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
+                    app:iconSize="@dimen/icon_size" />
+
                 <!-- Drops a rectangle in the middle of the photo, so an area can be covered
                      without drawing (TalkBack, Switch Access); its actions move and resize it. -->
                 <com.google.android.material.button.MaterialButton
@@ -246,7 +265,7 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Undo, Redo, and Delete while a rectangle is selected: one raised pill over the photo's top
+    <!-- Undo, Redo, Reset Crop while cropping, and Delete while a rectangle is selected: one raised pill over the photo's top
          end, like the zoom chip at its bottom start, so they take none of the photo's height. It
          shows only once there is something to undo, redo or delete, as Save Copy shows only with
          edits. Save Copy, Share and Scan Result are the buttons in the bottom right, as on Clean. -->
@@ -299,6 +318,24 @@
                 android:padding="0dp"
                 android:tooltipText="@string/censor_redo"
                 app:icon="@drawable/ic_redo"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="@dimen/icon_size" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/censorResetCropButton"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="@dimen/touch_target_min"
+                android:layout_height="@dimen/touch_target_min"
+                android:contentDescription="@string/censor_reset_crop"
+                android:insetLeft="@dimen/button_inset"
+                android:insetTop="@dimen/button_inset"
+                android:insetRight="@dimen/button_inset"
+                android:insetBottom="@dimen/button_inset"
+                android:padding="0dp"
+                android:tooltipText="@string/censor_reset_crop"
+                android:visibility="gone"
+                app:icon="@drawable/ic_crop_reset"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
                 app:iconSize="@dimen/icon_size" />

@@ -80,14 +80,26 @@ public class ReviewPromptTest {
         return activity.getSupportFragmentManager().findFragmentByTag("clean");
     }
 
-    /** Runs {@code n} successful jobs and returns the rating dialog left showing, if any. */
+    /**
+     * Runs {@code n} successful jobs that each removed a location, and returns the rating dialog
+     * left showing, if any.
+     */
     private AlertDialog succeed(int n) {
+        return succeed(n, true);
+    }
+
+    private AlertDialog succeed(int n, boolean removedLocation) {
         for (int i = 0; i < n; i++) {
-            ReviewPrompt.onJobSucceeded(clean());
+            ReviewPrompt.recordSuccessfulJob(activity, removedLocation);
+            ReviewPrompt.askIfDue(clean());
             idle();
         }
         AlertDialog d = (AlertDialog) ShadowDialog.getLatestDialog();
         return d != null && d.isShowing() ? d : null;
+    }
+
+    private static String message(AlertDialog dialog) {
+        return ((android.widget.TextView) dialog.findViewById(android.R.id.message)).getText().toString();
     }
 
     /** The next activity started with ACTION_VIEW, skipping the first-launch permission requests. */
@@ -108,7 +120,7 @@ public class ReviewPromptTest {
     }
 
     @Test
-    public void asksOnlyAfterThreeSuccessfulJobs_withJustYesAndNo() {
+    public void asksOnlyAfterThreeSuccessfulJobs_withRateNotNowAndNoThanks() {
         assertNull(succeed(ReviewPrompt.ASK_AFTER - 1));
         AlertDialog dialog = succeed(1);
         assertNotNull(dialog);
@@ -116,7 +128,63 @@ public class ReviewPromptTest {
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).getText().toString());
         assertEquals(activity.getString(R.string.review_prompt_no),
                 dialog.getButton(AlertDialog.BUTTON_NEGATIVE).getText().toString());
-        assertEquals(View.GONE, dialog.getButton(AlertDialog.BUTTON_NEUTRAL).getVisibility());
+        assertEquals(activity.getString(R.string.review_prompt_later),
+                dialog.getButton(AlertDialog.BUTTON_NEUTRAL).getText().toString());
+    }
+
+    /** Right after a job that removed a location, the ask says so. */
+    @Test
+    public void afterARemovedLocation_theAskSaysSo() {
+        AlertDialog dialog = succeed(ReviewPrompt.ASK_AFTER);
+        assertTrue(message(dialog).startsWith(activity.getString(R.string.review_prompt_location)));
+        assertTrue(message(dialog).endsWith(activity.getString(R.string.review_prompt_message)));
+    }
+
+    /** Jobs that removed no location wait for the later count, and the ask leaves the location out. */
+    @Test
+    public void withoutARemovedLocation_asksOnlyAtTheLaterCount() {
+        assertNull(succeed(ReviewPrompt.ASK_ANYWAY_AFTER - 1, false));
+        AlertDialog dialog = succeed(1, false);
+        assertNotNull(dialog);
+        assertEquals(activity.getString(R.string.review_prompt_message), message(dialog));
+    }
+
+    /** Scans and converts count too, and a clean that removes a location then asks at once. */
+    @Test
+    public void onJobSucceeded_countsTowardTheAsk() {
+        for (int i = 0; i < ReviewPrompt.ASK_AFTER; i++) {
+            ReviewPrompt.onJobSucceeded(clean());
+            idle();
+        }
+        assertNull(ShadowDialog.getLatestDialog());
+        assertNotNull(succeed(1));
+    }
+
+    /** Not Now asks once more, later, and that last ask has no Not Now. */
+    @Test
+    public void notNow_asksOnceMoreAfterMoreJobs_thenNeverAgain() {
+        press(succeed(ReviewPrompt.ASK_AFTER), AlertDialog.BUTTON_NEUTRAL);
+        assertEquals(ReviewPrompt.STATE_LATER, prefs().getInt(ReviewPrompt.KEY_STATE, -1));
+        assertNull(nextViewIntent());
+
+        assertNull(succeed(ReviewPrompt.ASK_AGAIN_AFTER - 1));
+        // Without a removed location, the last ask waits longer still.
+        assertNull(succeed(1, false));
+        AlertDialog last = succeed(1);
+        assertNotNull(last);
+        assertEquals(View.GONE, last.getButton(AlertDialog.BUTTON_NEUTRAL).getVisibility());
+
+        press(last, AlertDialog.BUTTON_NEGATIVE);
+        assertEquals(ReviewPrompt.STATE_DONE, prefs().getInt(ReviewPrompt.KEY_STATE, -1));
+        assertNull(succeed(50));
+    }
+
+    @Test
+    public void notNow_survivesResettingSettings() {
+        press(succeed(ReviewPrompt.ASK_AFTER), AlertDialog.BUTTON_NEUTRAL);
+        AppPreferences.resetAll(activity);
+        assertEquals(ReviewPrompt.STATE_LATER, prefs().getInt(ReviewPrompt.KEY_STATE, -1));
+        assertNull(succeed(ReviewPrompt.ASK_AFTER));
     }
 
     @Test

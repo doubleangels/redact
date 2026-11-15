@@ -185,6 +185,90 @@ public class CensorViewModelTest {
         assertEquals("an index out of range is ignored", 1, vm.regions().size());
     }
 
+    private static final CensorRegion CROP = CensorRegion.rect(0.2f, 0.1f, 0.8f, 0.9f);
+
+    /** A crop alone is something to save, and undo and redo walk it with the regions. */
+    @Test
+    public void aCrop_isAnEditOfItsOwn_thatUndoAndRedoWalk() {
+        vm.requestOpen(A);
+        assertFalse(vm.hasEdits());
+
+        vm.setCrop(CROP);
+        assertEquals(CROP, vm.getCrop());
+        assertTrue(vm.hasEdits());
+        assertTrue("a crop alone can be saved", vm.hasUnsavedEdits());
+        assertTrue(vm.regions().isEmpty());
+
+        vm.addRegion(BOX);
+        vm.undo();
+        assertEquals(CROP, vm.getCrop());
+        assertTrue(vm.regions().isEmpty());
+        vm.undo();
+        assertNull(vm.getCrop());
+        assertFalse(vm.hasUnsavedEdits());
+
+        vm.redo();
+        assertEquals(CROP, vm.getCrop());
+        vm.redo();
+        assertEquals(1, vm.regions().size());
+        assertEquals(CROP, vm.getCrop());
+    }
+
+    @Test
+    public void aCropOfTheWholePhoto_orAnEmptyOne_isNoCrop() {
+        vm.requestOpen(A);
+        vm.setCrop(CensorRegion.rect(0f, 0f, 1f, 1f));
+        assertNull(vm.getCrop());
+        assertFalse("nothing changed, so nothing to undo", vm.canUndo());
+
+        vm.setCrop(CensorRegion.rect(0.3f, 0.3f, 0.3f, 0.8f));
+        assertNull(vm.getCrop());
+
+        vm.setCrop(CROP);
+        vm.setCrop(CROP);
+        assertTrue(vm.canUndo());
+        vm.undo();
+        assertFalse("the same crop again is not another edit", vm.canUndo());
+    }
+
+    @Test
+    public void resettingTheCrop_canBeUndone() {
+        vm.requestOpen(A);
+        vm.setCrop(CROP);
+        vm.setCrop(null);
+        assertNull(vm.getCrop());
+        vm.undo();
+        assertEquals(CROP, vm.getCrop());
+    }
+
+    /** The effect shows only on covered areas, so with just a crop, changing it changes nothing. */
+    @Test
+    public void changingTheEffect_withOnlyACrop_isNotAnotherEdit() throws Exception {
+        vm.requestOpen(A);
+        vm.setCrop(CROP);
+        java.lang.reflect.Field savedRegions = CensorViewModel.class.getDeclaredField("savedRegions");
+        java.lang.reflect.Field savedCrop = CensorViewModel.class.getDeclaredField("savedCrop");
+        savedRegions.setAccessible(true);
+        savedCrop.setAccessible(true);
+        savedRegions.set(vm, new java.util.ArrayList<CensorRegion>());
+        savedCrop.set(vm, CROP);
+        assertFalse(vm.hasUnsavedEdits());
+
+        vm.setEffect(CensorEffects.Effect.BLUR);
+        assertFalse(vm.hasUnsavedEdits());
+        vm.setCrop(CensorRegion.rect(0.3f, 0.1f, 0.8f, 0.9f));
+        assertTrue(vm.hasUnsavedEdits());
+    }
+
+    @Test
+    public void close_forgetsTheCrop() {
+        vm.requestOpen(A);
+        vm.setCrop(CROP);
+        vm.close();
+        assertNull(vm.getCrop());
+        assertFalse(vm.canUndo());
+    }
+
     @Test
     public void theEffect_isRememberedForTheNextEditor() {
         assertEquals(CensorEffects.Effect.BLACK, vm.getEffect().getValue());

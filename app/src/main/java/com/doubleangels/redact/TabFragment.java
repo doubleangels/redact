@@ -50,6 +50,17 @@ public abstract class TabFragment extends Fragment {
      * dozen dp of content. While the screen is folded like that, the padding is worked out from the
      * half the tab really has, and the original padding returns when it is flat again.
      */
+    /**
+     * A runtime permission result MainActivity received for this tab. Tabs that ask for
+     * permissions override it; the others ignore it.
+     */
+    void handlePermissionResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    }
+
+    /** MainActivity's first-run permission flow has finished while this tab was showing. */
+    void onHostPermissionFlowCompleted() {
+    }
+
     private static void fitToPane(@NonNull View root, @Nullable FoldPosture posture) {
         View column = root.findViewWithTag(EDGE_PADDED_TAG);
         if (column == null) {

@@ -202,10 +202,17 @@ public class UnsupportedMediaTest {
 
     @Test
     public void fallbackShortSides_neverUpscale() {
-        assertArrayEquals(new int[] {1440, 1080, 720, 480}, VideoMedia3Converter.fallbackShortSides(2160));
-        assertArrayEquals(new int[] {720, 480}, VideoMedia3Converter.fallbackShortSides(1080));
-        assertArrayEquals(new int[] {}, VideoMedia3Converter.fallbackShortSides(480));
-        assertArrayEquals(new int[] {1440, 1080, 720, 480}, VideoMedia3Converter.fallbackShortSides(0));
+        assertArrayEquals(new int[] {1440, 1080, 720, 480, 360}, VideoMedia3Converter.fallbackShortSides(2160));
+        assertArrayEquals(new int[] {720, 480, 360}, VideoMedia3Converter.fallbackShortSides(1080));
+        assertArrayEquals(new int[] {360}, VideoMedia3Converter.fallbackShortSides(480));
+        assertArrayEquals(new int[] {}, VideoMedia3Converter.fallbackShortSides(360));
+        assertArrayEquals(new int[] {1440, 1080, 720, 480, 360}, VideoMedia3Converter.fallbackShortSides(0));
+    }
+
+    /** A stalled 848x464 export failed with no retry at all, since no fallback was below 480 (REDACT-2B). */
+    @Test
+    public void fallbackShortSides_giveASmallVideoOneSmallerTry() {
+        assertArrayEquals(new int[] {360}, VideoMedia3Converter.fallbackShortSides(464));
     }
 
     // ---- images -----------------------------------------------------------------------------------

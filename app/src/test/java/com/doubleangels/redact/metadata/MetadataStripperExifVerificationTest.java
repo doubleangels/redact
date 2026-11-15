@@ -72,6 +72,55 @@ public class MetadataStripperExifVerificationTest {
         return f;
     }
 
+    /**
+     * If a release build lost ExifInterface's TAG_ fields, the EXIF sweep would check nothing.
+     * The tag list throws instead, and verification must turn that into a failure.
+     */
+    @Test
+    public void verificationFails_whenTheExifTagListCannotBeRead() throws Exception {
+        AppPreferences.setStrictClean(RuntimeEnvironment.getApplication(), true);
+        File jpeg = write(".jpg", plainJpeg());
+        assertTrue(verify(jpeg));
+        ExifTags.testFields = new Field[0];
+        try {
+            org.junit.Assert.assertFalse(verify(jpeg));
+        } finally {
+            ExifTags.testFields = null;
+        }
+    }
+
+    /**
+     * The restore step clears every tag the settings don't keep before writing the kept ones
+     * back. A shared copy keeps fewer tags than a saved one, so with Keep camera settings on it
+     * must still clear the camera's make, not keep it as a gallery save would.
+     */
+    @Test
+    public void restoringKeptTags_forSharing_usesTheSharingSet() throws Exception {
+        Application app = RuntimeEnvironment.getApplication();
+        AppPreferences.setStrictClean(app, false);
+        AppPreferences.setPreserveCameraSettings(app, true);
+        try {
+            File jpeg = write(".jpg", plainJpeg());
+            ExifInterface exif = new ExifInterface(jpeg.getAbsolutePath());
+            exif.setAttribute(ExifInterface.TAG_MAKE, "Acme");
+            exif.saveAttributes();
+            java.util.Map<String, String> kept = new java.util.HashMap<>();
+            kept.put(ExifInterface.TAG_ORIENTATION, "6");
+
+            Method restore = ImageCleaner.class.getDeclaredMethod(
+                    "restoreEssentialExifData", File.class, java.util.Map.class, boolean.class);
+            restore.setAccessible(true);
+            restore.invoke(new MetadataStripper(app).images, jpeg, kept, true);
+
+            ExifInterface after = new ExifInterface(jpeg.getAbsolutePath());
+            org.junit.Assert.assertNull(after.getAttribute(ExifInterface.TAG_MAKE));
+            org.junit.Assert.assertEquals("6", after.getAttribute(ExifInterface.TAG_ORIENTATION));
+        } finally {
+            AppPreferences.setPreserveCameraSettings(app, false);
+            AppPreferences.setStrictClean(app, true);
+        }
+    }
+
     @Test
     public void verificationFails_forALeftoverExifTag() throws Exception {
         AppPreferences.setStrictClean(RuntimeEnvironment.getApplication(), true);
@@ -261,7 +310,8 @@ public class MetadataStripperExifVerificationTest {
 
         File motion = File.createTempFile("verify_", ".heic");
         motion.deleteOnExit();
-        HeifContainerMetadata.sanitize(heic, motion, new MotionPhoto.Clip(video, inJpeg.presentationTimestampUs));
+        HeifContainerMetadata.sanitize(heic, motion, new MotionPhoto.Clip(video, inJpeg.presentationTimestampUs),
+                motion.getAbsoluteFile().getParentFile());
         assertTrue("a kept Motion Photo's directory and clean video pass", verify(motion));
 
         // The source still has its own XMP item, which no clean keeps.

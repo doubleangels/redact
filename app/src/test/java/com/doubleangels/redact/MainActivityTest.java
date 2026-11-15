@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
@@ -36,6 +37,8 @@ public class MainActivityTest {
     public void setUp() {
         com.doubleangels.redact.ui.Notice.resetForTests();
         AppProcessingScope.resetForTests();
+        // The documents provider these shares name, as the system knows it: another package's.
+        TestShareProvider.register(RuntimeEnvironment.getApplication(), "com.android.externalstorage.documents");
     }
 
     @After
@@ -612,5 +615,26 @@ public class MainActivityTest {
         BottomNavigationView nav = activity.findViewById(R.id.bottomNavigation);
         assertEquals(R.id.navigation_censor, nav.getSelectedItemId());
         assertEquals(sharedImage(2), censorViewModel().getSource());
+    }
+
+    /** The update notice shows on the screen with its button. */
+    @Test
+    public void updateNotice_showsWithItsButton() {
+        MainActivity activity = launch();
+        String[] tapped = new String[1];
+        com.doubleangels.redact.ui.Notice.showWithAction(activity, "Redact 9.9 is available", "Update",
+                () -> tapped[0] = "tapped");
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        org.junit.Assert.assertEquals("Redact 9.9 is available",
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
+    }
+
+    @Test
+    public void updateNotice_isNotShownOnAFinishedActivity() {
+        MainActivity activity = launch();
+        com.doubleangels.redact.ui.Notice.resetForTests();
+        activity.finish();
+        com.doubleangels.redact.ui.Notice.showWithAction(activity, "late", "Update", () -> { });
+        org.junit.Assert.assertNull(com.doubleangels.redact.ui.Notice.lastShownForTests());
     }
 }
