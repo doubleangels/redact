@@ -369,6 +369,7 @@ public class ScanFragment extends TabFragment {
         }
     }
 
+    @Override
     void onHostPermissionFlowCompleted() {
         if (permissionManager != null) {
             permissionManager.applyPendingPermissionResultIfAny(
@@ -378,6 +379,7 @@ public class ScanFragment extends TabFragment {
         syncSelectButtonForPickerAccess();
     }
 
+    @Override
     void handlePermissionResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         try {
             if (permissionManager != null) {

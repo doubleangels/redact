@@ -18,7 +18,6 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
-import java.lang.reflect.Field;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @RunWith(RobolectricTestRunner.class)
@@ -91,9 +90,7 @@ public class MainViewModelTest {
                 viewModel.getCleanProcessingState().getValue());
     }
 
-    private static AtomicInteger getCleanGeneration(MainViewModel viewModel) throws Exception {
-        Field field = MainViewModel.class.getDeclaredField("cleanGeneration");
-        field.setAccessible(true);
-        return (AtomicInteger) field.get(viewModel);
+    private static AtomicInteger getCleanGeneration(MainViewModel viewModel) {
+        return AppProcessingScope.get(viewModel.getApplication()).cleanGeneration();
     }
 }

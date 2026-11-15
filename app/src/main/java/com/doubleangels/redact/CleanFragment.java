@@ -432,6 +432,7 @@ public class CleanFragment extends TabFragment {
         return outputs.get(0);
     }
 
+    @Override
     void onHostPermissionFlowCompleted() {
         syncPermissionUi();
     }
@@ -672,6 +673,7 @@ public class CleanFragment extends TabFragment {
         }
     }
 
+    @Override
     void handlePermissionResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         try {
             if (permissionManager != null) {

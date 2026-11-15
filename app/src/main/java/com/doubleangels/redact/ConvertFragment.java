@@ -659,6 +659,7 @@ public class ConvertFragment extends TabFragment {
         }
     }
 
+    @Override
     void onHostPermissionFlowCompleted() {
         syncSelectButtonForPickerAccess();
     }
@@ -674,6 +675,7 @@ public class ConvertFragment extends TabFragment {
         }
     }
 
+    @Override
     void handlePermissionResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         try {
             if (permissionManager != null) {

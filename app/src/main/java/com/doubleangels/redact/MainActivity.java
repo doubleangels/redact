@@ -102,6 +102,16 @@ public class MainActivity extends AppCompatActivity {
     /** This instance's own callback, so destroying it leaves another instance's in place. */
     private final Runnable permissionFlowCompleted = this::notifyVisibleFragmentPermissionFlowCompleted;
 
+    /**
+     * Hands every MainViewModel this activity or its fragments ask for the application's
+     * {@link com.doubleangels.redact.ui.ProcessingRepository}, which owns the jobs.
+     */
+    @NonNull
+    @Override
+    public ViewModelProvider.Factory getDefaultViewModelProviderFactory() {
+        return MainViewModel.factory(super.getDefaultViewModelProviderFactory());
+    }
+
     @Override
     protected void onDestroy() {
         PermissionManager.removeInitialFlowCompletedCallback(permissionFlowCompleted);
@@ -686,13 +696,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void notifyVisibleFragmentPermissionFlowCompleted() {
-        Fragment target = getVisibleTabFragment();
-        if (target instanceof CleanFragment cleanFragment) {
-            cleanFragment.onHostPermissionFlowCompleted();
-        } else if (target instanceof ScanFragment scanFragment) {
-            scanFragment.onHostPermissionFlowCompleted();
-        } else if (target instanceof ConvertFragment convertFragment) {
-            convertFragment.onHostPermissionFlowCompleted();
+        if (getVisibleTabFragment() instanceof TabFragment tab) {
+            tab.onHostPermissionFlowCompleted();
         }
     }
 
@@ -733,13 +738,8 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            Fragment target = resolvePermissionResultTarget(requestCode);
-            if (target instanceof CleanFragment cleanFragment) {
-                cleanFragment.handlePermissionResult(requestCode, permissions, grantResults);
-            } else if (target instanceof ScanFragment scanFragment) {
-                scanFragment.handlePermissionResult(requestCode, permissions, grantResults);
-            } else if (target instanceof ConvertFragment convertFragment) {
-                convertFragment.handlePermissionResult(requestCode, permissions, grantResults);
+            if (resolvePermissionResultTarget(requestCode) instanceof TabFragment tab) {
+                tab.handlePermissionResult(requestCode, permissions, grantResults);
             }
         } catch (Exception e) {
             SentryManager.recordException(e);
