@@ -351,4 +351,20 @@ public class AlreadyCleanCheckTest {
         ImageContainerMetadata.sanitize(tagged, clean);
         assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item(clean, "image/jpeg")));
     }
+
+    /** What only the inside of moov holds: text in free space, an unknown box, a device's handler name. */
+    @Test
+    public void video_withMetadataOnlyInsideMoov_needsCleaning() throws IOException {
+        int duration = android.media.MediaMetadataRetriever.METADATA_KEY_DURATION;
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, video(
+                TestVideos.mp4(0, TestVideos.box("free", TestVideos.bytes("Edited on Jane's MacBook"))),
+                duration, "1000")));
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, video(
+                TestVideos.mp4(0, TestVideos.box("Xcam", TestVideos.bytes("serial SN-778812"))),
+                duration, "1000")));
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, video(
+                TestVideos.concat(TestVideos.ftyp(), TestVideos.box("moov", TestVideos.header("mvhd", 0, 96),
+                        TestVideos.trakWith(TestVideos.namedHdlr("vide", "GoPro AVC"))), TestVideos.mdat()),
+                duration, "1000")));
+    }
 }

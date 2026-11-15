@@ -474,4 +474,90 @@ public class VideoContainerMetadataTest {
             assertFalse(name, VideoContainerMetadata.isLocationName(name));
         }
     }
+
+    // ---- inside moov: allowlists, free space, handler names -------------------------------------
+
+    /** What scrubbing must leave: a clean scan, the samples intact, and none of {@code gone}. */
+    private void assertScrubs(File f, String... gone) throws Exception {
+        assertFalse(VideoContainerMetadata.scan(f).isClean());
+        VideoContainerMetadata.scrub(f);
+        assertTrue(VideoContainerMetadata.scan(f).fields.toString(), VideoContainerMetadata.scan(f).isClean());
+        assertTrue("the samples are kept", contains(f, SAMPLES));
+        for (String text : gone) {
+            assertFalse(text + " is still in the file", contains(f, bytes(text)));
+        }
+    }
+
+    @Test
+    public void textLeftInAFreeBox_isReported_andZeroed() throws Exception {
+        assertScrubs(file("free_text.mp4", concat(ftyp(),
+                box("free", bytes("Edited on Jane's MacBook 2024-05-01")),
+                box("moov", TestVideos.header("mvhd", 0, 96), TestVideos.trak("vide", 0)), TestVideos.mdat())),
+                "MacBook");
+        assertScrubs(file("skip_in_moov.mp4", mp4(0, box("skip", bytes("old title: Divorce papers")))),
+                "Divorce");
+    }
+
+    /** Free space a muxer reserves is zero bytes, or the '0' characters the platform muxer writes. */
+    @Test
+    public void reservedFreeSpace_isClean() throws Exception {
+        byte[] digits = new byte[4096];
+        java.util.Arrays.fill(digits, (byte) '0');
+        assertTrue(VideoContainerMetadata.scan(file("free_zero.mp4", concat(ftyp(), box("free", new byte[4096]),
+                box("moov", TestVideos.header("mvhd", 0, 96), TestVideos.trak("vide", 0)), TestVideos.mdat())))
+                .isClean());
+        assertTrue(VideoContainerMetadata.scan(file("free_digits.mp4", concat(ftyp(), box("free", digits),
+                box("moov", TestVideos.header("mvhd", 0, 96), TestVideos.trak("vide", 0)), TestVideos.mdat())))
+                .isClean());
+        assertTrue(VideoContainerMetadata.scan(file("free_empty.mp4", mp4(0, box("free")))).isClean());
+    }
+
+    @Test
+    public void anUnknownBoxUnderMoovTrakOrMdia_isReported_andBlanked() throws Exception {
+        assertScrubs(file("moov_unknown.mp4", mp4(0, box("Xcam", bytes("serial SN-778812")))), "SN-778812");
+        assertScrubs(file("trak_unknown.mp4", concat(ftyp(), box("moov", TestVideos.header("mvhd", 0, 96),
+                box("trak", TestVideos.header("tkhd", 0, 72), box("Xlbl", bytes("Kitchen camera")),
+                        box("mdia", TestVideos.header("mdhd", 0, 12), TestVideos.hdlr("vide"),
+                                box("minf", box("stbl", box("stsd", new byte[8])))))),
+                TestVideos.mdat())), "Kitchen");
+        assertScrubs(file("mdia_unknown.mp4", concat(ftyp(), box("moov", TestVideos.header("mvhd", 0, 96),
+                TestVideos.trakWith(TestVideos.hdlr("vide"), box("Xdev", bytes("Pixel 9 Pro")))),
+                TestVideos.mdat())), "Pixel 9");
+    }
+
+    /** The boxes a player needs are left alone. */
+    @Test
+    public void theStructureAPlayerNeeds_isClean() throws Exception {
+        assertTrue(VideoContainerMetadata.scan(file("structure.mp4", concat(ftyp(), box("moov",
+                TestVideos.header("mvhd", 0, 96), box("iods", new byte[8]), box("mvex", box("trex", new byte[24])),
+                box("trak", TestVideos.header("tkhd", 0, 72), box("edts", box("elst", new byte[8])),
+                        box("tref", box("tmcd", new byte[4])),
+                        box("mdia", TestVideos.header("mdhd", 0, 12), TestVideos.hdlr("vide"),
+                                box("elng", bytes("en\0")), box("minf", box("stbl", box("stsd", new byte[8])))))),
+                TestVideos.mdat()))).isClean());
+    }
+
+    @Test
+    public void aHandlerNameThatNamesADevice_isReported_andBlanked() throws Exception {
+        assertScrubs(file("hdlr_device.mp4", concat(ftyp(), box("moov", TestVideos.header("mvhd", 0, 96),
+                TestVideos.trakWith(TestVideos.namedHdlr("vide", "GoPro AVC encoder 2024-05-01"))),
+                TestVideos.mdat())), "GoPro");
+        // QuickTime writes it as a length byte and the text.
+        byte[] pascal = concat(new byte[] {16}, bytes("Core Media Video"));
+        java.nio.ByteBuffer qt = java.nio.ByteBuffer.allocate(24 + pascal.length);
+        qt.putInt(0).putInt(0).put(bytes("vide")).put(new byte[12]).put(pascal);
+        assertScrubs(file("hdlr_qt.mov", concat(ftyp(), box("moov", TestVideos.header("mvhd", 0, 96),
+                TestVideos.trakWith(box("hdlr", qt.array()))), TestVideos.mdat())), "Core Media");
+    }
+
+    /** The names the platform muxer (MPEG4Writer) and Media3's Mp4Muxer write are not reported. */
+    @Test
+    public void theMuxersOwnHandlerNames_areClean() throws Exception {
+        for (String name : new String[] {"", "VideoHandle", "SoundHandle", "MetaHandle", "MetadHandle"}) {
+            File f = file("hdlr_" + name.length() + ".mp4", concat(ftyp(), box("moov",
+                    TestVideos.header("mvhd", 0, 96), TestVideos.trakWith(TestVideos.namedHdlr("vide", name))),
+                    TestVideos.mdat()));
+            assertTrue(name, VideoContainerMetadata.scan(f).isClean());
+        }
+    }
 }
