@@ -136,6 +136,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
         boolean counted;
         private final List<File> snapshots = new ArrayList<>();
         private boolean snapshotsClosed;
+        /**
+         * Items dropped while copying them to cache; counted as failures in the final toast. Kept
+         * per share, so the worker of a share that was replaced can't change the next one's count.
+         */
+        final AtomicInteger snapshotFailCount = new AtomicInteger();
+        /** Items dropped for a non-media type before copying; also counted as failures. */
+        final AtomicInteger unsupportedRejectCount = new AtomicInteger();
 
         ShareSession(int id, @NonNull MetadataStripper stripper) {
             this.id = id;
@@ -369,14 +376,14 @@ public class ShareHandlerActivity extends AppCompatActivity {
         // A recreated activity cannot resume this, so treat it like a running job (see onCreate).
         processingActive = true;
         startShareThread("redact-share-check", session, () -> {
-            List<Uri> accepted = filterSupportedUris(uris);
+            List<Uri> accepted = filterSupportedUris(uris, session);
             List<ProcessingResourceWarnings.Warning> warnings = accepted.isEmpty()
                     ? new ArrayList<>()
                     : ProcessingResourceWarnings.assessShareUris(
                             this, getContentResolver(), accepted, mediaSelector);
             runOnUiThreadForSession(session, () -> {
                 if (accepted.isEmpty()) {
-                    finishWithError(getString(unsupportedRejectCount > 0
+                    finishWithError(getString(session.unsupportedRejectCount.get() > 0
                             ? R.string.share_error_unsupported_media
                             : R.string.share_error_failed_receive_media));
                     return;
@@ -444,17 +451,11 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 && !Thread.currentThread().isInterrupted();
     }
 
-    /** Items dropped by {@link #snapshotInboundUris}; counted as failures in the final toast. */
-    private volatile int snapshotFailCount;
-
-    /** Items dropped by {@link #filterSupportedUris} for a non-media type; also counted as failures. */
-    private volatile int unsupportedRejectCount;
-
     /** Copies each item to cache, on a background thread; stops early when the share ends. */
     @NonNull
     private List<Uri> snapshotInboundUris(@NonNull List<Uri> uris, @NonNull ShareSession session) {
         List<Uri> stable = new ArrayList<>();
-        snapshotFailCount = 0;
+        session.snapshotFailCount.set(0);
         for (Uri uri : uris) {
             if (!isCurrentSession(session)) {
                 break;
@@ -479,7 +480,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     // transcoder, verifier), each logging its own duplicate exception for what
                     // is really a single failure. Drop this item instead, but count it so the
                     // user still sees the partial-success message.
-                    snapshotFailCount++;
+                    session.snapshotFailCount.incrementAndGet();
                     SentryManager.count("share.snapshot.failure", 1, "error_type",
                             e instanceof FileNotFoundException ? "not_found" : e.getClass().getSimpleName());
                     if (e instanceof FileNotFoundException) {
@@ -687,8 +688,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
             ITransaction transaction = SentryManager.startTransaction("share_cleanup", "task");
             long batchStartMs = System.currentTimeMillis();
             ArrayList<Uri> processedUris = new ArrayList<>();
-            int failCount = snapshotFailCount + unsupportedRejectCount;
-            int unsupportedFailCount = unsupportedRejectCount;
+            int failCount = session.snapshotFailCount.get() + session.unsupportedRejectCount.get();
+            int unsupportedFailCount = session.unsupportedRejectCount.get();
             boolean hasVideo = false;
             boolean hasImage = false;
 
@@ -1169,9 +1170,9 @@ public class ShareHandlerActivity extends AppCompatActivity {
     }
 
     @NonNull
-    private List<Uri> filterSupportedUris(List<Uri> uris) {
+    private List<Uri> filterSupportedUris(List<Uri> uris, @NonNull ShareSession session) {
         List<Uri> accepted = new ArrayList<>();
-        unsupportedRejectCount = 0;
+        session.unsupportedRejectCount.set(0);
         for (Uri uri : uris) {
             if (uri == null || !isSupportedInboundUri(uri)) {
                 if (uri != null) {
@@ -1189,7 +1190,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             if (isUnsupportedMediaType(type)) {
                 // A multi-item share's intent type can be image/* or */* while individual items
                 // are PDFs, text or SVGs. Skip them up front instead of copying and failing later.
-                unsupportedRejectCount++;
+                session.unsupportedRejectCount.incrementAndGet();
                 countUnsupported(type);
                 SentryManager.logEvent("Share", "An inbound item of a non-media type was skipped.");
                 continue;
