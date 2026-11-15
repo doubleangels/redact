@@ -258,4 +258,38 @@ public class SentryPrivacyScrubberTest {
         SentryPrivacyScrubber.scrubFeedbackEvent(new SentryEvent());
         SentryPrivacyScrubber.scrubFeedbackEvent(null);
     }
+
+    /**
+     * The device context is an object, not a map, so it was never scrubbed: its installation ID
+     * and boot time went out with every report and tied a phone's reports together (REDACT-2B).
+     */
+    @Test
+    public void events_andTransactions_goWithoutTheInstallationIdOrBootTime() {
+        SentryEvent event = new SentryEvent();
+        io.sentry.protocol.Device device = new io.sentry.protocol.Device();
+        device.setId("650e0fcef17d4bb29b93dd31e1beb9d4");
+        device.setBootTime(new java.util.Date());
+        device.setModel("A063");
+        event.getContexts().setDevice(device);
+
+        SentryPrivacyScrubber.scrubEvent(event);
+
+        io.sentry.protocol.Device after = event.getContexts().getDevice();
+        org.junit.Assert.assertNull(after.getId());
+        org.junit.Assert.assertNull(after.getBootTime());
+        org.junit.Assert.assertEquals("the model stays", "A063", after.getModel());
+
+        io.sentry.protocol.SentryTransaction transaction = new io.sentry.protocol.SentryTransaction(
+                new io.sentry.SentryTracer(new io.sentry.TransactionContext("t", "op"),
+                        io.sentry.NoOpScopes.getInstance()));
+        io.sentry.protocol.Device tDevice = new io.sentry.protocol.Device();
+        tDevice.setId("650e0fcef17d4bb29b93dd31e1beb9d4");
+        tDevice.setBootTime(new java.util.Date());
+        transaction.getContexts().setDevice(tDevice);
+
+        SentryPrivacyScrubber.scrubTransaction(transaction);
+
+        org.junit.Assert.assertNull(transaction.getContexts().getDevice().getId());
+        org.junit.Assert.assertNull(transaction.getContexts().getDevice().getBootTime());
+    }
 }

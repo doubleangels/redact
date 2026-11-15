@@ -15,6 +15,8 @@ import io.sentry.protocol.SentrySpan;
 import io.sentry.protocol.SentryTransaction;
 import io.sentry.SentryLogEvent;
 import io.sentry.SentryMetricsEvent;
+import io.sentry.protocol.Contexts;
+import io.sentry.protocol.Device;
 import io.sentry.protocol.Feedback;
 import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryStackFrame;
@@ -346,7 +348,22 @@ public final class SentryPrivacyScrubber {
         if (transaction.getUnknown() != null) {
             scrubStringObjectMap(transaction.getUnknown());
         }
+        scrubDevice(transaction.getContexts());
         transaction.setUser(null);
+    }
+
+    /**
+     * Drops what would tie reports from one phone together. The device context is a {@link Device}
+     * object, not a map, so the context loops above never reach it: its {@code id} is the SDK's
+     * random ID per installation, and its boot time is the same in every report until the phone
+     * restarts. The model, Android version and the like stay, as the privacy policy says.
+     */
+    static void scrubDevice(@Nullable Contexts contexts) {
+        Device device = contexts != null ? contexts.getDevice() : null;
+        if (device != null) {
+            device.setId(null);
+            device.setBootTime(null);
+        }
     }
 
     public static void scrubEvent(SentryEvent event) {
@@ -392,7 +409,9 @@ public final class SentryPrivacyScrubber {
             }
         }
         // The SDK fills in a random ID per installation, which would tie every report from one
-        // device together. Logs and metrics already drop it; events go without a user at all.
+        // device together. Logs and metrics already drop it; events go without a user at all,
+        // and without the device's own copy of it.
+        scrubDevice(event.getContexts());
         event.setUser(null);
     }
 

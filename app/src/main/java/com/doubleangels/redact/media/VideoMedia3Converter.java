@@ -116,8 +116,12 @@ public final class VideoMedia3Converter {
     private static final long MAX_SAMPLE_GAP_MS = Transformer.DEFAULT_MAX_DELAY_BETWEEN_MUXER_SAMPLES_MS;
     private static final long MAX_SAMPLE_GAP_UNRATED_MS = Math.max(MAX_SAMPLE_GAP_MS, 20_000L);
 
-    /** Output short sides tried, largest first, when the encoder rejects the source resolution. */
-    private static final int[] FALLBACK_SHORT_SIDES = {1440, 1080, 720, 480};
+    /**
+     * Output short sides tried, largest first, when the encoder rejects the source resolution or
+     * the export stalls. 360 gives a video already at 480p or below one smaller try too; without
+     * it, a stall there failed at once (REDACT-2B).
+     */
+    private static final int[] FALLBACK_SHORT_SIDES = {1440, 1080, 720, 480, 360};
 
     /**
      * Frame rates an export may be capped to, highest first, when the hardware encoder declares no
