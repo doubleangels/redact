@@ -532,9 +532,8 @@ public class MetadataStripper {
             ExifInterface.TAG_INTEROPERABILITY_INDEX);
 
     /**
-     * Securely deletes a file by overwriting it with random data multiple times
-     * before deletion.
-     * This makes file recovery significantly more difficult.
+     * Overwrites a file once and then deletes it (see {@link SecureDelete}), so a copy that may
+     * hold original media is not left readable on disk.
      *
      * @param file The file to securely delete
      * @return true if the file was successfully deleted, false otherwise

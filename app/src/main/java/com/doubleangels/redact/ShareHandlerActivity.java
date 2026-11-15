@@ -64,7 +64,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ShareHandlerActivity extends AppCompatActivity {
 
-    /** Maximum items accepted from ACTION_SEND_MULTIPLE. */
     /**
      * How long shared files are kept so the target app can read them. Some apps read a shared
      * file only when the user finally sends (an email draft, a chat queued offline), so this is
@@ -724,9 +723,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     }
                 }
 
-                if (!processedUris.isEmpty() && failCount == 0) {
-                    transaction.setStatus(SpanStatus.OK);
-                } else if (!processedUris.isEmpty()) {
+                if (!processedUris.isEmpty()) {
                     transaction.setStatus(SpanStatus.OK);
                 } else {
                     transaction.setStatus(SpanStatus.INTERNAL_ERROR);

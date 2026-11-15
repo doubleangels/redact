@@ -69,8 +69,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String CONVERT_SHARE_TARGET = ".ConvertShareTarget";
     /** Manifest alias that receives Redact › Censor shares. */
     private static final String CENSOR_SHARE_TARGET = ".CensorShareTarget";
-    /** Same cap as picking files in Convert. */
-
     /**
      * The first-start introduction, which asks for each permission and about crash reports on its
      * own page. When it finishes, the first-launch flow ends without prompting again. Backing out
@@ -652,8 +650,9 @@ public class MainActivity extends AppCompatActivity {
     private void setupVersionNumber() {
         try {
             PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-            assert packageInfo.versionName != null;
-            SentryManager.setCustomKey("app_version", packageInfo.versionName);
+            if (packageInfo.versionName != null) {
+                SentryManager.setCustomKey("app_version", packageInfo.versionName);
+            }
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
