@@ -197,7 +197,7 @@ public class CensorViewModelTest {
         assertEquals(CROP, vm.getCrop());
         assertTrue(vm.hasEdits());
         assertTrue("a crop alone can be saved", vm.hasUnsavedEdits());
-        assertFalse(vm.hasRegions());
+        assertTrue(vm.regions().isEmpty());
 
         vm.addRegion(BOX);
         vm.undo();

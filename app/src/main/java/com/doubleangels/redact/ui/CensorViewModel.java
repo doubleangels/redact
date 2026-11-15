@@ -428,10 +428,6 @@ public class CensorViewModel extends AndroidViewModel {
         }
     }
 
-    public boolean hasRegions() {
-        return !regions.isEmpty();
-    }
-
     /** Whether there is anything to save: a covered area or a crop. */
     public boolean hasEdits() {
         return !regions.isEmpty() || crop != null;

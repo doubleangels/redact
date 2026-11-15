@@ -293,7 +293,7 @@ public class CensorFragmentTest {
             return provider.performAction(0, R.id.censor_action_delete, null);
         });
         idle();
-        assertFalse(vm.hasRegions());
+        assertTrue(vm.regions().isEmpty());
     }
 
     @Test
@@ -505,17 +505,17 @@ public class CensorFragmentTest {
 
         root.findViewById(R.id.censorUndoButton).performClick();
         idle();
-        assertFalse(vm.hasRegions());
+        assertTrue(vm.regions().isEmpty());
         root.findViewById(R.id.censorRedoButton).performClick();
         idle();
-        assertTrue(vm.hasRegions());
+        assertFalse(vm.regions().isEmpty());
 
         root.findViewById(R.id.summaryClearButton).performClick();
         idle();
         androidx.appcompat.app.AlertDialog dialog =
                 (androidx.appcompat.app.AlertDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog();
         assertNotNull(dialog);
-        assertTrue(vm.hasRegions());
+        assertFalse(vm.regions().isEmpty());
 
         dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE).performClick();
         idle();
@@ -537,7 +537,7 @@ public class CensorFragmentTest {
         dialog.getButton(android.content.DialogInterface.BUTTON_NEGATIVE).performClick();
         idle();
 
-        assertTrue(vm.hasRegions());
+        assertFalse(vm.regions().isEmpty());
         assertEquals(null, vm.getPendingReplacement().getValue());
     }
 
