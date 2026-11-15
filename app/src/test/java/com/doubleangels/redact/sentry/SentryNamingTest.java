@@ -46,6 +46,29 @@ public class SentryNamingTest {
         assertEquals("Breadcrumb categories should be Title Case: " + wrong, 0, wrong.size());
     }
 
+    /** A breadcrumb or log line in a SentryManager call, up to the end of its statement. */
+    private static final Pattern SENTRY_TEXT_CALL =
+            Pattern.compile("SentryManager\\.(log|logEvent)\\(([^;]*);", Pattern.DOTALL);
+
+    /**
+     * Breadcrumbs describe what the app did, never what someone chose or tapped: the privacy
+     * policy promises Sentry is never used to learn what people do in the app.
+     */
+    @Test
+    public void breadcrumbs_neverDescribeWhatTheUserDid() throws IOException {
+        List<String> wrong = new ArrayList<>();
+        for (Path file : sources()) {
+            Matcher m = SENTRY_TEXT_CALL.matcher(read(file));
+            while (m.find()) {
+                String call = m.group(2);
+                if (call.contains("\"The user") || call.contains("\"User ")) {
+                    wrong.add(file.getFileName() + ": " + call.replaceAll("\\s+", " ").trim());
+                }
+            }
+        }
+        assertEquals("Breadcrumbs that record what the user did: " + wrong, 0, wrong.size());
+    }
+
     @Test
     public void metricNamesAndAttributeKeys_followTheRules() throws Exception {
         Method allowed = SentryManager.class.getDeclaredMethod("isAllowedTagKey", String.class);
@@ -76,6 +99,35 @@ public class SentryNamingTest {
         }
         assertTrue("The scan found no metric calls; is the pattern still right?", calls > 10);
         assertEquals("Fix these metric calls: " + wrong, 0, wrong.size());
+    }
+
+    /**
+     * Metrics count the app's own operations, never how often or how much people use it, and
+     * breadcrumbs don't record what people pick or how they move around the app (CLAUDE.md).
+     */
+    @Test
+    public void nothingCountsUsageOrRecordsChoices() throws Exception {
+        Pattern usageMetric = Pattern.compile("\\.success$|^processing\\.batch\\.size$");
+        Pattern choiceCrumb = Pattern.compile(
+                "(?i)selected a tab|user chose|user tapped|activity (resumed|paused)|shared to|tile opened");
+        List<String> wrong = new ArrayList<>();
+        for (Path file : sources()) {
+            String source = read(file);
+            Matcher m = METRIC_CALL.matcher(source);
+            while (m.find()) {
+                String name = literal(topLevelArguments(source, m.end()).get(0), source);
+                if (name != null && usageMetric.matcher(name).find()) {
+                    wrong.add(file.getFileName() + ": metric " + name);
+                }
+            }
+            Matcher crumb = Pattern.compile("SentryManager\\.(logEvent|log)\\(([^;]*)\\);").matcher(source);
+            while (crumb.find()) {
+                if (choiceCrumb.matcher(crumb.group(2)).find()) {
+                    wrong.add(file.getFileName() + ": breadcrumb " + crumb.group(2));
+                }
+            }
+        }
+        assertEquals("These record usage, not the app's own operations: " + wrong, 0, wrong.size());
     }
 
     private static List<Path> sources() throws IOException {

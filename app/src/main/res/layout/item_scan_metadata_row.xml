@@ -76,7 +76,6 @@
                         android:text="@string/scan_risk_location"
                         android:textAppearance="?attr/textAppearanceLabelSmall"
                         android:textColor="?attr/colorOnErrorContainer"
-                        android:textSize="11sp"
                         android:textStyle="bold"
                         android:visibility="gone"
                         tools:visibility="visible" />

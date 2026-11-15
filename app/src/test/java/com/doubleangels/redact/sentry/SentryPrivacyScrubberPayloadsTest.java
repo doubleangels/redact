@@ -118,7 +118,8 @@ public class SentryPrivacyScrubberPayloadsTest {
         SentryPrivacyScrubber.scrubEvent(event);
 
         assertRedacted(event.getMessage().getMessage());
-        assertRedacted(exception.getValue());
+        // Not one of the app's own exception types, so its message is dropped whole.
+        assertEquals(SentryPrivacyScrubber.MESSAGE_REMOVED, exception.getValue());
         assertRedacted(exception.getModule());
         assertRedacted(frame.getFilename());
         assertRedacted(frame.getAbsPath());

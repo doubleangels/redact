@@ -32,7 +32,7 @@ O compártelo con Escanear con Redact para revisarlo primero.
 • Convierte HEIC a JPG, además de imágenes PNG y WebP
 • Convierte vídeo H.264, H.265, VP9 y AV1
 • Cada archivo convertido se limpia y se comprueba
-• Censurar pixela, tapa en negro o desenfoca caras, matrículas y direcciones
+• Censurar pixela, tapa en negro o desenfoca caras, matrículas y direcciones, y recorta fotos
 
 <b>Privado desde el diseño</b>
 • Todo funciona en tu móvil, sin necesidad de internet
@@ -41,6 +41,7 @@ O compártelo con Escanear con Redact para revisarlo primero.
 • Código abierto bajo GPL-3.0: cualquiera puede leerlo en GitHub
 • Funciona con el selector de archivos del sistema, así que el acceso a toda tu galería es opcional
 • Los informes de errores opcionales están desactivados hasta que tú los actives
+• La comprobación opcional de actualizaciones solo se hace cuando tocas «Buscar actualizaciones»
 
 <b>Extras útiles</b>
 • Icono en Ajustes rápidos y accesos directos en la pantalla de inicio

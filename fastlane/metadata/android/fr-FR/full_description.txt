@@ -32,7 +32,7 @@ Ou partagez-le vers « Scanner avec Redact » pour le vérifier d'abord.
 • Convertissez HEIC en JPG, ainsi que des images PNG et WebP
 • Convertissez des vidéos H.264, H.265, VP9 et AV1
 • Chaque fichier converti est nettoyé et vérifié
-• Censurer pixellise, noircit ou floute visages, plaques et adresses
+• Censurer pixellise, noircit ou floute visages, plaques et adresses, et rogne les photos
 
 <b>Privé par conception</b>
 • Tout se passe sur votre téléphone, sans connexion Internet
@@ -41,6 +41,7 @@ Ou partagez-le vers « Scanner avec Redact » pour le vérifier d'abord.
 • Open source sous GPL-3.0 : tout le monde peut lire le code sur GitHub
 • Fonctionne avec le sélecteur de fichiers du système : l'accès à toute votre galerie est donc facultatif
 • Les rapports de plantage facultatifs restent désactivés tant que vous ne les activez pas
+• La recherche facultative de mises à jour ne se lance que lorsque vous touchez « Rechercher des mises à jour »
 
 <b>Petits plus pratiques</b>
 • Vignette Réglages rapides et raccourcis sur l'écran d'accueil

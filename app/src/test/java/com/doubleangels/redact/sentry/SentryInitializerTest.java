@@ -68,6 +68,28 @@ public class SentryInitializerTest {
     }
 
     @Test
+    public void logEvent_isABreadcrumbOnly_neverAStandaloneLog() {
+        AppPreferences.setCrashReportingEnabled(app, true);
+        SentryInitializer.testDsnOverride = UNREACHABLE_DSN;
+        SentryManager.init(app);
+        SentryInitializer.initializeBlocking(app);
+        assertTrue(SentryInitializer.isInitialized());
+
+        java.util.List<String> sentLogs = new java.util.ArrayList<>();
+        Sentry.getCurrentScopes().getOptions().getLogs().setBeforeSend(logEvent -> {
+            sentLogs.add(logEvent.getBody());
+            return null;
+        });
+        // The probe works: a direct structured log reaches beforeSend.
+        Sentry.logger().info("probe");
+        assertEquals(1, sentLogs.size());
+        sentLogs.clear();
+
+        SentryManager.logEvent("Clean", "A clean started.");
+        assertTrue("logEvent sent a standalone log: " + sentLogs, sentLogs.isEmpty());
+    }
+
+    @Test
     public void hasConfiguredDsn_followsTheOverride() {
         SentryInitializer.testDsnOverride = "";
         assertFalse(SentryInitializer.hasConfiguredDsn());
@@ -107,6 +129,8 @@ public class SentryInitializerTest {
         assertEquals(UNREACHABLE_DSN, options.getDsn());
         assertFalse(options.isSendDefaultPii());
         assertFalse(options.isAttachThreads());
+        // No release-health sessions: they would count how often the app is opened.
+        assertFalse(options.isEnableAutoSessionTracking());
 
         // Breadcrumbs are scrubbed.
         Breadcrumb crumb = new Breadcrumb("opened content://media/external/images/media/5");

@@ -744,13 +744,17 @@ public final class FormatConverter {
             new MetadataStripper(context).requireConvertedImageClean(raw, clean);
             outUri = OutputDestination.create(context, false,
                     MediaFileNames.outputBaseName(context, baseDisplayName) + ".png", "image/png");
+            byte[] written;
             try (InputStream in = new FileInputStream(clean);
                     OutputStream os = resolver.openOutputStream(outUri)) {
                 if (os == null) {
                     throw new IOException("Cannot open output stream");
                 }
-                MediaSizeLimits.copyStream(in, os);
+                written = OutputDestination.copyAndDigest(in, os);
             }
+            // What the output holds must be exactly what was checked: a provider that does not
+            // truncate on "w" could keep the tail of an older, longer file after it.
+            OutputDestination.requireSameContent(resolver, outUri, written);
             OutputDestination.publish(resolver, outUri);
             return outUri;
         } catch (IOException | RuntimeException e) {
@@ -839,13 +843,17 @@ public final class FormatConverter {
             new MetadataStripper(context).requireConvertedImageClean(encoded, clean);
 
             outUri = OutputDestination.create(context, false, outName, mime);
+            byte[] written;
             try (InputStream in = new FileInputStream(clean);
                     OutputStream os = resolver.openOutputStream(outUri)) {
                 if (os == null) {
                     throw new IOException("Cannot open output stream");
                 }
-                MediaSizeLimits.copyStream(in, os);
+                written = OutputDestination.copyAndDigest(in, os);
             }
+            // What the output holds must be exactly what was checked: a provider that does not
+            // truncate on "w" could keep the tail of an older, longer file after it.
+            OutputDestination.requireSameContent(resolver, outUri, written);
             OutputDestination.publish(resolver, outUri);
             return outUri;
         } catch (IOException | RuntimeException e) {

@@ -130,21 +130,28 @@ public final class CacheCleanup {
      *
      * <p>The list is taken synchronously, so files created afterwards (including by a share that
      * started this very process) are never touched; only the slow secure delete runs in the
-     * background. The {@code processed/} folder is left alone, since another app may still be
-     * reading a cleaned file that was just shared.
+     * background. A cleaned file in {@code processed/} is left alone, since another app may still
+     * be reading it; a working file there (a temp prefix, which a shared file's random name never
+     * has) is an orphan like any other.
      */
     public static void scheduleOrphanedWorkFileSweep(@NonNull Context context) {
         Context appContext = context.getApplicationContext();
         List<File> orphans = new ArrayList<>();
         collectTempPrefixFiles(appContext.getCacheDir(), orphans);
         collectTempPrefixFiles(appContext.getExternalCacheDir(), orphans);
+        File processedDir = appContext.getCacheDir() != null
+                ? new File(appContext.getCacheDir(), PROCESSED_SUBDIR) : null;
+        // Nothing is meant to make working files here any more, but one an older version left
+        // behind (a gain map is the source's, EXIF and all) is overwritten, not just unlinked.
+        collectTempPrefixFiles(processedDir, orphans);
         // Shared files whose delayed deletion died with an earlier process. They are clean, so
         // they are only unlinked, and only once the app they went to has had time to read them.
         List<File> sharedOutputs = new ArrayList<>();
         File cacheDir = appContext.getCacheDir();
         if (cacheDir != null) {
-            collectFilesOlderThan(new File(cacheDir, PROCESSED_SUBDIR),
+            collectFilesOlderThan(processedDir,
                     System.currentTimeMillis() - SHARED_OUTPUT_MAX_AGE_MS, sharedOutputs);
+            sharedOutputs.removeAll(orphans);
         }
         // Thumbnails earlier versions kept in Glide's disk cache, which is now off.
         File thumbnailCache = cacheDir != null ? new File(cacheDir, GLIDE_DISK_CACHE_DIR) : null;

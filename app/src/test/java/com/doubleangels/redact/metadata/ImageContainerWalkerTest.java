@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -187,6 +188,16 @@ public class ImageContainerWalkerTest {
             }
         }
         fail("No " + key + " in " + findings);
+        return null;
+    }
+
+    private static ImageContainerMetadata.Finding findingOrNull(List<ImageContainerMetadata.Finding> findings,
+                                                                String key) {
+        for (ImageContainerMetadata.Finding f : findings) {
+            if (f.key.equals(key)) {
+                return f;
+            }
+        }
         return null;
     }
 
@@ -755,5 +766,113 @@ public class ImageContainerWalkerTest {
             keptAsUltraHdr |= f.key.equals("ULTRA_HDR");
         }
         assertTrue(keptAsUltraHdr);
+    }
+
+    // ---- colour profiles under Strict Clean and shares ----------------------------------------
+
+    /** Sanitizes {@code data} as Strict Clean and shares do, and returns the bytes written. */
+    private byte[] sanitizeNeutral(byte[] data) throws IOException {
+        File target = folder.newFile();
+        ImageContainerMetadata.sanitize(file(data), target, null, folder.getRoot(), true);
+        return Files.readAllBytes(target.toPath());
+    }
+
+    private static final byte[] XYZ = iccTag("XYZ ", b(0, 0, 0xF6, 0xD6, 0, 1, 0, 0, 0, 0, 0xD3, 0x2D));
+
+    /** A display calibrated at home: its name, the display, the date, and a private tag. */
+    private static byte[] calibratedProfile() {
+        return icc("desc", desc("Jane's Dell U2720Q calibrated 2024-05-01"), "dmnd", text("Acme"),
+                "dmdd", mluc("Cam 1"), "calt", iccTag("dtim", a("2024050112")), "zzzz", a("PRIVATESTUFF"),
+                "wtpt", XYZ, "cprt", text("Copyright Jane Doe"));
+    }
+
+    @Test
+    public void neutralProfile_keepsTheColourTags_andDropsWhatNamesAPersonOrDevice() throws Exception {
+        byte[] out = sanitizeNeutral(jpeg(seg(0xE2, cat(a("ICC_PROFILE\0"), b(1, 1), calibratedProfile()))));
+
+        for (String gone : new String[] {"Jane", "Dell", "Acme", "Cam 1", "2024050112", "PRIVATESTUFF", "DEVMODEL"}) {
+            assertFalse(gone + " is still in the file", contains(out, a(gone))
+                    || contains(out, gone.getBytes(StandardCharsets.UTF_16BE)));
+        }
+        assertTrue("the white point is kept", contains(out, XYZ));
+        ImageContainerMetadata.Report r = scan(out);
+        assertTrue(r.isClean());
+        assertEquals(IccProfiles.NEUTRAL_NAME, finding(r.kept, "ICC_PROFILE").text);
+        assertNull(findingOrNull(r.kept, "ICC_PROFILE_DEVICE"));
+    }
+
+    /** A normal clean still keeps the profile whole, with only its header cleared. */
+    @Test
+    public void withoutStrictClean_theProfileKeepsItsText() throws Exception {
+        byte[] out = sanitize(jpeg(seg(0xE2, cat(a("ICC_PROFILE\0"), b(1, 1), calibratedProfile()))));
+        assertTrue(contains(out, a("Jane's Dell")));
+    }
+
+    @Test
+    public void aWellKnownProfile_keepsItsName_butNotItsDevice() throws Exception {
+        byte[] profile = icc("desc", desc("sRGB IEC61966-2.1"), "dmnd", text("Acme"), "wtpt", XYZ);
+        byte[] out = sanitizeNeutral(jpeg(seg(0xE2, cat(a("ICC_PROFILE\0"), b(1, 1), profile))));
+        assertEquals("sRGB IEC61966-2.1", finding(scan(out).kept, "ICC_PROFILE").text);
+        assertFalse(contains(out, a("Acme")));
+    }
+
+    /** A profile split over two APP2 pieces is rebuilt whole and split again, numbered 1 and 2 of 2. */
+    @Test
+    public void aProfileInTwoPieces_isRebuiltAndSplitAgain() throws Exception {
+        byte[] profile = calibratedProfile();
+        int half = profile.length / 2;
+        byte[] jpeg = jpeg(seg(0xE2, cat(a("ICC_PROFILE\0"), b(1, 2), Arrays.copyOfRange(profile, 0, half))),
+                seg(0xE2, cat(a("ICC_PROFILE\0"), b(2, 2), Arrays.copyOfRange(profile, half, profile.length))));
+
+        byte[] out = sanitizeNeutral(jpeg);
+
+        assertFalse(contains(out, a("Jane")));
+        assertTrue(contains(out, cat(a("ICC_PROFILE\0"), b(1, 1))));
+        assertEquals(IccProfiles.NEUTRAL_NAME, finding(scan(out).kept, "ICC_PROFILE").text);
+    }
+
+    /** Pieces that do not arrive in order are written as they came, so the colours are kept. */
+    @Test
+    public void piecesOutOfOrder_areKeptAsTheyCame() throws Exception {
+        byte[] profile = calibratedProfile();
+        int half = profile.length / 2;
+        byte[] jpeg = jpeg(seg(0xE2, cat(a("ICC_PROFILE\0"), b(2, 2), Arrays.copyOfRange(profile, half, profile.length))),
+                seg(0xE2, cat(a("ICC_PROFILE\0"), b(1, 2), Arrays.copyOfRange(profile, 0, half))));
+        byte[] out = sanitizeNeutral(jpeg);
+        assertTrue(contains(out, Arrays.copyOfRange(profile, half, profile.length)));
+    }
+
+    @Test
+    public void pngAndWebpProfiles_areNeutralizedToo() throws Exception {
+        java.util.zip.Deflater deflater = new java.util.zip.Deflater();
+        deflater.setInput(calibratedProfile());
+        deflater.finish();
+        byte[] buffer = new byte[64 * 1024];
+        byte[] compressed = Arrays.copyOf(buffer, deflater.deflate(buffer));
+        byte[] png = sanitizeNeutral(png(pngChunk("iCCP", cat(a("ICC Profile"), b(0, 0), compressed))));
+        assertEquals(IccProfiles.NEUTRAL_NAME, finding(scan(png).kept, "ICC_PROFILE").text);
+
+        byte[] vp8x = b(0x20, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        byte[] webp = sanitizeNeutral(webp(webpChunk("VP8X", vp8x), webpChunk("ICCP", calibratedProfile()),
+                webpChunk("VP8 ", new byte[10])));
+        assertEquals(IccProfiles.NEUTRAL_NAME, finding(scan(webp).kept, "ICC_PROFILE").text);
+        assertFalse(contains(webp, a("Jane")));
+    }
+
+    @Test
+    public void tagsThatShareData_stillShareIt_andABrokenTableIsLeftAlone() {
+        byte[] profile = icc("rTRC", iccTag("curv", be32(0)), "gTRC", iccTag("curv", be32(0)),
+                "dmnd", text("Acme"));
+        // Point gTRC at rTRC's data, as profile writers do.
+        System.arraycopy(profile, 132 + 4, profile, 132 + 12 + 4, 8);
+        byte[] out = IccProfiles.neutralize(profile);
+        assertEquals(2, java.nio.ByteBuffer.wrap(out).getInt(128));
+        assertEquals("rTRC and gTRC share one copy", java.nio.ByteBuffer.wrap(out).getInt(132 + 4),
+                java.nio.ByteBuffer.wrap(out).getInt(132 + 12 + 4));
+        assertEquals(out.length, java.nio.ByteBuffer.wrap(out).getInt(0));
+
+        byte[] broken = icc("wtpt", XYZ);
+        System.arraycopy(be32(1 << 20), 0, broken, 132 + 4, 4);
+        assertSame(broken, IccProfiles.neutralize(broken));
     }
 }

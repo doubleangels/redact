@@ -46,10 +46,15 @@ import java.util.List;
  * <p>Each covered area is also a virtual accessibility node, so TalkBack, Switch Access and a
  * keyboard can reach it without drawing: rectangles can be selected, moved and resized with
  * actions, and any area deleted. {@link #addCentredRegion} adds a rectangle without a drag.
+ *
+ * <p>The crop tool shows a frame around the part of the photo the saved copy keeps (all of it
+ * until the frame is moved): dragging a corner or an edge resizes it, dragging inside moves it,
+ * and dragging outside it draws a new one. Whatever the tool, what the crop leaves out is dimmed.
+ * The frame is a virtual node too, with actions to move, resize and reset it.
  */
 public class CensorCanvasView extends View {
 
-    public enum Tool { RECT, BRUSH, MOVE }
+    public enum Tool { RECT, BRUSH, MOVE, CROP }
 
     public interface Listener {
         void onRegionDrawn(@NonNull CensorRegion region);
@@ -68,10 +73,26 @@ public class CensorCanvasView extends View {
         /** The zoom changed; 1 is the whole photo fitting the view. */
         default void onZoomChanged(float zoom) {
         }
+
+        /** The crop was moved, resized or reset (null): the part of the photo the copy keeps. */
+        default void onCropChanged(@Nullable CensorRegion crop) {
+        }
     }
 
     /** What a one-finger touch with the rectangle tool is doing. */
     private enum RectGesture { DRAW, MOVE, RESIZE }
+
+    /** What a one-finger touch with the crop tool is doing. */
+    private enum CropGesture { NONE, DRAW, MOVE, RESIZE }
+
+    /** The crop frame's virtual node; far above any area's index, which are the others' ids. */
+    @VisibleForTesting
+    static final int CROP_NODE_ID = 100_000;
+    /** Edges of the crop frame being dragged, as bits. */
+    private static final int EDGE_LEFT = 1;
+    private static final int EDGE_TOP = 2;
+    private static final int EDGE_RIGHT = 4;
+    private static final int EDGE_BOTTOM = 8;
 
     static final float MAX_ZOOM = 16f;
     /** How far a double-tap with the move tool zooms in. */
@@ -101,6 +122,10 @@ public class CensorCanvasView extends View {
     private final Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint handleFill = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint imageBorderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    /** Over what the crop leaves out. */
+    private final Paint dimPaint = new Paint();
+    /** The crop frame's thirds, while the crop tool is on. */
+    private final Paint gridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final ScaleGestureDetector scaleDetector;
     private final GestureDetector tapDetector;
     private float reportedZoom = 1f;
@@ -150,6 +175,20 @@ public class CensorCanvasView extends View {
     /** The selection last reported to the listener. */
     private int reportedSelection = -1;
 
+    /** The part of the photo the copy keeps, in fractions; null for all of it. */
+    @Nullable
+    private CensorRegion crop;
+    @NonNull
+    private CropGesture cropGesture = CropGesture.NONE;
+    /** The crop frame being dragged, in image pixels, and where it started; shown until the edit comes back. */
+    private final RectF cropEdit = new RectF();
+    private final RectF cropEditStart = new RectF();
+    /** The frame's edges being dragged while resizing ({@link #EDGE_LEFT} and the others). */
+    private int cropEdges;
+    /** The handle areas last kept from the system's edge gestures. */
+    @NonNull
+    private List<Rect> gestureExclusion = new ArrayList<>();
+
     private final RegionAccessibilityHelper accessibilityHelper;
 
     public CensorCanvasView(@NonNull Context context) {
@@ -171,6 +210,10 @@ public class CensorCanvasView extends View {
         imageBorderPaint.setStyle(Paint.Style.STROKE);
         imageBorderPaint.setColor(MaterialColors.getColor(this,
                 com.google.android.material.R.attr.colorOutlineVariant, 0x33888888));
+        dimPaint.setStyle(Paint.Style.FILL);
+        dimPaint.setColor(0x99000000);
+        gridPaint.setStyle(Paint.Style.STROKE);
+        gridPaint.setColor(0x99FFFFFF);
         scaleDetector = new ScaleGestureDetector(context, new ScaleGestureDetector.SimpleOnScaleGestureListener() {
             @Override
             public boolean onScale(@NonNull ScaleGestureDetector detector) {
@@ -209,8 +252,9 @@ public class CensorCanvasView extends View {
         this.tool = tool;
         if (tool != Tool.RECT && selectedRegion != null) {
             selectedRegion = null;
-            invalidate();
         }
+        cropGesture = CropGesture.NONE;
+        invalidate();
         reportSelection();
         // Only the rectangle tool selects, so the areas' click action comes and goes with it.
         accessibilityHelper.invalidateRoot();
@@ -244,6 +288,17 @@ public class CensorCanvasView extends View {
         }
         invalidate();
         reportSelection();
+        accessibilityHelper.invalidateRoot();
+    }
+
+    /**
+     * The part of the photo the copy keeps, in fractions, or null for all of it; ends any drag of
+     * the frame, whose result this is.
+     */
+    public void setCrop(@Nullable CensorRegion current) {
+        crop = current;
+        cropGesture = CropGesture.NONE;
+        invalidate();
         accessibilityHelper.invalidateRoot();
     }
 
@@ -354,6 +409,7 @@ public class CensorCanvasView extends View {
         image = bitmap;
         shape = null;
         if (sizeChanged) {
+            cropGesture = CropGesture.NONE;
             selectedRegion = null;
             userMatrix.reset();
             updateBaseMatrix();
@@ -413,6 +469,7 @@ public class CensorCanvasView extends View {
         canvas.drawRect(0, 0, image.getWidth(), image.getHeight(), imageBorderPaint);
         // Keep outlines and handles the same size on screen at any zoom.
         outlinePaint.setStrokeWidth(dp(2) / mapScale());
+        drawCrop(canvas);
         if (shape != null) {
             canvas.drawPath(shape, fillPaint);
             if (!shapeIsStroke) {
@@ -429,12 +486,96 @@ public class CensorCanvasView extends View {
             drawHandles(canvas, r);
         }
         canvas.restore();
+        updateGestureExclusion();
         if (brushPreview) {
             float radius = brushScreenWidth() / 2f;
             outlinePaint.setStrokeWidth(dp(2));
             canvas.drawCircle(getWidth() / 2f, getHeight() / 2f, radius, fillPaint);
             canvas.drawCircle(getWidth() / 2f, getHeight() / 2f, radius, outlinePaint);
         }
+    }
+
+    /**
+     * Keeps the handles from the system's Back gesture: near the screen's sides, a drag on a crop
+     * frame's corner or edge, or a selected rectangle's corner, would otherwise go back instead.
+     * Each side may exclude at most 200dp, so only the handles are excluded.
+     */
+    private void updateGestureExclusion() {
+        List<Rect> rects = new ArrayList<>();
+        int half = Math.round(dp(HANDLE_TOUCH_DP));
+        RectF frame = null;
+        if (tool == Tool.CROP) {
+            frame = cropFramePx();
+        } else if (tool == Tool.RECT && selectedIndex() >= 0) {
+            frame = shape != null && rectGesture != RectGesture.DRAW
+                    ? new RectF(editRect) : rectPx(regions.get(selectedIndex()));
+        }
+        if (frame != null) {
+            drawMatrix.mapRect(frame);
+            float[] ys = tool == Tool.CROP
+                    ? new float[] {frame.top, frame.centerY(), frame.bottom}
+                    : new float[] {frame.top, frame.bottom};
+            for (float x : new float[] {frame.left, frame.right}) {
+                for (float y : ys) {
+                    rects.add(new Rect(Math.round(x) - half, Math.round(y) - half,
+                            Math.round(x) + half, Math.round(y) + half));
+                }
+            }
+        }
+        if (!rects.equals(gestureExclusion)) {
+            gestureExclusion = rects;
+            setSystemGestureExclusionRects(rects);
+        }
+    }
+
+    /**
+     * Dims what the crop leaves out, at any tool; with the crop tool, also draws the frame (around
+     * the whole photo when there is no crop), its thirds and its corner handles.
+     */
+    private void drawCrop(@NonNull Canvas canvas) {
+        if (image == null) {
+            return;
+        }
+        RectF frame = cropFramePx();
+        if (frame == null) {
+            return;
+        }
+        float w = image.getWidth();
+        float h = image.getHeight();
+        canvas.drawRect(0, 0, w, frame.top, dimPaint);
+        canvas.drawRect(0, frame.bottom, w, h, dimPaint);
+        canvas.drawRect(0, frame.top, frame.left, frame.bottom, dimPaint);
+        canvas.drawRect(frame.right, frame.top, w, frame.bottom, dimPaint);
+        if (tool != Tool.CROP) {
+            return;
+        }
+        gridPaint.setStrokeWidth(dp(1) / mapScale());
+        for (int i = 1; i < 3; i++) {
+            float x = frame.left + frame.width() * i / 3f;
+            float y = frame.top + frame.height() * i / 3f;
+            canvas.drawLine(x, frame.top, x, frame.bottom, gridPaint);
+            canvas.drawLine(frame.left, y, frame.right, y, gridPaint);
+        }
+        canvas.drawRect(frame, outlinePaint);
+        drawHandles(canvas, frame);
+    }
+
+    /**
+     * The crop frame in image pixels: the one being dragged, else the crop. With the crop tool and
+     * no crop, the whole photo; otherwise null when there is nothing to dim.
+     */
+    @Nullable
+    private RectF cropFramePx() {
+        if (image == null) {
+            return null;
+        }
+        if (cropGesture != CropGesture.NONE) {
+            return new RectF(cropEdit);
+        }
+        if (crop != null) {
+            return rectPx(crop);
+        }
+        return tool == Tool.CROP ? new RectF(0, 0, image.getWidth(), image.getHeight()) : null;
     }
 
     private void drawHandles(@NonNull Canvas canvas, @NonNull RectF r) {
@@ -505,6 +646,10 @@ public class CensorCanvasView extends View {
                 lastFocusY = event.getY();
                 rectGesture = RectGesture.DRAW;
                 tapIndex = -1;
+                if (tool == Tool.CROP) {
+                    startCrop(event.getX(), event.getY());
+                    return true;
+                }
                 if (tool == Tool.RECT && startEditing(event.getX(), event.getY())) {
                     return true;
                 }
@@ -515,6 +660,7 @@ public class CensorCanvasView extends View {
             case MotionEvent.ACTION_POINTER_DOWN:
                 gestureCancelled = true;
                 shape = null;
+                cropGesture = CropGesture.NONE;
                 lastFocusX = focusX(event);
                 lastFocusY = focusY(event);
                 invalidate();
@@ -530,6 +676,8 @@ public class CensorCanvasView extends View {
                         constrainPan();
                         invalidate();
                     }
+                } else if (tool == Tool.CROP) {
+                    continueCrop(event.getX(), event.getY());
                 } else if (rectGesture != RectGesture.DRAW) {
                     continueEditing(event.getX(), event.getY());
                 } else {
@@ -553,7 +701,11 @@ public class CensorCanvasView extends View {
                 }
                 return true;
             case MotionEvent.ACTION_UP:
-                if (!gestureCancelled && rectGesture != RectGesture.DRAW) {
+                if (!gestureCancelled && tool == Tool.CROP) {
+                    continueCrop(event.getX(), event.getY());
+                    finishCrop();
+                    performClick();
+                } else if (!gestureCancelled && rectGesture != RectGesture.DRAW) {
                     continueEditing(event.getX(), event.getY());
                     finishEditing();
                     performClick();
@@ -565,6 +717,7 @@ public class CensorCanvasView extends View {
                 return true;
             case MotionEvent.ACTION_CANCEL:
                 shape = null;
+                cropGesture = CropGesture.NONE;
                 invalidate();
                 return true;
             default:
@@ -724,6 +877,10 @@ public class CensorCanvasView extends View {
 
         @Override
         protected int getVirtualViewAt(float x, float y) {
+            // With the crop tool, the frame is what a touch works on.
+            if (tool == Tool.CROP && image != null && cropBoundsInView().contains((int) x, (int) y)) {
+                return CROP_NODE_ID;
+            }
             int index = regionAtView(x, y);
             return index >= 0 ? index : HOST_ID;
         }
@@ -736,10 +893,31 @@ public class CensorCanvasView extends View {
             for (int i = 0; i < regions.size(); i++) {
                 virtualViewIds.add(i);
             }
+            if (tool == Tool.CROP) {
+                virtualViewIds.add(CROP_NODE_ID);
+            }
         }
 
         @Override
         protected void onPopulateNodeForVirtualView(int virtualViewId, @NonNull AccessibilityNodeInfoCompat node) {
+            if (virtualViewId == CROP_NODE_ID && image != null && tool == Tool.CROP) {
+                updateDrawMatrix();
+                node.setContentDescription(getContext().getString(crop == null
+                        ? R.string.censor_crop_whole_description : R.string.censor_crop_description));
+                node.setBoundsInParent(cropBoundsInView());
+                if (crop != null) {
+                    addAction(node, R.id.censor_action_move_left, R.string.censor_action_move_left);
+                    addAction(node, R.id.censor_action_move_right, R.string.censor_action_move_right);
+                    addAction(node, R.id.censor_action_move_up, R.string.censor_action_move_up);
+                    addAction(node, R.id.censor_action_move_down, R.string.censor_action_move_down);
+                    addAction(node, R.id.censor_action_larger, R.string.censor_action_larger);
+                }
+                addAction(node, R.id.censor_action_smaller, R.string.censor_action_smaller);
+                if (crop != null) {
+                    addAction(node, R.id.censor_action_reset_crop, R.string.censor_reset_crop);
+                }
+                return;
+            }
             if (virtualViewId < 0 || virtualViewId >= regions.size() || image == null) {
                 // A node that went away between the system asking for it and this call.
                 node.setContentDescription("");
@@ -773,6 +951,13 @@ public class CensorCanvasView extends View {
 
         @Override
         protected boolean onPerformActionForVirtualView(int virtualViewId, int action, @Nullable Bundle arguments) {
+            if (virtualViewId == CROP_NODE_ID) {
+                boolean done = performCropAction(action);
+                if (done) {
+                    invalidateVirtualView(virtualViewId);
+                }
+                return done;
+            }
             boolean done;
             if (action == AccessibilityNodeInfoCompat.ACTION_CLICK) {
                 done = selectRegion(virtualViewId);
@@ -798,6 +983,186 @@ public class CensorCanvasView extends View {
             }
             return done;
         }
+    }
+
+    /** Runs a move, resize or reset action on the crop frame. */
+    private boolean performCropAction(int action) {
+        if (action == R.id.censor_action_move_left) {
+            return editCrop(-ACTION_MOVE_STEP, 0f, 0f);
+        } else if (action == R.id.censor_action_move_right) {
+            return editCrop(ACTION_MOVE_STEP, 0f, 0f);
+        } else if (action == R.id.censor_action_move_up) {
+            return editCrop(0f, -ACTION_MOVE_STEP, 0f);
+        } else if (action == R.id.censor_action_move_down) {
+            return editCrop(0f, ACTION_MOVE_STEP, 0f);
+        } else if (action == R.id.censor_action_larger) {
+            return editCrop(0f, 0f, ACTION_RESIZE_STEP);
+        } else if (action == R.id.censor_action_smaller) {
+            return editCrop(0f, 0f, -ACTION_RESIZE_STEP);
+        } else if (action == R.id.censor_action_reset_crop) {
+            if (crop == null || listener == null) {
+                return false;
+            }
+            listener.onCropChanged(null);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Moves the crop by a step in image fractions, kept inside the photo, or grows or shrinks it
+     * about its centre; the change goes to the listener as a drag's would.
+     */
+    @VisibleForTesting
+    boolean editCrop(float dx, float dy, float grow) {
+        if (listener == null || tool != Tool.CROP) {
+            return false;
+        }
+        float[] p = crop != null ? crop.points() : new float[] {0f, 0f, 1f, 1f};
+        float left = p[0];
+        float top = p[1];
+        float right = p[2];
+        float bottom = p[3];
+        if (grow != 0f) {
+            float halfW = Math.max(ACTION_MIN_SIDE / 2f, (right - left) / 2f + grow);
+            float halfH = Math.max(ACTION_MIN_SIDE / 2f, (bottom - top) / 2f + grow);
+            float cx = (left + right) / 2f;
+            float cy = (top + bottom) / 2f;
+            left = Math.max(0f, cx - halfW);
+            top = Math.max(0f, cy - halfH);
+            right = Math.min(1f, cx + halfW);
+            bottom = Math.min(1f, cy + halfH);
+        } else {
+            dx = Math.max(-left, Math.min(1f - right, dx));
+            dy = Math.max(-top, Math.min(1f - bottom, dy));
+            left += dx;
+            right += dx;
+            top += dy;
+            bottom += dy;
+        }
+        CensorRegion changed = CensorRegion.rect(left, top, right, bottom);
+        if (changed.equals(crop) || (crop == null && left <= 0f && top <= 0f && right >= 1f && bottom >= 1f)) {
+            return false;
+        }
+        listener.onCropChanged(changed);
+        return true;
+    }
+
+    /** The crop frame's bounds on screen, kept inside the view and never empty. */
+    @NonNull
+    private Rect cropBoundsInView() {
+        RectF frame = cropFramePx();
+        if (frame == null) {
+            frame = new RectF(0, 0, image == null ? 1 : image.getWidth(), image == null ? 1 : image.getHeight());
+        }
+        updateDrawMatrix();
+        drawMatrix.mapRect(frame);
+        Rect bounds = new Rect();
+        frame.roundOut(bounds);
+        if (!bounds.intersect(0, 0, getWidth(), getHeight()) || bounds.isEmpty()) {
+            bounds.set(0, 0, Math.max(1, getWidth()), Math.max(1, getHeight()));
+        }
+        return bounds;
+    }
+
+    /**
+     * Starts a drag with the crop tool: near a corner or an edge of the frame it resizes, inside
+     * it moves, and outside it draws a new frame.
+     */
+    private void startCrop(float viewX, float viewY) {
+        if (image == null) {
+            return;
+        }
+        float[] p = toImage(viewX, viewY);
+        RectF frame = cropFramePx();
+        startX = p[0];
+        startY = p[1];
+        cropEdit.set(frame);
+        cropEditStart.set(frame);
+        cropEdges = edgesAt(frame, viewX, viewY);
+        if (cropEdges != 0) {
+            cropGesture = CropGesture.RESIZE;
+        } else if (frame.contains(p[0], p[1])) {
+            cropGesture = CropGesture.MOVE;
+        } else {
+            cropGesture = CropGesture.DRAW;
+            cropEdit.set(p[0], p[1], p[0], p[1]);
+        }
+        invalidate();
+    }
+
+    /** The edges of {@code frame} within grabbing distance of a view point, as bits; 0 for none. */
+    private int edgesAt(@NonNull RectF frame, float viewX, float viewY) {
+        RectF v = new RectF(frame);
+        drawMatrix.mapRect(v);
+        float reach = dp(HANDLE_TOUCH_DP);
+        if (viewX < v.left - reach || viewX > v.right + reach
+                || viewY < v.top - reach || viewY > v.bottom + reach) {
+            return 0;
+        }
+        int edges = 0;
+        float dl = Math.abs(viewX - v.left);
+        float dr = Math.abs(viewX - v.right);
+        if (Math.min(dl, dr) <= reach) {
+            edges |= dl <= dr ? EDGE_LEFT : EDGE_RIGHT;
+        }
+        float dt = Math.abs(viewY - v.top);
+        float db = Math.abs(viewY - v.bottom);
+        if (Math.min(dt, db) <= reach) {
+            edges |= dt <= db ? EDGE_TOP : EDGE_BOTTOM;
+        }
+        return edges;
+    }
+
+    private void continueCrop(float viewX, float viewY) {
+        if (cropGesture == CropGesture.NONE || image == null) {
+            return;
+        }
+        float[] p = toImage(viewX, viewY);
+        switch (cropGesture) {
+            case MOVE -> {
+                float dx = Math.max(-cropEditStart.left,
+                        Math.min(image.getWidth() - cropEditStart.right, p[0] - startX));
+                float dy = Math.max(-cropEditStart.top,
+                        Math.min(image.getHeight() - cropEditStart.bottom, p[1] - startY));
+                cropEdit.set(cropEditStart);
+                cropEdit.offset(dx, dy);
+            }
+            case RESIZE -> {
+                float left = (cropEdges & EDGE_LEFT) != 0 ? p[0] : cropEditStart.left;
+                float right = (cropEdges & EDGE_RIGHT) != 0 ? p[0] : cropEditStart.right;
+                float top = (cropEdges & EDGE_TOP) != 0 ? p[1] : cropEditStart.top;
+                float bottom = (cropEdges & EDGE_BOTTOM) != 0 ? p[1] : cropEditStart.bottom;
+                cropEdit.set(Math.min(left, right), Math.min(top, bottom),
+                        Math.max(left, right), Math.max(top, bottom));
+            }
+            default -> cropEdit.set(Math.min(startX, p[0]), Math.min(startY, p[1]),
+                    Math.max(startX, p[0]), Math.max(startY, p[1]));
+        }
+        invalidate();
+    }
+
+    /**
+     * Ends a drag with the crop tool. A frame smaller than a stray touch changes nothing; anything
+     * else goes to the listener, and the frame stays as dragged until the edit comes back.
+     */
+    private void finishCrop() {
+        if (cropGesture == CropGesture.NONE || image == null || listener == null) {
+            cropGesture = CropGesture.NONE;
+            invalidate();
+            return;
+        }
+        float minImagePx = dp(MIN_RECT_DP) / mapScale();
+        if (cropEdit.width() < minImagePx || cropEdit.height() < minImagePx
+                || cropEdit.equals(cropEditStart)) {
+            cropGesture = CropGesture.NONE;
+            invalidate();
+            return;
+        }
+        float w = image.getWidth();
+        float h = image.getHeight();
+        listener.onCropChanged(CensorRegion.rect(cropEdit.left / w, cropEdit.top / h,
+                cropEdit.right / w, cropEdit.bottom / h));
     }
 
     /** The accessibility helper, for tests that walk the virtual nodes. */

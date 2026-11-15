@@ -85,7 +85,7 @@ jobs:
 
       - name: Write the release notes from the commits since the last release
         if: steps.notes.outputs.handwritten == 'false'
-        uses: anthropics/claude-code-action@8a29bc6f0ae11a363721054b6739feba6adabe57 # v1.0.273
+        uses: anthropics/claude-code-action@f3b070c88125d33dbae5653df5f143101d4ea9dc # v1.0.276
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}
@@ -114,7 +114,9 @@ jobs:
                  many small ones into one line such as "Many reliability fixes."
                - Never only "Bug fixes and performance improvements."; if nothing is visible, say what got
                  better, for example "Updated libraries for stability and security."
-               - At most 6 lines and 500 characters in total.
+               - At most 5 lines and 400 characters for the changes.
+               - Then, as the last line, exactly this, unchanged:
+                 Like Redact? A short review on Google Play helps other people find it.
             3. Write it to `whatsnew/whatsnew-en-US` and to
                `fastlane/metadata/android/en-US/changelogs/${{ needs.check-version.outputs.code }}.txt`, each ending
                with one newline.
@@ -123,6 +125,20 @@ jobs:
                most 500 characters each. Where the English names a feature, use that language's own label
                from app/src/main/res/values-<lang>/strings.xml (values-ar, -de, -es, -fr, -hi, -it, -ja,
                -ko, -pt for pt-BR, -ru, -zh-rCN for zh-CN, -zh-rTW for zh-TW), so the notes match the app.
+               End each one with that language's review line below, exactly as written, not your own
+               translation:
+                 ar: أعجبك Redact؟ مراجعة قصيرة على Google Play تساعد الآخرين في العثور عليه.
+                 de-DE: Gefällt dir Redact? Eine kurze Bewertung bei Google Play hilft anderen, die App zu finden.
+                 es-ES: ¿Te gusta Redact? Una reseña breve en Google Play ayuda a otras personas a encontrarlo.
+                 fr-FR: Vous aimez Redact ? Un petit avis sur Google Play aide d'autres personnes à le découvrir.
+                 hi-IN: Redact पसंद आया? Google Play पर एक छोटा-सा रिव्यू दूसरों को इसे ढूँढने में मदद करता है।
+                 it-IT: Ti piace Redact? Una breve recensione su Google Play aiuta altre persone a trovarlo.
+                 ja-JP: Redact を気に入っていただけたら、Google Play で短いレビューをお願いします。ほかの人が見つける助けになります。
+                 ko-KR: Redact가 마음에 드셨나요? Google Play에 짧은 리뷰를 남겨 주시면 다른 사람들이 앱을 찾는 데 도움이 됩니다.
+                 pt-BR: Gostou do Redact? Uma avaliação rápida no Google Play ajuda outras pessoas a encontrá-lo.
+                 ru-RU: Нравится Redact? Короткий отзыв в Google Play помогает другим найти приложение.
+                 zh-CN: 喜欢 Redact 吗？在 Google Play 上写一句简短的评价，能帮助更多人找到它。
+                 zh-TW: 喜歡 Redact 嗎？在 Google Play 上寫一句簡短的評論，能幫助更多人找到它。
             Do not change any other file.
 
             Work efficiently: run each git command on its own (no pipes or `&&`), make independent tool
@@ -149,6 +165,11 @@ jobs:
           if not os.path.isfile("whatsnew/whatsnew-en-US"):
               sys.exit("::error::whatsnew/whatsnew-en-US was not written.")
           english = open("whatsnew/whatsnew-en-US", encoding="utf-8").read()
+          review_line = "Like Redact? A short review on Google Play helps other people find it."
+          if not english.rstrip().endswith(review_line):
+              # Added here rather than failing the release over it.
+              english = english.rstrip() + "\n" + review_line + "\n"
+              open("whatsnew/whatsnew-en-US", "w", encoding="utf-8").write(english)
           bad = problems(english)
           if bad:
               sys.exit(f"::error::The English release notes are not usable: {', '.join(bad)}")

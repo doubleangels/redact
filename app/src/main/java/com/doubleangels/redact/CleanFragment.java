@@ -230,12 +230,12 @@ public class CleanFragment extends TabFragment {
                 try {
                     if (viewModel.getCleanProcessingState().getValue()
                             == MainViewModel.ProcessingState.PROCESSING) {
-                        SentryManager.log("The user requested that the clean be cancelled.");
+                        SentryManager.log("The clean is being cancelled.");
                         Haptics.tick(v);
                         viewModel.cancelCleaning();
                         return;
                     }
-                    SentryManager.log("The user clicked the Strip button.");
+                    SentryManager.log("A clean is starting.");
                     List<MediaItem> items = viewModel.getSelectedItems().getValue();
                     if (items != null && !items.isEmpty()) {
                         SentryManager.setCustomKey("processing_items_count", items.size());
@@ -404,7 +404,6 @@ public class CleanFragment extends TabFragment {
         if (photo == null) {
             return;
         }
-        SentryManager.log("The user opened the cleaned photo in Censor.");
         new ViewModelProvider(requireActivity()).get(CensorViewModel.class)
                 .requestOpen(photo);
         if (requireActivity() instanceof MainActivity mainActivity) {
@@ -432,6 +431,7 @@ public class CleanFragment extends TabFragment {
         return outputs.get(0);
     }
 
+    @Override
     void onHostPermissionFlowCompleted() {
         syncPermissionUi();
     }
@@ -672,6 +672,7 @@ public class CleanFragment extends TabFragment {
         }
     }
 
+    @Override
     void handlePermissionResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         try {
             if (permissionManager != null) {
@@ -684,7 +685,6 @@ public class CleanFragment extends TabFragment {
 
     private void onSelectMediaClicked() {
         try {
-            SentryManager.log("The user clicked Select media.");
             if (viewModel.getCleanProcessingState().getValue()
                     == MainViewModel.ProcessingState.PROCESSING) {
                 return;

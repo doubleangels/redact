@@ -122,13 +122,53 @@
     </ul>
 
     <h2>Private by design</h2>
-    <div class="note">Redact never uploads your photos. Cleaning, scanning and converting run on your phone and need no internet connection. Your photos, videos and personal information are never collected or shared. The only thing that can ever leave your phone is an anonymous crash report, and only if you turn that on.</div>
+    <div class="note">Redact never uploads your photos. Cleaning, scanning and converting run on your phone and need no internet connection. Your photos, videos and personal information are never collected or shared. The only things that can ever leave your phone are an anonymous crash report, and only if you turn that on, and an update check that asks GitHub for the newest version number, and only when you tap Check for Updates.</div>
     <ul>
         <li>No ads, no analytics, no tracking and no account.</li>
         <li>Uses Android's own file picker, so Redact never needs access to your whole library.</li>
         <li>Optional crash reports stay off unless you turn them on, and never include your photos.</li>
         <li>Open source under the GPL-3.0 license: <a href="https://github.com/doubleangels/redact">read the code on GitHub</a>.</li>
     </ul>
+
+    <h3 id="servers">Every server Redact connects to</h3>
+    <p>There are only two, and Redact contacts neither unless you turn on or tap the feature that needs it. It has no other server, account or backend.</p>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Domain</th><th>When</th><th>What is sent</th><th>Why</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>o244019.ingest.us.sentry.io</code><br>Sentry, US servers</td>
+                <td>Only while Send Crash Reports is on: after a crash or error, and when you choose to add a note to an error report</td>
+                <td>An anonymized report: stack trace, device model, Android and app version, and a few scrubbed tags. Paths, file names, coordinates and metadata values are removed first. Never a photo or video.</td>
+                <td>To find and fix bugs</td>
+            </tr>
+            <tr>
+                <td><code>api.github.com</code></td>
+                <td>Only when you tap Check for Updates in Settings</td>
+                <td>One request for the newest release of Redact, with a fixed User-Agent and nothing about you, your settings or your files</td>
+                <td>To read the newest version number</td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+    <p>Some buttons open a page in another app, which then makes its own connection; Redact itself sends nothing:</p>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Opens</th><th>From</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code>play.google.com</code> or the Play Store app</td><td>Rate Redact on Google Play, and Update after Check for Updates finds a newer version</td></tr>
+            <tr><td><code>github.com</code></td><td>View Source on GitHub, Report an Issue, and Project Page in Open-Source Licenses</td></tr>
+            <tr><td><code>developer.android.com</code></td><td>Project Page in Open-Source Licenses</td></tr>
+            <tr><td><code>doubleangels.github.io</code></td><td>Privacy Policy and Terms of Use</td></tr>
+            <tr><td><code>donate.stripe.com</code></td><td>Donate</td></tr>
+            <tr><td>Your maps app</td><td>Open in Maps in Scan, after you agree</td></tr>
+        </tbody>
+    </table>
+    </div>
 
     <h2>Questions</h2>
     <details>

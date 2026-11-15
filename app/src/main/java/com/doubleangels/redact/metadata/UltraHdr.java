@@ -325,7 +325,8 @@ final class UltraHdr {
      * Puts {@code xmp} into the clean JPEG {@code target}, after its JFIF header: for a Motion
      * Photo without a gain map, whose directory {@link #rebuild} did not write.
      */
-    static void insertPrimaryXmp(@NonNull File target, @NonNull String xmp) throws IOException {
+    static void insertPrimaryXmp(@NonNull File target, @NonNull String xmp, @NonNull File workDir)
+            throws IOException {
         // Only the head is read to find where the segment goes; the rest is streamed, so a large
         // photo is never held in memory whole.
         byte[] head;
@@ -341,7 +342,7 @@ final class UltraHdr {
             throw new IOException("Damaged JFIF header");
         }
         byte[] segment = segment(0xE1, concat(XMP_ID, xmp.getBytes(StandardCharsets.UTF_8)));
-        File rewritten = File.createTempFile("xmp_", ".jpg", target.getAbsoluteFile().getParentFile());
+        File rewritten = File.createTempFile("xmp_", ".jpg", workDir);
         try {
             try (InputStream in = new BufferedInputStream(new FileInputStream(target), 64 * 1024);
                     OutputStream out = new BufferedOutputStream(new FileOutputStream(rewritten), 64 * 1024)) {
@@ -442,18 +443,22 @@ final class UltraHdr {
      * {@code [gainMapStart, gainMapEnd)} of {@code source}, cleaned. Leaves {@code target} as it
      * is, without HDR, when the gain map has no numbers to show it with.
      */
+    @VisibleForTesting
     static void rebuild(@NonNull File source, long gainMapStart, long gainMapEnd,
             @Nullable byte[] primaryIso, @NonNull File target) throws IOException {
-        rebuild(source, gainMapStart, gainMapEnd, primaryIso, target, null);
+        rebuild(source, gainMapStart, gainMapEnd, primaryIso, target, null, target.getAbsoluteFile().getParentFile());
     }
 
     /**
      * {@link #rebuild(File, long, long, byte[], File)}, with the Motion Photo fields and video in
      * the directory when {@code motion} is not null. The video itself is appended by the caller.
+     *
+     * @param workDir where intermediate files go: never the folder FileProvider serves, since
+     *     the raw gain map holds the source's metadata
      */
     static void rebuild(@NonNull File source, long gainMapStart, long gainMapEnd,
-            @Nullable byte[] primaryIso, @NonNull File target, @Nullable MotionPhoto.Clip motion)
-            throws IOException {
+            @Nullable byte[] primaryIso, @NonNull File target, @Nullable MotionPhoto.Clip motion,
+            @NonNull File workDir) throws IOException {
         long length = gainMapEnd - gainMapStart;
         if (length <= 4 || length > MAX_GAIN_MAP_BYTES) {
             throw new IOException("Gain map out of range");
@@ -482,13 +487,12 @@ final class UltraHdr {
         }
 
         // The gain map, cleaned like any other JPEG, with its numbers put back.
-        File dir = target.getAbsoluteFile().getParentFile();
-        File rawGainMap = File.createTempFile("gainmap_", ".jpg", dir);
-        File cleanGainMap = File.createTempFile("gainmap_clean_", ".jpg", dir);
+        File rawGainMap = File.createTempFile("gainmap_", ".jpg", workDir);
+        File cleanGainMap = File.createTempFile("gainmap_clean_", ".jpg", workDir);
         byte[] clean;
         try {
             Files.write(rawGainMap.toPath(), gainMap);
-            ImageContainerMetadata.sanitize(rawGainMap, cleanGainMap);
+            ImageContainerMetadata.sanitize(rawGainMap, cleanGainMap, workDir);
             clean = Files.readAllBytes(cleanGainMap.toPath());
         } finally {
             // The raw gain map is the source's, EXIF and all: overwritten before it goes, like

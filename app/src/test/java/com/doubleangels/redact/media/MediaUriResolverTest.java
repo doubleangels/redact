@@ -173,8 +173,8 @@ public class MediaUriResolverTest {
     }
 
     @Test
-    public void isOwnProvider_acceptsAProviderTheSystemCannotName() {
-        assertFalse(MediaUriResolver.isOwnProvider(context,
+    public void isOwnProvider_refusesAProviderTheSystemCannotName() {
+        assertTrue(MediaUriResolver.isOwnProvider(context,
                 Uri.parse("content://com.android.externalstorage.documents/document/primary%3Aa.jpg")));
     }
 

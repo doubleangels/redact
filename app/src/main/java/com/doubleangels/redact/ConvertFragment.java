@@ -248,12 +248,12 @@ public class ConvertFragment extends TabFragment {
         convertButton.setOnClickListener(v -> {
             if (viewModel.getConvertProcessingState().getValue()
                     == MainViewModel.ProcessingState.PROCESSING) {
-                SentryManager.log("The user requested that the conversion be cancelled.");
+                SentryManager.log("The conversion is being cancelled.");
                 Haptics.tick(v);
                 viewModel.cancelConversion();
                 return;
             }
-            SentryManager.log("The user clicked the Convert button in ConvertFragment.");
+            SentryManager.log("A conversion is starting.");
             runConversion();
         });
 
@@ -659,12 +659,12 @@ public class ConvertFragment extends TabFragment {
         }
     }
 
+    @Override
     void onHostPermissionFlowCompleted() {
         syncSelectButtonForPickerAccess();
     }
 
     private void onSelectFilesClicked() {
-        SentryManager.log("The user clicked Select files in ConvertFragment.");
         if (permissionManager != null && permissionManager.shouldRequestStorageBeforePicker()) {
             SentryManager.log("The app is requesting storage permissions in ConvertFragment.");
             permissionManager.requestStoragePermission();
@@ -674,6 +674,7 @@ public class ConvertFragment extends TabFragment {
         }
     }
 
+    @Override
     void handlePermissionResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         try {
             if (permissionManager != null) {

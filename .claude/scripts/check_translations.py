@@ -44,7 +44,7 @@ REVIEWED_SAME_AS_ENGLISH = {
     "de:content_description_selected_video", "it:content_description_selected_video",
     "de:convert_item_type_video", "de:settings_output_videos",
     "de:scan_section_details", "de:settings_about_version",
-    "de:settings_max_bitmap_size_labels",
+    "de:settings_max_bitmap_size_labels", "de:settings_update_check_label",
     "es:review_prompt_no", "it:review_prompt_no", "fr:censor_tool_rectangle",
     "es:convert_item_type_video",
     "fr:settings_section_notifications", "fr:settings_about_version", "fr:convert_item_type_image",

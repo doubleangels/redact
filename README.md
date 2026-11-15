@@ -16,6 +16,11 @@
 </p>
 
 <p align="center">
+  <strong>Using Redact?</strong> It's made by one person, with no ads and no marketing budget.<br>
+  A short <a href="https://play.google.com/store/apps/details?id=com.doubleangels.redact">review on Google Play</a>, saying what you use it for, is the biggest help there is: it's how other people find it.
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/github/actions/workflow/status/doubleangels/redact/.github/workflows/deploy.yml?label=Deployment%20Pipeline&style=for-the-badge" alt="Deployment pipeline status">
   <img src="https://img.shields.io/github/actions/workflow/status/doubleangels/redact/.github/workflows/test-dev.yml?label=Development%20Testing&style=for-the-badge" alt="Development testing status">
   <img src="https://img.shields.io/librariesio/github/doubleangels/redact?label=Dependencies&style=for-the-badge" alt="Dependencies">
@@ -80,7 +85,7 @@ Most apps and websites do not show you this, but anyone who receives the origina
 |---|---|
 | **Clean** | Removes the location, device details, dates and other hidden information from photos and videos, including extra preview images and the short video inside a Motion Photo (or, with **Keep Motion Photos**, just that video's own hidden information). **Strict Clean** gives the most thorough clean, and **Faster Video Cleaning** speeds up videos that allow it. When a clean finishes, Redact tells you what it removed, and a **Share** button sends the clean copies on. |
 | **Scan** | Shows a file's metadata in an organized, readable list *before* you decide what to do. Rows that reveal where a file was taken carry a **Location** badge. Search the list, copy values, send the file to Clean or Convert, or open the location in your maps app. |
-| **Censor** | Pixelate, black out or blur faces, number plates, addresses and anything else in a photo with a rectangle or brush, with undo, redo and pinch-zoom. The censored copy is saved without metadata, and the original stays as it is. |
+| **Censor** | Pixelate, black out or blur faces, number plates, addresses and anything else in a photo with a rectangle or brush, and crop away what shouldn't be in it at all, with undo, redo and pinch-zoom. The censored copy is saved without metadata, and the original stays as it is. |
 | **Statistics** | **Your Privacy Stats** at the top of Settings, and the **Statistics** screen it opens, show how many metadata fields and locations Redact has removed, which kinds of personal details your files carried, and your activity over the last 30 days. Counted only on your device and never sent anywhere. |
 | **Convert** | Converts images between JPEG, PNG, WebP and HEIC (on supported devices), and videos between H.264, H.265, VP9 and AV1. Converted files are checked for hidden information before they're saved, so they don't carry the original's location or device details. |
 | **Share into Redact** | Share a photo or video from any other app. Redact cleans it and reopens the share sheet with the clean copy, with an optional confirmation step and a progress dialog you can cancel. |
@@ -164,6 +169,7 @@ Pick one photo and cover anything that should stay private.
 - **Rectangle:** drag to cover an area. Tap a rectangle to move or resize it, or delete it.
 - **Brush:** paint over irregular shapes, with an adjustable brush size.
 - **Move:** pinch to zoom and drag to pan. **Full Screen** gives the photo the whole screen.
+- **Crop:** drag a corner or an edge of the frame to keep only part of the photo, drag inside it to move it, or drag outside it to draw a new one. What the crop leaves out is dimmed and is not saved, not even in an Ultra HDR photo's HDR layer. **Reset Crop** puts the whole photo back, and a crop can be undone like any other change.
 - **Effect:** Pixelate, Black or Blur. Your tool, effect and brush size are remembered.
 - **Undo / Redo**, and a prompt before discarding unsaved changes.
 - **Save Copy** writes a censored copy to your output folder at full resolution and in the photo's own format, keeping only the tags your Clean settings keep (never the original's small preview image, depth map or Motion Photo clip, which could still show what you covered), and a **Share** button sends it on. With **Delete Originals After Cleaning** on, Redact also asks Android to move the original to trash.
@@ -211,7 +217,7 @@ Redact keeps as much of the original as it can. Where possible, it rebuilds a fi
 | **Share** a video | Any video | MP4, H.264 | The source's size, frame rate and bitrate. HDR becomes SDR on most phones | Every app you might share to can play H.264. |
 | **Convert** an image | Any image Android can open | JPEG, PNG, WebP or HEIC, as you choose | Full resolution. A JPEG made from a JPEG is never saved below the original's quality on High. WebP made from PNG, GIF, BMP or lossless WebP is lossless. A 16-bit PNG, or a 10-bit HEIC or AVIF, converted to PNG is saved at 16 bits | Converting decodes the picture and saves it in the new format, which is then rebuilt and checked like a clean before it is saved. Android only saves 8-bit pictures, so Redact writes those PNGs itself: a 16-bit PNG sample for sample, and anything else decoded at more than 8 bits from its decoded values, tagged with its color space (sRGB, Display P3, or BT.2020 HLG or PQ). Transparent areas become white in JPEG and HEIC, which can't store transparency. Animations keep their first frame. HEIC needs Android 14, and JPEG is used before that. |
 | **Convert** a video | Any video Android can play | MP4 in H.264, H.265, VP9 or AV1, as you choose | The same as Clean | If the phone can't encode the codec you chose, Redact uses H.265, then H.264. |
-| **Censor** a photo | JPEG, PNG, WebP | The same format | Full resolution. WebP stays lossless if it was. A 16-bit PNG keeps all 16 bits, its original samples outside the censored areas, even when it has to be turned upright. On Android 14 and newer an Ultra HDR photo can keep its HDR layer, with the censored areas blanked in it too | The censored picture has to be encoded again. A 16-bit PNG is the exception, since Android would save it at 8 bits: Redact keeps the original samples and replaces only the censored pixels. The HDR layer is a small picture of where the scene is bright, so Redact censors it as well, or it could still show the outline of what you covered. |
+| **Censor** a photo | JPEG, PNG, WebP | The same format | Full resolution, or the part you cropped. WebP stays lossless if it was. A 16-bit PNG keeps all 16 bits, its original samples outside the censored areas, even when it has to be turned upright. On Android 14 and newer an Ultra HDR photo can keep its HDR layer, with the censored areas blanked in it too | The censored picture has to be encoded again. A 16-bit PNG is the exception, since Android would save it at 8 bits: Redact keeps the original samples and replaces only the censored pixels. The HDR layer is a small picture of where the scene is bright, so Redact censors it as well, or it could still show the outline of what you covered. |
 | | HEIC | HEIC on Android 14 and newer, JPEG before | Full resolution | HEIC can only be saved on Android 14 and newer. |
 | | GIF or BMP | PNG | Full resolution, first frame | PNG keeps every pixel exactly. |
 | | AVIF and anything else | JPEG at High quality | Full resolution | Android can't save AVIF. |
@@ -321,7 +327,7 @@ The Settings tab puts the settings you use every day first: cleaning, sharing, C
 
 **Reset All Settings** puts every setting back to its default and forgets the chosen output folders. Your files are not touched.
 
-**About**: version, links, **Open-Source Licenses** (every library Redact ships, with its full license text, readable offline), **Show Introduction** and **Rate Redact on Google Play**.
+**About**: version, **Check for Updates** (asks GitHub for the newest version number when you tap it and offers the store page when a newer one is out; it never runs on its own), links, **Open-Source Licenses** (every library Redact ships, with its full license text, readable offline), **Show Introduction** and **Rate Redact on Google Play**.
 
 Open the Settings tab in the app for the full list.
 
@@ -331,9 +337,28 @@ Open the Settings tab in the app for the full list.
 
 - **Your files stay on your device** for every core feature. Cleaning, scanning and converting never need a network connection.
 - **No ads, no behavioral tracking, no analytics.**
-- **Two optional things can touch the network or another app:**
+- **Three optional things can touch the network or another app:**
   1. **Send Crash Reports** (off by default) sends anonymized diagnostics to [Sentry](https://sentry.io): device model, Android version, app version, stack traces and a few scrubbed tags. File paths, filenames and GPS coordinates are removed before anything is sent. Your photos and videos are **never** uploaded. Sentry keeps the reports for a limited time, 90 days for crash and error reports and 30 days for performance data and logs, see its [data retention periods](https://docs.sentry.io/security-legal-pii/security/data-retention-periods/).
   2. **Open in maps** from Scan hands coordinates to your default maps app, only after your explicit one-time consent.
+  3. **Check for Updates** in Settings asks GitHub once for the newest release's version number, only when you tap it. The request carries nothing about you or your files; like any connection, GitHub sees the IP address it comes from. Redact never checks on its own, and the update itself comes from the store you installed it from.
+- **Every server Redact connects to** is in the table below. There are only two, and Redact contacts neither unless you turn on or tap the feature that needs it. It has no other server, account or backend.
+
+| Domain | When Redact connects | What is sent | Why |
+|---|---|---|---|
+| `o244019.ingest.us.sentry.io` ([Sentry](https://sentry.io), US servers) | Only while **Send Crash Reports** is on: after a crash or error, and when you choose to add a note to an error report | An anonymized report: stack trace, device model, Android and app version, and a few scrubbed tags. Paths, file names, coordinates and metadata values are removed first. Never a photo or video. | To find and fix bugs |
+| `api.github.com` | Only when you tap **Check for Updates** in Settings | One request for the newest release of Redact, with a fixed User-Agent and nothing about you, your settings or your files | To read the newest version number |
+
+Some buttons open a page in another app, which then makes its own connection. Redact itself sends nothing:
+
+| Opens | From | Why |
+|---|---|---|
+| `play.google.com` (or the Play Store app) | **Rate Redact on Google Play**, and **Update** after Check for Updates finds a newer version | The store listing |
+| `github.com` | **View Source on GitHub** and **Report an Issue** in Settings › About, and **Project Page** in **Open-Source Licenses** | The source code, the issue tracker and library pages |
+| `developer.android.com` | **Project Page** in **Open-Source Licenses** | Library pages |
+| `doubleangels.github.io` | **Privacy Policy** and **Terms of Use** in Settings › About | The policies |
+| `donate.stripe.com` | **Donate** in Settings › About | An optional donation |
+| Your maps app | **Open in Maps** in Scan, after you agree | Shows a photo's location; the maps app decides what it loads |
+
 - **Statistics stay on your phone.** The counts behind Your Privacy Stats are stored only in Redact's private storage, are left out of backups and device transfers, and are never included in crash reports.
 - **Permissions are minimal.** On Android 13 and newer Redact uses the system document picker, so it can reach Downloads, Files and gallery folders without broad media access.
 
@@ -380,7 +405,7 @@ Yes. Images are decoded and saved in the new format, which carries none of the o
 <details>
 <summary><b>Does Redact need an internet connection?</b></summary>
 
-No. Only the two optional features above (crash reports and opening a location in a maps app) can use the network, and both are off until you choose them.
+No. Only the three optional features above can use the network or another app: crash reports, which are off until you turn them on; opening a location in a maps app, which asks first; and Check for Updates, which runs only when you tap it.
 </details>
 
 <details>
@@ -398,7 +423,7 @@ No hard limit. Very large files can still strain a device that is low on storage
 <details>
 <summary><b>Does Redact use analytics or trackers?</b></summary>
 
-No. The only thing of this kind is the optional Sentry crash reporting described in [Privacy and security](#privacy-and-security).
+No. The only thing of this kind is the optional Sentry crash reporting described in [Privacy and security](#privacy-and-security), which counts the app's own failures, never what you do or how often you use it. The table there lists every server Redact can connect to.
 </details>
 
 <details>
