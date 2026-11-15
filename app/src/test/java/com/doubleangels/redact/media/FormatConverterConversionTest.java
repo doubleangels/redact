@@ -366,4 +366,96 @@ public class FormatConverterConversionTest {
         assertTrue(com.doubleangels.redact.metadata.ImageContainerMetadata.scan(
                 FakeMediaStoreProvider.only().file).isClean());
     }
+
+    /** An older, longer file the provider keeps behind a new write, holding a location. */
+    private static byte[] staleOriginal() {
+        byte[] stale = new byte[4 * 1024 * 1024];
+        byte[] secret = "GPSLatitude=48.8566".getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+        System.arraycopy(secret, 0, stale, stale.length - secret.length, secret.length);
+        return stale;
+    }
+
+    /**
+     * A provider that ignores the truncate in "w" would leave an older file's tail after the
+     * checked bytes. The saved copy is read back and compared, so nothing is published.
+     */
+    @Test
+    public void convert_whenTheSavedCopyIsNotWhatWasChecked_publishesNothing() throws Exception {
+        FakeMediaStoreProvider.staleTail = staleOriginal();
+        try {
+            FormatConverter.convertImageToPictures(context,
+                    Uri.fromFile(image(32, 24, ExifInterface.ORIENTATION_NORMAL)),
+                    Bitmap.CompressFormat.PNG, "a.jpg");
+            org.junit.Assert.fail("a saved copy unlike the checked one must fail the convert");
+        } catch (java.io.IOException expected) {
+            // discarded
+        } finally {
+            FakeMediaStoreProvider.staleTail = null;
+        }
+        assertTrue(FakeMediaStoreProvider.entries().isEmpty());
+    }
+
+    /** The 16-bit path gets the same check, and so does the 8-bit conversion it falls back to. */
+    @Test
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    public void sixteenBitPng_whenTheSavedCopyIsNotWhatWasChecked_publishesNothing() throws Exception {
+        File source = File.createTempFile("conv_", ".png", context.getFilesDir());
+        files.add(source);
+        try (java.io.InputStream in = getClass().getClassLoader().getResourceAsStream("image/rgba16.png");
+                java.io.FileOutputStream out = new java.io.FileOutputStream(source)) {
+            out.write(in.readAllBytes());
+        }
+        FakeMediaStoreProvider.staleTail = staleOriginal();
+        try {
+            FormatConverter.convertImageToPictures(context, Uri.fromFile(source),
+                    Bitmap.CompressFormat.PNG, "deep.png");
+            org.junit.Assert.fail("a saved copy unlike the checked one must fail the convert");
+        } catch (java.io.IOException expected) {
+            // discarded
+        } finally {
+            FakeMediaStoreProvider.staleTail = null;
+        }
+        assertTrue(FakeMediaStoreProvider.entries().isEmpty());
+    }
+
+    /**
+     * A worker interrupted while its transcode is running must stop the export, not just return:
+     * once it is gone the export has no owner to cancel it by, and it would keep the codec and
+     * keep polling on the main thread. The cancel stops the progress poll, so nothing is left
+     * scheduled once the worker has ended.
+     */
+    @Test(timeout = 60_000)
+    @Config(sdk = 31)
+    public void anInterruptedTranscode_isCancelled_notLeftRunning() throws Exception {
+        // Media3 never finishes an export here, so the worker waits until it is interrupted.
+        VideoMedia3Converter.setAwaitTimeoutForTests(30_000L);
+        java.lang.reflect.Field hookField = VideoMedia3Converter.class.getDeclaredField("activeCancelHook");
+        hookField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        java.util.concurrent.atomic.AtomicReference<Runnable> activeHook =
+                (java.util.concurrent.atomic.AtomicReference<Runnable>) hookField.get(null);
+        File out = new File(context.getCacheDir(), "interrupted.mp4");
+        Throwable[] thrown = new Throwable[1];
+        Thread worker = new Thread(() -> {
+            try {
+                VideoMedia3Converter.transcodeToPath(context, Uri.fromFile(new File("/nonexistent/clip.mp4")),
+                        out.getPath(), 0, null, 77L);
+            } catch (Exception e) {
+                thrown[0] = e;
+            }
+        }, "test-transcode");
+        worker.start();
+        com.doubleangels.redact.TestWaits.awaitMain(() -> activeHook.get() != null || !worker.isAlive());
+        assertNotNull("the transcode never started waiting", activeHook.get());
+
+        worker.interrupt();
+        com.doubleangels.redact.TestWaits.awaitMain(() -> !worker.isAlive());
+
+        assertTrue(String.valueOf(thrown[0]), thrown[0] instanceof InterruptedException);
+        assertFalse(out.exists());
+        org.robolectric.shadows.ShadowLooper main = org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper());
+        main.idle();
+        assertEquals("the export's progress poll is still scheduled", java.time.Duration.ZERO,
+                main.getNextScheduledTaskTime());
+    }
 }
