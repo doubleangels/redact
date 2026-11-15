@@ -432,11 +432,12 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="censor_empty_state_title">Masquez Ce Qui Doit Rester Privé</string>
     <string name="censor_empty_state_description">Pixellisez, noircissez ou floutez les visages, les plaques d’immatriculation, les adresses et tout le reste sur une photo. Redact enregistre une copie censurée sans aucune métadonnée, et votre original reste intact.</string>
     <string name="censor_select_photo">Sélectionner une Photo</string>
-    <string name="censor_hint">Dessinez sur tout ce qui doit rester privé, puis appuyez sur Enregistrer une Copie. Avec Déplacer, pincez pour zoomer et faites glisser pour vous déplacer ; appuyez sur un rectangle pour le déplacer ou le redimensionner.</string>
+    <string name="censor_hint">Dessinez sur tout ce qui doit rester privé, puis appuyez sur Enregistrer une Copie. Avec Déplacer, pincez pour zoomer et faites glisser pour vous déplacer ; appuyez sur un rectangle pour le déplacer ou le redimensionner. Avec Rogner, ne gardez qu\'une partie de la photo.</string>
     <string name="censor_canvas_description">Photo en cours de censure. Dessinez avec un doigt pour masquer une zone. Avec Déplacer, faites glisser pour vous déplacer et pincez pour zoomer.</string>
     <string name="censor_tool_rectangle">Rectangle</string>
     <string name="censor_tool_brush">Pinceau</string>
     <string name="censor_tool_move">Déplacer</string>
+    <string name="censor_tool_crop">Rogner</string>
     <string name="censor_brush_size">Taille du pinceau</string>
     <string name="censor_effect_pixelate">Pixelliser</string>
     <string name="censor_effect_black">Noir</string>
@@ -446,8 +447,11 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="censor_undo">Annuler</string>
     <string name="censor_redo">Rétablir</string>
     <string name="censor_delete_rectangle">Supprimer le Rectangle</string>
+    <string name="censor_reset_crop">Réinitialiser le Rognage</string>
     <string name="censor_add_area">Ajouter une Zone</string>
     <string name="censor_area_description">Zone masquée %1$d sur %2$d</string>
+    <string name="censor_crop_description">Rognage : la partie de la photo que garde la copie</string>
+    <string name="censor_crop_whole_description">Rognage : la photo entière</string>
     <string name="censor_action_move_left">Déplacer à Gauche</string>
     <string name="censor_action_move_right">Déplacer à Droite</string>
     <string name="censor_action_move_up">Déplacer vers le Haut</string>

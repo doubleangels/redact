@@ -405,11 +405,12 @@
     <string name="censor_empty_state_title">見せたくないものを隠す</string>
     <string name="censor_empty_state_description">写真の顔、ナンバープレート、住所などをモザイク、黒塗り、ぼかしで隠せます。Redact はメタデータを一切含まないコピーを保存し、元の写真はそのまま残ります。</string>
     <string name="censor_select_photo">写真を選択</string>
-    <string name="censor_hint">見せたくない部分をなぞってから、「コピーを保存」をタップします。「移動」ではピンチで拡大し、ドラッグで表示位置を動かせます。四角形をタップすると、移動やサイズ変更ができます。</string>
+    <string name="censor_hint">見せたくない部分をなぞってから、「コピーを保存」をタップします。「移動」ではピンチで拡大し、ドラッグで表示位置を動かせます。四角形をタップすると、移動やサイズ変更ができます。「切り抜き」では写真の一部だけを残せます。</string>
     <string name="censor_canvas_description">編集中の写真。1 本の指でなぞると範囲を隠します。「移動」ではドラッグで動かし、ピンチで拡大します。</string>
     <string name="censor_tool_rectangle">四角形</string>
     <string name="censor_tool_brush">ブラシ</string>
     <string name="censor_tool_move">移動</string>
+    <string name="censor_tool_crop">切り抜き</string>
     <string name="censor_brush_size">ブラシのサイズ</string>
     <string name="censor_effect_pixelate">モザイク</string>
     <string name="censor_effect_black">黒塗り</string>
@@ -419,8 +420,11 @@
     <string name="censor_undo">元に戻す</string>
     <string name="censor_redo">やり直す</string>
     <string name="censor_delete_rectangle">四角形を削除</string>
+    <string name="censor_reset_crop">切り抜きをリセット</string>
     <string name="censor_add_area">範囲を追加</string>
     <string name="censor_area_description">隠した範囲 %1$d/%2$d</string>
+    <string name="censor_crop_description">切り抜き: コピーに残す範囲</string>
+    <string name="censor_crop_whole_description">切り抜き: 写真全体</string>
     <string name="censor_action_move_left">左へ移動</string>
     <string name="censor_action_move_right">右へ移動</string>
     <string name="censor_action_move_up">上へ移動</string>

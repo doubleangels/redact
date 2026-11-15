@@ -418,11 +418,12 @@
     <string name="censor_empty_state_title">जो निजी रहना चाहिए, उसे छिपाएँ</string>
     <string name="censor_empty_state_description">फ़ोटो में चेहरे, नंबर प्लेट, पते और कुछ भी पिक्सेलेट करें, काला करें या धुंधला करें। Redact बिना किसी मेटाडेटा के एक छिपाई गई कॉपी सहेजता है, और आपकी मूल फ़ोटो जैसी है वैसी ही रहती है।</string>
     <string name="censor_select_photo">फ़ोटो चुनें</string>
-    <string name="censor_hint">जो कुछ भी निजी रहना चाहिए उस पर बनाएँ, फिर कॉपी सहेजें पर टैप करें। ज़ूम करने के लिए खिसकाएँ चुनकर दो उंगलियों से पिंच करें और खींचकर इधर-उधर जाएँ। किसी आयत को खिसकाने या उसका आकार बदलने के लिए उस पर टैप करें।</string>
+    <string name="censor_hint">जो कुछ भी निजी रहना चाहिए उस पर बनाएँ, फिर कॉपी सहेजें पर टैप करें। ज़ूम करने के लिए खिसकाएँ चुनकर दो उंगलियों से पिंच करें और खींचकर इधर-उधर जाएँ। किसी आयत को खिसकाने या उसका आकार बदलने के लिए उस पर टैप करें। फ़ोटो का सिर्फ़ एक हिस्सा रखने के लिए क्रॉप का इस्तेमाल करें।</string>
     <string name="censor_canvas_description">फ़ोटो जिसके हिस्से छिपाए जा रहे हैं। किसी हिस्से को ढकने के लिए एक उंगली से बनाएँ। खिसकाएँ चुनकर खींचें और ज़ूम करने के लिए पिंच करें।</string>
     <string name="censor_tool_rectangle">आयत</string>
     <string name="censor_tool_brush">ब्रश</string>
     <string name="censor_tool_move">खिसकाएँ</string>
+    <string name="censor_tool_crop">क्रॉप</string>
     <string name="censor_brush_size">ब्रश का आकार</string>
     <string name="censor_effect_pixelate">पिक्सेलेट</string>
     <string name="censor_effect_black">काला</string>
@@ -432,8 +433,11 @@
     <string name="censor_undo">पूर्ववत करें</string>
     <string name="censor_redo">फिर से करें</string>
     <string name="censor_delete_rectangle">आयत हटाएँ</string>
+    <string name="censor_reset_crop">क्रॉप रीसेट करें</string>
     <string name="censor_add_area">क्षेत्र जोड़ें</string>
     <string name="censor_area_description">छिपाया गया क्षेत्र %2$d में से %1$d</string>
+    <string name="censor_crop_description">क्रॉप: फ़ोटो का वह हिस्सा जो कॉपी में रहेगा</string>
+    <string name="censor_crop_whole_description">क्रॉप: पूरी फ़ोटो</string>
     <string name="censor_action_move_left">बाएँ खिसकाएँ</string>
     <string name="censor_action_move_right">दाएँ खिसकाएँ</string>
     <string name="censor_action_move_up">ऊपर खिसकाएँ</string>

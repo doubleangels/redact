@@ -47,8 +47,8 @@ import java.text.NumberFormat;
 import java.util.List;
 
 /**
- * The Censor tab: covers parts of one photo (pixelate, black or blur) and saves a censored copy
- * without any of the original's metadata. The photo comes from the picker here, from Scan, or
+ * The Censor tab: covers parts of one photo (pixelate, black or blur), optionally crops it, and
+ * saves a censored copy without any of the original's metadata. The photo comes from the picker here, from Scan, or
  * from sharing it to Redact › Censor; all of them go through {@link CensorViewModel}.
  */
 public class CensorFragment extends TabFragment {
@@ -88,6 +88,8 @@ public class CensorFragment extends TabFragment {
     @Nullable
     private View column;
     private View deleteButton;
+    /** Shows with the crop tool while there is a crop, and puts the whole photo back. */
+    private View resetCropButton;
     private Chip zoomChip;
     private View undoButton;
     private View redoButton;
@@ -175,6 +177,7 @@ public class CensorFragment extends TabFragment {
         brushSizeBar = view.findViewById(R.id.censorBrushSizeContainer);
         column = view.findViewById(R.id.censorColumn);
         deleteButton = view.findViewById(R.id.censorDeleteButton);
+        resetCropButton = view.findViewById(R.id.censorResetCropButton);
         zoomChip = view.findViewById(R.id.censorZoomChip);
         zoomChip.setOnClickListener(v -> {
             Haptics.tick(v);
@@ -204,6 +207,10 @@ public class CensorFragment extends TabFragment {
                 canvas.clearSelection();
                 viewModel.removeRegion(index);
             }
+        });
+        resetCropButton.setOnClickListener(v -> {
+            Haptics.tick(v);
+            viewModel.setCrop(null);
         });
         undoButton.setOnClickListener(v -> {
             Haptics.tick(v);
@@ -261,6 +268,12 @@ public class CensorFragment extends TabFragment {
             public void onZoomChanged(float zoom) {
                 showZoom(zoom);
             }
+
+            @Override
+            public void onCropChanged(@Nullable CensorRegion crop) {
+                viewModel.setCrop(crop);
+                Haptics.tick(canvas);
+            }
         });
 
         requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), unsavedEditsCallback);
@@ -278,6 +291,7 @@ public class CensorFragment extends TabFragment {
         });
         viewModel.getHistoryVersion().observe(getViewLifecycleOwner(), v -> {
             canvas.setRegions(viewModel.regions());
+            canvas.setCrop(viewModel.getCrop());
             updateControls();
         });
         viewModel.getState().observe(getViewLifecycleOwner(), this::render);
@@ -401,6 +415,7 @@ public class CensorFragment extends TabFragment {
             ((MaterialButton) toolPill.findViewById(buttonFor(tool))).setChecked(tool == currentTool);
         }
         updateBrushSizeBar();
+        updateHistoryControls();
     }
 
     /** The brush size bar shows with Brush on a photo, and the status moves down to clear it. */
@@ -480,6 +495,7 @@ public class CensorFragment extends TabFragment {
         return switch (tool) {
             case BRUSH -> R.id.censorToolBrush;
             case MOVE -> R.id.censorToolMove;
+            case CROP -> R.id.censorToolCrop;
             default -> R.id.censorToolRect;
         };
     }
@@ -590,7 +606,10 @@ public class CensorFragment extends TabFragment {
         CensorViewModel.State state = viewModel.getState().getValue();
         boolean editing = state == CensorViewModel.State.READY
                 || state == CensorViewModel.State.SAVING;
-        boolean useful = viewModel.canUndo() || viewModel.canRedo()
+        boolean cropShown = currentTool == CensorCanvasView.Tool.CROP && viewModel.getCrop() != null;
+        resetCropButton.setVisibility(cropShown ? View.VISIBLE : View.GONE);
+        resetCropButton.setEnabled(state == CensorViewModel.State.READY);
+        boolean useful = viewModel.canUndo() || viewModel.canRedo() || cropShown
                 || deleteButton.getVisibility() == View.VISIBLE;
         historyControls.setVisibility(editing && useful ? View.VISIBLE : View.GONE);
     }
@@ -611,7 +630,7 @@ public class CensorFragment extends TabFragment {
 
         // Share and Scan Result offer the saved copy only while it still matches the screen.
         CensorExporter.Result saved = viewModel.getLastSaved();
-        boolean savedMatches = ready && saved != null && !unsaved && viewModel.hasRegions();
+        boolean savedMatches = ready && saved != null && !unsaved && viewModel.hasEdits();
         shareButton.setVisibility(savedMatches ? View.VISIBLE : View.GONE);
         scanResultButton.setVisibility(savedMatches ? View.VISIBLE : View.GONE);
 

@@ -10,6 +10,7 @@ import android.graphics.Gainmap;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 
@@ -33,10 +34,11 @@ import java.io.OutputStream;
 import java.util.List;
 
 /**
- * Saves a censored copy of a photo: decodes it upright at full size, covers the regions, encodes
- * the pixels in the source's format and saves them through the same clean as the Clean tab. Only
- * the tags the clean settings keep come back from the original, never its small EXIF preview,
- * which would still show the uncensored photo.
+ * Saves a censored copy of a photo: decodes it upright at full size, covers the regions, cuts it
+ * down to the crop, encodes the pixels in the source's format and saves them through the same
+ * clean as the Clean tab. Only the tags the clean settings keep come back from the original, never
+ * its small EXIF preview, which would still show the uncensored photo, and nothing of what the
+ * crop leaves out: the pixels outside it, an Ultra HDR gain map's included, are not written.
  */
 public final class CensorExporter {
 
@@ -69,6 +71,21 @@ public final class CensorExporter {
             @Nullable String fileName,
             @NonNull List<CensorRegion> regions,
             @NonNull CensorEffects.Effect effect) throws IOException {
+        return export(context, source, fileName, regions, null, effect);
+    }
+
+    /**
+     * {@link #export(Context, Uri, String, List, CensorEffects.Effect)}, keeping only {@code crop}
+     * (in fractions of the upright photo, like the regions), or all of it when null.
+     */
+    @NonNull
+    public static Result export(
+            @NonNull Context context,
+            @NonNull Uri source,
+            @Nullable String fileName,
+            @NonNull List<CensorRegion> regions,
+            @Nullable CensorRegion crop,
+            @NonNull CensorEffects.Effect effect) throws IOException {
         ContentResolver resolver = context.getContentResolver();
         FormatConverter.ImageFormatSpec spec =
                 FormatConverter.resolveImageFormat(extensionOf(fileName), resolver.getType(source));
@@ -87,8 +104,16 @@ public final class CensorExporter {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                     censorGainMap(bitmap, regions);
                 }
+                // Cropped after covering, so the regions keep their place on the whole photo.
+                Bitmap cropped = crop != null ? cropTo(bitmap, crop) : bitmap;
+                if (cropped != bitmap) {
+                    bitmap.recycle();
+                    bitmap = cropped;
+                }
                 boolean png = spec.compressFormat == Bitmap.CompressFormat.PNG;
-                boolean sixteenBit = png && writeSixteenBitPng(context, source, bitmap, regions, censored);
+                // The 16-bit rewrite keeps the source's own rows, so it can't cut them down.
+                boolean sixteenBit = png && crop == null
+                        && writeSixteenBitPng(context, source, bitmap, regions, censored);
                 if (!sixteenBit && png && HighPrecisionPng.isHighPrecision(bitmap)) {
                     // A turned 16-bit PNG, or a picture decoded at more than 8 bits some other
                     // way: its own samples can't be lined up with the picture, but the censored
@@ -224,6 +249,83 @@ public final class CensorExporter {
             if (mask != null) {
                 mask.recycle();
             }
+        }
+    }
+
+    /**
+     * The pixels of {@code crop} (fractions of the photo, rounded out to whole pixels) in a new
+     * bitmap, or {@code bitmap} itself when the crop is the whole photo. An Ultra HDR gain map is
+     * cut to the same part; one that can't be is dropped, never kept whole.
+     */
+    @VisibleForTesting
+    @NonNull
+    static Bitmap cropTo(@NonNull Bitmap bitmap, @NonNull CensorRegion crop) throws IOException {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        Rect r = cropRect(crop, width, height);
+        if (r.left == 0 && r.top == 0 && r.right == width && r.bottom == height) {
+            return bitmap;
+        }
+        // The gain map is taken off first and cut here, so what happens to it never depends on
+        // what the platform's crop does with one.
+        Gainmap gainmap = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && bitmap.hasGainmap()) {
+            gainmap = bitmap.getGainmap();
+            bitmap.setGainmap(null);
+        }
+        Bitmap cropped;
+        try {
+            cropped = Bitmap.createBitmap(bitmap, r.left, r.top, r.width(), r.height());
+        } catch (OutOfMemoryError e) {
+            throw new IOException("Not enough memory to crop the image", e);
+        }
+        if (cropped == bitmap) {
+            // Only for a crop of the whole photo, which returned above; never write it uncut.
+            throw new IOException("The image could not be cropped");
+        }
+        if (gainmap != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            cropGainMap(gainmap, width, height, cropped, r);
+        }
+        return cropped;
+    }
+
+    /** {@code crop} in whole pixels of a {@code width} x {@code height} picture, at least one pixel. */
+    @VisibleForTesting
+    @NonNull
+    static Rect cropRect(@NonNull CensorRegion crop, int width, int height) {
+        float[] p = crop.points();
+        int left = clamp((int) Math.floor(p[0] * width), 0, width - 1);
+        int top = clamp((int) Math.floor(p[1] * height), 0, height - 1);
+        int right = clamp((int) Math.ceil(p[2] * width), left + 1, width);
+        int bottom = clamp((int) Math.ceil(p[3] * height), top + 1, height);
+        return new Rect(left, top, right, bottom);
+    }
+
+    private static int clamp(int v, int min, int max) {
+        return Math.max(min, Math.min(max, v));
+    }
+
+    /**
+     * Gives {@code cropped} the part of {@code gainmap} under {@code r}, a part of the
+     * {@code width} x {@code height} photo it belonged to. The gain map is a smaller picture of the
+     * same scene, so kept whole it would still show what the crop left out on an HDR screen.
+     */
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    private static void cropGainMap(@NonNull Gainmap gainmap, int width, int height,
+                                    @NonNull Bitmap cropped, @NonNull Rect r) {
+        try {
+            Bitmap contents = gainmap.getGainmapContents();
+            // The same part of the smaller picture, rounded out so its edge pixels are included.
+            Rect g = cropRect(CensorRegion.rect(r.left / (float) width, r.top / (float) height,
+                    r.right / (float) width, r.bottom / (float) height),
+                    contents.getWidth(), contents.getHeight());
+            Bitmap part = Bitmap.createBitmap(contents, g.left, g.top, g.width(), g.height());
+            gainmap.setGainmapContents(part);
+            cropped.setGainmap(gainmap);
+        } catch (RuntimeException | OutOfMemoryError e) {
+            SentryManager.log("The gain map could not be cropped, so the copy is saved without HDR: "
+                    + e.getClass().getSimpleName() + ".");
+            cropped.setGainmap(null);
         }
     }
 

@@ -404,11 +404,12 @@
     <string name="censor_empty_state_title">遮住应保持私密的内容</string>
     <string name="censor_empty_state_description">为照片中的人脸、车牌、地址等任何内容打码、涂黑或模糊处理。Redact 会保存一份不含任何元数据的遮挡副本，原图保持不变。</string>
     <string name="censor_select_photo">选择照片</string>
-    <string name="censor_hint">在需要保密的内容上绘制，然后点按“保存副本”。选择“移动”后可双指缩放并拖动画面。点按矩形即可移动或调整大小。</string>
+    <string name="censor_hint">在需要保密的内容上绘制，然后点按“保存副本”。选择“移动”后可双指缩放并拖动画面。点按矩形即可移动或调整大小。选择“裁剪”可只保留照片的一部分。</string>
     <string name="censor_canvas_description">正在遮挡的照片。用一根手指绘制以遮挡区域。选择“移动”后可拖动画面并双指缩放。</string>
     <string name="censor_tool_rectangle">矩形</string>
     <string name="censor_tool_brush">画笔</string>
     <string name="censor_tool_move">移动</string>
+    <string name="censor_tool_crop">裁剪</string>
     <string name="censor_brush_size">画笔大小</string>
     <string name="censor_effect_pixelate">马赛克</string>
     <string name="censor_effect_black">涂黑</string>
@@ -418,8 +419,11 @@
     <string name="censor_undo">撤销</string>
     <string name="censor_redo">重做</string>
     <string name="censor_delete_rectangle">删除矩形</string>
+    <string name="censor_reset_crop">重置裁剪</string>
     <string name="censor_add_area">添加区域</string>
     <string name="censor_area_description">遮盖区域 %1$d/%2$d</string>
+    <string name="censor_crop_description">裁剪：副本保留的照片部分</string>
+    <string name="censor_crop_whole_description">裁剪：整张照片</string>
     <string name="censor_action_move_left">左移</string>
     <string name="censor_action_move_right">右移</string>
     <string name="censor_action_move_up">上移</string>

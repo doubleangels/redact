@@ -404,11 +404,12 @@
     <string name="censor_empty_state_title">비공개로 남겨야 할 부분 가리기</string>
     <string name="censor_empty_state_description">사진 속 얼굴, 번호판, 주소 등 무엇이든 모자이크, 검게 칠하기, 흐리게 하기로 가릴 수 있습니다. Redact는 메타데이터가 전혀 없는 사본을 저장하며, 원본은 그대로 유지됩니다.</string>
     <string name="censor_select_photo">사진 선택</string>
-    <string name="censor_hint">비공개로 남겨야 할 부분 위에 그린 다음 사본 저장을 탭하세요. 이동을 선택하면 두 손가락으로 확대하고 끌어서 위치를 옮길 수 있습니다. 사각형을 탭하면 이동하거나 크기를 바꿀 수 있습니다.</string>
+    <string name="censor_hint">비공개로 남겨야 할 부분 위에 그린 다음 사본 저장을 탭하세요. 이동을 선택하면 두 손가락으로 확대하고 끌어서 위치를 옮길 수 있습니다. 사각형을 탭하면 이동하거나 크기를 바꿀 수 있습니다. 자르기를 사용하면 사진의 일부만 남길 수 있습니다.</string>
     <string name="censor_canvas_description">편집 중인 사진입니다. 한 손가락으로 그려 영역을 가립니다. 이동을 선택하면 끌어서 옮기고 두 손가락으로 확대/축소합니다.</string>
     <string name="censor_tool_rectangle">사각형</string>
     <string name="censor_tool_brush">브러시</string>
     <string name="censor_tool_move">이동</string>
+    <string name="censor_tool_crop">자르기</string>
     <string name="censor_brush_size">브러시 크기</string>
     <string name="censor_effect_pixelate">모자이크</string>
     <string name="censor_effect_black">검게 칠하기</string>
@@ -418,8 +419,11 @@
     <string name="censor_undo">실행 취소</string>
     <string name="censor_redo">다시 실행</string>
     <string name="censor_delete_rectangle">사각형 삭제</string>
+    <string name="censor_reset_crop">자르기 초기화</string>
     <string name="censor_add_area">영역 추가</string>
     <string name="censor_area_description">가린 영역 %2$d개 중 %1$d번째</string>
+    <string name="censor_crop_description">자르기: 사본에 남길 사진 부분</string>
+    <string name="censor_crop_whole_description">자르기: 사진 전체</string>
     <string name="censor_action_move_left">왼쪽으로 이동</string>
     <string name="censor_action_move_right">오른쪽으로 이동</string>
     <string name="censor_action_move_up">위로 이동</string>

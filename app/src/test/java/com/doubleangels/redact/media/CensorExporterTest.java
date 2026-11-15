@@ -288,4 +288,131 @@ public class CensorExporterTest {
         CensorExporter.censorGainMap(plain, List.of(CensorRegion.rect(0f, 0f, 1f, 1f)));
         assertFalse(plain.hasGainmap());
     }
+
+    // ---- crop ------------------------------------------------------------------------------------
+
+    /** A photo whose left half is red and right half blue, so a crop shows which part was kept. */
+    private File halves(String suffix, Bitmap.CompressFormat format, int width, int height) throws IOException {
+        File f = File.createTempFile("censor_", suffix, context.getFilesDir());
+        files.add(f);
+        Bitmap b = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        new android.graphics.Canvas(b).drawColor(Color.RED);
+        android.graphics.Paint blue = new android.graphics.Paint();
+        blue.setColor(Color.BLUE);
+        new android.graphics.Canvas(b).drawRect(width / 2f, 0, width, height, blue);
+        try (FileOutputStream out = new FileOutputStream(f)) {
+            b.compress(format, 100, out);
+        }
+        return f;
+    }
+
+    @Test
+    public void aCrop_keepsOnlyThatPart_withTheCoveringWhereItWas() throws Exception {
+        File src = halves(".png", Bitmap.CompressFormat.PNG, 200, 100);
+
+        CensorExporter.export(context, Uri.fromFile(src), "receipt.png",
+                List.of(CensorRegion.rect(0.5f, 0f, 0.75f, 1f)), CensorRegion.rect(0.5f, 0f, 1f, 0.5f),
+                CensorEffects.Effect.BLACK);
+
+        Bitmap out = output();
+        assertEquals(100, out.getWidth());
+        assertEquals(50, out.getHeight());
+        assertEquals("covered where it was drawn", Color.BLACK, out.getPixel(10, 25));
+        assertEquals("the kept part of the blue half", Color.BLUE, out.getPixel(90, 25));
+        for (int x = 0; x < out.getWidth(); x++) {
+            for (int y = 0; y < out.getHeight(); y++) {
+                assertTrue("nothing of the red half the crop left out",
+                        out.getPixel(x, y) != Color.RED);
+            }
+        }
+    }
+
+    @Test
+    public void aCropAlone_withNoCoveredArea_isSaved_andCleaned() throws Exception {
+        File src = photo(".jpg", Bitmap.CompressFormat.JPEG, 64, 48, ExifInterface.ORIENTATION_NORMAL);
+
+        CensorExporter.export(context, Uri.fromFile(src), "street.jpg", List.of(),
+                CensorRegion.rect(0.25f, 0.25f, 0.75f, 0.75f), CensorEffects.Effect.BLACK);
+
+        FakeMediaStoreProvider.Entry entry = FakeMediaStoreProvider.only();
+        Bitmap out = output();
+        assertEquals(32, out.getWidth());
+        assertEquals(24, out.getHeight());
+        ExifInterface exif = new ExifInterface(entry.file.getAbsolutePath());
+        assertNull(exif.getLatLong());
+        assertFalse("no preview of the uncropped photo", exif.hasThumbnail());
+    }
+
+    /** Stored landscape, shown portrait: the crop was drawn on the upright photo. */
+    @Test
+    public void aRotatedPhoto_isCroppedWhereTheUserSawIt() throws Exception {
+        File src = photo(".jpg", Bitmap.CompressFormat.JPEG, 64, 48, ExifInterface.ORIENTATION_ROTATE_90);
+
+        CensorExporter.export(context, Uri.fromFile(src), "portrait.jpg", List.of(),
+                CensorRegion.rect(0f, 0f, 1f, 0.5f), CensorEffects.Effect.BLACK);
+
+        Bitmap out = output();
+        assertEquals(48, out.getWidth());
+        assertEquals(32, out.getHeight());
+    }
+
+    /** A 16-bit PNG's own rows can't be cut down, so a cropped one goes through the encoder. */
+    @Test
+    public void aCroppedSixteenBitPng_isCutDownToo() throws Exception {
+        File source = resource("rgba16.png");
+
+        CensorExporter.export(context, Uri.fromFile(source), "a.png", List.of(),
+                CensorRegion.rect(0f, 0f, 0.5f, 0.5f), CensorEffects.Effect.BLACK);
+
+        Bitmap out = output();
+        assertEquals(20, out.getWidth());
+        assertEquals(15, out.getHeight());
+    }
+
+    @Test
+    public void cropRect_roundsOutToWholePixels_andIsNeverEmpty() {
+        android.graphics.Rect r = CensorExporter.cropRect(CensorRegion.rect(0.101f, 0.2f, 0.499f, 0.8f), 100, 10);
+        assertEquals(new android.graphics.Rect(10, 2, 50, 8), r);
+
+        android.graphics.Rect thin = CensorExporter.cropRect(CensorRegion.rect(0.999f, 0.5f, 1f, 0.5001f), 100, 10);
+        assertEquals(1, thin.width());
+        assertEquals(1, thin.height());
+        assertTrue(thin.right <= 100 && thin.bottom <= 10);
+    }
+
+    @Test
+    public void cropTo_theWholePhoto_isThePhotoItself() throws Exception {
+        Bitmap photo = Bitmap.createBitmap(40, 30, Bitmap.Config.ARGB_8888);
+        org.junit.Assert.assertSame(photo, CensorExporter.cropTo(photo, CensorRegion.rect(0f, 0f, 1f, 1f)));
+        Bitmap part = CensorExporter.cropTo(photo, CensorRegion.rect(0f, 0f, 0.5f, 1f));
+        assertEquals(20, part.getWidth());
+        assertEquals(30, part.getHeight());
+    }
+
+    /** The gain map shows the scene too, so it is cut to the same part, never kept whole. */
+    @Test
+    @org.robolectric.annotation.Config(sdk = 34)
+    public void aCrop_cutsTheGainMapToTheSamePart() throws Exception {
+        Bitmap photo = Bitmap.createBitmap(40, 30, Bitmap.Config.ARGB_8888);
+        Bitmap contents = Bitmap.createBitmap(20, 16, Bitmap.Config.ARGB_8888);
+        contents.eraseColor(Color.WHITE);
+        // Bright only on the left: a crop of the right half must keep none of it.
+        new android.graphics.Canvas(contents).drawColor(Color.BLACK, android.graphics.PorterDuff.Mode.SRC);
+        android.graphics.Paint white = new android.graphics.Paint();
+        white.setColor(Color.WHITE);
+        new android.graphics.Canvas(contents).drawRect(0, 0, 10, 16, white);
+        photo.setGainmap(new android.graphics.Gainmap(contents));
+
+        Bitmap cropped = CensorExporter.cropTo(photo, CensorRegion.rect(0.5f, 0f, 1f, 0.5f));
+
+        assertTrue(cropped.hasGainmap());
+        Bitmap map = cropped.getGainmap().getGainmapContents();
+        assertEquals(10, map.getWidth());
+        assertEquals(8, map.getHeight());
+        for (int x = 0; x < map.getWidth(); x++) {
+            for (int y = 0; y < map.getHeight(); y++) {
+                assertEquals("nothing of the left half's gain map", Color.BLACK, map.getPixel(x, y));
+            }
+        }
+    }
 }

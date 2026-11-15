@@ -33,6 +33,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -40,8 +41,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * State for the Censor tab, shared with the activity so the picker, Scan and "Censor with
- * Redact" can all hand it a photo: the photo, the covered regions with undo and redo, the covered
- * preview and saving the result. Survives tab switches and rotation.
+ * Redact" can all hand it a photo: the photo, the covered regions and the crop with undo and redo,
+ * the covered preview and saving the result. Survives tab switches and rotation.
+ *
+ * <p>The crop is kept in fractions of the whole upright photo, like the regions, so neither has
+ * to be moved when the other changes; the preview stays whole and the canvas dims what the crop
+ * leaves out. Only the saved copy is cut down to it.
  */
 public class CensorViewModel extends AndroidViewModel {
 
@@ -86,9 +91,17 @@ public class CensorViewModel extends AndroidViewModel {
     private final MutableLiveData<Uri> pendingReplacement = new MutableLiveData<>();
 
     private final List<CensorRegion> regions = new ArrayList<>();
-    /** Earlier and undone versions of {@link #regions}, newest first. */
-    private final Deque<List<CensorRegion>> undoHistory = new ArrayDeque<>();
-    private final Deque<List<CensorRegion>> redoHistory = new ArrayDeque<>();
+    /** The part of the photo the saved copy keeps, in fractions of the photo; null for all of it. */
+    @Nullable
+    private CensorRegion crop;
+
+    /** One version of the edits: the regions and the crop, as undo and redo restore them. */
+    private record Edit(@NonNull List<CensorRegion> regions, @Nullable CensorRegion crop) {
+    }
+
+    /** Earlier and undone versions of the edits, newest first. */
+    private final Deque<Edit> undoHistory = new ArrayDeque<>();
+    private final Deque<Edit> redoHistory = new ArrayDeque<>();
 
     @Nullable
     private Uri source;
@@ -117,6 +130,9 @@ public class CensorViewModel extends AndroidViewModel {
     private volatile List<CensorRegion> savedRegions;
     @Nullable
     private volatile CensorEffects.Effect savedEffect;
+    /** The crop the last saved copy was made with. */
+    @Nullable
+    private volatile CensorRegion savedCrop;
 
     private final int previewMaxDimension;
 
@@ -305,6 +321,7 @@ public class CensorViewModel extends AndroidViewModel {
 
     private void reset() {
         regions.clear();
+        crop = null;
         undoHistory.clear();
         redoHistory.clear();
         basePreview = null;
@@ -316,6 +333,7 @@ public class CensorViewModel extends AndroidViewModel {
         lastSaveFailed = false;
         savedRegions = null;
         savedEffect = null;
+        savedCrop = null;
         preview.setValue(null);
         fileName.setValue(null);
         bumpHistory();
@@ -356,14 +374,67 @@ public class CensorViewModel extends AndroidViewModel {
         historyChanged();
     }
 
-    /** Saves the current regions for undo, before they change. */
+    /**
+     * Sets the part of the photo the saved copy keeps, in fractions of the photo, as an edit that
+     * can be undone; null, or a crop of the whole photo, keeps all of it. The preview is not
+     * covered again: the canvas dims what is left out.
+     */
+    public void setCrop(@Nullable CensorRegion newCrop) {
+        CensorRegion normalized = newCrop == null || newCrop.isEmpty() || isWholePhoto(newCrop)
+                ? null : newCrop;
+        if (Objects.equals(normalized, crop)) {
+            // Clears the frame being dragged, which waits for the edit to come back.
+            bumpHistory();
+            return;
+        }
+        remember();
+        crop = normalized;
+        lastSaveFailed = false;
+        bumpHistory();
+    }
+
+    @Nullable
+    public CensorRegion getCrop() {
+        return crop;
+    }
+
+    private static boolean isWholePhoto(@NonNull CensorRegion r) {
+        float[] p = r.points();
+        return p[0] <= 0f && p[1] <= 0f && p[2] >= 1f && p[3] >= 1f;
+    }
+
+    /** Saves the current edits for undo, before they change. */
     private void remember() {
-        undoHistory.push(new ArrayList<>(regions));
+        undoHistory.push(currentEdit());
         redoHistory.clear();
+    }
+
+    @NonNull
+    private Edit currentEdit() {
+        return new Edit(new ArrayList<>(regions), crop);
+    }
+
+    /** Puts back an earlier or undone version, covering the preview again only if the regions changed. */
+    private void restore(@NonNull Edit edit) {
+        boolean regionsChanged = !edit.regions().equals(regions);
+        regions.clear();
+        regions.addAll(edit.regions());
+        crop = edit.crop();
+        if (regionsChanged) {
+            historyChanged();
+        } else {
+            lastSaveFailed = false;
+            bumpHistory();
+        }
     }
 
     public boolean hasRegions() {
         return !regions.isEmpty();
+    }
+
+    /** Whether there is anything to save: a covered area or a crop. */
+    public boolean hasEdits() {
+        return !regions.isEmpty() || crop != null;
     }
 
     public boolean canUndo() {
@@ -376,19 +447,15 @@ public class CensorViewModel extends AndroidViewModel {
 
     public void undo() {
         if (canUndo()) {
-            redoHistory.push(new ArrayList<>(regions));
-            regions.clear();
-            regions.addAll(undoHistory.pop());
-            historyChanged();
+            redoHistory.push(currentEdit());
+            restore(undoHistory.pop());
         }
     }
 
     public void redo() {
         if (canRedo()) {
-            undoHistory.push(new ArrayList<>(regions));
-            regions.clear();
-            regions.addAll(redoHistory.pop());
-            historyChanged();
+            undoHistory.push(currentEdit());
+            restore(redoHistory.pop());
         }
     }
 
@@ -401,13 +468,15 @@ public class CensorViewModel extends AndroidViewModel {
         }
     }
 
-    /** Whether there are regions that have not been saved in their current form. */
+    /** Whether there are edits (regions or a crop) that have not been saved in their current form. */
     public boolean hasUnsavedEdits() {
-        if (regions.isEmpty()) {
+        if (!hasEdits()) {
             return false;
         }
         List<CensorRegion> saved = savedRegions;
-        return saved == null || !saved.equals(regions) || savedEffect != effect.getValue();
+        return saved == null || !saved.equals(regions) || !Objects.equals(savedCrop, crop)
+                // The effect only shows on covered areas.
+                || (!regions.isEmpty() && savedEffect != effect.getValue());
     }
 
     @NonNull
@@ -417,10 +486,11 @@ public class CensorViewModel extends AndroidViewModel {
 
     public void save() {
         Uri uri = source;
-        if (uri == null || regions.isEmpty() || state.getValue() != State.READY) {
+        if (uri == null || !hasEdits() || state.getValue() != State.READY) {
             return;
         }
         List<CensorRegion> snapshot = new ArrayList<>(regions);
+        CensorRegion cropSnapshot = crop;
         CensorEffects.Effect chosen = effectOrDefault();
         int generation = photoGeneration.get();
         String name = fileName.getValue();
@@ -431,7 +501,7 @@ public class CensorViewModel extends AndroidViewModel {
             SentryManager.beginOperation("censor_export");
             try {
                 CensorExporter.Result result =
-                        CensorExporter.export(getApplication(), uri, name, snapshot, chosen);
+                        CensorExporter.export(getApplication(), uri, name, snapshot, cropSnapshot, chosen);
                 // The copy went through a clean, so it counts in the statistics like one.
                 StatsStore.recordClean(getApplication(),
                         result.stats != null ? result.stats
@@ -444,6 +514,7 @@ public class CensorViewModel extends AndroidViewModel {
                 lastSaveFailed = false;
                 savedRegions = snapshot;
                 savedEffect = chosen;
+                savedCrop = cropSnapshot;
                 // Counted here, so a save that finishes with the app in the background still counts.
                 ReviewPrompt.recordSuccessfulJob(getApplication(),
                         result.stats != null && result.stats.hadLocation);

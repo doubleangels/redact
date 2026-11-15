@@ -432,11 +432,12 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="censor_empty_state_title">Cubre lo Que Debe Seguir Siendo Privado</string>
     <string name="censor_empty_state_description">Pixela, tapa en negro o desenfoca caras, matrículas, direcciones y cualquier otra cosa de una foto. Redact guarda una copia censurada sin metadatos, y tu original queda tal como está.</string>
     <string name="censor_select_photo">Seleccionar Foto</string>
-    <string name="censor_hint">Dibuja sobre todo lo que deba seguir siendo privado y luego toca Guardar Copia. Usa Mover para hacer zoom con dos dedos y desplazarte, y toca un rectángulo para moverlo o cambiar su tamaño.</string>
+    <string name="censor_hint">Dibuja sobre todo lo que deba seguir siendo privado y luego toca Guardar Copia. Usa Mover para hacer zoom con dos dedos y desplazarte, y toca un rectángulo para moverlo o cambiar su tamaño. Usa Recortar para conservar solo una parte de la foto.</string>
     <string name="censor_canvas_description">Foto que se está censurando. Dibuja con un dedo para cubrir una zona. Con Mover, arrastra para desplazarte y pellizca para hacer zoom.</string>
     <string name="censor_tool_rectangle">Rectángulo</string>
     <string name="censor_tool_brush">Pincel</string>
     <string name="censor_tool_move">Mover</string>
+    <string name="censor_tool_crop">Recortar</string>
     <string name="censor_brush_size">Tamaño del pincel</string>
     <string name="censor_effect_pixelate">Pixelar</string>
     <string name="censor_effect_black">Negro</string>
@@ -446,8 +447,11 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="censor_undo">Deshacer</string>
     <string name="censor_redo">Rehacer</string>
     <string name="censor_delete_rectangle">Eliminar Rectángulo</string>
+    <string name="censor_reset_crop">Restablecer Recorte</string>
     <string name="censor_add_area">Añadir Área</string>
     <string name="censor_area_description">Área censurada %1$d de %2$d</string>
+    <string name="censor_crop_description">Recorte: la parte de la foto que conserva la copia</string>
+    <string name="censor_crop_whole_description">Recorte: la foto entera</string>
     <string name="censor_action_move_left">Mover a la Izquierda</string>
     <string name="censor_action_move_right">Mover a la Derecha</string>
     <string name="censor_action_move_up">Mover Arriba</string>

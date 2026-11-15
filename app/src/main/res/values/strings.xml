@@ -424,11 +424,12 @@
     <string name="censor_empty_state_title">Cover What Should Stay Private</string>
     <string name="censor_empty_state_description">Pixelate, black out or blur faces, number plates, addresses and anything else in a photo. Redact saves a censored copy without any metadata, and your original stays as it is.</string>
     <string name="censor_select_photo">Select Photo</string>
-    <string name="censor_hint">Draw over anything that should stay private, then tap Save Copy. Use Move to pinch-zoom and pan, and tap a rectangle to move or resize it.</string>
+    <string name="censor_hint">Draw over anything that should stay private, then tap Save Copy. Use Move to pinch-zoom and pan, and tap a rectangle to move or resize it. Use Crop to keep only part of the photo.</string>
     <string name="censor_canvas_description">Photo being censored. Draw with one finger to cover an area. With Move, drag to pan and pinch to zoom.</string>
     <string name="censor_tool_rectangle">Rectangle</string>
     <string name="censor_tool_brush">Brush</string>
     <string name="censor_tool_move">Move</string>
+    <string name="censor_tool_crop">Crop</string>
     <string name="censor_brush_size">Brush size</string>
     <string name="censor_effect_pixelate">Pixelate</string>
     <string name="censor_effect_black">Black</string>
@@ -438,8 +439,11 @@
     <string name="censor_undo">Undo</string>
     <string name="censor_redo">Redo</string>
     <string name="censor_delete_rectangle">Delete Rectangle</string>
+    <string name="censor_reset_crop">Reset Crop</string>
     <string name="censor_add_area">Add Area</string>
     <string name="censor_area_description">Censored area %1$d of %2$d</string>
+    <string name="censor_crop_description">Crop: the part of the photo the copy keeps</string>
+    <string name="censor_crop_whole_description">Crop: the whole photo</string>
     <string name="censor_action_move_left">Move Left</string>
     <string name="censor_action_move_right">Move Right</string>
     <string name="censor_action_move_up">Move Up</string>

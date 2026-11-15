@@ -446,11 +446,12 @@
     <string name="censor_empty_state_title">Скройте То, Что Должно Остаться Личным</string>
     <string name="censor_empty_state_description">Пикселизируйте, закрасьте чёрным или размойте лица, номера машин, адреса и всё остальное на фото. Redact сохраняет копию со скрытыми областями без метаданных, а оригинал остаётся без изменений.</string>
     <string name="censor_select_photo">Выбрать Фото</string>
-    <string name="censor_hint">Закрасьте всё, что должно остаться личным, затем нажмите Сохранить Копию. В режиме Переместить сводите пальцы для масштаба и перетаскивайте фото; нажмите на прямоугольник, чтобы переместить его или изменить размер.</string>
+    <string name="censor_hint">Закрасьте всё, что должно остаться личным, затем нажмите Сохранить Копию. В режиме Переместить сводите пальцы для масштаба и перетаскивайте фото; нажмите на прямоугольник, чтобы переместить его или изменить размер. Инструмент Обрезать оставляет только часть фото.</string>
     <string name="censor_canvas_description">Редактируемое фото. Рисуйте одним пальцем, чтобы скрыть область. В режиме Переместить перетаскивайте фото и сводите пальцы для масштаба.</string>
     <string name="censor_tool_rectangle">Прямоугольник</string>
     <string name="censor_tool_brush">Кисть</string>
     <string name="censor_tool_move">Переместить</string>
+    <string name="censor_tool_crop">Обрезать</string>
     <string name="censor_brush_size">Размер кисти</string>
     <string name="censor_effect_pixelate">Пиксели</string>
     <string name="censor_effect_black">Чёрный</string>
@@ -460,8 +461,11 @@
     <string name="censor_undo">Отменить</string>
     <string name="censor_redo">Повторить</string>
     <string name="censor_delete_rectangle">Удалить Прямоугольник</string>
+    <string name="censor_reset_crop">Сбросить Обрезку</string>
     <string name="censor_add_area">Добавить Область</string>
     <string name="censor_area_description">Скрытая область %1$d из %2$d</string>
+    <string name="censor_crop_description">Обрезка: часть фото, которая останется в копии</string>
+    <string name="censor_crop_whole_description">Обрезка: всё фото</string>
     <string name="censor_action_move_left">Сдвинуть Влево</string>
     <string name="censor_action_move_right">Сдвинуть Вправо</string>
     <string name="censor_action_move_up">Сдвинуть Вверх</string>
