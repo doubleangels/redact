@@ -323,11 +323,10 @@ The Settings tab puts the settings you use every day first: cleaning, sharing, C
 | Setting | What it does |
 |---|---|
 | **Send Crash Reports** | Optional anonymized crash diagnostics through Sentry, off by default, with a consent prompt. On first start the introduction asks once, on its own page, whether to turn it on; choosing Not Now leaves it off. |
-| **Check for Updates** | Asks GitHub for the newest version number when you tap it, and offers the store page when a newer one is out. Never runs on its own. |
 
 **Reset All Settings** puts every setting back to its default and forgets the chosen output folders. Your files are not touched.
 
-**About**: version, links, **Open-Source Licenses** (every library Redact ships, with its full license text, readable offline), **Show Introduction** and **Rate Redact on Google Play**.
+**About**: version, **Check for Updates** (asks GitHub for the newest version number when you tap it and offers the store page when a newer one is out; it never runs on its own), links, **Open-Source Licenses** (every library Redact ships, with its full license text, readable offline), **Show Introduction** and **Rate Redact on Google Play**.
 
 Open the Settings tab in the app for the full list.
 
