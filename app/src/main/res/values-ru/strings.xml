@@ -487,10 +487,11 @@
     <string name="button_scan_result">Сканировать Результат</string>
     <string name="settings_keep_original_names">Сохранять Исходные Имена</string>
     <string name="settings_keep_original_names_subtitle">Очищенные и преобразованные файлы получают имя оригинала вместо случайного. Имена вроде IMG_20260117 могут показать, когда был сделан снимок.</string>
-    <string name="review_prompt_title">Оцените Redact</string>
-    <string name="review_prompt_message">Если Redact помогает сохранять ваши фото в тайне, не хотите оценить его в Google Play? Это займёт минуту и поможет другим людям найти приложение.</string>
-    <string name="review_prompt_yes">Да</string>
-    <string name="review_prompt_no">Нет</string>
+    <string name="review_prompt_title">Помогите другим найти Redact</string>
+    <string name="review_prompt_message">Redact — независимый проект одного человека, без рекламы, без отслеживания и без бюджета на продвижение. Оценка в Google Play и пара слов о том, для чего вы им пользуетесь, — лучшая помощь: именно так приложение находят другие.</string>
+    <string name="review_prompt_yes">Оценить в Google Play</string>
+    <string name="review_prompt_no">Нет, спасибо</string>
+    <string name="review_prompt_later">Не сейчас</string>
     <string name="review_prompt_declined">Хорошо, Redact больше не будет спрашивать. Если передумаете, оценить приложение можно в любое время в разделе Настройки › О приложении.</string>
     <string name="error_feedback_offer">Что-то пошло не так. Отчёт о сбое отправлен.</string>
     <string name="error_feedback_action">Добавить Подробности</string>

@@ -465,10 +465,11 @@
     <string name="button_scan_result">Scan Result</string>
     <string name="settings_keep_original_names">Keep Original File Names</string>
     <string name="settings_keep_original_names_subtitle">Name cleaned and converted files after the originals instead of a random name. Names such as IMG_20260117 can reveal when a photo was taken.</string>
-    <string name="review_prompt_title">Rate Redact</string>
-    <string name="review_prompt_message">If Redact has helped keep your photos private, would you like to rate it on Google Play? It only takes a moment, and it helps other people find the app.</string>
-    <string name="review_prompt_yes">Yes</string>
-    <string name="review_prompt_no">No</string>
+    <string name="review_prompt_title">Help Others Find Redact</string>
+    <string name="review_prompt_message">Redact is an independent project made by one person, with no ads, no tracking and no marketing budget. A rating on Google Play, with a sentence about what you use it for, is the biggest help there is: that\'s how other people find it.</string>
+    <string name="review_prompt_yes">Rate on Google Play</string>
+    <string name="review_prompt_no">No Thanks</string>
+    <string name="review_prompt_later">Not Now</string>
     <string name="review_prompt_declined">Got it, Redact won\'t ask again. If you change your mind, you can rate it anytime from Settings › About.</string>
     <string name="error_feedback_offer">Something went wrong. A crash report was sent.</string>
     <string name="error_feedback_action">Add Details</string>

@@ -108,7 +108,7 @@ public class ReviewPromptTest {
     }
 
     @Test
-    public void asksOnlyAfterThreeSuccessfulJobs_withJustYesAndNo() {
+    public void asksOnlyAfterThreeSuccessfulJobs_withRateNotNowAndNoThanks() {
         assertNull(succeed(ReviewPrompt.ASK_AFTER - 1));
         AlertDialog dialog = succeed(1);
         assertNotNull(dialog);
@@ -116,7 +116,33 @@ public class ReviewPromptTest {
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).getText().toString());
         assertEquals(activity.getString(R.string.review_prompt_no),
                 dialog.getButton(AlertDialog.BUTTON_NEGATIVE).getText().toString());
-        assertEquals(View.GONE, dialog.getButton(AlertDialog.BUTTON_NEUTRAL).getVisibility());
+        assertEquals(activity.getString(R.string.review_prompt_later),
+                dialog.getButton(AlertDialog.BUTTON_NEUTRAL).getText().toString());
+    }
+
+    /** Not Now asks once more, later, and that last ask has no Not Now. */
+    @Test
+    public void notNow_asksOnceMoreAfterMoreJobs_thenNeverAgain() {
+        press(succeed(ReviewPrompt.ASK_AFTER), AlertDialog.BUTTON_NEUTRAL);
+        assertEquals(ReviewPrompt.STATE_LATER, prefs().getInt(ReviewPrompt.KEY_STATE, -1));
+        assertNull(nextViewIntent());
+
+        assertNull(succeed(ReviewPrompt.ASK_AGAIN_AFTER - 1));
+        AlertDialog last = succeed(1);
+        assertNotNull(last);
+        assertEquals(View.GONE, last.getButton(AlertDialog.BUTTON_NEUTRAL).getVisibility());
+
+        press(last, AlertDialog.BUTTON_NEGATIVE);
+        assertEquals(ReviewPrompt.STATE_DONE, prefs().getInt(ReviewPrompt.KEY_STATE, -1));
+        assertNull(succeed(50));
+    }
+
+    @Test
+    public void notNow_survivesResettingSettings() {
+        press(succeed(ReviewPrompt.ASK_AFTER), AlertDialog.BUTTON_NEUTRAL);
+        AppPreferences.resetAll(activity);
+        assertEquals(ReviewPrompt.STATE_LATER, prefs().getInt(ReviewPrompt.KEY_STATE, -1));
+        assertNull(succeed(ReviewPrompt.ASK_AFTER));
     }
 
     @Test

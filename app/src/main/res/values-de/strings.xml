@@ -458,10 +458,11 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="button_scan_result">Ergebnis Scannen</string>
     <string name="settings_keep_original_names">Originale Dateinamen Behalten</string>
     <string name="settings_keep_original_names_subtitle">Bereinigte und konvertierte Dateien erhalten den Namen des Originals statt eines zufälligen Namens. Namen wie IMG_20260117 können verraten, wann ein Foto aufgenommen wurde.</string>
-    <string name="review_prompt_title">Redact Bewerten</string>
-    <string name="review_prompt_message">Wenn Redact dir hilft, deine Fotos privat zu halten, möchtest du es bei Google Play bewerten? Das dauert nur einen Moment und hilft anderen, die App zu finden.</string>
-    <string name="review_prompt_yes">Ja</string>
-    <string name="review_prompt_no">Nein</string>
+    <string name="review_prompt_title">Hilf anderen, Redact zu finden</string>
+    <string name="review_prompt_message">Redact ist ein unabhängiges Ein-Personen-Projekt, ohne Werbung, ohne Tracking und ohne Marketingbudget. Eine Bewertung bei Google Play, gern mit einem Satz dazu, wofür du es nutzt, hilft am meisten: So finden andere die App.</string>
+    <string name="review_prompt_yes">Bei Google Play bewerten</string>
+    <string name="review_prompt_no">Nein, danke</string>
+    <string name="review_prompt_later">Später</string>
     <string name="review_prompt_declined">Alles klar, Redact fragt nicht noch einmal. Falls du es dir anders überlegst, kannst du es jederzeit unter Einstellungen › Über bewerten.</string>
     <string name="error_feedback_offer">Etwas ist schiefgelaufen. Ein Absturzbericht wurde gesendet.</string>
     <string name="error_feedback_action">Details Hinzufügen</string>

@@ -445,10 +445,11 @@
     <string name="button_scan_result">결과 스캔</string>
     <string name="settings_keep_original_names">원본 파일 이름 유지</string>
     <string name="settings_keep_original_names_subtitle">정리하거나 변환한 파일에 무작위 이름 대신 원본 파일 이름을 사용합니다. IMG_20260117 같은 이름은 사진을 찍은 시기를 드러낼 수 있습니다.</string>
-    <string name="review_prompt_title">Redact 평가하기</string>
-    <string name="review_prompt_message">Redact가 사진을 비공개로 지키는 데 도움이 되었다면 Google Play에서 평가해 주시겠어요? 잠깐이면 되고, 다른 사람들이 앱을 찾는 데 도움이 됩니다.</string>
-    <string name="review_prompt_yes">예</string>
-    <string name="review_prompt_no">아니요</string>
+    <string name="review_prompt_title">다른 사람들이 Redact를 찾도록 도와주세요</string>
+    <string name="review_prompt_message">Redact는 한 사람이 만드는 독립 프로젝트로, 광고도 추적도 마케팅 예산도 없습니다. Google Play 평점과 함께 어떤 용도로 쓰는지 한 문장만 남겨 주시면 가장 큰 도움이 됩니다. 다른 사람들은 그렇게 이 앱을 찾습니다.</string>
+    <string name="review_prompt_yes">Google Play에서 평가</string>
+    <string name="review_prompt_no">괜찮습니다</string>
+    <string name="review_prompt_later">나중에</string>
     <string name="review_prompt_declined">알겠습니다. 다시 묻지 않을게요. 마음이 바뀌면 설정 › 정보에서 언제든지 평가할 수 있습니다.</string>
     <string name="error_feedback_offer">문제가 발생했습니다. 비정상 종료 보고서를 보냈습니다.</string>
     <string name="error_feedback_action">세부정보 추가</string>

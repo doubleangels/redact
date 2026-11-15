@@ -459,10 +459,11 @@
     <string name="button_scan_result">परिणाम स्कैन करें</string>
     <string name="settings_keep_original_names">मूल फ़ाइल नाम रखें</string>
     <string name="settings_keep_original_names_subtitle">साफ़ और कन्वर्ट की गई फ़ाइलों को किसी यादृच्छिक नाम के बजाय मूल फ़ाइल का नाम दें। IMG_20260117 जैसे नाम बता सकते हैं कि फ़ोटो कब ली गई थी।</string>
-    <string name="review_prompt_title">Redact को रेट करें</string>
-    <string name="review_prompt_message">अगर Redact ने आपकी फ़ोटो को निजी रखने में मदद की है, तो क्या आप इसे Google Play पर रेट करना चाहेंगे? इसमें बस एक पल लगता है, और इससे दूसरे लोगों को ऐप ढूँढने में मदद मिलती है।</string>
-    <string name="review_prompt_yes">हाँ</string>
-    <string name="review_prompt_no">नहीं</string>
+    <string name="review_prompt_title">दूसरों को Redact ढूँढने में मदद करें</string>
+    <string name="review_prompt_message">Redact एक व्यक्ति का स्वतंत्र प्रोजेक्ट है, बिना विज्ञापन, बिना ट्रैकिंग और बिना मार्केटिंग बजट के। Google Play पर रेटिंग, और साथ में एक वाक्य कि आप इसे किस काम के लिए इस्तेमाल करते हैं, सबसे बड़ी मदद है: इसी से दूसरे लोग इसे ढूँढ पाते हैं।</string>
+    <string name="review_prompt_yes">Google Play पर रेट करें</string>
+    <string name="review_prompt_no">नहीं, धन्यवाद</string>
+    <string name="review_prompt_later">अभी नहीं</string>
     <string name="review_prompt_declined">ठीक है, Redact फिर से नहीं पूछेगा। अगर आप अपना मन बदलें, तो सेटिंग्स › के बारे में से इसे कभी भी रेट कर सकते हैं।</string>
     <string name="error_feedback_offer">कुछ गलत हो गया। एक क्रैश रिपोर्ट भेजी गई।</string>
     <string name="error_feedback_action">विवरण जोड़ें</string>

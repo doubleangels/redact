@@ -473,10 +473,11 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="button_scan_result">Scanner le Résultat</string>
     <string name="settings_keep_original_names">Conserver les Noms de Fichiers</string>
     <string name="settings_keep_original_names_subtitle">Les fichiers nettoyés et convertis gardent le nom de l\'original au lieu d\'un nom aléatoire. Un nom comme IMG_20260117 peut révéler quand une photo a été prise.</string>
-    <string name="review_prompt_title">Noter Redact</string>
-    <string name="review_prompt_message">Si Redact vous aide à garder vos photos privées, voulez-vous le noter sur Google Play ? Cela ne prend qu\'un instant et aide d\'autres personnes à trouver l\'application.</string>
-    <string name="review_prompt_yes">Oui</string>
-    <string name="review_prompt_no">Non</string>
+    <string name="review_prompt_title">Aidez d\'autres personnes à trouver Redact</string>
+    <string name="review_prompt_message">Redact est un projet indépendant mené par une seule personne, sans publicité, sans pistage et sans budget marketing. Une note sur Google Play, avec une phrase sur l\'usage que vous en faites, est la plus grande aide qui soit : c\'est ainsi que d\'autres le découvrent.</string>
+    <string name="review_prompt_yes">Noter sur Google Play</string>
+    <string name="review_prompt_no">Non merci</string>
+    <string name="review_prompt_later">Plus tard</string>
     <string name="review_prompt_declined">C\'est noté, Redact ne vous le redemandera pas. Si vous changez d\'avis, vous pouvez le noter à tout moment depuis Paramètres › À propos.</string>
     <string name="error_feedback_offer">Un problème est survenu. Un rapport de plantage a été envoyé.</string>
     <string name="error_feedback_action">Ajouter des Détails</string>

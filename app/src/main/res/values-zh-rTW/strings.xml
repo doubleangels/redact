@@ -445,10 +445,11 @@
     <string name="button_scan_result">掃描結果</string>
     <string name="settings_keep_original_names">保留原始檔名</string>
     <string name="settings_keep_original_names_subtitle">清理與轉換後的檔案沿用原始檔名，而非隨機名稱。IMG_20260117 這類名稱可能透露照片的拍攝時間。</string>
-    <string name="review_prompt_title">為 Redact 評分</string>
-    <string name="review_prompt_message">如果 Redact 幫你保護了照片隱私，願意在 Google Play 上為它評分嗎？只需片刻，還能幫助更多人找到這個應用程式。</string>
-    <string name="review_prompt_yes">願意</string>
+    <string name="review_prompt_title">幫助更多人找到 Redact</string>
+    <string name="review_prompt_message">Redact 是一個人獨立製作的專案，沒有廣告、沒有追蹤，也沒有宣傳預算。在 Google Play 上評個分，再寫一句你用它做什麼，就是最大的幫助：別人正是這樣找到它的。</string>
+    <string name="review_prompt_yes">在 Google Play 上評分</string>
     <string name="review_prompt_no">不用了</string>
+    <string name="review_prompt_later">以後再說</string>
     <string name="review_prompt_declined">好的，Redact 不會再詢問。如果你改變主意，隨時可以在「設定 › 關於」中評分。</string>
     <string name="error_feedback_offer">發生問題。已傳送當機報告。</string>
     <string name="error_feedback_action">新增詳細資訊</string>

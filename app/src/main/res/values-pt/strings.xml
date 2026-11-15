@@ -473,10 +473,11 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="button_scan_result">Escanear Resultado</string>
     <string name="settings_keep_original_names">Manter Nomes Originais</string>
     <string name="settings_keep_original_names_subtitle">Os arquivos limpos e convertidos recebem o nome do original em vez de um nome aleatório. Nomes como IMG_20260117 podem revelar quando uma foto foi tirada.</string>
-    <string name="review_prompt_title">Avalie o Redact</string>
-    <string name="review_prompt_message">Se o Redact ajudou a manter suas fotos privadas, você gostaria de avaliá-lo no Google Play? Leva só um instante e ajuda outras pessoas a encontrar o app.</string>
-    <string name="review_prompt_yes">Sim</string>
-    <string name="review_prompt_no">Não</string>
+    <string name="review_prompt_title">Ajude outras pessoas a encontrar o Redact</string>
+    <string name="review_prompt_message">O Redact é um projeto independente de uma pessoa só, sem anúncios, sem rastreamento e sem verba de marketing. Uma avaliação no Google Play, com uma frase sobre para que você o usa, é a maior ajuda possível: é assim que outras pessoas o encontram.</string>
+    <string name="review_prompt_yes">Avaliar no Google Play</string>
+    <string name="review_prompt_no">Não, obrigado</string>
+    <string name="review_prompt_later">Agora não</string>
     <string name="review_prompt_declined">Tudo bem, o Redact não vai perguntar de novo. Se mudar de ideia, você pode avaliá-lo quando quiser em Configurações › Sobre.</string>
     <string name="error_feedback_offer">Algo deu errado. Um relatório de falhas foi enviado.</string>
     <string name="error_feedback_action">Adicionar Detalhes</string>
