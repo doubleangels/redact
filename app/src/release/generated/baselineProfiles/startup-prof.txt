@@ -406,7 +406,7 @@ SPLandroidx/appcompat/view/WindowCallbackWrapper;->dispatchPopulateAccessibility
 SPLandroidx/appcompat/view/WindowCallbackWrapper;->getWrapped()Landroid/view/Window$Callback;
 SPLandroidx/appcompat/view/WindowCallbackWrapper;->onAttachedToWindow()V
 SPLandroidx/appcompat/view/WindowCallbackWrapper;->onWindowAttributesChanged(Landroid/view/WindowManager$LayoutParams;)V
-PLandroidx/appcompat/view/WindowCallbackWrapper;->onWindowFocusChanged(Z)V
+SPLandroidx/appcompat/view/WindowCallbackWrapper;->onWindowFocusChanged(Z)V
 Landroidx/appcompat/view/menu/MenuBuilder;
 SPLandroidx/appcompat/view/menu/MenuBuilder;-><clinit>()V
 SPLandroidx/appcompat/view/menu/MenuBuilder;-><init>(Landroid/content/Context;)V
