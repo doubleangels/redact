@@ -16,6 +16,11 @@
 </p>
 
 <p align="center">
+  <strong>Using Redact?</strong> It's made by one person, with no ads and no marketing budget.<br>
+  A short <a href="https://play.google.com/store/apps/details?id=com.doubleangels.redact">review on Google Play</a>, saying what you use it for, is the biggest help there is: it's how other people find it.
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/github/actions/workflow/status/doubleangels/redact/.github/workflows/deploy.yml?label=Deployment%20Pipeline&style=for-the-badge" alt="Deployment pipeline status">
   <img src="https://img.shields.io/github/actions/workflow/status/doubleangels/redact/.github/workflows/test-dev.yml?label=Development%20Testing&style=for-the-badge" alt="Development testing status">
   <img src="https://img.shields.io/librariesio/github/doubleangels/redact?label=Dependencies&style=for-the-badge" alt="Dependencies">
