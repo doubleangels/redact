@@ -1686,8 +1686,9 @@ public final class VideoMedia3Converter {
     public static final String TRANSCODE_EXTENSION = ".mp4";
 
     /**
-     * The container a source in this format is usually in, which the fast transmux keeps (it
-     * writes WebM for VP8/VP9). A transcode is always {@link #TRANSCODE_EXTENSION}.
+     * The container the fast transmux writes for a source in this format: WebM for VP8/VP9, MP4
+     * for everything else, AV1 included (an AV1 source is often Matroska, but the transmux
+     * writes it to MP4). A transcode is always {@link #TRANSCODE_EXTENSION}.
      */
     @NonNull
     public static String extensionForFormatIndex(int formatIndex) {
@@ -1695,7 +1696,6 @@ public final class VideoMedia3Converter {
             case 2:
                 return ".webm";
             case 3:
-                return ".mkv";
             case 0:
             case 1:
             default:

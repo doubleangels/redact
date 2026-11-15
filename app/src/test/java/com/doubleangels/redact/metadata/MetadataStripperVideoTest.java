@@ -357,6 +357,23 @@ public class MetadataStripperVideoTest {
         assertEquals(Integer.valueOf(100), progress.get(progress.size() - 1));
     }
 
+    /** An AV1 video takes the fast path too: its transmux is an MP4, as the check expects. */
+    @Test
+    public void stripVideo_fastPath_keepsAnAv1Transmux() throws Exception {
+        AppPreferences.setStrictClean(app, false);
+        AppPreferences.setVideoFallbackCopy(app, true);
+        File clean = videoFile(".mp4");
+        stripper = new MetadataStripper(app, (uri, location, date) -> clean);
+        Uri source = withTracks(videoFile(".mp4"), videoFormat(MediaFormat.MIMETYPE_VIDEO_AV1));
+
+        assertNotNull((lastResult = stripper.cleanVideo(source, "drone.mp4")).uri());
+
+        FakeMediaStoreProvider.Entry entry = FakeMediaStoreProvider.only();
+        assertEquals("video/mp4", entry.mimeType());
+        assertEquals("the transmux was saved as it is, not re-encoded",
+                TestVideos.cleanMp4().length, entry.file.length());
+    }
+
     private File writeVideo(byte[] content) throws IOException {
         File f = TestVideos.write(app.getFilesDir(), "v.mp4", content);
         files.add(f);
