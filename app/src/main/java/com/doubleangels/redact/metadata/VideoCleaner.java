@@ -372,7 +372,7 @@ final class VideoCleaner {
         for (int sourceTrack : muxerTracks.keySet()) {
             extractor.selectTrack(sourceTrack);
         }
-        ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024 * 2);
+        ByteBuffer buffer = ByteBuffer.allocate(INITIAL_SAMPLE_BUFFER);
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         while (true) {
             host.checkCancelled();
@@ -385,16 +385,12 @@ final class VideoCleaner {
                 extractor.advance();
                 continue;
             }
+            // readSampleData throws rather than report a sample bigger than the buffer, so the
+            // buffer is grown first, from the size the extractor gives.
+            buffer = bufferFor(buffer, extractor.getSampleSize());
             info.size = extractor.readSampleData(buffer, 0);
             if (info.size < 0) {
                 break;
-            }
-            if (info.size > buffer.capacity()) {
-                buffer = ByteBuffer.allocate(info.size);
-                info.size = extractor.readSampleData(buffer, 0);
-                if (info.size < 0) {
-                    break;
-                }
             }
             info.presentationTimeUs = extractor.getSampleTime();
             int sampleFlags = extractor.getSampleFlags();
@@ -743,6 +739,34 @@ final class VideoCleaner {
         }
     }
 
+    /** What each sample is read into at first; {@link #bufferFor} grows it for a larger one. */
+    private static final int INITIAL_SAMPLE_BUFFER = 2 * 1024 * 1024;
+
+    /**
+     * No real frame comes near this; a size beyond it is a damaged or hostile file, which the
+     * caller turns into a full re-encode rather than an allocation that could run out of memory.
+     */
+    @VisibleForTesting
+    static final int MAX_SAMPLE_BYTES = 64 * 1024 * 1024;
+
+    /**
+     * {@code buffer}, or a new one big enough for a sample of {@code sampleSize} bytes, as
+     * {@link MediaExtractor#getSampleSize()} gives it (-1 when there are no more samples).
+     *
+     * @throws IOException when the sample is larger than {@link #MAX_SAMPLE_BYTES}
+     */
+    @VisibleForTesting
+    @NonNull
+    static ByteBuffer bufferFor(@NonNull ByteBuffer buffer, long sampleSize) throws IOException {
+        if (sampleSize <= buffer.capacity()) {
+            return buffer;
+        }
+        if (sampleSize > MAX_SAMPLE_BYTES) {
+            throw new CleanFailedException("Video sample too large");
+        }
+        return ByteBuffer.allocate((int) sampleSize);
+    }
+
     /** The first sample of {@code track}, read with an extractor of its own. */
     @NonNull
     private byte[] firstSample(@NonNull Uri sourceUri, int track) throws IOException {
@@ -750,7 +774,7 @@ final class VideoCleaner {
         try {
             extractor.setDataSource(context, sourceUri, null);
             extractor.selectTrack(track);
-            ByteBuffer buffer = ByteBuffer.allocate(2 * 1024 * 1024);
+            ByteBuffer buffer = bufferFor(ByteBuffer.allocate(INITIAL_SAMPLE_BUFFER), extractor.getSampleSize());
             int size = extractor.readSampleData(buffer, 0);
             if (size <= 0) {
                 throw new CleanFailedException("The video has no samples");
