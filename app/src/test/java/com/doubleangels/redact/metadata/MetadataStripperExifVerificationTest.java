@@ -310,7 +310,8 @@ public class MetadataStripperExifVerificationTest {
 
         File motion = File.createTempFile("verify_", ".heic");
         motion.deleteOnExit();
-        HeifContainerMetadata.sanitize(heic, motion, new MotionPhoto.Clip(video, inJpeg.presentationTimestampUs));
+        HeifContainerMetadata.sanitize(heic, motion, new MotionPhoto.Clip(video, inJpeg.presentationTimestampUs),
+                motion.getAbsoluteFile().getParentFile());
         assertTrue("a kept Motion Photo's directory and clean video pass", verify(motion));
 
         // The source still has its own XMP item, which no clean keeps.

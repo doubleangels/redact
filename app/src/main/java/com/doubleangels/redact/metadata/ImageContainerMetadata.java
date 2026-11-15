@@ -234,17 +234,27 @@ public final class ImageContainerMetadata {
      * @throws IOException when the file is not a JPEG, PNG or WebP this class can follow, so the
      *     caller re-encodes it from its pixels instead
      */
+    @VisibleForTesting
     public static void sanitize(@NonNull File source, @NonNull File target) throws IOException {
-        sanitize(source, target, null);
+        sanitize(source, target, null, target.getAbsoluteFile().getParentFile());
+    }
+
+    /** {@link #sanitize(File, File)} with its intermediate files in {@code workDir}. */
+    static void sanitize(@NonNull File source, @NonNull File target, @NonNull File workDir)
+            throws IOException {
+        sanitize(source, target, null, workDir);
     }
 
     /**
      * {@link #sanitize(File, File)}, putting {@code motion}, a Motion Photo's video that has been
      * cleaned already, back after a JPEG's picture with the XMP that tells a gallery it is there.
      * It is left out of any other format.
+     *
+     * @param workDir where intermediate files go: never the folder FileProvider serves, since
+     *     they can hold the source's metadata
      */
-    public static void sanitize(@NonNull File source, @NonNull File target, @Nullable MotionPhoto.Clip motion)
-            throws IOException {
+    public static void sanitize(@NonNull File source, @NonNull File target, @Nullable MotionPhoto.Clip motion,
+                                @NonNull File workDir) throws IOException {
         if (source.getCanonicalPath().equals(target.getCanonicalPath())) {
             throw new IOException("Source and target must differ");
         }
@@ -252,7 +262,7 @@ public final class ImageContainerMetadata {
         try (FileInputStream in = new FileInputStream(source);
              OutputStream out = new BufferedOutputStream(new FileOutputStream(target), 64 * 1024)) {
             walker = new Walker(in.getChannel(), out);
-            walker.workDir = target.getAbsoluteFile().getParentFile();
+            walker.workDir = workDir;
             if (!walker.run()) {
                 throw new IOException("Not a JPEG, PNG or WebP file");
             }
@@ -264,7 +274,8 @@ public final class ImageContainerMetadata {
         boolean directoryWritten = false;
         if (walker.gainMapStart >= 0) {
             try {
-                UltraHdr.rebuild(source, walker.gainMapStart, walker.gainMapEnd, walker.primaryIso, target, motion);
+                UltraHdr.rebuild(source, walker.gainMapStart, walker.gainMapEnd, walker.primaryIso, target, motion,
+                        workDir);
                 directoryWritten = true;
             } catch (IOException | RuntimeException e) {
                 // The picture written above is complete; it is only without its HDR.
@@ -274,7 +285,7 @@ public final class ImageContainerMetadata {
         }
         if (motion != null) {
             if (!directoryWritten) {
-                UltraHdr.insertPrimaryXmp(target, UltraHdr.primaryXmp(null, -1, motion));
+                UltraHdr.insertPrimaryXmp(target, UltraHdr.primaryXmp(null, -1, motion), workDir);
             }
             // Last in the file, where the directory says it is.
             try (FileInputStream in = new FileInputStream(motion.video);

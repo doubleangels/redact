@@ -440,10 +440,10 @@ final class ImageCleaner {
         boolean rebuilt = false;
         try {
             if (ImageContainerMetadata.sniff(encoded) != ImageContainerMetadata.Format.OTHER) {
-                ImageContainerMetadata.sanitize(encoded, target);
+                ImageContainerMetadata.sanitize(encoded, target, context.getCacheDir());
                 rebuilt = true;
             } else if (HeifContainerMetadata.isHeif(encoded)) {
-                HeifContainerMetadata.sanitize(encoded, target);
+                HeifContainerMetadata.sanitize(encoded, target, context.getCacheDir());
                 rebuilt = true;
             }
         } catch (IOException | RuntimeException e) {
@@ -603,7 +603,7 @@ final class ImageCleaner {
             if (tiff == null) {
                 throw new CleanFailedException("The EXIF carrier has no EXIF");
             }
-            HeifContainerMetadata.addExif(heif, tiff);
+            HeifContainerMetadata.addExif(heif, tiff, context.getCacheDir());
         } catch (IOException | RuntimeException e) {
             SentryManager.log("The kept EXIF tags could not be added to the HEIF: " + e.getClass().getSimpleName() + ".");
         } finally {
@@ -827,7 +827,7 @@ final class ImageCleaner {
             // Rebuilt around its coded pictures, which keeps the full resolution, 10-bit colour
             // and any HDR gain map that a decode and encode would lose.
             try {
-                HeifContainerMetadata.sanitize(source, target, motion);
+                HeifContainerMetadata.sanitize(source, target, motion, context.getCacheDir());
                 countPicturePath(fromPixels, "rebuilt");
                 return outputFormat;
             } catch (IOException | RuntimeException e) {
@@ -860,7 +860,7 @@ final class ImageCleaner {
         if (expected != ImageContainerMetadata.Format.OTHER
                 && ImageContainerMetadata.sniff(source) == expected) {
             try {
-                ImageContainerMetadata.sanitize(source, target, motion);
+                ImageContainerMetadata.sanitize(source, target, motion, context.getCacheDir());
                 countPicturePath(fromPixels, "rebuilt");
                 return outputFormat;
             } catch (IOException | RuntimeException e) {
@@ -881,7 +881,7 @@ final class ImageCleaner {
             reEncode(source, sourceUri, encoded, outputFormat, kept);
             if (writtenFormat != ImageContainerMetadata.Format.OTHER
                     && ImageContainerMetadata.sniff(encoded) == writtenFormat) {
-                ImageContainerMetadata.sanitize(encoded, target, motion);
+                ImageContainerMetadata.sanitize(encoded, target, motion, context.getCacheDir());
             } else {
                 try (InputStream in = new FileInputStream(encoded);
                         OutputStream out = new FileOutputStream(target)) {
