@@ -103,22 +103,6 @@ public class MetadataStripper {
      */
     private ProgressCallback progressCallback;
 
-    /** Read by the cleaners in this package; tests set them through the setters below. */
-    @Nullable
-    File testFastStripVideoMetadataOverride;
-
-    boolean testForceOutputDirMkdirsFailure;
-
-    @VisibleForTesting
-    void setTestFastStripVideoMetadataOverride(@Nullable File overrideFile) {
-        this.testFastStripVideoMetadataOverride = overrideFile;
-    }
-
-    @VisibleForTesting
-    void setTestForceOutputDirMkdirsFailure(boolean force) {
-        this.testForceOutputDirMkdirsFailure = force;
-    }
-
     /**
      * What one clean call has found and made so far: the tags the settings keep, its statistics,
      * and where its output went. Each call has its own, so two calls never share kept tags or
@@ -202,25 +186,33 @@ public class MetadataStripper {
         return new RuntimeException(e);
     }
 
-    /**
-     * Creates a new MetadataStripper instance.
-     *
-     * @param context Application context for accessing system services, must not be
-     *                null
-     * @throws IllegalArgumentException if context is null
-     */
     /** Where the work happens; each keeps its code as it was here, and reads the shared state above. */
     final ImageCleaner images;
     final VideoCleaner videos;
     final CleanVerifier verifier;
 
+    /**
+     * Creates a new MetadataStripper instance.
+     *
+     * @param context Application context for accessing system services, must not be null
+     */
     public MetadataStripper(@NonNull Context context) {
+        this(context, null);
+    }
+
+    /**
+     * @param transmuxer stands in for the platform muxer in the video cleaner's quick copy; null
+     *     for the real one. Everything around it, including the settings that decide whether
+     *     the copy may be kept and the checks on it, runs as in the app.
+     */
+    @VisibleForTesting
+    MetadataStripper(@NonNull Context context, @Nullable VideoCleaner.Transmuxer transmuxer) {
         // Store application context to prevent memory leaks
         this.context = context.getApplicationContext();
         this.contentResolver = this.context.getContentResolver();
         this.verifier = new CleanVerifier(this);
         this.images = new ImageCleaner(this);
-        this.videos = new VideoCleaner(this);
+        this.videos = new VideoCleaner(this, transmuxer);
         SentryManager.log("The MetadataStripper was initialized.");
     }
 

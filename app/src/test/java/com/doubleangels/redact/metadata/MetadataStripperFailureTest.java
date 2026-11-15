@@ -1,6 +1,7 @@
 package com.doubleangels.redact.metadata;
 
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import android.app.Application;
 import android.graphics.Bitmap;
@@ -91,9 +92,14 @@ public class MetadataStripperFailureTest {
     @Test
     public void shareImage_whenTheOutputFolderCannotBeMade_givesNothing() throws Exception {
         deleteTree(processedDir());
-        stripper.setTestForceOutputDirMkdirsFailure(true);
-
-        assertNull((lastResult = stripper.cleanForSharing(Uri.fromFile(jpegWithGps()), "photo.jpg", false)).uri());
+        // A file where the folder should be: nothing can be written into it.
+        assertTrue(processedDir().createNewFile());
+        try {
+            assertNull((lastResult = stripper.cleanForSharing(Uri.fromFile(jpegWithGps()), "photo.jpg", false)).uri());
+        } finally {
+            //noinspection ResultOfMethodCallIgnored
+            processedDir().delete();
+        }
     }
 
 }

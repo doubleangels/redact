@@ -55,10 +55,27 @@ final class VideoCleaner {
     private final Context context;
     private final ContentResolver contentResolver;
 
+    /**
+     * Copies a video's tracks into a new file without its metadata; null when it can't. The real
+     * one is {@link #transmux}; a test passes its own to stand in for the platform muxer.
+     */
+    interface Transmuxer {
+        @Nullable
+        File transmux(@NonNull Uri sourceUri, @Nullable double[] keepLocation, boolean keepDate);
+    }
+
+    private final Transmuxer transmuxer;
+
     VideoCleaner(@NonNull MetadataStripper host) {
+        this(host, null);
+    }
+
+    /** @param transmuxer stands in for {@link #transmux}; null for the real one */
+    VideoCleaner(@NonNull MetadataStripper host, @Nullable Transmuxer transmuxer) {
         this.host = host;
         this.context = host.context;
         this.contentResolver = host.contentResolver;
+        this.transmuxer = transmuxer != null ? transmuxer : this::transmux;
     }
 
 
@@ -468,10 +485,14 @@ final class VideoCleaner {
      * @param keepDate whether Keep Date Taken will put the recording date back, which a WebM
      *     cannot hold
      */
+    @Nullable
     File fastStripVideoMetadata(Uri sourceUri, @Nullable double[] keepLocation, boolean keepDate) {
-        if (host.testFastStripVideoMetadataOverride != null) {
-            return host.testFastStripVideoMetadataOverride;
-        }
+        return transmuxer.transmux(sourceUri, keepLocation, keepDate);
+    }
+
+    /** The real {@link Transmuxer}: MediaExtractor into MediaMuxer, or a WebM into an MP4. */
+    @Nullable
+    private File transmux(@NonNull Uri sourceUri, @Nullable double[] keepLocation, boolean keepDate) {
         if (keepLocation != null || keepDate) {
             // A WebM has no field for a location, and Android reads no recording date from one,
             // so a VP9 video whose location or date is kept is copied into an MP4 instead.
@@ -794,9 +815,6 @@ final class VideoCleaner {
      * Strict Clean off), which is the only reason to make one.
      */
     private boolean mayKeepTransmux() {
-        if (host.testFastStripVideoMetadataOverride != null) {
-            return true;
-        }
         return !AppPreferences.isStrictClean(context) && AppPreferences.isVideoFallbackCopy(context);
     }
 

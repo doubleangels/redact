@@ -31,8 +31,6 @@ public class ProcessingForegroundService extends Service {
 
     static final int NOTIFICATION_ID = 7103;
 
-    static Integer testSdkIntOverride;
-
     public static void start(@Nullable Context context, @Nullable String title) {
         if (context == null) {
             return;
@@ -161,7 +159,7 @@ public class ProcessingForegroundService extends Service {
             // targetSdk 34+. The mediaProcessing type only exists from API 35; on API 34 passing it throws
             // InvalidForegroundServiceTypeException ("type unknown"), so Android 14 uses dataSync, which
             // the manifest also declares. Before API 34 no type is required.
-            int sdk = testSdkIntOverride != null ? testSdkIntOverride : Build.VERSION.SDK_INT;
+            int sdk = Build.VERSION.SDK_INT;
             if (sdk >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
                 startForeground(
                         NOTIFICATION_ID,

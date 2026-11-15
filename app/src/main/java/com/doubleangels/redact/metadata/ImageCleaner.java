@@ -364,8 +364,8 @@ final class ImageCleaner {
 
             File outputDir = new File(context.getCacheDir(), "processed");
             if (!outputDir.exists()) {
-                if (host.testForceOutputDirMkdirsFailure || !outputDir.mkdirs()) {
-                    throw new IOException("Failed to create output directory");
+                if (!outputDir.mkdirs()) {
+                    throw new CleanFailedException("Failed to create output directory");
                 }
             }
 
