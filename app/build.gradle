@@ -160,13 +160,23 @@ dependencies {
     debugImplementation libs.leakcanary.android
 }
 
+// A blank variable counts as unset: CI passes an empty string where a secret is not available.
+def sentryAuthToken = System.getenv("SENTRY_AUTH_TOKEN")?.trim() ?: null
+
 sentry {
     org = "doubleangels"
     projectName = "redact"
-    authToken = System.getenv("SENTRY_AUTH_TOKEN")
+    authToken = sentryAuthToken
     includeProguardMapping = true
-    autoUploadProguardMapping = System.getenv("SENTRY_AUTH_TOKEN") != null
+    autoUploadProguardMapping = sentryAuthToken != null
     telemetry = false
+    // Uploads the release bundle to Sentry Size Analysis after bundleRelease. Only deploy.yml turns
+    // it on, so only releases are measured. The bundle holds the app's code and resources, never
+    // anything from a person's phone. A failed upload fails the build, and so does asking for it
+    // without a token.
+    sizeAnalysis {
+        enabled = System.getenv("SENTRY_SIZE_ANALYSIS") == "true"
+    }
     // No DB/OkHttp/Compose in the app and per-file I/O spans are too fine-grained; Log->breadcrumb
     // rewriting is unused (auto breadcrumbs are off).
     tracingInstrumentation {
@@ -177,6 +187,18 @@ sentry {
     }
     autoInstallation {
         enabled = false
+    }
+}
+
+// Copies the release variant's merged manifest to a fixed path for
+// .github/scripts/check_release_manifest.py. Read through AGP's public artifact API, since the
+// intermediates folder it is written to changes between AGP versions.
+androidComponents {
+    onVariants(selector().withBuildType("release")) { variant ->
+        tasks.register("exportReleaseManifest", Copy) {
+            from(variant.artifacts.get(com.android.build.api.artifact.SingleArtifact.MERGED_MANIFEST.INSTANCE))
+            into(layout.buildDirectory.dir("outputs/release-manifest"))
+        }
     }
 }
 
