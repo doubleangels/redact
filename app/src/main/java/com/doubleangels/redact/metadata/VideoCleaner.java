@@ -26,6 +26,7 @@ import androidx.media3.muxer.MuxerException;
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.VideoMedia3Converter;
+import com.doubleangels.redact.media.CleanFailedException;
 import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.media.ProcessingCancelledException;
 import com.doubleangels.redact.media.UnsupportedMediaException;
@@ -158,7 +159,7 @@ final class VideoCleaner {
                 throw new ProcessingCancelledException("Video processing interrupted", e);
             } catch (Exception e) {
                 SentryManager.log("Video processing failed: " + e.getClass().getSimpleName() + ".");
-                throw new IOException("Failed to clean video safely", e);
+                throw new CleanFailedException("Failed to clean video safely", e);
             } finally {
                 if (tempCleanFile != null && tempCleanFile.exists()) {
                     host.secureDeleteFile(tempCleanFile);
@@ -236,7 +237,7 @@ final class VideoCleaner {
             File outputDir = new File(context.getCacheDir(), "processed");
             if (!outputDir.exists()) {
                 if (!outputDir.mkdirs()) {
-                    throw new IOException("Failed to create output directory");
+                    throw new CleanFailedException("Failed to create output directory");
                 }
             }
 
@@ -260,7 +261,7 @@ final class VideoCleaner {
                 throw new ProcessingCancelledException("Video transcoding interrupted", e);
             } catch (Exception e) {
                 SentryManager.log("Video processing failed: " + e.getClass().getSimpleName() + ".");
-                throw new IOException("Failed to process video safely", e);
+                throw new CleanFailedException("Failed to process video safely", e);
             }
 
             host.updateProgress(4, 4, context.getString(R.string.strip_progress_verifying));
@@ -731,7 +732,7 @@ final class VideoCleaner {
             ByteBuffer buffer = ByteBuffer.allocate(2 * 1024 * 1024);
             int size = extractor.readSampleData(buffer, 0);
             if (size <= 0) {
-                throw new IOException("The video has no samples");
+                throw new CleanFailedException("The video has no samples");
             }
             byte[] sample = new byte[size];
             buffer.position(0);

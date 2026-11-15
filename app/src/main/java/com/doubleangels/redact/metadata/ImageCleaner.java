@@ -14,6 +14,7 @@ import androidx.exifinterface.media.ExifInterface;
 import androidx.media3.common.Format;
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.media.CleanFailedException;
 import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaFileNames;
 import com.doubleangels.redact.media.MediaSizeLimits;
@@ -225,7 +226,7 @@ final class ImageCleaner {
             boolean metadataRemoved = host.verifier.verifyMetadataRemoval(cleanFile, false);
             SentryManager.setCustomKey("metadata_verification_passed", metadataRemoved);
             if (!metadataRemoved) {
-                throw new IOException("Metadata verification failed");
+                throw new CleanFailedException("Metadata verification failed");
             }
 
             // Create the output (a pending MediaStore entry, or a file in the chosen folder) and
@@ -236,7 +237,7 @@ final class ImageCleaner {
             try (InputStream in = new FileInputStream(cleanFile);
                     OutputStream os = contentResolver.openOutputStream(newUri)) {
                 if (os == null) {
-                    throw new IOException("Failed to open output stream for new image");
+                    throw new CleanFailedException("Failed to open output stream for new image");
                 }
                 MessageDigest digest = OutputDestination.sha256();
                 MediaSizeLimits.copyStream(in, new DigestOutputStream(os, digest));
@@ -288,7 +289,7 @@ final class ImageCleaner {
                 while (left > 0) {
                     int n = in.read(buffer, 0, (int) Math.min(buffer.length, left));
                     if (n < 0) {
-                        throw new IOException("The video ends early");
+                        throw new CleanFailedException("The video ends early");
                     }
                     out.write(buffer, 0, n);
                     left -= n;
@@ -306,11 +307,11 @@ final class ImageCleaner {
             VideoContainerMetadata.scrub(video);
             VideoContainerMetadata.Report container = VideoContainerMetadata.scan(video);
             if (!container.recognized || !container.fields.isEmpty()) {
-                throw new IOException("its container still holds metadata");
+                throw new CleanFailedException("its container still holds metadata");
             }
             VideoStreamMetadata.Report stream = VideoStreamMetadata.scan(context, Uri.fromFile(video), true);
             if (stream == null || stream.userDataMessages > 0) {
-                throw new IOException("its stream carries data of its own");
+                throw new CleanFailedException("its stream carries data of its own");
             }
             return new MotionPhoto.Clip(video, found.presentationTimestampUs);
         } catch (IOException | RuntimeException e) {
@@ -379,7 +380,7 @@ final class ImageCleaner {
                 // Shared under the name of what it really is, so the app it goes to opens it.
                 File renamed = new File(outputDir, host.generateShortRandomName() + cleanFormat.extension);
                 if (!outputFile.renameTo(renamed)) {
-                    throw new IOException("Failed to rename the shared image");
+                    throw new CleanFailedException("Failed to rename the shared image");
                 }
                 outputFile = renamed;
             }
@@ -458,7 +459,7 @@ final class ImageCleaner {
         }
         // Checked as a share is: nothing kept but how to show the picture.
         if (!host.verifier.verifyMetadataRemoval(target, true)) {
-            throw new IOException("Converted image verification failed");
+            throw new CleanFailedException("Converted image verification failed");
         }
     }
 
@@ -581,7 +582,7 @@ final class ImageCleaner {
             Bitmap pixel = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
             try (FileOutputStream out = new FileOutputStream(carrier)) {
                 if (!pixel.compress(Bitmap.CompressFormat.JPEG, 90, out)) {
-                    throw new IOException("Could not write the EXIF carrier");
+                    throw new CleanFailedException("Could not write the EXIF carrier");
                 }
             } finally {
                 pixel.recycle();
@@ -599,7 +600,7 @@ final class ImageCleaner {
             exif.saveAttributes();
             byte[] tiff = exifTiff(Files.readAllBytes(carrier.toPath()));
             if (tiff == null) {
-                throw new IOException("The EXIF carrier has no EXIF");
+                throw new CleanFailedException("The EXIF carrier has no EXIF");
             }
             HeifContainerMetadata.addExif(heif, tiff);
         } catch (IOException | RuntimeException e) {
@@ -980,7 +981,7 @@ final class ImageCleaner {
         try (FileOutputStream out = new FileOutputStream(target)) {
             if (!FormatConverter.compressBitmapToStream(
                     context, bitmap, bitmapOutput.compressFormat, out, sourceJpegQuality, losslessSource)) {
-                throw new IOException("Failed to compress bitmap");
+                throw new CleanFailedException("Failed to compress bitmap");
             }
             out.flush();
             out.getFD().sync();

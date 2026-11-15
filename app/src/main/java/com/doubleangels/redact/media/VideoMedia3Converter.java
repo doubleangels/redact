@@ -1186,7 +1186,7 @@ public final class VideoMedia3Converter {
             cancelDone.await(5, TimeUnit.SECONDS);
             deleteQuietly(outFile);
             logAttemptFailure(attemptLabel, outputShortSide, "STALLED", progressSeen.get(), startedAt);
-            throw new IOException("Video conversion stalled");
+            throw new CleanFailedException("Video conversion stalled");
         }
 
         ExportException exportException = errorRef.get();
@@ -1217,7 +1217,7 @@ public final class VideoMedia3Converter {
 
         if (!outFile.exists() || outFile.length() == 0) {
             deleteQuietly(outFile);
-            throw new IOException("Video conversion produced no output");
+            throw new CleanFailedException("Video conversion produced no output");
         }
     }
 
@@ -1601,7 +1601,7 @@ public final class VideoMedia3Converter {
         File parent = outputFile.getParentFile();
         if (parent != null && !parent.exists()) {
             if (!parent.mkdirs()) {
-                throw new IOException("Failed to create output directory");
+                throw new CleanFailedException("Failed to create output directory");
             }
         }
         transcodeToPath(context, sourceUri, outputFile.getAbsolutePath(), formatIndex, progressListener, -1L);
@@ -1618,7 +1618,7 @@ public final class VideoMedia3Converter {
         File parent = outputFile.getParentFile();
         if (parent != null && !parent.exists()) {
             if (!parent.mkdirs()) {
-                throw new IOException("Failed to create output directory");
+                throw new CleanFailedException("Failed to create output directory");
             }
         }
         transcodeToPath(
@@ -1693,7 +1693,7 @@ public final class VideoMedia3Converter {
             try (InputStream in = new FileInputStream(file);
                     OutputStream out = resolver.openOutputStream(outUri)) {
                 if (out == null) {
-                    throw new IOException("Cannot open output stream");
+                    throw new CleanFailedException("Cannot open output stream");
                 }
                 written = OutputDestination.copyAndDigest(in, out);
                 out.flush();

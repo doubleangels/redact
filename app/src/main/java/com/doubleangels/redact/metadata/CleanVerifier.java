@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.exifinterface.media.ExifInterface;
 import androidx.media3.common.Format;
+import com.doubleangels.redact.media.CleanFailedException;
 import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.sentry.SentryManager;
 import java.io.File;
@@ -190,13 +191,13 @@ final class CleanVerifier {
             SentryManager.setCustomKey("video_verify_failed_key",
                     remaining.recognized ? "CONTAINER_BOX" : "CONTAINER_UNREADABLE");
             countVerificationFailure("video", "video_container");
-            throw new IOException("Video metadata verification failed");
+            throw new CleanFailedException("Video metadata verification failed");
         }
         boolean videoClean = verifyVideoMetadataRemoval(videoFile, sourceSnapshot, keepLocation);
         SentryManager.setCustomKey("video_metadata_verification_passed", videoClean);
         if (!videoClean) {
             countVerificationFailure("video", "video_fields");
-            throw new IOException("Video metadata verification failed");
+            throw new CleanFailedException("Video metadata verification failed");
         }
     }
 
