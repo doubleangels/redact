@@ -164,6 +164,13 @@
     <string name="settings_section_diagnostics_subtitle">Report opzionali per correggere i crash. I tuoi media non lasciano mai il dispositivo.</string>
     <string name="settings_crash_reporting_label">Invia Report di Crash</string>
     <string name="settings_crash_reporting_subtitle">Condivide solo dettagli tecnici anonimi (versione dell\'app, modello del dispositivo, cosa stava facendo l\'app al momento del crash), mai le tue foto o i tuoi video. Inviati via internet al nostro servizio di segnalazione crash, Sentry, quando attivato.</string>
+    <string name="settings_update_check_label">Aggiornamenti</string>
+    <string name="settings_update_check_subtitle">Chiede a GitHub via internet il numero dell\'ultima versione, solo quando tocchi Cerca aggiornamenti. Non viene inviato nulla su di te o sui tuoi file.</string>
+    <string name="update_available">Redact %1$s è uscito. Può volerci un giorno o due prima che arrivi nello store.</string>
+    <string name="update_available_action">Aggiorna</string>
+    <string name="update_check_button">Cerca aggiornamenti</string>
+    <string name="update_up_to_date">Hai la versione più recente.</string>
+    <string name="update_check_failed">Impossibile cercare aggiornamenti. Controlla la connessione e riprova.</string>
     <string name="settings_section_conversion">Predefiniti Scheda Converti</string>
     <string name="settings_conversion_subtitle">Formati preselezionati quando scegli file in Converti. Puoi cambiarli per ogni batch.</string>
     <string name="settings_default_image_format">Formato Immagine Predefinito</string>
@@ -585,7 +592,7 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="onboarding_done_notifications_granted">Redact ti avviserà quando un\'operazione termina.</string>
     <string name="onboarding_done_notifications_denied">Redact non ti invierà notifiche.</string>
     <string name="onboarding_crash_title">Aiutaci a migliorare Redact.</string>
-    <string name="onboarding_crash_body">Se Redact dovesse arrestarsi in modo anomalo, può inviare un rapporto anonimo così il problema può essere individuato e risolto. I rapporti sugli arresti anomali sono l\'unica cosa che Redact invia tramite internet.</string>
+    <string name="onboarding_crash_body">Se Redact dovesse arrestarsi in modo anomalo, può inviare un rapporto anonimo così il problema può essere individuato e risolto. Redact si collega a internet solo per i rapporti sugli arresti anomali che attivi e per una ricerca di aggiornamenti che avvii tu nelle impostazioni.</string>
     <string name="onboarding_crash_point_private">I rapporti non includono mai foto, video, nomi dei file o posizioni.</string>
     <string name="onboarding_crash_point_sentry">I rapporti vengono inviati a Sentry, un servizio che aiuta gli sviluppatori a trovare e correggere gli arresti anomali.</string>
     <string name="onboarding_crash_allow">Invia Rapporti sugli Arresti Anomali</string>

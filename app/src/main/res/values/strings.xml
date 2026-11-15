@@ -62,6 +62,13 @@
     <string name="settings_section_diagnostics_subtitle">Optional reports to help fix crashes. Your media never leaves the device.</string>
     <string name="settings_crash_reporting_label">Send Crash Reports</string>
     <string name="settings_crash_reporting_subtitle">Shares only anonymized technical details (app version, device model, what the app was doing when it crashed), never your photos or videos. Sent over the internet to our crash-reporting service, Sentry, when enabled.</string>
+    <string name="settings_update_check_label">Updates</string>
+    <string name="settings_update_check_subtitle">Asks GitHub over the internet for the newest version number, only when you tap Check for Updates. Nothing about you or your files is sent.</string>
+    <string name="update_available">Redact %1$s is out. It can take a day or two to reach the store.</string>
+    <string name="update_available_action">Update</string>
+    <string name="update_check_button">Check for Updates</string>
+    <string name="update_up_to_date">You have the latest version.</string>
+    <string name="update_check_failed">Couldn\'t check for updates. Check your connection and try again.</string>
 
 
     <string name="settings_section_conversion">Convert Tab Defaults</string>
@@ -572,7 +579,7 @@
     <string name="onboarding_done_notifications_granted">Redact will let you know when a task finishes.</string>
     <string name="onboarding_done_notifications_denied">Redact won\'t send you notifications.</string>
     <string name="onboarding_crash_title">Help make Redact better.</string>
-    <string name="onboarding_crash_body">If Redact ever crashes, it can send an anonymous report so the problem can be found and fixed. Crash reports are the only thing Redact ever sends over the internet.</string>
+    <string name="onboarding_crash_body">If Redact ever crashes, it can send an anonymous report so the problem can be found and fixed. Redact only goes online for crash reports you turn on and for an update check you start yourself in Settings.</string>
     <string name="onboarding_crash_point_private">Reports never include your photos, videos, file names or locations.</string>
     <string name="onboarding_crash_point_sentry">Reports go to Sentry, a service that helps developers find and fix crashes.</string>
     <string name="onboarding_crash_allow">Send Crash Reports</string>

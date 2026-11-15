@@ -616,4 +616,25 @@ public class MainActivityTest {
         assertEquals(R.id.navigation_censor, nav.getSelectedItemId());
         assertEquals(sharedImage(2), censorViewModel().getSource());
     }
+
+    /** The update notice shows on the screen with its button. */
+    @Test
+    public void updateNotice_showsWithItsButton() {
+        MainActivity activity = launch();
+        String[] tapped = new String[1];
+        com.doubleangels.redact.ui.Notice.showWithAction(activity, "Redact 9.9 is available", "Update",
+                () -> tapped[0] = "tapped");
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        org.junit.Assert.assertEquals("Redact 9.9 is available",
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
+    }
+
+    @Test
+    public void updateNotice_isNotShownOnAFinishedActivity() {
+        MainActivity activity = launch();
+        com.doubleangels.redact.ui.Notice.resetForTests();
+        activity.finish();
+        com.doubleangels.redact.ui.Notice.showWithAction(activity, "late", "Update", () -> { });
+        org.junit.Assert.assertNull(com.doubleangels.redact.ui.Notice.lastShownForTests());
+    }
 }

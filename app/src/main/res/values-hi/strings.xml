@@ -160,6 +160,13 @@
     <string name="settings_section_diagnostics_subtitle">क्रैश ठीक करने के लिए वैकल्पिक रिपोर्ट। आपका मीडिया कभी डिवाइस से बाहर नहीं जाता।</string>
     <string name="settings_crash_reporting_label">क्रैश रिपोर्ट भेजें</string>
     <string name="settings_crash_reporting_subtitle">केवल अनाम तकनीकी विवरण साझा करता है (ऐप संस्करण, डिवाइस मॉडल, क्रैश होने पर ऐप क्या कर रहा था), आपकी फ़ोटो या वीडियो कभी नहीं। सक्षम होने पर हमारी क्रैश-रिपोर्टिंग सेवा, Sentry, को इंटरनेट पर भेजा जाता है।</string>
+    <string name="settings_update_check_label">अपडेट</string>
+    <string name="settings_update_check_subtitle">केवल जब आप “अपडेट की जाँच करें” पर टैप करते हैं, तब इंटरनेट पर GitHub से नवीनतम संस्करण संख्या पूछता है। आपके या आपकी फ़ाइलों के बारे में कुछ नहीं भेजा जाता।</string>
+    <string name="update_available">Redact %1$s जारी हो गया है। स्टोर तक पहुँचने में एक या दो दिन लग सकते हैं।</string>
+    <string name="update_available_action">अपडेट करें</string>
+    <string name="update_check_button">अपडेट की जाँच करें</string>
+    <string name="update_up_to_date">आपके पास नवीनतम संस्करण है।</string>
+    <string name="update_check_failed">अपडेट की जाँच नहीं हो सकी। अपना कनेक्शन जाँचें और फिर से कोशिश करें।</string>
     <string name="settings_section_conversion">रूपांतरित टैब डिफ़ॉल्ट</string>
     <string name="settings_conversion_subtitle">रूपांतरित पर फ़ाइलें चुनते समय पूर्व-चयनित प्रारूप। प्रत्येक बैच के लिए बदल सकते हैं।</string>
     <string name="settings_default_image_format">डिफ़ॉल्ट छवि प्रारूप</string>
@@ -570,7 +577,7 @@
     <string name="onboarding_done_notifications_granted">कोई काम पूरा होने पर Redact आपको बताएगा।</string>
     <string name="onboarding_done_notifications_denied">Redact आपको सूचनाएं नहीं भेजेगा।</string>
     <string name="onboarding_crash_title">Redact को बेहतर बनाने में मदद करें।</string>
-    <string name="onboarding_crash_body">अगर Redact कभी क्रैश होता है, तो वह एक गुमनाम रिपोर्ट भेज सकता है ताकि समस्या ढूँढकर ठीक की जा सके। क्रैश रिपोर्ट ही एकमात्र चीज़ है जो Redact इंटरनेट पर भेजता है।</string>
+    <string name="onboarding_crash_body">अगर Redact कभी क्रैश होता है, तो वह एक गुमनाम रिपोर्ट भेज सकता है ताकि समस्या ढूँढकर ठीक की जा सके। Redact इंटरनेट से केवल तभी जुड़ता है जब आप क्रैश रिपोर्ट चालू करते हैं, या जब आप स्वयं सेटिंग्स में अपडेट की जाँच शुरू करते हैं।</string>
     <string name="onboarding_crash_point_private">रिपोर्ट में आपकी फ़ोटो, वीडियो, फ़ाइल नाम या स्थान कभी शामिल नहीं होते।</string>
     <string name="onboarding_crash_point_sentry">रिपोर्ट Sentry को जाती हैं, जो डेवलपर को क्रैश ढूँढने और ठीक करने में मदद करने वाली सेवा है।</string>
     <string name="onboarding_crash_allow">क्रैश रिपोर्ट भेजें</string>

@@ -62,6 +62,29 @@ public final class Notice {
         bar.show();
     }
 
+    /**
+     * A notice with a button, on {@code activity}'s screen, kept up until the user acts on it or
+     * swipes it away. Nothing is shown when the activity has gone.
+     */
+    public static void showWithAction(@NonNull Activity activity, @NonNull CharSequence text,
+                                      @NonNull CharSequence action, @NonNull Runnable onAction) {
+        if (activity.isFinishing() || activity.isDestroyed()) {
+            return;
+        }
+        View content = activity.findViewById(android.R.id.content);
+        if (content == null || !content.isAttachedToWindow()) {
+            return;
+        }
+        lastShown = text;
+        Snackbar bar = Snackbar.make(content, text, Snackbar.LENGTH_INDEFINITE)
+                .setAction(action, v -> onAction.run());
+        View anchor = anchorFor(content.getRootView());
+        if (anchor != null) {
+            bar.setAnchorView(anchor);
+        }
+        bar.show();
+    }
+
     public static void show(@NonNull Context context, @StringRes int text) {
         show(context, context.getString(text), false);
     }

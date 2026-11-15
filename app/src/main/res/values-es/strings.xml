@@ -164,6 +164,13 @@
     <string name="settings_section_diagnostics_subtitle">Informes opcionales para corregir fallos. Tus archivos multimedia nunca salen del dispositivo.</string>
     <string name="settings_crash_reporting_label">Enviar Informes de Fallos</string>
     <string name="settings_crash_reporting_subtitle">Solo comparte datos técnicos anonimizados (versión de la app, modelo del dispositivo, qué estaba haciendo la app cuando falló), nunca tus fotos ni videos. Se envían por internet a nuestro servicio de informes de fallos, Sentry, cuando está activado.</string>
+    <string name="settings_update_check_label">Actualizaciones</string>
+    <string name="settings_update_check_subtitle">Consulta a GitHub por internet el número de la versión más reciente, solo cuando tocas Buscar actualizaciones. No se envía nada sobre ti ni sobre tus archivos.</string>
+    <string name="update_available">Ya salió Redact %1$s. Puede tardar uno o dos días en llegar a la tienda.</string>
+    <string name="update_available_action">Actualizar</string>
+    <string name="update_check_button">Buscar actualizaciones</string>
+    <string name="update_up_to_date">Tienes la versión más reciente.</string>
+    <string name="update_check_failed">No se pudo buscar actualizaciones. Revisa tu conexión e inténtalo de nuevo.</string>
     <string name="settings_section_conversion">Valores Predeterminados de Convertir</string>
     <string name="settings_conversion_subtitle">Formatos preseleccionados al elegir archivos en Convertir. Puedes cambiarlos en cada lote.</string>
     <string name="settings_default_image_format">Formato de Imagen Predeterminado</string>
@@ -585,7 +592,7 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="onboarding_done_notifications_granted">Redact te avisará cuando termine una tarea.</string>
     <string name="onboarding_done_notifications_denied">Redact no te enviará notificaciones.</string>
     <string name="onboarding_crash_title">Ayuda a mejorar Redact.</string>
-    <string name="onboarding_crash_body">Si Redact llega a fallar, puede enviar un informe anónimo para que el problema se encuentre y se solucione. Los informes de errores son lo único que Redact envía por internet.</string>
+    <string name="onboarding_crash_body">Si Redact llega a fallar, puede enviar un informe anónimo para que el problema se encuentre y se solucione. Redact solo se conecta a internet para los informes de errores que actives y para buscar actualizaciones cuando tú lo inicies en Ajustes.</string>
     <string name="onboarding_crash_point_private">Los informes nunca incluyen tus fotos, videos, nombres de archivo ni ubicaciones.</string>
     <string name="onboarding_crash_point_sentry">Los informes van a Sentry, un servicio que ayuda a los desarrolladores a encontrar y corregir fallos.</string>
     <string name="onboarding_crash_allow">Enviar Informes de Errores</string>

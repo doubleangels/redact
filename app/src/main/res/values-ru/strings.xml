@@ -168,6 +168,13 @@
     <string name="settings_section_diagnostics_subtitle">Необязательные отчёты о сбоях. Ваши медиафайлы никогда не покидают устройство.</string>
     <string name="settings_crash_reporting_label">Отправлять Отчёты о Сбоях</string>
     <string name="settings_crash_reporting_subtitle">Передаёт только анонимные технические данные (версия приложения, модель устройства, что делало приложение в момент сбоя), никогда не ваши фото или видео. Отправляется через интернет в наш сервис отчётов о сбоях, Sentry, при включении.</string>
+    <string name="settings_update_check_label">Обновления</string>
+    <string name="settings_update_check_subtitle">Запрашивает у GitHub через интернет номер последней версии, только когда вы нажимаете «Проверить обновления». Ничего о вас или ваших файлах не отправляется.</string>
+    <string name="update_available">Вышла версия Redact %1$s. В магазине она может появиться через день-два.</string>
+    <string name="update_available_action">Обновить</string>
+    <string name="update_check_button">Проверить обновления</string>
+    <string name="update_up_to_date">У вас последняя версия.</string>
+    <string name="update_check_failed">Не удалось проверить обновления. Проверьте подключение и повторите попытку.</string>
     <string name="settings_section_conversion">Параметры Вкладки «Конвертация» по Умолчанию</string>
     <string name="settings_conversion_subtitle">Предвыбранные форматы при выборе файлов в Конвертация. Можно менять для каждой партии.</string>
     <string name="settings_default_image_format">Формат Изображения по Умолчанию</string>
@@ -600,7 +607,7 @@
     <string name="onboarding_done_notifications_granted">Redact сообщит, когда задача будет выполнена.</string>
     <string name="onboarding_done_notifications_denied">Redact не будет присылать вам уведомления.</string>
     <string name="onboarding_crash_title">Помогите сделать Redact лучше.</string>
-    <string name="onboarding_crash_body">Если Redact вдруг даст сбой, он может отправить анонимный отчёт, чтобы проблему нашли и исправили. Отчёты о сбоях — единственное, что Redact отправляет через интернет.</string>
+    <string name="onboarding_crash_body">Если Redact вдруг даст сбой, он может отправить анонимный отчёт, чтобы проблему нашли и исправили. Redact выходит в интернет только для отчётов о сбоях, которые вы включили, и для проверки обновлений, которую вы сами запускаете в настройках.</string>
     <string name="onboarding_crash_point_private">Отчёты никогда не содержат ваших фото, видео, имён файлов или местоположений.</string>
     <string name="onboarding_crash_point_sentry">Отчёты отправляются в Sentry — сервис, который помогает разработчикам находить и исправлять сбои.</string>
     <string name="onboarding_crash_allow">Отправлять Отчёты о Сбоях</string>

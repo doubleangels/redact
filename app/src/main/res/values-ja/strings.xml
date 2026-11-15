@@ -157,6 +157,13 @@
     <string name="settings_section_diagnostics_subtitle">クラッシュ修正のための任意のレポート。メディアが端末外に出ることはありません。</string>
     <string name="settings_crash_reporting_label">クラッシュレポートを送信</string>
     <string name="settings_crash_reporting_subtitle">共有するのは匿名化された技術情報のみです（アプリのバージョン、デバイスモデル、クラッシュ発生時にアプリが何をしていたか）。写真や動画が共有されることはありません。有効にすると、クラッシュ報告サービスである Sentry にインターネット経由で送信されます。</string>
+    <string name="settings_update_check_label">アップデート</string>
+    <string name="settings_update_check_subtitle">「アップデートを確認」をタップしたときだけ、インターネット経由で GitHub に最新のバージョン番号を問い合わせます。あなたやあなたのファイルに関する情報は送信されません。</string>
+    <string name="update_available">Redact %1$s がリリースされました。ストアに届くまで1〜2日かかることがあります。</string>
+    <string name="update_available_action">更新</string>
+    <string name="update_check_button">アップデートを確認</string>
+    <string name="update_up_to_date">最新バージョンをお使いです。</string>
+    <string name="update_check_failed">アップデートを確認できませんでした。接続を確認してもう一度お試しください。</string>
     <string name="settings_section_conversion">変換タブの既定値</string>
     <string name="settings_conversion_subtitle">変換でファイルを選ぶときの事前選択形式。バッチごとに変更できます。</string>
     <string name="settings_default_image_format">既定の画像形式</string>
@@ -556,7 +563,7 @@
     <string name="onboarding_done_notifications_granted">処理が終わったらRedactがお知らせします。</string>
     <string name="onboarding_done_notifications_denied">Redactから通知は届きません。</string>
     <string name="onboarding_crash_title">Redactの改善にご協力ください。</string>
-    <string name="onboarding_crash_body">Redactがクラッシュした場合、匿名のレポートを送信して問題の発見と修正に役立てることができます。Redactがインターネット経由で送信するのは、クラッシュレポートだけです。</string>
+    <string name="onboarding_crash_body">Redactがクラッシュした場合、匿名のレポートを送信して問題の発見と修正に役立てることができます。Redactがインターネットに接続するのは、あなたがオンにしたクラッシュレポートと、設定であなた自身が始めたアップデートの確認だけです。</string>
     <string name="onboarding_crash_point_private">レポートに写真、動画、ファイル名、位置情報が含まれることはありません。</string>
     <string name="onboarding_crash_point_sentry">レポートは、開発者がクラッシュを見つけて修正するためのサービスであるSentryに送信されます。</string>
     <string name="onboarding_crash_allow">クラッシュレポートを送信</string>
