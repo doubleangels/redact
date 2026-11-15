@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
@@ -36,6 +37,8 @@ public class MainActivityTest {
     public void setUp() {
         com.doubleangels.redact.ui.Notice.resetForTests();
         AppProcessingScope.resetForTests();
+        // The documents provider these shares name, as the system knows it: another package's.
+        TestShareProvider.register(RuntimeEnvironment.getApplication(), "com.android.externalstorage.documents");
     }
 
     @After

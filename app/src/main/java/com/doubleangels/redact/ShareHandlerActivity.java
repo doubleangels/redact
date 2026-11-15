@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.ParcelFileDescriptor;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
@@ -24,6 +23,7 @@ import androidx.core.content.IntentCompat;
 
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.MediaPickerContracts;
+import com.doubleangels.redact.media.InboundUriPolicy;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.media.ProgressUpdateThrottler;
 import com.doubleangels.redact.media.SecureDelete;
@@ -460,39 +460,36 @@ public class ShareHandlerActivity extends AppCompatActivity {
             if (!isCurrentSession(session)) {
                 break;
             }
-            String scheme = uri.getScheme();
-            if ("content".equalsIgnoreCase(scheme) || "file".equalsIgnoreCase(scheme)) {
-                try {
-                    File snapshot = copyInboundUriToCache(uri, session);
-                    if (!isCurrentSession(session) || !session.addSnapshot(snapshot)) {
-                        // The share was cancelled during the copy and its cleanup has already
-                        // run, so nothing else would delete this one.
-                        SecureDelete.secureDelete(snapshot);
-                        break;
-                    }
-                    stable.add(Uri.fromFile(snapshot));
-                } catch (IOException e) {
-                    if (!isCurrentSession(session)) {
-                        break;
-                    }
-                    // The source is already unreadable here, so forwarding the original URI
-                    // would only fail identically at every later processing stage (extractor,
-                    // transcoder, verifier), each logging its own duplicate exception for what
-                    // is really a single failure. Drop this item instead, but count it so the
-                    // user still sees the partial-success message.
-                    session.snapshotFailCount.incrementAndGet();
-                    SentryManager.count("share.snapshot.failure", 1, "error_type",
-                            e instanceof FileNotFoundException ? "not_found" : e.getClass().getSimpleName());
-                    if (e instanceof FileNotFoundException) {
-                        // The sharing app handed us a URI whose item no longer exists (deleted,
-                        // or a stale cloud/gallery entry). Nothing on our side to fix.
-                        SentryManager.logEvent("Share", "An inbound item no longer exists and was skipped.");
-                    } else {
-                        SentryManager.recordException(e);
-                    }
+            // Intake lets through only another app's content:// (isSupportedInboundUri), so each
+            // item is copied from its provider.
+            try {
+                File snapshot = copyInboundUriToCache(uri, session);
+                if (!isCurrentSession(session) || !session.addSnapshot(snapshot)) {
+                    // The share was cancelled during the copy and its cleanup has already
+                    // run, so nothing else would delete this one.
+                    SecureDelete.secureDelete(snapshot);
+                    break;
                 }
-            } else {
-                stable.add(uri);
+                stable.add(Uri.fromFile(snapshot));
+            } catch (IOException e) {
+                if (!isCurrentSession(session)) {
+                    break;
+                }
+                // The source is already unreadable here, so forwarding the original URI
+                // would only fail identically at every later processing stage (extractor,
+                // transcoder, verifier), each logging its own duplicate exception for what
+                // is really a single failure. Drop this item instead, but count it so the
+                // user still sees the partial-success message.
+                session.snapshotFailCount.incrementAndGet();
+                SentryManager.count("share.snapshot.failure", 1, "error_type",
+                        e instanceof FileNotFoundException ? "not_found" : e.getClass().getSimpleName());
+                if (e instanceof FileNotFoundException) {
+                    // The sharing app handed us a URI whose item no longer exists (deleted,
+                    // or a stale cloud/gallery entry). Nothing on our side to fix.
+                    SentryManager.logEvent("Share", "An inbound item no longer exists and was skipped.");
+                } else {
+                    SentryManager.recordException(e);
+                }
             }
         }
         return stable;
@@ -500,36 +497,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     @NonNull
     private File copyInboundUriToCache(@NonNull Uri uri, @NonNull ShareSession session) throws IOException {
-        if ("file".equalsIgnoreCase(uri.getScheme())) {
-            String path = uri.getPath();
-            if (path == null || path.isEmpty()) {
-                throw new IOException("Invalid file URI path");
-            }
-            File source = new File(path);
-            String suffix = suffixForPath(path);
-            File dest = new File(getCacheDir(), "inbound_" + System.nanoTime() + suffix);
-            ParcelFileDescriptor opened = ParcelFileDescriptor.open(source, ParcelFileDescriptor.MODE_READ_ONLY);
-            try (InputStream in = new ParcelFileDescriptor.AutoCloseInputStream(opened);
-                    FileOutputStream out = new FileOutputStream(dest)) {
-                // The path was checked when the share arrived; a symlink swapped in since then
-                // could point the open somewhere else, so check what was actually opened.
-                if (openedFileIsPrivate(opened, source)) {
-                    throw new IOException("The opened inbound file is in the app's private storage");
-                }
-                copyForSession(in, out, session);
-            } catch (IOException e) {
-                SecureDelete.secureDelete(dest);
-                throw e;
-            }
-            return dest;
-        }
         String type;
         try {
             type = getContentResolver().getType(uri);
         } catch (RuntimeException e) {
             type = null;
         }
-        // The suffix is all the clean has to go on later (a file:// copy has no type), and it
+        // The suffix is all the clean has to go on later (the copy has no type), and it
         // picks the output's format: naming every image .jpg turned PNGs, WebPs and HEICs into
         // JPEGs, and a PNG's transparency into black.
         String suffix = suffixFor(type, MediaUriResolver.readDisplayName(this, uri));
@@ -561,11 +535,6 @@ public class ShareHandlerActivity extends AppCompatActivity {
         } catch (UncheckedIOException e) {
             throw e.getCause();
         }
-    }
-
-    @NonNull
-    private static String suffixForPath(@NonNull String path) {
-        return suffixFor(null, path);
     }
 
     /**
@@ -1088,85 +1057,15 @@ public class ShareHandlerActivity extends AppCompatActivity {
         uris.add(uri);
     }
 
+    /**
+     * Only content from another app's provider, as Scan, Convert and Censor take. Redact's own
+     * providers serve its working and converted files: not exported, but Redact can open them, so
+     * a share naming one would let the sender have Redact read and re-share files it cannot see.
+     * A file:// path is refused too: Redact can read media on shared storage that the sender may
+     * have no permission for, and apps have shared content:// since Android 7.
+     */
     private boolean isSupportedInboundUri(Uri uri) {
-        String scheme = uri.getScheme();
-        if (scheme == null) {
-            return false;
-        }
-        if ("content".equalsIgnoreCase(scheme)) {
-            // Redact's own FileProvider serves its working and converted files. The provider is not
-            // exported, but Redact can open it, so a share naming it would let the sender have
-            // Redact read and re-share files the sender itself cannot see. The second check also
-            // catches a userId@ prefix, which Android drops before it finds the provider.
-            return !(getPackageName() + ".fileprovider").equalsIgnoreCase(uri.getAuthority())
-                    && !MediaUriResolver.isOwnProvider(this, uri);
-        }
-        return "file".equalsIgnoreCase(scheme) && !pointsIntoOwnPrivateStorage(uri);
-    }
-
-    /**
-     * Whether a file:// URI resolves inside one of this app's own directories: its private data
-     * directory, or its app-specific folders on shared storage (Android/data and Android/obb),
-     * where working copies of unredacted videos are kept while they are transcoded.
-     * Another app can send an intent naming one of these files, which Redact can read but the sender
-     * cannot; copying and re-sharing it would hand that data to whatever app the user picks.
-     */
-    private boolean pointsIntoOwnPrivateStorage(@NonNull Uri uri) {
-        String path = uri.getPath();
-        if (path == null || path.isEmpty()) {
-            return true;
-        }
-        try {
-            String target = new File(path).getCanonicalPath();
-            List<File> privateRoots = new ArrayList<>();
-            privateRoots.add(getDataDir());
-            privateRoots.add(createDeviceProtectedStorageContext().getDataDir());
-            addAppSpecificRoot(privateRoots, getExternalCacheDir());
-            addAppSpecificRoot(privateRoots, getExternalFilesDir(null));
-            addAppSpecificRoot(privateRoots, getObbDir());
-            for (File root : privateRoots) {
-                String rootPath = root.getCanonicalPath();
-                if (target.equals(rootPath) || target.startsWith(rootPath + File.separator)) {
-                    return true;
-                }
-            }
-            return false;
-        } catch (IOException e) {
-            // A path that cannot be resolved is treated as private, so it is refused rather than
-            // read; filterSupportedUris leaves a breadcrumb for the skipped item.
-            return true;
-        }
-    }
-
-    /**
-     * Whether the file behind an open descriptor is in one of this app's own directories. The
-     * descriptor's own path, read from /proc/self/fd, is what was opened, whatever happened to the
-     * path the share named after it was checked.
-     */
-    @VisibleForTesting
-    boolean openedFileIsPrivate(@NonNull ParcelFileDescriptor opened, @NonNull File source) {
-        String openedPath;
-        try {
-            openedPath = java.nio.file.Files.readSymbolicLink(
-                    java.nio.file.Paths.get("/proc/self/fd/" + opened.getFd())).toString();
-        } catch (IOException | RuntimeException e) {
-            // Android always has /proc/self/fd; only unit tests on other hosts get here, and they
-            // check the path the share named again instead.
-            openedPath = source.getAbsolutePath();
-        }
-        return pointsIntoOwnPrivateStorage(Uri.fromFile(new File(openedPath)));
-    }
-
-    /**
-     * Adds an app-specific directory, or the per-package folder holding it (Android/data/&lt;package&gt;
-     * for the external cache and files directories), so every subfolder is covered.
-     */
-    private void addAppSpecificRoot(@NonNull List<File> roots, @Nullable File dir) {
-        if (dir == null) {
-            return;
-        }
-        File parent = dir.getParentFile();
-        roots.add(parent != null && getPackageName().equals(parent.getName()) ? parent : dir);
+        return InboundUriPolicy.isForeignContentUri(this, uri);
     }
 
     @NonNull

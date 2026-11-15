@@ -1,6 +1,5 @@
 package com.doubleangels.redact;
 
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.res.Configuration;
@@ -28,9 +27,9 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.color.DynamicColors;
+import com.doubleangels.redact.media.InboundUriPolicy;
 import com.doubleangels.redact.media.MediaPickerContracts;
 import com.doubleangels.redact.media.MediaSelector;
-import com.doubleangels.redact.media.MediaUriResolver;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.ui.FoldPosture;
 import com.doubleangels.redact.ui.FoldTracker;
@@ -383,12 +382,7 @@ public class MainActivity extends AppCompatActivity {
      * would let the sender point Scan at files that are private to Redact.
      */
     private boolean isForeignContentUri(@Nullable Uri uri) {
-        if (uri == null || !ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
-            return false;
-        }
-        String authority = uri.getAuthority();
-        return authority != null && !authority.startsWith(getPackageName())
-                && !MediaUriResolver.isOwnProvider(this, uri);
+        return InboundUriPolicy.isForeignContentUri(this, uri);
     }
 
     private static int tabFromIntent(@Nullable Intent intent) {
