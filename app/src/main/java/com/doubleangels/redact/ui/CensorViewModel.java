@@ -445,7 +445,8 @@ public class CensorViewModel extends AndroidViewModel {
                 savedRegions = snapshot;
                 savedEffect = chosen;
                 // Counted here, so a save that finishes with the app in the background still counts.
-                ReviewPrompt.recordSuccessfulJob(getApplication());
+                ReviewPrompt.recordSuccessfulJob(getApplication(),
+                        result.stats != null && result.stats.hadLocation);
                 AppPreferences.setSummaryHintLearned(
                         getApplication(), AppPreferences.HINT_CENSOR);
                 LocalNotifications.showCleanComplete(getApplication(), 1, 0, result.stats != null && result.stats.hadLocation ? 1 : 0);

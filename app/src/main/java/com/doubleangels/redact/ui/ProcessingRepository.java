@@ -504,7 +504,8 @@ public final class ProcessingRepository {
                 // Counted here rather than by the Clean tab, which sees only the runs it was
                 // watching when they finished.
                 if (successCount > 0 && failCount == 0) {
-                    ReviewPrompt.recordSuccessfulJob(app);
+                    ReviewPrompt.recordSuccessfulJob(app,
+                            mediaProcessor.getCleanSummary().filesWithLocation > 0);
                 }
                 if (successCount > 0) {
                     AppPreferences.setSummaryHintLearned(app, AppPreferences.HINT_CLEAN);

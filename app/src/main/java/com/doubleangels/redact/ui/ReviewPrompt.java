@@ -22,22 +22,32 @@ import com.google.android.material.snackbar.Snackbar;
  * further jobs, without Not Now that time. Any other answer ends it for good, so it is asked at
  * most twice, and Settings › About keeps a row for rating whenever the user likes.
  *
+ * <p>It asks at the moment Redact has just proved its worth: right after a clean or a censored
+ * save that removed a location, saying so. Someone whose files never carry one is asked anyway
+ * once {@link #ASK_ANYWAY_AFTER} jobs have gone well.
+ *
  * <p>The dialog opens the Play listing rather than the Play In-App Review API: that API's
  * guidelines forbid asking anything before it shows, and it would add a Google Play dependency to
  * an app that otherwise has none.
  */
 public final class ReviewPrompt {
 
-    /** Successful cleans, converts, scans and share-ins before asking. */
+    /** Successful cleans, converts, scans and share-ins before asking after one removed a location. */
     @VisibleForTesting
     static final int ASK_AFTER = 3;
-    /** Successful jobs after Not Now before the one last ask. */
+    /** Successful jobs before asking even though none just removed a location. */
+    @VisibleForTesting
+    public static final int ASK_ANYWAY_AFTER = 10;
+    /** Successful jobs after Not Now before the one last ask, again at a location removed. */
     @VisibleForTesting
     static final int ASK_AGAIN_AFTER = 10;
 
     // Kept by AppPreferences.resetAll, so resetting settings never brings the question back.
     public static final String KEY_SUCCESS_COUNT = "review_success_count";
     public static final String KEY_STATE = "review_state";
+    /** Whether the last successful job removed a location: the moment to ask. */
+    @VisibleForTesting
+    static final String KEY_LAST_REMOVED_LOCATION = "review_last_removed_location";
 
     @VisibleForTesting
     static final int STATE_NOT_ASKED = 0;
@@ -56,22 +66,36 @@ public final class ReviewPrompt {
                 .getSharedPreferences(AppPreferences.PREFS_NAME, Context.MODE_PRIVATE);
     }
 
-    /** Counts one job that finished with every file saved. */
+    /** Counts one job that finished with every file saved and removed no location. */
     public static void recordSuccessfulJob(@NonNull Context context) {
+        recordSuccessfulJob(context, false);
+    }
+
+    /**
+     * Counts one job that finished with every file saved. {@code removedLocation} is whether it
+     * took a location out of a file; only the last job's is kept.
+     */
+    public static void recordSuccessfulJob(@NonNull Context context, boolean removedLocation) {
         SharedPreferences p = prefs(context);
         if (p.getInt(KEY_STATE, STATE_NOT_ASKED) == STATE_DONE) {
             return;
         }
-        p.edit().putInt(KEY_SUCCESS_COUNT, p.getInt(KEY_SUCCESS_COUNT, 0) + 1).apply();
+        p.edit().putInt(KEY_SUCCESS_COUNT, p.getInt(KEY_SUCCESS_COUNT, 0) + 1)
+                .putBoolean(KEY_LAST_REMOVED_LOCATION, removedLocation).apply();
     }
 
     @VisibleForTesting
     static boolean isDue(@NonNull Context context) {
         SharedPreferences p = prefs(context);
         int state = p.getInt(KEY_STATE, STATE_NOT_ASKED);
+        if (state == STATE_DONE) {
+            return false;
+        }
         int count = p.getInt(KEY_SUCCESS_COUNT, 0);
-        return state == STATE_LATER ? count >= ASK_AGAIN_AFTER
-                : state != STATE_DONE && count >= ASK_AFTER;
+        int atLocation = state == STATE_LATER ? ASK_AGAIN_AFTER : ASK_AFTER;
+        int anyway = state == STATE_LATER ? 2 * ASK_AGAIN_AFTER : ASK_ANYWAY_AFTER;
+        return count >= anyway
+                || (count >= atLocation && p.getBoolean(KEY_LAST_REMOVED_LOCATION, false));
     }
 
     /**
@@ -102,13 +126,18 @@ public final class ReviewPrompt {
 
     private static void show(@NonNull Fragment host) {
         Context context = host.requireContext();
-        boolean firstAsk = prefs(context).getInt(KEY_STATE, STATE_NOT_ASKED) == STATE_NOT_ASKED;
+        SharedPreferences p = prefs(context);
+        boolean firstAsk = p.getInt(KEY_STATE, STATE_NOT_ASKED) == STATE_NOT_ASKED;
+        String message = context.getString(R.string.review_prompt_message);
+        if (p.getBoolean(KEY_LAST_REMOVED_LOCATION, false)) {
+            message = context.getString(R.string.review_prompt_location) + "\n\n" + message;
+        }
         // Marked done before the dialog shows, so a rotation or process death while it is open
         // never brings it back; only Not Now undoes that.
         finish(context);
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.review_prompt_title)
-                .setMessage(R.string.review_prompt_message)
+                .setMessage(message)
                 .setCancelable(false)
                 .setPositiveButton(R.string.review_prompt_yes, (d, w) -> openStoreListing(context))
                 .setNegativeButton(R.string.review_prompt_no, (d, w) -> {

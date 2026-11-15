@@ -448,6 +448,7 @@
     <string name="settings_keep_original_names_subtitle">クリーン・変換したファイルに、ランダムな名前ではなく元のファイル名を付けます。IMG_20260117 のような名前から撮影日時がわかる場合があります。</string>
     <string name="review_prompt_title">Redact を広めるのにご協力ください</string>
     <string name="review_prompt_message">Redact は一人で作っている個人のプロジェクトで、広告も追跡も宣伝費もありません。Google Play での評価に、何に使っているかを一言添えていただくのが何よりの助けです。それがほかの人がこのアプリを見つけるきっかけになります。</string>
+    <string name="review_prompt_location">Redact が隠れた位置情報を削除しました。クリーンにしたファイルから、撮影場所はもうわかりません。</string>
     <string name="review_prompt_yes">Google Play で評価</string>
     <string name="review_prompt_no">結構です</string>
     <string name="review_prompt_later">後で</string>

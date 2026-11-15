@@ -461,6 +461,7 @@
     <string name="settings_keep_original_names_subtitle">साफ़ और कन्वर्ट की गई फ़ाइलों को किसी यादृच्छिक नाम के बजाय मूल फ़ाइल का नाम दें। IMG_20260117 जैसे नाम बता सकते हैं कि फ़ोटो कब ली गई थी।</string>
     <string name="review_prompt_title">दूसरों को Redact ढूँढने में मदद करें</string>
     <string name="review_prompt_message">Redact एक व्यक्ति का स्वतंत्र प्रोजेक्ट है, बिना विज्ञापन, बिना ट्रैकिंग और बिना मार्केटिंग बजट के। Google Play पर रेटिंग, और साथ में एक वाक्य कि आप इसे किस काम के लिए इस्तेमाल करते हैं, सबसे बड़ी मदद है: इसी से दूसरे लोग इसे ढूँढ पाते हैं।</string>
+    <string name="review_prompt_location">Redact ने अभी एक छिपी हुई लोकेशन हटाई है, इसलिए जो आपने क्लीन किया वह अब नहीं बताता कि वह कहाँ लिया गया था।</string>
     <string name="review_prompt_yes">Google Play पर रेट करें</string>
     <string name="review_prompt_no">नहीं, धन्यवाद</string>
     <string name="review_prompt_later">अभी नहीं</string>

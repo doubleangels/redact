@@ -489,6 +489,7 @@
     <string name="settings_keep_original_names_subtitle">Очищенные и преобразованные файлы получают имя оригинала вместо случайного. Имена вроде IMG_20260117 могут показать, когда был сделан снимок.</string>
     <string name="review_prompt_title">Помогите другим найти Redact</string>
     <string name="review_prompt_message">Redact — независимый проект одного человека, без рекламы, без отслеживания и без бюджета на продвижение. Оценка в Google Play и пара слов о том, для чего вы им пользуетесь, — лучшая помощь: именно так приложение находят другие.</string>
+    <string name="review_prompt_location">Redact только что удалил скрытое местоположение: по очищенным файлам больше не видно, где они сняты.</string>
     <string name="review_prompt_yes">Оценить в Google Play</string>
     <string name="review_prompt_no">Нет, спасибо</string>
     <string name="review_prompt_later">Не сейчас</string>

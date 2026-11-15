@@ -475,6 +475,7 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="settings_keep_original_names_subtitle">Les fichiers nettoyés et convertis gardent le nom de l\'original au lieu d\'un nom aléatoire. Un nom comme IMG_20260117 peut révéler quand une photo a été prise.</string>
     <string name="review_prompt_title">Aidez d\'autres personnes à trouver Redact</string>
     <string name="review_prompt_message">Redact est un projet indépendant mené par une seule personne, sans publicité, sans pistage et sans budget marketing. Une note sur Google Play, avec une phrase sur l\'usage que vous en faites, est la plus grande aide qui soit : c\'est ainsi que d\'autres le découvrent.</string>
+    <string name="review_prompt_location">Redact vient de supprimer une position cachée : ce que vous avez nettoyé ne révèle plus où cela a été pris.</string>
     <string name="review_prompt_yes">Noter sur Google Play</string>
     <string name="review_prompt_no">Non merci</string>
     <string name="review_prompt_later">Plus tard</string>

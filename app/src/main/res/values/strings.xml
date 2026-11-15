@@ -467,6 +467,7 @@
     <string name="settings_keep_original_names_subtitle">Name cleaned and converted files after the originals instead of a random name. Names such as IMG_20260117 can reveal when a photo was taken.</string>
     <string name="review_prompt_title">Help Others Find Redact</string>
     <string name="review_prompt_message">Redact is an independent project made by one person, with no ads, no tracking and no marketing budget. A rating on Google Play, with a sentence about what you use it for, is the biggest help there is: that\'s how other people find it.</string>
+    <string name="review_prompt_location">Redact just removed a hidden location, so what you cleaned no longer shows where it was taken.</string>
     <string name="review_prompt_yes">Rate on Google Play</string>
     <string name="review_prompt_no">No Thanks</string>
     <string name="review_prompt_later">Not Now</string>

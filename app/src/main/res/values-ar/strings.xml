@@ -517,6 +517,7 @@
     <string name="settings_keep_original_names_subtitle">تسمية الملفات المنظفة والمحولة باسم الملفات الأصلية بدلًا من اسم عشوائي. قد تكشف أسماء مثل IMG_20260117 وقت التقاط الصورة.</string>
     <string name="review_prompt_title">ساعد الآخرين في العثور على Redact</string>
     <string name="review_prompt_message">Redact مشروع مستقل يعمل عليه شخص واحد، بلا إعلانات ولا تتبّع ولا ميزانية تسويق. تقييمك على Google Play، مع جملة عمّا تستخدمه من أجله، هو أكبر مساعدة ممكنة: فهكذا يجده الآخرون.</string>
+    <string name="review_prompt_location">أزال Redact للتو موقعًا مخفيًا، فلم يعد ما نظّفته يكشف مكان التقاطه.</string>
     <string name="review_prompt_yes">التقييم على Google Play</string>
     <string name="review_prompt_no">لا، شكرًا</string>
     <string name="review_prompt_later">ليس الآن</string>

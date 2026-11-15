@@ -447,6 +447,7 @@
     <string name="settings_keep_original_names_subtitle">清理與轉換後的檔案沿用原始檔名，而非隨機名稱。IMG_20260117 這類名稱可能透露照片的拍攝時間。</string>
     <string name="review_prompt_title">幫助更多人找到 Redact</string>
     <string name="review_prompt_message">Redact 是一個人獨立製作的專案，沒有廣告、沒有追蹤，也沒有宣傳預算。在 Google Play 上評個分，再寫一句你用它做什麼，就是最大的幫助：別人正是這樣找到它的。</string>
+    <string name="review_prompt_location">Redact 剛剛移除了隱藏的位置資訊，清理後的檔案不會再透露拍攝地點。</string>
     <string name="review_prompt_yes">在 Google Play 上評分</string>
     <string name="review_prompt_no">不用了</string>
     <string name="review_prompt_later">以後再說</string>

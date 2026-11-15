@@ -460,6 +460,7 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_keep_original_names_subtitle">Bereinigte und konvertierte Dateien erhalten den Namen des Originals statt eines zufälligen Namens. Namen wie IMG_20260117 können verraten, wann ein Foto aufgenommen wurde.</string>
     <string name="review_prompt_title">Hilf anderen, Redact zu finden</string>
     <string name="review_prompt_message">Redact ist ein unabhängiges Ein-Personen-Projekt, ohne Werbung, ohne Tracking und ohne Marketingbudget. Eine Bewertung bei Google Play, gern mit einem Satz dazu, wofür du es nutzt, hilft am meisten: So finden andere die App.</string>
+    <string name="review_prompt_location">Redact hat gerade einen versteckten Standort entfernt. Was du bereinigt hast, verrät nicht mehr, wo es aufgenommen wurde.</string>
     <string name="review_prompt_yes">Bei Google Play bewerten</string>
     <string name="review_prompt_no">Nein, danke</string>
     <string name="review_prompt_later">Später</string>
