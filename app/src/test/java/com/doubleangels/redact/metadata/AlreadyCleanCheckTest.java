@@ -367,4 +367,58 @@ public class AlreadyCleanCheckTest {
                         TestVideos.trakWith(TestVideos.namedHdlr("vide", "GoPro AVC"))), TestVideos.mdat()),
                 duration, "1000")));
     }
+
+    /** A JPEG whose only metadata is the author Windows wrote, a tag ExifInterface cannot name. */
+    private File jpegWithXpAuthor() throws IOException {
+        byte[] plain = java.nio.file.Files.readAllBytes(jpeg().toPath());
+        File f = File.createTempFile("check_xp_", ".jpg", app.getCacheDir());
+        f.deleteOnExit();
+        java.nio.file.Files.write(f.toPath(), ExifFixtures.withExif(plain,
+                ExifFixtures.tiffWith(ExifBlock.TAG_XP_AUTHOR, ExifFixtures.xpText("Jane Doe"))));
+        return f;
+    }
+
+    @Test
+    public void imageWithOnlyAnXpAuthor_needsCleaning() throws IOException {
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(jpegWithXpAuthor(), "image/jpeg")));
+    }
+
+    @Test
+    public void imageWithAnExifBlockThatCannotBeFollowed_isUnknown() throws IOException {
+        byte[] plain = java.nio.file.Files.readAllBytes(jpeg().toPath());
+        byte[] tiff = ExifFixtures.tiffWith(ExifBlock.TAG_XP_AUTHOR, ExifFixtures.xpText("Jane Doe"));
+        java.nio.ByteBuffer.wrap(tiff).order(java.nio.ByteOrder.LITTLE_ENDIAN).putInt(18, 1 << 20);
+        File f = File.createTempFile("check_bad_", ".jpg", app.getCacheDir());
+        f.deleteOnExit();
+        java.nio.file.Files.write(f.toPath(), ExifFixtures.withExif(plain, tiff));
+        assertEquals(Status.UNKNOWN, AlreadyCleanCheck.assessItem(app, item(f, "image/jpeg")));
+    }
+
+    /** A clean drops the XP tag with the rest of the block, under Strict Clean and with every keep on. */
+    @Test
+    public void theCleanCopyOfAnXpPhoto_isAlreadyClean() throws IOException {
+        for (boolean strict : new boolean[] {true, false}) {
+            AppPreferences.setStrictClean(app, strict);
+            AppPreferences.setPreserveCameraSettings(app, !strict);
+            AppPreferences.setPreserveDateTaken(app, !strict);
+            AppPreferences.setPreserveLocation(app, !strict);
+            Uri source = Uri.fromFile(jpegWithXpAuthor());
+            Uri out = new MetadataStripper(app).cleanImage(source, "photo.jpg").uri();
+            org.junit.Assert.assertNotNull(out);
+            assertEquals("strict=" + strict, Status.ALREADY_CLEAN,
+                    AlreadyCleanCheck.assessItem(app, new MediaItem(out, false, "photo.jpg")));
+        }
+        AppPreferences.setStrictClean(app, true);
+        AppPreferences.setPreserveCameraSettings(app, false);
+        AppPreferences.setPreserveDateTaken(app, false);
+        AppPreferences.setPreserveLocation(app, false);
+    }
+
+    /** Scan lists the XP tag by name with its text. */
+    @Test
+    public void scan_showsAnXpAuthor() throws IOException {
+        java.util.Map<String, String> map = new java.util.TreeMap<>();
+        MetadataDisplayer.addTagsExifInterfaceCannotName(app, Uri.fromFile(jpegWithXpAuthor()), map);
+        assertEquals("Jane Doe", map.get("XP_AUTHOR"));
+    }
 }

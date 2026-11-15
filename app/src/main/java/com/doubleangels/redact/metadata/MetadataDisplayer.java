@@ -642,6 +642,8 @@ public class MetadataDisplayer {
                                 && metadataMap.containsKey("GPS_LONGITUDE"));
             }
 
+            addTagsExifInterfaceCannotName(context, imageUri, metadataMap);
+
             if (exifTagCapReached) {
                 metadataMap.put(
                         context.getString(R.string.scan_metadata_truncated_key),
@@ -1006,6 +1008,53 @@ public class MetadataDisplayer {
 
     /** Whether {@code value} is text a person can read: no control characters or replacement marks. */
     @VisibleForTesting
+    /** Names for the tags Windows writes from Explorer, which ExifInterface does not define. */
+    private static String xpKey(int tag) {
+        switch (tag) {
+            case ExifBlock.TAG_XP_TITLE:
+                return "XP_TITLE";
+            case ExifBlock.TAG_XP_COMMENT:
+                return "XP_COMMENT";
+            case ExifBlock.TAG_XP_AUTHOR:
+                return "XP_AUTHOR";
+            case ExifBlock.TAG_XP_KEYWORDS:
+                return "XP_KEYWORDS";
+            default:
+                return "XP_SUBJECT";
+        }
+    }
+
+    /**
+     * Adds the EXIF tags ExifInterface has no name for, which the loop above cannot see: the XP
+     * tags with their text, any other by its number and size. A block that cannot be read adds
+     * nothing; the rest of the scan still shows.
+     */
+    @VisibleForTesting
+    static void addTagsExifInterfaceCannotName(Context context, Uri imageUri, Map<String, String> metadataMap) {
+        try (InputStream in = context.getContentResolver().openInputStream(imageUri)) {
+            byte[] block = in != null ? ExifBlock.find(in) : null;
+            if (block == null) {
+                return;
+            }
+            for (ExifBlock.Entry entry : ExifBlock.read(block)) {
+                if (entry.knownToExifInterface()) {
+                    continue;
+                }
+                String text = entry.xpText();
+                if (text != null) {
+                    metadataMap.put(xpKey(entry.tag), !text.isEmpty() && isReadableText(text)
+                            ? text : sizeText(context, entry.size));
+                } else {
+                    metadataMap.put(String.format(Locale.ROOT, "EXIF_TAG_0x%04X", entry.tag),
+                            sizeText(context, entry.size));
+                }
+            }
+        } catch (IOException | RuntimeException e) {
+            SentryManager.log("The EXIF block could not be read for unnamed tags: "
+                    + e.getClass().getSimpleName() + ".");
+        }
+    }
+
     static boolean isReadableText(String value) {
         for (int i = 0; i < value.length(); i++) {
             char c = value.charAt(i);

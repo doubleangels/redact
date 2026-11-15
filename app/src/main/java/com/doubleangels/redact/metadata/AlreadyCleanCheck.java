@@ -121,6 +121,24 @@ public final class AlreadyCleanCheck {
         } catch (IOException | RuntimeException e) {
             return Status.UNKNOWN;
         }
+        // Tags ExifInterface has no name for (Windows' XPAuthor, a vendor's own): it never reports
+        // them, and a clean never writes them, so one being there means the photo needs a clean.
+        try (InputStream in = resolver.openInputStream(uri)) {
+            if (in == null) {
+                return Status.UNKNOWN;
+            }
+            byte[] block = ExifBlock.find(in);
+            if (block != null) {
+                for (ExifBlock.Entry entry : ExifBlock.read(block)) {
+                    if (!entry.knownToExifInterface()) {
+                        return Status.NEEDS_CLEANING;
+                    }
+                }
+            }
+        } catch (IOException | RuntimeException e) {
+            // A block that cannot be followed cannot be vouched for.
+            return Status.UNKNOWN;
+        }
         // IPTC, comments, text chunks, appended images and videos, a HEIF's metadata items, boxes
         // and coded user data: everything a clean removes outside EXIF, read by what the file is
         // rather than its type. A file whose structure cannot be followed is cleaned as usual.
