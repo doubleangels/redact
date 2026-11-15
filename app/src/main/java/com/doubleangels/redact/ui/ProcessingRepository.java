@@ -500,13 +500,14 @@ public final class ProcessingRepository {
                 if (failCount > 0) {
                     cleanFeedbackEventId = SentryManager.reportedSince(reportedBefore);
                 }
-                setCleanProcessingState(ProcessingState.COMPLETED);
                 // Counted here rather than by the Clean tab, which sees only the runs it was
-                // watching when they finished.
+                // watching when they finished, and before COMPLETED, whose observer asks for a
+                // rating right away and must see this job.
                 if (successCount > 0 && failCount == 0) {
                     ReviewPrompt.recordSuccessfulJob(app,
                             mediaProcessor.getCleanSummary().filesWithLocation > 0);
                 }
+                setCleanProcessingState(ProcessingState.COMPLETED);
                 if (successCount > 0) {
                     AppPreferences.setSummaryHintLearned(app, AppPreferences.HINT_CLEAN);
                 }
@@ -715,10 +716,11 @@ public final class ProcessingRepository {
                     updateConvertProgressPercentForce(100, convertCompletionMessage(finalOk, finalFail));
                     convertProcessedItemCount.setValue(finalOk);
                     persistBatchCounts(finalOk, total, KEY_CONVERT_PROCESSED, KEY_CONVERT_BATCH);
-                    setConvertProcessingState(ProcessingState.COMPLETED);
+                    // Before COMPLETED, whose observer asks for a rating right away.
                     if (finalOk > 0 && finalFail == 0) {
                         ReviewPrompt.recordSuccessfulJob(app);
                     }
+                    setConvertProcessingState(ProcessingState.COMPLETED);
                     if (finalOk > 0) {
                         AppPreferences.setSummaryHintLearned(app, AppPreferences.HINT_CONVERT);
                     }
