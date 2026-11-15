@@ -44,6 +44,10 @@ public class ProcessingForegroundService extends Service {
             app.startForegroundService(intent);
         } catch (SecurityException ignored) {
             // POST_NOTIFICATIONS denied on API 33+.
+        } catch (IllegalStateException e) {
+            // ForegroundServiceStartNotAllowedException: the app went to the background before
+            // the job began. The job runs without the service, as updateProgress and stop allow.
+            SentryManager.log("The processing service could not start from the background.");
         }
     }
 
