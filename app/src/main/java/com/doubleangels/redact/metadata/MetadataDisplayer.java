@@ -782,7 +782,7 @@ public class MetadataDisplayer {
                                     try {
                                         SentryManager.setCustomKey("video_duration_ms", Long.parseLong(value));
                                     } catch (NumberFormatException e) {
-                                        SentryManager.log("The duration format for analytics is invalid: " + value + ".");
+                                        SentryManager.log("The video duration is not a number.");
                                         SentryManager.recordException(e);
                                     }
                                 }

@@ -101,7 +101,7 @@ public class SentryPrivacyScrubberTest {
     @Test
     public void scrubMetricRedactsStringAttributesAndStripsPiiKeys() {
         SentryMetricsEvent metric =
-                new SentryMetricsEvent(new SentryId(), 1.0, "processing.clean.success", null, 1.0);
+                new SentryMetricsEvent(new SentryId(), 1.0, "processing.clean.failure", null, 1.0);
         metric.setAttribute(
                 "user.email",
                 new SentryLogEventAttributeValue(SentryAttributeType.STRING, "a@b.com"));

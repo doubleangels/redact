@@ -280,7 +280,6 @@ public class ScanFragment extends TabFragment {
         // Files opened from another app (ACTION_VIEW); delivered via MainActivity.
         scanViewModel.getPendingUri().observe(getViewLifecycleOwner(), pending -> {
             if (pending != null) {
-                SentryManager.log("Media was opened from another app in ScanFragment.");
                 scanUri(scanViewModel.consumePendingUri());
             }
         });

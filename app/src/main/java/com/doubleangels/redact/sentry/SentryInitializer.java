@@ -133,6 +133,8 @@ public final class SentryInitializer {
             options.setAttachScreenshot(false);
             options.setAttachViewHierarchy(false);
             options.setSendDefaultPii(false); // Explicit lock against future SDK defaults.
+            // No release-health sessions: they would count how often the app is opened.
+            options.setEnableAutoSessionTracking(false);
 
             // Privacy: do NOT collect broad device context or send all auto breadcrumbs.
             options.setCollectAdditionalContext(false);

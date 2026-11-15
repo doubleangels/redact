@@ -289,7 +289,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
             String type = intent.getType();
 
             SentryManager.setCustomKey("intent_action", action != null ? action : "null");
-            SentryManager.setCustomKey("intent_type", type != null ? type : "null");
+            // The sender writes the type, so only a plain MIME type is sent, never its own text.
+            SentryManager.setCustomKey("intent_type", mimeTypeTag(type));
 
             if (Intent.ACTION_SEND.equals(action)) {
                 if (type == null || type.startsWith("image/") || type.startsWith("video/")
@@ -297,7 +298,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     SentryManager.log("The app is handling a single media item.");
                     handleSentMedia(intent);
                 } else {
-                    SentryManager.setCustomKey("unsupported_type", type);
+                    SentryManager.setCustomKey("unsupported_type", mimeTypeTag(type));
                     finishWithError(getString(R.string.share_error_unsupported_media));
                 }
             } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
@@ -306,7 +307,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     SentryManager.log("The app is handling multiple media items.");
                     handleMultipleMedia(intent);
                 } else {
-                    SentryManager.setCustomKey("unsupported_type", type);
+                    SentryManager.setCustomKey("unsupported_type", mimeTypeTag(type));
                     finishWithError(getString(R.string.share_error_unsupported_media));
                 }
             } else {
@@ -685,7 +686,6 @@ public class ShareHandlerActivity extends AppCompatActivity {
         Thread worker = new Thread(() -> {
             ITransaction transaction = SentryManager.startTransaction("share_cleanup", "task");
             long batchStartMs = System.currentTimeMillis();
-            SentryManager.distribution("processing.batch.size", uris.size(), "operation_type", "share");
             ArrayList<Uri> processedUris = new ArrayList<>();
             int failCount = snapshotFailCount + unsupportedRejectCount;
             int unsupportedFailCount = unsupportedRejectCount;
@@ -712,7 +712,6 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
                     CleanResult result = stripper.cleanForSharing(uri, fileName, isVideo);
                     if (result.succeeded()) {
-                        SentryManager.count("processing.share.success", 1, "is_video", String.valueOf(isVideo));
                         processedUris.add(result.uri());
                         CleanStats stats = result.stats();
                         StatsStore.recordClean(this,
@@ -1235,7 +1234,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
         SentryManager.count("media.unsupported", 1, "mime_type", mimeTypeTag(mimeType));
     }
 
-    /** A MIME type reduced to "type/subtype" in lower case, or "unknown" when it is not one. */
+    /**
+     * A MIME type reduced to "type/subtype" in lower case (a wildcard such as "image/*" included),
+     * or "unknown" when it is not one.
+     */
     @VisibleForTesting
     @NonNull
     static String mimeTypeTag(@Nullable String mimeType) {
@@ -1243,7 +1245,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             return "unknown";
         }
         String bare = mimeType.split(";", 2)[0].trim().toLowerCase(Locale.ROOT);
-        return bare.matches("[a-z]+/[a-z0-9][a-z0-9.+-]{0,63}") ? bare : "unknown";
+        return bare.matches("([a-z]+|\\*)/([a-z0-9][a-z0-9.+-]{0,63}|\\*)") ? bare : "unknown";
     }
 
     private void finishWithError(String message) {

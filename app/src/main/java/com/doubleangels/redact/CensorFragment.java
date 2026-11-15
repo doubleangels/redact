@@ -532,7 +532,6 @@ public class CensorFragment extends TabFragment {
 
     @VisibleForTesting
     void chooseEffect(@NonNull CensorEffects.Effect effect) {
-        SentryManager.logEvent("Censor", "The user chose the " + effect.name() + " effect.");
         viewModel.setEffect(effect);
         updateControls();
     }

@@ -161,7 +161,6 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView.setOnItemSelectedListener(item -> {
             try {
                 int itemId = item.getItemId();
-                SentryManager.logEvent("Navigation", "The user selected a tab.");
                 Fragment target = ensureFragmentForTab(itemId);
                 if (target == null) {
                     return false;
@@ -287,7 +286,6 @@ public class MainActivity extends AppCompatActivity {
             // Don't swap the files out from under a running convert; just show its progress.
             return true;
         }
-        SentryManager.logEvent("Share", "Media was shared to Convert.");
         new MediaSelector(this)
                 .processMediaUrisAsync(media, viewModel::setConvertSelectedItems);
         return true;
@@ -310,7 +308,6 @@ public class MainActivity extends AppCompatActivity {
             Notice.show(this, R.string.share_error_unsupported_media, true);
             return true;
         }
-        SentryManager.logEvent("Share", "A photo was shared to Censor.");
         new ViewModelProvider(this)
                 .get(CensorViewModel.class).requestOpen(uri);
         return true;
@@ -753,17 +750,5 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        SentryManager.logEvent("Lifecycle", "The MainActivity resumed.");
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        SentryManager.logEvent("Lifecycle", "The MainActivity paused.");
     }
 }

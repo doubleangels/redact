@@ -77,7 +77,7 @@ final class ImageCleaner {
      */
     @NonNull
     public CleanResult cleanImage(@NonNull Uri sourceUri, @NonNull String originalFilename) {
-        // Log operation start for analytics and debugging
+        // Breadcrumb for a crash report.
         SentryManager.log("The app is starting image EXIF stripping for MediaStore.");
         SentryManager.beginOperation("image_to_mediastore");
         Uri newUri = null;
@@ -340,7 +340,7 @@ final class ImageCleaner {
      */
     @NonNull
     public CleanResult cleanImageForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename) {
-        // Log operation start for analytics and debugging
+        // Breadcrumb for a crash report.
         SentryManager.log("The app is starting image EXIF stripping for sharing.");
 
         SentryManager.beginOperation("image_for_sharing");

@@ -76,11 +76,11 @@ public class SentryManagerEnabledTest {
 
     @Test
     public void counters_acceptAllowedDimensionsOnly() {
-        SentryManager.count("processing.clean.success", 1);
+        SentryManager.count("video.downscaled", 1);
         SentryManager.count("", 1);
         SentryManager.count(null, 1);
-        SentryManager.count("processing.clean.success", 1, "is_video", "true");
-        SentryManager.count("processing.clean.success", 1, "file_name", "secret.jpg");
+        SentryManager.count("video.downscaled", 1, "is_video", "true");
+        SentryManager.count("video.downscaled", 1, "file_name", "secret.jpg");
         SentryManager.count("processing.clean.failure", 1, "is_video", null);
         SentryManager.count("processing.clean.failure", 1, "is_video", "false", "error_type", "IOException");
         SentryManager.count("processing.clean.failure", 1, "is_video", "false", "uri", "content://x");
@@ -90,10 +90,10 @@ public class SentryManagerEnabledTest {
 
     @Test
     public void distributionsAndGauges_validateTheirInputs() {
-        SentryManager.distribution("processing.batch.size", 3);
+        SentryManager.distribution("video.retry_smaller", 3);
         SentryManager.distribution("", 3);
-        SentryManager.distribution("processing.batch.size", 3, "operation_type", "clean");
-        SentryManager.distribution("processing.batch.size", 3, "path", "/storage/x");
+        SentryManager.distribution("video.retry_smaller", 3, "operation_type", "clean");
+        SentryManager.distribution("video.retry_smaller", 3, "path", "/storage/x");
         SentryManager.distributionDurationMs("processing.duration_ms", 1234, "operation_type", "convert");
         SentryManager.distributionDurationMs("processing.duration_ms", 1234, "location", "x");
         SentryManager.gauge("queue.depth", 2);

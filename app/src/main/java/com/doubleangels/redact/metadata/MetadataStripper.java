@@ -423,7 +423,7 @@ public class MetadataStripper {
      */
     @NonNull
     public CleanResult cleanForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename, boolean isVideo) {
-        // Log operation start for analytics and debugging
+        // Breadcrumb for a crash report.
         SentryManager.log("The app is starting metadata stripping for sharing.");
         SentryManager.setCustomKey("is_video", isVideo);
         return isVideo

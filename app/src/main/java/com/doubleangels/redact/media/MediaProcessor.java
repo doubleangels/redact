@@ -257,7 +257,6 @@ public class MediaProcessor {
             final int totalItems = items.size();
             ITransaction transaction = SentryManager.startTransaction("clean_multiple", "task");
             long batchStartMs = System.currentTimeMillis();
-            SentryManager.distribution("processing.batch.size", totalItems, "operation_type", "clean");
             int successCount = 0;
             try {
                 for (int index = 0; index < totalItems; index++) {
@@ -320,8 +319,6 @@ public class MediaProcessor {
                                     stats != null ? stats : new CleanStats(0, false),
                                     item.isVideo(), false);
                             successCount++;
-                            SentryManager.count(
-                                    "processing.clean.success", 1, "is_video", String.valueOf(item.isVideo()));
                             span.setStatus(SpanStatus.OK);
                         } else if (cancelled.get()) {
                             VideoMedia3Converter.cancelActiveTranscode(metadataStripper.getTranscodeOwnerId());
