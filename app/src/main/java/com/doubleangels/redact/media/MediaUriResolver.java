@@ -169,7 +169,10 @@ public final class MediaUriResolver {
         String packageName = context.getPackageName();
         try {
             ProviderInfo info = context.getPackageManager().resolveContentProvider(authority, 0);
-            return info != null && packageName.equals(info.packageName);
+            // An owner the system will not name is not vouched for as another app's, so it is
+            // refused. The app that sends a share, and any app whose content it grants, is
+            // visible to Redact, so their providers do resolve.
+            return info == null || packageName.equals(info.packageName);
         } catch (RuntimeException e) {
             SentryManager.log("The provider owner lookup failed: " + e.getClass().getSimpleName() + ".");
             return true;
