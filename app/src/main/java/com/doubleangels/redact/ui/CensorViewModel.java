@@ -339,7 +339,11 @@ public class CensorViewModel extends AndroidViewModel {
         bumpHistory();
     }
 
+    /** Adds a covered area; one without its own effect takes the current effect. */
     public void addRegion(@NonNull CensorRegion region) {
+        if (region.effect() == null) {
+            region = region.withEffect(effectOrDefault());
+        }
         if (region.isEmpty()) {
             // Clears the drawn outline, which waits for a new preview.
             preview.setValue(preview.getValue());
@@ -352,8 +356,14 @@ public class CensorViewModel extends AndroidViewModel {
         renderAdded(region);
     }
 
-    /** Moves or resizes the region at {@code index}, as an edit that can be undone. */
+    /**
+     * Moves or resizes the region at {@code index}, as an edit that can be undone; a region without
+     * its own effect keeps the one it had.
+     */
     public void replaceRegion(int index, @NonNull CensorRegion region) {
+        if (region.effect() == null && index >= 0 && index < regions.size()) {
+            region = region.withEffect(regions.get(index).effect());
+        }
         if (index < 0 || index >= regions.size() || region.isEmpty() || region.equals(regions.get(index))) {
             // Clears the drawn outline, which waits for a new preview.
             preview.setValue(preview.getValue());
@@ -455,13 +465,53 @@ public class CensorViewModel extends AndroidViewModel {
         }
     }
 
+    /**
+     * Sets the effect for the areas covered from now on. Areas already covered keep theirs; use
+     * {@link #setRegionEffect} to change one.
+     */
     public void setEffect(@NonNull CensorEffects.Effect newEffect) {
         if (newEffect != effect.getValue()) {
             effect.setValue(newEffect);
             AppPreferences.setCensorEffect(getApplication(), newEffect.name());
-            lastSaveFailed = false;
-            render();
+            if (anyTakesPhotoEffect()) {
+                lastSaveFailed = false;
+                render();
+            }
         }
+    }
+
+    /** Covers the region at {@code index} with {@code newEffect}, as an edit that can be undone. */
+    public void setRegionEffect(int index, @NonNull CensorEffects.Effect newEffect) {
+        if (index < 0 || index >= regions.size()) {
+            return;
+        }
+        CensorRegion region = regions.get(index);
+        if (region.effect() == newEffect) {
+            return;
+        }
+        remember();
+        regions.set(index, region.withEffect(newEffect));
+        historyChanged();
+    }
+
+    /** The effect the region at {@code index} is covered with, or null when there is none. */
+    @Nullable
+    public CensorEffects.Effect regionEffect(int index) {
+        if (index < 0 || index >= regions.size()) {
+            return null;
+        }
+        CensorEffects.Effect own = regions.get(index).effect();
+        return own != null ? own : effectOrDefault();
+    }
+
+    /** Whether any region has no effect of its own, so the current effect shows on it. */
+    private boolean anyTakesPhotoEffect() {
+        for (CensorRegion region : regions) {
+            if (region.effect() == null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Whether there are edits (regions or a crop) that have not been saved in their current form. */
@@ -471,8 +521,8 @@ public class CensorViewModel extends AndroidViewModel {
         }
         List<CensorRegion> saved = savedRegions;
         return saved == null || !saved.equals(regions) || !Objects.equals(savedCrop, crop)
-                // The effect only shows on covered areas.
-                || (!regions.isEmpty() && savedEffect != effect.getValue());
+                // The current effect only shows on areas without their own.
+                || (anyTakesPhotoEffect() && savedEffect != effect.getValue());
     }
 
     @NonNull

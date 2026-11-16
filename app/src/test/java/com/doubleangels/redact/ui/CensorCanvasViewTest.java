@@ -20,7 +20,10 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
-/** Zoom limits, the zoom-aware brush, the move tool and where zoomed-in shapes land. */
+/**
+ * Zoom limits, two-finger zoom with every tool, the zoom-aware brush, the move tool, where
+ * zoomed-in shapes land, and picking up, moving and resizing rectangles.
+ */
 @RunWith(RobolectricTestRunner.class)
 public class CensorCanvasViewTest {
 
@@ -133,16 +136,29 @@ public class CensorCanvasViewTest {
     }
 
     @Test
-    public void pinching_whileDrawing_neitherZoomsNorDraws() {
+    public void pinching_withADrawingTool_zooms_butDrawsNothing() {
         view.setTool(CensorCanvasView.Tool.BRUSH);
         pinchOut();
-        assertEquals(1f, view.getZoom(), 0.001f);
-        assertNull(drawn);
+        assertTrue("zoom " + view.getZoom(), view.getZoom() > 1.5f);
+        assertNull("the second finger cancels the stroke", drawn);
 
+        view.resetZoom();
         view.setTool(CensorCanvasView.Tool.RECT);
         pinchOut();
-        assertEquals(1f, view.getZoom(), 0.001f);
+        assertTrue("zoom " + view.getZoom(), view.getZoom() > 1.5f);
         assertNull(drawn);
+    }
+
+    @Test
+    public void pinching_thatStartsOnARectangle_leavesTheSelectionAlone() {
+        drag(100, 100, 200, 200);
+        assertEquals(-1, view.selectedIndex());
+
+        pinchOut(); // Its first finger lands at (150, 150), inside the rectangle.
+
+        assertEquals(-1, view.selectedIndex());
+        assertEquals("nothing moved", -1, changedIndex);
+        assertTrue(view.getZoom() > 1.5f);
     }
 
     @Test
@@ -263,15 +279,92 @@ public class CensorCanvasViewTest {
     }
 
     @Test
-    public void draggingOverAnUnselectedRectangle_drawsANewOne() {
+    public void draggingInsideAnUnselectedRectangle_selectsAndMovesIt() {
         drag(20, 20, 120, 120);
         drag(250, 150, 350, 250);
         drag(300, 200, 300, 200); // Selects the second one.
 
-        drag(30, 30, 100, 100);
+        drag(70, 70, 100, 90);
 
-        assertEquals(3, regions.size());
+        assertEquals("moved, not drawn", 2, regions.size());
+        assertEquals(0, changedIndex);
+        assertEquals(0, view.selectedIndex());
+        float[] p = changed.points();
+        assertEquals(50f / 400f, p[0], 0.002f);
+        assertEquals(40f / 300f, p[1], 0.002f);
+    }
+
+    @Test
+    public void draggingFromJustInsideARectanglesEdge_drawsANewOne() {
+        drag(20, 20, 120, 120);
+
+        drag(115, 60, 200, 150); // 5 px inside the right edge: closer than the grab inset.
+
+        assertEquals(2, regions.size());
         assertEquals(-1, changedIndex);
+    }
+
+    @Test
+    public void draggingAnEdgeHandle_resizesOnlyThatSide() {
+        drag(100, 50, 300, 250);
+        drag(200, 150, 200, 150); // Select.
+
+        drag(300, 150, 350, 160); // The right edge's middle handle.
+
+        float[] p = changed.points();
+        assertEquals(100f / 400f, p[0], 0.002f);
+        assertEquals(50f / 300f, p[1], 0.002f);
+        assertEquals(350f / 400f, p[2], 0.002f);
+        assertEquals(250f / 300f, p[3], 0.002f);
+    }
+
+    @Test
+    public void aSmallRectangle_hasNoEdgeHandles_soDraggingNearItsMiddleMovesIt() {
+        drag(100, 100, 150, 150); // 50 px: too small for edge handles.
+        drag(125, 125, 125, 125); // Select.
+
+        drag(125, 125, 175, 125);
+
+        float[] p = changed.points();
+        assertEquals(150f / 400f, p[0], 0.002f);
+        assertEquals(200f / 400f, p[2], 0.002f);
+    }
+
+    @Test
+    public void drawnRegions_carryTheEffectSet_andMovingKeepsIt() {
+        view.setEffect(com.doubleangels.redact.media.CensorEffects.Effect.BLUR);
+        drag(100, 100, 200, 200);
+        assertEquals(com.doubleangels.redact.media.CensorEffects.Effect.BLUR, drawn.effect());
+
+        view.setEffect(com.doubleangels.redact.media.CensorEffects.Effect.PIXELATE);
+        drag(150, 150, 180, 170); // Picks it up and moves it.
+        assertEquals(com.doubleangels.redact.media.CensorEffects.Effect.BLUR, changed.effect());
+    }
+
+    @Test
+    public void aSelectedRectangleWhoseEffectChanges_staysSelected() {
+        drag(100, 100, 200, 200);
+        drag(150, 150, 150, 150);
+        assertEquals(0, view.selectedIndex());
+
+        regions.set(0, regions.get(0).withEffect(com.doubleangels.redact.media.CensorEffects.Effect.PIXELATE));
+        view.setRegions(regions);
+
+        assertEquals(0, view.selectedIndex());
+    }
+
+    @Test
+    public void theSelectedRectanglesPlace_isOnScreenCoordinates_andFollowsTheZoom() {
+        drag(100, 100, 200, 200);
+        assertNull(view.selectedBoundsInView());
+        drag(150, 150, 150, 150);
+        assertEquals(new android.graphics.RectF(100, 100, 200, 200), view.selectedBoundsInView());
+
+        view.zoomBy(2f); // About the centre (200, 150).
+        assertEquals(new android.graphics.RectF(0, 50, 200, 250), view.selectedBoundsInView());
+
+        view.clearSelection();
+        assertNull(view.selectedBoundsInView());
     }
 
     @Test

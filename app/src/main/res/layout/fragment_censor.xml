@@ -17,8 +17,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- The open photo: its summary card, and the photo with its tools over it filling the space
-         left all the way to the bottom. Not scrollable, so drawing on the photo never scrolls
+    <!-- The open photo: its summary card, the photo filling the space left, and its toolbar
+         under it. Not scrollable, so drawing on the photo never scrolls
          the screen. -->
     <LinearLayout
         android:id="@+id/censorContent"
@@ -48,6 +48,8 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1" />
+
+        <include layout="@layout/censor_toolbar" />
     </LinearLayout>
 
     <include layout="@layout/censor_actions" />

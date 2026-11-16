@@ -417,8 +417,8 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="censor_empty_state_title">Verdecke, Was Privat Bleiben Soll</string>
     <string name="censor_empty_state_description">Verpixle, schwärze oder verwische Gesichter, Kennzeichen, Adressen und alles andere in einem Foto. Redact speichert eine zensierte Kopie ohne Metadaten, und dein Original bleibt unverändert.</string>
     <string name="censor_select_photo">Foto Auswählen</string>
-    <string name="censor_hint">Male über alles, was privat bleiben soll, und tippe dann auf Kopie Speichern. Mit Verschieben kannst du mit zwei Fingern zoomen und den Ausschnitt bewegen. Tippe auf ein Rechteck, um es zu verschieben oder seine Größe zu ändern. Mit Zuschneiden behältst du nur einen Teil des Fotos.</string>
-    <string name="censor_canvas_description">Foto, das zensiert wird. Zeichne mit einem Finger, um einen Bereich zu verdecken. Mit Verschieben ziehst du den Ausschnitt und zoomst mit zwei Fingern.</string>
+    <string name="censor_hint">Male über alles, was privat bleiben soll, und tippe dann auf Kopie Speichern. Mit zwei Fingern zoomst du und bewegst den Ausschnitt. Ziehe ein Rechteck, um es zu verschieben, und tippe darauf, um seine Größe an den Griffen zu ändern. Mit Zuschneiden behältst du nur einen Teil des Fotos.</string>
+    <string name="censor_canvas_description">Foto, das zensiert wird. Zeichne mit einem Finger, um einen Bereich zu verdecken. Mit zwei Fingern zoomst du und bewegst den Ausschnitt.</string>
     <string name="censor_tool_rectangle">Rechteck</string>
     <string name="censor_tool_brush">Pinsel</string>
     <string name="censor_tool_move">Verschieben</string>
@@ -427,8 +427,6 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="censor_effect_pixelate">Verpixeln</string>
     <string name="censor_effect_black">Schwärzen</string>
     <string name="censor_effect_blur">Verwischen</string>
-    <string name="censor_effect">Effekt</string>
-    <string name="censor_effect_current">Effekt: %1$s</string>
     <string name="censor_undo">Rückgängig</string>
     <string name="censor_redo">Wiederholen</string>
     <string name="censor_delete_rectangle">Rechteck Löschen</string>

@@ -432,8 +432,8 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="censor_empty_state_title">Cubra o Que Deve Continuar Privado</string>
     <string name="censor_empty_state_description">Pixelize, tarje de preto ou desfoque rostos, placas de carro, endereços e qualquer outra coisa em uma foto. O Redact salva uma cópia censurada sem nenhum metadado, e seu original continua como está.</string>
     <string name="censor_select_photo">Selecionar Foto</string>
-    <string name="censor_hint">Desenhe sobre tudo o que deve continuar privado e toque em Salvar Cópia. Use Mover para dar zoom com dois dedos e se deslocar, e toque em um retângulo para movê-lo ou redimensioná-lo. Use Cortar para manter só uma parte da foto.</string>
-    <string name="censor_canvas_description">Foto sendo censurada. Desenhe com um dedo para cobrir uma área. Com Mover, arraste para se deslocar e faça pinça para dar zoom.</string>
+    <string name="censor_hint">Desenhe sobre tudo o que deve continuar privado e toque em Salvar Cópia. Faça pinça com dois dedos para dar zoom e se deslocar. Arraste um retângulo para movê-lo e toque nele para redimensioná-lo pelas alças. Use Cortar para manter só uma parte da foto.</string>
+    <string name="censor_canvas_description">Foto sendo censurada. Desenhe com um dedo para cobrir uma área. Faça pinça com dois dedos para dar zoom e se deslocar.</string>
     <string name="censor_tool_rectangle">Retângulo</string>
     <string name="censor_tool_brush">Pincel</string>
     <string name="censor_tool_move">Mover</string>
@@ -442,8 +442,6 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="censor_effect_pixelate">Pixelizar</string>
     <string name="censor_effect_black">Preto</string>
     <string name="censor_effect_blur">Desfocar</string>
-    <string name="censor_effect">Efeito</string>
-    <string name="censor_effect_current">Efeito: %1$s</string>
     <string name="censor_undo">Desfazer</string>
     <string name="censor_redo">Refazer</string>
     <string name="censor_delete_rectangle">Excluir Retângulo</string>

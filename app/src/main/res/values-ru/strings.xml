@@ -446,8 +446,8 @@
     <string name="censor_empty_state_title">Скройте То, Что Должно Остаться Личным</string>
     <string name="censor_empty_state_description">Пикселизируйте, закрасьте чёрным или размойте лица, номера машин, адреса и всё остальное на фото. Redact сохраняет копию со скрытыми областями без метаданных, а оригинал остаётся без изменений.</string>
     <string name="censor_select_photo">Выбрать Фото</string>
-    <string name="censor_hint">Закрасьте всё, что должно остаться личным, затем нажмите Сохранить Копию. В режиме Переместить сводите пальцы для масштаба и перетаскивайте фото; нажмите на прямоугольник, чтобы переместить его или изменить размер. Инструмент Обрезать оставляет только часть фото.</string>
-    <string name="censor_canvas_description">Редактируемое фото. Рисуйте одним пальцем, чтобы скрыть область. В режиме Переместить перетаскивайте фото и сводите пальцы для масштаба.</string>
+    <string name="censor_hint">Закрасьте всё, что должно остаться личным, затем нажмите Сохранить Копию. Сводите и разводите два пальца, чтобы менять масштаб и перемещаться по фото. Перетащите прямоугольник, чтобы сдвинуть его, или нажмите на него, чтобы изменить размер за маркеры. Инструмент Обрезать оставляет только часть фото.</string>
+    <string name="censor_canvas_description">Редактируемое фото. Рисуйте одним пальцем, чтобы скрыть область. Сводите и разводите два пальца, чтобы менять масштаб и перемещаться по фото.</string>
     <string name="censor_tool_rectangle">Прямоугольник</string>
     <string name="censor_tool_brush">Кисть</string>
     <string name="censor_tool_move">Переместить</string>
@@ -456,8 +456,6 @@
     <string name="censor_effect_pixelate">Пиксели</string>
     <string name="censor_effect_black">Чёрный</string>
     <string name="censor_effect_blur">Размытие</string>
-    <string name="censor_effect">Эффект</string>
-    <string name="censor_effect_current">Эффект: %1$s</string>
     <string name="censor_undo">Отменить</string>
     <string name="censor_redo">Повторить</string>
     <string name="censor_delete_rectangle">Удалить Прямоугольник</string>

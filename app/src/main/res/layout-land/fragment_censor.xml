@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Landscape: the photo on the left at full height, with its tools over it as in portrait, and
+<!-- Landscape: the photo on the left at full height with its toolbar under it, as in portrait, and
      its card in a column on the right, which ends above the buttons in the bottom right so they
      never cover it. The photo uses the width the other tabs leave as margin. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -27,12 +27,25 @@
         android:layout_marginStart="@dimen/spacing_large"
         android:layout_marginTop="@dimen/spacing_small"
         android:layout_marginEnd="@dimen/spacing_medium"
+        app:layout_constraintBottom_toTopOf="@id/censorToolbar"
+        app:layout_constraintEnd_toStartOf="@id/censorColumn"
+        app:layout_goneMarginBottom="8dp"
+        app:layout_goneMarginEnd="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- The tools, under the photo; gone (with the photo reaching the bottom) until one is open. -->
+    <include
+        layout="@layout/censor_toolbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_large"
+        android:layout_marginEnd="@dimen/spacing_medium"
         android:layout_marginBottom="@dimen/spacing_small"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/censorColumn"
         app:layout_goneMarginEnd="16dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/censorColumn"

@@ -26,21 +26,24 @@ import androidx.customview.widget.ExploreByTouchHelper;
 
 import com.doubleangels.redact.R;
 
+import com.doubleangels.redact.media.CensorEffects;
 import com.doubleangels.redact.media.CensorRegion;
 import com.google.android.material.color.MaterialColors;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Shows the censor preview and lets the user draw over it: one finger draws a rectangle or a
- * brush stroke. The move tool is for getting around: one finger pans and two fingers pinch to
- * zoom; while drawing, a second finger only cancels the shape, so drawing and zooming never mix.
- * The brush keeps its size on screen, so zooming in covers finer details. With the
- * rectangle tool, tapping a rectangle selects it, and the selected one can be moved by dragging
- * inside it or resized by its corner handles. Finished shapes and changes go to the
- * {@link Listener} in image fractions; the owner covers them and hands back a new preview with
+ * brush stroke, and two fingers pinch to zoom and pan with any tool. A second finger cancels the
+ * shape being drawn, so a zoom never leaves a stray mark. The move tool also pans with one finger
+ * and zooms on a double-tap. The brush keeps its size on screen, so zooming in covers finer
+ * details. With the rectangle tool, tapping a rectangle selects it, and dragging inside any
+ * rectangle selects and moves it; the selected one is resized by its corner and edge handles.
+ * Finished shapes and changes go to the {@link Listener} in image fractions, new ones with the
+ * effect set by {@link #setEffect}; the owner covers them and hands back a new preview with
  * {@link #setImage} and the regions with {@link #setRegions}.
  *
  * <p>Each covered area is also a virtual accessibility node, so TalkBack, Switch Access and a
@@ -77,6 +80,13 @@ public class CensorCanvasView extends View {
         /** The crop was moved, resized or reset (null): the part of the photo the copy keeps. */
         default void onCropChanged(@Nullable CensorRegion crop) {
         }
+
+        /**
+         * Where the selected rectangle is on screen, in this view's coordinates, as it moves,
+         * resizes or the photo zooms; null when nothing is selected.
+         */
+        default void onSelectionBoundsChanged(@Nullable RectF viewBounds) {
+        }
     }
 
     /** What a one-finger touch with the rectangle tool is doing. */
@@ -95,6 +105,13 @@ public class CensorCanvasView extends View {
     private static final int EDGE_BOTTOM = 8;
 
     static final float MAX_ZOOM = 16f;
+    /** Edges of a selected rectangle with a handle at their middle need this much room on screen. */
+    private static final float EDGE_HANDLE_MIN_SIDE_DP = 72f;
+    /**
+     * A drag this far inside an unselected rectangle's edge, at most, still draws a new one, so the
+     * next line of text can be covered starting on the last rectangle's edge.
+     */
+    private static final float GRAB_INSET_DP = 8f;
     /** How far a double-tap with the move tool zooms in. */
     static final float DOUBLE_TAP_ZOOM = 2f;
     /** A rectangle smaller than this on screen is treated as a stray touch (or a tap). */
@@ -168,8 +185,15 @@ public class CensorCanvasView extends View {
     /** The rectangle being moved or resized, in image pixels, and where it started. */
     private final RectF editRect = new RectF();
     private final RectF editStart = new RectF();
-    /** The corner being dragged: 0 top left, 1 top right, 2 bottom right, 3 bottom left. */
-    private int resizeCorner;
+    /** The edges being dragged while resizing a rectangle ({@link #EDGE_LEFT} and the others). */
+    private int editEdges;
+    /**
+     * Whether this touch selected the rectangle it picked up, and what was selected before, so a
+     * pinch that starts on a rectangle leaves the selection as it was.
+     */
+    private boolean selectedOnDown;
+    @Nullable
+    private CensorRegion selectionBeforeDown;
     /** An unselected rectangle under the finger when it went down, selected if this is a tap. */
     private int tapIndex = -1;
     /** The selection last reported to the listener. */
@@ -185,6 +209,12 @@ public class CensorCanvasView extends View {
     private final RectF cropEditStart = new RectF();
     /** The frame's edges being dragged while resizing ({@link #EDGE_LEFT} and the others). */
     private int cropEdges;
+    /** The effect new regions are covered with; null for the photo's. */
+    @Nullable
+    private CensorEffects.Effect newEffect;
+    /** The selected rectangle's bounds on screen last reported, or null. */
+    @Nullable
+    private RectF reportedSelectionBounds;
     /** The handle areas last kept from the system's edge gestures. */
     @NonNull
     private List<Rect> gestureExclusion = new ArrayList<>();
@@ -202,9 +232,9 @@ public class CensorCanvasView extends View {
         outlinePaint.setStyle(Paint.Style.STROKE);
         outlinePaint.setColor(accent);
         outlinePaint.setStrokeWidth(dp(2));
+        // A shape being drawn is shown dark rather than tinted, closer to how it will be covered.
         fillPaint.setStyle(Paint.Style.FILL);
-        fillPaint.setColor(accent);
-        fillPaint.setAlpha(80);
+        fillPaint.setColor(0x99000000);
         handleFill.setStyle(Paint.Style.FILL);
         handleFill.setColor(0xFFFFFFFF);
         imageBorderPaint.setStyle(Paint.Style.STROKE);
@@ -227,6 +257,8 @@ public class CensorCanvasView extends View {
                 return true;
             }
         });
+        // A double-tap and drag zooms only with the move tool; with the others it would draw too.
+        scaleDetector.setQuickScaleEnabled(false);
         accessibilityHelper = new RegionAccessibilityHelper(this);
         ViewCompat.setAccessibilityDelegate(this, accessibilityHelper);
         setFocusable(true);
@@ -250,6 +282,7 @@ public class CensorCanvasView extends View {
 
     public void setTool(@NonNull Tool tool) {
         this.tool = tool;
+        scaleDetector.setQuickScaleEnabled(tool == Tool.MOVE);
         if (tool != Tool.RECT && selectedRegion != null) {
             selectedRegion = null;
         }
@@ -258,6 +291,11 @@ public class CensorCanvasView extends View {
         reportSelection();
         // Only the rectangle tool selects, so the areas' click action comes and goes with it.
         accessibilityHelper.invalidateRoot();
+    }
+
+    /** The effect new regions are drawn with, or null for the photo's. */
+    public void setEffect(@Nullable CensorEffects.Effect effect) {
+        newEffect = effect;
     }
 
     /** Clears the selected rectangle, if any. */
@@ -274,17 +312,32 @@ public class CensorCanvasView extends View {
         int index = selectedIndex();
         if (index != reportedSelection) {
             reportedSelection = index;
+            // The new selection's place is reported on the next draw, even if it is where the
+            // last one was.
+            reportedSelectionBounds = null;
+            invalidate();
             if (listener != null) {
                 listener.onSelectionChanged(index);
             }
         }
     }
 
-    /** The current regions, after any change; a selected rectangle stays selected if it is still there. */
+    /**
+     * The current regions, after any change; a selected rectangle stays selected if it, or the same
+     * area with another effect, is still there.
+     */
     public void setRegions(@NonNull List<CensorRegion> current) {
         regions = new ArrayList<>(current);
         if (selectedRegion != null && !regions.contains(selectedRegion)) {
+            // Its effect may have changed: it stays selected if the same area is still there.
+            CensorRegion area = selectedRegion.withEffect(null);
             selectedRegion = null;
+            for (int i = regions.size() - 1; i >= 0; i--) {
+                if (regions.get(i).withEffect(null).equals(area)) {
+                    selectedRegion = regions.get(i);
+                    break;
+                }
+            }
         }
         invalidate();
         reportSelection();
@@ -322,7 +375,7 @@ public class CensorCanvasView extends View {
         float halfW = visible.width() * ADDED_RECT_FRACTION / 2f;
         float halfH = visible.height() * ADDED_RECT_FRACTION / 2f;
         CensorRegion region = CensorRegion.rect((centre[0] - halfW) / w, (centre[1] - halfH) / h,
-                (centre[0] + halfW) / w, (centre[1] + halfH) / h);
+                (centre[0] + halfW) / w, (centre[1] + halfH) / h).withEffect(newEffect);
         if (tool == Tool.RECT) {
             selectedRegion = region;
         }
@@ -487,11 +540,45 @@ public class CensorCanvasView extends View {
         }
         canvas.restore();
         updateGestureExclusion();
+        reportSelectionBounds();
         if (brushPreview) {
             float radius = brushScreenWidth() / 2f;
             outlinePaint.setStrokeWidth(dp(2));
             canvas.drawCircle(getWidth() / 2f, getHeight() / 2f, radius, fillPaint);
             canvas.drawCircle(getWidth() / 2f, getHeight() / 2f, radius, outlinePaint);
+        }
+    }
+
+    /**
+     * Where the selected rectangle is on screen, in this view's coordinates, while it is dragged
+     * too; null when nothing is selected.
+     */
+    @Nullable
+    public RectF selectedBoundsInView() {
+        if (tool != Tool.RECT || image == null) {
+            return null;
+        }
+        RectF bounds = null;
+        if (shape != null && rectGesture != RectGesture.DRAW) {
+            bounds = new RectF(editRect);
+        } else if (selectedIndex() >= 0) {
+            bounds = rectPx(regions.get(selectedIndex()));
+        }
+        if (bounds != null) {
+            updateDrawMatrix();
+            drawMatrix.mapRect(bounds);
+        }
+        return bounds;
+    }
+
+    /** Tells the listener where the selected rectangle is on screen, when that changed. */
+    private void reportSelectionBounds() {
+        RectF bounds = selectedBoundsInView();
+        if (!Objects.equals(bounds, reportedSelectionBounds)) {
+            reportedSelectionBounds = bounds;
+            if (listener != null) {
+                listener.onSelectionBoundsChanged(bounds == null ? null : new RectF(bounds));
+            }
         }
     }
 
@@ -512,7 +599,7 @@ public class CensorCanvasView extends View {
         }
         if (frame != null) {
             drawMatrix.mapRect(frame);
-            float[] ys = tool == Tool.CROP
+            float[] ys = tool == Tool.CROP || frame.height() >= dp(EDGE_HANDLE_MIN_SIDE_DP)
                     ? new float[] {frame.top, frame.centerY(), frame.bottom}
                     : new float[] {frame.top, frame.bottom};
             for (float x : new float[] {frame.left, frame.right}) {
@@ -584,6 +671,21 @@ public class CensorCanvasView extends View {
             canvas.drawCircle(c[0], c[1], radius, handleFill);
             canvas.drawCircle(c[0], c[1], radius, outlinePaint);
         }
+        // Smaller handles at the middle of each edge with room for one, which resize one way.
+        float edge = radius * 0.75f;
+        float minSide = dp(EDGE_HANDLE_MIN_SIDE_DP) / mapScale();
+        if (r.width() >= minSide) {
+            for (float y : new float[] {r.top, r.bottom}) {
+                canvas.drawCircle(r.centerX(), y, edge, handleFill);
+                canvas.drawCircle(r.centerX(), y, edge, outlinePaint);
+            }
+        }
+        if (r.height() >= minSide) {
+            for (float x : new float[] {r.left, r.right}) {
+                canvas.drawCircle(x, r.centerY(), edge, handleFill);
+                canvas.drawCircle(x, r.centerY(), edge, outlinePaint);
+            }
+        }
     }
 
     @NonNull
@@ -611,6 +713,65 @@ public class CensorCanvasView extends View {
         return -1;
     }
 
+    /**
+     * The edges of a selected rectangle a touch at a view point resizes, as bits; 0 to move it or
+     * when the touch misses the handles. Corners come first; an edge's middle handle counts only on
+     * an edge long enough to show one.
+     */
+    private int rectEdgesAt(@NonNull RectF r, float viewX, float viewY) {
+        int corner = cornerAt(r, viewX, viewY);
+        if (corner >= 0) {
+            return switch (corner) {
+                case 0 -> EDGE_LEFT | EDGE_TOP;
+                case 1 -> EDGE_RIGHT | EDGE_TOP;
+                case 2 -> EDGE_RIGHT | EDGE_BOTTOM;
+                default -> EDGE_LEFT | EDGE_BOTTOM;
+            };
+        }
+        RectF v = new RectF(r);
+        drawMatrix.mapRect(v);
+        float reach = dp(HANDLE_TOUCH_DP);
+        float minSide = dp(EDGE_HANDLE_MIN_SIDE_DP);
+        if (v.width() >= minSide) {
+            if (Math.hypot(viewX - v.centerX(), viewY - v.top) <= reach) {
+                return EDGE_TOP;
+            }
+            if (Math.hypot(viewX - v.centerX(), viewY - v.bottom) <= reach) {
+                return EDGE_BOTTOM;
+            }
+        }
+        if (v.height() >= minSide) {
+            if (Math.hypot(viewX - v.left, viewY - v.centerY()) <= reach) {
+                return EDGE_LEFT;
+            }
+            if (Math.hypot(viewX - v.right, viewY - v.centerY()) <= reach) {
+                return EDGE_RIGHT;
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * The topmost rectangle a drag starting at a view point picks up: the point is inside it and
+     * more than {@link #GRAB_INSET_DP} from its edges (less on a small one), or -1.
+     */
+    private int rectToGrabAt(float viewX, float viewY) {
+        for (int i = regions.size() - 1; i >= 0; i--) {
+            CensorRegion r = regions.get(i);
+            if (r.shape() != CensorRegion.Shape.RECT) {
+                continue;
+            }
+            RectF v = rectPx(r);
+            drawMatrix.mapRect(v);
+            float inset = Math.min(dp(GRAB_INSET_DP), Math.min(v.width(), v.height()) / 4f);
+            v.inset(inset, inset);
+            if (v.contains(viewX, viewY)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     /** The corner of {@code r} within grabbing distance of the view point, or -1. */
     private int cornerAt(@NonNull RectF r, float viewX, float viewY) {
         float reach = dp(HANDLE_TOUCH_DP);
@@ -630,9 +791,10 @@ public class CensorCanvasView extends View {
         if (image == null || !isEnabled()) {
             return false;
         }
+        // Two fingers zoom with any tool; their second finger has already cancelled any shape.
+        scaleDetector.onTouchEvent(event);
         if (tool == Tool.MOVE) {
-            // Pinching and double-tapping zoom only with the move tool, so nothing zooms mid-stroke.
-            scaleDetector.onTouchEvent(event);
+            // A double-tap zooms only with the move tool: with the others, a tap selects.
             tapDetector.onTouchEvent(event);
         }
         updateDrawMatrix();
@@ -646,6 +808,7 @@ public class CensorCanvasView extends View {
                 lastFocusY = event.getY();
                 rectGesture = RectGesture.DRAW;
                 tapIndex = -1;
+                selectedOnDown = false;
                 if (tool == Tool.CROP) {
                     startCrop(event.getX(), event.getY());
                     return true;
@@ -658,6 +821,11 @@ public class CensorCanvasView extends View {
                 }
                 return true;
             case MotionEvent.ACTION_POINTER_DOWN:
+                if (selectedOnDown) {
+                    selectedOnDown = false;
+                    selectedRegion = selectionBeforeDown;
+                    reportSelection();
+                }
                 gestureCancelled = true;
                 shape = null;
                 cropGesture = CropGesture.NONE;
@@ -667,15 +835,14 @@ public class CensorCanvasView extends View {
                 return true;
             case MotionEvent.ACTION_MOVE:
                 if (gestureCancelled || tool == Tool.MOVE) {
-                    if (tool == Tool.MOVE) {
-                        float fx = focusX(event);
-                        float fy = focusY(event);
-                        userMatrix.postTranslate(fx - lastFocusX, fy - lastFocusY);
-                        lastFocusX = fx;
-                        lastFocusY = fy;
-                        constrainPan();
-                        invalidate();
-                    }
+                    // Pans with two fingers, or one with the move tool, until every finger lifts.
+                    float fx = focusX(event);
+                    float fy = focusY(event);
+                    userMatrix.postTranslate(fx - lastFocusX, fy - lastFocusY);
+                    lastFocusX = fx;
+                    lastFocusY = fy;
+                    constrainPan();
+                    invalidate();
                 } else if (tool == Tool.CROP) {
                     continueCrop(event.getX(), event.getY());
                 } else if (rectGesture != RectGesture.DRAW) {
@@ -841,7 +1008,7 @@ public class CensorCanvasView extends View {
             top += dy;
             bottom += dy;
         }
-        CensorRegion changed = CensorRegion.rect(left, top, right, bottom);
+        CensorRegion changed = CensorRegion.rect(left, top, right, bottom).withEffect(region.effect());
         if (changed.equals(region)) {
             return false;
         }
@@ -1174,30 +1341,47 @@ public class CensorCanvasView extends View {
 
     /**
      * Starts moving or resizing the selected rectangle when the touch is on one of its handles or
-     * inside it. Otherwise notes an unselected rectangle under the finger, which a tap selects.
+     * inside it, or selects and starts moving an unselected rectangle the touch is well inside.
+     * Otherwise notes an unselected rectangle under the finger, which a tap selects.
      */
     private boolean startEditing(float viewX, float viewY) {
         float[] p = toImage(viewX, viewY);
         int selected = selectedIndex();
+        int edges = 0;
+        boolean grab = false;
         if (selected >= 0) {
             RectF r = rectPx(regions.get(selected));
-            int corner = cornerAt(r, viewX, viewY);
-            if (corner >= 0 || r.contains(p[0], p[1])) {
-                rectGesture = corner >= 0 ? RectGesture.RESIZE : RectGesture.MOVE;
-                resizeCorner = corner;
-                editStart.set(r);
-                editRect.set(r);
-                startX = p[0];
-                startY = p[1];
-                shapeIsStroke = false;
-                shape = new Path();
-                shape.addRect(editRect, Path.Direction.CW);
-                invalidate();
-                return true;
+            edges = rectEdgesAt(r, viewX, viewY);
+            grab = edges != 0 || r.contains(p[0], p[1]);
+        }
+        if (!grab) {
+            int under = rectToGrabAt(viewX, viewY);
+            if (under >= 0) {
+                selectedOnDown = true;
+                selectionBeforeDown = selectedRegion;
+                selected = under;
+                selectedRegion = regions.get(under);
+                edges = 0;
+                grab = true;
+                reportSelection();
             }
         }
-        tapIndex = rectAt(p[0], p[1]);
-        return false;
+        if (!grab) {
+            tapIndex = rectAt(p[0], p[1]);
+            return false;
+        }
+        RectF r = rectPx(regions.get(selected));
+        rectGesture = edges != 0 ? RectGesture.RESIZE : RectGesture.MOVE;
+        editEdges = edges;
+        editStart.set(r);
+        editRect.set(r);
+        startX = p[0];
+        startY = p[1];
+        shapeIsStroke = false;
+        shape = new Path();
+        shape.addRect(editRect, Path.Direction.CW);
+        invalidate();
+        return true;
     }
 
     private void continueEditing(float viewX, float viewY) {
@@ -1212,20 +1396,10 @@ public class CensorCanvasView extends View {
             editRect.set(editStart);
             editRect.offset(dx, dy);
         } else {
-            float left = editStart.left;
-            float top = editStart.top;
-            float right = editStart.right;
-            float bottom = editStart.bottom;
-            if (resizeCorner == 0 || resizeCorner == 3) {
-                left = p[0];
-            } else {
-                right = p[0];
-            }
-            if (resizeCorner == 0 || resizeCorner == 1) {
-                top = p[1];
-            } else {
-                bottom = p[1];
-            }
+            float left = (editEdges & EDGE_LEFT) != 0 ? p[0] : editStart.left;
+            float right = (editEdges & EDGE_RIGHT) != 0 ? p[0] : editStart.right;
+            float top = (editEdges & EDGE_TOP) != 0 ? p[1] : editStart.top;
+            float bottom = (editEdges & EDGE_BOTTOM) != 0 ? p[1] : editStart.bottom;
             editRect.set(Math.min(left, right), Math.min(top, bottom), Math.max(left, right), Math.max(top, bottom));
         }
         shape.rewind();
@@ -1237,7 +1411,9 @@ public class CensorCanvasView extends View {
         int selected = selectedIndex();
         float minImagePx = dp(MIN_RECT_DP) / mapScale();
         if (shape == null || image == null || listener == null || selected < 0
-                || editRect.width() < minImagePx || editRect.height() < minImagePx) {
+                || editRect.width() < minImagePx || editRect.height() < minImagePx
+                // A tap that picked the rectangle up without moving it: it just stays selected.
+                || editRect.equals(editStart)) {
             shape = null;
             rectGesture = RectGesture.DRAW;
             invalidate();
@@ -1246,7 +1422,7 @@ public class CensorCanvasView extends View {
         float w = image.getWidth();
         float h = image.getHeight();
         CensorRegion moved = CensorRegion.rect(editRect.left / w, editRect.top / h,
-                editRect.right / w, editRect.bottom / h);
+                editRect.right / w, editRect.bottom / h).withEffect(regions.get(selected).effect());
         // The outline stays until the covered preview arrives; the moved rectangle stays selected.
         selectedRegion = moved;
         listener.onRegionChanged(selected, moved);
@@ -1299,7 +1475,7 @@ public class CensorCanvasView extends View {
                 normalized[i] = strokePoints[i] / w;
                 normalized[i + 1] = strokePoints[i + 1] / h;
             }
-            region = CensorRegion.stroke(normalized, strokeWidth);
+            region = CensorRegion.stroke(normalized, strokeWidth).withEffect(newEffect);
         } else {
             float[] p = toImage(viewX, viewY);
             float minImagePx = dp(MIN_RECT_DP) / mapScale();
@@ -1311,7 +1487,7 @@ public class CensorCanvasView extends View {
                 reportSelection();
                 return;
             }
-            region = CensorRegion.rect(startX / w, startY / h, p[0] / w, p[1] / h);
+            region = CensorRegion.rect(startX / w, startY / h, p[0] / w, p[1] / h).withEffect(newEffect);
             // Not selected: the next drag, even one starting on this rectangle's edge, draws the
             // next one, as when covering several lines of text. A tap selects it for moving.
             selectedRegion = null;

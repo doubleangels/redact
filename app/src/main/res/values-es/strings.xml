@@ -432,8 +432,8 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="censor_empty_state_title">Cubre lo Que Debe Seguir Siendo Privado</string>
     <string name="censor_empty_state_description">Pixela, tapa en negro o desenfoca caras, matrículas, direcciones y cualquier otra cosa de una foto. Redact guarda una copia censurada sin metadatos, y tu original queda tal como está.</string>
     <string name="censor_select_photo">Seleccionar Foto</string>
-    <string name="censor_hint">Dibuja sobre todo lo que deba seguir siendo privado y luego toca Guardar Copia. Usa Mover para hacer zoom con dos dedos y desplazarte, y toca un rectángulo para moverlo o cambiar su tamaño. Usa Recortar para conservar solo una parte de la foto.</string>
-    <string name="censor_canvas_description">Foto que se está censurando. Dibuja con un dedo para cubrir una zona. Con Mover, arrastra para desplazarte y pellizca para hacer zoom.</string>
+    <string name="censor_hint">Dibuja sobre todo lo que deba seguir siendo privado y luego toca Guardar Copia. Pellizca con dos dedos para hacer zoom y desplazarte. Arrastra un rectángulo para moverlo y tócalo para cambiar su tamaño con sus tiradores. Usa Recortar para conservar solo una parte de la foto.</string>
+    <string name="censor_canvas_description">Foto que se está censurando. Dibuja con un dedo para cubrir una zona. Pellizca con dos dedos para hacer zoom y desplazarte.</string>
     <string name="censor_tool_rectangle">Rectángulo</string>
     <string name="censor_tool_brush">Pincel</string>
     <string name="censor_tool_move">Mover</string>
@@ -442,8 +442,6 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="censor_effect_pixelate">Pixelar</string>
     <string name="censor_effect_black">Negro</string>
     <string name="censor_effect_blur">Desenfocar</string>
-    <string name="censor_effect">Efecto</string>
-    <string name="censor_effect_current">Efecto: %1$s</string>
     <string name="censor_undo">Deshacer</string>
     <string name="censor_redo">Rehacer</string>
     <string name="censor_delete_rectangle">Eliminar Rectángulo</string>

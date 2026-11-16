@@ -37,6 +37,89 @@ public class CensorViewModelTest {
         vm = new CensorViewModel(RuntimeEnvironment.getApplication());
     }
 
+    /** {@code region} as the editor stores it with the default effect, which every test starts on. */
+    private static CensorRegion black(CensorRegion region) {
+        return region.withEffect(CensorEffects.Effect.BLACK);
+    }
+
+    @Test
+    public void aNewRegion_takesTheCurrentEffect_andKeepsItWhenTheEffectChanges() {
+        vm.requestOpen(A);
+        vm.setEffect(CensorEffects.Effect.BLUR);
+        vm.addRegion(BOX);
+        assertEquals(CensorEffects.Effect.BLUR, vm.regions().get(0).effect());
+
+        vm.setEffect(CensorEffects.Effect.PIXELATE);
+        assertEquals(CensorEffects.Effect.BLUR, vm.regions().get(0).effect());
+        assertEquals(CensorEffects.Effect.BLUR, vm.regionEffect(0));
+        vm.undo();
+        assertTrue("changing the effect for new areas was no edit: one undo removes the box",
+                vm.regions().isEmpty());
+        vm.setEffect(CensorEffects.Effect.BLACK);
+    }
+
+    @Test
+    public void aRegionDrawnWithItsOwnEffect_keepsIt() {
+        vm.requestOpen(A);
+        vm.addRegion(BOX.withEffect(CensorEffects.Effect.PIXELATE));
+        assertEquals(CensorEffects.Effect.PIXELATE, vm.regions().get(0).effect());
+    }
+
+    @Test
+    public void movingARegion_keepsItsEffect() {
+        vm.requestOpen(A);
+        vm.setEffect(CensorEffects.Effect.BLUR);
+        vm.addRegion(BOX);
+        vm.setEffect(CensorEffects.Effect.BLACK);
+
+        vm.replaceRegion(0, CensorRegion.rect(0.4f, 0.4f, 0.8f, 0.8f));
+
+        assertEquals(CensorEffects.Effect.BLUR, vm.regions().get(0).effect());
+    }
+
+    @Test
+    public void changingOneRegionsEffect_isAnEditThatCanBeUndone() {
+        vm.requestOpen(A);
+        CensorRegion second = CensorRegion.rect(0.6f, 0.6f, 0.9f, 0.9f);
+        vm.addRegion(BOX);
+        vm.addRegion(second);
+
+        vm.setRegionEffect(1, CensorEffects.Effect.BLUR);
+        assertEquals(CensorEffects.Effect.BLACK, vm.regions().get(0).effect());
+        assertEquals(CensorEffects.Effect.BLUR, vm.regions().get(1).effect());
+        assertEquals("only that region changed; new ones keep the current effect",
+                CensorEffects.Effect.BLACK, vm.getEffect().getValue());
+
+        vm.undo();
+        assertEquals(CensorEffects.Effect.BLACK, vm.regions().get(1).effect());
+        vm.redo();
+        assertEquals(CensorEffects.Effect.BLUR, vm.regions().get(1).effect());
+
+        // The same effect again, or an index out of range, changes nothing.
+        vm.setRegionEffect(1, CensorEffects.Effect.BLUR);
+        vm.setRegionEffect(5, CensorEffects.Effect.PIXELATE);
+        vm.undo();
+        assertEquals(CensorEffects.Effect.BLACK, vm.regions().get(1).effect());
+        assertNull(vm.regionEffect(5));
+    }
+
+    @Test
+    public void afterASave_changingTheEffectForNewAreas_leavesNothingUnsaved() throws Exception {
+        vm.requestOpen(A);
+        vm.addRegion(BOX);
+        java.lang.reflect.Field savedRegions = CensorViewModel.class.getDeclaredField("savedRegions");
+        savedRegions.setAccessible(true);
+        savedRegions.set(vm, vm.regions());
+        assertFalse(vm.hasUnsavedEdits());
+
+        vm.setEffect(CensorEffects.Effect.BLUR);
+        assertFalse("the covered area keeps its effect, so the copy still matches", vm.hasUnsavedEdits());
+
+        vm.setRegionEffect(0, CensorEffects.Effect.BLUR);
+        assertTrue(vm.hasUnsavedEdits());
+        vm.setEffect(CensorEffects.Effect.BLACK);
+    }
+
     @Test
     public void startsWithNoPhoto() {
         assertEquals(CensorViewModel.State.NONE, vm.getState().getValue());
@@ -108,7 +191,7 @@ public class CensorViewModelTest {
         assertEquals(1, vm.regions().size());
         assertTrue(vm.canRedo());
         vm.redo();
-        assertEquals(second, vm.regions().get(1));
+        assertEquals(black(second), vm.regions().get(1));
 
         vm.undo();
         vm.addRegion(CensorRegion.stroke(new float[] {0.2f, 0.8f}, 0.05f));
@@ -139,14 +222,14 @@ public class CensorViewModelTest {
         CensorRegion moved = CensorRegion.rect(0.4f, 0.4f, 0.8f, 0.8f);
 
         vm.replaceRegion(0, moved);
-        assertEquals(moved, vm.regions().get(0));
+        assertEquals(black(moved), vm.regions().get(0));
 
         vm.undo();
-        assertEquals(BOX, vm.regions().get(0));
+        assertEquals(black(BOX), vm.regions().get(0));
         assertEquals(1, vm.regions().size());
 
         vm.redo();
-        assertEquals(moved, vm.regions().get(0));
+        assertEquals(black(moved), vm.regions().get(0));
     }
 
     @Test
@@ -172,10 +255,10 @@ public class CensorViewModelTest {
 
         vm.removeRegion(0);
         assertEquals(1, vm.regions().size());
-        assertEquals(second, vm.regions().get(0));
+        assertEquals(black(second), vm.regions().get(0));
 
         vm.undo();
-        assertEquals(BOX, vm.regions().get(0));
+        assertEquals(black(BOX), vm.regions().get(0));
         assertEquals(2, vm.regions().size());
 
         vm.redo();

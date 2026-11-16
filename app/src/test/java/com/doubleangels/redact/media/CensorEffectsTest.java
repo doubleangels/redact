@@ -251,4 +251,52 @@ public class CensorEffectsTest {
         CensorRegion r = CensorRegion.rect(-0.5f, 1.5f, 0.5f, 0.2f);
         assertArrayEquals(new float[] {0f, 0.2f, 0.5f, 1f}, r.points(), 0f);
     }
+
+    // ---- an effect per region -------------------------------------------------------------------
+
+    @Test
+    public void eachRegion_usesItsOwnEffect_andOneWithoutTakesTheGivenOne() {
+        Bitmap b = checkerboard(90, 30);
+        CensorEffects.apply(b, List.of(
+                        CensorRegion.rect(0f, 0f, 1f / 3f, 1f).withEffect(CensorEffects.Effect.BLACK),
+                        CensorRegion.rect(1f / 3f, 0f, 2f / 3f, 1f),
+                        CensorRegion.rect(2f / 3f, 0f, 1f, 1f).withEffect(CensorEffects.Effect.PIXELATE)),
+                CensorEffects.Effect.BLUR, new Random(4));
+
+        for (int y = 0; y < 30; y += 7) {
+            assertEquals("blacked out", Color.BLACK, b.getPixel(12, y));
+            assertTrue("the given effect, blur", isGrey(b.getPixel(45, y)));
+            assertTrue("pixelated", isGrey(b.getPixel(78, y)));
+        }
+    }
+
+    @Test
+    public void anAreaCoveredTwice_showsNothingOfTheOriginal() {
+        Bitmap b = checkerboard(64, 64);
+        // Black first, then a blur over half of it: the blur only has black and grey to work from.
+        CensorEffects.apply(b, List.of(
+                        CensorRegion.rect(0f, 0f, 1f, 1f).withEffect(CensorEffects.Effect.BLACK),
+                        CensorRegion.rect(0.25f, 0.25f, 0.75f, 0.75f).withEffect(CensorEffects.Effect.BLUR)),
+                CensorEffects.Effect.PIXELATE, new Random(9));
+
+        for (int y = 16; y < 48; y += 5) {
+            for (int x = 16; x < 48; x += 5) {
+                assertTrue("dark at " + x + "," + y, Color.red(b.getPixel(x, y)) <= CensorEffects.NOISE);
+            }
+        }
+    }
+
+    @Test
+    public void aRegionsEffect_isPartOfItsEquality_andWithEffectKeepsTheArea() {
+        CensorRegion plain = CensorRegion.rect(0.1f, 0.2f, 0.3f, 0.4f);
+        CensorRegion blurred = plain.withEffect(CensorEffects.Effect.BLUR);
+
+        assertEquals(null, plain.effect());
+        assertEquals(CensorEffects.Effect.BLUR, blurred.effect());
+        assertArrayEquals(plain.points(), blurred.points(), 0f);
+        assertFalse(plain.equals(blurred));
+        assertEquals(plain, blurred.withEffect(null));
+        assertEquals(plain.hashCode(), blurred.withEffect(null).hashCode());
+        assertTrue("the same effect is the same region", blurred == blurred.withEffect(CensorEffects.Effect.BLUR));
+    }
 }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- In landscape the toolbar is under the photo on the left and the buttons are in the bottom
+         right under the card's column, so they need no extra room. -->
+    <dimen name="censor_actions_margin_bottom">16dp</dimen>
+</resources>
