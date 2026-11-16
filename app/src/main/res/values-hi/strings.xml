@@ -461,6 +461,7 @@
     <string name="button_scan_result">परिणाम स्कैन करें</string>
     <string name="button_open_result">खोलें</string>
     <string name="open_result_no_app">इस फ़ोन पर कोई भी ऐप यह फ़ाइल नहीं खोल सकता।</string>
+    <string name="open_result_chooser_title">इससे खोलें</string>
     <string name="button_share_without_saving">सहेजे बिना शेयर करें</string>
     <string name="settings_keep_original_names">मूल फ़ाइल नाम रखें</string>
     <string name="settings_keep_original_names_subtitle">साफ़ और कन्वर्ट की गई फ़ाइलों को किसी यादृच्छिक नाम के बजाय मूल फ़ाइल का नाम दें। IMG_20260117 जैसे नाम बता सकते हैं कि फ़ोटो कब ली गई थी।</string>

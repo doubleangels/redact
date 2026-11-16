@@ -447,6 +447,7 @@
     <string name="button_scan_result">掃描結果</string>
     <string name="button_open_result">開啟</string>
     <string name="open_result_no_app">這支手機上沒有可以開啟此檔案的應用程式。</string>
+    <string name="open_result_chooser_title">開啟方式</string>
     <string name="button_share_without_saving">分享但不儲存</string>
     <string name="settings_keep_original_names">保留原始檔名</string>
     <string name="settings_keep_original_names_subtitle">清理與轉換後的檔案沿用原始檔名，而非隨機名稱。IMG_20260117 這類名稱可能透露照片的拍攝時間。</string>

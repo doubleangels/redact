@@ -517,6 +517,7 @@
     <string name="button_scan_result">مسح النتيجة</string>
     <string name="button_open_result">فتح</string>
     <string name="open_result_no_app">لا يوجد تطبيق على هذا الهاتف يمكنه فتح هذا الملف.</string>
+    <string name="open_result_chooser_title">فتح باستخدام</string>
     <string name="button_share_without_saving">مشاركة دون حفظ</string>
     <string name="settings_keep_original_names">الاحتفاظ بأسماء الملفات الأصلية</string>
     <string name="settings_keep_original_names_subtitle">تسمية الملفات المنظفة والمحولة باسم الملفات الأصلية بدلًا من اسم عشوائي. قد تكشف أسماء مثل IMG_20260117 وقت التقاط الصورة.</string>

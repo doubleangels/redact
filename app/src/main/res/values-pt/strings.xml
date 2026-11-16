@@ -475,6 +475,7 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="button_scan_result">Escanear Resultado</string>
     <string name="button_open_result">Abrir</string>
     <string name="open_result_no_app">Nenhum app deste celular consegue abrir este arquivo.</string>
+    <string name="open_result_chooser_title">Abrir Com</string>
     <string name="button_share_without_saving">Compartilhar Sem Salvar</string>
     <string name="settings_keep_original_names">Manter Nomes Originais</string>
     <string name="settings_keep_original_names_subtitle">Os arquivos limpos e convertidos recebem o nome do original em vez de um nome aleatório. Nomes como IMG_20260117 podem revelar quando uma foto foi tirada.</string>

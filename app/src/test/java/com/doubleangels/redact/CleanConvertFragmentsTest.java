@@ -325,8 +325,11 @@ public class CleanConvertFragmentsTest {
         v.findViewById(R.id.openResultButton).performClick();
         idle();
 
-        Intent view = shadowOf(activity).getNextStartedActivity();
-        assertNotNull(view);
+        Intent started = shadowOf(activity).getNextStartedActivity();
+        assertNotNull(started);
+        // Robolectric has no viewer but Redact, so the list (without Redact) wraps the view.
+        Intent view = Intent.ACTION_CHOOSER.equals(started.getAction())
+                ? started.getParcelableExtra(Intent.EXTRA_INTENT) : started;
         assertEquals(Intent.ACTION_VIEW, view.getAction());
         assertEquals(vm.getCleanOutputs().get(0), view.getData());
         assertTrue((view.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0);
