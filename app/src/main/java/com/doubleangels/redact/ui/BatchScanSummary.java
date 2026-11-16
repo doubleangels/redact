@@ -115,12 +115,24 @@ public final class BatchScanSummary {
         SentryManager.log("A summary scan of several files is starting.");
         Thread worker = new Thread(() -> {
             Tally tally = new Tally();
-            for (MediaItem item : items) {
-                if (!dialog.isShowing()) {
-                    return; // closed while reading: no need to finish
+            try {
+                for (MediaItem item : items) {
+                    if (!dialog.isShowing()) {
+                        return; // closed while reading: no need to finish
+                    }
+                    tally.add(item.displayName(app), MetadataSurvey.survey(app, item));
                 }
-                tally.add(item.displayName(app), MetadataSurvey.survey(app, item));
+            } catch (Exception | OutOfMemoryError e) {
+                // Recorded, and the dialog closed, rather than a crash or a summary left reading.
+                SentryManager.recordException(e);
+                main.post(() -> {
+                    if (dialog.isShowing()) {
+                        dialog.dismiss();
+                    }
+                });
+                return;
             }
+            SentryManager.log("A summary scan of several files finished.");
             main.post(() -> {
                 if (!dialog.isShowing() || !fragment.isAdded()) {
                     return;

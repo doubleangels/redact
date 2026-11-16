@@ -1082,9 +1082,11 @@ public class ScanFragment extends TabFragment {
                 .setType("text/plain")
                 .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.scan_share_report_subject))
                 .putExtra(Intent.EXTRA_TEXT, report);
+        SentryManager.log("A metadata report is being shared as text.");
         try {
             startActivity(Intent.createChooser(send, getString(R.string.scan_share_report)));
         } catch (ActivityNotFoundException e) {
+            SentryManager.log("No app can take a metadata report shared as text.");
             Notice.show(requireContext(), R.string.scan_share_report_unavailable, false);
         }
     }

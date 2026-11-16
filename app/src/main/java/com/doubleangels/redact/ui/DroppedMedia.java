@@ -89,6 +89,7 @@ public final class DroppedMedia {
                     if (uris.isEmpty()) {
                         return false;
                     }
+                    SentryManager.log("Media was dropped onto a tab.");
                     onMedia.accept(uris);
                     return true;
                 }

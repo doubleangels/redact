@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.DroppedMedia;
 import com.doubleangels.redact.ui.FoldPosture;
 import com.doubleangels.redact.ui.MainViewModel;
@@ -90,6 +91,7 @@ public abstract class TabFragment extends Fragment {
         if (uris.isEmpty()) {
             return false;
         }
+        SentryManager.log("Media was pasted into a tab.");
         onMediaReceived(uris);
         return true;
     }

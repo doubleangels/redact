@@ -371,6 +371,7 @@ final class CleanVerifier {
             }
             return false;
         } catch (IOException | RuntimeException e) {
+            // Unreadable tracks can't be vouched for: count it as sound left, so the copy is refused.
             return true;
         } finally {
             extractor.release();
