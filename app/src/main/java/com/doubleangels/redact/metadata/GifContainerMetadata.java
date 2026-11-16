@@ -99,21 +99,27 @@ public final class GifContainerMetadata {
                 } else if (block == 0x21) {
                     int label = in.readUnsignedByte();
                     if (label == 0xF9) {
-                        // Graphic control: frame delay, disposal and transparency.
-                        out.write(0x21);
-                        out.write(0xF9);
-                        copySubBlocks(in, out);
+                        // Graphic control: frame delay, disposal and transparency, in the one
+                        // 4-byte sub-block the format defines. Anything after it is dropped.
+                        Filtered gce = filterSubBlocks(in, GifContainerMetadata::graphicControlBlock);
+                        if (!gce.kept.isEmpty()) {
+                            out.write(0x21);
+                            out.write(0xF9);
+                            gce.writeTo(out);
+                        }
                     } else if (label == 0xFF) {
                         byte[] first = readSubBlock(in);
                         String id = first.length >= 11
                                 ? new String(first, 0, 11, StandardCharsets.ISO_8859_1) : "";
-                        if ("NETSCAPE2.0".equals(id) || "ANIMEXTS1.0".equals(id)) {
-                            // The loop count, which is all these hold.
+                        if (first.length == 11 && ("NETSCAPE2.0".equals(id) || "ANIMEXTS1.0".equals(id))) {
+                            // The loop count and buffer size, which are all these define; any
+                            // other sub-block is dropped.
+                            Filtered loop = filterSubBlocks(in, GifContainerMetadata::loopBlock);
                             out.write(0x21);
                             out.write(0xFF);
                             out.write(first.length);
                             out.write(first);
-                            copySubBlocks(in, out);
+                            loop.writeTo(out);
                         } else {
                             skipSubBlocks(in); // XMP, ICC and any other application data
                         }
@@ -187,15 +193,23 @@ public final class GifContainerMetadata {
                     pos[0]++;
                     ByteArrayOutputStream data = new ByteArrayOutputStream();
                     if (label == 0xF9) {
-                        pos[0] += skipSubBlocks(in, null);
+                        Filtered gce = filterSubBlocks(in, GifContainerMetadata::graphicControlBlock);
+                        pos[0] += gce.totalBytes;
+                        addDropped(findings, gce);
                     } else if (label == 0xFF) {
-                        long size = skipSubBlocks(in, data);
+                        byte[] first = readSubBlock(in);
+                        String id = first.length >= 11 ? new String(first, 0, 11, StandardCharsets.ISO_8859_1) : "";
+                        if (first.length == 11 && ("NETSCAPE2.0".equals(id) || "ANIMEXTS1.0".equals(id))) {
+                            // The loop count, which a clean keeps, and whatever else a clean drops.
+                            Filtered loop = filterSubBlocks(in, GifContainerMetadata::loopBlock);
+                            pos[0] += 1 + first.length + loop.totalBytes;
+                            addDropped(findings, loop);
+                            continue;
+                        }
+                        data.write(first);
+                        long size = 1 + first.length + skipSubBlocks(in, data);
                         pos[0] += size;
                         byte[] bytes = data.toByteArray();
-                        String id = bytes.length >= 11 ? new String(bytes, 0, 11, StandardCharsets.ISO_8859_1) : "";
-                        if ("NETSCAPE2.0".equals(id) || "ANIMEXTS1.0".equals(id)) {
-                            continue; // the loop count, which a clean keeps
-                        }
                         if ("XMP DataXMP".equals(id)) {
                             // XMP is stored raw, ending with a "magic trailer" of 258 bytes.
                             String xmp = new String(bytes, 11, Math.max(0, bytes.length - 11 - 258),
@@ -242,6 +256,77 @@ public final class GifContainerMetadata {
         }
         return new ImageContainerMetadata.Report(ImageContainerMetadata.Format.GIF, recognized, findings,
                 new ArrayList<>());
+    }
+
+    /** Which sub-blocks of an extension a clean keeps, by their index and bytes. */
+    private interface SubBlockRule {
+        boolean keep(int index, @NonNull byte[] block);
+    }
+
+    /** A graphic control extension's one 4-byte sub-block. */
+    private static boolean graphicControlBlock(int index, @NonNull byte[] block) {
+        return index == 0 && block.length == 4;
+    }
+
+    /** The loop-count (id 1, 3 bytes) and buffer-size (id 2, 5 bytes) sub-blocks, once each. */
+    private static boolean loopBlock(int index, @NonNull byte[] block) {
+        return index < 2 && ((block.length == 3 && block[0] == 1) || (block.length == 5 && block[0] == 2));
+    }
+
+    /** The sub-blocks of an extension split into those a clean keeps and those it drops. */
+    private static final class Filtered {
+        final List<byte[]> kept = new ArrayList<>();
+        final ByteArrayOutputStream dropped = new ByteArrayOutputStream();
+        long droppedBytes;
+        /** Every byte read, sizes and terminator included. */
+        long totalBytes;
+
+        void writeTo(@NonNull OutputStream out) throws IOException {
+            for (byte[] block : kept) {
+                out.write(block.length);
+                out.write(block);
+            }
+            out.write(0);
+        }
+    }
+
+    @NonNull
+    private static Filtered filterSubBlocks(@NonNull DataInputStream in, @NonNull SubBlockRule rule)
+            throws IOException {
+        Filtered result = new Filtered();
+        boolean sawLoop = false;
+        boolean sawBuffer = false;
+        for (int index = 0; ; index++) {
+            byte[] block = readSubBlock(in);
+            result.totalBytes += 1 + block.length;
+            if (block.length == 0) {
+                return result;
+            }
+            boolean keep = rule.keep(index, block);
+            if (keep && block.length == 3) {
+                keep = !sawLoop;
+                sawLoop = true;
+            } else if (keep && block.length == 5) {
+                keep = !sawBuffer;
+                sawBuffer = true;
+            }
+            if (keep) {
+                result.kept.add(block);
+            } else {
+                result.droppedBytes += block.length;
+                if (result.dropped.size() < MAX_DESCRIBED) {
+                    result.dropped.write(block);
+                }
+            }
+        }
+    }
+
+    private static void addDropped(@NonNull List<ImageContainerMetadata.Finding> findings,
+            @NonNull Filtered filtered) {
+        if (filtered.droppedBytes > 0) {
+            add(findings, "GIF_EXTRA_SUB_BLOCKS", ReadableText.strings(filtered.dropped.toByteArray()),
+                    filtered.droppedBytes, ImageContainerMetadata.Kind.OTHER);
+        }
     }
 
     private static void add(@NonNull List<ImageContainerMetadata.Finding> findings, @NonNull String key,

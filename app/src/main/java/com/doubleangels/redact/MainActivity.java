@@ -5,6 +5,7 @@ import android.content.pm.PackageInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowInsetsController;
 
@@ -692,6 +693,20 @@ public class MainActivity extends AppCompatActivity {
             return getVisibleTabFragment();
         }
         return null;
+    }
+
+    /**
+     * Ctrl+V on a keyboard pastes the photos and videos on the clipboard into the tab showing,
+     * when the focus isn't in a text field (Scan's search box keeps its own paste).
+     */
+    @Override
+    public boolean onKeyShortcut(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_V && event.isCtrlPressed()
+                && !(getCurrentFocus() instanceof android.widget.EditText)
+                && getVisibleTabFragment() instanceof TabFragment tab && tab.pasteMedia()) {
+            return true;
+        }
+        return super.onKeyShortcut(keyCode, event);
     }
 
     private void notifyVisibleFragmentPermissionFlowCompleted() {

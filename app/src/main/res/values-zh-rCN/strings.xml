@@ -135,7 +135,7 @@
         <string name="settings_sentry_consent_allow">启用</string>
     <string name="settings_sentry_consent_cancel">暂不</string>
     <string name="settings_sentry_consent_title">启用崩溃报告</string>
-    <string name="settings_sentry_consent_message">发送崩溃报告会通过互联网向 Sentry 上传匿名诊断信息。\n\n不会上传照片、视频、文件名或 GPS 坐标。</string>
+    <string name="settings_sentry_consent_message">发送崩溃报告会通过互联网向 Sentry 上传匿名诊断信息。此外，大约每 4 次会话中有 1 次还会发送性能数据，例如界面打开所需的时间。\n\n不会上传照片、视频、文件名或 GPS 坐标。</string>
     <string name="settings_strict_clean">严格清理</string>
     <string name="settings_strict_clean_subtitle">移除所有元数据，只保留说明如何显示图片的标签，例如方向和色彩空间。关闭下方的保留选项，并始终完整重新编码视频，以实现最彻底的清理。</string>
     
@@ -211,14 +211,7 @@
     <string name="settings_progress_notifications_subtitle">长时间任务期间显示进度的持续通知。默认关闭，需先开启允许通知。</string>
     <string name="settings_crash_reporting_learn_more">会分享哪些内容？</string>
     <string name="settings_crash_reporting_detail_title">崩溃报告详情</string>
-    <string name="settings_crash_reporting_detail_message">开启“发送崩溃报告”后，可能通过 Sentry 发送匿名诊断：
-
-• 设备型号和 Android 版本
-• 应用版本
-• 堆栈跟踪和错误类型
-• 已清理的诊断标签
-
-您的照片和视频绝不会上传。URI、文件名和 GPS 坐标会在上传前移除。</string>
+    <string name="settings_crash_reporting_detail_message">开启“发送崩溃报告”后，可能通过 Sentry 发送匿名诊断：\n\n• 设备型号和 Android 版本\n• 应用版本\n• 堆栈跟踪和错误类型\n• 已清理的诊断标签\n• 大约每 4 次会话中 1 次的性能数据（界面打开所需时间、缓慢帧）\n\n您的照片和视频绝不会上传。URI、文件名和 GPS 坐标会在上传前移除。</string>
     <string name="settings_crash_reporting_privacy_policy">隐私政策</string>
     <string name="settings_crash_reporting_dismiss">关闭</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
@@ -572,10 +565,59 @@
     <string name="onboarding_crash_title">帮助改进 Redact。</string>
     <string name="onboarding_crash_body">如果 Redact 发生崩溃，它可以发送一份匿名报告，以便找到并修复问题。Redact 只会为您开启的崩溃报告，以及您在设置中亲自发起的更新检查而联网。</string>
     <string name="onboarding_crash_point_private">报告绝不会包含你的照片、视频、文件名或位置。</string>
-    <string name="onboarding_crash_point_sentry">报告会发送到 Sentry，这是一项帮助开发者查找和修复崩溃的服务。</string>
+    <string name="onboarding_crash_point_sentry">报告会发送到 Sentry，这是一项帮助开发者查找和修复崩溃的服务。大约每 4 次会话中有 1 次还会包含性能数据。</string>
     <string name="onboarding_crash_allow">发送崩溃报告</string>
     <string name="onboarding_status_crash_on">崩溃报告已开启。</string>
     <string name="onboarding_choices_crash">最后是崩溃报告，这样问题可以更快被发现和修复。</string>
     <string name="onboarding_done_crash_on">出现问题时，Redact 会发送匿名崩溃报告。</string>
     <string name="onboarding_done_crash_off">Redact 不会发送崩溃报告。</string>
+
+    <string name="settings_approximate_location">大致位置</string>
+    <string name="settings_approximate_location_subtitle">将保留的位置四舍五入到约 10 公里：只到城镇，不到街道。不保留海拔和 GPS 时间。</string>
+    <string name="settings_date_only">仅日期</string>
+    <string name="settings_date_only_subtitle">保留照片或视频的拍摄日期，但不保留具体时间和时区。</string>
+    <string name="settings_remove_audio">移除音频</string>
+    <string name="settings_remove_audio_subtitle">清理、分享和转换后的视频将不带声音保存，因为说话声和背景噪音可能透露谁在何处。为此视频总会重新编码。</string>
+    <string name="clean_failed_button">失败的文件（%1$d）</string>
+    <string name="clean_failed_title">未清理的文件</string>
+    <string name="clean_failed_reason_unsupported">此手机无法打开此格式。</string>
+    <string name="clean_failed_reason_memory">内存不足，无法清理。</string>
+    <string name="clean_failed_reason_not_cleaned">无法安全清理，因此没有保存任何内容。</string>
+    <string name="clean_failed_retry">重试</string>
+    <string name="scan_batch_title">所选文件</string>
+    <string name="scan_batch_location_files">含位置的文件：</string>
+    <string name="scan_batch_clean">清理这些文件</string>
+    <string name="button_paste_media">粘贴</string>
+    <string name="scan_share_report">以文本分享</string>
+    <string name="scan_share_report_subject">元数据报告</string>
+    <string name="scan_share_report_consent_title">要分享此报告吗？</string>
+    <string name="scan_share_report_consent_message">报告列出了 Scan 在此文件中找到的全部内容，可能包括拍摄地点、时间和创建者。它只会发送到您接下来选择的应用。</string>
+    <string name="scan_share_report_unavailable">此手机上没有可以接收文本的应用。</string>
+    <plurals name="scan_batch_reading">
+        <item quantity="other">正在读取 %1$d 个文件…</item>
+    </plurals>
+    <plurals name="scan_batch_checked">
+        <item quantity="other">已检查 %1$d 个文件：</item>
+    </plurals>
+    <plurals name="scan_batch_location">
+        <item quantity="other">%1$d 个含有位置</item>
+    </plurals>
+    <plurals name="scan_batch_date">
+        <item quantity="other">%1$d 个含有日期</item>
+    </plurals>
+    <plurals name="scan_batch_device">
+        <item quantity="other">%1$d 个注明了手机或相机</item>
+    </plurals>
+    <plurals name="scan_batch_name">
+        <item quantity="other">%1$d 个注明了人名</item>
+    </plurals>
+    <plurals name="scan_batch_nothing">
+        <item quantity="other">%1$d 个没有需要移除的内容</item>
+    </plurals>
+    <plurals name="scan_batch_unreadable">
+        <item quantity="other">%1$d 个无法读取</item>
+    </plurals>
+    <plurals name="scan_batch_more">
+        <item quantity="other">以及另外 %1$d 个</item>
+    </plurals>
 </resources>

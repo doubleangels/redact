@@ -204,6 +204,84 @@ public class ScanFragmentTest {
     }
 
     @Test
+    public void shareAsText_asksOnce_thenHandsTheReportToTheChooser() throws Exception {
+        File f = jpeg(true, false);
+        View v = pick(Uri.fromFile(f));
+        awaitMain(() -> contentShown(v));
+        MaterialButton share = actionCard(v, activity.getString(R.string.scan_share_report));
+        assertNotNull(share);
+
+        share.performClick();
+        AlertDialog dialog = (AlertDialog) ShadowDialog.getLatestDialog();
+        assertNotNull(dialog);
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        idle();
+        assertTrue(AppPreferences.hasConsentedToShareReport(activity));
+        Intent chooser = shadowOf(activity).getNextStartedActivity();
+        assertNotNull(chooser);
+        assertEquals(Intent.ACTION_CHOOSER, chooser.getAction());
+        Intent send = chooser.getParcelableExtra(Intent.EXTRA_INTENT);
+        assertEquals("text/plain", send.getType());
+        assertTrue(send.getStringExtra(Intent.EXTRA_TEXT).contains("Make: Acme"));
+
+        share.performClick();
+        assertNotNull("asked once only", shadowOf(activity).getNextStartedActivity());
+    }
+
+    @Test
+    public void pickingSeveralFiles_showsASummary_andCanSendThemToClean() throws Exception {
+        File tagged = jpeg(true, true);
+        File plain = jpeg(false, false);
+        View v = scanView();
+        v.findViewById(R.id.emptyStateSelectButton).performClick();
+        idle();
+        ShadowActivity shadow = shadowOf(activity);
+        ShadowActivity.IntentForResult launched = shadow.peekNextStartedActivityForResult();
+        Intent data = new Intent();
+        android.content.ClipData clip = android.content.ClipData.newRawUri("files", Uri.fromFile(tagged));
+        clip.addItem(new android.content.ClipData.Item(Uri.fromFile(plain)));
+        data.setClipData(clip);
+        shadow.receiveResult(launched.intent, Activity.RESULT_OK, data);
+
+        awaitMain(() -> ShadowDialog.getLatestDialog() instanceof AlertDialog d
+                && d.getButton(AlertDialog.BUTTON_POSITIVE) != null
+                && d.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        AlertDialog summary = (AlertDialog) ShadowDialog.getLatestDialog();
+        String message = ((TextView) summary.findViewById(android.R.id.message)).getText().toString();
+        assertTrue(message, message.startsWith("2 files checked:"));
+
+        summary.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        idle();
+        MainViewModel viewModel = new ViewModelProvider(activity).get(MainViewModel.class);
+        assertEquals(2, viewModel.getSelectedItems().getValue().size());
+    }
+
+    @Test
+    public void pastingAPhoto_scansIt() throws Exception {
+        com.doubleangels.redact.TestShareProvider.register(activity.getApplication(), "com.example.gallery.provider");
+        ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+        clipboard.setPrimaryClip(new android.content.ClipData("photo", new String[] {"image/jpeg"},
+                new android.content.ClipData.Item(Uri.parse("content://com.example.gallery.provider/photo/1"))));
+        View v = scanView();
+        View paste = v.findViewById(R.id.emptyStatePasteButton);
+        scanFragment().onResume();
+        assertEquals(View.VISIBLE, paste.getVisibility());
+
+        paste.performClick();
+        idle();
+        assertTrue("Ctrl+V pastes too", activity.onKeyShortcut(android.view.KeyEvent.KEYCODE_V,
+                new android.view.KeyEvent(0, 0, android.view.KeyEvent.ACTION_DOWN,
+                        android.view.KeyEvent.KEYCODE_V, 0, android.view.KeyEvent.META_CTRL_ON)));
+
+        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("t", "hello"));
+        scanFragment().onResume();
+        assertEquals(View.GONE, paste.getVisibility());
+        assertFalse(activity.onKeyShortcut(android.view.KeyEvent.KEYCODE_V,
+                new android.view.KeyEvent(0, 0, android.view.KeyEvent.ACTION_DOWN,
+                        android.view.KeyEvent.KEYCODE_V, 0, android.view.KeyEvent.META_CTRL_ON)));
+    }
+
+    @Test
     public void openInMaps_asksForConsentOnceThenLaunchesGeoIntent() throws Exception {
         shadowOf(activity.getApplication()).grantPermissions(Manifest.permission.ACCESS_MEDIA_LOCATION);
         File f = jpeg(true, true);

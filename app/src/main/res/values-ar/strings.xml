@@ -155,7 +155,7 @@
         <string name="settings_sentry_consent_allow">تفعيل</string>
     <string name="settings_sentry_consent_cancel">ليس الآن</string>
     <string name="settings_sentry_consent_title">تفعيل تقارير الأعطال</string>
-    <string name="settings_sentry_consent_message">إرسال تقارير الأعطال يرفع تشخيصات مجهولة إلى Sentry عبر الإنترنت.\n\nلا يتم تحميل الصور أو الفيديوهات أو أسماء الملفات أو إحداثيات GPS.</string>
+    <string name="settings_sentry_consent_message">إرسال تقارير الأعطال يرفع تشخيصات مجهولة إلى Sentry عبر الإنترنت. ويرسل أيضًا بيانات الأداء، مثل المدة التي تستغرقها الشاشات لتفتح، في نحو جلسة واحدة من كل 4 جلسات.\n\nلا يتم تحميل الصور أو الفيديوهات أو أسماء الملفات أو إحداثيات GPS.</string>
     <string name="settings_strict_clean">التنظيف الصارم</string>
     <string name="settings_strict_clean_subtitle">يزيل كل البيانات الوصفية باستثناء العلامات التي تحدد طريقة عرض الصورة فقط، مثل اتجاهها ومساحة ألوانها. يعطّل خيارات الاحتفاظ أدناه ويعيد ترميز الفيديو دائمًا بالكامل لأدق تنظيف.</string>
     
@@ -231,14 +231,7 @@
     <string name="settings_progress_notifications_subtitle">إشعار دائم يعرض التقدم في المهام الطويلة. معطّل افتراضياً حتى تفعّل السماح بالإشعارات.</string>
     <string name="settings_crash_reporting_learn_more">ما الذي يُشارك؟</string>
     <string name="settings_crash_reporting_detail_title">تفاصيل تقارير الأعطال</string>
-    <string name="settings_crash_reporting_detail_message">عند تفعيل إرسال تقارير الأعطال، قد تُرسل تشخيصات مجهولة عبر Sentry:
-
-• طراز الجهاز وإصدار Android
-• إصدار التطبيق
-• تتبعات المكدس وأنواع الأخطاء
-• وسوم تشخيص مُنقّاة
-
-لا يتم رفع صورك أو فيديوهاتك. تُزال URIs وأسماء الملفات وإحداثيات GPS قبل الرفع.</string>
+    <string name="settings_crash_reporting_detail_message">عند تفعيل إرسال تقارير الأعطال، قد تُرسل تشخيصات مجهولة عبر Sentry:\n\n• طراز الجهاز وإصدار Android\n• إصدار التطبيق\n• تتبعات المكدس وأنواع الأخطاء\n• وسوم تشخيص مُنقّاة\n• بيانات الأداء في نحو جلسة واحدة من كل 4 جلسات (مدة فتح الشاشات، والإطارات البطيئة)\n\nلا يتم رفع صورك أو فيديوهاتك. تُزال URIs وأسماء الملفات وإحداثيات GPS قبل الرفع.</string>
     <string name="settings_crash_reporting_privacy_policy">سياسة الخصوصية</string>
     <string name="settings_crash_reporting_dismiss">إغلاق</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
@@ -647,10 +640,104 @@
     <string name="onboarding_crash_title">ساعد في تحسين Redact.</string>
     <string name="onboarding_crash_body">إذا تعطّل Redact يومًا، يمكنه إرسال تقرير مجهول الهوية حتى يتم العثور على المشكلة وإصلاحها. لا يتصل Redact بالإنترنت إلا لإرسال تقارير الأعطال التي تفعّلها، وللتحقق من التحديثات عندما تبدأه بنفسك من الإعدادات.</string>
     <string name="onboarding_crash_point_private">لا تتضمن التقارير أبدًا صورك أو مقاطع الفيديو أو أسماء الملفات أو المواقع.</string>
-    <string name="onboarding_crash_point_sentry">تُرسل التقارير إلى Sentry، وهي خدمة تساعد المطورين في العثور على الأعطال وإصلاحها.</string>
+    <string name="onboarding_crash_point_sentry">تُرسل التقارير إلى Sentry، وهي خدمة تساعد المطورين في العثور على الأعطال وإصلاحها. وفي نحو جلسة واحدة من كل 4 جلسات تتضمن أيضًا بيانات الأداء.</string>
     <string name="onboarding_crash_allow">إرسال تقارير الأعطال</string>
     <string name="onboarding_status_crash_on">تقارير الأعطال مفعّلة.</string>
     <string name="onboarding_choices_crash">وأخيرًا تقارير الأعطال، ليتم العثور على المشكلات وإصلاحها بشكل أسرع.</string>
     <string name="onboarding_done_crash_on">سيرسل Redact تقارير أعطال مجهولة الهوية إذا حدث خطأ ما.</string>
     <string name="onboarding_done_crash_off">لن يرسل Redact تقارير الأعطال.</string>
+
+    <string name="settings_approximate_location">موقع تقريبي</string>
+    <string name="settings_approximate_location_subtitle">يقرّب الموقع المحتفظ به إلى نحو 10 كم: المدينة لا الشارع. ولا يُحتفظ بالارتفاع ولا بوقت GPS.</string>
+    <string name="settings_date_only">التاريخ فقط</string>
+    <string name="settings_date_only_subtitle">يحتفظ باليوم الذي التُقطت فيه الصورة أو الفيديو، دون الوقت أو المنطقة الزمنية.</string>
+    <string name="settings_remove_audio">إزالة الصوت</string>
+    <string name="settings_remove_audio_subtitle">يحفظ الفيديوهات المنظّفة والمشاركة والمحوّلة بلا صوت، لأن الأصوات وضجيج الخلفية قد تكشف من كان هناك وأين. ولهذا يُعاد ترميز الفيديو دائمًا.</string>
+    <string name="clean_failed_button">ملفات فشلت (%1$d)</string>
+    <string name="clean_failed_title">ملفات لم تُنظَّف</string>
+    <string name="clean_failed_reason_unsupported">لا يستطيع هذا الهاتف فتح هذا التنسيق.</string>
+    <string name="clean_failed_reason_memory">لم تكن الذاكرة كافية لتنظيفه.</string>
+    <string name="clean_failed_reason_not_cleaned">تعذّر تنظيفه بأمان، لذا لم يُحفظ شيء.</string>
+    <string name="clean_failed_retry">إعادة المحاولة</string>
+    <string name="scan_batch_title">الملفات المحددة</string>
+    <string name="scan_batch_location_files">ملفات تحتوي على موقع:</string>
+    <string name="scan_batch_clean">تنظيف هذه الملفات</string>
+    <string name="button_paste_media">لصق</string>
+    <string name="scan_share_report">مشاركة كنص</string>
+    <string name="scan_share_report_subject">تقرير البيانات الوصفية</string>
+    <string name="scan_share_report_consent_title">هل تريد مشاركة هذا التقرير؟</string>
+    <string name="scan_share_report_consent_message">يسرد التقرير كل ما وجده Scan في هذا الملف، وقد يتضمن مكان التقاطه ووقته ومن أنشأه. ولا يُرسل إلا إلى التطبيق الذي تختاره بعد ذلك.</string>
+    <string name="scan_share_report_unavailable">لا يوجد تطبيق على هذا الهاتف يمكنه استقبال النص.</string>
+    <plurals name="scan_batch_reading">
+        <item quantity="zero">جارٍ قراءة %1$d ملف…</item>
+        <item quantity="one">جارٍ قراءة %1$d ملف…</item>
+        <item quantity="two">جارٍ قراءة %1$d ملف…</item>
+        <item quantity="few">جارٍ قراءة %1$d ملف…</item>
+        <item quantity="many">جارٍ قراءة %1$d ملف…</item>
+        <item quantity="other">جارٍ قراءة %1$d ملف…</item>
+    </plurals>
+    <plurals name="scan_batch_checked">
+        <item quantity="zero">تم فحص %1$d ملف:</item>
+        <item quantity="one">تم فحص %1$d ملف:</item>
+        <item quantity="two">تم فحص %1$d ملف:</item>
+        <item quantity="few">تم فحص %1$d ملف:</item>
+        <item quantity="many">تم فحص %1$d ملف:</item>
+        <item quantity="other">تم فحص %1$d ملف:</item>
+    </plurals>
+    <plurals name="scan_batch_location">
+        <item quantity="zero">%1$d يحتوي على موقع</item>
+        <item quantity="one">%1$d يحتوي على موقع</item>
+        <item quantity="two">%1$d يحتوي على موقع</item>
+        <item quantity="few">%1$d يحتوي على موقع</item>
+        <item quantity="many">%1$d يحتوي على موقع</item>
+        <item quantity="other">%1$d يحتوي على موقع</item>
+    </plurals>
+    <plurals name="scan_batch_date">
+        <item quantity="zero">%1$d يحتوي على تاريخ</item>
+        <item quantity="one">%1$d يحتوي على تاريخ</item>
+        <item quantity="two">%1$d يحتوي على تاريخ</item>
+        <item quantity="few">%1$d يحتوي على تاريخ</item>
+        <item quantity="many">%1$d يحتوي على تاريخ</item>
+        <item quantity="other">%1$d يحتوي على تاريخ</item>
+    </plurals>
+    <plurals name="scan_batch_device">
+        <item quantity="zero">%1$d يذكر هاتفًا أو كاميرا</item>
+        <item quantity="one">%1$d يذكر هاتفًا أو كاميرا</item>
+        <item quantity="two">%1$d يذكر هاتفًا أو كاميرا</item>
+        <item quantity="few">%1$d يذكر هاتفًا أو كاميرا</item>
+        <item quantity="many">%1$d يذكر هاتفًا أو كاميرا</item>
+        <item quantity="other">%1$d يذكر هاتفًا أو كاميرا</item>
+    </plurals>
+    <plurals name="scan_batch_name">
+        <item quantity="zero">%1$d يذكر اسم شخص</item>
+        <item quantity="one">%1$d يذكر اسم شخص</item>
+        <item quantity="two">%1$d يذكر اسم شخص</item>
+        <item quantity="few">%1$d يذكر اسم شخص</item>
+        <item quantity="many">%1$d يذكر اسم شخص</item>
+        <item quantity="other">%1$d يذكر اسم شخص</item>
+    </plurals>
+    <plurals name="scan_batch_nothing">
+        <item quantity="zero">%1$d ليس فيه ما يُزال</item>
+        <item quantity="one">%1$d ليس فيه ما يُزال</item>
+        <item quantity="two">%1$d ليس فيه ما يُزال</item>
+        <item quantity="few">%1$d ليس فيه ما يُزال</item>
+        <item quantity="many">%1$d ليس فيه ما يُزال</item>
+        <item quantity="other">%1$d ليس فيه ما يُزال</item>
+    </plurals>
+    <plurals name="scan_batch_unreadable">
+        <item quantity="zero">%1$d تعذّرت قراءته</item>
+        <item quantity="one">%1$d تعذّرت قراءته</item>
+        <item quantity="two">%1$d تعذّرت قراءته</item>
+        <item quantity="few">%1$d تعذّرت قراءته</item>
+        <item quantity="many">%1$d تعذّرت قراءته</item>
+        <item quantity="other">%1$d تعذّرت قراءته</item>
+    </plurals>
+    <plurals name="scan_batch_more">
+        <item quantity="zero">و%1$d غيرها</item>
+        <item quantity="one">و%1$d غيرها</item>
+        <item quantity="two">و%1$d غيرها</item>
+        <item quantity="few">و%1$d غيرها</item>
+        <item quantity="many">و%1$d غيرها</item>
+        <item quantity="other">و%1$d غيرها</item>
+    </plurals>
 </resources>

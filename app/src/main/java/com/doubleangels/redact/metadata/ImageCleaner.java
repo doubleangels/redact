@@ -411,8 +411,9 @@ final class ImageCleaner {
             SentryManager.setCustomKey("success", true);
             return job.result(fileUri);
 
-        } catch (Exception e) {
-            // Log error
+        } catch (Exception | OutOfMemoryError e) {
+            // A crafted file can ask for more memory than there is; that is a failed file, and
+            // the share worker goes on to the next one with nothing half-written left behind.
             Log.e(TAG, "Error processing image for sharing", e);
             job.unsupported = UnsupportedMediaException.isCauseOf(e);
             SentryManager.setCustomKey("success", false);
@@ -522,6 +523,8 @@ final class ImageCleaner {
         if (!kept.containsKey(ExifInterface.TAG_COLOR_SPACE)) {
             kept.remove(ExifInterface.TAG_INTEROPERABILITY_INDEX);
         }
+        // An approximate location and a date without its time are written back rounded.
+        KeptPrecision.apply(context, kept, forSharing);
 
         SentryManager.setCustomKey("preserved_exif_count", kept.size());
     }

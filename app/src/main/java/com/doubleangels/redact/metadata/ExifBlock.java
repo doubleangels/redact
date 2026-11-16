@@ -83,6 +83,17 @@ public final class ExifBlock {
         }
     }
 
+    /**
+     * How ExifInterface's tag numbers split between its per-IFD tables: the GPS table runs from
+     * 0x0000 to 0x001F, the interoperability table holds only InteroperabilityIndex, the EXIF
+     * table starts at ExposureTime (0x829A), and the TIFF tables (IFD 0 and 1) hold everything
+     * below that plus the IFD pointers and the DNG tags.
+     */
+    private static final int LAST_GPS_TAG = 0x001F;
+    private static final int TAG_INTEROPERABILITY_INDEX = 0x0001;
+    private static final int FIRST_EXIF_TAG = 0x829A;
+    private static final Set<Integer> TIFF_TAGS_ABOVE_EXIF_START = Set.of(0x8769, 0x8825, 0xC612, 0xC620);
+
     /** One tag: the IFD it is in, its number and type, how many values it has, and its bytes. */
     public static final class Entry {
         public final int ifd;
@@ -104,9 +115,25 @@ public final class ExifBlock {
             this.value = value;
         }
 
-        /** Whether ExifInterface has a name for this tag, and so reads and writes it. */
+        /**
+         * Whether ExifInterface has a name for this tag in the IFD it is in, and so reads and
+         * writes it. ExifInterface looks a tag up in its table for that IFD only, so a GPS tag
+         * number placed in the EXIF IFD is one it never sees, however well known the number is.
+         */
         public boolean knownToExifInterface() {
-            return EXIFINTERFACE_TAGS.contains(tag);
+            if (!EXIFINTERFACE_TAGS.contains(tag)) {
+                return false;
+            }
+            switch (ifd) {
+                case IFD_GPS:
+                    return tag <= LAST_GPS_TAG;
+                case IFD_INTEROPERABILITY:
+                    return tag == TAG_INTEROPERABILITY_INDEX;
+                case IFD_EXIF:
+                    return tag >= FIRST_EXIF_TAG && !TIFF_TAGS_ABOVE_EXIF_START.contains(tag);
+                default: // IFD 0 and IFD 1, the TIFF tables
+                    return tag < FIRST_EXIF_TAG || TIFF_TAGS_ABOVE_EXIF_START.contains(tag);
+            }
         }
 
         /** The text of an XP tag (UTF-16LE, up to its terminator); null for any other tag. */

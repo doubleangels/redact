@@ -378,6 +378,28 @@ public class VideoContainerWalkerTest {
     }
 
     @Test
+    public void webmInfoText_tracksNames_chaptersAndUnknownElements_areReportedAndScrubbed() throws Exception {
+        byte[] info = ebml(INFO,
+                ebml(0x7384L, bytes("SecretFilename.mkv")),
+                ebml(0x5741L, bytes("SecretCam Studio 2")),
+                ebml(0x4D80L, bytes("Lavf60.3.100")));
+        byte[] tracks = ebml(0x1654AE6BL, ebml(0xAEL, ebml(0xD7L, new byte[] {1}), ebml(0x536EL, bytes("SecretTrack"))));
+        byte[] chapters = ebml(0x1043A770L, ebml(0x45B9L, bytes("SecretChapter")));
+        byte[] unknown = ebml(0x1B538667L, bytes("SecretUnknown"));
+        byte[] webm = webm(info, tracks, chapters, unknown);
+
+        VideoContainerMetadata.Report r = scan(webm);
+        assertTrue(r.fields.toString(), r.fields.containsAll(List.of(
+                "segment_filename", "writing_app", "track_name", "chapters", "element_1B538667")));
+        assertFalse("a muxer library's own name is not identifying", r.fields.contains("muxing_app"));
+        scrubAndCheck(webm);
+        File scrubbed = file(webm);
+        VideoContainerMetadata.scrub(scrubbed);
+        assertFalse(contains(scrubbed, bytes("Secret")));
+        assertTrue(contains(scrubbed, bytes("Lavf60")));
+    }
+
+    @Test
     public void aCleanWebm_staysClean() throws Exception {
         byte[] webm = webm(ebml(INFO, ebml(0x4D80L, bytes("Lavf"))));
 

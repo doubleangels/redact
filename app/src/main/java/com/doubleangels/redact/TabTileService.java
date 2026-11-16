@@ -50,7 +50,7 @@ public abstract class TabTileService extends TileService {
                 startActivityAndCollapse(intent);
             }
         } catch (RuntimeException e) {
-            SentryManager.setCustomKey("tile_tab", tab());
+            // Which tile was used is how the app was opened, which reports never say.
             SentryManager.recordException(e);
         }
     }

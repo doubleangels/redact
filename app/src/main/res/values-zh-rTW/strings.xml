@@ -135,7 +135,7 @@
         <string name="settings_sentry_consent_allow">啟用</string>
     <string name="settings_sentry_consent_cancel">暫不</string>
     <string name="settings_sentry_consent_title">啟用當機報告</string>
-    <string name="settings_sentry_consent_message">傳送當機報告會透過網際網路向 Sentry 上傳匿名診斷資訊。\n\n不會上傳照片、影片、檔名或 GPS 座標。</string>
+    <string name="settings_sentry_consent_message">傳送當機報告會透過網際網路向 Sentry 上傳匿名診斷資訊。此外，大約每 4 次工作階段中有 1 次還會傳送效能資料，例如畫面開啟所需的時間。\n\n不會上傳照片、影片、檔名或 GPS 座標。</string>
     <string name="settings_strict_clean">嚴格清理</string>
     <string name="settings_strict_clean_subtitle">移除所有中繼資料，只保留說明如何顯示圖片的標籤，例如方向和色彩空間。關閉下方的保留選項，並一律完整重新編碼影片，達到最徹底的清理。</string>
     
@@ -211,14 +211,7 @@
     <string name="settings_progress_notifications_subtitle">長時間工作期間顯示進度的持續通知。預設關閉，需先開啟允許通知。</string>
     <string name="settings_crash_reporting_learn_more">會分享哪些內容？</string>
     <string name="settings_crash_reporting_detail_title">當機報告詳情</string>
-    <string name="settings_crash_reporting_detail_message">開啟「傳送當機報告」後，可能透過 Sentry 傳送匿名診斷：
-
-• 裝置型號和 Android 版本
-• 應用程式版本
-• 堆疊追蹤和錯誤類型
-• 已清理的診斷標籤
-
-您的照片和影片絕不會上傳。URI、檔名和 GPS 座標會在上傳前移除。</string>
+    <string name="settings_crash_reporting_detail_message">開啟「傳送當機報告」後，可能透過 Sentry 傳送匿名診斷：\n\n• 裝置型號和 Android 版本\n• 應用程式版本\n• 堆疊追蹤和錯誤類型\n• 已清理的診斷標籤\n• 大約每 4 次工作階段中 1 次的效能資料（畫面開啟所需時間、緩慢影格）\n\n您的照片和影片絕不會上傳。URI、檔名和 GPS 座標會在上傳前移除。</string>
     <string name="settings_crash_reporting_privacy_policy">隱私權政策</string>
     <string name="settings_crash_reporting_dismiss">關閉</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
@@ -572,10 +565,59 @@
     <string name="onboarding_crash_title">幫助改善 Redact。</string>
     <string name="onboarding_crash_body">如果 Redact 發生當機，它可以傳送一份匿名報告，以便找出並修正問題。Redact 只會為您開啟的當機回報，以及您在設定中親自發起的更新檢查而連上網路。</string>
     <string name="onboarding_crash_point_private">報告絕不會包含你的相片、影片、檔名或位置。</string>
-    <string name="onboarding_crash_point_sentry">報告會傳送到 Sentry，這是一項協助開發者找出並修正當機的服務。</string>
+    <string name="onboarding_crash_point_sentry">報告會傳送到 Sentry，這是一項協助開發者找出並修正當機的服務。大約每 4 次工作階段中有 1 次還會包含效能資料。</string>
     <string name="onboarding_crash_allow">傳送當機報告</string>
     <string name="onboarding_status_crash_on">當機報告已開啟。</string>
     <string name="onboarding_choices_crash">最後是當機報告，這樣問題可以更快被找出並修正。</string>
     <string name="onboarding_done_crash_on">發生問題時，Redact 會傳送匿名當機報告。</string>
     <string name="onboarding_done_crash_off">Redact 不會傳送當機報告。</string>
+
+    <string name="settings_approximate_location">大略位置</string>
+    <string name="settings_approximate_location_subtitle">將保留的位置四捨五入到約 10 公里：只到城鎮，不到街道。不保留海拔和 GPS 時間。</string>
+    <string name="settings_date_only">僅日期</string>
+    <string name="settings_date_only_subtitle">保留相片或影片的拍攝日期，但不保留時間和時區。</string>
+    <string name="settings_remove_audio">移除音訊</string>
+    <string name="settings_remove_audio_subtitle">清理、分享和轉換後的影片將不含聲音儲存，因為說話聲和背景噪音可能透露誰在何處。為此影片一律會重新編碼。</string>
+    <string name="clean_failed_button">失敗的檔案（%1$d）</string>
+    <string name="clean_failed_title">未清理的檔案</string>
+    <string name="clean_failed_reason_unsupported">這支手機無法開啟此格式。</string>
+    <string name="clean_failed_reason_memory">記憶體不足，無法清理。</string>
+    <string name="clean_failed_reason_not_cleaned">無法安全清理，因此未儲存任何內容。</string>
+    <string name="clean_failed_retry">重試</string>
+    <string name="scan_batch_title">所選檔案</string>
+    <string name="scan_batch_location_files">含位置的檔案：</string>
+    <string name="scan_batch_clean">清理這些檔案</string>
+    <string name="button_paste_media">貼上</string>
+    <string name="scan_share_report">以文字分享</string>
+    <string name="scan_share_report_subject">中繼資料報告</string>
+    <string name="scan_share_report_consent_title">要分享這份報告嗎？</string>
+    <string name="scan_share_report_consent_message">報告列出 Scan 在這個檔案中找到的所有內容，可能包括拍攝地點、時間和建立者。報告只會傳送到你接下來選擇的應用程式。</string>
+    <string name="scan_share_report_unavailable">這支手機上沒有可接收文字的應用程式。</string>
+    <plurals name="scan_batch_reading">
+        <item quantity="other">正在讀取 %1$d 個檔案…</item>
+    </plurals>
+    <plurals name="scan_batch_checked">
+        <item quantity="other">已檢查 %1$d 個檔案：</item>
+    </plurals>
+    <plurals name="scan_batch_location">
+        <item quantity="other">%1$d 個含有位置</item>
+    </plurals>
+    <plurals name="scan_batch_date">
+        <item quantity="other">%1$d 個含有日期</item>
+    </plurals>
+    <plurals name="scan_batch_device">
+        <item quantity="other">%1$d 個註明了手機或相機</item>
+    </plurals>
+    <plurals name="scan_batch_name">
+        <item quantity="other">%1$d 個註明了人名</item>
+    </plurals>
+    <plurals name="scan_batch_nothing">
+        <item quantity="other">%1$d 個沒有需要移除的內容</item>
+    </plurals>
+    <plurals name="scan_batch_unreadable">
+        <item quantity="other">%1$d 個無法讀取</item>
+    </plurals>
+    <plurals name="scan_batch_more">
+        <item quantity="other">以及另外 %1$d 個</item>
+    </plurals>
 </resources>

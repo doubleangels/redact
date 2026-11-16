@@ -122,8 +122,8 @@ public class PermissionManagerInstanceTest {
     }
 
     @Test
+    @Config(sdk = 33)
     public void needsPermissions_sdk33_needsBothMediaPermissions() {
-        PermissionManager.testSdkIntOverride = 33;
         grant(Manifest.permission.READ_MEDIA_IMAGES);
         deny(Manifest.permission.READ_MEDIA_VIDEO);
         assertTrue(manager.needsPermissions());

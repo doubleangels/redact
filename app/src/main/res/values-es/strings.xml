@@ -143,7 +143,7 @@
         <string name="settings_sentry_consent_allow">Activar</string>
     <string name="settings_sentry_consent_cancel">Ahora No</string>
     <string name="settings_sentry_consent_title">Activar Informes de Fallos</string>
-    <string name="settings_sentry_consent_message">Enviar Informes de Fallos sube diagnósticos anonimizados a Sentry por internet.\n\nNo se suben fotos, videos, nombres de archivo ni coordenadas GPS.</string>
+    <string name="settings_sentry_consent_message">Enviar Informes de Fallos sube diagnósticos anonimizados a Sentry por internet. También envía datos de rendimiento, como cuánto tardan en abrirse las pantallas, en aproximadamente 1 de cada 4 sesiones.\n\nNo se suben fotos, videos, nombres de archivo ni coordenadas GPS.</string>
     <string name="settings_strict_clean">Limpieza Estricta</string>
     <string name="settings_strict_clean_subtitle">Elimina todos los metadatos salvo las etiquetas que solo indican cómo mostrar la imagen, como su orientación y su espacio de color. Desactiva las opciones de conservar de abajo y siempre vuelve a codificar el video por completo para la limpieza más a fondo.</string>
     
@@ -219,14 +219,7 @@
     <string name="settings_progress_notifications_subtitle">Notificación persistente con progreso en tareas largas. Desactivada por defecto hasta que actives Permitir notificaciones.</string>
     <string name="settings_crash_reporting_learn_more">¿Qué Se Comparte?</string>
     <string name="settings_crash_reporting_detail_title">Detalles de Informes de Fallos</string>
-    <string name="settings_crash_reporting_detail_message">Cuando Enviar informes de fallos está activado, pueden enviarse diagnósticos anónimos vía Sentry:
-
-• Modelo del dispositivo y versión de Android
-• Versión de la app
-• Trazas de pila y tipos de error
-• Etiquetas de diagnóstico depuradas
-
-Tus fotos y videos nunca se suben. Se eliminan URIs, nombres de archivo y coordenadas GPS antes de la carga.</string>
+    <string name="settings_crash_reporting_detail_message">Cuando Enviar informes de fallos está activado, pueden enviarse diagnósticos anónimos vía Sentry:\n\n• Modelo del dispositivo y versión de Android\n• Versión de la app\n• Trazas de pila y tipos de error\n• Etiquetas de diagnóstico depuradas\n• Datos de rendimiento en aproximadamente 1 de cada 4 sesiones (cuánto tardan en abrirse las pantallas, fotogramas lentos)\n\nTus fotos y videos nunca se suben. Se eliminan URIs, nombres de archivo y coordenadas GPS antes de la carga.</string>
     <string name="settings_crash_reporting_privacy_policy">Política de Privacidad</string>
     <string name="settings_crash_reporting_dismiss">Cerrar</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
@@ -602,10 +595,77 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="onboarding_crash_title">Ayuda a mejorar Redact.</string>
     <string name="onboarding_crash_body">Si Redact llega a fallar, puede enviar un informe anónimo para que el problema se encuentre y se solucione. Redact solo se conecta a internet para los informes de errores que actives y para buscar actualizaciones cuando tú lo inicies en Ajustes.</string>
     <string name="onboarding_crash_point_private">Los informes nunca incluyen tus fotos, videos, nombres de archivo ni ubicaciones.</string>
-    <string name="onboarding_crash_point_sentry">Los informes van a Sentry, un servicio que ayuda a los desarrolladores a encontrar y corregir fallos.</string>
+    <string name="onboarding_crash_point_sentry">Los informes van a Sentry, un servicio que ayuda a los desarrolladores a encontrar y corregir fallos. En aproximadamente 1 de cada 4 sesiones también incluyen datos de rendimiento.</string>
     <string name="onboarding_crash_allow">Enviar Informes de Errores</string>
     <string name="onboarding_status_crash_on">Los informes de errores están activados.</string>
     <string name="onboarding_choices_crash">Por último, los informes de errores, para que los problemas se encuentren y se solucionen antes.</string>
     <string name="onboarding_done_crash_on">Redact enviará informes de errores anónimos si algo sale mal.</string>
     <string name="onboarding_done_crash_off">Redact no enviará informes de errores.</string>
+
+    <string name="settings_approximate_location">Ubicación Aproximada</string>
+    <string name="settings_approximate_location_subtitle">Redondea la ubicación conservada a unos 10 km: la ciudad, no la calle. Se omiten la altitud y la hora GPS.</string>
+    <string name="settings_date_only">Solo Fecha</string>
+    <string name="settings_date_only_subtitle">Conserva el día en que se tomó una foto o un video, pero no la hora ni la zona horaria.</string>
+    <string name="settings_remove_audio">Quitar Audio</string>
+    <string name="settings_remove_audio_subtitle">Guarda los videos limpiados, compartidos y convertidos sin sonido, ya que las voces y el ruido de fondo pueden revelar quién estaba y dónde. Para ello, los videos siempre se vuelven a codificar.</string>
+    <string name="clean_failed_button">Archivos con Errores (%1$d)</string>
+    <string name="clean_failed_title">Archivos No Limpiados</string>
+    <string name="clean_failed_reason_unsupported">Este teléfono no puede abrir este formato.</string>
+    <string name="clean_failed_reason_memory">No había suficiente memoria para limpiarlo.</string>
+    <string name="clean_failed_reason_not_cleaned">No se pudo limpiar de forma segura, así que no se guardó nada.</string>
+    <string name="clean_failed_retry">Reintentar</string>
+    <string name="scan_batch_title">Archivos Seleccionados</string>
+    <string name="scan_batch_location_files">Archivos con ubicación:</string>
+    <string name="scan_batch_clean">Limpiar Estos Archivos</string>
+    <string name="button_paste_media">Pegar</string>
+    <string name="scan_share_report">Compartir como Texto</string>
+    <string name="scan_share_report_subject">Informe de metadatos</string>
+    <string name="scan_share_report_consent_title">¿Compartir Este Informe?</string>
+    <string name="scan_share_report_consent_message">El informe enumera todo lo que Scan encontró en este archivo, lo que puede incluir dónde y cuándo se tomó y quién lo creó. Solo se envía a la app que elijas a continuación.</string>
+    <string name="scan_share_report_unavailable">Ninguna app de este teléfono puede recibir texto.</string>
+    <plurals name="scan_batch_reading">
+        <item quantity="one">Leyendo %1$d archivo…</item>
+        <item quantity="many">Leyendo %1$d archivos…</item>
+        <item quantity="other">Leyendo %1$d archivos…</item>
+    </plurals>
+    <plurals name="scan_batch_checked">
+        <item quantity="one">%1$d archivo revisado:</item>
+        <item quantity="many">%1$d archivos revisados:</item>
+        <item quantity="other">%1$d archivos revisados:</item>
+    </plurals>
+    <plurals name="scan_batch_location">
+        <item quantity="one">%1$d tiene ubicación</item>
+        <item quantity="many">%1$d tienen ubicación</item>
+        <item quantity="other">%1$d tienen ubicación</item>
+    </plurals>
+    <plurals name="scan_batch_date">
+        <item quantity="one">%1$d tiene fecha</item>
+        <item quantity="many">%1$d tienen fecha</item>
+        <item quantity="other">%1$d tienen fecha</item>
+    </plurals>
+    <plurals name="scan_batch_device">
+        <item quantity="one">%1$d indica un teléfono o una cámara</item>
+        <item quantity="many">%1$d indican un teléfono o una cámara</item>
+        <item quantity="other">%1$d indican un teléfono o una cámara</item>
+    </plurals>
+    <plurals name="scan_batch_name">
+        <item quantity="one">%1$d indica una persona</item>
+        <item quantity="many">%1$d indican una persona</item>
+        <item quantity="other">%1$d indican una persona</item>
+    </plurals>
+    <plurals name="scan_batch_nothing">
+        <item quantity="one">%1$d no tiene nada que quitar</item>
+        <item quantity="many">%1$d no tienen nada que quitar</item>
+        <item quantity="other">%1$d no tienen nada que quitar</item>
+    </plurals>
+    <plurals name="scan_batch_unreadable">
+        <item quantity="one">%1$d no se pudo leer</item>
+        <item quantity="many">%1$d no se pudieron leer</item>
+        <item quantity="other">%1$d no se pudieron leer</item>
+    </plurals>
+    <plurals name="scan_batch_more">
+        <item quantity="one">y %1$d más</item>
+        <item quantity="many">y %1$d más</item>
+        <item quantity="other">y %1$d más</item>
+    </plurals>
 </resources>

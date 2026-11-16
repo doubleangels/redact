@@ -161,7 +161,7 @@ public class MetadataDisplayer {
                 boolean isVideo = MediaSelector.isVideoFromMimeAndName(
                         mimeType, fileNameFromUri(context, mediaUri));
                 SentryManager.setCustomKey("is_video", isVideo);
-                SentryManager.setCustomKey("mime_type", mimeType != null ? mimeType : "unknown");
+                SentryManager.setCustomKey("mime_type", SentryManager.mimeTypeClass(mimeType));
 
                 // Map to store different sections of metadata
                 Map<String, String> sections = new HashMap<>();
@@ -236,8 +236,9 @@ public class MetadataDisplayer {
                     Map<String, String> sectionsResult = sections;
                     deliverOnMain(() -> callback.onMetadataExtracted(sectionsResult, isVideo));
                 }
-            } catch (Exception e) {
-                // Log the exception and notify callback of failure
+            } catch (Exception | OutOfMemoryError e) {
+                // An OutOfMemoryError from a crafted file is a failed scan too: the FutureTask would
+                // otherwise swallow it and leave Scan on "Analyzing" for good.
                 Log.e(TAG, "Error extracting sectioned metadata", e);
                 SentryManager.setCustomKey("extraction_failed", true);
                 SentryManager.setCustomKey("error_type", e.getClass().getName());
@@ -299,7 +300,7 @@ public class MetadataDisplayer {
                     String locationResult = locationContent;
                     deliverOnMain(() -> callback.onLocationSectionExtracted(locationResult));
                 }
-            } catch (Exception e) {
+            } catch (Exception | OutOfMemoryError e) {
                 Log.e(TAG, "Error extracting location metadata", e);
                 SentryManager.recordException(e);
                 if (isActiveScan(taskRef[0])) {
@@ -614,8 +615,7 @@ public class MetadataDisplayer {
                 if (!metadataMap.containsKey(heightTagName)) {
                     metadataMap.put(heightTagName, String.valueOf(height));
                 }
-                SentryManager.setCustomKey("image_width", width);
-                SentryManager.setCustomKey("image_height", height);
+                SentryManager.setCustomKey("image_resolution_class", SentryManager.resolutionClass(width, height));
             }
 
             SentryManager.log("The app has location permission: " + hasLocationPermission + ".");
@@ -768,23 +768,10 @@ public class MetadataDisplayer {
                             displayKeyName = convertToSnakeCase(displayKeyName).toUpperCase(Locale.ROOT);
                             metadataMap.put(displayKeyName, trimmedValue);
                             
-                            // Log important keys for analytics
-                            switch (keyName) {
-                                case "METADATA_KEY_DURATION" -> {
-                                    try {
-                                        SentryManager.setCustomKey("video_duration_ms", Long.parseLong(value));
-                                    } catch (NumberFormatException e) {
-                                        SentryManager.log("The video duration is not a number.");
-                                        SentryManager.recordException(e);
-                                    }
-                                }
-                                case "METADATA_KEY_VIDEO_WIDTH" ->
-                                        SentryManager.setCustomKey("video_width", value);
-                                case "METADATA_KEY_VIDEO_HEIGHT" ->
-                                        SentryManager.setCustomKey("video_height", value);
-                                case "METADATA_KEY_VIDEO_ROTATION" ->
-                                        SentryManager.setCustomKey("video_rotation", value);
-                                case "METADATA_KEY_BITRATE" -> recordVideoBitrateAnalytics(value);
+                            // Rotation is one of four values; sizes and duration are sent
+                            // only as classes, after the loop.
+                            if ("METADATA_KEY_VIDEO_ROTATION".equals(keyName)) {
+                                SentryManager.setCustomKey("video_rotation", value);
                             }
                         }
                     } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -822,6 +809,13 @@ public class MetadataDisplayer {
                 }
             }
 
+            // Classes, never the measured values: an exact size, duration and bitrate together
+            // come close to naming the file.
+            SentryManager.setCustomKey("video_resolution_class", SentryManager.resolutionClass(
+                    parseLongOr(metadataMap.get("VIDEO_WIDTH")), parseLongOr(metadataMap.get("VIDEO_HEIGHT"))));
+            SentryManager.setCustomKey("video_duration_class",
+                    SentryManager.durationClass(parseLongOr(metadataMap.get("DURATION"))));
+
             SentryManager.log("The app has location permission: " + hasLocationPermission + ".");
             SentryManager.setCustomKey("has_location_permission", hasLocationPermission);
 
@@ -839,7 +833,6 @@ public class MetadataDisplayer {
                 String frameRate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE);
                 if (frameRate != null && !metadataMap.containsKey("CAPTURE_FRAMERATE")) {
                     metadataMap.put("CAPTURE_FRAMERATE", frameRate);
-                    SentryManager.setCustomKey("video_frame_rate", frameRate);
                 }
             }
             
@@ -847,7 +840,6 @@ public class MetadataDisplayer {
                 String bitrate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE);
                 if (bitrate != null && !metadataMap.containsKey("BITRATE")) {
                     metadataMap.put("BITRATE", bitrate);
-                    recordVideoBitrateAnalytics(bitrate);
                 }
             }
             
@@ -855,7 +847,6 @@ public class MetadataDisplayer {
                 String audioSampleRate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_SAMPLERATE);
                 if (audioSampleRate != null && !metadataMap.containsKey("SAMPLE_RATE")) {
                     metadataMap.put("SAMPLE_RATE", audioSampleRate);
-                    SentryManager.setCustomKey("audio_sample_rate", audioSampleRate);
                 }
             }
 
@@ -1236,7 +1227,7 @@ public class MetadataDisplayer {
     }
 
     @Nullable
-    private static ExifInterface createImageExifInterface(Context context, Uri imageUri) throws IOException {
+    static ExifInterface createImageExifInterface(Context context, Uri imageUri) throws IOException {
         ContentResolver resolver = context.getContentResolver();
         if ("file".equals(imageUri.getScheme())) {
             if (!hasMediaLocationPermission(context)) {
@@ -1452,13 +1443,15 @@ public class MetadataDisplayer {
         return null;
     }
 
-    private static void recordVideoBitrateAnalytics(String bitrate) {
+    /** The number in {@code value}, or -1 when there is none; nothing about it is reported. */
+    private static long parseLongOr(@androidx.annotation.Nullable String value) {
+        if (value == null) {
+            return -1;
+        }
         try {
-            SentryManager.setCustomKey("video_bitrate_kbps", Long.parseLong(bitrate) / 1000);
+            return Long.parseLong(value.trim());
         } catch (NumberFormatException e) {
-            // The bitrate comes from the file's own metadata, so neither it nor the exception (whose
-            // message repeats it) goes to Sentry; an odd file is an expected case, not an error.
-            SentryManager.log("The video's bitrate is not a number, so it is left out of the analytics.");
+            return -1;
         }
     }
 

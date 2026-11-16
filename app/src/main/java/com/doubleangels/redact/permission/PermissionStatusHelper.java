@@ -16,8 +16,6 @@ import androidx.core.content.ContextCompat;
  */
 public final class PermissionStatusHelper {
 
-    static Integer testSdkIntOverride;
-
     public enum Status {
         GRANTED,
         PARTIAL,
@@ -34,7 +32,7 @@ public final class PermissionStatusHelper {
     @NonNull
     public static Status getMediaAccessStatus(@NonNull Context context) {
         Context app = context.getApplicationContext();
-        int sdk = testSdkIntOverride != null ? testSdkIntOverride : Build.VERSION.SDK_INT;
+        int sdk = Build.VERSION.SDK_INT;
         if (sdk >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             boolean images = ContextCompat.checkSelfPermission(app, Manifest.permission.READ_MEDIA_IMAGES)
                     == PackageManager.PERMISSION_GRANTED;
@@ -64,12 +62,10 @@ public final class PermissionStatusHelper {
      * {@link Manifest.permission#READ_MEDIA_IMAGES} or {@link Manifest.permission#READ_MEDIA_VIDEO}
      * (or legacy storage read on older API levels).
      */
-    // The API 33 guard goes through a local so tests can override the SDK level, which lint cannot follow.
     @SuppressLint("InlinedApi")
     public static boolean hasMediaReadPrerequisiteForLocation(@NonNull Context context) {
         Context app = context.getApplicationContext();
-        int sdk = testSdkIntOverride != null ? testSdkIntOverride : Build.VERSION.SDK_INT;
-        if (sdk >= Build.VERSION_CODES.TIRAMISU) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             boolean images = ContextCompat.checkSelfPermission(app, Manifest.permission.READ_MEDIA_IMAGES)
                     == PackageManager.PERMISSION_GRANTED;
             boolean videos = ContextCompat.checkSelfPermission(app, Manifest.permission.READ_MEDIA_VIDEO)
@@ -93,19 +89,12 @@ public final class PermissionStatusHelper {
     @NonNull
     public static Status getNotificationsStatus(@NonNull Context context) {
         Context app = context.getApplicationContext();
-        int sdk = testSdkIntOverride != null ? testSdkIntOverride : Build.VERSION.SDK_INT;
-        if (sdk >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(app, Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
-                return Status.DENIED;
-            }
-            return NotificationManagerCompat.from(app).areNotificationsEnabled()
-                    ? Status.GRANTED : Status.DENIED;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && ContextCompat.checkSelfPermission(app, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            return Status.DENIED;
         }
-        if (sdk >= Build.VERSION_CODES.N) {
-            return NotificationManagerCompat.from(app).areNotificationsEnabled()
-                    ? Status.GRANTED : Status.DENIED;
-        }
-        return Status.NOT_REQUIRED;
+        return NotificationManagerCompat.from(app).areNotificationsEnabled()
+                ? Status.GRANTED : Status.DENIED;
     }
 }

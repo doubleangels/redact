@@ -43,6 +43,24 @@ public class ExifBlockTest {
     }
 
     @Test
+    public void aTagIsKnownOnlyInTheIfdWhereExifInterfaceLooksForIt() {
+        byte[] none = new byte[0];
+        // GPSLatitude's number: known in the GPS IFD, never in the EXIF IFD.
+        assertTrue(new ExifBlock.Entry(ExifBlock.IFD_GPS, 0x0002, 5, 3, 24, none).knownToExifInterface());
+        assertFalse(new ExifBlock.Entry(ExifBlock.IFD_EXIF, 0x0002, 5, 3, 24, none).knownToExifInterface());
+        assertFalse(new ExifBlock.Entry(ExifBlock.IFD_GPS, 0x0112, 3, 1, 2, none).knownToExifInterface());
+        // InteroperabilityIndex only, in its own IFD.
+        assertTrue(new ExifBlock.Entry(ExifBlock.IFD_INTEROPERABILITY, 0x0001, 2, 4, 4, none).knownToExifInterface());
+        assertFalse(new ExifBlock.Entry(ExifBlock.IFD_INTEROPERABILITY, 0x0002, 7, 4, 4, none).knownToExifInterface());
+        // ColorSpace belongs to the EXIF IFD; the IFD pointers and DNG tags to the TIFF ones.
+        assertTrue(new ExifBlock.Entry(ExifBlock.IFD_EXIF, 0xA001, 3, 1, 2, none).knownToExifInterface());
+        assertFalse(new ExifBlock.Entry(ExifBlock.IFD_0, 0xA001, 3, 1, 2, none).knownToExifInterface());
+        assertTrue(new ExifBlock.Entry(ExifBlock.IFD_0, 0x8769, 4, 1, 4, none).knownToExifInterface());
+        assertTrue(new ExifBlock.Entry(ExifBlock.IFD_1, 0x0201, 4, 1, 4, none).knownToExifInterface());
+        assertFalse(new ExifBlock.Entry(ExifBlock.IFD_EXIF, 0x8769, 4, 1, 4, none).knownToExifInterface());
+    }
+
+    @Test
     public void filesWithoutABlock_orInAnotherFormat_giveNull() throws IOException {
         assertNull(ExifBlock.find(new ByteArrayInputStream(PLAIN_JPEG)));
         assertNull(ExifBlock.find(new ByteArrayInputStream(new byte[0])));

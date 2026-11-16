@@ -1,5 +1,6 @@
 package com.doubleangels.redact;
 
+import com.doubleangels.redact.ui.BatchScanSummary;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -143,21 +144,53 @@ public class ScanFragment extends TabFragment {
     /** Counts picks, so a slow earlier pick does not replace a newer one. */
     private int scanPickCount;
     @Nullable
-    private ITransaction activeScanTransaction;
+    /** Set on the main thread, cleared from the scan callback's thread. */
+    private volatile ITransaction activeScanTransaction;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mediaPickerLauncher = registerForActivityResult(
-                new ActivityResultContracts.OpenDocument(),
-                uri -> {
-                    if (uri != null) {
-                        SentryManager.log("Media was selected successfully in ScanFragment.");
-                        scanUri(uri);
-                    } else {
-                        SentryManager.log("Media selection was canceled or failed in ScanFragment.");
+                new ActivityResultContracts.OpenMultipleDocuments(),
+                uris -> {
+                    if (uris == null || uris.isEmpty()) {
+                        return;
                     }
+                    SentryManager.log("Media was selected successfully in ScanFragment.");
+                    onMediaReceived(uris);
                 });
+    }
+
+    @Override
+    boolean acceptsMedia() {
+        return true;
+    }
+
+    /** One file is scanned; several get a summary of what they carry. */
+    @Override
+    void onMediaReceived(@NonNull List<Uri> uris) {
+        if (uris.size() == 1) {
+            scanUri(uris.get(0));
+        } else if (!uris.isEmpty()) {
+            scanSeveral(MediaPickerContracts.trimToMax(uris, MediaPickerContracts.MAX_PICK_ITEMS));
+        }
+    }
+
+    /** Several files picked at once: a summary of what they carry rather than one file's list. */
+    private void scanSeveral(@NonNull List<Uri> uris) {
+        if (mediaSelector == null) {
+            return;
+        }
+        mediaSelector.processMediaUrisAsync(uris, items -> {
+            if (!isAdded() || items.isEmpty()) {
+                return;
+            }
+            if (items.size() == 1) {
+                scanUri(items.get(0).uri());
+                return;
+            }
+            BatchScanSummary.show(this, items, this::openInCleanTab);
+        });
     }
 
     private void scanUri(@NonNull Uri uri) {
@@ -965,6 +998,9 @@ public class ScanFragment extends TabFragment {
         if (lastMetadataPlainText != null && !lastMetadataPlainText.isEmpty()) {
             addScanActionCard(R.drawable.ic_content_copy_24, getString(R.string.scan_copy_all_metadata),
                     v -> copyPlainTextToClipboard(lastMetadataPlainText));
+            String report = lastMetadataPlainText;
+            addScanActionCard(R.drawable.ic_share, getString(R.string.scan_share_report),
+                    v -> shareReport(report));
             added = true;
         }
 
@@ -1021,6 +1057,38 @@ public class ScanFragment extends TabFragment {
         return make + " " + model;
     }
 
+    /**
+     * Hands the whole report to an app the person picks, as text: for a support question, or to
+     * show someone what a file gives away. The first time, it says what the report can hold.
+     */
+    private void shareReport(@NonNull String report) {
+        if (AppPreferences.hasConsentedToShareReport(requireContext())) {
+            sendReport(report);
+            return;
+        }
+        FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.scan_share_report_consent_title)
+                .setMessage(R.string.scan_share_report_consent_message)
+                .setPositiveButton(R.string.scan_maps_consent_continue, (dialog, which) -> {
+                    AppPreferences.setConsentedToShareReport(requireContext(), true);
+                    sendReport(report);
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show());
+    }
+
+    private void sendReport(@NonNull String report) {
+        Intent send = new Intent(Intent.ACTION_SEND)
+                .setType("text/plain")
+                .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.scan_share_report_subject))
+                .putExtra(Intent.EXTRA_TEXT, report);
+        try {
+            startActivity(Intent.createChooser(send, getString(R.string.scan_share_report)));
+        } catch (ActivityNotFoundException e) {
+            Notice.show(requireContext(), R.string.scan_share_report_unavailable, false);
+        }
+    }
+
     private void copyPlainTextToClipboard(@NonNull String text) {
         if (SensitiveClipboard.copy(requireContext(), getString(R.string.scan_metadata), text)) {
             Haptics.confirm(getView());
@@ -1061,8 +1129,12 @@ public class ScanFragment extends TabFragment {
     }
 
     private void openInCleanTab(@NonNull MediaItem item) {
+        openInCleanTab(List.of(item));
+    }
+
+    private void openInCleanTab(@NonNull List<MediaItem> items) {
         MainViewModel viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-        viewModel.setSelectedItems(List.of(item));
+        viewModel.setSelectedItems(new ArrayList<>(items));
         if (requireActivity() instanceof MainActivity mainActivity) {
             mainActivity.selectTab(R.id.navigation_clean);
         }

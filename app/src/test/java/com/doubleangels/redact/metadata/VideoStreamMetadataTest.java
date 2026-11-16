@@ -86,7 +86,7 @@ public class VideoStreamMetadataTest {
     public void typesAndSizesAbove255_areReadAcrossTheirExtensionBytes() {
         ByteArrayOutputStream body = new ByteArrayOutputStream();
         body.write(0x06);
-        body.write(0xFF); // type 255 + 6, not user data
+        body.write(0xFF); // type 255 + 6: not on the allowlist, so it counts too
         body.write(0x06);
         body.write(0xFF); // size 255 + 1
         body.write(0x01);
@@ -103,8 +103,8 @@ public class VideoStreamMetadataTest {
         body.write(0x80);
         VideoStreamMetadata.Report r = VideoStreamMetadata.scanBuffer(stream(body.toByteArray()), false);
 
-        assertEquals(1, r.userDataMessages);
-        assertEquals(256, r.userDataBytes);
+        assertEquals(2, r.userDataMessages);
+        assertEquals(512, r.userDataBytes);
         assertEquals(240, r.text.length());
     }
 
@@ -115,11 +115,31 @@ public class VideoStreamMetadataTest {
                 {0x06, 0x05}, // no size
                 {0x06, 0x05, (byte) 0xFF}, // size never ends
                 {0x06, 0x05, 0x20, 1, 2}, // body shorter than its size
-                {0x06, 0x05, 0x04, 1, 2, 3, 4, (byte) 0x80}, // too short to be user data
         };
         for (byte[] sei : truncated) {
             assertEquals(0, VideoStreamMetadata.scanBuffer(stream(sei), false).userDataMessages);
         }
+    }
+
+    @Test
+    public void userDataTooShortForItsUuid_stillCounts() {
+        // Malformed, but four bytes are still four bytes a quick copy would carry.
+        byte[] sei = {0x06, 0x05, 0x04, 1, 2, 3, 4, (byte) 0x80};
+        assertEquals(1, VideoStreamMetadata.scanBuffer(stream(sei), false).userDataMessages);
+    }
+
+    @Test
+    public void anHevcTimeCode_counts_andTimingAndHdrMessagesDoNot() {
+        // Time code (136) says when the frames were shot; buffering period (0), picture timing
+        // (1) and mastering display (137) only time, decode or describe the picture.
+        assertEquals(1, VideoStreamMetadata.scanBuffer(stream(new byte[] {0x06, (byte) 136, 2, 9, 9, (byte) 0x80}), false).userDataMessages);
+        for (int type : new int[] {0, 1, 137}) {
+            byte[] sei = {0x06, (byte) type, 2, 9, 9, (byte) 0x80};
+            assertEquals("type " + type, 0, VideoStreamMetadata.scanBuffer(stream(sei), false).userDataMessages);
+        }
+        // Filler counts only when it isn't filler.
+        assertEquals(0, VideoStreamMetadata.scanBuffer(stream(new byte[] {0x06, 3, 2, (byte) 0xFF, (byte) 0xFF, (byte) 0x80}), false).userDataMessages);
+        assertEquals(1, VideoStreamMetadata.scanBuffer(stream(new byte[] {0x06, 3, 2, 'h', 'i', (byte) 0x80}), false).userDataMessages);
     }
 
     @Test

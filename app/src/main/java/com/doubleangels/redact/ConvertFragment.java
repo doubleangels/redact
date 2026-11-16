@@ -108,20 +108,31 @@ public class ConvertFragment extends TabFragment {
                 new ActivityResultContracts.OpenMultipleDocuments(),
                 uris -> {
                     if (uris == null || uris.isEmpty()) {
-                        SentryManager.log("Media selection was cancelled or failed in ConvertFragment.");
                         return;
                     }
-                    if (uris.size() > MediaPickerContracts.MAX_PICK_ITEMS) {
-                        Notice.show(requireContext(),
-                                getString(R.string.media_picker_selection_capped, MediaPickerContracts.MAX_PICK_ITEMS),
-                                true);
-                        uris = MediaPickerContracts.trimToMax(uris, MediaPickerContracts.MAX_PICK_ITEMS);
-                    }
                     SentryManager.log("Media was selected successfully in ConvertFragment.");
-                    if (mediaSelector != null) {
-                        mediaSelector.processMediaUrisAsync(uris, viewModel::setConvertSelectedItems);
-                    }
+                    onMediaReceived(uris);
                 });
+    }
+
+    @Override
+    boolean acceptsMedia() {
+        return true;
+    }
+
+    /** Files picked, dropped or pasted become the selection, as many as a batch takes. */
+    @Override
+    void onMediaReceived(@NonNull List<Uri> received) {
+        List<Uri> uris = received;
+        if (uris.size() > MediaPickerContracts.MAX_PICK_ITEMS) {
+            Notice.show(requireContext(),
+                    getString(R.string.media_picker_selection_capped, MediaPickerContracts.MAX_PICK_ITEMS),
+                    true);
+            uris = MediaPickerContracts.trimToMax(uris, MediaPickerContracts.MAX_PICK_ITEMS);
+        }
+        if (mediaSelector != null && viewModel != null) {
+            mediaSelector.processMediaUrisAsync(uris, viewModel::setConvertSelectedItems);
+        }
     }
 
     @Nullable

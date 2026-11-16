@@ -159,6 +159,19 @@ public class CensorFragment extends TabFragment {
                 });
     }
 
+    @Override
+    boolean acceptsMedia() {
+        return true;
+    }
+
+    /** Censor edits one photo: the first one dropped or pasted opens, as a pick would. */
+    @Override
+    void onMediaReceived(@NonNull List<Uri> uris) {
+        if (!uris.isEmpty() && viewModel != null) {
+            viewModel.requestOpen(uris.get(0));
+        }
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,

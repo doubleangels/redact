@@ -30,6 +30,9 @@ public final class AppPreferences {
     private static final String KEY_PRESERVE_CAMERA_SETTINGS = "preserve_camera_settings";
     private static final String KEY_PRESERVE_LOCATION = "preserve_location";
     private static final String KEY_PRESERVE_DATE_TAKEN = "preserve_date_taken";
+    private static final String KEY_APPROXIMATE_LOCATION = "approximate_location";
+    private static final String KEY_DATE_ONLY = "date_only";
+    private static final String KEY_REMOVE_AUDIO = "remove_audio";
     private static final String KEY_PRESERVE_MOTION_PHOTO = "preserve_motion_photo";
     private static final String KEY_STRICT_CLEAN = "strict_clean";
     private static final String KEY_WARN_ALREADY_CLEAN = "warn_already_clean";
@@ -41,6 +44,7 @@ public final class AppPreferences {
     private static final String KEY_INITIAL_PERMISSIONS_PROMPTED = "initial_permissions_prompted";
     private static final String KEY_ONBOARDING_SEEN = "onboarding_seen";
     private static final String KEY_MAPS_LOCATION_CONSENT_GIVEN = "maps_location_consent_given";
+    private static final String KEY_SHARE_REPORT_CONSENT_GIVEN = "share_report_consent_given";
     private static final String KEY_OUTPUT_TREE_IMAGES = "output_tree_images";
     private static final String KEY_OUTPUT_TREE_VIDEOS = "output_tree_videos";
     private static final String KEY_CENSOR_TOOL = "censor_tool";
@@ -242,6 +246,39 @@ public final class AppPreferences {
         prefs(context).edit().putBoolean(KEY_PRESERVE_LOCATION, enabled).apply();
     }
 
+    /**
+     * Whether Keep Location keeps only an approximate location, rounded to a tenth of a degree
+     * (about 10 km), rather than the exact one. On by default: the town, not the street.
+     */
+    public static boolean isApproximateLocation(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_APPROXIMATE_LOCATION, true);
+    }
+
+    public static void setApproximateLocation(@NonNull Context context, boolean approximate) {
+        prefs(context).edit().putBoolean(KEY_APPROXIMATE_LOCATION, approximate).apply();
+    }
+
+    /** Whether Keep Date Taken keeps only the day, not the time of day or time zone. */
+    public static boolean isDateOnly(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_DATE_ONLY, false);
+    }
+
+    public static void setDateOnly(@NonNull Context context, boolean dateOnly) {
+        prefs(context).edit().putBoolean(KEY_DATE_ONLY, dateOnly).apply();
+    }
+
+    /**
+     * Whether videos lose their sound when they are cleaned, shared or converted: voices and
+     * background noise can say who was there and where.
+     */
+    public static boolean isRemoveAudio(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_REMOVE_AUDIO, false);
+    }
+
+    public static void setRemoveAudio(@NonNull Context context, boolean remove) {
+        prefs(context).edit().putBoolean(KEY_REMOVE_AUDIO, remove).apply();
+    }
+
     public static boolean isStrictClean(@NonNull Context context) {
         return prefs(context).getBoolean(KEY_STRICT_CLEAN, true);
     }
@@ -393,6 +430,18 @@ public final class AppPreferences {
      * in turn send them off-device (tile/geocoding requests), unlike every other Scan action,
      * which stays entirely on-device. False until the user explicitly consents.
      */
+    /**
+     * Whether the person has agreed, once, that Share as Text hands a Scan report (which can hold
+     * a location, dates and names) to an app they pick.
+     */
+    public static boolean hasConsentedToShareReport(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_SHARE_REPORT_CONSENT_GIVEN, false);
+    }
+
+    public static void setConsentedToShareReport(@NonNull Context context, boolean consented) {
+        prefs(context).edit().putBoolean(KEY_SHARE_REPORT_CONSENT_GIVEN, consented).apply();
+    }
+
     public static boolean hasConsentedToOpenLocationInMaps(@NonNull Context context) {
         return prefs(context).getBoolean(KEY_MAPS_LOCATION_CONSENT_GIVEN, false);
     }

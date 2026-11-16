@@ -10,6 +10,7 @@ import android.content.Context;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.robolectric.annotation.Config;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
@@ -28,7 +29,6 @@ public class PermissionStatusHelperTest {
 
     @After
     public void tearDown() {
-        PermissionStatusHelper.testSdkIntOverride = null;
     }
 
     private void grant(String... permissions) {
@@ -40,31 +40,31 @@ public class PermissionStatusHelperTest {
     }
 
     @Test
+    @Config(sdk = 34)
     public void mediaAccessStatus_sdk34_bothGranted() {
-        PermissionStatusHelper.testSdkIntOverride = 34;
         deny(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO);
         grant(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO);
         assertEquals(PermissionStatusHelper.Status.GRANTED, PermissionStatusHelper.getMediaAccessStatus(app));
     }
 
     @Test
+    @Config(sdk = 34)
     public void mediaAccessStatus_sdk34_partialWhenUserSelected() {
-        PermissionStatusHelper.testSdkIntOverride = 34;
         deny(Manifest.permission.READ_MEDIA_VIDEO, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED);
         grant(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED);
         assertEquals(PermissionStatusHelper.Status.PARTIAL, PermissionStatusHelper.getMediaAccessStatus(app));
     }
 
     @Test
+    @Config(sdk = 34)
     public void mediaAccessStatus_sdk34_deniedWithoutUserSelection() {
-        PermissionStatusHelper.testSdkIntOverride = 34;
         grant(Manifest.permission.READ_MEDIA_IMAGES);
         assertEquals(PermissionStatusHelper.Status.DENIED, PermissionStatusHelper.getMediaAccessStatus(app));
     }
 
     @Test
+    @Config(sdk = 33)
     public void mediaAccessStatus_sdk33_requiresBoth() {
-        PermissionStatusHelper.testSdkIntOverride = 33;
         grant(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO);
         assertEquals(PermissionStatusHelper.Status.GRANTED, PermissionStatusHelper.getMediaAccessStatus(app));
 
@@ -73,8 +73,8 @@ public class PermissionStatusHelperTest {
     }
 
     @Test
+    @Config(sdk = 32)
     public void mediaAccessStatus_legacySdk_usesExternalStorage() {
-        PermissionStatusHelper.testSdkIntOverride = 32;
         grant(Manifest.permission.READ_EXTERNAL_STORAGE);
         assertEquals(PermissionStatusHelper.Status.GRANTED, PermissionStatusHelper.getMediaAccessStatus(app));
 
@@ -83,8 +83,8 @@ public class PermissionStatusHelperTest {
     }
 
     @Test
+    @Config(sdk = 34)
     public void locationRequiresMediaReadPrerequisite() {
-        PermissionStatusHelper.testSdkIntOverride = 34;
         assertEquals(PermissionStatusHelper.Status.BLOCKED, PermissionStatusHelper.getLocationStatus(app));
 
         grant(Manifest.permission.READ_MEDIA_IMAGES);
@@ -96,8 +96,8 @@ public class PermissionStatusHelperTest {
     }
 
     @Test
+    @Config(sdk = 34)
     public void hasMediaReadPrerequisite_trueWhenEitherMediaPermissionGranted() {
-        PermissionStatusHelper.testSdkIntOverride = 34;
         assertEquals(false, PermissionStatusHelper.hasMediaReadPrerequisiteForLocation(app));
 
         grant(Manifest.permission.READ_MEDIA_IMAGES);
@@ -109,8 +109,8 @@ public class PermissionStatusHelperTest {
     }
 
     @Test
+    @Config(sdk = 34)
     public void notificationsStatus_grantedWhenEnabledAndPermitted() {
-        PermissionStatusHelper.testSdkIntOverride = 34;
         ShadowNotificationManager shadowNnm = Shadows.shadowOf(
                 (NotificationManager) app.getSystemService(Context.NOTIFICATION_SERVICE));
         shadowNnm.setNotificationsEnabled(true);
@@ -120,8 +120,8 @@ public class PermissionStatusHelperTest {
     }
 
     @Test
+    @Config(sdk = 34)
     public void notificationsStatus_deniedWhenNotificationsDisabled() {
-        PermissionStatusHelper.testSdkIntOverride = 34;
         ShadowNotificationManager shadowNnm = Shadows.shadowOf(
                 (NotificationManager) app.getSystemService(Context.NOTIFICATION_SERVICE));
         shadowNnm.setNotificationsEnabled(false);
@@ -130,9 +130,4 @@ public class PermissionStatusHelperTest {
         assertEquals(PermissionStatusHelper.Status.DENIED, PermissionStatusHelper.getNotificationsStatus(app));
     }
 
-    @Test
-    public void notificationsStatus_notRequiredBelowN() {
-        PermissionStatusHelper.testSdkIntOverride = 23;
-        assertEquals(PermissionStatusHelper.Status.NOT_REQUIRED, PermissionStatusHelper.getNotificationsStatus(app));
-    }
 }

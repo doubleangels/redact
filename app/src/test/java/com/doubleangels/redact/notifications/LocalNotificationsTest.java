@@ -18,6 +18,7 @@ import com.doubleangels.redact.R;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.robolectric.annotation.Config;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
@@ -47,7 +48,6 @@ public class LocalNotificationsTest {
 
     @After
     public void tearDown() {
-        LocalNotifications.testSdkIntOverride = null;
     }
 
     private String onlyNotificationText() {
@@ -63,13 +63,6 @@ public class LocalNotificationsTest {
         assertNotNull(nm.getNotificationChannel(LocalNotifications.CHANNEL_ID_TASKS));
     }
 
-    @Test
-    public void ensureChannels_skipsBeforeOreo() {
-        nm.deleteNotificationChannel(LocalNotifications.CHANNEL_ID_TASKS);
-        LocalNotifications.testSdkIntOverride = 25;
-        LocalNotifications.ensureChannels(app);
-        assertNull(nm.getNotificationChannel(LocalNotifications.CHANNEL_ID_TASKS));
-    }
 
     @Test
     public void canPostNotifications_requiresRuntimePermission() {

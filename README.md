@@ -84,14 +84,15 @@ Most apps and websites do not show you this, but anyone who receives the origina
 | | |
 |---|---|
 | **Clean** | Removes the location, device details, dates and other hidden information from photos and videos, including extra preview images and the short video inside a Motion Photo (or, with **Keep Motion Photos**, just that video's own hidden information). **Strict Clean** gives the most thorough clean, and **Faster Video Cleaning** speeds up videos that allow it. When a clean finishes, Redact tells you what it removed, and a **Share** button sends the clean copies on. |
-| **Scan** | Shows a file's metadata in an organized, readable list *before* you decide what to do. Rows that reveal where a file was taken carry a **Location** badge. Search the list, copy values, send the file to Clean or Convert, or open the location in your maps app. |
+| **Scan** | Shows a file's metadata in an organized, readable list *before* you decide what to do. Rows that reveal where a file was taken carry a **Location** badge. Search the list, copy values, share the whole list as text, send the file to Clean or Convert, or open the location in your maps app. Pick several files to see at a glance how many have a location, a date, a phone's name or a person's name. |
 | **Censor** | Pixelate, black out or blur faces, number plates, addresses and anything else in a photo with a rectangle or brush, and crop away what shouldn't be in it at all, with undo, redo and pinch-zoom. The censored copy is saved without metadata, and the original stays as it is. |
 | **Statistics** | **Your Privacy Stats** at the top of Settings, and the **Statistics** screen it opens, show how many metadata fields and locations Redact has removed, which kinds of personal details your files carried, and your activity over the last 30 days. Counted only on your device and never sent anywhere. |
 | **Convert** | Converts images between JPEG, PNG, WebP and HEIC (on supported devices), and videos between H.264, H.265, VP9 and AV1. Converted files are checked for hidden information before they're saved, so they don't carry the original's location or device details. |
 | **Share into Redact** | Share a photo or video from any other app. Redact cleans it and reopens the share sheet with the clean copy, with an optional confirmation step and a progress dialog you can cancel. |
 | **Open with Redact** | Open a photo or video in Redact from your gallery or file manager, or share it to **Scan with Redact**, and it goes straight to Scan. |
 | **Shortcuts** | Long-press the app icon to jump straight to Clean, Scan, Convert or Censor, or add the **Clean**, **Scan** or **Censor** tiles to Quick Settings. |
-| **Batches** | Clean or convert up to 100 files at once (50 when you share them in from another app). If some files fail, Redact keeps going and reports what succeeded. |
+| **Batches** | Clean or convert up to 100 files at once (50 when you share them in from another app). If some files fail, Redact keeps going, reports what succeeded, lists the files it couldn't clean with the reason, and can try just those again. |
+| **Drag, drop and paste** | Drag photos and videos onto Clean, Scan, Convert or Censor from another app in split screen, on a tablet or on a Chromebook, or paste them with **Paste** or Ctrl+V. |
 | **Large files** | There is no hard size cap. Redact warns you first when storage or memory looks too low for the job. |
 | **Delete originals (optional)** | Turn on **Delete Originals After Cleaning** and Redact asks Android to move the originals to trash after a successful clean. Android shows its own confirmation, so nothing is removed without your say-so. |
 | **Open source, no ads** | No ads and no tracking. The source code is public, so anyone can check how Redact works. |
@@ -131,6 +132,8 @@ Your originals are never modified.
 
 Removes hidden information and saves a new copy to `Pictures/Redact` (images) or `Movies/Redact` (videos). You can choose up to 100 files at a time. The location is always removed unless you turn on **Keep Location** in Settings, which asks you to confirm and is ignored by Strict Clean. Settings can also keep the camera details, the date taken and the video in a Motion Photo; see [Settings](#settings).
 
+Above the files, chips for **Strict Clean**, **Keep Location**, **Keep Date Taken**, **Keep Camera Settings** and **Remove Audio** change those settings without a trip to Settings. They are the same settings, so a change stays for the next batch, and Keep Location asks first as it does in Settings.
+
 When the clean finishes, Redact sums up what it removed, such as *"Removed 24 metadata fields, including location"* for one file, or the total and how many files had a location for a batch. Anything you chose to keep isn't counted. If notifications are on, the same summary appears there too. Two buttons then appear above **Clean Metadata**:
 
 - **Share** sends the clean copies to another app.
@@ -139,16 +142,19 @@ When the clean finishes, Redact sums up what it removed, such as *"Removed 24 me
 
 Long-press any of these buttons to see its name. Convert also shows **Share**, **Scan Result** and **Open** when it finishes, and Censor does after a save.
 
+If some files could not be cleaned, a **Failed Files** button lists each one with the reason: a format this phone can't open, not enough memory, or a file that couldn't be cleaned safely, so nothing was saved. **Retry Failed** cleans just those again (a format the phone can't open is left out, as it would fail the same way).
+
 **Share Without Saving** sends the selected files on without keeping copies in your gallery. It shows above **Clean Metadata** while files are selected, cleans them the way a share into Redact does (the location is always removed and the Keep options do not apply), opens the share sheet, and deletes the clean copies afterwards. Up to 50 files at a time.
 
 ### Scan
 
-Pick **one** file to see everything embedded in it, grouped into sections such as image properties and technical details.
+Pick **one** file to see everything embedded in it, grouped into sections such as image properties and technical details. Pick **several** and Scan reads them all and sums up how many have a location, a date, the name of a phone or camera, or a person's name, how many have nothing to remove and which ones have a location, with a button to send them all to Clean.
 
 - **Location** badge: marks rows that reveal where the file was taken, such as GPS coordinates.
 - **Hidden & embedded data:** everything stored outside the usual tags, such as captions and credits, comments, extra preview images, the video inside a Motion Photo, phone makers' own records, information hidden inside a video's picture, and the extra items HEIC, AVIF and GIF files can carry (such as depth maps that record the shape of a scene). Clean removes all of it, except a Motion Photo's video when **Keep Motion Photos** is on, which it keeps with that video's own hidden information removed. Parts the picture needs, such as its color profile or the HDR layer of an Ultra HDR photo, are listed too, so you know they stay.
 - **Search:** type in the box above the list to filter it. Matches field names and values, ignoring case, and treats spaces and underscores alike, so `gps altitude` finds `GPS_ALTITUDE`. Typing a section's name, such as `camera` or `location`, shows that whole section. The search clears when you scan another file.
 - **Copy:** copy a single value or the whole list. Copied values are flagged as sensitive on the clipboard on Android 13 and newer.
+- **Share as Text:** hands the whole list to an app you pick, for a support question or to show someone what a file gives away. The first time, Redact says that the list can include where and when the file was made and who made it.
 - **Open in Clean / Convert:** send the file on without picking it again.
 - **Open location in maps:** hands the coordinates to your default maps app. Because that shares them with a separate app, Redact explains this and asks for permission the first time.
 - To see GPS fields at all, grant the optional photo-location permission when asked.
@@ -158,6 +164,7 @@ Pick **one** file to see everything embedded in it, grouped into sections such a
 - **Open with Redact:** when you open a photo or video from your gallery or file manager and choose Redact, it opens in Scan so you can check it before doing anything else.
 - **Scan with Redact:** the share sheet also lists **Scan with Redact** next to Redact. It opens the shared photo or video in Scan instead of cleaning it.
 - **Convert with Redact / Censor with Redact:** the share sheet also lists these. Shared files open in Convert, or a shared photo opens in Censor.
+- **Drag and drop, and paste:** drag photos or videos from another app onto Clean, Scan, Convert or Censor, or copy them in another app and tap **Paste** (shown while the clipboard holds a photo or video) or press Ctrl+V. They get the same checks as a share, so only another app's files are taken.
 - **App shortcuts:** long-press the Redact icon on your home screen to go straight to Clean, Scan, Convert or Censor.
 - **Quick Settings tiles:** add the **Clean**, **Scan** or **Censor** tile to open that tab from anywhere.
 
@@ -269,8 +276,11 @@ The Settings tab puts the settings you use every day first: cleaning, sharing, C
 | **Strict Clean** | Removes all hidden information except what a photo needs to display correctly (which way is up, and its color space), turns off the keep options, and always fully re-encodes videos for the most thorough clean. |
 | **Keep Camera Settings** | Keeps camera make and model, aperture, shutter speed, ISO, focal length, exposure compensation, exposure program and mode, metering mode, flash and white balance on the Clean tab. Ignored with Strict Clean and for shared-in files. |
 | **Keep Location** | Keeps GPS coordinates in photos and videos on the Clean tab (confirmation required, off by default). Ignored with Strict Clean and for shared-in files, which always lose location. |
+| **Approximate Location** | Shown under Keep Location while it is on, and on by default: the kept location is rounded to a tenth of a degree (about 10 km), enough for the town but not the street, and the altitude and GPS time are left out. Turn it off to keep the exact location. Redact checks every clean copy and refuses to save one whose location is finer than this. |
 | **Keep Date Taken** | Keeps when each photo or video was taken, with its time zone, on the Clean tab, so cleaned files stay in their place in your gallery instead of showing up as taken today. Off by default. Ignored with Strict Clean and for shared-in files. |
+| **Date Only** | Shown under Keep Date Taken while it is on. Keeps the day but not the time of day or time zone: a photo's date is set to midnight, and a video's to midnight of its day in your phone's time zone. Off by default. |
 | **Keep Motion Photos** | Keeps the short video of a JPEG or HEIC Motion Photo on the Clean tab, with its location, dates and other tags removed and its frames unchanged. The clip includes the sound recorded with it. Off by default, so Motion Photos become stills. Ignored with Strict Clean and for shared-in files. |
+| **Remove Audio** | Saves cleaned, shared and converted videos without sound, since voices and background noise can reveal who was there and where. Videos are always re-encoded for this, and Redact checks that no sound track is left before saving. Off by default. |
 | **Faster Video Cleaning** | When a video is already in a compatible format, removes its hidden information with a quick copy instead of re-encoding it. Faster and easier on the battery. Every frame is checked first, and a video with information hidden in its picture is fully re-encoded instead. A WebM whose location or date is kept is saved as MP4. Turned off automatically with Strict Clean and for files shared into Redact. |
 
 **Before & After Cleaning**

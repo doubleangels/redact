@@ -36,8 +36,6 @@ public final class LocalNotifications {
 
     public static final String CHANNEL_ID_TASKS = "tasks";
 
-    static Integer testSdkIntOverride;
-
     private static final int NOTIFICATION_ID_CONVERT = 7101;
     private static final int NOTIFICATION_ID_CLEAN = 7102;
 
@@ -51,14 +49,10 @@ public final class LocalNotifications {
     }
 
     /**
-     * Creates notification channels on API 26+. Call from
+     * Creates the notification channel (every supported API level has channels). Call from
      * {@link android.app.Application#onCreate()}.
      */
     public static void ensureChannels(@NonNull Context context) {
-        int sdk = testSdkIntOverride != null ? testSdkIntOverride : Build.VERSION.SDK_INT;
-        if (sdk < Build.VERSION_CODES.O) {
-            return;
-        }
         NotificationChannel channel = new NotificationChannel(
                 CHANNEL_ID_TASKS,
                 context.getString(R.string.notification_channel_tasks_name),

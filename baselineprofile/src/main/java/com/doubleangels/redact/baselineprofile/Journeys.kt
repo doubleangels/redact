@@ -29,7 +29,12 @@ private val PERMISSION_CONTROLLER: Pattern = Pattern.compile("com\\.(google\\.)?
 private val ALLOW_LABEL: Pattern = Pattern.compile("(?i)allow( all)?|while using the app|only this time")
 
 /** The introduction's crash-report page, whose main button would turn crash reports on. */
-private const val CRASH_REPORTS_STEP = 8
+/**
+ * The crash-report page's main button (`onboarding_crash_allow`; the managed emulators run in
+ * English). That page is found by what its button says, not by its number, so a page added to or
+ * taken out of the introduction can never make the run press it.
+ */
+private const val CRASH_REPORTS_ALLOW_LABEL = "Send Crash Reports"
 
 /**
  * Opens the app and goes through the introduction, so what comes next starts as a returning user.
@@ -65,17 +70,22 @@ internal fun finishIntroduction(device: UiDevice) {
     repeat(12) {
         device.waitForIdle()
         allowPermissionPrompts(device)
-        val progress = device.findObject(By.res(PACKAGE, "onboardingProgress")) ?: return
-        // "Step 8 of 9": the step number is the first number in the description.
-        // The page can redraw between finding the progress bar and reading it; look again next time.
-        val description = try {
-            progress.contentDescription ?: ""
+        device.findObject(By.res(PACKAGE, "onboardingProgress")) ?: return
+        val primary = device.findObject(By.res(PACKAGE, "onboardingPrimary")) ?: return@repeat
+        // The page can redraw between finding the button and reading it; look again next time
+        // rather than press a button whose label is not known.
+        val label = try {
+            primary.text
         } catch (e: StaleObjectException) {
             return@repeat
+        } ?: return@repeat
+        if (label.equals(CRASH_REPORTS_ALLOW_LABEL, ignoreCase = true)) {
+            clickWhenShown(device, By.res(PACKAGE, "onboardingSecondary"), 2_000)
+        } else {
+            // Only while it still says what was read: a page change in between could put the
+            // crash-report page under it.
+            clickWhenShown(device, By.res(PACKAGE, "onboardingPrimary").text(label), 2_000)
         }
-        val step = Regex("\\d+").find(description)?.value?.toInt()
-        val button = if (step == CRASH_REPORTS_STEP) "onboardingSecondary" else "onboardingPrimary"
-        clickWhenShown(device, By.res(PACKAGE, button), 2_000)
     }
 }
 

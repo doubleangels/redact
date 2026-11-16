@@ -272,7 +272,7 @@ public class OnboardingActivity extends AppCompatActivity {
         refresh();
         if (isAllowed(status(step))) {
             pager.postDelayed(() -> {
-                if (!isFinishing() && current() == step) {
+                if (!isFinishing() && !isDestroyed() && current() == step) {
                     goNext();
                 }
             }, ADVANCE_AFTER_GRANT_MS);

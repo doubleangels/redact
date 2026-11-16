@@ -1152,6 +1152,21 @@ public final class VideoContainerMetadata {
         private static final long ID_TITLE = 0x7BA9L;
         private static final long ID_DATE_UTC = 0x4461L;
         private static final long ID_CLUSTER = 0x1F43B675L;
+        private static final long ID_TRACKS = 0x1654AE6BL;
+        private static final long ID_TRACK_ENTRY = 0xAEL;
+        private static final long ID_TRACK_NAME = 0x536EL;
+        private static final long ID_CHAPTERS = 0x1043A770L;
+        /**
+         * Info children that hold text about where the file came from rather than how to play it:
+         * the segment's own file name, its neighbours' in a split recording, and the programs
+         * that wrote it. Reported by name and voided by a scrub.
+         */
+        private static final java.util.Map<Long, String> INFO_TEXT = java.util.Map.of(
+                0x7384L, "segment_filename",
+                0x3C83ABL, "prev_filename",
+                0x3E83BBL, "next_filename",
+                0x4D80L, "muxing_app",
+                0x5741L, "writing_app");
         /**
          * Tags muxers add to describe the streams themselves. They are not counted, though the
          * Tags element holding them is still voided with the rest.
@@ -1248,6 +1263,19 @@ public final class VideoContainerMetadata {
                         field("attachments", false, null, elementEnd - pos);
                     }
                     voidOut(pos, elementEnd);
+                } else if (e.id == ID_CHAPTERS) {
+                    // Chapter titles are free text.
+                    field("chapters", false, scrub ? null : ReadableText.strings(
+                            read(e.dataStart, (int) Math.min(elementEnd - e.dataStart, TEXT_PEEK))),
+                            elementEnd - pos);
+                    voidOut(pos, elementEnd);
+                } else if (e.id == ID_TRACKS) {
+                    tracks(e.dataStart, elementEnd);
+                } else if (!SEGMENT_CHILDREN.contains(e.id)) {
+                    // An allowlist, as on the MP4 side: what the format doesn't define is reported
+                    // and voided, not trusted.
+                    field(String.format(Locale.ROOT, "element_%X", e.id), false, null, elementEnd - pos);
+                    voidOut(pos, elementEnd);
                 }
                 pos = elementEnd;
             }
@@ -1288,6 +1316,61 @@ public final class VideoContainerMetadata {
                         }
                     }
                     voidOut(pos, elementEnd);
+                } else if (INFO_TEXT.containsKey(e.id) && !isMuxerName(e, elementEnd)) {
+                    field(INFO_TEXT.get(e.id), false, text(e.dataStart, elementEnd), e.dataSize);
+                    voidOut(pos, elementEnd);
+                }
+                pos = elementEnd;
+            }
+        }
+
+        /**
+         * Whether a MuxingApp or WritingApp names only a muxing library, as the MP4 side lets a
+         * muxer's own handler names through ({@link #MUXER_HANDLER_NAMES}): FFmpeg's libavformat,
+         * libwebm, and Android's own MediaMuxer. A camera's or an editing program's name is
+         * reported like any other text.
+         */
+        private boolean isMuxerName(@NonNull Element e, long end) throws IOException {
+            if ((e.id != 0x4D80L && e.id != 0x5741L) || e.dataSize > 64) {
+                return false;
+            }
+            String value = new String(read(e.dataStart, (int) (end - e.dataStart)), StandardCharsets.UTF_8).trim();
+            for (String muxer : MUXER_APP_PREFIXES) {
+                if (value.equals(muxer) || value.startsWith(muxer + "-") || value.startsWith(muxer + " ")
+                        || (muxer.equals("Lavf") && value.matches("Lavf[0-9.]+"))) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static final List<String> MUXER_APP_PREFIXES = List.of("Lavf", "libwebm", "android", "Android");
+
+        /** Each track's Name, which a muxer copies from whatever the recording called the track. */
+        private void tracks(long start, long end) throws IOException {
+            long pos = start;
+            while (pos < end) {
+                count();
+                Element e = element(pos, end);
+                if (e.dataSize < 0) {
+                    return;
+                }
+                long elementEnd = e.dataStart + e.dataSize;
+                if (e.id == ID_TRACK_ENTRY) {
+                    long q = e.dataStart;
+                    while (q < elementEnd) {
+                        count();
+                        Element child = element(q, elementEnd);
+                        if (child.dataSize < 0) {
+                            break;
+                        }
+                        long childEnd = child.dataStart + child.dataSize;
+                        if (child.id == ID_TRACK_NAME && child.dataSize > 0) {
+                            field("track_name", false, text(child.dataStart, childEnd), child.dataSize);
+                            voidOut(q, childEnd);
+                        }
+                        q = childEnd;
+                    }
                 }
                 pos = elementEnd;
             }

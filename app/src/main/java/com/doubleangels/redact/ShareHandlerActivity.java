@@ -835,7 +835,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
                         finishWithError(getString(R.string.share_error_generic));
                     }
                 });
-            } catch (Exception e) {
+            } catch (Exception | OutOfMemoryError e) {
+                // A crafted shared file must end in an error message, never a crash.
                 if (!transaction.isFinished()) {
                     transaction.setStatus(SpanStatus.INTERNAL_ERROR);
                     transaction.finish();
