@@ -20,6 +20,19 @@
     <!-- INTERNET is only used when Send Crash Reports (Sentry) is on, or when the user taps Check for Updates in Settings (GitHub). -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Lets Open find the user's photo and video viewers (Android hides other apps otherwise),
+         so a result opens straight in the default one, or in a list that leaves Redact out. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="image/*" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="video/*" />
+        </intent>
+    </queries>
+
     <application
         android:name=".RedactApplication"
         android:allowBackup="false"

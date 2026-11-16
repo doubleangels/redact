@@ -510,7 +510,9 @@ public class CensorFragmentTest {
         assertEquals(View.VISIBLE, open.getVisibility());
         open.performClick();
         idle();
-        android.content.Intent view = shadowOf(activity).getNextStartedActivity();
+        android.content.Intent started = shadowOf(activity).getNextStartedActivity();
+        android.content.Intent view = android.content.Intent.ACTION_CHOOSER.equals(started.getAction())
+                ? started.getParcelableExtra(android.content.Intent.EXTRA_INTENT) : started;
         assertEquals(android.content.Intent.ACTION_VIEW, view.getAction());
         assertEquals(vm.getLastSaved().uri, view.getData());
 

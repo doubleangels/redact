@@ -475,6 +475,7 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="button_scan_result">Scanner le Résultat</string>
     <string name="button_open_result">Ouvrir</string>
     <string name="open_result_no_app">Aucune appli de ce téléphone ne peut ouvrir ce fichier.</string>
+    <string name="open_result_chooser_title">Ouvrir Avec</string>
     <string name="button_share_without_saving">Partager Sans Enregistrer</string>
     <string name="settings_keep_original_names">Conserver les Noms de Fichiers</string>
     <string name="settings_keep_original_names_subtitle">Les fichiers nettoyés et convertis gardent le nom de l\'original au lieu d\'un nom aléatoire. Un nom comme IMG_20260117 peut révéler quand une photo a été prise.</string>
