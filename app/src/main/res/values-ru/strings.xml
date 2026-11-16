@@ -487,6 +487,9 @@
     <string name="censor_discard">Сбросить</string>
     <string name="censor_keep_editing">Продолжить</string>
     <string name="button_scan_result">Сканировать Результат</string>
+    <string name="button_open_result">Открыть</string>
+    <string name="open_result_no_app">На этом телефоне нет приложения, которое может открыть этот файл.</string>
+    <string name="button_share_without_saving">Поделиться Без Сохранения</string>
     <string name="settings_keep_original_names">Сохранять Исходные Имена</string>
     <string name="settings_keep_original_names_subtitle">Очищенные и преобразованные файлы получают имя оригинала вместо случайного. Имена вроде IMG_20260117 могут показать, когда был сделан снимок.</string>
     <string name="review_prompt_title">Помогите Другим Найти Redact</string>

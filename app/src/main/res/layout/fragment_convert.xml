@@ -400,4 +400,18 @@
         app:layout_constraintBottom_toBottomOf="@id/shareResultsButton"
         app:layout_constraintEnd_toStartOf="@id/shareResultsButton" />
 
+    <!-- Opens the one file a convert just saved in the photo or video viewer; an icon FAB beside Scan Result, shown after a convert that saved exactly one file -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/openResultButton"
+        style="@style/Widget.Material3.FloatingActionButton.Secondary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/spacing_medium"
+        android:contentDescription="@string/button_open_result"
+        android:tooltipText="@string/button_open_result"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_open_in_new"
+        app:layout_constraintBottom_toBottomOf="@id/shareResultsButton"
+        app:layout_constraintEnd_toStartOf="@id/scanResultButton" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

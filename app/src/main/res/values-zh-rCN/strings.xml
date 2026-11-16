@@ -445,6 +445,9 @@
     <string name="censor_discard">放弃</string>
     <string name="censor_keep_editing">继续编辑</string>
     <string name="button_scan_result">扫描结果</string>
+    <string name="button_open_result">打开</string>
+    <string name="open_result_no_app">这部手机上没有可以打开此文件的应用。</string>
+    <string name="button_share_without_saving">分享但不保存</string>
     <string name="settings_keep_original_names">保留原文件名</string>
     <string name="settings_keep_original_names_subtitle">清理和转换后的文件沿用原文件名，而不是随机名称。IMG_20260117 这样的名称可能会暴露照片的拍摄时间。</string>
     <string name="review_prompt_title">帮助更多人找到 Redact</string>

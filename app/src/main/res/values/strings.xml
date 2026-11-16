@@ -465,6 +465,9 @@
     <string name="censor_discard">Discard</string>
     <string name="censor_keep_editing">Keep Editing</string>
     <string name="button_scan_result">Scan Result</string>
+    <string name="button_open_result">Open</string>
+    <string name="open_result_no_app">No app on this phone can open this file.</string>
+    <string name="button_share_without_saving">Share Without Saving</string>
     <string name="settings_keep_original_names">Keep Original File Names</string>
     <string name="settings_keep_original_names_subtitle">Name cleaned and converted files after the originals instead of a random name. Names such as IMG_20260117 can reveal when a photo was taken.</string>
     <string name="review_prompt_title">Help Others Find Redact</string>
