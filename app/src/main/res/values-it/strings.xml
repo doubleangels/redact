@@ -619,7 +619,7 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="scan_batch_clean">Pulisci Questi File</string>
     <string name="button_paste_media">Incolla</string>
     <string name="scan_share_report">Condividi come Testo</string>
-    <string name="scan_share_report_subject">Rapporto metadati</string>
+    <string name="scan_share_report_subject">Rapporto Metadati</string>
     <string name="scan_share_report_consent_title">Condividere Questo Rapporto?</string>
     <string name="scan_share_report_consent_message">Il rapporto elenca tutto ciò che Scan ha trovato in questo file, che può includere dove e quando è stato creato e da chi. Viene inviato solo all\'app che scegli dopo.</string>
     <string name="scan_share_report_unavailable">Nessuna app su questo telefono può ricevere testo.</string>

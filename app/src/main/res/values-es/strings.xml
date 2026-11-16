@@ -619,7 +619,7 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="scan_batch_clean">Limpiar Estos Archivos</string>
     <string name="button_paste_media">Pegar</string>
     <string name="scan_share_report">Compartir como Texto</string>
-    <string name="scan_share_report_subject">Informe de metadatos</string>
+    <string name="scan_share_report_subject">Informe de Metadatos</string>
     <string name="scan_share_report_consent_title">¿Compartir Este Informe?</string>
     <string name="scan_share_report_consent_message">El informe enumera todo lo que Scan encontró en este archivo, lo que puede incluir dónde y cuándo se tomó y quién lo creó. Solo se envía a la app que elijas a continuación.</string>
     <string name="scan_share_report_unavailable">Ninguna app de este teléfono puede recibir texto.</string>

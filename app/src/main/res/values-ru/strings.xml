@@ -634,7 +634,7 @@
     <string name="scan_batch_clean">Очистить Эти Файлы</string>
     <string name="button_paste_media">Вставить</string>
     <string name="scan_share_report">Поделиться Текстом</string>
-    <string name="scan_share_report_subject">Отчёт о метаданных</string>
+    <string name="scan_share_report_subject">Отчёт о Метаданных</string>
     <string name="scan_share_report_consent_title">Поделиться Отчётом?</string>
     <string name="scan_share_report_consent_message">В отчёте перечислено всё, что Scan нашёл в этом файле, в том числе, возможно, где и когда он был снят и кто его создал. Отчёт получит только приложение, которое вы выберете дальше.</string>
     <string name="scan_share_report_unavailable">На этом телефоне нет приложения, которое может принять текст.</string>

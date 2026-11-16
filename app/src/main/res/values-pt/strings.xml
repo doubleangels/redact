@@ -619,7 +619,7 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="scan_batch_clean">Limpar Estes Arquivos</string>
     <string name="button_paste_media">Colar</string>
     <string name="scan_share_report">Compartilhar como Texto</string>
-    <string name="scan_share_report_subject">Relatório de metadados</string>
+    <string name="scan_share_report_subject">Relatório de Metadados</string>
     <string name="scan_share_report_consent_title">Compartilhar Este Relatório?</string>
     <string name="scan_share_report_consent_message">O relatório lista tudo o que o Scan encontrou neste arquivo, o que pode incluir onde e quando foi feito e quem o criou. Ele vai apenas para o app que você escolher a seguir.</string>
     <string name="scan_share_report_unavailable">Nenhum app deste telefone pode receber texto.</string>

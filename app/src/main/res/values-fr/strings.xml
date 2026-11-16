@@ -619,7 +619,7 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="scan_batch_clean">Nettoyer Ces Fichiers</string>
     <string name="button_paste_media">Coller</string>
     <string name="scan_share_report">Partager en Texte</string>
-    <string name="scan_share_report_subject">Rapport de métadonnées</string>
+    <string name="scan_share_report_subject">Rapport de Métadonnées</string>
     <string name="scan_share_report_consent_title">Partager Ce Rapport ?</string>
     <string name="scan_share_report_consent_message">Le rapport liste tout ce que Scan a trouvé dans ce fichier, ce qui peut inclure où et quand il a été pris et qui l\'a créé. Il est envoyé uniquement à l\'application que vous choisirez ensuite.</string>
     <string name="scan_share_report_unavailable">Aucune application de ce téléphone ne peut recevoir de texte.</string>
