@@ -135,8 +135,11 @@ When the clean finishes, Redact sums up what it removed, such as *"Removed 24 me
 
 - **Share** sends the clean copies to another app.
 - **Scan Result**, after cleaning a single file, opens the clean copy in Scan so you can see exactly what's left.
+- **Open**, after cleaning a single file, shows the clean copy in your photo or video viewer.
 
-Long-press either button to see its name. Convert also shows a **Share** button when it finishes.
+Long-press any of these buttons to see its name. Convert also shows **Share**, **Scan Result** and **Open** when it finishes, and Censor does after a save.
+
+**Share Without Saving** sends the selected files on without keeping copies in your gallery. It shows above **Clean Metadata** while files are selected, cleans them the way a share into Redact does (the location is always removed and the Keep options do not apply), opens the share sheet, and deletes the clean copies afterwards. Up to 50 files at a time.
 
 ### Scan
 

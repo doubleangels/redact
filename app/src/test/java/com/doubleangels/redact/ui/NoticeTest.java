@@ -84,6 +84,13 @@ public class NoticeTest {
         idle();
         View clean = activity.findViewById(R.id.stripButton);
         assertEquals(View.VISIBLE, clean.getVisibility());
+        // With files selected, Share Without Saving sits above Clean, so the message clears both.
+        View shareWithoutSaving = activity.findViewById(R.id.shareWithoutSavingButton);
+        assertEquals(View.VISIBLE, shareWithoutSaving.getVisibility());
+        assertEquals(shareWithoutSaving, Notice.anchorFor(root()));
+
+        shareWithoutSaving.setVisibility(View.GONE);
+        idle();
         assertEquals(clean, Notice.anchorFor(root()));
     }
 

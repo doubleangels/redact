@@ -446,6 +446,9 @@
     <string name="censor_discard">破棄</string>
     <string name="censor_keep_editing">編集を続ける</string>
     <string name="button_scan_result">結果をスキャン</string>
+    <string name="button_open_result">開く</string>
+    <string name="open_result_no_app">このファイルを開けるアプリがこのスマートフォンにありません。</string>
+    <string name="button_share_without_saving">保存せずに共有</string>
     <string name="settings_keep_original_names">元のファイル名を保持</string>
     <string name="settings_keep_original_names_subtitle">クリーン・変換したファイルに、ランダムな名前ではなく元のファイル名を付けます。IMG_20260117 のような名前から撮影日時がわかる場合があります。</string>
     <string name="review_prompt_title">Redact を広めるのにご協力ください</string>

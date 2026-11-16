@@ -17,6 +17,7 @@ import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -33,6 +34,7 @@ import com.doubleangels.redact.ui.FoldPosture;
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.ui.Notice;
+import com.doubleangels.redact.ui.OpenResult;
 import com.doubleangels.redact.ui.SummaryCard;
 import com.doubleangels.redact.ui.UIStateManager;
 import com.google.android.material.button.MaterialButton;
@@ -76,6 +78,8 @@ public class CleanFragment extends TabFragment {
     private View shareResultsButton;
     private View scanResultButton;
     private View censorResultButton;
+    private View openResultButton;
+    private View shareWithoutSavingButton;
     /** Originals in the trash request on screen, whose clean copies get their names back if it is accepted. */
     @Nullable
     private List<Uri> pendingTrashSources;
@@ -186,6 +190,19 @@ public class CleanFragment extends TabFragment {
             censorResultButton.setOnClickListener(v -> {
                 Haptics.tick(v);
                 openResultInCensor();
+            });
+            openResultButton = view.findViewById(R.id.openResultButton);
+            openResultButton.setOnClickListener(v -> {
+                Haptics.tick(v);
+                List<Uri> outputs = viewModel.getCleanOutputs();
+                if (outputs.size() == 1) {
+                    OpenResult.open(requireContext(), outputs.get(0));
+                }
+            });
+            shareWithoutSavingButton = view.findViewById(R.id.shareWithoutSavingButton);
+            shareWithoutSavingButton.setOnClickListener(v -> {
+                Haptics.tick(v);
+                shareWithoutSaving();
             });
             progressContainer = view.findViewById(R.id.progressContainer);
             progressText = view.findViewById(R.id.progressText);
@@ -475,6 +492,51 @@ public class CleanFragment extends TabFragment {
         }
     }
 
+    /**
+     * Share Without Saving shows while files are selected and neither being cleaned nor just
+     * cleaned: after a clean, Share sends the saved copies from the same place.
+     */
+    private void updateShareWithoutSaving() {
+        if (shareWithoutSavingButton == null) {
+            return;
+        }
+        List<MediaItem> items = viewModel.getSelectedItems().getValue();
+        MainViewModel.ProcessingState state = viewModel.getCleanProcessingState().getValue();
+        boolean shown = items != null && !items.isEmpty()
+                && state != MainViewModel.ProcessingState.PROCESSING
+                && state != MainViewModel.ProcessingState.COMPLETED;
+        shareWithoutSavingButton.setVisibility(shown ? View.VISIBLE : View.GONE);
+    }
+
+    /**
+     * Cleans the selected files as a share into Redact does (location always removed, the Keep
+     * options not applied) and opens the share sheet; the clean copies are deleted afterwards
+     * instead of being saved to the gallery.
+     */
+    @VisibleForTesting
+    void shareWithoutSaving() {
+        List<MediaItem> items = viewModel.getSelectedItems().getValue();
+        if (items == null || items.isEmpty()) {
+            return;
+        }
+        if (items.size() > MediaPickerContracts.MAX_SHARE_ITEMS) {
+            Notice.show(requireContext(), getString(R.string.share_error_too_many_items,
+                    MediaPickerContracts.MAX_SHARE_ITEMS), true);
+            return;
+        }
+        List<Uri> uris = new ArrayList<>();
+        for (MediaItem item : items) {
+            uris.add(item.uri());
+        }
+        SentryManager.log("A share without saving is starting.");
+        try {
+            ShareHandlerActivity.shareWithoutSaving(requireContext(), uris);
+        } catch (RuntimeException e) {
+            SentryManager.recordException(e);
+            Notice.show(requireContext(), R.string.share_error_generic, false);
+        }
+    }
+
     private void setupObservers() {
         try {
             viewModel.getSelectedItems().observe(getViewLifecycleOwner(), items -> {
@@ -489,6 +551,7 @@ public class CleanFragment extends TabFragment {
                     if (stripButton != null) {
                         stripButton.setVisibility(hasItems ? View.VISIBLE : View.GONE);
                     }
+                    updateShareWithoutSaving();
                     if (cleanSelectedCountText != null && hasItems) {
                         cleanSelectedCountText.setText(getResources().getQuantityString(R.plurals.summary_selected_files, items.size(), items.size()));
                         SummaryCard.refreshHint(cleanSummaryCard, AppPreferences.HINT_CLEAN);
@@ -606,6 +669,9 @@ public class CleanFragment extends TabFragment {
                             && viewModel.getCleanOutputs().size() == 1 ? View.VISIBLE : View.GONE);
                     censorResultButton.setVisibility(state == MainViewModel.ProcessingState.COMPLETED
                             && singleImageOutput() != null ? View.VISIBLE : View.GONE);
+                    OpenResult.updateButton(openResultButton,
+                            state == MainViewModel.ProcessingState.COMPLETED, viewModel.getCleanOutputs());
+                    updateShareWithoutSaving();
                     // The result line (with what the batch removed) shows only once a clean has finished.
                     statusText.setVisibility(state == MainViewModel.ProcessingState.COMPLETED
                             ? View.VISIBLE : View.GONE);

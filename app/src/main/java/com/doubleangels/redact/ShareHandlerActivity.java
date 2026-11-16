@@ -87,6 +87,54 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private static final ExecutorService cleanupExecutor =
             Executors.newSingleThreadExecutor();
 
+    /**
+     * Marks a share Redact's own Clean tab started with {@link #shareWithoutSaving}, which skips
+     * the confirmation a share from another app asks for: the user just tapped Share Without
+     * Saving. A random value per process, so another app cannot set it to skip the question.
+     */
+    private static final String EXTRA_INTERNAL_TOKEN = "com.doubleangels.redact.extra.INTERNAL_TOKEN";
+    private static final String INTERNAL_TOKEN = java.util.UUID.randomUUID().toString();
+
+    /**
+     * Cleans {@code uris} the way a share into Redact does and opens the share sheet with the
+     * clean copies, which are deleted afterwards rather than saved to the gallery. Used by the
+     * Clean tab's Share Without Saving.
+     */
+    public static void shareWithoutSaving(@NonNull Context context, @NonNull List<Uri> uris) {
+        if (uris.isEmpty()) {
+            return;
+        }
+        Intent intent = new Intent(context, ShareHandlerActivity.class);
+        if (uris.size() == 1) {
+            intent.setAction(Intent.ACTION_SEND);
+            intent.putExtra(Intent.EXTRA_STREAM, uris.get(0));
+        } else {
+            intent.setAction(Intent.ACTION_SEND_MULTIPLE);
+            intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, new ArrayList<>(uris));
+        }
+        intent.setType("*/*");
+        intent.putExtra(EXTRA_INTERNAL_TOKEN, INTERNAL_TOKEN);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        if (!(context instanceof android.app.Activity)) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        }
+        context.startActivity(intent);
+    }
+
+    /** Whether {@code intent} came from {@link #shareWithoutSaving} in this process. */
+    @VisibleForTesting
+    static boolean isInternal(@Nullable Intent intent) {
+        if (intent == null) {
+            return false;
+        }
+        try {
+            return INTERNAL_TOKEN.equals(intent.getStringExtra(EXTRA_INTERNAL_TOKEN));
+        } catch (RuntimeException badExtras) {
+            // Another app's malformed extras: treat it as the outside share it is.
+            return false;
+        }
+    }
+
     public static boolean isShareProcessingActive() {
         return activeShareSessions.get() > 0;
     }
@@ -613,7 +661,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     /** Starts cleaning the snapshots, after asking first when Settings says to. */
     private void maybeConfirmAndProcess(List<Uri> uris, @NonNull ShareSession session) {
-        if (AppPreferences.isShareConfirmBeforeStrip(this)) {
+        if (AppPreferences.isShareConfirmBeforeStrip(this) && !isInternal(getIntent())) {
             if (progressDialog != null && progressDialog.isShowing()) {
                 progressDialog.dismiss();
             }

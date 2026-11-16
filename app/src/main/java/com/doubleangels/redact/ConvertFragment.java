@@ -41,6 +41,7 @@ import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.ErrorFeedbackPrompt;
 import com.doubleangels.redact.ui.ReviewPrompt;
 import com.doubleangels.redact.ui.ScanViewModel;
+import com.doubleangels.redact.ui.OpenResult;
 import com.doubleangels.redact.ui.ShareResults;
 
 import java.util.ArrayList;
@@ -68,6 +69,7 @@ public class ConvertFragment extends TabFragment {
     private TextView statusText;
     private MaterialButton shareResultsButton;
     private View scanResultButton;
+    private View openResultButton;
     private LinearLayout progressContainer;
     private TextView progressText;
     private LinearProgressIndicator progressBar;
@@ -145,6 +147,14 @@ public class ConvertFragment extends TabFragment {
         scanResultButton.setOnClickListener(v -> {
             Haptics.tick(v);
             openResultInScan();
+        });
+        openResultButton = view.findViewById(R.id.openResultButton);
+        openResultButton.setOnClickListener(v -> {
+            Haptics.tick(v);
+            List<Uri> outputs = viewModel.getConvertOutputs();
+            if (outputs.size() == 1) {
+                OpenResult.open(requireContext(), outputs.get(0));
+            }
         });
         progressContainer = view.findViewById(R.id.progressContainer);
         progressText = view.findViewById(R.id.progressText);
@@ -529,6 +539,8 @@ public class ConvertFragment extends TabFragment {
                     viewModel.getConvertOutputs());
             scanResultButton.setVisibility(state == MainViewModel.ProcessingState.COMPLETED
                     && viewModel.getConvertOutputs().size() == 1 ? View.VISIBLE : View.GONE);
+            OpenResult.updateButton(openResultButton,
+                    state == MainViewModel.ProcessingState.COMPLETED, viewModel.getConvertOutputs());
         });
         viewModel.getConvertProgressPercent().observe(getViewLifecycleOwner(), percent -> {
             if (progressBar.getVisibility() == View.VISIBLE) {

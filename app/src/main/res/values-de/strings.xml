@@ -458,6 +458,9 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="censor_discard">Verwerfen</string>
     <string name="censor_keep_editing">Weiter Bearbeiten</string>
     <string name="button_scan_result">Ergebnis Scannen</string>
+    <string name="button_open_result">Öffnen</string>
+    <string name="open_result_no_app">Keine App auf diesem Telefon kann diese Datei öffnen.</string>
+    <string name="button_share_without_saving">Teilen Ohne Speichern</string>
     <string name="settings_keep_original_names">Originale Dateinamen Behalten</string>
     <string name="settings_keep_original_names_subtitle">Bereinigte und konvertierte Dateien erhalten den Namen des Originals statt eines zufälligen Namens. Namen wie IMG_20260117 können verraten, wann ein Foto aufgenommen wurde.</string>
     <string name="review_prompt_title">Hilf Anderen, Redact zu Finden</string>

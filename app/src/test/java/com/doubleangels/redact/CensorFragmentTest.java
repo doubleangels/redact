@@ -505,6 +505,15 @@ public class CensorFragmentTest {
         View scanResult = root.findViewById(R.id.scanResultButton);
         assertEquals(View.VISIBLE, scanResult.getVisibility());
 
+        // Open shows the copy in the photo viewer.
+        View open = root.findViewById(R.id.openResultButton);
+        assertEquals(View.VISIBLE, open.getVisibility());
+        open.performClick();
+        idle();
+        android.content.Intent view = shadowOf(activity).getNextStartedActivity();
+        assertEquals(android.content.Intent.ACTION_VIEW, view.getAction());
+        assertEquals(vm.getLastSaved().uri, view.getData());
+
         scanResult.performClick();
         idle();
 

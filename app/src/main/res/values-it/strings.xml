@@ -473,6 +473,9 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="censor_discard">Annulla Modifiche</string>
     <string name="censor_keep_editing">Continua a Modificare</string>
     <string name="button_scan_result">Scansiona Risultato</string>
+    <string name="button_open_result">Apri</string>
+    <string name="open_result_no_app">Nessuna app su questo telefono può aprire questo file.</string>
+    <string name="button_share_without_saving">Condividi Senza Salvare</string>
     <string name="settings_keep_original_names">Mantieni i Nomi Originali</string>
     <string name="settings_keep_original_names_subtitle">I file puliti e convertiti mantengono il nome dell\'originale invece di un nome casuale. Nomi come IMG_20260117 possono rivelare quando è stata scattata una foto.</string>
     <string name="review_prompt_title">Aiuta Altre Persone a Trovare Redact</string>

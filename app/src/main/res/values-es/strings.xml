@@ -473,6 +473,9 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="censor_discard">Descartar</string>
     <string name="censor_keep_editing">Seguir Editando</string>
     <string name="button_scan_result">Escanear Resultado</string>
+    <string name="button_open_result">Abrir</string>
+    <string name="open_result_no_app">Ninguna app de este teléfono puede abrir este archivo.</string>
+    <string name="button_share_without_saving">Compartir Sin Guardar</string>
     <string name="settings_keep_original_names">Conservar Nombres Originales</string>
     <string name="settings_keep_original_names_subtitle">Los archivos limpiados y convertidos usan el nombre del original en lugar de uno aleatorio. Nombres como IMG_20260117 pueden revelar cuándo se tomó una foto.</string>
     <string name="review_prompt_title">Ayuda a Otros a Encontrar Redact</string>

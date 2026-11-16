@@ -243,4 +243,37 @@
         app:layout_constraintBottom_toBottomOf="@id/shareResultsButton"
         app:layout_constraintEnd_toStartOf="@id/scanResultButton" />
 
+    <!-- Opens the one file a clean just saved in the photo or video viewer; an icon FAB at the start of the row, shown after a clean that saved exactly one file. With Censor hidden (a video), it sits beside Scan Result. -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/openResultButton"
+        style="@style/Widget.Material3.FloatingActionButton.Secondary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/spacing_medium"
+        android:contentDescription="@string/button_open_result"
+        android:tooltipText="@string/button_open_result"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_open_in_new"
+        app:layout_constraintBottom_toBottomOf="@id/shareResultsButton"
+        app:layout_constraintEnd_toStartOf="@id/censorResultButton" />
+
+    <!-- Cleans the selected files the way a share into Redact does and opens the share sheet,
+         without saving copies to the gallery; where Share shows after a clean, and shown instead
+         of it while files are selected and not yet cleaned. -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/shareWithoutSavingButton"
+        style="@style/Widget.Material3.FloatingActionButton.Secondary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/fab_margin_end"
+        android:tag="edgeFab"
+        android:layout_marginBottom="@dimen/spacing_large"
+        android:contentDescription="@string/button_share_without_saving"
+        android:tooltipText="@string/button_share_without_saving"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_send"
+        app:layout_constraintBottom_toTopOf="@id/stripButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_goneMarginBottom="88dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
