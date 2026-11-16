@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorInflater;
 import android.animation.AnimatorListenerAdapter;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -79,7 +80,7 @@ public abstract class TabFragment extends Fragment {
      * Photos and videos dropped on this tab, pasted into it, or picked: other apps' content
      * URIs that have passed {@link com.doubleangels.redact.media.InboundUriPolicy}.
      */
-    void onMediaReceived(@NonNull List<android.net.Uri> uris) {
+    void onMediaReceived(@NonNull List<Uri> uris) {
     }
 
     /** Pastes the photos and videos on the clipboard, when the person asks: the button or Ctrl+V. */
@@ -87,7 +88,7 @@ public abstract class TabFragment extends Fragment {
         if (!acceptsMedia() || getContext() == null) {
             return false;
         }
-        List<android.net.Uri> uris = DroppedMedia.fromClipboard(requireContext());
+        List<Uri> uris = DroppedMedia.fromClipboard(requireContext());
         if (uris.isEmpty()) {
             return false;
         }

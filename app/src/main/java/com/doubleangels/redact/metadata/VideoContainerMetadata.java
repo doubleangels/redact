@@ -1161,7 +1161,7 @@ public final class VideoContainerMetadata {
          * the segment's own file name, its neighbours' in a split recording, and the programs
          * that wrote it. Reported by name and voided by a scrub.
          */
-        private static final java.util.Map<Long, String> INFO_TEXT = java.util.Map.of(
+        private static final Map<Long, String> INFO_TEXT = Map.of(
                 0x7384L, "segment_filename",
                 0x3C83ABL, "prev_filename",
                 0x3E83BBL, "next_filename",

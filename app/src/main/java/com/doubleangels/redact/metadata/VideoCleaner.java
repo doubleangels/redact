@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -450,7 +451,7 @@ final class VideoCleaner {
             return null;
         }
         long[] times = VideoContainerMetadata.movieTimes(context, sourceUri);
-        return KeptPrecision.dateOnly(context) ? KeptPrecision.dateOnly(times, java.time.ZoneId.systemDefault()) : times;
+        return KeptPrecision.dateOnly(context) ? KeptPrecision.dateOnly(times, ZoneId.systemDefault()) : times;
     }
 
     /**

@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowInsetsController;
+import android.widget.EditText;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
@@ -702,7 +703,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onKeyShortcut(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_V && event.isCtrlPressed()
-                && !(getCurrentFocus() instanceof android.widget.EditText)
+                && !(getCurrentFocus() instanceof EditText)
                 && getVisibleTabFragment() instanceof TabFragment tab && tab.pasteMedia()) {
             return true;
         }

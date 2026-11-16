@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.function.IntPredicate;
 
 /**
@@ -475,7 +476,7 @@ public final class VideoStreamMetadata {
      * the HEIF filter keeps ({@link HeifContainerMetadata#SEI_KEEP}). Filler (3) counts only when
      * it holds anything but 0xFF, and T.35 (4) only when it is not a picture format's.
      */
-    private static final java.util.Set<Integer> PICTURE_SEI = java.util.Set.of(
+    private static final Set<Integer> PICTURE_SEI = Set.of(
             0, 1, 2, 6, 7, 45, 47, 129, 130, 131, 132, 134, 135);
 
     @VisibleForTesting

@@ -1,5 +1,6 @@
 package com.doubleangels.redact;
 
+import android.app.Activity;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
@@ -57,10 +58,12 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 public class ShareHandlerActivity extends AppCompatActivity {
 
@@ -93,7 +96,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
      * Saving. A random value per process, so another app cannot set it to skip the question.
      */
     private static final String EXTRA_INTERNAL_TOKEN = "com.doubleangels.redact.extra.INTERNAL_TOKEN";
-    private static final String INTERNAL_TOKEN = java.util.UUID.randomUUID().toString();
+    private static final String INTERNAL_TOKEN = UUID.randomUUID().toString();
 
     /**
      * Cleans {@code uris} the way a share into Redact does and opens the share sheet with the
@@ -115,7 +118,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         intent.setType("*/*");
         intent.putExtra(EXTRA_INTERNAL_TOKEN, INTERNAL_TOKEN);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        if (!(context instanceof android.app.Activity)) {
+        if (!(context instanceof Activity)) {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         }
         context.startActivity(intent);
@@ -152,7 +155,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     /** Builds the cleaner each share uses; tests swap it to hold a share inside its clean. */
     @VisibleForTesting
-    static java.util.function.Function<Context, MetadataStripper> stripperFactory = MetadataStripper::new;
+    static Function<Context, MetadataStripper> stripperFactory = MetadataStripper::new;
 
     private MediaSelector mediaSelector;
 

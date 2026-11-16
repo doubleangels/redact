@@ -1444,7 +1444,7 @@ public class MetadataDisplayer {
     }
 
     /** The number in {@code value}, or -1 when there is none; nothing about it is reported. */
-    private static long parseLongOr(@androidx.annotation.Nullable String value) {
+    private static long parseLongOr(@Nullable String value) {
         if (value == null) {
             return -1;
         }
