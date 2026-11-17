@@ -155,7 +155,7 @@
         <string name="settings_sentry_consent_allow">تفعيل</string>
     <string name="settings_sentry_consent_cancel">ليس الآن</string>
     <string name="settings_sentry_consent_title">تفعيل تقارير الأعطال</string>
-    <string name="settings_sentry_consent_message">إرسال تقارير الأعطال يرفع تشخيصات مجهولة إلى Sentry عبر الإنترنت. ويرسل أيضًا بيانات الأداء، مثل المدة التي تستغرقها الشاشات لتفتح، في نحو جلسة واحدة من كل 4 جلسات.\n\nلا يتم تحميل الصور أو الفيديوهات أو أسماء الملفات أو إحداثيات GPS.</string>
+    <string name="settings_sentry_consent_message">إرسال تقارير الأعطال يرفع تشخيصات مجهولة إلى Sentry عبر الإنترنت، منها بيانات الأداء مثل المدة التي تستغرقها الشاشات لتفتح، والشاشات والأزرار المستخدمة قبل حدوث خطأ. لا تحمل التقارير أي معرّف تثبيت، لذا لا يمكن ربطها بهاتفك.\n\nلا يتم تحميل الصور أو الفيديوهات أو أسماء الملفات أو إحداثيات GPS.</string>
     <string name="settings_strict_clean">التنظيف الصارم</string>
     <string name="settings_strict_clean_subtitle">يزيل كل البيانات الوصفية باستثناء العلامات التي تحدد طريقة عرض الصورة فقط، مثل اتجاهها ومساحة ألوانها. يعطّل خيارات الاحتفاظ أدناه ويعيد ترميز الفيديو دائمًا بالكامل لأدق تنظيف.</string>
     
@@ -231,7 +231,7 @@
     <string name="settings_progress_notifications_subtitle">إشعار دائم يعرض التقدم في المهام الطويلة. معطّل افتراضياً حتى تفعّل السماح بالإشعارات.</string>
     <string name="settings_crash_reporting_learn_more">ما الذي يُشارك؟</string>
     <string name="settings_crash_reporting_detail_title">تفاصيل تقارير الأعطال</string>
-    <string name="settings_crash_reporting_detail_message">عند تفعيل إرسال تقارير الأعطال، قد تُرسل تشخيصات مجهولة عبر Sentry:\n\n• طراز الجهاز وإصدار Android\n• إصدار التطبيق\n• تتبعات المكدس وأنواع الأخطاء\n• وسوم تشخيص مُنقّاة\n• بيانات الأداء في نحو جلسة واحدة من كل 4 جلسات (مدة فتح الشاشات، والإطارات البطيئة)\n\nلا يتم رفع صورك أو فيديوهاتك. تُزال URIs وأسماء الملفات وإحداثيات GPS قبل الرفع.</string>
+    <string name="settings_crash_reporting_detail_message">عند تفعيل إرسال تقارير الأعطال، قد تُرسل تشخيصات مجهولة عبر Sentry:\n\n• طراز الجهاز وإصدار Android\n• إصدار التطبيق\n• تتبعات المكدس وأنواع الأخطاء\n• وسوم تشخيص مُنقّاة\n• بيانات الأداء (مدة فتح الشاشات، والإطارات البطيئة)\n• الشاشات المفتوحة والأزرار المضغوطة قبل حدوث خطأ\n• أعداد الجلسات، لقياس مدى تكرار تعطل التطبيق\n\nلا تحمل التقارير أي معرّف تثبيت، لذا لا يمكن ربطها بهاتفك. لا يتم رفع صورك أو فيديوهاتك. تُزال URIs وأسماء الملفات وإحداثيات GPS قبل الرفع.</string>
     <string name="settings_crash_reporting_privacy_policy">سياسة الخصوصية</string>
     <string name="settings_crash_reporting_dismiss">إغلاق</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
@@ -640,7 +640,7 @@
     <string name="onboarding_crash_title">ساعد في تحسين Redact.</string>
     <string name="onboarding_crash_body">إذا تعطّل Redact يومًا، يمكنه إرسال تقرير مجهول الهوية حتى يتم العثور على المشكلة وإصلاحها. لا يتصل Redact بالإنترنت إلا لإرسال تقارير الأعطال التي تفعّلها، وللتحقق من التحديثات عندما تبدأه بنفسك من الإعدادات.</string>
     <string name="onboarding_crash_point_private">لا تتضمن التقارير أبدًا صورك أو مقاطع الفيديو أو أسماء الملفات أو المواقع.</string>
-    <string name="onboarding_crash_point_sentry">تُرسل التقارير إلى Sentry، وهي خدمة تساعد المطورين في العثور على الأعطال وإصلاحها. وفي نحو جلسة واحدة من كل 4 جلسات تتضمن أيضًا بيانات الأداء.</string>
+    <string name="onboarding_crash_point_sentry">تُرسل التقارير إلى Sentry، وهي خدمة تساعد المطورين في العثور على الأعطال وإصلاحها. وتتضمن أيضًا بيانات الأداء، ولا تحمل أي معرّف تثبيت، لذا لا يمكن ربطها بهاتفك.</string>
     <string name="onboarding_crash_allow">إرسال تقارير الأعطال</string>
     <string name="onboarding_status_crash_on">تقارير الأعطال مفعّلة.</string>
     <string name="onboarding_choices_crash">وأخيرًا تقارير الأعطال، ليتم العثور على المشكلات وإصلاحها بشكل أسرع.</string>

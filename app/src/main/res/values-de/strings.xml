@@ -139,7 +139,7 @@
         <string name="settings_sentry_consent_allow">Aktivieren</string>
     <string name="settings_sentry_consent_cancel">Nicht Jetzt</string>
     <string name="settings_sentry_consent_title">Absturzberichte Aktivieren</string>
-    <string name="settings_sentry_consent_message">Absturzberichte senden lädt anonymisierte Diagnosedaten über Sentry ins Internet hoch. Außerdem sendet es bei etwa jeder vierten Sitzung Leistungsdaten, etwa wie lange Bildschirme zum Öffnen brauchen.\n\nKeine Fotos, Videos, Dateinamen oder GPS-Koordinaten werden hochgeladen.</string>
+    <string name="settings_sentry_consent_message">Absturzberichte senden lädt anonymisierte Diagnosedaten über Sentry ins Internet hoch, darunter Leistungsdaten, etwa wie lange Bildschirme zum Öffnen brauchen, und die Bildschirme und Schaltflächen, die vor einem Fehler verwendet wurden. Berichte enthalten keine Installations-ID und lassen sich daher nicht Ihrem Telefon zuordnen.\n\nKeine Fotos, Videos, Dateinamen oder GPS-Koordinaten werden hochgeladen.</string>
     <string name="settings_strict_clean">Strikte Bereinigung</string>
     <string name="settings_strict_clean_subtitle">Entfernt alle Metadaten außer den Tags, die nur angeben, wie das Bild angezeigt wird, etwa Ausrichtung und Farbraum. Schaltet die Behalten-Optionen unten aus und kodiert Videos für die gründlichste Bereinigung immer vollständig neu.</string>
     
@@ -214,7 +214,7 @@
     <string name="settings_progress_notifications_subtitle">Dauerhafte Fortschrittsbenachrichtigung bei langen Aufträgen. Standard aus, bis Sie Benachrichtigungen erlauben aktivieren.</string>
     <string name="settings_crash_reporting_learn_more">Was Wird Geteilt?</string>
     <string name="settings_crash_reporting_detail_title">Details zu Absturzberichten</string>
-    <string name="settings_crash_reporting_detail_message">Wenn Absturzberichte senden aktiv ist, können anonymisierte Diagnosedaten über Sentry gesendet werden:\n\n• Gerätemodell und Android-Version\n• App-Version\n• Stack-Traces und Fehlertypen\n• Bereinigte Diagnose-Tags\n• Leistungsdaten bei etwa jeder vierten Sitzung (wie lange Bildschirme zum Öffnen brauchen, langsame Frames)\n\nIhre Fotos und Videos werden nie hochgeladen. URIs, Dateinamen und GPS-Koordinaten werden vor dem Upload entfernt.</string>
+    <string name="settings_crash_reporting_detail_message">Wenn Absturzberichte senden aktiv ist, können anonymisierte Diagnosedaten über Sentry gesendet werden:\n\n• Gerätemodell und Android-Version\n• App-Version\n• Stack-Traces und Fehlertypen\n• Bereinigte Diagnose-Tags\n• Leistungsdaten (wie lange Bildschirme zum Öffnen brauchen, langsame Frames)\n• Geöffnete Bildschirme und angetippte Schaltflächen vor einem Fehler\n• Sitzungszahlen, um zu messen, wie oft die App abstürzt\n\nBerichte enthalten keine Installations-ID und lassen sich daher nicht Ihrem Telefon zuordnen. Ihre Fotos und Videos werden nie hochgeladen. URIs, Dateinamen und GPS-Koordinaten werden vor dem Upload entfernt.</string>
     <string name="settings_crash_reporting_privacy_policy">Datenschutzrichtlinie</string>
     <string name="settings_crash_reporting_dismiss">Schließen</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
@@ -579,7 +579,7 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="onboarding_crash_title">Hilf mit, Redact besser zu machen.</string>
     <string name="onboarding_crash_body">Falls Redact einmal abstürzt, kann es einen anonymen Bericht senden, damit das Problem gefunden und behoben werden kann. Redact geht nur online für Absturzberichte, die Sie einschalten, und für eine Update-Suche, die Sie selbst in den Einstellungen starten.</string>
     <string name="onboarding_crash_point_private">Berichte enthalten niemals deine Fotos, Videos, Dateinamen oder Standorte.</string>
-    <string name="onboarding_crash_point_sentry">Berichte gehen an Sentry, einen Dienst, der Entwicklern hilft, Abstürze zu finden und zu beheben. Bei etwa jeder vierten Sitzung enthalten sie auch Leistungsdaten.</string>
+    <string name="onboarding_crash_point_sentry">Berichte gehen an Sentry, einen Dienst, der Entwicklern hilft, Abstürze zu finden und zu beheben. Sie enthalten auch Leistungsdaten, aber keine Installations-ID, und lassen sich daher nicht Ihrem Telefon zuordnen.</string>
     <string name="onboarding_crash_allow">Absturzberichte Senden</string>
     <string name="onboarding_status_crash_on">Absturzberichte sind eingeschaltet.</string>
     <string name="onboarding_choices_crash">Zuletzt Absturzberichte, damit Probleme schneller gefunden und behoben werden.</string>

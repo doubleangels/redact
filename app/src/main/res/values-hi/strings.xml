@@ -139,7 +139,7 @@
         <string name="settings_sentry_consent_allow">सक्षम करें</string>
     <string name="settings_sentry_consent_cancel">अभी नहीं</string>
     <string name="settings_sentry_consent_title">क्रैश रिपोर्टिंग सक्षम करें</string>
-    <string name="settings_sentry_consent_message">क्रैश रिपोर्ट भेजना इंटरनेट पर Sentry को अनाम निदान अपलोड करता है। यह लगभग हर 4 में से 1 सत्र में प्रदर्शन डेटा भी भेजता है, जैसे स्क्रीन खुलने में कितना समय लगा।\n\nफ़ोटो, वीडियो, फ़ाइल नाम या GPS निर्देशांक अपलोड नहीं होते।</string>
+    <string name="settings_sentry_consent_message">क्रैश रिपोर्ट भेजना इंटरनेट पर Sentry को अनाम निदान अपलोड करता है, जिसमें प्रदर्शन डेटा, जैसे स्क्रीन खुलने में कितना समय लगा, और किसी त्रुटि से पहले इस्तेमाल हुई स्क्रीन और बटन शामिल हैं। रिपोर्ट में कोई इंस्टॉल ID नहीं होती, इसलिए उन्हें आपके फ़ोन से जोड़ा नहीं जा सकता।\n\nफ़ोटो, वीडियो, फ़ाइल नाम या GPS निर्देशांक अपलोड नहीं होते।</string>
     <string name="settings_strict_clean">सख्त सफ़ाई</string>
     <string name="settings_strict_clean_subtitle">सभी मेटाडेटा हटाता है, सिवाय उन टैग के जो केवल यह बताते हैं कि तस्वीर कैसे दिखाई जाए, जैसे उसका ओरिएंटेशन और कलर स्पेस। नीचे के रखने वाले विकल्प बंद करता है और सबसे पूरी सफ़ाई के लिए वीडियो को हमेशा पूरी तरह दोबारा एन्कोड करता है।</string>
     
@@ -215,7 +215,7 @@
     <string name="settings_progress_notifications_subtitle">लंबे कार्यों के दौरान प्रगति वाली स्थायी सूचना। नोटिफ़िकेशन अनुमति चालू होने तक डिफ़ॉल्ट बंद।</string>
     <string name="settings_crash_reporting_learn_more">क्या साझा होता है?</string>
     <string name="settings_crash_reporting_detail_title">क्रैश रिपोर्टिंग विवरण</string>
-    <string name="settings_crash_reporting_detail_message">जब क्रैश रिपोर्ट भेजें चालू है, Sentry के माध्यम से अनाम निदान भेजा जा सकता है:\n\n• डिवाइस मॉडल और Android संस्करण\n• ऐप संस्करण\n• स्टैक ट्रेस और त्रुटि प्रकार\n• स्क्रब किए गए निदान टैग\n• लगभग हर 4 में से 1 सत्र का प्रदर्शन डेटा (स्क्रीन खुलने में लगा समय, धीमे फ़्रेम)\n\nआपकी फ़ोटो और वीडियो कभी अपलोड नहीं होते। URI, फ़ाइल नाम और GPS निर्देशांक अपलोड से पहले हटाए जाते हैं।</string>
+    <string name="settings_crash_reporting_detail_message">जब क्रैश रिपोर्ट भेजें चालू है, Sentry के माध्यम से अनाम निदान भेजा जा सकता है:\n\n• डिवाइस मॉडल और Android संस्करण\n• ऐप संस्करण\n• स्टैक ट्रेस और त्रुटि प्रकार\n• स्क्रब किए गए निदान टैग\n• प्रदर्शन डेटा (स्क्रीन खुलने में लगा समय, धीमे फ़्रेम)\n• किसी त्रुटि से पहले खोली गई स्क्रीन और टैप किए गए बटन\n• सत्रों की गिनती, यह मापने के लिए कि ऐप कितनी बार क्रैश होता है\n\nरिपोर्ट में कोई इंस्टॉल ID नहीं होती, इसलिए उन्हें आपके फ़ोन से जोड़ा नहीं जा सकता। आपकी फ़ोटो और वीडियो कभी अपलोड नहीं होते। URI, फ़ाइल नाम और GPS निर्देशांक अपलोड से पहले हटाए जाते हैं।</string>
     <string name="settings_crash_reporting_privacy_policy">गोपनीयता नीति</string>
     <string name="settings_crash_reporting_dismiss">बंद करें</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
@@ -580,7 +580,7 @@
     <string name="onboarding_crash_title">Redact को बेहतर बनाने में मदद करें।</string>
     <string name="onboarding_crash_body">अगर Redact कभी क्रैश होता है, तो वह एक गुमनाम रिपोर्ट भेज सकता है ताकि समस्या ढूँढकर ठीक की जा सके। Redact इंटरनेट से केवल तभी जुड़ता है जब आप क्रैश रिपोर्ट चालू करते हैं, या जब आप स्वयं सेटिंग्स में अपडेट की जाँच शुरू करते हैं।</string>
     <string name="onboarding_crash_point_private">रिपोर्ट में आपकी फ़ोटो, वीडियो, फ़ाइल नाम या स्थान कभी शामिल नहीं होते।</string>
-    <string name="onboarding_crash_point_sentry">रिपोर्ट Sentry को जाती हैं, जो डेवलपर को क्रैश ढूँढने और ठीक करने में मदद करने वाली सेवा है। लगभग हर 4 में से 1 सत्र में इनमें प्रदर्शन डेटा भी होता है।</string>
+    <string name="onboarding_crash_point_sentry">रिपोर्ट Sentry को जाती हैं, जो डेवलपर को क्रैश ढूँढने और ठीक करने में मदद करने वाली सेवा है। इनमें प्रदर्शन डेटा भी होता है, पर कोई इंस्टॉल ID नहीं, इसलिए उन्हें आपके फ़ोन से जोड़ा नहीं जा सकता।</string>
     <string name="onboarding_crash_allow">क्रैश रिपोर्ट भेजें</string>
     <string name="onboarding_status_crash_on">क्रैश रिपोर्ट चालू हैं।</string>
     <string name="onboarding_choices_crash">आख़िर में, क्रैश रिपोर्ट, ताकि समस्याएं जल्दी ढूँढी और ठीक की जा सकें।</string>

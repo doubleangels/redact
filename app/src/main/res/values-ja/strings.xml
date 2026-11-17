@@ -136,7 +136,7 @@
         <string name="settings_sentry_consent_allow">有効にする</string>
     <string name="settings_sentry_consent_cancel">後で</string>
     <string name="settings_sentry_consent_title">クラッシュレポートを有効にする</string>
-    <string name="settings_sentry_consent_message">クラッシュレポートの送信は、匿名化された診断情報をインターネット経由で Sentry にアップロードします。また、約4回に1回のセッションでは、画面の表示にかかった時間などのパフォーマンスデータも送信します。\n\n写真、動画、ファイル名、GPS 座標はアップロードされません。</string>
+    <string name="settings_sentry_consent_message">クラッシュレポートの送信は、匿名化された診断情報をインターネット経由で Sentry にアップロードします。画面の表示にかかった時間などのパフォーマンスデータや、エラーの前に使われた画面とボタンも含まれます。レポートにはインストール ID が含まれないため、お使いのスマートフォンと結び付けることはできません。\n\n写真、動画、ファイル名、GPS 座標はアップロードされません。</string>
     <string name="settings_strict_clean">厳格クリーン</string>
     <string name="settings_strict_clean_subtitle">画像の表示方法だけを示すタグ（向きや色空間など）を除き、すべてのメタデータを削除します。下の保持オプションをオフにし、最も徹底したクリーンのために動画を常に完全に再エンコードします。</string>
     
@@ -212,7 +212,7 @@
     <string name="settings_progress_notifications_subtitle">長時間ジョブの進行を表示する常駐通知。通知を許可するまでデフォルトでオフです。</string>
     <string name="settings_crash_reporting_learn_more">何が共有されますか？</string>
     <string name="settings_crash_reporting_detail_title">クラッシュレポートの詳細</string>
-    <string name="settings_crash_reporting_detail_message">クラッシュレポートを送信がオンのとき、Sentry経由で匿名診断が送信される場合があります:\n\n• 端末モデルとAndroid版\n• アプリ版\n• スタックトレースとエラー種別\n• スクラブ済み診断タグ\n• 約4回に1回のセッションのパフォーマンスデータ（画面の表示にかかった時間、遅延したフレーム）\n\n写真と動画はアップロードされません。URI、ファイル名、GPS座標は送信前に削除されます。</string>
+    <string name="settings_crash_reporting_detail_message">クラッシュレポートを送信がオンのとき、Sentry経由で匿名診断が送信される場合があります:\n\n• 端末モデルとAndroid版\n• アプリ版\n• スタックトレースとエラー種別\n• スクラブ済み診断タグ\n• パフォーマンスデータ（画面の表示にかかった時間、遅延したフレーム）\n• エラーの前に開いた画面とタップしたボタン\n• セッション数（アプリがクラッシュする頻度の測定用）\n\nレポートにはインストールIDが含まれないため、お使いのスマートフォンと結び付けることはできません。写真と動画はアップロードされません。URI、ファイル名、GPS座標は送信前に削除されます。</string>
     <string name="settings_crash_reporting_privacy_policy">プライバシーポリシー</string>
     <string name="settings_crash_reporting_dismiss">閉じる</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
@@ -566,7 +566,7 @@
     <string name="onboarding_crash_title">Redactの改善にご協力ください。</string>
     <string name="onboarding_crash_body">Redactがクラッシュした場合、匿名のレポートを送信して問題の発見と修正に役立てることができます。Redactがインターネットに接続するのは、あなたがオンにしたクラッシュレポートと、設定であなた自身が始めたアップデートの確認だけです。</string>
     <string name="onboarding_crash_point_private">レポートに写真、動画、ファイル名、位置情報が含まれることはありません。</string>
-    <string name="onboarding_crash_point_sentry">レポートは、開発者がクラッシュを見つけて修正するためのサービスであるSentryに送信されます。約4回に1回のセッションでは、パフォーマンスデータも含まれます。</string>
+    <string name="onboarding_crash_point_sentry">レポートは、開発者がクラッシュを見つけて修正するためのサービスであるSentryに送信されます。パフォーマンスデータも含まれますが、インストールIDは含まれないため、お使いのスマートフォンと結び付けることはできません。</string>
     <string name="onboarding_crash_allow">クラッシュレポートを送信</string>
     <string name="onboarding_status_crash_on">クラッシュレポートはオンです。</string>
     <string name="onboarding_choices_crash">最後に、クラッシュレポート。問題をより早く見つけて修正するためです。</string>

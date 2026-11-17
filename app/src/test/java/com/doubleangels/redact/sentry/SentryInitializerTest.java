@@ -68,7 +68,7 @@ public class SentryInitializerTest {
     }
 
     @Test
-    public void logEvent_isABreadcrumbOnly_neverAStandaloneLog() {
+    public void logEvent_alsoSendsAScrubbedStructuredLog() {
         AppPreferences.setCrashReportingEnabled(app, true);
         SentryInitializer.testDsnOverride = UNREACHABLE_DSN;
         SentryManager.init(app);
@@ -85,8 +85,36 @@ public class SentryInitializerTest {
         assertEquals(1, sentLogs.size());
         sentLogs.clear();
 
-        SentryManager.logEvent("Clean", "A clean started.");
-        assertTrue("logEvent sent a standalone log: " + sentLogs, sentLogs.isEmpty());
+        SentryManager.logEvent("Clean", "Opened content://media/external/images/media/5 at 100%.");
+        assertEquals(1, sentLogs.size());
+        assertTrue(sentLogs.get(0), sentLogs.get(0).startsWith("Clean: Opened [redacted]"));
+        assertFalse(sentLogs.get(0), sentLogs.get(0).contains("content://"));
+        assertTrue("a '%' is not a format specifier", sentLogs.get(0).endsWith("at 100%."));
+    }
+
+    /**
+     * Logs and metrics carry the distinct ID as user.id, and sessions as their "did". The SDK
+     * fills it with its per-install ID, which would link every report from one phone.
+     */
+    @Test
+    public void initialisation_clearsTheInstallIdSessionsLogsAndMetricsWouldCarry() {
+        AppPreferences.setCrashReportingEnabled(app, true);
+        SentryInitializer.testDsnOverride = UNREACHABLE_DSN;
+        SentryManager.init(app);
+        SentryInitializer.initializeBlocking(app);
+        assertTrue(SentryInitializer.isInitialized());
+
+        SentryOptions options = Sentry.getCurrentScopes().getOptions();
+        assertNull(options.getDistinctId());
+
+        java.util.List<SentryLogEvent> sentLogs = new java.util.ArrayList<>();
+        options.getLogs().setBeforeSend(logEvent -> {
+            sentLogs.add(logEvent);
+            return null;
+        });
+        Sentry.logger().info("probe");
+        assertEquals(1, sentLogs.size());
+        assertNull(sentLogs.get(0).getAttributes().get("user.id"));
     }
 
     @Test
@@ -128,9 +156,19 @@ public class SentryInitializerTest {
         SentryOptions options = Sentry.getCurrentScopes().getOptions();
         assertEquals(UNREACHABLE_DSN, options.getDsn());
         assertFalse(options.isSendDefaultPii());
-        assertFalse(options.isAttachThreads());
-        // No release-health sessions: they would count how often the app is opened.
-        assertFalse(options.isEnableAutoSessionTracking());
+        assertNull(options.getDistinctId());
+        // Nothing that records the screen's pixels.
+        assertFalse(((io.sentry.android.core.SentryAndroidOptions) options).isAttachScreenshot());
+        assertEquals(0.0, options.getSessionReplay().getSessionSampleRate(), 0.0);
+        assertEquals(0.0, options.getSessionReplay().getOnErrorSampleRate(), 0.0);
+        // Every technical detail that can't identify a phone or a file.
+        assertTrue(options.isAttachThreads());
+        assertTrue(((io.sentry.android.core.SentryAndroidOptions) options).isAttachViewHierarchy());
+        assertTrue(options.isEnableAutoSessionTracking());
+        assertTrue(((io.sentry.android.core.SentryAndroidOptions) options).isCollectAdditionalContext());
+        assertFalse(((io.sentry.android.core.SentryAndroidOptions) options)
+                .isEnableSystemEventBreadcrumbsExtras());
+        assertEquals(1.0, options.getTracesSampleRate(), 0.0);
 
         // Breadcrumbs are scrubbed.
         Breadcrumb crumb = new Breadcrumb("opened content://media/external/images/media/5");

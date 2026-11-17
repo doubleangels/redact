@@ -135,7 +135,7 @@
         <string name="settings_sentry_consent_allow">启用</string>
     <string name="settings_sentry_consent_cancel">暂不</string>
     <string name="settings_sentry_consent_title">启用崩溃报告</string>
-    <string name="settings_sentry_consent_message">发送崩溃报告会通过互联网向 Sentry 上传匿名诊断信息。此外，大约每 4 次会话中有 1 次还会发送性能数据，例如界面打开所需的时间。\n\n不会上传照片、视频、文件名或 GPS 坐标。</string>
+    <string name="settings_sentry_consent_message">发送崩溃报告会通过互联网向 Sentry 上传匿名诊断信息，包括性能数据（例如界面打开所需的时间），以及出错前使用过的界面和按钮。报告不含任何安装 ID，因此无法与您的手机关联。\n\n不会上传照片、视频、文件名或 GPS 坐标。</string>
     <string name="settings_strict_clean">严格清理</string>
     <string name="settings_strict_clean_subtitle">移除所有元数据，只保留说明如何显示图片的标签，例如方向和色彩空间。关闭下方的保留选项，并始终完整重新编码视频，以实现最彻底的清理。</string>
     
@@ -211,7 +211,7 @@
     <string name="settings_progress_notifications_subtitle">长时间任务期间显示进度的持续通知。默认关闭，需先开启允许通知。</string>
     <string name="settings_crash_reporting_learn_more">会分享哪些内容？</string>
     <string name="settings_crash_reporting_detail_title">崩溃报告详情</string>
-    <string name="settings_crash_reporting_detail_message">开启“发送崩溃报告”后，可能通过 Sentry 发送匿名诊断：\n\n• 设备型号和 Android 版本\n• 应用版本\n• 堆栈跟踪和错误类型\n• 已清理的诊断标签\n• 大约每 4 次会话中 1 次的性能数据（界面打开所需时间、缓慢帧）\n\n您的照片和视频绝不会上传。URI、文件名和 GPS 坐标会在上传前移除。</string>
+    <string name="settings_crash_reporting_detail_message">开启“发送崩溃报告”后，可能通过 Sentry 发送匿名诊断：\n\n• 设备型号和 Android 版本\n• 应用版本\n• 堆栈跟踪和错误类型\n• 已清理的诊断标签\n• 性能数据（界面打开所需时间、缓慢帧）\n• 出错前打开的界面和点按的按钮\n• 会话计数，用于衡量应用崩溃的频率\n\n报告不含任何安装 ID，因此无法与您的手机关联。您的照片和视频绝不会上传。URI、文件名和 GPS 坐标会在上传前移除。</string>
     <string name="settings_crash_reporting_privacy_policy">隐私政策</string>
     <string name="settings_crash_reporting_dismiss">关闭</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
@@ -565,7 +565,7 @@
     <string name="onboarding_crash_title">帮助改进 Redact。</string>
     <string name="onboarding_crash_body">如果 Redact 发生崩溃，它可以发送一份匿名报告，以便找到并修复问题。Redact 只会为您开启的崩溃报告，以及您在设置中亲自发起的更新检查而联网。</string>
     <string name="onboarding_crash_point_private">报告绝不会包含你的照片、视频、文件名或位置。</string>
-    <string name="onboarding_crash_point_sentry">报告会发送到 Sentry，这是一项帮助开发者查找和修复崩溃的服务。大约每 4 次会话中有 1 次还会包含性能数据。</string>
+    <string name="onboarding_crash_point_sentry">报告会发送到 Sentry，这是一项帮助开发者查找和修复崩溃的服务。报告还包含性能数据，但不含任何安装 ID，因此无法与您的手机关联。</string>
     <string name="onboarding_crash_allow">发送崩溃报告</string>
     <string name="onboarding_status_crash_on">崩溃报告已开启。</string>
     <string name="onboarding_choices_crash">最后是崩溃报告，这样问题可以更快被发现和修复。</string>

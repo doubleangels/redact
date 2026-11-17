@@ -18,6 +18,7 @@ import io.sentry.SentryMetricsEvent;
 import io.sentry.protocol.Contexts;
 import io.sentry.protocol.Device;
 import io.sentry.protocol.Feedback;
+import io.sentry.protocol.OperatingSystem;
 import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryStackFrame;
 import io.sentry.protocol.SentryStackTrace;
@@ -356,13 +357,23 @@ public final class SentryPrivacyScrubber {
      * Drops what would tie reports from one phone together. The device context is a {@link Device}
      * object, not a map, so the context loops above never reach it: its {@code id} is the SDK's
      * random ID per installation, and its boot time is the same in every report until the phone
-     * restarts. The model, Android version and the like stay, as the privacy policy says.
+     * restarts. The time zone and kernel version go too: together with the model, build and locale
+     * they narrow a small user base down to one phone, and neither helps find a bug that the
+     * model, Android version and build don't. The rest of the device and OS details stay.
      */
     static void scrubDevice(@Nullable Contexts contexts) {
-        Device device = contexts != null ? contexts.getDevice() : null;
+        if (contexts == null) {
+            return;
+        }
+        Device device = contexts.getDevice();
         if (device != null) {
             device.setId(null);
             device.setBootTime(null);
+            device.setTimezone(null);
+        }
+        OperatingSystem os = contexts.getOperatingSystem();
+        if (os != null) {
+            os.setKernelVersion(null);
         }
     }
 

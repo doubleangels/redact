@@ -143,7 +143,7 @@
         <string name="settings_sentry_consent_allow">Activar</string>
     <string name="settings_sentry_consent_cancel">Ahora No</string>
     <string name="settings_sentry_consent_title">Activar Informes de Fallos</string>
-    <string name="settings_sentry_consent_message">Enviar Informes de Fallos sube diagnósticos anonimizados a Sentry por internet. También envía datos de rendimiento, como cuánto tardan en abrirse las pantallas, en aproximadamente 1 de cada 4 sesiones.\n\nNo se suben fotos, videos, nombres de archivo ni coordenadas GPS.</string>
+    <string name="settings_sentry_consent_message">Enviar Informes de Fallos sube diagnósticos anonimizados a Sentry por internet, incluidos datos de rendimiento, como cuánto tardan en abrirse las pantallas, y las pantallas y botones usados antes de un error. Los informes no llevan ningún ID de instalación, así que no pueden vincularse a tu teléfono.\n\nNo se suben fotos, videos, nombres de archivo ni coordenadas GPS.</string>
     <string name="settings_strict_clean">Limpieza Estricta</string>
     <string name="settings_strict_clean_subtitle">Elimina todos los metadatos salvo las etiquetas que solo indican cómo mostrar la imagen, como su orientación y su espacio de color. Desactiva las opciones de conservar de abajo y siempre vuelve a codificar el video por completo para la limpieza más a fondo.</string>
     
@@ -219,7 +219,7 @@
     <string name="settings_progress_notifications_subtitle">Notificación persistente con progreso en tareas largas. Desactivada por defecto hasta que actives Permitir notificaciones.</string>
     <string name="settings_crash_reporting_learn_more">¿Qué Se Comparte?</string>
     <string name="settings_crash_reporting_detail_title">Detalles de Informes de Fallos</string>
-    <string name="settings_crash_reporting_detail_message">Cuando Enviar informes de fallos está activado, pueden enviarse diagnósticos anónimos vía Sentry:\n\n• Modelo del dispositivo y versión de Android\n• Versión de la app\n• Trazas de pila y tipos de error\n• Etiquetas de diagnóstico depuradas\n• Datos de rendimiento en aproximadamente 1 de cada 4 sesiones (cuánto tardan en abrirse las pantallas, fotogramas lentos)\n\nTus fotos y videos nunca se suben. Se eliminan URIs, nombres de archivo y coordenadas GPS antes de la carga.</string>
+    <string name="settings_crash_reporting_detail_message">Cuando Enviar informes de fallos está activado, pueden enviarse diagnósticos anónimos vía Sentry:\n\n• Modelo del dispositivo y versión de Android\n• Versión de la app\n• Trazas de pila y tipos de error\n• Etiquetas de diagnóstico depuradas\n• Datos de rendimiento (cuánto tardan en abrirse las pantallas, fotogramas lentos)\n• Pantallas abiertas y botones tocados antes de un error\n• Recuentos de sesiones, para medir con qué frecuencia falla la app\n\nLos informes no llevan ningún ID de instalación, así que no pueden vincularse a tu teléfono. Tus fotos y videos nunca se suben. Se eliminan URIs, nombres de archivo y coordenadas GPS antes de la carga.</string>
     <string name="settings_crash_reporting_privacy_policy">Política de Privacidad</string>
     <string name="settings_crash_reporting_dismiss">Cerrar</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
@@ -595,7 +595,7 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="onboarding_crash_title">Ayuda a mejorar Redact.</string>
     <string name="onboarding_crash_body">Si Redact llega a fallar, puede enviar un informe anónimo para que el problema se encuentre y se solucione. Redact solo se conecta a internet para los informes de errores que actives y para buscar actualizaciones cuando tú lo inicies en Ajustes.</string>
     <string name="onboarding_crash_point_private">Los informes nunca incluyen tus fotos, videos, nombres de archivo ni ubicaciones.</string>
-    <string name="onboarding_crash_point_sentry">Los informes van a Sentry, un servicio que ayuda a los desarrolladores a encontrar y corregir fallos. En aproximadamente 1 de cada 4 sesiones también incluyen datos de rendimiento.</string>
+    <string name="onboarding_crash_point_sentry">Los informes van a Sentry, un servicio que ayuda a los desarrolladores a encontrar y corregir fallos. También incluyen datos de rendimiento y no llevan ningún ID de instalación, así que no pueden vincularse a tu teléfono.</string>
     <string name="onboarding_crash_allow">Enviar Informes de Errores</string>
     <string name="onboarding_status_crash_on">Los informes de errores están activados.</string>
     <string name="onboarding_choices_crash">Por último, los informes de errores, para que los problemas se encuentren y se solucionen antes.</string>

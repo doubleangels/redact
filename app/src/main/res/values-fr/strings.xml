@@ -143,7 +143,7 @@
         <string name="settings_sentry_consent_allow">Activer</string>
     <string name="settings_sentry_consent_cancel">Pas Maintenant</string>
     <string name="settings_sentry_consent_title">Activer les Rapports de Plantage</string>
-    <string name="settings_sentry_consent_message">Envoyer les Rapports de Plantage envoie des diagnostics anonymisés à Sentry via Internet. Il envoie aussi des mesures de performances, comme le temps d\'ouverture des écrans, pour environ 1 session sur 4.\n\nAucune photo, vidéo, nom de fichier ni coordonnée GPS n\'est téléversé.</string>
+    <string name="settings_sentry_consent_message">Envoyer les Rapports de Plantage envoie des diagnostics anonymisés à Sentry via Internet, dont des mesures de performances, comme le temps d\'ouverture des écrans, et les écrans et boutons utilisés avant une erreur. Les rapports ne contiennent aucun identifiant d\'installation et ne peuvent donc pas être reliés à votre téléphone.\n\nAucune photo, vidéo, nom de fichier ni coordonnée GPS n\'est téléversé.</string>
     <string name="settings_strict_clean">Nettoyage Strict</string>
     <string name="settings_strict_clean_subtitle">Supprime toutes les métadonnées sauf les balises qui indiquent seulement comment afficher l\'image, comme son orientation et son espace colorimétrique. Désactive les options de conservation ci-dessous et réencode toujours entièrement la vidéo pour le nettoyage le plus complet.</string>
     
@@ -219,7 +219,7 @@
     <string name="settings_progress_notifications_subtitle">Notification persistante avec progression pour les longues tâches. Désactivée par défaut jusqu\'à activation des notifications.</string>
     <string name="settings_crash_reporting_learn_more">Qu\'Est-Ce Qui Est Partagé ?</string>
     <string name="settings_crash_reporting_detail_title">Détails des Rapports de Plantage</string>
-    <string name="settings_crash_reporting_detail_message">Lorsque Envoyer les rapports de plantage est activé, des diagnostics anonymisés peuvent être envoyés via Sentry :\n\n• Modèle d\'appareil et version Android\n• Version de l\'application\n• Traces de pile et types d\'erreur\n• Balises de diagnostic nettoyées\n• Mesures de performances pour environ 1 session sur 4 (temps d\'ouverture des écrans, images lentes)\n\nVos photos et vidéos ne sont jamais téléversées. Les URI, noms de fichier et coordonnées GPS sont supprimés avant l\'envoi.</string>
+    <string name="settings_crash_reporting_detail_message">Lorsque Envoyer les rapports de plantage est activé, des diagnostics anonymisés peuvent être envoyés via Sentry :\n\n• Modèle d\'appareil et version Android\n• Version de l\'application\n• Traces de pile et types d\'erreur\n• Balises de diagnostic nettoyées\n• Mesures de performances (temps d\'ouverture des écrans, images lentes)\n• Écrans ouverts et boutons touchés avant une erreur\n• Nombre de sessions, pour mesurer la fréquence des plantages\n\nLes rapports ne contiennent aucun identifiant d\'installation et ne peuvent donc pas être reliés à votre téléphone. Vos photos et vidéos ne sont jamais téléversées. Les URI, noms de fichier et coordonnées GPS sont supprimés avant l\'envoi.</string>
     <string name="settings_crash_reporting_privacy_policy">Politique de Confidentialité</string>
     <string name="settings_crash_reporting_dismiss">Fermer</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
@@ -595,7 +595,7 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="onboarding_crash_title">Aidez à améliorer Redact.</string>
     <string name="onboarding_crash_body">Si Redact plante, il peut envoyer un rapport anonyme pour que le problème soit trouvé et corrigé. Redact ne se connecte à Internet que pour les rapports de plantage que vous activez et pour une recherche de mises à jour que vous lancez vous-même dans les paramètres.</string>
     <string name="onboarding_crash_point_private">Les rapports n\'incluent jamais vos photos, vidéos, noms de fichiers ni lieux.</string>
-    <string name="onboarding_crash_point_sentry">Les rapports sont envoyés à Sentry, un service qui aide les développeurs à trouver et corriger les plantages. Pour environ 1 session sur 4, ils incluent aussi des mesures de performances.</string>
+    <string name="onboarding_crash_point_sentry">Les rapports sont envoyés à Sentry, un service qui aide les développeurs à trouver et corriger les plantages. Ils incluent aussi des mesures de performances, sans aucun identifiant d\'installation, et ne peuvent donc pas être reliés à votre téléphone.</string>
     <string name="onboarding_crash_allow">Envoyer les Rapports de Plantage</string>
     <string name="onboarding_status_crash_on">Les rapports de plantage sont activés.</string>
     <string name="onboarding_choices_crash">Enfin, les rapports de plantage, pour que les problèmes soient trouvés et corrigés plus vite.</string>

@@ -143,7 +143,7 @@
         <string name="settings_sentry_consent_allow">Attiva</string>
     <string name="settings_sentry_consent_cancel">Non Ora</string>
     <string name="settings_sentry_consent_title">Attiva Segnalazioni Crash</string>
-    <string name="settings_sentry_consent_message">Invia Segnalazioni Crash carica diagnostica anonima su Sentry via internet. Invia anche dati sulle prestazioni, come il tempo di apertura delle schermate, per circa 1 sessione su 4.\n\nFoto, video, nomi file e coordinate GPS non vengono caricati.</string>
+    <string name="settings_sentry_consent_message">Invia Segnalazioni Crash carica diagnostica anonima su Sentry via internet, inclusi dati sulle prestazioni, come il tempo di apertura delle schermate, e le schermate e i pulsanti usati prima di un errore. I report non contengono alcun ID di installazione, quindi non possono essere collegati al tuo telefono.\n\nFoto, video, nomi file e coordinate GPS non vengono caricati.</string>
     <string name="settings_strict_clean">Pulizia Rigorosa</string>
     <string name="settings_strict_clean_subtitle">Rimuove tutti i metadati tranne i tag che indicano solo come mostrare l\'immagine, come l\'orientamento e lo spazio colore. Disattiva le opzioni di mantenimento qui sotto e ricodifica sempre completamente il video per la pulizia più accurata.</string>
     
@@ -219,7 +219,7 @@
     <string name="settings_progress_notifications_subtitle">Notifica persistente con avanzamento per lavori lunghi. Disattivata di default finché non abiliti le notifiche.</string>
     <string name="settings_crash_reporting_learn_more">Cosa Viene Condiviso?</string>
     <string name="settings_crash_reporting_detail_title">Dettagli Segnalazione Crash</string>
-    <string name="settings_crash_reporting_detail_message">Quando Invia report di crash è attivo, possono essere inviati diagnostici anonimi tramite Sentry:\n\n• Modello dispositivo e versione Android\n• Versione app\n• Stack trace e tipi di errore\n• Tag diagnostici depurati\n• Dati sulle prestazioni per circa 1 sessione su 4 (tempo di apertura delle schermate, fotogrammi lenti)\n\nLe tue foto e video non vengono mai caricati. URI, nomi file e coordinate GPS vengono rimossi prima dell\'invio.</string>
+    <string name="settings_crash_reporting_detail_message">Quando Invia report di crash è attivo, possono essere inviati diagnostici anonimi tramite Sentry:\n\n• Modello dispositivo e versione Android\n• Versione app\n• Stack trace e tipi di errore\n• Tag diagnostici depurati\n• Dati sulle prestazioni (tempo di apertura delle schermate, fotogrammi lenti)\n• Schermate aperte e pulsanti toccati prima di un errore\n• Conteggi delle sessioni, per misurare quanto spesso l\'app va in crash\n\nI report non contengono alcun ID di installazione, quindi non possono essere collegati al tuo telefono. Le tue foto e video non vengono mai caricati. URI, nomi file e coordinate GPS vengono rimossi prima dell\'invio.</string>
     <string name="settings_crash_reporting_privacy_policy">Informativa sulla Privacy</string>
     <string name="settings_crash_reporting_dismiss">Chiudi</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
@@ -595,7 +595,7 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="onboarding_crash_title">Aiutaci a migliorare Redact.</string>
     <string name="onboarding_crash_body">Se Redact dovesse arrestarsi in modo anomalo, può inviare un rapporto anonimo così il problema può essere individuato e risolto. Redact si collega a internet solo per i rapporti sugli arresti anomali che attivi e per una ricerca di aggiornamenti che avvii tu nelle impostazioni.</string>
     <string name="onboarding_crash_point_private">I rapporti non includono mai foto, video, nomi dei file o posizioni.</string>
-    <string name="onboarding_crash_point_sentry">I rapporti vengono inviati a Sentry, un servizio che aiuta gli sviluppatori a trovare e correggere gli arresti anomali. Per circa 1 sessione su 4 includono anche dati sulle prestazioni.</string>
+    <string name="onboarding_crash_point_sentry">I rapporti vengono inviati a Sentry, un servizio che aiuta gli sviluppatori a trovare e correggere gli arresti anomali. Includono anche dati sulle prestazioni, ma nessun ID di installazione, quindi non possono essere collegati al tuo telefono.</string>
     <string name="onboarding_crash_allow">Invia Rapporti sugli Arresti Anomali</string>
     <string name="onboarding_status_crash_on">I rapporti sugli arresti anomali sono attivi.</string>
     <string name="onboarding_choices_crash">Infine, i rapporti sugli arresti anomali, così i problemi vengono trovati e risolti prima.</string>

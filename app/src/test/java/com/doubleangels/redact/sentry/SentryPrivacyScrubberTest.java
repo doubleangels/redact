@@ -292,4 +292,56 @@ public class SentryPrivacyScrubberTest {
         org.junit.Assert.assertNull(transaction.getContexts().getDevice().getId());
         org.junit.Assert.assertNull(transaction.getContexts().getDevice().getBootTime());
     }
+
+    /**
+     * The time zone and kernel version, with the model, build and locale, can single out one phone
+     * among a few hundred, so they go. The model, build and Android version stay for debugging.
+     */
+    @Test
+    public void events_andTransactions_goWithoutTheTimeZoneOrKernelVersion() {
+        SentryEvent event = new SentryEvent();
+        io.sentry.protocol.Device device = new io.sentry.protocol.Device();
+        device.setTimezone(java.util.TimeZone.getTimeZone("Europe/Kyiv"));
+        device.setModel("A063");
+        event.getContexts().setDevice(device);
+        io.sentry.protocol.OperatingSystem os = new io.sentry.protocol.OperatingSystem();
+        os.setKernelVersion("6.1.75-android14-11-g1234abcd #1 SMP PREEMPT");
+        os.setBuild("BP2A.250605.031");
+        os.setVersion("16");
+        event.getContexts().setOperatingSystem(os);
+
+        SentryPrivacyScrubber.scrubEvent(event);
+
+        org.junit.Assert.assertNull(event.getContexts().getDevice().getTimezone());
+        org.junit.Assert.assertEquals("A063", event.getContexts().getDevice().getModel());
+        io.sentry.protocol.OperatingSystem afterOs = event.getContexts().getOperatingSystem();
+        org.junit.Assert.assertNull(afterOs.getKernelVersion());
+        org.junit.Assert.assertEquals("BP2A.250605.031", afterOs.getBuild());
+        org.junit.Assert.assertEquals("16", afterOs.getVersion());
+
+        io.sentry.protocol.SentryTransaction transaction = new io.sentry.protocol.SentryTransaction(
+                new io.sentry.SentryTracer(new io.sentry.TransactionContext("t", "op"),
+                        io.sentry.NoOpScopes.getInstance()));
+        io.sentry.protocol.Device tDevice = new io.sentry.protocol.Device();
+        tDevice.setTimezone(java.util.TimeZone.getTimeZone("Europe/Kyiv"));
+        transaction.getContexts().setDevice(tDevice);
+        io.sentry.protocol.OperatingSystem tOs = new io.sentry.protocol.OperatingSystem();
+        tOs.setKernelVersion("6.1.75");
+        transaction.getContexts().setOperatingSystem(tOs);
+
+        SentryPrivacyScrubber.scrubTransaction(transaction);
+
+        org.junit.Assert.assertNull(transaction.getContexts().getDevice().getTimezone());
+        org.junit.Assert.assertNull(transaction.getContexts().getOperatingSystem().getKernelVersion());
+    }
+
+    /** A context with no device or OS is left alone, without a crash. */
+    @Test
+    public void scrubDevice_handlesMissingContexts() {
+        SentryPrivacyScrubber.scrubDevice(null);
+        io.sentry.protocol.Contexts empty = new io.sentry.protocol.Contexts();
+        SentryPrivacyScrubber.scrubDevice(empty);
+        org.junit.Assert.assertNull(empty.getDevice());
+        org.junit.Assert.assertNull(empty.getOperatingSystem());
+    }
 }

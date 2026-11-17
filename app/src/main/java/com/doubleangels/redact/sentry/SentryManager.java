@@ -272,7 +272,11 @@ public final class SentryManager {
         return false;
     }
 
-    /** Fixed-category breadcrumb; message must not contain user data. */
+    /**
+     * Records a fixed-category message as a breadcrumb, which travels with the next error, and as a
+     * structured log, which is sent on its own so slow or odd runs can be followed without a
+     * crash. The message must not contain user data, and is scrubbed anyway.
+     */
     public static void logEvent(String category, String message) {
         // Nothing would be sent, and release builds strip Log.i: scrubbing would be wasted work,
         // on every log line, for the users who left crash reports off (the default).
@@ -289,8 +293,10 @@ public final class SentryManager {
         b.setMessage(safeMessage);
         b.setCategory(safeCategory);
         b.setLevel(SentryLevel.INFO);
-        // Breadcrumb only: it travels with an error event, never on its own.
         Sentry.addBreadcrumb(b);
+        // A template, so a '%' in the message is never read as a format specifier. The SDK sends
+        // the parameters as attributes too, which scrubLog scrubs like the body.
+        Sentry.logger().info("%s: %s", safeCategory, safeMessage);
     }
 
     /** Counter metric with no attributes. */
