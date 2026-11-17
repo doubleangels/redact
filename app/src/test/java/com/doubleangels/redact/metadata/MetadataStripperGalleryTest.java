@@ -392,7 +392,7 @@ public class MetadataStripperGalleryTest {
     }
 
     @Test
-    public void sharingNonStrict_stripsLocation() throws Exception {
+    public void sharingNonStrict_runsItsEarlyBranches() throws Exception {
         AppPreferences.setStrictClean(app, false);
         // The share path is only exercised for its early branches here: FileProvider URIs cannot be
         // produced on every host (see FileProviderTestSupport), so null is an acceptable outcome.

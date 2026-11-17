@@ -12000,7 +12000,6 @@ PLcom/doubleangels/redact/ui/CensorViewModel;->lambda$save$0(Landroid/net/Uri;Lj
 PLcom/doubleangels/redact/ui/CensorViewModel;->onPreviewShown(Landroid/graphics/Bitmap;)V
 PLcom/doubleangels/redact/ui/CensorViewModel;->open(Landroid/net/Uri;)V
 PLcom/doubleangels/redact/ui/CensorViewModel;->previewMaxDimension(Landroid/content/Context;)I
-PLcom/doubleangels/redact/ui/CensorViewModel;->queryFileName(Landroid/net/Uri;)Ljava/lang/String;
 PLcom/doubleangels/redact/ui/CensorViewModel;->regions()Ljava/util/List;
 PLcom/doubleangels/redact/ui/CensorViewModel;->remember()V
 PLcom/doubleangels/redact/ui/CensorViewModel;->renderAdded(Lcom/doubleangels/redact/media/CensorRegion;)V

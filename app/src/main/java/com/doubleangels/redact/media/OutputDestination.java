@@ -300,7 +300,10 @@ public final class OutputDestination {
         return app.getSharedPreferences(PENDING_PREFS, Context.MODE_PRIVATE);
     }
 
-    /** The file name of an output created by {@link #create}, or null when it cannot be read. */
+    /**
+     * The display name of {@code uri} (an output created by {@link #create}, or any picked file), or
+     * null when it cannot be read.
+     */
     @Nullable
     public static String displayName(@NonNull ContentResolver resolver, @NonNull Uri uri) {
         try (Cursor cursor = resolver.query(uri,

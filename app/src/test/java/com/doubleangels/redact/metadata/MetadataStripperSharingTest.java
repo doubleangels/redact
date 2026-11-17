@@ -148,7 +148,7 @@ public class MetadataStripperSharingTest {
     }
 
     @Test
-    public void shareJpeg_nonStrict_removesExif() throws Exception {
+    public void shareJpeg_nonStrict_runsWithoutThrowing() throws Exception {
         AppPreferences.setStrictClean(app, false);
         File src = image(".jpg", Bitmap.CompressFormat.JPEG, true);
         (lastResult = stripper.cleanForSharing(Uri.fromFile(src), "b.jpg", false)).uri(); // exercised only; Robolectric EXIF round-trip differs

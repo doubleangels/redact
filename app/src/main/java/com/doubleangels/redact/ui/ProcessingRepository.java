@@ -22,6 +22,7 @@ import com.doubleangels.redact.media.MediaItem;
 import com.doubleangels.redact.media.MediaProcessor;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.media.ProgressUpdateThrottler;
+import com.doubleangels.redact.media.UnsupportedMediaException;
 import com.doubleangels.redact.media.VideoMedia3Converter;
 import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.sentry.AppMetrics;
@@ -689,7 +690,7 @@ public final class ProcessingRepository {
                     } else {
                         fail++;
                         String outcome = AppMetrics.outcomeOf(e,
-                                com.doubleangels.redact.media.UnsupportedMediaException.isCauseOf(e));
+                                UnsupportedMediaException.isCauseOf(e));
                         AppMetrics.item(AppMetrics.CONVERT, mediaItem.isVideo(), outcome, -1);
                         AppMetrics.convertFormat(targetMimeType, outcome);
                         SentryManager.recordException(e);

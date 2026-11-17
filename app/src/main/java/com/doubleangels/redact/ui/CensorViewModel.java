@@ -3,14 +3,12 @@ package com.doubleangels.redact.ui;
 import android.app.ActivityManager;
 import android.app.Application;
 import android.content.Context;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.net.Uri;
-import android.provider.OpenableColumns;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,6 +21,7 @@ import com.doubleangels.redact.media.CensorEffects;
 import com.doubleangels.redact.media.CensorExporter;
 import com.doubleangels.redact.media.CensorRegion;
 import com.doubleangels.redact.media.FormatConverter;
+import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.media.UnsupportedMediaException;
 import com.doubleangels.redact.metadata.CleanStats;
 import com.doubleangels.redact.notifications.LocalNotifications;
@@ -268,7 +267,7 @@ public class CensorViewModel extends AndroidViewModel {
         SentryManager.log("A photo was opened for censoring.");
         worker.execute(() -> {
             try {
-                String name = queryFileName(uri);
+                String name = OutputDestination.displayName(getApplication().getContentResolver(), uri);
                 Bitmap decoded = fitPreview(
                         FormatConverter.decodeUpright(getApplication(), uri, previewMaxDimension), previewMaxDimension);
                 if (generation != photoGeneration.get()) {
@@ -732,15 +731,6 @@ public class CensorViewModel extends AndroidViewModel {
         return chosen != null ? chosen : DEFAULT_EFFECT;
     }
 
-    @Nullable
-    private String queryFileName(@NonNull Uri uri) {
-        try (Cursor cursor = getApplication().getContentResolver().query(
-                uri, new String[] {OpenableColumns.DISPLAY_NAME}, null, null, null)) {
-            return cursor != null && cursor.moveToFirst() ? cursor.getString(0) : null;
-        } catch (Exception e) {
-            return null;
-        }
-    }
 
     @Override
     protected void onCleared() {
