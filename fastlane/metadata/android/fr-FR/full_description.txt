@@ -36,7 +36,7 @@ Ou partagez-le vers « Scanner avec Redact » pour le vérifier d'abord.
 
 <b>Privé par conception</b>
 • Tout se passe sur votre téléphone, sans connexion Internet
-• Pas de publicité, pas d'analyses, pas de pistage et pas de compte
+• Pas de publicité, pas de pistage et pas de compte
 • Vos photos, vidéos et informations personnelles ne sont jamais collectées ni partagées
 • Open source sous GPL-3.0 : tout le monde peut lire le code sur GitHub
 • Fonctionne avec le sélecteur de fichiers du système : l'accès à toute votre galerie est donc facultatif

@@ -36,7 +36,7 @@ Oder teile sie mit „Mit Redact Scannen“, um sie zuerst zu prüfen.
 
 <b>Privat von Grund auf</b>
 • Alles läuft auf deinem Handy, ganz ohne Internet
-• Keine Werbung, keine Analysen, kein Tracking und kein Konto
+• Keine Werbung, kein Tracking und kein Konto
 • Deine Fotos, Videos und persönlichen Daten werden nie erfasst oder weitergegeben
 • Open Source unter GPL-3.0, jeder kann den Code auf GitHub lesen
 • Funktioniert mit der Dateiauswahl des Systems, Zugriff auf deine ganze Mediathek ist daher optional
