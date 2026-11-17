@@ -318,6 +318,129 @@ public class CleanConvertFragmentsTest {
     }
 
     @Test
+    public void clean_openResult_opensTheCleanCopyInTheViewer() throws Exception {
+        View v = cleanOneFile();
+        assertEquals(View.VISIBLE, visibility(v, R.id.openResultButton));
+
+        v.findViewById(R.id.openResultButton).performClick();
+        idle();
+
+        Intent started = shadowOf(activity).getNextStartedActivity();
+        assertNotNull(started);
+        // Robolectric has no viewer but Redact, so the list (without Redact) wraps the view.
+        Intent view = Intent.ACTION_CHOOSER.equals(started.getAction())
+                ? started.getParcelableExtra(Intent.EXTRA_INTENT) : started;
+        assertEquals(Intent.ACTION_VIEW, view.getAction());
+        assertEquals(vm.getCleanOutputs().get(0), view.getData());
+        assertTrue((view.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0);
+        FakeMediaStoreProvider.reset();
+    }
+
+    @Test
+    public void clean_openResult_showsOnlyForASingleSavedFile() {
+        View v = clean();
+        vm.setSelectedItems(Arrays.asList(image("a.jpg")));
+        idle();
+        assertEquals(View.GONE, visibility(v, R.id.openResultButton));
+        // Completed with nothing saved (the fake files cannot be read): still nothing to open.
+        vm.setCleanProcessingState(MainViewModel.ProcessingState.COMPLETED);
+        idle();
+        assertEquals(View.GONE, visibility(v, R.id.openResultButton));
+    }
+
+    @Test
+    public void clean_shareWithoutSaving_showsWithASelection_untilACleanFinishes() {
+        View v = clean();
+        assertEquals(View.GONE, visibility(v, R.id.shareWithoutSavingButton));
+
+        vm.setSelectedItems(Arrays.asList(image("a.jpg")));
+        idle();
+        assertEquals(View.VISIBLE, visibility(v, R.id.shareWithoutSavingButton));
+
+        vm.setCleanProcessingState(MainViewModel.ProcessingState.PROCESSING);
+        idle();
+        assertEquals(View.GONE, visibility(v, R.id.shareWithoutSavingButton));
+
+        // After a clean, Share sends the saved copies from the same place.
+        vm.setCleanProcessingState(MainViewModel.ProcessingState.COMPLETED);
+        idle();
+        assertEquals(View.GONE, visibility(v, R.id.shareWithoutSavingButton));
+
+        vm.setCleanProcessingState(MainViewModel.ProcessingState.IDLE);
+        idle();
+        assertEquals(View.VISIBLE, visibility(v, R.id.shareWithoutSavingButton));
+    }
+
+    @Test
+    public void clean_shareWithoutSaving_handsTheSelectionToTheShareHandler_withoutItsQuestion() {
+        View v = clean();
+        List<MediaItem> items = Arrays.asList(image("a.jpg"), video("b.mp4"));
+        vm.setSelectedItems(items);
+        idle();
+
+        v.findViewById(R.id.shareWithoutSavingButton).performClick();
+        idle();
+
+        Intent share = shadowOf(activity).getNextStartedActivity();
+        assertNotNull(share);
+        assertEquals(ShareHandlerActivity.class.getName(), share.getComponent().getClassName());
+        assertEquals(Intent.ACTION_SEND_MULTIPLE, share.getAction());
+        ArrayList<Uri> streams = androidx.core.content.IntentCompat.getParcelableArrayListExtra(share, Intent.EXTRA_STREAM, Uri.class);
+        assertEquals(Arrays.asList(items.get(0).uri(), items.get(1).uri()), streams);
+        assertTrue((share.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0);
+        assertTrue("the user just asked, so the share handler does not ask again",
+                ShareHandlerActivity.isInternal(share));
+        // Nothing is saved: the Clean tab itself starts no clean.
+        assertEquals(MainViewModel.ProcessingState.IDLE, vm.getCleanProcessingState().getValue());
+    }
+
+    @Test
+    public void clean_shareWithoutSaving_ofASingleFile_sendsIt() {
+        View v = clean();
+        vm.setSelectedItems(Arrays.asList(image("a.jpg")));
+        idle();
+
+        v.findViewById(R.id.shareWithoutSavingButton).performClick();
+        idle();
+
+        Intent share = shadowOf(activity).getNextStartedActivity();
+        assertEquals(Intent.ACTION_SEND, share.getAction());
+        assertEquals(image("a.jpg").uri(), androidx.core.content.IntentCompat.getParcelableExtra(share, Intent.EXTRA_STREAM, Uri.class));
+    }
+
+    @Test
+    public void clean_shareWithoutSaving_refusesMoreThanAShareTakes() {
+        View v = clean();
+        com.doubleangels.redact.ui.Notice.resetForTests();
+        List<MediaItem> many = new ArrayList<>();
+        for (int i = 0; i <= com.doubleangels.redact.media.MediaPickerContracts.MAX_SHARE_ITEMS; i++) {
+            many.add(image(i + ".jpg"));
+        }
+        vm.setSelectedItems(many);
+        idle();
+        while (shadowOf(activity).getNextStartedActivity() != null) {
+            // Drops what started before the tap, such as the introduction on a first run.
+        }
+
+        v.findViewById(R.id.shareWithoutSavingButton).performClick();
+        idle();
+
+        assertEquals(null, shadowOf(activity).getNextStartedActivity());
+        assertEquals(activity.getString(R.string.share_error_too_many_items,
+                        com.doubleangels.redact.media.MediaPickerContracts.MAX_SHARE_ITEMS),
+                com.doubleangels.redact.ui.Notice.lastShownForTests());
+    }
+
+    @Test
+    public void shareHandler_doesNotTakeAnotherAppsIntent_forItsOwn() {
+        Intent outside = new Intent(Intent.ACTION_SEND)
+                .putExtra("com.doubleangels.redact.extra.INTERNAL_TOKEN", "guess");
+        assertFalse(ShareHandlerActivity.isInternal(outside));
+        assertFalse(ShareHandlerActivity.isInternal(new Intent(Intent.ACTION_SEND)));
+        assertFalse(ShareHandlerActivity.isInternal(null));
+    }
+
+    @Test
     public void clean_scanResult_opensTheCleanCopyInScan() throws Exception {
         View v = cleanOneFile();
         assertEquals(View.VISIBLE, visibility(v, R.id.scanResultButton));

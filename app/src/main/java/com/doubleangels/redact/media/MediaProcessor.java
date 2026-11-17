@@ -57,6 +57,23 @@ public class MediaProcessor {
     /** The batch's cleaned items, kept until the next batch. Guarded by {@code this}. */
     private final List<Succeeded> succeeded = new ArrayList<>();
 
+    /** Why a file of a batch was not cleaned, as the Clean tab lists it. */
+    public enum FailReason {
+        /** This phone can't decode the format. */
+        UNSUPPORTED,
+        /** The phone ran out of memory for it. */
+        OUT_OF_MEMORY,
+        /** It could not be cleaned, or the clean copy could not be vouched for, so nothing was saved. */
+        NOT_CLEANED
+    }
+
+    /** One file of the last batch that was not cleaned, and why. */
+    public record Failed(@NonNull MediaItem item, @NonNull FailReason reason) {
+    }
+
+    /** The batch's files that were not cleaned, kept until the next batch. Guarded by {@code this}. */
+    private final List<Failed> failed = new ArrayList<>();
+
     /**
      * How many of {@link #succeeded} {@link #takeSucceededSources} has handed out already, so each
      * source is offered for trashing once. Guarded by {@code this}.
@@ -239,7 +256,18 @@ public class MediaProcessor {
 
     private synchronized void clearSucceeded() {
         succeeded.clear();
+        failed.clear();
         sourcesTaken = 0;
+    }
+
+    private synchronized void addFailed(@NonNull MediaItem item, @NonNull FailReason reason) {
+        failed.add(new Failed(item, reason));
+    }
+
+    /** The last batch's files that were not cleaned, in batch order, for the Clean tab to list and retry. */
+    @NonNull
+    public synchronized List<Failed> getFailed() {
+        return new ArrayList<>(failed);
     }
 
     private synchronized void addSucceeded(@NonNull Succeeded item) {
@@ -354,6 +382,7 @@ public class MediaProcessor {
                             span.setStatus(SpanStatus.CANCELLED);
                             break;
                         } else {
+                            addFailed(item, result.unsupported() ? FailReason.UNSUPPORTED : FailReason.NOT_CLEANED);
                             Log.e(TAG, "Failed to process item at index " + index);
                             SentryManager.count(
                                     "processing.clean.failure", 1, "is_video", String.valueOf(item.isVideo()));
@@ -376,6 +405,8 @@ public class MediaProcessor {
                             span.setStatus(SpanStatus.CANCELLED);
                             break;
                         }
+                        addFailed(item, e instanceof OutOfMemoryError ? FailReason.OUT_OF_MEMORY
+                                : UnsupportedMediaException.isCauseOf(e) ? FailReason.UNSUPPORTED : FailReason.NOT_CLEANED);
                         Log.e(TAG, "Error processing item at index " + index, e);
                         SentryManager.recordException(e);
                         SentryManager.count(

@@ -36,6 +36,7 @@ import com.doubleangels.redact.ui.Notice;
 import com.doubleangels.redact.ui.ReviewPrompt;
 import com.doubleangels.redact.ui.ScanViewModel;
 import com.doubleangels.redact.ui.SecureWindow;
+import com.doubleangels.redact.ui.OpenResult;
 import com.doubleangels.redact.ui.ShareResults;
 import com.doubleangels.redact.ui.SummaryCard;
 import com.google.android.material.button.MaterialButton;
@@ -111,6 +112,7 @@ public class CensorFragment extends TabFragment {
     private ExtendedFloatingActionButton saveButton;
     private View shareButton;
     private View scanResultButton;
+    private View openResultButton;
     @Nullable
     private AlertDialog replaceDialog;
     /** Whether this fragment last hid the bars, so they are only shown or hidden on a change. */
@@ -155,6 +157,19 @@ public class CensorFragment extends TabFragment {
                         viewModel.close();
                     }
                 });
+    }
+
+    @Override
+    boolean acceptsMedia() {
+        return true;
+    }
+
+    /** Censor edits one photo: the first one dropped or pasted opens, as a pick would. */
+    @Override
+    void onMediaReceived(@NonNull List<Uri> uris) {
+        if (!uris.isEmpty() && viewModel != null) {
+            viewModel.requestOpen(uris.get(0));
+        }
     }
 
     @Nullable
@@ -204,6 +219,7 @@ public class CensorFragment extends TabFragment {
         saveButton = view.findViewById(R.id.censorSaveButton);
         shareButton = view.findViewById(R.id.shareResultsButton);
         scanResultButton = view.findViewById(R.id.scanResultButton);
+        openResultButton = view.findViewById(R.id.openResultButton);
 
         view.findViewById(R.id.emptyStateSelectButton).setOnClickListener(v -> pickPhoto());
         view.findViewById(R.id.selectButton).setOnClickListener(v -> pickPhoto());
@@ -245,6 +261,13 @@ public class CensorFragment extends TabFragment {
         scanResultButton.setOnClickListener(v -> {
             Haptics.tick(v);
             openResultInScan();
+        });
+        openResultButton.setOnClickListener(v -> {
+            Haptics.tick(v);
+            CensorExporter.Result saved = viewModel.getLastSaved();
+            if (saved != null) {
+                OpenResult.open(requireContext(), saved.uri);
+            }
         });
         setUpTools(view);
         setUpEffects();
@@ -732,6 +755,7 @@ public class CensorFragment extends TabFragment {
         boolean savedMatches = ready && saved != null && !unsaved && viewModel.hasEdits();
         shareButton.setVisibility(savedMatches ? View.VISIBLE : View.GONE);
         scanResultButton.setVisibility(savedMatches ? View.VISIBLE : View.GONE);
+        openResultButton.setVisibility(savedMatches ? View.VISIBLE : View.GONE);
 
         if (saving) {
             showStatus(getString(R.string.status_processing));

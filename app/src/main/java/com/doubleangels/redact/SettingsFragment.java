@@ -101,6 +101,9 @@ public class SettingsFragment extends TabFragment {
     private MaterialSwitch switchSecureWindow;
     private MaterialSwitch switchPreserveCamera;
     private MaterialSwitch switchPreserveLocation;
+    private MaterialSwitch switchApproximateLocation;
+    private MaterialSwitch switchDateOnly;
+    private MaterialSwitch switchRemoveAudio;
     private MaterialSwitch switchPreserveDate;
     private MaterialSwitch switchPreserveMotion;
     private MaterialSwitch switchAutoClearTemp;
@@ -168,7 +171,30 @@ public class SettingsFragment extends TabFragment {
             refreshOutputFolders();
             // A clean or convert on another tab adds to the counts.
             refreshStatistics();
+            // The Clean tab's quick toggles change the same settings.
+            refreshCleaningSwitches();
         }
+    }
+
+    /** Sets the cleaning switches from the preferences again, without asking anything. */
+    private void refreshCleaningSwitches() {
+        if (switchStrictClean == null || getContext() == null) {
+            return;
+        }
+        Context context = requireContext();
+        // Each listener writes back the value it is given, which is the saved one; Keep
+        // Location's would ask to confirm, so it is told not to.
+        suppressPreserveLocationToggleCallback = true;
+        try {
+            switchStrictClean.setChecked(AppPreferences.isStrictClean(context));
+            switchPreserveCamera.setChecked(AppPreferences.isPreserveCameraSettings(context));
+            switchPreserveLocation.setChecked(AppPreferences.isPreserveLocation(context));
+            switchPreserveDate.setChecked(AppPreferences.isPreserveDateTaken(context));
+            switchRemoveAudio.setChecked(AppPreferences.isRemoveAudio(context));
+        } finally {
+            suppressPreserveLocationToggleCallback = false;
+        }
+        updatePreservationTogglesState(AppPreferences.isStrictClean(context));
     }
 
     @Override
@@ -206,6 +232,9 @@ public class SettingsFragment extends TabFragment {
         switchSecureWindow = view.findViewById(R.id.switchSecureWindow);
         switchPreserveCamera = view.findViewById(R.id.switchPreserveCamera);
         switchPreserveLocation = view.findViewById(R.id.switchPreserveLocation);
+        switchApproximateLocation = view.findViewById(R.id.switchApproximateLocation);
+        switchDateOnly = view.findViewById(R.id.switchDateOnly);
+        switchRemoveAudio = view.findViewById(R.id.switchRemoveAudio);
         switchPreserveDate = view.findViewById(R.id.switchPreserveDate);
         switchPreserveMotion = view.findViewById(R.id.switchPreserveMotion);
         switchAutoClearTemp = view.findViewById(R.id.switchAutoClearTemp);
@@ -334,6 +363,9 @@ public class SettingsFragment extends TabFragment {
         switchPreserveCamera.setChecked(AppPreferences.isPreserveCameraSettings(requireContext()));
         switchPreserveLocation.setChecked(AppPreferences.isPreserveLocation(requireContext()));
         switchPreserveDate.setChecked(AppPreferences.isPreserveDateTaken(requireContext()));
+        switchApproximateLocation.setChecked(AppPreferences.isApproximateLocation(requireContext()));
+        switchDateOnly.setChecked(AppPreferences.isDateOnly(requireContext()));
+        switchRemoveAudio.setChecked(AppPreferences.isRemoveAudio(requireContext()));
         switchPreserveMotion.setChecked(AppPreferences.isPreserveMotionPhoto(requireContext()));
         switchAutoClearTemp.setChecked(AppPreferences.isAutoClearTempFiles(requireContext()));
         switchVideoFallback.setChecked(AppPreferences.isVideoFallbackCopy(requireContext()));
@@ -354,8 +386,19 @@ public class SettingsFragment extends TabFragment {
         switchPreserveCamera.setOnCheckedChangeListener((btn, isChecked) ->
                 AppPreferences.setPreserveCameraSettings(requireContext(), isChecked));
 
-        switchPreserveDate.setOnCheckedChangeListener((btn, isChecked) ->
-                AppPreferences.setPreserveDateTaken(requireContext(), isChecked));
+        switchPreserveDate.setOnCheckedChangeListener((btn, isChecked) -> {
+            AppPreferences.setPreserveDateTaken(requireContext(), isChecked);
+            updateKeepSubOptions();
+        });
+
+        switchApproximateLocation.setOnCheckedChangeListener((btn, isChecked) ->
+                AppPreferences.setApproximateLocation(requireContext(), isChecked));
+
+        switchDateOnly.setOnCheckedChangeListener((btn, isChecked) ->
+                AppPreferences.setDateOnly(requireContext(), isChecked));
+
+        switchRemoveAudio.setOnCheckedChangeListener((btn, isChecked) ->
+                AppPreferences.setRemoveAudio(requireContext(), isChecked));
 
         switchPreserveMotion.setOnCheckedChangeListener((btn, isChecked) ->
                 AppPreferences.setPreserveMotionPhoto(requireContext(), isChecked));
@@ -376,11 +419,13 @@ public class SettingsFragment extends TabFragment {
                             suppressPreserveLocationToggleCallback = true;
                             switchPreserveLocation.setChecked(true);
                             suppressPreserveLocationToggleCallback = false;
+                            updateKeepSubOptions();
                         })
                         .setNegativeButton(android.R.string.cancel, null)
                         .show());
             } else {
                 AppPreferences.setPreserveLocation(requireContext(), false);
+                updateKeepSubOptions();
             }
         });
 
@@ -430,6 +475,29 @@ public class SettingsFragment extends TabFragment {
             switchPreserveLocation.setChecked(false);
             switchPreserveDate.setChecked(false);
             switchPreserveMotion.setChecked(false);
+        }
+        updateKeepSubOptions();
+    }
+
+    /**
+     * Shows Approximate Location under Keep Location, and Date Only under Keep Date Taken, only
+     * while that option is on: they say how much of what is kept stays.
+     */
+    private void updateKeepSubOptions() {
+        View root = getView();
+        if (root == null) {
+            return;
+        }
+        boolean strict = AppPreferences.isStrictClean(requireContext());
+        View rowApproximate = root.findViewById(R.id.rowApproximateLocation);
+        if (rowApproximate != null) {
+            rowApproximate.setVisibility(!strict && AppPreferences.isPreserveLocation(requireContext())
+                    ? View.VISIBLE : View.GONE);
+        }
+        View rowDateOnly = root.findViewById(R.id.rowDateOnly);
+        if (rowDateOnly != null) {
+            rowDateOnly.setVisibility(!strict && AppPreferences.isPreserveDateTaken(requireContext())
+                    ? View.VISIBLE : View.GONE);
         }
     }
 

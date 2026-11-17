@@ -181,4 +181,39 @@ public class Png16Test {
         byte[] split = samples(rewrite(resource("rgba16_split.png"), null), splitTypes);
         org.junit.Assert.assertArrayEquals("the same samples, however the data was split", one, split);
     }
+
+    /** A 16-bit RGB PNG's signature and header, {@code width} wide, then {@code rest}. */
+    private static byte[] header16(int width, byte[]... rest) {
+        ByteBuffer b = ByteBuffer.allocate(8 + 25 + java.util.Arrays.stream(rest).mapToInt(r -> r.length).sum());
+        b.put(new byte[] {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A});
+        b.putInt(13).put("IHDR".getBytes(StandardCharsets.ISO_8859_1)).putInt(width).putInt(1)
+                .put((byte) 16).put((byte) 2).put((byte) 0).put((byte) 0).put((byte) 0).putInt(0);
+        for (byte[] r : rest) {
+            b.put(r);
+        }
+        return b.array();
+    }
+
+    private static byte[] chunkHeader(int length, String type) {
+        return ByteBuffer.allocate(8).putInt(length).put(type.getBytes(StandardCharsets.ISO_8859_1)).array();
+    }
+
+    private static void assertRefused(byte[] png) {
+        try {
+            Png16.rewrite(new ByteArrayInputStream(png), new ByteArrayOutputStream(), null);
+            org.junit.Assert.fail("a declared size larger than the file must be refused");
+        } catch (IOException expected) {
+            // refused before anything that large was allocated
+        }
+    }
+
+    @Test(timeout = 5000)
+    public void sizesDeclaredInTheFile_areCheckedBeforeAnythingIsAllocated() {
+        // A colour profile chunk claiming almost 2 GB.
+        assertRefused(header16(1, chunkHeader(0x7FFFFFF0, "iCCP")));
+        // Any other chunk is skipped, not read into memory, and the file simply ends.
+        assertRefused(header16(1, chunkHeader(0x7FFFFFF0, "tEXt"), new byte[] {1, 2, 3}));
+        // A width no camera has, with picture data right after.
+        assertRefused(header16(0x7FFFFFFF, chunkHeader(4, "IDAT"), new byte[] {0, 0, 0, 0}));
+    }
 }

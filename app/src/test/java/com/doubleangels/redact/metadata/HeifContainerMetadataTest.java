@@ -366,6 +366,52 @@ public class HeifContainerMetadataTest {
         assertTrue(contains(out, "avif"));
     }
 
+    @Test(timeout = 5000)
+    public void animatedAvif_withAChunkTableLongerThanItsBox_keepsOnlyTheStill_quickly() throws Exception {
+        byte[] source = Files.readAllBytes(resource("animated.avif").toPath());
+        String text = new String(source, StandardCharsets.ISO_8859_1);
+        int table = text.indexOf("stco");
+        if (table < 0) {
+            table = text.indexOf("co64");
+        }
+        assertTrue("the fixture has a chunk table", table > 0);
+        // The entry count, after the type and version/flags: 2^31 - 1 entries in a few bytes.
+        java.nio.ByteBuffer.wrap(source, table + 8, 4).putInt(0x7FFFFFFF);
+        File broken = temp.newFile("huge-table.avif");
+        Files.write(broken.toPath(), source);
+        File clean = new File(temp.getRoot(), "huge-table-clean.avif");
+        HeifContainerMetadata.sanitize(broken, clean);
+
+        byte[] out = Files.readAllBytes(clean.toPath());
+        assertEquals(java.util.Arrays.asList("ftyp", "meta", "mdat"), boxes(out));
+    }
+
+    @Test
+    public void unreferencedBytes_countsWhatNoExtentCovers() {
+        java.util.List<long[]> mdats = java.util.List.of(new long[] {100, 200});
+        assertEquals(0, HeifContainerMetadata.unreferencedBytes(mdats,
+                java.util.List.of(new long[] {100, 60}, new long[] {160, 40})));
+        assertEquals(40, HeifContainerMetadata.unreferencedBytes(mdats,
+                java.util.List.of(new long[] {100, 30}, new long[] {150, 30})));
+        assertEquals(100, HeifContainerMetadata.unreferencedBytes(mdats, java.util.List.of()));
+        assertEquals("overlaps and extents elsewhere count once", 10, HeifContainerMetadata.unreferencedBytes(mdats,
+                java.util.List.of(new long[] {100, 50}, new long[] {120, 70}, new long[] {500, 10})));
+    }
+
+    @Test
+    public void scan_reportsBytesInMdatThatNoItemRefersTo() throws Exception {
+        byte[] source = Files.readAllBytes(heifWithThumbnail("hvc1", -1).toPath());
+        // Grow mdat by a hidden tail that no item points at.
+        byte[] hidden = ascii("SecretHiddenInMdat");
+        int mdat = new String(source, StandardCharsets.ISO_8859_1).lastIndexOf("mdat") - 4;
+        java.nio.ByteBuffer.wrap(source, mdat, 4).putInt((int) (source.length - mdat + hidden.length));
+        File padded = temp.newFile("padded.heic");
+        Files.write(padded.toPath(), cat(source, hidden));
+
+        ImageContainerMetadata.Report r = ImageContainerMetadata.scan(padded);
+        assertTrue(keys(r.findings).toString(), keys(r.findings).contains("HEIF_UNREFERENCED_DATA"));
+    }
+
     // ---- a HEIF built item by item, with every kind of extra a camera or app can add ----------
 
     private static byte[] cat(byte[]... parts) throws IOException {
@@ -507,6 +553,80 @@ public class HeifContainerMetadataTest {
         assertTrue(contains(out, "hvcC"));
         ImageContainerMetadata.Report r = ImageContainerMetadata.scan(clean);
         assertTrue(keys(r.findings).toString(), r.isClean());
+    }
+
+    /**
+     * A HEIF whose primary picture is HEVC and whose thumbnail is a {@code jpeg} item of type
+     * {@code thumbType}, its bytes carrying an APP1 EXIF segment with a marker. When
+     * {@code declaredThumbLength} is not negative, the thumbnail's iloc length says that instead.
+     */
+    private File heifWithThumbnail(String thumbType, long declaredThumbLength) throws IOException {
+        byte[] picture = u8(0, 0, 0, 5, 1 << 1, 1, 0xAF, 0x12, 0x34);
+        byte[] app1 = cat(ascii("Exif"), u8(0, 0), ascii("SecretGpsInThumbnail"));
+        byte[] thumb = "jpeg".equals(thumbType) || "avc1".equals(thumbType)
+                ? cat(u8(0xFF, 0xD8, 0xFF, 0xE1), u16(app1.length + 2), app1,
+                        u8(0xFF, 0xDA, 0, 2, 0x11, 0x22, 0xFF, 0xD9))
+                : picture; // an HEVC thumbnail is coded like the picture
+        byte[] hvcC = box("hvcC", u8(1), new byte[20], u8(0xFF & (0xFC | 3)), u8(0));
+        byte[] ispe = fullBox("ispe", 0, 0, u32(64), u32(48));
+        byte[] ipco = box("ipco", hvcC, ispe);
+        byte[] ipma = fullBox("ipma", 0, 0, u32(2), u16(1), u8(2, 0x80 | 1, 2), u16(2), u8(2, 0x80 | 1, 2));
+        byte[] iinf = fullBox("iinf", 0, 0, u16(2), infe(1, "hvc1", "", null), infe(2, thumbType, "", null));
+        byte[] iref = fullBox("iref", 0, 0, box("thmb", u16(2), u16(1), u16(1)));
+        byte[] hdlr = fullBox("hdlr", 0, 0, u32(0), ascii("pict"), new byte[12], u8(0));
+        byte[] ftyp = box("ftyp", ascii("heic"), u32(0), ascii("mif1"), ascii("heic"));
+        byte[] meta = null;
+        long mdatData = 0;
+        for (int pass = 0; pass < 2; pass++) {
+            byte[] iloc = cat(u8(0x44, 0x00), u16(2),
+                    u16(1), u16(0), u16(0), u16(1), u32(mdatData), u32(picture.length),
+                    u16(2), u16(0), u16(0), u16(1), u32(mdatData + picture.length),
+                    u32(declaredThumbLength >= 0 ? declaredThumbLength : thumb.length));
+            meta = fullBox("meta", 0, 0, hdlr, fullBox("pitm", 0, 0, u16(1)),
+                    fullBox("iloc", 1, 0, iloc), iinf, iref, box("iprp", ipco, ipma));
+            mdatData = ftyp.length + meta.length + 8;
+        }
+        File f = temp.newFile("thumb-" + thumbType + declaredThumbLength + ".heic");
+        Files.write(f.toPath(), cat(ftyp, meta, box("mdat", picture, thumb)));
+        return f;
+    }
+
+    @Test
+    public void sanitize_refusesAJpegItemItCannotFilter_soTheCleanEncodesAgain() throws Exception {
+        File source = heifWithThumbnail("jpeg", -1);
+        File clean = new File(temp.getRoot(), "thumb-clean.heic");
+        try {
+            HeifContainerMetadata.sanitize(source, clean);
+            fail("A jpeg item with EXIF inside must not be copied as it is");
+        } catch (IOException expected) {
+            // The caller encodes the picture again.
+        }
+        assertTrue(!clean.exists() || !contains(Files.readAllBytes(clean.toPath()), "SecretGps"));
+        ImageContainerMetadata.Report r = ImageContainerMetadata.scan(source);
+        assertFalse(r.isClean());
+        assertTrue(keys(r.findings).toString(), keys(r.findings).contains("HEIF_UNFILTERED_PICTURE"));
+    }
+
+    @Test
+    public void sanitize_refusesAvcItemsToo() throws Exception {
+        try {
+            HeifContainerMetadata.sanitize(heifWithThumbnail("avc1", -1), new File(temp.getRoot(), "avc-clean.heic"));
+            fail("An avc1 item is not filtered, so it must not be copied");
+        } catch (IOException expected) {
+            // The caller encodes the picture again.
+        }
+    }
+
+    @Test(timeout = 5000)
+    public void anItemLongerThanTheFile_failsQuicklyWithoutAllocatingIt() throws Exception {
+        File source = heifWithThumbnail("hvc1", 0x1FFFFFFFL);
+        try {
+            HeifContainerMetadata.sanitize(source, new File(temp.getRoot(), "huge-clean.heic"));
+            fail("An item that runs past the end of the file must be refused");
+        } catch (IOException expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("outside the file"));
+        }
+        assertFalse(ImageContainerMetadata.scan(source).recognized);
     }
 
     @Test

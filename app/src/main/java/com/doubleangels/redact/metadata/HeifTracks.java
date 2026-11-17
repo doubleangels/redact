@@ -192,7 +192,10 @@ final class HeifTracks {
                     break;
                 case "stsz": {
                     int fixed = (int) u32(stbl, p + 4);
-                    int count = (int) u32(stbl, p + 8);
+                    int count = entryCount(u32(stbl, p + 8), fixed != 0 ? 0 : 4, p + 12, child[1]);
+                    if (fixed != 0 && (long) count * (fixed & 0xFFFFFFFFL) > in.length()) {
+                        throw new IOException("Samples larger than the file");
+                    }
                     sizes = new int[count];
                     for (int i = 0; i < count; i++) {
                         sizes[i] = fixed != 0 ? fixed : (int) u32(stbl, p + 12 + i * 4);
@@ -201,7 +204,10 @@ final class HeifTracks {
                 }
                 case "stz2": {
                     int fieldSize = stbl[p + 7] & 0xFF;
-                    int count = (int) u32(stbl, p + 8);
+                    if (fieldSize != 16 && fieldSize != 8) {
+                        throw new IOException("Unsupported stz2 field size");
+                    }
+                    int count = entryCount(u32(stbl, p + 8), fieldSize / 8, p + 12, child[1]);
                     sizes = new int[count];
                     for (int i = 0; i < count; i++) {
                         if (fieldSize == 16) {
@@ -217,7 +223,7 @@ final class HeifTracks {
                 case "stco":
                 case "co64": {
                     boolean wide = "co64".equals(type);
-                    int count = (int) u32(stbl, p + 4);
+                    int count = entryCount(u32(stbl, p + 4), wide ? 8 : 4, p + 8, child[1]);
                     chunkOffsets = new long[count];
                     for (int i = 0; i < count; i++) {
                         chunkOffsets[i] = wide
@@ -227,7 +233,7 @@ final class HeifTracks {
                     break;
                 }
                 case "stsc": {
-                    int count = (int) u32(stbl, p + 4);
+                    int count = entryCount(u32(stbl, p + 4), 12, p + 8, child[1]);
                     samplesPerChunk = new long[count][];
                     for (int i = 0; i < count; i++) {
                         int at = p + 8 + i * 12;
@@ -253,12 +259,14 @@ final class HeifTracks {
         track.sampleOffsets = new long[sizes.length];
         track.sampleSizes = sizes;
         int sample = 0;
+        // stsc's entries run in order of their first chunk, so one walk alongside the chunks
+        // finds each chunk's run (a search per chunk would be chunks x entries).
+        int entry = 0;
+        long perChunk = 0;
         for (int chunk = 0; chunk < chunkOffsets.length && sample < sizes.length; chunk++) {
-            long perChunk = 0;
-            for (long[] entry : samplesPerChunk) {
-                if (entry[0] - 1 <= chunk) {
-                    perChunk = entry[1];
-                }
+            while (entry < samplesPerChunk.length && samplesPerChunk[entry][0] - 1 <= chunk) {
+                perChunk = samplesPerChunk[entry][1];
+                entry++;
             }
             long offset = chunkOffsets[chunk];
             for (long i = 0; i < perChunk && sample < sizes.length; i++) {
@@ -270,6 +278,20 @@ final class HeifTracks {
         if (sample != sizes.length) {
             throw new IOException("Samples outside the chunks");
         }
+    }
+
+    /**
+     * A table's entry count, checked against the bytes its box holds ({@code entrySize} each from
+     * {@code first} to {@code boxEnd}) and against the file, before anything is allocated for it.
+     * An {@code entrySize} of 0 is a table with no bytes per entry (stsz with one fixed size),
+     * which only the file's length bounds.
+     */
+    private int entryCount(long declared, int entrySize, int first, int boxEnd) throws IOException {
+        long room = entrySize > 0 ? Math.max(0, boxEnd - first) / entrySize : in.length();
+        if (declared < 0 || declared > room || declared > in.length() || declared > Integer.MAX_VALUE) {
+            throw new IOException("Table longer than its box");
+        }
+        return (int) declared;
     }
 
     /** stsd with each sample entry's compressor name blanked and its children filtered. */
@@ -395,7 +417,8 @@ final class HeifTracks {
             ByteArrayOutputStream minf = new ByteArrayOutputStream();
             minf.write(track.mediaHeader);
             if (track.dinf != null) {
-                minf.write(track.dinf);
+                // Written anew rather than copied: a data reference can hold a URL or a name.
+                minf.write(HeifContainerMetadata.selfContainedDinf());
             }
             minf.write(box("stbl", stbl.toByteArray()));
 

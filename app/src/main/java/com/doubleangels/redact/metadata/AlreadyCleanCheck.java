@@ -69,7 +69,9 @@ public final class AlreadyCleanCheck {
             Status status;
             try {
                 status = assessItem(context, item);
-            } catch (Exception e) {
+            } catch (Exception | OutOfMemoryError e) {
+                // A file too large or too strange to read is cleaned as usual, never skipped, and
+                // an OutOfMemoryError here must not end the thread the Clean button waits on.
                 status = Status.UNKNOWN;
                 SentryManager.count("already_clean.check", 1, "outcome", "error",
                         "error_type", e.getClass().getSimpleName());
@@ -117,6 +119,10 @@ public final class AlreadyCleanCheck {
                 if (value != null && !value.isEmpty()) {
                     return Status.NEEDS_CLEANING;
                 }
+            }
+            // An exact location or a time of day where the settings keep less still needs a clean.
+            if (!KeptPrecision.matchesSettings(context, exif, false)) {
+                return Status.NEEDS_CLEANING;
             }
         } catch (IOException | RuntimeException e) {
             return Status.UNKNOWN;
@@ -178,10 +184,18 @@ public final class AlreadyCleanCheck {
         }
         try (MediaMetadataRetriever retriever = new MediaMetadataRetriever()) {
             retriever.setDataSource(context, uri);
-            if ((!keepLocation && CleanVerifier.normalizeMetadataValue(
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_LOCATION)) != null)
-                    || (!keepDate && CleanVerifier.normalizeMetadataValue(
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE)) != null)) {
+            String location = CleanVerifier.normalizeMetadataValue(
+                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_LOCATION));
+            if (location != null && (!keepLocation || !KeptPrecision.videoLocationMatchesSettings(context, location))) {
+                return Status.NEEDS_CLEANING;
+            }
+            if (keepDate && KeptPrecision.dateOnly(context)) {
+                // Whether a video's time is at midnight can't be read back reliably, so a
+                // date-only setting always cleans it again.
+                return Status.UNKNOWN;
+            }
+            if (!keepDate && CleanVerifier.normalizeMetadataValue(
+                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE)) != null) {
                 return Status.NEEDS_CLEANING;
             }
             for (int key : CleanVerifier.ADDITIONAL_VIDEO_PRIVACY_KEYS) {

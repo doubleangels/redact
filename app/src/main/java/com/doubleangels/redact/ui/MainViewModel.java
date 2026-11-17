@@ -20,6 +20,7 @@ import androidx.lifecycle.viewmodel.CreationExtras;
 import com.doubleangels.redact.ShareHandlerActivity;
 import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.MediaItem;
+import com.doubleangels.redact.media.MediaProcessor;
 
 import java.util.HashMap;
 import java.util.List;
@@ -236,6 +237,12 @@ public class MainViewModel extends AndroidViewModel {
     @Nullable
     public String getCleanSummaryText() {
         return repository.getCleanSummaryText();
+    }
+
+    /** The last clean batch's files that were not cleaned, and why, for the Clean tab to list and retry. */
+    @NonNull
+    public List<MediaProcessor.Failed> getCleanFailed() {
+        return repository.getCleanFailed();
     }
 
     /** How many files of the last clean batch carried a location, for the completion notification. */

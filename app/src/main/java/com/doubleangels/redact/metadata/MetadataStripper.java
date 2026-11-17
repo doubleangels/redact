@@ -490,12 +490,17 @@ public class MetadataStripper {
         if (AppPreferences.isPreserveDateTaken(context)) {
             tags.addAll(List.of(
                     ExifInterface.TAG_DATETIME_ORIGINAL,
-                    ExifInterface.TAG_OFFSET_TIME_ORIGINAL,
-                    ExifInterface.TAG_SUBSEC_TIME_ORIGINAL,
                     // ExifInterface writes DateTime from DateTimeOriginal when it saves.
-                    ExifInterface.TAG_DATETIME,
-                    ExifInterface.TAG_OFFSET_TIME
+                    ExifInterface.TAG_DATETIME
             ));
+            if (!KeptPrecision.dateOnly(context)) {
+                // The time zone and fractions of a second only matter with the time of day.
+                tags.addAll(List.of(
+                        ExifInterface.TAG_OFFSET_TIME_ORIGINAL,
+                        ExifInterface.TAG_SUBSEC_TIME_ORIGINAL,
+                        ExifInterface.TAG_OFFSET_TIME
+                ));
+            }
         }
 
         if (AppPreferences.isPreserveLocation(context)) {
@@ -503,12 +508,20 @@ public class MetadataStripper {
                     ExifInterface.TAG_GPS_LATITUDE,
                     ExifInterface.TAG_GPS_LONGITUDE,
                     ExifInterface.TAG_GPS_LATITUDE_REF,
-                    ExifInterface.TAG_GPS_LONGITUDE_REF,
-                    ExifInterface.TAG_GPS_ALTITUDE,
-                    ExifInterface.TAG_GPS_ALTITUDE_REF,
-                    ExifInterface.TAG_GPS_DATESTAMP,
-                    ExifInterface.TAG_GPS_TIMESTAMP
+                    ExifInterface.TAG_GPS_LONGITUDE_REF
             ));
+            if (!KeptPrecision.approximateLocation(context)) {
+                // An approximate location keeps neither the height (which floor of a building)
+                // nor the GPS clock (the time to the second).
+                tags.addAll(List.of(
+                        ExifInterface.TAG_GPS_ALTITUDE,
+                        ExifInterface.TAG_GPS_ALTITUDE_REF,
+                        ExifInterface.TAG_GPS_DATESTAMP
+                ));
+                if (!KeptPrecision.dateOnly(context) || !AppPreferences.isPreserveDateTaken(context)) {
+                    tags.add(ExifInterface.TAG_GPS_TIMESTAMP);
+                }
+            }
         }
 
         return tags;

@@ -691,11 +691,20 @@ public class MetadataStripperVideoTest {
         Uri uri = Uri.fromFile(videoFile(".mp4"));
         AppPreferences.setStrictClean(app, false);
         AppPreferences.setPreserveLocation(app, true);
+        AppPreferences.setApproximateLocation(app, false);
 
         double[] kept = (double[]) call(stripper.videos, "keptVideoLocation", types, snapshot("+52.3700+004.8900/", null), uri);
         assertNotNull(kept);
         assertEquals(52.37, kept[0], 1e-6);
         assertEquals(4.89, kept[1], 1e-6);
+
+        // Approximate Location (the default) keeps it to a tenth of a degree.
+        AppPreferences.setApproximateLocation(app, true);
+        double[] approximate = (double[]) call(stripper.videos, "keptVideoLocation", types, snapshot("+52.3700+004.8900/", null), uri);
+        assertNotNull(approximate);
+        assertEquals(52.4, approximate[0], 1e-9);
+        assertEquals(4.9, approximate[1], 1e-9);
+        AppPreferences.setApproximateLocation(app, false);
         assertNull(call(stripper.videos, "keptVideoLocation", types, snapshot(null, null), uri));
         assertNull("out of range", call(stripper.videos, "keptVideoLocation", types, snapshot("+95.0000+195.0000/", null), uri));
 

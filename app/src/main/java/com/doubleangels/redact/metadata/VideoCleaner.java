@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -297,8 +298,9 @@ final class VideoCleaner {
             SentryManager.setCustomKey("success", true);
             return job.result(fileUri);
 
-        } catch (Exception e) {
-            // Log error
+        } catch (Exception | OutOfMemoryError e) {
+            // A crafted file can ask for more memory than there is; that is a failed file, and
+            // the share worker goes on to the next one with nothing half-written left behind.
             Log.e(TAG, "Error processing video for sharing", e);
             job.unsupported = UnsupportedMediaException.isCauseOf(e);
             SentryManager.setCustomKey("success", false);
@@ -436,7 +438,7 @@ final class VideoCleaner {
                 || Math.abs(coordinates[0]) > 90 || Math.abs(coordinates[1]) > 180) {
             return null;
         }
-        return coordinates;
+        return KeptPrecision.approximateLocation(context) ? KeptPrecision.round(coordinates) : coordinates;
     }
 
     /**
@@ -448,7 +450,8 @@ final class VideoCleaner {
         if (AppPreferences.isStrictClean(context) || !AppPreferences.isPreserveDateTaken(context)) {
             return null;
         }
-        return VideoContainerMetadata.movieTimes(context, sourceUri);
+        long[] times = VideoContainerMetadata.movieTimes(context, sourceUri);
+        return KeptPrecision.dateOnly(context) ? KeptPrecision.dateOnly(times, ZoneId.systemDefault()) : times;
     }
 
     /**
@@ -839,7 +842,9 @@ final class VideoCleaner {
      * Strict Clean off), which is the only reason to make one.
      */
     private boolean mayKeepTransmux() {
-        return !AppPreferences.isStrictClean(context) && AppPreferences.isVideoFallbackCopy(context);
+        // A quick copy keeps the sound track as it is, so Remove Audio always re-encodes.
+        return !AppPreferences.isStrictClean(context) && AppPreferences.isVideoFallbackCopy(context)
+                && !AppPreferences.isRemoveAudio(context);
     }
 
     /**

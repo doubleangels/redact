@@ -410,6 +410,12 @@ public final class ProcessingRepository {
         return mediaProcessor.getCleanSummary().describe(app.getResources());
     }
 
+    /** The last clean batch's files that were not cleaned, and why. */
+    @NonNull
+    List<MediaProcessor.Failed> getCleanFailed() {
+        return mediaProcessor.getFailed();
+    }
+
     /** How many files of the last clean batch carried a location, for the completion notification. */
     int getCleanLocationsRemoved() {
         return mediaProcessor.getCleanSummary().filesWithLocation;

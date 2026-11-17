@@ -143,7 +143,7 @@
         <string name="settings_sentry_consent_allow">Activer</string>
     <string name="settings_sentry_consent_cancel">Pas Maintenant</string>
     <string name="settings_sentry_consent_title">Activer les Rapports de Plantage</string>
-    <string name="settings_sentry_consent_message">Envoyer les Rapports de Plantage envoie des diagnostics anonymisés à Sentry via Internet.\n\nAucune photo, vidéo, nom de fichier ni coordonnée GPS n\'est téléversé.</string>
+    <string name="settings_sentry_consent_message">Envoyer les Rapports de Plantage envoie des diagnostics anonymisés à Sentry via Internet. Il envoie aussi des mesures de performances, comme le temps d\'ouverture des écrans, pour environ 1 session sur 4.\n\nAucune photo, vidéo, nom de fichier ni coordonnée GPS n\'est téléversé.</string>
     <string name="settings_strict_clean">Nettoyage Strict</string>
     <string name="settings_strict_clean_subtitle">Supprime toutes les métadonnées sauf les balises qui indiquent seulement comment afficher l\'image, comme son orientation et son espace colorimétrique. Désactive les options de conservation ci-dessous et réencode toujours entièrement la vidéo pour le nettoyage le plus complet.</string>
     
@@ -219,14 +219,7 @@
     <string name="settings_progress_notifications_subtitle">Notification persistante avec progression pour les longues tâches. Désactivée par défaut jusqu\'à activation des notifications.</string>
     <string name="settings_crash_reporting_learn_more">Qu\'Est-Ce Qui Est Partagé ?</string>
     <string name="settings_crash_reporting_detail_title">Détails des Rapports de Plantage</string>
-    <string name="settings_crash_reporting_detail_message">Lorsque Envoyer les rapports de plantage est activé, des diagnostics anonymisés peuvent être envoyés via Sentry :
-
-• Modèle d\'appareil et version Android
-• Version de l\'application
-• Traces de pile et types d\'erreur
-• Balises de diagnostic nettoyées
-
-Vos photos et vidéos ne sont jamais téléversées. Les URI, noms de fichier et coordonnées GPS sont supprimés avant l\'envoi.</string>
+    <string name="settings_crash_reporting_detail_message">Lorsque Envoyer les rapports de plantage est activé, des diagnostics anonymisés peuvent être envoyés via Sentry :\n\n• Modèle d\'appareil et version Android\n• Version de l\'application\n• Traces de pile et types d\'erreur\n• Balises de diagnostic nettoyées\n• Mesures de performances pour environ 1 session sur 4 (temps d\'ouverture des écrans, images lentes)\n\nVos photos et vidéos ne sont jamais téléversées. Les URI, noms de fichier et coordonnées GPS sont supprimés avant l\'envoi.</string>
     <string name="settings_crash_reporting_privacy_policy">Politique de Confidentialité</string>
     <string name="settings_crash_reporting_dismiss">Fermer</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
@@ -473,6 +466,10 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="censor_discard">Abandonner</string>
     <string name="censor_keep_editing">Continuer</string>
     <string name="button_scan_result">Scanner le Résultat</string>
+    <string name="button_open_result">Ouvrir</string>
+    <string name="open_result_no_app">Aucune appli de ce téléphone ne peut ouvrir ce fichier.</string>
+    <string name="open_result_chooser_title">Ouvrir Avec</string>
+    <string name="button_share_without_saving">Partager Sans Enregistrer</string>
     <string name="settings_keep_original_names">Conserver les Noms de Fichiers</string>
     <string name="settings_keep_original_names_subtitle">Les fichiers nettoyés et convertis gardent le nom de l\'original au lieu d\'un nom aléatoire. Un nom comme IMG_20260117 peut révéler quand une photo a été prise.</string>
     <string name="review_prompt_title">Aidez d\'Autres Personnes à Trouver Redact</string>
@@ -598,10 +595,77 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="onboarding_crash_title">Aidez à améliorer Redact.</string>
     <string name="onboarding_crash_body">Si Redact plante, il peut envoyer un rapport anonyme pour que le problème soit trouvé et corrigé. Redact ne se connecte à Internet que pour les rapports de plantage que vous activez et pour une recherche de mises à jour que vous lancez vous-même dans les paramètres.</string>
     <string name="onboarding_crash_point_private">Les rapports n\'incluent jamais vos photos, vidéos, noms de fichiers ni lieux.</string>
-    <string name="onboarding_crash_point_sentry">Les rapports sont envoyés à Sentry, un service qui aide les développeurs à trouver et corriger les plantages.</string>
+    <string name="onboarding_crash_point_sentry">Les rapports sont envoyés à Sentry, un service qui aide les développeurs à trouver et corriger les plantages. Pour environ 1 session sur 4, ils incluent aussi des mesures de performances.</string>
     <string name="onboarding_crash_allow">Envoyer les Rapports de Plantage</string>
     <string name="onboarding_status_crash_on">Les rapports de plantage sont activés.</string>
     <string name="onboarding_choices_crash">Enfin, les rapports de plantage, pour que les problèmes soient trouvés et corrigés plus vite.</string>
     <string name="onboarding_done_crash_on">Redact enverra des rapports de plantage anonymes en cas de problème.</string>
     <string name="onboarding_done_crash_off">Redact n\'enverra pas de rapports de plantage.</string>
+
+    <string name="settings_approximate_location">Position Approximative</string>
+    <string name="settings_approximate_location_subtitle">Arrondit la position conservée à environ 10 km : la ville, pas la rue. L\'altitude et l\'heure GPS sont omises.</string>
+    <string name="settings_date_only">Date Seulement</string>
+    <string name="settings_date_only_subtitle">Conserve le jour de prise d\'une photo ou d\'une vidéo, mais pas l\'heure ni le fuseau horaire.</string>
+    <string name="settings_remove_audio">Supprimer le Son</string>
+    <string name="settings_remove_audio_subtitle">Enregistre les vidéos nettoyées, partagées et converties sans son, car les voix et les bruits de fond peuvent révéler qui était là et où. Les vidéos sont alors toujours réencodées.</string>
+    <string name="clean_failed_button">Fichiers en Échec (%1$d)</string>
+    <string name="clean_failed_title">Fichiers Non Nettoyés</string>
+    <string name="clean_failed_reason_unsupported">Ce téléphone ne peut pas ouvrir ce format.</string>
+    <string name="clean_failed_reason_memory">La mémoire était insuffisante pour le nettoyer.</string>
+    <string name="clean_failed_reason_not_cleaned">Il n\'a pas pu être nettoyé en toute sécurité, donc rien n\'a été enregistré.</string>
+    <string name="clean_failed_retry">Réessayer</string>
+    <string name="scan_batch_title">Fichiers Sélectionnés</string>
+    <string name="scan_batch_location_files">Fichiers avec une position :</string>
+    <string name="scan_batch_clean">Nettoyer Ces Fichiers</string>
+    <string name="button_paste_media">Coller</string>
+    <string name="scan_share_report">Partager en Texte</string>
+    <string name="scan_share_report_subject">Rapport de Métadonnées</string>
+    <string name="scan_share_report_consent_title">Partager Ce Rapport ?</string>
+    <string name="scan_share_report_consent_message">Le rapport liste tout ce que Scan a trouvé dans ce fichier, ce qui peut inclure où et quand il a été pris et qui l\'a créé. Il est envoyé uniquement à l\'application que vous choisirez ensuite.</string>
+    <string name="scan_share_report_unavailable">Aucune application de ce téléphone ne peut recevoir de texte.</string>
+    <plurals name="scan_batch_reading">
+        <item quantity="one">Lecture de %1$d fichier…</item>
+        <item quantity="many">Lecture de %1$d fichiers…</item>
+        <item quantity="other">Lecture de %1$d fichiers…</item>
+    </plurals>
+    <plurals name="scan_batch_checked">
+        <item quantity="one">%1$d fichier vérifié :</item>
+        <item quantity="many">%1$d fichiers vérifiés :</item>
+        <item quantity="other">%1$d fichiers vérifiés :</item>
+    </plurals>
+    <plurals name="scan_batch_location">
+        <item quantity="one">%1$d contient une position</item>
+        <item quantity="many">%1$d contiennent une position</item>
+        <item quantity="other">%1$d contiennent une position</item>
+    </plurals>
+    <plurals name="scan_batch_date">
+        <item quantity="one">%1$d contient une date</item>
+        <item quantity="many">%1$d contiennent une date</item>
+        <item quantity="other">%1$d contiennent une date</item>
+    </plurals>
+    <plurals name="scan_batch_device">
+        <item quantity="one">%1$d nomme un téléphone ou un appareil photo</item>
+        <item quantity="many">%1$d nomment un téléphone ou un appareil photo</item>
+        <item quantity="other">%1$d nomment un téléphone ou un appareil photo</item>
+    </plurals>
+    <plurals name="scan_batch_name">
+        <item quantity="one">%1$d nomme une personne</item>
+        <item quantity="many">%1$d nomment une personne</item>
+        <item quantity="other">%1$d nomment une personne</item>
+    </plurals>
+    <plurals name="scan_batch_nothing">
+        <item quantity="one">%1$d n\'a rien à supprimer</item>
+        <item quantity="many">%1$d n\'ont rien à supprimer</item>
+        <item quantity="other">%1$d n\'ont rien à supprimer</item>
+    </plurals>
+    <plurals name="scan_batch_unreadable">
+        <item quantity="one">%1$d n\'a pas pu être lu</item>
+        <item quantity="many">%1$d n\'ont pas pu être lus</item>
+        <item quantity="other">%1$d n\'ont pas pu être lus</item>
+    </plurals>
+    <plurals name="scan_batch_more">
+        <item quantity="one">et %1$d autre</item>
+        <item quantity="many">et %1$d autres</item>
+        <item quantity="other">et %1$d autres</item>
+    </plurals>
 </resources>

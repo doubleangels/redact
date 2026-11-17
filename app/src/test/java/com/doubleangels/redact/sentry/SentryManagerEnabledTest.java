@@ -142,16 +142,55 @@ public class SentryManagerEnabledTest {
     public void operationData_isSplitIntoTagsAndContext() {
         SentryManager.beginOperation("image_to_mediastore");
         SentryManager.setCustomKey("success", false);
-        SentryManager.setCustomKey("image_width", 4032);
+        SentryManager.setCustomKey("bitmap_sample_size", 4);
+        SentryManager.setCustomKey("image_resolution_class", SentryManager.resolutionClass(4032, 3024));
 
         SentryEvent event = new SentryEvent();
         SentryManager.applyOperationData(event);
 
         assertEquals("image_to_mediastore", event.getTag("operation_type"));
         assertEquals("false", event.getTag("success"));
-        assertNull("measurements are not tags", event.getTag("image_width"));
+        assertEquals("4k", event.getTag("image_resolution_class"));
+        assertNull("measurements are not tags", event.getTag("bitmap_sample_size"));
         Map<?, ?> context = (Map<?, ?>) event.getContexts().get(SentryManager.OPERATION_CONTEXT);
-        assertEquals("4032", context.get("image_width"));
+        assertEquals("4", context.get("bitmap_sample_size"));
+    }
+
+    @Test
+    public void measuredValuesFromTheFile_areNeverSent() {
+        SentryManager.beginOperation("extract_sectioned_metadata");
+        for (String key : new String[] {"image_width", "image_height", "video_width", "video_height",
+                "video_duration_ms", "video_frame_rate", "video_bitrate_kbps", "audio_sample_rate", "tile_tab"}) {
+            SentryManager.setCustomKey(key, 1234);
+        }
+
+        SentryEvent event = new SentryEvent();
+        SentryManager.applyOperationData(event);
+
+        Map<?, ?> context = (Map<?, ?>) event.getContexts().get(SentryManager.OPERATION_CONTEXT);
+        for (String key : new String[] {"image_width", "video_duration_ms", "video_bitrate_kbps", "tile_tab"}) {
+            assertNull(key, event.getTag(key));
+            assertTrue(key, context == null || !context.containsKey(key));
+        }
+    }
+
+    @Test
+    public void classes_replaceExactValues() {
+        assertEquals("unknown", SentryManager.resolutionClass(0, 100));
+        assertEquals("up_to_720p", SentryManager.resolutionClass(1280, 720));
+        assertEquals("1080p", SentryManager.resolutionClass(1080, 1920));
+        assertEquals("4k", SentryManager.resolutionClass(4032, 3024));
+        assertEquals("8k", SentryManager.resolutionClass(8192, 4320));
+        assertEquals("larger", SentryManager.resolutionClass(12000, 9000));
+        assertEquals("unknown", SentryManager.durationClass(-1));
+        assertEquals("under_1_min", SentryManager.durationClass(59_999));
+        assertEquals("under_10_min", SentryManager.durationClass(60_000));
+        assertEquals("10_min_or_more", SentryManager.durationClass(600_000));
+        assertEquals("image/jpeg", SentryManager.mimeTypeClass("IMAGE/JPEG"));
+        assertEquals("image/other", SentryManager.mimeTypeClass("image/x-secret-camera-raw"));
+        assertEquals("video/other", SentryManager.mimeTypeClass("video/x-weird"));
+        assertEquals("other", SentryManager.mimeTypeClass("application/octet-stream"));
+        assertEquals("unknown", SentryManager.mimeTypeClass(null));
     }
 
     @Test

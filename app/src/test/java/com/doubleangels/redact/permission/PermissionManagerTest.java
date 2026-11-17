@@ -72,8 +72,8 @@ public class PermissionManagerTest {
     }
 
     @Test
+    @Config(sdk = 33)
     public void collectMissing_sdk33_requestsImagesAndVideoOnly() {
-        PermissionManager.testSdkIntOverride = 33;
         deny(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO);
 
         assertEquals(Arrays.asList(

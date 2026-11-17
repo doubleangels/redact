@@ -91,6 +91,25 @@ public final class Png16 {
         boolean row(int y, @NonNull int[] argb, @NonNull boolean[] replace) throws IOException;
     }
 
+    /** Most bytes one colour chunk (an ICC profile, say) may declare before it is read. */
+    private static final int MAX_COLOUR_CHUNK_BYTES = 16 * 1024 * 1024;
+    /** Most bytes one row may take: 1,048,576 pixels of 16-bit RGBA, far wider than any camera's. */
+    private static final long MAX_ROW_BYTES = 8L * 1024 * 1024;
+
+    private static void skipFully(@NonNull DataInputStream in, int length) throws IOException {
+        int left = length;
+        while (left > 0) {
+            int skipped = in.skipBytes(left);
+            if (skipped <= 0) {
+                if (in.read() < 0) {
+                    throw new EOFException("PNG chunk ends early");
+                }
+                skipped = 1;
+            }
+            left -= skipped;
+        }
+    }
+
     /** The header of {@code in} when it is a 16-bit PNG this class writes, else null. */
     @Nullable
     public static Header readHeader(@NonNull InputStream in) throws IOException {
@@ -153,17 +172,25 @@ public final class Png16 {
             if ("IEND".equals(type) || length < 0) {
                 throw new IOException("PNG without picture data");
             }
-            byte[] body = new byte[length];
-            in.readFully(body);
-            in.readInt();
             if (COLOUR_CHUNKS.contains(type)) {
+                // Checked before allocating: a few bytes of header can't ask for gigabytes.
+                if (length > MAX_COLOUR_CHUNK_BYTES) {
+                    throw new IOException("PNG colour chunk too large");
+                }
+                byte[] body = new byte[length];
+                in.readFully(body);
                 colour.add(chunk(type, body));
+            } else {
+                skipFully(in, length);
             }
+            in.readInt();
         }
 
         int bpp = header.channels() * 2;
         long rowBytes = (long) header.width * bpp;
-        if (rowBytes > Integer.MAX_VALUE - 1) {
+        if (rowBytes > MAX_ROW_BYTES) {
+            // Several row buffers are allocated from the header's width before a byte of
+            // picture data is read, so a width no real photo has is refused first.
             throw new IOException("PNG too wide");
         }
         InputStream pixels = new InflaterInputStream(new IdatStream(in, length), new Inflater(), 64 * 1024);
@@ -241,7 +268,9 @@ public final class Png16 {
         Header header = new Header(width, height, alpha ? 6 : 2, false);
         int channels = header.channels();
         long rowBytes = (long) width * channels * 2;
-        if (rowBytes > Integer.MAX_VALUE - 1) {
+        if (rowBytes > MAX_ROW_BYTES) {
+            // Several row buffers are allocated from the header's width before a byte of
+            // picture data is read, so a width no real photo has is refused first.
             throw new IOException("PNG too wide");
         }
         target.write(SIGNATURE);

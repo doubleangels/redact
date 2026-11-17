@@ -147,7 +147,7 @@
         <string name="settings_sentry_consent_allow">Включить</string>
     <string name="settings_sentry_consent_cancel">Не Сейчас</string>
     <string name="settings_sentry_consent_title">Включить Отчёты о Сбоях</string>
-    <string name="settings_sentry_consent_message">Отправка отчётов о сбоях загружает анонимную диагностику в Sentry через интернет.\n\nФото, видео, имена файлов и GPS-координаты не загружаются.</string>
+    <string name="settings_sentry_consent_message">Отправка отчётов о сбоях загружает анонимную диагностику в Sentry через интернет. Также примерно в 1 из 4 сеансов отправляются данные о производительности, например сколько времени открываются экраны.\n\nФото, видео, имена файлов и GPS-координаты не загружаются.</string>
     <string name="settings_strict_clean">Строгая Очистка</string>
     <string name="settings_strict_clean_subtitle">Удаляет все метаданные, кроме тегов, которые лишь указывают, как показывать изображение, например его ориентацию и цветовое пространство. Отключает параметры сохранения ниже и всегда полностью перекодирует видео для самой тщательной очистки.</string>
     
@@ -223,14 +223,7 @@
     <string name="settings_progress_notifications_subtitle">Постоянное уведомление о прогрессе длительных задач. По умолчанию выкл., пока не включите уведомления.</string>
     <string name="settings_crash_reporting_learn_more">Что Передаётся?</string>
     <string name="settings_crash_reporting_detail_title">Подробности Отчётов о Сбоях</string>
-    <string name="settings_crash_reporting_detail_message">Когда Отправлять отчёты о сбоях включено, анонимная диагностика может отправляться через Sentry:
-
-• Модель устройства и версия Android
-• Версия приложения
-• Трассировки стека и типы ошибок
-• Очищенные диагностические теги
-
-Ваши фото и видео не загружаются. URI, имена файлов и GPS удаляются перед отправкой.</string>
+    <string name="settings_crash_reporting_detail_message">Когда Отправлять отчёты о сбоях включено, анонимная диагностика может отправляться через Sentry:\n\n• Модель устройства и версия Android\n• Версия приложения\n• Трассировки стека и типы ошибок\n• Очищенные диагностические теги\n• Данные о производительности примерно в 1 из 4 сеансов (время открытия экранов, медленные кадры)\n\nВаши фото и видео не загружаются. URI, имена файлов и GPS удаляются перед отправкой.</string>
     <string name="settings_crash_reporting_privacy_policy">Политика Конфиденциальности</string>
     <string name="settings_crash_reporting_dismiss">Закрыть</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
@@ -487,6 +480,10 @@
     <string name="censor_discard">Сбросить</string>
     <string name="censor_keep_editing">Продолжить</string>
     <string name="button_scan_result">Сканировать Результат</string>
+    <string name="button_open_result">Открыть</string>
+    <string name="open_result_no_app">На этом телефоне нет приложения, которое может открыть этот файл.</string>
+    <string name="open_result_chooser_title">Открыть С Помощью</string>
+    <string name="button_share_without_saving">Поделиться Без Сохранения</string>
     <string name="settings_keep_original_names">Сохранять Исходные Имена</string>
     <string name="settings_keep_original_names_subtitle">Очищенные и преобразованные файлы получают имя оригинала вместо случайного. Имена вроде IMG_20260117 могут показать, когда был сделан снимок.</string>
     <string name="review_prompt_title">Помогите Другим Найти Redact</string>
@@ -613,10 +610,86 @@
     <string name="onboarding_crash_title">Помогите сделать Redact лучше.</string>
     <string name="onboarding_crash_body">Если Redact вдруг даст сбой, он может отправить анонимный отчёт, чтобы проблему нашли и исправили. Redact выходит в интернет только для отчётов о сбоях, которые вы включили, и для проверки обновлений, которую вы сами запускаете в настройках.</string>
     <string name="onboarding_crash_point_private">Отчёты никогда не содержат ваших фото, видео, имён файлов или местоположений.</string>
-    <string name="onboarding_crash_point_sentry">Отчёты отправляются в Sentry — сервис, который помогает разработчикам находить и исправлять сбои.</string>
+    <string name="onboarding_crash_point_sentry">Отчёты отправляются в Sentry — сервис, который помогает разработчикам находить и исправлять сбои. Примерно в 1 из 4 сеансов они также содержат данные о производительности.</string>
     <string name="onboarding_crash_allow">Отправлять Отчёты о Сбоях</string>
     <string name="onboarding_status_crash_on">Отчёты о сбоях включены.</string>
     <string name="onboarding_choices_crash">И наконец отчёты о сбоях, чтобы проблемы находили и исправляли быстрее.</string>
     <string name="onboarding_done_crash_on">Redact будет отправлять анонимные отчёты о сбоях, если что-то пойдёт не так.</string>
     <string name="onboarding_done_crash_off">Redact не будет отправлять отчёты о сбоях.</string>
+
+    <string name="settings_approximate_location">Примерное Местоположение</string>
+    <string name="settings_approximate_location_subtitle">Округляет сохранённое местоположение примерно до 10 км: город, а не улица. Высота и время GPS не сохраняются.</string>
+    <string name="settings_date_only">Только Дата</string>
+    <string name="settings_date_only_subtitle">Сохраняет день, когда было сделано фото или видео, но не время суток и часовой пояс.</string>
+    <string name="settings_remove_audio">Удалять Звук</string>
+    <string name="settings_remove_audio_subtitle">Сохраняет очищенные, отправленные и конвертированные видео без звука, ведь голоса и фоновый шум могут выдать, кто и где был. Для этого видео всегда перекодируются.</string>
+    <string name="clean_failed_button">Файлы с Ошибками (%1$d)</string>
+    <string name="clean_failed_title">Неочищенные Файлы</string>
+    <string name="clean_failed_reason_unsupported">Этот телефон не может открыть этот формат.</string>
+    <string name="clean_failed_reason_memory">Не хватило памяти, чтобы очистить файл.</string>
+    <string name="clean_failed_reason_not_cleaned">Файл не удалось безопасно очистить, поэтому ничего не сохранено.</string>
+    <string name="clean_failed_retry">Повторить</string>
+    <string name="scan_batch_title">Выбранные Файлы</string>
+    <string name="scan_batch_location_files">Файлы с местоположением:</string>
+    <string name="scan_batch_clean">Очистить Эти Файлы</string>
+    <string name="button_paste_media">Вставить</string>
+    <string name="scan_share_report">Поделиться Текстом</string>
+    <string name="scan_share_report_subject">Отчёт о Метаданных</string>
+    <string name="scan_share_report_consent_title">Поделиться Отчётом?</string>
+    <string name="scan_share_report_consent_message">В отчёте перечислено всё, что Scan нашёл в этом файле, в том числе, возможно, где и когда он был снят и кто его создал. Отчёт получит только приложение, которое вы выберете дальше.</string>
+    <string name="scan_share_report_unavailable">На этом телефоне нет приложения, которое может принять текст.</string>
+    <plurals name="scan_batch_reading">
+        <item quantity="one">Чтение %1$d файла…</item>
+        <item quantity="few">Чтение %1$d файлов…</item>
+        <item quantity="many">Чтение %1$d файлов…</item>
+        <item quantity="other">Чтение %1$d файла…</item>
+    </plurals>
+    <plurals name="scan_batch_checked">
+        <item quantity="one">Проверен %1$d файл:</item>
+        <item quantity="few">Проверено %1$d файла:</item>
+        <item quantity="many">Проверено %1$d файлов:</item>
+        <item quantity="other">Проверено %1$d файла:</item>
+    </plurals>
+    <plurals name="scan_batch_location">
+        <item quantity="one">%1$d с местоположением</item>
+        <item quantity="few">%1$d с местоположением</item>
+        <item quantity="many">%1$d с местоположением</item>
+        <item quantity="other">%1$d с местоположением</item>
+    </plurals>
+    <plurals name="scan_batch_date">
+        <item quantity="one">%1$d с датой</item>
+        <item quantity="few">%1$d с датой</item>
+        <item quantity="many">%1$d с датой</item>
+        <item quantity="other">%1$d с датой</item>
+    </plurals>
+    <plurals name="scan_batch_device">
+        <item quantity="one">%1$d называет телефон или камеру</item>
+        <item quantity="few">%1$d называют телефон или камеру</item>
+        <item quantity="many">%1$d называют телефон или камеру</item>
+        <item quantity="other">%1$d называют телефон или камеру</item>
+    </plurals>
+    <plurals name="scan_batch_name">
+        <item quantity="one">%1$d называет человека</item>
+        <item quantity="few">%1$d называют человека</item>
+        <item quantity="many">%1$d называют человека</item>
+        <item quantity="other">%1$d называют человека</item>
+    </plurals>
+    <plurals name="scan_batch_nothing">
+        <item quantity="one">%1$d нечего удалять</item>
+        <item quantity="few">%1$d нечего удалять</item>
+        <item quantity="many">%1$d нечего удалять</item>
+        <item quantity="other">%1$d нечего удалять</item>
+    </plurals>
+    <plurals name="scan_batch_unreadable">
+        <item quantity="one">%1$d не удалось прочитать</item>
+        <item quantity="few">%1$d не удалось прочитать</item>
+        <item quantity="many">%1$d не удалось прочитать</item>
+        <item quantity="other">%1$d не удалось прочитать</item>
+    </plurals>
+    <plurals name="scan_batch_more">
+        <item quantity="one">и ещё %1$d</item>
+        <item quantity="few">и ещё %1$d</item>
+        <item quantity="many">и ещё %1$d</item>
+        <item quantity="other">и ещё %1$d</item>
+    </plurals>
 </resources>

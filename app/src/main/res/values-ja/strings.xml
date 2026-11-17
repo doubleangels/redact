@@ -136,7 +136,7 @@
         <string name="settings_sentry_consent_allow">有効にする</string>
     <string name="settings_sentry_consent_cancel">後で</string>
     <string name="settings_sentry_consent_title">クラッシュレポートを有効にする</string>
-    <string name="settings_sentry_consent_message">クラッシュレポートの送信は、匿名化された診断情報をインターネット経由で Sentry にアップロードします。\n\n写真、動画、ファイル名、GPS 座標はアップロードされません。</string>
+    <string name="settings_sentry_consent_message">クラッシュレポートの送信は、匿名化された診断情報をインターネット経由で Sentry にアップロードします。また、約4回に1回のセッションでは、画面の表示にかかった時間などのパフォーマンスデータも送信します。\n\n写真、動画、ファイル名、GPS 座標はアップロードされません。</string>
     <string name="settings_strict_clean">厳格クリーン</string>
     <string name="settings_strict_clean_subtitle">画像の表示方法だけを示すタグ（向きや色空間など）を除き、すべてのメタデータを削除します。下の保持オプションをオフにし、最も徹底したクリーンのために動画を常に完全に再エンコードします。</string>
     
@@ -212,14 +212,7 @@
     <string name="settings_progress_notifications_subtitle">長時間ジョブの進行を表示する常駐通知。通知を許可するまでデフォルトでオフです。</string>
     <string name="settings_crash_reporting_learn_more">何が共有されますか？</string>
     <string name="settings_crash_reporting_detail_title">クラッシュレポートの詳細</string>
-    <string name="settings_crash_reporting_detail_message">クラッシュレポートを送信がオンのとき、Sentry経由で匿名診断が送信される場合があります:
-
-• 端末モデルとAndroid版
-• アプリ版
-• スタックトレースとエラー種別
-• スクラブ済み診断タグ
-
-写真と動画はアップロードされません。URI、ファイル名、GPS座標は送信前に削除されます。</string>
+    <string name="settings_crash_reporting_detail_message">クラッシュレポートを送信がオンのとき、Sentry経由で匿名診断が送信される場合があります:\n\n• 端末モデルとAndroid版\n• アプリ版\n• スタックトレースとエラー種別\n• スクラブ済み診断タグ\n• 約4回に1回のセッションのパフォーマンスデータ（画面の表示にかかった時間、遅延したフレーム）\n\n写真と動画はアップロードされません。URI、ファイル名、GPS座標は送信前に削除されます。</string>
     <string name="settings_crash_reporting_privacy_policy">プライバシーポリシー</string>
     <string name="settings_crash_reporting_dismiss">閉じる</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
@@ -446,6 +439,10 @@
     <string name="censor_discard">破棄</string>
     <string name="censor_keep_editing">編集を続ける</string>
     <string name="button_scan_result">結果をスキャン</string>
+    <string name="button_open_result">開く</string>
+    <string name="open_result_no_app">このファイルを開けるアプリがこのスマートフォンにありません。</string>
+    <string name="open_result_chooser_title">アプリで開く</string>
+    <string name="button_share_without_saving">保存せずに共有</string>
     <string name="settings_keep_original_names">元のファイル名を保持</string>
     <string name="settings_keep_original_names_subtitle">クリーン・変換したファイルに、ランダムな名前ではなく元のファイル名を付けます。IMG_20260117 のような名前から撮影日時がわかる場合があります。</string>
     <string name="review_prompt_title">Redact を広めるのにご協力ください</string>
@@ -569,10 +566,59 @@
     <string name="onboarding_crash_title">Redactの改善にご協力ください。</string>
     <string name="onboarding_crash_body">Redactがクラッシュした場合、匿名のレポートを送信して問題の発見と修正に役立てることができます。Redactがインターネットに接続するのは、あなたがオンにしたクラッシュレポートと、設定であなた自身が始めたアップデートの確認だけです。</string>
     <string name="onboarding_crash_point_private">レポートに写真、動画、ファイル名、位置情報が含まれることはありません。</string>
-    <string name="onboarding_crash_point_sentry">レポートは、開発者がクラッシュを見つけて修正するためのサービスであるSentryに送信されます。</string>
+    <string name="onboarding_crash_point_sentry">レポートは、開発者がクラッシュを見つけて修正するためのサービスであるSentryに送信されます。約4回に1回のセッションでは、パフォーマンスデータも含まれます。</string>
     <string name="onboarding_crash_allow">クラッシュレポートを送信</string>
     <string name="onboarding_status_crash_on">クラッシュレポートはオンです。</string>
     <string name="onboarding_choices_crash">最後に、クラッシュレポート。問題をより早く見つけて修正するためです。</string>
     <string name="onboarding_done_crash_on">問題が起きたときは、Redactが匿名のクラッシュレポートを送信します。</string>
     <string name="onboarding_done_crash_off">Redactはクラッシュレポートを送信しません。</string>
+
+    <string name="settings_approximate_location">おおよその位置</string>
+    <string name="settings_approximate_location_subtitle">保持する位置情報を約10 kmに丸めます。わかるのは町までで、通りまではわかりません。高度とGPS時刻は保持しません。</string>
+    <string name="settings_date_only">日付のみ</string>
+    <string name="settings_date_only_subtitle">写真や動画を撮影した日は保持しますが、時刻とタイムゾーンは保持しません。</string>
+    <string name="settings_remove_audio">音声を削除</string>
+    <string name="settings_remove_audio_subtitle">クリーン、共有、変換した動画を音声なしで保存します。声や周囲の音から、誰がどこにいたかがわかることがあるためです。このため動画は常に再エンコードされます。</string>
+    <string name="clean_failed_button">失敗したファイル（%1$d）</string>
+    <string name="clean_failed_title">クリーンできなかったファイル</string>
+    <string name="clean_failed_reason_unsupported">このスマートフォンではこの形式を開けません。</string>
+    <string name="clean_failed_reason_memory">クリーンするためのメモリが足りませんでした。</string>
+    <string name="clean_failed_reason_not_cleaned">安全にクリーンできなかったため、何も保存されていません。</string>
+    <string name="clean_failed_retry">再試行</string>
+    <string name="scan_batch_title">選択したファイル</string>
+    <string name="scan_batch_location_files">位置情報を含むファイル:</string>
+    <string name="scan_batch_clean">これらのファイルをクリーン</string>
+    <string name="button_paste_media">貼り付け</string>
+    <string name="scan_share_report">テキストとして共有</string>
+    <string name="scan_share_report_subject">メタデータレポート</string>
+    <string name="scan_share_report_consent_title">このレポートを共有しますか？</string>
+    <string name="scan_share_report_consent_message">レポートには Scan がこのファイルで見つけたすべての情報が含まれ、撮影場所や日時、作成者がわかる場合があります。送信先は次に選ぶアプリだけです。</string>
+    <string name="scan_share_report_unavailable">このスマートフォンにはテキストを受け取れるアプリがありません。</string>
+    <plurals name="scan_batch_reading">
+        <item quantity="other">%1$d 件のファイルを読み込んでいます…</item>
+    </plurals>
+    <plurals name="scan_batch_checked">
+        <item quantity="other">%1$d 件のファイルを確認しました:</item>
+    </plurals>
+    <plurals name="scan_batch_location">
+        <item quantity="other">%1$d 件に位置情報があります</item>
+    </plurals>
+    <plurals name="scan_batch_date">
+        <item quantity="other">%1$d 件に日付があります</item>
+    </plurals>
+    <plurals name="scan_batch_device">
+        <item quantity="other">%1$d 件にスマートフォンやカメラの名前があります</item>
+    </plurals>
+    <plurals name="scan_batch_name">
+        <item quantity="other">%1$d 件に人の名前があります</item>
+    </plurals>
+    <plurals name="scan_batch_nothing">
+        <item quantity="other">%1$d 件は削除するものがありません</item>
+    </plurals>
+    <plurals name="scan_batch_unreadable">
+        <item quantity="other">%1$d 件は読み込めませんでした</item>
+    </plurals>
+    <plurals name="scan_batch_more">
+        <item quantity="other">ほか %1$d 件</item>
+    </plurals>
 </resources>

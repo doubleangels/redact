@@ -2,6 +2,8 @@ package com.doubleangels.redact.metadata;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.media.MediaExtractor;
+import android.media.MediaFormat;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import androidx.annotation.NonNull;
@@ -9,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.exifinterface.media.ExifInterface;
 import androidx.media3.common.Format;
+import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.media.CleanFailedException;
 import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.sentry.SentryManager;
@@ -183,6 +186,11 @@ final class CleanVerifier {
     void requireVideoMetadataClean(
             @NonNull File videoFile, @NonNull VideoPrivacySnapshot sourceSnapshot, boolean keepLocation)
             throws IOException {
+        if (AppPreferences.isRemoveAudio(context) && hasAudioTrack(videoFile)) {
+            SentryManager.log("The video still has a sound track although Remove Audio is on.");
+            countVerificationFailure("video", "audio_left");
+            throw new IOException("Sound left in a video that should have none");
+        }
         VideoContainerMetadata.scrub(videoFile, keepLocation);
         VideoContainerMetadata.Report remaining = VideoContainerMetadata.scan(videoFile, keepLocation);
         if (!remaining.isClean()) {
@@ -278,7 +286,7 @@ final class CleanVerifier {
                     normalizeMetadataValue(
                             retriever.extractMetadata(
                                     MediaMetadataRetriever.METADATA_KEY_LOCATION));
-            if (location != null && !keepLocation) {
+            if (location != null && (!keepLocation || !KeptPrecision.videoLocationMatchesSettings(context, location))) {
                 SentryManager.setCustomKey("video_verify_failed_key", "LOCATION");
                 SentryManager.log(
                         "The app found a remaining video metadata key: "
@@ -344,6 +352,32 @@ final class CleanVerifier {
      * Counts a check that would not vouch for a cleaned file. Each one already fails closed; the
      * count shows when a cleaning path starts leaving data behind, by media type and reason.
      */
+    /**
+     * Whether {@code video} has a sound track. A file the extractor can't open counts as having
+     * one, so Remove Audio fails closed rather than vouch for a file it could not read.
+     */
+    static boolean hasAudioTrack(@NonNull File video) {
+        MediaExtractor extractor = new MediaExtractor();
+        try {
+            extractor.setDataSource(video.getAbsolutePath());
+            if (!video.isFile() || extractor.getTrackCount() == 0) {
+                return true; // nothing could be read, so nothing can be vouched for
+            }
+            for (int i = 0; i < extractor.getTrackCount(); i++) {
+                String mime = extractor.getTrackFormat(i).getString(MediaFormat.KEY_MIME);
+                if (mime != null && mime.startsWith("audio/")) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (IOException | RuntimeException e) {
+            // Unreadable tracks can't be vouched for: count it as sound left, so the copy is refused.
+            return true;
+        } finally {
+            extractor.release();
+        }
+    }
+
     static void countVerificationFailure(@NonNull String mediaType, @NonNull String reason) {
         SentryManager.count("verification.failed", 1, "media_type", mediaType, "outcome", reason);
     }
@@ -379,6 +413,14 @@ final class CleanVerifier {
                     countVerificationFailure("image", "exif_tag");
                     return false;
                 }
+            }
+
+            // What is kept may be no finer than the settings keep: an approximate location on
+            // its grid, a date without its time at midnight.
+            if (!KeptPrecision.matchesSettings(context, exif, forSharing)) {
+                SentryManager.log("A kept location or date was more precise than the settings allow.");
+                countVerificationFailure("image", "kept_precision");
+                return false;
             }
 
             // Everything outside EXIF: a JPEG, PNG or WebP must be readable to the end of the

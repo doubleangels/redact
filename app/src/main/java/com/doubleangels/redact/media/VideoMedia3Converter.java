@@ -53,6 +53,7 @@ import androidx.media3.common.util.ExperimentalApi;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.container.Mp4LocationData;
 
+import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.google.common.collect.ImmutableList;
@@ -426,7 +427,9 @@ public final class VideoMedia3Converter {
         File outFile = new File(outputPath);
         Context app = context.getApplicationContext();
         // Read once: every codec and size attempt below would otherwise open the source again.
-        boolean hasAudio = sourceHasAudio(app, sourceUri);
+        // Remove Audio drops the sound track whatever the source has; the check after the
+        // transcode makes sure none is left (CleanVerifier.requireVideoMetadataClean).
+        boolean hasAudio = !AppPreferences.isRemoveAudio(app) && sourceHasAudio(app, sourceUri);
         SourceVideo source = readSourceVideo(app, sourceUri);
         SentryManager.log(
                 "The app is transcoding a " + source.describe() + " video.");
@@ -1018,7 +1021,7 @@ public final class VideoMedia3Converter {
         int audioBitrate = targetAudioBitrate(source, audioMimeType);
         MediaItem mediaItem = MediaItem.fromUri(sourceUri);
         EditedMediaItem.Builder editedMediaItemBuilder =
-                new EditedMediaItem.Builder(mediaItem).setRemoveAudio(false);
+                new EditedMediaItem.Builder(mediaItem).setRemoveAudio(!hasAudio);
         ImmutableList.Builder<Effect> videoEffects = ImmutableList.builder();
         if (outputFrameRate > 0) {
             // Dropped on the GPU before the encoder, which is configured for this rate too.

@@ -91,15 +91,10 @@ public final class SentryManager {
             "unsupported_type",
             "unsupported_action",
             "media_count",
-            "image_width",
-            "image_height",
-            "video_width",
-            "video_height",
-            "video_duration_ms",
+            "image_resolution_class",
+            "video_resolution_class",
+            "video_duration_class",
             "video_rotation",
-            "video_frame_rate",
-            "video_bitrate_kbps",
-            "audio_sample_rate",
             "image_orientation",
             "processing_failed",
             "processing_success",
@@ -107,13 +102,10 @@ public final class SentryManager {
             "items_processed",
             "items_failed",
             "success",
-            "file_size_mb",
             "metadata_verification_passed",
             "preserved_exif_count",
             "exif_tags_removed",
             "bitmap_sample_size",
-            "original_width",
-            "original_height",
             "video_metadata_verification_passed",
             "video_verify_failed_key",
             "permissions_granted",
@@ -140,6 +132,9 @@ public final class SentryManager {
             "extraction_failed",
             "error_type",
             "has_location_data",
+            "image_resolution_class",
+            "video_resolution_class",
+            "video_duration_class",
             "video_rotation",
             "image_orientation",
             "processing_failed",
@@ -155,22 +150,66 @@ public final class SentryManager {
      */
     private static final Set<String> OPERATION_CONTEXT_KEYS = new HashSet<>(Arrays.asList(
             "sections_count",
-            "image_width",
-            "image_height",
-            "video_width",
-            "video_height",
-            "video_duration_ms",
-            "video_frame_rate",
-            "video_bitrate_kbps",
-            "audio_sample_rate",
-            "file_size_mb",
             "preserved_exif_count",
             "exif_tags_removed",
             "bitmap_sample_size",
-            "original_width",
             "original_height"));
 
     static final String OPERATION_CONTEXT = "operation";
+
+    /** MIME types the app handles, sent as they are; any other is sent only as its family. */
+    private static final Set<String> KNOWN_MIME_TYPES = new HashSet<>(Arrays.asList(
+            "image/jpeg", "image/png", "image/webp", "image/heic", "image/heif", "image/avif",
+            "image/gif", "image/bmp", "image/x-ms-bmp", "image/x-adobe-dng",
+            "video/mp4", "video/quicktime", "video/webm", "video/x-matroska", "video/3gpp",
+            "video/3gpp2", "video/avc", "video/hevc", "video/mpeg"));
+
+    /** A file's MIME type for a report: a known one as it is, else "image/other", "video/other" or "other". */
+    @NonNull
+    public static String mimeTypeClass(@Nullable String mimeType) {
+        if (mimeType == null || mimeType.isEmpty()) {
+            return "unknown";
+        }
+        String lower = mimeType.toLowerCase(Locale.ROOT);
+        if (KNOWN_MIME_TYPES.contains(lower)) {
+            return lower;
+        }
+        if (lower.startsWith("image/")) {
+            return "image/other";
+        }
+        return lower.startsWith("video/") ? "video/other" : "other";
+    }
+
+    /** A picture's size for a report, as a class of its longer side rather than the exact size. */
+    @NonNull
+    public static String resolutionClass(long width, long height) {
+        if (width <= 0 || height <= 0) {
+            return "unknown";
+        }
+        long side = Math.max(width, height);
+        if (side <= 1280) {
+            return "up_to_720p";
+        }
+        if (side <= 1920) {
+            return "1080p";
+        }
+        if (side <= 4096) {
+            return "4k";
+        }
+        return side <= 8192 ? "8k" : "larger";
+    }
+
+    /** A video's length for a report, as a band rather than the exact duration. */
+    @NonNull
+    public static String durationClass(long durationMs) {
+        if (durationMs < 0) {
+            return "unknown";
+        }
+        if (durationMs < 60_000) {
+            return "under_1_min";
+        }
+        return durationMs < 600_000 ? "under_10_min" : "10_min_or_more";
+    }
 
     /** The current thread's job data; each job runs on its own worker thread. */
     private static final ThreadLocal<Map<String, String>> OPERATION_DATA =

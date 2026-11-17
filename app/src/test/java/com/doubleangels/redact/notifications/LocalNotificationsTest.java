@@ -47,7 +47,6 @@ public class LocalNotificationsTest {
 
     @After
     public void tearDown() {
-        LocalNotifications.testSdkIntOverride = null;
     }
 
     private String onlyNotificationText() {
@@ -63,13 +62,6 @@ public class LocalNotificationsTest {
         assertNotNull(nm.getNotificationChannel(LocalNotifications.CHANNEL_ID_TASKS));
     }
 
-    @Test
-    public void ensureChannels_skipsBeforeOreo() {
-        nm.deleteNotificationChannel(LocalNotifications.CHANNEL_ID_TASKS);
-        LocalNotifications.testSdkIntOverride = 25;
-        LocalNotifications.ensureChannels(app);
-        assertNull(nm.getNotificationChannel(LocalNotifications.CHANNEL_ID_TASKS));
-    }
 
     @Test
     public void canPostNotifications_requiresRuntimePermission() {

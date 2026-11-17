@@ -135,7 +135,7 @@
         <string name="settings_sentry_consent_allow">사용</string>
     <string name="settings_sentry_consent_cancel">나중에</string>
     <string name="settings_sentry_consent_title">크래시 보고 사용</string>
-    <string name="settings_sentry_consent_message">크래시 보고 전송은 익명 진단 정보를 인터넷을 통해 Sentry로 업로드합니다.\n\n사진, 동영상, 파일 이름, GPS 좌표는 업로드되지 않습니다.</string>
+    <string name="settings_sentry_consent_message">크래시 보고 전송은 익명 진단 정보를 인터넷을 통해 Sentry로 업로드합니다. 또한 약 4번 중 1번의 세션에서 화면이 열리는 데 걸린 시간 같은 성능 데이터도 보냅니다.\n\n사진, 동영상, 파일 이름, GPS 좌표는 업로드되지 않습니다.</string>
     <string name="settings_strict_clean">엄격한 정리</string>
     <string name="settings_strict_clean_subtitle">방향이나 색 공간처럼 사진을 어떻게 표시할지만 알려 주는 태그를 제외한 모든 메타데이터를 제거합니다. 아래의 유지 옵션을 끄고, 가장 철저한 정리를 위해 동영상을 항상 완전히 다시 인코딩합니다.</string>
     
@@ -211,14 +211,7 @@
     <string name="settings_progress_notifications_subtitle">긴 작업 중 진행 상황을 보여주는 지속 알림. 알림 허용을 켤 때까지 기본적으로 꺼져 있습니다.</string>
     <string name="settings_crash_reporting_learn_more">무엇이 공유되나요?</string>
     <string name="settings_crash_reporting_detail_title">충돌 보고 세부 정보</string>
-    <string name="settings_crash_reporting_detail_message">충돌 보고서 보내기가 켜져 있으면 Sentry를 통해 익명 진단이 전송될 수 있습니다:
-
-• 기기 모델 및 Android 버전
-• 앱 버전
-• 스택 추적 및 오류 유형
-• 정리된 진단 태그
-
-사진과 동영상은 업로드되지 않습니다. URI, 파일 이름, GPS 좌표는 전송 전에 제거됩니다.</string>
+    <string name="settings_crash_reporting_detail_message">충돌 보고서 보내기가 켜져 있으면 Sentry를 통해 익명 진단이 전송될 수 있습니다:\n\n• 기기 모델 및 Android 버전\n• 앱 버전\n• 스택 추적 및 오류 유형\n• 정리된 진단 태그\n• 약 4번 중 1번의 세션에 대한 성능 데이터(화면이 열리는 데 걸린 시간, 느린 프레임)\n\n사진과 동영상은 업로드되지 않습니다. URI, 파일 이름, GPS 좌표는 전송 전에 제거됩니다.</string>
     <string name="settings_crash_reporting_privacy_policy">개인정보 처리방침</string>
     <string name="settings_crash_reporting_dismiss">닫기</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
@@ -445,6 +438,10 @@
     <string name="censor_discard">삭제</string>
     <string name="censor_keep_editing">계속 편집</string>
     <string name="button_scan_result">결과 스캔</string>
+    <string name="button_open_result">열기</string>
+    <string name="open_result_no_app">이 휴대전화에는 이 파일을 열 수 있는 앱이 없습니다.</string>
+    <string name="open_result_chooser_title">다음으로 열기</string>
+    <string name="button_share_without_saving">저장하지 않고 공유</string>
     <string name="settings_keep_original_names">원본 파일 이름 유지</string>
     <string name="settings_keep_original_names_subtitle">정리하거나 변환한 파일에 무작위 이름 대신 원본 파일 이름을 사용합니다. IMG_20260117 같은 이름은 사진을 찍은 시기를 드러낼 수 있습니다.</string>
     <string name="review_prompt_title">다른 사람들이 Redact를 찾도록 도와주세요</string>
@@ -568,10 +565,59 @@
     <string name="onboarding_crash_title">Redact 개선에 도움을 주세요.</string>
     <string name="onboarding_crash_body">Redact가 비정상 종료되면 문제를 찾아 해결할 수 있도록 익명 보고서를 보낼 수 있습니다. Redact는 사용자가 켠 비정상 종료 보고서와 설정에서 직접 시작한 업데이트 확인에만 인터넷을 사용합니다.</string>
     <string name="onboarding_crash_point_private">보고서에는 사진, 동영상, 파일 이름, 위치가 절대 포함되지 않습니다.</string>
-    <string name="onboarding_crash_point_sentry">보고서는 개발자가 비정상 종료를 찾아 해결하도록 돕는 서비스인 Sentry로 전송됩니다.</string>
+    <string name="onboarding_crash_point_sentry">보고서는 개발자가 비정상 종료를 찾아 해결하도록 돕는 서비스인 Sentry로 전송됩니다. 약 4번 중 1번의 세션에서는 성능 데이터도 포함됩니다.</string>
     <string name="onboarding_crash_allow">비정상 종료 보고서 보내기</string>
     <string name="onboarding_status_crash_on">비정상 종료 보고서가 켜져 있습니다.</string>
     <string name="onboarding_choices_crash">마지막은 비정상 종료 보고서입니다. 문제를 더 빨리 찾아 해결하기 위해 필요합니다.</string>
     <string name="onboarding_done_crash_on">문제가 생기면 Redact가 익명 비정상 종료 보고서를 보냅니다.</string>
     <string name="onboarding_done_crash_off">Redact에서 비정상 종료 보고서를 보내지 않습니다.</string>
+
+    <string name="settings_approximate_location">대략적인 위치</string>
+    <string name="settings_approximate_location_subtitle">유지하는 위치를 약 10km 단위로 반올림합니다. 도시는 알 수 있지만 거리는 알 수 없습니다. 고도와 GPS 시간은 유지하지 않습니다.</string>
+    <string name="settings_date_only">날짜만</string>
+    <string name="settings_date_only_subtitle">사진이나 동영상을 찍은 날짜는 유지하지만 시각과 시간대는 유지하지 않습니다.</string>
+    <string name="settings_remove_audio">오디오 제거</string>
+    <string name="settings_remove_audio_subtitle">정리, 공유, 변환한 동영상을 소리 없이 저장합니다. 목소리와 주변 소음으로 누가 어디에 있었는지 드러날 수 있기 때문입니다. 이를 위해 동영상은 항상 다시 인코딩됩니다.</string>
+    <string name="clean_failed_button">실패한 파일(%1$d)</string>
+    <string name="clean_failed_title">정리되지 않은 파일</string>
+    <string name="clean_failed_reason_unsupported">이 휴대전화에서는 이 형식을 열 수 없습니다.</string>
+    <string name="clean_failed_reason_memory">정리할 메모리가 부족했습니다.</string>
+    <string name="clean_failed_reason_not_cleaned">안전하게 정리할 수 없어 아무것도 저장하지 않았습니다.</string>
+    <string name="clean_failed_retry">다시 시도</string>
+    <string name="scan_batch_title">선택한 파일</string>
+    <string name="scan_batch_location_files">위치가 있는 파일:</string>
+    <string name="scan_batch_clean">이 파일들 정리</string>
+    <string name="button_paste_media">붙여넣기</string>
+    <string name="scan_share_report">텍스트로 공유</string>
+    <string name="scan_share_report_subject">메타데이터 보고서</string>
+    <string name="scan_share_report_consent_title">이 보고서를 공유할까요?</string>
+    <string name="scan_share_report_consent_message">보고서에는 Scan이 이 파일에서 찾은 모든 정보가 담기며, 촬영 장소와 시간, 만든 사람이 포함될 수 있습니다. 다음에 선택하는 앱으로만 전송됩니다.</string>
+    <string name="scan_share_report_unavailable">이 휴대전화에는 텍스트를 받을 수 있는 앱이 없습니다.</string>
+    <plurals name="scan_batch_reading">
+        <item quantity="other">파일 %1$d개를 읽는 중…</item>
+    </plurals>
+    <plurals name="scan_batch_checked">
+        <item quantity="other">파일 %1$d개 확인:</item>
+    </plurals>
+    <plurals name="scan_batch_location">
+        <item quantity="other">%1$d개에 위치가 있음</item>
+    </plurals>
+    <plurals name="scan_batch_date">
+        <item quantity="other">%1$d개에 날짜가 있음</item>
+    </plurals>
+    <plurals name="scan_batch_device">
+        <item quantity="other">%1$d개에 휴대전화나 카메라 이름이 있음</item>
+    </plurals>
+    <plurals name="scan_batch_name">
+        <item quantity="other">%1$d개에 사람 이름이 있음</item>
+    </plurals>
+    <plurals name="scan_batch_nothing">
+        <item quantity="other">%1$d개는 제거할 항목이 없음</item>
+    </plurals>
+    <plurals name="scan_batch_unreadable">
+        <item quantity="other">%1$d개를 읽을 수 없음</item>
+    </plurals>
+    <plurals name="scan_batch_more">
+        <item quantity="other">외 %1$d개</item>
+    </plurals>
 </resources>

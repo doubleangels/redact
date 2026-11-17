@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorInflater;
 import android.animation.AnimatorListenerAdapter;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.doubleangels.redact.sentry.SentryManager;
+import com.doubleangels.redact.ui.DroppedMedia;
 import com.doubleangels.redact.ui.FoldPosture;
 import com.doubleangels.redact.ui.MainViewModel;
 
@@ -42,6 +45,66 @@ public abstract class TabFragment extends Fragment {
                 fitToPane(v, viewModel.getFoldPosture().getValue());
             }
         });
+        if (acceptsMedia()) {
+            DroppedMedia.acceptDrops(requireActivity(), view, this::onMediaReceived);
+            View paste = view.findViewById(R.id.emptyStatePasteButton);
+            if (paste != null) {
+                paste.setOnClickListener(v -> pasteMedia());
+            }
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        refreshPasteButton();
+    }
+
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (!hidden) {
+            refreshPasteButton();
+        }
+    }
+
+    /**
+     * Whether this tab takes photos and videos dropped on it or pasted into it, handed to
+     * {@link #onMediaReceived}. Clean, Scan, Convert and Censor do.
+     */
+    boolean acceptsMedia() {
+        return false;
+    }
+
+    /**
+     * Photos and videos dropped on this tab, pasted into it, or picked: other apps' content
+     * URIs that have passed {@link com.doubleangels.redact.media.InboundUriPolicy}.
+     */
+    void onMediaReceived(@NonNull List<Uri> uris) {
+    }
+
+    /** Pastes the photos and videos on the clipboard, when the person asks: the button or Ctrl+V. */
+    boolean pasteMedia() {
+        if (!acceptsMedia() || getContext() == null) {
+            return false;
+        }
+        List<Uri> uris = DroppedMedia.fromClipboard(requireContext());
+        if (uris.isEmpty()) {
+            return false;
+        }
+        SentryManager.log("Media was pasted into a tab.");
+        onMediaReceived(uris);
+        return true;
+    }
+
+    /** Shows the empty state's Paste button only while the clipboard holds a photo or video. */
+    void refreshPasteButton() {
+        View root = getView();
+        View paste = root != null ? root.findViewById(R.id.emptyStatePasteButton) : null;
+        if (paste != null) {
+            paste.setVisibility(acceptsMedia() && DroppedMedia.clipboardOffersMedia(requireContext())
+                    ? View.VISIBLE : View.GONE);
+        }
     }
 
     /**

@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.function.IntPredicate;
 
 /**
@@ -27,6 +28,10 @@ import java.util.function.IntPredicate;
  * private use) and padding OBUs that hold anything but zeros. A clean re-encodes the video, so
  * none of it survives: Scan uses this to show that it is there, and the stripper to skip the
  * quick transmux of Faster Video Cleaning, which would copy it, for a file that carries any.
+ *
+ * <p>Only the video stream is read. Faster Video Cleaning copies the audio stream as it is; an
+ * AAC stream's data stream and fill elements are not looked at here, so a file whose metadata
+ * hides there would keep it through the quick copy, as it would through any remux.
  *
  * <p>VP8 and VP9 have no syntax for data beside the picture, so there is nothing to read in them.
  * Any other video codec cannot be read here, and the scan answers null for it, as it does when it
@@ -443,13 +448,15 @@ public final class VideoStreamMetadata {
             if (pos + size > rbsp.length) {
                 return;
             }
-            if (type == SEI_USER_DATA_UNREGISTERED && size >= 16) {
+            if (type == SEI_USER_DATA_UNREGISTERED) {
                 counter.messages++;
                 counter.bytes += size;
-                if (counter.text == null) {
+                if (counter.text == null && size >= 16) {
                     counter.text = readableText(rbsp, pos + 16, size - 16);
                 }
-            } else if (type == SEI_USER_DATA_REGISTERED && size >= 1 && !describesPicture(rbsp, pos, size)) {
+            } else if (!pictureSei(type, rbsp, pos, size)) {
+                // An allowlist, like the HEIF filter's: a message that is not known to only
+                // time, decode or describe the picture (an HEVC time code, say) counts.
                 counter.messages++;
                 counter.bytes += size;
                 if (counter.text == null) {
@@ -458,6 +465,34 @@ public final class VideoStreamMetadata {
             }
             pos += size;
         }
+    }
+
+    /**
+     * SEI payload types that only time, decode or describe the picture, in H.264 and H.265:
+     * buffering period (0), picture timing (1), pan-scan rectangle (2), recovery point (6),
+     * decoded reference marking repetition (7), frame packing (45), display orientation (47),
+     * active parameter sets (129), decoding unit info (130), temporal sub-layer index (131),
+     * decoded picture hash (132), region refresh (134) and no display (135), with the HDR types
+     * the HEIF filter keeps ({@link HeifContainerMetadata#SEI_KEEP}). Filler (3) counts only when
+     * it holds anything but 0xFF, and T.35 (4) only when it is not a picture format's.
+     */
+    private static final Set<Integer> PICTURE_SEI = Set.of(
+            0, 1, 2, 6, 7, 45, 47, 129, 130, 131, 132, 134, 135);
+
+    @VisibleForTesting
+    static boolean pictureSei(int type, @NonNull byte[] rbsp, int pos, int size) {
+        if (PICTURE_SEI.contains(type) || HeifContainerMetadata.SEI_KEEP.contains(type)) {
+            return true;
+        }
+        if (type == 3) {
+            for (int i = pos; i < pos + size; i++) {
+                if ((rbsp[i] & 0xFF) != 0xFF) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return type == SEI_USER_DATA_REGISTERED && describesPicture(rbsp, pos, size);
     }
 
     /**

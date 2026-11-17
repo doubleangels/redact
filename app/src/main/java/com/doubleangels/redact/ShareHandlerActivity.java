@@ -1,5 +1,6 @@
 package com.doubleangels.redact;
 
+import android.app.Activity;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
@@ -57,10 +58,12 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 public class ShareHandlerActivity extends AppCompatActivity {
 
@@ -87,6 +90,54 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private static final ExecutorService cleanupExecutor =
             Executors.newSingleThreadExecutor();
 
+    /**
+     * Marks a share Redact's own Clean tab started with {@link #shareWithoutSaving}, which skips
+     * the confirmation a share from another app asks for: the user just tapped Share Without
+     * Saving. A random value per process, so another app cannot set it to skip the question.
+     */
+    private static final String EXTRA_INTERNAL_TOKEN = "com.doubleangels.redact.extra.INTERNAL_TOKEN";
+    private static final String INTERNAL_TOKEN = UUID.randomUUID().toString();
+
+    /**
+     * Cleans {@code uris} the way a share into Redact does and opens the share sheet with the
+     * clean copies, which are deleted afterwards rather than saved to the gallery. Used by the
+     * Clean tab's Share Without Saving.
+     */
+    public static void shareWithoutSaving(@NonNull Context context, @NonNull List<Uri> uris) {
+        if (uris.isEmpty()) {
+            return;
+        }
+        Intent intent = new Intent(context, ShareHandlerActivity.class);
+        if (uris.size() == 1) {
+            intent.setAction(Intent.ACTION_SEND);
+            intent.putExtra(Intent.EXTRA_STREAM, uris.get(0));
+        } else {
+            intent.setAction(Intent.ACTION_SEND_MULTIPLE);
+            intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, new ArrayList<>(uris));
+        }
+        intent.setType("*/*");
+        intent.putExtra(EXTRA_INTERNAL_TOKEN, INTERNAL_TOKEN);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        if (!(context instanceof Activity)) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        }
+        context.startActivity(intent);
+    }
+
+    /** Whether {@code intent} came from {@link #shareWithoutSaving} in this process. */
+    @VisibleForTesting
+    static boolean isInternal(@Nullable Intent intent) {
+        if (intent == null) {
+            return false;
+        }
+        try {
+            return INTERNAL_TOKEN.equals(intent.getStringExtra(EXTRA_INTERNAL_TOKEN));
+        } catch (RuntimeException badExtras) {
+            // Another app's malformed extras: treat it as the outside share it is.
+            return false;
+        }
+    }
+
     public static boolean isShareProcessingActive() {
         return activeShareSessions.get() > 0;
     }
@@ -104,7 +155,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     /** Builds the cleaner each share uses; tests swap it to hold a share inside its clean. */
     @VisibleForTesting
-    static java.util.function.Function<Context, MetadataStripper> stripperFactory = MetadataStripper::new;
+    static Function<Context, MetadataStripper> stripperFactory = MetadataStripper::new;
 
     private MediaSelector mediaSelector;
 
@@ -613,7 +664,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     /** Starts cleaning the snapshots, after asking first when Settings says to. */
     private void maybeConfirmAndProcess(List<Uri> uris, @NonNull ShareSession session) {
-        if (AppPreferences.isShareConfirmBeforeStrip(this)) {
+        if (AppPreferences.isShareConfirmBeforeStrip(this) && !isInternal(getIntent())) {
             if (progressDialog != null && progressDialog.isShowing()) {
                 progressDialog.dismiss();
             }
@@ -787,7 +838,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
                         finishWithError(getString(R.string.share_error_generic));
                     }
                 });
-            } catch (Exception e) {
+            } catch (Exception | OutOfMemoryError e) {
+                // A crafted shared file must end in an error message, never a crash.
                 if (!transaction.isFinished()) {
                     transaction.setStatus(SpanStatus.INTERNAL_ERROR);
                     transaction.finish();

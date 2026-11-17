@@ -54,6 +54,12 @@ public final class HeifContainerMetadata {
     private static final Set<String> IMAGE_ITEM_TYPES = Set.of(
             "hvc1", "av01", "avc1", "vvc1", "jpeg", "j2k1", "unci", "grid", "iovl", "iden", "tmap");
 
+    /**
+     * Coded picture items whose bytes {@code cleanItemData} cannot filter, so a rebuild that would
+     * keep one refuses (the clean then encodes the picture again) and Scan reports it.
+     */
+    private static final Set<String> UNFILTERED_CODED_TYPES = Set.of("jpeg", "avc1", "vvc1", "j2k1");
+
     /** Item properties a decoder needs to show the picture as it was taken. */
     private static final Set<String> PROPERTY_KEEP = Set.of(
             "hvcC", "av1C", "avcC", "vvcC", "jpgC", "ispe", "pixi", "colr", "irot", "imir", "clap",
@@ -76,7 +82,7 @@ public final class HeifContainerMetadata {
      * (144), alternative transfer characteristics (147), ambient viewing environment (148) and
      * alpha channel information (165). User data and everything else goes.
      */
-    private static final Set<Integer> SEI_KEEP = Set.of(137, 144, 147, 148, 165);
+    static final Set<Integer> SEI_KEEP = Set.of(137, 144, 147, 148, 165);
 
     /** AV1 metadata types kept: HDR content light level (1), mastering display (2), scalability (3). */
     private static final Set<Integer> AV1_METADATA_KEEP = Set.of(1, 2, 3);
@@ -149,6 +155,8 @@ public final class HeifContainerMetadata {
             long pos = 0;
             byte[] meta = null;
             boolean heif = false;
+            boolean sequence = false;
+            List<long[]> mdats = new ArrayList<>();
             while (pos < length) {
                 if (pos + 8 > length) {
                     findings.add(new ImageContainerMetadata.Finding("DATA_AFTER_IMAGE",
@@ -184,7 +192,9 @@ public final class HeifContainerMetadata {
                 }
                 switch (type) {
                     case "ftyp":
+                        break;
                     case "mdat":
+                        mdats.add(new long[] {pos + header, pos + size});
                         break;
                     case "free":
                     case "skip": {
@@ -204,6 +214,7 @@ public final class HeifContainerMetadata {
                     case "moov":
                     case "mpvd": {
                         boolean motion = "mpvd".equals(type);
+                        sequence |= !motion;
                         // A burst's or animation's tracks are kept; a Motion Photo's clean video too.
                         VideoContainerMetadata.Report video = motion
                                 ? VideoContainerMetadata.scan(ch, pos + header, pos + size)
@@ -238,6 +249,15 @@ public final class HeifContainerMetadata {
                 Rebuild rebuild = new Rebuild(ch, meta);
                 rebuild.parse();
                 rebuild.describe(findings, kept);
+                if (!sequence) {
+                    // A sequence's frames are in mdat too, found through its tracks; for a still,
+                    // every byte of mdat should belong to an item, and a clean writes only those.
+                    long unreferenced = unreferencedBytes(mdats, rebuild.fileExtents());
+                    if (unreferenced > 0) {
+                        findings.add(new ImageContainerMetadata.Finding("HEIF_UNREFERENCED_DATA",
+                                null, unreferenced, ImageContainerMetadata.Kind.OTHER));
+                    }
+                }
                 recognized = true;
             }
         } catch (IOException | RuntimeException e) {
@@ -249,6 +269,27 @@ public final class HeifContainerMetadata {
             recognized = false;
         }
         return new ImageContainerMetadata.Report(ImageContainerMetadata.Format.HEIF, recognized, findings, kept);
+    }
+
+    /** How many bytes of the {@code mdats} payloads no extent in {@code extents} covers. */
+    static long unreferencedBytes(@NonNull List<long[]> mdats, @NonNull List<long[]> extents) {
+        List<long[]> sorted = new ArrayList<>(extents);
+        sorted.sort((a, b) -> Long.compare(a[0], b[0]));
+        long unreferenced = 0;
+        for (long[] mdat : mdats) {
+            long at = mdat[0];
+            for (long[] extent : sorted) {
+                long start = Math.max(extent[0], at);
+                long end = Math.min(extent[0] + extent[1], mdat[1]);
+                if (end <= start) {
+                    continue;
+                }
+                unreferenced += start - at;
+                at = end;
+            }
+            unreferenced += Math.max(0, mdat[1] - at);
+        }
+        return unreferenced;
     }
 
     @NonNull
@@ -981,7 +1022,14 @@ public final class HeifContainerMetadata {
                                 itemLength(item), ImageContainerMetadata.Kind.OTHER));
                         continue;
                     }
+                    requireInside(item);
                     long itemBytes = itemLength(item);
+                    if (UNFILTERED_CODED_TYPES.contains(item.type)) {
+                        // A clean encodes the picture again rather than copy bytes it can't filter.
+                        findings.add(new ImageContainerMetadata.Finding("HEIF_UNFILTERED_PICTURE",
+                                item.type, itemBytes, ImageContainerMetadata.Kind.OTHER));
+                        continue;
+                    }
                     if (item.hasLocation && pictureBytes + itemBytes <= MAX_PICTURE_BYTES_CHECKED) {
                         pictureBytes += itemBytes;
                         byte[] data = readItem(item);
@@ -1119,6 +1167,18 @@ public final class HeifContainerMetadata {
             return null;
         }
 
+        /** Every item's extents in the file itself (not in idat), as {offset, length}. */
+        @NonNull
+        List<long[]> fileExtents() {
+            List<long[]> extents = new ArrayList<>();
+            for (Item item : items.values()) {
+                if (item.constructionMethod == 0) {
+                    extents.addAll(item.extents);
+                }
+            }
+            return extents;
+        }
+
         /** Writes each kept item's data, cleaned, to the new mdat body or the new idat. */
         long writeItemData(@NonNull OutputStream body) throws IOException {
             long bodyOffset = 0;
@@ -1140,13 +1200,38 @@ public final class HeifContainerMetadata {
             return bodyOffset;
         }
 
+        /**
+         * Checks that every extent of {@code item} lies where it must (inside the file, or inside
+         * idat), so a picture too large to read for Scan is still never called clean when its
+         * data isn't there.
+         */
+        private void requireInside(@NonNull Item item) throws IOException {
+            long fileSize = in.size();
+            for (long[] extent : item.extents) {
+                if (extent[0] < 0 || extent[1] < 0) {
+                    throw new IOException("Item outside the file");
+                }
+                if (item.constructionMethod == 1) {
+                    if (idatPayload < 0 || extent[0] + extent[1] > idatEnd - idatPayload) {
+                        throw new IOException("Item outside idat");
+                    }
+                } else if (extent[0] + extent[1] > fileSize) {
+                    throw new IOException("Item outside the file");
+                }
+            }
+        }
+
         @NonNull
         private byte[] readItem(@NonNull Item item) throws IOException {
+            // Every extent is checked against where it must lie before anything is allocated, so
+            // a few bytes of iloc can't ask for a buffer far larger than the file.
+            requireInside(item);
             long total = 0;
+            long fileSize = in.size();
             for (long[] extent : item.extents) {
                 total += extent[1];
             }
-            if (total > MAX_ITEM_BYTES) {
+            if (total > MAX_ITEM_BYTES || total > fileSize) {
                 throw new IOException("Item too large");
             }
             byte[] data = new byte[(int) total];
@@ -1190,6 +1275,12 @@ public final class HeifContainerMetadata {
                 case "av01":
                     return filterAv1Obus(data);
                 default:
+                    if (UNFILTERED_CODED_TYPES.contains(item.type)) {
+                        // A JPEG item can hold APP1 EXIF, XMP and comments, and AVC, VVC and
+                        // JPEG 2000 streams their own user data, none of which this class filters:
+                        // refusing makes the caller encode the picture again instead.
+                        throw new IOException("Picture item this class cannot filter");
+                    }
                     return data;
             }
         }
@@ -1259,8 +1350,11 @@ public final class HeifContainerMetadata {
                         body.write(hdlr());
                         break;
                     case "pitm":
-                    case "dinf":
                         body.write(meta, start, end - start);
+                        break;
+                    case "dinf":
+                        // Written anew rather than copied: a data reference can hold a URL or a name.
+                        body.write(selfContainedDinf());
                         break;
                     case "iinf":
                         body.write(iinf());
@@ -1741,6 +1835,20 @@ public final class HeifContainerMetadata {
     }
 
     // ---- bytes ----------------------------------------------------------------------------------
+
+    /**
+     * A {@code dinf} whose one data reference is a {@code url } entry with the self-contained
+     * flag and no text, which is all a file that holds its own data needs.
+     */
+    @NonNull
+    static byte[] selfContainedDinf() throws IOException {
+        byte[] url = box("url ", new byte[] {0, 0, 0, 1});
+        ByteArrayOutputStream dref = new ByteArrayOutputStream();
+        writeU32(dref, 0);
+        writeU32(dref, 1);
+        dref.write(url);
+        return box("dinf", box("dref", dref.toByteArray()));
+    }
 
     @NonNull
     static byte[] box(@NonNull String type, @NonNull byte[] payload) throws IOException {

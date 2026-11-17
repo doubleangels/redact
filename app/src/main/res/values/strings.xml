@@ -132,7 +132,7 @@
 
     <string name="settings_crash_reporting_learn_more">What Is Shared?</string>
     <string name="settings_crash_reporting_detail_title">Crash Reporting Details</string>
-    <string name="settings_crash_reporting_detail_message">When Send Crash Reports is on, anonymized diagnostics may be sent via Sentry:\n\n• Device model and Android version\n• App version\n• Stack traces and error types\n• Scrubbed diagnostic tags (e.g. whether processing succeeded)\n\nYour photos and videos are never uploaded. URIs, filenames, and GPS coordinates are removed before upload.</string>
+    <string name="settings_crash_reporting_detail_message">When Send Crash Reports is on, anonymized diagnostics may be sent via Sentry:\n\n• Device model and Android version\n• App version\n• Stack traces and error types\n• Scrubbed diagnostic tags (e.g. whether processing succeeded)\n• Performance timings for about 1 in 4 sessions (how long screens take to open, slow frames)\n\nYour photos and videos are never uploaded. URIs, filenames, and GPS coordinates are removed before upload.</string>
     <string name="settings_crash_reporting_privacy_policy">Privacy Policy</string>
     <string name="settings_crash_reporting_dismiss">Close</string>
 
@@ -330,7 +330,7 @@
     <string name="settings_sentry_consent_allow">Enable</string>
     <string name="settings_sentry_consent_cancel">Not Now</string>
     <string name="settings_sentry_consent_title">Enable Crash Reporting</string>
-    <string name="settings_sentry_consent_message">Send Crash Reports uploads anonymized diagnostics to Sentry over the internet.\n\nNo photos, videos, filenames, or GPS coordinates are uploaded.</string>
+    <string name="settings_sentry_consent_message">Send Crash Reports uploads anonymized diagnostics to Sentry over the internet. It also sends performance timings, such as how long screens take to open, for about 1 in 4 sessions.\n\nNo photos, videos, filenames, or GPS coordinates are uploaded.</string>
     <string name="settings_strict_clean">Strict Clean</string>
     <string name="settings_strict_clean_subtitle">Removes all metadata except the tags that only say how to show the picture, such as its orientation and color space. Turns off the keep options below and always fully re-encodes video for the most thorough clean.</string>
     <string name="settings_video_fallback">Faster Video Cleaning</string>
@@ -465,6 +465,10 @@
     <string name="censor_discard">Discard</string>
     <string name="censor_keep_editing">Keep Editing</string>
     <string name="button_scan_result">Scan Result</string>
+    <string name="button_open_result">Open</string>
+    <string name="open_result_no_app">No app on this phone can open this file.</string>
+    <string name="open_result_chooser_title">Open With</string>
+    <string name="button_share_without_saving">Share Without Saving</string>
     <string name="settings_keep_original_names">Keep Original File Names</string>
     <string name="settings_keep_original_names_subtitle">Name cleaned and converted files after the originals instead of a random name. Names such as IMG_20260117 can reveal when a photo was taken.</string>
     <string name="review_prompt_title">Help Others Find Redact</string>
@@ -585,7 +589,7 @@
     <string name="onboarding_crash_title">Help make Redact better.</string>
     <string name="onboarding_crash_body">If Redact ever crashes, it can send an anonymous report so the problem can be found and fixed. Redact only goes online for crash reports you turn on and for an update check you start yourself in Settings.</string>
     <string name="onboarding_crash_point_private">Reports never include your photos, videos, file names or locations.</string>
-    <string name="onboarding_crash_point_sentry">Reports go to Sentry, a service that helps developers find and fix crashes.</string>
+    <string name="onboarding_crash_point_sentry">Reports go to Sentry, a service that helps developers find and fix crashes. For about 1 in 4 sessions, they also include performance timings.</string>
     <string name="onboarding_crash_allow">Send Crash Reports</string>
     <string name="onboarding_status_crash_on">Crash reports are on.</string>
     <string name="onboarding_choices_crash">Last, crash reports, so problems can be found and fixed sooner.</string>
@@ -599,4 +603,62 @@
     <string name="licenses_intro">Redact is built with these open-source libraries. Tap one to read its license.</string>
     <string name="licenses_project_page">Project Page</string>
     <string name="licenses_close">Close</string>
+
+    <string name="settings_approximate_location">Approximate Location</string>
+    <string name="settings_approximate_location_subtitle">Rounds a kept location to about 10 km: the town, not the street. Altitude and GPS time are left out.</string>
+    <string name="settings_date_only">Date Only</string>
+    <string name="settings_date_only_subtitle">Keeps the day a photo or video was taken, but not the time of day or time zone.</string>
+    <string name="settings_remove_audio">Remove Audio</string>
+    <string name="settings_remove_audio_subtitle">Saves cleaned, shared and converted videos without sound, as voices and background noise can reveal who was there and where. Videos are always re-encoded for this.</string>
+    <string name="clean_failed_button">Failed Files (%1$d)</string>
+    <string name="clean_failed_title">Files Not Cleaned</string>
+    <string name="clean_failed_reason_unsupported">This phone can\'t open this format.</string>
+    <string name="clean_failed_reason_memory">There wasn\'t enough memory to clean it.</string>
+    <string name="clean_failed_reason_not_cleaned">It couldn\'t be cleaned safely, so nothing was saved.</string>
+    <string name="clean_failed_retry">Retry Failed</string>
+    <string name="scan_batch_title">Selected Files</string>
+    <string name="scan_batch_location_files">Files with a location:</string>
+    <string name="scan_batch_clean">Clean These Files</string>
+    <string name="button_paste_media">Paste</string>
+    <string name="scan_share_report">Share as Text</string>
+    <string name="scan_share_report_subject">Metadata Report</string>
+    <string name="scan_share_report_consent_title">Share This Report?</string>
+    <string name="scan_share_report_consent_message">The report lists everything Scan found in this file, which can include where and when it was taken and who made it. It goes only to the app you pick next.</string>
+    <string name="scan_share_report_unavailable">No app on this phone can receive text.</string>
+    <plurals name="scan_batch_reading">
+        <item quantity="one">Reading %1$d file…</item>
+        <item quantity="other">Reading %1$d files…</item>
+    </plurals>
+    <plurals name="scan_batch_checked">
+        <item quantity="one">%1$d file checked:</item>
+        <item quantity="other">%1$d files checked:</item>
+    </plurals>
+    <plurals name="scan_batch_location">
+        <item quantity="one">%1$d has a location</item>
+        <item quantity="other">%1$d have a location</item>
+    </plurals>
+    <plurals name="scan_batch_date">
+        <item quantity="one">%1$d has a date</item>
+        <item quantity="other">%1$d have a date</item>
+    </plurals>
+    <plurals name="scan_batch_device">
+        <item quantity="one">%1$d names a phone or camera</item>
+        <item quantity="other">%1$d name a phone or camera</item>
+    </plurals>
+    <plurals name="scan_batch_name">
+        <item quantity="one">%1$d names a person</item>
+        <item quantity="other">%1$d name a person</item>
+    </plurals>
+    <plurals name="scan_batch_nothing">
+        <item quantity="one">%1$d has nothing to remove</item>
+        <item quantity="other">%1$d have nothing to remove</item>
+    </plurals>
+    <plurals name="scan_batch_unreadable">
+        <item quantity="one">%1$d couldn\'t be read</item>
+        <item quantity="other">%1$d couldn\'t be read</item>
+    </plurals>
+    <plurals name="scan_batch_more">
+        <item quantity="one">and %1$d more</item>
+        <item quantity="other">and %1$d more</item>
+    </plurals>
 </resources>

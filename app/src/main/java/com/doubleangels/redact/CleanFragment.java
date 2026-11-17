@@ -1,5 +1,6 @@
 package com.doubleangels.redact;
 
+import com.doubleangels.redact.ui.FailedFiles;
 import android.app.Activity;
 import android.content.ContentUris;
 import android.content.Context;
@@ -17,6 +18,7 @@ import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,12 +29,14 @@ import com.doubleangels.redact.media.MediaPickerContracts;
 import com.doubleangels.redact.media.ProcessingResourceWarnings;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.permission.PermissionManager;
+import com.doubleangels.redact.ui.CleanQuickToggles;
 import com.doubleangels.redact.ui.FabScroll;
 import com.doubleangels.redact.ui.FoldDialogs;
 import com.doubleangels.redact.ui.FoldPosture;
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.ui.Notice;
+import com.doubleangels.redact.ui.OpenResult;
 import com.doubleangels.redact.ui.SummaryCard;
 import com.doubleangels.redact.ui.UIStateManager;
 import com.google.android.material.button.MaterialButton;
@@ -76,6 +80,8 @@ public class CleanFragment extends TabFragment {
     private View shareResultsButton;
     private View scanResultButton;
     private View censorResultButton;
+    private View openResultButton;
+    private View shareWithoutSavingButton;
     /** Originals in the trash request on screen, whose clean copies get their names back if it is accepted. */
     @Nullable
     private List<Uri> pendingTrashSources;
@@ -87,6 +93,8 @@ public class CleanFragment extends TabFragment {
     private View emptyStateContainer;
     private MaterialButton emptyStateSelectButton;
     private View mediaContentContainer;
+    @Nullable private CleanQuickToggles quickToggles;
+    @Nullable private MaterialButton cleanFailedButton;
     private TextView cleanSelectedCountText;
     private MaterialButton cleanClearButton;
     private View cleanSummaryCard;
@@ -113,29 +121,39 @@ public class CleanFragment extends TabFragment {
         mediaPickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.OpenMultipleDocuments(),
                 uris -> {
-                    try {
-                        if (uris != null && !uris.isEmpty()) {
-                            if (uris.size() > MediaPickerContracts.MAX_PICK_ITEMS) {
-                                Notice.show(requireContext(),
-                                        getString(R.string.media_picker_selection_capped, MediaPickerContracts.MAX_PICK_ITEMS),
-                                        true);
-                                uris = MediaPickerContracts.trimToMax(uris, MediaPickerContracts.MAX_PICK_ITEMS);
-                            }
-                            SentryManager.log("Media was selected successfully.");
-                            if (mediaSelector != null) {
-                                mediaSelector.processMediaUrisAsync(uris, items -> {
-                                    SentryManager.setCustomKey("selected_media_count", items.size());
-                                    viewModel.setSelectedItems(items);
-                                });
-                            }
-                        } else {
-                            SentryManager.log("Media selection was canceled or failed.");
-                        }
-                    } catch (Exception e) {
-                        SentryManager.recordException(e);
+                    if (uris != null && !uris.isEmpty()) {
+                        SentryManager.log("Media was selected successfully.");
+                        onMediaReceived(uris);
                     }
                 }
         );
+    }
+
+    @Override
+    boolean acceptsMedia() {
+        return true;
+    }
+
+    /** Files picked, dropped or pasted become the selection, as many as a batch takes. */
+    @Override
+    void onMediaReceived(@NonNull List<Uri> received) {
+        try {
+            List<Uri> uris = received;
+            if (uris.size() > MediaPickerContracts.MAX_PICK_ITEMS) {
+                Notice.show(requireContext(),
+                        getString(R.string.media_picker_selection_capped, MediaPickerContracts.MAX_PICK_ITEMS),
+                        true);
+                uris = MediaPickerContracts.trimToMax(uris, MediaPickerContracts.MAX_PICK_ITEMS);
+            }
+            if (mediaSelector != null && viewModel != null) {
+                mediaSelector.processMediaUrisAsync(uris, items -> {
+                    SentryManager.setCustomKey("selected_media_count", items.size());
+                    viewModel.setSelectedItems(items);
+                });
+            }
+        } catch (Exception e) {
+            SentryManager.recordException(e);
+        }
     }
 
     @Nullable
@@ -187,6 +205,19 @@ public class CleanFragment extends TabFragment {
                 Haptics.tick(v);
                 openResultInCensor();
             });
+            openResultButton = view.findViewById(R.id.openResultButton);
+            openResultButton.setOnClickListener(v -> {
+                Haptics.tick(v);
+                List<Uri> outputs = viewModel.getCleanOutputs();
+                if (outputs.size() == 1) {
+                    OpenResult.open(requireContext(), outputs.get(0));
+                }
+            });
+            shareWithoutSavingButton = view.findViewById(R.id.shareWithoutSavingButton);
+            shareWithoutSavingButton.setOnClickListener(v -> {
+                Haptics.tick(v);
+                shareWithoutSaving();
+            });
             progressContainer = view.findViewById(R.id.progressContainer);
             progressText = view.findViewById(R.id.progressText);
             progressBar = view.findViewById(R.id.progressBar);
@@ -194,6 +225,8 @@ public class CleanFragment extends TabFragment {
             emptyStateContainer = view.findViewById(R.id.emptyStateContainer);
             emptyStateSelectButton = view.findViewById(R.id.emptyStateSelectButton);
             mediaContentContainer = view.findViewById(R.id.mediaContentContainer);
+            quickToggles = new CleanQuickToggles(view);
+            cleanFailedButton = view.findViewById(R.id.cleanFailedButton);
             cleanSummaryCard = view.findViewById(R.id.cleanSummaryCard);
             SummaryCard.bind(cleanSummaryCard, R.drawable.ic_clean, R.string.clean_selected_hint,
                     R.string.button_select_media, AppPreferences.HINT_CLEAN);
@@ -261,8 +294,11 @@ public class CleanFragment extends TabFragment {
                                                     warnings,
                                                     () -> viewModel.startCleaning(chosen)));
                                 });
-                            } catch (Exception e) {
+                            } catch (Exception | OutOfMemoryError e) {
                                 SentryManager.recordException(e);
+                                // The checks only warn; when they can't run, clean without them
+                                // rather than leave the button doing nothing.
+                                runOnUiThreadIfAdded(() -> viewModel.startCleaning(items));
                             }
                         }).start();
                     } else {
@@ -295,7 +331,6 @@ public class CleanFragment extends TabFragment {
                         @Override
                         public void onPermissionsGranted() {
                             try {
-                                SentryManager.log("Permissions were granted.");
                                 SentryManager.setCustomKey("permissions_granted", true);
                                 showReadyStatus();
                             } catch (Exception e) {
@@ -306,7 +341,6 @@ public class CleanFragment extends TabFragment {
                         @Override
                         public void onPermissionsDenied() {
                             try {
-                                SentryManager.log("Permissions were denied.");
                                 SentryManager.setCustomKey("permissions_granted", false);
                                 if (permissionManager.isMediaPickerAvailable()) {
                                     showReadyStatus();
@@ -475,6 +509,51 @@ public class CleanFragment extends TabFragment {
         }
     }
 
+    /**
+     * Share Without Saving shows while files are selected and neither being cleaned nor just
+     * cleaned: after a clean, Share sends the saved copies from the same place.
+     */
+    private void updateShareWithoutSaving() {
+        if (shareWithoutSavingButton == null) {
+            return;
+        }
+        List<MediaItem> items = viewModel.getSelectedItems().getValue();
+        MainViewModel.ProcessingState state = viewModel.getCleanProcessingState().getValue();
+        boolean shown = items != null && !items.isEmpty()
+                && state != MainViewModel.ProcessingState.PROCESSING
+                && state != MainViewModel.ProcessingState.COMPLETED;
+        shareWithoutSavingButton.setVisibility(shown ? View.VISIBLE : View.GONE);
+    }
+
+    /**
+     * Cleans the selected files as a share into Redact does (location always removed, the Keep
+     * options not applied) and opens the share sheet; the clean copies are deleted afterwards
+     * instead of being saved to the gallery.
+     */
+    @VisibleForTesting
+    void shareWithoutSaving() {
+        List<MediaItem> items = viewModel.getSelectedItems().getValue();
+        if (items == null || items.isEmpty()) {
+            return;
+        }
+        if (items.size() > MediaPickerContracts.MAX_SHARE_ITEMS) {
+            Notice.show(requireContext(), getString(R.string.share_error_too_many_items,
+                    MediaPickerContracts.MAX_SHARE_ITEMS), true);
+            return;
+        }
+        List<Uri> uris = new ArrayList<>();
+        for (MediaItem item : items) {
+            uris.add(item.uri());
+        }
+        SentryManager.log("A share without saving is starting.");
+        try {
+            ShareHandlerActivity.shareWithoutSaving(requireContext(), uris);
+        } catch (RuntimeException e) {
+            SentryManager.recordException(e);
+            Notice.show(requireContext(), R.string.share_error_generic, false);
+        }
+    }
+
     private void setupObservers() {
         try {
             viewModel.getSelectedItems().observe(getViewLifecycleOwner(), items -> {
@@ -489,6 +568,7 @@ public class CleanFragment extends TabFragment {
                     if (stripButton != null) {
                         stripButton.setVisibility(hasItems ? View.VISIBLE : View.GONE);
                     }
+                    updateShareWithoutSaving();
                     if (cleanSelectedCountText != null && hasItems) {
                         cleanSelectedCountText.setText(getResources().getQuantityString(R.plurals.summary_selected_files, items.size(), items.size()));
                         SummaryCard.refreshHint(cleanSummaryCard, AppPreferences.HINT_CLEAN);
@@ -522,6 +602,15 @@ public class CleanFragment extends TabFragment {
                     boolean justCompleted = Haptics.justCompleted(lastObservedCleanState, state);
                     lastObservedCleanState = state;
                     SentryManager.setCustomKey("processing_state", state.toString());
+                    if (quickToggles != null) {
+                        quickToggles.setLocked(state == MainViewModel.ProcessingState.PROCESSING);
+                    }
+                    if (state == MainViewModel.ProcessingState.COMPLETED
+                            || state == MainViewModel.ProcessingState.CANCELLED) {
+                        FailedFiles.bind(cleanFailedButton, viewModel.getCleanFailed(), this::retryFailed);
+                    } else {
+                        FailedFiles.hide(cleanFailedButton);
+                    }
                     switch (state) {
                         case PROCESSING:
                             SentryManager.log("The processing state changed to PROCESSING.");
@@ -606,6 +695,9 @@ public class CleanFragment extends TabFragment {
                             && viewModel.getCleanOutputs().size() == 1 ? View.VISIBLE : View.GONE);
                     censorResultButton.setVisibility(state == MainViewModel.ProcessingState.COMPLETED
                             && singleImageOutput() != null ? View.VISIBLE : View.GONE);
+                    OpenResult.updateButton(openResultButton,
+                            state == MainViewModel.ProcessingState.COMPLETED, viewModel.getCleanOutputs());
+                    updateShareWithoutSaving();
                     // The result line (with what the batch removed) shows only once a clean has finished.
                     statusText.setVisibility(state == MainViewModel.ProcessingState.COMPLETED
                             ? View.VISIBLE : View.GONE);
@@ -636,9 +728,22 @@ public class CleanFragment extends TabFragment {
         }
     }
 
+    /** Cleans just the files a batch did not, as the new selection. */
+    private void retryFailed(@NonNull List<MediaItem> items) {
+        if (items.isEmpty() || viewModel == null) {
+            return;
+        }
+        SentryManager.log("A clean of the files that failed is starting.");
+        viewModel.setSelectedItems(new ArrayList<>(items));
+        viewModel.startCleaning(new ArrayList<>(items));
+    }
+
     @Override
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
+        if (!hidden && quickToggles != null) {
+            quickToggles.sync(); // Settings may have changed them while this tab was hidden
+        }
         if (!hidden && viewModel != null) {
             MainViewModel.ProcessingState state = viewModel.getCleanProcessingState().getValue();
             if (state == MainViewModel.ProcessingState.PROCESSING) {
@@ -667,6 +772,9 @@ public class CleanFragment extends TabFragment {
     @Override
     public void onResume() {
         super.onResume();
+        if (quickToggles != null) {
+            quickToggles.sync(); // Settings may have changed them
+        }
         if (!isHidden() && permissionManager != null) {
             permissionManager.checkPermissions();
         }

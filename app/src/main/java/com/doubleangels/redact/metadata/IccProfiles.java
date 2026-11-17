@@ -7,6 +7,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -160,7 +161,7 @@ final class IccProfiles {
             System.arraycopy(data.get(i), 0, result, offsets[i], data.get(i).length);
         }
         // The header's profile ID is an MD5 of the old contents; zero means "not computed".
-        java.util.Arrays.fill(result, 84, 100, (byte) 0);
+        Arrays.fill(result, 84, 100, (byte) 0);
         return result;
     }
 

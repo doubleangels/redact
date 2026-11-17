@@ -115,6 +115,51 @@ public class GifContainerMetadataTest {
         }
     }
 
+    @Test
+    public void extraSubBlocks_afterAGraphicControlOrALoopCount_areDroppedAndReported() throws Exception {
+        ByteArrayOutputStream gif = new ByteArrayOutputStream();
+        header(gif);
+        write(gif, 0x21, 0xFF, 11);
+        write(gif, "NETSCAPE2.0");
+        write(gif, 3, 1, 0, 0);
+        write(gif, 11);
+        write(gif, "SecretLoop!");
+        write(gif, 0);
+        write(gif, 0x21, 0xF9, 4, 0x04, 10, 0, 0);
+        write(gif, 10);
+        write(gif, "SecretGce!");
+        write(gif, 0);
+        write(gif, 0x2C, 0, 0, 0, 0, 2, 0, 1, 0, 0);
+        write(gif, 2, 2, 0x4C, 0x01, 0);
+        write(gif, 0x3B);
+        File source = file(gif.toByteArray());
+
+        assertTrue(findings(source).containsKey("GIF_EXTRA_SUB_BLOCKS"));
+        File clean = temp.newFile();
+        GifContainerMetadata.sanitize(source, clean);
+        byte[] out = Files.readAllBytes(clean.toPath());
+        assertFalse(new String(out, StandardCharsets.ISO_8859_1).contains("Secret"));
+        assertTrue("the loop count stays", new String(out, StandardCharsets.ISO_8859_1).contains("NETSCAPE2.0"));
+        assertTrue(ImageContainerMetadata.scan(clean).isClean());
+    }
+
+    @Test
+    public void aGraphicControlOfTheWrongSize_isDroppedWhole() throws Exception {
+        ByteArrayOutputStream gif = new ByteArrayOutputStream();
+        header(gif);
+        write(gif, 0x21, 0xF9, 6);
+        write(gif, "Secret");
+        write(gif, 0);
+        write(gif, 0x2C, 0, 0, 0, 0, 2, 0, 1, 0, 0);
+        write(gif, 2, 2, 0x4C, 0x01, 0);
+        write(gif, 0x3B);
+        File clean = temp.newFile();
+        GifContainerMetadata.sanitize(file(gif.toByteArray()), clean);
+        byte[] out = Files.readAllBytes(clean.toPath());
+        assertFalse(new String(out, StandardCharsets.ISO_8859_1).contains("Secret"));
+        assertTrue(ImageContainerMetadata.scan(clean).isClean());
+    }
+
     private static java.util.Map<String, ImageContainerMetadata.Finding> findings(File file) throws IOException {
         ImageContainerMetadata.Report r = ImageContainerMetadata.scan(file);
         assertTrue(r.recognized);
