@@ -37,14 +37,16 @@ public final class AppMetrics {
     }
 
     /**
-     * One file a job finished with {@code outcome}, counted as {@code <job>.item}. A successful
-     * file also records how long it took, as {@code <job>.item_duration_ms}.
+     * One file a job finished with {@code outcome}, counted as {@code processing.item} by job and
+     * media type. A successful file also records how long it took, as
+     * {@code processing.item_duration_ms}.
      */
     public static void item(@NonNull String job, boolean video, @NonNull String outcome, long durationMs) {
-        SentryManager.count(job + ".item", 1, "media_type", mediaType(video), "outcome", outcome);
+        SentryManager.count("processing.item", 1,
+                "operation_type", job, "media_type", mediaType(video), "outcome", outcome);
         if (SUCCESS.equals(outcome) && durationMs >= 0) {
-            SentryManager.distributionDurationMs(
-                    job + ".item_duration_ms", durationMs, "media_type", mediaType(video));
+            SentryManager.distributionDurationMs("processing.item_duration_ms", durationMs,
+                    "operation_type", job, "media_type", mediaType(video));
         }
     }
 
@@ -159,12 +161,12 @@ public final class AppMetrics {
 
     /**
      * An update check's result (newer, up_to_date or failed) and duration, as
-     * {@code update_check} and {@code update_check.duration_ms}.
+     * {@code update.check} and {@code update.check_duration_ms}.
      */
     public static void updateCheck(@NonNull String outcome, long durationMs) {
-        SentryManager.count("update_check", 1, "outcome", outcome);
+        SentryManager.count("update.check", 1, "outcome", outcome);
         if (durationMs >= 0) {
-            SentryManager.distributionDurationMs("update_check.duration_ms", durationMs, "outcome", outcome);
+            SentryManager.distributionDurationMs("update.check_duration_ms", durationMs, "outcome", outcome);
         }
     }
 

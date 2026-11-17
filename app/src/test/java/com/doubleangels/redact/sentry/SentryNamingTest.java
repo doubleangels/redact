@@ -51,8 +51,8 @@ public class SentryNamingTest {
             Pattern.compile("SentryManager\\.(log|logEvent)\\(([^;]*);", Pattern.DOTALL);
 
     /**
-     * Breadcrumbs describe what the app did, never what someone chose or tapped: the privacy
-     * policy promises Sentry is never used to learn what people do in the app.
+     * The app's own breadcrumbs describe what the app did. Taps and screens are recorded by the SDK
+     * by view ID, so app messages never need to narrate what someone did.
      */
     @Test
     public void breadcrumbs_neverDescribeWhatTheUserDid() throws IOException {
@@ -102,12 +102,13 @@ public class SentryNamingTest {
     }
 
     /**
-     * Metrics count the app's own operations, never how often or how much people use it, and
-     * breadcrumbs don't record what people pick or how they move around the app (CLAUDE.md).
+     * Anonymous totals of how the app is used are allowed (CLAUDE.md), but a metric must never be
+     * able to tell one phone or person apart: no attribute that names a user, device, install or
+     * session, and the app's own breadcrumbs still describe the app, not the person.
      */
     @Test
-    public void nothingCountsUsageOrRecordsChoices() throws Exception {
-        Pattern usageMetric = Pattern.compile("\\.success$|^processing\\.batch\\.size$");
+    public void nothingIdentifiesAPhoneOrNarratesThePerson() throws Exception {
+        Pattern usageMetric = Pattern.compile("(?i)(^|[._])(user|device|install|session|distinct)(_id)?($|[._])");
         Pattern choiceCrumb = Pattern.compile(
                 "(?i)selected a tab|user chose|user tapped|activity (resumed|paused)|shared to|tile opened");
         List<String> wrong = new ArrayList<>();
@@ -127,7 +128,7 @@ public class SentryNamingTest {
                 }
             }
         }
-        assertEquals("These record usage, not the app's own operations: " + wrong, 0, wrong.size());
+        assertEquals("These could identify a phone or narrate what the person did: " + wrong, 0, wrong.size());
     }
 
     private static List<Path> sources() throws IOException {

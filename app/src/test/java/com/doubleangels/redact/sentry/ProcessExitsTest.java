@@ -18,7 +18,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.shadows.ApplicationExitInfoBuilder;
+import org.robolectric.shadows.ShadowActivityManager.ApplicationExitInfoBuilder;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -69,7 +69,6 @@ public class ProcessExitsTest {
     private void addExit(int reason, long timestamp, int importance) {
         ActivityManager am = app.getSystemService(ActivityManager.class);
         shadowOf(am).addApplicationExitInfo(ApplicationExitInfoBuilder.newBuilder()
-                .setPackageName(app.getPackageName())
                 .setProcessName(app.getPackageName())
                 .setReason(reason)
                 .setTimestamp(timestamp)

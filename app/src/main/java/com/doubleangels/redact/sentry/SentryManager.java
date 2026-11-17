@@ -348,6 +348,27 @@ public final class SentryManager {
         Sentry.metrics().distribution(name, value, null, params);
     }
 
+    /** Counter metric with three allowed attribute dimensions. */
+    public static void count(String name, double value, String attrKey1, String attrValue1,
+                             String attrKey2, String attrValue2, String attrKey3, String attrValue3) {
+        SentryMetricsParameters params =
+                metricsParams(attrKey1, attrValue1, attrKey2, attrValue2, attrKey3, attrValue3);
+        if (!isEnabled() || params == null) {
+            return;
+        }
+        Sentry.metrics().count(name, value, null, params);
+    }
+
+    /** Duration distribution in milliseconds with two allowed attribute dimensions. */
+    public static void distributionDurationMs(String name, double millis, String attrKey1, String attrValue1,
+                                              String attrKey2, String attrValue2) {
+        SentryMetricsParameters params = metricsParams(attrKey1, attrValue1, attrKey2, attrValue2);
+        if (!isEnabled() || params == null) {
+            return;
+        }
+        Sentry.metrics().distribution(name, millis, MetricsUnit.Duration.MILLISECOND, params);
+    }
+
     /** Duration distribution in milliseconds with one allowed attribute dimension. */
     public static void distributionDurationMs(String name, double millis, String attrKey, String attrValue) {
         SentryMetricsParameters params = metricsParams(attrKey, attrValue);
@@ -585,6 +606,26 @@ public final class SentryManager {
                                 attrKey1, SentryPrivacyScrubber.scrub(attrValue1 != null ? attrValue1 : "")),
                         SentryAttribute.stringAttribute(
                                 attrKey2, SentryPrivacyScrubber.scrub(attrValue2 != null ? attrValue2 : ""))));
+    }
+
+    @Nullable
+    private static SentryMetricsParameters metricsParams(String attrKey1, String attrValue1,
+                                                         String attrKey2, String attrValue2,
+                                                         String attrKey3, String attrValue3) {
+        if (!isAllowedTagKey(attrKey1) || !isAllowedTagKey(attrKey2) || !isAllowedTagKey(attrKey3)) {
+            return null;
+        }
+        return SentryMetricsParameters.create(
+                SentryAttributes.of(
+                        SentryAttribute.stringAttribute(attrKey1, scrubbedValue(attrValue1)),
+                        SentryAttribute.stringAttribute(attrKey2, scrubbedValue(attrValue2)),
+                        SentryAttribute.stringAttribute(attrKey3, scrubbedValue(attrValue3))));
+    }
+
+    @NonNull
+    private static String scrubbedValue(@Nullable String value) {
+        String scrubbed = SentryPrivacyScrubber.scrub(value != null ? value : "");
+        return scrubbed != null ? scrubbed : "";
     }
 
     public static ITransaction startTransaction(String name, String operation) {

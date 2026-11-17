@@ -89,16 +89,20 @@ public class AppMetricsTest {
     @Test
     public void item_countsEveryOutcome_andTimesOnlySuccesses() {
         AppMetrics.item(AppMetrics.CLEAN, true, AppMetrics.SUCCESS, 1200);
-        SentryMetricsEvent count = only("clean.item");
+        SentryMetricsEvent count = only("processing.item");
+        assertEquals("clean", attr(count, "operation_type"));
         assertEquals("video", attr(count, "media_type"));
         assertEquals("success", attr(count, "outcome"));
-        SentryMetricsEvent duration = only("clean.item_duration_ms");
+        SentryMetricsEvent duration = only("processing.item_duration_ms");
         assertEquals(1200.0, duration.getValue(), 0.0);
+        assertEquals("clean", attr(duration, "operation_type"));
         assertEquals("video", attr(duration, "media_type"));
 
         sent.clear();
         AppMetrics.item(AppMetrics.SHARE, false, AppMetrics.FAILED, -1);
-        assertEquals("failed", attr(only("share.item"), "outcome"));
+        SentryMetricsEvent failed = only("processing.item");
+        assertEquals("share", attr(failed, "operation_type"));
+        assertEquals("failed", attr(failed, "outcome"));
         assertEquals("a failure has no duration", 1, sent.size());
     }
 
@@ -158,8 +162,8 @@ public class AppMetricsTest {
         only("already_clean.duration_ms");
 
         AppMetrics.updateCheck("up_to_date", 300);
-        assertEquals("up_to_date", attr(only("update_check"), "outcome"));
-        only("update_check.duration_ms");
+        assertEquals("up_to_date", attr(only("update.check"), "outcome"));
+        only("update.check_duration_ms");
 
         AppMetrics.censorLoad(AppMetrics.UNSUPPORTED);
         assertEquals("unsupported", attr(only("censor.load"), "outcome"));
