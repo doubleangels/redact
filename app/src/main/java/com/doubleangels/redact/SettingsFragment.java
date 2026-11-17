@@ -1160,7 +1160,7 @@ public class SettingsFragment extends TabFragment {
             registerForActivityResult(
                     new ActivityResultContracts.RequestPermission(),
                     granted -> {
-                        AppMetrics.permissionResult(Manifest.permission.POST_NOTIFICATIONS, granted);
+                        AppMetrics.permissionResult("android.permission.POST_NOTIFICATIONS", granted);
                         if (granted) {
                             applyNotificationsEnabled(true);
                             SentryManager.setCustomKey("notifications_enabled", true);
