@@ -122,11 +122,11 @@
     </ul>
 
     <h2>Private by design</h2>
-    <div class="note">Redact never uploads your photos. Cleaning, scanning and converting run on your phone and need no internet connection. Your photos, videos and personal information are never collected or shared. The only things that can ever leave your phone are an anonymous crash report, and only if you turn that on, and an update check that asks GitHub for the newest version number, and only when you tap Check for Updates.</div>
+    <div class="note">Redact never uploads your photos. Cleaning, scanning and converting run on your phone and need no internet connection. Your photos, videos and personal information are never collected or shared. The only things that can ever leave your phone are anonymous crash reports and diagnostics, and only if you turn them on, and an update check that asks GitHub for the newest version number, and only when you tap Check for Updates.</div>
     <ul>
-        <li>No ads, no analytics, no tracking and no account.</li>
+        <li>No ads, no tracking and no account.</li>
         <li>Uses Android's own file picker, so Redact never needs access to your whole library.</li>
-        <li>Optional crash reports stay off unless you turn them on, and never include your photos.</li>
+        <li>Optional crash reports stay off unless you turn them on, never include your photos, and can't be tied to you or your phone. <a href="#crash-reports">See exactly what they contain</a>.</li>
         <li>Open source under the GPL-3.0 license: <a href="https://github.com/doubleangels/redact">read the code on GitHub</a>.</li>
     </ul>
 
@@ -140,9 +140,9 @@
         <tbody>
             <tr>
                 <td><code>o244019.ingest.us.sentry.io</code><br>Sentry, US servers</td>
-                <td>Only while Send Crash Reports is on: after a crash or error, and when you choose to add a note to an error report</td>
-                <td>An anonymized report: stack trace, device model, Android and app version, and a few scrubbed tags. Paths, file names, coordinates and metadata values are removed first. Never a photo or video.</td>
-                <td>To find and fix bugs</td>
+                <td>Only while Send Crash Reports is on: while you use the app, and when you choose to add a note to an error report</td>
+                <td>The anonymous diagnostics listed in <a href="#crash-reports">What Send Crash Reports captures</a>. Paths, file names, coordinates and metadata values are removed first. Never a photo or video.</td>
+                <td>To find and fix bugs and slow spots</td>
             </tr>
             <tr>
                 <td><code>api.github.com</code></td>
@@ -166,6 +166,50 @@
             <tr><td><code>doubleangels.github.io</code></td><td>Privacy Policy and Terms of Use</td></tr>
             <tr><td><code>donate.stripe.com</code></td><td>Donate</td></tr>
             <tr><td>Your maps app</td><td>Open in Maps in Scan, after you agree</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h3 id="crash-reports">What Send Crash Reports captures</h3>
+    <p>Nothing in this section is sent unless you turn on <strong>Send Crash Reports</strong>. Until then, Sentry isn't even started. Once it's on, Redact sends technical diagnostics with two hard limits: nothing that can tie reports to you or your phone, and nothing that identifies a file or shows what's in it (no names, paths, contents or metadata values).</p>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Captured</th><th>What exactly</th><th>When</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Crash, error and freeze reports</td><td>Exception type, the stack trace of every thread (class, method, line), and the app's own error messages with paths and names removed. Messages from libraries are replaced.</td><td>After a crash, error or app freeze, including native crashes and Android stopping the app for using too much memory</td></tr>
+            <tr><td>Device and app details</td><td>Manufacturer, brand and model; CPU type, cores and speed; screen size and density; total and free memory and storage; battery level, charging and temperature; orientation; connection type; language; whether it's an emulator; Android version and build; app version</td><td>With each report</td></tr>
+            <tr><td>Screen layout</td><td>Each view's type, internal ID, position, size and visibility. Never any text or picture in it.</td><td>With each error</td></tr>
+            <tr><td>Trail of app events</td><td>The app's own log messages (scrubbed), screens opened, buttons tapped (by internal name), the app moving to the background or foreground, system events by name (battery, screen on or off, airplane mode, language or time zone changed, low memory, rotation), and network type, VPN on or off, bandwidth and signal</td><td>With each error</td></tr>
+            <tr><td>Diagnostic tags</td><td>Job type, success, error type, verification results, permission states, theme, notification settings, how the app was opened (share or launcher), the phone's temperature state and Battery Saver</td><td>With each error</td></tr>
+            <tr><td>Sessions</td><td>Start, end, duration, whether it crashed, and the error count</td><td>Every app session</td></tr>
+            <tr><td>Performance</td><td>App start, screen and tab load times, slow and frozen frames, how long each tap, job and file took</td><td>Every app session</td></tr>
+            <tr><td>Code profiles</td><td>Sampled call stacks of the app's own code, thread names, frame rate, CPU and memory</td><td>About 1 in 4 app sessions</td></tr>
+            <tr><td>Logs</td><td>The app's own log messages, scrubbed</td><td>While the app runs</td></tr>
+            <tr><td>Counters and timings</td><td>Per file: the outcome and duration of Clean, Share, Convert, Scan and Censor. Per job: how many files and how it ended. Conversion output formats and codec fallbacks, verification passes and failures, parts dropped from files, unsupported formats, already-clean check results, update check results, answers to permission requests, low memory, the phone's temperature at the start of a job, foreground service and notification failures, secure delete timing and fallbacks, and why Android ended the app's process and how much memory it held</td><td>While the app runs</td></tr>
+            <tr><td>File facts</td><td>Format (such as <code>image/heic</code>), size class (such as <code>4k</code>), length class, rotation, whether a photo had location data, how many metadata tags were removed, and the names of tags kept or found (such as <code>GPSLatitude</code>), never their values</td><td>With jobs and errors</td></tr>
+            <tr><td>A note you write</td><td>What you type after <strong>Add Details</strong>, with paths, file names and GPS coordinates removed, up to 1,000 characters</td><td>Only if you send one</td></tr>
+        </tbody>
+    </table>
+    </div>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Never captured</th><th>How</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Install ID, device ID, user ID, name, email</td><td>Removed from every report, session, log and counter</td></tr>
+            <tr><td>Boot time, time zone, kernel version</td><td>Removed, because together with the model and build they could single out a phone</td></tr>
+            <tr><td>IP address</td><td>Never put in a report. Sentry's servers see it when a report arrives, as any server does.</td></tr>
+            <tr><td>Screenshots, screen recordings, text or pictures on screen</td><td>Screenshots and session replay are locked off, and the screen layout holds no text or pictures</td></tr>
+            <tr><td>Your photos and videos</td><td>Never read for a report</td></tr>
+            <tr><td>File names, paths and URIs</td><td>Scrubbed from every message, breadcrumb, tag and stack trace</td></tr>
+            <tr><td>Metadata values (GPS coordinates, dates, camera serial numbers and the like)</td><td>Never recorded, only tag names and counts</td></tr>
+            <tr><td>Text you type</td><td>Except a note you choose to send</td></tr>
+            <tr><td>Extras of system broadcasts, advertising ID, logcat, source code, network request contents, native crash memory maps</td><td>Turned off or never collected</td></tr>
+            <tr><td>Anything from before you turned reporting on</td><td>Freezes, crashes and process exits Android recorded earlier are dropped</td></tr>
+            <tr><td>Anything while reporting is off</td><td>Sentry isn't started</td></tr>
         </tbody>
     </table>
     </div>

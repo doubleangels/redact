@@ -2,6 +2,7 @@ package com.doubleangels.redact.sentry;
 
 import android.content.Context;
 import android.os.OperationCanceledException;
+import android.os.PowerManager;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -117,7 +118,9 @@ public final class SentryManager {
             "processing_items_count",
             "has_shown_rationale",
             "all_permissions_granted",
-            "has_storage_permission"));
+            "has_storage_permission",
+            "thermal_status",
+            "power_save_mode"));
 
     /**
      * Low-cardinality keys that describe one scan, clean or convert. They are kept per thread, not
@@ -142,7 +145,9 @@ public final class SentryManager {
             "success",
             "metadata_verification_passed",
             "video_metadata_verification_passed",
-            "video_verify_failed_key"));
+            "video_verify_failed_key",
+            "thermal_status",
+            "power_save_mode"));
 
     /**
      * Per-item measurements. They have too many distinct values to be useful as indexed tags, so
@@ -445,6 +450,38 @@ public final class SentryManager {
     public static void beginOperation(String operationType) {
         OPERATION_DATA.get().clear();
         setCustomKey("operation_type", operationType);
+        // A hot or battery-saving phone throttles the CPU and codecs: it explains slow or failed
+        // video work without saying anything about the person.
+        setCustomKey("thermal_status", thermalStatus());
+        setCustomKey("power_save_mode", isPowerSaveMode());
+    }
+
+    /**
+     * How hot the phone is (none, light, moderate, severe, critical, emergency or shutdown), or
+     * unknown.
+     */
+    @NonNull
+    public static String thermalStatus() {
+        PowerManager pm = appContext != null ? appContext.getSystemService(PowerManager.class) : null;
+        if (pm == null) {
+            return "unknown";
+        }
+        return switch (pm.getCurrentThermalStatus()) {
+            case PowerManager.THERMAL_STATUS_NONE -> "none";
+            case PowerManager.THERMAL_STATUS_LIGHT -> "light";
+            case PowerManager.THERMAL_STATUS_MODERATE -> "moderate";
+            case PowerManager.THERMAL_STATUS_SEVERE -> "severe";
+            case PowerManager.THERMAL_STATUS_CRITICAL -> "critical";
+            case PowerManager.THERMAL_STATUS_EMERGENCY -> "emergency";
+            case PowerManager.THERMAL_STATUS_SHUTDOWN -> "shutdown";
+            default -> "unknown";
+        };
+    }
+
+    /** Whether Battery Saver is on. */
+    public static boolean isPowerSaveMode() {
+        PowerManager pm = appContext != null ? appContext.getSystemService(PowerManager.class) : null;
+        return pm != null && pm.isPowerSaveMode();
     }
 
     /**

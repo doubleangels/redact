@@ -349,16 +349,16 @@ Open the Settings tab in the app for the full list.
 ## Privacy and security
 
 - **Your files stay on your device** for every core feature. Cleaning, scanning and converting never need a network connection.
-- **No ads, no behavioral tracking, no analytics.**
+- **No ads and no behavioral tracking.** Optional crash reports send anonymous technical totals, never anything tied to you or your phone.
 - **Three optional things can touch the network or another app:**
-  1. **Send Crash Reports** (off by default) sends anonymized diagnostics to [Sentry](https://sentry.io): device model, Android version, app version, stack traces and a few scrubbed tags. File paths, filenames and GPS coordinates are removed before anything is sent. Your photos and videos are **never** uploaded. Sentry keeps the reports for a limited time, 90 days for crash and error reports and 30 days for performance data and logs, see its [data retention periods](https://docs.sentry.io/security-legal-pii/security/data-retention-periods/).
+  1. **Send Crash Reports** (off by default) sends anonymous technical diagnostics to [Sentry](https://sentry.io), listed exactly in [What Send Crash Reports captures](#what-send-crash-reports-captures). Nothing can tie them to you or your phone, file paths, filenames and GPS coordinates are removed before anything is sent, and your photos and videos are **never** uploaded. Sentry keeps the reports for a limited time, 90 days for crash and error reports and 30 days for performance data and logs, see its [data retention periods](https://docs.sentry.io/security-legal-pii/security/data-retention-periods/).
   2. **Open in maps** from Scan hands coordinates to your default maps app, only after your explicit one-time consent.
   3. **Check for Updates** in Settings asks GitHub once for the newest release's version number, only when you tap it. The request carries nothing about you or your files; like any connection, GitHub sees the IP address it comes from. Redact never checks on its own, and the update itself comes from the store you installed it from.
 - **Every server Redact connects to** is in the table below. There are only two, and Redact contacts neither unless you turn on or tap the feature that needs it. It has no other server, account or backend.
 
 | Domain | When Redact connects | What is sent | Why |
 |---|---|---|---|
-| `o244019.ingest.us.sentry.io` ([Sentry](https://sentry.io), US servers) | Only while **Send Crash Reports** is on: after a crash or error, and when you choose to add a note to an error report | An anonymized report: stack trace, device model, Android and app version, and a few scrubbed tags. Paths, file names, coordinates and metadata values are removed first. Never a photo or video. | To find and fix bugs |
+| `o244019.ingest.us.sentry.io` ([Sentry](https://sentry.io), US servers) | Only while **Send Crash Reports** is on: while you use the app, and when you choose to add a note to an error report | The anonymous diagnostics in [What Send Crash Reports captures](#what-send-crash-reports-captures). Paths, file names, coordinates and metadata values are removed first. Never a photo or video. | To find and fix bugs and slow spots |
 | `api.github.com` | Only when you tap **Check for Updates** in Settings | One request for the newest release of Redact, with a fixed User-Agent and nothing about you, your settings or your files | To read the newest version number |
 
 Some buttons open a page in another app, which then makes its own connection. Redact itself sends nothing:
@@ -370,6 +370,39 @@ Some buttons open a page in another app, which then makes its own connection. Re
 | `developer.android.com` | **Project Page** in **Open-Source Licenses** | Library pages |
 | `doubleangels.github.io` | **Privacy Policy** and **Terms of Use** in Settings › About | The policies |
 | `donate.stripe.com` | **Donate** in Settings › About | An optional donation |
+
+### What Send Crash Reports captures
+
+Nothing in this section is sent unless you turn on **Send Crash Reports**. Until then, Sentry isn't even started. Once it's on, Redact sends technical diagnostics with two hard limits: nothing that can tie reports to you or your phone, and nothing that identifies a file or shows what's in it (no names, paths, contents or metadata values). This table is kept up to date with the code (`SentryInitializer`, `SentryPrivacyScrubber`, `AppMetrics`, `ProcessExits`).
+
+| Captured | What exactly | When |
+|---|---|---|
+| Crash, error and freeze reports | Exception type, the stack trace of every thread (class, method, line), and the app's own error messages with paths and names removed. Messages from libraries are replaced. | After a crash, error or app freeze, including native crashes and Android stopping the app for using too much memory |
+| Device and app details | Manufacturer, brand and model; CPU type, cores and speed; screen size and density; total and free memory and storage; battery level, charging and temperature; orientation; connection type; language; whether it's an emulator; Android version and build; app version | With each report |
+| Screen layout | Each view's type, internal ID, position, size and visibility. Never any text or picture in it. | With each error |
+| Trail of app events | The app's own log messages (scrubbed), screens opened, buttons tapped (by internal name), the app moving to the background or foreground, system events by name (battery, screen on or off, airplane mode, language or time zone changed, low memory, rotation), and network type, VPN on or off, bandwidth and signal | With each error |
+| Diagnostic tags | Job type, success, error type, verification results, permission states, theme, notification settings, how the app was opened (share or launcher), the phone's temperature state and Battery Saver | With each error |
+| Sessions | Start, end, duration, whether it crashed, and the error count | Every app session |
+| Performance | App start, screen and tab load times, slow and frozen frames, how long each tap, job and file took | Every app session |
+| Code profiles | Sampled call stacks of the app's own code, thread names, frame rate, CPU and memory | About 1 in 4 app sessions |
+| Logs | The app's own log messages, scrubbed | While the app runs |
+| Counters and timings | Per file: the outcome and duration of Clean, Share, Convert, Scan and Censor. Per job: how many files and how it ended. Conversion output formats and codec fallbacks, verification passes and failures, parts dropped from files, unsupported formats, already-clean check results, update check results, answers to permission requests, low memory, the phone's temperature at the start of a job, foreground service and notification failures, secure delete timing and fallbacks, and why Android ended the app's process and how much memory it held | While the app runs |
+| File facts | Format (such as `image/heic`), size class (such as `4k`), length class, rotation, whether a photo had location data, how many metadata tags were removed, and the names of tags kept or found (such as `GPSLatitude`), never their values | With jobs and errors |
+| A note you write | What you type after **Add Details**, with paths, file names and GPS coordinates removed, up to 1,000 characters | Only if you send one |
+
+| Never captured | How |
+|---|---|
+| Install ID, device ID, user ID, name, email | Removed from every report, session, log and counter |
+| Boot time, time zone, kernel version | Removed, because together with the model and build they could single out a phone |
+| IP address | Never put in a report. Sentry's servers see it when a report arrives, as any server does. |
+| Screenshots, screen recordings, text or pictures on screen | Screenshots and session replay are locked off, and the screen layout holds no text or pictures |
+| Your photos and videos | Never read for a report |
+| File names, paths and URIs | Scrubbed from every message, breadcrumb, tag and stack trace |
+| Metadata values (GPS coordinates, dates, camera serial numbers and the like) | Never recorded, only tag names and counts |
+| Text you type | Except a note you choose to send |
+| Extras of system broadcasts, advertising ID, logcat, source code, network request contents, native crash memory maps | Turned off or never collected |
+| Anything from before you turned reporting on | Freezes, crashes and process exits Android recorded earlier are dropped |
+| Anything while reporting is off | Sentry isn't started |
 | Your maps app | **Open in Maps** in Scan, after you agree | Shows a photo's location; the maps app decides what it loads |
 
 - **Statistics stay on your phone.** The counts behind Your Privacy Stats are stored only in Redact's private storage, are left out of backups and device transfers, and are never included in crash reports.
@@ -436,7 +469,7 @@ No hard limit. Very large files can still strain a device that is low on storage
 <details>
 <summary><b>Does Redact use analytics or trackers?</b></summary>
 
-No. The only thing of this kind is the optional Sentry crash reporting described in [Privacy and security](#privacy-and-security), which counts the app's own failures, never what you do or how often you use it. The table there lists every server Redact can connect to.
+No trackers, and nothing that follows you. The only thing of this kind is the optional Sentry crash reporting described in [Privacy and security](#privacy-and-security). It sends anonymous technical diagnostics, including totals such as how many files were cleaned and how long they took, but nothing that can tie them to you or your phone. [What Send Crash Reports captures](#what-send-crash-reports-captures) lists exactly what is and isn't sent.
 </details>
 
 <details>

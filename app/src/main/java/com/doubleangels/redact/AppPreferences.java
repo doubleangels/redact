@@ -21,6 +21,8 @@ public final class AppPreferences {
     private static final String KEY_CONVERT_NOTIFICATIONS_ENABLED = "convert_notifications_enabled";
     private static final String KEY_PROGRESS_NOTIFICATIONS_ENABLED = "progress_notifications_enabled";
     private static final String KEY_CRASH_REPORTING_ENABLED = "crash_reporting_enabled";
+    private static final String KEY_CRASH_REPORTING_SINCE = "crash_reporting_since";
+    private static final String KEY_LAST_REPORTED_EXIT = "crash_reporting_last_exit";
     private static final String KEY_DEFAULT_IMAGE_FORMAT_INDEX = "default_image_format_index";
     private static final String KEY_KEEP_STATISTICS = "keep_statistics";
     private static final String KEY_DEFAULT_VIDEO_FORMAT_INDEX = "default_video_format_index";
@@ -116,7 +118,38 @@ public final class AppPreferences {
     }
 
     public static void setCrashReportingEnabled(@NonNull Context context, boolean enabled) {
-        prefs(context).edit().putBoolean(KEY_CRASH_REPORTING_ENABLED, enabled).apply();
+        SharedPreferences.Editor editor = prefs(context).edit().putBoolean(KEY_CRASH_REPORTING_ENABLED, enabled);
+        if (!enabled) {
+            // Turned back on later, reporting starts from then, never from this earlier window.
+            editor.remove(KEY_CRASH_REPORTING_SINCE).remove(KEY_LAST_REPORTED_EXIT);
+        } else if (!prefs(context).contains(KEY_CRASH_REPORTING_SINCE)) {
+            editor.putLong(KEY_CRASH_REPORTING_SINCE, System.currentTimeMillis());
+        }
+        editor.apply();
+    }
+
+    /**
+     * When crash reporting was last turned on, in epoch milliseconds: anything that happened
+     * before, such as an app freeze Android recorded while reporting was off, is not sent. Someone
+     * who turned it on before this was stored starts from the first time it is asked for.
+     */
+    public static long getCrashReportingSince(@NonNull Context context) {
+        SharedPreferences p = prefs(context);
+        if (!p.contains(KEY_CRASH_REPORTING_SINCE)) {
+            long now = System.currentTimeMillis();
+            p.edit().putLong(KEY_CRASH_REPORTING_SINCE, now).apply();
+            return now;
+        }
+        return p.getLong(KEY_CRASH_REPORTING_SINCE, 0L);
+    }
+
+    /** The time of the newest process exit already counted, or 0 when none has been. */
+    public static long getLastReportedExit(@NonNull Context context) {
+        return prefs(context).getLong(KEY_LAST_REPORTED_EXIT, 0L);
+    }
+
+    public static void setLastReportedExit(@NonNull Context context, long timestamp) {
+        prefs(context).edit().putLong(KEY_LAST_REPORTED_EXIT, timestamp).apply();
     }
 
     public static int getDefaultImageFormatIndex(@NonNull Context context) {

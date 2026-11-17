@@ -194,6 +194,19 @@ public class SentryManagerEnabledTest {
     }
 
     @Test
+    public void beginOperation_tagsTheThermalAndBatterySaverState() {
+        SentryManager.beginOperation("image_to_mediastore");
+
+        SentryEvent event = new SentryEvent();
+        SentryManager.applyOperationData(event);
+
+        assertEquals("none", event.getTag("thermal_status"));
+        assertEquals("false", event.getTag("power_save_mode"));
+        assertEquals("none", SentryManager.thermalStatus());
+        assertFalse(SentryManager.isPowerSaveMode());
+    }
+
+    @Test
     public void beginOperation_dropsThePreviousJobsData() {
         SentryManager.beginOperation("image_to_mediastore");
         SentryManager.setCustomKey("success", false);

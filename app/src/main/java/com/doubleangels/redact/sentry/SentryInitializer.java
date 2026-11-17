@@ -21,6 +21,8 @@ import io.sentry.SentryEvent;
 import io.sentry.SentryLogLevel;
 import io.sentry.android.core.SentryAndroid;
 import io.sentry.android.fragment.FragmentLifecycleIntegration;
+import io.sentry.hints.Backfillable;
+import io.sentry.util.HintUtils;
 
 /**
  * Initializes Sentry on a background thread with every diagnostic the SDK offers that can't tie
@@ -159,6 +161,12 @@ public final class SentryInitializer {
             // Screen changes, taps (by view resource ID), system events, network changes, low
             // memory and orientation. beforeBreadcrumb scrubs every one.
             options.enableAllAutoBreadcrumbs(true);
+            // Android killing the app for going over its memory limit (a large video job), as a
+            // fatal event from the system's exit history. Only the latest, and isFromBeforeOptIn
+            // drops one from before reporting was on. Native tombstones stay off: their memory
+            // maps can list the paths of files the app had open.
+            options.setMemoryLimiterEnabled(true);
+            options.setReportHistoricalMemoryLimiterExits(false);
             // Intent extras of system broadcasts stay off: they are open-ended values.
             options.setEnableSystemEventBreadcrumbsExtras(false);
             // A transaction per tap, named by the view's resource ID.
@@ -233,6 +241,9 @@ public final class SentryInitializer {
                 if (!SentryManager.isEnabled()) {
                     return null;
                 }
+                if (isFromBeforeOptIn(event, hint, context)) {
+                    return null;
+                }
                 SentryPrivacyScrubber.scrubEvent(event);
                 return event;
             });
@@ -254,11 +265,26 @@ public final class SentryInitializer {
                 return transaction;
             });
         });
+        if (configured.get()) {
+            ProcessExits.report(context);
+        }
         if (configured.get() && BuildConfig.DEBUG) {
             Sentry.logger().info("Redact Sentry telemetry enabled");
             Sentry.metrics().count("debug.init", 1.0);
         }
         return configured.get();
+    }
+
+    /**
+     * Whether {@code event} is a crash or freeze Android recorded before crash reporting was turned
+     * on. The SDK reads the latest one from the system's exit history at startup (a "backfilled"
+     * event), even when it happened while reporting was off, so it is dropped here.
+     */
+    static boolean isFromBeforeOptIn(@NonNull SentryEvent event, @NonNull Hint hint, @NonNull Context context) {
+        if (!HintUtils.hasType(hint, Backfillable.class) || event.getTimestamp() == null) {
+            return false;
+        }
+        return event.getTimestamp().getTime() < AppPreferences.getCrashReportingSince(context);
     }
 
     private static boolean isVerboseLogLevel(@Nullable SentryLogLevel level) {

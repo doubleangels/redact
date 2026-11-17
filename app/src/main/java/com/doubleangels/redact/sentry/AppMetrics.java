@@ -57,9 +57,14 @@ public final class AppMetrics {
         return unsupported ? UNSUPPORTED : FAILED;
     }
 
-    /** How many files a job was given, as the {@code processing.batch_size} distribution. */
+    /**
+     * How many files a job was given, as the {@code processing.batch_size} distribution, and how
+     * hot the phone was when it started, as {@code processing.thermal_status}.
+     */
     public static void batchStarted(@NonNull String job, int size) {
         SentryManager.distribution("processing.batch_size", size, "operation_type", job);
+        SentryManager.count("processing.thermal_status", 1,
+                "operation_type", job, "thermal_status", SentryManager.thermalStatus());
     }
 
     /**
