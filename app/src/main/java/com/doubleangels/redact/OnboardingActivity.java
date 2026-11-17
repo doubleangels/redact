@@ -39,6 +39,7 @@ import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.permission.PermissionStatusHelper;
 import com.doubleangels.redact.permission.PermissionStatusHelper.Status;
 import com.doubleangels.redact.sentry.SentryInitializer;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.SecureWindow;
 import com.google.android.material.button.MaterialButton;
@@ -94,7 +95,10 @@ public class OnboardingActivity extends AppCompatActivity {
 
     private final ActivityResultLauncher<String[]> permissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(),
-                    result -> onPermissionResult());
+                    result -> {
+                        AppMetrics.permissionResults(result);
+                        onPermissionResult();
+                    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -194,6 +198,7 @@ public class OnboardingActivity extends AppCompatActivity {
     }
 
     private void finishIntroduction(int resultCode) {
+        AppMetrics.onboardingFinished(resultCode == RESULT_OK);
         if (resultCode == RESULT_OK) {
             SentryManager.logEvent("Lifecycle", "The introduction finished.");
         }

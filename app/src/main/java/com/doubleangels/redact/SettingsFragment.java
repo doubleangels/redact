@@ -36,6 +36,7 @@ import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.permission.PermissionStatusHelper;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.sentry.SentryInitializer;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.stats.StatsSnapshot;
 import com.doubleangels.redact.stats.StatsStore;
@@ -1148,6 +1149,7 @@ public class SettingsFragment extends TabFragment {
             registerForActivityResult(
                     new ActivityResultContracts.RequestPermission(),
                     granted -> {
+                        AppMetrics.permissionResult(Manifest.permission.ACCESS_MEDIA_LOCATION, granted);
                         refreshPermissionStatuses();
                         Notice.show(requireContext(),
                                 granted ? R.string.settings_location_permission_granted : R.string.settings_location_permission_denied,
@@ -1158,6 +1160,7 @@ public class SettingsFragment extends TabFragment {
             registerForActivityResult(
                     new ActivityResultContracts.RequestPermission(),
                     granted -> {
+                        AppMetrics.permissionResult(Manifest.permission.POST_NOTIFICATIONS, granted);
                         if (granted) {
                             applyNotificationsEnabled(true);
                             SentryManager.setCustomKey("notifications_enabled", true);

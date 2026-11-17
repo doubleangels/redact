@@ -38,6 +38,7 @@ import com.doubleangels.redact.media.ProcessingResourceWarnings;
 import com.doubleangels.redact.metadata.CleanResult;
 import com.doubleangels.redact.metadata.CleanStats;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.stats.StatsStore;
 import com.doubleangels.redact.ui.ReviewPrompt;
@@ -711,6 +712,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
             int unsupportedFailCount = session.unsupportedRejectCount.get();
             boolean hasVideo = false;
             boolean hasImage = false;
+            // Files that could not even be copied in count as given and failed.
+            AppMetrics.batchStarted(AppMetrics.SHARE, uris.size() + failCount);
 
             try {
                 for (int i = 0; i < uris.size(); i++) {
@@ -730,9 +733,12 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     if (isVideo) hasVideo = true;
                     else hasImage = true;
 
+                    long itemStartMs = System.currentTimeMillis();
                     CleanResult result = stripper.cleanForSharing(uri, fileName, isVideo);
                     if (result.succeeded()) {
                         processedUris.add(result.uri());
+                        AppMetrics.item(AppMetrics.SHARE, isVideo, AppMetrics.SUCCESS,
+                                System.currentTimeMillis() - itemStartMs);
                         CleanStats stats = result.stats();
                         StatsStore.recordClean(this,
                                 stats != null ? stats : new CleanStats(0, false),
@@ -767,6 +773,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
                         }
                         // A file stopped by a cancel comes back failed too; only real failures count.
                         if (isCurrentSession(session)) {
+                            AppMetrics.item(AppMetrics.SHARE, isVideo,
+                                    result.unsupported() ? AppMetrics.UNSUPPORTED : AppMetrics.FAILED, -1);
                             SentryManager.count("processing.share.failure", 1,
                                     "is_video", String.valueOf(isVideo),
                                     "error_type", result.unsupported() ? "unsupported" : "clean_failed");
@@ -788,6 +796,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                         failCount > 0 && unsupportedFailCount == failCount;
                 final boolean cancelled = session.ended.get()
                         || Thread.currentThread().isInterrupted();
+                AppMetrics.batchFinished(AppMetrics.SHARE, processedUris.size(), failCount, cancelled);
 
                 runOnUiThreadIfNotReplaced(session, () -> {
                     try {
@@ -845,6 +854,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     transaction.finish();
                 }
                 SentryManager.recordException(e);
+                AppMetrics.batchFinished(AppMetrics.SHARE, processedUris.size(), failCount + 1, false);
                 runOnUiThreadIfNotReplaced(session, () -> finishWithError(getString(R.string.share_error_generic)));
             } finally {
                 // The snapshots are copies of the originals, metadata included, and only the

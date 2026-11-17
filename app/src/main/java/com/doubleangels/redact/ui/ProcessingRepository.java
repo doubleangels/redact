@@ -24,6 +24,7 @@ import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.media.ProgressUpdateThrottler;
 import com.doubleangels.redact.media.VideoMedia3Converter;
 import com.doubleangels.redact.notifications.LocalNotifications;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.stats.StatsStore;
 import com.doubleangels.redact.ui.MainViewModel.ProcessingState;
@@ -603,6 +604,7 @@ public final class ProcessingRepository {
         long batchStartMs = System.currentTimeMillis();
         int ok = 0;
         int fail = 0;
+        AppMetrics.batchStarted(AppMetrics.CONVERT, total);
         try {
             for (int i = 0; i < total; i++) {
                 if (convertStopped(runGeneration)) {
@@ -615,6 +617,10 @@ public final class ProcessingRepository {
                 // Empty, not the display label, so a nameless source still gets a random output name.
                 final String outputName = mediaItem.fileName() != null ? mediaItem.fileName() : "";
                 ISpan span = transaction.startChild("convert_item", "media_item");
+                final long itemStartMs = System.currentTimeMillis();
+                String targetMimeType = mediaItem.isVideo()
+                        ? AppMetrics.videoFormatMimeType(AppPreferences.clampFormatIndex(formatIndex))
+                        : AppMetrics.imageFormatMimeType(FormatConverter.formatAtIndex(imageFormatIndex).name());
                 int overallStart = total > 0 ? ((index - 1) * 100) / total : 0;
                 String itemLine = app.getString(R.string.convert_progress_item, index, total);
                 updateConvertProgressPercent(overallStart, itemLine);
@@ -646,6 +652,8 @@ public final class ProcessingRepository {
                             convertOutputs.add(convertedVideo);
                         }
                         if (actualFormatIndex[0] != formatIndex) {
+                            targetMimeType = AppMetrics.videoFormatMimeType(actualFormatIndex[0]);
+                            AppMetrics.codecFallback(actualFormatIndex[0]);
                             String requested = FormatConverter.videoFormatLabel(app, formatIndex);
                             String used = FormatConverter.videoFormatLabel(app, actualFormatIndex[0]);
                             convertProgressMessage.postValue(
@@ -669,6 +677,9 @@ public final class ProcessingRepository {
                     }
                     ok++;
                     StatsStore.recordConverted(app);
+                    AppMetrics.item(AppMetrics.CONVERT, mediaItem.isVideo(), AppMetrics.SUCCESS,
+                            System.currentTimeMillis() - itemStartMs);
+                    AppMetrics.convertFormat(targetMimeType, AppMetrics.SUCCESS);
                     span.setStatus(SpanStatus.OK);
                 } catch (Exception | OutOfMemoryError e) {
                     // Out of memory fails this file, not the app: the next file may be smaller.
@@ -677,6 +688,10 @@ public final class ProcessingRepository {
                         span.setStatus(SpanStatus.CANCELLED);
                     } else {
                         fail++;
+                        String outcome = AppMetrics.outcomeOf(e,
+                                com.doubleangels.redact.media.UnsupportedMediaException.isCauseOf(e));
+                        AppMetrics.item(AppMetrics.CONVERT, mediaItem.isVideo(), outcome, -1);
+                        AppMetrics.convertFormat(targetMimeType, outcome);
                         SentryManager.recordException(e);
                         SentryManager.count(
                                 "processing.convert.failure",
@@ -699,6 +714,7 @@ public final class ProcessingRepository {
             final int finalOk = ok;
             final int finalFail = fail;
             final boolean interrupted = convertStopped(runGeneration);
+            AppMetrics.batchFinished(AppMetrics.CONVERT, ok, fail, interrupted);
             // A cancelled run already cleared the flag, and a newer run may have set it since;
             // only the run that is still current may clear it.
             if (runGeneration == scope.convertGeneration().get()) {

@@ -14,6 +14,7 @@ import androidx.media3.common.Format;
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.media.CleanFailedException;
 import com.doubleangels.redact.media.OutputDestination;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import java.io.File;
 import java.io.FileInputStream;
@@ -206,6 +207,7 @@ final class CleanVerifier {
             countVerificationFailure("video", "video_fields");
             throw new CleanFailedException("Video metadata verification failed");
         }
+        AppMetrics.verificationPassed(true);
     }
 
     @Nullable

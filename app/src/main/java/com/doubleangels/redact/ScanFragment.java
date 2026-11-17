@@ -34,6 +34,7 @@ import com.doubleangels.redact.media.MediaPickerContracts;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.metadata.MetadataDisplayer;
 import com.doubleangels.redact.permission.PermissionManager;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.CensorViewModel;
 import com.doubleangels.redact.ui.ErrorFeedbackPrompt;
@@ -535,10 +536,14 @@ public class ScanFragment extends TabFragment {
             finishActiveScanTransaction(SpanStatus.CANCELLED);
             final ITransaction transaction = SentryManager.startTransaction("extract_metadata", "task");
             activeScanTransaction = transaction;
+            final long scanStartMs = System.currentTimeMillis();
+            final boolean scannedVideo = isVideo;
             MetadataDisplayer.extractSectionedMetadata(
                     requireContext().getApplicationContext(), mediaUri, new MetadataDisplayer.SectionedMetadataCallback() {
                 @Override
                 public void onMetadataExtracted(Map<String, String> metadataSections, boolean isVideo) {
+                    AppMetrics.item(AppMetrics.SCAN, isVideo, AppMetrics.SUCCESS,
+                            System.currentTimeMillis() - scanStartMs);
                     transaction.setStatus(SpanStatus.OK);
                     transaction.finish();
                     activeScanTransaction = null;
@@ -584,6 +589,7 @@ public class ScanFragment extends TabFragment {
 
                 @Override
                 public void onExtractionFailed(String error) {
+                    AppMetrics.item(AppMetrics.SCAN, scannedVideo, AppMetrics.FAILED, -1);
                     transaction.setStatus(SpanStatus.INTERNAL_ERROR);
                     transaction.finish();
                     activeScanTransaction = null;

@@ -26,6 +26,7 @@ import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.UnsupportedMediaException;
 import com.doubleangels.redact.metadata.CleanStats;
 import com.doubleangels.redact.notifications.LocalNotifications;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.stats.StatsStore;
 
@@ -279,13 +280,16 @@ public class CensorViewModel extends AndroidViewModel {
                 fileName.postValue(name);
                 preview.postValue(decoded);
                 state.postValue(State.READY);
+                AppMetrics.censorLoad(AppMetrics.SUCCESS);
             } catch (UnsupportedMediaException e) {
                 SentryManager.log("A photo could not be decoded for censoring.");
+                AppMetrics.censorLoad(AppMetrics.UNSUPPORTED);
                 if (generation == photoGeneration.get()) {
                     state.postValue(State.UNSUPPORTED);
                 }
             } catch (Exception e) {
                 SentryManager.recordException(e);
+                AppMetrics.censorLoad(AppMetrics.FAILED);
                 if (generation == photoGeneration.get()) {
                     state.postValue(State.LOAD_FAILED);
                 }
@@ -548,6 +552,9 @@ public class CensorViewModel extends AndroidViewModel {
             try {
                 CensorExporter.Result result =
                         CensorExporter.export(getApplication(), uri, name, snapshot, cropSnapshot, chosen);
+                AppMetrics.item(AppMetrics.CENSOR, false, AppMetrics.SUCCESS,
+                        System.currentTimeMillis() - saveStartMs);
+                AppMetrics.censorRegions(snapshot.size());
                 // The copy went through a clean, so it counts in the statistics like one.
                 StatsStore.recordClean(getApplication(),
                         result.stats != null ? result.stats
@@ -572,6 +579,8 @@ public class CensorViewModel extends AndroidViewModel {
                 state.postValue(State.SAVED);
             } catch (Exception e) {
                 SentryManager.setCustomKey("error_type", e.getClass().getName());
+                AppMetrics.item(AppMetrics.CENSOR, false,
+                        AppMetrics.outcomeOf(e, UnsupportedMediaException.isCauseOf(e)), -1);
                 SentryManager.recordException(e);
                 if (generation == photoGeneration.get()) {
                     lastSaveFailed = true;
@@ -707,8 +716,8 @@ public class CensorViewModel extends AndroidViewModel {
 
     /**
      * Records how long the export took, and counts a copy that came out smaller than the original
-     * (Max Processing Resolution set below the photo). A full-size save is not counted: that would
-     * count how often people censor.
+     * (Max Processing Resolution set below the photo). Every save is counted by
+     * {@link AppMetrics#item}.
      */
     private static void countCensorSave(boolean downscaled, long durationMs) {
         if (downscaled) {

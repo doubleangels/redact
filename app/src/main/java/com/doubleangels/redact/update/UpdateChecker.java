@@ -6,6 +6,7 @@ import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
 
 import com.doubleangels.redact.BuildConfig;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import org.json.JSONException;
@@ -13,6 +14,7 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Locale;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -88,6 +90,15 @@ public final class UpdateChecker {
     @WorkerThread
     @NonNull
     public Result checkNow() {
+        long startedAt = System.currentTimeMillis();
+        Result result = check();
+        AppMetrics.updateCheck(result.status.name().toLowerCase(Locale.ROOT),
+                System.currentTimeMillis() - startedAt);
+        return result;
+    }
+
+    @NonNull
+    private Result check() {
         try {
             String latest = latestVersion(fetcher.fetch(LATEST_RELEASE_URL));
             if (latest == null) {

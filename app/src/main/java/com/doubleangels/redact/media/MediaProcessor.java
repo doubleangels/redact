@@ -14,6 +14,7 @@ import com.doubleangels.redact.R;
 import com.doubleangels.redact.metadata.CleanResult;
 import com.doubleangels.redact.metadata.CleanStats;
 import com.doubleangels.redact.metadata.MetadataStripper;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.stats.StatsStore;
 import com.doubleangels.redact.ui.CleanSummary;
@@ -320,6 +321,8 @@ public class MediaProcessor {
             ITransaction transaction = SentryManager.startTransaction("clean_multiple", "task");
             long batchStartMs = System.currentTimeMillis();
             int successCount = 0;
+            int failCount = 0;
+            AppMetrics.batchStarted(AppMetrics.CLEAN, totalItems);
             try {
                 for (int index = 0; index < totalItems; index++) {
                     if (cancelled.get()) {
@@ -329,6 +332,7 @@ public class MediaProcessor {
                     }
                     MediaItem item = items.get(index);
                     ISpan span = transaction.startChild("clean_item", "media_item");
+                    final long itemStartMs = System.currentTimeMillis();
                     final int itemIndex = index;
                     String batchLine =
                             context.getString(
@@ -376,6 +380,8 @@ public class MediaProcessor {
                                     stats != null ? stats : new CleanStats(0, false),
                                     item.isVideo(), false);
                             successCount++;
+                            AppMetrics.item(AppMetrics.CLEAN, item.isVideo(), AppMetrics.SUCCESS,
+                                    System.currentTimeMillis() - itemStartMs);
                             span.setStatus(SpanStatus.OK);
                         } else if (cancelled.get()) {
                             VideoMedia3Converter.cancelActiveTranscode(metadataStripper.getTranscodeOwnerId());
@@ -383,6 +389,9 @@ public class MediaProcessor {
                             break;
                         } else {
                             addFailed(item, result.unsupported() ? FailReason.UNSUPPORTED : FailReason.NOT_CLEANED);
+                            failCount++;
+                            AppMetrics.item(AppMetrics.CLEAN, item.isVideo(),
+                                    result.unsupported() ? AppMetrics.UNSUPPORTED : AppMetrics.FAILED, -1);
                             Log.e(TAG, "Failed to process item at index " + index);
                             SentryManager.count(
                                     "processing.clean.failure", 1, "is_video", String.valueOf(item.isVideo()));
@@ -407,6 +416,9 @@ public class MediaProcessor {
                         }
                         addFailed(item, e instanceof OutOfMemoryError ? FailReason.OUT_OF_MEMORY
                                 : UnsupportedMediaException.isCauseOf(e) ? FailReason.UNSUPPORTED : FailReason.NOT_CLEANED);
+                        failCount++;
+                        AppMetrics.item(AppMetrics.CLEAN, item.isVideo(),
+                                AppMetrics.outcomeOf(e, UnsupportedMediaException.isCauseOf(e)), -1);
                         Log.e(TAG, "Error processing item at index " + index, e);
                         SentryManager.recordException(e);
                         SentryManager.count(
@@ -428,6 +440,7 @@ public class MediaProcessor {
                 final int finalSuccessCount = successCount;
                 final int finalTotal = totalItems;
                 final boolean wasCancelled = cancelled.get();
+                AppMetrics.batchFinished(AppMetrics.CLEAN, successCount, failCount, wasCancelled);
                 // Free before the callback is posted, so a batch it starts is not refused as
                 // already running.
                 processing.set(false);

@@ -2,6 +2,7 @@ package com.doubleangels.redact.media;
 
 import androidx.annotation.NonNull;
 
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.File;
@@ -41,6 +42,7 @@ public final class SecureDelete {
                 return file.delete();
             }
 
+            long startedAt = System.currentTimeMillis();
             byte[] randomData = new byte[BUFFER_SIZE];
             // "rw" plus one sync at the end: "rws" synced every 64 KB write, which made deleting a
             // large video take minutes. The overwrite still reaches storage before the unlink.
@@ -54,6 +56,7 @@ public final class SecureDelete {
                 }
                 raf.getFD().sync();
             }
+            AppMetrics.secureDeleteOverwrite(System.currentTimeMillis() - startedAt);
 
             return unlink(file);
         } catch (Exception e) {

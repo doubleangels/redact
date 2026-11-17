@@ -12,6 +12,7 @@ import androidx.exifinterface.media.ExifInterface;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.media.MediaItem;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.IOException;
@@ -57,7 +58,8 @@ public final class AlreadyCleanCheck {
     @NonNull
     public static List<Status> assess(
             @NonNull Context context, @NonNull List<MediaItem> items, long budgetMs) {
-        long deadline = SystemClock.elapsedRealtime() + budgetMs;
+        long startedAt = SystemClock.elapsedRealtime();
+        long deadline = startedAt + budgetMs;
         List<Status> result = new ArrayList<>(items.size());
         int timedOut = 0;
         for (MediaItem item : items) {
@@ -69,6 +71,7 @@ public final class AlreadyCleanCheck {
             Status status;
             try {
                 status = assessItem(context, item);
+                AppMetrics.alreadyCleanResult(status.name());
             } catch (Exception | OutOfMemoryError e) {
                 // A file too large or too strange to read is cleaned as usual, never skipped, and
                 // an OutOfMemoryError here must not end the thread the Clean button waits on.
@@ -82,6 +85,7 @@ public final class AlreadyCleanCheck {
             // Slow (usually cloud-backed) files used up the time budget; they are cleaned as usual.
             SentryManager.count("already_clean.check", timedOut, "outcome", "timed_out");
         }
+        AppMetrics.alreadyCleanDuration(SystemClock.elapsedRealtime() - startedAt);
         return result;
     }
 

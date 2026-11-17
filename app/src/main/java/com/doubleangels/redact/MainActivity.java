@@ -35,6 +35,7 @@ import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.ui.FoldPosture;
 import com.doubleangels.redact.ui.FoldTracker;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.CensorViewModel;
 import com.doubleangels.redact.ui.MainViewModel;
@@ -744,6 +745,7 @@ public class MainActivity extends AppCompatActivity {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
             SentryManager.logEvent("Permission", "The app received a permission result.");
             SentryManager.setCustomKey("permission_request_code", requestCode);
+            AppMetrics.permissionResults(permissions, grantResults);
 
             PermissionManager.storeActivityPermissionResult(
                     requestCode, permissions, grantResults);

@@ -20,6 +20,7 @@ import com.doubleangels.redact.media.MediaFileNames;
 import com.doubleangels.redact.media.MediaSizeLimits;
 import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.media.UnsupportedMediaException;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import java.io.BufferedOutputStream;
 import java.util.Locale;
@@ -225,6 +226,9 @@ final class ImageCleaner {
             host.updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
             boolean metadataRemoved = host.verifier.verifyMetadataRemoval(cleanFile, false);
             SentryManager.setCustomKey("metadata_verification_passed", metadataRemoved);
+            if (metadataRemoved) {
+                AppMetrics.verificationPassed(false);
+            }
             if (!metadataRemoved) {
                 throw new CleanFailedException("Metadata verification failed");
             }
@@ -394,6 +398,9 @@ final class ImageCleaner {
             host.updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
             boolean metadataRemoved = host.verifier.verifyMetadataRemoval(outputFile, true);
             SentryManager.setCustomKey("metadata_verification_passed", metadataRemoved);
+            if (metadataRemoved) {
+                AppMetrics.verificationPassed(false);
+            }
             if (!metadataRemoved) {
                 SentryManager.log("Metadata verification found remaining metadata.");
                 if (outputFile != null && outputFile.exists()) {
