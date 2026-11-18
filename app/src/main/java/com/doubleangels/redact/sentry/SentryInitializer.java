@@ -8,6 +8,7 @@ import com.doubleangels.redact.BuildConfig;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.doubleangels.redact.AppPreferences;
 
@@ -84,7 +85,7 @@ public final class SentryInitializer {
             }
             initializing = true;
             try {
-                if (runSentryInit(app)) {
+                if (runSentryInitSafely(app)) {
                     initialized = true;
                 }
             } finally {
@@ -102,7 +103,7 @@ public final class SentryInitializer {
         }
         new Thread(() -> {
             try {
-                if (runSentryInit(context)) {
+                if (runSentryInitSafely(context)) {
                     synchronized (INIT_LOCK) {
                         initialized = true;
                     }
@@ -112,7 +113,21 @@ public final class SentryInitializer {
                     initializing = false;
                 }
             }
-        }).start();
+        }, "redact-sentry-init").start();
+    }
+
+    /**
+     * {@link #runSentryInit}, but a failure to start the SDK leaves the app running without
+     * crash reporting instead of ending it: nothing would be there yet to report the crash.
+     */
+    @VisibleForTesting
+    static boolean runSentryInitSafely(Context context) {
+        try {
+            return runSentryInit(context);
+        } catch (RuntimeException e) {
+            Log.e(TAG, "Sentry could not start; continuing without crash reporting", e);
+            return false;
+        }
     }
 
     private static boolean runSentryInit(Context context) {

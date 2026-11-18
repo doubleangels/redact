@@ -67,6 +67,20 @@ public class SentryInitializerTest {
         return new SentryMetricsEvent(new SentryId(), (Double) 1.0, "count", "counter", (Double) 1.0);
     }
 
+    /** The SDK refusing to start must leave the app running, not end it before reporting is up. */
+    @Test
+    public void anSdkThatFailsToStart_leavesTheAppRunningWithoutReporting() {
+        AppPreferences.setCrashReportingEnabled(app, true);
+        SentryInitializer.testDsnOverride = "not a dsn";
+
+        assertFalse(SentryInitializer.runSentryInitSafely(app));
+        assertTrue("the SDK's own exception was caught, not avoided",
+                org.robolectric.shadows.ShadowLog.getLogsForTag("SentryInitializer").stream()
+                        .anyMatch(log -> log.throwable instanceof RuntimeException));
+        SentryInitializer.initializeBlocking(app);
+        assertFalse(SentryInitializer.isInitialized());
+    }
+
     @Test
     public void logEvent_alsoSendsAScrubbedStructuredLog() {
         AppPreferences.setCrashReportingEnabled(app, true);
