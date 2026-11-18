@@ -1,7 +1,6 @@
 package com.doubleangels.redact;
 
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
@@ -145,7 +144,6 @@ public class MainActivity extends AppCompatActivity {
         setupEdgeToEdgeInsets();
         getLifecycle().addObserver(new FoldTracker(this, this::onFoldPostureChanged));
         setupStatusBarColors();
-        setupVersionNumber();
 
         SentryManager.logEvent("Lifecycle", "The MainActivity was created.");
 
@@ -220,7 +218,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         animateTabSwitches = true;
-        SentryManager.setCustomKey("app_started", true);
 
         PermissionManager.addInitialFlowCompletedCallback(permissionFlowCompleted);
         if (savedInstanceState == null && shouldShowOnboarding()) {
@@ -644,17 +641,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             } else {
                 SentryManager.logEvent("UI", "The insets controller is null.");
-            }
-        } catch (Exception e) {
-            SentryManager.recordException(e);
-        }
-    }
-
-    private void setupVersionNumber() {
-        try {
-            PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-            if (packageInfo.versionName != null) {
-                SentryManager.setCustomKey("app_version", packageInfo.versionName);
             }
         } catch (Exception e) {
             SentryManager.recordException(e);

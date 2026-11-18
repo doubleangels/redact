@@ -131,9 +131,6 @@ public class PermissionManager {
         this.activity = activity;
         this.callback = callback;
 
-        // Log device SDK version and package name for diagnostics
-        SentryManager.setCustomKey("device_sdk", Build.VERSION.SDK_INT);
-        SentryManager.setCustomKey("app_package", activity.getPackageName());
     }
 
     /**
