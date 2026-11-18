@@ -107,7 +107,9 @@ public final class InboundSnapshots {
             if (in == null) {
                 throw new IOException("Cannot open inbound stream");
             }
-            copyWhileWanted(in, out, stillWanted);
+            // A share can be larger than the room left, or never end; it stops before the
+            // storage is full rather than fill it.
+            copyWhileWanted(in, out, stillWanted, MediaSizeLimits.roomFor(app.getCacheDir()));
         } catch (IOException e) {
             // A partial copy still holds part of the original.
             SecureDelete.secureDelete(dest);
@@ -117,13 +119,13 @@ public final class InboundSnapshots {
     }
 
     private static void copyWhileWanted(@NonNull InputStream in, @NonNull OutputStream out,
-                                        @NonNull BooleanSupplier stillWanted) throws IOException {
+                                        @NonNull BooleanSupplier stillWanted, long maxBytes) throws IOException {
         try {
             MediaSizeLimits.copyStream(in, out, () -> {
                 if (!stillWanted.getAsBoolean()) {
                     throw new UncheckedIOException(new ProcessingCancelledException("Share cancelled"));
                 }
-            });
+            }, maxBytes);
         } catch (UncheckedIOException e) {
             throw e.getCause();
         }

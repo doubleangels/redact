@@ -93,7 +93,7 @@ Most apps and websites do not show you this, but anyone who receives the origina
 | **Shortcuts** | Long-press the app icon to jump straight to Clean, Scan, Convert or Censor, or add the **Clean**, **Scan** or **Censor** tiles to Quick Settings. |
 | **Batches** | Clean or convert up to 100 files at once (50 when you share them in from another app). If some files fail, Redact keeps going, reports what succeeded, lists the files it couldn't clean with the reason, and can try just those again. |
 | **Drag, drop and paste** | Drag photos and videos onto Clean, Scan, Convert or Censor from another app in split screen, on a tablet or on a Chromebook, or paste them with **Paste** or Ctrl+V. |
-| **Large files** | There is no hard size cap. Redact warns you first when storage or memory looks too low for the job. |
+| **Large files** | There is no hard size cap. Redact warns you first when storage or memory looks too low for the job, and a file shared in that would leave less than 256 MB free is skipped rather than allowed to fill your storage. |
 | **Delete originals (optional)** | Turn on **Delete Originals After Cleaning** and Redact asks Android to move the originals to trash after a successful clean. Android shows its own confirmation, so nothing is removed without your say-so. |
 | **Open source, no ads** | No ads and no tracking. The source code is public, so anyone can check how Redact works. |
 | **13 languages** | English, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean, Chinese (Simplified and Traditional), Hindi and Arabic. Follows your phone's per-app language setting. |
@@ -463,7 +463,7 @@ In `Pictures/Redact` and `Movies/Redact` by default, or in the folders you chose
 <details>
 <summary><b>Are there file size limits?</b></summary>
 
-No hard limit. Very large files can still strain a device that is low on storage or memory, so Redact warns you before it starts. Images are always processed at full resolution, and only scaled down if the device does not have the free memory to hold one.
+No hard limit. Very large files can still strain a device that is low on storage or memory, so Redact warns you before it starts, and a file shared in from another app is skipped if copying it would leave less than 256 MB free. Images are always processed at full resolution, and only scaled down if the device does not have the free memory to hold one.
 </details>
 
 <details>
