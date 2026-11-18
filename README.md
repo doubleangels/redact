@@ -300,14 +300,14 @@ The Settings tab puts the settings you use every day first: cleaning, sharing, C
 
 | Setting | What it does |
 |---|---|
-| **Default formats and image quality** | The formats and quality pre-selected on the Convert tab. You can still change them for each batch. |
+| **Default Image Format** / **Default Video Codec** / **Image Quality** | The formats and quality pre-selected on the Convert tab. You can still change them for each batch. |
 
 **Output Folders**
 
 | Setting | What it does |
 |---|---|
 | **Images** / **Videos** | Tap a folder to open the file browser and pick or create where cleaned and converted files go. After you pick one, Redact offers to use it for the other media type too. Defaults are `Pictures/Redact` and `Movies/Redact`; **Reset to Default** restores either. Existing files are not moved. |
-| **Open Folder** | Shows the folder in your file manager. |
+| **Open Images Folder** / **Open Videos Folder** | Shows the folder in your file manager. |
 | **Keep Original File Names** | Names cleaned and converted files after the originals (for example `IMG_20260117_093012.jpg`) instead of a random name. Off by default, because such names can reveal when a photo was taken. Files shared into Redact always get a random name. |
 | Unavailable folder | If a chosen folder is deleted or its storage is removed, Redact saves to the default instead and marks the folder in red here. |
 
@@ -518,11 +518,14 @@ On Windows use `gradlew.bat`, or Git Bash.
 ### Test and lint
 
 ```bash
-./gradlew testDebugUnitTest  # unit tests (Robolectric, no device needed)
-./gradlew lintRelease        # Android Lint
+./gradlew testDebugUnitTest jacocoTestCoverageVerification  # unit tests (Robolectric) and the 90% line gate
+./gradlew lintRelease                                       # Android Lint
+./gradlew bundleRelease exportReleaseManifest               # the release build, which catches R8 problems
+python3 .github/scripts/check_release_manifest.py           # the shipped permissions and components match app/release-manifest.txt
+./gradlew :app:Pixel_10_Pro_CleanDebugAndroidTest           # cleans real test media with the emulator's codecs
 ```
 
-CI runs `./gradlew test` and Android Lint on every push to `dev` and on every pull request.
+CI runs the first four on every push to `dev` and on every pull request. The last needs an emulator whose video decoders work, which CI's headless one doesn't have, so run it locally before a release.
 
 ### Optional: crash reporting while developing
 
@@ -532,8 +535,10 @@ Crash reporting is off unless a Sentry DSN is supplied at build time. Debug buil
 
 ```
 app/src/main/java/com/doubleangels/redact/
-  CleanFragment, ScanFragment, ConvertFragment, SettingsFragment   the four tabs
+  CleanFragment, ScanFragment, ConvertFragment, CensorFragment     the four tabs
+  SettingsFragment                                                 Settings
   MainActivity, ShareHandlerActivity                               entry points (share-in)
+  CleanTileService, ScanTileService, CensorTileService             the Quick Settings tiles
   StatisticsActivity                                               the Statistics screen
   media/          selecting, processing, converting, MediaStore writes, secure delete
   metadata/       reading (Scan) and stripping metadata
@@ -542,13 +547,14 @@ app/src/main/java/com/doubleangels/redact/
   sentry/         opt-in crash reporting and the privacy scrubber
   stats/          on-device counts behind Statistics
   ui/             view models, adapters, clipboard helper
+  update/         Check for Updates
 app/src/test/                  unit tests (Robolectric; fake MediaStore provider)
 baselineprofile/               macrobenchmark module that generates the baseline profile
 fastlane/metadata/             Google Play listing text, screenshots and icon
 legal/                         source of the privacy policy page
 scripts/                       store screenshots, feature graphic and sample-media tagging
 site/                          the website: landing page and guides
-.github/workflows/             CI, release and privacy-policy publishing
+.github/workflows/             CI, release, and publishing the website, privacy policy and listing images
 ```
 
 ### How a clean works
