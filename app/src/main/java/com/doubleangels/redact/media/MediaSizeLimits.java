@@ -1,5 +1,6 @@
 package com.doubleangels.redact.media;
 
+import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
@@ -103,6 +104,9 @@ public final class MediaSizeLimits {
      * What a copy into internal storage may take: the free space there, less a reserve kept for
      * the clean's own output and for the rest of the phone. Never less than zero.
      */
+    // UsableSpace: this is meant to be the space free now. getAllocatableBytes would count other
+    // apps' clearable caches, and allocateBytes would have the system clear them for a shared file.
+    @SuppressLint("UsableSpace")
     public static long roomFor(@NonNull File dir) {
         return Math.max(0, dir.getUsableSpace() - FREE_SPACE_RESERVE_BYTES);
     }
