@@ -152,7 +152,7 @@ public class OnboardingActivity extends AppCompatActivity {
         updateControls();
         applyInsets();
         if (savedInstanceState == null) {
-            SentryManager.logEvent("Lifecycle", "The introduction was shown.");
+            SentryManager.logEvent("app.lifecycle", "The introduction was shown.");
         }
     }
 
@@ -200,7 +200,7 @@ public class OnboardingActivity extends AppCompatActivity {
     private void finishIntroduction(int resultCode) {
         AppMetrics.onboardingFinished(resultCode == RESULT_OK);
         if (resultCode == RESULT_OK) {
-            SentryManager.logEvent("Lifecycle", "The introduction finished.");
+            SentryManager.logEvent("app.lifecycle", "The introduction finished.");
         }
         setResult(resultCode);
         finish();

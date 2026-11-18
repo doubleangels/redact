@@ -28,7 +28,7 @@ public class AllowedTagKeysAreUsedTest {
 
     private static final File SOURCES = new File("src/main/java");
     private static final Pattern ALLOW_LIST =
-            Pattern.compile("ALLOWED_TAG_KEYS = new HashSet<>\\(Arrays\\.asList\\((.*?)\\)\\);", Pattern.DOTALL);
+            Pattern.compile("(?:OPERATION_TAG_KEYS|OPERATION_CONTEXT_KEYS|SCOPE_TAG_KEYS) = new HashSet<>\\(Arrays\\.asList\\((.*?)\\)\\);", Pattern.DOTALL);
     private static final Pattern KEY_SETS =
             Pattern.compile("private static final Set<String> \\w+ = new HashSet<>\\(Arrays\\.asList\\(.*?\\)\\);",
                     Pattern.DOTALL);
@@ -39,12 +39,16 @@ public class AllowedTagKeysAreUsedTest {
         Path manager = SOURCES.toPath().resolve("com/doubleangels/redact/sentry/SentryManager.java");
         String managerSource = new String(Files.readAllBytes(manager), StandardCharsets.UTF_8);
         Matcher list = ALLOW_LIST.matcher(managerSource);
-        assertTrue("ALLOWED_TAG_KEYS not found", list.find());
         Set<String> keys = new LinkedHashSet<>();
-        Matcher key = Pattern.compile("\"([a-z_]+)\"").matcher(list.group(1));
-        while (key.find()) {
-            keys.add(key.group(1));
+        int lists = 0;
+        while (list.find()) {
+            lists++;
+            Matcher key = Pattern.compile("\"([a-z_.]+)\"").matcher(list.group(1));
+            while (key.find()) {
+                keys.add(key.group(1));
+            }
         }
+        assertEquals("the three lists that make up ALLOWED_TAG_KEYS", 3, lists);
         assertFalse(keys.isEmpty());
 
         // Every source, with SentryManager's own key lists taken out so they don't count as uses.

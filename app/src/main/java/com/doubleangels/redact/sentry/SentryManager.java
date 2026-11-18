@@ -64,100 +64,111 @@ public final class SentryManager {
             SSLException.class,
             SSLHandshakeException.class);
 
-    /** Tags that may be set without user-identifying values. */
-    private static final Set<String> ALLOWED_TAG_KEYS = new HashSet<>(Arrays.asList(
-            "operation_type",
-            "outcome",
-            "is_video",
-            "mime_type",
-            "media_type",
-            "extraction_failed",
-            "error_type",
-            "sections_count",
-            "has_location_permission",
-            "has_location_data",
-            "has_image_permission",
-            "has_video_permission",
-            "has_user_selected_permission",
-            "needs_permissions",
-            "theme_mode",
-            "permission_request_code",
-            "notifications_enabled",
-            "clean_notifications_enabled",
-            "convert_notifications_enabled",
-            "intent_action",
-            "intent_type",
-            "unsupported_type",
-            "unsupported_action",
-            "media_count",
-            "image_resolution_class",
-            "video_resolution_class",
-            "video_duration_class",
-            "video_rotation",
-            "success",
-            "metadata_verification_passed",
-            "preserved_exif_count",
-            "exif_tags_removed",
-            "bitmap_sample_size",
-            "video_metadata_verification_passed",
-            "video_verify_failed_key",
-            "permissions_granted",
-            "selected_media_count",
-            "selected_items_count",
-            "persistable_uri_permission",
-            "processing_state",
-            "processed_items",
-            "processing_items_count",
-            "has_shown_rationale",
-            "all_permissions_granted",
-            "has_storage_permission",
-            "thermal_status",
-            "power_save_mode",
-            "video_codec",
-            "video_frame_rate_class",
-            "has_audio",
-            "output_codec",
-            "output_mime_type"));
+    /*
+     * Naming, which SentryNamingTest enforces for tags, metric attributes, metric names and
+     * breadcrumb categories alike:
+     *
+     *   - A key that describes state is "<group>.<field>": job.type, file.mime_type,
+     *     video.codec, permission.images, setting.strict_clean, device.low_ram. The group is one
+     *     of SentryNamingTest.GROUPS; the field is lower snake_case. A boolean field is named for
+     *     what is true (images, has_audio, needed, rationale_shown); a banded value ends in
+     *     _class, a count in _count. At most 32 characters, Sentry's limit for a tag key.
+     *   - A key that describes what happened is one of three bare words, the same in every tag
+     *     and metric: outcome (success, failed, ...), reason (why, in a fixed word) and error_type
+     *     (an exception's simple class name).
+     *   - No key mentions a path, URI, file name or location: the scrubber blanks such keys, so
+     *     GPS is "gps".
+     *   - A metric is "<area>.<event>" when it counts and "<area>.<event>.<measure>" when it is a
+     *     distribution (job.item, job.item.duration). The event is a singular noun; what came of
+     *     it goes in outcome, never in the name; a unit goes in the metric's unit, never in the
+     *     name.
+     *   - A breadcrumb category is a lower-case area, optionally ".<sub>" (clean, app.lifecycle),
+     *     like the SDK's own (ui.click, navigation).
+     */
 
     /**
      * Low-cardinality keys that describe one scan, clean or convert. They are kept per thread, not
      * on the shared scope, so a Scan running during a Clean can't tag the other job's events, and
-     * a later unrelated event doesn't carry a finished job's {@code success} or {@code error_type}.
+     * a later unrelated event doesn't carry a finished job's outcome or error_type.
      */
     private static final Set<String> OPERATION_TAG_KEYS = new HashSet<>(Arrays.asList(
-            "operation_type",
-            "is_video",
-            "mime_type",
-            "media_type",
-            "extraction_failed",
+            "job.type",
+            "outcome",
             "error_type",
-            "has_location_data",
-            "image_resolution_class",
-            "video_resolution_class",
-            "video_duration_class",
-            "video_rotation",
-            "success",
-            "metadata_verification_passed",
-            "video_metadata_verification_passed",
-            "video_verify_failed_key",
-            "thermal_status",
-            "power_save_mode",
-            "video_codec",
-            "video_frame_rate_class",
-            "has_audio",
-            "output_codec",
-            "output_mime_type"));
+            "file.media_type",
+            "file.mime_type",
+            "file.output_mime_type",
+            "file.has_gps",
+            "scan.extraction_failed",
+            "image.resolution_class",
+            "video.resolution_class",
+            "video.duration_class",
+            "video.frame_rate_class",
+            "video.rotation",
+            "video.codec",
+            "video.output_codec",
+            "video.has_audio",
+            "verify.image_passed",
+            "verify.video_passed",
+            "verify.failed_check",
+            "device.thermal_status",
+            "device.power_save"));
 
     /**
      * Per-item measurements. They have too many distinct values to be useful as indexed tags, so
      * they go into the event's {@value #OPERATION_CONTEXT} context instead.
      */
     private static final Set<String> OPERATION_CONTEXT_KEYS = new HashSet<>(Arrays.asList(
-            "sections_count",
-            "preserved_exif_count",
-            "exif_tags_removed",
-            "bitmap_sample_size",
-            "original_height"));
+            "scan.section_count",
+            "clean.kept_exif_count",
+            "clean.removed_exif_count",
+            "image.sample_size"));
+
+    /** Keys that describe the app as a whole, set on the shared scope, and metric-only keys. */
+    private static final Set<String> SCOPE_TAG_KEYS = new HashSet<>(Arrays.asList(
+            "permission.type",
+            "permission.request_code",
+            "permission.needed",
+            "permission.all_granted",
+            "permission.images",
+            "permission.videos",
+            "permission.selected_media",
+            "permission.storage",
+            "permission.media_gps",
+            "permission.partial_access",
+            "permission.persisted_grant",
+            "permission.rationale_shown",
+            "permission.gps_rationale_shown",
+            "permission.settings_needed",
+            "permission.gps_settings_needed",
+            "permission.images_can_ask",
+            "permission.videos_can_ask",
+            "permission.storage_can_ask",
+            "permission.gps_can_ask",
+            "notification.enabled",
+            "notification.clean_enabled",
+            "notification.convert_enabled",
+            "intent.action",
+            "intent.type",
+            "intent.unsupported_type",
+            "intent.unsupported_action",
+            "ui.theme",
+            "clean.selected_count",
+            "clean.processing_count",
+            "clean.processed_count",
+            "clean.state",
+            "share.media_count",
+            "app.process_state",
+            "reason"));
+
+    /** Every key a tag or metric attribute may use; any other is dropped. */
+    private static final Set<String> ALLOWED_TAG_KEYS = new HashSet<>();
+
+    static {
+        ALLOWED_TAG_KEYS.addAll(OPERATION_TAG_KEYS);
+        ALLOWED_TAG_KEYS.addAll(OPERATION_CONTEXT_KEYS);
+        ALLOWED_TAG_KEYS.addAll(SCOPE_TAG_KEYS);
+    }
 
     static final String OPERATION_CONTEXT = "operation";
 
@@ -323,7 +334,7 @@ public final class SentryManager {
         if (!isEnabled() && !BuildConfig.DEBUG) {
             return;
         }
-        String safeCategory = category != null ? category : "App";
+        String safeCategory = category != null ? category : "app";
         String safeMessage = SentryPrivacyScrubber.scrub(message != null ? message : "");
         Log.i(TAG, safeCategory + ": " + safeMessage);
         if (!isEnabled()) {
@@ -385,6 +396,15 @@ public final class SentryManager {
         Sentry.metrics().distribution(name, millis, MetricsUnit.Duration.MILLISECOND, params);
     }
 
+    /** Size distribution in megabytes with allowed attribute dimensions, as key, value pairs. */
+    public static void distributionMegabytes(String name, double megabytes, String... keysAndValues) {
+        SentryMetricsParameters params = metricsParams(keysAndValues);
+        if (!isEnabled() || params == null) {
+            return;
+        }
+        Sentry.metrics().distribution(name, megabytes, MetricsUnit.Information.MEGABYTE, params);
+    }
+
     /** Point-in-time gauge (dimensionless). */
     public static void gauge(String name, double value) {
         if (!isEnabled() || name == null || name.isEmpty()) {
@@ -401,7 +421,7 @@ public final class SentryManager {
     public static SentryId recordException(Throwable e) {
         if (UnsupportedMediaException.isCauseOf(e)) {
             Log.i(TAG, "Unsupported media, not sending:", e);
-            logEvent("Media", "An item in an unsupported format was skipped.");
+            logEvent("media", "An item in an unsupported format was skipped.");
             return null;
         }
         if (isIgnored(e)) {
@@ -471,11 +491,11 @@ public final class SentryManager {
      */
     public static void beginOperation(String operationType) {
         OPERATION_DATA.get().clear();
-        setCustomKey("operation_type", operationType);
+        setCustomKey("job.type", operationType);
         // A hot or battery-saving phone throttles the CPU and codecs: it explains slow or failed
         // video work without saying anything about the person.
-        setCustomKey("thermal_status", thermalStatus());
-        setCustomKey("power_save_mode", isPowerSaveMode());
+        setCustomKey("device.thermal_status", thermalStatus());
+        setCustomKey("device.power_save", isPowerSaveMode());
     }
 
     /**
@@ -545,9 +565,7 @@ public final class SentryManager {
     }
 
     private static boolean isOperationKey(@NonNull String lowerKey) {
-        return OPERATION_TAG_KEYS.contains(lowerKey)
-                || OPERATION_CONTEXT_KEYS.contains(lowerKey)
-                || lowerKey.startsWith("video_verify_");
+        return OPERATION_TAG_KEYS.contains(lowerKey) || OPERATION_CONTEXT_KEYS.contains(lowerKey);
     }
 
     public static void setCustomKey(String key, String value) {
@@ -595,9 +613,8 @@ public final class SentryManager {
         if (ALLOWED_TAG_KEYS.contains(lower)) {
             return true;
         }
-        return lower.startsWith("permission_")
-                || lower.startsWith("video_verify_")
-                || lower.startsWith("can_ask_");
+        // permission.<type>, where the type comes from AppMetrics.permissionType.
+        return lower.matches("permission\\.[a-z_]{1,21}");
     }
 
     /**

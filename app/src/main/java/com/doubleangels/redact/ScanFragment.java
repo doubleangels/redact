@@ -158,7 +158,7 @@ public class ScanFragment extends TabFragment {
                     if (uris == null || uris.isEmpty()) {
                         return;
                     }
-                    SentryManager.logEvent("Scan", "Media was selected successfully in ScanFragment.");
+                    SentryManager.logEvent("scan", "Media was selected successfully in ScanFragment.");
                     onMediaReceived(uris);
                 });
     }
@@ -223,7 +223,7 @@ public class ScanFragment extends TabFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        SentryManager.logEvent("Scan", "The ScanFragment view was created.");
+        SentryManager.logEvent("scan", "The ScanFragment view was created.");
 
         scanViewModel = new ViewModelProvider(requireActivity()).get(ScanViewModel.class);
 
@@ -446,7 +446,7 @@ public class ScanFragment extends TabFragment {
 
     private void openMediaPicker() {
         try {
-            SentryManager.logEvent("Scan", "The app is launching the media picker in ScanFragment.");
+            SentryManager.logEvent("scan", "The app is launching the media picker in ScanFragment.");
             mediaPickerLauncher.launch(MediaPickerContracts.IMAGE_AND_VIDEO_MIME_TYPES);
         } catch (Exception e) {
             SentryManager.recordException(e);
@@ -499,7 +499,7 @@ public class ScanFragment extends TabFragment {
                         if (generation != scanGeneration.get() || !isAdded()) {
                             return;
                         }
-                        SentryManager.logEvent("Scan", "The location metadata refresh failed.");
+                        SentryManager.logEvent("scan", "The location metadata refresh failed.");
                     }
                 });
     }
@@ -530,7 +530,7 @@ public class ScanFragment extends TabFragment {
 
             // The worker tags its own operation with the type and permission: these keys belong to
             // the thread that sets them, and set here they would only tag later main-thread events.
-            SentryManager.logEvent("Scan", "The app is starting metadata extraction.");
+            SentryManager.logEvent("scan", "The app is starting metadata extraction.");
 
             progressText.setText(isVideo ? R.string.status_extracting_media : R.string.status_extracting_image);
 
@@ -605,7 +605,7 @@ public class ScanFragment extends TabFragment {
                     showEmptyState(false);
                     metadataCard.setVisibility(View.VISIBLE);
                     clearCoordinateState();
-                    SentryManager.logEvent("Scan", "Metadata extraction failed.");
+                    SentryManager.logEvent("scan", "Metadata extraction failed.");
                     ErrorFeedbackPrompt.offer(
                             getView(), SentryManager.reportedSince(reportedBefore));
                 }
@@ -1079,11 +1079,11 @@ public class ScanFragment extends TabFragment {
                 .setType("text/plain")
                 .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.scan_share_report_subject))
                 .putExtra(Intent.EXTRA_TEXT, report);
-        SentryManager.logEvent("Scan", "A metadata report is being shared as text.");
+        SentryManager.logEvent("scan", "A metadata report is being shared as text.");
         try {
             startActivity(Intent.createChooser(send, getString(R.string.scan_share_report)));
         } catch (ActivityNotFoundException e) {
-            SentryManager.logEvent("Scan", "No app can take a metadata report shared as text.");
+            SentryManager.logEvent("scan", "No app can take a metadata report shared as text.");
             Notice.show(requireContext(), R.string.scan_share_report_unavailable, false);
         }
     }

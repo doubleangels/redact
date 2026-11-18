@@ -194,7 +194,7 @@ public class MetadataStripper {
             throw asCancellationException(e);
         }
         Log.e(TAG, "Error processing " + kind, e);
-        SentryManager.setCustomKey("success", false);
+        SentryManager.setCustomKey("outcome", "failed");
         SentryManager.setCustomKey("error_type", SentryManager.errorType(e));
         SentryManager.recordException(e);
         if (partialOutput != null) {
@@ -211,7 +211,7 @@ public class MetadataStripper {
                           @NonNull String kind) {
         Log.e(TAG, "Error processing " + kind + " for sharing", e);
         job.unsupported = UnsupportedMediaException.isCauseOf(e);
-        SentryManager.setCustomKey("success", false);
+        SentryManager.setCustomKey("outcome", "failed");
         SentryManager.setCustomKey("error_type", SentryManager.errorType(e));
         SentryManager.recordException(e);
         if (partialOutput != null && partialOutput.exists()) {
@@ -253,7 +253,7 @@ public class MetadataStripper {
         this.verifier = new CleanVerifier(this);
         this.images = new ImageCleaner(this);
         this.videos = new VideoCleaner(this, transmuxer);
-        SentryManager.logEvent("Clean", "The MetadataStripper was initialized.");
+        SentryManager.logEvent("clean", "The MetadataStripper was initialized.");
     }
 
     /**
@@ -456,8 +456,8 @@ public class MetadataStripper {
     @NonNull
     public CleanResult cleanForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename, boolean isVideo) {
         // Breadcrumb for a crash report.
-        SentryManager.logEvent("Clean", "The app is starting metadata stripping for sharing.");
-        SentryManager.setCustomKey("is_video", isVideo);
+        SentryManager.logEvent("clean", "The app is starting metadata stripping for sharing.");
+        SentryManager.setCustomKey("file.media_type", isVideo ? "video" : "image");
         return isVideo
                 ? cleanVideoForSharing(sourceUri, originalFilename)
                 : cleanImageForSharing(sourceUri, originalFilename);

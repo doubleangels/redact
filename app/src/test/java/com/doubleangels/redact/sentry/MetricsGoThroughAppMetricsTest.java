@@ -25,7 +25,7 @@ public class MetricsGoThroughAppMetricsTest {
 
     private static final File SOURCES = new File("src/main/java");
     private static final Pattern DIRECT_METRIC =
-            Pattern.compile("SentryManager\\.(count|distribution|distributionDurationMs|gauge)\\s*\\(");
+            Pattern.compile("SentryManager\\.(count|distribution|distributionDurationMs|distributionMegabytes|gauge)\\s*\\(");
 
     @Test
     public void noMetricBypassesAppMetrics() throws IOException {

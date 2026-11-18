@@ -52,7 +52,7 @@ public final class ProcessExits {
                 AppPreferences.setLastReportedExit(context, newest);
             }
         } catch (RuntimeException e) {
-            SentryManager.logEvent("Lifecycle", "The process exit history could not be read: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("app.lifecycle", "The process exit history could not be read: " + e.getClass().getSimpleName() + ".");
         }
     }
 

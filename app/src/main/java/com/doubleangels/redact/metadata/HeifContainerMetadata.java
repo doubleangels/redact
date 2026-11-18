@@ -497,7 +497,7 @@ public final class HeifContainerMetadata {
                     tracks = HeifTracks.parse(in, moov);
                 } catch (IOException | RuntimeException e) {
                     // Only the still picture is kept; the frames are dropped, never copied as they are.
-                    SentryManager.logEvent("Image", 
+                    SentryManager.logEvent("image", 
                             "The image sequence's tracks could not be followed, so only the still picture is kept: "
                                     + e.getClass().getSimpleName() + ".");
                     tracks = null;

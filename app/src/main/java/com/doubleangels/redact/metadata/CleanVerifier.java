@@ -150,7 +150,7 @@ final class CleanVerifier {
                     container.hasLocation,
                     hasName);
         } catch (Exception e) {
-            SentryManager.logEvent("Verify", "The source video privacy metadata could not be read: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("verify", "The source video privacy metadata could not be read: " + e.getClass().getSimpleName() + ".");
             VideoContainerMetadata.Report container = VideoContainerMetadata.scan(context, sourceUri);
             return new VideoPrivacySnapshot(null, null, 0, container.fields, container.hasLocation, false);
         }
@@ -188,21 +188,21 @@ final class CleanVerifier {
             @NonNull File videoFile, @NonNull VideoPrivacySnapshot sourceSnapshot, boolean keepLocation)
             throws IOException {
         if (AppPreferences.isRemoveAudio(context) && hasAudioTrack(videoFile)) {
-            SentryManager.logEvent("Verify", "The video still has a sound track although Remove Audio is on.");
+            SentryManager.logEvent("verify", "The video still has a sound track although Remove Audio is on.");
             countVerificationFailure("video", "audio_left");
             throw new IOException("Sound left in a video that should have none");
         }
         VideoContainerMetadata.scrub(videoFile, keepLocation);
         VideoContainerMetadata.Report remaining = VideoContainerMetadata.scan(videoFile, keepLocation);
         if (!remaining.isClean()) {
-            SentryManager.setCustomKey("video_metadata_verification_passed", false);
-            SentryManager.setCustomKey("video_verify_failed_key",
+            SentryManager.setCustomKey("verify.video_passed", false);
+            SentryManager.setCustomKey("verify.failed_check",
                     remaining.recognized ? "CONTAINER_BOX" : "CONTAINER_UNREADABLE");
             countVerificationFailure("video", "video_container");
             throw new CleanFailedException("Video metadata verification failed");
         }
         boolean videoClean = verifyVideoMetadataRemoval(videoFile, sourceSnapshot, keepLocation);
-        SentryManager.setCustomKey("video_metadata_verification_passed", videoClean);
+        SentryManager.setCustomKey("verify.video_passed", videoClean);
         if (!videoClean) {
             countVerificationFailure("video", "video_fields");
             throw new CleanFailedException("Video metadata verification failed");
@@ -289,8 +289,8 @@ final class CleanVerifier {
                             retriever.extractMetadata(
                                     MediaMetadataRetriever.METADATA_KEY_LOCATION));
             if (location != null && (!keepLocation || !KeptPrecision.videoLocationMatchesSettings(context, location))) {
-                SentryManager.setCustomKey("video_verify_failed_key", "LOCATION");
-                SentryManager.logEvent("Verify", 
+                SentryManager.setCustomKey("verify.failed_check", "LOCATION");
+                SentryManager.logEvent("verify", 
                         "The app found a remaining video metadata key: "
                                 + videoMetadataKeyName(
                                         MediaMetadataRetriever.METADATA_KEY_LOCATION)
@@ -305,8 +305,8 @@ final class CleanVerifier {
                                         MediaMetadataRetriever.METADATA_KEY_DATE));
                 if (outputDate != null && outputDate.equals(sourceSnapshot.date)) {
                     // Only that it happened: the date is when the user recorded the video.
-                    SentryManager.setCustomKey("video_verify_failed_key", "DATE_PRESERVED");
-                    SentryManager.logEvent("Verify", 
+                    SentryManager.setCustomKey("verify.failed_check", "DATE_PRESERVED");
+                    SentryManager.logEvent("verify", 
                             "The original recording date was preserved in the output: "
                                     + videoMetadataKeyName(
                                             MediaMetadataRetriever.METADATA_KEY_DATE)
@@ -318,8 +318,8 @@ final class CleanVerifier {
             for (int key : ADDITIONAL_VIDEO_PRIVACY_KEYS) {
                 String value = normalizeMetadataValue(retriever.extractMetadata(key));
                 if (value != null) {
-                    SentryManager.setCustomKey("video_verify_failed_key", videoMetadataKeyName(key));
-                    SentryManager.logEvent("Verify", 
+                    SentryManager.setCustomKey("verify.failed_check", videoMetadataKeyName(key));
+                    SentryManager.logEvent("verify", 
                             "The app found a remaining video metadata key: " + videoMetadataKeyName(key) + ".");
                     return false;
                 }
@@ -327,8 +327,8 @@ final class CleanVerifier {
 
             return true;
         } catch (Exception e) {
-            SentryManager.setCustomKey("video_verify_failed_key", "RETRIEVER_ERROR");
-            SentryManager.logEvent("Verify", "The video metadata verification read failed.");
+            SentryManager.setCustomKey("verify.failed_check", "RETRIEVER_ERROR");
+            SentryManager.logEvent("verify", "The video metadata verification read failed.");
             return false;
         }
     }
@@ -411,7 +411,7 @@ final class CleanVerifier {
                     continue; // only the Ultra HDR gain map's numbers and directory
                 }
                 if (value != null && !value.isEmpty()) {
-                    SentryManager.logEvent("Verify", "The app found a remaining metadata tag: " + tag + ".");
+                    SentryManager.logEvent("verify", "The app found a remaining metadata tag: " + tag + ".");
                     countVerificationFailure("image", "exif_tag");
                     return false;
                 }
@@ -420,7 +420,7 @@ final class CleanVerifier {
             // What is kept may be no finer than the settings keep: an approximate location on
             // its grid, a date without its time at midnight.
             if (!KeptPrecision.matchesSettings(context, exif, forSharing)) {
-                SentryManager.logEvent("Verify", "A kept location or date was more precise than the settings allow.");
+                SentryManager.logEvent("verify", "A kept location or date was more precise than the settings allow.");
                 countVerificationFailure("image", "kept_precision");
                 return false;
             }
@@ -430,7 +430,7 @@ final class CleanVerifier {
             if (ImageContainerMetadata.sniff(imageFile) != ImageContainerMetadata.Format.OTHER) {
                 ImageContainerMetadata.Report container = ImageContainerMetadata.scan(imageFile);
                 if (!container.isClean()) {
-                    SentryManager.logEvent("Verify", "The app found remaining metadata outside EXIF: "
+                    SentryManager.logEvent("verify", "The app found remaining metadata outside EXIF: "
                             + (container.findings.isEmpty() ? "UNREADABLE" : ImageContainerMetadata.logKey(container.findings.get(0).key)) + ".");
                     countVerificationFailure("image", "container");
                     return false;
@@ -445,7 +445,7 @@ final class CleanVerifier {
                         && (container.format == ImageContainerMetadata.Format.HEIF
                         || container.format == ImageContainerMetadata.Format.GIF);
                 if (structured && !container.isClean()) {
-                    SentryManager.logEvent("Verify", "The app found remaining metadata outside EXIF: "
+                    SentryManager.logEvent("verify", "The app found remaining metadata outside EXIF: "
                             + ImageContainerMetadata.logKey(container.findings.get(0).key) + ".");
                     countVerificationFailure("image", "container");
                     return false;
@@ -455,7 +455,7 @@ final class CleanVerifier {
                     keptDirectory |= kept.key.equals("MOTION_PHOTO") || kept.key.equals("ULTRA_HDR");
                 }
                 if (!(structured && keptDirectory) && containsXmpPacket(imageFile)) {
-                    SentryManager.logEvent("Verify", "The app found XMP metadata in the file.");
+                    SentryManager.logEvent("verify", "The app found XMP metadata in the file.");
                     countVerificationFailure("image", "xmp");
                     return false;
                 }
@@ -464,7 +464,7 @@ final class CleanVerifier {
             return true;
         } catch (Exception e) {
             // Only the exception's class: its message can hold the file's path.
-            SentryManager.logEvent("Verify", "Metadata verification failed with "
+            SentryManager.logEvent("verify", "Metadata verification failed with "
                     + e.getClass().getSimpleName() + ", so the file is not saved.");
             countVerificationFailure("image", "unreadable");
             return false;
@@ -479,7 +479,7 @@ final class CleanVerifier {
         try (InputStream in = new FileInputStream(file)) {
             return ImageContainerMetadata.containsXmpPacket(in, Long.MAX_VALUE);
         } catch (IOException e) {
-            SentryManager.logEvent("Verify", "XMP detection failed: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("verify", "XMP detection failed: " + e.getClass().getSimpleName() + ".");
             return true;
         }
     }

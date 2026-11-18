@@ -57,8 +57,8 @@ public class AppStateTagsTest {
             SentryPrivacyScrubber.scrubEvent(event);
             assertEquals("the scrubber keeps " + tag.getKey(), tag.getValue(), event.getTag(tag.getKey()));
         }
-        assertEquals("only whether a folder was chosen, never which", "chosen", tags.get("setting_image_folder"));
-        assertEquals("default", tags.get("setting_video_folder"));
+        assertEquals("only whether a folder was chosen, never which", "chosen", tags.get("setting.image_folder"));
+        assertEquals("default", tags.get("setting.video_folder"));
     }
 
     @Test
@@ -69,20 +69,20 @@ public class AppStateTagsTest {
 
         Map<String, String> tags = AppStateTags.collect(app);
 
-        assertEquals("true", tags.get("setting_strict_clean"));
-        assertEquals("approximate", tags.get("setting_keep_gps"));
-        assertEquals("off", tags.get("setting_keep_date_taken"));
+        assertEquals("true", tags.get("setting.strict_clean"));
+        assertEquals("approximate", tags.get("setting.keep_gps"));
+        assertEquals("off", tags.get("setting.keep_date_taken"));
     }
 
     @Test
     public void applyAppState_addsTheTags_withoutReplacingOnesTheEventHas() {
         SentryEvent event = new SentryEvent();
-        event.setTag("setting_strict_clean", "kept");
+        event.setTag("setting.strict_clean", "kept");
 
         SentryManager.applyAppState(event);
 
-        assertEquals("kept", event.getTag("setting_strict_clean"));
-        assertEquals(AppStateTags.collect(app).get("device_low_ram"), event.getTag("device_low_ram"));
+        assertEquals("kept", event.getTag("setting.strict_clean"));
+        assertEquals(AppStateTags.collect(app).get("device.low_ram"), event.getTag("device.low_ram"));
         SentryManager.applyAppState(null);
     }
 

@@ -37,28 +37,28 @@ public final class AppMetrics {
     }
 
     /**
-     * One file a job finished with {@code outcome}, counted as {@code processing.item} by job and
+     * One file a job finished with {@code outcome}, counted as {@code job.item} by job and
      * media type. A successful file also records how long it took, as
-     * {@code processing.item_duration_ms}.
+     * {@code job.item.duration}.
      */
     public static void item(@NonNull String job, boolean video, @NonNull String outcome, long durationMs) {
-        SentryManager.count("processing.item", 1,
-                "operation_type", job, "media_type", mediaType(video), "outcome", outcome);
+        SentryManager.count("job.item", 1,
+                "job.type", job, "file.media_type", mediaType(video), "outcome", outcome);
         if (SUCCESS.equals(outcome) && durationMs >= 0) {
-            SentryManager.distributionDurationMs("processing.item_duration_ms", durationMs,
-                    "operation_type", job, "media_type", mediaType(video));
+            SentryManager.distributionDurationMs("job.item.duration", durationMs,
+                    "job.type", job, "file.media_type", mediaType(video));
         }
     }
 
     /**
-     * One file a job could not finish, counted as {@code processing.item} like {@link #item}, with
+     * One file a job could not finish, counted as {@code job.item} like {@link #item}, with
      * the kind of error as well: an exception's class name, or {@code unsupported} or
      * {@code clean_failed} when the job said so without one.
      */
     public static void itemFailed(@NonNull String job, boolean video, @NonNull String outcome,
                                   @NonNull String errorType) {
-        SentryManager.count("processing.item", 1,
-                "operation_type", job, "media_type", mediaType(video), "outcome", outcome,
+        SentryManager.count("job.item", 1,
+                "job.type", job, "file.media_type", mediaType(video), "outcome", outcome,
                 "error_type", errorType);
     }
 
@@ -83,21 +83,21 @@ public final class AppMetrics {
     }
 
     /**
-     * How many files a job was given, as the {@code processing.batch_size} distribution, and how
-     * hot the phone was when it started, as {@code processing.thermal_status}.
+     * How many files a job was given, as the {@code job.batch.size} distribution, and how
+     * hot the phone was when it started, as {@code job.start}.
      */
     public static void batchStarted(@NonNull String job, int size) {
-        SentryManager.distribution("processing.batch_size", size, "operation_type", job);
-        SentryManager.count("processing.thermal_status", 1,
-                "operation_type", job, "thermal_status", SentryManager.thermalStatus());
+        SentryManager.distribution("job.batch.size", size, "job.type", job);
+        SentryManager.count("job.start", 1,
+                "job.type", job, "device.thermal_status", SentryManager.thermalStatus());
     }
 
     /**
-     * How a job ended, counted as {@code processing.batch}: success (every file), partial (some),
+     * How a job ended, counted as {@code job.batch}: success (every file), partial (some),
      * failed (none) or cancelled.
      */
     public static void batchFinished(@NonNull String job, int succeeded, int failed, boolean cancelled) {
-        SentryManager.count("processing.batch", 1, "operation_type", job, "outcome",
+        SentryManager.count("job.batch", 1, "job.type", job, "outcome",
                 batchOutcome(succeeded, failed, cancelled));
     }
 
@@ -112,9 +112,9 @@ public final class AppMetrics {
         return succeeded > 0 ? "partial" : FAILED;
     }
 
-    /** A converted file by the format it was converted to, as {@code convert.format}. */
+    /** A converted file by the format it was converted to, as {@code convert.output}. */
     public static void convertFormat(@NonNull String targetMimeType, @NonNull String outcome) {
-        SentryManager.count("convert.format", 1, "mime_type", targetMimeType, "outcome", outcome);
+        SentryManager.count("convert.output", 1, "file.mime_type", targetMimeType, "outcome", outcome);
     }
 
     /** The output MIME type of an image conversion, from {@code Bitmap.CompressFormat#name()}. */
@@ -148,7 +148,7 @@ public final class AppMetrics {
 
     /** A video conversion that fell back to another codec, by the codec used, as {@code convert.codec_fallback}. */
     public static void codecFallback(int usedFormatIndex) {
-        SentryManager.count("convert.codec_fallback", 1, "mime_type", videoFormatMimeType(usedFormatIndex));
+        SentryManager.count("convert.codec_fallback", 1, "file.mime_type", videoFormatMimeType(usedFormatIndex));
     }
 
     /**
@@ -159,14 +159,14 @@ public final class AppMetrics {
         SentryManager.count("censor.load", 1, "outcome", outcome);
     }
 
-    /** How many regions a saved censored copy covers, as the {@code censor.regions} distribution. */
+    /** How many regions a saved censored copy covers, as the {@code censor.save.regions} distribution. */
     public static void censorRegions(int regions) {
-        SentryManager.distribution("censor.regions", regions);
+        SentryManager.distribution("censor.save.regions", regions);
     }
 
-    /** A clean that passed every check in {@code CleanVerifier}, as {@code verification.passed}. */
+    /** A clean that passed every check in {@code CleanVerifier}, as {@code verify.result{passed}}. */
     public static void verificationPassed(boolean video) {
-        SentryManager.count("verification.passed", 1, "media_type", mediaType(video));
+        SentryManager.count("verify.result", 1, "file.media_type", mediaType(video), "outcome", "passed");
     }
 
     /**
@@ -177,19 +177,19 @@ public final class AppMetrics {
         SentryManager.count("already_clean.check", 1, "outcome", status.toLowerCase(Locale.ROOT));
     }
 
-    /** How long the already-clean check took for a whole selection, as {@code already_clean.duration_ms}. */
+    /** How long the already-clean check took for a whole selection, as {@code already_clean.check.duration}. */
     public static void alreadyCleanDuration(long durationMs) {
-        SentryManager.distributionDurationMs("already_clean.duration_ms", durationMs, "operation_type", CLEAN);
+        SentryManager.distributionDurationMs("already_clean.check.duration", durationMs, "job.type", CLEAN);
     }
 
     /**
      * An update check's result (newer, up_to_date or failed) and duration, as
-     * {@code update.check} and {@code update.check_duration_ms}.
+     * {@code update.check} and {@code update.check.duration}.
      */
     public static void updateCheck(@NonNull String outcome, long durationMs) {
         SentryManager.count("update.check", 1, "outcome", outcome);
         if (durationMs >= 0) {
-            SentryManager.distributionDurationMs("update.check_duration_ms", durationMs, "outcome", outcome);
+            SentryManager.distributionDurationMs("update.check.duration", durationMs, "outcome", outcome);
         }
     }
 
@@ -199,7 +199,7 @@ public final class AppMetrics {
      */
     public static void permissionResult(@Nullable String permission, boolean granted) {
         SentryManager.count("permission.result", 1,
-                "permission_type", permissionType(permission),
+                "permission.type", permissionType(permission),
                 "outcome", granted ? "granted" : "denied");
     }
 
@@ -224,7 +224,7 @@ public final class AppMetrics {
     }
 
     @NonNull
-    static String permissionType(@Nullable String permission) {
+    public static String permissionType(@Nullable String permission) {
         if (permission == null) {
             return "other";
         }
@@ -232,7 +232,7 @@ public final class AppMetrics {
             case "android.permission.READ_MEDIA_IMAGES" -> "images";
             case "android.permission.READ_MEDIA_VIDEO" -> "videos";
             case "android.permission.READ_MEDIA_VISUAL_USER_SELECTED" -> "selected_media";
-            case "android.permission.ACCESS_MEDIA_LOCATION" -> "media_location";
+            case "android.permission.ACCESS_MEDIA_LOCATION" -> "media_gps";
             case "android.permission.POST_NOTIFICATIONS" -> "notifications";
             case "android.permission.READ_EXTERNAL_STORAGE",
                  "android.permission.WRITE_EXTERNAL_STORAGE" -> "storage";
@@ -243,19 +243,19 @@ public final class AppMetrics {
     /**
      * The processing foreground service failing, by stage (start_service when Android refuses to
      * start it, start_foreground when it can't enter the foreground, no_notification_permission)
-     * and exception class, as {@code foreground_service.failure}.
+     * and exception class, as {@code service.failure}.
      */
     public static void foregroundServiceFailure(@NonNull String stage, @NonNull Throwable error) {
-        SentryManager.count("foreground_service.failure", 1,
-                "outcome", stage, "error_type", SentryManager.errorType(error));
+        SentryManager.count("service.failure", 1,
+                "outcome", FAILED, "reason", stage, "error_type", SentryManager.errorType(error));
     }
 
     /**
      * A working copy overwritten before deletion, and how long the overwrite took, as
-     * {@code secure_delete.overwrite}. With {@code secure_delete.fallback} it gives the failure rate.
+     * {@code secure_delete.overwrite.duration}. With {@code secure_delete.fallback} it gives the failure rate.
      */
     public static void secureDeleteOverwrite(long durationMs) {
-        SentryManager.distributionDurationMs("secure_delete.overwrite", durationMs, "outcome", SUCCESS);
+        SentryManager.distributionDurationMs("secure_delete.overwrite.duration", durationMs, "outcome", SUCCESS);
     }
 
     /** A notification Android refused to post, by exception class, as {@code notification.failure}. */
@@ -264,18 +264,18 @@ public final class AppMetrics {
     }
 
     /**
-     * How the introduction ended (finished, or left with Back), as {@code onboarding.finished}.
+     * How the introduction ended (finished, or left with Back), as {@code onboarding.end}.
      * Only sent once crash reports are on, so it counts the people who turned them on.
      */
     public static void onboardingFinished(boolean completed) {
-        SentryManager.count("onboarding.finished", 1, "outcome", completed ? "finished" : "left");
+        SentryManager.count("onboarding.end", 1, "outcome", completed ? "finished" : "left");
     }
 
     // ---- every other metric the app sends, one method each --------------------------------------
 
-    /** How long a whole job took, as {@code processing.duration_ms}. */
+    /** How long a whole job took, as {@code job.batch.duration}. */
     public static void jobDuration(@NonNull String job, long durationMs) {
-        SentryManager.distributionDurationMs("processing.duration_ms", durationMs, "operation_type", job);
+        SentryManager.distributionDurationMs("job.batch.duration", durationMs, "job.type", job);
     }
 
     /** A file the already-clean check could not read, as {@code already_clean.check{error}}. */
@@ -289,87 +289,87 @@ public final class AppMetrics {
         SentryManager.count("already_clean.check", files, "outcome", "timed_out");
     }
 
-    /** Working files an earlier run left behind, found at start-up, as {@code cache.orphans_found}. */
+    /** Working files an earlier run left behind, found at start-up, as {@code cache.orphan}. */
     public static void orphansFound(int files) {
-        SentryManager.count("cache.orphans_found", files);
+        SentryManager.count("cache.orphan", files);
     }
 
-    /** A picture that had to be decoded smaller, or could not be, as {@code memory.low}. */
+    /** A picture that had to be decoded smaller, or could not be, as {@code memory.shortage}. */
     public static void lowMemory(@NonNull String outcome) {
-        SentryManager.count("memory.low", 1, "outcome", outcome);
+        SentryManager.count("memory.shortage", 1, "outcome", outcome);
     }
 
-    /** A shared item that could not be copied in, as {@code share.snapshot.failure}. */
+    /** A shared item that could not be copied in, as {@code share.snapshot_failure}. */
     public static void snapshotFailure(@NonNull String errorType) {
-        SentryManager.count("share.snapshot.failure", 1, "error_type", errorType);
+        SentryManager.count("share.snapshot_failure", 1, "error_type", errorType);
     }
 
     /** The chosen output folder failed and the default was used, as {@code output.folder_fallback}. */
     public static void outputFolderFallback(boolean video, @NonNull String errorType) {
-        SentryManager.count("output.folder_fallback", 1, "media_type", mediaType(video), "error_type", errorType);
+        SentryManager.count("output.folder_fallback", 1, "file.media_type", mediaType(video), "error_type", errorType);
     }
 
-    /** A cleaned file that failed its check, as {@code verification.failed}, by why. */
+    /** A cleaned file that failed its check, as {@code verify.result{failed}}, by why. */
     public static void verificationFailed(@NonNull String mediaType, @NonNull String reason) {
-        SentryManager.count("verification.failed", 1, "media_type", mediaType, "outcome", reason);
+        SentryManager.count("verify.result", 1, "file.media_type", mediaType, "outcome", FAILED, "reason", reason);
     }
 
-    /** A large-job or low-storage warning shown before a job, as {@code resource.warning}. */
+    /** A large-job or low-storage warning shown before a job, as {@code job.warning}. */
     public static void resourceWarning(@NonNull String outcome) {
-        SentryManager.count("resource.warning", 1, "outcome", outcome);
+        SentryManager.count("job.warning", 1, "reason", outcome);
     }
 
     /** A secure delete whose overwrite failed, so the file was only unlinked. */
     public static void secureDeleteOverwriteFailed(@NonNull Throwable error) {
-        SentryManager.count("secure_delete.fallback", 1, "outcome", "overwrite_failed",
+        SentryManager.count("secure_delete.fallback", 1, "reason", "overwrite_failed",
                 "error_type", SentryManager.errorType(error));
     }
 
     /** A secure delete that could not even unlink the file. */
     public static void secureDeleteUnlinkFailed() {
-        SentryManager.count("secure_delete.fallback", 1, "outcome", "unlink_failed");
+        SentryManager.count("secure_delete.fallback", 1, "reason", "unlink_failed");
     }
 
-    /** A video encoded at a smaller size than its source, as {@code video.downscaled}. */
+    /** A video encoded at a smaller size than its source, as {@code video.downscale}. */
     public static void videoDownscaled(int shortSide) {
-        SentryManager.count("video.downscaled", 1, "outcome", shortSide + "p");
+        SentryManager.count("video.downscale", 1, "outcome", shortSide + "p");
     }
 
-    /** A transcode attempt that failed, as {@code video.transcode.failure}, by codec and reason. */
+    /** A transcode attempt that failed, as {@code video.transcode_failure}, by codec and reason. */
     public static void transcodeFailure(@NonNull String codec, @NonNull String reason) {
-        SentryManager.count("video.transcode.failure", 1, "mime_type", codec, "error_type", reason);
+        SentryManager.count("video.transcode_failure", 1, "file.mime_type", codec, "reason", reason);
     }
 
-    /** A transcode tried again at a smaller size, as {@code video.retry_smaller}. */
+    /** A transcode tried again at a smaller size, as {@code video.retry}. */
     public static void retrySmaller(@NonNull String outcome) {
-        SentryManager.count("video.retry_smaller", 1, "media_type", "video", "outcome", outcome);
+        SentryManager.count("video.retry", 1, "file.media_type", "video", "outcome", outcome);
     }
 
     /** A part of a file a clean had to leave out (a Motion Photo's video, a gain map...). */
     public static void partDropped(boolean video, @NonNull String part) {
-        SentryManager.count("clean.part_dropped", 1, "media_type", mediaType(video), "outcome", part);
+        SentryManager.count("clean.dropped_part", 1, "file.media_type", mediaType(video), "reason", part);
     }
 
-    /** Which way a file was cleaned (rebuilt, fast copy, transcoded...), as {@code clean.path}. */
+    /** Which way a file was cleaned (rebuilt, fast copy, transcoded...), as {@code clean.method}. */
     public static void cleanPath(boolean video, @NonNull String path) {
-        SentryManager.count("clean.path", 1, "media_type", mediaType(video), "outcome", path);
+        SentryManager.count("clean.method", 1, "file.media_type", mediaType(video), "outcome", path);
     }
 
-    /** A shared item in a type the app does not take, by its MIME type, as {@code media.unsupported}. */
+    /** A shared item in a type the app does not take, by its MIME type, as {@code media.unsupported_type}. */
     public static void unsupportedMedia(@NonNull String mimeTypeTag) {
-        SentryManager.count("media.unsupported", 1, "mime_type", mimeTypeTag);
+        SentryManager.count("media.unsupported_type", 1, "file.mime_type", mimeTypeTag);
     }
 
     /** A censored photo saved smaller than the original, as {@code censor.save{downscaled}}. */
     public static void censorSavedSmaller() {
-        SentryManager.count("censor.save", 1, "outcome", "downscaled");
+        SentryManager.count("censor.save", 1, "outcome", SUCCESS, "reason", "downscaled");
     }
 
     /** Why Android ended the app's process and in what state, as {@code app.exit}. */
     public static void appExit(@NonNull String reason, @NonNull String importance, long rssKb) {
-        SentryManager.count("app.exit", 1, "outcome", reason, "processing_state", importance);
+        SentryManager.count("app.exit", 1, "reason", reason, "app.process_state", importance);
         if (rssKb > 0) {
-            SentryManager.distribution("app.exit.memory_mb", rssKb / 1024.0, "outcome", reason);
+            SentryManager.distributionMegabytes("app.exit.memory", rssKb / 1024.0, "reason", reason);
         }
     }
 }

@@ -258,7 +258,7 @@ public class SettingsFragment extends TabFragment {
             try {
                 if (!isChecked) {
                     applyNotificationsEnabled(false);
-                    SentryManager.setCustomKey("notifications_enabled", false);
+                    SentryManager.setCustomKey("notification.enabled", false);
                     return;
                 }
                 if (needsNotificationPermission() && !hasNotificationPermission()) {
@@ -266,7 +266,7 @@ public class SettingsFragment extends TabFragment {
                     return;
                 }
                 applyNotificationsEnabled(true);
-                SentryManager.setCustomKey("notifications_enabled", true);
+                SentryManager.setCustomKey("notification.enabled", true);
             } catch (Exception e) {
                 SentryManager.recordException(e);
             }
@@ -274,12 +274,12 @@ public class SettingsFragment extends TabFragment {
 
         switchClean.setOnCheckedChangeListener((btn, isChecked) -> {
             AppPreferences.setCleanNotificationsEnabled(requireContext(), isChecked);
-            SentryManager.setCustomKey("clean_notifications_enabled", isChecked);
+            SentryManager.setCustomKey("notification.clean_enabled", isChecked);
         });
 
         switchConvert.setOnCheckedChangeListener((btn, isChecked) -> {
             AppPreferences.setConvertNotificationsEnabled(requireContext(), isChecked);
-            SentryManager.setCustomKey("convert_notifications_enabled", isChecked);
+            SentryManager.setCustomKey("notification.convert_enabled", isChecked);
         });
 
         switchProgress.setOnCheckedChangeListener((btn, isChecked) ->
@@ -1165,7 +1165,7 @@ public class SettingsFragment extends TabFragment {
                         AppMetrics.permissionResult("android.permission.POST_NOTIFICATIONS", granted);
                         if (granted) {
                             applyNotificationsEnabled(true);
-                            SentryManager.setCustomKey("notifications_enabled", true);
+                            SentryManager.setCustomKey("notification.enabled", true);
                             Notice.show(requireContext(),
                                     R.string.settings_notifications_permission_granted,
                                     false);

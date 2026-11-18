@@ -145,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
         getLifecycle().addObserver(new FoldTracker(this, this::onFoldPostureChanged));
         setupStatusBarColors();
 
-        SentryManager.logEvent("Lifecycle", "The MainActivity was created.");
+        SentryManager.logEvent("app.lifecycle", "The MainActivity was created.");
 
         // Tells Play vitals / Macrobenchmark when the first screen is usable.
         getWindow().getDecorView().post(this::reportFullyDrawn);
@@ -630,17 +630,17 @@ public class MainActivity extends AppCompatActivity {
                             0,
                             WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
                                     | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
-                    SentryManager.setCustomKey("theme_mode", "dark");
+                    SentryManager.setCustomKey("ui.theme", "dark");
                 } else {
                     insetsController.setSystemBarsAppearance(
                             WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
                                     | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,
                             WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
                                     | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
-                    SentryManager.setCustomKey("theme_mode", "light");
+                    SentryManager.setCustomKey("ui.theme", "light");
                 }
             } else {
-                SentryManager.logEvent("UI", "The insets controller is null.");
+                SentryManager.logEvent("ui", "The insets controller is null.");
             }
         } catch (Exception e) {
             SentryManager.recordException(e);
@@ -729,8 +729,8 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         try {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-            SentryManager.logEvent("Permission", "The app received a permission result.");
-            SentryManager.setCustomKey("permission_request_code", requestCode);
+            SentryManager.logEvent("permission", "The app received a permission result.");
+            SentryManager.setCustomKey("permission.request_code", requestCode);
             AppMetrics.permissionResults(permissions, grantResults);
 
             PermissionManager.storeActivityPermissionResult(

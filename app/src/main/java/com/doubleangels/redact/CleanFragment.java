@@ -124,7 +124,7 @@ public class CleanFragment extends TabFragment {
                 new ActivityResultContracts.OpenMultipleDocuments(),
                 uris -> {
                     if (uris != null && !uris.isEmpty()) {
-                        SentryManager.logEvent("Clean", "Media was selected successfully.");
+                        SentryManager.logEvent("clean", "Media was selected successfully.");
                         onMediaReceived(uris);
                     }
                 }
@@ -149,7 +149,7 @@ public class CleanFragment extends TabFragment {
             }
             if (mediaSelector != null && viewModel != null) {
                 mediaSelector.processMediaUrisAsync(uris, items -> {
-                    SentryManager.setCustomKey("selected_media_count", items.size());
+                    SentryManager.setCustomKey("clean.selected_count", items.size());
                     viewModel.setSelectedItems(items);
                 });
             }
@@ -169,7 +169,7 @@ public class CleanFragment extends TabFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
-            SentryManager.logEvent("Clean", "The CleanFragment view was created.");
+            SentryManager.logEvent("clean", "The CleanFragment view was created.");
             viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
             setupViews(view);
             initUtilityClasses();
@@ -265,15 +265,15 @@ public class CleanFragment extends TabFragment {
                 try {
                     if (viewModel.getCleanProcessingState().getValue()
                             == MainViewModel.ProcessingState.PROCESSING) {
-                        SentryManager.logEvent("Clean", "The clean is being cancelled.");
+                        SentryManager.logEvent("clean", "The clean is being cancelled.");
                         Haptics.tick(v);
                         viewModel.cancelCleaning();
                         return;
                     }
-                    SentryManager.logEvent("Clean", "A clean is starting.");
+                    SentryManager.logEvent("clean", "A clean is starting.");
                     List<MediaItem> items = viewModel.getSelectedItems().getValue();
                     if (items != null && !items.isEmpty()) {
-                        SentryManager.setCustomKey("processing_items_count", items.size());
+                        SentryManager.setCustomKey("clean.processing_count", items.size());
                         // Animated-image detection and resource assessment both do
                         // content-resolver I/O (up to 64KB reads and a cache-directory walk
                         // per selected item), which can be slow for cloud-backed URIs; run
@@ -284,7 +284,7 @@ public class CleanFragment extends TabFragment {
                         AppProcessingScope.get(appContext).ioExecutor().execute(
                                 () -> runCleanChecks(appContext, items, screen));
                     } else {
-                        SentryManager.logEvent("Clean", "No items were selected for processing.");
+                        SentryManager.logEvent("clean", "No items were selected for processing.");
                         uiStateManager.setFirstSelectMediaFilesStatus();
                     }
                 } catch (Exception e) {
@@ -313,7 +313,7 @@ public class CleanFragment extends TabFragment {
                         @Override
                         public void onPermissionsGranted() {
                             try {
-                                SentryManager.setCustomKey("permissions_granted", true);
+                                SentryManager.setCustomKey("permission.all_granted", true);
                                 showReadyStatus();
                             } catch (Exception e) {
                                 SentryManager.recordException(e);
@@ -323,7 +323,7 @@ public class CleanFragment extends TabFragment {
                         @Override
                         public void onPermissionsDenied() {
                             try {
-                                SentryManager.setCustomKey("permissions_granted", false);
+                                SentryManager.setCustomKey("permission.all_granted", false);
                                 if (permissionManager.isMediaPickerAvailable()) {
                                     showReadyStatus();
                                     if (selectButton != null) {
@@ -343,7 +343,7 @@ public class CleanFragment extends TabFragment {
                         @Override
                         public void onPermissionsRequestStarted() {
                             try {
-                                SentryManager.logEvent("Clean", "The permission request started.");
+                                SentryManager.logEvent("clean", "The permission request started.");
                                 uiStateManager.setPermissionRequestingStatus();
                             } catch (Exception e) {
                                 SentryManager.recordException(e);
@@ -527,7 +527,7 @@ public class CleanFragment extends TabFragment {
         for (MediaItem item : items) {
             uris.add(item.uri());
         }
-        SentryManager.logEvent("Clean", "A share without saving is starting.");
+        SentryManager.logEvent("clean", "A share without saving is starting.");
         try {
             ShareHandlerActivity.shareWithoutSaving(requireContext(), uris);
         } catch (RuntimeException e) {
@@ -572,7 +572,7 @@ public class CleanFragment extends TabFragment {
                     lastObservedSelectedItems = items != null
                             ? new ArrayList<>(items) : new ArrayList<>();
                     uiStateManager.setSelectedItemsStatus(items != null ? items.size() : 0);
-                    SentryManager.setCustomKey("selected_items_count", items != null ? items.size() : 0);
+                    SentryManager.setCustomKey("clean.selected_count", items != null ? items.size() : 0);
                 } catch (Exception e) {
                     SentryManager.recordException(e);
                 }
@@ -583,7 +583,7 @@ public class CleanFragment extends TabFragment {
                 try {
                     boolean justCompleted = Haptics.justCompleted(lastObservedCleanState, state);
                     lastObservedCleanState = state;
-                    SentryManager.setCustomKey("processing_state", state.toString());
+                    SentryManager.setCustomKey("clean.state", state.toString());
                     if (quickToggles != null) {
                         quickToggles.setLocked(state == MainViewModel.ProcessingState.PROCESSING);
                     }
@@ -623,7 +623,7 @@ public class CleanFragment extends TabFragment {
                             Integer count = viewModel.getCleanProcessedItemCount().getValue();
                             Integer total = viewModel.getCleanBatchTotalCount().getValue();
                             if (count != null) {
-                                SentryManager.setCustomKey("processed_items", count);
+                                SentryManager.setCustomKey("clean.processed_count", count);
                                 int batchTotal = total != null ? total : count;
                                 uiStateManager.setProcessedItemsStatus(
                                         count, batchTotal, viewModel.getCleanSummaryText());
@@ -711,7 +711,7 @@ public class CleanFragment extends TabFragment {
         if (items.isEmpty() || viewModel == null) {
             return;
         }
-        SentryManager.logEvent("Clean", "A clean of the files that failed is starting.");
+        SentryManager.logEvent("clean", "A clean of the files that failed is starting.");
         viewModel.setSelectedItems(new ArrayList<>(items));
         viewModel.startCleaning(new ArrayList<>(items));
     }
@@ -780,10 +780,10 @@ public class CleanFragment extends TabFragment {
                 viewModel.setCleanProcessingState(MainViewModel.ProcessingState.IDLE);
             }
             if (permissionManager.shouldRequestStorageBeforePicker()) {
-                SentryManager.logEvent("Clean", "The app is requesting permissions.");
+                SentryManager.logEvent("clean", "The app is requesting permissions.");
                 permissionManager.requestStoragePermission();
             } else {
-                SentryManager.logEvent("Clean", "The app is launching the media selector.");
+                SentryManager.logEvent("clean", "The app is launching the media selector.");
                 mediaPickerLauncher.launch(MediaPickerContracts.IMAGE_AND_VIDEO_MIME_TYPES);
             }
         } catch (Exception e) {

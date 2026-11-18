@@ -108,7 +108,7 @@ public final class OutputDestination {
             }
             // Folder deleted, permission revoked or provider gone: save to the default instead of
             // failing the whole job, and tell the user once so they know where to look.
-            SentryManager.logEvent("Output", "The chosen output folder could not be used: " + failure + ".");
+            SentryManager.logEvent("output", "The chosen output folder could not be used: " + failure + ".");
             AppMetrics.outputFolderFallback(video, failure);
             warnFallback(context, tree, video);
         }
@@ -180,7 +180,7 @@ public final class OutputDestination {
             }
         }
         if (!MessageDigest.isEqual(expectedSha256, digest.digest())) {
-            SentryManager.setCustomKey("metadata_verification_passed", false);
+            SentryManager.setCustomKey("verify.image_passed", false);
             AppMetrics.verificationFailed(mediaTypeOf(resolver, output), "saved_copy_differs");
             throw new IOException("Metadata verification failed: the saved copy differs from the verified one");
         }
@@ -225,7 +225,7 @@ public final class OutputDestination {
                 resolver.delete(uri, null, null);
             }
         } catch (Exception e) {
-            SentryManager.logEvent("Output", "The partial output failed to clean up: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("output", "The partial output failed to clean up: " + e.getClass().getSimpleName() + ".");
         }
         clearPendingDocument(uri);
     }
@@ -289,7 +289,7 @@ public final class OutputDestination {
                 DocumentsContract.deleteDocument(app.getContentResolver(), doc);
             } catch (Exception e) {
                 // Already gone, or the folder's permission was revoked: nothing left to do.
-                SentryManager.logEvent("Output", "An abandoned output could not be removed: " + e.getClass().getSimpleName() + ".");
+                SentryManager.logEvent("output", "An abandoned output could not be removed: " + e.getClass().getSimpleName() + ".");
             }
         }
     }
@@ -327,7 +327,7 @@ public final class OutputDestination {
             values.put(MediaStore.MediaColumns.DISPLAY_NAME, displayName);
             return resolver.update(uri, values, null, null) > 0 ? uri : null;
         } catch (Exception e) {
-            SentryManager.logEvent("Output", "A clean copy could not be renamed: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("output", "A clean copy could not be renamed: " + e.getClass().getSimpleName() + ".");
             return null;
         }
     }

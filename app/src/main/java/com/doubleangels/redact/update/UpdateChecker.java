@@ -104,18 +104,18 @@ public final class UpdateChecker {
         try {
             String latest = latestVersion(fetcher.fetch(LATEST_RELEASE_URL));
             if (latest == null) {
-                SentryManager.logEvent("Update", "The update check got no usable version.");
+                SentryManager.logEvent("update", "The update check got no usable version.");
                 return new Result(Result.Status.FAILED, null);
             }
             boolean newer = isNewer(latest, currentVersion);
-            SentryManager.logEvent("Update", newer ? "The update check found a newer version."
+            SentryManager.logEvent("update", newer ? "The update check found a newer version."
                     : "The update check found this is the newest version.");
             return newer
                     ? new Result(Result.Status.NEWER, latest)
                     : new Result(Result.Status.UP_TO_DATE, null);
         } catch (IOException | RuntimeException e) {
             // Offline is normal; only the kind of failure is noted, for a crash report.
-            SentryManager.logEvent("Update", "The update check failed: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("update", "The update check failed: " + e.getClass().getSimpleName() + ".");
             return new Result(Result.Status.FAILED, null);
         }
     }

@@ -241,7 +241,7 @@ public final class CensorExporter {
             }
             return true;
         } catch (IOException | RuntimeException | OutOfMemoryError e) {
-            SentryManager.logEvent("Censor", 
+            SentryManager.logEvent("censor", 
                     "The censored 16-bit PNG could not be kept at 16 bits, so the app is saving it at 8: "
                             + e.getClass().getSimpleName() + ".");
             return false;
@@ -323,7 +323,7 @@ public final class CensorExporter {
             gainmap.setGainmapContents(part);
             cropped.setGainmap(gainmap);
         } catch (RuntimeException | OutOfMemoryError e) {
-            SentryManager.logEvent("Censor", "The gain map could not be cropped, so the copy is saved without HDR: "
+            SentryManager.logEvent("censor", "The gain map could not be cropped, so the copy is saved without HDR: "
                     + e.getClass().getSimpleName() + ".");
             cropped.setGainmap(null);
         }

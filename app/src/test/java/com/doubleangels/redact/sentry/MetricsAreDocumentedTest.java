@@ -27,28 +27,26 @@ public class MetricsAreDocumentedTest {
 
     /** Each described in the "Counters and timings" row of the crash-report tables. */
     private static final Set<String> DOCUMENTED = new TreeSet<>(List.of(
-            "already_clean.check", "already_clean.duration_ms",
-            "app.exit", "app.exit.memory_mb",
-            "cache.orphans_found",
-            "censor.load", "censor.regions", "censor.save",
-            "clean.part_dropped", "clean.path",
-            "convert.codec_fallback", "convert.format",
-            "foreground_service.failure", "notification.failure",
-            "media.unsupported", "memory.low",
-            "onboarding.finished", "output.folder_fallback", "permission.result",
-            "processing.batch", "processing.batch_size", "processing.duration_ms",
-            "processing.item", "processing.item_duration_ms", "processing.thermal_status",
-            "resource.warning",
-            "secure_delete.fallback", "secure_delete.overwrite",
-            "share.snapshot.failure",
-            "update.check", "update.check_duration_ms",
-            "verification.failed", "verification.passed",
-            "video.downscaled", "video.retry_smaller", "video.transcode.failure"));
+            "already_clean.check", "already_clean.check.duration",
+            "app.exit", "app.exit.memory",
+            "cache.orphan",
+            "censor.load", "censor.save", "censor.save.regions",
+            "clean.dropped_part", "clean.method",
+            "convert.codec_fallback", "convert.output",
+            "job.batch", "job.batch.duration", "job.batch.size",
+            "job.item", "job.item.duration", "job.start", "job.warning",
+            "media.unsupported_type", "memory.shortage",
+            "notification.failure", "onboarding.end", "output.folder_fallback", "permission.result",
+            "secure_delete.fallback", "secure_delete.overwrite.duration",
+            "service.failure", "share.snapshot_failure",
+            "update.check", "update.check.duration",
+            "verify.result",
+            "video.downscale", "video.retry", "video.transcode_failure"));
 
     private static final File APP_METRICS =
             new File("src/main/java/com/doubleangels/redact/sentry/AppMetrics.java");
     private static final Pattern METRIC = Pattern.compile(
-            "SentryManager\\.(?:count|distribution|distributionDurationMs|gauge)\\(\\s*\"([a-z_.]+)\"");
+            "SentryManager\\.(?:count|distribution|distributionDurationMs|distributionMegabytes|gauge)\\(\\s*\"([a-z_.]+)\"");
 
     @Test
     public void everyMetricSent_isOneTheCrashReportTablesDescribe() throws IOException {

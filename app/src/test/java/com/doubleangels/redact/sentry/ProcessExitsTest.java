@@ -99,10 +99,10 @@ public class ProcessExitsTest {
 
         List<SentryMetricsEvent> exits = named("app.exit");
         assertEquals("only the exit after opting in", 1, exits.size());
-        assertEquals("low_memory", exits.get(0).getAttributes().get("outcome").getValue());
+        assertEquals("low_memory", exits.get(0).getAttributes().get("reason").getValue());
         assertEquals("foreground_service",
-                exits.get(0).getAttributes().get("processing_state").getValue());
-        List<SentryMetricsEvent> memory = named("app.exit.memory_mb");
+                exits.get(0).getAttributes().get("app.process_state").getValue());
+        List<SentryMetricsEvent> memory = named("app.exit.memory");
         assertEquals(1, memory.size());
         assertEquals(512.0, memory.get(0).getValue(), 0.0);
         assertEquals(since + 60_000, AppPreferences.getLastReportedExit(app));

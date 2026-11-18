@@ -219,7 +219,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             mediaSelector = new MediaSelector(this);
             shareSession = newShareSession();
 
-            SentryManager.logEvent("Share", "The ShareHandlerActivity was created.");
+            SentryManager.logEvent("share", "The ShareHandlerActivity was created.");
 
             if (savedInstanceState != null) {
                 sharingInitiated = savedInstanceState.getBoolean(KEY_SHARING_INITIATED, false);
@@ -332,30 +332,30 @@ public class ShareHandlerActivity extends AppCompatActivity {
             String action = intent.getAction();
             String type = intent.getType();
 
-            SentryManager.setCustomKey("intent_action", action != null ? action : "null");
+            SentryManager.setCustomKey("intent.action", action != null ? action : "null");
             // The sender writes the type, so only a plain MIME type is sent, never its own text.
-            SentryManager.setCustomKey("intent_type", mimeTypeTag(type));
+            SentryManager.setCustomKey("intent.type", mimeTypeTag(type));
 
             if (Intent.ACTION_SEND.equals(action)) {
                 if (type == null || type.startsWith("image/") || type.startsWith("video/")
                         || "*/*".equals(type)) {
-                    SentryManager.logEvent("Share", "The app is handling a single media item.");
+                    SentryManager.logEvent("share", "The app is handling a single media item.");
                     handleSentMedia(intent);
                 } else {
-                    SentryManager.setCustomKey("unsupported_type", mimeTypeTag(type));
+                    SentryManager.setCustomKey("intent.unsupported_type", mimeTypeTag(type));
                     finishWithError(getString(R.string.share_error_unsupported_media));
                 }
             } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
                 if (type == null || type.startsWith("image/") || type.startsWith("video/")
                         || "*/*".equals(type)) {
-                    SentryManager.logEvent("Share", "The app is handling multiple media items.");
+                    SentryManager.logEvent("share", "The app is handling multiple media items.");
                     handleMultipleMedia(intent);
                 } else {
-                    SentryManager.setCustomKey("unsupported_type", mimeTypeTag(type));
+                    SentryManager.setCustomKey("intent.unsupported_type", mimeTypeTag(type));
                     finishWithError(getString(R.string.share_error_unsupported_media));
                 }
             } else {
-                SentryManager.setCustomKey("unsupported_action", action != null ? action : "null");
+                SentryManager.setCustomKey("intent.unsupported_action", action != null ? action : "null");
                 finishWithError(getString(R.string.share_error_unsupported_action));
             }
         } catch (Exception e) {
@@ -368,7 +368,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         try {
             List<Uri> uris = extractUrisFromIntent(intent);
             if (uris.isEmpty()) {
-                SentryManager.logEvent("Share", "The app received no media URI.");
+                SentryManager.logEvent("share", "The app received no media URI.");
                 finishWithError(getString(R.string.share_error_failed_receive_media));
                 return;
             }
@@ -393,7 +393,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 }
                 prepareAndProcess(uris);
             } else {
-                SentryManager.logEvent("Share", "The app received an empty media list.");
+                SentryManager.logEvent("share", "The app received an empty media list.");
                 finishWithError(getString(R.string.share_error_failed_receive_media));
             }
         } catch (Exception e) {
@@ -439,7 +439,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     finishWithError(getString(R.string.share_error_failed_receive_media));
                     return;
                 }
-                SentryManager.setCustomKey("media_count", snapshotted.size());
+                SentryManager.setCustomKey("share.media_count", snapshotted.size());
                 maybeConfirmAndProcess(snapshotted, session);
             });
         });
@@ -615,7 +615,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                                                 Toast.LENGTH_LONG)
                                         .show();
                             }
-                            SentryManager.logEvent("Share", "Media processing completed successfully.");
+                            SentryManager.logEvent("share", "Media processing completed successfully.");
                             if (finalFailCount == 0) {
                                 // Counted only: the share sheet is about to open, so this is no
                                 // time to ask for a rating.
@@ -628,7 +628,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                                 shareCleanFiles(finalHasVideo, finalHasImage, processedUris);
                             }
                         } else {
-                            SentryManager.logEvent("Share", "Media processing failed.");
+                            SentryManager.logEvent("share", "Media processing failed.");
                             finishWithError(getString(allFailuresUnsupported
                                     ? R.string.share_error_unsupported_media
                                     : R.string.share_error_processing_failed));
@@ -704,7 +704,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 cleanupExecutor.execute(() -> deleteProcessedFileList(appContext, stale));
             }
         } catch (Exception e) {
-            SentryManager.logEvent("Share", "The processed file could not be resolved for cleanup: "
+            SentryManager.logEvent("share", "The processed file could not be resolved for cleanup: "
                     + e.getClass().getSimpleName() + ".");
         }
     }
@@ -786,7 +786,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
                 sharingInitiated = true;
-                SentryManager.logEvent("Share", "The app is launching a single-item share intent.");
+                SentryManager.logEvent("share", "The app is launching a single-item share intent.");
                 launchShareChooser(chooser);
             } else {
                 finishWithError(getString(R.string.share_error_failed_get_cleaned_file));
@@ -825,7 +825,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
                 sharingInitiated = true;
-                SentryManager.logEvent("Share", "The app is launching a multiple-item share intent.");
+                SentryManager.logEvent("share", "The app is launching a multiple-item share intent.");
                 launchShareChooser(chooser);
             } else {
                 finishWithError(getString(R.string.share_error_failed_get_cleaned_files));
@@ -895,13 +895,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
             if (processedFile != null && processedFile.exists()) {
                 try {
                     if (processedFile.delete()) {
-                        SentryManager.logEvent("Share", "The temporary processed file was deleted after sharing.");
+                        SentryManager.logEvent("share", "The temporary processed file was deleted after sharing.");
                     } else {
-                        SentryManager.logEvent("Share", "The temporary processed file failed to delete.");
+                        SentryManager.logEvent("share", "The temporary processed file failed to delete.");
                         processedFile.deleteOnExit();
                     }
                 } catch (Exception e) {
-                    SentryManager.logEvent("Share", "An error occurred while deleting the temporary file: " + e.getClass().getSimpleName() + ".");
+                    SentryManager.logEvent("share", "An error occurred while deleting the temporary file: " + e.getClass().getSimpleName() + ".");
                 }
             }
         }
@@ -967,7 +967,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         for (Uri uri : uris) {
             if (uri == null || !isSupportedInboundUri(uri)) {
                 if (uri != null) {
-                    SentryManager.logEvent("Share",
+                    SentryManager.logEvent("share",
                             "An inbound item with an unsupported scheme or a private location was skipped.");
                 }
                 continue;
@@ -983,7 +983,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 // are PDFs, text or SVGs. Skip them up front instead of copying and failing later.
                 session.unsupportedRejectCount.incrementAndGet();
                 countUnsupported(type);
-                SentryManager.logEvent("Share", "An inbound item of a non-media type was skipped.");
+                SentryManager.logEvent("share", "An inbound item of a non-media type was skipped.");
                 continue;
             }
             accepted.add(uri);
@@ -1041,7 +1041,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
     }
 
     private void finishWithError(String message) {
-        SentryManager.logEvent("Share", "The share flow finished with an error.");
+        SentryManager.logEvent("share", "The share flow finished with an error.");
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         dismissProgressDialog();
         cleanupProcessedFiles();

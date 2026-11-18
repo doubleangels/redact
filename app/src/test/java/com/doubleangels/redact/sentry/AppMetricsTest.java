@@ -89,19 +89,19 @@ public class AppMetricsTest {
     @Test
     public void item_countsEveryOutcome_andTimesOnlySuccesses() {
         AppMetrics.item(AppMetrics.CLEAN, true, AppMetrics.SUCCESS, 1200);
-        SentryMetricsEvent count = only("processing.item");
-        assertEquals("clean", attr(count, "operation_type"));
-        assertEquals("video", attr(count, "media_type"));
+        SentryMetricsEvent count = only("job.item");
+        assertEquals("clean", attr(count, "job.type"));
+        assertEquals("video", attr(count, "file.media_type"));
         assertEquals("success", attr(count, "outcome"));
-        SentryMetricsEvent duration = only("processing.item_duration_ms");
+        SentryMetricsEvent duration = only("job.item.duration");
         assertEquals(1200.0, duration.getValue(), 0.0);
-        assertEquals("clean", attr(duration, "operation_type"));
-        assertEquals("video", attr(duration, "media_type"));
+        assertEquals("clean", attr(duration, "job.type"));
+        assertEquals("video", attr(duration, "file.media_type"));
 
         sent.clear();
         AppMetrics.item(AppMetrics.SHARE, false, AppMetrics.FAILED, -1);
-        SentryMetricsEvent failed = only("processing.item");
-        assertEquals("share", attr(failed, "operation_type"));
+        SentryMetricsEvent failed = only("job.item");
+        assertEquals("share", attr(failed, "job.type"));
         assertEquals("failed", attr(failed, "outcome"));
         assertEquals("a failure has no duration", 1, sent.size());
     }
@@ -110,21 +110,21 @@ public class AppMetricsTest {
     @Test
     public void itemFailed_namesTheKindOfError() {
         AppMetrics.itemFailed(AppMetrics.CONVERT, false, new java.io.IOException("/storage/a.jpg"), false);
-        SentryMetricsEvent thrown = only("processing.item");
-        assertEquals("convert", attr(thrown, "operation_type"));
-        assertEquals("image", attr(thrown, "media_type"));
+        SentryMetricsEvent thrown = only("job.item");
+        assertEquals("convert", attr(thrown, "job.type"));
+        assertEquals("image", attr(thrown, "file.media_type"));
         assertEquals("failed", attr(thrown, "outcome"));
         assertEquals("only the class, never the message", "IOException", attr(thrown, "error_type"));
 
         sent.clear();
         AppMetrics.itemNotCleaned(AppMetrics.SHARE, true, true);
-        SentryMetricsEvent unsupported = only("processing.item");
+        SentryMetricsEvent unsupported = only("job.item");
         assertEquals("unsupported", attr(unsupported, "outcome"));
         assertEquals("unsupported", attr(unsupported, "error_type"));
 
         sent.clear();
         AppMetrics.itemNotCleaned(AppMetrics.CLEAN, true, false);
-        assertEquals("clean_failed", attr(only("processing.item"), "error_type"));
+        assertEquals("clean_failed", attr(only("job.item"), "error_type"));
     }
 
     @Test
@@ -137,13 +137,13 @@ public class AppMetricsTest {
     @Test
     public void batches_recordTheirSizeAndHowTheyEnded() {
         AppMetrics.batchStarted(AppMetrics.CONVERT, 7);
-        SentryMetricsEvent size = only("processing.batch_size");
+        SentryMetricsEvent size = only("job.batch.size");
         assertEquals(7.0, size.getValue(), 0.0);
-        assertEquals("convert", attr(size, "operation_type"));
+        assertEquals("convert", attr(size, "job.type"));
 
         AppMetrics.batchFinished(AppMetrics.CONVERT, 5, 2, false);
-        SentryMetricsEvent batch = only("processing.batch");
-        assertEquals("convert", attr(batch, "operation_type"));
+        SentryMetricsEvent batch = only("job.batch");
+        assertEquals("convert", attr(batch, "job.type"));
         assertEquals("partial", attr(batch, "outcome"));
 
         assertEquals("success", AppMetrics.batchOutcome(3, 0, false));
@@ -164,46 +164,48 @@ public class AppMetricsTest {
         assertEquals("video/av01", AppMetrics.videoFormatMimeType(3));
 
         AppMetrics.convertFormat("image/webp", AppMetrics.SUCCESS);
-        SentryMetricsEvent format = only("convert.format");
-        assertEquals("image/webp", attr(format, "mime_type"));
+        SentryMetricsEvent format = only("convert.output");
+        assertEquals("image/webp", attr(format, "file.mime_type"));
         assertEquals("success", attr(format, "outcome"));
 
         AppMetrics.codecFallback(0);
-        assertEquals("video/avc", attr(only("convert.codec_fallback"), "mime_type"));
+        assertEquals("video/avc", attr(only("convert.codec_fallback"), "file.mime_type"));
     }
 
     @Test
     public void otherAreas_eachSendTheirMetric() {
         AppMetrics.verificationPassed(false);
-        assertEquals("image", attr(only("verification.passed"), "media_type"));
+        assertEquals("image", attr(only("verify.result"), "file.media_type"));
+        assertEquals("passed", attr(only("verify.result"), "outcome"));
 
         AppMetrics.alreadyCleanResult("ALREADY_CLEAN");
         assertEquals("already_clean", attr(only("already_clean.check"), "outcome"));
         AppMetrics.alreadyCleanDuration(40);
-        only("already_clean.duration_ms");
+        only("already_clean.check.duration");
 
         AppMetrics.updateCheck("up_to_date", 300);
         assertEquals("up_to_date", attr(only("update.check"), "outcome"));
-        only("update.check_duration_ms");
+        only("update.check.duration");
 
         AppMetrics.censorLoad(AppMetrics.UNSUPPORTED);
         assertEquals("unsupported", attr(only("censor.load"), "outcome"));
         AppMetrics.censorRegions(3);
-        assertEquals(3.0, only("censor.regions").getValue(), 0.0);
+        assertEquals(3.0, only("censor.save.regions").getValue(), 0.0);
 
         AppMetrics.secureDeleteOverwrite(15);
-        only("secure_delete.overwrite");
+        only("secure_delete.overwrite.duration");
 
         AppMetrics.foregroundServiceFailure("start_service", new IllegalStateException());
-        SentryMetricsEvent service = only("foreground_service.failure");
-        assertEquals("start_service", attr(service, "outcome"));
+        SentryMetricsEvent service = only("service.failure");
+        assertEquals("failed", attr(service, "outcome"));
+        assertEquals("start_service", attr(service, "reason"));
         assertEquals("IllegalStateException", attr(service, "error_type"));
 
         AppMetrics.notificationFailure(new SecurityException());
         assertEquals("SecurityException", attr(only("notification.failure"), "error_type"));
 
         AppMetrics.onboardingFinished(true);
-        assertEquals("finished", attr(only("onboarding.finished"), "outcome"));
+        assertEquals("finished", attr(only("onboarding.end"), "outcome"));
     }
 
     @Test
@@ -212,9 +214,9 @@ public class AppMetricsTest {
                 new String[] {"android.permission.READ_MEDIA_IMAGES", "android.permission.CAMERA"},
                 new int[] {PackageManager.PERMISSION_GRANTED, PackageManager.PERMISSION_DENIED});
         assertEquals(2, sent.size());
-        assertEquals("images", attr(sent.get(0), "permission_type"));
+        assertEquals("images", attr(sent.get(0), "permission.type"));
         assertEquals("granted", attr(sent.get(0), "outcome"));
-        assertEquals("other", attr(sent.get(1), "permission_type"));
+        assertEquals("other", attr(sent.get(1), "permission.type"));
         assertEquals("denied", attr(sent.get(1), "outcome"));
 
         sent.clear();
@@ -222,8 +224,8 @@ public class AppMetricsTest {
         results.put("android.permission.ACCESS_MEDIA_LOCATION", true);
         results.put("android.permission.POST_NOTIFICATIONS", null);
         AppMetrics.permissionResults(results);
-        assertEquals("media_location", attr(sent.get(0), "permission_type"));
-        assertEquals("notifications", attr(sent.get(1), "permission_type"));
+        assertEquals("media_gps", attr(sent.get(0), "permission.type"));
+        assertEquals("notifications", attr(sent.get(1), "permission.type"));
         assertEquals("denied", attr(sent.get(1), "outcome"));
 
         sent.clear();

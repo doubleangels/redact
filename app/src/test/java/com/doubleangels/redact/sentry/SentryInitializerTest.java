@@ -125,13 +125,13 @@ public class SentryInitializerTest {
 
         SentryManager.setCustomKey("unknown_key", "should not be a tag");
         SentryManager.setCustomKey("file_name", "IMG_1.jpg");
-        SentryManager.setCustomKey("theme_mode", "x".repeat(400));
+        SentryManager.setCustomKey("ui.theme", "x".repeat(400));
         java.util.Map<String, String> tags = new java.util.HashMap<>();
         Sentry.configureScope(scope -> tags.putAll(scope.getTags()));
 
         assertFalse(tags.containsKey("unknown_key"));
         assertFalse(tags.containsKey("file_name"));
-        assertEquals(200, tags.get("theme_mode").length());
+        assertEquals(200, tags.get("ui.theme").length());
     }
 
     /** A breadcrumb from logEvent is scrubbed before it is added, so an error never carries a URI. */

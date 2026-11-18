@@ -35,7 +35,7 @@ public final class MediaSelector {
     public MediaItem processMediaUri(Uri uri) {
         boolean persistable = tryTakePersistableReadPermission(uri);
         if (!persistable && "content".equals(uri.getScheme())) {
-            SentryManager.setCustomKey("persistable_uri_permission", false);
+            SentryManager.setCustomKey("permission.persisted_grant", false);
         }
         // Null when the provider gives no name, so outputs are not named after the fallback label.
         String fileName = MediaUriResolver.readDisplayName(activity, uri);
@@ -143,7 +143,7 @@ public final class MediaSelector {
             }
             return containsAnimatedImagePayload(buffer, read);
         } catch (Exception e) {
-            SentryManager.logEvent("Media", "The animated image probe failed: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("media", "The animated image probe failed: " + e.getClass().getSimpleName() + ".");
             return false;
         }
     }

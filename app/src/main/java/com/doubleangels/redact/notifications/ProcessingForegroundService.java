@@ -49,7 +49,7 @@ public class ProcessingForegroundService extends Service {
         } catch (IllegalStateException e) {
             // ForegroundServiceStartNotAllowedException: the app went to the background before
             // the job began. The job runs without the service, as updateProgress and stop allow.
-            SentryManager.logEvent("Notifications", "The processing service could not start from the background.");
+            SentryManager.logEvent("notification", "The processing service could not start from the background.");
             AppMetrics.foregroundServiceFailure("start_service", e);
         }
     }
@@ -212,7 +212,7 @@ public class ProcessingForegroundService extends Service {
      */
     @Override
     public void onTimeout(int startId, int fgsType) {
-        SentryManager.logEvent("Notifications", 
+        SentryManager.logEvent("notification", 
                 "The ProcessingForegroundService hit the Android background execution time limit.");
         AppProcessingScope scope =
                 AppProcessingScope.get(getApplicationContext());

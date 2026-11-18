@@ -432,12 +432,12 @@ public final class VideoMedia3Converter {
         // transcode makes sure none is left (CleanVerifier.requireVideoMetadataClean).
         boolean hasAudio = !AppPreferences.isRemoveAudio(app) && sourceHasAudio(app, sourceUri);
         SourceVideo source = readSourceVideo(app, sourceUri);
-        SentryManager.setCustomKey("video_codec", SentryManager.mimeTypeClass(source.mime));
-        SentryManager.setCustomKey("video_resolution_class", SentryManager.resolutionClass(source.width, source.height));
-        SentryManager.setCustomKey("video_frame_rate_class", SentryManager.frameRateClass(source.frameRate));
-        SentryManager.setCustomKey("has_audio", hasAudio);
-        SentryManager.setCustomKey("output_codec", SentryManager.mimeTypeClass(videoMimeTypeForFormatIndex(formatIndex)));
-        SentryManager.logEvent("Video", 
+        SentryManager.setCustomKey("video.codec", SentryManager.mimeTypeClass(source.mime));
+        SentryManager.setCustomKey("video.resolution_class", SentryManager.resolutionClass(source.width, source.height));
+        SentryManager.setCustomKey("video.frame_rate_class", SentryManager.frameRateClass(source.frameRate));
+        SentryManager.setCustomKey("video.has_audio", hasAudio);
+        SentryManager.setCustomKey("video.output_codec", SentryManager.mimeTypeClass(videoMimeTypeForFormatIndex(formatIndex)));
+        SentryManager.logEvent("video", 
                 "The app is transcoding a " + source.describe() + " video.");
 
         IOException lastFailure = null;
@@ -517,7 +517,7 @@ public final class VideoMedia3Converter {
                 ? planOutput(source.width, source.height, source.frameRate, support)
                 : new int[] {0, 0};
         if (plan[0] > 0 || plan[1] > 0) {
-            SentryManager.logEvent("Video", 
+            SentryManager.logEvent("video", 
                     "The hardware " + videoMimeType + " encoder doesn't support " + source.describe()
                             + ", so the app is exporting at "
                             + (plan[0] > 0 ? plan[0] + "p" : "full size")
@@ -833,7 +833,7 @@ public final class VideoMedia3Converter {
      */
     @VisibleForTesting
     static void warnDownscaled(@NonNull Context app, int shortSide) {
-        SentryManager.logEvent("Video", 
+        SentryManager.logEvent("video", 
                 "The video was saved at " + shortSide + "p, smaller than its source.");
         AppMetrics.videoDownscaled(shortSide);
         String message = app.getString(R.string.video_downscaled, shortSide);
@@ -890,7 +890,7 @@ public final class VideoMedia3Converter {
             return false;
         } catch (Exception e) {
             // Keeping the audio track is the safe default when the source cannot be inspected.
-            SentryManager.logEvent("Video", "The video's tracks could not be read, so its audio is kept.");
+            SentryManager.logEvent("video", "The video's tracks could not be read, so its audio is kept.");
             return true;
         } finally {
             extractor.release();
@@ -1244,7 +1244,7 @@ public final class VideoMedia3Converter {
     private static void logAttemptFailure(
             @NonNull String videoMimeType, int outputShortSide, @NonNull String reason,
             int progress, long startedAt) {
-        SentryManager.logEvent("Video", describeAttemptFailure(
+        SentryManager.logEvent("video", describeAttemptFailure(
                 videoMimeType, outputShortSide, reason, progress,
                 SystemClock.elapsedRealtime() - startedAt));
         // The codec alone (video/avc), or "copy" for a stream copy; the reason is Media3's error

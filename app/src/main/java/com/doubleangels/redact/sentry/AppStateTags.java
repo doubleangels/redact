@@ -44,22 +44,22 @@ public final class AppStateTags {
 
     private static void putSettings(@NonNull Context context, @NonNull Map<String, String> tags) {
         try {
-            tags.put("setting_strict_clean", bool(AppPreferences.isStrictClean(context)));
-            tags.put("setting_keep_camera_settings", bool(AppPreferences.isPreserveCameraSettings(context)));
-            tags.put("setting_keep_date_taken", dateTaken(context));
-            tags.put("setting_keep_motion_photos", bool(AppPreferences.isPreserveMotionPhoto(context)));
+            tags.put("setting.strict_clean", bool(AppPreferences.isStrictClean(context)));
+            tags.put("setting.keep_camera_settings", bool(AppPreferences.isPreserveCameraSettings(context)));
+            tags.put("setting.keep_date_taken", dateTaken(context));
+            tags.put("setting.keep_motion_photos", bool(AppPreferences.isPreserveMotionPhoto(context)));
             // "gps", not "location": the scrubber blanks any tag whose key mentions a location.
-            tags.put("setting_keep_gps", gps(context));
-            tags.put("setting_remove_audio", bool(AppPreferences.isRemoveAudio(context)));
-            tags.put("setting_faster_video_cleaning", bool(AppPreferences.isVideoFallbackCopy(context)));
-            tags.put("setting_delete_originals", bool(AppPreferences.isDeleteOriginalsAfterClean(context)));
-            tags.put("setting_keep_original_names", bool(AppPreferences.isKeepOriginalFileNames(context)));
-            tags.put("setting_auto_clear_temp", bool(AppPreferences.isAutoClearTempFiles(context)));
-            tags.put("setting_image_folder", folder(context, false));
-            tags.put("setting_video_folder", folder(context, true));
-            tags.put("setting_default_image_format", String.valueOf(AppPreferences.getDefaultImageFormatIndex(context)));
-            tags.put("setting_default_video_codec", String.valueOf(AppPreferences.getDefaultVideoFormatIndex(context)));
-            tags.put("setting_image_quality", String.valueOf(AppPreferences.getImageQualityPreset(context)));
+            tags.put("setting.keep_gps", gps(context));
+            tags.put("setting.remove_audio", bool(AppPreferences.isRemoveAudio(context)));
+            tags.put("setting.faster_video_cleaning", bool(AppPreferences.isVideoFallbackCopy(context)));
+            tags.put("setting.delete_originals", bool(AppPreferences.isDeleteOriginalsAfterClean(context)));
+            tags.put("setting.keep_original_names", bool(AppPreferences.isKeepOriginalFileNames(context)));
+            tags.put("setting.auto_clear_temp", bool(AppPreferences.isAutoClearTempFiles(context)));
+            tags.put("setting.image_folder", folder(context, false));
+            tags.put("setting.video_folder", folder(context, true));
+            tags.put("setting.default_image_format", String.valueOf(AppPreferences.getDefaultImageFormatIndex(context)));
+            tags.put("setting.default_video_codec", String.valueOf(AppPreferences.getDefaultVideoFormatIndex(context)));
+            tags.put("setting.image_quality", String.valueOf(AppPreferences.getImageQualityPreset(context)));
         } catch (RuntimeException e) {
             // A report must still go out when the settings can't be read.
         }
@@ -68,20 +68,20 @@ public final class AppStateTags {
     private static void putDevice(@NonNull Context context, @NonNull Map<String, String> tags) {
         // The phone's media performance class (0, or the Android version whose codec and memory
         // requirements it meets): why one phone's encoder fails where another's doesn't.
-        tags.put("device_media_performance_class", String.valueOf(Build.VERSION.MEDIA_PERFORMANCE_CLASS));
+        tags.put("device.media_performance_class", String.valueOf(Build.VERSION.MEDIA_PERFORMANCE_CLASS));
         ActivityManager am = context.getSystemService(ActivityManager.class);
         if (am != null) {
-            tags.put("device_low_ram", bool(am.isLowRamDevice()));
-            tags.put("device_heap_class_mb", String.valueOf(am.getMemoryClass()));
-            tags.put("device_large_heap_class_mb", String.valueOf(am.getLargeMemoryClass()));
+            tags.put("device.low_ram", bool(am.isLowRamDevice()));
+            tags.put("device.heap_mb", String.valueOf(am.getMemoryClass()));
+            tags.put("device.large_heap_mb", String.valueOf(am.getLargeMemoryClass()));
             // Background limits explain foreground-service and notification failures.
-            tags.put("app_background_restricted", bool(am.isBackgroundRestricted()));
+            tags.put("app.background_restricted", bool(am.isBackgroundRestricted()));
         }
         UsageStatsManager usage = context.getSystemService(UsageStatsManager.class);
         if (usage != null) {
-            tags.put("app_standby_bucket", standbyBucket(usage.getAppStandbyBucket()));
+            tags.put("app.standby_bucket", standbyBucket(usage.getAppStandbyBucket()));
         }
-        tags.put("app_installer", installer(context));
+        tags.put("app.installer", installer(context));
     }
 
     private static String bool(boolean value) {

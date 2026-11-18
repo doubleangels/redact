@@ -80,7 +80,7 @@ public final class InboundSnapshots {
                 if (e instanceof FileNotFoundException) {
                     // The sharing app handed over a URI whose item no longer exists (deleted, or a
                     // stale cloud or gallery entry). Nothing on our side to fix.
-                    SentryManager.logEvent("Share", "An inbound item no longer exists and was skipped.");
+                    SentryManager.logEvent("share", "An inbound item no longer exists and was skipped.");
                 } else {
                     SentryManager.recordException(e);
                 }

@@ -112,7 +112,7 @@ public class ConvertFragment extends TabFragment {
                     if (uris == null || uris.isEmpty()) {
                         return;
                     }
-                    SentryManager.logEvent("Convert", "Media was selected successfully in ConvertFragment.");
+                    SentryManager.logEvent("convert", "Media was selected successfully in ConvertFragment.");
                     onMediaReceived(uris);
                 });
     }
@@ -147,7 +147,7 @@ public class ConvertFragment extends TabFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        SentryManager.logEvent("Convert", "The ConvertFragment view was created.");
+        SentryManager.logEvent("convert", "The ConvertFragment view was created.");
 
         statusText = view.findViewById(R.id.statusText);
         shareResultsButton = view.findViewById(R.id.shareResultsButton);
@@ -271,12 +271,12 @@ public class ConvertFragment extends TabFragment {
         convertButton.setOnClickListener(v -> {
             if (viewModel.getConvertProcessingState().getValue()
                     == MainViewModel.ProcessingState.PROCESSING) {
-                SentryManager.logEvent("Convert", "The conversion is being cancelled.");
+                SentryManager.logEvent("convert", "The conversion is being cancelled.");
                 Haptics.tick(v);
                 viewModel.cancelConversion();
                 return;
             }
-            SentryManager.logEvent("Convert", "A conversion is starting.");
+            SentryManager.logEvent("convert", "A conversion is starting.");
             runConversion();
         });
 
@@ -568,10 +568,10 @@ public class ConvertFragment extends TabFragment {
     }
 
     private void runConversion() {
-        SentryManager.logEvent("Convert", "The runConversion method started.");
+        SentryManager.logEvent("convert", "The runConversion method started.");
         List<MediaItem> selectedItems = currentSelectedItems();
         if (selectedItems.isEmpty()) {
-            SentryManager.logEvent("Convert", "The runConversion method was aborted because nothing was selected.");
+            SentryManager.logEvent("convert", "The runConversion method was aborted because nothing was selected.");
             statusText.setText(R.string.convert_nothing_selected);
             return;
         }
@@ -709,10 +709,10 @@ public class ConvertFragment extends TabFragment {
 
     private void onSelectFilesClicked() {
         if (permissionManager != null && permissionManager.shouldRequestStorageBeforePicker()) {
-            SentryManager.logEvent("Convert", "The app is requesting storage permissions in ConvertFragment.");
+            SentryManager.logEvent("convert", "The app is requesting storage permissions in ConvertFragment.");
             permissionManager.requestStoragePermission();
         } else {
-            SentryManager.logEvent("Convert", "The app is launching the media picker in ConvertFragment.");
+            SentryManager.logEvent("convert", "The app is launching the media picker in ConvertFragment.");
             openMediaPicker();
         }
     }

@@ -52,7 +52,7 @@ public final class MediaUriResolver {
             }
         } catch (SecurityException e) {
             // The sender shared a URI without granting read access, which only the sender can fix.
-            SentryManager.logEvent("Media", "The display name query was denied: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("media", "The display name query was denied: " + e.getClass().getSimpleName() + ".");
         } catch (Exception e) {
             SentryManager.recordException(e);
         }
@@ -72,7 +72,7 @@ public final class MediaUriResolver {
                     return mediaUri;
                 }
             } catch (Exception e) {
-                SentryManager.logEvent("Media", "The MediaStore.getMediaUri call failed: " + e.getClass().getSimpleName() + ".");
+                SentryManager.logEvent("media", "The MediaStore.getMediaUri call failed: " + e.getClass().getSimpleName() + ".");
             }
         }
         if (!isPhotoPickerUri(uri)) {
@@ -82,7 +82,7 @@ public final class MediaUriResolver {
         try {
             mimeType = context.getContentResolver().getType(uri);
         } catch (Exception e) {
-            SentryManager.logEvent("Media", "The picker MIME type failed to resolve: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("media", "The picker MIME type failed to resolve: " + e.getClass().getSimpleName() + ".");
         }
         boolean isVideo = MediaSelector.isVideoFromMimeAndName(mimeType, uri.getLastPathSegment());
 
@@ -129,7 +129,7 @@ public final class MediaUriResolver {
                 null, null, null)) {
             return cursor != null && cursor.moveToFirst();
         } catch (Exception e) {
-            SentryManager.logEvent("Media", "The MediaStore URI probe failed: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("media", "The MediaStore URI probe failed: " + e.getClass().getSimpleName() + ".");
             return false;
         }
     }
@@ -174,7 +174,7 @@ public final class MediaUriResolver {
             // visible to Redact, so their providers do resolve.
             return info == null || packageName.equals(info.packageName);
         } catch (RuntimeException e) {
-            SentryManager.logEvent("Media", "The provider owner lookup failed: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("media", "The provider owner lookup failed: " + e.getClass().getSimpleName() + ".");
             return true;
         }
     }

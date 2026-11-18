@@ -297,7 +297,7 @@ public final class ImageContainerMetadata {
                 directoryWritten = true;
             } catch (IOException | RuntimeException e) {
                 // The picture written above is complete; it is only without its HDR.
-                SentryManager.logEvent("Image", "The Ultra HDR gain map could not be kept: " + e.getClass().getSimpleName() + ".");
+                SentryManager.logEvent("image", "The Ultra HDR gain map could not be kept: " + e.getClass().getSimpleName() + ".");
                 AppMetrics.partDropped(false, "gain_map");
             }
         }

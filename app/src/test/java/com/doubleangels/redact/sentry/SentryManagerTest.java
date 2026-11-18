@@ -30,14 +30,14 @@ public class SentryManagerTest {
     /** Every metric attribute key must be on the allow-list, and pairs must be whole. */
     @Test
     public void metricAttributes_areAllowListedPairs() {
-        assertNotNull(SentryManager.metricsParams("operation_type", "clean"));
-        assertNotNull(SentryManager.metricsParams("operation_type", "clean", "media_type", "image",
+        assertNotNull(SentryManager.metricsParams("job.type", "clean"));
+        assertNotNull(SentryManager.metricsParams("job.type", "clean", "file.media_type", "image",
                 "outcome", "failed", "error_type", "IOException"));
-        assertNotNull("a missing value is sent empty", SentryManager.metricsParams("is_video", null));
+        assertNotNull("a missing value is sent empty", SentryManager.metricsParams("file.media_type", null));
         assertNull("a file name is never a dimension", SentryManager.metricsParams("file_name", "a.jpg"));
         assertNull("one bad key drops the lot",
-                SentryManager.metricsParams("operation_type", "clean", "uri", "content://x"));
-        assertNull("a value without its key", SentryManager.metricsParams("operation_type"));
+                SentryManager.metricsParams("job.type", "clean", "uri", "content://x"));
+        assertNull("a value without its key", SentryManager.metricsParams("job.type"));
         assertNull(SentryManager.metricsParams());
         assertNull(SentryManager.metricsParams((String[]) null));
     }

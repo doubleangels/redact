@@ -82,14 +82,14 @@ public final class DroppedMedia {
                     v.setAlpha(1f);
                     // Without this the URIs can't be read once the drop returns.
                     if (activity.requestDragAndDropPermissions(event) == null) {
-                        SentryManager.logEvent("Media", "A drop came without permission to read it.");
+                        SentryManager.logEvent("media", "A drop came without permission to read it.");
                         return false;
                     }
                     List<Uri> uris = acceptedUris(activity, event.getClipData());
                     if (uris.isEmpty()) {
                         return false;
                     }
-                    SentryManager.logEvent("Media", "Media was dropped onto a tab.");
+                    SentryManager.logEvent("media", "Media was dropped onto a tab.");
                     onMedia.accept(uris);
                     return true;
                 }
