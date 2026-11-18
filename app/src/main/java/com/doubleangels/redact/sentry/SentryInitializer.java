@@ -38,7 +38,20 @@ public final class SentryInitializer {
     private static final double RELEASE_PROFILE_SAMPLE_RATE = 0.25;
 
     @Nullable
+    @VisibleForTesting
     static String testDsnOverride;
+
+    /**
+     * The DSN reports go to. Tests point it elsewhere with {@link #testDsnOverride}, which only a
+     * debug build reads: in a release build the check is a constant false and R8 removes it, so
+     * nothing in a shipping app can send reports anywhere but the configured project.
+     */
+    private static String configuredDsn() {
+        if (BuildConfig.DEBUG && testDsnOverride != null) {
+            return testDsnOverride;
+        }
+        return BuildConfig.SENTRY_DSN;
+    }
 
     private static volatile boolean initialized;
     private static final Object INIT_LOCK = new Object();
@@ -57,7 +70,7 @@ public final class SentryInitializer {
 
     /** Whether a non-empty DSN is available for initialization. */
     public static boolean hasConfiguredDsn() {
-        String dsn = testDsnOverride != null ? testDsnOverride : BuildConfig.SENTRY_DSN;
+        String dsn = configuredDsn();
         return dsn != null && !dsn.isEmpty();
     }
 
@@ -159,7 +172,7 @@ public final class SentryInitializer {
     private static boolean runSentryInit(Context context) {
         AtomicBoolean configured = new AtomicBoolean(false);
         SentryAndroid.init(context, options -> {
-            String dsn = testDsnOverride != null ? testDsnOverride : BuildConfig.SENTRY_DSN;
+            String dsn = configuredDsn();
             if (dsn == null || dsn.isEmpty()) {
                 Log.w(TAG, "Crash reporting is enabled but Sentry DSN is not configured");
                 return;

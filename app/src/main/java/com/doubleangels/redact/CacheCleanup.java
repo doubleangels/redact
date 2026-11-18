@@ -233,7 +233,7 @@ public final class CacheCleanup {
 
     /** Waits for a sweep started by {@link #scheduleOrphanedWorkFileSweep} (tests only). */
     @VisibleForTesting
-    public static void awaitOrphanSweepForTests() {
+    static void awaitOrphanSweepForTests() {
         Thread thread = orphanSweepThread;
         if (thread != null) {
             try {
@@ -259,7 +259,7 @@ public final class CacheCleanup {
     }
 
     @VisibleForTesting
-    public static void resetAutoCleanupStateForTests() {
+    static void resetAutoCleanupStateForTests() {
         // Let any sweep started by Application.onCreate finish so it can't race the test's files.
         Thread thread = autoCleanupThread;
         if (thread != null) {
