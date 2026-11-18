@@ -421,4 +421,30 @@ public class AlreadyCleanCheckTest {
         MetadataDisplayer.addTagsExifInterfaceCannotName(app, Uri.fromFile(jpegWithXpAuthor()), map);
         assertEquals("Jane Doe", map.get("XP_AUTHOR"));
     }
+
+    /** One file whose provider never answers no longer holds the Clean button past the budget. */
+    @Test(timeout = 10_000)
+    public void aFileThatNeverAnswers_isGivenUpOn_atTheBudget() {
+        java.util.concurrent.CountDownLatch never = new java.util.concurrent.CountDownLatch(1);
+        MediaItem hangs = new MediaItem(android.net.Uri.parse("content://cloud/hangs"), false, "hangs.jpg");
+        MediaItem quick = new MediaItem(android.net.Uri.parse("content://cloud/quick"), false, "quick.jpg");
+        long started = System.nanoTime();
+
+        java.util.List<AlreadyCleanCheck.Status> result = AlreadyCleanCheck.assess(
+                java.util.List.of(hangs, quick), 300, item -> {
+                    if (item == hangs) {
+                        try {
+                            never.await();
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                    return AlreadyCleanCheck.Status.ALREADY_CLEAN;
+                });
+
+        org.junit.Assert.assertEquals(AlreadyCleanCheck.Status.UNKNOWN, result.get(0));
+        org.junit.Assert.assertEquals(2, result.size());
+        org.junit.Assert.assertTrue("returned at the budget, not when the read ends",
+                (System.nanoTime() - started) / 1_000_000 < 5_000);
+    }
 }

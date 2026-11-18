@@ -7,7 +7,8 @@ import android.net.Uri;
 import android.os.SystemClock;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.exifinterface.media.ExifInterface;
 
 import com.doubleangels.redact.AppPreferences;
@@ -21,7 +22,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 
 /**
  * Decides, before a clean starts, whether a selected file has anything left to remove.
@@ -47,36 +55,66 @@ public final class AlreadyCleanCheck {
         UNKNOWN
     }
 
+    /**
+     * Reads the files, so the time budget also bounds one that hangs: a cloud-backed file whose
+     * provider never answers is given up on, and its thread is left to finish on its own. A thread
+     * per stuck file, as a stuck one can't be reused; daemon, as nothing waits for them to end.
+     */
+    private static final ExecutorService READER = Executors.newCachedThreadPool(r -> {
+        Thread thread = new Thread(r, "redact-clean-check");
+        thread.setDaemon(true);
+        return thread;
+    });
+
     private AlreadyCleanCheck() {
     }
 
     /**
-     * Assesses every item in order, one {@link Status} per item. Items reached after
-     * {@code budgetMs} has elapsed are {@link Status#UNKNOWN}, so a large batch of slow (for example
-     * cloud-backed) files cannot hold the clean up. Call off the main thread.
+     * Assesses every item in order, one {@link Status} per item. Once {@code budgetMs} has passed,
+     * the file being read and every file after it are {@link Status#UNKNOWN}, so neither a large
+     * batch of slow (for example cloud-backed) files nor one that never answers can hold the clean
+     * up. Call off the main thread.
      */
     @NonNull
     public static List<Status> assess(
             @NonNull Context context, @NonNull List<MediaItem> items, long budgetMs) {
+        return assess(items, budgetMs, item -> assessItem(context, item));
+    }
+
+    @VisibleForTesting
+    @NonNull
+    static List<Status> assess(@NonNull List<MediaItem> items, long budgetMs,
+                               @NonNull Function<MediaItem, Status> check) {
         long startedAt = SystemClock.elapsedRealtime();
         long deadline = startedAt + budgetMs;
         List<Status> result = new ArrayList<>(items.size());
         int timedOut = 0;
         for (MediaItem item : items) {
-            if (SystemClock.elapsedRealtime() > deadline) {
+            long left = deadline - SystemClock.elapsedRealtime();
+            if (left <= 0) {
                 result.add(Status.UNKNOWN);
                 timedOut++;
                 continue;
             }
             Status status;
+            Future<Status> reading = READER.submit(() -> check.apply(item));
             try {
-                status = assessItem(context, item);
+                status = reading.get(left, TimeUnit.MILLISECONDS);
                 AppMetrics.alreadyCleanResult(status.name());
-            } catch (Exception | OutOfMemoryError e) {
+            } catch (TimeoutException e) {
+                // The provider hasn't answered in time: given up on, and cleaned as usual.
+                reading.cancel(true);
+                status = Status.UNKNOWN;
+                timedOut++;
+            } catch (ExecutionException e) {
                 // A file too large or too strange to read is cleaned as usual, never skipped, and
                 // an OutOfMemoryError here must not end the thread the Clean button waits on.
                 status = Status.UNKNOWN;
-                AppMetrics.alreadyCleanError(e);
+                AppMetrics.alreadyCleanError(e.getCause() != null ? e.getCause() : e);
+            } catch (InterruptedException e) {
+                reading.cancel(true);
+                Thread.currentThread().interrupt();
+                status = Status.UNKNOWN;
             }
             result.add(status);
         }
