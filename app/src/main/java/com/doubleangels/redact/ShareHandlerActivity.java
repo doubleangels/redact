@@ -1,5 +1,8 @@
 package com.doubleangels.redact;
 
+import com.doubleangels.redact.media.BatchRun;
+import java.util.HashMap;
+import java.util.Map;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.Context;
@@ -46,8 +49,6 @@ import com.doubleangels.redact.ui.SecureWindow;
 import com.doubleangels.redact.ui.ShareResults;
 import com.google.android.material.color.DynamicColors;
 
-import io.sentry.ITransaction;
-import io.sentry.SpanStatus;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -705,97 +706,55 @@ public class ShareHandlerActivity extends AppCompatActivity {
         LocalNotifications.startProcessingForeground(
                 this, LocalNotifications.ForegroundJob.SHARE, getString(R.string.share_processing_title));
         Thread worker = new Thread(() -> {
-            ITransaction transaction = SentryManager.startTransaction("share_cleanup", "task");
-            long batchStartMs = System.currentTimeMillis();
             ArrayList<Uri> processedUris = new ArrayList<>();
-            int failCount = session.snapshotFailCount.get() + session.unsupportedRejectCount.get();
-            int unsupportedFailCount = session.unsupportedRejectCount.get();
-            boolean hasVideo = false;
-            boolean hasImage = false;
             // Files that could not even be copied in count as given and failed.
-            AppMetrics.batchStarted(AppMetrics.SHARE, uris.size() + failCount);
-            // Counted once: a failure after the count below must not count the batch again.
-            boolean batchReported = false;
-
+            int alreadyFailed = session.snapshotFailCount.get() + session.unsupportedRejectCount.get();
+            int[] unsupportedFailCount = {session.unsupportedRejectCount.get()};
+            boolean[] hasVideo = {false};
+            boolean[] hasImage = {false};
+            Map<Uri, SharedItem> described = new HashMap<>();
             try {
-                for (int i = 0; i < uris.size(); i++) {
-                    if (!isCurrentSession(session)) {
-                        break;
-                    }
-                    Uri uri = uris.get(i);
-                    final int currentIndex = i + 1;
-                    final int total = uris.size();
-
-                    runOnUiThreadForSession(session, () -> updateProgressMessage(
-                            getString(R.string.status_processing) + " (" + currentIndex + "/" + total + ")"));
-
-                    String mimeType = getContentResolver().getType(uri);
-                    String fileName = mediaSelector.getFileName(uri);
-                    boolean isVideo = MediaSelector.isVideoFromMimeAndName(mimeType, fileName);
-                    if (isVideo) hasVideo = true;
-                    else hasImage = true;
-
-                    long itemStartMs = System.currentTimeMillis();
-                    CleanResult result = stripper.cleanForSharing(uri, fileName, isVideo);
-                    if (result.succeeded()) {
-                        processedUris.add(result.uri());
-                        AppMetrics.item(AppMetrics.SHARE, isVideo, AppMetrics.SUCCESS,
-                                System.currentTimeMillis() - itemStartMs);
-                        CleanStats stats = result.stats();
-                        StatsStore.recordClean(this,
-                                stats != null ? stats : new CleanStats(0, false),
-                                isVideo, true);
-                        try {
-                            File outputFile = result.file();
-                            if (outputFile != null && outputFile.exists() && outputFile.isFile()) {
-                                boolean replaced;
-                                synchronized (fileListLock) {
-                                    replaced = session != shareSession;
-                                    if (!replaced) {
-                                        processedFiles.add(outputFile);
-                                        processedDisplayNames.add(outputFile.getName());
-                                    }
-                                }
-                                if (replaced) {
-                                    // A newer share took over and already emptied the list.
-                                    List<File> stale = new ArrayList<>();
-                                    stale.add(outputFile);
-                                    Context appContext = getApplicationContext();
-                                    cleanupExecutor.execute(() -> deleteProcessedFileList(appContext, stale));
+                BatchRun.Result result = BatchRun.run(AppMetrics.SHARE, "share_cleanup", uris, alreadyFailed,
+                        uri -> describe(described, uri).video,
+                        () -> !isCurrentSession(session) || Thread.currentThread().isInterrupted(),
+                        (uri, i) -> {
+                            int currentIndex = i + 1;
+                            int total = uris.size();
+                            runOnUiThreadForSession(session, () -> updateProgressMessage(
+                                    getString(R.string.status_processing) + " (" + currentIndex + "/" + total + ")"));
+                            SharedItem item = describe(described, uri);
+                            if (item.video) {
+                                hasVideo[0] = true;
+                            } else {
+                                hasImage[0] = true;
+                            }
+                            CleanResult cleaned = stripper.cleanForSharing(uri, item.fileName, item.video);
+                            if (!cleaned.succeeded()) {
+                                return cleaned.unsupported() ? BatchRun.Outcome.UNSUPPORTED : BatchRun.Outcome.NOT_CLEANED;
+                            }
+                            processedUris.add(cleaned.uri());
+                            CleanStats stats = cleaned.stats();
+                            StatsStore.recordClean(this, stats != null ? stats : new CleanStats(0, false), item.video, true);
+                            keepForCleanup(session, cleaned);
+                            return BatchRun.Outcome.SUCCEEDED;
+                        },
+                        new BatchRun.Hooks<>() {
+                            @Override
+                            public void onFailed(@NonNull Uri uri, int index, @Nullable Throwable error,
+                                                 @NonNull String outcome) {
+                                if (AppMetrics.UNSUPPORTED.equals(outcome)) {
+                                    unsupportedFailCount[0]++;
+                                    countUnsupported(describe(described, uri).mimeType);
                                 }
                             }
-                        } catch (Exception e) {
-                            SentryManager.logEvent("Share", "The processed file could not be resolved for cleanup: " + e.getClass().getSimpleName() + ".");
-                        }
-                    } else {
-                        failCount++;
-                        if (result.unsupported()) {
-                            unsupportedFailCount++;
-                            countUnsupported(mimeType);
-                        }
-                        // A file stopped by a cancel comes back failed too; only real failures count.
-                        if (isCurrentSession(session)) {
-                            AppMetrics.itemNotCleaned(AppMetrics.SHARE, isVideo, result.unsupported());
-                        }
-                    }
-                }
+                        });
 
-                if (!processedUris.isEmpty()) {
-                    transaction.setStatus(SpanStatus.OK);
-                } else {
-                    transaction.setStatus(SpanStatus.INTERNAL_ERROR);
-                }
-                transaction.finish();
-
-                final boolean finalHasVideo = hasVideo;
-                final boolean finalHasImage = hasImage;
-                final int finalFailCount = failCount;
+                final boolean finalHasVideo = hasVideo[0];
+                final boolean finalHasImage = hasImage[0];
+                final int finalFailCount = result.failed() + alreadyFailed;
                 final boolean allFailuresUnsupported =
-                        failCount > 0 && unsupportedFailCount == failCount;
-                final boolean cancelled = session.ended.get()
-                        || Thread.currentThread().isInterrupted();
-                AppMetrics.batchFinished(AppMetrics.SHARE, processedUris.size(), failCount, cancelled);
-                batchReported = true;
+                        finalFailCount > 0 && unsupportedFailCount[0] == finalFailCount;
+                final boolean cancelled = result.cancelled() || session.ended.get();
 
                 runOnUiThreadIfNotReplaced(session, () -> {
                     try {
@@ -847,15 +806,9 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     }
                 });
             } catch (Exception | OutOfMemoryError e) {
-                // A crafted shared file must end in an error message, never a crash.
-                if (!transaction.isFinished()) {
-                    transaction.setStatus(SpanStatus.INTERNAL_ERROR);
-                    transaction.finish();
-                }
+                // A crafted shared file must end in an error message, never a crash. BatchRun has
+                // already counted the batch.
                 SentryManager.recordException(e);
-                if (!batchReported) {
-                    AppMetrics.batchFinished(AppMetrics.SHARE, processedUris.size(), failCount + 1, false);
-                }
                 runOnUiThreadIfNotReplaced(session, () -> finishWithError(getString(R.string.share_error_generic)));
             } finally {
                 // The snapshots are copies of the originals, metadata included, and only the
@@ -864,12 +817,63 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 // this session's: a share that replaced it keeps its own.
                 deleteSnapshots(session.closeSnapshots());
                 endShareSession(session);
-                SentryManager.distributionDurationMs("processing.duration_ms",
-                        System.currentTimeMillis() - batchStartMs, "operation_type", "share");
             }
         }, "redact-share-worker");
         processingThread = worker;
         worker.start();
+    }
+
+    /** What a shared item is, read once from its provider and reused for the clean and the metrics. */
+    private static final class SharedItem {
+        @Nullable final String mimeType;
+        @Nullable final String fileName;
+        final boolean video;
+
+        SharedItem(@Nullable String mimeType, @Nullable String fileName, boolean video) {
+            this.mimeType = mimeType;
+            this.fileName = fileName;
+            this.video = video;
+        }
+    }
+
+    @NonNull
+    private SharedItem describe(@NonNull Map<Uri, SharedItem> described, @NonNull Uri uri) {
+        SharedItem item = described.get(uri);
+        if (item == null) {
+            String mimeType = getContentResolver().getType(uri);
+            String fileName = mediaSelector.getFileName(uri);
+            item = new SharedItem(mimeType, fileName, MediaSelector.isVideoFromMimeAndName(mimeType, fileName));
+            described.put(uri, item);
+        }
+        return item;
+    }
+
+    /** Lists a cleaned file for deletion when the share ends, or deletes it now if a newer share took over. */
+    private void keepForCleanup(@NonNull ShareSession session, @NonNull CleanResult cleaned) {
+        try {
+            File outputFile = cleaned.file();
+            if (outputFile == null || !outputFile.exists() || !outputFile.isFile()) {
+                return;
+            }
+            boolean replaced;
+            synchronized (fileListLock) {
+                replaced = session != shareSession;
+                if (!replaced) {
+                    processedFiles.add(outputFile);
+                    processedDisplayNames.add(outputFile.getName());
+                }
+            }
+            if (replaced) {
+                // A newer share took over and already emptied the list.
+                List<File> stale = new ArrayList<>();
+                stale.add(outputFile);
+                Context appContext = getApplicationContext();
+                cleanupExecutor.execute(() -> deleteProcessedFileList(appContext, stale));
+            }
+        } catch (Exception e) {
+            SentryManager.logEvent("Share", "The processed file could not be resolved for cleanup: "
+                    + e.getClass().getSimpleName() + ".");
+        }
     }
 
     private void endShareSession(@NonNull ShareSession session) {

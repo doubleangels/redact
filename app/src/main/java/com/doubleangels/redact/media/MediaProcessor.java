@@ -20,10 +20,6 @@ import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.stats.StatsStore;
 import com.doubleangels.redact.ui.CleanSummary;
 
-import io.sentry.ISpan;
-import io.sentry.ITransaction;
-import io.sentry.SpanStatus;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -325,137 +321,86 @@ public class MediaProcessor {
         mainHandler.post(callback::onBatchStarted);
         submitBatch(() -> {
             final int totalItems = items.size();
-            ITransaction transaction = SentryManager.startTransaction("clean_multiple", "task");
-            long batchStartMs = System.currentTimeMillis();
-            int successCount = 0;
-            int failCount = 0;
-            AppMetrics.batchStarted(AppMetrics.CLEAN, totalItems);
+            BatchRun.Result result = new BatchRun.Result(0, 0, true);
             try {
-                for (int index = 0; index < totalItems; index++) {
-                    if (cancelled.get()) {
-                        Log.i(TAG, "Processing cancelled by user or lifecycle");
-                        VideoMedia3Converter.cancelActiveTranscode(metadataStripper.getTranscodeOwnerId());
-                        break;
-                    }
-                    MediaItem item = items.get(index);
-                    ISpan span = transaction.startChild("clean_item", "media_item");
-                    final long itemStartMs = System.currentTimeMillis();
-                    final int itemIndex = index;
-                    String batchLine =
-                            context.getString(
-                                    R.string.clean_progress_batch,
-                                    index + 1,
-                                    totalItems,
-                                    item.displayName(context));
-                    ProgressUpdateThrottler progressThrottler = new ProgressUpdateThrottler();
-
-                    try {
-                        metadataStripper.setProgressCallback(
-                                (percentOfCurrentItem, message) -> {
-                                    if (cancelled.get()) return;
-                                    int overall = (itemIndex * 100 + percentOfCurrentItem) / totalItems;
-                                    String combined = batchLine + "\n" + message;
-                                    progressThrottler.maybeRun(
-                                            () ->
-                                                    mainHandler.post(
-                                                            () ->
-                                                                    callback.onProgress(
-                                                                            overall, combined)));
-                                });
-
-                        progressThrottler.forceRun(
-                                () ->
-                                        mainHandler.post(
-                                                () ->
-                                                        callback.onProgress(
-                                                                (itemIndex * 100) / totalItems,
-                                                                batchLine)));
-
-                        // "" when the source has no name: the output then gets a random one.
-                        String sourceName = item.fileName() != null ? item.fileName() : "";
-                        CleanResult result = item.isVideo()
-                                ? metadataStripper.cleanVideo(item.uri(), sourceName)
-                                : metadataStripper.cleanImage(item.uri(), sourceName);
-                        Uri processedUri = result.uri();
-
-                        metadataStripper.setProgressCallback(null);
-
-                        if (processedUri != null) {
-                            CleanStats stats = result.stats();
-                            addSucceeded(new Succeeded(item.uri(), sourceName, processedUri, stats));
-                            StatsStore.recordClean(context,
-                                    stats != null ? stats : new CleanStats(0, false),
-                                    item.isVideo(), false);
-                            successCount++;
-                            AppMetrics.item(AppMetrics.CLEAN, item.isVideo(), AppMetrics.SUCCESS,
-                                    System.currentTimeMillis() - itemStartMs);
-                            span.setStatus(SpanStatus.OK);
-                        } else if (cancelled.get()) {
-                            VideoMedia3Converter.cancelActiveTranscode(metadataStripper.getTranscodeOwnerId());
-                            span.setStatus(SpanStatus.CANCELLED);
-                            break;
-                        } else {
-                            addFailed(item, result.unsupported() ? FailReason.UNSUPPORTED : FailReason.NOT_CLEANED);
-                            failCount++;
-                            AppMetrics.itemNotCleaned(AppMetrics.CLEAN, item.isVideo(), result.unsupported());
-                            Log.e(TAG, "Failed to process item at index " + index);
-                            span.setStatus(SpanStatus.INTERNAL_ERROR);
-                            final String failLine =
-                                    context.getString(R.string.clean_item_failed, item.displayName(context));
-                            progressThrottler.forceRun(
-                                    () ->
-                                            mainHandler.post(
-                                                    () ->
-                                                            callback.onProgress(
-                                                                    (itemIndex * 100) / totalItems,
-                                                                    batchLine + "\n" + failLine)));
-                        }
-                    } catch (Exception | OutOfMemoryError e) {
-                        // Out of memory fails this file, not the app: the next file may be smaller.
-                        metadataStripper.setProgressCallback(null);
-                        if (cancelled.get() || SentryManager.isUserCancellation(e)) {
-                            VideoMedia3Converter.cancelActiveTranscode(metadataStripper.getTranscodeOwnerId());
-                            span.setStatus(SpanStatus.CANCELLED);
-                            break;
-                        }
-                        addFailed(item, e instanceof OutOfMemoryError ? FailReason.OUT_OF_MEMORY
-                                : UnsupportedMediaException.isCauseOf(e) ? FailReason.UNSUPPORTED : FailReason.NOT_CLEANED);
-                        failCount++;
-                        AppMetrics.itemFailed(AppMetrics.CLEAN, item.isVideo(), e,
-                                UnsupportedMediaException.isCauseOf(e));
-                        Log.e(TAG, "Error processing item at index " + index, e);
-                        SentryManager.recordException(e);
-                        span.setStatus(SpanStatus.INTERNAL_ERROR);
-                    } finally {
-                        span.finish();
-                    }
-                }
-            } catch (Exception e) {
+                result = BatchRun.run(AppMetrics.CLEAN, "clean_multiple", items, 0, MediaItem::isVideo,
+                        cancelled::get, (item, index) -> cleanOne(item, index, totalItems, mainHandler, callback),
+                        new BatchRun.Hooks<>() {
+                            @Override
+                            public void onFailed(@NonNull MediaItem item, int index, @Nullable Throwable error,
+                                                 @NonNull String outcome) {
+                                addFailed(item, AppMetrics.OUT_OF_MEMORY.equals(outcome) ? FailReason.OUT_OF_MEMORY
+                                        : AppMetrics.UNSUPPORTED.equals(outcome) ? FailReason.UNSUPPORTED
+                                        : FailReason.NOT_CLEANED);
+                                if (error == null) {
+                                    Log.e(TAG, "Failed to process item at index " + index);
+                                    String line = context.getString(R.string.clean_progress_batch,
+                                            index + 1, totalItems, item.displayName(context))
+                                            + "\n" + context.getString(R.string.clean_item_failed,
+                                                    item.displayName(context));
+                                    mainHandler.post(() -> callback.onProgress((index * 100) / totalItems, line));
+                                }
+                            }
+                        });
+            } catch (RuntimeException | Error e) {
                 Log.e(TAG, "Error in processMediaItems thread", e);
                 SentryManager.recordException(e);
             } finally {
-                final int finalSuccessCount = successCount;
-                final int finalTotal = totalItems;
-                final boolean wasCancelled = cancelled.get();
-                AppMetrics.batchFinished(AppMetrics.CLEAN, successCount, failCount, wasCancelled);
+                metadataStripper.setProgressCallback(null);
+                final int finalSuccessCount = result.succeeded();
+                final boolean wasCancelled = result.cancelled() || cancelled.get();
+                if (wasCancelled) {
+                    Log.i(TAG, "Processing cancelled by user or lifecycle");
+                    VideoMedia3Converter.cancelActiveTranscode(metadataStripper.getTranscodeOwnerId());
+                }
                 // Free before the callback is posted, so a batch it starts is not refused as
                 // already running.
                 processing.set(false);
                 cancelled.set(false);
                 mainHandler.post(() -> {
                     if (wasCancelled) {
-                        callback.onCancelled(finalSuccessCount, finalTotal);
+                        callback.onCancelled(finalSuccessCount, totalItems);
                     } else {
-                        callback.onComplete(finalSuccessCount, finalTotal);
+                        callback.onComplete(finalSuccessCount, totalItems);
                     }
                 });
-                SentryManager.distributionDurationMs(
-                        "processing.duration_ms",
-                        System.currentTimeMillis() - batchStartMs,
-                        "operation_type",
-                        "clean");
-                transaction.finish();
             }
         });
+    }
+
+    /** Cleans one file of a batch, reporting its progress, and records it when it succeeds. */
+    @NonNull
+    private BatchRun.Outcome cleanOne(@NonNull MediaItem item, int index, int totalItems,
+                                      @NonNull Handler mainHandler, @NonNull ProcessingCallback callback) {
+        String batchLine = context.getString(
+                R.string.clean_progress_batch, index + 1, totalItems, item.displayName(context));
+        ProgressUpdateThrottler progressThrottler = new ProgressUpdateThrottler();
+        metadataStripper.setProgressCallback((percentOfCurrentItem, message) -> {
+            if (cancelled.get()) {
+                return;
+            }
+            int overall = (index * 100 + percentOfCurrentItem) / totalItems;
+            String combined = batchLine + "\n" + message;
+            progressThrottler.maybeRun(() -> mainHandler.post(() -> callback.onProgress(overall, combined)));
+        });
+        try {
+            progressThrottler.forceRun(() -> mainHandler.post(
+                    () -> callback.onProgress((index * 100) / totalItems, batchLine)));
+            // "" when the source has no name: the output then gets a random one.
+            String sourceName = item.fileName() != null ? item.fileName() : "";
+            CleanResult result = item.isVideo()
+                    ? metadataStripper.cleanVideo(item.uri(), sourceName)
+                    : metadataStripper.cleanImage(item.uri(), sourceName);
+            Uri processedUri = result.uri();
+            if (processedUri == null) {
+                return result.unsupported() ? BatchRun.Outcome.UNSUPPORTED : BatchRun.Outcome.NOT_CLEANED;
+            }
+            CleanStats stats = result.stats();
+            addSucceeded(new Succeeded(item.uri(), sourceName, processedUri, stats));
+            StatsStore.recordClean(context, stats != null ? stats : new CleanStats(0, false), item.isVideo(), false);
+            return BatchRun.Outcome.SUCCEEDED;
+        } finally {
+            metadataStripper.setProgressCallback(null);
+        }
     }
 }
