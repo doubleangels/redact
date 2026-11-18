@@ -6,6 +6,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
+import com.doubleangels.redact.media.InboundSnapshots;
 import com.doubleangels.redact.media.SecureDelete;
 
 import java.io.File;
@@ -42,7 +43,7 @@ public final class CacheCleanup {
     /** Glide's default disk cache folder (InternalCacheDiskCacheFactory). */
     private static final String GLIDE_DISK_CACHE_DIR = "image_manager_disk_cache";
     private static final String[] TEMP_PREFIXES = {
-            "temp_", "verify_", "vid_transform_", "vid_transmux_", "inbound_", "censored_",
+            "temp_", "verify_", "vid_transform_", "vid_transmux_", InboundSnapshots.PREFIX, "censored_",
             // Copies of a picture, video or its tags made on the way to a clean file.
             "vid_keep_", "motion_", "gainmap_", "heif_body_", "heif_exif_", "png16_", "exif_carrier_",
             "xmp_"

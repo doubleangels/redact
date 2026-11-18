@@ -1,6 +1,7 @@
 package com.doubleangels.redact;
 
 import com.doubleangels.redact.media.BatchRun;
+import com.doubleangels.redact.media.InboundSnapshots;
 import java.util.HashMap;
 import java.util.Map;
 import android.app.Activity;
@@ -34,9 +35,6 @@ import com.doubleangels.redact.media.SecureDelete;
 import com.doubleangels.redact.media.VideoMedia3Converter;
 import com.doubleangels.redact.metadata.MetadataStripper;
 import com.doubleangels.redact.notifications.LocalNotifications;
-import com.doubleangels.redact.media.MediaSizeLimits;
-import com.doubleangels.redact.media.MediaUriResolver;
-import com.doubleangels.redact.media.ProcessingCancelledException;
 import com.doubleangels.redact.media.ProcessingResourceWarnings;
 import com.doubleangels.redact.metadata.CleanResult;
 import com.doubleangels.redact.metadata.CleanStats;
@@ -51,12 +49,6 @@ import com.google.android.material.color.DynamicColors;
 
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -506,162 +498,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
     /** Copies each item to cache, on a background thread; stops early when the share ends. */
     @NonNull
     private List<Uri> snapshotInboundUris(@NonNull List<Uri> uris, @NonNull ShareSession session) {
-        List<Uri> stable = new ArrayList<>();
-        session.snapshotFailCount.set(0);
-        for (Uri uri : uris) {
-            if (!isCurrentSession(session)) {
-                break;
-            }
-            // Intake lets through only another app's content:// (isSupportedInboundUri), so each
-            // item is copied from its provider.
-            try {
-                File snapshot = copyInboundUriToCache(uri, session);
-                if (!isCurrentSession(session) || !session.addSnapshot(snapshot)) {
-                    // The share was cancelled during the copy and its cleanup has already
-                    // run, so nothing else would delete this one.
-                    SecureDelete.secureDelete(snapshot);
-                    break;
-                }
-                stable.add(Uri.fromFile(snapshot));
-            } catch (IOException e) {
-                if (!isCurrentSession(session)) {
-                    break;
-                }
-                // The source is already unreadable here, so forwarding the original URI
-                // would only fail identically at every later processing stage (extractor,
-                // transcoder, verifier), each logging its own duplicate exception for what
-                // is really a single failure. Drop this item instead, but count it so the
-                // user still sees the partial-success message.
-                session.snapshotFailCount.incrementAndGet();
-                SentryManager.count("share.snapshot.failure", 1, "error_type",
-                        e instanceof FileNotFoundException ? "not_found" : e.getClass().getSimpleName());
-                if (e instanceof FileNotFoundException) {
-                    // The sharing app handed us a URI whose item no longer exists (deleted,
-                    // or a stale cloud/gallery entry). Nothing on our side to fix.
-                    SentryManager.logEvent("Share", "An inbound item no longer exists and was skipped.");
-                } else {
-                    SentryManager.recordException(e);
-                }
-            }
-        }
-        return stable;
-    }
-
-    @NonNull
-    private File copyInboundUriToCache(@NonNull Uri uri, @NonNull ShareSession session) throws IOException {
-        String type;
-        try {
-            type = getContentResolver().getType(uri);
-        } catch (RuntimeException e) {
-            type = null;
-        }
-        // The suffix is all the clean has to go on later (the copy has no type), and it
-        // picks the output's format: naming every image .jpg turned PNGs, WebPs and HEICs into
-        // JPEGs, and a PNG's transparency into black.
-        String suffix = suffixFor(type, MediaUriResolver.readDisplayName(this, uri));
-        File dest = new File(getCacheDir(), "inbound_" + System.nanoTime() + suffix);
-        try (InputStream in = getContentResolver().openInputStream(uri);
-                FileOutputStream out = new FileOutputStream(dest)) {
-            if (in == null) {
-                throw new IOException("Cannot open inbound stream");
-            }
-            copyForSession(in, out, session);
-        } catch (IOException e) {
-            // A partial copy still holds part of the original.
-            SecureDelete.secureDelete(dest);
-            throw e;
-        }
-        return dest;
-    }
-
-    /** Copies a whole stream, giving up as soon as the share it belongs to is cancelled. */
-    private void copyForSession(@NonNull InputStream in, @NonNull OutputStream out, @NonNull ShareSession session)
-            throws IOException {
-        try {
-            MediaSizeLimits.copyStream(in, out, () -> {
-                if (!isCurrentSession(session)) {
-                    throw new UncheckedIOException(
-                            new ProcessingCancelledException("Share cancelled"));
-                }
-            });
-        } catch (UncheckedIOException e) {
-            throw e.getCause();
-        }
-    }
-
-    /**
-     * The suffix for a snapshot of a shared item: the one its type names, else the extension of its
-     * name when that is a media extension Redact recognizes, else {@code .bin}.
-     */
-    @VisibleForTesting
-    @NonNull
-    static String suffixFor(@Nullable String mimeType, @Nullable String name) {
-        if (mimeType != null) {
-            switch (mimeType.toLowerCase(Locale.US)) {
-                case "image/jpeg":
-                case "image/jpg":
-                    return ".jpg";
-                case "image/png":
-                    return ".png";
-                case "image/webp":
-                    return ".webp";
-                case "image/heic":
-                    return ".heic";
-                case "image/heif":
-                    return ".heif";
-                case "image/avif":
-                    return ".avif";
-                case "image/gif":
-                    return ".gif";
-                case "image/bmp":
-                    return ".bmp";
-                case "video/mp4":
-                    return ".mp4";
-                case "video/quicktime":
-                    return ".mov";
-                case "video/webm":
-                    return ".webm";
-                case "video/x-matroska":
-                    return ".mkv";
-                case "video/3gpp":
-                    return ".3gp";
-                default:
-                    break;
-            }
-        }
-        String lower = name != null ? name.toLowerCase(Locale.US) : "";
-        int dot = lower.lastIndexOf('.');
-        String extension = dot >= 0 ? lower.substring(dot) : "";
-        switch (extension) {
-            case ".jpeg":
-                return ".jpg";
-            case ".jpg":
-            case ".png":
-            case ".webp":
-            case ".heic":
-            case ".heif":
-            case ".avif":
-            case ".gif":
-            case ".bmp":
-            case ".mp4":
-            case ".m4v":
-            case ".mov":
-            case ".webm":
-            case ".mkv":
-            case ".3gp":
-            case ".avi":
-                return extension;
-            default:
-                break;
-        }
-        // A type with no known extension still says which decoder the item needs.
-        if (mimeType != null && mimeType.startsWith("video/")) {
-            return ".mp4";
-        }
-        if (mimeType != null && mimeType.startsWith("image/")) {
-            return ".jpg";
-        }
-        return ".bin";
+        // Intake lets through only another app's content:// (isSupportedInboundUri), so each item
+        // is copied from its provider.
+        return InboundSnapshots.copyAll(getApplicationContext(), uris, () -> isCurrentSession(session),
+                session::addSnapshot, session.snapshotFailCount);
     }
 
     /** Starts cleaning the snapshots, after asking first when Settings says to. */
@@ -1012,16 +852,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     /** Securely deletes inbound snapshots off the main thread; they hold the original media. */
     private static void deleteSnapshots(@NonNull List<File> filesToDelete) {
-        if (filesToDelete.isEmpty()) {
-            return;
-        }
-        cleanupExecutor.execute(() -> {
-            for (File file : filesToDelete) {
-                if (file != null && file.exists() && !SecureDelete.secureDelete(file)) {
-                    file.deleteOnExit();
-                }
-            }
-        });
+        InboundSnapshots.deleteAll(filesToDelete, cleanupExecutor);
     }
 
     private void cleanupProcessedFiles() {

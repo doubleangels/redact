@@ -1,5 +1,6 @@
 package com.doubleangels.redact;
 
+import com.doubleangels.redact.media.InboundSnapshots;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -446,22 +447,22 @@ public class ShareHandlerActivityTest {
 
     @Test
     public void snapshotSuffix_keepsTheSharedItemsOwnFormat() {
-        assertEquals(".png", ShareHandlerActivity.suffixFor("image/png", "shot.png"));
-        assertEquals(".webp", ShareHandlerActivity.suffixFor("image/webp", null));
-        assertEquals(".heic", ShareHandlerActivity.suffixFor("image/heic", "IMG_1.HEIC"));
-        assertEquals(".avif", ShareHandlerActivity.suffixFor("image/avif", null));
-        assertEquals(".avif", ShareHandlerActivity.suffixFor(null, "photo.AVIF"));
-        assertEquals(".gif", ShareHandlerActivity.suffixFor("image/gif", null));
-        assertEquals(".jpg", ShareHandlerActivity.suffixFor("image/jpeg", "a.png"));
-        assertEquals(".mov", ShareHandlerActivity.suffixFor("video/quicktime", null));
-        assertEquals(".webm", ShareHandlerActivity.suffixFor("video/webm", null));
+        assertEquals(".png", InboundSnapshots.suffixFor("image/png", "shot.png"));
+        assertEquals(".webp", InboundSnapshots.suffixFor("image/webp", null));
+        assertEquals(".heic", InboundSnapshots.suffixFor("image/heic", "IMG_1.HEIC"));
+        assertEquals(".avif", InboundSnapshots.suffixFor("image/avif", null));
+        assertEquals(".avif", InboundSnapshots.suffixFor(null, "photo.AVIF"));
+        assertEquals(".gif", InboundSnapshots.suffixFor("image/gif", null));
+        assertEquals(".jpg", InboundSnapshots.suffixFor("image/jpeg", "a.png"));
+        assertEquals(".mov", InboundSnapshots.suffixFor("video/quicktime", null));
+        assertEquals(".webm", InboundSnapshots.suffixFor("video/webm", null));
         // No type: the name decides, so an untyped video is not handed to the image decoder.
-        assertEquals(".png", ShareHandlerActivity.suffixFor(null, "Screenshot.PNG"));
-        assertEquals(".jpg", ShareHandlerActivity.suffixFor(null, "photo.jpeg"));
-        assertEquals(".mkv", ShareHandlerActivity.suffixFor("application/octet-stream", "clip.mkv"));
+        assertEquals(".png", InboundSnapshots.suffixFor(null, "Screenshot.PNG"));
+        assertEquals(".jpg", InboundSnapshots.suffixFor(null, "photo.jpeg"));
+        assertEquals(".mkv", InboundSnapshots.suffixFor("application/octet-stream", "clip.mkv"));
         // An unfamiliar type keeps to its kind; nothing usable at all is left to the decoders.
-        assertEquals(".jpg", ShareHandlerActivity.suffixFor("image/x-unknown", "picture"));
-        assertEquals(".mp4", ShareHandlerActivity.suffixFor("video/x-unknown", null));
-        assertEquals(".bin", ShareHandlerActivity.suffixFor(null, null));
+        assertEquals(".jpg", InboundSnapshots.suffixFor("image/x-unknown", "picture"));
+        assertEquals(".mp4", InboundSnapshots.suffixFor("video/x-unknown", null));
+        assertEquals(".bin", InboundSnapshots.suffixFor(null, null));
     }
 }
