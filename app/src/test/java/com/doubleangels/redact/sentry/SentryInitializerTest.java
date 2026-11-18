@@ -67,6 +67,36 @@ public class SentryInitializerTest {
         return new SentryMetricsEvent(new SentryId(), (Double) 1.0, "count", "counter", (Double) 1.0);
     }
 
+    /**
+     * Crash reports turned off while the SDK was still starting in the background: shutdown()
+     * found nothing to close then, so the start must close the SDK itself rather than keep it.
+     * Sessions and profiles have no consent check that would stop them later.
+     */
+    @Test
+    public void reportsTurnedOffWhileStarting_closeTheSdkInsteadOfKeepingIt() {
+        AppPreferences.setCrashReportingEnabled(app, true);
+        SentryInitializer.testDsnOverride = UNREACHABLE_DSN;
+        assertTrue(SentryInitializer.runSentryInitSafely(app));
+        assertTrue(Sentry.isEnabled());
+
+        AppPreferences.setCrashReportingEnabled(app, false);
+        SentryInitializer.shutdown(); // too early: nothing is initialized yet
+
+        assertFalse(SentryInitializer.keepIfStillWanted(app));
+        assertFalse(SentryInitializer.isInitialized());
+        assertFalse("the SDK was closed", Sentry.isEnabled());
+    }
+
+    @Test
+    public void reportsStillOn_keepTheSdk() {
+        AppPreferences.setCrashReportingEnabled(app, true);
+        SentryInitializer.testDsnOverride = UNREACHABLE_DSN;
+        assertTrue(SentryInitializer.runSentryInitSafely(app));
+
+        assertTrue(SentryInitializer.keepIfStillWanted(app));
+        assertTrue(SentryInitializer.isInitialized());
+    }
+
     /** The SDK refusing to start must leave the app running, not end it before reporting is up. */
     @Test
     public void anSdkThatFailsToStart_leavesTheAppRunningWithoutReporting() {

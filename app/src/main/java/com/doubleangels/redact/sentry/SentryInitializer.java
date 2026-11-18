@@ -84,12 +84,14 @@ public final class SentryInitializer {
                 return;
             }
             initializing = true;
+            boolean kept = false;
             try {
-                if (runSentryInitSafely(app)) {
-                    initialized = true;
-                }
+                kept = runSentryInitSafely(app) && keepIfStillWanted(app);
             } finally {
                 initializing = false;
+            }
+            if (kept) {
+                ProcessExits.report(app);
             }
         }
     }
@@ -102,18 +104,42 @@ public final class SentryInitializer {
             initializing = true;
         }
         new Thread(() -> {
+            boolean kept = false;
             try {
-                if (runSentryInitSafely(context)) {
-                    synchronized (INIT_LOCK) {
-                        initialized = true;
-                    }
+                boolean started = runSentryInitSafely(context);
+                synchronized (INIT_LOCK) {
+                    kept = started && keepIfStillWanted(context);
                 }
             } finally {
                 synchronized (INIT_LOCK) {
                     initializing = false;
                 }
             }
+            if (kept) {
+                ProcessExits.report(context);
+            }
         }, "redact-sentry-init").start();
+    }
+
+    /**
+     * Called under {@link #INIT_LOCK} once the SDK has started. Crash reports can be turned off
+     * while it starts in the background, and {@link #shutdown} then finds nothing to close yet, so
+     * the decision is made here: the SDK stays only if reports are still on, and is closed
+     * otherwise. Sessions and profiles have no consent check of their own to stop them later.
+     */
+    @VisibleForTesting
+    static boolean keepIfStillWanted(Context context) {
+        if (AppPreferences.isCrashReportingEnabled(context)) {
+            initialized = true;
+            return true;
+        }
+        try {
+            Sentry.close();
+        } catch (RuntimeException ignored) {
+            // Best effort, as in shutdown.
+        }
+        initialized = false;
+        return false;
     }
 
     /**
@@ -280,9 +306,6 @@ public final class SentryInitializer {
                 return transaction;
             });
         });
-        if (configured.get()) {
-            ProcessExits.report(context);
-        }
         if (configured.get() && BuildConfig.DEBUG) {
             Sentry.logger().info("Redact Sentry telemetry enabled");
             Sentry.metrics().count("debug.init", 1.0);
@@ -309,7 +332,8 @@ public final class SentryInitializer {
     public static void shutdown() {
         synchronized (INIT_LOCK) {
             if (!initialized) {
-                initializing = false;
+                // A start still in flight sees reports are off when it finishes
+                // (keepIfStillWanted) and closes the SDK itself.
                 return;
             }
             try {
