@@ -831,15 +831,30 @@ public class ImageContainerWalkerTest {
         assertEquals(IccProfiles.NEUTRAL_NAME, finding(scan(out).kept, "ICC_PROFILE").text);
     }
 
-    /** Pieces that do not arrive in order are written as they came, so the colours are kept. */
+    /**
+     * Pieces that arrive out of order are put back in sequence and rebuilt, so the colours stay
+     * and the name and device text go. Written as they came, they kept both.
+     */
     @Test
-    public void piecesOutOfOrder_areKeptAsTheyCame() throws Exception {
+    public void piecesOutOfOrder_arePutBackInOrder_andNeutralized() throws Exception {
         byte[] profile = calibratedProfile();
         int half = profile.length / 2;
         byte[] jpeg = jpeg(seg(0xE2, cat(a("ICC_PROFILE\0"), b(2, 2), Arrays.copyOfRange(profile, half, profile.length))),
                 seg(0xE2, cat(a("ICC_PROFILE\0"), b(1, 2), Arrays.copyOfRange(profile, 0, half))));
         byte[] out = sanitizeNeutral(jpeg);
-        assertTrue(contains(out, Arrays.copyOfRange(profile, half, profile.length)));
+        assertTrue("the colour tags stay", contains(out, XYZ));
+        assertFalse(contains(out, a("Jane")));
+        assertEquals(IccProfiles.NEUTRAL_NAME, finding(scan(out).kept, "ICC_PROFILE").text);
+    }
+
+    /** Pieces that never make a whole profile can't be rebuilt, so Strict Clean leaves them out. */
+    @Test
+    public void anIncompleteProfile_isLeftOutOfAStrictClean() throws Exception {
+        byte[] profile = calibratedProfile();
+        byte[] jpeg = jpeg(seg(0xE2, cat(a("ICC_PROFILE\0"), b(1, 2), Arrays.copyOfRange(profile, 0, profile.length / 2))));
+        byte[] out = sanitizeNeutral(jpeg);
+        assertFalse(contains(out, a("Jane")));
+        assertFalse(contains(out, a("ICC_PROFILE")));
     }
 
     @Test
@@ -860,7 +875,7 @@ public class ImageContainerWalkerTest {
     }
 
     @Test
-    public void tagsThatShareData_stillShareIt_andABrokenTableIsLeftAlone() {
+    public void tagsThatShareData_stillShareIt_andABrokenTableIsDropped() {
         byte[] profile = icc("rTRC", iccTag("curv", be32(0)), "gTRC", iccTag("curv", be32(0)),
                 "dmnd", text("Acme"));
         // Point gTRC at rTRC's data, as profile writers do.
@@ -873,6 +888,33 @@ public class ImageContainerWalkerTest {
 
         byte[] broken = icc("wtpt", XYZ);
         System.arraycopy(be32(1 << 20), 0, broken, 132 + 4, 4);
-        assertSame(broken, IccProfiles.neutralize(broken));
+        // Kept as it was, a profile like this would keep its name and device text.
+        org.junit.Assert.assertNull(IccProfiles.neutralize(broken));
+        org.junit.Assert.assertNull("too short to be a profile", IccProfiles.neutralize(new byte[100]));
+    }
+
+    /** Only a standard profile's whole name keeps it; text after one is someone's own. */
+    @Test
+    public void onlyWholeStandardNames_areWellKnown() {
+        assertTrue(IccProfiles.isWellKnown("sRGB IEC61966-2.1"));
+        assertTrue(IccProfiles.isWellKnown("  Display   P3 "));
+        assertTrue(IccProfiles.isWellKnown("Adobe RGB (1998)"));
+        assertFalse(IccProfiles.isWellKnown("sRGB - Jordan's Dell U2720Q 2026-03-01"));
+        assertFalse(IccProfiles.isWellKnown("Display P3 calibrated 2026-03-01"));
+        assertFalse(IccProfiles.isWellKnown("Jordan's monitor"));
+        assertFalse(IccProfiles.isWellKnown(null));
+    }
+
+    /** Strict Clean and shares leave out a profile they can't rebuild rather than keep its text. */
+    @Test
+    public void aProfileThatCantBeRebuilt_isLeftOutOfAStrictClean() throws Exception {
+        byte[] broken = calibratedProfile();
+        System.arraycopy(be32(5000), 0, broken, 128, 4); // more tags than any profile has
+        byte[] vp8x = b(0x20, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        byte[] webp = sanitizeNeutral(webp(webpChunk("VP8X", vp8x), webpChunk("ICCP", broken),
+                webpChunk("VP8 ", new byte[10])));
+
+        assertFalse(contains(webp, a("Jane")));
+        assertFalse(contains(webp, a("ICCP")));
     }
 }

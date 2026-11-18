@@ -491,8 +491,10 @@ public final class ImageContainerMetadata {
         }
 
         /**
-         * Holds one APP2 piece of a profile. Once all of them have come, in order, the profile is
-         * rebuilt ({@link IccProfiles#neutralize}) and written again as new pieces.
+         * Holds one APP2 piece of a profile. Once every piece has come, in any order, they are put
+         * back in sequence and the profile is rebuilt ({@link IccProfiles#neutralize}) and written
+         * again as new pieces. Pieces that never make a whole, consistent profile are left out
+         * (see {@link #flushPendingIcc}).
          */
         private void holdIccPiece(@NonNull byte[] chunk) throws IOException {
             int sequence = chunk[12] & 0xFF;
@@ -502,23 +504,38 @@ public final class ImageContainerMetadata {
                 pendingIccTotal = total;
             }
             pendingIcc.add(chunk);
-            if (total != pendingIccTotal || sequence != pendingIcc.size()) {
-                pendingIccTotal = -1; // out of order or inconsistent: written as it came
+            if (total != pendingIccTotal || sequence < 1 || sequence > total) {
+                pendingIccTotal = -1; // inconsistent: can't be put back together
             }
             if (pendingIccTotal > 0 && pendingIcc.size() == pendingIccTotal) {
+                List<byte[]> ordered = new ArrayList<>(pendingIcc);
+                ordered.sort((x, y) -> Integer.compare(x[12] & 0xFF, y[12] & 0xFF));
+                for (int i = 0; i < ordered.size(); i++) {
+                    if ((ordered.get(i)[12] & 0xFF) != i + 1) {
+                        return; // a piece twice and another missing: left out at the picture
+                    }
+                }
                 ByteArrayOutputStream whole = new ByteArrayOutputStream();
-                for (byte[] piece : pendingIcc) {
+                for (byte[] piece : ordered) {
                     whole.write(piece, 14, piece.length - 14);
                 }
                 byte[] profile = IccProfiles.neutralize(whole.toByteArray());
                 pendingIcc = null;
-                writeIccPieces(profile);
+                if (profile != null) {
+                    writeIccPieces(profile);
+                }
             }
         }
 
         /** Writes what is held as it came, when the picture starts before the profile is whole. */
         private void flushPendingIcc() throws IOException {
             if (pendingIcc == null) {
+                return;
+            }
+            if (neutralIcc) {
+                // Pieces that never made a whole profile can't be rebuilt, and as they came they
+                // would keep the profile's name and device text, so Strict Clean leaves them out.
+                pendingIcc = null;
                 return;
             }
             for (byte[] piece : pendingIcc) {
@@ -1178,6 +1195,9 @@ public final class ImageContainerMetadata {
             clearIccHeader(profile, 0);
             if (neutralIcc) {
                 profile = IccProfiles.neutralize(profile);
+                if (profile == null) {
+                    return; // left out: see IccProfiles.neutralize
+                }
             }
             ByteArrayOutputStream body = new ByteArrayOutputStream();
             body.write(ascii("ICC Profile"));
@@ -1289,6 +1309,9 @@ public final class ImageContainerMetadata {
                             clearIccHeader(profile, 0);
                             if (neutralIcc) {
                                 profile = IccProfiles.neutralize(profile);
+                                if (profile == null) {
+                                    break; // left out: see IccProfiles.neutralize
+                                }
                             }
                             body.write(ascii("ICCP"));
                             body.write(le32Bytes(profile.length));
