@@ -89,7 +89,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
      * cancel/finish/onDestroy call into cleanup.
      */
     private static final ExecutorService cleanupExecutor =
-            Executors.newSingleThreadExecutor();
+            Executors.newSingleThreadExecutor(r -> new Thread(r, "redact-share-cleanup"));
 
     /**
      * Marks a share Redact's own Clean tab started with {@link #shareWithoutSaving}, which skips
@@ -867,7 +867,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 SentryManager.distributionDurationMs("processing.duration_ms",
                         System.currentTimeMillis() - batchStartMs, "operation_type", "share");
             }
-        });
+        }, "redact-share-worker");
         processingThread = worker;
         worker.start();
     }

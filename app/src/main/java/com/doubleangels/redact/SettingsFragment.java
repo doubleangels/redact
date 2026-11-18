@@ -131,7 +131,7 @@ public class SettingsFragment extends TabFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        backgroundExecutor = Executors.newSingleThreadExecutor();
+        backgroundExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "redact-settings-io"));
         try {
             bindViews(view);
             imageFormatLabels = getResources().getStringArray(R.array.settings_image_format_labels);

@@ -300,7 +300,7 @@ public class CleanFragment extends TabFragment {
                                 // rather than leave the button doing nothing.
                                 runOnUiThreadIfAdded(() -> viewModel.startCleaning(items));
                             }
-                        }).start();
+                        }, "redact-clean-checks").start();
                     } else {
                         SentryManager.log("No items were selected for processing.");
                         uiStateManager.setFirstSelectMediaFilesStatus();

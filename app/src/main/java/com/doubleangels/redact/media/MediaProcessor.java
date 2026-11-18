@@ -96,7 +96,8 @@ public class MediaProcessor {
     /** Flag to allow cancellation of ongoing processing */
     private final AtomicBoolean cancelled = new AtomicBoolean(false);
 
-    private final ExecutorService processingExecutor = Executors.newSingleThreadExecutor();
+    private final ExecutorService processingExecutor =
+            Executors.newSingleThreadExecutor(r -> new Thread(r, "redact-clean"));
 
     /**
      * Callback interface for reporting processing progress and completion.
