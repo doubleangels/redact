@@ -1677,33 +1677,19 @@ public final class HeifContainerMetadata {
         }
         // Read the SEI messages with the emulation prevention bytes removed.
         byte[] rbsp = unescape(data, start + 2, length - 2);
-        int pos = 0;
-        while (pos < rbsp.length) {
-            if (pos == rbsp.length - 1 && (rbsp[pos] & 0xFF) == 0x80) {
+        int[] at = {0};
+        while (at[0] < rbsp.length) {
+            if (at[0] == rbsp.length - 1 && (rbsp[at[0]] & 0xFF) == 0x80) {
                 return true; // rbsp trailing bits
             }
-            int payloadType = 0;
-            while (pos < rbsp.length && (rbsp[pos] & 0xFF) == 0xFF) {
-                payloadType += 255;
-                pos++;
-            }
-            if (pos >= rbsp.length) {
+            // Bounded, so a long run of 0xFF can't wrap the size negative and step backwards.
+            int payloadType = VideoStreamMetadata.seiNumber(rbsp, at, VideoStreamMetadata.MAX_SEI_PAYLOAD_TYPE);
+            int payloadSize = payloadType < 0 ? -1 : VideoStreamMetadata.seiNumber(rbsp, at, rbsp.length);
+            if (payloadSize < 0 || !SEI_KEEP.contains(payloadType)
+                    || payloadSize > rbsp.length - at[0]) {
                 return false;
             }
-            payloadType += rbsp[pos++] & 0xFF;
-            int payloadSize = 0;
-            while (pos < rbsp.length && (rbsp[pos] & 0xFF) == 0xFF) {
-                payloadSize += 255;
-                pos++;
-            }
-            if (pos >= rbsp.length) {
-                return false;
-            }
-            payloadSize += rbsp[pos++] & 0xFF;
-            if (!SEI_KEEP.contains(payloadType) || pos + payloadSize > rbsp.length) {
-                return false;
-            }
-            pos += payloadSize;
+            at[0] += payloadSize;
         }
         return true;
     }

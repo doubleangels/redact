@@ -108,8 +108,12 @@ public class VideoStreamMetadataTest {
         assertEquals(240, r.text.length());
     }
 
+    /**
+     * A message that can't be read to its end is still data a quick copy would carry, so it is
+     * counted and the video is encoded again rather than copied (as for a too-short UUID below).
+     */
     @Test
-    public void truncatedMessages_endTheScanWithoutCounting() {
+    public void truncatedMessages_endTheScan_andCount() {
         byte[][] truncated = {
                 {0x06, (byte) 0xFF}, // type never ends
                 {0x06, 0x05}, // no size
@@ -117,7 +121,7 @@ public class VideoStreamMetadataTest {
                 {0x06, 0x05, 0x20, 1, 2}, // body shorter than its size
         };
         for (byte[] sei : truncated) {
-            assertEquals(0, VideoStreamMetadata.scanBuffer(stream(sei), false).userDataMessages);
+            assertEquals(1, VideoStreamMetadata.scanBuffer(stream(sei), false).userDataMessages);
         }
     }
 
@@ -155,6 +159,49 @@ public class VideoStreamMetadataTest {
 
         assertEquals(1, r.userDataMessages);
         assertEquals("abcd", r.text);
+    }
+
+    /**
+     * A payload size of 16,777,215 0xFF bytes and a last byte of 254 wraps an int sum to exactly
+     * minus the header's length, which stepped the parser back to the same message forever.
+     */
+    @Test(timeout = 20_000)
+    public void aSizeThatWouldWrapNegative_endsTheScan_andCounts() {
+        byte[] nal = overflowingSei(new byte[] {0x06}, 5);
+
+        assertEquals(1, VideoStreamMetadata.scanBuffer(stream(nal), false).userDataMessages);
+    }
+
+    @Test
+    public void aSizeLargerThanItsNal_countsRatherThanPasses() {
+        assertEquals(1, VideoStreamMetadata.scanBuffer(
+                stream(new byte[] {0x06, 5, 50, 1, 2, (byte) 0x80}), false).userDataMessages);
+    }
+
+    @Test
+    public void seiNumber_isBoundedByTheData() {
+        int[] at = {0};
+        assertEquals(255 + 7, VideoStreamMetadata.seiNumber(new byte[] {(byte) 0xFF, 7}, at, 1000));
+        assertEquals("moves past the number", 2, at[0]);
+        assertEquals("the data ends first", -1,
+                VideoStreamMetadata.seiNumber(new byte[] {(byte) 0xFF, (byte) 0xFF}, new int[] {0}, 1000));
+        assertEquals(-1, VideoStreamMetadata.seiNumber(new byte[0], new int[] {0}, 1000));
+        assertEquals("larger than allowed", -1,
+                VideoStreamMetadata.seiNumber(new byte[] {(byte) 0xFF, (byte) 0xFF, 1}, new int[] {0}, 300));
+    }
+
+    /** An SEI NAL whose payload size, summed in an int, wraps to minus its own header's length. */
+    static byte[] overflowingSei(byte[] header, int payloadType) {
+        int run = 16_777_215;
+        byte[] nal = new byte[header.length + 1 + run + 2];
+        System.arraycopy(header, 0, nal, 0, header.length);
+        int at = header.length;
+        nal[at++] = (byte) payloadType;
+        java.util.Arrays.fill(nal, at, at + run, (byte) 0xFF);
+        at += run;
+        nal[at++] = (byte) 254;
+        nal[at] = (byte) 0x80;
+        return nal;
     }
 
     @Test

@@ -425,27 +425,15 @@ public final class VideoStreamMetadata {
     }
 
     private static void seiMessages(@NonNull byte[] rbsp, @NonNull Counter counter) {
-        int pos = 0;
-        while (pos < rbsp.length && !(rbsp.length - pos == 1 && (rbsp[pos] & 0xFF) == 0x80)) {
-            int type = 0;
-            while (pos < rbsp.length && (rbsp[pos] & 0xFF) == 0xFF) {
-                type += 255;
-                pos++;
-            }
-            if (pos >= rbsp.length) {
-                return;
-            }
-            type += rbsp[pos++] & 0xFF;
-            int size = 0;
-            while (pos < rbsp.length && (rbsp[pos] & 0xFF) == 0xFF) {
-                size += 255;
-                pos++;
-            }
-            if (pos >= rbsp.length) {
-                return;
-            }
-            size += rbsp[pos++] & 0xFF;
-            if (pos + size > rbsp.length) {
+        int[] at = {0};
+        while (at[0] < rbsp.length && !(rbsp.length - at[0] == 1 && (rbsp[at[0]] & 0xFF) == 0x80)) {
+            int type = seiNumber(rbsp, at, MAX_SEI_PAYLOAD_TYPE);
+            int size = type < 0 ? -1 : seiNumber(rbsp, at, rbsp.length);
+            int pos = at[0];
+            if (size < 0 || size > rbsp.length - pos) {
+                // Damaged, or larger than its NAL unit: data that can't be read is never called
+                // clean, so it counts as a message.
+                counter.messages++;
                 return;
             }
             if (type == SEI_USER_DATA_UNREGISTERED) {
@@ -463,8 +451,38 @@ public final class VideoStreamMetadata {
                     counter.text = readableText(rbsp, pos, size);
                 }
             }
-            pos += size;
+            at[0] = pos + size;
         }
+    }
+
+    /** Larger than any SEI payload type the standards define, so a longer run is damage. */
+    static final int MAX_SEI_PAYLOAD_TYPE = 65_535;
+
+    /**
+     * An SEI payload type or size at {@code at[0]}: a run of 0xFF bytes worth 255 each, then one
+     * last byte. Moves {@code at[0]} past it. Returns -1 when the data ends first, or when the
+     * value passes {@code max} (the RBSP's length, for a size): summing a long run of 0xFF in an
+     * int wrapped it negative, and the parser then stepped backwards forever.
+     */
+    static int seiNumber(@NonNull byte[] rbsp, @NonNull int[] at, int max) {
+        int pos = at[0];
+        int value = 0;
+        while (pos < rbsp.length && (rbsp[pos] & 0xFF) == 0xFF) {
+            value += 255;
+            pos++;
+            if (value > max) {
+                return -1;
+            }
+        }
+        if (pos >= rbsp.length) {
+            return -1;
+        }
+        value += rbsp[pos++] & 0xFF;
+        if (value > max) {
+            return -1;
+        }
+        at[0] = pos;
+        return value;
     }
 
     /**

@@ -145,6 +145,21 @@ public class HeifContainerMetadataTest {
         out.write(payload, 0, payload.length);
     }
 
+    /** The HEIC clean read SEI sizes like the video scan did, so a wrapped size looped forever. */
+    @Test(timeout = 20_000)
+    public void filterHevcNalUnits_dropsAnSeiWhoseSizeWouldWrapNegative() throws Exception {
+        byte[] sei = VideoStreamMetadataTest.overflowingSei(new byte[0], 137); // a kept type
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        nal(stream, 39, sei);
+        nal(stream, 1, new byte[] {9, 9, 9, 9}); // slice
+
+        byte[] filtered = HeifContainerMetadata.filterHevcNalUnits(stream.toByteArray(), 4);
+
+        ByteArrayOutputStream expected = new ByteArrayOutputStream();
+        nal(expected, 1, new byte[] {9, 9, 9, 9});
+        assertArrayEquals(expected.toByteArray(), filtered);
+    }
+
     @Test
     public void filterHevcNalUnits_dropsUserDataSei_andKeepsPicturesAndHdrSei() throws Exception {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
