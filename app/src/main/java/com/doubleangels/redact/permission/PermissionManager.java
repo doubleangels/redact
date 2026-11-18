@@ -754,8 +754,6 @@ public class PermissionManager {
     }
 
     private static void markRuntimePermissionRequestInFlight(@NonNull Activity activity) {
-        // A result nobody applied belongs to an earlier request; it must not answer this one.
-        pendingPermissionResults.clear();
         runtimePermissionRequester = new WeakReference<>(activity);
         runtimePermissionRequestInFlight = true;
     }
@@ -770,8 +768,6 @@ public class PermissionManager {
         if (owner == null || owner == activity) {
             runtimePermissionRequester = null;
             runtimePermissionRequestInFlight = false;
-            // Results stored for this screen's fragments go with it.
-            pendingPermissionResults.clear();
         }
     }
 
