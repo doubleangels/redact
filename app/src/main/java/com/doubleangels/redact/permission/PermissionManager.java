@@ -50,7 +50,7 @@ public class PermissionManager {
     }
 
     private static volatile boolean initialPermissionFlowInProgress = false;
-    private static InitialFlowStep initialFlowStep = InitialFlowStep.DONE;
+    private static volatile InitialFlowStep initialFlowStep = InitialFlowStep.DONE;
     /**
      * One per live MainActivity. Another app can open a second instance in its own task (VIEW and
      * SEND are exported), so each instance adds and removes its own instead of sharing one slot.
@@ -615,7 +615,6 @@ public class PermissionManager {
             case LOCATION -> requestInitialLocationStep(activity);
             case NOTIFICATIONS -> requestInitialNotificationsStep(activity);
             case DONE -> finishInitialPermissionFlow(activity);
-            default -> finishInitialPermissionFlow(activity);
         }
     }
 
@@ -755,6 +754,8 @@ public class PermissionManager {
     }
 
     private static void markRuntimePermissionRequestInFlight(@NonNull Activity activity) {
+        // A result nobody applied belongs to an earlier request; it must not answer this one.
+        pendingPermissionResults.clear();
         runtimePermissionRequester = new WeakReference<>(activity);
         runtimePermissionRequestInFlight = true;
     }
@@ -769,6 +770,8 @@ public class PermissionManager {
         if (owner == null || owner == activity) {
             runtimePermissionRequester = null;
             runtimePermissionRequestInFlight = false;
+            // Results stored for this screen's fragments go with it.
+            pendingPermissionResults.clear();
         }
     }
 
