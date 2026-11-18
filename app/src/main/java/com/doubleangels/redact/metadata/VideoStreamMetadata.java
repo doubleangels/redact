@@ -179,12 +179,20 @@ public final class VideoStreamMetadata {
                 }
                 return;
             }
-            IntPredicate sei = hevc
-                    ? first -> ((first >> 1) & 0x3F) == 39 || ((first >> 1) & 0x3F) == 40
-                    : first -> (first & 0x1F) == 6;
-            for (byte[] nal : units(data, sei)) {
+            IntPredicate wanted = hevc
+                    ? first -> isSeiType((first >> 1) & 0x3F, true) || isPrivateNalType((first >> 1) & 0x3F, true)
+                    : first -> isSeiType(first & 0x1F, false) || isPrivateNalType(first & 0x1F, false);
+            for (byte[] nal : units(data, wanted)) {
                 if (isSei(nal, hevc)) {
                     seiMessages(unescape(nal, hevc ? 2 : 1), this);
+                } else if (nal.length > 0 && isPrivateNalType(hevc ? (nal[0] >> 1) & 0x3F : nal[0] & 0x1F, hevc)) {
+                    // A unit of a type no standard defines carries the encoder's own data, which
+                    // only encoding the video again removes.
+                    messages++;
+                    bytes += nal.length;
+                    if (text == null) {
+                        text = readableText(nal, 1, nal.length - 1);
+                    }
                 }
             }
         }
@@ -249,6 +257,9 @@ public final class VideoStreamMetadata {
                 av1Metadata(d, payload, length, counter);
             } else if (type == OBU_PADDING && !allZero(d, payload, length)) {
                 count(counter, d, payload, length);
+            } else if (type == 0 || (type >= 9 && type <= 14)) {
+                // Reserved OBU types: data no decoder reads, which only encoding again removes.
+                count(counter, d, payload, length);
             }
             pos = payload + length;
         }
@@ -305,6 +316,19 @@ public final class VideoStreamMetadata {
             }
         }
         return null;
+    }
+
+    private static boolean isSeiType(int type, boolean hevc) {
+        return hevc ? type == 39 || type == 40 : type == 6;
+    }
+
+    /**
+     * NAL unit types left to applications or reserved: HEVC 41-61 and H.264 24-31. HEVC 62 and
+     * 63 stay out, as Dolby Vision carries its picture metadata there; filler data is padding.
+     */
+    @VisibleForTesting
+    static boolean isPrivateNalType(int type, boolean hevc) {
+        return hevc ? type >= 41 && type <= 61 : type >= 24 && type <= 31;
     }
 
     private static boolean isSei(@NonNull byte[] nal, boolean hevc) {

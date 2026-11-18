@@ -397,4 +397,17 @@ public class VideoStreamMetadataTest {
         // An extension byte that isn't there.
         assertEquals(0, VideoStreamMetadata.scanAv1Buffer(new byte[] {(byte) (5 << 3 | 0x04)}).userDataMessages);
     }
+
+    /** A unit of a type no standard defines is the encoder's own data, so it counts. */
+    @Test
+    public void unspecifiedNalTypes_countAsData_butDolbyVisionAndFillerDoNot() {
+        byte[] hevcPrivate = withHeader(new byte[] {(byte) (48 << 1), 0x01}, "private".getBytes(StandardCharsets.ISO_8859_1));
+        byte[] dolbyVision = withHeader(new byte[] {(byte) (62 << 1), 0x01}, new byte[] {1, 2, 3});
+        byte[] filler = withHeader(new byte[] {(byte) (38 << 1), 0x01}, new byte[] {(byte) 0xFF});
+        assertEquals(1, VideoStreamMetadata.scanBuffer(stream(hevcPrivate), true).userDataMessages);
+        assertEquals(0, VideoStreamMetadata.scanBuffer(stream(dolbyVision, filler), true).userDataMessages);
+
+        byte[] avcPrivate = {(byte) 25, 'p', 'r', 'i'};
+        assertEquals(1, VideoStreamMetadata.scanBuffer(stream(avcPrivate), false).userDataMessages);
+    }
 }

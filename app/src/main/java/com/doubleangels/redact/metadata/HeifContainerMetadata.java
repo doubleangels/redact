@@ -1670,10 +1670,19 @@ public final class HeifContainerMetadata {
         return out.toByteArray();
     }
 
+    /**
+     * An allowlist, like the rest of the rebuild: the slices of a picture (0-9 and the random
+     * access ones, 16-21), the parameter sets, access unit delimiter and end markers (32-37), and
+     * SEI (39, 40) holding only how to show the picture. Filler (38), reserved and unspecified
+     * types (41-63, which encoders use for data of their own) are left out.
+     */
     private static boolean keepHevcNal(@NonNull byte[] data, int start, int length) {
         int type = (data[start] >> 1) & 0x3F;
-        if (type != 39 && type != 40) {
+        if (type <= 9 || (type >= 16 && type <= 21) || (type >= 32 && type <= 37)) {
             return true;
+        }
+        if (type != 39 && type != 40) {
+            return false;
         }
         // Read the SEI messages with the emulation prevention bytes removed.
         byte[] rbsp = unescape(data, start + 2, length - 2);
@@ -1777,10 +1786,15 @@ public final class HeifContainerMetadata {
                 throw new IOException("Damaged OBU");
             }
             int end = pos + (int) size;
-            boolean keep = true;
+            // An allowlist: sequence header (1), temporal delimiter (2), frame header (3), tile
+            // group (4), frame (6), redundant frame header (7) and tile list (8), and metadata (5)
+            // only of the HDR and scalability types. Padding (15) and reserved types go.
+            boolean keep = (type >= 1 && type <= 4) || (type >= 6 && type <= 8);
             if (type == 5) {
                 long metadataType = size > 0 ? leb128(data, pos)[0] : -1;
-                keep = AV1_METADATA_KEEP.contains((int) metadataType);
+                // Compared in full: cast to int first, 2^32 + 1 read as 1 and was kept.
+                keep = metadataType >= 0 && metadataType <= Integer.MAX_VALUE
+                        && AV1_METADATA_KEEP.contains((int) metadataType);
             }
             if (keep) {
                 out.write(data, start, end - start);

@@ -662,4 +662,38 @@ public class HeifContainerMetadataTest {
         assertArrayEquals("the rebuilt tracks point at the right samples", out, Files.readAllBytes(again.toPath()));
         assertTrue(ImageContainerMetadata.scan(clean).isClean());
     }
+
+    /** Only the NAL types a picture needs are kept; filler, reserved and unspecified ones go. */
+    @Test
+    public void filterHevcNalUnits_keepsOnlyTheTypesAPictureNeeds() throws Exception {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        nal(stream, 32, new byte[] {1, 2, 3}); // VPS
+        nal(stream, 19, new byte[] {7, 7}); // IDR slice
+        nal(stream, 38, new byte[] {(byte) 0xFF, (byte) 0xFF}); // filler
+        nal(stream, 48, "SecretPrivate".getBytes(StandardCharsets.US_ASCII)); // unspecified
+        nal(stream, 45, new byte[] {1}); // reserved
+
+        byte[] filtered = HeifContainerMetadata.filterHevcNalUnits(stream.toByteArray(), 4);
+
+        ByteArrayOutputStream expected = new ByteArrayOutputStream();
+        nal(expected, 32, new byte[] {1, 2, 3});
+        nal(expected, 19, new byte[] {7, 7});
+        assertArrayEquals(expected.toByteArray(), filtered);
+    }
+
+    /** A metadata type is compared in full: 2^32 + 1 is not type 1. Padding and reserved OBUs go. */
+    @Test
+    public void filterAv1Obus_dropsPaddingReservedAndOverlongMetadataTypes() throws Exception {
+        byte[] sequenceHeader = {(byte) (1 << 3 | 0x02), 2, 9, 9};
+        byte[] padding = {(byte) (15 << 3 | 0x02), 2, 'h', 'i'};
+        byte[] reserved = {(byte) (9 << 3 | 0x02), 1, 'x'};
+        // metadata OBU whose type is the leb128 of 2^32 + 1
+        byte[] overlong = {(byte) (5 << 3 | 0x02), 7, (byte) 0x81, (byte) 0x80, (byte) 0x80, (byte) 0x80, 0x10, 'z', 'z'};
+        overlong[1] = 7;
+        byte[] data = cat(sequenceHeader, padding, reserved, overlong);
+
+        byte[] filtered = HeifContainerMetadata.filterAv1Obus(data);
+
+        assertArrayEquals(sequenceHeader, filtered);
+    }
 }
