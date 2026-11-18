@@ -214,6 +214,54 @@
     </table>
     </div>
 
+    <h3 id="sentry-names">Names in Sentry</h3>
+    <p>Every tag, counter and breadcrumb the app sends follows one scheme, so a search in Sentry finds what it means.</p>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Kind</th><th>Scheme</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>State tags</td><td><code>group.field</code>, lower case, at most 32 characters: what was true when the report was made</td></tr>
+            <tr><td>Result tags</td><td><code>outcome</code>, <code>reason</code> and <code>error_type</code>, the same in every tag and counter</td></tr>
+            <tr><td>Counters</td><td><code>area.event</code>, with what came of it in <code>outcome</code> and why in <code>reason</code></td></tr>
+            <tr><td>Timings and sizes</td><td><code>area.event.measure</code>, with the unit (milliseconds, megabytes) sent alongside, never in the name</td></tr>
+            <tr><td>Breadcrumb categories</td><td>a lower-case area, like the SDK's own <code>ui.click</code> and <code>navigation</code></td></tr>
+        </tbody>
+    </table>
+    </div>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Tags</th><th>When</th><th>Names</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Job</td><td>With errors from a Clean, Share, Convert, Scan or Censor job</td><td><code>job.type</code>, <code>outcome</code>, <code>error_type</code>, <code>reason</code></td></tr>
+            <tr><td>File</td><td>The file being processed, never its name or contents</td><td><code>file.media_type</code>, <code>file.mime_type</code>, <code>file.output_mime_type</code>, <code>file.has_gps</code>, <code>image.resolution_class</code>, <code>image.sample_size</code>, <code>video.codec</code>, <code>video.output_codec</code>, <code>video.resolution_class</code>, <code>video.duration_class</code>, <code>video.frame_rate_class</code>, <code>video.rotation</code>, <code>video.has_audio</code></td></tr>
+            <tr><td>Checks</td><td>What the clean and its checks found</td><td><code>verify.image_passed</code>, <code>verify.video_passed</code>, <code>verify.failed_check</code>, <code>scan.extraction_failed</code>, <code>scan.section_count</code>, <code>clean.kept_exif_count</code>, <code>clean.removed_exif_count</code></td></tr>
+            <tr><td>Permissions</td><td>Whether each permission is granted and whether Android will still ask; <code>permission.&lt;type&gt;</code> is one of images, videos, selected_media, media_gps, notifications, storage or other</td><td><code>permission.type</code>, <code>permission.request_code</code>, <code>permission.needed</code>, <code>permission.all_granted</code>, <code>permission.images</code>, <code>permission.videos</code>, <code>permission.selected_media</code>, <code>permission.storage</code>, <code>permission.media_gps</code>, <code>permission.partial_access</code>, <code>permission.persisted_grant</code>, <code>permission.rationale_shown</code>, <code>permission.gps_rationale_shown</code>, <code>permission.settings_needed</code>, <code>permission.gps_settings_needed</code>, <code>permission.images_can_ask</code>, <code>permission.videos_can_ask</code>, <code>permission.storage_can_ask</code>, <code>permission.gps_can_ask</code></td></tr>
+            <tr><td>App</td><td>How the app was opened and what it was doing</td><td><code>intent.action</code>, <code>intent.type</code>, <code>intent.unsupported_type</code>, <code>intent.unsupported_action</code>, <code>ui.theme</code>, <code>notification.enabled</code>, <code>notification.clean_enabled</code>, <code>notification.convert_enabled</code>, <code>clean.state</code>, <code>clean.selected_count</code>, <code>clean.processing_count</code>, <code>clean.processed_count</code>, <code>share.media_count</code>, <code>app.process_state</code>, <code>app.background_restricted</code>, <code>app.standby_bucket</code>, <code>app.installer</code></td></tr>
+            <tr><td>Settings</td><td>The settings that change how files are processed, with every error; a folder is only <code>chosen</code> or <code>default</code></td><td><code>setting.strict_clean</code>, <code>setting.keep_camera_settings</code>, <code>setting.keep_date_taken</code>, <code>setting.keep_motion_photos</code>, <code>setting.keep_gps</code>, <code>setting.remove_audio</code>, <code>setting.faster_video_cleaning</code>, <code>setting.delete_originals</code>, <code>setting.keep_original_names</code>, <code>setting.auto_clear_temp</code>, <code>setting.image_folder</code>, <code>setting.video_folder</code>, <code>setting.default_image_format</code>, <code>setting.default_video_codec</code>, <code>setting.image_quality</code></td></tr>
+            <tr><td>Phone</td><td>What the phone offers for media work, and its state</td><td><code>device.media_performance_class</code>, <code>device.low_ram</code>, <code>device.heap_mb</code>, <code>device.large_heap_mb</code>, <code>device.thermal_status</code>, <code>device.power_save</code></td></tr>
+        </tbody>
+    </table>
+    </div>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Counters and timings</th><th>Names</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Jobs</td><td><code>job.start</code>, <code>job.batch</code>, <code>job.batch.size</code>, <code>job.batch.duration</code>, <code>job.item</code>, <code>job.item.duration</code>, <code>job.warning</code></td></tr>
+            <tr><td>Cleaning</td><td><code>clean.method</code>, <code>clean.dropped_part</code>, <code>verify.result</code>, <code>already_clean.check</code>, <code>already_clean.check.duration</code>, <code>media.unsupported_type</code></td></tr>
+            <tr><td>Converting and video</td><td><code>convert.output</code>, <code>convert.codec_fallback</code>, <code>video.downscale</code>, <code>video.retry</code>, <code>video.transcode_failure</code></td></tr>
+            <tr><td>Censor and sharing</td><td><code>censor.load</code>, <code>censor.save</code>, <code>censor.save.regions</code>, <code>share.snapshot_failure</code>, <code>output.folder_fallback</code></td></tr>
+            <tr><td>App</td><td><code>app.exit</code>, <code>app.exit.memory</code>, <code>memory.shortage</code>, <code>cache.orphan</code>, <code>secure_delete.overwrite.duration</code>, <code>secure_delete.fallback</code>, <code>service.failure</code>, <code>notification.failure</code>, <code>permission.result</code>, <code>update.check</code>, <code>update.check.duration</code>, <code>onboarding.end</code></td></tr>
+        </tbody>
+    </table>
+    </div>
+    <p>Breadcrumb categories: <code>clean</code>, <code>share</code>, <code>convert</code>, <code>scan</code>, <code>censor</code>, <code>verify</code>, <code>image</code>, <code>video</code>, <code>media</code>, <code>metadata</code>, <code>output</code>, <code>storage</code>, <code>permission</code>, <code>notification</code>, <code>update</code>, <code>ui</code>, <code>app.lifecycle</code>. The SDK adds its own, such as <code>ui.click</code>, <code>navigation</code> and <code>device.event</code>.</p>
+
     <h2>Questions</h2>
     <details>
         <summary>Does Redact upload my photos?</summary>

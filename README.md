@@ -403,6 +403,39 @@ Nothing in this section is sent unless you turn on **Send Crash Reports**. Until
 | Extras of system broadcasts, advertising ID, logcat, source code, network request contents, native crash memory maps | Turned off or never collected |
 | Anything from before you turned reporting on | Freezes, crashes and process exits Android recorded earlier are dropped |
 | Anything while reporting is off | Sentry isn't started |
+
+#### Names in Sentry
+
+Every tag, counter and breadcrumb the app sends follows one scheme, so a search in Sentry finds what it means. `SentryNamingTest` fails the build on a name that breaks it, and on a name missing from this list.
+
+| Kind | Scheme |
+|---|---|
+| State tags | `group.field`, lower case, at most 32 characters: what was true when the report was made |
+| Result tags | `outcome`, `reason` and `error_type`, the same in every tag and counter |
+| Counters | `area.event`, with what came of it in `outcome` and why in `reason` |
+| Timings and sizes | `area.event.measure`, with the unit (milliseconds, megabytes) sent alongside, never in the name |
+| Breadcrumb categories | a lower-case area, like the SDK's own `ui.click` and `navigation` |
+
+| Tags | When | Names |
+|---|---|---|
+| Job | With errors from a Clean, Share, Convert, Scan or Censor job | `job.type`, `outcome`, `error_type`, `reason` |
+| File | The file being processed, never its name or contents | `file.media_type`, `file.mime_type`, `file.output_mime_type`, `file.has_gps`, `image.resolution_class`, `image.sample_size`, `video.codec`, `video.output_codec`, `video.resolution_class`, `video.duration_class`, `video.frame_rate_class`, `video.rotation`, `video.has_audio` |
+| Checks | What the clean and its checks found | `verify.image_passed`, `verify.video_passed`, `verify.failed_check`, `scan.extraction_failed`, `scan.section_count`, `clean.kept_exif_count`, `clean.removed_exif_count` |
+| Permissions | Whether each permission is granted and whether Android will still ask; `permission.<type>` is one of images, videos, selected_media, media_gps, notifications, storage or other | `permission.type`, `permission.request_code`, `permission.needed`, `permission.all_granted`, `permission.images`, `permission.videos`, `permission.selected_media`, `permission.storage`, `permission.media_gps`, `permission.partial_access`, `permission.persisted_grant`, `permission.rationale_shown`, `permission.gps_rationale_shown`, `permission.settings_needed`, `permission.gps_settings_needed`, `permission.images_can_ask`, `permission.videos_can_ask`, `permission.storage_can_ask`, `permission.gps_can_ask` |
+| App | How the app was opened and what it was doing | `intent.action`, `intent.type`, `intent.unsupported_type`, `intent.unsupported_action`, `ui.theme`, `notification.enabled`, `notification.clean_enabled`, `notification.convert_enabled`, `clean.state`, `clean.selected_count`, `clean.processing_count`, `clean.processed_count`, `share.media_count`, `app.process_state`, `app.background_restricted`, `app.standby_bucket`, `app.installer` |
+| Settings | The settings that change how files are processed, with every error; a folder is only `chosen` or `default` | `setting.strict_clean`, `setting.keep_camera_settings`, `setting.keep_date_taken`, `setting.keep_motion_photos`, `setting.keep_gps`, `setting.remove_audio`, `setting.faster_video_cleaning`, `setting.delete_originals`, `setting.keep_original_names`, `setting.auto_clear_temp`, `setting.image_folder`, `setting.video_folder`, `setting.default_image_format`, `setting.default_video_codec`, `setting.image_quality` |
+| Phone | What the phone offers for media work, and its state | `device.media_performance_class`, `device.low_ram`, `device.heap_mb`, `device.large_heap_mb`, `device.thermal_status`, `device.power_save` |
+
+| Counters and timings | Names |
+|---|---|
+| Jobs | `job.start`, `job.batch`, `job.batch.size`, `job.batch.duration`, `job.item`, `job.item.duration`, `job.warning` |
+| Cleaning | `clean.method`, `clean.dropped_part`, `verify.result`, `already_clean.check`, `already_clean.check.duration`, `media.unsupported_type` |
+| Converting and video | `convert.output`, `convert.codec_fallback`, `video.downscale`, `video.retry`, `video.transcode_failure` |
+| Censor and sharing | `censor.load`, `censor.save`, `censor.save.regions`, `share.snapshot_failure`, `output.folder_fallback` |
+| App | `app.exit`, `app.exit.memory`, `memory.shortage`, `cache.orphan`, `secure_delete.overwrite.duration`, `secure_delete.fallback`, `service.failure`, `notification.failure`, `permission.result`, `update.check`, `update.check.duration`, `onboarding.end` |
+
+Breadcrumb categories: `clean`, `share`, `convert`, `scan`, `censor`, `verify`, `image`, `video`, `media`, `metadata`, `output`, `storage`, `permission`, `notification`, `update`, `ui`, `app.lifecycle`. The SDK adds its own, such as `ui.click`, `navigation` and `device.event`.
+
 | Your maps app | **Open in Maps** in Scan, after you agree | Shows a photo's location; the maps app decides what it loads |
 
 - **Statistics stay on your phone.** The counts behind Your Privacy Stats are stored only in Redact's private storage, are left out of backups and device transfers, and are never included in crash reports.

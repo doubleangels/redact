@@ -149,6 +149,47 @@ public class SentryNamingTest {
         assertEquals("Breadcrumbs that record what the user did: " + wrong, 0, wrong.size());
     }
 
+    /**
+     * The "Names in Sentry" tables in README.md and site/index.html list every name the app sends,
+     * so someone reading a report, or deciding whether to turn reports on, sees each one. A new
+     * tag, metric or breadcrumb category fails here until both pages name it.
+     */
+    @Test
+    public void everyName_isListedInTheReadmeAndOnTheSite() throws Exception {
+        java.lang.reflect.Field allowedField = SentryManager.class.getDeclaredField("ALLOWED_TAG_KEYS");
+        allowedField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Set<String> names = new TreeSet<>((Set<String>) allowedField.get(null));
+        names.addAll(AppStateTags.collect(org.robolectric.RuntimeEnvironment.getApplication()).keySet());
+        for (Path file : sources()) {
+            String source = read(file);
+            Matcher crumb = LOG_EVENT.matcher(source);
+            while (crumb.find()) {
+                names.add(crumb.group(1));
+            }
+            Matcher metric = METRIC_CALL.matcher(source);
+            while (metric.find()) {
+                String name = literal(topLevelArguments(source, metric.end()).get(0), source);
+                if (name != null) {
+                    names.add(name);
+                }
+            }
+        }
+        String readme = new String(Files.readAllBytes(new File("../README.md").toPath()), StandardCharsets.UTF_8);
+        String site = new String(Files.readAllBytes(new File("../site/index.html").toPath()), StandardCharsets.UTF_8);
+        List<String> missing = new ArrayList<>();
+        for (String name : names) {
+            if (!readme.contains("`" + name + "`")) {
+                missing.add("README.md: " + name);
+            }
+            if (!site.contains("<code>" + name + "</code>")) {
+                missing.add("site/index.html: " + name);
+            }
+        }
+        assertTrue("The scan found too few names; are the patterns still right?", names.size() > 100);
+        assertEquals("Add these to the Names in Sentry tables: " + missing, 0, missing.size());
+    }
+
     @Test
     public void metricNamesAndAttributeKeys_followTheRules() throws Exception {
         Method allowed = SentryManager.class.getDeclaredMethod("isAllowedTagKey", String.class);
