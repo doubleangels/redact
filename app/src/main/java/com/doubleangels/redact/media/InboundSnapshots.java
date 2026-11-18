@@ -97,6 +97,9 @@ public final class InboundSnapshots {
         try {
             type = app.getContentResolver().getType(uri);
         } catch (RuntimeException e) {
+            // The sender's provider failed to answer; the suffix then comes from the name alone.
+            SentryManager.logEvent("share", "The shared item's type could not be read, so its name decides the suffix: "
+                    + e.getClass().getSimpleName() + ".");
             type = null;
         }
         // The suffix is all the clean has to go on later (the copy has no type), and it picks the
