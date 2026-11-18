@@ -21,11 +21,15 @@ public final class AppProcessingScope {
 
     private static volatile AppProcessingScope instance;
 
+    /** Two, so a slow cloud-backed read doesn't hold up the next screen's. */
+    private static final int IO_THREADS = 2;
+
     private final Context app;
     private final MediaProcessor mediaProcessor;
     /** The Clean and Convert jobs' state, made on first use; see {@link #repository()}. */
     private volatile ProcessingRepository repository;
     private final ExecutorService convertExecutor;
+    private final ExecutorService ioExecutor;
     private final AtomicInteger cleanGeneration = new AtomicInteger(0);
     private final AtomicInteger convertGeneration = new AtomicInteger(0);
     private final AtomicBoolean convertInProgress = new AtomicBoolean(false);
@@ -46,6 +50,14 @@ public final class AppProcessingScope {
                             thread.setDaemon(false);
                             return thread;
                         });
+        AtomicInteger ioThreads = new AtomicInteger();
+        ioExecutor = Executors.newFixedThreadPool(IO_THREADS,
+                r -> {
+                    Thread thread = new Thread(r, "redact-io-" + ioThreads.incrementAndGet());
+                    // Short reads before a job: nothing that must finish if the app goes.
+                    thread.setDaemon(true);
+                    return thread;
+                });
     }
 
     @NonNull
@@ -84,6 +96,16 @@ public final class AppProcessingScope {
     @NonNull
     public ExecutorService convertExecutor() {
         return convertExecutor;
+    }
+
+    /**
+     * For the short reads a screen needs before a job (checking a pick, warning about size or
+     * files that are already clean): bounded, so repeated taps queue instead of starting a thread
+     * each, and named, so a report shows what was running.
+     */
+    @NonNull
+    public ExecutorService ioExecutor() {
+        return ioExecutor;
     }
 
     @NonNull

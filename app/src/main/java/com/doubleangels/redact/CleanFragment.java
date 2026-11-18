@@ -23,6 +23,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.MediaAdapter;
 import com.doubleangels.redact.media.MediaItem;
 import com.doubleangels.redact.media.MediaPickerContracts;
@@ -51,6 +52,7 @@ import com.doubleangels.redact.ui.ReviewPrompt;
 import com.doubleangels.redact.ui.ScanViewModel;
 import com.doubleangels.redact.ui.ShareResults;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -277,30 +279,10 @@ public class CleanFragment extends TabFragment {
                         // per selected item), which can be slow for cloud-backed URIs; run
                         // them off the main thread to avoid jank/ANRs.
                         Context appContext = requireContext().getApplicationContext();
-                        new Thread(() -> {
-                            try {
-                                List<ProcessingResourceWarnings.Warning> warnings =
-                                        ProcessingResourceWarnings.assess(appContext, items);
-                                // Reads each file's metadata, so it also runs off the main thread.
-                                List<AlreadyCleanCheck.Status> cleanStatuses =
-                                        AppPreferences.isWarnAlreadyClean(appContext)
-                                                ? AlreadyCleanCheck.assess(
-                                                        appContext, items, ALREADY_CLEAN_BUDGET_MS)
-                                                : null;
-                                runOnUiThreadIfAdded(() -> {
-                                    confirmAlreadyClean(items, cleanStatuses, chosen ->
-                                            ProcessingResourceWarnings.runWithWarnings(
-                                                    requireActivity(),
-                                                    warnings,
-                                                    () -> viewModel.startCleaning(chosen)));
-                                });
-                            } catch (Exception | OutOfMemoryError e) {
-                                SentryManager.recordException(e);
-                                // The checks only warn; when they can't run, clean without them
-                                // rather than leave the button doing nothing.
-                                runOnUiThreadIfAdded(() -> viewModel.startCleaning(items));
-                            }
-                        }, "redact-clean-checks").start();
+                        // Only a weak reference: a slow read must not keep a closed screen alive.
+                        WeakReference<CleanFragment> screen = new WeakReference<>(this);
+                        AppProcessingScope.get(appContext).ioExecutor().execute(
+                                () -> runCleanChecks(appContext, items, screen));
                     } else {
                         SentryManager.logEvent("Clean", "No items were selected for processing.");
                         uiStateManager.setFirstSelectMediaFilesStatus();
@@ -849,6 +831,38 @@ public class CleanFragment extends TabFragment {
                     .setNeutralButton(R.string.already_clean_clean_all, (d, w) -> proceed.accept(items));
         }
         FoldDialogs.place(dialog.show());
+    }
+
+    /** The checks before a clean, off the main thread; they only warn, so a failure cleans anyway. */
+    private static void runCleanChecks(@NonNull Context app, @NonNull List<MediaItem> items,
+                                       @NonNull WeakReference<CleanFragment> screen) {
+        List<ProcessingResourceWarnings.Warning> warnings;
+        List<AlreadyCleanCheck.Status> cleanStatuses;
+        try {
+            warnings = ProcessingResourceWarnings.assess(app, items);
+            // Reads each file's metadata, so it also runs off the main thread.
+            cleanStatuses = AppPreferences.isWarnAlreadyClean(app)
+                    ? AlreadyCleanCheck.assess(app, items, ALREADY_CLEAN_BUDGET_MS)
+                    : null;
+        } catch (Exception | OutOfMemoryError e) {
+            SentryManager.recordException(e);
+            // The checks only warn; when they can't run, clean without them rather than leave the
+            // button doing nothing.
+            onScreen(screen, f -> f.viewModel.startCleaning(items));
+            return;
+        }
+        onScreen(screen, f -> f.confirmAlreadyClean(items, cleanStatuses, chosen ->
+                ProcessingResourceWarnings.runWithWarnings(
+                        f.requireActivity(), warnings, () -> f.viewModel.startCleaning(chosen))));
+    }
+
+    /** Runs {@code action} on the main thread if the screen is still there and showing. */
+    private static void onScreen(@NonNull WeakReference<CleanFragment> screen,
+                                 @NonNull java.util.function.Consumer<CleanFragment> action) {
+        CleanFragment fragment = screen.get();
+        if (fragment != null) {
+            fragment.runOnUiThreadIfAdded(() -> action.accept(fragment));
+        }
     }
 
     private void runOnUiThreadIfAdded(Runnable action) {

@@ -25,6 +25,7 @@ import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.ui.Notice;
 import com.doubleangels.redact.ui.SummaryCard;
+import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.ConvertFileAdapter;
 import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaItem;
@@ -44,6 +45,7 @@ import com.doubleangels.redact.ui.ScanViewModel;
 import com.doubleangels.redact.ui.OpenResult;
 import com.doubleangels.redact.ui.ShareResults;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -590,30 +592,44 @@ public class ConvertFragment extends TabFragment {
         // (up to 64KB reads and a cache-directory walk per selected item), which can be slow
         // for cloud-backed URIs; run them off the main thread to avoid jank/ANRs.
         Context appContext = requireContext().getApplicationContext();
-        new Thread(() -> {
+        MediaSelector selector = mediaSelector;
+        // Only a weak reference: a slow read must not keep a closed screen alive.
+        WeakReference<ConvertFragment> screen = new WeakReference<>(this);
+        AppProcessingScope.get(appContext).ioExecutor().execute(() -> {
+            Runnable convert = () -> {
+                ConvertFragment f = screen.get();
+                if (f != null) {
+                    f.viewModel.startConversion(selectedItems, formatIndex, imageFormatIndex, imageFormat);
+                }
+            };
+            boolean hasAnimatedImage;
+            List<ProcessingResourceWarnings.Warning> warnings;
             try {
-                boolean hasAnimatedImage = containsAnimatedImage(selectedItems);
-                List<ProcessingResourceWarnings.Warning> warnings =
-                        ProcessingResourceWarnings.assess(appContext, selectedItems);
-                runOnUiThreadIfAdded(() -> {
-                    if (hasAnimatedImage) {
-                        Notice.show(requireContext(), R.string.animated_image_warning, true);
-                    }
-                    ProcessingResourceWarnings.runWithWarnings(
-                            requireActivity(),
-                            warnings,
-                            () ->
-                                    viewModel.startConversion(
-                                            selectedItems, formatIndex, imageFormatIndex, imageFormat));
-                });
+                hasAnimatedImage = containsAnimatedImage(selector, selectedItems);
+                warnings = ProcessingResourceWarnings.assess(appContext, selectedItems);
             } catch (Exception | OutOfMemoryError e) {
                 SentryManager.recordException(e);
                 // The checks only warn; when they can't run, convert without them rather than
                 // leave the button doing nothing, as Clean does.
-                runOnUiThreadIfAdded(() -> viewModel.startConversion(
-                        selectedItems, formatIndex, imageFormatIndex, imageFormat));
+                onScreen(screen, f -> convert.run());
+                return;
             }
-        }, "redact-convert-checks").start();
+            onScreen(screen, f -> {
+                if (hasAnimatedImage) {
+                    Notice.show(f.requireContext(), R.string.animated_image_warning, true);
+                }
+                ProcessingResourceWarnings.runWithWarnings(f.requireActivity(), warnings, convert);
+            });
+        });
+    }
+
+    /** Runs {@code action} on the main thread if the screen is still there and showing. */
+    private static void onScreen(@NonNull WeakReference<ConvertFragment> screen,
+                                 @NonNull java.util.function.Consumer<ConvertFragment> action) {
+        ConvertFragment fragment = screen.get();
+        if (fragment != null) {
+            fragment.runOnUiThreadIfAdded(() -> action.accept(fragment));
+        }
     }
 
     private void runOnUiThreadIfAdded(Runnable action) {
@@ -634,12 +650,12 @@ public class ConvertFragment extends TabFragment {
         progressText.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
-    private boolean containsAnimatedImage(@NonNull List<MediaItem> items) {
-        if (mediaSelector == null) {
+    private static boolean containsAnimatedImage(@Nullable MediaSelector selector, @NonNull List<MediaItem> items) {
+        if (selector == null) {
             return false;
         }
         for (MediaItem item : items) {
-            if (mediaSelector.isAnimatedImage(item)) {
+            if (selector.isAnimatedImage(item)) {
                 return true;
             }
         }

@@ -51,7 +51,7 @@ public final class MediaSelector {
     public void processMediaUrisAsync(
             @NonNull List<Uri> uris,
             @NonNull Consumer<List<MediaItem>> onDone) {
-        new Thread(() -> {
+        AppProcessingScope.get(activity).ioExecutor().execute(() -> {
             List<MediaItem> items = new ArrayList<>();
             for (Uri uri : uris) {
                 try {
@@ -61,7 +61,7 @@ public final class MediaSelector {
                 }
             }
             activity.runOnUiThread(() -> onDone.accept(items));
-        }, "redact-pick").start();
+        });
     }
 
     public static void releasePersistableReadPermission(@NonNull Context context, @Nullable Uri uri) {
