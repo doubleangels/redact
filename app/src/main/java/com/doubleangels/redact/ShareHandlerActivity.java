@@ -714,6 +714,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
             boolean hasImage = false;
             // Files that could not even be copied in count as given and failed.
             AppMetrics.batchStarted(AppMetrics.SHARE, uris.size() + failCount);
+            // Counted once: a failure after the count below must not count the batch again.
+            boolean batchReported = false;
 
             try {
                 for (int i = 0; i < uris.size(); i++) {
@@ -797,6 +799,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 final boolean cancelled = session.ended.get()
                         || Thread.currentThread().isInterrupted();
                 AppMetrics.batchFinished(AppMetrics.SHARE, processedUris.size(), failCount, cancelled);
+                batchReported = true;
 
                 runOnUiThreadIfNotReplaced(session, () -> {
                     try {
@@ -854,7 +857,9 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     transaction.finish();
                 }
                 SentryManager.recordException(e);
-                AppMetrics.batchFinished(AppMetrics.SHARE, processedUris.size(), failCount + 1, false);
+                if (!batchReported) {
+                    AppMetrics.batchFinished(AppMetrics.SHARE, processedUris.size(), failCount + 1, false);
+                }
                 runOnUiThreadIfNotReplaced(session, () -> finishWithError(getString(R.string.share_error_generic)));
             } finally {
                 // The snapshots are copies of the originals, metadata included, and only the
