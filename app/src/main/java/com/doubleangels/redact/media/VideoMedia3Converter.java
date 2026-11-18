@@ -432,6 +432,11 @@ public final class VideoMedia3Converter {
         // transcode makes sure none is left (CleanVerifier.requireVideoMetadataClean).
         boolean hasAudio = !AppPreferences.isRemoveAudio(app) && sourceHasAudio(app, sourceUri);
         SourceVideo source = readSourceVideo(app, sourceUri);
+        SentryManager.setCustomKey("video_codec", SentryManager.mimeTypeClass(source.mime));
+        SentryManager.setCustomKey("video_resolution_class", SentryManager.resolutionClass(source.width, source.height));
+        SentryManager.setCustomKey("video_frame_rate_class", SentryManager.frameRateClass(source.frameRate));
+        SentryManager.setCustomKey("has_audio", hasAudio);
+        SentryManager.setCustomKey("output_codec", SentryManager.mimeTypeClass(videoMimeTypeForFormatIndex(formatIndex)));
         SentryManager.logEvent("Video", 
                 "The app is transcoding a " + source.describe() + " video.");
 

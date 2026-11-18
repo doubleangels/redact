@@ -73,6 +73,18 @@ final class ImageCleaner {
      * @return the saved image's URI (null when the clean failed) and what it removed
      * @throws IllegalArgumentException if sourceUri or originalFilename is null
      */
+    /** Tags the job with the source's format and the format it is written in, as known MIME types. */
+    private void tagFormats(@NonNull Uri sourceUri, @NonNull FormatConverter.ImageFormatSpec outputFormat) {
+        String sourceType = null;
+        try {
+            sourceType = context.getContentResolver().getType(sourceUri);
+        } catch (RuntimeException e) {
+            // Unknown is reported as such.
+        }
+        SentryManager.setCustomKey("mime_type", SentryManager.mimeTypeClass(sourceType));
+        SentryManager.setCustomKey("output_mime_type", SentryManager.mimeTypeClass(outputFormat.mimeType));
+    }
+
     @NonNull
     public CleanResult cleanImage(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Breadcrumb for a crash report.
@@ -92,6 +104,7 @@ final class ImageCleaner {
             host.copySourceToTempFile(sourceUri, tempFile);
             FormatConverter.ImageFormatSpec outputFormat =
                     resolveImageOutputFormat(sourceUri, originalFilename, tempFile);
+            tagFormats(sourceUri, outputFormat);
             String extension = outputFormat.extension;
             String newFilename =
                     MediaFileNames.outputBaseName(context, originalFilename)
@@ -334,6 +347,7 @@ final class ImageCleaner {
             host.copySourceToTempFile(sourceUri, tempFile);
             FormatConverter.ImageFormatSpec outputFormat =
                     resolveImageOutputFormat(sourceUri, originalFilename, tempFile);
+            tagFormats(sourceUri, outputFormat);
             String extension = outputFormat.extension;
 
             host.updateProgress(2, 4, context.getString(R.string.strip_progress_reading_essential_metadata));

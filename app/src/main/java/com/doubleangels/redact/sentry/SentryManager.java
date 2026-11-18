@@ -112,7 +112,12 @@ public final class SentryManager {
             "all_permissions_granted",
             "has_storage_permission",
             "thermal_status",
-            "power_save_mode"));
+            "power_save_mode",
+            "video_codec",
+            "video_frame_rate_class",
+            "has_audio",
+            "output_codec",
+            "output_mime_type"));
 
     /**
      * Low-cardinality keys that describe one scan, clean or convert. They are kept per thread, not
@@ -136,7 +141,12 @@ public final class SentryManager {
             "video_metadata_verification_passed",
             "video_verify_failed_key",
             "thermal_status",
-            "power_save_mode"));
+            "power_save_mode",
+            "video_codec",
+            "video_frame_rate_class",
+            "has_audio",
+            "output_codec",
+            "output_mime_type"));
 
     /**
      * Per-item measurements. They have too many distinct values to be useful as indexed tags, so
@@ -156,7 +166,8 @@ public final class SentryManager {
             "image/jpeg", "image/png", "image/webp", "image/heic", "image/heif", "image/avif",
             "image/gif", "image/bmp", "image/x-ms-bmp", "image/x-adobe-dng",
             "video/mp4", "video/quicktime", "video/webm", "video/x-matroska", "video/3gpp",
-            "video/3gpp2", "video/avc", "video/hevc", "video/mpeg"));
+            "video/3gpp2", "video/avc", "video/hevc", "video/mpeg", "video/av01",
+            "video/x-vnd.on2.vp8", "video/x-vnd.on2.vp9", "video/dolby-vision", "video/mp4v-es"));
 
     /** A file's MIME type for a report: a known one as it is, else "image/other", "video/other" or "other". */
     @NonNull
@@ -191,6 +202,18 @@ public final class SentryManager {
             return "4k";
         }
         return side <= 8192 ? "8k" : "larger";
+    }
+
+    /** A video's frame rate for a report, as a band rather than the exact rate. */
+    @NonNull
+    public static String frameRateClass(int framesPerSecond) {
+        if (framesPerSecond <= 0) {
+            return "unknown";
+        }
+        if (framesPerSecond <= 30) {
+            return "up_to_30";
+        }
+        return framesPerSecond <= 60 ? "up_to_60" : "above_60";
     }
 
     /** A video's length for a report, as a band rather than the exact duration. */
@@ -481,6 +504,21 @@ public final class SentryManager {
     public static boolean isPowerSaveMode() {
         PowerManager pm = appContext != null ? appContext.getSystemService(PowerManager.class) : null;
         return pm != null && pm.isPowerSaveMode();
+    }
+
+    /**
+     * Adds the settings in effect and the phone's media capabilities ({@link AppStateTags}) to
+     * {@code event}, without replacing a tag the event already has.
+     */
+    static void applyAppState(@Nullable SentryEvent event) {
+        if (event == null) {
+            return;
+        }
+        for (Map.Entry<String, String> tag : AppStateTags.collect(appContext).entrySet()) {
+            if (event.getTag(tag.getKey()) == null) {
+                event.setTag(tag.getKey(), tag.getValue());
+            }
+        }
     }
 
     /**

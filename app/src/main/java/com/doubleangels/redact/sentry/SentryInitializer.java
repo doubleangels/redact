@@ -272,11 +272,13 @@ public final class SentryInitializer {
                 return metric;
             });
 
-            // Adds the capturing thread's scan/clean/convert data, so concurrent jobs don't mix.
+            // Adds the capturing thread's scan/clean/convert data, so concurrent jobs don't mix,
+            // and the settings and media capabilities in effect when the error happened.
             options.addEventProcessor(new EventProcessor() {
                 @Override
                 public SentryEvent process(@NonNull SentryEvent event, @NonNull Hint hint) {
                     SentryManager.applyOperationData(event);
+                    SentryManager.applyAppState(event);
                     return event;
                 }
             });
