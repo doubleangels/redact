@@ -294,12 +294,10 @@ public class FormatConverterConversionTest {
     public void convertVideo_withAnUnreadableSource_failsWithoutLeavingEntries() throws Exception {
         // Media3 never finishes an export here; take the timeout path instead of waiting an hour.
         VideoMedia3Converter.setAwaitTimeoutForTests(500L);
-        try {
-            callOffMain(() -> FormatConverter.convertVideoToMovies(
-                    context, Uri.fromFile(new File("/nonexistent/clip.mp4")), "clip", 0, null, -1L, null));
-        } catch (Exception expected) {
-            // Any failure is fine; what matters is that no partial gallery entry remains.
-        }
+        // It must fail (a conversion of nothing that "succeeded" would be a bug of its own), and
+        // leave no partial gallery entry behind.
+        org.junit.Assert.assertThrows(Exception.class, () -> callOffMain(() -> FormatConverter.convertVideoToMovies(
+                context, Uri.fromFile(new File("/nonexistent/clip.mp4")), "clip", 0, null, -1L, null)));
         assertTrue(FakeMediaStoreProvider.entries().isEmpty());
     }
 
@@ -332,16 +330,10 @@ public class FormatConverterConversionTest {
         // Media3 never finishes an export here; take the timeout path instead of waiting an hour.
         VideoMedia3Converter.setAwaitTimeoutForTests(500L);
         Uri missing = Uri.fromFile(new File("/nonexistent/clip.mp4"));
-        try {
-            callOffMain(() -> FormatConverter.convertVideoToMovies(context, missing, "clip", 1, null, -1L, null));
-        } catch (Exception expected) {
-            // unreadable source
-        }
-        try {
-            callOffMain(() -> FormatConverter.convertVideoToMovies(context, missing, "clip", 2, null, -1L, null));
-        } catch (Exception expected) {
-            // unreadable source
-        }
+        org.junit.Assert.assertThrows(Exception.class, () ->
+                callOffMain(() -> FormatConverter.convertVideoToMovies(context, missing, "clip", 1, null, -1L, null)));
+        org.junit.Assert.assertThrows(Exception.class, () ->
+                callOffMain(() -> FormatConverter.convertVideoToMovies(context, missing, "clip", 2, null, -1L, null)));
         assertTrue(FakeMediaStoreProvider.entries().isEmpty());
     }
 
