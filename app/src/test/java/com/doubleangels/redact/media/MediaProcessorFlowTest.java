@@ -102,6 +102,16 @@ public class MediaProcessorFlowTest {
         return new MediaItem(Uri.fromFile(new File("/nonexistent/" + name)), false, name);
     }
 
+    /** A worker that was shut down refuses a batch, and must not leave the processor busy. */
+    @Test
+    public void aBatchAfterShutdown_isRefused_withoutStayingBusy() throws Exception {
+        processor.shutdown();
+
+        org.junit.Assert.assertThrows(java.util.concurrent.RejectedExecutionException.class,
+                () -> processor.processMediaItems(Arrays.asList(jpeg("late.jpg")), new Recorder()));
+        assertFalse(processor.isBusy());
+    }
+
     @Test
     public void cleaningARealImage_reportsStartProgressAndSuccess() throws Exception {
         Recorder cb = new Recorder();

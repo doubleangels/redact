@@ -7,7 +7,8 @@ import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
@@ -28,7 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -160,10 +162,27 @@ public class MediaProcessor {
         metadataStripper.setTranscodeOwnerId(ownerId);
     }
 
-    /** Stops the background worker; safe to call when the owner is destroyed. */
+    /**
+     * Stops the background worker. The app's processor lives as long as the process, so only
+     * tests call this, to end one between cases.
+     */
+    @VisibleForTesting
     public void shutdown() {
         cancel();
         processingExecutor.shutdownNow();
+    }
+
+    /**
+     * Runs a batch on the worker. A worker that was shut down refuses it, and the batch must not
+     * leave the processor marked busy for good when it does.
+     */
+    private void submitBatch(@NonNull Runnable batch) {
+        try {
+            processingExecutor.execute(batch);
+        } catch (RejectedExecutionException e) {
+            processing.set(false);
+            throw e;
+        }
     }
 
     public synchronized List<Uri> getSucceededOutputs() {
@@ -317,7 +336,7 @@ public class MediaProcessor {
         awaitingTrash.clear();
         metadataStripper.resetCancellation();
         mainHandler.post(callback::onBatchStarted);
-        processingExecutor.execute(() -> {
+        submitBatch(() -> {
             final int totalItems = items.size();
             ITransaction transaction = SentryManager.startTransaction("clean_multiple", "task");
             long batchStartMs = System.currentTimeMillis();
