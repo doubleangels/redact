@@ -463,7 +463,9 @@ final class CleanVerifier {
 
             return true;
         } catch (Exception e) {
-            SentryManager.log("An error occurred while verifying metadata removal.");
+            // Only the exception's class: its message can hold the file's path.
+            SentryManager.logEvent("Verify", "Metadata verification failed with "
+                    + e.getClass().getSimpleName() + ", so the file is not saved.");
             countVerificationFailure("image", "unreadable");
             return false;
         }
