@@ -44,6 +44,12 @@ final class HeifTracks {
     private static final Set<String> STBL_COPY = Set.of(
             "stsd", "stts", "ctts", "cslg", "stss", "sdtp", "sgpd", "sbgp");
     private static final int MAX_FRAME_BYTES = 256 * 1024 * 1024;
+    /**
+     * More frames than any burst or animated image has. A table that declares more is refused
+     * before anything is allocated for it: a fixed-size table is bounded only by this, and its
+     * size and offset arrays would otherwise take many times the file's own size.
+     */
+    private static final int MAX_SAMPLES = 1_000_000;
 
     private static final class Track {
         long id;
@@ -191,14 +197,22 @@ final class HeifTracks {
                     track.stblCopies.add(sampleDescriptions(track, Arrays.copyOfRange(stbl, child[0], child[1])));
                     break;
                 case "stsz": {
-                    int fixed = (int) u32(stbl, p + 4);
+                    long fixed = u32(stbl, p + 4);
                     int count = entryCount(u32(stbl, p + 8), fixed != 0 ? 0 : 4, p + 12, child[1]);
-                    if (fixed != 0 && (long) count * (fixed & 0xFFFFFFFFL) > in.length()) {
+                    if (count > MAX_SAMPLES) {
+                        throw new IOException("Too many samples");
+                    }
+                    if (fixed > MAX_FRAME_BYTES || (fixed != 0 && count * fixed > in.length())) {
                         throw new IOException("Samples larger than the file");
                     }
                     sizes = new int[count];
                     for (int i = 0; i < count; i++) {
-                        sizes[i] = fixed != 0 ? fixed : (int) u32(stbl, p + 12 + i * 4);
+                        // Checked as read: cast first, a size from 2^31 up turned negative.
+                        long size = fixed != 0 ? fixed : u32(stbl, p + 12 + i * 4);
+                        if (size > MAX_FRAME_BYTES) {
+                            throw new IOException("Frame too large");
+                        }
+                        sizes[i] = (int) size;
                     }
                     break;
                 }

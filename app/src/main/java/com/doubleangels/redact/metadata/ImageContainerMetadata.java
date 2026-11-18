@@ -134,6 +134,12 @@ public final class ImageContainerMetadata {
     /** Furthest into data appended after the picture that is searched for what it holds. */
     private static final long TRAILER_PEEK = 64L * 1024 * 1024;
     private static final int MAX_INFLATED = 4 * 1024 * 1024;
+    /**
+     * Far more than any colour profile holds (a few KB, a few MB for the largest). A chunk that
+     * claims more is read no further and left out, so one crafted file can't ask for an array
+     * as large as itself.
+     */
+    private static final int MAX_ICC_BYTES = 16 * 1024 * 1024;
 
     private ImageContainerMetadata() {
     }
@@ -1175,6 +1181,10 @@ public final class ImageContainerMetadata {
         }
 
         private void pngIcc(long data, int length) throws IOException {
+            if (length > MAX_ICC_BYTES) {
+                find("PNG_CHUNK_ICCP", null, length, Kind.OTHER);
+                return;
+            }
             byte[] chunk = src.read(data, length);
             int nul = indexOf(chunk, new byte[] {0});
             if (nul < 0 || nul + 2 > chunk.length) {
@@ -1303,6 +1313,10 @@ public final class ImageContainerMetadata {
                         anmf(pos, data, size, body);
                         break;
                     case "ICCP": {
+                        if (size > MAX_ICC_BYTES) {
+                            find("WEBP_CHUNK_ICCP", null, size, Kind.OTHER);
+                            break;
+                        }
                         byte[] profile = src.read(data, (int) size);
                         iccInfo(profile);
                         if (body != null) {

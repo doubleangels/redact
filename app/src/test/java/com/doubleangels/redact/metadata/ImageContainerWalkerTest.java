@@ -917,4 +917,15 @@ public class ImageContainerWalkerTest {
         assertFalse(contains(webp, a("Jane")));
         assertFalse(contains(webp, a("ICCP")));
     }
+
+    /** A colour chunk larger than any profile is left out instead of read whole into memory. */
+    @Test
+    public void anOversizedColourChunk_isLeftOut() throws Exception {
+        byte[] vp8x = b(0x20, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        byte[] webp = webp(webpChunk("VP8X", vp8x), webpChunk("ICCP", new byte[17 * 1024 * 1024]),
+                webpChunk("VP8 ", new byte[10]));
+        byte[] out = sanitizeNeutral(webp);
+        assertFalse(contains(out, a("ICCP")));
+        assertTrue(out.length < 1024 * 1024);
+    }
 }
