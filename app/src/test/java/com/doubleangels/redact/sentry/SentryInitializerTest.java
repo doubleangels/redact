@@ -111,6 +111,49 @@ public class SentryInitializerTest {
         assertFalse(SentryInitializer.isInitialized());
     }
 
+    /**
+     * The tag gate on the shared scope: a key off the allow-list never becomes a tag, and a value
+     * is cut to 200 characters. Read back from the SDK's own scope, as a report would carry it.
+     */
+    @Test
+    public void scopeTags_takeOnlyAllowedKeys_cutTo200Characters() {
+        AppPreferences.setCrashReportingEnabled(app, true);
+        SentryInitializer.testDsnOverride = UNREACHABLE_DSN;
+        SentryManager.init(app);
+        SentryInitializer.initializeBlocking(app);
+
+        SentryManager.setCustomKey("unknown_key", "should not be a tag");
+        SentryManager.setCustomKey("file_name", "IMG_1.jpg");
+        SentryManager.setCustomKey("theme_mode", "x".repeat(400));
+        java.util.Map<String, String> tags = new java.util.HashMap<>();
+        Sentry.configureScope(scope -> tags.putAll(scope.getTags()));
+
+        assertFalse(tags.containsKey("unknown_key"));
+        assertFalse(tags.containsKey("file_name"));
+        assertEquals(200, tags.get("theme_mode").length());
+    }
+
+    /** A breadcrumb from logEvent is scrubbed before it is added, so an error never carries a URI. */
+    @Test
+    public void logEventBreadcrumbs_areScrubbed() {
+        AppPreferences.setCrashReportingEnabled(app, true);
+        SentryInitializer.testDsnOverride = UNREACHABLE_DSN;
+        SentryManager.init(app);
+        SentryInitializer.initializeBlocking(app);
+
+        SentryManager.logEvent("Scan", "Opened content://media/external/images/media/7 and /storage/emulated/0/DCIM/a.jpg");
+        java.util.List<String> messages = new java.util.ArrayList<>();
+        Sentry.configureScope(scope -> {
+            for (io.sentry.Breadcrumb b : scope.getBreadcrumbs()) {
+                messages.add(b.getMessage());
+            }
+        });
+
+        String last = messages.get(messages.size() - 1);
+        assertTrue(last, last.startsWith("Opened [redacted]"));
+        assertFalse(last, last.contains("content://") || last.contains("/storage/") || last.contains("a.jpg"));
+    }
+
     @Test
     public void logEvent_alsoSendsAScrubbedStructuredLog() {
         AppPreferences.setCrashReportingEnabled(app, true);

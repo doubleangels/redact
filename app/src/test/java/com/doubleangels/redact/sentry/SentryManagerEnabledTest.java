@@ -31,6 +31,12 @@ import io.sentry.protocol.SentryId;
  * With crash reporting enabled but the Sentry SDK not initialised (as in unit tests, where the
  * facade is a no-op), every reporting helper still runs its full validation and scrubbing logic.
  */
+/*
+ * The tests named ..._doesNotThrow run every helper with good and bad input to show it copes;
+ * what reaches Sentry is asserted elsewhere: the tag gate and breadcrumb scrubbing in
+ * SentryInitializerTest (against a started SDK), metric attributes in SentryManagerTest, and the
+ * scrubber itself in SentryPrivacyScrubberTest.
+ */
 @RunWith(RobolectricTestRunner.class)
 public class SentryManagerEnabledTest {
 
@@ -68,13 +74,13 @@ public class SentryManagerEnabledTest {
     }
 
     @Test
-    public void logEvent_handlesNullsAndScrubsTheMessage() {
+    public void logEvent_withNullsOrUserText_doesNotThrow() {
         SentryManager.logEvent("scan", "opened content://media/external/images/media/1");
         SentryManager.logEvent(null, null);
     }
 
     @Test
-    public void counters_acceptAllowedDimensionsOnly() {
+    public void counters_withAnyDimensions_doNotThrow() {
         SentryManager.count("video.downscaled", 1);
         SentryManager.count("", 1);
         SentryManager.count(null, 1);
@@ -88,7 +94,7 @@ public class SentryManagerEnabledTest {
     }
 
     @Test
-    public void distributionsAndGauges_validateTheirInputs() {
+    public void distributionsAndGauges_withAnyInput_doNotThrow() {
         SentryManager.distribution("video.retry_smaller", 3);
         SentryManager.distribution("", 3);
         SentryManager.distribution("video.retry_smaller", 3, "operation_type", "clean");
@@ -100,7 +106,7 @@ public class SentryManagerEnabledTest {
     }
 
     @Test
-    public void recordException_scrubsOrSkipsDependingOnTheError() {
+    public void recordException_ofAnyError_doesNotThrow() {
         SentryManager.recordException(new IllegalStateException("failed on content://media/external/images/media/9"));
         SentryManager.recordException(new IllegalStateException("plain message"));
         SentryManager.recordException(new IllegalStateException());
@@ -243,7 +249,7 @@ public class SentryManagerEnabledTest {
     }
 
     @Test
-    public void customKeys_areFilteredAndTruncated() {
+    public void customKeys_ofAnyKeyOrValue_doNotThrow() {
         SentryManager.setCustomKey("operation_type", "clean");
         SentryManager.setCustomKey("operation_type", (String) null);
         SentryManager.setCustomKey("mime_type", "x".repeat(400));
