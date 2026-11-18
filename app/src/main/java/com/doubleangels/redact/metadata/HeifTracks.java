@@ -16,6 +16,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -27,7 +28,7 @@ import java.util.Set;
  * a clean.
  *
  * <p>Like the rest of {@link HeifContainerMetadata}, this works from an allowlist. Only picture
- * tracks ({@code pict}, {@code vide} and their auxiliary alpha or depth tracks) in HEVC or AV1 are
+ * tracks ({@code pict}, {@code vide} and their auxiliary alpha tracks) in HEVC or AV1 are
  * kept, with the boxes that time and decode them. User data and metadata boxes, where
  * location and dates go, are left out at every level. The creation and modification times are
  * zeroed, the handler name is emptied, and the sample entry's compressor name is blanked. Every
@@ -38,6 +39,13 @@ import java.util.Set;
 final class HeifTracks {
 
     private static final Set<String> PICTURE_HANDLERS = Set.of("pict", "vide", "auxv");
+    /**
+     * The auxiliary track kinds kept: transparency, which the picture needs. Depth, disparity, a
+     * matte outlining a person and any kind not known here are left out, as for a still image:
+     * they map the scene in 3D or show the shape of the people in it.
+     */
+    private static final Set<String> KEPT_AUX_TYPES = Set.of(
+            "urn:mpeg:hevc:2015:auxid:1", "urn:mpeg:mpegB:cicp:systems:auxiliary:alpha");
     private static final Set<String> SAMPLE_ENTRY_CHILDREN = Set.of(
             "hvcC", "av1C", "colr", "pasp", "clap", "btrt", "ccst", "clli", "mdcv", "cclv", "amve", "auxi");
     /** Sample table boxes copied as they are; the sizes, chunks and offsets are written anew. */
@@ -63,6 +71,8 @@ final class HeifTracks {
         final List<byte[]> stblCopies = new ArrayList<>();
         String codec;
         int nalLengthSize = 4;
+        /** An auxiliary track's kind, from its auxi box: alpha, depth, a matte...; null when none. */
+        @Nullable String auxType;
         long[] sampleOffsets;
         int[] sampleSizes;
         long[] newOffsets;
@@ -182,6 +192,9 @@ final class HeifTracks {
             throw new IOException("Damaged media information");
         }
         parseSampleTable(track, stbl);
+        if ("auxv".equals(track.handler) && (track.auxType == null || !KEPT_AUX_TYPES.contains(track.auxType))) {
+            return null; // depth, a matte or an unknown kind: left out, as for a still image
+        }
         return track;
     }
 
@@ -344,6 +357,13 @@ final class HeifTracks {
                 bytes = HeifContainerMetadata.filterHvcC(bytes);
             } else if ("av1C".equals(type)) {
                 bytes = HeifContainerMetadata.filterAv1C(bytes);
+            } else if ("auxi".equals(type)) {
+                int q = headerSize(bytes, 0) + 4; // after version and flags
+                int end = q;
+                while (end < bytes.length && bytes[end] != 0) {
+                    end++;
+                }
+                track.auxType = new String(bytes, q, end - q, StandardCharsets.ISO_8859_1);
             } else if ("colr".equals(type)) {
                 int q = headerSize(bytes, 0);
                 String colourType = fourCc(bytes, q);

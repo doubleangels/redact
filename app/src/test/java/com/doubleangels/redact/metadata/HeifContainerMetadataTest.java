@@ -644,18 +644,22 @@ public class HeifContainerMetadataTest {
         assertFalse(ImageContainerMetadata.scan(source).recognized);
     }
 
+    /**
+     * An auxiliary track is kept only when its auxi box says it is transparency. This one (built
+     * from animated.avif: an auxv track with a tref to track 1, co64 offsets and stz2 sizes) has
+     * no auxi at all, so it is an unknown kind and goes, like a depth map; the picture track is
+     * rebuilt on its own and still points at the right samples.
+     */
     @Test
-    public void animatedAvif_withASecondTrackReferringToTheFirst_keepsBothAndTheReference() throws Exception {
-        // Built from animated.avif: an auxv track with a tref to track 1, co64 offsets and stz2 sizes.
+    public void animatedAvif_withAnAuxiliaryTrackOfNoKnownKind_keepsOnlyThePictureTrack() throws Exception {
         File clean = new File(temp.getRoot(), "two-clean.avif");
         HeifContainerMetadata.sanitize(resource("animated_two_tracks.avif"), clean);
 
         byte[] out = Files.readAllBytes(clean.toPath());
         String text = new String(out, StandardCharsets.ISO_8859_1);
-        assertEquals("both tracks", 2, text.split("trak", -1).length - 1);
-        assertTrue(contains(out, "tref"));
-        assertTrue(contains(out, "auxl"));
-        assertTrue(contains(out, "auxv"));
+        assertEquals("only the picture track", 1, text.split("trak", -1).length - 1);
+        assertFalse(contains(out, "auxv"));
+        assertFalse(contains(out, "auxl"));
 
         File again = new File(temp.getRoot(), "two-again.avif");
         HeifContainerMetadata.sanitize(clean, again);
