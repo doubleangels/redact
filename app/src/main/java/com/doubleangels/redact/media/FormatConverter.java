@@ -1140,35 +1140,14 @@ public final class FormatConverter {
             @Nullable VideoMedia3Converter.TranscodeProgressListener progressListener)
             throws IOException {
         return convertVideoToMovies(
-                context, sourceUri, baseDisplayName, formatIndex, progressListener, null, -1L);
+                context, sourceUri, baseDisplayName, formatIndex, progressListener, -1L, null).output();
     }
 
-    @NonNull
-    public static Uri convertVideoToMovies(
-            @NonNull Context context,
-            @NonNull Uri sourceUri,
-            @NonNull String baseDisplayName,
-            int formatIndex,
-            @Nullable VideoMedia3Converter.TranscodeProgressListener progressListener,
-            @Nullable int[] outActualFormatIndex)
-            throws IOException {
-        return convertVideoToMovies(
-                context, sourceUri, baseDisplayName, formatIndex, progressListener, outActualFormatIndex, -1L);
-    }
-
-    @NonNull
-    public static Uri convertVideoToMovies(
-            @NonNull Context context,
-            @NonNull Uri sourceUri,
-            @NonNull String baseDisplayName,
-            int formatIndex,
-            @Nullable VideoMedia3Converter.TranscodeProgressListener progressListener,
-            @Nullable int[] outActualFormatIndex,
-            long transcodeOwnerId)
-            throws IOException {
-        return convertVideoToMovies(
-                context, sourceUri, baseDisplayName, formatIndex, progressListener, outActualFormatIndex,
-                transcodeOwnerId, null);
+    /**
+     * A converted video: where it was saved, and the codec it was encoded with, which is not the
+     * one asked for when the phone can't encode that one (see {@link VideoMedia3Converter}).
+     */
+    public record VideoConversion(@NonNull Uri output, int usedFormatIndex) {
     }
 
     /**
@@ -1176,13 +1155,12 @@ public final class FormatConverter {
      *     queued does not start at all
      */
     @NonNull
-    public static Uri convertVideoToMovies(
+    public static VideoConversion convertVideoToMovies(
             @NonNull Context context,
             @NonNull Uri sourceUri,
             @NonNull String baseDisplayName,
             int formatIndex,
             @Nullable VideoMedia3Converter.TranscodeProgressListener progressListener,
-            @Nullable int[] outActualFormatIndex,
             long transcodeOwnerId,
             @Nullable BooleanSupplier cancelled)
             throws IOException {
@@ -1207,12 +1185,9 @@ public final class FormatConverter {
                     formatIndex,
                     progressListener,
                     transcodeOwnerId);
-            if (outActualFormatIndex != null && outActualFormatIndex.length > 0) {
-                outActualFormatIndex[0] = actualFormat;
-            }
             stripper.requireConvertedVideoClean(outFile, sourceUri);
-            return VideoMedia3Converter.copyToMoviesRedact(
-                    context, outFile, baseDisplayName);
+            return new VideoConversion(
+                    VideoMedia3Converter.copyToMoviesRedact(context, outFile, baseDisplayName), actualFormat);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new ProcessingCancelledException("Video conversion interrupted", e);

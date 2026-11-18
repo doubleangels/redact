@@ -312,7 +312,7 @@ public class FormatConverterConversionTest {
 
         try {
             FormatConverter.convertVideoToMovies(
-                    context, Uri.fromFile(clip), "clip", 0, null, null, -1L,
+                    context, Uri.fromFile(clip), "clip", 0, null, -1L,
                     () -> {
                         polls[0]++;
                         return true;
@@ -332,14 +332,13 @@ public class FormatConverterConversionTest {
         // Media3 never finishes an export here; take the timeout path instead of waiting an hour.
         VideoMedia3Converter.setAwaitTimeoutForTests(500L);
         Uri missing = Uri.fromFile(new File("/nonexistent/clip.mp4"));
-        int[] actual = new int[1];
         try {
             callOffMain(() -> FormatConverter.convertVideoToMovies(context, missing, "clip", 1, null));
         } catch (Exception expected) {
             // unreadable source
         }
         try {
-            callOffMain(() -> FormatConverter.convertVideoToMovies(context, missing, "clip", 2, null, actual));
+            callOffMain(() -> FormatConverter.convertVideoToMovies(context, missing, "clip", 2, null, -1L, null));
         } catch (Exception expected) {
             // unreadable source
         }

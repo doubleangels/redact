@@ -682,9 +682,7 @@ public final class ProcessingRepository {
         updateConvertProgressPercent(overallStart, itemLine);
         LocalNotifications.updateConversionProgress(app, overallStart, itemLine);
         if (mediaItem.isVideo()) {
-            int[] actualFormatIndex = new int[1];
-            actualFormatIndex[0] = formatIndex;
-            Uri convertedVideo = FormatConverter.convertVideoToMovies(
+            FormatConverter.VideoConversion converted = FormatConverter.convertVideoToMovies(
                     app,
                     uri,
                     outputName,
@@ -700,19 +698,19 @@ public final class ProcessingRepository {
                         updateConvertProgressPercent(overall, detail);
                         LocalNotifications.updateConversionProgress(app, overall, detail);
                     },
-                    actualFormatIndex,
                     VideoMedia3Converter.convertOwner(runGeneration),
                     () -> convertStopped(runGeneration));
             if (runGeneration == scope.convertGeneration().get()) {
-                convertOutputs.add(convertedVideo);
+                convertOutputs.add(converted.output());
             }
-            if (actualFormatIndex[0] != formatIndex) {
-                targetMimeType = AppMetrics.videoFormatMimeType(actualFormatIndex[0]);
-                AppMetrics.codecFallback(actualFormatIndex[0]);
-                String requested = FormatConverter.videoFormatLabel(app, formatIndex);
-                String used = FormatConverter.videoFormatLabel(app, actualFormatIndex[0]);
+            int used = converted.usedFormatIndex();
+            if (used != formatIndex) {
+                targetMimeType = AppMetrics.videoFormatMimeType(used);
+                AppMetrics.codecFallback(used);
+                String requestedLabel = FormatConverter.videoFormatLabel(app, formatIndex);
+                String usedLabel = FormatConverter.videoFormatLabel(app, used);
                 convertProgressMessage.postValue(
-                        app.getString(R.string.convert_codec_fallback, requested, used));
+                        app.getString(R.string.convert_codec_fallback, requestedLabel, usedLabel));
             }
         } else {
             int overallImage = total > 0 ? ((index - 1) * 100) / total : 0;
