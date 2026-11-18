@@ -94,6 +94,9 @@ public class MediaProcessor {
     /** Flag to allow cancellation of ongoing processing */
     private final AtomicBoolean cancelled = new AtomicBoolean(false);
 
+    /** Where callbacks are delivered: the main thread, which every caller observes from. */
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
     private final ExecutorService processingExecutor =
             Executors.newSingleThreadExecutor(r -> new Thread(r, "redact-clean"));
 
@@ -304,7 +307,6 @@ public class MediaProcessor {
      * begin it under the previous batch's owner, which cancelling this one misses.
      */
     public void processMediaItems(List<MediaItem> items, long transcodeOwnerId, ProcessingCallback callback) {
-        Handler mainHandler = new Handler(Looper.getMainLooper());
         if (items == null || items.isEmpty()) {
             mainHandler.post(() -> callback.onComplete(0, 0));
             return;
@@ -324,7 +326,7 @@ public class MediaProcessor {
             BatchRun.Result result = new BatchRun.Result(0, 0, true);
             try {
                 result = BatchRun.run(AppMetrics.CLEAN, "clean_multiple", items, 0, MediaItem::isVideo,
-                        cancelled::get, (item, index) -> cleanOne(item, index, totalItems, mainHandler, callback),
+                        cancelled::get, (item, index) -> cleanOne(item, index, totalItems, callback),
                         new BatchRun.Hooks<>() {
                             @Override
                             public void onFailed(@NonNull MediaItem item, int index, @Nullable Throwable error,
@@ -371,7 +373,7 @@ public class MediaProcessor {
     /** Cleans one file of a batch, reporting its progress, and records it when it succeeds. */
     @NonNull
     private BatchRun.Outcome cleanOne(@NonNull MediaItem item, int index, int totalItems,
-                                      @NonNull Handler mainHandler, @NonNull ProcessingCallback callback) {
+                                      @NonNull ProcessingCallback callback) {
         String batchLine = context.getString(
                 R.string.clean_progress_batch, index + 1, totalItems, item.displayName(context));
         ProgressUpdateThrottler progressThrottler = new ProgressUpdateThrottler();
