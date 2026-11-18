@@ -296,7 +296,6 @@ public class SettingsFragment extends TabFragment {
                 if (!isChecked) {
                     AppPreferences.setCrashReportingEnabled(requireContext(), false);
                     SentryInitializer.shutdown();
-                    SentryManager.setCustomKey("crash_reporting_enabled", false);
                     return;
                 }
                 revertSwitch(switchCrashReporting, false);
@@ -312,7 +311,6 @@ public class SettingsFragment extends TabFragment {
                                         true);
                             }
                             setSwitchChecked(switchCrashReporting, true);
-                            SentryManager.setCustomKey("crash_reporting_enabled", true);
                         },
                         null);
             } catch (Exception e) {

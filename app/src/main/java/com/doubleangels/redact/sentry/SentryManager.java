@@ -87,7 +87,6 @@ public final class SentryManager {
             "notifications_enabled",
             "clean_notifications_enabled",
             "convert_notifications_enabled",
-            "crash_reporting_enabled",
             "intent_action",
             "intent_type",
             "unsupported_type",

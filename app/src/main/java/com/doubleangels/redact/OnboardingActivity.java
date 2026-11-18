@@ -272,7 +272,6 @@ public class OnboardingActivity extends AppCompatActivity {
         } else if (step == Step.CRASH_REPORTS) {
             AppPreferences.setCrashReportingEnabled(this, true);
             SentryInitializer.initializeIfNeeded(this);
-            SentryManager.setCustomKey("crash_reporting_enabled", true);
         }
         refresh();
         if (isAllowed(status(step))) {
