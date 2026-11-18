@@ -778,7 +778,7 @@ final class ImageCleaner {
      * a re-encoded JPEG, PNG or WebP is then rebuilt the same way, so whatever the encoder added
      * goes too. EXIF is gone either way; the caller puts back the tags the settings keep.
      *
-     * @param neutralIcc Strict Clean or a share: a JPEG's, PNG's or WebP's colour profile keeps
+     * @param neutralIcc Strict Clean or a share: the colour profile (of a JPEG, PNG, WebP, HEIC or AVIF) keeps
      *                   only its colour tags and a neutral name ({@link IccProfiles})
      */
     @NonNull
@@ -807,7 +807,7 @@ final class ImageCleaner {
             // Rebuilt around its coded pictures, which keeps the full resolution, 10-bit colour
             // and any HDR gain map that a decode and encode would lose.
             try {
-                HeifContainerMetadata.sanitize(source, target, motion, context.getCacheDir());
+                HeifContainerMetadata.sanitize(source, target, motion, context.getCacheDir(), neutralIcc);
                 countPicturePath(fromPixels, "rebuilt");
                 return outputFormat;
             } catch (IOException | RuntimeException e) {

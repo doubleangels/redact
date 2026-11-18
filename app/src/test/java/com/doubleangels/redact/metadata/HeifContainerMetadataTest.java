@@ -696,4 +696,82 @@ public class HeifContainerMetadataTest {
 
         assertArrayEquals(sequenceHeader, filtered);
     }
+
+    /** A v2 colour profile whose description is a person's own display name, and a white point. */
+    private static byte[] calibratedIccProfile() throws IOException {
+        byte[] name = ascii("Jordan's monitor\0");
+        byte[] desc = cat(ascii("desc"), u32(0), u32(name.length), name, u32(0), u32(0), u8(0, 0, 0), new byte[67]);
+        byte[] wtpt = cat(ascii("XYZ "), u32(0), u32(0xF6D6), u32(0x10000), u32(0xD32D));
+        int table = 128 + 4 + 2 * 12;
+        int descAt = table;
+        int wtptAt = descAt + ((desc.length + 3) & ~3);
+        byte[] descPadded = java.util.Arrays.copyOf(desc, (desc.length + 3) & ~3);
+        int size = wtptAt + wtpt.length;
+        byte[] header = new byte[128];
+        java.nio.ByteBuffer.wrap(header).putInt(0, size);
+        header[8] = 2;
+        System.arraycopy(ascii("mntr"), 0, header, 12, 4);
+        System.arraycopy(ascii("RGB "), 0, header, 16, 4);
+        System.arraycopy(ascii("XYZ "), 0, header, 20, 4);
+        System.arraycopy(ascii("acsp"), 0, header, 36, 4);
+        return cat(header, u32(2), ascii("desc"), u32(descAt), u32(desc.length),
+                ascii("wtpt"), u32(wtptAt), u32(wtpt.length), descPadded, wtpt);
+    }
+
+    /** A one-picture HEIC whose colour property holds {@code profile}. */
+    private File heifWithProfile(byte[] profile) throws IOException {
+        byte[] picture = u8(0, 0, 0, 5, 1 << 1, 1, 0xAF, 0x12, 0x34);
+        byte[] hvcC = box("hvcC", u8(1), new byte[20], u8(0xFF & (0xFC | 3)), u8(0));
+        byte[] ispe = fullBox("ispe", 0, 0, u32(64), u32(48));
+        byte[] colr = box("colr", ascii("prof"), profile);
+        byte[] ipco = box("ipco", hvcC, ispe, colr);
+        byte[] ipma = fullBox("ipma", 0, 0, u32(1), u16(1), u8(3, 0x80 | 1, 2, 3));
+        byte[] iinf = fullBox("iinf", 0, 0, u16(1), infe(1, "hvc1", "", null));
+        byte[] hdlr = fullBox("hdlr", 0, 0, u32(0), ascii("pict"), new byte[12], u8(0));
+        byte[] ftyp = box("ftyp", ascii("heic"), u32(0), ascii("mif1"), ascii("heic"));
+        byte[] meta = null;
+        long mdatData = 0;
+        for (int pass = 0; pass < 2; pass++) {
+            byte[] iloc = cat(u8(0x44, 0x00), u16(1), u16(1), u16(0), u16(0), u16(1), u32(mdatData), u32(picture.length));
+            meta = fullBox("meta", 0, 0, hdlr, fullBox("pitm", 0, 0, u16(1)),
+                    fullBox("iloc", 0, 0, iloc), iinf, box("iprp", ipco, ipma));
+            mdatData = ftyp.length + meta.length + 8;
+        }
+        File f = new File(temp.getRoot(), "profile-" + System.nanoTime() + ".heic");
+        Files.write(f.toPath(), cat(ftyp, meta, box("mdat", picture)));
+        return f;
+    }
+
+    /** Strict Clean and shares give a HEIC's colour profile a neutral name, as for a JPEG. */
+    @Test
+    public void strictClean_neutralizesAHeicColourProfile_andANormalCleanKeepsItsColours() throws Exception {
+        File source = heifWithProfile(calibratedIccProfile());
+        File strict = new File(temp.getRoot(), "strict.heic");
+        File normal = new File(temp.getRoot(), "normal.heic");
+
+        HeifContainerMetadata.sanitize(source, strict, null, temp.getRoot(), true);
+        HeifContainerMetadata.sanitize(source, normal, null, temp.getRoot(), false);
+
+        byte[] strictOut = Files.readAllBytes(strict.toPath());
+        assertFalse(contains(strictOut, "Jordan"));
+        assertTrue(contains(strictOut, IccProfiles.NEUTRAL_NAME));
+        assertTrue("the colours stay", contains(strictOut, "wtpt"));
+        assertTrue("a normal clean keeps the profile as it was, header cleared",
+                contains(Files.readAllBytes(normal.toPath()), "Jordan"));
+    }
+
+    /** A profile Strict Clean can't follow is left out; the property's place stays. */
+    @Test
+    public void strictClean_leavesOutAHeicProfileItCantFollow() throws Exception {
+        byte[] broken = calibratedIccProfile();
+        java.nio.ByteBuffer.wrap(broken).putInt(128, 5000);
+        File strict = new File(temp.getRoot(), "strict-broken.heic");
+
+        HeifContainerMetadata.sanitize(heifWithProfile(broken), strict, null, temp.getRoot(), true);
+
+        byte[] out = Files.readAllBytes(strict.toPath());
+        assertFalse(contains(out, "Jordan"));
+        assertFalse(contains(out, "colr"));
+        assertTrue(ImageContainerMetadata.scan(strict).recognized);
+    }
 }

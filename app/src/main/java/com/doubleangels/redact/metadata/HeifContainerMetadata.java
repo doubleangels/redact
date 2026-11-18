@@ -326,7 +326,7 @@ public final class HeifContainerMetadata {
     /** {@link #sanitize(File, File)} with its intermediate files in {@code workDir}. */
     public static void sanitize(@NonNull File source, @NonNull File target, @NonNull File workDir)
             throws IOException {
-        sanitize(source, target, null, null, false, workDir);
+        sanitize(source, target, null, null, false, workDir, false);
     }
 
     /**
@@ -336,7 +336,17 @@ public final class HeifContainerMetadata {
      */
     public static void sanitize(@NonNull File source, @NonNull File target, @Nullable MotionPhoto.Clip motion,
                                 @NonNull File workDir) throws IOException {
-        sanitize(source, target, null, motion, false, workDir);
+        sanitize(source, target, motion, workDir, false);
+    }
+
+    /**
+     * {@link #sanitize(File, File, MotionPhoto.Clip, File)}, and with {@code neutralIcc} (Strict
+     * Clean and shares) the colour profile rebuilt with only its colour tags and a neutral name
+     * ({@link IccProfiles#neutralize}), as for a JPEG, PNG or WebP.
+     */
+    public static void sanitize(@NonNull File source, @NonNull File target, @Nullable MotionPhoto.Clip motion,
+                                @NonNull File workDir, boolean neutralIcc) throws IOException {
+        sanitize(source, target, null, motion, false, workDir, neutralIcc);
     }
 
     /**
@@ -359,7 +369,7 @@ public final class HeifContainerMetadata {
     public static void addExif(@NonNull File file, @NonNull byte[] tiff, @NonNull File workDir) throws IOException {
         File rebuilt = File.createTempFile("heif_exif_", ".heic", workDir);
         try {
-            sanitize(file, rebuilt, tiff, null, true, workDir);
+            sanitize(file, rebuilt, tiff, null, true, workDir, false);
             Files.move(rebuilt.toPath(), file.toPath(),
                     StandardCopyOption.REPLACE_EXISTING);
         } finally {
@@ -374,7 +384,8 @@ public final class HeifContainerMetadata {
      *     Photo XMP and video it wrote
      */
     private static void sanitize(@NonNull File source, @NonNull File target, @Nullable byte[] exifTiff,
-            @Nullable MotionPhoto.Clip motion, boolean keepOwnMotion, @NonNull File workDir) throws IOException {
+            @Nullable MotionPhoto.Clip motion, boolean keepOwnMotion, @NonNull File workDir,
+            boolean neutralIcc) throws IOException {
         if (source.getCanonicalPath().equals(target.getCanonicalPath())) {
             throw new IOException("Source and target must differ");
         }
@@ -442,6 +453,7 @@ public final class HeifContainerMetadata {
             IOException noStill = null;
             if (meta != null) {
                 rebuild = new Rebuild(in.getChannel(), meta);
+                rebuild.neutralIcc = neutralIcc;
                 try {
                     rebuild.parse();
                 } catch (IOException e) {
@@ -663,6 +675,8 @@ public final class HeifContainerMetadata {
         private final Map<Long, List<Integer>> itemProperties = new LinkedHashMap<>();
         private long primaryId = -1;
         private final ByteArrayOutputStream newIdat = new ByteArrayOutputStream();
+        /** Strict Clean or a share: the colour profile keeps only its colour tags ({@link IccProfiles}). */
+        boolean neutralIcc;
 
         Rebuild(@NonNull FileChannel in, @NonNull byte[] meta) {
             this.in = in;
@@ -1542,7 +1556,22 @@ public final class HeifContainerMetadata {
                     int p = headerSize(copy, 0);
                     String colourType = fourCc(copy, p);
                     if ("prof".equals(colourType) || "rICC".equals(colourType)) {
-                        ImageContainerMetadata.clearIccHeader(copy, p + 4);
+                        byte[] profile = Arrays.copyOfRange(copy, p + 4, copy.length);
+                        ImageContainerMetadata.clearIccHeader(profile, 0);
+                        if (neutralIcc) {
+                            profile = IccProfiles.neutralize(profile);
+                            if (profile == null) {
+                                // A profile that can't be followed is left out, as for a JPEG;
+                                // an empty box keeps the property indexes in place.
+                                writeU32(ipco, 8);
+                                ipco.write(ascii("free"));
+                                continue;
+                            }
+                        }
+                        ByteArrayOutputStream colr = new ByteArrayOutputStream();
+                        colr.write(ascii(colourType));
+                        colr.write(profile);
+                        copy = box("colr", colr.toByteArray());
                     }
                 } else if ("hvcC".equals(type)) {
                     copy = filterHvcC(copy);
