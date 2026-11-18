@@ -209,7 +209,7 @@ public final class AlreadyCleanCheck {
             }
             return Status.ALREADY_CLEAN;
         } catch (Exception e) {
-            SentryManager.log("The already-clean check could not read a video.");
+            SentryManager.logEvent("Clean", "The already-clean check could not read a video.");
             return Status.UNKNOWN;
         }
     }

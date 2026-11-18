@@ -107,7 +107,7 @@ public final class OutputDestination {
             }
             // Folder deleted, permission revoked or provider gone: save to the default instead of
             // failing the whole job, and tell the user once so they know where to look.
-            SentryManager.log("The chosen output folder could not be used: " + failure + ".");
+            SentryManager.logEvent("Output", "The chosen output folder could not be used: " + failure + ".");
             SentryManager.count("output.folder_fallback", 1,
                     "media_type", video ? "video" : "image", "error_type", failure);
             warnFallback(context, tree, video);
@@ -226,7 +226,7 @@ public final class OutputDestination {
                 resolver.delete(uri, null, null);
             }
         } catch (Exception e) {
-            SentryManager.log("The partial output failed to clean up: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("Output", "The partial output failed to clean up: " + e.getClass().getSimpleName() + ".");
         }
         clearPendingDocument(uri);
     }
@@ -290,7 +290,7 @@ public final class OutputDestination {
                 DocumentsContract.deleteDocument(app.getContentResolver(), doc);
             } catch (Exception e) {
                 // Already gone, or the folder's permission was revoked: nothing left to do.
-                SentryManager.log("An abandoned output could not be removed: " + e.getClass().getSimpleName() + ".");
+                SentryManager.logEvent("Output", "An abandoned output could not be removed: " + e.getClass().getSimpleName() + ".");
             }
         }
     }
@@ -328,7 +328,7 @@ public final class OutputDestination {
             values.put(MediaStore.MediaColumns.DISPLAY_NAME, displayName);
             return resolver.update(uri, values, null, null) > 0 ? uri : null;
         } catch (Exception e) {
-            SentryManager.log("A clean copy could not be renamed: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("Output", "A clean copy could not be renamed: " + e.getClass().getSimpleName() + ".");
             return null;
         }
     }

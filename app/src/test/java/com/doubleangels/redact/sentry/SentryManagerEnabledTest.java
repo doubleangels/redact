@@ -71,7 +71,6 @@ public class SentryManagerEnabledTest {
     public void logEvent_handlesNullsAndScrubsTheMessage() {
         SentryManager.logEvent("scan", "opened content://media/external/images/media/1");
         SentryManager.logEvent(null, null);
-        SentryManager.log("deprecated entry point");
     }
 
     @Test

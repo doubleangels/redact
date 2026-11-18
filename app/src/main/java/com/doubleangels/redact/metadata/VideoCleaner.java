@@ -94,7 +94,7 @@ final class VideoCleaner {
     @NonNull
     public CleanResult cleanVideo(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Log operation start for analytics and debugging
-        SentryManager.log("The app is starting video metadata stripping for MediaStore.");
+        SentryManager.logEvent("Video", "The app is starting video metadata stripping for MediaStore.");
         SentryManager.beginOperation("video_to_mediastore");
         Uri newUri = null;
         MetadataStripper.Job job = new MetadataStripper.Job();
@@ -141,7 +141,7 @@ final class VideoCleaner {
                         savedViaFastPath = true;
                     } catch (IOException fastPathError) {
                         fastPathFailed = true;
-                        SentryManager.log(
+                        SentryManager.logEvent("Video", 
                                 "The fast video clean failed verification, so the app is re-encoding: "
                                         + fastPathError.getClass().getSimpleName() + ".");
                     }
@@ -176,7 +176,7 @@ final class VideoCleaner {
                 Thread.currentThread().interrupt();
                 throw new ProcessingCancelledException("Video processing interrupted", e);
             } catch (Exception e) {
-                SentryManager.log("Video processing failed: " + e.getClass().getSimpleName() + ".");
+                SentryManager.logEvent("Video", "Video processing failed: " + e.getClass().getSimpleName() + ".");
                 throw new CleanFailedException("Failed to clean video safely", e);
             } finally {
                 if (tempCleanFile != null && tempCleanFile.exists()) {
@@ -185,7 +185,7 @@ final class VideoCleaner {
             }
 
             countVideoPath(savedViaFastPath ? "fast_copy" : fastPathFailed ? "fast_failed" : "transcoded");
-            SentryManager.log("The video was processed successfully.");
+            SentryManager.logEvent("Video", "The video was processed successfully.");
             SentryManager.setCustomKey("success", true);
 
         } catch (RuntimeException e) {
@@ -238,7 +238,7 @@ final class VideoCleaner {
     @NonNull
     public CleanResult cleanVideoForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Log operation start for analytics and debugging
-        SentryManager.log("The app is starting video metadata stripping for sharing.");
+        SentryManager.logEvent("Video", "The app is starting video metadata stripping for sharing.");
 
         SentryManager.beginOperation("video_for_sharing");
         MetadataStripper.Job job = new MetadataStripper.Job();
@@ -278,7 +278,7 @@ final class VideoCleaner {
                 Thread.currentThread().interrupt();
                 throw new ProcessingCancelledException("Video transcoding interrupted", e);
             } catch (Exception e) {
-                SentryManager.log("Video processing failed: " + e.getClass().getSimpleName() + ".");
+                SentryManager.logEvent("Video", "Video processing failed: " + e.getClass().getSimpleName() + ".");
                 throw new CleanFailedException("Failed to process video safely", e);
             }
 
@@ -294,7 +294,7 @@ final class VideoCleaner {
 
             job.file = outputFile;
             countVideoPath("transcoded");
-            SentryManager.log("The video was processed successfully for sharing.");
+            SentryManager.logEvent("Video", "The video was processed successfully for sharing.");
             SentryManager.setCustomKey("success", true);
             return job.result(fileUri);
 
@@ -342,12 +342,12 @@ final class VideoCleaner {
                 return 0;
             }
         } catch (Exception ignored) {
-            SentryManager.log("An exception was ignored: " + ignored.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("Video", "An exception was ignored: " + ignored.getClass().getSimpleName() + ".");
         } finally {
             try {
                 extractor.release();
             } catch (Exception ignored) {
-                SentryManager.log("An exception was ignored: " + ignored.getClass().getSimpleName() + ".");
+                SentryManager.logEvent("Video", "An exception was ignored: " + ignored.getClass().getSimpleName() + ".");
             }
         }
         if (fileName != null) {
@@ -466,7 +466,7 @@ final class VideoCleaner {
         try {
             VideoContainerMetadata.writeMovieTimes(video, times);
         } catch (IOException e) {
-            SentryManager.log("The recording date could not be kept: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("Video", "The recording date could not be kept: " + e.getClass().getSimpleName() + ".");
             SentryManager.count("clean.part_dropped", 1, "media_type", "video", "outcome", "recording_date");
         }
     }
@@ -519,7 +519,7 @@ final class VideoCleaner {
             if (useWebm && (keepLocation != null || keepDate)) {
                 // Not a WebM an MP4 can take as it is (VP8, say): a WebM keeps no location and
                 // Android reads no date from one, so it is encoded again into an MP4 that does.
-                SentryManager.log("The WebM can't be copied into an MP4, so it is re-encoded to keep its location or date.");
+                SentryManager.logEvent("Video", "The WebM can't be copied into an MP4, so it is re-encoded to keep its location or date.");
                 return null;
             }
             
@@ -559,8 +559,8 @@ final class VideoCleaner {
                             if (rotation != null) {
                                 muxer.setOrientationHint(Integer.parseInt(rotation));
                             }
-                        } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored.getClass().getSimpleName() + "."); } finally {
-                            try { retriever.release(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
+                        } catch (Exception ignored) { SentryManager.logEvent("Video", "An exception was ignored: " + ignored.getClass().getSimpleName() + "."); } finally {
+                            try { retriever.release(); } catch (Exception ignored) { SentryManager.logEvent("Video", "An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
                         }
                     }
                     muxerVideoTrackIndex = muxer.addTrack(format);
@@ -575,7 +575,7 @@ final class VideoCleaner {
             }
             
             if (videoTrackCount > 1 || audioTrackCount > 1) {
-                SentryManager.log("The video has extra tracks, so the fast transmux keeps only the first video and audio tracks.");
+                SentryManager.logEvent("Video", "The video has extra tracks, so the fast transmux keeps only the first video and audio tracks.");
                 if (AppPreferences.isStrictClean(context)) {
                     return null;
                 }
@@ -612,9 +612,9 @@ final class VideoCleaner {
             }
             return null;
         } finally {
-            try { extractor.release(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
+            try { extractor.release(); } catch (Exception ignored) { SentryManager.logEvent("Video", "An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
             if (muxer != null) {
-                try { muxer.release(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
+                try { muxer.release(); } catch (Exception ignored) { SentryManager.logEvent("Video", "An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
             }
             // Every way out but success, including the early returns once the muxer has created
             // the file, leaves an unused (possibly partly written) copy of the video behind.
@@ -678,7 +678,7 @@ final class VideoCleaner {
                     videoFormat.getInteger(MediaFormat.KEY_COLOR_TRANSFER, 0),
                     videoFormat.getInteger(MediaFormat.KEY_COLOR_RANGE, 0));
             if (vpcC == null) {
-                SentryManager.log("The WebM video does not start with a VP9 key frame, so it stays WebM.");
+                SentryManager.logEvent("Video", "The WebM video does not start with a VP9 key frame, so it stays WebM.");
                 SentryManager.count("clean.part_dropped", 1, "media_type", "video", "outcome", "webm_kept");
                 return null;
             }
@@ -727,14 +727,14 @@ final class VideoCleaner {
             if (MetadataStripper.shouldPropagateCancellation(e)) {
                 throw MetadataStripper.asCancellationException(e);
             }
-            SentryManager.log("The WebM could not be copied into an MP4, so it stays WebM: "
+            SentryManager.logEvent("Video", "The WebM could not be copied into an MP4, so it stays WebM: "
                     + e.getClass().getSimpleName() + ".");
             SentryManager.count("clean.part_dropped", 1, "media_type", "video", "outcome", "webm_kept");
             return null;
         } finally {
-            try { extractor.release(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
+            try { extractor.release(); } catch (Exception ignored) { SentryManager.logEvent("Video", "An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
             if (muxer != null) {
-                try { muxer.close(); } catch (Exception ignored) { SentryManager.log("An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
+                try { muxer.close(); } catch (Exception ignored) { SentryManager.logEvent("Video", "An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
             }
             if (!succeeded && outputFile != null && outputFile.exists()) {
                 host.secureDeleteFile(outputFile);
@@ -876,7 +876,7 @@ final class VideoCleaner {
         // removes that, as Scan promises.
         VideoStreamMetadata.Report stream = VideoStreamMetadata.scan(context, Uri.fromFile(tempCleanFile), true);
         if (stream == null || stream.userDataMessages > 0) {
-            SentryManager.log("The video stream carries user data, so the app is re-encoding it.");
+            SentryManager.logEvent("Video", "The video stream carries user data, so the app is re-encoding it.");
             return false;
         }
         return true;

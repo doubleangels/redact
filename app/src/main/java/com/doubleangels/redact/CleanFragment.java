@@ -122,7 +122,7 @@ public class CleanFragment extends TabFragment {
                 new ActivityResultContracts.OpenMultipleDocuments(),
                 uris -> {
                     if (uris != null && !uris.isEmpty()) {
-                        SentryManager.log("Media was selected successfully.");
+                        SentryManager.logEvent("Clean", "Media was selected successfully.");
                         onMediaReceived(uris);
                     }
                 }
@@ -167,7 +167,7 @@ public class CleanFragment extends TabFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
-            SentryManager.log("The CleanFragment view was created.");
+            SentryManager.logEvent("Clean", "The CleanFragment view was created.");
             viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
             setupViews(view);
             initUtilityClasses();
@@ -263,12 +263,12 @@ public class CleanFragment extends TabFragment {
                 try {
                     if (viewModel.getCleanProcessingState().getValue()
                             == MainViewModel.ProcessingState.PROCESSING) {
-                        SentryManager.log("The clean is being cancelled.");
+                        SentryManager.logEvent("Clean", "The clean is being cancelled.");
                         Haptics.tick(v);
                         viewModel.cancelCleaning();
                         return;
                     }
-                    SentryManager.log("A clean is starting.");
+                    SentryManager.logEvent("Clean", "A clean is starting.");
                     List<MediaItem> items = viewModel.getSelectedItems().getValue();
                     if (items != null && !items.isEmpty()) {
                         SentryManager.setCustomKey("processing_items_count", items.size());
@@ -302,7 +302,7 @@ public class CleanFragment extends TabFragment {
                             }
                         }, "redact-clean-checks").start();
                     } else {
-                        SentryManager.log("No items were selected for processing.");
+                        SentryManager.logEvent("Clean", "No items were selected for processing.");
                         uiStateManager.setFirstSelectMediaFilesStatus();
                     }
                 } catch (Exception e) {
@@ -361,7 +361,7 @@ public class CleanFragment extends TabFragment {
                         @Override
                         public void onPermissionsRequestStarted() {
                             try {
-                                SentryManager.log("The permission request started.");
+                                SentryManager.logEvent("Clean", "The permission request started.");
                                 uiStateManager.setPermissionRequestingStatus();
                             } catch (Exception e) {
                                 SentryManager.recordException(e);
@@ -545,7 +545,7 @@ public class CleanFragment extends TabFragment {
         for (MediaItem item : items) {
             uris.add(item.uri());
         }
-        SentryManager.log("A share without saving is starting.");
+        SentryManager.logEvent("Clean", "A share without saving is starting.");
         try {
             ShareHandlerActivity.shareWithoutSaving(requireContext(), uris);
         } catch (RuntimeException e) {
@@ -729,7 +729,7 @@ public class CleanFragment extends TabFragment {
         if (items.isEmpty() || viewModel == null) {
             return;
         }
-        SentryManager.log("A clean of the files that failed is starting.");
+        SentryManager.logEvent("Clean", "A clean of the files that failed is starting.");
         viewModel.setSelectedItems(new ArrayList<>(items));
         viewModel.startCleaning(new ArrayList<>(items));
     }
@@ -798,10 +798,10 @@ public class CleanFragment extends TabFragment {
                 viewModel.setCleanProcessingState(MainViewModel.ProcessingState.IDLE);
             }
             if (permissionManager.shouldRequestStorageBeforePicker()) {
-                SentryManager.log("The app is requesting permissions.");
+                SentryManager.logEvent("Clean", "The app is requesting permissions.");
                 permissionManager.requestStoragePermission();
             } else {
-                SentryManager.log("The app is launching the media selector.");
+                SentryManager.logEvent("Clean", "The app is launching the media selector.");
                 mediaPickerLauncher.launch(MediaPickerContracts.IMAGE_AND_VIDEO_MIME_TYPES);
             }
         } catch (Exception e) {

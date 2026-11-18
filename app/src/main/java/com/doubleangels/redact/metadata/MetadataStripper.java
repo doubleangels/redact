@@ -212,7 +212,7 @@ public class MetadataStripper {
         this.verifier = new CleanVerifier(this);
         this.images = new ImageCleaner(this);
         this.videos = new VideoCleaner(this, transmuxer);
-        SentryManager.log("The MetadataStripper was initialized.");
+        SentryManager.logEvent("Clean", "The MetadataStripper was initialized.");
     }
 
     /**
@@ -415,7 +415,7 @@ public class MetadataStripper {
     @NonNull
     public CleanResult cleanForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename, boolean isVideo) {
         // Breadcrumb for a crash report.
-        SentryManager.log("The app is starting metadata stripping for sharing.");
+        SentryManager.logEvent("Clean", "The app is starting metadata stripping for sharing.");
         SentryManager.setCustomKey("is_video", isVideo);
         return isVideo
                 ? cleanVideoForSharing(sourceUri, originalFilename)

@@ -264,7 +264,7 @@ public class CensorViewModel extends AndroidViewModel {
         reset();
         source = uri;
         state.setValue(State.LOADING);
-        SentryManager.log("A photo was opened for censoring.");
+        SentryManager.logEvent("Censor", "A photo was opened for censoring.");
         worker.execute(() -> {
             try {
                 String name = OutputDestination.displayName(getApplication().getContentResolver(), uri);
@@ -281,7 +281,7 @@ public class CensorViewModel extends AndroidViewModel {
                 state.postValue(State.READY);
                 AppMetrics.censorLoad(AppMetrics.SUCCESS);
             } catch (UnsupportedMediaException e) {
-                SentryManager.log("A photo could not be decoded for censoring.");
+                SentryManager.logEvent("Censor", "A photo could not be decoded for censoring.");
                 AppMetrics.censorLoad(AppMetrics.UNSUPPORTED);
                 if (generation == photoGeneration.get()) {
                     state.postValue(State.UNSUPPORTED);
@@ -316,7 +316,7 @@ public class CensorViewModel extends AndroidViewModel {
             }
             return scaled;
         } catch (OutOfMemoryError e) {
-            SentryManager.log("The censor preview could not be scaled down because memory ran out.");
+            SentryManager.logEvent("Censor", "The censor preview could not be scaled down because memory ran out.");
             SentryManager.count("memory.low", 1, "outcome", "censor_preview_scale");
             return decoded;
         }
@@ -544,7 +544,7 @@ public class CensorViewModel extends AndroidViewModel {
         int generation = photoGeneration.get();
         String name = fileName.getValue();
         state.setValue(State.SAVING);
-        SentryManager.log("The app is saving a censored copy.");
+        SentryManager.logEvent("Censor", "The app is saving a censored copy.");
         long saveStartMs = System.currentTimeMillis();
         worker.execute(() -> {
             SentryManager.beginOperation("censor_export");
@@ -573,7 +573,7 @@ public class CensorViewModel extends AndroidViewModel {
                 AppPreferences.setSummaryHintLearned(
                         getApplication(), AppPreferences.HINT_CENSOR);
                 LocalNotifications.showCleanComplete(getApplication(), 1, 0, result.stats != null && result.stats.hadLocation ? 1 : 0);
-                SentryManager.log("The censored copy was saved.");
+                SentryManager.logEvent("Censor", "The censored copy was saved.");
                 countCensorSave(result.downscaled, System.currentTimeMillis() - saveStartMs);
                 state.postValue(State.SAVED);
             } catch (Exception e) {
@@ -703,7 +703,7 @@ public class CensorViewModel extends AndroidViewModel {
                 preview.postValue(copy);
             }
         } catch (OutOfMemoryError e) {
-            SentryManager.log("The censor preview ran out of memory.");
+            SentryManager.logEvent("Censor", "The censor preview ran out of memory.");
             SentryManager.count("memory.low", 1, "outcome", "censor_preview");
             // Like a finished render, only for the photo and edits still on screen: after Clear
             // or another photo, this one must not come back.

@@ -68,11 +68,11 @@ public final class OpenResult {
         if (!(context instanceof Activity)) {
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         }
-        SentryManager.log("A saved result is being opened in another app.");
+        SentryManager.logEvent("UI", "A saved result is being opened in another app.");
         try {
             context.startActivity(launch);
         } catch (ActivityNotFoundException | SecurityException e) {
-            SentryManager.log("No app could open a saved result.");
+            SentryManager.logEvent("UI", "No app could open a saved result.");
             Notice.show(context, R.string.open_result_no_app, false);
         }
     }

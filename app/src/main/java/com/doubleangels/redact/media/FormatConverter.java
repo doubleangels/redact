@@ -758,7 +758,7 @@ public final class FormatConverter {
             OutputDestination.publish(resolver, outUri);
             return outUri;
         } catch (IOException | RuntimeException e) {
-            SentryManager.log(
+            SentryManager.logEvent("Convert", 
                     "The 16-bit PNG could not be kept at 16 bits, so the app is converting it at 8: "
                             + e.getClass().getSimpleName() + ".");
             if (outUri != null) {

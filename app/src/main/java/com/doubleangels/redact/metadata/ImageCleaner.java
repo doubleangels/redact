@@ -79,7 +79,7 @@ final class ImageCleaner {
     @NonNull
     public CleanResult cleanImage(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Breadcrumb for a crash report.
-        SentryManager.log("The app is starting image EXIF stripping for MediaStore.");
+        SentryManager.logEvent("Image", "The app is starting image EXIF stripping for MediaStore.");
         SentryManager.beginOperation("image_to_mediastore");
         Uri newUri = null;
         MetadataStripper.Job job = new MetadataStripper.Job();
@@ -106,7 +106,7 @@ final class ImageCleaner {
 
             newUri = writeCleanImage(tempFile, sourceUri, newFilename, outputFormat, false, job);
 
-            SentryManager.log("The image was processed successfully.");
+            SentryManager.logEvent("Image", "The image was processed successfully.");
             SentryManager.setCustomKey("success", true);
 
         } catch (RuntimeException e) {
@@ -163,7 +163,7 @@ final class ImageCleaner {
     public CleanResult saveCensored(@NonNull Uri original, @NonNull File censored,
                                     @NonNull String outputName,
                                     @NonNull FormatConverter.ImageFormatSpec outputFormat) throws IOException {
-        SentryManager.log("The app is saving a censored image to MediaStore.");
+        SentryManager.logEvent("Image", "The app is saving a censored image to MediaStore.");
         MetadataStripper.Job job = new MetadataStripper.Job();
         // A private copy of the uncensored original, deleted as soon as its tags are read.
         File originalCopy = File.createTempFile("temp_", outputFormat.extension, context.getCacheDir());
@@ -319,7 +319,7 @@ final class ImageCleaner {
             }
             return new MotionPhoto.Clip(video, found.presentationTimestampUs);
         } catch (IOException | RuntimeException e) {
-            SentryManager.log("The Motion Photo's video could not be kept, so the photo becomes a still: "
+            SentryManager.logEvent("Image", "The Motion Photo's video could not be kept, so the photo becomes a still: "
                     + e.getClass().getSimpleName() + ".");
             SentryManager.count("clean.part_dropped", 1, "media_type", "image", "outcome", "motion_video");
             if (video != null && video.exists()) {
@@ -346,7 +346,7 @@ final class ImageCleaner {
     @NonNull
     public CleanResult cleanImageForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Breadcrumb for a crash report.
-        SentryManager.log("The app is starting image EXIF stripping for sharing.");
+        SentryManager.logEvent("Image", "The app is starting image EXIF stripping for sharing.");
 
         SentryManager.beginOperation("image_for_sharing");
         MetadataStripper.Job job = new MetadataStripper.Job();
@@ -402,7 +402,7 @@ final class ImageCleaner {
                 AppMetrics.verificationPassed(false);
             }
             if (!metadataRemoved) {
-                SentryManager.log("Metadata verification found remaining metadata.");
+                SentryManager.logEvent("Image", "Metadata verification found remaining metadata.");
                 if (outputFile != null && outputFile.exists()) {
                     host.secureDeleteFile(outputFile);
                 }
@@ -414,7 +414,7 @@ final class ImageCleaner {
                     outputFile);
 
             job.file = outputFile;
-            SentryManager.log("The image was processed successfully for sharing.");
+            SentryManager.logEvent("Image", "The image was processed successfully for sharing.");
             SentryManager.setCustomKey("success", true);
             return job.result(fileUri);
 
@@ -457,7 +457,7 @@ final class ImageCleaner {
                 rebuilt = true;
             }
         } catch (IOException | RuntimeException e) {
-            SentryManager.log("The converted image could not be rebuilt, so it is checked as it is: "
+            SentryManager.logEvent("Image", "The converted image could not be rebuilt, so it is checked as it is: "
                     + e.getClass().getSimpleName() + ".");
         }
         if (!rebuilt) {
@@ -556,7 +556,7 @@ final class ImageCleaner {
         }
         if (ImageContainerMetadata.sniff(imageFile) == ImageContainerMetadata.Format.OTHER) {
             // ExifInterface writes only JPEG, PNG and WebP. A GIF has nowhere for EXIF to go.
-            SentryManager.log("The kept EXIF tags could not be written to this format.");
+            SentryManager.logEvent("Image", "The kept EXIF tags could not be written to this format.");
             return;
         }
 
@@ -570,7 +570,7 @@ final class ImageCleaner {
                 UltraHdr.fixPrimarySize(imageFile);
             }
         } catch (Exception e) {
-            SentryManager.log("The EXIF failed to restore: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("Image", "The EXIF failed to restore: " + e.getClass().getSimpleName() + ".");
             SentryManager.recordException(e);
         }
     }
@@ -616,7 +616,7 @@ final class ImageCleaner {
             }
             HeifContainerMetadata.addExif(heif, tiff, context.getCacheDir());
         } catch (IOException | RuntimeException e) {
-            SentryManager.log("The kept EXIF tags could not be added to the HEIF: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("Image", "The kept EXIF tags could not be added to the HEIF: " + e.getClass().getSimpleName() + ".");
         } finally {
             if (carrier != null) {
                 host.secureDeleteFile(carrier);
@@ -697,11 +697,11 @@ final class ImageCleaner {
                 removedCount++;
             }
 
-            SentryManager.log("The app removed " + removedCount + " EXIF metadata tags.");
+            SentryManager.logEvent("Image", "The app removed " + removedCount + " EXIF metadata tags.");
             SentryManager.setCustomKey("exif_tags_removed", removedCount);
 
         } catch (Exception e) {
-            SentryManager.log("An error occurred while removing EXIF metadata: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("Image", "An error occurred while removing EXIF metadata: " + e.getClass().getSimpleName() + ".");
             SentryManager.recordException(e);
             // Fallback to hardcoded list if reflection fails
             removeExifMetadataFallback(exif);
@@ -781,7 +781,7 @@ final class ImageCleaner {
                 removedCount++;
             }
         }
-        SentryManager.log("The app removed " + removedCount + " EXIF metadata tags using the fallback method.");
+        SentryManager.logEvent("Image", "The app removed " + removedCount + " EXIF metadata tags using the fallback method.");
     }
 
     /** Counts the identifying fields in an image before it is cleaned; unreadable EXIF counts as none. */
@@ -797,7 +797,7 @@ final class ImageCleaner {
                     && !preserved.contains(ExifInterface.TAG_XMP);
         } catch (Exception e) {
             // Only the count of removed fields is lost; the clean itself is checked elsewhere.
-            SentryManager.log("The app could not count the photo's EXIF fields: "
+            SentryManager.logEvent("Image", "The app could not count the photo's EXIF fields: "
                     + e.getClass().getSimpleName() + ".");
             exif = new CleanStats(0, false);
         }
@@ -855,7 +855,7 @@ final class ImageCleaner {
                     }
                     return outputFormat;
                 }
-                SentryManager.log("The HEIC or AVIF could not be rebuilt without its metadata, so the app is re-encoding it: "
+                SentryManager.logEvent("Image", "The HEIC or AVIF could not be rebuilt without its metadata, so the app is re-encoding it: "
                         + e.getClass().getSimpleName() + ".");
                 rebuildFailed = true;
             }
@@ -867,7 +867,7 @@ final class ImageCleaner {
                 countPicturePath(fromPixels, "rebuilt");
                 return outputFormat;
             } catch (IOException | RuntimeException e) {
-                SentryManager.log("The GIF could not be rebuilt without its metadata, so the app is re-encoding it: "
+                SentryManager.logEvent("Image", "The GIF could not be rebuilt without its metadata, so the app is re-encoding it: "
                         + e.getClass().getSimpleName() + ".");
                 rebuildFailed = true;
             }
@@ -881,7 +881,7 @@ final class ImageCleaner {
             } catch (IOException | RuntimeException e) {
                 // A structure the walker could not follow, however it failed: the pixels are
                 // re-encoded instead, which carries no metadata either.
-                SentryManager.log("The image could not be rebuilt without its metadata, so the app is re-encoding it: "
+                SentryManager.logEvent("Image", "The image could not be rebuilt without its metadata, so the app is re-encoding it: "
                         + e.getClass().getSimpleName() + ".");
                 rebuildFailed = true;
             }

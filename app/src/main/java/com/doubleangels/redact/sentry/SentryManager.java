@@ -359,12 +359,6 @@ public final class SentryManager {
         Sentry.metrics().gauge(name, value);
     }
 
-    /** @deprecated Use {@link #logEvent(String, String)} with non-identifying messages. */
-    @Deprecated
-    public static void log(String message) {
-        logEvent("Custom", message);
-    }
-
     /**
      * Sends {@code e} to Sentry. Returns the event ID, or null when nothing was sent (unsupported
      * media, an ignored or cancelled error, or crash reporting off).

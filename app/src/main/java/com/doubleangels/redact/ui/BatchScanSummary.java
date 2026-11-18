@@ -112,7 +112,7 @@ public final class BatchScanSummary {
         // Not until every file has been read: the summary is what the choice is made on.
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
         Handler main = new Handler(Looper.getMainLooper());
-        SentryManager.log("A summary scan of several files is starting.");
+        SentryManager.logEvent("Scan", "A summary scan of several files is starting.");
         Thread worker = new Thread(() -> {
             Tally tally = new Tally();
             try {
@@ -132,7 +132,7 @@ public final class BatchScanSummary {
                 });
                 return;
             }
-            SentryManager.log("A summary scan of several files finished.");
+            SentryManager.logEvent("Scan", "A summary scan of several files finished.");
             main.post(() -> {
                 if (!dialog.isShowing() || !fragment.isAdded()) {
                     return;
