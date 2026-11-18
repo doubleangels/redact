@@ -19,6 +19,8 @@ import io.sentry.SentryEvent;
 import io.sentry.SentryLogEventAttributeValue;
 import io.sentry.SentryMetricsEvent;
 import io.sentry.SpanId;
+import io.sentry.protocol.DebugImage;
+import io.sentry.protocol.DebugMeta;
 import io.sentry.protocol.Message;
 import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryId;
@@ -220,5 +222,66 @@ public class SentryPrivacyScrubberPayloadsTest {
         assertFalse(metric.getAttributes().containsKey("file_name"));
         assertRedacted(metric.getAttributes().get("source").getValue());
         assertEquals(3, metric.getAttributes().get("count_value").getValue());
+    }
+    /**
+     * A native crash names the libraries it ran through by path. An app's install folder has
+     * random names that differ on every install, so they would tie the reports of one phone
+     * together; a path outside code folders could be a file the app had open.
+     */
+    @Test
+    public void nativeCrashPaths_loseTheInstallFoldersRandomNames_andAnythingNotCode() {
+        String own = "/data/app/~~Xk3d_Qz9-AbCdEf==/com.doubleangels.redact-9fJk2L_mn0Pq==/lib/arm64/libsentry.so";
+        String webView = "/data/app/~~aB==/com.google.android.trichrome-cD-E==/base.apk!/lib/arm64-v8a/libmonochrome.so";
+        SentryEvent event = new SentryEvent();
+        DebugMeta meta = new DebugMeta();
+        List<DebugImage> images = new ArrayList<>();
+        for (String path : new String[] {own, webView, "/system/lib64/libc.so", "[vdso]",
+                "/storage/emulated/0/DCIM/Camera/Alice at home.jpg", "/data/user/0/com.doubleangels.redact/cache/temp_1.img"}) {
+            DebugImage image = new DebugImage();
+            image.setCodeFile(path);
+            image.setDebugFile(path);
+            images.add(image);
+        }
+        meta.setImages(images);
+        event.setDebugMeta(meta);
+        SentryStackFrame frame = new SentryStackFrame();
+        frame.setPackage(own);
+        SentryStackTrace trace = new SentryStackTrace(new ArrayList<>(List.of(frame)));
+        SentryThread thread = new SentryThread();
+        thread.setStacktrace(trace);
+        event.setThreads(new ArrayList<>(List.of(thread)));
+
+        SentryPrivacyScrubber.scrubEvent(event);
+
+        List<DebugImage> out = event.getDebugMeta().getImages();
+        assertEquals("/data/app/com.doubleangels.redact/lib/arm64/libsentry.so", out.get(0).getCodeFile());
+        assertEquals("/data/app/com.doubleangels.redact/lib/arm64/libsentry.so", out.get(0).getDebugFile());
+        assertEquals("/data/app/com.google.android.trichrome/base.apk!/lib/arm64-v8a/libmonochrome.so", out.get(1).getCodeFile());
+        assertEquals("/system/lib64/libc.so", out.get(2).getCodeFile());
+        assertEquals("[vdso]", out.get(3).getCodeFile());
+        assertRedacted(out.get(4).getCodeFile());
+        assertRedacted(out.get(5).getCodeFile());
+        assertEquals("/data/app/com.doubleangels.redact/lib/arm64/libsentry.so", frame.getPackage());
+        for (DebugImage image : out) {
+            assertFalse(image.getCodeFile(), image.getCodeFile().contains("~~") || image.getCodeFile().contains("=="));
+        }
+    }
+
+    /** The SDK puts a captured message, and a native crash's abort message, in the finished text. */
+    @Test
+    public void messageText_isScrubbedInTheTemplateTheFinishedTextAndTheParameters() {
+        SentryEvent event = new SentryEvent();
+        Message message = new Message();
+        message.setMessage("Could not open %s");
+        message.setFormatted("Abort: could not open /storage/emulated/0/DCIM/Alice.jpg");
+        message.setParams(new ArrayList<>(List.of("content://media/external/images/media/42")));
+        event.setMessage(message);
+
+        SentryPrivacyScrubber.scrubEvent(event);
+
+        assertFalse(event.getMessage().getFormatted().contains("Alice"));
+        assertFalse(event.getMessage().getFormatted().contains("/storage/"));
+        assertRedacted(event.getMessage().getParams().get(0));
+        assertEquals("Could not open %s", event.getMessage().getMessage());
     }
 }
