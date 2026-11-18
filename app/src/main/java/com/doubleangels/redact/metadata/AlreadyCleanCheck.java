@@ -181,6 +181,11 @@ public final class AlreadyCleanCheck {
                         return Status.NEEDS_CLEANING;
                     }
                 }
+                // Data the walk above never read (an IFD past IFD1, SubIFDs, bytes no entry
+                // points to) could be anything, so a file holding some is not called clean.
+                if (!ExifBlock.coversWholeBlock(block)) {
+                    return Status.NEEDS_CLEANING;
+                }
             }
         } catch (IOException | RuntimeException e) {
             // A block that cannot be followed cannot be vouched for.

@@ -88,4 +88,39 @@ public class ExifBlockTest {
     public void theKnownTagList_isTheOneReadFromExifInterface() {
         assertEquals(147, ExifBlock.exifInterfaceTagCount());
     }
+
+    /** A big-endian TIFF block: IFD0 with one SHORT entry, then {@code next} as its next-IFD pointer. */
+    private static byte[] tiffWithNext(long next, int extraBytes) {
+        java.nio.ByteBuffer b = java.nio.ByteBuffer.allocate(8 + 2 + 12 + 4 + extraBytes);
+        b.put((byte) 'M').put((byte) 'M').putShort((short) 42).putInt(8);
+        b.putShort((short) 1).putShort((short) 0x0112).putShort((short) 3).putInt(1).putShort((short) 1).putShort((short) 0);
+        b.putInt((int) next);
+        return b.array();
+    }
+
+    @Test
+    public void aCompactBlock_isCoveredWhole() throws Exception {
+        org.junit.Assert.assertTrue(ExifBlock.coversWholeBlock(tiffWithNext(0, 0)));
+    }
+
+    /** Bytes no entry points to could hold anything, so a block with many of them isn't covered. */
+    @Test
+    public void unreferencedBytes_leaveTheBlockUncovered() throws Exception {
+        org.junit.Assert.assertTrue("a little padding is fine", ExifBlock.coversWholeBlock(tiffWithNext(0, 16)));
+        org.junit.Assert.assertFalse(ExifBlock.coversWholeBlock(tiffWithNext(0, 500)));
+    }
+
+    /** An IFD chained after IFD1 is never read, so the block isn't covered. */
+    @Test
+    public void anIfdPastIfd1_leavesTheBlockUncovered() throws Exception {
+        // IFD0 -> IFD1 at 26 (one entry), whose next pointer is not zero.
+        java.nio.ByteBuffer b = java.nio.ByteBuffer.allocate(26 + 18 + 18);
+        b.put((byte) 'M').put((byte) 'M').putShort((short) 42).putInt(8);
+        b.putShort((short) 1).putShort((short) 0x0112).putShort((short) 3).putInt(1).putShort((short) 1).putShort((short) 0);
+        b.putInt(26);
+        b.putShort((short) 1).putShort((short) 0x0103).putShort((short) 3).putInt(1).putShort((short) 6).putShort((short) 0);
+        b.putInt(44);
+        b.putShort((short) 0).putInt(0);
+        org.junit.Assert.assertFalse(ExifBlock.coversWholeBlock(b.array()));
+    }
 }
