@@ -301,24 +301,11 @@ public class MediaProcessor {
     }
 
     /**
-     * Processes a list of media items in a background thread, stripping metadata.
-     *
-     * This method launches a background thread to process each media item, stripping
-     * either image EXIF data or video metadata depending on the item type. Progress
-     * is reported through the callback interface, which will be called on the UI thread.
-     *
-     * @param items The list of media items to process
-     * @param callback The callback to report progress and completion
-     */
-    public void processMediaItems(List<MediaItem> items, ProcessingCallback callback) {
-        processMediaItems(items, metadataStripper.getTranscodeOwnerId(), callback);
-    }
-
-    /**
-     * Like {@link #processMediaItems(List, ProcessingCallback)}, with the batch's video transcodes
-     * owned by {@code transcodeOwnerId} from its first item on. Set here, once the batch is
-     * accepted, rather than by the caller afterwards: a batch that starts with a video would
-     * otherwise begin it under the previous batch's owner, which cancelling this one misses.
+     * Cleans {@code items} one after another on the worker, reporting progress and completion
+     * to {@code callback} on the main thread. The batch's video transcodes are owned by
+     * {@code transcodeOwnerId} from its first item on. Set here, once the batch is accepted,
+     * rather than by the caller afterwards: a batch that starts with a video would otherwise
+     * begin it under the previous batch's owner, which cancelling this one misses.
      */
     public void processMediaItems(List<MediaItem> items, long transcodeOwnerId, ProcessingCallback callback) {
         Handler mainHandler = new Handler(Looper.getMainLooper());
