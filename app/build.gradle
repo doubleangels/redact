@@ -177,8 +177,9 @@ sentry {
     sizeAnalysis {
         enabled = System.getenv("SENTRY_SIZE_ANALYSIS") == "true"
     }
-    // No DB/OkHttp/Compose in the app and per-file I/O spans are too fine-grained; Log->breadcrumb
-    // rewriting is unused (auto breadcrumbs are off).
+    // No DB/OkHttp/Compose in the app and per-file I/O spans are too fine-grained. Logcat->breadcrumb
+    // rewriting stays off too: the app logs through SentryManager.logEvent, which adds its own
+    // breadcrumbs, and release builds strip android.util.Log calls.
     tracingInstrumentation {
         enabled = false
         logcat {

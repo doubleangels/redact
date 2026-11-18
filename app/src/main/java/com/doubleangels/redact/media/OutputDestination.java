@@ -150,7 +150,6 @@ public final class OutputDestination {
         warnedFallbacks.clear();
     }
 
-    /** Makes a finished output visible. Documents in a chosen folder need no publish step. */
     /**
      * Copies a verified clean file to its output and returns the SHA-256 of the bytes written, for
      * {@link #requireSameContent} to compare with what actually landed.
@@ -208,6 +207,7 @@ public final class OutputDestination {
         }
     }
 
+    /** Makes a finished output visible. Documents in a chosen folder need no publish step. */
     public static void publish(@NonNull ContentResolver resolver, @Nullable Uri uri) {
         MediaStoreWrites.markPublished(resolver, uri);
         clearPendingDocument(uri);
