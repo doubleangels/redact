@@ -7,6 +7,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.BuildConfig;
@@ -312,19 +313,12 @@ public final class SentryManager {
         Sentry.metrics().count(name, value);
     }
 
-    /** Counter metric with one allowed attribute dimension. */
-    public static void count(String name, double value, String attrKey, String attrValue) {
-        SentryMetricsParameters params = metricsParams(attrKey, attrValue);
-        if (!isEnabled() || params == null) {
-            return;
-        }
-        Sentry.metrics().count(name, value, null, params);
-    }
-
-    /** Counter metric with two allowed attribute dimensions. */
-    public static void count(
-            String name, double value, String attrKey1, String attrValue1, String attrKey2, String attrValue2) {
-        SentryMetricsParameters params = metricsParams(attrKey1, attrValue1, attrKey2, attrValue2);
+    /**
+     * Counter metric with allowed attribute dimensions, given as key, value pairs. Nothing is
+     * sent when a key is not allowed or a value is missing its key.
+     */
+    public static void count(String name, double value, String... keysAndValues) {
+        SentryMetricsParameters params = metricsParams(keysAndValues);
         if (!isEnabled() || params == null) {
             return;
         }
@@ -339,39 +333,18 @@ public final class SentryManager {
         Sentry.metrics().distribution(name, value);
     }
 
-    /** Distribution metric with one allowed attribute dimension. */
-    public static void distribution(String name, double value, String attrKey, String attrValue) {
-        SentryMetricsParameters params = metricsParams(attrKey, attrValue);
+    /** Distribution metric with allowed attribute dimensions, as key, value pairs. */
+    public static void distribution(String name, double value, String... keysAndValues) {
+        SentryMetricsParameters params = metricsParams(keysAndValues);
         if (!isEnabled() || params == null) {
             return;
         }
         Sentry.metrics().distribution(name, value, null, params);
     }
 
-    /** Counter metric with three allowed attribute dimensions. */
-    public static void count(String name, double value, String attrKey1, String attrValue1,
-                             String attrKey2, String attrValue2, String attrKey3, String attrValue3) {
-        SentryMetricsParameters params =
-                metricsParams(attrKey1, attrValue1, attrKey2, attrValue2, attrKey3, attrValue3);
-        if (!isEnabled() || params == null) {
-            return;
-        }
-        Sentry.metrics().count(name, value, null, params);
-    }
-
-    /** Duration distribution in milliseconds with two allowed attribute dimensions. */
-    public static void distributionDurationMs(String name, double millis, String attrKey1, String attrValue1,
-                                              String attrKey2, String attrValue2) {
-        SentryMetricsParameters params = metricsParams(attrKey1, attrValue1, attrKey2, attrValue2);
-        if (!isEnabled() || params == null) {
-            return;
-        }
-        Sentry.metrics().distribution(name, millis, MetricsUnit.Duration.MILLISECOND, params);
-    }
-
-    /** Duration distribution in milliseconds with one allowed attribute dimension. */
-    public static void distributionDurationMs(String name, double millis, String attrKey, String attrValue) {
-        SentryMetricsParameters params = metricsParams(attrKey, attrValue);
+    /** Duration distribution in milliseconds with allowed attribute dimensions, as key, value pairs. */
+    public static void distributionDurationMs(String name, double millis, String... keysAndValues) {
+        SentryMetricsParameters params = metricsParams(keysAndValues);
         if (!isEnabled() || params == null) {
             return;
         }
@@ -584,42 +557,24 @@ public final class SentryManager {
                 || lower.startsWith("can_ask_");
     }
 
+    /**
+     * The attributes for a metric, from key, value pairs: every key must be one the allow-list
+     * names, and every value is scrubbed. Null when any key is not allowed or a value is missing.
+     */
+    @VisibleForTesting
     @Nullable
-    private static SentryMetricsParameters metricsParams(String attrKey, String attrValue) {
-        if (!isAllowedTagKey(attrKey)) {
+    static SentryMetricsParameters metricsParams(String... keysAndValues) {
+        if (keysAndValues == null || keysAndValues.length == 0 || keysAndValues.length % 2 != 0) {
             return null;
         }
-        String safe = SentryPrivacyScrubber.scrub(attrValue != null ? attrValue : "");
-        return SentryMetricsParameters.create(
-                SentryAttributes.of(SentryAttribute.stringAttribute(attrKey, safe)));
-    }
-
-    @Nullable
-    private static SentryMetricsParameters metricsParams(
-            String attrKey1, String attrValue1, String attrKey2, String attrValue2) {
-        if (!isAllowedTagKey(attrKey1) || !isAllowedTagKey(attrKey2)) {
-            return null;
+        SentryAttribute[] attributes = new SentryAttribute[keysAndValues.length / 2];
+        for (int i = 0; i < keysAndValues.length; i += 2) {
+            if (!isAllowedTagKey(keysAndValues[i])) {
+                return null;
+            }
+            attributes[i / 2] = SentryAttribute.stringAttribute(keysAndValues[i], scrubbedValue(keysAndValues[i + 1]));
         }
-        return SentryMetricsParameters.create(
-                SentryAttributes.of(
-                        SentryAttribute.stringAttribute(
-                                attrKey1, SentryPrivacyScrubber.scrub(attrValue1 != null ? attrValue1 : "")),
-                        SentryAttribute.stringAttribute(
-                                attrKey2, SentryPrivacyScrubber.scrub(attrValue2 != null ? attrValue2 : ""))));
-    }
-
-    @Nullable
-    private static SentryMetricsParameters metricsParams(String attrKey1, String attrValue1,
-                                                         String attrKey2, String attrValue2,
-                                                         String attrKey3, String attrValue3) {
-        if (!isAllowedTagKey(attrKey1) || !isAllowedTagKey(attrKey2) || !isAllowedTagKey(attrKey3)) {
-            return null;
-        }
-        return SentryMetricsParameters.create(
-                SentryAttributes.of(
-                        SentryAttribute.stringAttribute(attrKey1, scrubbedValue(attrValue1)),
-                        SentryAttribute.stringAttribute(attrKey2, scrubbedValue(attrValue2)),
-                        SentryAttribute.stringAttribute(attrKey3, scrubbedValue(attrValue3))));
+        return SentryMetricsParameters.create(SentryAttributes.of(attributes));
     }
 
     @NonNull

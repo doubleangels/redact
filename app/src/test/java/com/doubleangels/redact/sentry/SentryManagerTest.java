@@ -1,6 +1,8 @@
 package com.doubleangels.redact.sentry;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.doubleangels.redact.media.ProcessingCancelledException;
@@ -12,6 +14,21 @@ import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.ClosedChannelException;
 
 public class SentryManagerTest {
+
+    /** Every metric attribute key must be on the allow-list, and pairs must be whole. */
+    @Test
+    public void metricAttributes_areAllowListedPairs() {
+        assertNotNull(SentryManager.metricsParams("operation_type", "clean"));
+        assertNotNull(SentryManager.metricsParams("operation_type", "clean", "media_type", "image",
+                "outcome", "failed", "error_type", "IOException"));
+        assertNotNull("a missing value is sent empty", SentryManager.metricsParams("is_video", null));
+        assertNull("a file name is never a dimension", SentryManager.metricsParams("file_name", "a.jpg"));
+        assertNull("one bad key drops the lot",
+                SentryManager.metricsParams("operation_type", "clean", "uri", "content://x"));
+        assertNull("a value without its key", SentryManager.metricsParams("operation_type"));
+        assertNull(SentryManager.metricsParams());
+        assertNull(SentryManager.metricsParams((String[]) null));
+    }
 
     @Test
     public void isUserCancellation_detectsInterruptedCause() {
