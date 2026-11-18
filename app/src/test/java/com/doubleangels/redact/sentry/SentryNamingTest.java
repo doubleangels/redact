@@ -55,7 +55,7 @@ public class SentryNamingTest {
     private static final String WORD = "[a-z][a-z0-9]*(?:_[a-z0-9]+)*";
     private static final Pattern LOG_EVENT = Pattern.compile("\\blogEvent\\(\\s*\"([^\"]*)\"");
     private static final Pattern METRIC_CALL = Pattern.compile(
-            "SentryManager\\.(count|distribution|distributionDurationMs|distributionMegabytes|gauge)\\s*\\(");
+            "SentryManager\\.(count|distribution|distributionDurationMs|distributionMegabytes)\\s*\\(");
     private static final Pattern CATEGORY = Pattern.compile("(" + WORD + ")(?:\\." + WORD + ")?");
     private static final Pattern COUNTER_NAME = Pattern.compile("(" + WORD + ")\\." + WORD);
     private static final Pattern DISTRIBUTION_NAME = Pattern.compile("(" + WORD + ")\\." + WORD + "\\." + WORD);

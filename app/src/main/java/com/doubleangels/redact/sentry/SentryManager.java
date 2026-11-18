@@ -405,14 +405,6 @@ public final class SentryManager {
         Sentry.metrics().distribution(name, megabytes, MetricsUnit.Information.MEGABYTE, params);
     }
 
-    /** Point-in-time gauge (dimensionless). */
-    public static void gauge(String name, double value) {
-        if (!isEnabled() || name == null || name.isEmpty()) {
-            return;
-        }
-        Sentry.metrics().gauge(name, value);
-    }
-
     /**
      * Sends {@code e} to Sentry. Returns the event ID, or null when nothing was sent (unsupported
      * media, an ignored or cancelled error, or crash reporting off).

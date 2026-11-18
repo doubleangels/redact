@@ -9,12 +9,13 @@ Android app (Java, minSdk 31, targetSdk 37) that removes metadata from photos an
 - Keep `SecureDelete` on anything that may hold original media, the inbound URI checks in `MainActivity` and `ShareHandlerActivity`, `SentryPrivacyScrubber` and the `before*` callbacks in `SentryInitializer`.
 - Sentry may collect every technical detail it offers (sessions, breadcrumbs, threads, view hierarchy, traces, profiles, logs, metrics), with two hard limits: nothing that can tie reports to one phone or person (install ID, distinct ID, user, boot time, time zone, kernel version, IP address), and nothing about a file (URI, path, name, contents, metadata value) or typed text. Never screenshots or session replay. Section 6 of `legal/redact.html` and the consent strings must describe what is sent.
 - Everything the app reports itself goes through `SentryManager`. Its names follow one scheme, written above `SentryManager`'s key lists and enforced by `SentryNamingTest`: lower-case area breadcrumb categories, `area.event[.measure]` metrics, and `group.field` tag keys beside the bare `outcome`, `reason` and `error_type`. What the SDK collects on its own goes through the `before*` callbacks and `SentryPrivacyScrubber`.
-- The "What Send Crash Reports captures" tables in `README.md` and `site/index.html` (id `crash-reports`) say exactly what Sentry receives and what it never does. Any change to what is sent (a Sentry option, a scrubber rule, a tag key, an `AppMetrics` metric, an SDK upgrade that collects something new) updates both tables, Section 6 of `legal/redact.html` and, when it changes what someone agrees to, the consent strings in all 13 `strings.xml` files, in the same commit.
+- The "What Send Crash Reports captures" tables in `README.md` and `site/index.html` (id `crash-reports`) say exactly what Sentry receives and what it never does, and their Names in Sentry tables (id `sentry-names`) list every tag, metric and breadcrumb category; `SentryNamingTest` fails on a name missing there. Any change to what is sent (a Sentry option, a scrubber rule, a tag key, an `AppMetrics` metric, an SDK upgrade that collects something new) updates both tables, Section 6 of `legal/redact.html` and, when it changes what someone agrees to, the consent strings in all 13 `strings.xml` files, in the same commit.
 
 ## Code
 
 - `MetadataStripper` is the entry point for cleaning and holds the shared state (context, progress, cancellation); the work is in `ImageCleaner`, `VideoCleaner` and `CleanVerifier`, each created by it.
-- Reuse the helpers before writing new ones: `MediaSizeLimits.copyStream`, `SecureDelete`, `MediaFileNames`, `MediaUriResolver`, `MediaStoreWrites`, `OutputDestination`, `SentryManager`.
+- Reuse the helpers before writing new ones: `MediaSizeLimits.copyStream`, `SecureDelete`, `MediaFileNames`, `MediaUriResolver`, `MediaStoreWrites`, `OutputDestination`, `InboundSnapshots` (copies of shared-in files), `BatchRun` (the loop Clean, Convert and Share run a batch through), `SentryManager`, and `AppMetrics` for every metric.
+- The release build leaves out Sentry's session-replay module (`exclude` in `app/build.gradle`), library translations the app doesn't have (`localeFilters`) and logging (`proguard-rules.pro` strips every `Log` call and treats `Log.isLoggable` as false). Keep them out when upgrading.
 - `ImageCleaner`, `CleanVerifier`, `MetadataDisplayer`, `CleanStats` and `AlreadyCleanCheck` find EXIF tags by reflection over `ExifInterface.TAG_*`, so grep alone does not show every use; `proguard-rules.pro` keeps those names.
 - Every user-visible string goes into `values/` and all 12 locales (`ar de es fr hi it ja ko pt ru zh-rCN zh-rTW`); `StringTranslationsTest` checks it. The Play listing text in `fastlane/metadata/android/<locale>/` follows the English too.
 - A setting that is removed leaves its saved value in place; do not add code to clear it.
@@ -23,7 +24,7 @@ Android app (Java, minSdk 31, targetSdk 37) that removes metadata from photos an
 
 - `./gradlew :app:testDebugUnitTest` (Robolectric), `:app:jacocoTestCoverageVerification` for the 90% line gate CI enforces, `:app:lintRelease`, and `:app:bundleRelease` to catch R8 problems the debug tests miss. From PowerShell use `gradlew.bat`.
 - Never run two Gradle builds of this project at once: they fight over the same build locks. The daemon is on locally; CI turns it off.
-- Python scripts that need Pillow (`.claude/scripts/make_test_media.py`, `check_media.py`) run with `python3`; plain `python` has no Pillow.
+- Python scripts that need Pillow (`.claude/scripts/make_test_media.py`, `check_media.py`) run with `python3`; plain `python` has no Pillow. `check_media.py` also needs `pillow-heif` to read HEIC; without it a HEIC fails as not checked.
 
 ## Emulators
 

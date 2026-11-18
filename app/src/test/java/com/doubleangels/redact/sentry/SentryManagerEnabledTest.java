@@ -101,8 +101,6 @@ public class SentryManagerEnabledTest {
         SentryManager.distribution("video.retry", 3, "path", "/storage/x");
         SentryManager.distributionDurationMs("job.batch.duration", 1234, "job.type", "convert");
         SentryManager.distributionDurationMs("job.batch.duration", 1234, "location", "x");
-        SentryManager.gauge("queue.depth", 2);
-        SentryManager.gauge(null, 2);
     }
 
     @Test

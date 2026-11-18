@@ -46,7 +46,7 @@ public class MetricsAreDocumentedTest {
     private static final File APP_METRICS =
             new File("src/main/java/com/doubleangels/redact/sentry/AppMetrics.java");
     private static final Pattern METRIC = Pattern.compile(
-            "SentryManager\\.(?:count|distribution|distributionDurationMs|distributionMegabytes|gauge)\\(\\s*\"([a-z_.]+)\"");
+            "SentryManager\\.(?:count|distribution|distributionDurationMs|distributionMegabytes)\\(\\s*\"([a-z_.]+)\"");
 
     @Test
     public void everyMetricSent_isOneTheCrashReportTablesDescribe() throws IOException {
