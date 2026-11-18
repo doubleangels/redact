@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
@@ -47,8 +46,6 @@ import java.util.Set;
  * {@link CleanVerifier} has checked it. Moved out of MetadataStripper unchanged.
  */
 final class ImageCleaner {
-
-    private static final String TAG = "MetadataStripper";
 
     private final MetadataStripper host;
     private final Context context;
@@ -109,33 +106,8 @@ final class ImageCleaner {
             SentryManager.logEvent("Image", "The image was processed successfully.");
             SentryManager.setCustomKey("success", true);
 
-        } catch (RuntimeException e) {
-            if (MetadataStripper.shouldPropagateCancellation(e)) {
-                throw e;
-            }
-            Log.e(TAG, "Error processing image", e);
-            SentryManager.setCustomKey("success", false);
-            SentryManager.setCustomKey("error_type", SentryManager.errorType(e));
-            SentryManager.recordException(e);
-
-            if (newUri != null) {
-                OutputDestination.discard(contentResolver, newUri);
-                newUri = null;
-            }
         } catch (Exception e) {
-            if (MetadataStripper.shouldPropagateCancellation(e)) {
-                throw MetadataStripper.asCancellationException(e);
-            }
-            // Log error and clean up any partial files
-            Log.e(TAG, "Error processing image", e);
-            SentryManager.setCustomKey("success", false);
-            SentryManager.setCustomKey("error_type", SentryManager.errorType(e));
-            SentryManager.recordException(e);
-
-            if (newUri != null) {
-                OutputDestination.discard(contentResolver, newUri);
-                newUri = null;
-            }
+            newUri = host.galleryCleanFailed(e, newUri, "image");
         } finally {
             if (tempFile != null && tempFile.exists()) {
                 // Use secure deletion for temp files
@@ -421,14 +393,7 @@ final class ImageCleaner {
         } catch (Exception | OutOfMemoryError e) {
             // A crafted file can ask for more memory than there is; that is a failed file, and
             // the share worker goes on to the next one with nothing half-written left behind.
-            Log.e(TAG, "Error processing image for sharing", e);
-            job.unsupported = UnsupportedMediaException.isCauseOf(e);
-            SentryManager.setCustomKey("success", false);
-            SentryManager.setCustomKey("error_type", SentryManager.errorType(e));
-            SentryManager.recordException(e);
-            if (outputFile != null && outputFile.exists()) {
-                host.secureDeleteFile(outputFile);
-            }
+            host.shareCleanFailed(e, outputFile, job, "image");
             return job.result(null);
         } finally {
             if (tempFile != null && tempFile.exists()) {

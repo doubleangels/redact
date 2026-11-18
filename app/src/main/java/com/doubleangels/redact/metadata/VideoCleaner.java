@@ -27,9 +27,7 @@ import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.VideoMedia3Converter;
 import com.doubleangels.redact.media.CleanFailedException;
-import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.media.ProcessingCancelledException;
-import com.doubleangels.redact.media.UnsupportedMediaException;
 import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.google.common.collect.ImmutableList;
@@ -50,8 +48,6 @@ import java.util.Map;
  * {@link CleanVerifier}. Moved out of MetadataStripper unchanged.
  */
 final class VideoCleaner {
-
-    private static final String TAG = "MetadataStripper";
 
     private final MetadataStripper host;
     private final Context context;
@@ -189,33 +185,8 @@ final class VideoCleaner {
             SentryManager.logEvent("Video", "The video was processed successfully.");
             SentryManager.setCustomKey("success", true);
 
-        } catch (RuntimeException e) {
-            if (MetadataStripper.shouldPropagateCancellation(e)) {
-                throw e;
-            }
-            Log.e(TAG, "Error processing video", e);
-            SentryManager.setCustomKey("success", false);
-            SentryManager.setCustomKey("error_type", SentryManager.errorType(e));
-            SentryManager.recordException(e);
-
-            if (newUri != null) {
-                OutputDestination.discard(contentResolver, newUri);
-                newUri = null;
-            }
         } catch (Exception e) {
-            if (MetadataStripper.shouldPropagateCancellation(e)) {
-                throw MetadataStripper.asCancellationException(e);
-            }
-            // Log error and clean up any partial files
-            Log.e(TAG, "Error processing video", e);
-            SentryManager.setCustomKey("success", false);
-            SentryManager.setCustomKey("error_type", SentryManager.errorType(e));
-            SentryManager.recordException(e);
-
-            if (newUri != null) {
-                OutputDestination.discard(contentResolver, newUri);
-                newUri = null;
-            }
+            newUri = host.galleryCleanFailed(e, newUri, "video");
         }
 
         return job.result(newUri);
@@ -302,14 +273,7 @@ final class VideoCleaner {
         } catch (Exception | OutOfMemoryError e) {
             // A crafted file can ask for more memory than there is; that is a failed file, and
             // the share worker goes on to the next one with nothing half-written left behind.
-            Log.e(TAG, "Error processing video for sharing", e);
-            job.unsupported = UnsupportedMediaException.isCauseOf(e);
-            SentryManager.setCustomKey("success", false);
-            SentryManager.setCustomKey("error_type", SentryManager.errorType(e));
-            SentryManager.recordException(e);
-            if (outputFile != null && outputFile.exists()) {
-                host.secureDeleteFile(outputFile);
-            }
+            host.shareCleanFailed(e, outputFile, job, "video");
             return job.result(null);
         }
     }
