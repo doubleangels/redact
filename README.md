@@ -395,7 +395,7 @@ Nothing in this section is sent unless you turn on **Send Crash Reports**. Until
 | Install ID, device ID, user ID, name, email | Removed from every report, session, log and counter |
 | Boot time, time zone, kernel version | Removed, because together with the model and build they could single out a phone |
 | IP address | Never put in a report. Sentry's servers see it when a report arrives, as any server does. |
-| Screenshots, screen recordings, text or pictures on screen | Screenshots and session replay are locked off, and the screen layout holds no text or pictures |
+| Screenshots, screen recordings, text or pictures on screen | Screenshots are locked off, session replay's code isn't in the app at all, and the screen layout holds no text or pictures |
 | Your photos and videos | Never read for a report |
 | File names, paths and URIs | Scrubbed from every message, breadcrumb, tag and stack trace |
 | Metadata values (GPS coordinates, dates, camera serial numbers and the like) | Never recorded, only tag names and counts |

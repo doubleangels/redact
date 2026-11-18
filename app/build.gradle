@@ -36,6 +36,19 @@ android {
             buildConfigField "String", "SENTRY_DSN", "\"${resolveSentryDsnForRelease()}\""
         }
     }
+    // Only the languages the app is translated into (res/xml/locales_config.xml): AppCompat,
+    // Material and the other libraries ship their strings in about 90, which a phone set to one
+    // the app lacks would show beside English text from the app anyway.
+    androidResources {
+        localeFilters += ["en", "ar", "de", "es", "fr", "hi", "it", "ja", "ko", "pt", "ru", "zh-rCN", "zh-rTW"]
+    }
+    packaging {
+        resources {
+            // Read only by kotlin-reflect, which the app doesn't use, and by the coroutines
+            // debug agent, which runs only on a desktop JVM.
+            excludes += ["**/*.kotlin_builtins", "DebugProbesKt.bin"]
+        }
+    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
@@ -126,7 +139,11 @@ def readSentryDsnLocalFile() {
 }
 
 dependencies {
-    implementation(libs.sentry.android)
+    // Session replay is locked off (SentryInitializer), so its module would ship code that never
+    // runs. Without it the SDK has no replay integration to start at all.
+    implementation(libs.sentry.android) {
+        exclude group: 'io.sentry', module: 'sentry-android-replay'
+    }
     implementation(libs.sentry.android.fragment)
     implementation libs.activity
     implementation libs.appcompat
