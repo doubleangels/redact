@@ -694,16 +694,10 @@ public final class ProcessingRepository {
                         fail++;
                         String outcome = AppMetrics.outcomeOf(e,
                                 UnsupportedMediaException.isCauseOf(e));
-                        AppMetrics.item(AppMetrics.CONVERT, mediaItem.isVideo(), outcome, -1);
+                        AppMetrics.itemFailed(AppMetrics.CONVERT, mediaItem.isVideo(), outcome,
+                                e.getClass().getSimpleName());
                         AppMetrics.convertFormat(targetMimeType, outcome);
                         SentryManager.recordException(e);
-                        SentryManager.count(
-                                "processing.convert.failure",
-                                1,
-                                "is_video",
-                                String.valueOf(mediaItem.isVideo()),
-                                "error_type",
-                                e.getClass().getSimpleName());
                         span.setStatus(SpanStatus.INTERNAL_ERROR);
                     }
                 } finally {

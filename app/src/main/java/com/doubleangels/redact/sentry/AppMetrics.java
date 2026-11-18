@@ -50,6 +50,29 @@ public final class AppMetrics {
         }
     }
 
+    /**
+     * One file a job could not finish, counted as {@code processing.item} like {@link #item}, with
+     * the kind of error as well: an exception's class name, or {@code unsupported} or
+     * {@code clean_failed} when the job said so without one.
+     */
+    public static void itemFailed(@NonNull String job, boolean video, @NonNull String outcome,
+                                  @NonNull String errorType) {
+        SentryManager.count("processing.item", 1,
+                "operation_type", job, "media_type", mediaType(video), "outcome", outcome,
+                "error_type", errorType);
+    }
+
+    /** {@link #itemFailed} for a file that threw {@code error}. */
+    public static void itemFailed(@NonNull String job, boolean video, @NonNull Throwable error,
+                                  boolean unsupported) {
+        itemFailed(job, video, outcomeOf(error, unsupported), error.getClass().getSimpleName());
+    }
+
+    /** {@link #itemFailed} for a file a job returned unfinished without throwing. */
+    public static void itemNotCleaned(@NonNull String job, boolean video, boolean unsupported) {
+        itemFailed(job, video, unsupported ? UNSUPPORTED : FAILED, unsupported ? UNSUPPORTED : "clean_failed");
+    }
+
     /** The outcome for a file that threw: out of memory, an unsupported format or a failure. */
     @NonNull
     public static String outcomeOf(@NonNull Throwable error, boolean unsupported) {

@@ -390,11 +390,8 @@ public class MediaProcessor {
                         } else {
                             addFailed(item, result.unsupported() ? FailReason.UNSUPPORTED : FailReason.NOT_CLEANED);
                             failCount++;
-                            AppMetrics.item(AppMetrics.CLEAN, item.isVideo(),
-                                    result.unsupported() ? AppMetrics.UNSUPPORTED : AppMetrics.FAILED, -1);
+                            AppMetrics.itemNotCleaned(AppMetrics.CLEAN, item.isVideo(), result.unsupported());
                             Log.e(TAG, "Failed to process item at index " + index);
-                            SentryManager.count(
-                                    "processing.clean.failure", 1, "is_video", String.valueOf(item.isVideo()));
                             span.setStatus(SpanStatus.INTERNAL_ERROR);
                             final String failLine =
                                     context.getString(R.string.clean_item_failed, item.displayName(context));
@@ -417,17 +414,10 @@ public class MediaProcessor {
                         addFailed(item, e instanceof OutOfMemoryError ? FailReason.OUT_OF_MEMORY
                                 : UnsupportedMediaException.isCauseOf(e) ? FailReason.UNSUPPORTED : FailReason.NOT_CLEANED);
                         failCount++;
-                        AppMetrics.item(AppMetrics.CLEAN, item.isVideo(),
-                                AppMetrics.outcomeOf(e, UnsupportedMediaException.isCauseOf(e)), -1);
+                        AppMetrics.itemFailed(AppMetrics.CLEAN, item.isVideo(), e,
+                                UnsupportedMediaException.isCauseOf(e));
                         Log.e(TAG, "Error processing item at index " + index, e);
                         SentryManager.recordException(e);
-                        SentryManager.count(
-                                "processing.clean.failure",
-                                1,
-                                "is_video",
-                                String.valueOf(item.isVideo()),
-                                "error_type",
-                                e.getClass().getSimpleName());
                         span.setStatus(SpanStatus.INTERNAL_ERROR);
                     } finally {
                         span.finish();

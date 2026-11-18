@@ -106,6 +106,27 @@ public class AppMetricsTest {
         assertEquals("a failure has no duration", 1, sent.size());
     }
 
+    /** A failed file is one processing.item with the kind of error, not a second counter. */
+    @Test
+    public void itemFailed_namesTheKindOfError() {
+        AppMetrics.itemFailed(AppMetrics.CONVERT, false, new java.io.IOException("/storage/a.jpg"), false);
+        SentryMetricsEvent thrown = only("processing.item");
+        assertEquals("convert", attr(thrown, "operation_type"));
+        assertEquals("image", attr(thrown, "media_type"));
+        assertEquals("failed", attr(thrown, "outcome"));
+        assertEquals("only the class, never the message", "IOException", attr(thrown, "error_type"));
+
+        sent.clear();
+        AppMetrics.itemNotCleaned(AppMetrics.SHARE, true, true);
+        SentryMetricsEvent unsupported = only("processing.item");
+        assertEquals("unsupported", attr(unsupported, "outcome"));
+        assertEquals("unsupported", attr(unsupported, "error_type"));
+
+        sent.clear();
+        AppMetrics.itemNotCleaned(AppMetrics.CLEAN, true, false);
+        assertEquals("clean_failed", attr(only("processing.item"), "error_type"));
+    }
+
     @Test
     public void outcomeOf_namesMemoryUnsupportedAndOtherFailures() {
         assertEquals(AppMetrics.OUT_OF_MEMORY, AppMetrics.outcomeOf(new OutOfMemoryError(), true));

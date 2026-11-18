@@ -775,11 +775,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                         }
                         // A file stopped by a cancel comes back failed too; only real failures count.
                         if (isCurrentSession(session)) {
-                            AppMetrics.item(AppMetrics.SHARE, isVideo,
-                                    result.unsupported() ? AppMetrics.UNSUPPORTED : AppMetrics.FAILED, -1);
-                            SentryManager.count("processing.share.failure", 1,
-                                    "is_video", String.valueOf(isVideo),
-                                    "error_type", result.unsupported() ? "unsupported" : "clean_failed");
+                            AppMetrics.itemNotCleaned(AppMetrics.SHARE, isVideo, result.unsupported());
                         }
                     }
                 }

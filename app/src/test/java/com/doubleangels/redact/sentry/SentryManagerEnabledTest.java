@@ -81,11 +81,11 @@ public class SentryManagerEnabledTest {
         SentryManager.count(null, 1);
         SentryManager.count("video.downscaled", 1, "is_video", "true");
         SentryManager.count("video.downscaled", 1, "file_name", "secret.jpg");
-        SentryManager.count("processing.clean.failure", 1, "is_video", null);
-        SentryManager.count("processing.clean.failure", 1, "is_video", "false", "error_type", "IOException");
-        SentryManager.count("processing.clean.failure", 1, "is_video", "false", "uri", "content://x");
-        SentryManager.count("processing.clean.failure", 1, "uri", "x", "is_video", "false");
-        SentryManager.count("processing.clean.failure", 1, "is_video", null, "error_type", null);
+        SentryManager.count("processing.item", 1, "is_video", null);
+        SentryManager.count("processing.item", 1, "is_video", "false", "error_type", "IOException");
+        SentryManager.count("processing.item", 1, "is_video", "false", "uri", "content://x");
+        SentryManager.count("processing.item", 1, "uri", "x", "is_video", "false");
+        SentryManager.count("processing.item", 1, "is_video", null, "error_type", null);
     }
 
     @Test
