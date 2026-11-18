@@ -1123,27 +1123,6 @@ public final class FormatConverter {
      *
      * @return URI of the new {@link MediaStore} video entry
      */
-    @NonNull
-    public static Uri convertVideoToMovies(
-            @NonNull Context context,
-            @NonNull Uri sourceUri,
-            @NonNull String baseDisplayName,
-            int formatIndex) throws IOException {
-        return convertVideoToMovies(context, sourceUri, baseDisplayName, formatIndex, null);
-    }
-
-    @NonNull
-    public static Uri convertVideoToMovies(
-            @NonNull Context context,
-            @NonNull Uri sourceUri,
-            @NonNull String baseDisplayName,
-            int formatIndex,
-            @Nullable VideoMedia3Converter.TranscodeProgressListener progressListener)
-            throws IOException {
-        return convertVideoToMovies(
-                context, sourceUri, baseDisplayName, formatIndex, progressListener, -1L, null).output();
-    }
-
     /**
      * A converted video: where it was saved, and the codec it was encoded with, which is not the
      * one asked for when the phone can't encode that one (see {@link VideoMedia3Converter}).

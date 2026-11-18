@@ -296,7 +296,7 @@ public class FormatConverterConversionTest {
         VideoMedia3Converter.setAwaitTimeoutForTests(500L);
         try {
             callOffMain(() -> FormatConverter.convertVideoToMovies(
-                    context, Uri.fromFile(new File("/nonexistent/clip.mp4")), "clip", 0));
+                    context, Uri.fromFile(new File("/nonexistent/clip.mp4")), "clip", 0, null, -1L, null));
         } catch (Exception expected) {
             // Any failure is fine; what matters is that no partial gallery entry remains.
         }
@@ -328,12 +328,12 @@ public class FormatConverterConversionTest {
 
     @Test(timeout = 30_000)
     @Config(sdk = 31)
-    public void convertVideo_overloads_delegateToTheFullSignature() throws Exception {
+    public void convertVideo_withAnUnreadableSource_inEachFormat_leavesNoEntry() throws Exception {
         // Media3 never finishes an export here; take the timeout path instead of waiting an hour.
         VideoMedia3Converter.setAwaitTimeoutForTests(500L);
         Uri missing = Uri.fromFile(new File("/nonexistent/clip.mp4"));
         try {
-            callOffMain(() -> FormatConverter.convertVideoToMovies(context, missing, "clip", 1, null));
+            callOffMain(() -> FormatConverter.convertVideoToMovies(context, missing, "clip", 1, null, -1L, null));
         } catch (Exception expected) {
             // unreadable source
         }
