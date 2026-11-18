@@ -1,5 +1,6 @@
 package com.doubleangels.redact;
 
+import static com.doubleangels.redact.TestWaits.awaitMain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -231,13 +232,8 @@ public class SettingsPermissionFlowsTest {
     @Test
     public void clearingNothing_saysThereWasNothingToClear() throws Exception {
         confirmClear();
-        long end = System.currentTimeMillis() + 3000;
-        while (System.currentTimeMillis() < end
-                && !app.getString(R.string.settings_storage_clear_empty).equals(com.doubleangels.redact.ui.Notice.lastShownForTests())) {
-            idle();
-            Thread.sleep(25);
-        }
-        assertEquals(app.getString(R.string.settings_storage_clear_empty), com.doubleangels.redact.ui.Notice.lastShownForTests());
+        awaitMain(() -> app.getString(R.string.settings_storage_clear_empty)
+                .equals(com.doubleangels.redact.ui.Notice.lastShownForTests()));
     }
 
     @Test
@@ -251,13 +247,8 @@ public class SettingsPermissionFlowsTest {
         assertTrue(leftover.setLastModified(System.currentTimeMillis() - 48L * 60 * 60 * 1000));
 
         confirmClear();
-        long end = System.currentTimeMillis() + 3000;
-        while (System.currentTimeMillis() < end
-                && !app.getString(R.string.settings_storage_clear_success).equals(com.doubleangels.redact.ui.Notice.lastShownForTests())) {
-            idle();
-            Thread.sleep(25);
-        }
-        assertEquals(app.getString(R.string.settings_storage_clear_success), com.doubleangels.redact.ui.Notice.lastShownForTests());
+        awaitMain(() -> app.getString(R.string.settings_storage_clear_success)
+                .equals(com.doubleangels.redact.ui.Notice.lastShownForTests()));
         assertFalse(leftover.exists());
     }
 

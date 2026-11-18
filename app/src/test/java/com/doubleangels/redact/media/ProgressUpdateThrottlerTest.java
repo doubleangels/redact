@@ -28,13 +28,26 @@ public class ProgressUpdateThrottlerTest {
     }
 
     @Test
-    public void maybeRun_executesAgainAfterIntervalElapses() throws InterruptedException {
-        ProgressUpdateThrottler throttler = new ProgressUpdateThrottler(50L);
+    public void maybeRun_executesAgainAfterIntervalElapses() {
+        long[] now = {1_000};
+        ProgressUpdateThrottler throttler = new ProgressUpdateThrottler(50L, () -> now[0]);
         AtomicInteger runs = new AtomicInteger();
         throttler.maybeRun(runs::incrementAndGet);
-        Thread.sleep(80L);
+        now[0] += 49;
+        throttler.maybeRun(runs::incrementAndGet);
+        assertEquals("not yet", 1, runs.get());
+        now[0] += 1;
         throttler.maybeRun(runs::incrementAndGet);
         assertEquals(2, runs.get());
+    }
+
+    /** The first call runs whatever the clock reads, even a negative monotonic time. */
+    @Test
+    public void theFirstCall_alwaysRuns() {
+        ProgressUpdateThrottler throttler = new ProgressUpdateThrottler(50L, () -> -5_000L);
+        AtomicInteger runs = new AtomicInteger();
+        throttler.maybeRun(runs::incrementAndGet);
+        assertEquals(1, runs.get());
     }
 
     @Test

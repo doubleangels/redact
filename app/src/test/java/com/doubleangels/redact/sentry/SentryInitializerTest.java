@@ -1,5 +1,6 @@
 package com.doubleangels.redact.sentry;
 
+import static com.doubleangels.redact.TestWaits.awaitMain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -333,11 +334,7 @@ public class SentryInitializerTest {
 
         SentryInitializer.initialize(app);
         SentryInitializer.initialize(app); // a concurrent duplicate request is ignored
-        long end = System.currentTimeMillis() + 3000;
-        while (SentryInitializer.isInitializingForTests() && System.currentTimeMillis() < end) {
-            Thread.sleep(10);
-        }
-        assertFalse("the background attempt settles", SentryInitializer.isInitializingForTests());
+        awaitMain(() -> !SentryInitializer.isInitializingForTests());
 
         assertFalse("an empty DSN never configures the SDK", SentryInitializer.isInitialized());
     }

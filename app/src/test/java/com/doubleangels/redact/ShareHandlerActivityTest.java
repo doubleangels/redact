@@ -1,5 +1,6 @@
 package com.doubleangels.redact;
 
+import static com.doubleangels.redact.TestWaits.awaitMain;
 import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.InboundSnapshots;
 import static org.junit.Assert.assertEquals;
@@ -46,7 +47,6 @@ import java.util.List;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class ShareHandlerActivityTest {
 
-    private static final long PROCESSING_TIMEOUT_MS = 20_000L;
 
     private Application app;
     private ActivityController<ShareHandlerActivity> controller;
@@ -169,19 +169,16 @@ public class ShareHandlerActivityTest {
         assertTrue(activity.isFinishing());
     }
 
+    /** The share sheet the activity opened, or null when it finished without opening one. */
     private Intent awaitStartedActivity(ShareHandlerActivity activity) throws InterruptedException {
-        long deadline = System.currentTimeMillis() + PROCESSING_TIMEOUT_MS;
-        while (System.currentTimeMillis() < deadline) {
-            Shadows.shadowOf(Looper.getMainLooper()).idle();
-            Intent started = Shadows.shadowOf(activity).peekNextStartedActivityForResult() != null
-                    ? Shadows.shadowOf(activity).getNextStartedActivityForResult().intent
-                    : null;
-            if (started != null || activity.isFinishing()) {
-                return started;
+        Intent[] started = {null};
+        awaitMain(() -> {
+            if (started[0] == null && Shadows.shadowOf(activity).peekNextStartedActivityForResult() != null) {
+                started[0] = Shadows.shadowOf(activity).getNextStartedActivityForResult().intent;
             }
-            Thread.sleep(25);
-        }
-        return null;
+            return started[0] != null || activity.isFinishing();
+        });
+        return started[0];
     }
 
     @Test
@@ -338,11 +335,7 @@ public class ShareHandlerActivityTest {
         controller.pause().stop().destroy();
         controller = null;
         // Snapshot deletion runs on ShareHandlerActivity's background cleanup executor.
-        long deadline = System.currentTimeMillis() + 5000;
-        while (inboundSnapshots().length > 0 && System.currentTimeMillis() < deadline) {
-            Thread.sleep(25);
-        }
-        assertEquals(0, inboundSnapshots().length);
+        awaitMain(() -> inboundSnapshots().length == 0);
     }
 
     @Test
@@ -375,11 +368,7 @@ public class ShareHandlerActivityTest {
         assertNotNull(awaitStartedActivity(activity));
 
         // Only the cleaned file is shared; the snapshot still holds the original's metadata.
-        long deadline = System.currentTimeMillis() + 5000;
-        while (inboundSnapshots().length > 0 && System.currentTimeMillis() < deadline) {
-            Thread.sleep(25);
-        }
-        assertEquals(0, inboundSnapshots().length);
+        awaitMain(() -> inboundSnapshots().length == 0);
         assertFalse(activity.isFinishing());
     }
 

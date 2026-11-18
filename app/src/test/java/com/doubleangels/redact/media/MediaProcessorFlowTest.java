@@ -255,8 +255,8 @@ public class MediaProcessorFlowTest {
         app.getContentResolver().update(output, clash, null, null);
 
         processor.takeSucceededSources();
+        // An empty list returns before anything reaches the worker, so there is nothing to wait for.
         processor.restoreOriginalNames(new ArrayList<>());
-        Thread.sleep(200);
 
         assertEquals("holiday (1).jpg", FakeMediaStoreProvider.only().displayName());
     }
