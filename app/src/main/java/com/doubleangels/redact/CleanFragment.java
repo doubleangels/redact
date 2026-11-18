@@ -613,7 +613,6 @@ public class CleanFragment extends TabFragment {
                     }
                     switch (state) {
                         case PROCESSING:
-                            SentryManager.log("The processing state changed to PROCESSING.");
                             uiStateManager.showProgress(true);
                             uiStateManager.setProcessingStatus();
                             if (selectButton != null) {
@@ -625,7 +624,6 @@ public class CleanFragment extends TabFragment {
                             break;
 
                         case CANCELLED:
-                            SentryManager.log("The processing state changed to CANCELLED.");
                             uiStateManager.showProgress(false);
                             uiStateManager.setStatus(getString(R.string.status_processing_cancelled));
                             stripButton.setText(R.string.button_strip_exif_data);
@@ -639,7 +637,6 @@ public class CleanFragment extends TabFragment {
                             break;
 
                         case COMPLETED:
-                            SentryManager.log("The processing state changed to COMPLETED.");
                             uiStateManager.showProgress(false);
                             Integer count = viewModel.getCleanProcessedItemCount().getValue();
                             Integer total = viewModel.getCleanBatchTotalCount().getValue();
@@ -679,7 +676,6 @@ public class CleanFragment extends TabFragment {
 
                         case IDLE:
                         default:
-                            SentryManager.log("The processing state changed to IDLE.");
                             uiStateManager.showProgress(false);
                             stripButton.setText(R.string.button_strip_exif_data);
                             stripButton.setIconResource(R.drawable.ic_clean);

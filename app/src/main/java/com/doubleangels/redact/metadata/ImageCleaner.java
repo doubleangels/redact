@@ -524,7 +524,6 @@ final class ImageCleaner {
             String value = exif.getAttribute(tag);
             if (value != null) {
                 kept.put(tag, value);
-                SentryManager.log("The app is preserving the EXIF tag: " + tag + ".");
             }
         }
         if (!kept.containsKey(ExifInterface.TAG_COLOR_SPACE)) {
