@@ -570,8 +570,22 @@ public final class SentryManager {
         return SentryMetricsParameters.create(SentryAttributes.of(attributes));
     }
 
+    /**
+     * Metric attribute values the app writes as constants (job, media type and outcome names).
+     * They can't hold anything the scrubber would remove, so they skip its regex passes, which
+     * otherwise ran on every metric of every file.
+     */
+    private static final Set<String> FIXED_VALUES = new HashSet<>(Arrays.asList(
+            AppMetrics.CLEAN, AppMetrics.SHARE, AppMetrics.CONVERT, AppMetrics.SCAN, AppMetrics.CENSOR,
+            "image", "video", "true", "false",
+            AppMetrics.SUCCESS, AppMetrics.FAILED, AppMetrics.UNSUPPORTED, AppMetrics.OUT_OF_MEMORY,
+            AppMetrics.CANCELLED, "partial", "clean_failed"));
+
     @NonNull
     private static String scrubbedValue(@Nullable String value) {
+        if (value != null && FIXED_VALUES.contains(value)) {
+            return value;
+        }
         String scrubbed = SentryPrivacyScrubber.scrub(value != null ? value : "");
         return scrubbed != null ? scrubbed : "";
     }
