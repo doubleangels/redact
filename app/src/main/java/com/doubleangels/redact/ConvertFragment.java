@@ -606,10 +606,14 @@ public class ConvertFragment extends TabFragment {
                                     viewModel.startConversion(
                                             selectedItems, formatIndex, imageFormatIndex, imageFormat));
                 });
-            } catch (Exception e) {
+            } catch (Exception | OutOfMemoryError e) {
                 SentryManager.recordException(e);
+                // The checks only warn; when they can't run, convert without them rather than
+                // leave the button doing nothing, as Clean does.
+                runOnUiThreadIfAdded(() -> viewModel.startConversion(
+                        selectedItems, formatIndex, imageFormatIndex, imageFormat));
             }
-        }).start();
+        }, "redact-convert-checks").start();
     }
 
     private void runOnUiThreadIfAdded(Runnable action) {
