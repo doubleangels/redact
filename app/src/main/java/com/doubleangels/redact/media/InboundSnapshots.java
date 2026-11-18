@@ -68,7 +68,9 @@ public final class InboundSnapshots {
                     break;
                 }
                 copies.add(Uri.fromFile(snapshot));
-            } catch (IOException e) {
+            } catch (IOException | RuntimeException e) {
+                // A provider refuses one item ("Permission Denial" when the grant doesn't cover
+                // it) or fails partway through it: that item is left out, the others still go.
                 if (!stillWanted.getAsBoolean()) {
                     break;
                 }
@@ -110,8 +112,8 @@ public final class InboundSnapshots {
             // A share can be larger than the room left, or never end; it stops before the
             // storage is full rather than fill it.
             copyWhileWanted(in, out, stillWanted, MediaSizeLimits.roomFor(app.getCacheDir()));
-        } catch (IOException e) {
-            // A partial copy still holds part of the original.
+        } catch (IOException | RuntimeException e) {
+            // A partial copy still holds part of the original, whatever stopped it.
             SecureDelete.secureDelete(dest);
             throw e;
         }

@@ -76,4 +76,27 @@ public class InboundSnapshotsTest {
 
         assertTrue(copies.isEmpty());
     }
+
+    /**
+     * A provider that refuses one item with a SecurityException (or fails partway with any
+     * runtime exception) loses that item only; the rest of the share still goes.
+     */
+    @Test
+    public void anItemTheProviderRefuses_isLeftOut_andTheOthersStillGo() throws Exception {
+        Uri refused = Uri.parse("content://com.example.refuses/item/1");
+        org.robolectric.Shadows.shadowOf(app.getContentResolver())
+                .registerInputStreamSupplier(refused, () -> {
+                    throw new SecurityException("Permission Denial");
+                });
+        Uri photo = source("e.jpg", "fine");
+        AtomicInteger failed = new AtomicInteger();
+
+        List<Uri> copies = InboundSnapshots.copyAll(app, List.of(refused, photo), () -> true,
+                snapshot -> true, failed);
+
+        assertEquals(1, copies.size());
+        assertEquals(1, failed.get());
+        java.io.File[] left = app.getCacheDir().listFiles((dir, name) -> name.startsWith(InboundSnapshots.PREFIX));
+        assertEquals("no partial copy of the refused item is left", 1, left.length);
+    }
 }
