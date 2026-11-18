@@ -9,6 +9,7 @@ import android.provider.OpenableColumns;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -102,7 +103,7 @@ public final class MediaSizeLimits {
      * What a copy into internal storage may take: the free space there, less a reserve kept for
      * the clean's own output and for the rest of the phone. Never less than zero.
      */
-    public static long roomFor(@NonNull java.io.File dir) {
+    public static long roomFor(@NonNull File dir) {
         return Math.max(0, dir.getUsableSpace() - FREE_SPACE_RESERVE_BYTES);
     }
 

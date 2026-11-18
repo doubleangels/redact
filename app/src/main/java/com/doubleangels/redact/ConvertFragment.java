@@ -49,6 +49,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Converts images to JPEG, PNG, WebP, or HEIC and transcodes videos to MP4; saves under
@@ -625,7 +626,7 @@ public class ConvertFragment extends TabFragment {
 
     /** Runs {@code action} on the main thread if the screen is still there and showing. */
     private static void onScreen(@NonNull WeakReference<ConvertFragment> screen,
-                                 @NonNull java.util.function.Consumer<ConvertFragment> action) {
+                                 @NonNull Consumer<ConvertFragment> action) {
         ConvertFragment fragment = screen.get();
         if (fragment != null) {
             fragment.runOnUiThreadIfAdded(() -> action.accept(fragment));

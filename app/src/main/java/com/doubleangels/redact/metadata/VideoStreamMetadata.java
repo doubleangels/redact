@@ -343,8 +343,9 @@ public final class VideoStreamMetadata {
     }
 
     /**
-     * The units of {@code d} whose first byte {@code wanted} accepts, as {@link #nalUnits} splits
-     * them. The rest, the picture data that is nearly all of a sample, is never copied, so every
+     * The NAL units of {@code d} whose first byte {@code wanted} accepts, split at Annex B start
+     * codes or, failing that, at 4-byte length prefixes; trailing zero bytes belong to the next
+     * start code. The rest, the picture data that is nearly all of a sample, is never copied, so every
      * frame of a long video can be read.
      */
     @NonNull
@@ -379,39 +380,6 @@ public final class VideoStreamMetadata {
             if (wanted.test(d[pos + 4] & 0xFF)) {
                 units.add(Arrays.copyOfRange(d, pos + 4, pos + 4 + length));
             }
-            pos += 4 + length;
-        }
-        return units;
-    }
-
-    /** Splits Annex B (start codes) or, failing that, 4-byte length-prefixed data into NAL units. */
-    @NonNull
-    static List<byte[]> nalUnits(@NonNull byte[] d) {
-        List<byte[]> units = new ArrayList<>();
-        int start = nextStartCode(d, 0);
-        if (start >= 0) {
-            while (start >= 0) {
-                int payload = start + (d[start + 2] == 1 ? 3 : 4);
-                int next = nextStartCode(d, payload);
-                int end = next < 0 ? d.length : next;
-                while (end > payload && d[end - 1] == 0) {
-                    end--; // trailing zero bytes belong to the next start code
-                }
-                if (end > payload) {
-                    units.add(Arrays.copyOfRange(d, payload, end));
-                }
-                start = next;
-            }
-            return units;
-        }
-        int pos = 0;
-        while (pos + 4 <= d.length) {
-            int length = ((d[pos] & 0xFF) << 24) | ((d[pos + 1] & 0xFF) << 16)
-                    | ((d[pos + 2] & 0xFF) << 8) | (d[pos + 3] & 0xFF);
-            if (length <= 0 || pos + 4L + length > d.length) {
-                break;
-            }
-            units.add(Arrays.copyOfRange(d, pos + 4, pos + 4 + length));
             pos += 4 + length;
         }
         return units;

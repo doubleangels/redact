@@ -858,7 +858,7 @@ public class CleanFragment extends TabFragment {
 
     /** Runs {@code action} on the main thread if the screen is still there and showing. */
     private static void onScreen(@NonNull WeakReference<CleanFragment> screen,
-                                 @NonNull java.util.function.Consumer<CleanFragment> action) {
+                                 @NonNull Consumer<CleanFragment> action) {
         CleanFragment fragment = screen.get();
         if (fragment != null) {
             fragment.runOnUiThreadIfAdded(() -> action.accept(fragment));

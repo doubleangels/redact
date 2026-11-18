@@ -321,20 +321,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean isImage(@NonNull Uri uri, @Nullable String intentType) {
-        String type;
-        try {
-            type = getContentResolver().getType(uri);
-        } catch (Exception e) {
-            SentryManager.recordException(e);
-            type = null;
-        }
-        if (type == null) {
-            type = intentType;
-        }
+        String type = typeOf(uri, intentType);
         return type != null && type.startsWith("image/");
     }
 
     private boolean isImageOrVideo(@NonNull Uri uri, @Nullable String intentType) {
+        String type = typeOf(uri, intentType);
+        return type != null && (type.startsWith("image/") || type.startsWith("video/"));
+    }
+
+    /** The provider's type for {@code uri}, or the sender's {@code intentType} when it has none. */
+    @Nullable
+    private String typeOf(@NonNull Uri uri, @Nullable String intentType) {
         String type;
         try {
             type = getContentResolver().getType(uri);
@@ -342,10 +340,7 @@ public class MainActivity extends AppCompatActivity {
             SentryManager.recordException(e);
             type = null;
         }
-        if (type == null) {
-            type = intentType;
-        }
-        return type != null && (type.startsWith("image/") || type.startsWith("video/"));
+        return type != null ? type : intentType;
     }
 
     /**

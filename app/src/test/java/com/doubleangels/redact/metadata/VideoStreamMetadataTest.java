@@ -240,10 +240,10 @@ public class VideoStreamMetadataTest {
     }
 
     @Test
-    public void nalUnits_dropsTrailingZerosAndAcceptsThreeByteStartCodes() {
+    public void units_dropsTrailingZerosAndAcceptsThreeByteStartCodes() {
         byte[] data = {0, 0, 1, 0x06, 0x11, 0, 0, 0, 0, 1, 0x65, 0x22};
 
-        java.util.List<byte[]> units = VideoStreamMetadata.nalUnits(data);
+        java.util.List<byte[]> units = VideoStreamMetadata.units(data, b -> true);
         assertEquals(2, units.size());
         org.junit.Assert.assertArrayEquals(new byte[] {0x06, 0x11}, units.get(0));
         org.junit.Assert.assertArrayEquals(new byte[] {0x65, 0x22}, units.get(1));
@@ -251,9 +251,9 @@ public class VideoStreamMetadataTest {
 
     @Test
     public void lengthPrefixedData_stopsAtABadLength() {
-        assertTrue(VideoStreamMetadata.nalUnits(new byte[] {1, 0, 0, 0, 0x06}).isEmpty());
-        assertTrue(VideoStreamMetadata.nalUnits(new byte[] {(byte) 0x80, 0, 0, 0, 0x06}).isEmpty());
-        assertEquals(1, VideoStreamMetadata.nalUnits(new byte[] {0, 0, 0, 2, 0x06, 0x07, 0x7F, 0x7F, 0x7F, 0x7F, 9}).size());
+        assertTrue(VideoStreamMetadata.units(new byte[] {1, 0, 0, 0, 0x06}, b -> true).isEmpty());
+        assertTrue(VideoStreamMetadata.units(new byte[] {(byte) 0x80, 0, 0, 0, 0x06}, b -> true).isEmpty());
+        assertEquals(1, VideoStreamMetadata.units(new byte[] {0, 0, 0, 2, 0x06, 0x07, 0x7F, 0x7F, 0x7F, 0x7F, 9}, b -> true).size());
     }
 
     /** An SEI user_data_registered_itu_t_t35 message. */

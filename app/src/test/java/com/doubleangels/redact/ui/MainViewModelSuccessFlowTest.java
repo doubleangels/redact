@@ -17,7 +17,6 @@ import androidx.lifecycle.SavedStateHandle;
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.FakeMediaStoreProvider;
 import com.doubleangels.redact.R;
-import com.doubleangels.redact.ShareHandlerActivity;
 import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.MediaItem;
 import com.doubleangels.redact.notifications.ProcessingForegroundService;
