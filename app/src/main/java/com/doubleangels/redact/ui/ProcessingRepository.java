@@ -605,6 +605,8 @@ public final class ProcessingRepository {
         long batchStartMs = System.currentTimeMillis();
         int ok = 0;
         int fail = 0;
+        // An item stopped by a cancellation (an interrupt, say) ends the run, as in Clean.
+        boolean stoppedByItem = false;
         AppMetrics.batchStarted(AppMetrics.CONVERT, total);
         try {
             for (int i = 0; i < total; i++) {
@@ -686,6 +688,7 @@ public final class ProcessingRepository {
                     // Out of memory fails this file, not the app: the next file may be smaller.
                     boolean cancelled = convertStopped(runGeneration) || SentryManager.isUserCancellation(e);
                     if (cancelled) {
+                        stoppedByItem = true;
                         span.setStatus(SpanStatus.CANCELLED);
                     } else {
                         fail++;
@@ -706,6 +709,9 @@ public final class ProcessingRepository {
                 } finally {
                     span.finish();
                 }
+                if (stoppedByItem) {
+                    break;
+                }
                 int overallDone = total > 0 ? (index * 100) / total : 0;
                 String doneLine = app.getString(R.string.convert_progress_item, index, total);
                 updateConvertProgressPercent(overallDone, doneLine);
@@ -714,7 +720,7 @@ public final class ProcessingRepository {
         } finally {
             final int finalOk = ok;
             final int finalFail = fail;
-            final boolean interrupted = convertStopped(runGeneration);
+            final boolean interrupted = convertStopped(runGeneration) || stoppedByItem;
             AppMetrics.batchFinished(AppMetrics.CONVERT, ok, fail, interrupted);
             // A cancelled run already cleared the flag, and a newer run may have set it since;
             // only the run that is still current may clear it.
