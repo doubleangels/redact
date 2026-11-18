@@ -3,7 +3,13 @@
 # the build until the line is added here on purpose. Rewrite with --update after an intended change.
 
 application allowBackup=false
+application dataExtractionRules=@xml/data_extraction_rules
 application debuggable=unset
+application fullBackupContent=unset
+application hasFragileUserData=unset
+application networkSecurityConfig=unset
+application requestLegacyExternalStorage=unset
+application testOnly=unset
 application usesCleartextTraffic=false
 exported activity com.doubleangels.redact.MainActivity
 exported activity com.doubleangels.redact.ShareHandlerActivity
@@ -14,6 +20,7 @@ exported receiver androidx.profileinstaller.ProfileInstallReceiver permission=an
 exported service com.doubleangels.redact.CensorTileService permission=android.permission.BIND_QUICK_SETTINGS_TILE
 exported service com.doubleangels.redact.CleanTileService permission=android.permission.BIND_QUICK_SETTINGS_TILE
 exported service com.doubleangels.redact.ScanTileService permission=android.permission.BIND_QUICK_SETTINGS_TILE
+grants-uri provider androidx.core.content.FileProvider
 uses-permission android.permission.ACCESS_MEDIA_LOCATION
 uses-permission android.permission.ACCESS_NETWORK_STATE
 uses-permission android.permission.FOREGROUND_SERVICE
