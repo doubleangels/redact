@@ -30,6 +30,7 @@ import com.doubleangels.redact.media.CleanFailedException;
 import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.media.ProcessingCancelledException;
 import com.doubleangels.redact.media.UnsupportedMediaException;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.google.common.collect.ImmutableList;
 import java.util.Locale;
@@ -467,7 +468,7 @@ final class VideoCleaner {
             VideoContainerMetadata.writeMovieTimes(video, times);
         } catch (IOException e) {
             SentryManager.logEvent("Video", "The recording date could not be kept: " + e.getClass().getSimpleName() + ".");
-            SentryManager.count("clean.part_dropped", 1, "media_type", "video", "outcome", "recording_date");
+            AppMetrics.partDropped(true, "recording_date");
         }
     }
 
@@ -679,7 +680,7 @@ final class VideoCleaner {
                     videoFormat.getInteger(MediaFormat.KEY_COLOR_RANGE, 0));
             if (vpcC == null) {
                 SentryManager.logEvent("Video", "The WebM video does not start with a VP9 key frame, so it stays WebM.");
-                SentryManager.count("clean.part_dropped", 1, "media_type", "video", "outcome", "webm_kept");
+                AppMetrics.partDropped(true, "webm_kept");
                 return null;
             }
 
@@ -729,7 +730,7 @@ final class VideoCleaner {
             }
             SentryManager.logEvent("Video", "The WebM could not be copied into an MP4, so it stays WebM: "
                     + e.getClass().getSimpleName() + ".");
-            SentryManager.count("clean.part_dropped", 1, "media_type", "video", "outcome", "webm_kept");
+            AppMetrics.partDropped(true, "webm_kept");
             return null;
         } finally {
             try { extractor.release(); } catch (Exception ignored) { SentryManager.logEvent("Video", "An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
@@ -887,6 +888,6 @@ final class VideoCleaner {
      * transcode after the quick copy failed its check, or a transcode from the start.
      */
     private static void countVideoPath(@NonNull String path) {
-        SentryManager.count("clean.path", 1, "media_type", "video", "outcome", path);
+        AppMetrics.cleanPath(true, path);
     }
 }

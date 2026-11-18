@@ -10,6 +10,7 @@ import androidx.annotation.VisibleForTesting;
 import androidx.exifinterface.media.ExifInterface;
 
 import com.doubleangels.redact.media.MediaSizeLimits;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.BufferedOutputStream;
@@ -291,7 +292,7 @@ public final class ImageContainerMetadata {
             } catch (IOException | RuntimeException e) {
                 // The picture written above is complete; it is only without its HDR.
                 SentryManager.logEvent("Image", "The Ultra HDR gain map could not be kept: " + e.getClass().getSimpleName() + ".");
-                SentryManager.count("clean.part_dropped", 1, "media_type", "image", "outcome", "gain_map");
+                AppMetrics.partDropped(false, "gain_map");
             }
         }
         if (motion != null) {

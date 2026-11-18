@@ -1030,7 +1030,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
      * application/pdf), to show which formats people bring that the device cannot decode.
      */
     private static void countUnsupported(@Nullable String mimeType) {
-        SentryManager.count("media.unsupported", 1, "mime_type", mimeTypeTag(mimeType));
+        AppMetrics.unsupportedMedia(mimeTypeTag(mimeType));
     }
 
     /**

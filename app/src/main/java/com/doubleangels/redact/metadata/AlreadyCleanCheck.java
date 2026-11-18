@@ -76,14 +76,13 @@ public final class AlreadyCleanCheck {
                 // A file too large or too strange to read is cleaned as usual, never skipped, and
                 // an OutOfMemoryError here must not end the thread the Clean button waits on.
                 status = Status.UNKNOWN;
-                SentryManager.count("already_clean.check", 1, "outcome", "error",
-                        "error_type", e.getClass().getSimpleName());
+                AppMetrics.alreadyCleanError(e);
             }
             result.add(status);
         }
         if (timedOut > 0) {
             // Slow (usually cloud-backed) files used up the time budget; they are cleaned as usual.
-            SentryManager.count("already_clean.check", timedOut, "outcome", "timed_out");
+            AppMetrics.alreadyCleanTimedOut(timedOut);
         }
         AppMetrics.alreadyCleanDuration(SystemClock.elapsedRealtime() - startedAt);
         return result;

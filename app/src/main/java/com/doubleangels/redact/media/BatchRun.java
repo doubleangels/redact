@@ -138,8 +138,7 @@ public final class BatchRun {
         } finally {
             boolean cancelled = stoppedByItem || stopped.getAsBoolean();
             AppMetrics.batchFinished(job, succeeded, failed + alreadyFailed, cancelled);
-            SentryManager.distributionDurationMs("processing.duration_ms",
-                    SystemClock.elapsedRealtime() - startedAt, "operation_type", job);
+            AppMetrics.jobDuration(job, SystemClock.elapsedRealtime() - startedAt);
             transaction.setStatus(cancelled ? SpanStatus.CANCELLED
                     : succeeded == 0 && failed + alreadyFailed > 0 ? SpanStatus.INTERNAL_ERROR
                     : SpanStatus.OK);

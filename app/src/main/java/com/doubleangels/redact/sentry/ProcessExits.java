@@ -45,11 +45,7 @@ public final class ProcessExits {
                     continue;
                 }
                 String reason = reasonName(exit.getReason());
-                SentryManager.count("app.exit", 1,
-                        "outcome", reason, "processing_state", importanceName(exit.getImportance()));
-                if (exit.getRss() > 0) {
-                    SentryManager.distribution("app.exit.memory_mb", exit.getRss() / 1024.0, "outcome", reason);
-                }
+                AppMetrics.appExit(reason, importanceName(exit.getImportance()), exit.getRss());
                 newest = Math.max(newest, exit.getTimestamp());
             }
             if (newest > since) {

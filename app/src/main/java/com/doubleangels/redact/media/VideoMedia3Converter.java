@@ -55,6 +55,7 @@ import androidx.media3.container.Mp4LocationData;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -829,7 +830,7 @@ public final class VideoMedia3Converter {
     static void warnDownscaled(@NonNull Context app, int shortSide) {
         SentryManager.logEvent("Video", 
                 "The video was saved at " + shortSide + "p, smaller than its source.");
-        SentryManager.count("video.downscaled", 1, "outcome", shortSide + "p");
+        AppMetrics.videoDownscaled(shortSide);
         String message = app.getString(R.string.video_downscaled, shortSide);
         new Handler(Looper.getMainLooper()).post(
                 () -> Toast.makeText(app, message, Toast.LENGTH_LONG).show());
@@ -1244,7 +1245,7 @@ public final class VideoMedia3Converter {
         // The codec alone (video/avc), or "copy" for a stream copy; the reason is Media3's error
         // code name, STALLED or an exception class.
         String codec = videoMimeType.startsWith("video/") ? videoMimeType.split(" ", 2)[0] : "copy";
-        SentryManager.count("video.transcode.failure", 1, "mime_type", codec, "error_type", reason);
+        AppMetrics.transcodeFailure(codec, reason);
     }
 
     /**
@@ -1754,6 +1755,6 @@ public final class VideoMedia3Converter {
 
     /** Counts a transcode the encoder refused at full size, by whether a smaller size worked. */
     private static void countSmallerSizeRetry(@NonNull String outcome) {
-        SentryManager.count("video.retry_smaller", 1, "media_type", "video", "outcome", outcome);
+        AppMetrics.retrySmaller(outcome);
     }
 }

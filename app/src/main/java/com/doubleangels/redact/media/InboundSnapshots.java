@@ -6,6 +6,7 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.File;
@@ -72,7 +73,7 @@ public final class InboundSnapshots {
                     break;
                 }
                 failed.incrementAndGet();
-                SentryManager.count("share.snapshot.failure", 1, "error_type",
+                AppMetrics.snapshotFailure(
                         e instanceof FileNotFoundException ? "not_found" : e.getClass().getSimpleName());
                 if (e instanceof FileNotFoundException) {
                     // The sharing app handed over a URI whose item no longer exists (deleted, or a

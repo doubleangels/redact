@@ -63,8 +63,7 @@ public final class SecureDelete {
             // The class only: a FileNotFoundException's message holds the file's path.
             SentryManager.logEvent("Storage", "An error occurred during secure file deletion: "
                     + e.getClass().getSimpleName() + ".");
-            SentryManager.count("secure_delete.fallback", 1, "outcome", "overwrite_failed",
-                    "error_type", e.getClass().getSimpleName());
+            AppMetrics.secureDeleteOverwriteFailed(e);
             return unlink(file);
         }
     }
@@ -76,7 +75,7 @@ public final class SecureDelete {
     private static boolean unlink(@NonNull File file) {
         boolean deleted = file.delete();
         if (!deleted) {
-            SentryManager.count("secure_delete.fallback", 1, "outcome", "unlink_failed");
+            AppMetrics.secureDeleteUnlinkFailed();
         }
         return deleted;
     }

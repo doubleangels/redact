@@ -317,7 +317,7 @@ public class CensorViewModel extends AndroidViewModel {
             return scaled;
         } catch (OutOfMemoryError e) {
             SentryManager.logEvent("Censor", "The censor preview could not be scaled down because memory ran out.");
-            SentryManager.count("memory.low", 1, "outcome", "censor_preview_scale");
+            AppMetrics.lowMemory("censor_preview_scale");
             return decoded;
         }
     }
@@ -704,7 +704,7 @@ public class CensorViewModel extends AndroidViewModel {
             }
         } catch (OutOfMemoryError e) {
             SentryManager.logEvent("Censor", "The censor preview ran out of memory.");
-            SentryManager.count("memory.low", 1, "outcome", "censor_preview");
+            AppMetrics.lowMemory("censor_preview");
             // Like a finished render, only for the photo and edits still on screen: after Clear
             // or another photo, this one must not come back.
             if (generation == renderGeneration.get()) {
@@ -720,9 +720,9 @@ public class CensorViewModel extends AndroidViewModel {
      */
     private static void countCensorSave(boolean downscaled, long durationMs) {
         if (downscaled) {
-            SentryManager.count("censor.save", 1, "outcome", "downscaled");
+            AppMetrics.censorSavedSmaller();
         }
-        SentryManager.distributionDurationMs("processing.duration_ms", durationMs, "operation_type", "censor");
+        AppMetrics.jobDuration(AppMetrics.CENSOR, durationMs);
     }
 
     @NonNull

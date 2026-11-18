@@ -381,7 +381,7 @@ final class CleanVerifier {
     }
 
     static void countVerificationFailure(@NonNull String mediaType, @NonNull String reason) {
-        SentryManager.count("verification.failed", 1, "media_type", mediaType, "outcome", reason);
+        AppMetrics.verificationFailed(mediaType, reason);
     }
 
     /**

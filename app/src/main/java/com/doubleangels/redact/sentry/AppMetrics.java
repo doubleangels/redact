@@ -270,4 +270,106 @@ public final class AppMetrics {
     public static void onboardingFinished(boolean completed) {
         SentryManager.count("onboarding.finished", 1, "outcome", completed ? "finished" : "left");
     }
+
+    // ---- every other metric the app sends, one method each --------------------------------------
+
+    /** How long a whole job took, as {@code processing.duration_ms}. */
+    public static void jobDuration(@NonNull String job, long durationMs) {
+        SentryManager.distributionDurationMs("processing.duration_ms", durationMs, "operation_type", job);
+    }
+
+    /** A file the already-clean check could not read, as {@code already_clean.check{error}}. */
+    public static void alreadyCleanError(@NonNull Throwable error) {
+        SentryManager.count("already_clean.check", 1, "outcome", "error",
+                "error_type", error.getClass().getSimpleName());
+    }
+
+    /** Files the already-clean check had no time left for, as {@code already_clean.check{timed_out}}. */
+    public static void alreadyCleanTimedOut(int files) {
+        SentryManager.count("already_clean.check", files, "outcome", "timed_out");
+    }
+
+    /** Working files an earlier run left behind, found at start-up, as {@code cache.orphans_found}. */
+    public static void orphansFound(int files) {
+        SentryManager.count("cache.orphans_found", files);
+    }
+
+    /** A picture that had to be decoded smaller, or could not be, as {@code memory.low}. */
+    public static void lowMemory(@NonNull String outcome) {
+        SentryManager.count("memory.low", 1, "outcome", outcome);
+    }
+
+    /** A shared item that could not be copied in, as {@code share.snapshot.failure}. */
+    public static void snapshotFailure(@NonNull String errorType) {
+        SentryManager.count("share.snapshot.failure", 1, "error_type", errorType);
+    }
+
+    /** The chosen output folder failed and the default was used, as {@code output.folder_fallback}. */
+    public static void outputFolderFallback(boolean video, @NonNull String errorType) {
+        SentryManager.count("output.folder_fallback", 1, "media_type", mediaType(video), "error_type", errorType);
+    }
+
+    /** A cleaned file that failed its check, as {@code verification.failed}, by why. */
+    public static void verificationFailed(@NonNull String mediaType, @NonNull String reason) {
+        SentryManager.count("verification.failed", 1, "media_type", mediaType, "outcome", reason);
+    }
+
+    /** A large-job or low-storage warning shown before a job, as {@code resource.warning}. */
+    public static void resourceWarning(@NonNull String outcome) {
+        SentryManager.count("resource.warning", 1, "outcome", outcome);
+    }
+
+    /** A secure delete whose overwrite failed, so the file was only unlinked. */
+    public static void secureDeleteOverwriteFailed(@NonNull Throwable error) {
+        SentryManager.count("secure_delete.fallback", 1, "outcome", "overwrite_failed",
+                "error_type", error.getClass().getSimpleName());
+    }
+
+    /** A secure delete that could not even unlink the file. */
+    public static void secureDeleteUnlinkFailed() {
+        SentryManager.count("secure_delete.fallback", 1, "outcome", "unlink_failed");
+    }
+
+    /** A video encoded at a smaller size than its source, as {@code video.downscaled}. */
+    public static void videoDownscaled(int shortSide) {
+        SentryManager.count("video.downscaled", 1, "outcome", shortSide + "p");
+    }
+
+    /** A transcode attempt that failed, as {@code video.transcode.failure}, by codec and reason. */
+    public static void transcodeFailure(@NonNull String codec, @NonNull String reason) {
+        SentryManager.count("video.transcode.failure", 1, "mime_type", codec, "error_type", reason);
+    }
+
+    /** A transcode tried again at a smaller size, as {@code video.retry_smaller}. */
+    public static void retrySmaller(@NonNull String outcome) {
+        SentryManager.count("video.retry_smaller", 1, "media_type", "video", "outcome", outcome);
+    }
+
+    /** A part of a file a clean had to leave out (a Motion Photo's video, a gain map...). */
+    public static void partDropped(boolean video, @NonNull String part) {
+        SentryManager.count("clean.part_dropped", 1, "media_type", mediaType(video), "outcome", part);
+    }
+
+    /** Which way a file was cleaned (rebuilt, fast copy, transcoded...), as {@code clean.path}. */
+    public static void cleanPath(boolean video, @NonNull String path) {
+        SentryManager.count("clean.path", 1, "media_type", mediaType(video), "outcome", path);
+    }
+
+    /** A shared item in a type the app does not take, by its MIME type, as {@code media.unsupported}. */
+    public static void unsupportedMedia(@NonNull String mimeTypeTag) {
+        SentryManager.count("media.unsupported", 1, "mime_type", mimeTypeTag);
+    }
+
+    /** A censored photo saved smaller than the original, as {@code censor.save{downscaled}}. */
+    public static void censorSavedSmaller() {
+        SentryManager.count("censor.save", 1, "outcome", "downscaled");
+    }
+
+    /** Why Android ended the app's process and in what state, as {@code app.exit}. */
+    public static void appExit(@NonNull String reason, @NonNull String importance, long rssKb) {
+        SentryManager.count("app.exit", 1, "outcome", reason, "processing_state", importance);
+        if (rssKb > 0) {
+            SentryManager.distribution("app.exit.memory_mb", rssKb / 1024.0, "outcome", reason);
+        }
+    }
 }

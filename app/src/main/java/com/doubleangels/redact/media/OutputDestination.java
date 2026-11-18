@@ -22,6 +22,7 @@ import androidx.annotation.VisibleForTesting;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.File;
@@ -108,8 +109,7 @@ public final class OutputDestination {
             // Folder deleted, permission revoked or provider gone: save to the default instead of
             // failing the whole job, and tell the user once so they know where to look.
             SentryManager.logEvent("Output", "The chosen output folder could not be used: " + failure + ".");
-            SentryManager.count("output.folder_fallback", 1,
-                    "media_type", video ? "video" : "image", "error_type", failure);
+            AppMetrics.outputFolderFallback(video, failure);
             warnFallback(context, tree, video);
         }
 
@@ -182,8 +182,7 @@ public final class OutputDestination {
         }
         if (!MessageDigest.isEqual(expectedSha256, digest.digest())) {
             SentryManager.setCustomKey("metadata_verification_passed", false);
-            SentryManager.count("verification.failed", 1,
-                    "media_type", mediaTypeOf(resolver, output), "outcome", "saved_copy_differs");
+            AppMetrics.verificationFailed(mediaTypeOf(resolver, output), "saved_copy_differs");
             throw new IOException("Metadata verification failed: the saved copy differs from the verified one");
         }
     }
