@@ -31,8 +31,6 @@ import org.robolectric.android.controller.ActivityController;
 import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowDialog;
 
-import java.lang.reflect.Field;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /** Settings behaviour that depends on runtime permissions (API 34: partial media access, notifications). */
 @RunWith(RobolectricTestRunner.class)
@@ -89,13 +87,7 @@ public class SettingsPermissionFlowsTest {
     }
 
     private static void setShareSessions(int count) {
-        try {
-            Field f = ShareHandlerActivity.class.getDeclaredField("activeShareSessions");
-            f.setAccessible(true);
-            ((AtomicInteger) f.get(null)).set(count);
-        } catch (ReflectiveOperationException e) {
-            throw new AssertionError(e);
-        }
+        AppProcessingScope.get(RuntimeEnvironment.getApplication()).activeSharesForTests().set(count);
     }
 
     private void resume() {

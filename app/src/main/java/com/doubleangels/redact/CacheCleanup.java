@@ -6,6 +6,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
+import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.InboundSnapshots;
 import com.doubleangels.redact.media.SecureDelete;
 
@@ -246,7 +247,7 @@ public final class CacheCleanup {
     @VisibleForTesting
     static boolean shouldRunAutoCleanup(@NonNull Context context) {
         if (!AppPreferences.isAutoClearTempFiles(context)
-                || ShareHandlerActivity.isShareProcessingActive()) {
+                || AppProcessingScope.get(context).isShareRunning()) {
             return false;
         }
         return autoCleanupScheduledThisProcess.compareAndSet(false, true);

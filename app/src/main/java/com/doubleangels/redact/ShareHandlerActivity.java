@@ -1,5 +1,6 @@
 package com.doubleangels.redact;
 
+import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.BatchRun;
 import com.doubleangels.redact.media.InboundSnapshots;
 import java.util.HashMap;
@@ -71,10 +72,6 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private static final String KEY_SHARING_INITIATED = "sharing_initiated";
     private static final String KEY_PROCESSING_ACTIVE = "processing_active";
 
-    /** Tracks in-flight share processing so MainActivity does not delete temp files mid-share. */
-    private static final AtomicInteger activeShareSessions =
-            new AtomicInteger(0);
-
     /**
      * Runs secure-delete cleanup off the calling thread. Overwriting a large video file with
      * random data multiple times plus fsync (see {@link SecureDelete}) can take long enough to
@@ -132,10 +129,6 @@ public class ShareHandlerActivity extends AppCompatActivity {
         }
     }
 
-    public static boolean isShareProcessingActive() {
-        return activeShareSessions.get() > 0;
-    }
-
     private final ActivityResultLauncher<Intent> shareResultLauncher =
             registerForActivityResult(
                     new ActivityResultContracts.StartActivityForResult(),
@@ -176,7 +169,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         final int id;
         final MetadataStripper stripper;
         final AtomicBoolean ended = new AtomicBoolean(false);
-        /** Whether {@link #activeShareSessions} counts this session; touched on the main thread only. */
+        /** Whether {@link AppProcessingScope} counts this session as running; touched on the main thread only. */
         boolean counted;
         private final List<File> snapshots = new ArrayList<>();
         private boolean snapshotsClosed;
@@ -542,7 +535,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         final MetadataStripper stripper = session.stripper;
         processingActive = true;
         session.counted = true;
-        activeShareSessions.incrementAndGet();
+        AppProcessingScope.get(this).shareStarted();
         LocalNotifications.startProcessingForeground(
                 this, LocalNotifications.ForegroundJob.SHARE, getString(R.string.share_processing_title));
         Thread worker = new Thread(() -> {
@@ -721,7 +714,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             return;
         }
         if (session.counted) {
-            activeShareSessions.updateAndGet(count -> Math.max(0, count - 1));
+            AppProcessingScope.get(this).shareEnded();
         }
         if (session == shareSession) {
             processingActive = false;

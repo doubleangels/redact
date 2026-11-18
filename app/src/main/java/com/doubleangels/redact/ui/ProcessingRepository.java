@@ -15,7 +15,6 @@ import androidx.lifecycle.SavedStateHandle;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
-import com.doubleangels.redact.ShareHandlerActivity;
 import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.BatchRun;
 import com.doubleangels.redact.media.FormatConverter;
@@ -452,7 +451,7 @@ public final class ProcessingRepository {
 
     void startCleaning(List<MediaItem> items) {
         if (items == null || items.isEmpty()) return;
-        if (ShareHandlerActivity.isShareProcessingActive()) {
+        if (scope.isShareRunning()) {
             cleanProgressMessage.postValue(app.getString(R.string.status_already_processing));
             return;
         }
@@ -559,7 +558,7 @@ public final class ProcessingRepository {
             int imageFormatIndex,
             Bitmap.CompressFormat imageFormat) {
         if (items == null || items.isEmpty()) return;
-        if (ShareHandlerActivity.isShareProcessingActive()) {
+        if (scope.isShareRunning()) {
             convertProgressMessage.postValue(app.getString(R.string.status_already_processing));
             return;
         }

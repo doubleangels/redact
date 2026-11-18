@@ -238,7 +238,7 @@ public class ShareHandlerActivityFlowsTest {
         assertFalse(activity.isFinishing());
         assertNotNull(ShadowDialog.getLatestDialog());
         awaitMain(() -> inboundSnapshots().length == 1);
-        assertFalse(ShareHandlerActivity.isShareProcessingActive());
+        assertFalse(AppProcessingScope.get(RuntimeEnvironment.getApplication()).isShareRunning());
     }
 
     /** Holds the first clean of the test until released, then cleans as usual. */
@@ -446,7 +446,7 @@ public class ShareHandlerActivityFlowsTest {
 
         assertTrue(activity.isFinishing());
         assertEquals(app.getString(R.string.status_processing_cancelled), ShadowToast.getTextOfLatestToast());
-        awaitMain(() -> !ShareHandlerActivity.isShareProcessingActive());
+        awaitMain(() -> !AppProcessingScope.get(RuntimeEnvironment.getApplication()).isShareRunning());
     }
 
     @Test
@@ -485,7 +485,7 @@ public class ShareHandlerActivityFlowsTest {
         }
         awaitMain(() -> {
             idle();
-            return !ShareHandlerActivity.isShareProcessingActive();
+            return !AppProcessingScope.get(RuntimeEnvironment.getApplication()).isShareRunning();
         });
         idle();
 

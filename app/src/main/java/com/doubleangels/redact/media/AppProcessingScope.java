@@ -3,6 +3,7 @@ package com.doubleangels.redact.media;
 import android.app.Application;
 import android.content.Context;
 
+import androidx.annotation.VisibleForTesting;
 import androidx.annotation.NonNull;
 
 import com.doubleangels.redact.ui.ProcessingRepository;
@@ -39,6 +40,8 @@ public final class AppProcessingScope {
      * service moving the generation counter, which would make the loop drop its own final update.
      */
     private final AtomicBoolean convertTimedOut = new AtomicBoolean(false);
+    /** Shares being cleaned, so cache sweeps and Reset leave their working files alone. */
+    private final AtomicInteger activeShares = new AtomicInteger(0);
 
     private AppProcessingScope(@NonNull Context context) {
         app = context.getApplicationContext();
@@ -134,6 +137,30 @@ public final class AppProcessingScope {
 
     public boolean isConvertBusy() {
         return convertInProgress.get();
+    }
+
+    /** Counts a share that started cleaning; {@link #shareEnded} must follow it. */
+    public void shareStarted() {
+        activeShares.incrementAndGet();
+    }
+
+    public void shareEnded() {
+        activeShares.updateAndGet(count -> Math.max(0, count - 1));
+    }
+
+    public boolean isShareRunning() {
+        return activeShares.get() > 0;
+    }
+
+    /** Whether a share, clean or convert is running: the one question to ask before touching their files. */
+    public boolean isAnyJobRunning() {
+        return isShareRunning() || repository().isProcessingActive();
+    }
+
+    @VisibleForTesting
+    @NonNull
+    public AtomicInteger activeSharesForTests() {
+        return activeShares;
     }
 
     /** Visible for unit tests. */

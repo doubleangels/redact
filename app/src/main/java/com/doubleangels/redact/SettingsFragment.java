@@ -30,7 +30,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.content.ContextCompat;
 
-import com.doubleangels.redact.ShareHandlerActivity;
+import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.permission.PermissionStatusHelper;
@@ -917,7 +917,7 @@ public class SettingsFragment extends TabFragment {
     private void resetAllSettings() {
         Context context = requireContext();
         // A running job may be writing into a chosen folder whose grant this would release.
-        if (ShareHandlerActivity.isShareProcessingActive() || MainViewModel.isAnyProcessing(requireActivity())) {
+        if (MainViewModel.isAnyProcessing(requireActivity())) {
             Notice.show(context, R.string.settings_reset_all_busy, false);
             return;
         }
@@ -1064,7 +1064,7 @@ public class SettingsFragment extends TabFragment {
     }
 
     private void clearTempFiles() {
-        if (ShareHandlerActivity.isShareProcessingActive()) {
+        if (AppProcessingScope.get(requireContext()).isShareRunning()) {
             Notice.show(requireContext(), R.string.settings_storage_clear_busy, false);
             return;
         }

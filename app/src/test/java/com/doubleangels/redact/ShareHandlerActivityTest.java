@@ -1,5 +1,6 @@
 package com.doubleangels.redact;
 
+import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.InboundSnapshots;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -253,7 +254,7 @@ public class ShareHandlerActivityTest {
 
         assertNull(awaitStartedActivity(activity));
         assertFinishedWithError(activity, R.string.share_error_unsupported_media);
-        assertFalse(ShareHandlerActivity.isShareProcessingActive());
+        assertFalse(AppProcessingScope.get(RuntimeEnvironment.getApplication()).isShareRunning());
     }
 
     @Test
@@ -294,7 +295,7 @@ public class ShareHandlerActivityTest {
         AlertDialog dialog = (AlertDialog) ShadowDialog.getLatestDialog();
         assertNotNull(dialog);
         assertTrue(dialog.isShowing());
-        assertFalse(ShareHandlerActivity.isShareProcessingActive());
+        assertFalse(AppProcessingScope.get(RuntimeEnvironment.getApplication()).isShareRunning());
     }
 
     @Test
@@ -363,7 +364,7 @@ public class ShareHandlerActivityTest {
         Uri cleaned = share.getParcelableExtra(Intent.EXTRA_STREAM, Uri.class);
         assertNotNull(cleaned);
         assertEquals("content", cleaned.getScheme());
-        assertFalse(ShareHandlerActivity.isShareProcessingActive());
+        assertFalse(AppProcessingScope.get(RuntimeEnvironment.getApplication()).isShareRunning());
     }
 
     @Test
@@ -418,7 +419,7 @@ public class ShareHandlerActivityTest {
 
         assertNull("Unexpected share chooser" + loggedErrors(), started);
         assertFinishedWithError(activity, R.string.share_error_unsupported_media);
-        assertFalse(ShareHandlerActivity.isShareProcessingActive());
+        assertFalse(AppProcessingScope.get(RuntimeEnvironment.getApplication()).isShareRunning());
     }
 
     @Test
