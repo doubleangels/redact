@@ -1,6 +1,7 @@
 package com.doubleangels.redact;
 
 import com.doubleangels.redact.ui.BatchScanSummary;
+import android.os.SystemClock;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -536,14 +537,14 @@ public class ScanFragment extends TabFragment {
             finishActiveScanTransaction(SpanStatus.CANCELLED);
             final ITransaction transaction = SentryManager.startTransaction("extract_metadata", "task");
             activeScanTransaction = transaction;
-            final long scanStartMs = System.currentTimeMillis();
+            final long scanStartMs = SystemClock.elapsedRealtime();
             final boolean scannedVideo = isVideo;
             MetadataDisplayer.extractSectionedMetadata(
                     requireContext().getApplicationContext(), mediaUri, new MetadataDisplayer.SectionedMetadataCallback() {
                 @Override
                 public void onMetadataExtracted(Map<String, String> metadataSections, boolean isVideo) {
                     AppMetrics.item(AppMetrics.SCAN, isVideo, AppMetrics.SUCCESS,
-                            System.currentTimeMillis() - scanStartMs);
+                            SystemClock.elapsedRealtime() - scanStartMs);
                     transaction.setStatus(SpanStatus.OK);
                     transaction.finish();
                     activeScanTransaction = null;

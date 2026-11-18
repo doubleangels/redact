@@ -1,5 +1,7 @@
 package com.doubleangels.redact.update;
 
+import android.os.SystemClock;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
@@ -90,10 +92,10 @@ public final class UpdateChecker {
     @WorkerThread
     @NonNull
     public Result checkNow() {
-        long startedAt = System.currentTimeMillis();
+        long startedAt = SystemClock.elapsedRealtime();
         Result result = check();
         AppMetrics.updateCheck(result.status.name().toLowerCase(Locale.ROOT),
-                System.currentTimeMillis() - startedAt);
+                SystemClock.elapsedRealtime() - startedAt);
         return result;
     }
 

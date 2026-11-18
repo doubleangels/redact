@@ -1,5 +1,6 @@
 package com.doubleangels.redact.ui;
 
+import android.os.SystemClock;
 import android.app.ActivityManager;
 import android.app.Application;
 import android.content.Context;
@@ -545,14 +546,14 @@ public class CensorViewModel extends AndroidViewModel {
         String name = fileName.getValue();
         state.setValue(State.SAVING);
         SentryManager.logEvent("Censor", "The app is saving a censored copy.");
-        long saveStartMs = System.currentTimeMillis();
+        long saveStartMs = SystemClock.elapsedRealtime();
         worker.execute(() -> {
             SentryManager.beginOperation("censor_export");
             try {
                 CensorExporter.Result result =
                         CensorExporter.export(getApplication(), uri, name, snapshot, cropSnapshot, chosen);
                 AppMetrics.item(AppMetrics.CENSOR, false, AppMetrics.SUCCESS,
-                        System.currentTimeMillis() - saveStartMs);
+                        SystemClock.elapsedRealtime() - saveStartMs);
                 AppMetrics.censorRegions(snapshot.size());
                 // The copy went through a clean, so it counts in the statistics like one.
                 StatsStore.recordClean(getApplication(),
@@ -574,7 +575,7 @@ public class CensorViewModel extends AndroidViewModel {
                         getApplication(), AppPreferences.HINT_CENSOR);
                 LocalNotifications.showCleanComplete(getApplication(), 1, 0, result.stats != null && result.stats.hadLocation ? 1 : 0);
                 SentryManager.logEvent("Censor", "The censored copy was saved.");
-                countCensorSave(result.downscaled, System.currentTimeMillis() - saveStartMs);
+                countCensorSave(result.downscaled, SystemClock.elapsedRealtime() - saveStartMs);
                 state.postValue(State.SAVED);
             } catch (Exception e) {
                 SentryManager.setCustomKey("error_type", e.getClass().getName());
