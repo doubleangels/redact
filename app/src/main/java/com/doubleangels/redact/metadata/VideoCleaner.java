@@ -306,14 +306,11 @@ final class VideoCleaner {
                 }
                 return 0;
             }
-        } catch (Exception ignored) {
-            SentryManager.logEvent("Video", "An exception was ignored: " + ignored.getClass().getSimpleName() + ".");
+        } catch (Exception e) {
+            SentryManager.logEvent("Video", "The source codec could not be read, so H.264 is used: "
+                    + e.getClass().getSimpleName() + ".");
         } finally {
-            try {
-                extractor.release();
-            } catch (Exception ignored) {
-                SentryManager.logEvent("Video", "An exception was ignored: " + ignored.getClass().getSimpleName() + ".");
-            }
+            releaseQuietly(extractor);
         }
         if (fileName != null) {
             String lower = fileName.toLowerCase(Locale.ROOT);
@@ -524,8 +521,11 @@ final class VideoCleaner {
                             if (rotation != null) {
                                 muxer.setOrientationHint(Integer.parseInt(rotation));
                             }
-                        } catch (Exception ignored) { SentryManager.logEvent("Video", "An exception was ignored: " + ignored.getClass().getSimpleName() + "."); } finally {
-                            try { retriever.release(); } catch (Exception ignored) { SentryManager.logEvent("Video", "An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
+                        } catch (Exception e) {
+                            SentryManager.logEvent("Video", "The rotation could not be read, so the copy keeps the stream's own: "
+                                    + e.getClass().getSimpleName() + ".");
+                        } finally {
+                            releaseQuietly(retriever);
                         }
                     }
                     muxerVideoTrackIndex = muxer.addTrack(format);
@@ -577,9 +577,13 @@ final class VideoCleaner {
             }
             return null;
         } finally {
-            try { extractor.release(); } catch (Exception ignored) { SentryManager.logEvent("Video", "An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
+            releaseQuietly(extractor);
             if (muxer != null) {
-                try { muxer.release(); } catch (Exception ignored) { SentryManager.logEvent("Video", "An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
+                try {
+                    muxer.release();
+                } catch (RuntimeException ignored) {
+                    // Releasing after a failed copy; nothing left to recover.
+                }
             }
             // Every way out but success, including the early returns once the muxer has created
             // the file, leaves an unused (possibly partly written) copy of the video behind.
@@ -657,7 +661,14 @@ final class VideoCleaner {
                 succeeded = true;
                 return outputFile;
             }
-            muxer = new Mp4Muxer.Builder(new FileOutputStream(outputFile)).build();
+            FileOutputStream muxerOut = new FileOutputStream(outputFile);
+            try {
+                muxer = new Mp4Muxer.Builder(muxerOut).build();
+            } catch (RuntimeException e) {
+                // The muxer never took the stream, so it is closed here.
+                muxerOut.close();
+                throw e;
+            }
             if (keepLocation != null) {
                 // Written from the value asked for, nothing copied from the source.
                 muxer.addMetadataEntry(new Mp4LocationData(
@@ -697,9 +708,13 @@ final class VideoCleaner {
             AppMetrics.partDropped(true, "webm_kept");
             return null;
         } finally {
-            try { extractor.release(); } catch (Exception ignored) { SentryManager.logEvent("Video", "An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
+            releaseQuietly(extractor);
             if (muxer != null) {
-                try { muxer.close(); } catch (Exception ignored) { SentryManager.logEvent("Video", "An exception was ignored: " + ignored.getClass().getSimpleName() + "."); }
+                try {
+                    muxer.close();
+                } catch (Exception ignored) {
+                    // Closing after a failed copy; nothing left to recover.
+                }
             }
             if (!succeeded && outputFile != null && outputFile.exists()) {
                 host.secureDeleteFile(outputFile);
@@ -853,5 +868,22 @@ final class VideoCleaner {
      */
     private static void countVideoPath(@NonNull String path) {
         AppMetrics.cleanPath(true, path);
+    }
+
+    /** Releases a reader after its work, failed or not; a failure here changes nothing. */
+    private static void releaseQuietly(@NonNull MediaExtractor extractor) {
+        try {
+            extractor.release();
+        } catch (RuntimeException ignored) {
+            // Nothing left to recover.
+        }
+    }
+
+    private static void releaseQuietly(@NonNull MediaMetadataRetriever retriever) {
+        try {
+            retriever.release();
+        } catch (IOException | RuntimeException ignored) {
+            // Nothing left to recover.
+        }
     }
 }
