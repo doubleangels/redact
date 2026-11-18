@@ -173,7 +173,7 @@ public final class HeifContainerMetadata {
                 } else if (size == 0) {
                     size = length - pos;
                 }
-                if (size < header || pos + size > length) {
+                if (size < header || size > length - pos) {
                     if (!heif) {
                         return ImageContainerMetadata.Report.unrecognized(ImageContainerMetadata.Format.OTHER);
                     }
@@ -400,7 +400,7 @@ public final class HeifContainerMetadata {
                 } else if (size == 0) {
                     size = length - pos;
                 }
-                if (size < header || pos + size > length) {
+                if (size < header || size > length - pos) {
                     if (ftyp != null && (meta != null || moov != null)) {
                         // Data after the last box, such as a vendor trailer: never copied, so it
                         // need not stop a lossless clean.
@@ -1872,7 +1872,7 @@ public final class HeifContainerMetadata {
         } else if (size == 0) {
             size = data.length - pos;
         }
-        if (size < 8 || pos + size > data.length) {
+        if (size < 8 || size > data.length - pos) {
             throw new IOException("Damaged box");
         }
         return (int) size;
