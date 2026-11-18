@@ -205,6 +205,16 @@ jobs:
         with:
           persist-credentials: false
 
+      # Without these the bundle still builds, but opted-in users would send nothing and every
+      # stack trace would stay obfuscated, which nobody would notice until the dashboard went quiet.
+      - name: Require the Sentry secrets
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          test -n "$SENTRY_DSN" || { echo "::error::The SENTRY_DSN secret is not set"; exit 1; }
+          test -n "$SENTRY_AUTH_TOKEN" || { echo "::error::The SENTRY_AUTH_TOKEN secret is not set"; exit 1; }
+
       - name: Setup Android build
         uses: ./.github/actions/setup-android-build
 
