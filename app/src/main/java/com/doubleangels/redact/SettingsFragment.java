@@ -1064,25 +1064,29 @@ public class SettingsFragment extends TabFragment {
     }
 
     private void clearTempFiles() {
-        if (AppProcessingScope.get(requireContext()).isShareRunning()) {
-            Notice.show(requireContext(), R.string.settings_storage_clear_busy, false);
-            return;
-        }
-        if (getActivity() != null && MainViewModel.isAnyProcessing(requireActivity())) {
+        final Context ctx = requireContext().getApplicationContext();
+        AppProcessingScope scope = AppProcessingScope.get(ctx);
+        if (scope.isAnyJobRunning()) {
             Notice.show(requireContext(), R.string.settings_storage_clear_busy, false);
             return;
         }
         if (backgroundExecutor == null) {
             return;
         }
-        final Context ctx = requireContext().getApplicationContext();
         backgroundExecutor.execute(() -> {
-            long before = CacheCleanup.getTempCacheSizeBytes(ctx);
-            int deleted = CacheCleanup.clearAllTempFiles(ctx);
+            // Asked again here, on the thread that deletes: a share that came in from another app
+            // since the tap would otherwise lose its working files partway through.
+            boolean busy = scope.isAnyJobRunning();
+            long before = busy ? 0 : CacheCleanup.getTempCacheSizeBytes(ctx);
+            int deleted = busy ? 0 : CacheCleanup.clearAllTempFiles(ctx);
             Activity activity = getActivity();
             if (activity != null) {
                 activity.runOnUiThread(() -> {
                     if (isAdded()) {
+                        if (busy) {
+                            Notice.show(requireContext(), R.string.settings_storage_clear_busy, false);
+                            return;
+                        }
                         refreshStorageSize();
                         // The fragment's context, not ctx: from the application context the notice
                         // can only be a toast, not a snackbar in the screen like every other notice.
