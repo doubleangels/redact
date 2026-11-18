@@ -76,7 +76,7 @@ public final class InboundSnapshots {
                 }
                 failed.incrementAndGet();
                 AppMetrics.snapshotFailure(
-                        e instanceof FileNotFoundException ? "not_found" : e.getClass().getSimpleName());
+                        e instanceof FileNotFoundException ? "not_found" : SentryManager.errorType(e));
                 if (e instanceof FileNotFoundException) {
                     // The sharing app handed over a URI whose item no longer exists (deleted, or a
                     // stale cloud or gallery entry). Nothing on our side to fix.

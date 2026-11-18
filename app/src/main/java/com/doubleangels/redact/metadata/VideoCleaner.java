@@ -195,7 +195,7 @@ final class VideoCleaner {
             }
             Log.e(TAG, "Error processing video", e);
             SentryManager.setCustomKey("success", false);
-            SentryManager.setCustomKey("error_type", e.getClass().getName());
+            SentryManager.setCustomKey("error_type", SentryManager.errorType(e));
             SentryManager.recordException(e);
 
             if (newUri != null) {
@@ -209,7 +209,7 @@ final class VideoCleaner {
             // Log error and clean up any partial files
             Log.e(TAG, "Error processing video", e);
             SentryManager.setCustomKey("success", false);
-            SentryManager.setCustomKey("error_type", e.getClass().getName());
+            SentryManager.setCustomKey("error_type", SentryManager.errorType(e));
             SentryManager.recordException(e);
 
             if (newUri != null) {
@@ -305,7 +305,7 @@ final class VideoCleaner {
             Log.e(TAG, "Error processing video for sharing", e);
             job.unsupported = UnsupportedMediaException.isCauseOf(e);
             SentryManager.setCustomKey("success", false);
-            SentryManager.setCustomKey("error_type", e.getClass().getName());
+            SentryManager.setCustomKey("error_type", SentryManager.errorType(e));
             SentryManager.recordException(e);
             if (outputFile != null && outputFile.exists()) {
                 host.secureDeleteFile(outputFile);

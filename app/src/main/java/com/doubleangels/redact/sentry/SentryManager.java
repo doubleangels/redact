@@ -11,6 +11,8 @@ import androidx.annotation.VisibleForTesting;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.BuildConfig;
+import com.doubleangels.redact.media.CleanFailedException;
+import com.doubleangels.redact.media.MediaSizeLimits;
 import com.doubleangels.redact.media.ProcessingCancelledException;
 import com.doubleangels.redact.media.UnsupportedMediaException;
 
@@ -244,6 +246,29 @@ public final class SentryManager {
             return false;
         }
         return AppPreferences.isCrashReportingEnabled(appContext);
+    }
+
+    /**
+     * An exception's kind for the {@code error_type} tag and metric attributes: its simple class
+     * name, the same on every event and metric. The app's own exceptions get their source names,
+     * since a release build renames their classes and Sentry deobfuscates stack frames, not tag
+     * values.
+     */
+    @NonNull
+    public static String errorType(@NonNull Throwable e) {
+        if (e instanceof CleanFailedException) {
+            return "CleanFailedException";
+        }
+        if (e instanceof UnsupportedMediaException) {
+            return "UnsupportedMediaException";
+        }
+        if (e instanceof ProcessingCancelledException) {
+            return "ProcessingCancelledException";
+        }
+        if (e instanceof MediaSizeLimits.TooLargeException) {
+            return "TooLargeException";
+        }
+        return e.getClass().getSimpleName();
     }
 
     public static boolean isIgnored(Throwable e) {

@@ -115,7 +115,7 @@ final class ImageCleaner {
             }
             Log.e(TAG, "Error processing image", e);
             SentryManager.setCustomKey("success", false);
-            SentryManager.setCustomKey("error_type", e.getClass().getName());
+            SentryManager.setCustomKey("error_type", SentryManager.errorType(e));
             SentryManager.recordException(e);
 
             if (newUri != null) {
@@ -129,7 +129,7 @@ final class ImageCleaner {
             // Log error and clean up any partial files
             Log.e(TAG, "Error processing image", e);
             SentryManager.setCustomKey("success", false);
-            SentryManager.setCustomKey("error_type", e.getClass().getName());
+            SentryManager.setCustomKey("error_type", SentryManager.errorType(e));
             SentryManager.recordException(e);
 
             if (newUri != null) {
@@ -424,7 +424,7 @@ final class ImageCleaner {
             Log.e(TAG, "Error processing image for sharing", e);
             job.unsupported = UnsupportedMediaException.isCauseOf(e);
             SentryManager.setCustomKey("success", false);
-            SentryManager.setCustomKey("error_type", e.getClass().getName());
+            SentryManager.setCustomKey("error_type", SentryManager.errorType(e));
             SentryManager.recordException(e);
             if (outputFile != null && outputFile.exists()) {
                 host.secureDeleteFile(outputFile);

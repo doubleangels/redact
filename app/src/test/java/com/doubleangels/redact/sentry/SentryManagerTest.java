@@ -15,6 +15,18 @@ import java.nio.channels.ClosedChannelException;
 
 public class SentryManagerTest {
 
+    /** One value per kind of error on every event and metric, readable in a release build too. */
+    @Test
+    public void errorType_isTheSimpleName_andTheAppsOwnKeepTheirNames() {
+        org.junit.Assert.assertEquals("IOException", SentryManager.errorType(new IOException("/storage/a.jpg")));
+        org.junit.Assert.assertEquals("CleanFailedException",
+                SentryManager.errorType(new com.doubleangels.redact.media.CleanFailedException("x")));
+        org.junit.Assert.assertEquals("ProcessingCancelledException",
+                SentryManager.errorType(new ProcessingCancelledException("x")));
+        org.junit.Assert.assertEquals("TooLargeException",
+                SentryManager.errorType(new com.doubleangels.redact.media.MediaSizeLimits.TooLargeException()));
+    }
+
     /** Every metric attribute key must be on the allow-list, and pairs must be whole. */
     @Test
     public void metricAttributes_areAllowListedPairs() {

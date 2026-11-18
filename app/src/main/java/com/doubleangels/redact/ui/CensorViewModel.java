@@ -578,7 +578,7 @@ public class CensorViewModel extends AndroidViewModel {
                 countCensorSave(result.downscaled, SystemClock.elapsedRealtime() - saveStartMs);
                 state.postValue(State.SAVED);
             } catch (Exception e) {
-                SentryManager.setCustomKey("error_type", e.getClass().getName());
+                SentryManager.setCustomKey("error_type", SentryManager.errorType(e));
                 AppMetrics.item(AppMetrics.CENSOR, false,
                         AppMetrics.outcomeOf(e, UnsupportedMediaException.isCauseOf(e)), -1);
                 SentryManager.recordException(e);

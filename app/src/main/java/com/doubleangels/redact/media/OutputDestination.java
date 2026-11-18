@@ -104,7 +104,7 @@ public final class OutputDestination {
                 }
                 failure = "ProviderCreatedNothing";
             } catch (Exception e) {
-                failure = e.getClass().getSimpleName();
+                failure = SentryManager.errorType(e);
             }
             // Folder deleted, permission revoked or provider gone: save to the default instead of
             // failing the whole job, and tell the user once so they know where to look.

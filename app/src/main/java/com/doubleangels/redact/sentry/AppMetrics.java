@@ -65,7 +65,7 @@ public final class AppMetrics {
     /** {@link #itemFailed} for a file that threw {@code error}. */
     public static void itemFailed(@NonNull String job, boolean video, @NonNull Throwable error,
                                   boolean unsupported) {
-        itemFailed(job, video, outcomeOf(error, unsupported), error.getClass().getSimpleName());
+        itemFailed(job, video, outcomeOf(error, unsupported), SentryManager.errorType(error));
     }
 
     /** {@link #itemFailed} for a file a job returned unfinished without throwing. */
@@ -247,7 +247,7 @@ public final class AppMetrics {
      */
     public static void foregroundServiceFailure(@NonNull String stage, @NonNull Throwable error) {
         SentryManager.count("foreground_service.failure", 1,
-                "outcome", stage, "error_type", error.getClass().getSimpleName());
+                "outcome", stage, "error_type", SentryManager.errorType(error));
     }
 
     /**
@@ -260,7 +260,7 @@ public final class AppMetrics {
 
     /** A notification Android refused to post, by exception class, as {@code notification.failure}. */
     public static void notificationFailure(@NonNull Throwable error) {
-        SentryManager.count("notification.failure", 1, "error_type", error.getClass().getSimpleName());
+        SentryManager.count("notification.failure", 1, "error_type", SentryManager.errorType(error));
     }
 
     /**
@@ -281,7 +281,7 @@ public final class AppMetrics {
     /** A file the already-clean check could not read, as {@code already_clean.check{error}}. */
     public static void alreadyCleanError(@NonNull Throwable error) {
         SentryManager.count("already_clean.check", 1, "outcome", "error",
-                "error_type", error.getClass().getSimpleName());
+                "error_type", SentryManager.errorType(error));
     }
 
     /** Files the already-clean check had no time left for, as {@code already_clean.check{timed_out}}. */
@@ -322,7 +322,7 @@ public final class AppMetrics {
     /** A secure delete whose overwrite failed, so the file was only unlinked. */
     public static void secureDeleteOverwriteFailed(@NonNull Throwable error) {
         SentryManager.count("secure_delete.fallback", 1, "outcome", "overwrite_failed",
-                "error_type", error.getClass().getSimpleName());
+                "error_type", SentryManager.errorType(error));
     }
 
     /** A secure delete that could not even unlink the file. */

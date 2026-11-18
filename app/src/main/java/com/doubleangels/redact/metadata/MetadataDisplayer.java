@@ -241,7 +241,7 @@ public class MetadataDisplayer {
                 // otherwise swallow it and leave Scan on "Analyzing" for good.
                 Log.e(TAG, "Error extracting sectioned metadata", e);
                 SentryManager.setCustomKey("extraction_failed", true);
-                SentryManager.setCustomKey("error_type", e.getClass().getName());
+                SentryManager.setCustomKey("error_type", SentryManager.errorType(e));
                 SentryManager.recordException(e);
                 if (isActiveScan(taskRef[0])) {
                     String errorMessage = context.getString(R.string.status_extraction_fail);
